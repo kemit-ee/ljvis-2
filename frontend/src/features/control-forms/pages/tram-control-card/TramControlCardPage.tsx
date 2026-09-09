@@ -12,7 +12,7 @@ import { getTramFormSnapshot, deleteTramForm } from '../../api';
 import type { TramControlCard, Driver } from '../../types';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
-import { TramDriverControlSection } from '../../components/TramControlCard/TramDriverControlSection';
+import { DriveRestFormFields } from '../../components/DriveRestForm/DriveRestFormFields';
 import { EtoimikQueryCard } from '../../components/EtoimikQueryCard/EtoimikQueryCard';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
@@ -151,6 +151,14 @@ export function TramControlCardPage() {
     handleDriverPersonSearch,
     triggerConfirm,
     triggerPublish,
+    cargoCabotageViolations,
+    passengerCabotageViolations,
+    transportClassItems,
+    docRightChecks,
+    docRightOtherDocs,
+    tachographTypes,
+    drivingViolations,
+    massDimensions,
   } = useTramControlCard(
     (snapshot ?? form) ?? undefined,
     handleSaved,
@@ -257,24 +265,23 @@ export function TramControlCardPage() {
           isSnapshot
           formType={FORM_TYPE}
         />
-        <TramDriverControlSection
-          formik={
-            {
-              values: {
-                transportType: snapshot.transportType ?? '',
-                resultType: snapshot.resultType ?? 'ok',
-                proceedingType: snapshot.proceedingType ?? 'none',
-                proceedingReferenceNumber:
-                  snapshot.proceedingReferenceNumber ?? '',
-                notes: snapshot.notes ?? '',
-                driverNotApplicable: snapshot.driverNotApplicable,
-              },
-              touched: {},
-              errors: {},
-              setFieldValue: () => Promise.resolve(),
-            } as never
-          }
-        />
+      <DriveRestFormFields
+        type="driver"
+        formik={formik as never}
+        isDesktop={isDesktop}
+        hideDriveRestExtras
+        filesFormType="tram-control-card-form"
+        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
+        readOnly
+        transportClassItems={transportClassItems}
+        cargoCabotageViolations={cargoCabotageViolations}
+        passengerCabotageViolations={passengerCabotageViolations}
+        docRightChecks={docRightChecks}
+        docRightOtherDocs={docRightOtherDocs}
+        tachographTypes={tachographTypes}
+        drivingViolations={drivingViolations}
+        massDimensions={massDimensions}
+      />
       </div>
     );
   }
@@ -357,7 +364,23 @@ export function TramControlCardPage() {
       {showEdit ? (
         <>
           <CompoundFormEditCard {...editCardProps} />
-          <TramDriverControlSection formik={formik as never} />
+      <DriveRestFormFields
+        type="driver"
+        formik={formik as never}
+        isDesktop={isDesktop}
+        hideDriveRestExtras
+        filesFormType="tram-control-card-form"
+        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
+        readOnly={false}
+        transportClassItems={transportClassItems}
+        cargoCabotageViolations={cargoCabotageViolations}
+        passengerCabotageViolations={passengerCabotageViolations}
+        docRightChecks={docRightChecks}
+        docRightOtherDocs={docRightOtherDocs}
+        tachographTypes={tachographTypes}
+        drivingViolations={drivingViolations}
+        massDimensions={massDimensions}
+      />
         </>
       ) : (
         <>
@@ -369,7 +392,23 @@ export function TramControlCardPage() {
             formType={FORM_TYPE}
             versionsRefreshKey={versionsRefreshKey}
           />
-          <TramDriverControlSection formik={formik as never} />
+      <DriveRestFormFields
+        type="driver"
+        formik={formik as never}
+        isDesktop={isDesktop}
+        hideDriveRestExtras
+        filesFormType="tram-control-card-form"
+        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
+        readOnly
+        transportClassItems={transportClassItems}
+        cargoCabotageViolations={cargoCabotageViolations}
+        passengerCabotageViolations={passengerCabotageViolations}
+        docRightChecks={docRightChecks}
+        docRightOtherDocs={docRightOtherDocs}
+        tachographTypes={tachographTypes}
+        drivingViolations={drivingViolations}
+        massDimensions={massDimensions}
+      />
         </>
       )}
 
