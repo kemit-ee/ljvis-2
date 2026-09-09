@@ -45,10 +45,12 @@ assignParams:
 # and identifies itself via the mandatory X-Road-Client header — there is no API
 # key/bearer token in X-Road, auth is handled by the Security Server (mutual TLS
 # between security servers + access-rights granted to our subsystem by RR).
+# TODO: kui XROAD_SECURITY_SERVER on constants.ini-s (SSM) õige väärtusega täidetud,
+#   eemalda hardcoded URL ja taasta: "[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
 callRr:
   call: http.post
   args:
-    url: "[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
+    url: "https://urien.ml.ee/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
     headers:
       type: json
       X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"

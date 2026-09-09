@@ -16,7 +16,10 @@ incoming_requests:
 internal_requests:
   disabled: false
   block_private_networks: false
-  allowed_urls: []
+  # TODO: eemalda hardcoded URL kui XROAD_SECURITY_SERVER on SSM-s õige väärtusega täidetud
+  #   ja isikud.yml kasutab taas [#XROAD_SECURITY_SERVER] muutujat
+  allowed_urls:
+    - "https://urien.ml.ee"
   allowed_ips: []
 
 http_codes_allow_list: [200, 201, 202, 400, 401, 403, 404, 409, 422, 500, 502]
