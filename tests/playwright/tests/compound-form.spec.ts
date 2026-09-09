@@ -175,7 +175,11 @@ test.describe('Koondvorm — #280 muudatused', () => {
   }) => {
     await page.goto(NEW);
     await page.locator('#companyName').fill('Mittetuntud Firma AS');
-    await page.getByRole('button', { name: 'Otsi nime järgi' }).click();
+    // Nimevälja kõrval on eraldi otsingunupp (regikoodi otsingust eraldi).
+    await page
+      .locator('#companyName')
+      .locator('xpath=following::button[1]')
+      .click();
     await expect(
       page.getByText(/ei tagastanud|ei leitud|tulemus/i).first(),
     ).toBeVisible({ timeout: 15_000 });
