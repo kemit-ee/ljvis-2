@@ -941,6 +941,7 @@
       "companyRegCode": "Eesti ettevõtte registrikood",
       "companyName": "Ettevõtte nimi",
       "companySearchButton": "Otsi ettevõtet äriregistrist",
+      "companyNameSearchButton": "Otsi nime järgi",
       "companyCountryCode": "Riik",
       "companyCounty": "Maakond",
       "companyCity": "Linn / Vald",

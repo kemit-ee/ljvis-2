@@ -771,6 +771,7 @@
       "companyRegCode": "Estonian company registration code",
       "companyName": "Company name",
       "companySearchButton": "Search business registry",
+      "companyNameSearchButton": "Search by name",
       "companyCountryCode": "Country",
       "companyCounty": "County",
       "companyCity": "City / Municipality",

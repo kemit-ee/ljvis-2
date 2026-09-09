@@ -23,6 +23,8 @@ import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
+import type { XRoadCompany } from '../../../xroad/types';
+import { CompanyPickerModal } from '../CompanyPickerModal';
 import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
 import { MaskedTimeField } from '../shared/MaskedTimeField';
@@ -141,6 +143,10 @@ interface CompoundFormEditCardProps {
   handleCountyChange: (countyId?: number) => void;
   handleCompanyCountyChange: (countyId?: number) => void;
   handleCompanySearch: () => void;
+  handleCompanyNameSearch?: () => void;
+  companyPickerResults?: XRoadCompany[];
+  onCompanyPicked?: (company: XRoadCompany) => void;
+  closeCompanyPicker?: () => void;
   handleVehicleSearch: () => void;
   handleTrailerSearch: (index: number) => void;
   handleMtrSearch: () => void;
@@ -187,6 +193,10 @@ export function CompoundFormEditCard({
   handleCountyChange,
   handleCompanyCountyChange,
   handleCompanySearch,
+  handleCompanyNameSearch,
+  companyPickerResults,
+  onCompanyPicked,
+  closeCompanyPicker,
   handleVehicleSearch,
   handleTrailerSearch,
   handleMtrSearch,
@@ -1106,51 +1116,72 @@ export function CompoundFormEditCard({
                         </Alert>
                       </div>
                     )}
+                    {companyPickerResults &&
+                      companyPickerResults.length > 0 &&
+                      onCompanyPicked &&
+                      closeCompanyPicker && (
+                        <CompanyPickerModal
+                          companies={companyPickerResults}
+                          onSelect={onCompanyPicked}
+                          onClose={closeCompanyPicker}
+                        />
+                      )}
                     <div className={gridClass}>
-                      <TextField
-                        id="companyRegCode"
-                        label={t('forms.compound.companyRegCode')}
-                        value={formik.values.companyRegCode}
-                        input={{ maxLength: 20 }}
-                        onChange={(v) =>
-                          formik.setFieldValue('companyRegCode', v)
-                        }
-                        {...(formik.touched.companyRegCode &&
-                        formik.errors.companyRegCode
-                          ? {
-                              helper: {
-                                text: formik.errors.companyRegCode as string,
-                                type: 'error' as const,
-                              },
+                      <div className={styles['select-row']}>
+                        <div className={styles['select-wrapper']}>
+                          <TextField
+                            id="companyRegCode"
+                            label={t('forms.compound.companyRegCode')}
+                            value={formik.values.companyRegCode}
+                            input={{ maxLength: 20 }}
+                            onChange={(v) =>
+                              formik.setFieldValue('companyRegCode', v)
                             }
-                          : {})}
-                      />
-                      <TextField
-                        id="companyName"
-                        label={t('forms.compound.companyName')}
-                        value={formik.values.companyName}
-                        input={{ maxLength: 300 }}
-                        onChange={(v) => formik.setFieldValue('companyName', v)}
-                        {...(formik.touched.companyName &&
-                        formik.errors.companyName
-                          ? {
-                              helper: {
-                                text: formik.errors.companyName as string,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
-                      />
-                      <div
-                        style={{
-                          gridColumn: '1 / -1',
-                          display: 'flex',
-                          justifyContent: 'flex-end',
-                        }}
-                      >
+                            {...(formik.touched.companyRegCode &&
+                            formik.errors.companyRegCode
+                              ? {
+                                  helper: {
+                                    text: formik.errors.companyRegCode as string,
+                                    type: 'error' as const,
+                                  },
+                                }
+                              : {})}
+                          />
+                        </div>
                         <Button type="button" onClick={handleCompanySearch}>
                           {t('forms.compound.companySearchButton')}
                         </Button>
+                      </div>
+                      <div className={styles['select-row']}>
+                        <div className={styles['select-wrapper']}>
+                          <TextField
+                            id="companyName"
+                            label={t('forms.compound.companyName')}
+                            value={formik.values.companyName}
+                            input={{ maxLength: 300 }}
+                            onChange={(v) =>
+                              formik.setFieldValue('companyName', v)
+                            }
+                            {...(formik.touched.companyName &&
+                            formik.errors.companyName
+                              ? {
+                                  helper: {
+                                    text: formik.errors.companyName as string,
+                                    type: 'error' as const,
+                                  },
+                                }
+                              : {})}
+                          />
+                        </div>
+                        {handleCompanyNameSearch && (
+                          <Button
+                            type="button"
+                            visualType="secondary"
+                            onClick={handleCompanyNameSearch}
+                          >
+                            {t('forms.compound.companyNameSearchButton')}
+                          </Button>
+                        )}
                       </div>
                       <Select
                         id="companyCountryCode"

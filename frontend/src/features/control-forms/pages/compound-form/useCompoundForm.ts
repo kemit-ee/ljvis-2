@@ -628,8 +628,12 @@ export function useCompoundForm(
 
   const {
     searchByRegCode,
+    searchByName,
     error: companySearchError,
     setError: setCompanySearchError,
+    pickerResults: companyPickerResults,
+    handleCompanyPicked: onCompanyPicked,
+    closePicker: closeCompanyPicker,
   } = useCompanySearch({
     onCompanyFound: (company) => {
       const { countyKey, cityKey } = resolveEhakByText(company.city);
@@ -639,10 +643,22 @@ export function useCompoundForm(
       formik.setFieldValue('companyCity', cityKey);
       formik.setFieldValue('companyPostalCode', company.postalCode);
       formik.setFieldValue('companyCountryCode', 'EE');
+      if (company.registryCode) {
+        // Nime järgi otsingul jäi registrikood täitmata — kanna see samuti üle.
+        formik.setFieldValue('companyRegCode', company.registryCode);
+      }
     },
   });
 
-  const handleCompanySearch = () => searchByRegCode(formik.values.companyRegCode);
+  // Üks nupp: kui registrikood on täidetud, otsi selle järgi; muidu nime järgi.
+  const handleCompanySearch = () => {
+    if (formik.values.companyRegCode?.trim()) {
+      searchByRegCode(formik.values.companyRegCode);
+    } else {
+      searchByName(formik.values.companyName);
+    }
+  };
+  const handleCompanyNameSearch = () => searchByName(formik.values.companyName);
 
   const applyVehicleToForm = (vehicle: XRoadVehicle) => {
     const { categoryCode, categoryOther } = mapVehicleCategory(vehicle.categoryCode);
@@ -830,6 +846,10 @@ export function useCompoundForm(
     setDriverSearchNotFound,
     driverSearchLoading,
     handleCompanySearch,
+    handleCompanyNameSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
     handleVehicleSearch,
     handleTrailerSearch,
     handleMtrSearch,
