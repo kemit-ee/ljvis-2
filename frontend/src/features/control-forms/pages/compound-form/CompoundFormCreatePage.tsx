@@ -135,6 +135,7 @@ export function CompoundFormCreatePage() {
   const [tabErrors, setTabErrors] = useState<Record<string, boolean>>({});
   const [validatedTabs, setValidatedTabs] = useState<Set<string>>(new Set());
   const [trailerTabIndices, setTrailerTabIndices] = useState<Set<number>>(new Set());
+  const [showValidationError, setShowValidationError] = useState(false);
 
   const removeTab = (tabId: string) => {
     setOpenTabs((prev) => prev.filter((t) => t !== tabId));
@@ -493,6 +494,11 @@ export function CompoundFormCreatePage() {
         maxWidth: containerWidth,
       }}
     >
+      {showValidationError && (
+        <Alert icon="error" className="mb-1" type="error" size="small">
+          {t('forms.validationErrorNote')}
+        </Alert>
+      )}
       <div className="card-main">
         <Heading element="h1">{headingLabel}</Heading>
         {!isDesktop && addFormDropdown}
@@ -2558,8 +2564,11 @@ export function CompoundFormCreatePage() {
 
               // Step 2: If validation fails, block saving and show errors
               if (!isValid) {
+                setShowValidationError(true);
+                window.scrollTo(0, 0);
                 return;
               }
+              setShowValidationError(false);
 
               // Step 3: Save compound form
               formik.handleSubmit();
