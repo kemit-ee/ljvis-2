@@ -5,6 +5,67 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-009 — Tableau analüütika: eraldi `tableau` skeem hallatud materialiseeritud vaadetega
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 10.09.2026
+**Seotud:** `docs/planning/Tableau_guidlines.md`, `docs/planning/tableau-schema-plan.md`; INSERT-only snapshot-mudel
+
+### Kontekst
+
+Enamik `forms.*` (ja `erru.*`, `classifier.*`) tabeleid on INSERT-only snapshot:
+iga muudatus lisab terve uue rea, „kehtiv seis" = `DISTINCT ON (<key>) ORDER BY
+<key>, created_at DESC` + `status <> 'deleted'`. See on BI-kasutajale
+mitteilmne ja veakalduv (topeltarvestus). Lisaks: koodid ilma nimedeta, JSONB-massiivid,
+PII (`drivers[]` isikukoodid, `driver_search`).
+
+`Tableau_guidlines.md` §3 pakkus `tableau.*_current` **tavaliste** vaadete komplekti,
+mille DBA jooksutab käsitsi — see triivib iga skeemimuudatusega ega ole
+versioonihalduses.
+
+### Otsused
+
+1. **Eraldi `tableau` skeem** (mitte `forms.*` sisse), loodud ja hallatud
+   Liquibase changeset'idega. Rollback = `DROP SCHEMA tableau CASCADE`.
+2. **Materialiseeritud vaated, mitte tavalised.** Analüütika jaoks ajalugu ei loe
+   → matview salvestab füüsiliselt ainult ~N aktiivset rida (üks per võti), mis on
+   5–50× väiksem baastabelist ja **indekseeritav** (`UNIQUE(<key>)` + Tableau
+   filtriveerud). Tavaline vaade skaneeriks kogu ajalugu iga päringu kohta.
+   Öine `tableau.refresh_all()` (CronManager 03:00) — 24h värskus on piisav, sest
+   Tableau kasutab öist Extract-refresh'i.
+3. **PII variant A:** isikukoodid → `left(md5(),12)` pseudonüüm, sünnikuupäev →
+   `birth_year`, isikunimed jäävad. `forms.form_search.driver_search` ei ekspordita.
+4. **Roll `tableau_ro`** luuakse changeset'is (`DO $$ ... CREATE ROLE ... NOLOGIN`),
+   `SELECT` **ainult** `tableau` skeemis. `users`/`audit`/`notifications`/`xroad`
+   jäävad kättesaamatuks — vajalik id→nimi (organisatsioon) materialiseeritakse
+   `tableau` skeemi (matview on turvapiir).
+5. **`form_overview`** — ristvormi „üks rida per vorm", `authority` veerg
+   (PPA / TRAM eristus), ehitatud otse baastabelitest.
+
+### Põhjendus
+
+Matview + kõva indeks aktiivsel hulgal on kordades kiirem kui `DISTINCT ON` kogu
+ajaloo peal, ja BI-tööriist ei vaja reaalaega. Liquibase-haldus lõpetab triivi;
+CI `liquibase update`+`rollback` katab süntaksi. `DROP SCHEMA CASCADE` teeb
+tagasipööramise triviaalseks. Vt teostusplaan `docs/planning/tableau-schema-plan.md`.
+
+### Miks mitte inkrementaalne matview
+
+PG-l pole sisseehitatud IVM-i; `pg_ivm` laiendus ei ole AWS RDS toetatud
+nimekirjas. Täisrefresh kompaktsest vaatest on niikuinii sekundite küsimus
+(kell 03:00, replika). Kui lugemine refresh'i ajal muutub probleemiks →
+per-matview `REFRESH … CONCURRENTLY` (vajab `UNIQUE` indeksit — `*_current`-l on).
+
+### Tagajärjed
+
+- Iga `forms.*` skeemimuudatus peab uuendama vastavat `tableau.*_current` matview'd
+  (sama PR-is). `validate-dsl.py` lisab hoiatuse (WARN), kui `forms.*` DDL muutus
+  ilma `tableau` failita.
+- `tableau_ro` LOGIN + parool annab DevOps eraldi (changeset teeb ainult NOLOGIN rolli).
+- Öine cron kell **03:00** (pärast e-Toimiku + riskiskoori öiseid töid).
+
+---
+
 ## ADR-008 — PDF-genereerimine: eraldi mikroteenus Ruuteri taga X-Internal autentimisega
 
 **Otsustaja:** Sten Viljus, Rainer Turner
