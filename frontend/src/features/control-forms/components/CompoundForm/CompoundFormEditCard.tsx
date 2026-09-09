@@ -21,6 +21,7 @@ import { vehicleCategoryColWidth } from './vehicleCategoryLayout';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
+import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
 import { MaskedTimeField } from '../shared/MaskedTimeField';
@@ -115,6 +116,14 @@ interface CompoundFormEditCardProps {
   setTrailerSearchError: (v: number | null) => void;
   mtrSearchError: string | null;
   setMtrSearchError: (v: string | null) => void;
+  driverSearchError: number | null;
+  setDriverSearchError: (v: number | null) => void;
+  driverSearchNotFound: number | null;
+  setDriverSearchNotFound: (v: number | null) => void;
+  driverSearchLoading: number | null;
+  handleDriverPersonSearch: (index: number) => void;
+  /** TRAM kontrollkaardil kuvatakse „Ei ole asjakohane" märkeruut (P6). */
+  authority?: FormAuthority;
   handleOrgChange: (
     val:
       | { value: string; label: string | React.ReactNode }
@@ -164,6 +173,13 @@ export function CompoundFormEditCard({
   setTrailerSearchError,
   mtrSearchError,
   setMtrSearchError,
+  driverSearchError,
+  setDriverSearchError,
+  driverSearchNotFound,
+  setDriverSearchNotFound,
+  driverSearchLoading,
+  handleDriverPersonSearch,
+  authority = 'PPA',
   handleOrgChange,
   handleStructuralUnitChange,
   handleCountyChange,
@@ -1371,6 +1387,26 @@ export function CompoundFormEditCard({
                       ? `${t('forms.compound.driver')} ${index + 1}`
                       : t('forms.compound.driver')}
                   </Heading>
+                  {driverSearchError === index && (
+                    <Alert
+                      type="danger"
+                      size="small"
+                      className="mb-1"
+                      onClose={() => setDriverSearchError(null)}
+                    >
+                      {t('forms.compound.driverPersonSearchError')}
+                    </Alert>
+                  )}
+                  {driverSearchNotFound === index && (
+                    <Alert
+                      type="warning"
+                      size="small"
+                      className="mb-1"
+                      onClose={() => setDriverSearchNotFound(null)}
+                    >
+                      {t('common.noResults')}
+                    </Alert>
+                  )}
                   <div className={gridClass} style={{ alignItems: 'start' }}>
                     <TextField
                       id={`driverFirstName_${index}`}
@@ -1418,53 +1454,80 @@ export function CompoundFormEditCard({
                           }
                         : {})}
                     />
-                    <TextField
-                      id={`driverPersonalCodeForeign_${index}`}
-                      label={t('forms.compound.driverPersonalCodeForeign')}
-                      value={
-                        formik.values.drivers[index]?.personalCodeForeign ?? ''
-                      }
-                      input={{ maxLength: 50 }}
-                      onChange={(v) => {
-                        const u = [...formik.values.drivers];
-                        u[index] = { ...u[index], personalCodeForeign: v };
-                        formik.setFieldValue('drivers', u);
-                      }}
-                      {...((formik.errors.drivers as DriverErrors[])?.[index]
-                        ?.personalCodeForeign
-                        ? {
-                            helper: {
-                              text: (formik.errors.drivers as DriverErrors[])[
-                                index
-                              ].personalCodeForeign,
-                              type: 'error' as const,
-                            },
+                    <div
+                      className={`${styles['select-row']} ${styles['full-span']}`}
+                    >
+                      <div className={styles['select-wrapper']}>
+                        <TextField
+                          id={`driverPersonalCodeEe_${index}`}
+                          label={t('forms.compound.driverPersonalCodeEe')}
+                          value={
+                            formik.values.drivers[index]?.personalCodeEe ?? ''
                           }
-                        : {})}
-                    />
-                    <TextField
-                      id={`driverPersonalCodeEe_${index}`}
-                      label={t('forms.compound.driverPersonalCodeEe')}
-                      value={formik.values.drivers[index]?.personalCodeEe ?? ''}
-                      input={{ maxLength: 11 }}
-                      onChange={(v) => {
-                        const u = [...formik.values.drivers];
-                        const computed = !u[index]?.birthDate ? birthDateFromEstonianCode(v) : null;
-                        u[index] = { ...u[index], personalCodeEe: v, ...(computed ? { birthDate: computed } : {}) };
-                        formik.setFieldValue('drivers', u);
-                      }}
-                      {...((formik.errors.drivers as DriverErrors[])?.[index]
-                        ?.personalCodeEe
-                        ? {
-                            helper: {
-                              text: (formik.errors.drivers as DriverErrors[])[
-                                index
-                              ].personalCodeEe,
-                              type: 'error' as const,
-                            },
+                          input={{ maxLength: 11 }}
+                          onChange={(v) => {
+                            const u = [...formik.values.drivers];
+                            const computed = !u[index]?.birthDate
+                              ? birthDateFromEstonianCode(v)
+                              : null;
+                            u[index] = {
+                              ...u[index],
+                              personalCodeEe: v,
+                              ...(computed ? { birthDate: computed } : {}),
+                            };
+                            formik.setFieldValue('drivers', u);
+                          }}
+                          {...((formik.errors.drivers as DriverErrors[])?.[index]
+                            ?.personalCodeEe
+                            ? {
+                                helper: {
+                                  text: (
+                                    formik.errors.drivers as DriverErrors[]
+                                  )[index].personalCodeEe,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : {})}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        disabled={driverSearchLoading === index}
+                        onClick={() => handleDriverPersonSearch(index)}
+                      >
+                        {t('forms.compound.driverPersonSearchButton')}
+                      </Button>
+                      <div className={styles['select-wrapper']}>
+                        <TextField
+                          id={`driverPersonalCodeForeign_${index}`}
+                          label={t('forms.compound.driverPersonalCodeForeign')}
+                          value={
+                            formik.values.drivers[index]?.personalCodeForeign ??
+                            ''
                           }
-                        : {})}
-                    />
+                          input={{ maxLength: 50 }}
+                          onChange={(v) => {
+                            const u = [...formik.values.drivers];
+                            u[index] = {
+                              ...u[index],
+                              personalCodeForeign: v,
+                            };
+                            formik.setFieldValue('drivers', u);
+                          }}
+                          {...((formik.errors.drivers as DriverErrors[])?.[index]
+                            ?.personalCodeForeign
+                            ? {
+                                helper: {
+                                  text: (
+                                    formik.errors.drivers as DriverErrors[]
+                                  )[index].personalCodeForeign,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : {})}
+                        />
+                      </div>
+                    </div>
                     <Select
                       id={`driverCitizenshipCode_${index}`}
                       label={t('forms.compound.driverCitizenshipCode')}

@@ -364,6 +364,12 @@ export function CompoundFormCreatePage() {
     mtrSearchError,
     setMtrSearchError,
     handleMtrSearch,
+    driverSearchError,
+    setDriverSearchError,
+    driverSearchNotFound,
+    setDriverSearchNotFound,
+    driverSearchLoading,
+    handleDriverPersonSearch,
     availableForms,
   } = useCompoundForm(undefined, handleSaved);
 
@@ -1820,6 +1826,26 @@ export function CompoundFormCreatePage() {
                       <Heading element="h3" className="mb-1">
                         {t('forms.compound.driver')}
                       </Heading>
+                      {driverSearchError === 0 && (
+                        <Alert
+                          type="danger"
+                          size="small"
+                          className="mb-1"
+                          onClose={() => setDriverSearchError(null)}
+                        >
+                          {t('forms.compound.driverPersonSearchError')}
+                        </Alert>
+                      )}
+                      {driverSearchNotFound === 0 && (
+                        <Alert
+                          type="warning"
+                          size="small"
+                          className="mb-1"
+                          onClose={() => setDriverSearchNotFound(null)}
+                        >
+                          {t('common.noResults')}
+                        </Alert>
+                      )}
                       <div
                         className={gridClass}
                         style={{ alignItems: 'start' }}
@@ -1873,55 +1899,81 @@ export function CompoundFormCreatePage() {
                               }
                             : {})}
                         />
-                        <TextField
-                          id="driverPersonalCodeForeign"
-                          label={t('forms.compound.driverPersonalCodeForeign')}
-                          value={
-                            formik.values.drivers[0]?.personalCodeForeign ?? ''
-                          }
-                          input={{ maxLength: 50 }}
-                          onChange={(v) => {
-                            const u = [...formik.values.drivers];
-                            u[0] = { ...u[0], personalCodeForeign: v };
-                            formik.setFieldValue('drivers', u);
-                          }}
-                          {...((formik.touched.drivers as DriverTouched)?.[0]
-                            ?.personalCodeForeign &&
-                          (formik.errors.drivers as DriverErrors)?.[0]
-                            ?.personalCodeForeign
-                            ? {
-                                helper: {
-                                  text: (
-                                    formik.errors.drivers as DriverErrors
-                                  )?.[0]?.personalCodeForeign,
-                                  type: 'error' as const,
-                                },
+                        <div
+                          className={`${styles['select-row']} ${styles['full-span']}`}
+                        >
+                          <div className={styles['select-wrapper']}>
+                            <TextField
+                              id="personalCodeEe"
+                              label={t('forms.compound.driverPersonalCodeEe')}
+                              value={
+                                formik.values.drivers[0]?.personalCodeEe ?? ''
                               }
-                            : {})}
-                        />
-                        <TextField
-                          id="personalCodeEe"
-                          label={t('forms.compound.driverPersonalCodeEe')}
-                          value={formik.values.drivers[0]?.personalCodeEe ?? ''}
-                          input={{ maxLength: 11 }}
-                          onChange={(v) => {
-                            const u = [...formik.values.drivers];
-                            const computed = !u[0]?.birthDate ? birthDateFromEstonianCode(v) : null;
-                            u[0] = { ...u[0], personalCodeEe: v, ...(computed ? { birthDate: computed } : {}) };
-                            formik.setFieldValue('drivers', u);
-                          }}
-                          {...((formik.errors.drivers as DriverErrors)?.[0]
-                            ?.personalCodeEe
-                            ? {
-                                helper: {
-                                  text: (
-                                    formik.errors.drivers as DriverErrors
-                                  )[0]?.personalCodeEe,
-                                  type: 'error' as const,
-                                },
+                              input={{ maxLength: 11 }}
+                              onChange={(v) => {
+                                const u = [...formik.values.drivers];
+                                const computed = !u[0]?.birthDate
+                                  ? birthDateFromEstonianCode(v)
+                                  : null;
+                                u[0] = {
+                                  ...u[0],
+                                  personalCodeEe: v,
+                                  ...(computed ? { birthDate: computed } : {}),
+                                };
+                                formik.setFieldValue('drivers', u);
+                              }}
+                              {...((formik.errors.drivers as DriverErrors)?.[0]
+                                ?.personalCodeEe
+                                ? {
+                                    helper: {
+                                      text: (
+                                        formik.errors.drivers as DriverErrors
+                                      )[0]?.personalCodeEe,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : {})}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            disabled={driverSearchLoading === 0}
+                            onClick={() => handleDriverPersonSearch(0)}
+                          >
+                            {t('forms.compound.driverPersonSearchButton')}
+                          </Button>
+                          <div className={styles['select-wrapper']}>
+                            <TextField
+                              id="driverPersonalCodeForeign"
+                              label={t(
+                                'forms.compound.driverPersonalCodeForeign',
+                              )}
+                              value={
+                                formik.values.drivers[0]?.personalCodeForeign ??
+                                ''
                               }
-                            : {})}
-                        />
+                              input={{ maxLength: 50 }}
+                              onChange={(v) => {
+                                const u = [...formik.values.drivers];
+                                u[0] = { ...u[0], personalCodeForeign: v };
+                                formik.setFieldValue('drivers', u);
+                              }}
+                              {...((formik.touched.drivers as DriverTouched)?.[0]
+                                ?.personalCodeForeign &&
+                              (formik.errors.drivers as DriverErrors)?.[0]
+                                ?.personalCodeForeign
+                                ? {
+                                    helper: {
+                                      text: (
+                                        formik.errors.drivers as DriverErrors
+                                      )?.[0]?.personalCodeForeign,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : {})}
+                            />
+                          </div>
+                        </div>
                         <Select
                           id="driverCitizenshipCode"
                           label={t('forms.compound.driverCitizenshipCode')}

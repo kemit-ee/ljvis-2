@@ -21,7 +21,11 @@ import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 import { useVehicleSearch } from '../../../xroad/hooks/useVehicleSearch';
-import { searchVehicleByRegNr, searchMtrSoidukikaart } from '../../../xroad/api';
+import {
+  searchVehicleByRegNr,
+  searchMtrSoidukikaart,
+  searchPersonByCode,
+} from '../../../xroad/api';
 import type { XRoadVehicle } from '../../../xroad/types';
 import { FORM_CONFIG, getAvailableFormKeys } from "../../formRoutes.ts";
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
@@ -146,6 +150,15 @@ export function useCompoundForm(
   // the MTR search has several distinct outcomes, not a single generic
   // "not found" message.
   const [mtrSearchError, setMtrSearchError] = useState<string | null>(null);
+  // Per-index (drivers is an array) rahvastikuregistri otsing — hoiab
+  // vea/„ei leitud"/laadimise oleku juhi indeksi kaupa.
+  const [driverSearchError, setDriverSearchError] = useState<number | null>(null);
+  const [driverSearchNotFound, setDriverSearchNotFound] = useState<
+    number | null
+  >(null);
+  const [driverSearchLoading, setDriverSearchLoading] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     listOrganisations().then(setOrganisations).catch(console.error);
@@ -688,6 +701,42 @@ export function useCompoundForm(
     }
   };
 
+  // "Otsi rahvastikuregistrist" — juhi Eesti isikukoodi järgi RR päring,
+  // täidab ees-/perekonnanime, kodakondsuse ja sünniaja. Per-index (drivers
+  // on massiiv), seega sama muster nagu handleTrailerSearch.
+  const EE_PERSONAL_CODE_REGEX = /^[1-6][0-9]{10}$/;
+  const handleDriverPersonSearch = async (index: number) => {
+    setDriverSearchError(null);
+    setDriverSearchNotFound(null);
+    const code = formik.values.drivers[index]?.personalCodeEe?.trim();
+    if (!code || !EE_PERSONAL_CODE_REGEX.test(code)) {
+      setDriverSearchError(index);
+      return;
+    }
+    setDriverSearchLoading(index);
+    try {
+      const person = await searchPersonByCode(code);
+      if (!person) {
+        setDriverSearchNotFound(index);
+        return;
+      }
+      const updated = [...formik.values.drivers];
+      updated[index] = {
+        ...updated[index],
+        firstName: person.firstName || updated[index]?.firstName || '',
+        lastName: person.lastName || updated[index]?.lastName || '',
+        citizenshipCode:
+          person.citizenshipCode || updated[index]?.citizenshipCode || '',
+        birthDate: person.dateOfBirth || updated[index]?.birthDate || '',
+      };
+      formik.setFieldValue('drivers', updated);
+    } catch {
+      setDriverSearchError(index);
+    } finally {
+      setDriverSearchLoading(null);
+    }
+  };
+
   // "Otsi majandustegevuse registrist" — queries MTR soidukikaart by the
   // carrier's registrikood, then matches the returned vehicle cards against
   // the motor vehicle block's registration number.
@@ -772,10 +821,16 @@ export function useCompoundForm(
     setTrailerSearchError,
     mtrSearchError,
     setMtrSearchError,
+    driverSearchError,
+    setDriverSearchError,
+    driverSearchNotFound,
+    setDriverSearchNotFound,
+    driverSearchLoading,
     handleCompanySearch,
     handleVehicleSearch,
     handleTrailerSearch,
     handleMtrSearch,
+    handleDriverPersonSearch,
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
