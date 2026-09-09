@@ -254,6 +254,11 @@ export function CompoundFormEditCard({
                 <Heading element="h3" className="mb-1">
                   {t('forms.compound.controlPlaceBasicInfo')}
                 </Heading>
+                {formik.touched.address && formik.errors.address && !formik.values.address && !formik.values.road && (
+                  <Alert type="error" size="small" className="mb-1" icon="error">
+                    {t('forms.compound.addressOrRoadRequired')}
+                  </Alert>
+                )}
                 <div className={gridClass}>
                   <TextField
                     id="address"

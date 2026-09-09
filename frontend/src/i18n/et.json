@@ -894,6 +894,7 @@
     "compound": {
       "generalPart": "Üldosa",
       "controlPlaceBasicInfo": "Kontrolli koht",
+      "addressOrRoadRequired": "Täitke aadress või valige maantee (kohustuslik).",
       "controlTimeBasicInfo": "Kontrolli aeg",
       "controlDate": "Kontrolli kuupäev",
       "controlTime": "Kontrolli aeg",
