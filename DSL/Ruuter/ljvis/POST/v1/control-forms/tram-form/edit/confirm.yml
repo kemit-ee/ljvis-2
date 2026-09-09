@@ -78,7 +78,6 @@ declaration:
       - field: drivers
         type: string
       - field: driverNotApplicable
-        type: boolean
       - field: inspectorFirstName
         type: string
       - field: inspectorLastName
