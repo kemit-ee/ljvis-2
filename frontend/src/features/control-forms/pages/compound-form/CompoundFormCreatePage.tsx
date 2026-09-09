@@ -2565,6 +2565,11 @@ export function CompoundFormCreatePage() {
               // Step 2: If validation fails, block saving and show errors
               if (!isValid) {
                 setShowValidationError(true);
+                // Kui üldosa (tab-1) valideerimise viga, lülitu tab-1-le — kasutaja näeb välja viga
+                const compoundHasErrors = Object.keys(await formik.validateForm()).length > 0;
+                if (compoundHasErrors && activeTab !== 'tab-1') {
+                  setActiveTab('tab-1');
+                }
                 window.scrollTo(0, 0);
                 return;
               }
