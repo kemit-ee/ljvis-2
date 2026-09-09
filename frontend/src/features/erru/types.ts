@@ -37,6 +37,7 @@ export interface CtudCommunityLicence {
   startDate?: string | null;
   expiryDate?: string | null;
   withdrawalDate?: string | null;
+  withdrawalExpiryDate?: string | null;
   suspensionDate?: string | null;
   suspensionExpiryDate?: string | null;
   suspensionOrWithdrawalReason?: string | null;
@@ -46,10 +47,12 @@ export interface CtudCommunityLicence {
 export interface CtudCertifiedTrueCopy {
   trueCopyNumber?: string | null;
   trueCopyIssueDate?: string | null;
+  trueCopyIssueCountry?: string | null;
   trueCopyExpiryDate?: string | null;
   trueCopySuspensionDate?: string | null;
   trueCopySuspensionExpiryDate?: string | null;
   trueCopyWithdrawalDate?: string | null;
+  trueCopyWithdrawalExpiryDate?: string | null;
 }
 
 /** Present only when responseStatusCode === 'Found'. Stored verbatim as received. */

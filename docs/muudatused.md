@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-09-09
+
+### CTUD päringu ja vastuse kuva täiendused
+
+- Veoettevõtja otsinguväljade järjekord on nüüd veoettevõtja nimi, tegevusloa või
+  selle koopia number ning sõiduki registreerimisnumber.
+- Väljaläinud CTUD päringu vastuses kuvatakse vastuse osapooled ja aeg ning kõik
+  tegevusloa peatamise või kehtetuks tunnistamise andmed.
+
+### CGR mainepäringu parendused
+
+- Sihtliikmesriikide loendisse on lisatud Norra.
+- Päringu kopeerimisel säilivad päringu eesmärk, pädev asutus ja päringu allikas.
+
+### ADR kontrollkaardi PDF-prindi tugi
 ## 2026-09 — Transpordiameti kontrollkaart: üks vorm, üks elutsükkel
 
 - **TRAM kontrollkaart** on nüüd **üks vorm**: üldosa ja sõidukijuhi andmed on
@@ -31,9 +46,7 @@
   brauserisse allalaadimisena — puudub vajadus eraldi printeridialoogiks.
 - Toetatud on ka varasema versiooni (snapshot) printimine.
 
----
-
-## 2026-09 — Koondvormi kasutajaliidese parandused
+### Koondvormi kasutajaliidese parendused
 
 - **Isikukoodi otsinguväljad** on nüüd paigutatud loetavamalt: Eesti isikukood ja
   „Otsi rahvastikuregistrist" nupp on vasakus veerus (eesnime all), välisriigi
@@ -169,7 +182,7 @@ Transpordiameti (TRAM) ettepanekute põhjal:
 
 ---
 
-## 2026-09 — NCR (kontrollitulemuse teated): parandused
+## 2026-09 — NCR (kontrollitulemuse teated): parendused
 
 - Lehe ja teate pealkiri: **„Kontrollitulemuse teated NCR"** (varem „NCR teated").
 - Uue teate nupp: **„Uus NCR teade"**; kontrollkaardil **„Loo NCR teade"**.
@@ -185,7 +198,7 @@ Transpordiameti (TRAM) ettepanekute põhjal:
 
 ---
 
-## 2026-09 — Välisriigi rikkumise kontrollkaart: parandused
+## 2026-09 — Välisriigi rikkumise kontrollkaart: parendused
 
 - Pealkirjad korrastatud: „Rikkumise avastamise aeg ja koht" → **„Kontrolli aeg
   ja koht"**; „Rakendatud sanktsioon" (ploki pealkiri) → **„Kontrolli tulemus"**;
@@ -218,7 +231,7 @@ Transpordiameti (TRAM) ettepanekute põhjal:
 - Menüüpunkt **„Riskitasemed"** on tõstetud „Haldus" alt välja **vasakmenüü
   ülatasandile** ja ümber nimetatud **„Riskiskoorid"**. Sisu ja õigus
   (`risk_report.list`) ei muutu.
-## 2026-09 — RSI (tehnokontrolli teated): parandused
+## 2026-09 — RSI (tehnokontrolli teated): parendused
 
 - Lehe ja teate pealkiri: **„Tehnokontrolli teated RSI"**; uue teate nupp
   **„Uus tehnokontrolli teade RSI"**.
