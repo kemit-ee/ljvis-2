@@ -60,5 +60,6 @@
 - [Administraatori paigaldus- ja seadistusjuhend](workingdocs/admin-deployment-guide.md)
 - [Klassifikaatorite vahemälu](workingdocs/classifier-caching.md)
 - [Arhitektuur](workingdocs/LJVIS_arhitektuur.md)
+- [Arhitektuuriotsused (ADR)](workingdocs/architecture-decisions.md)
 - [Auditilogimine](workingdocs/audit-logging.md)
 - [Õiguste maatriks](workingdocs/permissions-matrix.md)

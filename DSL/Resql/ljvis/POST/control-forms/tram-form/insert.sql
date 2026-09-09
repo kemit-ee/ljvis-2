@@ -107,6 +107,9 @@ params:
   drivers:
     type: string
     required: false
+  driverNotApplicable:
+    type: boolean
+    required: false
   inspectorFirstName:
     type: string
     required: false
@@ -179,6 +182,7 @@ INSERT INTO forms.compound_form (
   company_owner_last_name,
   company_activity_licence_copy_number,
   drivers,
+  driver_not_applicable,
   created_by
 )
 VALUES (
@@ -227,6 +231,7 @@ VALUES (
   NULLIF(:companyOwnerLastName, ''),
   NULLIF(:companyActivityLicenceCopyNumber, ''),
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
+  COALESCE(:driverNotApplicable::BOOLEAN, FALSE),
   :created_by
 )
 RETURNING compound_form_key AS id, form_number AS "formNumber";

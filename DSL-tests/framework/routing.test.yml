@@ -1,0 +1,20 @@
+# Framework invariants — an unrouteable request is a 404, never a 500.
+# Runs the ljvis DSL tree through the real Ruuter router (guards + middleware),
+# no external services.
+mode: inprocess
+
+tests:
+  - name: unknown project -> 404
+    request: { method: GET, path: /not-a-project/anything }
+    expect:
+      status: 404
+
+  - name: unknown path in ljvis -> 404
+    request: { method: GET, path: /ljvis/this/route/does/not/exist }
+    expect:
+      status: 404
+
+  - name: wrong method on a known path -> 404
+    request: { method: DELETE, path: /ljvis/auth/session }
+    expect:
+      status: 404
