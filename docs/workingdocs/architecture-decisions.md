@@ -32,7 +32,7 @@ Teenus saab sisendiks:
 
 Teenuse tööjärjekord:
 1. Võtab `formType` järgi vastavuse **malliga** (hallatavad mallid, vt Otsus 2).
-2. Pärib Ruuterilt vormi andmed (snapshot-API kaudu, autentides samuti `X-Internal-Service-Token` päisega).
+2. Pärib vormi andmed **Ruuteri snapshot-API kaudu** (`X-Internal-Service-Token` päisega) — otsekontakti ResQL-iga ega andmebaasiga ei ole.
 3. Ühendab andmed malliga ja genereerib PDF-i (HTML→PDF teisendus).
 4. Tagastab valmis PDF-i (`application/pdf`) Ruuterile, kes edastab selle kasutajale.
 
@@ -40,11 +40,17 @@ Teenuse tööjärjekord:
 
 PDF-i väljanägemist juhivad **mallid** (nt Handlebars / Jinja2 / HTML+CSS failid), mida saab muuta ilma koodimuudatuseta (nt salvestatud andmebaasis või failisüsteemis konfiguratsiooni osana). Iga vormi tüüp (`formType`) vastab ühele mallile; malli valik on konfigureeritav.
 
-#### Otsus 3 — Ruuteri ja `pdf-generator` vaheline autentimine: `X-Internal-Service-Token`
+#### Otsus 3 — Kõik suhtlus käib läbi Ruuteri, kasutades `X-Internal-Service-Token`
 
-Ruuteri ja `pdf-generator` vaheline ühendus kasutab **sama siseteenuse autentimismustrit** mis on kehtestatud ADR-006-s:
-* Ruuter lisab päisesse `X-Internal-Service-Token: <konfiguratsioonist loetav saladus>`.
-* `pdf-generator` kontrollib tokeni olemasolu ja kehtivust enne iga päringu töötlemist.
+Mõlemas suunas kasutatakse **sama siseteenuse autentimismustrit** (ADR-006):
+
+```
+Kasutaja → Ruuter ──(X-Internal)──► pdf-generator
+                ◄──(X-Internal)── pdf-generator → Ruuter → ResQL → DB
+```
+
+* **Ruuter → `pdf-generator`:** Ruuter kutsub PDF-generaatorit `X-Internal-Service-Token` päisega.
+* **`pdf-generator` → Ruuter:** Vormi andmete hankimiseks pöördub `pdf-generator` tagasi **Ruuteri snapshot-otspunkti** poole, lisades samuti `X-Internal-Service-Token` päise. `pdf-generator` ei suhtleta ResQL-iga ega andmebaasiga otse — ainsaks andmeallikaks on Ruuter.
 * `pdf-generator` ei ole välisvõrgust ligipääsetav — ainult Docker Compose sisevõrgust.
 
 ### Põhjendus
