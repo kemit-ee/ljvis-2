@@ -537,6 +537,7 @@ export function AdrFormPage() {
         <AdrFormViewCard
           form={snapshot}
           formType={FORM_TYPE.ADR}
+          snapshotId={snapshotId}
         />
       </div>
     );

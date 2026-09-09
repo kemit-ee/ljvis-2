@@ -1,0 +1,34 @@
+[
+  {
+    "code": "DOMESTIC",
+    "name": "Riigisisene vedu"
+  },
+  {
+    "code": "EU_EEA_CH",
+    "name": "EL või EMP liikmesriikide või Šveitsi vaheline vedu"
+  },
+  {
+    "code": "INTERNATIONAL_3RD",
+    "name": "Rahvusvaheline vedu kolmandasse riiki voi kolmandast riigist"
+  },
+  {
+    "code": "CABOTAGE",
+    "name": "Välisriigi vedaja kabotaažvedu (autojuhi suhtes rakenduvad lähetamise nõuded)"
+  },
+  {
+    "code": "PASSENGER_REGULAR",
+    "name": "Sõitjate liinivedu"
+  },
+  {
+    "code": "PASSENGER_OCCASIONAL",
+    "name": "Sõitjate juhuvedu"
+  },
+  {
+    "code": "PASSENGER_SPECIAL",
+    "name": "Sõitjate eriotstarbeline vedu (õpilased, töölised jne)"
+  },
+  {
+    "code": "ATP_PERISHABLE",
+    "name": "ATP kokkuleppe kohane kiirestiriknevate toiduainete vedu"
+  }
+]

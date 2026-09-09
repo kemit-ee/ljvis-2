@@ -55,6 +55,28 @@ services:
     networks:
       - ljvisnetwork
 
+  pdf-creator:
+    container_name: pdf-creator
+    build:
+      context: .
+      dockerfile: docker/pdf-creator/Dockerfile
+    image: ljvis-pdf-creator:local
+    environment:
+      - PDF_CREATOR_API_KEY=${PDF_CREATOR_API_KEY:-}
+    ports:
+      - "127.0.0.1:3020:3020"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - ljvisnetwork
+    cpus: "1.0"
+    mem_limit: "512M"
+
   ruuter:
     container_name: ruuter
     build:

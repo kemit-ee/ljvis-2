@@ -1490,7 +1490,10 @@
     "clear": "Clear filters",
     "formHasErrors": "The form contains errors. Please check the fields marked in red.",
     "deleteTrailerSubConfirmTitle": "Remove trailer and delete sub-form",
-    "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form?"
+    "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form?",
+    "print": "Print",
+    "printFilled": "Print completed form",
+    "printBlank": "Print blank form"
   },
   "xroad": {
     "companyPicker": {

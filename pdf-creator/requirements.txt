@@ -1,0 +1,4 @@
+Jinja2==3.1.6
+WeasyPrint==66.0
+
+gunicorn==23.0.0

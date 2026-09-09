@@ -507,6 +507,23 @@ export const publishAdrForm = (id: string) =>
     { id }
   );
 
+export interface PdfRenderResponse {
+  filename: string;
+  contentType: 'application/pdf';
+  base64: string;
+  warnings: string[];
+}
+
+export const printAdrForm = (
+  id: string,
+  blank: boolean,
+  snapshotId?: string,
+) =>
+  post<PdfRenderResponse>(
+    `/v1/control-forms/adr-form/read/print`,
+    { id, blank, snapshotId: snapshotId ?? null },
+  );
+
 export const saveAdrFormXroadFields = (data: {
   id: string;
   enforcementDecision?: string;

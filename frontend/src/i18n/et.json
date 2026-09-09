@@ -1511,7 +1511,10 @@
     "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
     "deleteTrailerSubConfirmTitle": "Haagise eemaldamine ja alamvormi kustutamine",
     "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada?",
-    "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju."
+    "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
+    "print": "Prindi",
+    "printFilled": "Prindi täidetud vorm",
+    "printBlank": "Prindi tühi vorm"
   },
   "xroad": {
     "companyPicker": {

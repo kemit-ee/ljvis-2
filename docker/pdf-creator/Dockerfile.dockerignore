@@ -1,0 +1,8 @@
+**
+!pdf-creator/
+!pdf-creator/requirements.txt
+!pdf-creator/render.py
+!pdf-creator/forms.py
+!pdf-creator/server.py
+!pdf-creator/templates/
+!pdf-creator/templates/**
