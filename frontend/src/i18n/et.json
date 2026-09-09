@@ -1284,7 +1284,7 @@
     },
     "tram_control_card_form": "Transpordiameti kontrollkaart",
     "tram_control_card": {
-      "driverControlTitle": "Sõidukijuhi andmed",
+      "driverControlTitle": "Sõidukijuhi kontrolli tulemus",
       "proceedingNone": "Menetlust ei alustatud"
     }
   },

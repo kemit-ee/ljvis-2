@@ -1157,7 +1157,7 @@
     },
     "tram_control_card_form": "Transport Administration inspection card",
     "tram_control_card": {
-      "driverControlTitle": "Driver details",
+      "driverControlTitle": "Driver check outcome",
       "proceedingNone": "No proceeding started"
     }
   },
