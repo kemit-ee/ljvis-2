@@ -164,24 +164,6 @@ export function useCompoundForm(
     listOrganisations().then(setOrganisations).catch(console.error);
   }, []);
 
-  // Fallback: kui authUser.organisationcode puudub (vana DSL deploy või null org),
-  // leia organisatsiooni kood organisationid järgi kui organisatsioonide loend on laetud.
-  useEffect(() => {
-    if (
-      !formik.values.inspectorOrganisationId &&
-      authUser?.organisationid &&
-      organisations.length > 0
-    ) {
-      const org = organisations.find(
-        (o) => String(o.id) === String(authUser.organisationid),
-      );
-      if (org) {
-        formik.setFieldValue('inspectorOrganisationId', org.code);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organisations, authUser?.organisationid]);
-
   const counties = useMemo(
     () =>
       getByCode('EHAK')
@@ -529,6 +511,25 @@ export function useCompoundForm(
       }
     },
   });
+
+  // Fallback: kui authUser.organisationcode puudub (vana DSL deploy või null org),
+  // leia organisatsiooni kood organisationid järgi kui organisatsioonide loend on laetud.
+  // (peab olema pärast `formik` deklaratsiooni — kasutab formik.values / setFieldValue)
+  useEffect(() => {
+    if (
+      !formik.values.inspectorOrganisationId &&
+      authUser?.organisationid &&
+      organisations.length > 0
+    ) {
+      const org = organisations.find(
+        (o) => String(o.id) === String(authUser.organisationid),
+      );
+      if (org) {
+        formik.setFieldValue('inspectorOrganisationId', org.code);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organisations, authUser?.organisationid]);
 
   const triggerConfirm = () => {
     pendingConfirm.current = true;
