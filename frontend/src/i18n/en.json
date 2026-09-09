@@ -1154,6 +1154,11 @@
     },
     "restCheck": {
       "blockTitle": "Compliance with driving and rest time requirements"
+    },
+    "tram_control_card_form": "Transport Administration inspection card",
+    "tram_control_card": {
+      "driverControlTitle": "Driver details",
+      "proceedingNone": "No proceeding started"
     }
   },
   "structureUnits": {
@@ -1979,7 +1984,8 @@
       "vehicleTechnical": "Technical compliance (vehicle)",
       "trailerTechnical": "Technical compliance (trailer)",
       "adr": "Dangerous goods (ADR)",
-      "kv": "Transport interruption"
+      "kv": "Transport interruption",
+      "tramControlCard": "Transport Administration inspection card"
     },
     "status": {
       "saved": "Saved",
@@ -2062,6 +2068,7 @@
     "rsiCreate": "New RSI message",
     "rsiDetail": "RSI message",
     "ncrCreate": "New NCR message",
-    "ncrDetail": "NCR message"
+    "ncrDetail": "NCR message",
+    "tramControlCard": "Transport Administration inspection card"
   }
 }
