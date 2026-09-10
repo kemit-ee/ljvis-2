@@ -26,9 +26,9 @@ declaration:
     kirjutuskutsed käivituvad alati (no-op halva sisendiga).
 
     Kandidaadi täpsed eeldused (millised kontrollkaardi väljad peavad olema
-    täidetud) on loetletud select-autodispatch-candidates.sql päises (#328 p3).
-    #TODO (#329): requestPurpose/requestSource on siin kõvakodeeritud
-    "Control" / "RSI" — ärianalüüsiga kinnitada automaatteate nõutud väärtused.
+    täidetud) ja tehtud otsused on loetletud select-autodispatch-candidates.sql
+    päises (#328 p3 / #329). requestPurpose="Control" ja requestSource="RSI" on
+    väljaminevate NCR teadete ERRU-spetsi süsteemikonstandid.
   namespace: cron
   allowlist:
     body: []

@@ -1,12 +1,14 @@
 -- liquibase formatted sql
 -- changeset ljvis:20261119100000 ignore:true splitStatements:false
 --
--- EU_INFRINGEMENT: eristab kaks identse kirjeldusega kabotaaži-koodi (#328 p1).
--- Seemnes (20260828275000) on VSI869 ja VSI872 sama tekstiga
--- "kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja
--- haldusnormidele" — need on aga eri rikkumised:
---   VSI869 = VEOSEVEO kabotaaž   — määrus (EÜ) nr 1072/2009 art 8 lg 2
---   VSI872 = SÕITJATEVEO kabotaaž — määrus (EÜ) nr 1073/2009 art 16 (buss/tramm)
+-- EU_INFRINGEMENT: eristab identse/mitmetähendusliku kirjeldusega kabotaaži-
+-- koodid (#328 p1, #329 p4). Seemnes (20260828275000) on VSI869 ja VSI872 sama
+-- tekstiga "kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus-
+-- ja haldusnormidele", VSI873 kirjeldus ei viita määrusele — need on aga eri
+-- rikkumised:
+--   VSI869 = VEOSEVEO kabotaaž     — määrus (EÜ) nr 1072/2009 art 8 lg 2
+--   VSI872 = SÕITJATEVEO kabotaaž  — määrus (EÜ) nr 1073/2009 art 16 (buss/tramm)
+--   VSI873 = SÕITJATEVEO kabotaaži kontrolldokumendid — määrus (EÜ) nr 1073/2009 art 17
 -- (vrd CARGO_CABOTAGE_VIOLATION / PASSENGER_CABOTAGE_VIOLATION klassifikaatorid,
 --  mis eristavad neid juba määruse viitega nimes.)
 --
@@ -34,7 +36,8 @@ DO $$
         FOR v_rec IN
             SELECT * FROM (VALUES
                 ('VSI869', 'veoseveo kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määrus (EÜ) nr 1072/2009 art 8 lg 2)'),
-                ('VSI872', 'sõitjateveo kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määrus (EÜ) nr 1073/2009 art 16)')
+                ('VSI872', 'sõitjateveo kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määrus (EÜ) nr 1073/2009 art 16)'),
+                ('VSI873', 'sõidukis ei ole või ei ole kontrollima volitatud ametniku nõudmisel võimalik esitada sõitjateveo kabotaažvedudeks vajalikke kontrolldokumente (juhuvedude sõiduleht või eriotstarbeliste liinivedude korral vedaja ja veo korraldaja vahel sõlmitud leping või selle tõestatud koopia) (määrus (EÜ) nr 1073/2009 art 17)')
             ) AS t(code, new_name)
         LOOP
             UPDATE classifier.classifier_value
