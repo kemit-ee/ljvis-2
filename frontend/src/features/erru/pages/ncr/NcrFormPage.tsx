@@ -379,6 +379,25 @@ export function NcrFormPage() {
                     value={current.businessCaseId}
                   />
                   <DetailRow
+                    label={t('erru.ncr.form.messageDate')}
+                    value={
+                      current.createdAt
+                        ? new Date(current.createdAt).toLocaleDateString('et-EE')
+                        : '—'
+                    }
+                  />
+                  <DetailRow
+                    label={t('erru.ncr.form.messageTime')}
+                    value={
+                      current.createdAt
+                        ? new Date(current.createdAt).toLocaleTimeString('et-EE', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : '—'
+                    }
+                  />
+                  <DetailRow
                     label={t('erru.ncr.form.transportUndertakingName')}
                     value={current.transportUndertakingName}
                   />
@@ -413,6 +432,101 @@ export function NcrFormPage() {
                         current.responseCommunityLicenceStatus,
                       )}
                     />
+                  )}
+
+                  {current.responseAddress &&
+                    (current.responseAddress.address ||
+                      current.responseAddress.postCode ||
+                      current.responseAddress.city ||
+                      current.responseAddress.country) && (
+                      <>
+                        <Heading element="h3" className="mt-1 mb-1">
+                          {t('erru.ncr.form.responseAddressBlock')}
+                        </Heading>
+                        <DetailRow
+                          label={t('erru.ncr.form.responseAddressStreet')}
+                          value={current.responseAddress.address}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.responseAddressPostCode')}
+                          value={current.responseAddress.postCode}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.responseAddressCity')}
+                          value={current.responseAddress.city}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.responseAddressCountry')}
+                          value={
+                            current.responseAddress.country
+                              ? label('COUNTRY', current.responseAddress.country)
+                              : '—'
+                          }
+                        />
+                      </>
+                    )}
+
+                  {!!current.responsePenaltiesImposed?.length && (
+                    <>
+                      <Heading element="h3" className="mt-1 mb-1">
+                        {t('erru.ncr.form.penaltiesImposedResponseBlock')}
+                      </Heading>
+                      {current.responsePenaltiesImposed.map((p, idx) => (
+                        <Card key={idx} className="mt-05">
+                          <Card.Content>
+                            <DetailRow
+                              label={t(
+                                'erru.ncr.form.penaltyRequestedIdentifier',
+                              )}
+                              value={p.penaltyRequestedIdentifier}
+                            />
+                            <DetailRow
+                              label={t('erru.ncr.form.authorityImposingPenalty')}
+                              value={authorityLabel(p.authorityImposingPenalty)}
+                            />
+                            <DetailRow
+                              label={t('erru.ncr.form.isImposed')}
+                              value={
+                                p.isImposed ? t('common.yes') : t('common.no')
+                              }
+                            />
+                            {p.isImposed && (
+                              <>
+                                <DetailRow
+                                  label={t('erru.ncr.form.penaltyTypeImposed')}
+                                  value={
+                                    p.penaltyTypeImposed
+                                      ? label(
+                                          'NCR_PENALTY_TYPE_IMPOSED_REQ',
+                                          p.penaltyTypeImposed,
+                                        )
+                                      : '—'
+                                  }
+                                />
+                                {p.startDate && (
+                                  <DetailRow
+                                    label={t('erru.ncr.form.penaltyStartDate')}
+                                    value={p.startDate}
+                                  />
+                                )}
+                                {p.endDate && (
+                                  <DetailRow
+                                    label={t('erru.ncr.form.penaltyEndDate')}
+                                    value={p.endDate}
+                                  />
+                                )}
+                              </>
+                            )}
+                            {!p.isImposed && p.reason && (
+                              <DetailRow
+                                label={t('erru.ncr.form.penaltyReason')}
+                                value={p.reason}
+                              />
+                            )}
+                          </Card.Content>
+                        </Card>
+                      ))}
+                    </>
                   )}
                 </>
               )}

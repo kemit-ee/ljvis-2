@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-09-11
+
+### Tööinspektsiooni kontrollkaart — äriregistri otsing
+
+- Ettevõtte nime ja registrikoodi välja kõrval on nüüd **"Otsi"** nupp, mis
+  teeb X-tee kaudu äriregistri päringu. Vaste korral (kummagi välja järgi)
+  täidetakse nii ettevõtte nimi kui registrikood automaatselt. Mitme vaste
+  puhul kuvatakse valiku aken.
+
 ## 2026-09-10
 
 ### NCR (kontrollitulemuse teate) täiendused
@@ -15,6 +24,9 @@
   nr 1073/2009) — varem oli mõlemal identne tekst.
 - Raske rikkumise juures on **"Karistust saab edasi kaevata"** vaikimisi
   **"Ei"** (varem "Jah"). Ametnik saab vajadusel muuta.
+- NCR teate vaate **vastuseplokk** kuvab nüüd ka veoettevõtja aadressi,
+  kehtestatud karistused (määranud asutus, liik, kestus või määramata jätmise
+  põhjus) ning teate kuupäeva ja kellaaja.
 
 ### Rahvastikuregistri ja Postkasti X-tee liiklus läbi XTR-i
 

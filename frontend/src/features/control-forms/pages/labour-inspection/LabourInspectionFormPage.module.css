@@ -11,3 +11,16 @@
   gap: 1rem;
   width: 100%;
 }
+
+/* Väli + kõrvale joondatud "Otsi" nupp — hoiab grid-veeru ühelaiuselisena
+   (sama muster mis koondvormi ettevõtjaploki otsing). */
+.search-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.search-wrapper {
+  flex: 1;
+  min-width: 0;
+}

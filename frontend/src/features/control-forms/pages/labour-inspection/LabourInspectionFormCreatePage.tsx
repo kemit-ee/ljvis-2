@@ -33,6 +33,13 @@ export function LabourInspectionFormCreatePage() {
     addViolation,
     removeViolation,
     formError,
+    handleCompanyRegSearch,
+    handleCompanyNameSearch,
+    companySearchError,
+    setCompanySearchError,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
   } = useLabourInspectionForm(undefined, handleSaved);
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -61,6 +68,13 @@ export function LabourInspectionFormCreatePage() {
           removeMatrixRow={removeMatrixRow}
           addViolation={addViolation}
           removeViolation={removeViolation}
+          handleCompanyRegSearch={handleCompanyRegSearch}
+          handleCompanyNameSearch={handleCompanyNameSearch}
+          companySearchError={companySearchError}
+          setCompanySearchError={setCompanySearchError}
+          companyPickerResults={companyPickerResults}
+          onCompanyPicked={onCompanyPicked}
+          closeCompanyPicker={closeCompanyPicker}
         />
 
         <div className="page-actions">
