@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-09-11
+
+### Tööinspektsiooni kontrollkaart — äriregistri otsing
+
+- Ettevõtte nime ja registrikoodi välja kõrval on nüüd **"Otsi"** nupp, mis
+  teeb X-tee kaudu äriregistri päringu. Vaste korral (kummagi välja järgi)
+  täidetakse nii ettevõtte nimi kui registrikood automaatselt. Mitme vaste
+  puhul kuvatakse valiku aken.
+
 ## 2026-09-10
 
 ### NCR (kontrollitulemuse teate) täiendused
