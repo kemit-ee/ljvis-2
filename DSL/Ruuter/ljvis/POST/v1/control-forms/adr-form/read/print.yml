@@ -13,11 +13,17 @@ declaration:
 
 extractRequestData:
   assign:
-    id: "${incoming.body.id}"
+    id: "${incoming.body.id || ''}"
     blank: ${incoming.body.blank === true}
     snapshot_id: "${incoming.body.snapshotId || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
+  next: checkBlankNoId
+
+checkBlankNoId:
+  switch:
+    - condition: ${blank && id === ''}
+      next: renderBlank
   next: getCurrentForm
 
 getCurrentForm:
@@ -124,7 +130,8 @@ checkPdfResult:
 
 buildLogDescription:
   assign:
-    description: "ADR kontrollkaart trükitud, alamvormi võti=${id}, koondvormi võti=${currentFormRes.response.body[0].compoundFormKey}, tühi=${blank}"
+    compound_key: "${id !== '' ? currentFormRes.response.body[0].compoundFormKey : ''}"
+    description: "ADR kontrollkaart trükitud, alamvormi võti=${id}, koondvormi võti=${compound_key}, tühi=${blank}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -138,7 +145,7 @@ logAuditEvent:
     actor_personal_code: ${actor_personal_code}
     actor_name: ${actor_name}
     description: ${description}
-    log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${currentFormRes.response.body[0].compoundFormKey},\"blank\":${blank}}"
+    log_content: "{\"subFormKey\":\"${id}\",\"compoundFormKey\":\"${compound_key}\",\"blank\":${blank}}"
   result: audit_result
   next: returnSuccess
 
