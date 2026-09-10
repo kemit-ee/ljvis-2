@@ -55,3 +55,12 @@ scripts/.resql-audit.json
 
 # Ruuter dsl-lint / dsl-test binaries, built in CI (see .github/workflows/ci.yml)
 .ruuter-tools/
+
+# Playwright UI-testid
+/tests/playwright/node_modules
+/tests/playwright/test-results/
+/test-results/
+# Testitulemused on jooksu-artefaktid — ei lähe versioonihaldusse
+# (CI laeb need artefaktina). Ainult .gitkeep hoiab kausta olemas.
+/tests/playwright/tulemus/*
+!/tests/playwright/tulemus/.gitkeep

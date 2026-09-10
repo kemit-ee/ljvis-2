@@ -4,6 +4,38 @@
 
 ---
 
+## 2026-09 — ADR kontrollkaardi PDF-prindi tugi
+
+- **ADR kontrollkaardil** ilmub vaatamis- ja avalikustamisvaates nupp **„Prindi"**
+  rippmenüüga:
+  - **„Prindi täidetud vorm"** — laadib alla täidetud vormi PDF-na, kus kõik
+    salvestatud andmed on täidetud.
+  - **„Prindi tühi vorm"** — laadib alla tühja vormi PDF-na (blankett paberile
+    täitmiseks).
+- PDF genereeritakse serveri poolel (`pdf-creator` mikroteenus) ja saadetakse
+  brauserisse allalaadimisena — puudub vajadus eraldi printeridialoogiks.
+- Toetatud on ka varasema versiooni (snapshot) printimine.
+
+---
+
+## 2026-09 — Koondvormi kasutajaliidese parandused
+
+- **Isikukoodi otsinguväljad** on nüüd paigutatud loetavamalt: Eesti isikukood ja
+  „Otsi rahvastikuregistrist" nupp on vasakus veerus (eesnime all), välisriigi
+  isikukood on paremas veerus (perekonnanime all). Varem mõlemad väljad
+  venisid üle kogu vormi laiuse.
+- **Vormi salvestamine katkestab valideeringuveaga:** kui üldosa (vahekaart 1)
+  sisaldab vigu, lülitub rakendus automaatselt esimesele vahekaardile, et viga
+  oleks nähtav — varem jäi vahekaart avamata ja punased veatekstid polnud
+  kasutajale nähtavad.
+- **Aadress ja maantee:** kui nii aadress kui maantee on täitmata, kuvatakse
+  veateade — varem salvestus vorm ilma selge veata, kuid server lükkas tagasi.
+- **Töölaua „Täida" nupp** on nüüd halli taustaga, kui sellel hetkel ei saa
+  ühtegi vormi täita (nt kõik load on juba täidetud) — varem nägi nupp alati
+  primaarse nupuna välja, olenemata olekust.
+
+---
+
 ## 2026-09 — Transpordiameti kontrollkaardi täiendused
 
 Transpordiameti (TRAM) ettepanekute põhjal:
