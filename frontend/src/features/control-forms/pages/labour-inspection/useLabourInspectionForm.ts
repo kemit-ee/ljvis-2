@@ -10,6 +10,7 @@ import type {
 import { saveLabourInspectionForm, confirmLabourInspectionForm, publishLabourInspectionForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 
 const emptyMatrixRow = (transportClass: number): ControlsMatrixRow => ({
   transportClass,
@@ -135,6 +136,31 @@ export function useLabourInspectionForm(
     },
   });
 
+  // Äriregistri (X-tee) otsing registrikoodi VÕI ettevõtte nime järgi — vaste
+  // korral täidetakse mõlemad väljad. Sama muster mis koondvormi ettevõtjaploki
+  // otsing (useCompanySearch); TI-vormil on ainult nimi + registrikood.
+  const {
+    searchByRegCode,
+    searchByName,
+    error: companySearchError,
+    setError: setCompanySearchError,
+    pickerResults: companyPickerResults,
+    handleCompanyPicked: onCompanyPicked,
+    closePicker: closeCompanyPicker,
+  } = useCompanySearch({
+    onCompanyFound: (company) => {
+      formik.setFieldValue('companyName', company.companyName);
+      if (company.registryCode) {
+        formik.setFieldValue('companyRegCode', company.registryCode);
+      }
+    },
+  });
+
+  const handleCompanyRegSearch = () =>
+    searchByRegCode(formik.values.companyRegCode);
+  const handleCompanyNameSearch = () =>
+    searchByName(formik.values.companyName);
+
   const triggerConfirm = () => {
     pendingConfirm.current = true;
     return formik.submitForm();
@@ -192,5 +218,12 @@ export function useLabourInspectionForm(
     addViolation,
     removeViolation,
     formError,
+    handleCompanyRegSearch,
+    handleCompanyNameSearch,
+    companySearchError,
+    setCompanySearchError,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
   };
 }

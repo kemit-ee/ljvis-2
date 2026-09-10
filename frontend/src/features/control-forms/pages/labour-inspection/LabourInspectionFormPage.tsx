@@ -118,6 +118,13 @@ export function LabourInspectionFormPage() {
     triggerConfirm,
     triggerPublish,
     formError,
+    handleCompanyRegSearch,
+    handleCompanyNameSearch,
+    companySearchError,
+    setCompanySearchError,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
   } = useLabourInspectionForm(form ?? undefined, handleEditSaved, handleConfirmed, handlePublished);
 
   const handleDelete = async () => {
@@ -236,6 +243,13 @@ export function LabourInspectionFormPage() {
           removeMatrixRow={removeMatrixRow}
           addViolation={addViolation}
           removeViolation={removeViolation}
+          handleCompanyRegSearch={handleCompanyRegSearch}
+          handleCompanyNameSearch={handleCompanyNameSearch}
+          companySearchError={companySearchError}
+          setCompanySearchError={setCompanySearchError}
+          companyPickerResults={companyPickerResults}
+          onCompanyPicked={onCompanyPicked}
+          closeCompanyPicker={closeCompanyPicker}
         />
 
         {id && (

@@ -482,6 +482,7 @@
       "inspectionTypeCargo": "Veose vedu",
       "companyName": "Ettevõtte nimi",
       "companyRegCode": "Registrikood",
+      "companySearchButton": "Otsi",
       "vehicleCount": "Sõidukite arv",
       "totalDriversCount": "Kontrollitud juhtide arv",
       "controlsMatrix": {
