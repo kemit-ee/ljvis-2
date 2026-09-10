@@ -1,4 +1,5 @@
 import { test, expect } from '../support/fixtures';
+import { checkChoiceById } from '../support/tedi';
 
 /** RSI kaart: UI struktuur, kontrollpunktide lubatud olekud ja printimise kutse. */
 test.describe('RSI teade', () => {
@@ -15,8 +16,10 @@ test.describe('RSI teade', () => {
     await page.goto('/erru/rsi/new', { waitUntil: 'domcontentloaded' });
     await expect(page.getByText(/Kontrollitud punkt/i)).toBeVisible({ timeout: 20_000 });
     const nonCompliant = page.getByRole('radio', { name: /Ei vasta nõuetele/i }).first();
-    await expect(nonCompliant).toBeVisible();
-    await nonCompliant.check({ force: true });
+    await expect(nonCompliant).toBeEnabled();
+    const inputId = await nonCompliant.getAttribute('id');
+    expect(inputId).toBeTruthy();
+    await checkChoiceById(page, inputId!);
     await expect(page.getByRole('dialog')).toBeVisible();
   });
 
@@ -24,12 +27,34 @@ test.describe('RSI teade', () => {
     await page.route('**/v1/erru/rsi/get**', (route) => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ id: 'rsi-test', version: 1, direction: 'outgoing', status: 'sent', businessCaseId: 'EE-RSI-TEST', rsiFrom: 'EE', rsiTo: 'FI', checkedItems: [] }),
+      body: JSON.stringify({
+        response: {
+          id: 'rsi-test',
+          version: 1,
+          direction: 'outgoing',
+          status: 'sent',
+          businessCaseId: 'EE-RSI-TEST',
+          rsiFrom: 'EE',
+          rsiTo: 'FI',
+          checkedItems: [],
+        },
+      }),
     }));
     let printCalled = false;
     await page.route('**/v1/erru/rsi/print', (route) => {
       printCalled = true;
-      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ filename: 'rsi.pdf', contentType: 'application/pdf', base64: btoa('PDF'), warnings: [] }) });
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          response: {
+            filename: 'rsi.pdf',
+            contentType: 'application/pdf',
+            base64: btoa('PDF'),
+            warnings: [],
+          },
+        }),
+      });
     });
     await page.goto('/erru/rsi/rsi-test', { waitUntil: 'domcontentloaded' });
     const print = page.getByRole('button', { name: /Prindi/i });
