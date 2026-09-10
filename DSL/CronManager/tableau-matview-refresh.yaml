@@ -1,8 +1,0 @@
-# Runs at 03:00 Europe/Tallinn (TZ pinned in docker-compose.yml) — hilja, et olla
-# 100% kindel, et e-Toimiku (01:00–01:30) ja riskiskoori öised tööd on läbi.
-tableau_matview_refresh:
-  trigger: "0 0 3 * * ?"
-  type: exec
-  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/tableau-matview-refresh" || true
-  allowedEnvs:
-    - RUUTER_INTERNAL

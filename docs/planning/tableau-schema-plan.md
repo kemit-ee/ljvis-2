@@ -1,6 +1,14 @@
-# Megaplan: `tableau` analüütikaskeem — hallatud materialiseeritud vaated
+# Megaplan: `tableau` analüütikaskeem — hallatud vaated
 
-> **Staatus:** PR1 teostamisel. Otsus fikseeritud ADR-009-s.
+> **⚠️ REVISJON 10.09.2026 (changeset `20261117100000-...-02-plain-views`):**
+> `tableau.*` on nüüd **tavalised vaated**, mitte materialiseeritud. Öine
+> `refresh_all()` + CronManager cron + `refresh_matviews.sql` eemaldatud —
+> andmed reaalajas. Kiirus tuleb aluslaua osalistest indeksitest
+> `idx_*_tableau_active`. Allpool jaotis 1 („Miks materialiseeritud") ja kõik
+> `REFRESH`/`03:00` viited on **AEGUNUD** — jäetud ajaloo mõistmiseks. Autoriteet
+> = ADR-009 revisjonimärkus. `_current` / fakt-vaated (PR2/PR3) = samuti plain view.
+>
+> **Staatus:** PR1 (#305) merged. PR2/PR3 lahtised.
 > **Kontekst:** `docs/planning/Tableau_guidlines.md` §3 pakkus juba `tableau.*_current`
 > vaadete komplekti, aga **kopeeri-kleebi kujul, mille DBA jooksutab käsitsi**. See
 > triivib iga `forms.*` skeemimuudatusega. Käesolev plaan viib need versioonihaldusse
