@@ -119,7 +119,7 @@ confirmForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: confirmRes
-  next: extractConfirmResponseData
+  next: check_confirmRes_persisted
 
 extractConfirmResponseData:
   assign:
@@ -157,4 +157,15 @@ returnValidationError:
 returnAlreadyConfirmedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_confirmed"}'
+  next: end
+
+check_confirmRes_persisted:
+  switch:
+    - condition: ${confirmRes.response == null || confirmRes.response.status < 200 || confirmRes.response.status >= 300 || confirmRes.response.body == null || confirmRes.response.body.length == null || confirmRes.response.body.length === 0}
+      next: returnResqlWriteError
+  next: extractConfirmResponseData
+
+returnResqlWriteError:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end
