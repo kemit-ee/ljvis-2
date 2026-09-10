@@ -5,6 +5,60 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-010 — Kustutatud kontrollvormide arhiiv: eraldi andmebaas, suhtlus ainult Ruuteri + resql kaudu
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 10.09.2026
+**Seotud:** INSERT-only snapshot-mudel; `DSL/Liquibase-arhiiv/`, `DSL/Resql/arhiiv/`,
+`DSL/Ruuter.internal/ljvis/POST/cron/archive-deleted-forms.yml`
+
+### Kontekst
+
+Kontrollvormid (`forms.compound_form`, `forms.tram_control_card`,
+`forms.labour_inspection_form` jt, 11 tabelit) on INSERT-only snapshot. „Kustutatud"
+vorm jääb tabelisse igaveseks `deleted`-tombstone'iga — read kasvatavad töötabeleid
+ja koormavad indekseid, kuigi neid ei näidata kusagil peale versiooniajaloo.
+
+### Valikud
+
+1. **Sama baasi `archive` skeem** + `forms.<t>_all` UNION-vaated. Lihtne, aga read
+   jäävad samasse instantsi; „eraldi" ainult loogiliselt.
+2. **Eraldi andmebaas + postgres_fdw.** Füüs-eraldi, aga foreign-tabelid loovad
+   DB-tasandi sõltuvuse ja jagatud tõrkedomeeni.
+3. **Eraldi andmebaas, suhtlus ainult Ruuteri + resql kaudu.** Null DB-tasandi
+   sidusust; töö- ja arhiivibaas ei näe teineteist. Rohkem DSL-i.
+
+### Otsus
+
+**Valik 3.** Eraldi andmebaas `ljvis_arhiiv_db` (dev/CI; toodangus
+`ljvis2_<env>_arhiiv`, võib olla eraldi instants — muutub ainult ühendusstring).
+resql teenindab seda projektina `arhiiv` (`[#LJVIS_RESQL_ARHIIV]`), oma
+Liquibase-jooks (`DSL/Liquibase-arhiiv/`).
+
+- **Üks skeemistabiilne ümbrik-tabel** `archive.form_snapshot`: iga rida = üks
+  arhiveeritud snapshot, terve algne rida `payload JSONB`-is + copy-ajal
+  resolutsiooniga looja nimi/org (arhiivibaasis `users.*` puudub). Tulevased
+  `forms.*` veerumuudatused ei nõua arhiivi migratsiooni.
+- **Kolm faasi, kõik läbi resql** (cron `archive-deleted-forms`, iga 2h):
+  `select_deleted_snapshots` (töö-baas) → `insert_snapshots` (arhiiv, ON CONFLICT
+  DO NOTHING) → `count_present` (arhiiv kinnitab IGA (form_type, id) olemasolu) →
+  `purge_confirmed` (töö-baas, REAALNE DELETE — ainult kui verify = 100% vaste).
+  Mittetäieliku vaste korral purge vahele; järgmine jooks parandab ise.
+- **Versiooniajaloo fallback Ruuteri kihis:** `get-snapshots` / `get-snapshot`
+  vood proovivad esmalt töö-baasi ja kukuvad arhiivi endpoint'ile tagasi, kui
+  töö-baas tagastab 0 rida (arhiveeritud olemi kogu ajalugu on ALATI kas
+  täielikult töö-baasis või täielikult arhiivis).
+
+### Põhjendus
+
+„200% kindel enne kustutamist" = DELETE toimub alles pärast seda, kui teine
+andmebaas on eraldi päringuga kinnitanud, et kõik read on seal olemas ja
+loetavad. Eraldi baas + ainult-Ruuter-suhtlus hoiab tõrkedomeenid lahus ja teeb
+hilisema eraldi instantsi / eraldi teenuse triviaalseks (constants-string).
+
+---
+
+## ADR-009 — Tableau analüütika: eraldi `tableau` skeem hallatud materialiseeritud vaadetega
 ## ADR-009 — Tableau analüütika: eraldi `tableau` skeem hallatud vaadetega
 
 **Otsustaja:** Sten Viljus

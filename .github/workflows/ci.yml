@@ -144,13 +144,13 @@ jobs:
 
       - name: Check SQL files are non-empty
         run: |
-          empty=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' -empty 2>/dev/null)
+          empty=$(find DSL/Resql DSL/Liquibase/changelog DSL/Liquibase-arhiiv/changelog -name '*.sql' -empty 2>/dev/null)
           if [ -n "$empty" ]; then
             echo "❌ Empty SQL files found:"
             echo "$empty"
             exit 1
           fi
-          count=$(find DSL/Resql DSL/Liquibase/changelog -name '*.sql' | wc -l | tr -d ' ')
+          count=$(find DSL/Resql DSL/Liquibase/changelog DSL/Liquibase-arhiiv/changelog -name '*.sql' | wc -l | tr -d ' ')
           echo "✅ $count SQL files non-empty"
 
   # ── 1b. Guard audit (Ruuter boot + /_/unguarded) ───────────────────────────
