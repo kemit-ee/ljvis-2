@@ -1,3 +1,3 @@
-FROM turnerrainer/resql:0.2.0-alpha@sha256:62936ebc2fbb6e44dfa0aede4b1ee02db8a5b913d6e203ea8742b629b88c86a5
+FROM turnerrainer/resql:0.3.0-alpha@sha256:201f93c2af16b91033a1ee898545cc997b49d5803d52d1662fd08eca2953006d
 COPY docker/resql-ljvis/resql.yaml /app/resql.yaml
 COPY DSL/Resql /DSL
