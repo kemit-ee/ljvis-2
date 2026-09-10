@@ -12,6 +12,7 @@ getFilesFromDB:
       type: json
     body:
       form_number: ${incoming.body.form_number}
+      form_number_prefix: ${incoming.body.form_number_prefix}
   result: dbResult
 
 returnSuccess:

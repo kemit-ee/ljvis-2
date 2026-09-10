@@ -6,7 +6,6 @@ declaration:
   allowlist:
     body:
       - field: id
-        type: string
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -265,7 +264,7 @@ confirmForm:
       status: ${status}
       created_by: ${created_by}
   result: insertRes
-  next: extractResponseData
+  next: check_insertRes_persisted
 
 extractResponseData:
   assign:
@@ -295,4 +294,15 @@ returnSuccess:
 returnValidationError:
   status: 422
   return: ${validationResult}
+  next: end
+
+check_insertRes_persisted:
+  switch:
+    - condition: ${insertRes.response == null || insertRes.response.status < 200 || insertRes.response.status >= 300 || insertRes.response.body == null || insertRes.response.body.length == null || insertRes.response.body.length === 0}
+      next: returnResqlWriteError
+  next: extractResponseData
+
+returnResqlWriteError:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end

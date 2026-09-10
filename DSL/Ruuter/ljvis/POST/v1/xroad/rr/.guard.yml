@@ -1,7 +1,8 @@
-# Nõutav õigus: xtee.query.rahvastikuregister. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+# Nõutav õigus: xtee.query.rahvastikuregister VÕI xtee.query (üldine X-tee päring).
+# auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
 check:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('xtee.query.rahvastikuregister')}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('xtee.query.rahvastikuregister') || auth_user.permissions.includes('xtee.query'))}
       next: allow
   next: deny
 

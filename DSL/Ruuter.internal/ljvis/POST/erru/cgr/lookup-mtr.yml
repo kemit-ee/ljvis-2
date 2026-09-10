@@ -137,7 +137,7 @@ logSuccess:
     body:
       service_code: "mtr.checkTransportManagerGoodRepute.v1"
       request_xml: "${'firstName=' + first_name_nysiis + ';lastName=' + last_name_nysiis + ';birthDate=' + birth_date + ';cpcDocumentNumber=' + cpc_document_number}"
-      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      response_xml: "${JSON.stringify({ received: (xtrResponse.response.body) != null, count: (Array.isArray(xtrResponse.response.body) ? (xtrResponse.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
@@ -226,7 +226,7 @@ logFailure:
     body:
       service_code: "mtr.checkTransportManagerGoodRepute.v1"
       request_xml: "${'firstName=' + first_name_nysiis + ';lastName=' + last_name_nysiis + ';birthDate=' + birth_date + ';cpcDocumentNumber=' + cpc_document_number}"
-      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      response_xml: "${JSON.stringify({ received: (xtrResponse.response.body) != null, count: (Array.isArray(xtrResponse.response.body) ? (xtrResponse.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "${'XTR HTTP ' + xtrResponse.response.status}"

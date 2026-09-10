@@ -49,10 +49,12 @@ WITH person_companies AS (
   -- Koondvormidest: isik on juht (drivers JSONB massiiv sisaldab isikukoodi).
   -- Väljanimed on camelCase, mitte snake_case — see on drivers-veeru tegelik
   -- kuju (vt CompoundFormEditCard.tsx / CompoundFormCreatePage.tsx).
+  -- Eelfilter: `drivers @> [...]` kasutab GIN-indeksit idx_cf_drivers_gin ja
+  -- väldib kogu tabeli skaneerimist + unnest'i. Containment garanteerib, et
+  -- mõni juht massiivis vastab isikukoodile — eraldi jsonb_array_elements'i vaja pole.
   SELECT DISTINCT cf.company_reg_code
-  FROM forms.compound_form cf,
-       jsonb_array_elements(cf.drivers) AS driver
-  WHERE driver->>'personalCodeEe' = :isikukood
+  FROM forms.compound_form cf
+  WHERE cf.drivers @> jsonb_build_array(jsonb_build_object('personalCodeEe', :isikukood))
     AND cf.company_reg_code IS NOT NULL
     AND cf.company_reg_code <> ''
     AND cf.status <> 'deleted'   -- kustutatud vormid välja

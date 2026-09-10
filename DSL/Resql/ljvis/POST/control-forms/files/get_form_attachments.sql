@@ -6,6 +6,10 @@ params:
     type: string
     required: false
     description: Form number
+  form_number_prefix:
+    type: string
+    required: false
+    description: 'Valikuline vorminumbri prefiks — kui antud, peab form_number sellega algama (IDOR-kaitse).'
 returns:
 - name: id
   type: string
@@ -40,4 +44,5 @@ SELECT
 FROM forms.form_attachment
 WHERE form_number = :form_number
   AND status = 'active'
+  AND (btrim(COALESCE(:form_number_prefix, '')) = '' OR form_number LIKE :form_number_prefix || '%')
 ORDER BY created_at DESC;

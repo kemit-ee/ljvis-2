@@ -12,8 +12,20 @@ getAttachmentRecord:
       type: json
     body:
       id: ${incoming.body.id}
+      form_number_prefix: ${incoming.body.form_number_prefix}
   result: attachmentRecord
+  next: checkAttachmentInScope
+
+checkAttachmentInScope:
+  switch:
+    - condition: ${attachmentRecord.response.body == null || attachmentRecord.response.body.length === 0}
+      next: returnNotFound
   next: deleteFileInDB
+
+returnNotFound:
+  status: 404
+  return: '{"error": "File not found or has been deleted"}'
+  next: end
 
 deleteFileInDB:
   call: http.post
@@ -23,6 +35,7 @@ deleteFileInDB:
       type: json
     body:
       id: ${incoming.body.id}
+      form_number_prefix: ${incoming.body.form_number_prefix}
   result: dbResult
   next: logAuditEvent
 

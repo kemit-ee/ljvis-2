@@ -25,6 +25,11 @@
       "enabled": true
     },
     {
+      "key": "resql_arhiiv_url",
+      "value": "http://localhost:9087/arhiiv",
+      "enabled": true
+    },
+    {
       "key": "tim_url",
       "value": "http://localhost:9085",
       "enabled": true

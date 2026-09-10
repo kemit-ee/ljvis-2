@@ -43,7 +43,15 @@ returns:
 -- 1. Koondvormid kus isik on juht (drivers JSONB sisaldab personalCodeEe;
 --    väljanimed on camelCase, tegelik drivers-veeru kuju, mitte snake_case)
 -- DISTINCT ON tagab, et iga vormi kohta on ainult viimane versioon (snapshot)
-WITH latest_compound AS (
+-- Eelfilter: GIN-indeks idx_cf_drivers_gin leiab võtmed, mille MÕNI versioon
+-- sisaldab juhti antud isikukoodiga — väldib kogu tabeli skaneerimist.
+WITH person_compound_keys AS (
+  SELECT DISTINCT compound_form_key
+  FROM forms.compound_form
+  WHERE status <> 'deleted'
+    AND drivers @> jsonb_build_array(jsonb_build_object('personalCodeEe', :isikukood))
+),
+latest_compound AS (
   SELECT DISTINCT ON (compound_form_key)
     compound_form_key,
     control_date,
@@ -52,7 +60,8 @@ WITH latest_compound AS (
     company_name,
     drivers
   FROM forms.compound_form
-  WHERE status <> 'deleted'        -- kustutatud vormid jäetakse välja
+  WHERE compound_form_key IN (SELECT compound_form_key FROM person_compound_keys)
+    AND status <> 'deleted'        -- kustutatud vormid jäetakse välja
   ORDER BY compound_form_key, created_at DESC
 ),
 -- Filtreerime juhi isikukoodi järgi JSONB massiivist
