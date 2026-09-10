@@ -311,7 +311,8 @@ export function CompoundFormViewCard({
                   value={
                     allVehicleCategories
                       .map((c) => ({ value: c.code, label: c.name }))
-                      .find((o) => o.value === form.vehicleCategoryCode)?.label ?? ''
+                      .find((o) => o.value === form.vehicleCategoryCode)
+                      ?.label ?? ''
                   }
                   disabled
                   onChange={() => undefined}
@@ -492,8 +493,7 @@ export function CompoundFormViewCard({
                   }
                   disabled={disabled}
                 />
-                {form.companyCountryCode &&
-                form.companyCountryCode !== 'EE' ? (
+                {form.companyCountryCode && form.companyCountryCode !== 'EE' ? (
                   <TextField
                     id="companyCounty"
                     label={t('forms.compound.companyCounty')}
@@ -516,8 +516,7 @@ export function CompoundFormViewCard({
                     disabled={disabled}
                   />
                 )}
-                {form.companyCountryCode &&
-                form.companyCountryCode !== 'EE' ? (
+                {form.companyCountryCode && form.companyCountryCode !== 'EE' ? (
                   <TextField
                     id="companyCity"
                     label={t('forms.compound.companyCity')}
@@ -597,15 +596,16 @@ export function CompoundFormViewCard({
                     disabled={disabled}
                   />
                   <TextField
-                    id={`driverPersonalCodeForeign_${index}`}
-                    label={t('forms.compound.driverPersonalCodeForeign')}
-                    value={driver.personalCodeForeign ?? ''}
-                    disabled={disabled}
-                  />
-                  <TextField
                     id={`driverPersonalCodeEe_${index}`}
                     label={t('forms.compound.driverPersonalCodeEe')}
                     value={driver.personalCodeEe ?? ''}
+                    disabled={disabled}
+                  />
+                  {isDesktop && <div></div>}
+                  <TextField
+                    id={`driverPersonalCodeForeign_${index}`}
+                    label={t('forms.compound.driverPersonalCodeForeign')}
+                    value={driver.personalCodeForeign ?? ''}
                     disabled={disabled}
                   />
                   <Select
@@ -699,7 +699,11 @@ export function CompoundFormViewCard({
           </Card>
 
           {form.id && (
-            <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />
+            <FormVersionsTable
+              formId={form.id}
+              formType={formType}
+              refreshKey={versionsRefreshKey}
+            />
           )}
         </div>
       </Card.Content>

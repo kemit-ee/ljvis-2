@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading, Tabs, Text } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../auth/AuthContext';
@@ -12,6 +13,7 @@ export function NotificationsPage() {
   const { hasPermission } = useAuth();
   const { notifications, loading, markRead, markAllRead } = useNotifications();
 
+  const [activeTab, setActiveTab] = useState('inapp');
   const canViewLog = hasPermission(PERMISSIONS.NOTIFICATION_LIST);
   const unreadCount = notifications.filter((n) => n.isUnread).length;
 
@@ -23,7 +25,7 @@ export function NotificationsPage() {
             <Heading element="h1">{t('notifications.title')}</Heading>
           </div>
 
-          <Tabs>
+          <Tabs value={activeTab} onChange={setActiveTab}>
             <Tabs.List>
               <Tabs.Trigger id="inapp">{t('notifications.tabInApp')}</Tabs.Trigger>
               {canViewLog && (

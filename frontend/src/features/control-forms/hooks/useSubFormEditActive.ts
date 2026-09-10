@@ -349,7 +349,8 @@ interface UseRemoveSubFormTabOptions {
   navigateAfterRemove: (tab: SubFormTabId) => void;
   onEditActiveChange?: (value: boolean) => void;
   onTrailerRemoved?: (index: number) => void;
-  onTrailerRemovedSave?: () => void;
+  onTrailerRemovedSave?: (index: number) => void;
+  onTrailerDeletionDeferred?: (index: number, subFormId: string, subFormNumber: string, status: string) => void;
 }
 
 export function useRemoveSubFormTab({
@@ -366,6 +367,7 @@ export function useRemoveSubFormTab({
   onEditActiveChange,
   onTrailerRemoved,
   onTrailerRemovedSave,
+  onTrailerDeletionDeferred,
 }: UseRemoveSubFormTabOptions) {
   const [removeConfirmTab, setRemoveConfirmTab] = useState<SubFormTabId | null>(null);
   const [removeTrailerFromCompound, setRemoveTrailerFromCompound] = useState(false);
@@ -398,7 +400,7 @@ export function useRemoveSubFormTab({
       const trailerSubForm = trailers[idx];
       if (!trailerSubForm?.form || trailerSubForm.form.status === undefined) {
         onTrailerRemoved?.(idx);
-        if (onTrailerRemovedSave) setTimeout(onTrailerRemovedSave, 0);
+        if (onTrailerRemovedSave) setTimeout(() => onTrailerRemovedSave(idx), 0);
       }
     }
     setRemoveTrailerFromCompound(true);
@@ -459,18 +461,22 @@ export function useRemoveSubFormTab({
       const idx = Number((tab as string).replace('tab-trailer-technical-check-', ''));
       const trailerSubForm = trailers[idx];
       if (trailerSubForm?.form?.id && trailerSubForm.form?.subFormNumber) {
-        try {
-          await deleteTechnicalCheckForm('trailer', String(trailerSubForm.form.id), trailerSubForm.form.subFormNumber, trailerSubForm.form.status ?? '');
-        } catch (e) {
-          console.error('Delete sub-form failed', e);
-          return;
+        if (removeTrailerFromCompound && onTrailerDeletionDeferred) {
+          onTrailerDeletionDeferred(idx, String(trailerSubForm.form.id), trailerSubForm.form.subFormNumber, trailerSubForm.form.status ?? '');
+        } else {
+          try {
+            await deleteTechnicalCheckForm('trailer', String(trailerSubForm.form.id), trailerSubForm.form.subFormNumber, trailerSubForm.form.status ?? '');
+          } catch (e) {
+            console.error('Delete sub-form failed', e);
+            return;
+          }
         }
       }
       trailerSubForm?.setForm(null);
       trailerSubForm?.setEditActive(false);
       if (removeTrailerFromCompound) {
         onTrailerRemoved?.(idx);
-        if (onTrailerRemovedSave) setTimeout(onTrailerRemovedSave, 0);
+        if (onTrailerRemovedSave) setTimeout(() => onTrailerRemovedSave(idx), 0);
       }
       setRemoveTrailerFromCompound(false);
     }

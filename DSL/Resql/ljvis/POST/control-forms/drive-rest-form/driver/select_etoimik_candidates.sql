@@ -34,7 +34,8 @@ WITH latest_sd AS (
 latest_cf AS (
   SELECT DISTINCT ON (compound_form_key)
       compound_form_key,
-      drivers
+      drivers,
+      authority
   FROM forms.compound_form
   ORDER BY compound_form_key, created_at DESC
 )
@@ -45,6 +46,9 @@ SELECT
 FROM latest_sd s
 JOIN latest_cf c ON c.compound_form_key = s.compound_form_key
 WHERE s.status = 'confirmed'
+  -- ADR-002: TRAM kaardid on nüüd forms.tram_control_card ja neil on oma cron
+  -- (etoimik-tram-decision-sync). Siin ainult PPA sp_driver alamvormid.
+  AND c.authority = 'PPA'
   AND s.proceeding_type IS NOT NULL AND s.proceeding_type <> 'none'
   AND btrim(coalesce(s.proceeding_reference_number, '')) <> ''
   AND s.enforcement_decision IS NULL

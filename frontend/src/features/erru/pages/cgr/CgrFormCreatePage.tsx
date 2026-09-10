@@ -40,16 +40,13 @@ export function CgrFormCreatePage() {
       .finally(() => setCopyLoading(false));
   }, [copyFromId]);
 
-  // Only the searched-person fields are carried over — destination country, authority,
-  // source and purpose are NOT copied (LJVIS2-138 §4).
+  // The destination stays empty so the user deliberately chooses one or broadcasts.
+  // Request metadata and the searched-person fields are copied from the source.
   const prefill = copySource
     ? ({
         ...copySource,
         id: undefined,
         cgrTo: '',
-        originatingAuthority: '',
-        requestSource: '',
-        requestPurpose: '',
       } as Partial<CgrRequest>)
     : undefined;
 

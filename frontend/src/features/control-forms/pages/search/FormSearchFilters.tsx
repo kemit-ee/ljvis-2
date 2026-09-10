@@ -117,7 +117,7 @@ export function FormSearchFilters({
         <Select
           id="search-form-type"
           label={t('search.filters.formType')}
-          options={formTypeOptions}
+          options={[{ value: '', label: '\u00a0' }, ...formTypeOptions]}
           value={pick(formTypeOptions, draft.formType)}
           onChange={(val) => setField('formType', selected(val))}
         />
@@ -154,14 +154,14 @@ export function FormSearchFilters({
         <Select
           id="search-has-violation"
           label={t('search.filters.hasViolation')}
-          options={violationOptions}
+          options={[{ value: '', label: '\u00a0' }, ...violationOptions]}
           value={pick(violationOptions, draft.hasViolation)}
           onChange={(val) => setField('hasViolation', selected(val))}
         />
         <Select
           id="search-status"
           label={t('search.filters.status')}
-          options={statusOptions}
+          options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
           value={pick(statusOptions, draft.status)}
           onChange={(val) => setField('status', selected(val))}
         />

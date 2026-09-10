@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
 import { Card, Heading } from '@tedi-design-system/react/tedi';
-import { getFormSnapshots } from '../../api.ts';
+import { getFormSnapshots, getTramFormSnapshots } from '../../api.ts';
 import type { FormSnapshot } from '../../types.ts';
 import { formatDateTime } from '../../../../hooks/dateUtils.ts';
 import { Link } from 'react-router-dom';
@@ -27,10 +27,16 @@ export function FormVersionsTable({
   const [snapshots, setSnapshots] = useState<FormSnapshot[]>([]);
 
   useEffect(() => {
-    getFormSnapshots(formId, formType)
+    // TRAM control card has its own guarded snapshots endpoint (ADR-002) —
+    // it must not go through the generic control-forms/get-snapshots.
+    const fetcher =
+      formType === 'tram-card'
+        ? getTramFormSnapshots(formId)
+        : getFormSnapshots(formId, formType);
+    fetcher
       .then((res) => setSnapshots(Array.isArray(res) ? res : []))
       .catch(console.error);
-  }, [formId, refreshKey]);
+  }, [formId, formType, refreshKey]);
 
   const columns = useMemo(
     () => [

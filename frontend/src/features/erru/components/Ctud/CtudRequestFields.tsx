@@ -129,16 +129,6 @@ export function CtudRequestFields({
               />
 
               <TextField
-                id="ctud-vehicle-number"
-                label={t('erru.ctud.form.vehicleNumber')}
-                value={formik.values.vehicleRegistrationNumber}
-                onChange={(v) =>
-                  formik.setFieldValue('vehicleRegistrationNumber', v)
-                }
-                {...err('vehicleRegistrationNumber')}
-              />
-
-              <TextField
                 id="ctud-licence-number"
                 label={t('erru.ctud.form.licenceNumber')}
                 value={formik.values.communityLicenceNumber}
@@ -146,6 +136,16 @@ export function CtudRequestFields({
                   formik.setFieldValue('communityLicenceNumber', v)
                 }
                 {...err('communityLicenceNumber')}
+              />
+
+              <TextField
+                id="ctud-vehicle-number"
+                label={t('erru.ctud.form.vehicleNumber')}
+                value={formik.values.vehicleRegistrationNumber}
+                onChange={(v) =>
+                  formik.setFieldValue('vehicleRegistrationNumber', v)
+                }
+                {...err('vehicleRegistrationNumber')}
               />
             </div>
 

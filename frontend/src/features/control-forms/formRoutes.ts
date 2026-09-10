@@ -101,8 +101,8 @@ export const FORM_CONFIG: Record<string, FormConfig> = {
     classifierCode: 'SP_TRANSPORT_SUSPENDED',
   },
   tram_driver_form: {
-    labelKey: 'forms.tram_driver_form',
-    route: '/tram-driver',
+    labelKey: 'forms.tram_control_card_form',
+    route: '/tram-control-card',
     hasParent: false,
     kind: 'kontrollkaart',
     classifierCode: 'TRAM_KONTROLLKAART',

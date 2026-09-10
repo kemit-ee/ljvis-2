@@ -196,6 +196,15 @@ standalone_union AS (
           ORDER BY good_repute_form_key, created_at DESC) gr
     WHERE gr.status NOT IN ('deleted','published')
       AND gr.created_by = :actor_code
+    UNION ALL
+    SELECT 'tram_control_card', tc.tram_control_card_key,
+           tc.form_number, tc.status, tc.control_date,
+           tc.control_time, tc.vehicle_reg_nr, tc.created_at, tc.created_by
+    FROM (SELECT DISTINCT ON (tram_control_card_key) * FROM forms.tram_control_card
+          ORDER BY tram_control_card_key, created_at DESC) tc
+    WHERE tc.status NOT IN ('deleted','published')
+      AND ((:scope = 'organisation' AND tc.inspector_organisation_id = :actor_org_id)
+           OR (:scope <> 'organisation' AND tc.created_by = :actor_code))
 ),
 active_standalone AS (
     SELECT jsonb_build_object(

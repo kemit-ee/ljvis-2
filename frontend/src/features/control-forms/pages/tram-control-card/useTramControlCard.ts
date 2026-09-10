@@ -1,0 +1,962 @@
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import type { Organisation } from '../../../organisations/types';
+import type { CompoundForm, TramControlCard, Trailer, Driver } from '../../types';
+import { listOrganisations } from '../../../organisations/api';
+import { saveTramForm, confirmTramForm, publishTramForm } from '../../api';
+import { ApiError } from '../../../../shared/api/client';
+import { applyValidationError } from '../../../../shared/api/errors';
+import { useAuth } from '../../../auth/AuthContext';
+import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
+import { OTHER, ROAD } from '../../../../constants/constants.ts';
+import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
+import { useVehicleSearch } from '../../../xroad/hooks/useVehicleSearch';
+import {
+  searchVehicleByRegNr,
+  searchMtrSoidukikaart,
+  searchPersonByCode,
+} from '../../../xroad/api';
+import type { XRoadVehicle } from '../../../xroad/types';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
+
+// Separate maps for vehicle and trailer EU category codes (liiklusregister
+// `kateg` field) → internal VEHICLE_CATEGORY_2012 / TRAILER_CATEGORY_2012
+// classifier codes. Keeping them separate prevents a trailer code (O3 → C_2012)
+// from being silently placed in the vehicle category field, which would pass
+// form validation but produce an invalid submission.
+const VEHICLE_CATEGORY_MAP: Record<string, string> = {
+  N2: 'A_2012',     // (a) N2 3.5–12 t
+  N3: 'B_2012',     // (b) N3 >12 t
+  M2: 'E_2012',     // (e) M2 >9 seats <5 t
+  M3: 'F_2012',     // (f) M3 >9 seats >5 t
+  T1: 'G3_2012',    T1b: 'G3_2012',
+  T2: 'H2_2012',    T2b: 'H2_2012',
+  T3: 'I_2012',     T3b: 'I_2012',
+  'T4.1': 'J_2012', 'T4.1b': 'J_2012',
+  'T4.2': 'K_2012', 'T4.2b': 'K_2012',
+  'T4.3': 'L_2012', 'T4.3b': 'L_2012',
+};
+
+const TRAILER_CATEGORY_MAP: Record<string, string> = {
+  O3: 'C_2012',     // (c) O3 3.5–10 t
+  O4: 'D_2012',     // (d) O4 >10 t
+};
+
+interface MappedCategory {
+  categoryCode: string;
+  categoryOther: string;
+}
+
+// LJVIS2-55 §33/§49: kategooria peab olema alati täidetud. Codes outside the
+// known subset (M1, N1, O1, O2, L*, …) have no direct classifier entry but
+// must not be silently lost. We set categoryCode = OTHER_2012 ("Muu") and
+// categoryOther = <raw code> so the form displays and validates correctly.
+function mapVehicleCategory(euCode: string | null | undefined): MappedCategory {
+  if (!euCode) return { categoryCode: '', categoryOther: '' };
+  const trimmed = euCode.trim();
+  const mapped = VEHICLE_CATEGORY_MAP[trimmed];
+  if (mapped) return { categoryCode: mapped, categoryOther: '' };
+  return { categoryCode: OTHER.VEHICLE_CATEGORY, categoryOther: trimmed };
+}
+
+function mapTrailerCategory(euCode: string | null | undefined): MappedCategory {
+  if (!euCode) return { categoryCode: '', categoryOther: '' };
+  const trimmed = euCode.trim();
+  const mapped = TRAILER_CATEGORY_MAP[trimmed];
+  if (mapped) return { categoryCode: mapped, categoryOther: '' };
+  return { categoryCode: OTHER.TRAILER_CATEGORY, categoryOther: trimmed };
+}
+
+export const emptyDriver = (): Driver => ({
+  personalCodeEe: '',
+  firstName: '',
+  lastName: '',
+  citizenshipCode: '',
+  personalCodeForeign: '',
+  birthDate: '',
+});
+
+export const emptyTrailer = (): Trailer => ({
+  regNr: '',
+  countryCode: '',
+  make: '',
+  model: '',
+  vin: '',
+  firstRegistration: '',
+  bodyType: '',
+  categoryCode: '',
+  categoryOther: '',
+});
+
+// Sõidukijuhi kontrolli sisu JSONB-väljade parse/serialize (sama muster mis
+// useDriveRestForm serializeDriveRestFormValues).
+const parseArr = (v: unknown): unknown[] =>
+  Array.isArray(v) ? v : typeof v === 'string' && v ? JSON.parse(v) : [];
+const jstr = (v: unknown): string =>
+  Array.isArray(v) ? JSON.stringify(v) : typeof v === 'string' ? v : '[]';
+
+
+export function useTramControlCard(
+  form: TramControlCard | undefined,
+  onSaved: (id?: string) => void,
+  onConfirmed?: () => void,
+  onResetToSaved?: () => void,
+  onPublished?: () => void,
+) {
+  const { t } = useTranslation();
+  const { user: authUser } = useAuth();
+
+  // ADR-002: TRAM control card is a single self-contained entity with its own
+  // guarded endpoints. General-section fields + validation mirror the PPA
+  // compound form (see useCompoundForm — this is a deliberate fork so the PPA
+  // hook stays untouched).
+  const api = {
+    save: saveTramForm,
+    confirm: confirmTramForm,
+    publish: publishTramForm,
+  };
+  const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
+  const pendingForceSaved = useRef(false);
+  const pendingPreserveStatus = useRef(false);
+  const { getByCode, getChildren } = useClassifiers();
+
+  const [organisations, setOrganisations] = useState<Organisation[]>([]);
+  const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
+    null,
+  );
+  // Holds an i18n key (see forms.compound.mtrError.* below), not a boolean —
+  // the MTR search has several distinct outcomes, not a single generic
+  // "not found" message.
+  const [mtrSearchError, setMtrSearchError] = useState<string | null>(null);
+  // Per-index (drivers is an array) rahvastikuregistri otsing — hoiab
+  // vea/„ei leitud"/laadimise oleku juhi indeksi kaupa.
+  const [driverSearchError, setDriverSearchError] = useState<number | null>(null);
+  const [driverSearchNotFound, setDriverSearchNotFound] = useState<
+    number | null
+  >(null);
+  const [driverSearchLoading, setDriverSearchLoading] = useState<number | null>(
+    null,
+  );
+
+  useEffect(() => {
+    listOrganisations().then(setOrganisations).catch(console.error);
+  }, []);
+
+  const counties = useMemo(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null && e.isValid !== false)
+        .map((e) => ({ id: e.classifierValueKey, name: e.name })),
+    [getByCode],
+  );
+
+  const roads = useMemo(
+    () =>
+      getByCode('ROAD_NAME')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({
+          code: e.code,
+          name: e.name,
+        })),
+    [getByCode],
+  );
+
+  const trailerCategories = useMemo(
+    () =>
+      getByCode('TRAILER_CATEGORY')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({
+          code: e.code,
+          name: e.name,
+        })),
+    [getByCode],
+  );
+
+  const vehicleCategories = useMemo(
+    () =>
+      getByCode('VEHICLE_CATEGORY')
+        .filter((e) => e.isValid !== false)
+        .map((e) => ({
+          code: e.code,
+          name: e.name,
+        })),
+    [getByCode],
+  );
+
+  // ── Sõidukijuhi kontrolli sisu klassifikaatorid (samad mis useDriveRestForm) ──
+  const cargoCabotageViolations = useMemo(
+    () => getByCode('CARGO_CABOTAGE_VIOLATION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const passengerCabotageViolations = useMemo(
+    () => getByCode('PASSENGER_CABOTAGE_VIOLATION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const transportClassItems = useMemo(
+    () => getByCode('TRANSPORT_CLASS').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const docRightChecks = useMemo(
+    () => getByCode('DOC_RIGHT_CHECK').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const docRightOtherDocs = useMemo(
+    () => getByCode('OTHER_DOCUMENTS').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const tachographTypes = useMemo(
+    () => getByCode('TACHOGRAPH_TYPES').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const drivingViolations = useMemo(
+    () => getByCode('DRIVING_VIOLATION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+  const massDimensions = useMemo(
+    () => getByCode('MASS_DIMENSION').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+
+  const validationSchema = Yup.object({
+    address: Yup.string().max(
+      300,
+      t('forms.foreign_violation.validation.max_length', { max: 300 }),
+    ),
+    road: Yup.string(),
+    road_other: Yup.string().when('road', {
+      is: OTHER.ROAD,
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    kilometer: Yup.string().when('road', {
+      is: (road: string) => !!road,
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    controlDate: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    county: Yup.string().when('controlCountryCode', {
+      is: 'EE',
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    controlCountryCode: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    controlTime: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    vehicleRegNr: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    vehicleCountryCode: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    vehicleCategoryCode: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    vehicleCategoryOther: Yup.string().when('vehicleCategoryCode', {
+      is: OTHER.VEHICLE_CATEGORY,
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    companyRegCode: Yup.string(),
+    companyName: Yup.string(),
+    companyCountryCode: Yup.string().when('companyName', {
+      is: (v: string) => !!v?.trim(),
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema,
+    }),
+    inspectorFirstName: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    inspectorLastName: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    inspectorOrganisationId: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    // inspectorUnit pole UI-s required-ks märgitud — osa asutusi (nt TRAM) ei kasuta
+    // struktuuriüksuse klassifikaatoreid; väli on soovitatav aga ei blokeeri salvestamist
+    inspectorUnit: Yup.string(),
+    inspectorProfession: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
+    transportType: Yup.string().when('driverNotApplicable', {
+      is: (v: boolean) => !v,
+      then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    resultType: Yup.string().when('driverNotApplicable', {
+      is: (v: boolean) => !v,
+      then: (schema) => schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+        proceedingReferenceNumber: Yup.string().when('proceedingType', {
+      is: (v: string) => !!v && v !== 'none',
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    trailers: Yup.array().of(
+      Yup.object({
+        regNr: Yup.string().required(
+          t('forms.foreign_violation.validation.required'),
+        ),
+        countryCode: Yup.string().required(
+          t('forms.foreign_violation.validation.required'),
+        ),
+        categoryCode: Yup.string().required(
+          t('forms.foreign_violation.validation.required'),
+        ),
+        categoryOther: Yup.string().when('categoryCode', {
+          is: OTHER.TRAILER_CATEGORY,
+          then: (schema) =>
+            schema.required(t('forms.foreign_violation.validation.required')),
+          otherwise: (schema) => schema.optional(),
+        }),
+      }),
+    ),
+    drivers: Yup.array().test('drivers-validation', '', function (drivers) {
+      if (!drivers) return true;
+      const req = t('forms.foreign_violation.validation.required');
+      // TRAM „Ei ole asjakohane" — autojuhi ees-/perekonnanime ei nõuta.
+      const driverNameNotRequired =
+        (this.parent as CompoundForm)?.driverNotApplicable === true;
+      const errors: Yup.ValidationError[] = [];
+      drivers.forEach((driver: Driver, index: number) => {
+        if (index === 0) {
+          if (!driverNameNotRequired && !driver?.firstName)
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.firstName,
+                `drivers[${index}].firstName`,
+              ),
+            );
+          if (!driverNameNotRequired && !driver?.lastName)
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.lastName,
+                `drivers[${index}].lastName`,
+              ),
+            );
+          if (!driver?.birthDate)
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.birthDate,
+                `drivers[${index}].birthDate`,
+              ),
+            );
+        }
+        if (index === 1) {
+          if (!driver?.birthDate)
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.birthDate,
+                `drivers[${index}].birthDate`,
+              ),
+            );
+        }
+      });
+      if (errors.length > 0) throw new Yup.ValidationError(errors);
+      return true;
+    }),
+  }).test(
+    'address-or-road',
+    t('forms.foreign_violation.validation.required'),
+    function (values) {
+      const { address, road } = values;
+      const hasAddress = !!address;
+      const hasRoad = !!road;
+      if (!hasAddress && !hasRoad) {
+        return this.createError({
+          path: 'address',
+          message: t('forms.foreign_violation.validation.required'),
+        });
+      }
+      return true;
+    },
+  );
+
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      id: form?.id ?? '',
+      version: form?.version ?? 1,
+      formNumber: form?.formNumber ?? '',
+      controlCountryCode: form?.controlCountryCode ?? 'EE',
+      address: form?.address ?? '',
+      road: form?.road ?? '',
+      roadOther: form?.roadOther ?? '',
+      kilometer: form?.kilometer ?? '',
+      county: form?.county ?? '',
+      city: form?.city ?? '',
+      controlDate: form?.controlDate ?? '',
+      controlTime: form?.controlTime ?? '',
+      road_type: form?.road_type ?? ROAD.NATIONAL,
+      vehicleRegNr: form?.vehicleRegNr ?? '',
+      vehicleMake: form?.vehicleMake ?? '',
+      vehicleModel: form?.vehicleModel ?? '',
+      vehicleCountryCode: form?.vehicleCountryCode ?? '',
+      vehicleVin: form?.vehicleVin ?? '',
+      vehicleFirstRegistration: form?.vehicleFirstRegistration ?? '',
+      vehicleBodyType: form?.vehicleBodyType ?? '',
+      vehicleCategoryCode: form?.vehicleCategoryCode ?? '',
+      vehicleCategoryOther: form?.vehicleCategoryOther ?? '',
+      vehicleMileage: form?.vehicleMileage ?? '',
+      roadTaxStatus: form?.roadTaxStatus ?? ROAD.TAX_STATUS_NOT_APPLICABLE,
+      roadTaxNotes: form?.roadTaxNotes ?? '',
+      trailers: (Array.isArray(form?.trailers)
+        ? form.trailers
+        : typeof form?.trailers === 'string'
+          ? JSON.parse(form.trailers)
+          : []) as Trailer[],
+      companyRegCode: form?.companyRegCode ?? '',
+      companyName: form?.companyName ?? '',
+      companyCountryCode: form?.companyCountryCode ?? '',
+      companyCounty: form?.companyCounty ?? '',
+      companyCity: form?.companyCity ?? '',
+      companyAddressLine1: form?.companyAddressLine1 ?? '',
+      companyPostalCode: form?.companyPostalCode ?? '',
+      companyOwnerFirstName: form?.companyOwnerFirstName ?? '',
+      companyOwnerLastName: form?.companyOwnerLastName ?? '',
+      companyActivityLicenceCopyNumber:
+        form?.companyActivityLicenceCopyNumber ?? '',
+      drivers: (Array.isArray(form?.drivers)
+        ? form.drivers
+        : typeof form?.drivers === 'string'
+          ? JSON.parse(form.drivers)
+          : [emptyDriver()]) as Driver[],
+      driverNotApplicable: form?.driverNotApplicable ?? false,
+      inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
+      inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
+      inspectorOrganisationId:
+        form?.inspectorOrganisationId ??
+        authUser?.organisationcode ??
+        // TRAM: vaikimisi 'TRAM' kui kasutaja org pole profiilis täidetud
+        'TRAM',
+      inspectorUnit: form?.inspectorUnit ?? authUser?.structuralunit ?? '',
+      inspectorProfession:
+        form?.inspectorProfession ?? authUser?.jobtitle ?? '',
+      // ── Sõidukijuhi kontrolli sisu ──────────────────────────────────
+      transportType: form?.transportType ?? '',
+      resultType: form?.resultType ?? 'ok',
+      proceedingType: form?.proceedingType ?? 'none',
+      proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
+      additionalMeasure: form?.additionalMeasure ?? '',
+      notes: form?.notes ?? '',
+      enforcementDecision: form?.enforcementDecision ?? '',
+      proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
+      transportEmptyRun: form?.transportEmptyRun ?? false,
+      transportNature: form?.transportNature ?? '',
+      transportNatureExempt: form?.transportNatureExempt ?? false,
+      transportClasses: parseArr(form?.transportClasses),
+      cabotageViolations: parseArr(form?.cabotageViolations),
+      documentChecks: parseArr(form?.documentChecks),
+      otherDocuments: parseArr(form?.otherDocuments),
+      spApplicability: form?.spApplicability ?? 'not_checked',
+      tachographTypeCode: form?.tachographTypeCode ?? '',
+      tachographDataNotDownloaded: form?.tachographDataNotDownloaded ?? false,
+      checkedDaysCount: form?.checkedDaysCount ?? '',
+      workDaysCount: form?.workDaysCount ?? '',
+      otherActivityDaysCount: form?.otherActivityDaysCount ?? '',
+      violations5612006: parseArr(form?.violations5612006),
+      violations1652014: parseArr(form?.violations1652014),
+      violations200215: parseArr(form?.violations200215),
+      violations5932008: parseArr(form?.violations5932008),
+      violations20201057: parseArr(form?.violations20201057),
+      erruPoints: parseArr(form?.erruPoints),
+      liiniNumber: form?.liiniNumber ?? '',
+      liiniNimetus: form?.liiniNimetus ?? '',
+      files: parseArr(form?.files),
+      // DriveRestFormFields ootab neid ka hideDriveRestExtras režiimis
+      massDimensionNonCompliant: false,
+      massDimensionMeasurements: [] as unknown[],
+      atpViolationFound: 'false',
+      atpViolationDescription: '',
+      selectionStatus: 'active',
+    },
+    validationSchema,
+    onSubmit: async (values) => {
+      try {
+        const isConfirming = pendingConfirm.current;
+        const isPublishing = pendingPublish.current;
+        pendingConfirm.current = false;
+        pendingPublish.current = false;
+        const forceSaved = pendingForceSaved.current;
+        pendingForceSaved.current = false;
+        const preserveStatus = pendingPreserveStatus.current;
+        pendingPreserveStatus.current = false;
+        if (isPublishing && form?.id) {
+          await api.publish(form.id);
+          onPublished?.();
+          return;
+        }
+        const isReconfirmedEdit = (!isConfirming && !forceSaved && form?.status === 'confirmed' && true) || (preserveStatus && form?.status === 'confirmed');
+        const isRepublishedEdit = (!isConfirming && !forceSaved && form?.status === 'published' && true) || (preserveStatus && form?.status === 'published');
+        const nextStatus = isConfirming
+          ? 'confirmed'
+          : isReconfirmedEdit
+            ? 'confirmed'
+            : isRepublishedEdit
+              ? 'published'
+              : 'saved';
+        const driver1 = values.drivers[0];
+        const driver2 = values.drivers[1];
+        const trimmedValues = {
+          ...values,
+          id: form?.id ?? '',
+          status: nextStatus,
+          controlDate: toIsoDate(values.controlDate),
+          controlTime: toIsoTime(values.controlTime),
+          vehicleFirstRegistration: toIsoDate(values.vehicleFirstRegistration),
+          trailers: Array.isArray(values.trailers)
+            ? JSON.stringify(values.trailers)
+            : (values.trailers ?? '[]'),
+          drivers: Array.isArray(values.drivers)
+            ? JSON.stringify(
+                values.drivers.map((d) => ({
+                  ...d,
+                  firstName: d.firstName?.trim(),
+                  lastName: d.lastName?.trim(),
+                  birthDate: toIsoDate(d.birthDate),
+                })),
+              )
+            : (values.drivers ?? '[]'),
+          driver1PersonalCodeEe: driver1?.personalCodeEe || '',
+          driver1PersonalCodeForeign: driver1?.personalCodeForeign || '',
+          driver2PersonalCodeEe: driver2?.personalCodeEe || '',
+          driver2PersonalCodeForeign: driver2?.personalCodeForeign || '',
+          transportEmptyRun: String(values.transportEmptyRun),
+          transportNatureExempt: String(values.transportNatureExempt),
+          tachographDataNotDownloaded: String(values.tachographDataNotDownloaded),
+          transportClasses: jstr(values.transportClasses),
+          cabotageViolations: jstr(values.cabotageViolations),
+          documentChecks: jstr(values.documentChecks),
+          otherDocuments: jstr(values.otherDocuments),
+          violations5612006: jstr(values.violations5612006),
+          violations1652014: jstr(values.violations1652014),
+          violations200215: jstr(values.violations200215),
+          violations5932008: jstr(values.violations5932008),
+          violations20201057: jstr(values.violations20201057),
+          erruPoints: jstr(values.erruPoints),
+          files: jstr(values.files),
+        };
+        if (values.id) {
+          if (isConfirming || isReconfirmedEdit) {
+            await api.confirm(trimmedValues as unknown as CompoundForm);
+            onConfirmed?.();
+          } else if (isPublishing) {
+            await api.publish(values.id);
+            onPublished?.();
+          } else if (isRepublishedEdit) {
+            await api.save(trimmedValues as unknown as CompoundForm);
+            onPublished?.();
+          }
+          else {
+            await api.save(trimmedValues as unknown as CompoundForm);
+            if (forceSaved && onResetToSaved) {
+              onResetToSaved();
+            } else {
+              onSaved(values.id);
+            }
+          }
+        } else {
+          const result = await api.save(
+            trimmedValues as unknown as CompoundForm,
+          );
+          onSaved(result[0]?.id);
+        }
+      } catch (e) {
+        if (e instanceof ApiError && typeof e.body === 'string') {
+          e.body = JSON.parse(e.body);
+        }
+        if (
+          !applyValidationError(e, formik.setFieldError, (code) =>
+            t(`forms.foreign_violation.validation.api.${code}`),
+          )
+        ) {
+          console.error('Save failed', e);
+        }
+      }
+    },
+  });
+
+  // Fallback: kui authUser.organisationcode puudub (vana DSL deploy või null org),
+  // leia organisatsiooni kood organisationid järgi kui organisatsioonide loend on laetud.
+  // (peab olema pärast `formik` deklaratsiooni — kasutab formik.values / setFieldValue)
+  useEffect(() => {
+    if (
+      !formik.values.inspectorOrganisationId &&
+      authUser?.organisationid &&
+      organisations.length > 0
+    ) {
+      const org = organisations.find(
+        (o) => String(o.id) === String(authUser.organisationid),
+      );
+      if (org) {
+        formik.setFieldValue('inspectorOrganisationId', org.code);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organisations, authUser?.organisationid]);
+
+  const triggerConfirm = () => {
+    pendingConfirm.current = true;
+    formik.submitForm();
+  };
+
+  const triggerPublish = () => {
+    pendingPublish.current = true;
+    formik.submitForm();
+  };
+
+  const triggerSaveAsSaved = () => {
+    pendingForceSaved.current = true;
+    formik.submitForm();
+  };
+
+  const triggerSaveWithCurrentStatus = () => {
+    pendingPreserveStatus.current = true;
+    formik.submitForm();
+  };
+
+  const orgOptions = organisations.map((o) => ({
+    label: o.name,
+    value: o.code,
+  }));
+
+  const structureUnits = useMemo(() => {
+    const orgCode =
+      formik.values.inspectorOrganisationId || authUser?.organisationcode || '';
+    // backward-compat: vana DB-s võib olla numbriline ID string ('1') — leia kood või ID järgi
+    const org = organisations.find(
+      (o) => o.code === orgCode || String(o.id) === orgCode,
+    );
+    return getByCode('STRUCTURE_UNIT')
+      .filter((e) => e.isValid !== false && (!org || e.description === org.code))
+      .map((e) => ({ code: e.code, name: e.name }));
+  }, [getByCode, organisations, formik.values.inspectorOrganisationId, authUser?.organisationcode]);
+
+  const handleOrgChange = (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => {
+    const newOrgId =
+      val && !Array.isArray(val) && 'value' in val
+        ? (val as { value: string }).value
+        : '';
+    formik.setFieldValue('inspectorOrganisationId', newOrgId);
+    formik.setFieldValue('inspectorUnit', '');
+  };
+
+  const citiesParishes = useMemo(
+    () =>
+      formik.values.county
+        ? getChildren('EHAK', Number(formik.values.county)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [formik.values.county, getChildren],
+  );
+
+  const companyCitiesParishes = useMemo(
+    () =>
+      formik.values.companyCounty
+        ? getChildren('EHAK', Number(formik.values.companyCounty)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [formik.values.companyCounty, getChildren],
+  );
+
+  const handleCountyChange = () => {
+    formik.setFieldValue('city', '');
+  };
+
+  const handleCompanyCountyChange = () => {
+    formik.setFieldValue('companyCity', '');
+  };
+
+  const handleStructuralUnitChange = (
+    val:
+      | { value: string; label: string | React.ReactNode }
+      | readonly { value: string; label: string | React.ReactNode }[]
+      | null,
+  ) => {
+    if (val && !Array.isArray(val) && 'value' in val) {
+      formik.setFieldValue('inspectorUnit', (val as { value: string }).value);
+    } else {
+      formik.setFieldValue('inspectorUnit', '');
+    }
+  };
+
+  // Äriregister returns the EHAK county/city as free text (finest to
+  // coarsest, e.g. "Põhja-Tallinna linnaosa, Tallinn, Harju maakond"), but
+  // our EHAK classifier only has 2 levels (maakond -> linn/vald), and the
+  // companyCounty/companyCity fields are Selects bound to classifier value
+  // keys, not free text. Resolve by matching names: the last segment is
+  // always the maakond, the one before it is always the linn/vald — any
+  // finer segments (city districts) aren't modeled in our classifier and
+  // are dropped.
+  const resolveEhakByText = (ehakText: string) => {
+    const segments = ehakText
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (segments.length < 2) return { countyKey: '', cityKey: '' };
+    const countyName = segments[segments.length - 1];
+    const cityName = segments[segments.length - 2];
+    const county = getByCode('EHAK')
+      .filter((e) => e.parentKey === null)
+      .find((e) => e.name.toLowerCase() === countyName.toLowerCase());
+    if (!county) return { countyKey: '', cityKey: '' };
+    const city = getChildren('EHAK', county.classifierValueKey).find(
+      (e) => e.name.toLowerCase() === cityName.toLowerCase(),
+    );
+    return {
+      countyKey: String(county.classifierValueKey),
+      cityKey: city ? String(city.classifierValueKey) : '',
+    };
+  };
+
+  const {
+    searchByRegCode,
+    searchByName,
+    error: companySearchError,
+    setError: setCompanySearchError,
+    pickerResults: companyPickerResults,
+    handleCompanyPicked: onCompanyPicked,
+    closePicker: closeCompanyPicker,
+  } = useCompanySearch({
+    onCompanyFound: (company) => {
+      const { countyKey, cityKey } = resolveEhakByText(company.city);
+      formik.setFieldValue('companyName', company.companyName);
+      formik.setFieldValue('companyAddressLine1', company.street);
+      formik.setFieldValue('companyCounty', countyKey);
+      formik.setFieldValue('companyCity', cityKey);
+      formik.setFieldValue('companyPostalCode', company.postalCode);
+      formik.setFieldValue('companyCountryCode', 'EE');
+      if (company.registryCode) {
+        // Nime järgi otsingul jäi registrikood täitmata — kanna see samuti üle.
+        formik.setFieldValue('companyRegCode', company.registryCode);
+      }
+    },
+  });
+
+  // Üks nupp: kui registrikood on täidetud, otsi selle järgi; muidu nime järgi.
+  const handleCompanySearch = () => {
+    if (formik.values.companyRegCode?.trim()) {
+      searchByRegCode(formik.values.companyRegCode);
+    } else {
+      searchByName(formik.values.companyName);
+    }
+  };
+  const handleCompanyNameSearch = () => searchByName(formik.values.companyName);
+
+  const applyVehicleToForm = (vehicle: XRoadVehicle) => {
+    const { categoryCode, categoryOther } = mapVehicleCategory(vehicle.categoryCode);
+    formik.setFieldValue('vehicleMake', vehicle.make ?? '');
+    formik.setFieldValue('vehicleModel', vehicle.model ?? '');
+    formik.setFieldValue('vehicleVin', vehicle.vin ?? '');
+    formik.setFieldValue('vehicleBodyType', vehicle.bodyType ?? '');
+    formik.setFieldValue('vehicleCategoryCode', categoryCode);
+    formik.setFieldValue('vehicleCategoryOther', categoryOther);
+    formik.setFieldValue(
+      'vehicleFirstRegistration',
+      vehicle.firstRegistrationDate ?? '',
+    );
+    formik.setFieldValue('vehicleCountryCode', 'EE');
+  };
+
+  const {
+    searchByRegNr: searchVehicle,
+    error: vehicleSearchError,
+    setError: setVehicleSearchError,
+  } = useVehicleSearch({ onVehicleFound: applyVehicleToForm });
+
+  const handleVehicleSearch = () => searchVehicle(formik.values.vehicleRegNr);
+
+  // Per-index (trailers is a dynamic array), so this doesn't fit
+  // useVehicleSearch's single-error-flag shape — call the API directly and
+  // update the specific trailer entry, same pattern as its other onChange
+  // handlers (rebuild the array, formik.setFieldValue('trailers', ...)).
+  const handleTrailerSearch = async (index: number) => {
+    setTrailerSearchError(null);
+    const regNr = formik.values.trailers[index]?.regNr?.trim();
+    if (!regNr) {
+      setTrailerSearchError(index);
+      return;
+    }
+    try {
+      const results = await searchVehicleByRegNr(regNr);
+      if (!results.length) {
+        setTrailerSearchError(index);
+        return;
+      }
+      const vehicle = results[0];
+      const { categoryCode, categoryOther } = mapTrailerCategory(vehicle.categoryCode);
+      const updated = [...formik.values.trailers];
+      updated[index] = {
+        ...updated[index],
+        countryCode: 'EE',
+        make: vehicle.make ?? '',
+        model: vehicle.model ?? '',
+        vin: vehicle.vin ?? '',
+        bodyType: vehicle.bodyType ?? '',
+        categoryCode,
+        categoryOther,
+        firstRegistration: vehicle.firstRegistrationDate ?? '',
+      };
+      formik.setFieldValue('trailers', updated);
+    } catch {
+      setTrailerSearchError(index);
+    }
+  };
+
+  // "Otsi rahvastikuregistrist" — juhi Eesti isikukoodi järgi RR päring,
+  // täidab ees-/perekonnanime, kodakondsuse ja sünniaja. Per-index (drivers
+  // on massiiv), seega sama muster nagu handleTrailerSearch.
+  const EE_PERSONAL_CODE_REGEX = /^[1-6][0-9]{10}$/;
+  const handleDriverPersonSearch = async (index: number) => {
+    setDriverSearchError(null);
+    setDriverSearchNotFound(null);
+    const code = formik.values.drivers[index]?.personalCodeEe?.trim();
+    if (!code || !EE_PERSONAL_CODE_REGEX.test(code)) {
+      setDriverSearchError(index);
+      return;
+    }
+    setDriverSearchLoading(index);
+    try {
+      const person = await searchPersonByCode(code);
+      if (!person) {
+        setDriverSearchNotFound(index);
+        return;
+      }
+      const updated = [...formik.values.drivers];
+      updated[index] = {
+        ...updated[index],
+        firstName: person.firstName || updated[index]?.firstName || '',
+        lastName: person.lastName || updated[index]?.lastName || '',
+        citizenshipCode:
+          person.citizenshipCode || updated[index]?.citizenshipCode || '',
+        birthDate: person.dateOfBirth || updated[index]?.birthDate || '',
+      };
+      formik.setFieldValue('drivers', updated);
+    } catch {
+      setDriverSearchError(index);
+    } finally {
+      setDriverSearchLoading(null);
+    }
+  };
+
+  // "Otsi majandustegevuse registrist" — queries MTR soidukikaart by the
+  // carrier's registrikood, then matches the returned vehicle cards against
+  // the motor vehicle block's registration number.
+  const handleMtrSearch = async () => {
+    setMtrSearchError(null);
+    // Only Estonian carriers have MTR entries at all.
+    if (formik.values.companyCountryCode !== 'EE') {
+      setMtrSearchError('forms.compound.mtrError.notEstonianCompany');
+      return;
+    }
+    const regCode = formik.values.companyRegCode?.trim();
+    const vehicleRegNr = formik.values.vehicleRegNr?.trim();
+    // Both the carrier's registrikood and the vehicle's registration number
+    // are needed to identify the right soidukikaart.
+    if (!regCode || !vehicleRegNr) {
+      setMtrSearchError('forms.compound.mtrError.missingFields');
+      return;
+    }
+    try {
+      // Search by registrikood; no match at all.
+      const result = await searchMtrSoidukikaart(regCode);
+      if (!result) {
+        setMtrSearchError('forms.compound.mtrError.companyNotFound');
+        return;
+      }
+      // Among the returned cards, find the one whose vehicle list contains
+      // the motor vehicle block's registration number.
+      const matchingCard = result.vehicleCards.find((card) =>
+        card.vehicles.some(
+          (v) =>
+            v.registrationNumber.trim().toUpperCase() ===
+            vehicleRegNr.toUpperCase(),
+        ),
+      );
+      if (!matchingCard) {
+        setMtrSearchError('forms.compound.mtrError.licenceNotFound');
+        return;
+      }
+      // Prefills but stays editable.
+      formik.setFieldValue(
+        'companyActivityLicenceCopyNumber',
+        matchingCard.registrationNumber,
+      );
+    } catch {
+      // X-tee/MTR request failed outright.
+      setMtrSearchError('forms.compound.mtrError.requestFailed');
+    }
+  };
+
+  return {
+    formik,
+    cargoCabotageViolations,
+    passengerCabotageViolations,
+    transportClassItems,
+    docRightChecks,
+    docRightOtherDocs,
+    tachographTypes,
+    drivingViolations,
+    massDimensions,
+    structureUnits,
+    orgOptions,
+    roads,
+    trailerCategories,
+    vehicleCategories,
+    counties,
+    citiesParishes,
+    handleCountyChange,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
+    handleOrgChange,
+    handleStructuralUnitChange,
+    companySearchError,
+    setCompanySearchError,
+    vehicleSearchError,
+    setVehicleSearchError,
+    trailerSearchError,
+    setTrailerSearchError,
+    mtrSearchError,
+    setMtrSearchError,
+    driverSearchError,
+    setDriverSearchError,
+    driverSearchNotFound,
+    setDriverSearchNotFound,
+    driverSearchLoading,
+    handleCompanySearch,
+    handleCompanyNameSearch,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
+    handleVehicleSearch,
+    handleTrailerSearch,
+    handleMtrSearch,
+    handleDriverPersonSearch,
+    triggerConfirm,
+    triggerPublish,
+    triggerSaveAsSaved,
+    triggerSaveWithCurrentStatus,
+  };
+}

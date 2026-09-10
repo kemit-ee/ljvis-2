@@ -72,6 +72,9 @@ interface Props {
    * vaikeväärtustega (sp_applicability='not_checked', mass/atp = false).
    */
   hideDriveRestExtras?: boolean;
+  /** Failide ploki endpoint-kontekst. Vaikimisi PPA autojuhi alamvorm. */
+  filesFormType?: string;
+  filesFormNumber?: string;
 }
 
 export function DriveRestFormFields({
@@ -88,6 +91,8 @@ export function DriveRestFormFields({
   massDimensions,
   readOnly,
   hideDriveRestExtras,
+  filesFormType = 'foreign-violation-form',
+  filesFormNumber,
 }: Props) {
   const { t } = useTranslation();
 
@@ -1116,8 +1121,8 @@ export function DriveRestFormFields({
       <Row className="m-0">
         <Col className="p-0">
           <FormFiles
-            formType="foreign-violation-form"
-            formNumber={formik.values.subFormNumber}
+            formType={filesFormType}
+            formNumber={filesFormNumber ?? formik.values.subFormNumber}
             canEdit={!readOnly}
           />
         </Col>

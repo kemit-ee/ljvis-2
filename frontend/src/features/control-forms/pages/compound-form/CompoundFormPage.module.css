@@ -7,7 +7,7 @@
 
 .form-grid-mobile {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
   width: 100%;
 }
@@ -90,4 +90,8 @@
   color: var(--color-primary, #005aa3);
   border-bottom-color: var(--color-primary, #005aa3);
   font-weight: 600;
+}
+
+.tab-panel-bg {
+  background-color: var(--tab-item-selected-background);
 }

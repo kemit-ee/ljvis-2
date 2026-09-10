@@ -174,7 +174,9 @@ export function OutboundLogTable() {
           key={`outbound-date-from-${resetKey}`}
           id="outbound-filter-date-from"
           label={t('notifications.log.filterDateFrom')}
-          selected={draftFilters.dateFrom ? new Date(draftFilters.dateFrom) : undefined}
+          selected={
+            draftFilters.dateFrom ? new Date(draftFilters.dateFrom) : undefined
+          }
           onSelect={(v) => setFilter('dateFrom', toIsoDate(v))}
           placeholder={t('common.dateFieldPlaceholder')}
           monthYearSelectType="grid"
@@ -183,7 +185,9 @@ export function OutboundLogTable() {
           key={`outbound-date-to-${resetKey}`}
           id="outbound-filter-date-to"
           label={t('notifications.log.filterDateTo')}
-          selected={draftFilters.dateTo ? new Date(draftFilters.dateTo) : undefined}
+          selected={
+            draftFilters.dateTo ? new Date(draftFilters.dateTo) : undefined
+          }
           onSelect={(v) => setFilter('dateTo', toIsoDate(v))}
           placeholder={t('common.dateFieldPlaceholder')}
           monthYearSelectType="grid"
@@ -191,10 +195,17 @@ export function OutboundLogTable() {
         <Select
           id="outbound-filter-type"
           label={t('notifications.log.filterType')}
-          options={typeOptions}
-          value={typeOptions.find((o) => o.value === draftFilters.notificationType) ?? null}
+          options={[{ value: '', label: '\u00a0' }, ...typeOptions]}
+          value={
+            typeOptions.find(
+              (o) => o.value === draftFilters.notificationType,
+            ) ?? null
+          }
           onChange={(o) =>
-            setFilter('notificationType', (o as { value?: string } | null)?.value ?? '')
+            setFilter(
+              'notificationType',
+              (o as { value?: string } | null)?.value ?? '',
+            )
           }
         />
         <TextField
@@ -212,8 +223,10 @@ export function OutboundLogTable() {
         <Select
           id="outbound-filter-status"
           label={t('notifications.log.filterStatus')}
-          options={statusOptions}
-          value={statusOptions.find((o) => o.value === draftFilters.status) ?? null}
+          options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
+          value={
+            statusOptions.find((o) => o.value === draftFilters.status) ?? null
+          }
           onChange={(o) =>
             setFilter('status', (o as { value?: string } | null)?.value ?? '')
           }

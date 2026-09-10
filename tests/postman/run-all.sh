@@ -85,11 +85,6 @@ newman run "$COL/driverest-forms.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/driverest-forms.html"
 
-newman run "$COL/tram-form.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/tram-form.html"
-
 newman run "$COL/tram-control-card.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \

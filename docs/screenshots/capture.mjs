@@ -53,10 +53,11 @@ async function login(context) {
   const page = await context.newPage();
   await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
   await settle(page);
-  // "Ametnikule" veerg on teine "Sisene süsteemi" nupp.
-  await page.getByRole('button', { name: /Sisene süsteemi/i }).nth(1).click();
+  // "Ametnikule" veerg on teine nupp — tekst on locale-sõltuvus, kasuta fallback.
+  const loginBtn = page.getByRole('button', { name: /Sisene süsteemi|Enter the system/i });
+  await loginBtn.nth(Math.min(1, (await loginBtn.count()) - 1)).click();
   await page.waitForLoadState('domcontentloaded');
-  await settle(page, 500);
+  await settle(page, 1000);
   // tara-mock: vali õige isikukood ja kinnita.
   const radio = page.locator(`input[type=radio]`, { hasText: '' }).first();
   // radio labelid on kujul "60001019906 Admin Super"
@@ -64,9 +65,9 @@ async function login(context) {
   await target.click().catch(async () => {
     await page.locator('input[type=radio]').first().check();
   });
-  await page.getByRole('button', { name: 'kinnita' }).first().click();
-  await page.waitForURL((u) => !u.pathname.startsWith('/auth/callback'), { timeout: 15000 }).catch(() => {});
-  await page.waitForFunction(() => document.body.innerText.includes('Töölaud'), null, { timeout: 15000 });
+  await page.getByRole('button', { name: /kinnita|confirm/i }).first().click();
+  await page.waitForURL((u) => !u.pathname.startsWith('/auth/callback'), { timeout: 30000 }).catch(() => {});
+  await page.waitForFunction(() => document.body.innerText.includes('Töölaud') || document.body.innerText.includes('Desktop'), null, { timeout: 30000 });
   await settle(page, 800);
   return page;
 }
@@ -192,31 +193,31 @@ const shots = [
   {
     name: 'user-guide/vorm-tram-kontrollkaart',
     run: async (page) => {
-      // 01 — loomisvaade (tühi üldosa, enne salvestamist)
-      await gotoShot(page, '/control-forms/tram-driver/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png');
+      // ADR-002: üks vorm, marsruut /control-forms/tram-control-card/*, ilma vahekaartideta.
+      // 01 — loomisvaade (tühi üldosa + sõidukijuhi sektsioon, enne salvestamist)
+      await gotoShot(page, '/control-forms/tram-control-card/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png');
 
       // 02 — üldosa detail: sõiduki kategooria + vedaja plokk (fixture 95006001)
-      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${BASE}/control-forms/tram-control-card/95006001`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/02-uldosa.png');
 
-      // 03 — autojuhi vahekaart (fixture 95006001, tab: "Autojuhi sõidu- ja puhkeaja kontrollvorm")
-      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
-      await sleep(1000);
-      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/03-autojuhi-vahekaart.png');
+      // 03 — sõidukijuhi sektsioon (sama vorm, scroll juhi andmete pealkirjani)
+      const driverHeading = page.getByRole('heading', { name: 'Sõidukijuhi andmed' }).first();
+      await driverHeading.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(600);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/03-autojuhi-sektsioon.png');
 
-      // 04 — „Ei ole asjakohane" märkeruut (autojuhi tab, scroll märkeruuduni)
-      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      // 04 — „Ei ole asjakohane" märkeruut
+      await page.goto(`${BASE}/control-forms/tram-control-card/95006001`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
-      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
-      await sleep(800);
       const notApplicable = page.locator('label').filter({ hasText: /Ei ole asjakohane/i }).first();
       await notApplicable.scrollIntoViewIfNeeded().catch(() => {});
       await sleep(400);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/04-ei-ole-asjakohane.png');
 
-      // 05 — e-toimiku päring (nähtav kui proceedingReferenceNumber täidetud; fixture kuvab kaarti)
-      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      // 05 — e-toimiku päring (nähtav kui menetluse viitenumber + juht täidetud)
+      await page.goto(`${BASE}/control-forms/tram-control-card/95006001`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/05-etoimik.png');
     },
