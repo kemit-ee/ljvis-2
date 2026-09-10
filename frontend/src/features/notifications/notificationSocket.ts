@@ -33,7 +33,7 @@ function buildWsUrl(): string {
   return `${proto}//${window.location.host}/api/notifications/connect`;
 }
 
-function notifyListeners(): void {
+export function notifyListeners(): void {
   for (const l of listeners) {
     try {
       l();

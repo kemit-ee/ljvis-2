@@ -106,9 +106,18 @@ export function RiskScoresListPage() {
             <Select
               id="risk-scores-filter-band"
               label={t('riskScores.filterRiskBand')}
-              options={riskBandOptions}
-              value={riskBandOptions.find((o) => o.value === draftFilters.riskBand) ?? null}
-              onChange={(o) => setFilter('riskBand', (o as { value?: string } | null)?.value ?? '')}
+              options={[{ value: '', label: '\u00a0' }, ...riskBandOptions]}
+              value={
+                riskBandOptions.find(
+                  (o) => o.value === draftFilters.riskBand,
+                ) ?? null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'riskBand',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
             />
             <div className="filter-actions">
               <Button onClick={applyFilters}>{t('riskScores.search')}</Button>

@@ -3,9 +3,9 @@
 Transpordiameti (TRAM) kontrollkaart on liiklusinspektsiooni käigus täidetav
 kontrollkaart autojuhi sõidu- ja puhkeaja ning muude dokumentide kontrollimiseks.
 Alates ADR-002-st on TRAM kontrollkaart **üks eraldiseisev olem** (`forms.tram_control_card`):
-üldosa ja sõidukijuhi kontrolli sisu on **ühel vormil**, mille saab salvestada, kinnitada
-ja avalikustada ühe elutsükli jooksul. Varasem kahe olemi mudel (koondvorm + eraldi
-autojuhi alamvorm) on asendatud. Vt ADR-002.
+üldosa ja sõidukijuhi kontrolli sisu on **ühel keritaval vormil**, mille saab salvestada,
+kinnitada ja avalikustada ühe elutsükli jooksul. Varasem kahe olemi mudel (koondvorm +
+eraldi autojuhi alamvorm) on asendatud. Vt ADR-002.
 
 ## Juurdepääs ja õigused
 
@@ -15,7 +15,7 @@ autojuhi alamvorm) on asendatud. Vt ADR-002.
 | `tram_driver_form.read` | Vormi vaatamine |
 
 Õigused määratakse kasutajate halduses Transpordiameti kasutajagruppidele. PPA-õigustega
-kasutaja ei näe TRAM-vorme ega TRAM-vorme otsingus ja vastupidi.
+kasutaja ei näe TRAM-vorme otsingus ega vormiloendis ja vastupidi.
 
 ## Vormi avamine
 
@@ -27,9 +27,13 @@ Olemasolevaid vorme saab avada otsingust või otse URL-ilt `/control-forms/tram-
 
 ![Transpordiameti kontrollkaardi loomisvaade](images/18-vorm-tram-kontrollkaart/01-loomisvaade.png)
 
-Kogu info on **ühel keritaval vormil**: **üldosa** (kontrollikoht, sõiduk, vedaja,
-ametiisik) ja selle all **„Sõidukijuhi andmed"** sektsioon (juhi tuvastus + veoliik,
-kontrolli tulemus, menetlus, märkused). Eraldi vahekaarti ega alamvormi ei ole.
+Kogu info on **ühel keritaval vormil** — eraldi vahekaarti ega alamvormi ei ole.
+Vorm koosneb kahest põhiosast:
+
+| Osa | Sisu |
+|---|---|
+| **Üldosa** | Kontrollikoht, sõiduk, vedaja, ametiisik |
+| **Sõidukijuhi andmed** | Juhi tuvastus, veoliik, veoklass, dokumendikontroll, kontrolli tulemus ja menetlus, failid, märkused |
 
 ### Üldosa
 
@@ -74,26 +78,68 @@ eelnevalt salvestama ega eraldi vahekaarti avama.
 Märgituna ei ole autojuhi ees- ja perekonnanimi kohustuslikud — kasutatakse juhul,
 kui kontroll toimub ilma juhti peatamata ja juhi andmeid ei ole võimalik tuvastada.
 
-#### Sõidukijuhi andmeväljade järjekord
+#### Juhi tuvastus
 
 | Väli | Märkus |
 |---|---|
 | Eesnimi | |
 | Perekonnanimi | |
-| Eesti isikukood | Kitsamal väljal |
+| Eesti isikukood | |
 | „Otsi rahvastikuregistrist" | Täidab nime, kodakondsuse ja sünniaja automaatselt |
-| Välisriigi isikukood | Kitsamal väljal |
+| Välisriigi isikukood | |
 | Kodakondsus | |
-| Sünniaeg | |
+| Sünniaeg | Tuleviku kuupäev keelatud |
+
+#### Veoliik
+
+| Väli | Valikud |
+|---|---|
+| **Veoliik** | Kaubavedu · Sõitjatevedu · Tühi sõit |
+| **Vedu** | Kaubanduslik vedu · Omavedu · Veost vabastatud |
+| Liini number | Ainult sõitjateveol |
+| Liini nimetus | Ainult sõitjateveol |
+
+#### Veoklass
+
+Veoklass sisaldab kaupade ja reisijate veoga seotud klassifikatsioone, sealhulgas
+**kabotaaži** kontroll (lubatud / keelatud / ületatud).
+
+#### Kontrolli tulemus ja menetlus
+
+| Väli | Valikud / Märkus |
+|---|---|
+| **Kontrolli tulemus** | Korras · Hoiatus · Alustati väärteomenetlust |
+| **Lisameede** | Lisameedet ei rakendatud · Ettekirjutus · Juhtimiselt kõrvaldamine · Arest · Autovedu on katkestatud |
+| **Menetluse liik** | Lühimenetlus · Kiirmenetlus · Üldmenetlus |
+| Menetluse number | Viidatav toimiku number (nt `1-20/2026/TRAM-6001`) |
+
+#### Dokumendi või õiguse kontroll
+
+Kontrollitud dokumentide ja õiguste loend koos tulemusega (OK / puudub / aegunud jne).
+Muud dokumendid saab lisada vabatekstina.
+
+#### E-toimiku andmed
+
+Kui menetluse number on täidetud ja menetluses jõustub karistus, lisab öine
+sünkroon automaatselt kaardile:
+- **Jõustunud otsus** — kirjutuskaitstud tekstiväli
+- **Menetluse lõpetamise alus** — kirjutuskaitstud tekstiväli
+
+Need andmed on nähtavad ainult pärast automaatset avalikustamist (vt allpool).
+
+#### Failid ja märkused
+
+Kaardile saab lisada faile (nt kontrolliakti skanneering). Märkuste väli on
+vabatekstiline.
 
 #### E-toimiku kvalifikatsioonide päring
 
 ![E-toimiku kaart](images/18-vorm-tram-kontrollkaart/05-etoimik.png)
 
-Kui sõidukijuhi sektsioonis on täidetud menetluse viitenumber, kuvatakse vormi ülaosas
-kirjutuskaitstud **e-toimiku päringu kaart**, mis näitab juhiga seotud karistuse
-kvalifikatsioone (sama komponent, mida kasutab PPA koondvorm). Andmeid ei salvestata
-kaardile — kaart on informatiivne.
+Kui kaardil on Eesti isikukoodiga sõidukijuht ja täidetud menetluse number, kuvatakse
+vormi ülaosas kirjutuskaitstud **e-toimiku päringu kaart**, mis näitab juhiga seotud
+karistuse kvalifikatsioone (sama komponent, mida kasutab PPA koondvorm). Andmeid ei
+salvestata kaardile — kaart on informatiivne.
 
 ## Vorminumber
 
@@ -122,6 +168,8 @@ karistust määramata, avalikustab inspektor kaardi käsitsi.
 
 ## Vaatamisvaade
 
-Avalikustatud vormi vaatamisvaates on peidetud kolm autoveoga mitte seotud sektsiooni
-(„Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass ja mõõtmed", „ATP kokkuleppe
-nõuete kontroll") — need täideti salvestamisel vaikeväärtustega.
+Avalikustatud vormi vaatamisvaates on sõidukijuhi sektsiooni sisu loetav kuid
+mittemuudetav. Sektsioonid, mida TRAM kontrollkaardil ei kasutata (sõidu- ja
+puhkeaja nõuete täitmine, sõiduki mass ja mõõtmed, ATP kokkuleppe nõuete kontroll),
+ei kuvata ei redigeerimis- ega vaatamisvaates — need täidetakse salvestamisel
+vaikeväärtustega.

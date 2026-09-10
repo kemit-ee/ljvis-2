@@ -5,7 +5,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
 } from './api';
-import { subscribeToNotificationUpdates } from './notificationSocket';
+import { subscribeToNotificationUpdates, notifyListeners } from './notificationSocket';
 import type { InAppNotification, UnreadCountResult } from './types';
 
 // Fallback-polling intervall, kui WS ei ole saadaval (proxy, võrk, loobutud
@@ -80,6 +80,7 @@ export function useNotifications(): {
     async (id: string) => {
       await markNotificationRead(id);
       await refetch();
+      notifyListeners();
     },
     [refetch],
   );
@@ -87,6 +88,7 @@ export function useNotifications(): {
   const markAllRead = React.useCallback(async () => {
     await markAllNotificationsRead();
     await refetch();
+    notifyListeners();
   }, [refetch]);
 
   return { notifications, unreadCount, loading, markRead, markAllRead, refetch };

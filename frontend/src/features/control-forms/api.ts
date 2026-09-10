@@ -456,13 +456,13 @@ export interface PdfRenderResponse {
 }
 
 export const printAdrForm = (
-  id: string,
+  id: string | undefined,
   blank: boolean,
   snapshotId?: string,
 ) =>
   post<PdfRenderResponse>(
     `/v1/control-forms/adr-form/read/print`,
-    { id, blank, snapshotId: snapshotId ?? '' },
+    { id: id ?? '', blank, snapshotId: snapshotId ?? '' },
   );
 
 export const saveAdrFormXroadFields = (data: {

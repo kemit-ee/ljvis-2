@@ -505,7 +505,7 @@ export function CompoundFormCreatePage() {
       </div>
 
       <Tabs value={activeTab} onChange={handleTabChange}>
-        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
           <Tabs.Trigger id="tab-1">
             <span
               style={{
