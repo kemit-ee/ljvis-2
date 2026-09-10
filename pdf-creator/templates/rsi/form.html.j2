@@ -4,17 +4,22 @@
 <h2>Teate andmed</h2>
 <table><tr><td>{{ field('Teate esitanud liikmesriik', r.get('rsiFrom','')) }}</td><td>{{ field('Sihtliikmesriik',r.get('rsiTo','')) }}</td></tr>
 <tr><td colspan="2">{{ field('Teate esitanud pädev asutus',r.get('originatingAuthority','')) }}</td></tr></table>
+<table><tr><td colspan="2">{{ field('Otsitaotluse üksikasjad',r.get('requestPurpose','')) }}</td></tr></table>
 <h2>Sõiduki andmed</h2>
 <table><tr><td>{{ field('Kategooria',r.get('vehicleCategory','')) }}</td><td>{{ field('Registreerimisnumber',r.get('vehicleRegistrationNumber','')) }}</td></tr>
 <tr><td>{{ field('Registreerimisriik',r.get('vehicleRegistrationCountry','')) }}</td><td>{{ field('VIN-kood',r.get('vehicleIdentificationNumber','')) }}</td></tr>
 <tr><td colspan="2">{{ field('Läbisõidumõõdiku näit',r.get('odometerReading','')) }}</td></tr></table>
 <h2>Juhi andmed</h2><table><tr><td>{{ field('Eesnimi',r.get('driverFirstName','')) }}</td><td>{{ field('Perekonnanimi',r.get('driverFamilyName','')) }}</td></tr>
 <tr><td>{{ field('Juhiloa number',r.get('driverLicenceNumber','')) }}</td><td>{{ field('Juhiloa riik',r.get('driverLicenceCountry','')) }}</td></tr></table>
+<h2>Veoettevõtja või omaniku andmed</h2><table><tr><td>{{ box(holder_type == 'transport_undertaking') }} Veoettevõtja</td><td>{{ box(holder_type == 'owner') }} Omanik</td></tr>
+<tr><td>{{ field('Ettevõtja/omaniku nimi',holder_name) }}</td><td>{{ field('Ühenduse tegevusloa number',holder_licence) }}</td></tr>
+<tr><td>{{ field('Aadress',holder_address) }}</td><td>{{ field('Linn',holder_city) }}</td></tr>
+<tr><td>{{ field('Riik',holder_country) }}</td><td>{{ field('Sihtnumber',holder_postcode) }}</td></tr></table>
 <h2>Liiklevate sõidukite tehnokontrolli andmed</h2><table>
 <tr><td colspan="2">{{ field('Liiklevate sõidukite tehnokontrolli tunnus',r.get('inspectionIdentifier','')) }}</td></tr>
 <tr><td>{{ field('Kontrolli koht',r.get('inspectionLocation','')) }}</td><td>{{ field('Kuupäev ja kellaaeg',inspection_date ~ ' ' ~ inspection_time) }}</td></tr>
 <tr><td colspan="2">{{ field('Kontrolliasutus või kontrollija nimi',r.get('inspectionAuthorityOrName','')) }}</td></tr></table>
-<h2>Tehnokontrolli tulemused</h2><table><tr><td>{{ box(r.get('inspectionPassed') == true) }} Vastab nõuetele</td><td>{{ box(r.get('ptiRequested') == true) }} Tehnoülevaatus nõutud</td><td>{{ box(r.get('vehicleProhibitionOrRestriction') == true) }} Keeld või piirang</td></tr></table>
+<h2>Tehnokontrolli tulemused</h2><table><tr><td>{{ box(r.get('inspectionPassed') == true) }} Vastab nõuetele</td><td>{{ box(r.get('ptiRequested') == true) }} On vaja teha korraline tehnoülevaatus</td><td>{{ box(r.get('vehicleProhibitionOrRestriction') == true) }} Keelamine või viimine</td></tr></table>
 <h2>Kontrollitud punkt</h2><table class="small"><thead><tr><th>Punkt</th><th>Kontrollitud</th><th>Ei vasta nõuetele</th><th>Rikked</th></tr></thead><tbody>
 {% for item in rows %}<tr><td>{{ item.name }}</td><td class="center">{{ box(item.status == 'checked') }}</td><td class="center">{{ box(item.status == 'non_compliant') }}</td><td>{% for d in item.defects %}{{ d.get('defectCode','') }} ({{ d.get('severity','') }}){% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>{% endfor %}
 </tbody></table>{% endblock %}

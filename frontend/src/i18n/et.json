@@ -1788,6 +1788,7 @@
         "createFromTechnicalCard": "Loo RSI teade",
         "messageNumber": "Teate number",
         "messageNumberPending": "määratakse salvestamisel",
+        "requestPurpose": "Otsitaotluse üksikasjad",
         "headerBlock": "Teate andmed",
         "vehicleBlock": "Sõiduki andmed",
         "driverBlock": "Juhi andmed",

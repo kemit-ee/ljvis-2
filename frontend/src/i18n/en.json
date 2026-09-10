@@ -1767,6 +1767,7 @@
         "createFromTechnicalCard": "Create RSI message",
         "messageNumber": "Message number",
         "messageNumberPending": "assigned on save",
+        "requestPurpose": "Request details",
         "headerBlock": "Message details",
         "vehicleBlock": "Vehicle details",
         "driverBlock": "Driver details",

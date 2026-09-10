@@ -114,6 +114,13 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
               onChange={() => undefined}
             />
             <TextField
+              id="rsi-request-purpose"
+              label={t('erru.rsi.form.requestPurpose')}
+              value={formik.values.requestPurpose}
+              onChange={(v) => formik.setFieldValue('requestPurpose', v)}
+              {...err('requestPurpose')}
+            />
+            <TextField
               id="rsi-from"
               label={t('erru.rsi.form.rsiFrom')}
               value={selected(countries, 'EE')?.label ?? 'Eesti'}
