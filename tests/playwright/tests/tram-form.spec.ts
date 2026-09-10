@@ -8,6 +8,7 @@ import {
   checkChoiceById,
   expectFieldError,
   hasRequiredMark,
+  fillMaskedDate,
 } from '../support/tedi';
 
 /**
@@ -222,5 +223,201 @@ test.describe('TRAM kontrollkaart — haagise pealkiri', () => {
     await page.getByRole('button', { name: 'Lisa haagis' }).click();
     await expect(page.getByText('Haagis 1', { exact: true })).toBeVisible();
     await expect(page.getByText('Haagis #1')).toHaveCount(0);
+  });
+});
+
+// ─── Dokumentatsioon: veoliigi tingimuslikud väljad ──────────────────────────
+
+test.describe('TRAM kontrollkaart — veoliik (dok. jaotis „Veoliik")', () => {
+  test('kõik kolm veoliiki on nähtaval', async ({ page }) => {
+    await page.goto(NEW);
+    await expect(page.getByRole('radio', { name: /Kaubavedu/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('radio', { name: /Sõitjatevedu/i })).toBeVisible();
+    await expect(page.getByRole('radio', { name: /Tühi sõit/i })).toBeVisible();
+  });
+
+  test('„Sõitjatevedu" valimisel ilmuvad liini number ja liini nimetus', async ({
+    page,
+  }) => {
+    await page.goto(NEW);
+
+    await test.step('vaikimisi Liini number ei ole nähtaval', async () => {
+      await expect(page.locator('#liiniNumber')).toHaveCount(0);
+      await expect(page.locator('#liiniNimetus')).toHaveCount(0);
+    });
+
+    await test.step('vali Sõitjatevedu', async () => {
+      await page.getByRole('radio', { name: /Sõitjatevedu/i }).check({ force: true });
+    });
+
+    await test.step('Liini number ja Liini nimetus on nüüd nähtaval', async () => {
+      await expect(page.locator('#liiniNumber')).toBeVisible({ timeout: 5_000 });
+      await expect(page.locator('#liiniNimetus')).toBeVisible();
+    });
+
+    await test.step('Kaubavedu valimisel peiduvad liini väljad uuesti', async () => {
+      await page.getByRole('radio', { name: /Kaubavedu/i }).check({ force: true });
+      await expect(page.locator('#liiniNumber')).toHaveCount(0);
+    });
+  });
+});
+
+// ─── Dokumentatsioon: kontrolli tulemus ja menetlus ─────────────────────────
+
+test.describe('TRAM kontrollkaart — kontrolli tulemus (dok. jaotis „Kontrolli tulemus ja menetlus")', () => {
+  test('kõik kolm tulemust on nähtaval', async ({ page }) => {
+    await page.goto(NEW);
+    await expect(
+      page.getByRole('radio', { name: /Korras/i }),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.getByRole('radio', { name: /Hoiatus/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('radio', { name: /Alustati väärteomenetlust/i }),
+    ).toBeVisible();
+  });
+
+  test('„Lisameede" ilmub ainult Hoiatus või Alustati puhul', async ({
+    page,
+  }) => {
+    await page.goto(NEW);
+
+    await test.step('vaikimisi (Korras) Lisameede ei ole nähtaval', async () => {
+      await expect(page.locator('#additionalMeasure')).toHaveCount(0);
+    });
+
+    await test.step('Hoiatus → Lisameede ilmub', async () => {
+      await page.getByRole('radio', { name: /Hoiatus/i }).check({ force: true });
+      await expect(page.locator('#additionalMeasure')).toBeVisible({ timeout: 5_000 });
+    });
+
+    await test.step('Alustati → Lisameede jääb nähtavaks', async () => {
+      await page.getByRole('radio', { name: /Alustati väärteomenetlust/i }).check({ force: true });
+      await expect(page.locator('#additionalMeasure')).toBeVisible();
+    });
+
+    await test.step('Korras → Lisameede kaob', async () => {
+      await page.getByRole('radio', { name: /Korras/i }).check({ force: true });
+      await expect(page.locator('#additionalMeasure')).toHaveCount(0);
+    });
+  });
+
+  test('„Menetluse liik" ilmub ainult „Alustati väärteomenetlust" puhul', async ({
+    page,
+  }) => {
+    await page.goto(NEW);
+
+    await test.step('vaikimisi Menetluse liik ei ole nähtaval', async () => {
+      await expect(page.locator('#proceedingType-0, #proceedingType')).toHaveCount(0);
+    });
+
+    await test.step('Hoiatus ei näita Menetluse liiki', async () => {
+      await page.getByRole('radio', { name: /Hoiatus/i }).check({ force: true });
+      // Menetluse liik peaks puuduma ka Hoiatuse puhul
+      await expect(page.getByText('Menetluse liik')).toHaveCount(0);
+    });
+
+    await test.step('Alustati → Menetluse liik ilmub', async () => {
+      await page.getByRole('radio', { name: /Alustati väärteomenetlust/i }).check({ force: true });
+      await expect(page.getByText('Menetluse liik').first()).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole('radio', { name: /Lühimenetlus/i })).toBeVisible();
+      await expect(page.getByRole('radio', { name: /Kiirmenetlus/i })).toBeVisible();
+      await expect(page.getByRole('radio', { name: /Üldmenetlus/i })).toBeVisible();
+    });
+  });
+});
+
+// ─── Dokumentatsioon: vorminumber ────────────────────────────────────────────
+
+test.describe('TRAM kontrollkaart — vorminumber (dok. jaotis „Vorminumber")', () => {
+  test('salvestatud kaardil on vorminumber kujul tram-AAAA-NNNNN/versioon', async ({
+    page,
+  }) => {
+    const reg = `VN${Date.now() % 100000}`;
+    await page.goto(NEW);
+    await checkChoiceById(page, 'driverNotApplicable');
+    await fillGeneralPart(page, {
+      address: 'Vorminr tee 1',
+      controlDate: '10042026',
+      controlTime: '0800',
+      county: 'Harju maakond',
+      vehicleRegNr: reg,
+      vehicleCategoryCode: 'A_2012',
+      fillInspector: true,
+      driver: { ids: TRAM_DRIVER_IDS, birthDate: '05051985' },
+    });
+    await page.getByRole('button', { name: 'Salvesta' }).click();
+    await expectSaved(page, ROUTE_PREFIX);
+
+    // Vorminumber peab vastama mustrale tram-YYYY-NNNNN/N
+    await expect(
+      page.getByText(/tram-\d{4}-\d{5}\/\d+/).first(),
+    ).toBeVisible({ timeout: 15_000 });
+  });
+});
+
+// ─── Dokumentatsioon: vaatamisvaade pärast kinnitamist ───────────────────────
+
+test.describe('TRAM kontrollkaart — vaatamisvaade (dok. jaotis „Vaatamisvaade")', () => {
+  test('kinnitatud kaardil on väljad kirjutuskaitstud ja Kinnita nupp kadunud', async ({
+    page,
+  }) => {
+    const reg = `VV${Date.now() % 100000}`;
+
+    await test.step('loo ja salvesta', async () => {
+      await page.goto(NEW);
+      await checkChoiceById(page, 'driverNotApplicable');
+      await fillGeneralPart(page, {
+        address: 'Vaade tee 3',
+        controlDate: '11042026',
+        controlTime: '1300',
+        county: 'Harju maakond',
+        vehicleRegNr: reg,
+        vehicleCategoryCode: 'A_2012',
+        fillInspector: true,
+        driver: { ids: TRAM_DRIVER_IDS, birthDate: '12121991' },
+      });
+      await page.getByRole('button', { name: 'Salvesta' }).click();
+      await expectSaved(page, ROUTE_PREFIX);
+    });
+
+    await test.step('kinnita', async () => {
+      await page.getByRole('button', { name: 'Kinnita' }).click();
+      await expect(page.getByText(/Kinnitatud/i).first()).toBeVisible({
+        timeout: 10_000,
+      });
+    });
+
+    await test.step('Kinnita nupp on kadunud', async () => {
+      await expect(
+        page.getByRole('button', { name: 'Kinnita' }),
+      ).toHaveCount(0);
+    });
+
+    await test.step('Avalikusta nupp on nähtaval', async () => {
+      await expect(
+        page.getByRole('button', { name: 'Avalikusta' }),
+      ).toBeVisible();
+    });
+
+    await test.step('Salvesta nupp on kadunud (vaatamisvaade)', async () => {
+      await expect(
+        page.getByRole('button', { name: 'Salvesta' }),
+      ).toHaveCount(0);
+    });
+
+    await test.step('sõiduki registreerimismärk on kirjutuskaitstud', async () => {
+      // Vaatamisvaates on registreerimismärk tekst, mitte input
+      const regInput = page.locator('#vehicleRegNr');
+      const isEditable = await regInput.count().then(async (n) => {
+        if (n === 0) return false;
+        return regInput.isEditable().catch(() => false);
+      });
+      expect(
+        isEditable,
+        'registreerimismärk ei tohi olla muudetav pärast kinnitamist',
+      ).toBe(false);
+    });
   });
 });
