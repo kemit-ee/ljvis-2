@@ -143,7 +143,7 @@ callErru:
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status === 0 || erru_res.response.status >= 400}
       next: logIntegrationFailure
   next: logIntegrationSuccess
 

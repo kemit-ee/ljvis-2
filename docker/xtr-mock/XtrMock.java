@@ -27,6 +27,10 @@ import java.nio.charset.StandardCharsets;
  *                     representation checks resolve to 403 NOT_REPRESENTATIVE
  *                     instead of 500 (DSL abort) or 503 (a non-2xx reply is
  *                     treated as "Äriregister unavailable").
+ *   POST /rr/isikud -> 200 RR isikud JSON array. Request body containing the
+ *                     test isikukood 47101010033 -> one canonical person match;
+ *                     any other -> "[]" (valid "not found", HTTP 200). Mirrors
+ *                     the XTR REST passthrough lane (DSL/xtr/rr/isikud.yml).
  *   anything else   -> 404 (etoimik/*, liiklusregister/* — their callers already
  *                     treat a non-2xx XTR reply as "X-tee unavailable" and the
  *                     cron resilience tests explicitly accept 200/404/500/502).
@@ -40,6 +44,7 @@ public class XtrMock {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/health", ex -> write(ex, 200, "ok"));
         server.createContext("/ar/", XtrMock::handleArireg);
+        server.createContext("/rr/", XtrMock::handleRr);
         server.createContext("/", ex -> write(ex, 404, "{\"error\":\"xtr-mock: no stub for this path\"}"));
         server.setExecutor(null);
         server.start();
@@ -54,6 +59,27 @@ public class XtrMock {
             return;
         }
         write(exchange, 200, "{}");
+    }
+
+    private static void handleRr(HttpExchange exchange) throws IOException {
+        byte[] req = exchange.getRequestBody().readAllBytes();
+        if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+            write(exchange, 405, "{\"error\":\"method_not_allowed\"}");
+            return;
+        }
+        String body = new String(req, StandardCharsets.UTF_8);
+        if (body.contains("47101010033")) {
+            write(exchange, 200, "[{"
+                + "\"isikukood\":\"47101010033\","
+                + "\"eesnimi\":\"MARI\","
+                + "\"perekonnanimi\":\"MAASIKAS\","
+                + "\"pohiKodakondsus\":{\"riik\":{\"elemendiKood\":\"233\",\"nimetus\":\"Eesti\"}},"
+                + "\"synniKuupaev\":\"1971-01-01\","
+                + "\"isikuStaatus\":{\"elemendiKood\":\"A\",\"nimetus\":\"Kehtiv\"}"
+                + "}]");
+            return;
+        }
+        write(exchange, 200, "[]");
     }
 
     private static void write(HttpExchange exchange, int status, String body) throws IOException {

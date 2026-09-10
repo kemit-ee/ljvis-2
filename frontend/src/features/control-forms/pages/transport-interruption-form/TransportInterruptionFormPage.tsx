@@ -11,6 +11,7 @@ import {
   Dropdown,
   StatusIndicator,
   ClosingButton,
+  Heading,
 } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -69,6 +70,7 @@ import {
   useRemoveSubFormTab,
   cancelAllEdits,
 } from '../../hooks/useSubFormEditActive';
+import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
@@ -283,7 +285,7 @@ export function TransportInterruptionFormPage() {
     cancelAllEdits({ setCompoundEditActive, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const addFormDropdown =
-    canEdit && addableTabs.length > 0 && anyEditActive ? (
+    canEdit && anyEditActive ? (
       <Dropdown width="max-content">
         <Dropdown.Trigger>
           <Button iconRight="keyboard_arrow_down" visualType="secondary" disabled={addableTabs.length === 0}>
@@ -545,6 +547,10 @@ export function TransportInterruptionFormPage() {
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
   if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
 
+  const compoundTrailersList = resolveCompoundTrailersList(formik.values.trailers, compoundForm);
+  const tabLabels = buildTabLabels(compoundTrailersList, t);
+  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
+
   const sharedCompoundProps = {
     isDesktop,
     orgOptions,
@@ -603,10 +609,13 @@ export function TransportInterruptionFormPage() {
         </Alert>
       )}
 
-      {!isDesktop && addFormDropdown}
+      <div className="card-main">
+        <Heading element="h1">{headingLabel}</Heading>
+        {addFormDropdown}
+      </div>
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
           <Tabs.Trigger id="tab-compound">
             <span style={{ position: 'relative' }}>
               {t('forms.compound.generalPart')}
@@ -625,7 +634,6 @@ export function TransportInterruptionFormPage() {
               'tab-transport-interruption': transportInterruption,
             };
             trailers.forEach((tr, idx) => { tabSubForms[`tab-trailer-technical-check-${idx}`] = tr; });
-            const compoundTrailersList: Trailer[] = Array.isArray(formik.values.trailers) && (formik.values.trailers as Trailer[]).length > 0 ? (formik.values.trailers as Trailer[]) : Array.isArray(compoundForm?.trailers) ? (compoundForm.trailers as Trailer[]) : typeof compoundForm?.trailers === 'string' ? JSON.parse(compoundForm.trailers) : [];
             const compoundTrailerRegNrs = compoundTrailersList.map((tr) => tr.regNr ?? '');
             const tabsWithStatus = openTabs.filter(
               (tid) => tid !== 'tab-compound' && tabSubForms[tid]?.form != null,
@@ -669,19 +677,6 @@ export function TransportInterruptionFormPage() {
               );
             });
           })()}
-          {isDesktop && addFormDropdown && (
-            <div
-              style={{
-                marginLeft: 'auto',
-                paddingLeft: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                marginRight: '1rem',
-              }}
-            >
-              {addFormDropdown}
-            </div>
-          )}
         </Tabs.List>
 
         <Tabs.Content id="tab-compound" className="p-1">

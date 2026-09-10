@@ -6,7 +6,6 @@ declaration:
   allowlist:
     body:
       - field: id
-        type: string
       - field: controlDate
         type: string
       - field: controlTime

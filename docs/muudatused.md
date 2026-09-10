@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-09-10
+
+### Rahvastikuregistri ja Postkasti X-tee liiklus läbi XTR-i
+
+- Rahvastikuregistri isikupäring ja Postkast 2.0 teavituste saatmine käivad nüüd
+  läbi ühise X-tee väljumispunkti (XTR REST passthrough), samamoodi nagu
+  äriregistri, liiklusregistri ja e-Toimiku päringud. Kasutajale nähtavat
+  muutust ei ole — päringute tulemus ja vormide käitumine jäävad samaks.
+- Rahvastikuregistri päring kajastub isikule eesti.ee andmejälgijas nüüd tekstiga
+  „Järelevalve käigus isiku andmete päring rahvastikuregistrist" ning kirje
+  tekib ka siis, kui register vastust ei anna.
+
 ## 2026-09-09
 
 ### CTUD päringu ja vastuse kuva täiendused

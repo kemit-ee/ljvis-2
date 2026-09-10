@@ -3,7 +3,7 @@ import { useContainerWidth } from '../../../../hooks/useContainerWidth';
 import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator } from '@tedi-design-system/react/tedi';
+import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator, Heading } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Driver, Trailer } from '../../types';
 import {
@@ -49,6 +49,7 @@ import { createTechnicalCheckValidationSchema } from './useTechnicalCheckForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -494,7 +495,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
   const addFormDropdown =
-    canEdit && addableTabs.length > 0 && anyEditActive ? (
+    canEdit && anyEditActive ? (
       <Dropdown width="max-content">
         <Dropdown.Trigger>
           <Button iconRight="keyboard_arrow_down" visualType="secondary" disabled={addableTabs.length === 0}>
@@ -591,6 +592,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const currentForm = variant === 'vehicle' ? vehicle.form : trailers[0].form;
   if (id && !currentForm) return <FormNotFoundView title={t(titleKey)} />;
 
+  const compoundTrailersList = resolveCompoundTrailersList(formik.values.trailers, compoundForm);
+  const tabLabels = buildTabLabels(compoundTrailersList, t);
+  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
+
   return (
     <div style={{ maxWidth: containerWidth }}>
       <DeleteConfirmModal
@@ -637,7 +642,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         </Alert>
       )}
 
-      {!isDesktop && addFormDropdown}
+      <div className="card-main">
+        <Heading element="h1">{headingLabel}</Heading>
+        {addFormDropdown}
+      </div>
 
       {compoundForm && compoundFormKey && (
         <EtoimikQueryCard
@@ -648,7 +656,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       )}
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="scroll">
+        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
           <Tabs.Trigger id="tab-compound">
             <span style={{ position: 'relative' }}>
               {t('forms.compound.generalPart')}
@@ -667,7 +675,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               'tab-transport-interruption': transportInterruption,
             };
             trailers.forEach((tr, idx) => { tabSubForms[`tab-trailer-technical-check-${idx}`] = tr; });
-            const compoundTrailersList: Trailer[] = Array.isArray(formik.values.trailers) && (formik.values.trailers as Trailer[]).length > 0 ? (formik.values.trailers as Trailer[]) : Array.isArray(compoundForm?.trailers) ? (compoundForm.trailers as Trailer[]) : typeof compoundForm?.trailers === 'string' ? JSON.parse(compoundForm.trailers) : [];
             const compoundTrailerRegNrs = compoundTrailersList.map((tr) => tr.regNr ?? '');
             const tabsWithStatus = openTabs.filter(
               (tid) => tid !== 'tab-compound' && tabSubForms[tid]?.form != null,
@@ -712,19 +719,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               );
             });
           })()}
-          {isDesktop && addFormDropdown && (
-            <div
-              style={{
-                marginLeft: 'auto',
-                paddingLeft: '1rem',
-                display: 'flex',
-                alignItems: 'center',
-                marginRight: '1rem',
-              }}
-            >
-              {addFormDropdown}
-            </div>
-          )}
         </Tabs.List>
 
         <Tabs.Content id="tab-compound" className="p-1">

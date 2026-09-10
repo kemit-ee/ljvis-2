@@ -126,7 +126,7 @@ publishForm:
       inspectorProfession: ${inspector_profession}
       created_by: ${created_by}
   result: publishRes
-  next: buildLogDescription
+  next: check_publishRes_persisted
 
 buildLogDescription:
   assign:
@@ -174,4 +174,15 @@ returnSuccess:
 returnNotFound:
   status: 404
   return: '{"error": "NOT_FOUND"}'
+  next: end
+
+check_publishRes_persisted:
+  switch:
+    - condition: ${publishRes.response == null || publishRes.response.status < 200 || publishRes.response.status >= 300 || publishRes.response.body == null || publishRes.response.body.length == null || publishRes.response.body.length === 0}
+      next: returnResqlWriteError
+  next: buildLogDescription
+
+returnResqlWriteError:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end

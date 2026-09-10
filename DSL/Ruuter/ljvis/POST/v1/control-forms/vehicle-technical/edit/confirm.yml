@@ -6,7 +6,6 @@ declaration:
   allowlist:
     body:
       - field: id
-        type: string
       - field: partsSummary
         type: string
       - field: partsDefects
@@ -104,7 +103,7 @@ confirmForm:
       notes: ${notes}
       created_by: ${created_by}
   result: confirmRes
-  next: buildLogDescription
+  next: check_confirmRes_persisted
 
 buildLogDescription:
   assign:
@@ -143,4 +142,15 @@ returnAlreadyConfirmedError:
 returnFormLockedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_publish"}'
+  next: end
+
+check_confirmRes_persisted:
+  switch:
+    - condition: ${confirmRes.response == null || confirmRes.response.status < 200 || confirmRes.response.status >= 300 || confirmRes.response.body == null || confirmRes.response.body.length == null || confirmRes.response.body.length === 0}
+      next: returnResqlWriteError
+  next: buildLogDescription
+
+returnResqlWriteError:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end
