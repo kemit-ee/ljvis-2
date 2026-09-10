@@ -9,7 +9,8 @@ declaration:
 
     Iga kandidaadi kohta: eeltäida NCR mustand (erru/ncr/build — sama loogika
     mis käsitsi „Lisa NCR vorm", ncrTo = compound_form.vehicle_country_code,
-    originatingAuthority = [#ERRU_NCR_ORIGINATING_AUTHORITY]), loe valmis kirje
+    originatingAuthority eeltäidetakse build.sql-is kontrollkaardi inspektori
+    asutusest), loe valmis kirje
     (erru/ncr/get), saada ERRU hub'i ([#ERRU_NCR_ENDPOINT], sünkroonne ack) ja
     salvesta üleminekud (initiated → sent → acknowledged, või → error).
     Iga katse — õnnestunud või mitte — kirjutab ühe rea
@@ -23,6 +24,11 @@ declaration:
     muster nagu cron/etoimik-sp-driver-decision-sync.yml — do: sees ei ole
     next:/return, kõik harud on koondatud arvutatud assign'idesse ja
     kirjutuskutsed käivituvad alati (no-op halva sisendiga).
+
+    Kandidaadi täpsed eeldused (millised kontrollkaardi väljad peavad olema
+    täidetud) on loetletud select-autodispatch-candidates.sql päises (#328 p3).
+    #TODO (#329): requestPurpose/requestSource on siin kõvakodeeritud
+    "Control" / "RSI" — ärianalüüsiga kinnitada automaatteate nõutud väärtused.
   namespace: cron
   allowlist:
     body: []
@@ -64,7 +70,8 @@ processCandidates:
           body:
             spFormKey: ${sp_form_key}
             spFormType: ${sp_form_type}
-            originatingAuthority: "[#ERRU_NCR_ORIGINATING_AUTHORITY]"
+            # tühi -> build.sql eeltäidab kontrollkaardi inspektori asutusest (#328 p3)
+            originatingAuthority: ""
             requestSource: "RSI"
             requestPurpose: "Control"
             ncrTo: ${ncr_to}
@@ -90,6 +97,20 @@ processCandidates:
       - assign:
           current: "${(caseRes.response && caseRes.response.body && caseRes.response.body.length) ? caseRes.response.body[caseRes.response.body.length - 1] : {}}"
 
+      # originating_authority (build.sql pani kontrollkaardi inspektori asutuse
+      # koodi, nt PPA) -> ERRU hub'i jaoks inglisekeelne nimi, sama mäpp mis
+      # send.yml originating_authority_out.
+      - assign:
+          authority_code: "${current.originatingAuthority || current.originating_authority || ''}"
+      - assign:
+          authority_out: >-
+            ${authority_code === 'KLIM' ? 'Ministry of Climate'
+              : authority_code === 'PPA' ? 'Estonian Police and Border Guard Board'
+              : authority_code === 'TRAM' ? 'Estonian Transport Administration'
+              : authority_code === 'TI' ? 'Estonian Labour Inspectorate'
+              : authority_code === 'MTA' ? 'Estonian Tax and Customs Board'
+              : (authority_code || '[#ERRU_NCR_ORIGINATING_AUTHORITY]')}
+
       # 3) Saada ERRU hub'i (sünkroonne ack). Kui build ebaõnnestus, on
       #    business_case_id tühi — hub-kutse tehakse ikka, aga tulemust
       #    ei arvestata (vt outcome allpool).
@@ -101,7 +122,7 @@ processCandidates:
           body:
             ncrTo: ${ncr_to}
             businessCaseId: ${business_case_id}
-            originatingAuthority: "[#ERRU_NCR_ORIGINATING_AUTHORITY]"
+            originatingAuthority: ${authority_out}
             transportUndertakingName: "${current.transportUndertakingName || current.transport_undertaking_name || ''}"
             communityLicenceNumber: "${current.communityLicenceNumber || current.community_licence_number || ''}"
             vehicleRegistrationNumber: "${current.vehicleRegistrationNumber || current.vehicle_registration_number || ''}"
