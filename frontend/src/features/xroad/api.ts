@@ -125,10 +125,14 @@ interface RrIsikudRawResponse {
 export const searchPersonByCode = async (
   personalCode: string,
 ): Promise<XRoadPerson | null> => {
-  const raw = await post<RrIsikudRawResponse>('/v1/xroad/rr/isikud', {
+  const raw = await post<RrIsikudRawResponse | string>('/v1/xroad/rr/isikud', {
     personalCode,
   });
-  return raw?.data ?? null;
+  // Rust Ruuter returns DSL `return` values as a JSON string inside the
+  // standard `response` envelope. Accept both that shape and an object.
+  const parsed: RrIsikudRawResponse | null =
+    typeof raw === 'string' ? (JSON.parse(raw) as RrIsikudRawResponse) : raw;
+  return parsed?.data ?? null;
 };
 
 export const getAssociatedPersons = async (
