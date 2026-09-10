@@ -59,10 +59,21 @@ hilisema eraldi instantsi / eraldi teenuse triviaalseks (constants-string).
 ---
 
 ## ADR-009 — Tableau analüütika: eraldi `tableau` skeem hallatud materialiseeritud vaadetega
+## ADR-009 — Tableau analüütika: eraldi `tableau` skeem hallatud vaadetega
 
 **Otsustaja:** Sten Viljus
 **Kuupäev:** 10.09.2026
 **Seotud:** `docs/planning/Tableau_guidlines.md`, `docs/planning/tableau-schema-plan.md`; INSERT-only snapshot-mudel
+
+> **Revisjon 10.09.2026 (changeset `20261117100000-tableau-schema-02-plain-views`):**
+> otsus 2 (materialiseeritud vaated) muudetud — `tableau.*` on nüüd **tavalised
+> vaated**. Öine `tableau.refresh_all()` + CronManager cron + `refresh_matviews.sql`
+> **eemaldatud**; andmed on reaalajas. Kiirus tuleb aluslaua **osalistest
+> indeksitest** `idx_*_tableau_active` (`(<key>, created_at DESC) WHERE status <>
+> 'deleted'`) — aktiivne snapshot-hulk on väike ja kõva indeksiga. Tagajärg:
+> tavaline vaade EI ole turvapiir → `tableau_ro` vajab `SELECT`-i ka `forms.*`,
+> `classifier.*`, `users.organisation` peale (matview-versioonis polnud). PII on
+> vaadetes endas maskitud (variant A muutumatu).
 
 ### Kontekst
 

@@ -20,6 +20,7 @@ deleteFile:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
+    form_number_prefix: "vr-"
     id: ${incoming.body.id}
     form_type: "foreign-violation-form"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"

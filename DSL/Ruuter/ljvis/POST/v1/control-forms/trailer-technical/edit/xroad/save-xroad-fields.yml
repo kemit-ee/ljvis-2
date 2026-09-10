@@ -55,7 +55,7 @@ updateXroadFields:
       enforcementDecision: ${incoming.body.enforcementDecision || ''}
       proceedingClosureBasis: ${incoming.body.proceedingClosureBasis || ''}
   result: updateRes
-  next: buildLogDescription
+  next: check_updateRes_persisted
 
 buildLogDescription:
   assign:
@@ -87,4 +87,15 @@ returnNotFound:
 returnNotConfirmedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"xroad_fields_require_confirmed_status"}'
+  next: end
+
+check_updateRes_persisted:
+  switch:
+    - condition: ${updateRes.response == null || updateRes.response.status < 200 || updateRes.response.status >= 300 || updateRes.response.body == null || updateRes.response.body.length == null || updateRes.response.body.length === 0}
+      next: returnResqlWriteError
+  next: buildLogDescription
+
+returnResqlWriteError:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end

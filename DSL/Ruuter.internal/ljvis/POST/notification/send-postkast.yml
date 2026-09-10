@@ -14,11 +14,14 @@ declaration:
     muutujate väärtused edastatakse Postkast 2.0-le, mis rakendab enda
     haldusliideses seadistatud malli.
 
-    X-tee: REST-native kutse LJVIS-i kohalikku turvaserverisse
-    (XROAD_SECURITY_SERVER), sama muster mis
-    DSL/Ruuter/ljvis/POST/v1/xroad/rr/isikud.yml — Ruuter kutsub ise, ei lähe
-    XTR SOAP-wrapperi kaudu. X-Road-UserId ei ole nõutav, sest teenus on
-    süsteemidevaheline (12-1 §3 "Eraldi õigust ei kehtestata").
+    X-tee: REST-native kutse, mis läheb toodangus läbi XTR-i REST passthrough
+    lane'i (DSL/xtr/postkast/notifications.yml, [#PK_NOTIFICATIONS_ENDPOINT] ->
+    http://xtr:8080/postkast/notifications), sama muster mis
+    DSL/Ruuter/ljvis/POST/v1/xroad/rr/isikud.yml. XTR seab X-Road-Client päise
+    ise (xtr.yaml client_data-st) ja edastab X-EXTERNAL-ID + keha muutmata.
+    Dev/CI-s osutab [#PK_NOTIFICATIONS_ENDPOINT] endiselt Ruuteri enda mockile.
+    X-Road-UserId ei ole nõutav, sest teenus on süsteemidevaheline
+    (12-1 §3 "Eraldi õigust ei kehtestata").
 
     Best-effort: kutsujat ei tohi 500-tada — igal juhul tagastatakse loodud
     logId + saavutatud staatus, ka siis kui X-tee kutse ebaõnnestub
@@ -195,11 +198,12 @@ insertRecipientRow:
   error: callPk
   next: callPk
 
-# X-Road Message Protocol for REST (docs.x-road.global): kutsub oma kohalikku
-# turvaserverit, identifitseerib end X-Road-Client päisega. Ei bearer-tokenit —
-# autentimine käib turvaserverite vahel (mutual TLS + RR/PK antud ligipääsuõigus).
+# Toodangus läheb kutse läbi XTR-i REST passthrough lane'i, mis lisab
+# X-Road-Client päise ise ja teeb mTLS turvaserverisse. Ei bearer-tokenit —
+# autentimine käib turvaserverite vahel (mutual TLS + PK antud ligipääsuõigus).
 # X-EXTERNAL-ID = notification_key, mille abil leitakse saatmisoperatsioon hiljem
-# üles (sync-status), ka siis kui vastus jäi käesolevas kutses saamata.
+# üles (sync-status), ka siis kui vastus jäi käesolevas kutses saamata — XTR
+# edastab selle päise verbatim.
 callPk:
   call: http.post
   timeout: 15000
@@ -207,8 +211,8 @@ callPk:
     url: "[#PK_NOTIFICATIONS_ENDPOINT]"
     headers:
       type: json
-      X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"
       X-EXTERNAL-ID: ${notification_key}
+      # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       originalTemplateId: ${original_template_id}
       sendTime: ${send_time}
@@ -248,7 +252,7 @@ logXroadSuccess:
     body:
       service_code: "pk.notification-management.v1"
       request_xml: "${'notificationKey=' + notification_key + ';type=' + notification_type}"
-      response_xml: "${JSON.stringify(pkRes.response.body)}"
+      response_xml: "${JSON.stringify({ received: (pkRes.response.body) != null, count: (Array.isArray(pkRes.response.body) ? (pkRes.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""

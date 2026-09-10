@@ -156,7 +156,7 @@ callErru:
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status === 0 || erru_res.response.status >= 400}
       next: logIntegrationFailure
   next: logIntegrationSuccess
 
@@ -169,7 +169,7 @@ logIntegrationSuccess:
     body:
       service_code: "erru/cgr/request"
       request_xml: "${'businessCaseId=' + business_case_id + ' cgrTo=' + cgr_to}"
-      response_xml: "${JSON.stringify(erru_res.response.body)}"
+      response_xml: "${JSON.stringify({ received: (erru_res.response.body) != null, count: (Array.isArray(erru_res.response.body) ? (erru_res.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""

@@ -111,7 +111,7 @@ logSuccess:
     body:
       service_code: "xroad.provide.register-job-inspection"
       request_xml: "${'kontrolli_id=' + kontrolli_id + '&reg_kood=' + tooandja_reg_kood}"
-      response_xml: "${JSON.stringify(insertResult.response.body || {})}"
+      response_xml: "${JSON.stringify({ received: (insertResult.response.body || {}) != null, count: (Array.isArray(insertResult.response.body || {}) ? (insertResult.response.body || {}).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""

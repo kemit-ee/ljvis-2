@@ -12,6 +12,7 @@ getAttachmentRecord:
       type: json
     body:
       id: ${incoming.body.id}
+      form_number_prefix: ${incoming.body.form_number_prefix}
   result: dbResult
   next: checkRecordExists
 
