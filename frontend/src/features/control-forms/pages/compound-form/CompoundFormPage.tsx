@@ -9,6 +9,7 @@ import {
   Dropdown,
   StatusIndicator,
   ClosingButton,
+  Heading,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm } from './useCompoundForm';
 import { useCompoundFormDetail } from './useCompoundFormDetail';
@@ -78,6 +79,7 @@ import { SubFormTab } from '../../components/SubFormTab/SubFormTab';
 import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
+import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import {useIsAdmin} from "../../../../hooks/useIsAdmin.ts";
 
@@ -674,7 +676,7 @@ export function CompoundFormPage() {
   const hasSubForms = openTabs.length > 0;
 
   const addFormDropdown =
-    canEdit && addableTabs.length > 0 && anyEditActive ? (
+    canEdit && anyEditActive ? (
       <Dropdown width="max-content">
         <Dropdown.Trigger>
           <Button
@@ -698,6 +700,10 @@ export function CompoundFormPage() {
         </Dropdown.Content>
       </Dropdown>
     ) : null;
+
+  const compoundTrailersList = resolveCompoundTrailersList(formik.values.trailers, null);
+  const tabLabels = buildTabLabels(compoundTrailersList, t, t('forms.compound_form'));
+  const headingLabel = tabLabels[activeTab] ?? t('forms.compound_form');
 
   if (!driver.loaded || !teammate.loaded || !vehicle.loaded || !trailers[0].loaded || !adr.loaded) return <Text>{t('common.loading')}</Text>;
 
@@ -820,20 +826,38 @@ export function CompoundFormPage() {
         </Alert>
       )}
 
-      {!isDesktop && addFormDropdown}
+      <div className="card-main">
+        <Heading element="h1">{headingLabel}</Heading>
+        {addFormDropdown}
+      </div>
 
       <Tabs value={activeTab} onChange={setActiveTab}>
-        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
+        <Tabs.List
+          aria-label={t('forms.compound_form')}
+          overflowMode="dropdown"
+        >
           <Tabs.Trigger id="tab-compound">
             <span style={{ position: 'relative' }}>
               {t('forms.compound.generalPart')}
-              {hasTabErrors('tab-compound') && <StatusIndicator type="danger" position="top-right" />}
+              {hasTabErrors('tab-compound') && (
+                <StatusIndicator type="danger" position="top-right" />
+              )}
             </span>
           </Tabs.Trigger>
           {(() => {
-            const savedTrailersList: Trailer[] = Array.isArray(form?.trailers) ? (form.trailers as Trailer[]) : typeof form?.trailers === 'string' ? JSON.parse(form.trailers) : [];
-            const compoundTrailerRegNrs = formik.values.trailers.map((tr: Trailer, i: number) => tr.regNr || savedTrailersList[i]?.regNr || '');
-            const staticTabSubForms: Record<string, { form: unknown; editActive: boolean }> = {
+            const savedTrailersList: Trailer[] = Array.isArray(form?.trailers)
+              ? (form.trailers as Trailer[])
+              : typeof form?.trailers === 'string'
+                ? JSON.parse(form.trailers)
+                : [];
+            const compoundTrailerRegNrs = formik.values.trailers.map(
+              (tr: Trailer, i: number) =>
+                tr.regNr || savedTrailersList[i]?.regNr || '',
+            );
+            const staticTabSubForms: Record<
+              string,
+              { form: unknown; editActive: boolean }
+            > = {
               'tab-driver': driver,
               'tab-teammate': teammate,
               'tab-vehicle-technical-check': vehicle,
@@ -844,7 +868,8 @@ export function CompoundFormPage() {
               staticTabSubForms[`tab-trailer-technical-check-${idx}`] = t;
             });
             const tabsWithStatus = openTabs.filter(
-              (tid) => tid !== 'tab-compound' && staticTabSubForms[tid]?.form != null,
+              (tid) =>
+                tid !== 'tab-compound' && staticTabSubForms[tid]?.form != null,
             ).length;
             const staticTabs = [
               'tab-driver',
@@ -853,8 +878,13 @@ export function CompoundFormPage() {
               'tab-adr',
               'tab-transport-interruption',
             ] as const;
-            const trailerTabIds = openTabs.filter((t) => t.startsWith('tab-trailer-technical-check-'));
-            const allTabIds = [...staticTabs.filter((tid) => openTabs.includes(tid)), ...trailerTabIds];
+            const trailerTabIds = openTabs.filter((t) =>
+              t.startsWith('tab-trailer-technical-check-'),
+            );
+            const allTabIds = [
+              ...staticTabs.filter((tid) => openTabs.includes(tid)),
+              ...trailerTabIds,
+            ];
             return allTabIds.map((tid) => {
               const subForm = staticTabSubForms[tid];
               const label =
@@ -865,7 +895,18 @@ export function CompoundFormPage() {
                     : tid === 'tab-vehicle-technical-check'
                       ? t('forms.technical_check.vehicleTitle')
                       : tid.startsWith('tab-trailer-technical-check-')
-                        ? (() => { const idx = Number(tid.replace('tab-trailer-technical-check-', '')); const regNr = compoundTrailerRegNrs[idx] || (trailers[idx]?.form as TechnicalCheckForm | null)?.trailerRegNr; return regNr ? `${t('forms.technical_check.trailerTitle')} (${regNr})` : t('forms.technical_check.trailerTitle'); })()
+                        ? (() => {
+                            const idx = Number(
+                              tid.replace('tab-trailer-technical-check-', ''),
+                            );
+                            const regNr =
+                              compoundTrailerRegNrs[idx] ||
+                              (trailers[idx]?.form as TechnicalCheckForm | null)
+                                ?.trailerRegNr;
+                            return regNr
+                              ? `${t('forms.technical_check.trailerTitle')} (${regNr})`
+                              : t('forms.technical_check.trailerTitle');
+                          })()
                         : tid === 'tab-transport-interruption'
                           ? t('forms.transport_interruption.title')
                           : t('forms.adr.title');
@@ -892,18 +933,6 @@ export function CompoundFormPage() {
               );
             });
           })()}
-          {isDesktop && addFormDropdown && (
-            <div
-              style={{
-                marginLeft: 'auto',
-                alignSelf: 'center',
-                marginRight: '1rem',
-                paddingLeft: '1rem',
-              }}
-            >
-              {addFormDropdown}
-            </div>
-          )}
         </Tabs.List>
 
         <Tabs.Content id="tab-compound" className="p-1">
@@ -1146,7 +1175,9 @@ export function CompoundFormPage() {
                     ...v,
                   } as TechnicalCheckForm);
                 }}
-                initialValidate={validatedTabs.has(`tab-trailer-technical-check-${idx}`)}
+                initialValidate={validatedTabs.has(
+                  `tab-trailer-technical-check-${idx}`,
+                )}
               />
             )}
           />
@@ -1261,27 +1292,27 @@ export function CompoundFormPage() {
       </Tabs>
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {isAdmin &&
-            !anyEditActive &&
-            form?.status !== 'deleted' && (
-              <Button
-                iconLeft="edit"
-                type="button"
-                visualType="secondary"
-                onClick={() => {
-                  setIsEditActive(true);
-                  if (driver.form) driver.setEditActive(true);
-                  if (teammate.form) teammate.setEditActive(true);
-                  if (vehicle.form) vehicle.setEditActive(true);
-                  trailers.forEach((tr) => { if (tr.form) tr.setEditActive(true); });
-                  if (adr.form) adr.setEditActive(true);
-                  if (transportInterruption.form)
-                    transportInterruption.setEditActive(true);
-                }}
-              >
-                {t('common.edit')}
-              </Button>
-            )}
+          {isAdmin && !anyEditActive && form?.status !== 'deleted' && (
+            <Button
+              iconLeft="edit"
+              type="button"
+              visualType="secondary"
+              onClick={() => {
+                setIsEditActive(true);
+                if (driver.form) driver.setEditActive(true);
+                if (teammate.form) teammate.setEditActive(true);
+                if (vehicle.form) vehicle.setEditActive(true);
+                trailers.forEach((tr) => {
+                  if (tr.form) tr.setEditActive(true);
+                });
+                if (adr.form) adr.setEditActive(true);
+                if (transportInterruption.form)
+                  transportInterruption.setEditActive(true);
+              }}
+            >
+              {t('common.edit')}
+            </Button>
+          )}
           {anyEditActive && subFormsAllConfirmedOrPublished && (
             <Button
               type="button"
@@ -1296,7 +1327,13 @@ export function CompoundFormPage() {
             </Button>
           )}
           {anyEditActive && (
-            <AsyncButton type="button" onClick={async () => { await flushPendingTrailerDeletions(); await handleSaveAll(); }}>
+            <AsyncButton
+              type="button"
+              onClick={async () => {
+                await flushPendingTrailerDeletions();
+                await handleSaveAll();
+              }}
+            >
               {t('common.save')}
             </AsyncButton>
           )}

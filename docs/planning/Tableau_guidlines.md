@@ -95,18 +95,18 @@ vanema `compound_form`'i seisust.
 > kopeeri-kleebi lähenemine (mis triivis skeemimuudatustega) on asendatud. Sina ei
 > pea midagi jooksutama — vaated on primaaril ja replikal olemas.
 
-**Materialiseeritud** vaated (analüütika jaoks ajalugu ei loe → salvestatakse
-füüsiliselt ainult aktiivne seis, mis on kõvasti indekseeritud → kiire).
-Öine värskendus `tableau.refresh_all()` kell **03:00** (CronManager, pärast
-e-Toimiku ja riskiskoori öiseid töid) — Tableau kasutab niikuinii öist
-Extract-refresh'i.
+**Tavalised** vaated (reaalajas). Kiirus tuleb aluslaua osalistest indeksitest
+(`idx_*_tableau_active` — ainult aktiivne, mittekustutatud snapshot-hulk).
+Öist `refresh`-i EI OLE (varasem `tableau.refresh_all()` + 03:00 cron
+eemaldati changeset'is `20261117100000`). Tableau enda öine Extract-refresh
+annab andmed vahemällu.
 
 | Vaade | Sisu |
 |---|---|
 | `tableau.form_overview` | Üks rida per kontrollvorm (kõik tüübid). `authority` = PPA / TRAM, `is_published`, maakonna nimi, asutuse nimi, `has_violation`. **Dashboardide alusvaade.** |
 | `tableau.classifier_value_current` | Koodide → nimede tõlge. `classifier_code`, `value_code`, `value_name`, `parent_value_name`, `is_valid`. JOIN: `forms.*.<x>_code = value_code` VÕI `forms.*.<x>` (nt `county`) `= classifier_value_key::text`. |
 | `tableau.ehak` | EHAK haldusüksused lamedaks (maakond ↔ linn/vald). |
-| `tableau.organisation` | Asutus id → nimi/kood (`users` skeemi grant'i pole vaja — matview on turvapiir). |
+| `tableau.organisation` | Asutus id → nimi/kood. NB: tavaline vaade → `tableau_ro` vajab `SELECT`-i ka `users.organisation` peale (changeset annab). |
 
 **Tuleb (PR2):** `tableau.<olem>_current` (üks per olem, kõik veerud + `_name`
 tulbad), fakt-vaated `tableau.violation_line` / `driver_line` / `trailer_line` /

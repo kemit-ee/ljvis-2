@@ -34,6 +34,12 @@ export const searchForms = async (
 const technicalCheckPath = (variant: TechnicalCheckVariant) =>
   variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
 
+/** DSL allowlist nõuab id välja stringina; konverteerime enne saatmist. */
+const withStringId = <T extends { id?: string | number | null }>(
+  data: T,
+): Record<string, unknown> =>
+  ({ ...data, id: data.id != null ? String(data.id) : undefined }) as Record<string, unknown>;
+
 export const getForm = (id: number) =>
   get<ForeignViolationForm>('/v1/control-forms/foreign-violation-form', {
     q: String(id),
@@ -42,13 +48,13 @@ export const getForm = (id: number) =>
 export const saveForeignViolationForm = (data: ForeignViolationForm) =>
   post<ForeignViolationForm[]>(
     `/v1/control-forms/foreign-violation-form/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmForeignViolationForm = (data: ForeignViolationForm) =>
   post<ForeignViolationForm[]>(
     `/v1/control-forms/foreign-violation-form/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishForeignViolationForm = (id: string) =>
@@ -95,13 +101,13 @@ export const getCompoundForm = (id: number, subFormId?: number) =>
 export const saveCompoundForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
     `/v1/control-forms/compound-form/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmCompoundForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
     `/v1/control-forms/compound-form/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishCompoundForm = (id: string) =>
@@ -155,13 +161,13 @@ export const getTramForm = (id: number) =>
 export const saveTramForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
     `/v1/control-forms/tram-card/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmTramForm = (data: CompoundForm) =>
   post<CompoundForm[]>(
     `/v1/control-forms/tram-card/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishTramForm = (id: string) =>
@@ -197,7 +203,7 @@ export const getCompoundFormSnapshot = (id: string, formKey: string) =>
 export const saveDriveRestForm = (scope: 'driver' | 'teammate', data: DriveRestForm) =>
   post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmDriveRestForm = (
@@ -206,7 +212,7 @@ export const confirmDriveRestForm = (
 ) =>
   post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishDriveRestForm = (
@@ -277,13 +283,13 @@ export const getLabourInspectionForm = (id: number) =>
 export const saveLabourInspectionForm = (data: LabourInspectionForm) =>
   post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmLabourInspectionForm = (data: LabourInspectionForm) =>
   post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishLabourInspectionForm = (id: string) =>
@@ -337,7 +343,7 @@ export const saveTechnicalCheckForm = (
 ) =>
   post<TechnicalCheckForm[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmTechnicalCheckForm = (
@@ -346,7 +352,7 @@ export const confirmTechnicalCheckForm = (
 ) =>
   post<TechnicalCheckForm[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishTechnicalCheckForm = (
@@ -399,7 +405,7 @@ export const saveTransportInterruptionForm = (
 ) =>
   post<TransportInterruptionForm[]>(
     `/v1/control-forms/transport-interruption/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmTransportInterruptionForm = (
@@ -407,7 +413,7 @@ export const confirmTransportInterruptionForm = (
 ) =>
   post<TransportInterruptionForm[]>(
     `/v1/control-forms/transport-interruption/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishTransportInterruptionForm = (
@@ -433,13 +439,13 @@ export const getAdrFormSnapshot = (id: string, formKey: string) =>
 export const saveAdrForm = (data: AdrForm) =>
   post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmAdrForm = (data: AdrForm) =>
   post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishAdrForm = (id: string) =>
@@ -456,13 +462,13 @@ export interface PdfRenderResponse {
 }
 
 export const printAdrForm = (
-  id: string,
+  id: string | undefined,
   blank: boolean,
   snapshotId?: string,
 ) =>
   post<PdfRenderResponse>(
     `/v1/control-forms/adr-form/read/print`,
-    { id, blank, snapshotId: snapshotId ?? '' },
+    { id: id ?? '', blank, snapshotId: snapshotId ?? '' },
   );
 
 export const saveAdrFormXroadFields = (data: {
@@ -499,13 +505,13 @@ export const getGoodReputeForm = (id: string) =>
 export const saveGoodReputeForm = (data: GoodReputeForm) =>
   post<GoodReputeForm[]>(
     `/v1/control-forms/good-repute/edit/save`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const confirmGoodReputeForm = (data: GoodReputeForm) =>
   post<GoodReputeForm[]>(
     `/v1/control-forms/good-repute/edit/confirm`,
-    data as unknown as Record<string, unknown>,
+    withStringId(data),
   );
 
 export const publishGoodReputeForm = (id: string) =>

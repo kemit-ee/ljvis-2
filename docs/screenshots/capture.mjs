@@ -53,10 +53,11 @@ async function login(context) {
   const page = await context.newPage();
   await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
   await settle(page);
-  // "Ametnikule" veerg on teine "Sisene süsteemi" nupp.
-  await page.getByRole('button', { name: /Sisene süsteemi/i }).nth(1).click();
+  // "Ametnikule" veerg on teine nupp — tekst on locale-sõltuvus, kasuta fallback.
+  const loginBtn = page.getByRole('button', { name: /Sisene süsteemi|Enter the system/i });
+  await loginBtn.nth(Math.min(1, (await loginBtn.count()) - 1)).click();
   await page.waitForLoadState('domcontentloaded');
-  await settle(page, 500);
+  await settle(page, 1000);
   // tara-mock: vali õige isikukood ja kinnita.
   const radio = page.locator(`input[type=radio]`, { hasText: '' }).first();
   // radio labelid on kujul "60001019906 Admin Super"
@@ -64,9 +65,9 @@ async function login(context) {
   await target.click().catch(async () => {
     await page.locator('input[type=radio]').first().check();
   });
-  await page.getByRole('button', { name: 'kinnita' }).first().click();
-  await page.waitForURL((u) => !u.pathname.startsWith('/auth/callback'), { timeout: 15000 }).catch(() => {});
-  await page.waitForFunction(() => document.body.innerText.includes('Töölaud'), null, { timeout: 15000 });
+  await page.getByRole('button', { name: /kinnita|confirm/i }).first().click();
+  await page.waitForURL((u) => !u.pathname.startsWith('/auth/callback'), { timeout: 30000 }).catch(() => {});
+  await page.waitForFunction(() => document.body.innerText.includes('Töölaud') || document.body.innerText.includes('Desktop'), null, { timeout: 30000 });
   await settle(page, 800);
   return page;
 }

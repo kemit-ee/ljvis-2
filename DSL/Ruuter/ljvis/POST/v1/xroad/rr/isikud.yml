@@ -3,14 +3,17 @@ declaration:
   version: "1.0"
   description: >-
     Query Rahvastikuregister (RR) for person data by isikukood.
-    RR's dde/v1/isikud service is REST-native X-Road (not SOAP), so it is called
-    directly by Ruuter via this LJVIS subsystem's own local X-Road Security Server
-    using the X-Road Message Protocol for REST — it does NOT go through the XTR
-    component, which only wraps legacy XRoad SOAP services (see
-    https://github.com/buerokratt/XTR and docs.x-road.global REST protocol).
+    RR's dde/v1/isikud service is REST-native X-Road (not SOAP). It is routed
+    through the XTR component's REST passthrough lane (kind: rest, XTR >=
+    0.3.0-rc), which performs a verbatim byte passthrough to the X-Road Security
+    Server per the X-Road Message Protocol for REST v1.0.4 — one X-Road egress
+    point for cert/mTLS/logging, consistent with arireg/mtr/etoimik/liiklusregister.
+    XTR REST DSL: DSL/xtr/rr/isikud.yml. XTR sets the X-Road-Client header itself
+    (from xtr.yaml client_data) and forwards X-Road-UserId + RR-Request-Reason
+    and the body unchanged.
     Service identifier: GOV/70008440/rr/domesticDataExchange/v1/isikud (member
     70008440 = Siseministeeriumi infotehnoloogia- ja arenduskeskus / SMIT, which
-    hosts RR's test subsystems on both ee-dev and ee-test
+    hosts RR's test subsystems on both ee-dev and ee-test).
     Returns firstName/lastName/citizenship/dateOfBirth/personStatus, or null data
     if no match. See LJVIS2-54.
   namespace: xroad
@@ -31,6 +34,14 @@ get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
+  next: checkUserContext
+
+# Ilma isikukoodita ametnikuta ei saa X-Road-UserId päist täita (RR nõuab seda
+# igal kutsel), seega katkestame enne XTR-i pöördumist.
+checkUserContext:
+  switch:
+    - condition: "${auth_user == null || auth_user.personalcode == null || String(auth_user.personalcode).trim() == ''}"
+      next: returnNoUserContext
   next: assignParams
 
 assignParams:
@@ -40,20 +51,22 @@ assignParams:
     start_time: "${new Date().getTime()}"
   next: callRr
 
-# X-Road Message Protocol for REST (docs.x-road.global): the consumer calls its
-# own local Security Server at /r1/<instance>/<class>/<member>/<subsystem>/<service...>
-# and identifies itself via the mandatory X-Road-Client header — there is no API
-# key/bearer token in X-Road, auth is handled by the Security Server (mutual TLS
-# between security servers + access-rights granted to our subsystem by RR).
+# Kutse läheb XTR-i REST passthrough lane'i (DSL/xtr/rr/isikud.yml), mis teeb
+# X-Road Message Protocol for REST v1.0.4 järgi verbatim passthrough'i X-tee
+# turvaserverisse. XTR seab X-Road-Client päise ise (xtr.yaml client_data-st) ja
+# edastab X-Road-UserId + RR-Request-Reason + keha muutmata. X-tees ei ole API
+# võtit ega bearer-tokenit — autoriseerimine käib turvaserveri mTLS + ACL kaudu.
 callRr:
   call: http.post
   args:
-    url: "[#XROAD_SECURITY_SERVER]/r1/[#XROAD_INSTANCE]/GOV/70008440/rr/domesticDataExchange/v1/isikud"
+    url: "[#LJVIS_XTR]/rr/isikud"
     headers:
       type: json
-      X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"
       X-Road-UserId: ${x_road_user_id}
-      RR-Request-Reason: "avalik"
+      # RR-Request-Reason on RR domesticDataExchange nõutud vabatekstiline
+      # päring-põhjus, mis salvestub RR auditi- ja andmejälgija kirjesse.
+      RR-Request-Reason: "Järelevalve käigus isiku andmete päring Liiklusjärelevalve infosüsteemi poolt"
+      # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       isikukoodid:
         - ${personal_code}
@@ -83,7 +96,7 @@ logSuccess:
     body:
       service_code: "rr.dde.v1"
       request_xml: "${'personalCode=' + personal_code}"
-      response_xml: "${JSON.stringify(rrResponse.response.body)}"
+      response_xml: "${JSON.stringify({ received: (rrResponse.response.body) != null, count: (Array.isArray(rrResponse.response.body) ? (rrResponse.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
@@ -102,7 +115,7 @@ logAjUsage:
       type: json
     body:
       user_code: "${personal_code}"
-      action: "Rahvastikuregistrist isikuandmete pärimine liiklusjärelevalve teekontrolli läbiviimiseks"
+      action: "Järelevalve käigus isiku andmete päring rahvastikuregistrist"
       receiver_code: "70001231"
       receiver_name: "Liiklusjärelevalve infosüsteem (LJVIS2)"
       receiver_system: "ljvis2"
@@ -170,11 +183,33 @@ logFailure:
       source_type: ""
       source_record_id: ""
   result: logResult
+  next: logAjUsageOnFailure
+
+# Andmejälgija (AJ) — IKS § 19: isikukood edastati RR-le olenemata sellest, kas
+# RR vastas edukalt, seega logime päringu ka ebaõnnestunud rajal.
+logAjUsageOnFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${personal_code}"
+      action: "Järelevalve käigus isiku andmete päring rahvastikuregistrist"
+      receiver_code: "70001231"
+      receiver_name: "Liiklusjärelevalve infosüsteem (LJVIS2)"
+      receiver_system: "ljvis2"
+  result: ajLogResult
   next: returnRrError
 
 returnRrError:
   status: 502
   return: '{"error": "RR_ERROR", "message": "Rahvastikuregistri päring ebaõnnestus"}'
+  next: end
+
+returnNoUserContext:
+  status: 401
+  return: '{"error": "NO_USER_CONTEXT", "message": "Autenditud kasutaja isikukood puudub — rahvastikuregistri päringut ei saa teha"}'
   next: end
 
 returnInvalidPersonalCode:

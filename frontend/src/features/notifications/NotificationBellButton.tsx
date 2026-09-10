@@ -24,7 +24,7 @@ export function NotificationBellButton(): React.ReactElement {
         <Icon name="notifications" />
       </Button>
       {unreadCount > 0 && (
-        <span className={styles.badge}>
+        <span>
           <StatusBadge color="danger">
             {unreadCount > 99 ? '99+' : String(unreadCount)}
           </StatusBadge>

@@ -5,11 +5,12 @@ import { Button, DateField, Select, Text, TextField, Tooltip } from '@tedi-desig
 import { useAuth } from '../auth/AuthContext';
 import { AppTable } from '../../shared/components/AppTable';
 import { formatDateTime, toIsoDate } from '../../hooks/dateUtils';
-import { PERMISSIONS } from '../../constants/constants';
+import { BREAKPOINTS, PERMISSIONS } from '../../constants/constants';
 import { useOutboundLog } from './useOutboundLog';
 import { OutboundReportModal } from './OutboundReportModal';
 import { resendNotification } from './api';
 import type { OutboundLogEntry } from './types';
+import { useMediaQuery } from '../../hooks/useMediaQuery.ts';
 
 const columnHelper = createColumnHelper<OutboundLogEntry>();
 
@@ -61,6 +62,7 @@ export function OutboundLogTable() {
 
   const [reportLogId, setReportLogId] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   // API toetab filtrina ainult üht status-väärtust korraga, seega jäävad 4 API-väärtust
   // (queued/in_progress/sent/error) filtrisse eraldi valikutena, kuigi tabeli enda
@@ -169,7 +171,8 @@ export function OutboundLogTable() {
 
   return (
     <>
-      <div className="filter-bar">
+      <div className="filter-bar"
+           style={isDesktop ? { width: '80%' } : undefined}>
         <DateField
           key={`outbound-date-from-${resetKey}`}
           id="outbound-filter-date-from"

@@ -11,6 +11,8 @@ import type { FormSearchFilters as Filters } from '../../types';
 import { FORM_TYPE_META, FORM_TYPE_ORDER } from './formSearchMeta';
 import styles from './FormSearch.module.css';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
+import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 interface Option {
   value: string;
@@ -50,6 +52,7 @@ export function FormSearchFilters({
 }: Props) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
+  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const formTypeOptions = useMemo<Option[]>(
     () =>
@@ -95,7 +98,10 @@ export function FormSearchFilters({
 
   return (
     <div>
-      <div className={styles['filter-grid']}>
+      <div
+        className={styles['filter-grid']}
+        style={isDesktop ? { width: '80%' } : undefined}
+      >
         <DateField
           key={`search-date-from-${resetKey}`}
           id="search-date-from"

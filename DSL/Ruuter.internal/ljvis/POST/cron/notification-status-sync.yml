@@ -37,12 +37,14 @@ iterateRows:
     as: pendingRow
     max_items: 200
     do:
+      # Toodangus läbi XTR-i REST passthrough lane'i
+      # (DSL/xtr/postkast/sending-operations.yml) — XTR seab X-Road-Client päise
+      # ise. Dev/CI-s osutab [#PK_SENDING_OPERATIONS_ENDPOINT] Ruuteri mockile.
       - call: http.post
         args:
           url: "[#PK_SENDING_OPERATIONS_ENDPOINT]"
           headers:
             type: json
-            X-Road-Client: "[#XROAD_INSTANCE]/GOV/70001231/ljvis2"
           body:
             externalId: ${pendingRow.notificationKey}
             page: 0
@@ -74,7 +76,7 @@ iterateRows:
           body:
             service_code: "pk.notification-management.v1"
             request_xml: "${'externalId=' + pendingRow.notificationKey}"
-            response_xml: "${JSON.stringify(opRes.response.body)}"
+            response_xml: "${JSON.stringify({ received: (opRes.response.body) != null, count: (Array.isArray(opRes.response.body) ? (opRes.response.body).length : null) })}"
             duration_ms: 0
             success: "${opRes.response.status >= 200 && opRes.response.status < 300}"
             error_message: ""
