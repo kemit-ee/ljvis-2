@@ -122,6 +122,13 @@ interface RrIsikudRawResponse {
   data: XRoadPerson | null;
 }
 
+function normalizeBirthDate(value: string | undefined): string | undefined {
+  if (!value) return value;
+  // RR returns SynniKuupaev as dd.MM.yyyy while date controls expect ISO.
+  const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+  return match ? `${match[3]}-${match[2]}-${match[1]}` : value;
+}
+
 export const searchPersonByCode = async (
   personalCode: string,
 ): Promise<XRoadPerson | null> => {
@@ -132,7 +139,8 @@ export const searchPersonByCode = async (
   // standard `response` envelope. Accept both that shape and an object.
   const parsed: RrIsikudRawResponse | null =
     typeof raw === 'string' ? (JSON.parse(raw) as RrIsikudRawResponse) : raw;
-  return parsed?.data ?? null;
+  if (!parsed?.data) return null;
+  return { ...parsed.data, dateOfBirth: normalizeBirthDate(parsed.data.dateOfBirth) };
 };
 
 export const getAssociatedPersons = async (
