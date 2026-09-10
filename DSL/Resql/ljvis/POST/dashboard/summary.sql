@@ -29,8 +29,14 @@ returns:
   type: string
   nullable: true
 */
+-- NB: kõik `latest snapshot` CTE-d projekteerivad AINULT vajalikud skalaarveerud
+-- (mitte `SELECT *`), et `drivers`/`trailers`/`files`/`violations_*` JSONB ei
+-- läheks läbi DISTINCT ON sordi. `lc` hoiab `drivers`, sest driver_name vajab.
 WITH lc AS (
-    SELECT DISTINCT ON (compound_form_key) *
+    SELECT DISTINCT ON (compound_form_key)
+        compound_form_key, form_number, status, control_date, control_time,
+        vehicle_reg_nr, company_name, inspector_first_name, inspector_last_name,
+        inspector_organisation_id, drivers, created_by
     FROM forms.compound_form
     ORDER BY compound_form_key, created_at DESC
 ),
@@ -44,27 +50,33 @@ compound_scoped AS (
 ),
 -- latest snapshot per sub-form, across all six sub-form tables, tagged with type
 lsd AS (
-    SELECT DISTINCT ON (sp_driver_form_key) *
+    SELECT DISTINCT ON (sp_driver_form_key)
+        sp_driver_form_key, compound_form_key, sub_form_number, status, proceeding_type, created_at, created_by
     FROM forms.sp_driver_form ORDER BY sp_driver_form_key, created_at DESC
 ),
 lst AS (
-    SELECT DISTINCT ON (sp_teammate_form_key) *
+    SELECT DISTINCT ON (sp_teammate_form_key)
+        sp_teammate_form_key, compound_form_key, sub_form_number, status, proceeding_type, created_at, created_by
     FROM forms.sp_teammate_form ORDER BY sp_teammate_form_key, created_at DESC
 ),
 lvt AS (
-    SELECT DISTINCT ON (vehicle_technical_form_key) *
+    SELECT DISTINCT ON (vehicle_technical_form_key)
+        vehicle_technical_form_key, compound_form_key, sub_form_number, status, proceeding_type, created_at, created_by
     FROM forms.vehicle_technical_form ORDER BY vehicle_technical_form_key, created_at DESC
 ),
 ltt AS (
-    SELECT DISTINCT ON (trailer_technical_form_key) *
+    SELECT DISTINCT ON (trailer_technical_form_key)
+        trailer_technical_form_key, compound_form_key, sub_form_number, status, proceeding_type, created_at, created_by
     FROM forms.trailer_technical_form ORDER BY trailer_technical_form_key, created_at DESC
 ),
 ladr AS (
-    SELECT DISTINCT ON (adr_form_key) *
+    SELECT DISTINCT ON (adr_form_key)
+        adr_form_key, compound_form_key, sub_form_number, status, proceeding_type, created_at, created_by
     FROM forms.adr_form ORDER BY adr_form_key, created_at DESC
 ),
 lkv AS (
-    SELECT DISTINCT ON (kv_form_key) *
+    SELECT DISTINCT ON (kv_form_key)
+        kv_form_key, compound_form_key, sub_form_number, status, created_at, created_by
     FROM forms.kv_form ORDER BY kv_form_key, created_at DESC
 ),
 -- earliest snapshot per sub-form where proceeding_type first became non-'none'/non-null —
@@ -175,7 +187,10 @@ standalone_union AS (
     SELECT 'foreign_violation'::text AS form_type, fv.foreign_violation_form_key AS form_key,
            fv.form_number, fv.status, fv.inspection_date AS main_date,
            fv.inspection_time AS main_time, fv.vehicle_reg_nr, fv.created_at, fv.created_by
-    FROM (SELECT DISTINCT ON (foreign_violation_form_key) * FROM forms.foreign_violation_form
+    FROM (SELECT DISTINCT ON (foreign_violation_form_key)
+              foreign_violation_form_key, form_number, status, inspection_date, inspection_time,
+              vehicle_reg_nr, inspector_organisation_id, created_at, created_by
+          FROM forms.foreign_violation_form
           ORDER BY foreign_violation_form_key, created_at DESC) fv
     WHERE fv.status NOT IN ('deleted','published')
       AND ((:scope = 'organisation' AND fv.inspector_organisation_id = :actor_org_id)
@@ -184,7 +199,9 @@ standalone_union AS (
     SELECT 'labour_inspection', li.labour_inspection_form_key,
            li.form_number, li.status, li.inspection_date,
            NULL::time, NULL::varchar, li.created_at, li.created_by
-    FROM (SELECT DISTINCT ON (labour_inspection_form_key) * FROM forms.labour_inspection_form
+    FROM (SELECT DISTINCT ON (labour_inspection_form_key)
+              labour_inspection_form_key, form_number, status, inspection_date, created_at, created_by
+          FROM forms.labour_inspection_form
           ORDER BY labour_inspection_form_key, created_at DESC) li
     WHERE li.status NOT IN ('deleted','published')
       AND li.created_by = :actor_code
@@ -192,7 +209,9 @@ standalone_union AS (
     SELECT 'good_repute', gr.good_repute_form_key,
            gr.form_number, gr.status, gr.certificate_issue_date,
            NULL::time, NULL::varchar, gr.created_at, gr.created_by
-    FROM (SELECT DISTINCT ON (good_repute_form_key) * FROM forms.good_repute_form
+    FROM (SELECT DISTINCT ON (good_repute_form_key)
+              good_repute_form_key, form_number, status, certificate_issue_date, created_at, created_by
+          FROM forms.good_repute_form
           ORDER BY good_repute_form_key, created_at DESC) gr
     WHERE gr.status NOT IN ('deleted','published')
       AND gr.created_by = :actor_code
@@ -200,7 +219,10 @@ standalone_union AS (
     SELECT 'tram_control_card', tc.tram_control_card_key,
            tc.form_number, tc.status, tc.control_date,
            tc.control_time, tc.vehicle_reg_nr, tc.created_at, tc.created_by
-    FROM (SELECT DISTINCT ON (tram_control_card_key) * FROM forms.tram_control_card
+    FROM (SELECT DISTINCT ON (tram_control_card_key)
+              tram_control_card_key, form_number, status, control_date, control_time,
+              vehicle_reg_nr, inspector_organisation_id, created_at, created_by
+          FROM forms.tram_control_card
           ORDER BY tram_control_card_key, created_at DESC) tc
     WHERE tc.status NOT IN ('deleted','published')
       AND ((:scope = 'organisation' AND tc.inspector_organisation_id = :actor_org_id)

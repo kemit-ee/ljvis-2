@@ -63,9 +63,11 @@ callRr:
     headers:
       type: json
       X-Road-UserId: ${x_road_user_id}
-      # RR-Request-Reason on RR domesticDataExchange nõutud vabatekstiline
-      # päring-põhjus, mis salvestub RR auditi- ja andmejälgija kirjesse.
-      RR-Request-Reason: "Järelevalve käigus isiku andmete päring Liiklusjärelevalve infosüsteemi poolt"
+      # RR domesticDataExchange OpenAPI lubab siin ainult väärtusi
+      # "avalik", "oigustatud" või "salastatud".
+      RR-Request-Reason: "avalik"
+      # Inimloetav päringu põhjus kuulub X-Road-Issue päisesse.
+      X-Road-Issue: "Jarelevalve kaigus isiku andmete paring Liiklusjarelevalve infosusteemi poolt"
       # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       isikukoodid:
