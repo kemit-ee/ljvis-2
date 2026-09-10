@@ -16,10 +16,11 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 > vaated**. Öine `tableau.refresh_all()` + CronManager cron + `refresh_matviews.sql`
 > **eemaldatud**; andmed on reaalajas. Kiirus tuleb aluslaua **osalistest
 > indeksitest** `idx_*_tableau_active` (`(<key>, created_at DESC) WHERE status <>
-> 'deleted'`) — aktiivne snapshot-hulk on väike ja kõva indeksiga. Tagajärg:
-> tavaline vaade EI ole turvapiir → `tableau_ro` vajab `SELECT`-i ka `forms.*`,
-> `classifier.*`, `users.organisation` peale (matview-versioonis polnud). PII on
-> vaadetes endas maskitud (variant A muutumatu).
+> 'deleted'`) — aktiivne snapshot-hulk on väike ja kõva indeksiga.
+> Tavaline vaade jookseb VAIKIMISI **omaniku** (liquibase-kasutaja) õigustega
+> (`security_invoker` pole seatud), seega `tableau_ro` vajab endiselt ainult
+> `USAGE`+`SELECT` `tableau` skeemis — aluslaua-grante EI anta. PII maskimine
+> vaadetes (variant A) jääb tegelikuks turvapiiriks.
 
 ### Kontekst
 

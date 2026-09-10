@@ -64,7 +64,7 @@ COMMENT ON VIEW tableau.ehak IS 'EHAK haldusüksused lamedaks: maakond (is_count
 CREATE VIEW tableau.organisation AS
 SELECT id, name, code
 FROM users.organisation;
-COMMENT ON VIEW tableau.organisation IS 'Asutused (id → nimi, kood). Vaade users.organisation-ist. NB: Tableau roll vajab GRANT SELECT ka users.organisation peale (tavaline vaade EI ole turvapiir, erinevalt matview-st).';
+COMMENT ON VIEW tableau.organisation IS 'Asutused (id → nimi, kood). Vaade users.organisation-ist. Jookseb omaniku (liquibase-kasutaja) õigustega — tableau_ro ei vaja users skeemi grant''i.';
 
 -- ════════════════════════════════════════════════════════════════════
 -- FAKT: form_overview — ristvormi "üks rida per vorm"
@@ -129,21 +129,17 @@ CREATE INDEX IF NOT EXISTS idx_classifier_tableau_latest        ON classifier.cl
 CREATE INDEX IF NOT EXISTS idx_classifier_value_tableau_latest  ON classifier.classifier_value (classifier_value_key, created_at DESC);
 
 -- ── Grants ──────────────────────────────────────────────────────────
--- NB TAGAJÄRG: tavaline vaade jookseb PÄRIJA õigustega (mitte omaniku, nagu
--- matview) → tableau_ro vajab SELECT-i ka KÕIGI aluslaudade peale, mida
--- tableau.* vaated (ja forms.form_search) loevad: forms.*, classifier.*,
--- users.organisation. Matview-versioonis (ADR-009) oli tableau skeem
--- turvapiir ja need grant'id polnud vajalikud. Isikuandmed on vaadetes
--- endas maskitud (PII variant A), aga roll näeb nüüd tehniliselt ka
--- aluslaudu — DevOps võib soovi korral piirata column-level grant'idega.
+-- Tavaline Postgres vaade jookseb VAIKIMISI OMANIKU õigustega
+-- (security_invoker pole seatud; PG 17 vaikeväärtus = false). Vaated kuuluvad
+-- liquibase-kasutajale, kes näeb kõiki aluslaudu → tableau_ro vajab AINULT
+-- USAGE + SELECT `tableau` skeemis. Aluslaua-grante (forms/classifier/users)
+-- EI anta: need laseks rollil lugeda maskimata `forms.compound_form.drivers`
+-- (isikukoodid), `punished_person_*`, `violations_*` — mööda ADR-009 variant A
+-- maskimist. PII maskimine vaadetes on seega tegelik turvapiir.
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'tableau_ro') THEN
     EXECUTE 'GRANT USAGE ON SCHEMA tableau TO tableau_ro';
     EXECUTE 'GRANT SELECT ON ALL TABLES IN SCHEMA tableau TO tableau_ro';
     EXECUTE 'ALTER DEFAULT PRIVILEGES IN SCHEMA tableau GRANT SELECT ON TABLES TO tableau_ro';
-    EXECUTE 'GRANT USAGE ON SCHEMA forms, classifier, users TO tableau_ro';
-    EXECUTE 'GRANT SELECT ON ALL TABLES IN SCHEMA forms TO tableau_ro';
-    EXECUTE 'GRANT SELECT ON ALL TABLES IN SCHEMA classifier TO tableau_ro';
-    EXECUTE 'GRANT SELECT ON users.organisation TO tableau_ro';
   END IF;
 END $$;

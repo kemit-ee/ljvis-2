@@ -38,11 +38,12 @@ DO $$ BEGIN
 END $$;
 ```
 
-`tableau_ro` saab `SELECT`-i `tableau` skeemis. Kuna tavaline vaade jookseb
-**pärija** õigustega (mitte omaniku, nagu matview), vajab roll `SELECT`-i ka
-aluslaudadel, mida vaated loevad: `forms.*`, `classifier.*`, `users.organisation`.
-Isikuandmed on vaadetes endas maskitud (§3); DevOps võib soovi korral aluslaua
-grante column-level'iga kitsendada.
+`tableau_ro` saab ainult `USAGE` + `SELECT` `tableau` skeemis. Tavaline
+Postgres vaade jookseb VAIKIMISI **omaniku** (liquibase-kasutaja) õigustega
+(`security_invoker` pole seatud), seega roll ei vaja `forms.*` / `classifier.*` /
+`users.organisation` grante — ja neid ei anta, sest see laseks lugeda maskimata
+isikukoode `forms.compound_form.drivers`-ist. PII maskimine vaadetes (§3) on
+tegelik turvapiir.
 
 ---
 
@@ -114,7 +115,7 @@ Iga olemi täisajalugu (kõik snapshot'id) analüütikule, kes seda küsib.
 - `20261115100000-tableau-schema-01-core.*` — skeem, roll, dimensioonid,
   `form_overview` (PR1).
 - `20261117100000-tableau-schema-02-plain-views.*` — matview → tavaline vaade,
-  aluslaua osalised indeksid, laiendatud grantid (PR #307).
+  aluslaua osalised indeksid `idx_*_tableau_active` (PR #307).
 - Edaspidi: veeru muutus vaates → changeset teeb `CREATE OR REPLACE VIEW`
   (või `DROP VIEW ... CASCADE; CREATE VIEW`, kui veerukuju muutub).
 - Timestamp-prefiks > uusim `forms.*` migratsioon → `includeAll` garanteerib
