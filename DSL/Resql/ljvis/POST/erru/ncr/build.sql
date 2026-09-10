@@ -58,6 +58,30 @@ returns:
   type: string
   nullable: true
 */
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- ANDMETE ÜLEKANNE KONTROLLKAARDILT NCR-TEATESSE (#328 p3)
+--
+-- Politsei / TRAM kontrollkaardilt "Loo NCR teade" nupp ja öine automaatne
+-- väljasaatmine (erru-ncr-autodispatch.yml) kutsuvad seda päringut. Need
+-- kontrollkaardi väljad kanduvad NCR-teatesse ja PEAVAD olema täidetud, et
+-- teade oleks kehtiv:
+--   compound_form.company_name                              -> transport_undertaking_name
+--   compound_form.company_activity_licence_copy_number      -> community_licence_number
+--       (ühenduse tegevusloa / kinnitatud ärakirja / tõestatud koopia number)
+--   compound_form.vehicle_reg_nr                            -> vehicle_registration_number
+--   compound_form.vehicle_country_code (<> 'EE')            -> vehicle_registration_country + ncr_to
+--   compound_form.control_date                              -> check_date + iga rikkumise kuupäevad
+--   sp_*_form.erru_points[] (severity_category MSI/VSI/SI)  -> serious_infringements[] + check_result
+--   compound_form.vehicle_category_code = 'M1'              -> '302' (sõidukeeld) jäetakse välja
+--
+-- EI eeltäideta (spec LJVIS2-64 §4.1): minorInfringement, karistuste andmed.
+--
+-- #TODO (#329): originating_authority tuleb praegu kutsuja modaalist (vaikimisi
+--   KLIM). Vana süsteemi teade näitab "Teate esitav pädev asutus: PPA" —
+--   kaaluda politsei kontrollkaardilt loodud NCR-il PPA (või kontrollkaardi
+--   inspektori asutuse) eeltäitmist.
+-- ─────────────────────────────────────────────────────────────────────────────
 WITH sp AS (
   (
     SELECT compound_form_key, erru_points
@@ -97,7 +121,9 @@ WITH sp AS (
         'infringementType', p->>'erru_code',
         'dateOfInfringement', cf.control_date,
         'detectionCheckDate', cf.control_date,
-        'appealPossible', true,
+        -- "Karistust saab edasi kaevata" vaikimisi false — NCR teade saadetakse
+        -- valdavalt jõustunud otsuste kohta; ametnik muudab vajadusel (#328).
+        'appealPossible', false,
         'penaltiesImposed', '[]'::JSONB,
         'penaltiesRequested', '[]'::JSONB
       )

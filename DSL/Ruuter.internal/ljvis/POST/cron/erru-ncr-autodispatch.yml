@@ -23,6 +23,11 @@ declaration:
     muster nagu cron/etoimik-sp-driver-decision-sync.yml — do: sees ei ole
     next:/return, kõik harud on koondatud arvutatud assign'idesse ja
     kirjutuskutsed käivituvad alati (no-op halva sisendiga).
+
+    Kandidaadi täpsed eeldused (millised kontrollkaardi väljad peavad olema
+    täidetud) on loetletud select-autodispatch-candidates.sql päises (#328 p3).
+    #TODO (#329): requestPurpose/requestSource on siin kõvakodeeritud
+    "Control" / "RSI" — ärianalüüsiga kinnitada automaatteate nõutud väärtused.
   namespace: cron
   allowlist:
     body: []

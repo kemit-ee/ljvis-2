@@ -6,6 +6,16 @@
 
 ## 2026-09-10
 
+### NCR (kontrollitulemuse teate) täiendused
+
+- Raskete rikkumiste (MSI/VSI/SI) rippmenüü on nüüd ERRU koodi järjekorras
+  väiksemast suuremaks.
+- Kaks kabotaaži-koodi said täpsema kirjelduse: **VSI869** = veoseveo kabotaaž
+  (määrus (EÜ) nr 1072/2009), **VSI872** = sõitjateveo kabotaaž (määrus (EÜ)
+  nr 1073/2009) — varem oli mõlemal identne tekst.
+- Raske rikkumise juures on **"Karistust saab edasi kaevata"** vaikimisi
+  **"Ei"** (varem "Jah"). Ametnik saab vajadusel muuta.
+
 ### Rahvastikuregistri ja Postkasti X-tee liiklus läbi XTR-i
 
 - Rahvastikuregistri isikupäring ja Postkast 2.0 teavituste saatmine käivad nüüd

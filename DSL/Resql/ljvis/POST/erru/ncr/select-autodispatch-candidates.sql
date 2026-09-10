@@ -32,6 +32,30 @@ returns:
   type: string
   nullable: true
 */
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- AUTOMAATSE NCR-i EELDUSED (#328 p3) — automaatne öine NCR-väljasaatmine
+-- käivitub SP (autojuhi / meeskonnaliikme sõidu- ja puhkeaja) kontrollkaardi
+-- kohta AINULT kui KÕIK alljärgnev on täidetud:
+--   1. SP-alamvorm on AVALIKUSTATUD  (status = 'published')
+--   2. kontrolli tulemus on KORRAS   (result_type = 'ok')
+--   3. SP-alamvorm on aktiivne snapshot (selection_status = 'active')
+--   4. koondvorm ei ole kustutatud   (compound_form.status <> 'deleted')
+--   5. sõiduk on VÄLISRIIGI oma       (vehicle_country_code täidetud ja <> 'EE')
+--   6. veoettevõtja nimi on täidetud  (compound_form.company_name)
+--   7. ühenduse tegevusloa koopia number on täidetud
+--        (compound_form.company_activity_licence_copy_number)
+--   8. SP-alamvorm on loodud <= 365 päeva tagasi
+--   9. selle SP-alamvormi kohta pole veel NCR-i saadetud
+--        (rida puudub erru.ncr_autodispatch_log-is)
+--
+-- #TODO (#329) — ärianalüüsiga üle vaadata:
+--   - kas juhi / meeskonnaliikme ISIKUKOOD peab olema täidetud? Praegu ei
+--     nõuta (NCR on ettevõtja-tasandi teade, isikut ei edastata).
+--   - kas control_date vanuse lagi peab olema lühem kui 365 päeva?
+--   - kas automaatteatele on nõutud kindlad requestPurpose / requestSource
+--     väärtused (cron kõvakodeerib "Control" / "RSI")?
+-- ─────────────────────────────────────────────────────────────────────────────
 WITH latest_sp AS (
   (
     SELECT DISTINCT ON (sp_driver_form_key)
