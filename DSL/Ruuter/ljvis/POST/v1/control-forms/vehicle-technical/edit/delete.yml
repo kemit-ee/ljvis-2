@@ -37,7 +37,7 @@ deleteForm:
       status: ${status}
       created_by: ${created_by}
   result: deleteRes
-  next: logAuditEvent
+  next: check_deleteRes_persisted
 
 logAuditEvent:
   template: "templates/audit/form/log-form-delete"
@@ -57,4 +57,15 @@ returnSuccess:
 returnForbidden:
   status: 403
   return: "forbidden"
+  next: end
+
+check_deleteRes_persisted:
+  switch:
+    - condition: ${deleteRes.response == null || deleteRes.response.status < 200 || deleteRes.response.status >= 300 || deleteRes.response.body == null || deleteRes.response.body.length == null || deleteRes.response.body.length === 0}
+      next: returnResqlWriteError
+  next: logAuditEvent
+
+returnResqlWriteError:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end
