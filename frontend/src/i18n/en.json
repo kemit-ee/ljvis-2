@@ -1764,6 +1764,7 @@
         "titleOutgoing": "Roadside inspection message RSI (EST → ERRU)",
         "titleInbound": "Roadside inspection message RSI (ERRU → EST)",
         "titleNew": "New RSI message",
+        "createFromTechnicalCard": "Create RSI message",
         "messageNumber": "Message number",
         "messageNumberPending": "assigned on save",
         "headerBlock": "Message details",

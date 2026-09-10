@@ -13,6 +13,35 @@ CATEGORIES=[('A_2012','N2'),('B_2012','N3'),('C_2012','O3'),('D_2012','O4'),('E_
 RESULTS={'ok':'Korras','warning':'Hoiatus','precept':'Ettekirjutus','misdemeanor_proceedings':'Väärteomenetlus','driving_ban':'Sõidukeeld / juhtimiselt kõrvaldamine','arrest':'Arest','transport_interruption':'Autovedu on katkestatud','extraordinary_inspection':'Erakorraline ülevaatus','extraordinary_inspection_ta':'Erakorraline ülevaatus ja liiklusregistri andmete täpsustamine'}
 PROCEEDINGS={'LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
 
+RSI_PARTS = {
+ 'CAA_0':'0. Sõiduki identifitseerimine','CAA_1':'1. Pidurisüsteem','CAA_2':'2. Rooliseade',
+ 'CAA_3':'3. Nähtavus','CAA_4':'4. Tuled, helkurid ja elektriseadmed',
+ 'CAA_5':'5. Teljed, veljed, rehvid ja vedrustus','CAA_6':'6. Šassii ja selle kinnitused',
+ 'CAA_7':'7. Muu varustus','CAA_8':'8. Saasted','CAA_9':'9. Täiendavad kontrollid',
+ 'CAA_10':'10. Sõiduki sobivus','CAA_20':'20. Kinnitusmeetodid'
+}
+
+def build_rsi_context(payload=None, blank=False):
+    raw = {} if blank else unwrap((payload or {}).get('rsiMessage', payload or {}))
+    if not blank and not raw.get('id'):
+        raise ValueError('Filled RSI mode requires rsiMessage.id')
+    checked = structured(raw.get('checkedItems'), list)
+    rows = []
+    for item in checked:
+        if item.get('status') not in ('checked', 'non_compliant'):
+            continue
+        rows.append({
+            'name': RSI_PARTS.get(item.get('partCode'), item.get('partCode', '')),
+            'status': item.get('status'),
+            'defects': structured(item.get('defects'), list),
+        })
+    return {
+        'title': 'TEHNOKONTROLLI TEADE RSI', 'number': raw.get('businessCaseId', ''),
+        'blank': blank, 'r': raw, 'rows': rows, 'warnings': [], 'appendix': [],
+        'inspection_date': dt(raw.get('inspectionDatetime')),
+        'inspection_time': str(raw.get('inspectionDatetime') or '')[11:16],
+    }
+
 
 def yes(value):
     if value in (True, 'true'): return True

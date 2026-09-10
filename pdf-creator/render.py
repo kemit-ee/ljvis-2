@@ -149,6 +149,7 @@ TEMPLATES = {
     'trailer-technical': 'trailer-technical/form.html.j2',
     'drive-rest-form': 'drive-rest-form/form.html.j2',
     'transport-interruption': 'transport-interruption/form.html.j2',
+    'rsi': 'rsi/form.html.j2',
 }
 
 
@@ -162,6 +163,9 @@ def render_html(payload=None, blank=False, template='adr-form'):
     env = Environment(loader=FileSystemLoader(ROOT / 'templates'), autoescape=True, undefined=StrictUndefined)
     if template == 'adr-form':
         data = context(payload, blank)
+    elif template == 'rsi':
+        from forms import build_rsi_context
+        data = build_rsi_context(payload, blank)
     else:
         from forms import build_context
         data = build_context(template, payload, blank)

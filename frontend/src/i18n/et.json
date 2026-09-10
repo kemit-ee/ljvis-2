@@ -1785,6 +1785,7 @@
         "titleOutgoing": "Tehnokontrolli teade RSI (EST → ERRU)",
         "titleInbound": "Tehnokontrolli teade RSI (ERRU → EST)",
         "titleNew": "Uus tehnokontrolli teade RSI",
+        "createFromTechnicalCard": "Loo RSI teade",
         "messageNumber": "Teate number",
         "messageNumberPending": "määratakse salvestamisel",
         "headerBlock": "Teate andmed",
