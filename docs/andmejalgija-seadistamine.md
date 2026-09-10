@@ -31,6 +31,13 @@ eesti.ee → X-tee turvaserver (LJVIS) → ruuter-internal:8080/ljvis/xroad/v2/.
 | `xroad.provide.isiku-ettevote-kontrollid` | Iga eduka päringu korral |
 | `xroad.provide.register-job-inspection-v3` | Eduka sisestuse korral, ainult kui `juhi_isikukood` esitati |
 
+Lisaks logivad LJVIS-i **väljaminevad** X-tee päringud, mis puudutavad
+konkreetse isiku andmeid (kõik lähevad läbi XTR REST/SOAP lane'i):
+
+| Päring | `action` tekst | Millal logitakse |
+|--------|----------------|------------------|
+| Rahvastikuregister `rr/domesticDataExchange/v1/isikud` (`DSL/Ruuter/ljvis/POST/v1/xroad/rr/isikud.yml`) | „Järelevalve käigus isiku andmete päring rahvastikuregistrist" | Iga päringu korral — nii leitud, „ei leitud" kui ka ebaõnnestunud RR-vastuse puhul |
+
 ---
 
 ## 3. X-tee turvaserveri seadistamine
