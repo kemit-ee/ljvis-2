@@ -93,7 +93,7 @@ prepareOutbound:
 
 convertCheckedItems:
   assign:
-    erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.partCode !== 'CAA_10';}).map(function(i){ var itemTypeMap = {'CAA_11': 20}; var n = itemTypeMap[i.partCode] !== undefined ? itemTypeMap[i.partCode] : parseInt((i.partCode||'').replace('CAA_',''),10); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};}))}"
+    erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.status === 'checked' || i.status === 'non_compliant';}).map(function(i){ var n = parseInt((i.partCode||'').replace('CAA_',''),10); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};}))}"
   next: mapAuthorities
 
 # RSI ettepanek 7: teate esitanud pädev asutus (org-kood) ja inspektor
