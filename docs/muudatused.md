@@ -6,6 +6,13 @@
 
 ## 2026-09-10
 
+### Kustutatud vormide arhiveerimine
+
+- Kustutatud kontrollvormid teisaldatakse iga kahe tunni tagant eraldi
+  arhiivibaasi; töötabelid jäävad väiksemaks ja kiiremaks. Kustutatud vormi
+  **versiooniajalugu jääb endiselt nähtavaks** — süsteem loeb selle vajadusel
+  arhiivist.
+
 ### Rahvastikuregistri ja Postkasti X-tee liiklus läbi XTR-i
 
 - Rahvastikuregistri isikupäring ja Postkast 2.0 teavituste saatmine käivad nüüd
@@ -15,6 +22,8 @@
 - Rahvastikuregistri päring kajastub isikule eesti.ee andmejälgijas nüüd tekstiga
   „Järelevalve käigus isiku andmete päring rahvastikuregistrist" ning kirje
   tekib ka siis, kui register vastust ei anna.
+
+---
 
 ## 2026-09-09
 
