@@ -227,7 +227,7 @@ BEGIN
             ('VSI870', 'kabotaažvedude tegemine samas liikmesriigis 4 päeva jooksul pärast viimase seadusliku kabotaažveo lõppu selles liikmesriigis', 'VSI'),
             ('VSI871', 'vedaja ei suuda esitada selgeid tõendeid eelnenud rahvusvahelise veo ja/või iga järgneva teostatud kabotaažveo kohta ja/või kõigi tehtud vedude kohta juhul, kui sõiduk on vastuvõtvas liikmesriigis viibinud 4 päeva enne rahvusvahelist vedu, ning esitada need tõendid teel toimuva kontrolli vältel', 'VSI'),
             ('VSI872', 'sõitjateveo kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määrus (EÜ) nr 1073/2009 art 16)', 'VSI'),
-            ('VSI873', 'sõidukis ei ole või ei ole kontrollima volitatud ametniku nõudmisel võimalik esitada kabotaažvedudeks vajalikke kontrolldokumente (juhuvedude sõiduleht või eriotstarbeliste liinivedude korral vedaja ja veo korraldaja vahel sõlmitud leping või selle tõestatud koopia)', 'VSI'),
+            ('VSI873', 'sõidukis ei ole või ei ole kontrollima volitatud ametniku nõudmisel võimalik esitada sõitjateveo kabotaažvedudeks vajalikke kontrolldokumente (juhuvedude sõiduleht või eriotstarbeliste liinivedude korral vedaja ja veo korraldaja vahel sõlmitud leping või selle tõestatud koopia) (määrus (EÜ) nr 1073/2009 art 17)', 'VSI'),
             ('VSI874', 'lepinguliste võlasuhete suhtes kohaldatava õiguse rikkumine', 'VSI'),
             ('VSI832', 'ei esitata jooksval päeval ja eelnenud 56 päeval koostatud käsikirjalisi kandeid ja väljatrükke', 'VSI')
         ) AS t(code, name, description)

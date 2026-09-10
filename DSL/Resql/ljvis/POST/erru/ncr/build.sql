@@ -166,7 +166,7 @@ WITH sp AS (
     'EE',
     NULLIF(:ncrTo, ''),
     -- Eeltäida kontrollkaardi inspektori asutusest (nt PPA); kutsuja modaal
-    -- võib selle üle kirjutada (#328 p3 / #329).
+    -- võib selle üle kirjutada (#328 p3).
     COALESCE(NULLIF(:originatingAuthority, ''), NULLIF(cf.inspector_organisation_id, '')),
     NULLIF(:requestSource, ''),
     NULLIF(:requestPurpose, ''),

@@ -49,12 +49,14 @@ returns:
 --   9. selle SP-alamvormi kohta pole veel NCR-i saadetud
 --        (rida puudub erru.ncr_autodispatch_log-is)
 --
--- #TODO (#329) — ärianalüüsiga üle vaadata:
---   - kas juhi / meeskonnaliikme ISIKUKOOD peab olema täidetud? Praegu ei
---     nõuta (NCR on ettevõtja-tasandi teade, isikut ei edastata).
---   - kas control_date vanuse lagi peab olema lühem kui 365 päeva?
---   - kas automaatteatele on nõutud kindlad requestPurpose / requestSource
---     väärtused (cron kõvakodeerib "Control" / "RSI")?
+-- Otsused (#329):
+--   - Juhi / meeskonnaliikme isikukoodi EI nõuta — NCR on ettevõtja-tasandi
+--     teade, ERRU-le isikut ei edastata.
+--   - 365-päevane lagi on tahtlik: sama muster mis teistel öistel cronidel
+--     (nt select-etoimik-candidates.sql) — ei jäta juhtumit lõputult ootele.
+--   - requestPurpose = "Control", requestSource = "RSI" on ERRU-spetsi järgi
+--     väljaminevate NCR teadete süsteemikonstandid (NCR_REQUEST_PURPOSE /
+--     NCR_REQUEST_SOURCE klassifikaatorite kirjeldused).
 -- ─────────────────────────────────────────────────────────────────────────────
 WITH latest_sp AS (
   (
