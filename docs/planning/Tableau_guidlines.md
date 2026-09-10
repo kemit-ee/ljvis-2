@@ -88,144 +88,41 @@ vanema `compound_form`'i seisust.
 
 ---
 
-## 3. Valmis "latest" vaated — käivita see esimesena
+## 3. Valmis vaated `tableau` skeemis — need on **juba olemas**
 
-Kõige kiirem tee Tableau'ni: loo andmebaasi **eraldi `tableau` skeem**, kuhu paned
-"viimane seis" vaated. Tableau ühendub ainult nende vastu ja terve snapshot-loogika
-on peidetud.
+> **ADR-009 (10.09.2026):** `tableau` skeem koos vaadetega on nüüd **andmebaasis
+> Liquibase-migratsioonina** (`DSL/Liquibase/changelog/*tableau*`). Vana käsitsi
+> kopeeri-kleebi lähenemine (mis triivis skeemimuudatustega) on asendatud. Sina ei
+> pea midagi jooksutama — vaated on primaaril ja replikal olemas.
 
-> Käivitab DBA / DevOps read-replica peal (või primaaril, kui replikat pole).
-> Vaated on kerged — päris töö tehakse päringu ajal. Kaalu `MATERIALIZED VIEW`
-> + öist `REFRESH`-i, kui jõudlus kannatab (vt [§10](#10-tableau-spetsiifilised-soovitused)).
+**Tavalised** vaated (reaalajas). Kiirus tuleb aluslaua osalistest indeksitest
+(`idx_*_tableau_active` — ainult aktiivne, mittekustutatud snapshot-hulk).
+Öist `refresh`-i EI OLE (varasem `tableau.refresh_all()` + 03:00 cron
+eemaldati changeset'is `20261117100000`). Tableau enda öine Extract-refresh
+annab andmed vahemällu.
 
-```sql
-CREATE SCHEMA IF NOT EXISTS tableau;
-COMMENT ON SCHEMA tableau IS 'Ainult-lugemiseks analüütikavaated (Tableau). Iga vaade = viimane snapshot iga loogilise võtme kohta. Vt docs/planning/Tableau_guidlines.md';
+| Vaade | Sisu |
+|---|---|
+| `tableau.form_overview` | Üks rida per kontrollvorm (kõik tüübid). `authority` = PPA / TRAM, `is_published`, maakonna nimi, asutuse nimi, `has_violation`. **Dashboardide alusvaade.** |
+| `tableau.classifier_value_current` | Koodide → nimede tõlge. `classifier_code`, `value_code`, `value_name`, `parent_value_name`, `is_valid`. JOIN: `forms.*.<x>_code = value_code` VÕI `forms.*.<x>` (nt `county`) `= classifier_value_key::text`. |
+| `tableau.ehak` | EHAK haldusüksused lamedaks (maakond ↔ linn/vald). |
+| `tableau.organisation` | Asutus id → nimi/kood. NB: tavaline vaade → `tableau_ro` vajab `SELECT`-i ka `users.organisation` peale (changeset annab). |
 
--- ── forms: koondvorm (kontrollijuhtum) ────────────────────────────────
-CREATE OR REPLACE VIEW tableau.compound_form_current AS
-SELECT DISTINCT ON (compound_form_key) *
-FROM forms.compound_form
-WHERE status <> 'deleted'
-ORDER BY compound_form_key, created_at DESC;
+**Tuleb (PR2):** `tableau.<olem>_current` (üks per olem, kõik veerud + `_name`
+tulbad), fakt-vaated `tableau.violation_line` / `driver_line` / `trailer_line` /
+`document_check_line` (JSONB lahti võetud). Kuni siis: JSONB-väljade jaoks kasuta
+[§7](#7-jsonb-väljade-lahtivõtmine) retsepte otse `forms.*` peal.
 
--- ── forms: SP alamvormid ─────────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.sp_driver_form_current AS
-SELECT DISTINCT ON (sp_driver_form_key) *
-FROM forms.sp_driver_form
-ORDER BY sp_driver_form_key, created_at DESC;
+**PII:** isikukoodid on kõigis `tableau` vaadetes pseudonümiseeritud
+(`left(md5(...),12)`), sünnikuupäev → aasta, isikunimed jäävad. `driver_search`
+(sisaldab isikukoode) **ei ole** eksporditud — `tableau.form_overview` pakub
+`driver_search_names` (ainult nimed). Vt [§8](#8-isikuandmed-pii--hoiatus).
 
-CREATE OR REPLACE VIEW tableau.sp_teammate_form_current AS
-SELECT DISTINCT ON (sp_teammate_form_key) *
-FROM forms.sp_teammate_form
-ORDER BY sp_teammate_form_key, created_at DESC;
+**Ühendus:** DevOps annab `tableau_ro` rollile `LOGIN` + parooli. Roll näeb
+`SELECT`-i **ainult** `tableau` skeemis.
 
--- ── forms: tehnovormid ───────────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.vehicle_technical_form_current AS
-SELECT DISTINCT ON (vehicle_technical_form_key) *
-FROM forms.vehicle_technical_form
-ORDER BY vehicle_technical_form_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.trailer_technical_form_current AS
-SELECT DISTINCT ON (trailer_technical_form_key) *
-FROM forms.trailer_technical_form
-ORDER BY trailer_technical_form_key, created_at DESC;
-
--- ── forms: ADR (ohtlik veos) ─────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.adr_form_current AS
-SELECT DISTINCT ON (adr_form_key) *
-FROM forms.adr_form
-ORDER BY adr_form_key, created_at DESC;
--- ADR JSONB-detailide lame-vaated (LATERAL): tableau.adr_dangerous_good (§11)
--- ja tableau.adr_infringement_record (§7.1) — loo need samas skeemis.
-
--- ── forms: autoveo katkestamine ──────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.kv_form_current AS
-SELECT DISTINCT ON (kv_form_key) *
-FROM forms.kv_form
-ORDER BY kv_form_key, created_at DESC;
-
--- ── forms: eraldiseisvad vormid ──────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.foreign_violation_form_current AS
-SELECT DISTINCT ON (foreign_violation_form_key) *
-FROM forms.foreign_violation_form
-WHERE status <> 'deleted'
-ORDER BY foreign_violation_form_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.labour_inspection_form_current AS
-SELECT DISTINCT ON (labour_inspection_form_key) *
-FROM forms.labour_inspection_form
-WHERE status <> 'deleted'
-ORDER BY labour_inspection_form_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.good_repute_form_current AS
-SELECT DISTINCT ON (good_repute_form_key) *
-FROM forms.good_repute_form
-WHERE status <> 'deleted'
-ORDER BY good_repute_form_key, created_at DESC;
-
--- ── risk: ettevõtte riskiskoor ───────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.company_risk_score_current AS
-SELECT DISTINCT ON (company_reg_code) *
-FROM risk.company_risk_score
-ORDER BY company_reg_code, created_at DESC;
-
--- ── erru: sõnumipered ────────────────────────────────────────────────
-CREATE OR REPLACE VIEW tableau.erru_ctud_request_current AS
-SELECT DISTINCT ON (ctud_request_key) *
-FROM erru.ctud_request
-ORDER BY ctud_request_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.erru_cgr_request_current AS
-SELECT DISTINCT ON (cgr_request_key) *
-FROM erru.cgr_request
-ORDER BY cgr_request_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.erru_rsi_message_current AS
-SELECT DISTINCT ON (rsi_message_key) *
-FROM erru.rsi_message
-ORDER BY rsi_message_key, created_at DESC;
-
-CREATE OR REPLACE VIEW tableau.erru_ncr_message_current AS
-SELECT DISTINCT ON (ncr_message_key) *
-FROM erru.ncr_message
-ORDER BY ncr_message_key, created_at DESC;
-
--- ── classifier: lame lahtivolditud klassifikaator ────────────────────
-CREATE OR REPLACE VIEW tableau.classifier_value_current AS
-SELECT
-    c.code   AS classifier_code,
-    c.name   AS classifier_name,
-    cv.classifier_value_key,
-    cv.code  AS value_code,
-    cv.name  AS value_name,
-    cv.parent_key,
-    cv.valid_from,
-    cv.valid_until,
-    (cv.valid_from <= CURRENT_DATE
-      AND (cv.valid_until IS NULL OR cv.valid_until > CURRENT_DATE)) AS is_valid
-FROM (
-    SELECT DISTINCT ON (classifier_value_key) *
-    FROM classifier.classifier_value
-    ORDER BY classifier_value_key, created_at DESC
-) cv
-JOIN (
-    SELECT DISTINCT ON (classifier_key) *
-    FROM classifier.classifier
-    ORDER BY classifier_key, created_at DESC
-) c ON c.classifier_key = cv.classifier_key;
-
--- ── forms.form_search — juba olemas, ristvormi otsinguvaade ───────────
--- forms.form_search projitseerib iga vormitüübi viimase mittekustutatud
--- snapshot'i ühisele veerukomplektile (form_type, form_number, status,
--- main_date, county, vehicle_reg_nr, company_reg_code, company_name,
--- driver_search, inspector_org_id, inspector_name, has_violation, ...).
--- Anna Tableau'le SELECT ka sellele: GRANT SELECT ON forms.form_search TO <tableau_role>;
-
-GRANT USAGE ON SCHEMA tableau TO <tableau_role>;
-GRANT SELECT ON ALL TABLES IN SCHEMA tableau TO <tableau_role>;
-ALTER DEFAULT PRIVILEGES IN SCHEMA tableau GRANT SELECT ON TABLES TO <tableau_role>;
-```
+> Kui vajad täpselt seda mida `tableau.*_current` veel ei kata (PR2 tulekul),
+> anna ka `GRANT SELECT ON forms.form_search TO tableau_ro` ja päri sealt otse.
 
 **Ajaloo/trendi analüüsiks** (nt "kui palju vorme oli mustandis igal kuul") ühenda
 otse toortabeli külge — seal on kõik snapshot-read alles.
@@ -271,12 +168,19 @@ Eraldiseisvad vormid (vanemat pole):
    foreign_violation_form   (välisriigi rikkumise andmevorm)
    labour_inspection_form   (Tööinspektsiooni kontrollvorm)
    good_repute_form         (hea maine vorm)
+   tram_control_card        (Transpordiameti kontrollkaart — üldosa + juhi kontroll ühel real, ADR-002)
 ```
 
-> **`authority`** veerg `compound_form`'is: `PPA` (vaikimisi) või `TRAM`
-> (Transpordiamet). Sama tabel teenindab mõlemat asutust; eristamiseks kasuta seda
-> veergu. `forms.form_search` vaade toodab `form_type` väärtused `compound` vs
-> `tram_compound`, `sp_driver` vs `tram_driver`.
+> **ADR-002 (11.2026):** Transpordiameti (TRAM) kontrollkaart on nüüd **eraldi
+> tabel `forms.tram_control_card`** (üks olem — üldosa + sõidukijuhi kontrolli
+> sisu ühel real). `forms.compound_form` ja `forms.sp_driver_form` sisaldavad
+> nüüd **ainult PPA** ridu (`authority = 'PPA'`), `authority` veerg on jäänud
+> ühilduvuse pärast. `forms.form_search` vaade toodab TRAM ridade jaoks ühe
+> `form_type` väärtuse **`tram_control_card`** (varasemad `tram_compound` /
+> `tram_driver` on kadunud).
+>
+> `forms.tram_control_card` **ei sisalda** PPA-multimodaalseid `mass_dimension_*`
+> ega `atp_violation_*` veerge. Vt jaotist 5.4.
 
 ### 5.2 `forms.compound_form` — võtmeveerud
 
@@ -318,6 +222,51 @@ Autojuhi/kaassõitja sõidu- ja puhkeaja kontrollkaart.
 > rikkumiseks `result_type NOT IN ('ok','KORRAS','HOIATUS')` **VÕI** `additional_measure IS NOT NULL`.
 > Puhas `KORRAS`/`HOIATUS` ilma lisameetmeta **ei** loe rikkumiseks. Frontend ei
 > salvesta kunagi väärtust `ok` — see on ainult defaultväärtus.
+>
+> NB: `sp_driver_form` / `sp_teammate_form` sisaldavad **ainult PPA** ridu.
+> Transpordiameti juhi kontroll on `forms.tram_control_card` (jaotis 5.3a).
+
+### 5.3a `forms.tram_control_card` — Transpordiameti kontrollkaart (ADR-002)
+
+Üks eraldiseisev INSERT-only snapshot-tabel: üldosa (kontrollikoht, sõiduk,
+vedaja, ametiisik) + sõidukijuhi kontrolli sisu **ühel real**. Vanem `compound_form`'i
+ei ole. Praegune seis = `DISTINCT ON (tram_control_card_key) ORDER BY tram_control_card_key, created_at DESC`.
+
+| Veer | Tüüp | Tähendus |
+|---|---|---|
+| `tram_control_card_key` | BIGINT | Loogiline identiteet (grupeeri selle järgi) |
+| `form_number` | VARCHAR | `tram-AAAA-NNNNN` (üks number — eraldi `sp-` numbrit ei ole) |
+| `version` | INTEGER | Kuvatav versioon; avalikustamine +1 |
+| `status` | VARCHAR | `saved` / `confirmed` / `published` / `deleted` |
+| `control_year` | INTEGER | Kontrolli aasta |
+| `control_date`, `control_time` | DATE/TIME | Kontrolli aeg |
+| `control_country_code`, `county`, `city`, `road` | VARCHAR | Kontrolli asukoht |
+| `vehicle_reg_nr`, `vehicle_make`, `vehicle_model`, `vehicle_category_code` | VARCHAR | Sõiduk |
+| `trailers` | JSONB | Haagiste massiiv |
+| `company_reg_code`, `company_name`, `company_country_code`, `company_county` | VARCHAR | Vedaja |
+| `inspector_first_name`, `inspector_last_name`, `inspector_organisation_id` | VARCHAR | Kontrollija (**PII**) |
+| `drivers` | JSONB | Juhtide massiiv — **camelCase** võtmed (`personalCodeEe`, `firstName`, …), erinevalt `compound_form.drivers` snake_case'ist. Sisaldab isikukoode (**PII**) |
+| `driver_not_applicable` | BOOLEAN | „Ei ole asjakohane" — juhita kontroll |
+| `transport_type`, `result_type`, `additional_measure`, `proceeding_type`, `proceeding_reference_number` | VARCHAR | Juhi kontrolli tulemus / menetlus |
+| `violations_561_2006`, `violations_165_2014`, `violations_2002_15`, `violations_593_2008`, `violations_2020_1057`, `erru_points` | JSONB | Rikkumised (sama kuju mis `sp_driver_form`) |
+| `enforcement_decision`, `proceeding_closure_basis` | TEXT | e-Toimiku jõustunud otsus — kirjutab **ainult öine cron** (`created_by = 'e-toimik'`), mis lisab automaatselt avalikustatud snapshot'i |
+| `created_at`, `created_by` | TIMESTAMPTZ / VARCHAR | Audit |
+
+**Ei sisalda** (erinevalt `sp_driver_form`'ist): `mass_dimension_non_compliant`,
+`mass_dimension_measurements`, `atp_violation_found`, `atp_violation_description`,
+`sub_form_number`, `selection_status`, `template_version`.
+
+`forms.form_search` väljastab need read `form_type = 'tram_control_card'`.
+`has_violation` reegel on sama mis `sp_driver`'il.
+
+Soovituslik Tableau vaade:
+```sql
+CREATE OR REPLACE VIEW tableau.tram_control_card_current AS
+SELECT DISTINCT ON (tram_control_card_key) *
+FROM forms.tram_control_card
+WHERE status <> 'deleted'
+ORDER BY tram_control_card_key, created_at DESC;
+```
 
 ### 5.4 `forms.vehicle_technical_form` / `trailer_technical_form` — võtmeveerud
 

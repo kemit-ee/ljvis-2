@@ -5,6 +5,77 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-009 — Tableau analüütika: eraldi `tableau` skeem hallatud vaadetega
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 10.09.2026
+**Seotud:** `docs/planning/Tableau_guidlines.md`, `docs/planning/tableau-schema-plan.md`; INSERT-only snapshot-mudel
+
+> **Revisjon 10.09.2026 (changeset `20261117100000-tableau-schema-02-plain-views`):**
+> otsus 2 (materialiseeritud vaated) muudetud — `tableau.*` on nüüd **tavalised
+> vaated**. Öine `tableau.refresh_all()` + CronManager cron + `refresh_matviews.sql`
+> **eemaldatud**; andmed on reaalajas. Kiirus tuleb aluslaua **osalistest
+> indeksitest** `idx_*_tableau_active` (`(<key>, created_at DESC) WHERE status <>
+> 'deleted'`) — aktiivne snapshot-hulk on väike ja kõva indeksiga. Tagajärg:
+> tavaline vaade EI ole turvapiir → `tableau_ro` vajab `SELECT`-i ka `forms.*`,
+> `classifier.*`, `users.organisation` peale (matview-versioonis polnud). PII on
+> vaadetes endas maskitud (variant A muutumatu).
+
+### Kontekst
+
+Enamik `forms.*` (ja `erru.*`, `classifier.*`) tabeleid on INSERT-only snapshot:
+iga muudatus lisab terve uue rea, „kehtiv seis" = `DISTINCT ON (<key>) ORDER BY
+<key>, created_at DESC` + `status <> 'deleted'`. See on BI-kasutajale
+mitteilmne ja veakalduv (topeltarvestus). Lisaks: koodid ilma nimedeta, JSONB-massiivid,
+PII (`drivers[]` isikukoodid, `driver_search`).
+
+`Tableau_guidlines.md` §3 pakkus `tableau.*_current` **tavaliste** vaadete komplekti,
+mille DBA jooksutab käsitsi — see triivib iga skeemimuudatusega ega ole
+versioonihalduses.
+
+### Otsused
+
+1. **Eraldi `tableau` skeem** (mitte `forms.*` sisse), loodud ja hallatud
+   Liquibase changeset'idega. Rollback = `DROP SCHEMA tableau CASCADE`.
+2. **Materialiseeritud vaated, mitte tavalised.** Analüütika jaoks ajalugu ei loe
+   → matview salvestab füüsiliselt ainult ~N aktiivset rida (üks per võti), mis on
+   5–50× väiksem baastabelist ja **indekseeritav** (`UNIQUE(<key>)` + Tableau
+   filtriveerud). Tavaline vaade skaneeriks kogu ajalugu iga päringu kohta.
+   Öine `tableau.refresh_all()` (CronManager 03:00) — 24h värskus on piisav, sest
+   Tableau kasutab öist Extract-refresh'i.
+3. **PII variant A:** isikukoodid → `left(md5(),12)` pseudonüüm, sünnikuupäev →
+   `birth_year`, isikunimed jäävad. `forms.form_search.driver_search` ei ekspordita.
+4. **Roll `tableau_ro`** luuakse changeset'is (`DO $$ ... CREATE ROLE ... NOLOGIN`),
+   `SELECT` **ainult** `tableau` skeemis. `users`/`audit`/`notifications`/`xroad`
+   jäävad kättesaamatuks — vajalik id→nimi (organisatsioon) materialiseeritakse
+   `tableau` skeemi (matview on turvapiir).
+5. **`form_overview`** — ristvormi „üks rida per vorm", `authority` veerg
+   (PPA / TRAM eristus), ehitatud otse baastabelitest.
+
+### Põhjendus
+
+Matview + kõva indeks aktiivsel hulgal on kordades kiirem kui `DISTINCT ON` kogu
+ajaloo peal, ja BI-tööriist ei vaja reaalaega. Liquibase-haldus lõpetab triivi;
+CI `liquibase update`+`rollback` katab süntaksi. `DROP SCHEMA CASCADE` teeb
+tagasipööramise triviaalseks. Vt teostusplaan `docs/planning/tableau-schema-plan.md`.
+
+### Miks mitte inkrementaalne matview
+
+PG-l pole sisseehitatud IVM-i; `pg_ivm` laiendus ei ole AWS RDS toetatud
+nimekirjas. Täisrefresh kompaktsest vaatest on niikuinii sekundite küsimus
+(kell 03:00, replika). Kui lugemine refresh'i ajal muutub probleemiks →
+per-matview `REFRESH … CONCURRENTLY` (vajab `UNIQUE` indeksit — `*_current`-l on).
+
+### Tagajärjed
+
+- Iga `forms.*` skeemimuudatus peab uuendama vastavat `tableau.*_current` matview'd
+  (sama PR-is). `validate-dsl.py` lisab hoiatuse (WARN), kui `forms.*` DDL muutus
+  ilma `tableau` failita.
+- `tableau_ro` LOGIN + parool annab DevOps eraldi (changeset teeb ainult NOLOGIN rolli).
+- Öine cron kell **03:00** (pärast e-Toimiku + riskiskoori öiseid töid).
+
+---
+
 ## ADR-008 — PDF-genereerimine: eraldi mikroteenus Ruuteri taga X-Internal autentimisega
 
 **Otsustaja:** Sten Viljus, Rainer Turner
@@ -369,6 +440,10 @@ Sool on osa isikukoodi räsimise mehhanismist mis tagab, et auditilõpis ei ole 
 
 ## ADR-001 — TRAM kontrollkaardi andmemudel
 
+> **⚠️ Asendatud ADR-002-ga (12.11.2026).** Alljärgnev kirjeldab esialgset
+> kahe olemi mudelit (`compound_form` authority='TRAM' + `sp_driver_form`).
+> TRAM kontrollkaart on nüüd üks eraldiseisev olem — vt [ADR-002](#adr-002--tram-kontrollkaart--üks-olem-üks-elutsükkel).
+
 **Otsustaja:** Sten Viljus  
 **Kuupäev:** 28.08.2026  
 **Seotud funktsioon:** Transpordiameti (TRAM) autojuhi kontrollkaart
@@ -427,3 +502,95 @@ Täielik eraldatus endpoint'i tasemel tagab, et TRAM ja PPA õigused ei põimu. 
 **Horisontaalne juurdepääsukaitse (IDOR):** kuna `forms.sp_driver_form` tabelil ei ole `authority` veergu, kontrollivad kõik `tram-form/sp-driver/*` päringud (lugemine ja kirjutamine) alamvormi kuuluvust TRAM-koondvormi külge:
 `... AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')`.
 Nii ei saa TRAM-õigustega kasutaja PPA autojuhi alamvormi `sp_driver_form_key` kaudu lugeda ega muuta. Versiooniajaloo (`get-snapshots`) lekke vältimiseks on TRAM-il oma guarditud endpointid `GET .../tram-form/get-snapshots` ja `.../tram-form/sp-driver/read/get-snapshots` — üldist `control-forms/get-snapshots` endpointi TRAM ei kasuta.
+
+---
+
+## ADR-002 — TRAM kontrollkaart: üks olem, üks elutsükkel
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 12.11.2026
+**Seotud funktsioon:** Transpordiameti (TRAM) kontrollkaart — põhimõtteline refaktooring
+**Asendab:** ADR-001
+
+### Kontekst
+
+ADR-001 mudelis on TRAM kontrollkaart kaks sõltumatut snapshot-olemit:
+`forms.compound_form` (authority='TRAM', üldosa) + 0–1 `forms.sp_driver_form`
+(juhi kontrolli sisu), seotud `compound_form_key` kaudu. Igal olemil on oma
+elutsükkel, oma nähtav vorminumber (`tram-AAAA-NNNNN` vs `sp-AAAA-NNNNN/1`), oma
+versiooniajalugu, oma Ruuteri endpoint'id ja Resql-failid. Kasutajaliideses
+tähendab see kahte vahekaarti, kus juhi-vahekaart tekib alles pärast üldosa
+esmakordset salvestust (alamvormi INSERT vajab olemasolevat `compound_form_key`).
+
+See kahe olemi mudel oli PPA koondvormi (mitu erinevat alamvormi tüüpi ühe
+kontrolljuhtumi all) taaskasutuse artefakt. TRAM kontrollkaardil **ei ole kunagi
+teisi alamvorme** peale ühe juhi-sektsiooni (vt `docs/user-guide/18-vorm-tram-kontrollkaart.md`).
+Kahe olemi mudel tekitas seetõttu ainult keerukust: kahekordne elutsükkel,
+kahekordne number, IDOR-kaitse `EXISTS(... authority='TRAM')` igas alamvormi
+päringus, „alamvorm tekib pärast salvestust" UX-lõks.
+
+### Otsus 1 — üks tabel `forms.tram_control_card`
+
+TRAM kontrollkaart on **üks INSERT-only snapshot-olem** — üks tabel, mis sisaldab
+kogu üldosa, juhi identiteedi (`drivers` JSONB + `driver_not_applicable`), juhi
+kontrolli sisu ja e-Toimiku otsuse väljad. Praegune seis =
+`DISTINCT ON (tram_control_card_key) ORDER BY tram_control_card_key, created_at DESC`.
+
+`forms.compound_form` authority='TRAM' ja sellega seotud `forms.sp_driver_form`
+jäävad **ainult PPA jaoks** (authority='PPA'). Vanad `tram-form/**` endpoint'id
+ja Resql-failid eemaldatakse (PR2).
+
+**PPA multimodaalsuse mõisted, mida TRAM ei kasuta ja mis kaovad uuest tabelist:**
+`mass_dimension_*`, `atp_violation_*` (TRAM vaade peidab ja täidab vaikeväärtustega),
+`sub_form_number` (üks number nüüd), `selection_status` (üks olem — „juhita" juhu
+katab `driver_not_applicable`), `template_version`.
+
+### Otsus 2 — üks number, üks elutsükkel
+
+Üks nähtav number `tram-AAAA-NNNNN/V` (sekventsid `forms.seq_tram_control_card_key`
++ `forms.seq_tram_control_card_number`). Üks elutsükkel: **Salvestatud →
+Kinnitatud → Avaldatud** (+ `deleted` pöördumatu pehme kustutus). `publish` on
+lubatud ainult olekust `confirmed` (422 `already_published` / `not_confirmed`) —
+erinevalt vanast `tram-form/edit/publish.yml`-ist, mis avalikustas pimesi.
+
+Erinevalt `labour-inspection`-ist **ei ole `confirm`-il rikkumiste väravat**:
+TRAM inspektor võib rikkumistega kaardi kinnitada ja siis kas avalikustada käsitsi
+või oodata e-Toimiku otsust.
+
+### Otsus 3 — auto-avalikustamine asendab „kirjuta kohapeal"
+
+Vana `etoimik-sp-driver-decision-sync` cron kirjutas TRAM `sp_driver_form` ridadele
+`enforcement_decision` / `proceeding_closure_basis` **kohapeale** (ilma uue
+snapshot'ita, ilma avalikustamiseta). Uus TRAM-i cron
+(`etoimik-tram-decision-sync`, PR3) järgib `labour-inspection` mustrit: kui
+e-Toimikust tuleb **jõustunud karistus** (süüdistuspunkt mille `SulgemiseKP`
+täidetud ja `LahendKL` olemas), lisatakse uus `published` snapshot
+(`version+1`, `created_by='e-toimik'`). „Menetlus lõpetatud, karistust ei
+määratud" → inspektor avalikustab käsitsi. PPA `sp_driver_form` „kirjuta
+kohapeal" käitumine jääb PPA jaoks muutmata.
+
+### Otsus 4 — õigused ja guardid muutumata
+
+Õigused jäävad `tram_driver_form.write` / `tram_driver_form.read` (juba
+kasutajagruppidele määratud, klassifikaator `TRAM_KONTROLLKAART` seotud) —
+ümbernimetamine oleks puhas risk ilma kasuta. Uued endpoint'id
+(`v1/control-forms/tram-card/**`) on eraldi guarditud; üldist
+`control-forms/get-snapshots` endpointi TRAM endiselt ei kasuta.
+
+### Otsus 5 — puhas algus, migratsiooni ei tehta
+
+TRAM on arendusjärgus, toodangu-andmeid ei ole. Andmemigratsiooni changeset'i,
+`migration_map` tabelit ega vana-võtme ümbersuunamist ei tehta. dev/test
+andmed visatakse maha, `forms.tram_control_card` algab tühjalt.
+
+### Tagajärjed
+
+- **+** Üks vorm, üks number, üks elutsükkel; „alamvorm tekib pärast salvestust"
+  UX-lõks kaob; IDOR-kaitset pole enam vaja (olem on iseenesest TRAM).
+- **+** `forms.form_search` TRAM-harud lihtsustuvad (kaks `tram_compound` /
+  `tram_driver` tüüpi → üks `tram_control_card`).
+- **−** `compound_form` / `sp_driver_form` jäävad kandma ainult PPA andmeid —
+  vaja lisada `WHERE authority='PPA'` filtrid PPA-harudele (PR2).
+- **−** Tableau aruandlus vajab uuendust (`form_type='tram_control_card'` loeb
+  `forms.tram_control_card` otse); kustutatud `mass_dimension_*` / `atp_*`
+  veerud dokumenteeritud Tableau omanikule.

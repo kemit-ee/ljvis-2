@@ -2,10 +2,10 @@
 
 Transpordiameti (TRAM) kontrollkaart on liiklusinspektsiooni käigus täidetav
 kontrollkaart autojuhi sõidu- ja puhkeaja ning muude dokumentide kontrollimiseks.
-ERRU mõistes on tegemist sama andmetüübiga mis PPA koondvorm — andmed salvestuvad
-samadesse tabelitesse (`forms.compound_form` + `forms.sp_driver_form`), kuid TRAM
-kontrollkaardid eristatakse `compound_form.authority = 'TRAM'` väärtusega.
-Vt arhitektuuriotsust ADR-001.
+Alates ADR-002-st on TRAM kontrollkaart **üks eraldiseisev olem** (`forms.tram_control_card`):
+üldosa ja sõidukijuhi kontrolli sisu on **ühel vormil**, mille saab salvestada, kinnitada
+ja avalikustada ühe elutsükli jooksul. Varasem kahe olemi mudel (koondvorm + eraldi
+autojuhi alamvorm) on asendatud. Vt ADR-002.
 
 ## Juurdepääs ja õigused
 
@@ -21,16 +21,15 @@ kasutaja ei näe TRAM-vorme ega TRAM-vorme otsingus ja vastupidi.
 
 **Töölaud → „Transpordiameti kontrollkaart" → „Täida →"**
 
-Olemasolevaid vorme saab avada otsingust või otse URL-ilt `/control-forms/tram-driver/:id`.
+Olemasolevaid vorme saab avada otsingust või otse URL-ilt `/control-forms/tram-control-card/:id`.
 
 ## Vormi ülesehitus
 
 ![Transpordiameti kontrollkaardi loomisvaade](images/18-vorm-tram-kontrollkaart/01-loomisvaade.png)
 
-Vorm koosneb kahest osast: **üldosa** (kontrollikoht, sõiduk, vedaja, ametiisik) ja
-**autojuhi alamvorm** (sõidu- ja puhkeaeg, dokumendid, rikkumised, kontrolli tulemus).
-PPA koondvormi alamvorme (tehnoülevaatus, ADR, veo katkestamine, kaassõitja) TRAM-kaardil
-ei ole.
+Kogu info on **ühel keritaval vormil**: **üldosa** (kontrollikoht, sõiduk, vedaja,
+ametiisik) ja selle all **„Sõidukijuhi andmed"** sektsioon (juhi tuvastus + veoliik,
+kontrolli tulemus, menetlus, märkused). Eraldi vahekaarti ega alamvormi ei ole.
 
 ### Üldosa
 
@@ -62,15 +61,12 @@ Vedaja andmeid saab täita automaatselt äriregistri X-tee päringuga:
 
 ### Sõidukijuhi andmed
 
-![Autojuhi alamvormi vahekaart](images/18-vorm-tram-kontrollkaart/03-autojuhi-vahekaart.png)
+![Sõidukijuhi andmete sektsioon](images/18-vorm-tram-kontrollkaart/03-autojuhi-sektsioon.png)
 
-Olemasoleval kaardil on autojuhi alamvormi vahekaart alati avatud — eraldi „Lisa autojuht"
-nuppu ei ole.
+„Sõidukijuhi andmed" sektsioon on üldosa all samal vormil ja täidetav kohe — ei pea
+eelnevalt salvestama ega eraldi vahekaarti avama.
 
-> **Uue kaardi puhul** ilmub autojuhi vahekaart pärast üldosa esmakordset salvestamist,
-> kuna alamvorm vajab salvestatud üldosa võtit (`compoundFormKey`).
-
-#### „Ei ole asjakohane" märkeruut (ainult TRAM)
+#### „Ei ole asjakohane" märkeruut
 
 ![Ei ole asjakohane märkeruut](images/18-vorm-tram-kontrollkaart/04-ei-ole-asjakohane.png)
 
@@ -94,28 +90,35 @@ kui kontroll toimub ilma juhti peatamata ja juhi andmeid ei ole võimalik tuvast
 
 ![E-toimiku kaart](images/18-vorm-tram-kontrollkaart/05-etoimik.png)
 
-Kui autojuhi alamvormil on täidetud menetluse viitenumber, kuvatakse vormi ülaosas
+Kui sõidukijuhi sektsioonis on täidetud menetluse viitenumber, kuvatakse vormi ülaosas
 kirjutuskaitstud **e-toimiku päringu kaart**, mis näitab juhiga seotud karistuse
 kvalifikatsioone (sama komponent, mida kasutab PPA koondvorm). Andmeid ei salvestata
 kaardile — kaart on informatiivne.
 
 ## Vorminumber
 
-TRAM-kaartidel on eraldiseisev jooksev number, sõltumatu PPA `koond-` seeriast:
+Igal kaardil on **üks** jooksev number:
 
 ```
 tram-AAAA-NNNNN/versioon
 ```
 
-Näiteks `tram-2026-00001/1`.
+Näiteks `tram-2026-00001/1`. Varasemat eraldi `sp-` alamvormi numbrit enam ei ole.
 
 ## Elutsükkel
 
-Vorm läbib samad olekud mis PPA vormid:
-
 **Salvestatud → Kinnitatud → Avaldatud**
 
-Kinnitatud vormi muutmisel suureneb versiooninumber.
+- **Salvesta** — korduv salvestamine ei muuda versiooni.
+- **Kinnita** — lukustab kaardi (versioon ei muutu).
+- **Avalikusta** — lubatud ainult kinnitatud kaardilt; versiooninumber suureneb.
+
+### Automaatne avalikustamine e-Toimikust
+
+Kui kaardil on menetluse viitenumber ja Eesti isikukoodiga sõidukijuht, kontrollib öine
+sünkroon e-Toimikust, kas menetluses on **jõustunud karistus**. Kui on, lisatakse kaardile
+automaatselt uus avalikustatud versioon (`created_by = e-toimik`). Kui menetlus lõpetati
+karistust määramata, avalikustab inspektor kaardi käsitsi.
 
 ## Vaatamisvaade
 

@@ -1,5 +1,7 @@
 # Liiklusjärelevalve infosüsteem (LJVIS)
 
+Enne muudatuste tegemist loe projektiüleseid [arendusreegleid](RULES.md).
+
 ## Lokaalne arendus 
 
 ### Dockerfailide muudatused 
@@ -51,4 +53,4 @@ npm run dev
 ```
 
 ### Süsteemi sisse logimine
-Kui kõik on õige siis http://localhost:3001/ kaudu saad süsteemi sisse logida 
+Kui kõik on õige siis http://localhost:3001/ kaudu saad süsteemi sisse logida

@@ -192,31 +192,31 @@ const shots = [
   {
     name: 'user-guide/vorm-tram-kontrollkaart',
     run: async (page) => {
-      // 01 — loomisvaade (tühi üldosa, enne salvestamist)
-      await gotoShot(page, '/control-forms/tram-driver/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png');
+      // ADR-002: üks vorm, marsruut /control-forms/tram-control-card/*, ilma vahekaartideta.
+      // 01 — loomisvaade (tühi üldosa + sõidukijuhi sektsioon, enne salvestamist)
+      await gotoShot(page, '/control-forms/tram-control-card/new', 'user-guide/images/18-vorm-tram-kontrollkaart/01-loomisvaade.png');
 
       // 02 — üldosa detail: sõiduki kategooria + vedaja plokk (fixture 95006001)
-      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${BASE}/control-forms/tram-control-card/95006001`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/02-uldosa.png');
 
-      // 03 — autojuhi vahekaart (fixture 95006001, tab: "Autojuhi sõidu- ja puhkeaja kontrollvorm")
-      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
-      await sleep(1000);
-      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/03-autojuhi-vahekaart.png');
+      // 03 — sõidukijuhi sektsioon (sama vorm, scroll juhi andmete pealkirjani)
+      const driverHeading = page.getByRole('heading', { name: 'Sõidukijuhi andmed' }).first();
+      await driverHeading.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(600);
+      await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/03-autojuhi-sektsioon.png');
 
-      // 04 — „Ei ole asjakohane" märkeruut (autojuhi tab, scroll märkeruuduni)
-      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      // 04 — „Ei ole asjakohane" märkeruut
+      await page.goto(`${BASE}/control-forms/tram-control-card/95006001`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
-      await page.getByRole('tab', { name: /sõidu.*puhkeaja|puhkeaja.*kontrollvorm/i }).click({ timeout: 6000 }).catch(() => {});
-      await sleep(800);
       const notApplicable = page.locator('label').filter({ hasText: /Ei ole asjakohane/i }).first();
       await notApplicable.scrollIntoViewIfNeeded().catch(() => {});
       await sleep(400);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/04-ei-ole-asjakohane.png');
 
-      // 05 — e-toimiku päring (nähtav kui proceedingReferenceNumber täidetud; fixture kuvab kaarti)
-      await page.goto(`${BASE}/control-forms/tram-driver/95006001`, { waitUntil: 'domcontentloaded' });
+      // 05 — e-toimiku päring (nähtav kui menetluse viitenumber + juht täidetud)
+      await page.goto(`${BASE}/control-forms/tram-control-card/95006001`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
       await shoot(page, 'user-guide/images/18-vorm-tram-kontrollkaart/05-etoimik.png');
     },
