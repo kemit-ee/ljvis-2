@@ -12,6 +12,12 @@ declaration:
         type: string
         description: "KV form key"
 
+checkPermission:
+  switch:
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('transport_interruption_form.read'))}
+      next: getSnapshot
+  next: returnForbidden
+
 getSnapshot:
   call: http.post
   args:
@@ -49,3 +55,9 @@ returnArchive:
 returnSuccess:
   return: ${res.response.body}
   next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
+
