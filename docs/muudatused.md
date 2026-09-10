@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-09-10
+
+### Kustutatud vormide arhiveerimine
+
+- Kustutatud kontrollvormid teisaldatakse iga kahe tunni tagant eraldi
+  arhiivibaasi; töötabelid jäävad väiksemaks ja kiiremaks. Kustutatud vormi
+  **versiooniajalugu jääb endiselt nähtavaks** — süsteem loeb selle vajadusel
+  arhiivist.
+
+---
+
 ## 2026-09-09
 
 ### CTUD päringu ja vastuse kuva täiendused
