@@ -44,10 +44,8 @@ export function NcrBuildModal({ spFormKey, spFormType, open, onClose }: NcrBuild
   );
 
   const [ncrTo, setNcrTo] = useState('');
-  // #TODO (#329): politsei kontrollkaardilt loodud NCR-il võiks
-  // originatingAuthority olla vaikimisi PPA (või kontrollkaardi inspektori
-  // asutus) — vana süsteem näitab "Teate esitav pädev asutus: PPA". Praegu
-  // valib ametnik käsitsi; tühjaks jätmisel jääb build.sql-i vaikeväärtus.
+  // Tühjaks jätmisel eeltäidab build.sql originatingAuthority kontrollkaardi
+  // inspektori asutusest (nt PPA) — #328 p3. Ametnik saab siin üle kirjutada.
   const [originatingAuthority, setOriginatingAuthority] = useState('');
   const [requestSource, setRequestSource] = useState('');
   const [requestPurpose, setRequestPurpose] = useState('');

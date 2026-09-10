@@ -74,13 +74,10 @@ returns:
 --   compound_form.control_date                              -> check_date + iga rikkumise kuupäevad
 --   sp_*_form.erru_points[] (severity_category MSI/VSI/SI)  -> serious_infringements[] + check_result
 --   compound_form.vehicle_category_code = 'M1'              -> '302' (sõidukeeld) jäetakse välja
+--   compound_form.inspector_organisation_id (nt PPA)        -> originating_authority
+--       (kutsuja modaali originatingAuthority kirjutab selle vajadusel üle)
 --
 -- EI eeltäideta (spec LJVIS2-64 §4.1): minorInfringement, karistuste andmed.
---
--- #TODO (#329): originating_authority tuleb praegu kutsuja modaalist (vaikimisi
---   KLIM). Vana süsteemi teade näitab "Teate esitav pädev asutus: PPA" —
---   kaaluda politsei kontrollkaardilt loodud NCR-il PPA (või kontrollkaardi
---   inspektori asutuse) eeltäitmist.
 -- ─────────────────────────────────────────────────────────────────────────────
 WITH sp AS (
   (
@@ -107,7 +104,8 @@ WITH sp AS (
     cf.vehicle_reg_nr,
     cf.vehicle_country_code,
     cf.vehicle_category_code,
-    cf.control_date
+    cf.control_date,
+    cf.inspector_organisation_id
   FROM forms.compound_form cf, sp
   WHERE cf.compound_form_key = sp.compound_form_key
   ORDER BY cf.created_at DESC
@@ -167,7 +165,9 @@ WITH sp AS (
     'NCR-EE-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(nextval('erru.seq_ncr_business_case_no')::text, 5, '0'),
     'EE',
     NULLIF(:ncrTo, ''),
-    NULLIF(:originatingAuthority, ''),
+    -- Eeltäida kontrollkaardi inspektori asutusest (nt PPA); kutsuja modaal
+    -- võib selle üle kirjutada (#328 p3 / #329).
+    COALESCE(NULLIF(:originatingAuthority, ''), NULLIF(cf.inspector_organisation_id, '')),
     NULLIF(:requestSource, ''),
     NULLIF(:requestPurpose, ''),
     cf.company_name,
