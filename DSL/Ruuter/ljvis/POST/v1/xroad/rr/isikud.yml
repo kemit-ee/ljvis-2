@@ -96,7 +96,7 @@ logSuccess:
     body:
       service_code: "rr.dde.v1"
       request_xml: "${'personalCode=' + personal_code}"
-      response_xml: "${JSON.stringify(rrResponse.response.body)}"
+      response_xml: "${JSON.stringify({ received: (rrResponse.response.body) != null, count: (Array.isArray(rrResponse.response.body) ? (rrResponse.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""

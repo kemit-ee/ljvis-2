@@ -252,7 +252,7 @@ logSuccessFound:
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
       request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
-      response_xml: "${JSON.stringify(mapped_case)}"
+      response_xml: "${JSON.stringify({ received: (mapped_case) != null, count: (Array.isArray(mapped_case) ? (mapped_case).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
@@ -306,7 +306,7 @@ logFailure:
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
       request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
-      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      response_xml: "${JSON.stringify({ received: (xtrResponse.response.body) != null, count: (Array.isArray(xtrResponse.response.body) ? (xtrResponse.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "${'XTR HTTP ' + xtrResponse.response.status}"

@@ -20,6 +20,7 @@ deleteFile:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
+    form_number_prefix: "th-"
     id: ${incoming.body.id}
     form_type: "trailer-technical-form"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"

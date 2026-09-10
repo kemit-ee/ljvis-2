@@ -12,6 +12,12 @@ declaration:
         type: string
         description: "Sub-form ID if called from sub-form page"
 
+checkPermission:
+  switch:
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('compound_form.read'))}
+      next: get_user_context
+  next: returnForbidden
+
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
   assign:
@@ -98,4 +104,9 @@ returnSuccess:
 returnNotFound:
   status: 404
   return: "form not found"
+  next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
   next: end

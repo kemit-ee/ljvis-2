@@ -68,7 +68,7 @@ logSuccess:
     body:
       service_code: "liiklusregister.paring2.v2"
       request_xml: "${'regmrk=' + reg_mrk}"
-      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      response_xml: "${JSON.stringify({ received: (xtrResponse.response.body) != null, count: (Array.isArray(xtrResponse.response.body) ? (xtrResponse.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
@@ -152,7 +152,7 @@ logFailure:
     body:
       service_code: "liiklusregister.paring2.v2"
       request_xml: "${'regmrk=' + reg_mrk}"
-      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
+      response_xml: "${JSON.stringify({ received: (xtrResponse.response.body) != null, count: (Array.isArray(xtrResponse.response.body) ? (xtrResponse.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "${'XTR HTTP ' + xtrResponse.response.status}"

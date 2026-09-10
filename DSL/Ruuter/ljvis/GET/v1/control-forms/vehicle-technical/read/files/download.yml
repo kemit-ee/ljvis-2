@@ -21,6 +21,7 @@ downloadFile:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
+    form_number_prefix: "th-"
     id: ${incoming.params.q}
     form_type: "vehicle-technical-form"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"

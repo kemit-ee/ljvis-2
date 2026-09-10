@@ -9,6 +9,12 @@ declaration:
         type: string
         description: "Good repute form key"
 
+checkPermission:
+  switch:
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('good_repute_form.read'))}
+      next: get_user_context
+  next: returnForbidden
+
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
   assign:
@@ -78,4 +84,9 @@ returnSuccess:
 returnNotFound:
   status: 404
   return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
   next: end

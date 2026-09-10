@@ -252,7 +252,7 @@ logXroadSuccess:
     body:
       service_code: "pk.notification-management.v1"
       request_xml: "${'notificationKey=' + notification_key + ';type=' + notification_type}"
-      response_xml: "${JSON.stringify(pkRes.response.body)}"
+      response_xml: "${JSON.stringify({ received: (pkRes.response.body) != null, count: (Array.isArray(pkRes.response.body) ? (pkRes.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
