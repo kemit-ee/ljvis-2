@@ -6,7 +6,6 @@ declaration:
   allowlist:
     body:
       - field: id
-        type: string
       - field: partsSummary
         type: string
       - field: partsDefects
