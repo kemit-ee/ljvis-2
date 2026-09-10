@@ -20,6 +20,14 @@ import type {
   NcrRequestWrite,
   NcrResponseWrite,
   NcrSaveResult,
+  NuListFilters,
+  NuMessage,
+  NuMessageListItem,
+  NuMessageWrite,
+  NuSaveResult,
+  NuSendResult,
+  NuSource,
+  NuSourceCandidate,
   RsiListFilters,
   RsiMessage,
   RsiMessageListItem,
@@ -279,4 +287,70 @@ export function listNcrCases(
     if (v) query[k] = v;
   });
   return get<PagedResponse<NcrCaseListItem>>('/v1/erru/ncr/list/search', query);
+}
+
+/** Read the current message or a specific snapshot. */
+export function getNuMessage(id: string, snapshotId?: string): Promise<NuMessage> {
+  return get<NuMessage | string>('/v1/erru/nu/get', { q: id, ...(snapshotId ? { snapshotId } : {}) }).then(parseNuResponse);
+}
+
+// NU endpoints can return JSON text inside Ruuter's response envelope.
+function parseNuResponse<T>(response: T | string): T {
+  return typeof response === 'string' ? JSON.parse(response) : response;
+}
+
+export function listNuMessages(
+  params: ListParams,
+  filters: NuListFilters = {},
+): Promise<PagedResponse<NuMessageListItem>> {
+  const query: Record<string, string> = {
+    page: params.page,
+    pageSize: params.pageSize,
+    sorting: params.sorting,
+  };
+  Object.entries(filters).forEach(([k, v]) => {
+    if (v) query[k] = v;
+  });
+  return get<PagedResponse<NuMessageListItem> | string>('/v1/erru/nu/list/search', query).then(parseNuResponse);
+}
+
+export async function searchNuSources(params: {
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  certificateNumber?: string;
+}): Promise<{ content: NuSourceCandidate[] }> {
+  const query: Record<string, string> = {};
+  Object.entries(params).forEach(([k, v]) => {
+    if (v) query[k] = v;
+  });
+  const response = await get<{ content: NuSourceCandidate[] } | string>(
+    '/v1/erru/nu/source/search',
+    query,
+  );
+  // This endpoint serializes its payload with JSON.stringify in Ruuter.
+  const result = parseNuResponse(response);
+  if (!result || !Array.isArray(result.content)) {
+    throw new Error('Invalid NU source search response');
+  }
+  return { content: result.content.map((source) => ({ ...source, id: String(source.id) })) };
+}
+
+export async function getNuSource(goodReputeFormKey: string): Promise<NuSource> {
+  const source = parseNuResponse(await get<NuSource | string>('/v1/erru/nu/source/get', { q: goodReputeFormKey }));
+  return { ...source, id: String(source.id) };
+}
+
+export async function saveNuMessage(body: NuMessageWrite): Promise<NuSaveResult> {
+  const result = parseNuResponse(await post<NuSaveResult | string>('/v1/erru/nu/request/save', {
+    ...body,
+    id: body.id == null ? undefined : String(body.id),
+    sourceGoodReputeFormKey: body.sourceGoodReputeFormKey == null ? undefined : String(body.sourceGoodReputeFormKey),
+  }));
+  if (result?.id == null) throw new Error('Invalid NU save response');
+  return { ...result, id: String(result.id) };
+}
+
+export function sendNuMessage(id: string): Promise<NuSendResult> {
+  return post<NuSendResult | string>('/v1/erru/nu/send', { id: String(id) }).then(parseNuResponse);
 }

@@ -97,10 +97,10 @@ export function useGoodReputeForm(
         const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
         pendingPublish.current = false;
-        const payload = {
+        const payload: GoodReputeForm = {
           ...values,
-          id: form?.id ?? '',
-        } as unknown as GoodReputeForm;
+          id: form?.id,
+        };
         const result = isConfirming
           ? await confirmGoodReputeForm(payload)
           : form?.id && isPublishing
@@ -121,6 +121,7 @@ export function useGoodReputeForm(
           setFormError,
         );
         if (!handled) {
+          setFormError(t('common.errors.unexpected'));
           console.error('Save failed', e);
         }
       }

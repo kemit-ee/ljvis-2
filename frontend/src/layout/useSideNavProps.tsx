@@ -154,6 +154,15 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.NU_LIST)) {
+      items.push({
+        children: t('nav.nu'),
+        icon: 'person_off',
+        to: '/erru/nu',
+        isActive: pathname.startsWith('/erru/nu'),
+      });
+    }
+
     // Riskiskoorid on eraldi ülatasandi menüüpunkt (mitte "Haldus" all), aga
     // paikneb ülatasandi loendi lõpus, vahetult "Haldus" kohal.
     if (hasPermission(PERMISSIONS.RISK_REPORT_LIST)) {

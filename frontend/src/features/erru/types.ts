@@ -747,3 +747,141 @@ export interface NcrListFilters {
   /** '' = kõik, 'true' = ainult automaatselt saadetud, 'false' = ainult käsitsi loodud. */
   automatic?: string;
 }
+
+// NU notifications
+
+export type NuDirection = 'outgoing' | 'incoming';
+
+export type NuStatus = 'initiated' | 'sent' | 'received' | 'acknowledged' | 'error';
+
+export interface NuMemberState {
+  memberStateCode: string;
+  /** use="required" on ERRU 3.5 nurMemberStateType — stored verbatim, never synthesized. */
+  respondingAuthority?: string | null;
+  statusCode: 'OK' | 'Timeout' | 'NotAvailable';
+  statusMessage?: string | null;
+}
+
+export interface NuSnapshot {
+  snapshotId: string;
+  version: number;
+  createdAt: string;
+  createdBy: string;
+  orgName: string | null;
+  status: NuStatus;
+}
+
+export interface NuMessage {
+  id: string;
+  snapshotId: string;
+  snapshots: NuSnapshot[];
+  version: number;
+  direction: NuDirection;
+  status: NuStatus;
+  businessCaseId: string;
+  technicalId: string | null;
+  workflowId: string | null;
+  sentAt: string | null;
+  receivedAt: string | null;
+  nuFrom: string | null;
+  nuTo: string | null;
+  originatingAuthority: string | null;
+  requestSource: string | null;
+  requestPurpose: string | null;
+  sourceGoodReputeFormKey: string | null;
+  tmFirstName: string | null;
+  tmFamilyName: string | null;
+  tmDateOfBirth: string | null;
+  tmPlaceOfBirth: string | null;
+  certificateNumber: string | null;
+  certificateIssueDate: string | null;
+  certificateIssueCountry: string | null;
+  unfitStartDate: string | null;
+  memberStates: NuMemberState[] | null;
+  handlerPersonalCode: string | null;
+  handlerName: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface NuMessageWrite {
+  id?: string;
+  sourceGoodReputeFormKey?: string;
+  nuTo: string;
+  originatingAuthority: string;
+  requestSource: string;
+  requestPurpose: string;
+  unfitStartDate: string;
+}
+
+export interface NuSaveResult {
+  id: string;
+  businessCaseId: string;
+  version: number;
+  status: NuStatus;
+}
+
+/** Response of POST /v1/erru/nu/send — the synchronous member-state acknowledgement. */
+export interface NuSendResult {
+  id: string;
+  status: NuStatus;
+  businessCaseId: string;
+  memberStates: NuMemberState[];
+}
+
+/** A source declaration candidate returned by GET /v1/erru/nu/source/search. */
+export interface NuSourceCandidate {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  dateOfBirth: string | null;
+  placeOfBirth: string | null;
+  certificateNumber: string | null;
+  certificateIssueDate: string | null;
+  certificateCountryCode: string | null;
+  unfitFromDate: string | null;
+  unfitUntilDate: string | null;
+}
+
+/** A source declaration read for prefill (GET /v1/erru/nu/source/get), with eligibility. */
+export interface NuSource extends NuSourceCandidate {
+  status: string;
+  fitnessStatus: string;
+}
+
+/** An outgoing NU draft is editable only while it is 'initiated'. */
+export function isNuEditable(m: Pick<NuMessage, 'status' | 'direction'>): boolean {
+  return m.direction === 'outgoing' && m.status === 'initiated';
+}
+
+/** Sending is allowed only from 'initiated' — no retry-in-place after error. */
+export function isNuSendable(m: Pick<NuMessage, 'status' | 'direction'>): boolean {
+  return m.direction === 'outgoing' && m.status === 'initiated';
+}
+
+export interface NuMessageListItem {
+  id: string;
+  version: number;
+  direction: NuDirection;
+  status: NuStatus;
+  businessCaseId: string;
+  messageDate: string | null;
+  countryCode: string | null;
+  tmFirstName: string | null;
+  tmFamilyName: string | null;
+  handlerName: string | null;
+}
+
+/** Filters of the NU message list. All optional and AND-combined (see search.sql). */
+export interface NuListFilters {
+  businessCaseId?: string;
+  dateFrom?: string;
+  dateUntil?: string;
+  country?: string;
+  tmFirstName?: string;
+  tmFamilyName?: string;
+  handlerPersonalCode?: string;
+  status?: string;
+  direction?: string;
+}

@@ -1,0 +1,3464 @@
+{
+  "info": {
+    "name": "LJVIS — ERRU NU (Sobimatusteade)",
+    "_postman_id": "ljvis-erru-nu-v1",
+    "description": "NU tests: permissions, source eligibility, protected identity, send outcomes and idempotent inbound delivery.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Auth] Login — Super Admin (nu.read+create+send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_admin', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — Org Admin (nu.read+create, NO send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_org_admin}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_nu_nosend', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Auth] Login — No-perm User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/auth/dev/dev-login",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "auth",
+            "dev",
+            "dev-login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"personalCode\": \"{{pc_user}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json();",
+              "var token = typeof b === 'string' ? b : (b.response || b.token || '');",
+              "pm.test('JWT received', () => pm.expect(token).to.not.be.empty);",
+              "pm.environment.set('cookie_nu_noperm', 'customJwtCookie=' + token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create good-repute UNFIT declaration (NU source)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"personalCode\": \"37009090001\", \"firstName\": \"JOHAN\", \"lastName\": \"TESTMANN\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"TALLINN\", \"certificateNumber\": \"CERT-NU-PM-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('nu_source_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm good-repute declaration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_source_id}}, \"personalCode\": \"37009090001\", \"firstName\": \"JOHAN\", \"lastName\": \"TESTMANN\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"TALLINN\", \"certificateNumber\": \"CERT-NU-PM-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Publish good-repute declaration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_source_id}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] FIT declaration (must be excluded from NU source search / rejected as source) — create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"personalCode\": \"37009090010\", \"firstName\": \"FITPERSON\", \"lastName\": \"NOTUNFIT\", \"dateOfBirth\": \"1985-05-05\", \"placeOfBirth\": \"Tartu\", \"certificateNumber\": \"CERT-NU-FIT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\", \"unfitFromDate\": null, \"unfitUntilDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('nu_fit_source_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] FIT declaration (must be excluded from NU source search / rejected as source) — confirm",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_fit_source_id}}, \"personalCode\": \"37009090010\", \"firstName\": \"FITPERSON\", \"lastName\": \"NOTUNFIT\", \"dateOfBirth\": \"1985-05-05\", \"placeOfBirth\": \"Tartu\", \"certificateNumber\": \"CERT-NU-FIT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\", \"unfitFromDate\": null, \"unfitUntilDate\": null}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] FIT declaration (must be excluded from NU source search / rejected as source) — publish",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_fit_source_id}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Source] Search by name+DOB finds the published/unfit declaration",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/search?firstName=JOHAN&lastName=TESTMANN&dateOfBirth=1980-01-01",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "firstName",
+              "value": "JOHAN"
+            },
+            {
+              "key": "lastName",
+              "value": "TESTMANN"
+            },
+            {
+              "key": "dateOfBirth",
+              "value": "1980-01-01"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('finds at least one candidate', () => pm.expect(body.content.length).to.be.above(0));",
+              "pm.test('candidate matches source id', () => pm.expect(body.content.some(c => String(c.id) === pm.environment.get('nu_source_id'))).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Source] Search with no match returns empty content",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/search?certificateNumber=NO-SUCH-CERT-XYZ",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "certificateNumber",
+              "value": "NO-SUCH-CERT-XYZ"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var r218 = pm.response.json().response; var b218 = typeof r218 === 'string' ? JSON.parse(r218) : r218; pm.test('empty content', () => pm.expect(b218.content.length).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Source] Search by certificate number alone finds the declaration (UC-16)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/search?certificateNumber=CERT-NU-PM-1",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "certificateNumber",
+              "value": "CERT-NU-PM-1"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw__ = pm.response.json().response; var body = (typeof raw__ === 'string') ? JSON.parse(raw__) : raw__;",
+              "pm.test('finds the source by certificate number alone', () => pm.expect(body.content.some(c => String(c.id) === pm.environment.get('nu_source_id'))).to.be.true);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Source] Search excludes a FIT declaration even with matching name+DOB (UC-19)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/search?firstName=FITPERSON&lastName=NOTUNFIT&dateOfBirth=1985-05-05",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "firstName",
+              "value": "FITPERSON"
+            },
+            {
+              "key": "lastName",
+              "value": "NOTUNFIT"
+            },
+            {
+              "key": "dateOfBirth",
+              "value": "1985-05-05"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('FIT declaration is not returned as a usable source', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).content.length).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Source] Get by key returns eligible declaration",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/get?q={{nu_source_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_source_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('status is published', () => pm.expect(body.status).to.eql('published'));",
+              "pm.test('fitnessStatus is unfit', () => pm.expect(body.fitnessStatus).to.eql('unfit'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Source] Get non-existent key → 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/get?q=999999999",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "999999999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Source] Get on a published-but-FIT declaration → 409 source_not_eligible (UC-13)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/get?q={{nu_fit_source_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_fit_source_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 409', () => pm.response.to.have.status(409));",
+              "pm.test('code source_not_eligible', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('source_not_eligible'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] Source search without nu.create → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_nu_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/source/search?certificateNumber=CERT-NU-PM-1",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "source",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "certificateNumber",
+              "value": "CERT-NU-PM-1"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save without sourceGoodReputeFormKey → 422 required",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var r306 = pm.response.json().response; var b306 = typeof r306 === 'string' ? JSON.parse(r306) : r306; pm.test('code required', () => pm.expect(b306.code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save without originatingAuthority → 422 required (UC-22)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "pm.test('field is originatingAuthority', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).field).to.eql('originatingAuthority'));",
+              "pm.test('code required', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save without requestSource → 422 required (UC-23)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "pm.test('field is requestSource', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).field).to.eql('requestSource'));",
+              "pm.test('code required', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save without requestPurpose → 422 required (UC-23)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "pm.test('field is requestPurpose', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).field).to.eql('requestPurpose'));",
+              "pm.test('code required', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save without unfitStartDate → 422 required (UC-24)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "pm.test('field is unfitStartDate', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).field).to.eql('unfitStartDate'));",
+              "pm.test('code required', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('required'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save with nonexistent sourceGoodReputeFormKey → 404 source_not_found",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"999999999\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 404', () => pm.response.to.have.status(404));",
+              "pm.test('code source_not_found', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('source_not_found'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save against a published-but-FIT declaration → 409 source_not_eligible (UC-13/UC-38)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_fit_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 409', () => pm.response.to.have.status(409));",
+              "pm.test('code source_not_eligible', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('source_not_eligible'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] Save without nu.create → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_nu_noperm}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save happy path → 200 initiated v1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('status initiated', () => pm.expect(body.status).to.eql('initiated'));",
+              "pm.test('version 1', () => pm.expect(body.version).to.eql(1));",
+              "pm.test('businessCaseId has NU-EE prefix', () => pm.expect(body.businessCaseId).to.match(/^NU-EE-\\d{4}-\\d{5}$/));",
+              "pm.environment.set('nu_id', String(body.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Get created message — identity comes from source, not client",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/get?q={{nu_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('tmFirstName from source', () => pm.expect(body.tmFirstName).to.eql('JOHAN'));",
+              "pm.test('tmFamilyName from source', () => pm.expect(body.tmFamilyName).to.eql('TESTMANN'));",
+              "pm.test('certificateNumber from source', () => pm.expect(body.certificateNumber).to.eql('CERT-NU-PM-1'));",
+              "pm.test('direction outgoing', () => pm.expect(body.direction).to.eql('outgoing'));",
+              "pm.test('sentAt is null before send', () => pm.expect(body.sentAt).to.be.null);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] Get without nu.read → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_nu_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/get?q={{nu_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[List] List contains the created message",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/list/search?pageSize=100",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "list",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "100"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('finds the created message', () => pm.expect(body.content.some(m => String(m.id) === pm.environment.get('nu_id'))).to.be.true);",
+              "var row = body.content.find(m => String(m.id) === pm.environment.get('nu_id'));",
+              "pm.test('direction outgoing', () => pm.expect(row.direction).to.eql('outgoing'));",
+              "pm.test('countryCode is DE', () => pm.expect(row.countryCode).to.eql('DE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] List without nu.list → 403",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_nu_noperm}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/list/search",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "list",
+            "search"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Save with id changes nuTo to broadcast ZZ → v2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id}}\", \"nuTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('version bumped to 2', () => pm.expect(body.version).to.eql(2));",
+              "pm.test('still initiated', () => pm.expect(body.status).to.eql('initiated'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Verify nuTo defaulted to ZZ (broadcast) and identity untouched",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/get?q={{nu_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('nuTo is ZZ', () => pm.expect(body.nuTo).to.eql('ZZ'));",
+              "pm.test('tmFirstName still from source', () => pm.expect(body.tmFirstName).to.eql('JOHAN'));",
+              "pm.test('certificateNumber still from source', () => pm.expect(body.certificateNumber).to.eql('CERT-NU-PM-1'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] sourceGoodReputeFormKey from client is ignored on revision (UC-29)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id}}\", \"sourceGoodReputeFormKey\": \"{{nu_fit_source_id}}\", \"nuTo\": \"IT\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200 (save succeeds — the bogus sourceGoodReputeFormKey is simply ignored)', () => pm.response.to.have.status(200));",
+              "var raw__ = pm.response.json().response; var body = (typeof raw__ === 'string') ? JSON.parse(raw__) : raw__;",
+              "pm.test('version bumped again', () => pm.expect(body.version).to.be.above(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Verify identity still comes from the ORIGINAL source, not the swapped one (UC-29)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/get?q={{nu_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw__ = pm.response.json().response; var body = (typeof raw__ === 'string') ? JSON.parse(raw__) : raw__;",
+              "pm.test('tmFirstName still JOHAN (original source), not FITPERSON', () => pm.expect(body.tmFirstName).to.eql('JOHAN'));",
+              "pm.test('certificateNumber still from original source', () => pm.expect(body.certificateNumber).to.eql('CERT-NU-PM-1'));",
+              "pm.test('nuTo did get updated to IT — the envelope fields ARE editable', () => pm.expect(body.nuTo).to.eql('IT'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] Reset nuTo back to broadcast (ZZ) so the later Broadcast-send test is unaffected by UC-29",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id}}\", \"nuTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw__ = pm.response.json().response; var body = (typeof raw__ === 'string') ? JSON.parse(raw__) : raw__;",
+              "pm.environment.set('nu_version_before_send', String(body.version));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Permissions] Send without nu.send → 403",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_nu_nosend}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 403', () => pm.response.to.have.status(403));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Broadcast (ZZ) → 200 sent with mixed OK/Timeout/NotAvailable",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('memberStates has 3 entries', () => pm.expect(body.memberStates.length).to.eql(3));",
+              "var codes = body.memberStates.map(m => m.statusCode);",
+              "pm.test('contains OK', () => pm.expect(codes).to.include('OK'));",
+              "pm.test('contains Timeout', () => pm.expect(codes).to.include('Timeout'));",
+              "pm.test('contains NotAvailable', () => pm.expect(codes).to.include('NotAvailable'));",
+              "pm.test('every memberState carries respondingAuthority (use=required on nurMemberStateType)', () => body.memberStates.forEach(m => pm.expect(m.respondingAuthority).to.be.a('string').and.not.empty));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify sent: technicalId/workflowId/handler set",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/get?q={{nu_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('technicalId present', () => pm.expect(body.technicalId).to.not.be.null);",
+              "pm.test('workflowId present', () => pm.expect(body.workflowId).to.not.be.null);",
+              "pm.test('sentAt present', () => pm.expect(body.sentAt).to.not.be.null);",
+              "pm.test('handlerPersonalCode is sender, not creator field', () => pm.expect(body.handlerPersonalCode).to.eql(pm.environment.get('pc_admin')));",
+              "pm.test('version bumped by exactly 1 on send', () => pm.expect(body.version).to.eql(Number(pm.environment.get('nu_version_before_send')) + 1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Retry after sent → 409 not_sendable (no retry-in-place)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 409', () => pm.response.to.have.status(409));",
+              "var r646 = pm.response.json().response; var b646 = typeof r646 === 'string' ? JSON.parse(r646) : r646; pm.test('code not_sendable', () => pm.expect(b646.code).to.eql('not_sendable'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft targeting LV (UC-33)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"LV\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('nu_id_lv', String(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] LV → sent with exactly one memberStates entry, statusCode Timeout (UC-33)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id_lv}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw__ = pm.response.json().response; var body = (typeof raw__ === 'string') ? JSON.parse(raw__) : raw__;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('exactly one memberStates entry', () => pm.expect(body.memberStates.length).to.eql(1));",
+              "pm.test('memberStateCode is LV', () => pm.expect(body.memberStates[0].memberStateCode).to.eql('LV'));",
+              "pm.test('statusCode is Timeout', () => pm.expect(body.memberStates[0].statusCode).to.eql('Timeout'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft targeting PL (UC-33)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"PL\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('nu_id_pl', String(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] PL → sent with exactly one memberStates entry, statusCode NotAvailable (UC-33)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id_pl}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw__ = pm.response.json().response; var body = (typeof raw__ === 'string') ? JSON.parse(raw__) : raw__;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('exactly one memberStates entry', () => pm.expect(body.memberStates.length).to.eql(1));",
+              "pm.test('memberStateCode is PL', () => pm.expect(body.memberStates[0].memberStateCode).to.eql('PL'));",
+              "pm.test('statusCode is NotAvailable', () => pm.expect(body.memberStates[0].statusCode).to.eql('NotAvailable'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft targeting IT (UC-33)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"IT\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('nu_id_it', String(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] IT → sent with exactly one memberStates entry, statusCode OK (UC-33)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id_it}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw__ = pm.response.json().response; var body = (typeof raw__ === 'string') ? JSON.parse(raw__) : raw__;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('exactly one memberStates entry', () => pm.expect(body.memberStates.length).to.eql(1));",
+              "pm.test('memberStateCode is IT', () => pm.expect(body.memberStates[0].memberStateCode).to.eql('IT'));",
+              "pm.test('statusCode is OK', () => pm.expect(body.memberStates[0].statusCode).to.eql('OK'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create second draft for FI transport-failure scenario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_source_id}}\", \"nuTo\": \"FI\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var r676 = pm.response.json().response; var b676 = typeof r676 === 'string' ? JSON.parse(r676) : r676; pm.environment.set('nu_id_fi', String(b676.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] FI → 502 transport failure, message transitions to error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id_fi}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 502', () => pm.response.to.have.status(502));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify FI draft is in error state, no retry possible",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/get?q={{nu_id_fi}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_id_fi}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('status is error', () => pm.expect(body.status).to.eql('error'));",
+              "pm.test('errorMessage present', () => pm.expect(body.errorMessage).to.not.be.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Retry FI from error → 409 (LJVIS2-159: no error -> sent transition)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id_fi}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 409 — not_sendable, unlike CGR error retry', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] declaration with unfit_until_date initially in the future (UC-38) — create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"personalCode\": \"37009090011\", \"firstName\": \"EXPIREDPERSON\", \"lastName\": \"PASTDEADLINE\", \"dateOfBirth\": \"1990-03-03\", \"placeOfBirth\": \"Narva\", \"certificateNumber\": \"CERT-NU-EXPIRED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2020-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('nu_expired_source_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] declaration with unfit_until_date initially in the future (UC-38) — confirm",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_expired_source_id}}, \"personalCode\": \"37009090011\", \"firstName\": \"EXPIREDPERSON\", \"lastName\": \"PASTDEADLINE\", \"dateOfBirth\": \"1990-03-03\", \"placeOfBirth\": \"Narva\", \"certificateNumber\": \"CERT-NU-EXPIRED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2020-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] declaration with unfit_until_date initially in the future (UC-38) — publish",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_expired_source_id}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft before source expiry (UC-38)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_expired_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2020-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200 — save itself succeeds, the expiry is only checked at send (UC-38)', () => pm.response.to.have.status(200));",
+              "pm.environment.set('nu_id_expired', String(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Expire source after drafting (UC-38)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_expired_source_id}}, \"personalCode\": \"37009090011\", \"firstName\": \"EXPIREDPERSON\", \"lastName\": \"PASTDEADLINE\", \"dateOfBirth\": \"1990-03-03\", \"placeOfBirth\": \"Narva\", \"certificateNumber\": \"CERT-NU-EXPIRED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2020-01-01\", \"unfitUntilDate\": \"2020-01-02\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Expiry saved', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Send blocked with 409 source_not_eligible — unfit_until_date already passed (UC-38)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id_expired}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 409', () => pm.response.to.have.status(409));",
+              "pm.test('code source_not_eligible', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('source_not_eligible'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify draft stayed 'initiated' — blocked source does not move to sent or error (UC-38)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/get?q={{nu_id_expired}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{nu_id_expired}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('status still initiated', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).status).to.eql('initiated'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] declaration to be deleted after the NU draft is created (UC-38) — create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"personalCode\": \"37009090012\", \"firstName\": \"DELETEDPERSON\", \"lastName\": \"GONE\", \"dateOfBirth\": \"1992-04-04\", \"placeOfBirth\": \"Pärnu\", \"certificateNumber\": \"CERT-NU-DELETED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('nu_deleted_source_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] declaration to be deleted after the NU draft is created (UC-38) — confirm",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_deleted_source_id}}, \"personalCode\": \"37009090012\", \"firstName\": \"DELETEDPERSON\", \"lastName\": \"GONE\", \"dateOfBirth\": \"1992-04-04\", \"placeOfBirth\": \"Pärnu\", \"certificateNumber\": \"CERT-NU-DELETED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] declaration to be deleted after the NU draft is created (UC-38) — publish",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_deleted_source_id}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft on a source that will then be deleted (UC-38)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_deleted_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.environment.set('nu_id_deleted_source', String(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Delete the source good-repute declaration (UC-38)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_deleted_source_id}}, \"old_status\": \"published\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Send blocked with 409 source_not_eligible — source was deleted (UC-38)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id_deleted_source}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 409', () => pm.response.to.have.status(409));",
+              "pm.test('code source_not_eligible', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).code).to.eql('source_not_eligible'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Valid incoming NU → 200 ack (ruuter-internal)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/nu/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "nu",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"bbbbbbbb-1111-2222-3333-444444444444\", \"workflowId\": \"cccccccc-1111-2222-3333-444444444444\", \"sentAt\": \"2026-09-10T10:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-NU-TEST-0001\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"HANS\", \"tmFamilyName\": \"MUELLER\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"BERLIN\", \"tmFirstNameSearchKey\": \"HAN\", \"tmFamilyNameSearchKey\": \"MYLAR\", \"certificateNumber\": \"DE-CPC-TEST-001\", \"certificateIssueDate\": \"2018-06-01\", \"certificateIssueCountry\": \"DE\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('acknowledgementType correct', () => pm.expect(body.acknowledgementType).to.eql('NotifyUnfitness_Acknowledgement'));",
+              "pm.test('statusCode OK', () => pm.expect(body.statusCode).to.eql('OK'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Verify stored as acknowledged (not just received)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/list/search?businessCaseId=DE-NU-TEST-0001",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "list",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "DE-NU-TEST-0001"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('exactly one row for this businessCaseId', () => pm.expect(body.content.length).to.eql(1));",
+              "var row = body.content[0];",
+              "pm.test('status acknowledged (latest snapshot wins tiebreaker)', () => pm.expect(row.status).to.eql('acknowledged'));",
+              "pm.test('direction incoming', () => pm.expect(row.direction).to.eql('incoming'));",
+              "pm.test('countryCode is DE (nuFrom)', () => pm.expect(row.countryCode).to.eql('DE'));",
+              "pm.environment.set('nu_inbound_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Duplicate technicalId → same ack, no new snapshot",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/nu/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "nu",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"bbbbbbbb-1111-2222-3333-444444444444\", \"workflowId\": \"dddddddd-1111-2222-3333-444444444444\", \"sentAt\": \"2026-09-10T10:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-NU-TEST-0001\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"tmFirstName\": \"HANS\", \"tmFamilyName\": \"MUELLER\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"BERLIN\", \"tmFirstNameSearchKey\": \"HAN\", \"tmFamilyNameSearchKey\": \"MYLAR\", \"certificateNumber\": \"DE-CPC-TEST-001\", \"certificateIssueDate\": \"2018-06-01\", \"certificateIssueCountry\": \"DE\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var r836 = pm.response.json().response; var b836 = typeof r836 === 'string' ? JSON.parse(r836) : r836; pm.test('statusCode OK (replayed ack)', () => pm.expect(b836.statusCode).to.eql('OK'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Verify duplicate did not create a new row",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/list/search?businessCaseId=DE-NU-TEST-0001",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "list",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "DE-NU-TEST-0001"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var r860 = pm.response.json().response; var b860 = typeof r860 === 'string' ? JSON.parse(r860) : r860; pm.test('still exactly one row', () => pm.expect(b860.content.length).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Missing required field (requestPurpose) → 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/nu/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "nu",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"{{$guid}}\", \"workflowId\": \"{{$guid}}\", \"sentAt\": \"2026-09-10T10:00:00Z\", \"from\": \"LV\", \"businessCaseId\": \"LV-NU-TEST-BAD\", \"originatingAuthority\": \"LV-CA\", \"requestSource\": \"CA\", \"requestPurpose\": \"\", \"tmFirstName\": \"JANIS\", \"tmFamilyName\": \"BERZINS\", \"tmDateOfBirth\": \"1975-03-12\", \"tmPlaceOfBirth\": \"\", \"tmFirstNameSearchKey\": \"\", \"tmFamilyNameSearchKey\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+              "var r887 = pm.response.json().response; var b887 = typeof r887 === 'string' ? JSON.parse(r887) : r887; pm.test('statusCode InvalidData', () => pm.expect(b887.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Heartbeat probe → 200 OK ack, nothing stored (D15)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/erru/nu/inbound-request",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "erru",
+            "nu",
+            "inbound-request"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"technicalId\": \"eeeeeeee-1111-2222-3333-444444444444\", \"workflowId\": \"ffffffff-1111-2222-3333-444444444444\", \"sentAt\": \"2026-09-10T10:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-NU-HEARTBEAT-0001\", \"originatingAuthority\": \"\", \"requestSource\": \"Hub\", \"requestPurpose\": \"Heartbeat\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"tmFirstNameSearchKey\": \"\", \"tmFamilyNameSearchKey\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\", \"unfitStartDate\": \"\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200 (Heartbeat is not InvalidData, unlike a real incomplete business NU)', () => pm.response.to.have.status(200));",
+              "var raw_hb = pm.response.json().response; var body = (typeof raw_hb === 'string') ? JSON.parse(raw_hb) : raw_hb;",
+              "pm.test('acknowledgementType correct', () => pm.expect(body.acknowledgementType).to.eql('NotifyUnfitness_Acknowledgement'));",
+              "pm.test('statusCode OK', () => pm.expect(body.statusCode).to.eql('OK'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] Verify Heartbeat created NO NU message (159: Heartbeat is not a business NU)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/list/search?businessCaseId=DE-NU-HEARTBEAT-0001",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "list",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "businessCaseId",
+              "value": "DE-NU-HEARTBEAT-0001"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('zero rows — Heartbeat is discarded, never stored', () => pm.expect(((r => typeof r === 'string' ? JSON.parse(r) : r)(pm.response.json().response)).content.length).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create good-repute UNFIT declaration with oversized placeOfBirth/certificateNumber",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"personalCode\": \"37009090099\", \"firstName\": \"OVERSIZED\", \"lastName\": \"TESTPERSON\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('nu_oversized_source_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm oversized good-repute declaration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_oversized_source_id}}, \"personalCode\": \"37009090099\", \"firstName\": \"OVERSIZED\", \"lastName\": \"TESTPERSON\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Publish oversized good-repute declaration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_oversized_source_id}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save rejected when source placeOfBirth exceeds the ERRU wire limit (50)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_oversized_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422 (rejected before any row is written, not truncated)', () => pm.response.to.have.status(422));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('field is tmPlaceOfBirth (checked before certificateNumber in validate-nu-request)', () => pm.expect(body.field).to.eql('tmPlaceOfBirth'));",
+              "pm.test('code is source_exceeds_erru_limit', () => pm.expect(body.code).to.eql('source_exceeds_erru_limit'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Create good-repute UNFIT declaration with oversized certificateNumber only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": null, \"personalCode\": \"37009090098\", \"firstName\": \"NORMAL\", \"lastName\": \"PLACEOFBIRTH\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"Tallinn\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.environment.set('nu_oversized_cert_source_id', String(row.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm+publish oversized-certificate declaration (confirm)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_oversized_cert_source_id}}, \"personalCode\": \"37009090098\", \"firstName\": \"NORMAL\", \"lastName\": \"PLACEOFBIRTH\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"Tallinn\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Setup] Confirm+publish oversized-certificate declaration (publish)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/good-repute/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "good-repute",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": {{nu_oversized_cert_source_id}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Create] Save rejected when source certificateNumber exceeds the ERRU wire limit (20)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceGoodReputeFormKey\": \"{{nu_oversized_cert_source_id}}\", \"nuTo\": \"DE\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "var raw_ = pm.response.json(); var body = (typeof raw_.response === 'string') ? JSON.parse(raw_.response) : raw_.response;",
+              "pm.test('field is certificateNumber', () => pm.expect(body.field).to.eql('certificateNumber'));",
+              "pm.test('code is source_exceeds_erru_limit', () => pm.expect(body.code).to.eql('source_exceeds_erru_limit'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

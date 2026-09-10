@@ -1,0 +1,57 @@
+declaration:
+  version: "1.0"
+  description: "Read an eligible source declaration."
+  namespace: erru
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "good_repute_form_key of the source declaration"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q || ''}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${id === ''}
+      next: returnNotFound
+  next: getSource
+
+getSource:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-source"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: checkEligible
+
+checkEligible:
+  switch:
+    - condition: ${res.response.body[0].eligible !== true}
+      next: returnNotEligible
+  next: returnSuccess
+
+returnSuccess:
+  return: "${JSON.stringify(res.response.body[0])}"
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"Hea maine deklaratsiooni ei leitud"}'
+  next: end
+
+returnNotEligible:
+  status: 409
+  return: '{"valid":false,"code":"source_not_eligible","message":"Allikdeklaratsioon ei ole avaldatud/sobimatu või sobimatuse lõppkuupäev puudub või on möödunud"}'
+  next: end

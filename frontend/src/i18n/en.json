@@ -1183,6 +1183,7 @@
     "search": "Search",
     "rsi": "Roadside inspection messages RSI",
     "ncr": "Notify Check Result messages NCR",
+    "nu": "NU unfitness notifications",
     "riskScores": "Risk scores",
     "myCompany": "My company",
     "notifications": "Notifications"
@@ -1476,7 +1477,7 @@
     "back": "Back",
     "yes": "Yes",
     "no": "No",
-    "tableIsEmpty": "COMING",
+    "tableIsEmpty": "No matching results found.",
     "confirm": "Confirm",
     "confirmChange": "Yes, change",
     "discard": "Discard",
@@ -1740,7 +1741,9 @@
         "not_sendable": "The request cannot be sent in this state",
         "not_resendable": "The request cannot be re-sent in this state",
         "send_failed": "Sending failed",
-        "nysiis_unavailable": "The name search service is currently unavailable"
+        "nysiis_unavailable": "The name search service is currently unavailable",
+        "source_exceeds_erru_limit": "The source value exceeds the ERRU limit. Correct the good repute declaration (first/family name: 100 characters; place of birth: 50; certificate number: 20).",
+        "not_found": "NU unfitness notification not found"
       }
     },
     "rsi": {
@@ -1962,6 +1965,98 @@
         "handlerFilter": "Handler (isikukood)",
         "automatic": "Automatic"
       }
+    },
+    "nu": {
+      "history": {
+        "snapshotNotice": "Version {{version}} is open for viewing only.",
+        "openCurrent": "Open current version"
+      },
+      "notFound": "NU unfitness notification not found",
+      "sendFailed": "Sending the message to ERRU failed. The message stays in Error status — retrying in place is not possible, a new message must be created.",
+      "createFromGoodRepute": "Create ERRU unfitness notification",
+      "list": {
+        "title": "NU unfitness notifications",
+        "newMessage": "New unfitness notification",
+        "id": "Case number",
+        "direction": "Direction",
+        "directionOutgoing": "Outgoing",
+        "directionIncoming": "Incoming",
+        "date": "Date",
+        "country": "Country",
+        "tmFirstName": "First name",
+        "tmFamilyName": "Family name",
+        "handler": "Handler",
+        "handlerFilter": "Handler (personal code)",
+        "status": "Status"
+      },
+      "filters": {
+        "dateFrom": "Date from",
+        "dateUntil": "Date until"
+      },
+      "source": {
+        "title": "Source declaration search",
+        "hint": "Enter the transport manager's first name, family name and date of birth, or the certificate of professional competence number. An outgoing NU notification can only be composed from a published declaration where the person has been declared unfit.",
+        "searchFailed": "Search failed",
+        "noResults": "No published, unfit declaration found",
+        "notEligible": "The source declaration is not published, the person is not declared unfit, or the unfitness end date is missing or has passed. Check the source declaration."
+      },
+      "form": {
+        "titleOutgoing": "NU unfitness notification (EE → ERRU)",
+        "titleInbound": "NU unfitness notification (ERRU → EE)",
+        "titleNew": "New NU unfitness notification",
+        "version": "Version {{version}}",
+        "readOnly": "read-only",
+        "headerBlock": "Message data",
+        "nameBlock": "Transport manager details (7A)",
+        "certificateBlock": "Certificate of professional competence details (7B)",
+        "unfitnessBlock": "Unfitness data",
+        "nuFrom": "Requesting member state",
+        "nuTo": "Target member state",
+        "nuToAll": "All member states",
+        "nuToHint": "If no target member state is selected, the message is sent to all member states.",
+        "originatingAuthority": "Originating competent authority",
+        "requestSource": "Request source",
+        "requestPurpose": "Request purpose",
+        "tmFirstName": "First name",
+        "tmFamilyName": "Family name",
+        "tmDateOfBirth": "Date of birth",
+        "tmPlaceOfBirth": "Place of birth",
+        "certificateNumber": "Certificate of professional competence number",
+        "certificateIssueDate": "Certificate issue date",
+        "certificateIssueCountry": "Certificate issuing country",
+        "unfitStartDate": "Unfitness start date",
+        "send": "Send"
+      },
+      "requestSource": {
+        "CA": "Competent authority",
+        "RSI": "Roadside inspection",
+        "Hub": "ERRU hub",
+        "Other": "Other source"
+      },
+      "requestPurpose": {
+        "Issue": "Issue",
+        "Control": "Control",
+        "Other": "Other purpose"
+      },
+      "response": {
+        "title": "Acknowledgement data",
+        "memberState": "Member state",
+        "respondingAuthority": "Responding competent authority",
+        "status": "Status"
+      },
+      "validation": {
+        "required": "Field is required",
+        "invalid_country_code": "Country code must be two letters",
+        "max_length_exceeded": "Field length exceeded",
+        "not_editable": "The message cannot be edited in its current status",
+        "not_sendable": "The message cannot be sent in its current status",
+        "source_not_eligible": "The source declaration is not published, the person is not declared unfit, or the unfitness end date is missing or has passed. Check the source declaration.",
+        "source_not_found": "Good repute declaration not found",
+        "send_failed": "Sending the message failed",
+        "nysiis_unavailable": "The name search service is currently unavailable",
+        "source_exceeds_erru_limit": "The source value exceeds the ERRU limit. Correct the good repute declaration (first/family name: 100 characters; place of birth: 50; certificate number: 20).",
+        "not_found": "NU unfitness notification not found"
+      }
     }
   },
   "search": {
@@ -2086,6 +2181,8 @@
     "rsiDetail": "RSI message",
     "ncrCreate": "New NCR message",
     "ncrDetail": "NCR message",
+    "nuCreate": "New NU unfitness notification",
+    "nuDetail": "NU unfitness notification",
     "tramControlCard": "Transport Administration inspection card"
   }
 }

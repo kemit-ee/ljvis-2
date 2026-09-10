@@ -120,6 +120,11 @@ newman run "$COL/erru-ncr.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/erru-ncr.html"
 
+newman run "$COL/erru-nu.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-nu.html"
+
 newman run "$COL/technical-check-forms.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \

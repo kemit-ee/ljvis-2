@@ -1,0 +1,408 @@
+declaration:
+  version: "1.0"
+  description: "Send an eligible outgoing draft and store its acknowledgement or transport error. Failed messages cannot be resent."
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${('' + (incoming.body.id || '')).trim()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${!id}
+      next: returnIdRequired
+  next: getMessage
+
+getMessage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: current
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${current.response.body.length != 1}
+      next: returnNotFound
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    cur_status: "${current.response.body[0].status}"
+    cur_direction: "${current.response.body[0].direction}"
+    business_case_id: "${current.response.body[0].businessCaseId}"
+    nu_to: "${current.response.body[0].nuTo || 'ZZ'}"
+    originating_authority: "${current.response.body[0].originatingAuthority || ''}"
+    request_source: "${current.response.body[0].requestSource || ''}"
+    request_purpose: "${current.response.body[0].requestPurpose || ''}"
+    tm_first_name: "${current.response.body[0].tmFirstName || ''}"
+    tm_family_name: "${current.response.body[0].tmFamilyName || ''}"
+    tm_date_of_birth: "${current.response.body[0].tmDateOfBirth || ''}"
+    tm_place_of_birth: "${current.response.body[0].tmPlaceOfBirth || ''}"
+    certificate_number: "${current.response.body[0].certificateNumber || ''}"
+    certificate_issue_date: "${current.response.body[0].certificateIssueDate || ''}"
+    certificate_issue_country: "${current.response.body[0].certificateIssueCountry || ''}"
+    unfit_start_date: "${current.response.body[0].unfitStartDate || ''}"
+    source_key: "${'' + (current.response.body[0].sourceGoodReputeFormKey || '')}"
+  next: checkSendable
+checkSendable:
+  switch:
+    - condition: ${cur_direction !== 'outgoing'}
+      next: returnNotSendable
+    - condition: ${cur_status !== 'initiated'}
+      next: returnNotSendable
+  next: revalidateSource
+revalidateSource:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-source"
+    headers:
+      type: json
+    body:
+      id: ${source_key}
+  result: source
+  next: checkSourceStillFound
+
+checkSourceStillFound:
+  switch:
+    - condition: ${source.response.body.length != 1}
+      next: returnSourceNotEligible
+  next: checkSourceStillEligible
+
+# Eligibility uses the inclusive end date in Europe/Tallinn; future starts are allowed.
+checkSourceStillEligible:
+  switch:
+    - condition: ${source.response.body[0].eligible !== true}
+      next: returnSourceNotEligible
+  next: validateRequest
+validateRequest:
+  template: "templates/erru/nu/validate-nu-request"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    nuTo: ${nu_to}
+    originatingAuthority: ${originating_authority}
+    requestSource: ${request_source}
+    requestPurpose: ${request_purpose}
+    unfitStartDate: ${unfit_start_date}
+    tmFirstName: ${tm_first_name}
+    tmFamilyName: ${tm_family_name}
+    tmPlaceOfBirth: ${tm_place_of_birth}
+    certificateNumber: ${certificate_number}
+    certificateIssueCountry: ${certificate_issue_country}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: checkNysiisNeeded
+
+checkNysiisNeeded:
+  switch:
+    - condition: ${!!tm_first_name}
+      next: computeNysiisFirst
+  next: prepareOutbound
+
+computeNysiisFirst:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${tm_first_name}
+      useFullName: false
+  result: nysiisFirstRes
+  next: checkNysiisFirstOk
+
+checkNysiisFirstOk:
+  switch:
+    - condition: ${nysiisFirstRes.response == null || nysiisFirstRes.response.status !== 200 || nysiisFirstRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisFirstKey
+
+storeNysiisFirstKey:
+  assign:
+    tm_first_name_search_key: "${nysiisFirstRes.response.body.searchKey || ''}"
+  next: callNysiisFamily
+
+callNysiisFamily:
+  call: http.post
+  args:
+    url: "[#NYSIIS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      name: ${tm_family_name}
+      useFullName: true
+  result: nysiisFamilyRes
+  next: checkNysiisFamilyOk
+
+checkNysiisFamilyOk:
+  switch:
+    - condition: ${nysiisFamilyRes.response == null || nysiisFamilyRes.response.status !== 200 || nysiisFamilyRes.response.body == null}
+      next: returnNysiisError
+  next: storeNysiisKeys
+
+storeNysiisKeys:
+  assign:
+    tm_family_name_search_key: "${nysiisFamilyRes.response.body.searchKey || ''}"
+  next: prepareOutbound
+
+prepareOutbound:
+  assign:
+    start_time: "${new Date().getTime()}"
+    tm_first_name_search_key: "${tm_first_name_search_key || ''}"
+    tm_family_name_search_key: "${tm_family_name_search_key || ''}"
+  next: callErru
+
+callErru:
+  call: http.post
+  args:
+    url: "[#ERRU_NU_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      nuTo: ${nu_to}
+      businessCaseId: ${business_case_id}
+      technicalId: ""
+      workflowId: ""
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+      unfitStartDate: ${unfit_start_date}
+  result: erru_res
+  next: checkErruStatus
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+      next: logIntegrationFailure
+  next: logIntegrationSuccess
+
+logIntegrationSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/nu/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' nuTo=' + nu_to}"
+      response_xml: "${JSON.stringify(erru_res.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "erru_nu"
+      source_record_id: "${'' + business_case_id}"
+  result: log_ok
+  next: checkResponseEnvelope
+
+logIntegrationFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "erru/nu/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' nuTo=' + nu_to}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "ERRU transport failure or error response"
+      person_identifier: ""
+      source_type: "erru_nu"
+      source_record_id: "${'' + business_case_id}"
+  result: log_fail
+  next: markError
+checkResponseEnvelope:
+  switch:
+    - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
+      next: extractErruResponseEnveloped
+  next: extractErruResponseDirect
+
+extractErruResponseEnveloped:
+  assign:
+    member_states_raw: "${JSON.parse(erru_res.response.body.response).memberStates || []}"
+  next: checkMemberStates
+
+extractErruResponseDirect:
+  assign:
+    member_states_raw: "${erru_res.response.body.memberStates || []}"
+  next: checkMemberStates
+
+checkMemberStates:
+  switch:
+    - condition: ${!member_states_raw || !Array.isArray(member_states_raw) || member_states_raw.length === 0}
+      next: markErrorMissingResponse
+  next: storeSent
+
+storeSent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "sent"
+      memberStates: "${JSON.stringify(member_states_raw)}"
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      errorMessage: ""
+      created_by: ${actor_personal_code}
+  result: stored_res
+  next: checkStoreSent
+
+checkStoreSent:
+  switch:
+    - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
+      next: returnNotSendable
+  next: buildMemberStateCounts
+
+markError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      memberStates: ""
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      errorMessage: "ERRU transport failure — send a new NU sobimatusteade"
+      created_by: ${actor_personal_code}
+  result: error_res
+  next: logAuditError
+
+markErrorMissingResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/append-transition"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      newStatus: "error"
+      memberStates: ""
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      handlerPersonalCode: ${actor_personal_code}
+      handlerName: ${actor_name}
+      errorMessage: "ERRU response carried no memberStates — not ERRU 3.5 compliant"
+      created_by: ${actor_personal_code}
+  result: error_res
+  next: logAuditError
+
+buildMemberStateCounts:
+  assign:
+    ok_count: "${member_states_raw.filter(m => m.statusCode === 'OK').length}"
+    timeout_count: "${member_states_raw.filter(m => m.statusCode === 'Timeout').length}"
+    not_available_count: "${member_states_raw.filter(m => m.statusCode === 'NotAvailable').length}"
+  next: logAuditSend
+
+logAuditSend:
+  template: "templates/audit/erru/nu/log-nu-message-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    nu_to: ${nu_to}
+    result_status: "sent"
+    member_state_count: "${'' + member_states_raw.length}"
+    ok_count: "${'' + ok_count}"
+    timeout_count: "${'' + timeout_count}"
+    not_available_count: "${'' + not_available_count}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_ok
+  next: returnSent
+
+logAuditError:
+  template: "templates/audit/erru/nu/log-nu-message-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    nu_to: ${nu_to}
+    result_status: "error"
+    member_state_count: "0"
+    ok_count: "0"
+    timeout_count: "0"
+    not_available_count: "0"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_err
+  next: returnError
+
+returnSent:
+  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, memberStates: member_states_raw})}"
+  next: end
+
+returnError:
+  status: 502
+  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure — saada uus sobimatusteade"}'
+  next: end
+
+returnIdRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"id","code":"required","message":"id on kohustuslik"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"NU sobimatusteade ei leitud"}'
+  next: end
+
+returnNotSendable:
+  status: 409
+  return: '{"valid":false,"code":"not_sendable","message":"Teadet ei saa praeguses olekus saata"}'
+  next: end
+
+returnSourceNotEligible:
+  status: 409
+  return: '{"valid":false,"code":"source_not_eligible","message":"Allikdeklaratsioon ei ole avaldatud/sobimatu või sobimatuse lõppkuupäev puudub või on möödunud"}'
+  next: end
+
+returnNysiisError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"name","code":"nysiis_unavailable","message":"NYSIIS otsinguvõtme arvutamine ebaõnnestus"}'
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end

@@ -1,0 +1,238 @@
+declaration:
+  version: "1.0"
+  description: "Create or revise an NU draft using identity data from its eligible source declaration."
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: sourceGoodReputeFormKey
+        type: string
+      - field: nuTo
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: unfitStartDate
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${('' + (incoming.body.id || '')).trim()}"
+    source_key_from_body: "${('' + (incoming.body.sourceGoodReputeFormKey || '')).trim()}"
+    nu_to: "${('' + (incoming.body.nuTo || '')).trim()}"
+    originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
+    request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
+    request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
+    unfit_start_date: "${('' + (incoming.body.unfitStartDate || '')).trim()}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIsNew
+
+checkIsNew:
+  switch:
+    - condition: ${!id}
+      next: checkSourceKeyProvided
+  next: loadExisting
+checkSourceKeyProvided:
+  switch:
+    - condition: ${!source_key_from_body}
+      next: returnSourceRequired
+  next: resolveSourceKey
+
+resolveSourceKey:
+  assign:
+    source_key: "${source_key_from_body}"
+    is_new: "true"
+  next: getSource
+loadExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: existing
+  next: checkExistingFound
+
+checkExistingFound:
+  switch:
+    - condition: ${existing.response.body.length != 1}
+      next: returnNotFound
+  next: extractExistingSourceKey
+
+extractExistingSourceKey:
+  assign:
+    source_key: "${'' + (existing.response.body[0].sourceGoodReputeFormKey || '')}"
+    is_new: "false"
+  next: getSource
+getSource:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-source"
+    headers:
+      type: json
+    body:
+      id: ${source_key}
+  result: source
+  next: checkSourceFound
+
+checkSourceFound:
+  switch:
+    - condition: ${source.response.body.length != 1}
+      next: returnSourceNotFound
+  next: checkSourceEligible
+
+checkSourceEligible:
+  switch:
+    - condition: ${source.response.body[0].eligible !== true}
+      next: returnSourceNotEligible
+  next: extractSourceFields
+
+extractSourceFields:
+  assign:
+    tm_first_name: "${source.response.body[0].firstName || ''}"
+    tm_family_name: "${source.response.body[0].lastName || ''}"
+    tm_date_of_birth: "${source.response.body[0].dateOfBirth || ''}"
+    tm_place_of_birth: "${source.response.body[0].placeOfBirth || ''}"
+    certificate_number: "${source.response.body[0].certificateNumber || ''}"
+    certificate_issue_date: "${source.response.body[0].certificateIssueDate || ''}"
+    certificate_issue_country: "${source.response.body[0].certificateCountryCode || ''}"
+  next: validateRequest
+validateRequest:
+  template: "templates/erru/nu/validate-nu-request"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    nuTo: ${nu_to}
+    originatingAuthority: ${originating_authority}
+    requestSource: ${request_source}
+    requestPurpose: ${request_purpose}
+    unfitStartDate: ${unfit_start_date}
+    tmFirstName: ${tm_first_name}
+    tmFamilyName: ${tm_family_name}
+    tmPlaceOfBirth: ${tm_place_of_birth}
+    certificateNumber: ${certificate_number}
+    certificateIssueCountry: ${certificate_issue_country}
+  result: validationResult
+  next: checkValidationResult
+
+checkValidationResult:
+  switch:
+    - condition: ${validationResult.indexOf('"valid":true') === -1}
+      next: returnValidationError
+  next: checkIsNewSave
+
+checkIsNewSave:
+  switch:
+    - condition: ${is_new === 'true'}
+      next: insertDraft
+  next: reviseDraft
+
+insertDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/append-draft"
+    headers:
+      type: json
+    body:
+      sourceGoodReputeFormKey: ${source_key}
+      nuTo: ${nu_to}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+      unfitStartDate: ${unfit_start_date}
+      created_by: ${actor_personal_code}
+  result: saved
+  next: checkSaved
+
+reviseDraft:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/append-draft-revision"
+    headers:
+      type: json
+    body:
+      key: ${id}
+      nuTo: ${nu_to}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+      unfitStartDate: ${unfit_start_date}
+      created_by: ${actor_personal_code}
+  result: saved
+  next: checkSaved
+
+checkSaved:
+  switch:
+    - condition: ${saved.response.body == null || saved.response.body.length != 1}
+      next: returnNotSavable
+  next: logAuditSave
+
+logAuditSave:
+  template: "templates/audit/erru/nu/log-nu-message-save"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: "${saved.response.body[0].businessCaseId}"
+    direction: "outgoing"
+    status: "${saved.response.body[0].status}"
+    is_new: ${is_new}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: "${JSON.stringify({id: saved.response.body[0].id, businessCaseId: saved.response.body[0].businessCaseId, version: saved.response.body[0].version, status: saved.response.body[0].status})}"
+  next: end
+
+returnSourceRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"sourceGoodReputeFormKey","code":"required","message":"sourceGoodReputeFormKey on kohustuslik uue teate loomisel"}'
+  next: end
+
+returnValidationError:
+  status: 422
+  return: ${validationResult}
+  next: end
+
+returnSourceNotFound:
+  status: 404
+  return: '{"valid":false,"code":"source_not_found","message":"Hea maine deklaratsiooni ei leitud"}'
+  next: end
+
+returnSourceNotEligible:
+  status: 409
+  return: '{"valid":false,"code":"source_not_eligible","message":"Allikdeklaratsioon ei ole avaldatud/sobimatu või sobimatuse lõppkuupäev puudub või on möödunud"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"NU sobimatusteade ei leitud"}'
+  next: end
+
+returnNotSavable:
+  status: 409
+  return: '{"valid":false,"code":"not_editable","message":"Teadet ei saa praeguses olekus muuta"}'
+  next: end

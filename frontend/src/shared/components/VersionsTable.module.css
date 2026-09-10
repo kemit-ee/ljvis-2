@@ -1,0 +1,41 @@
+.table.table td:first-child,
+.table.table th:first-child {
+  width: 5% !important;
+  max-width: 5% !important;
+}
+
+.table.table td:nth-child(2),
+.table.table th:nth-child(2) {
+  width: 8% !important;
+  max-width: 8% !important;
+}
+
+.table.table td:nth-child(3),
+.table.table th:nth-child(3) {
+  width: 11% !important;
+  max-width: 11% !important;
+}
+
+.table.table td:nth-child(4),
+.table.table th:nth-child(4) {
+  width: 15% !important;
+  max-width: 15% !important;
+}
+
+.table.table td:nth-child(5),
+.table.table th:nth-child(5) {
+  width: 15% !important;
+  max-width: 15% !important;
+}
+
+.table.table td:nth-last-child(2),
+.table.table th:nth-last-child(2) {
+  width: 11% !important;
+  max-width: 11% !important;
+}
+
+.table.table td:last-child,
+.table.table th:last-child {
+  width: 7% !important;
+  max-width: 7% !important;
+}

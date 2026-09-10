@@ -1,0 +1,100 @@
+declaration:
+  version: "1.0"
+  description: "Validate required NU fields and ERRU length limits before saving or sending."
+  namespace: service
+  allowlist:
+    body:
+      - field: nuTo
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: unfitStartDate
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: tmPlaceOfBirth
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueCountry
+        type: string
+
+validate:
+  switch:
+    - condition: ${!!(('' + (incoming.body.nuTo || '')).trim()) && ('' + (incoming.body.nuTo || '')).trim().length !== 2}
+      next: returnNuToInvalidError
+    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+      next: returnOriginatingAuthorityRequiredError
+    - condition: ${('' + (incoming.body.originatingAuthority || '')).trim().length > 50}
+      next: returnOriginatingAuthorityMaxLengthError
+    - condition: ${!(('' + (incoming.body.requestSource || '')).trim())}
+      next: returnRequestSourceRequiredError
+    - condition: ${!(('' + (incoming.body.requestPurpose || '')).trim())}
+      next: returnRequestPurposeRequiredError
+    - condition: ${!(('' + (incoming.body.unfitStartDate || '')).trim())}
+      next: returnUnfitStartDateRequiredError
+    - condition: ${('' + (incoming.body.tmFirstName || '')).trim().length > 100}
+      next: returnTmFirstNameMaxLengthError
+    - condition: ${('' + (incoming.body.tmFamilyName || '')).trim().length > 100}
+      next: returnTmFamilyNameMaxLengthError
+    - condition: ${('' + (incoming.body.tmPlaceOfBirth || '')).trim().length > 50}
+      next: returnTmPlaceOfBirthMaxLengthError
+    - condition: ${('' + (incoming.body.certificateNumber || '')).trim().length > 20}
+      next: returnCertificateNumberMaxLengthError
+    - condition: ${!!(('' + (incoming.body.certificateIssueCountry || '')).trim()) && ('' + (incoming.body.certificateIssueCountry || '')).trim().length !== 2}
+      next: returnCertificateIssueCountryInvalidError
+  next: returnValid
+
+returnValid:
+  return: '{"valid":true}'
+  next: end
+
+returnNuToInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"nuTo","code":"invalid_country_code"}'
+  next: end
+
+returnOriginatingAuthorityRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"originatingAuthority","code":"required"}'
+  next: end
+
+returnOriginatingAuthorityMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"originatingAuthority","code":"max_length_exceeded"}'
+  next: end
+
+returnRequestSourceRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"requestSource","code":"required"}'
+  next: end
+
+returnRequestPurposeRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"requestPurpose","code":"required"}'
+  next: end
+
+returnUnfitStartDateRequiredError:
+  return: '{"type":"VALIDATION_ERROR","field":"unfitStartDate","code":"required"}'
+  next: end
+
+returnTmFirstNameMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"tmFirstName","code":"source_exceeds_erru_limit"}'
+  next: end
+
+returnTmFamilyNameMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"tmFamilyName","code":"source_exceeds_erru_limit"}'
+  next: end
+
+returnTmPlaceOfBirthMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"tmPlaceOfBirth","code":"source_exceeds_erru_limit"}'
+  next: end
+
+returnCertificateNumberMaxLengthError:
+  return: '{"type":"VALIDATION_ERROR","field":"certificateNumber","code":"source_exceeds_erru_limit"}'
+  next: end
+
+returnCertificateIssueCountryInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"certificateIssueCountry","code":"invalid_country_code"}'
+  next: end
