@@ -1,0 +1,23 @@
+# RR (Rahvastikuregister) domesticDataExchange/v1/isikud — REST passthrough.
+#
+# `kind: rest` (XTR >= 0.3.0-rc): verbatim byte passthrough to the X-Road
+# Security Server per the X-Road Message Protocol for REST v1.0.4. XTR sets
+# `X-Road-Client` itself from xtr.yaml `client_data` and forwards every other
+# inbound header (X-Road-UserId, RR-Request-Reason) and the body unchanged.
+# The upstream JSON array is returned raw — 4xx/5xx is not treated as an error.
+#
+# Endpoint: POST /rr/isikud  (called by DSL/Ruuter/ljvis/POST/v1/xroad/rr/isikud.yml)
+# URL built by XTR:
+#   {security_server.url}/r1/{xroad_instance}/GOV/70008440/rr/domesticDataExchange/v1/isikud
+kind: rest
+method: POST
+
+target:
+  member_class: GOV
+  member_code: "70008440"
+  subsystem_code: rr
+  service_code: domesticDataExchange
+  path: /v1/isikud
+
+allowed_query_params: []
+forward_body: true

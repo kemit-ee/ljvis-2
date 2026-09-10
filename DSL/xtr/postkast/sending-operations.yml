@@ -1,0 +1,23 @@
+# Postkast 2.0 notification-management/v1/sending-operations — REST passthrough.
+#
+# `kind: rest` (XTR >= 0.3.0-rc): verbatim byte passthrough to the X-Road
+# Security Server. XTR sets `X-Road-Client` itself from xtr.yaml `client_data`
+# and forwards every other inbound header and the body unchanged.
+#
+# Endpoint: POST /postkast/sending-operations
+#   (called via [#PK_SENDING_OPERATIONS_ENDPOINT] from
+#    DSL/Ruuter.internal/ljvis/POST/cron/notification-status-sync.yml)
+# URL built by XTR:
+#   {security_server.url}/r1/{xroad_instance}/GOV/70006317/postkast/notification-management/v1/sending-operations
+kind: rest
+method: POST
+
+target:
+  member_class: GOV
+  member_code: "70006317"
+  subsystem_code: postkast
+  service_code: notification-management
+  path: /v1/sending-operations
+
+allowed_query_params: []
+forward_body: true
