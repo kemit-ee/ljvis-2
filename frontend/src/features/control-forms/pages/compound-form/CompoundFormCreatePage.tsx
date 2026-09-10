@@ -501,7 +501,7 @@ export function CompoundFormCreatePage() {
       )}
       <div className="card-main">
         <Heading element="h1">{headingLabel}</Heading>
-        {!isDesktop && addFormDropdown}
+        {addFormDropdown}
       </div>
 
       <Tabs value={activeTab} onChange={handleTabChange}>
@@ -541,18 +541,6 @@ export function CompoundFormCreatePage() {
               )}
             </Tabs.Trigger>
           ))}
-          {isDesktop && addFormDropdown && (
-            <div
-              style={{
-                marginLeft: 'auto',
-                paddingLeft: '1rem',
-                alignSelf: 'center',
-                marginRight: '1rem',
-              }}
-            >
-              {addFormDropdown}
-            </div>
-          )}
         </Tabs.List>
         <Tabs.Content id="tab-1" className="p-1">
           <div>
