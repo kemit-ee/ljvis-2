@@ -3,7 +3,8 @@
 UPDATE classifier.classifier_value SET name = 'sõiduki sobivus'
 WHERE code = 'CAA_10' AND parent_key IS NULL
   AND classifier_key = (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK' ORDER BY created_at DESC LIMIT 1);
-UPDATE classifier.classifier_value SET valid_until = CURRENT_DATE
+-- valid_until is exclusive and must be later than valid_from (ck_cv_period).
+UPDATE classifier.classifier_value SET valid_until = CURRENT_DATE + 1
 WHERE code = 'CAA_11' AND parent_key IS NULL
   AND classifier_key = (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK' ORDER BY created_at DESC LIMIT 1);
 INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, created_by)

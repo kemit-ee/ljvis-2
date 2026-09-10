@@ -160,6 +160,7 @@ export function useRsiForm(
       // RSI ettepanek 3 + 7: uue teate vaikeväärtused — teate esitanud pädev asutus
       // = Kliimaministeerium (KLIM), inspektor = Politsei- ja Piirivalveamet.
       originatingAuthority: message?.originatingAuthority ?? 'KLIM',
+      requestPurpose: message?.requestPurpose ?? '',
       vehicleCategory: message?.vehicleCategory ?? '',
       vehicleRegistrationNumber: message?.vehicleRegistrationNumber ?? '',
       vehicleRegistrationCountry: message?.vehicleRegistrationCountry ?? '',
@@ -273,7 +274,7 @@ export function useRsiForm(
         const payload = {
           originatingAuthority: values.originatingAuthority,
           requestSource: '',
-          requestPurpose: '',
+          requestPurpose: values.requestPurpose,
           vehicleCategory: values.vehicleCategory,
           vehicleRegistrationNumber: values.vehicleRegistrationNumber,
           vehicleRegistrationCountry: values.vehicleRegistrationCountry,
