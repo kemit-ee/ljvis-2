@@ -15,6 +15,9 @@
   nr 1073/2009) — varem oli mõlemal identne tekst.
 - Raske rikkumise juures on **"Karistust saab edasi kaevata"** vaikimisi
   **"Ei"** (varem "Jah"). Ametnik saab vajadusel muuta.
+- NCR teate vaate **vastuseplokk** kuvab nüüd ka veoettevõtja aadressi,
+  kehtestatud karistused (määranud asutus, liik, kestus või määramata jätmise
+  põhjus) ning teate kuupäeva ja kellaaja.
 
 ### Rahvastikuregistri ja Postkasti X-tee liiklus läbi XTR-i
 
