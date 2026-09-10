@@ -1,0 +1,53 @@
+declaration:
+  version: "1.0"
+  description: "Generate a filled RSI message PDF."
+  namespace: erru
+  allowlist:
+    body:
+      - field: id
+        type: string
+getMessage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/get"
+    headers:
+      type: json
+    body:
+      id: "${incoming.body.id || ''}"
+  result: messageRes
+  next: checkMessage
+checkMessage:
+  switch:
+    - condition: ${messageRes.response.body == null || messageRes.response.body.length !== 1}
+      next: notFound
+  next: renderPdf
+renderPdf:
+  call: http.post
+  args:
+    url: "http://pdf-creator:3020/v1/render"
+    headers:
+      type: json
+    body:
+      templateCode: "rsi"
+      blank: false
+      fields:
+        rsiMessage: ${messageRes.response.body[0]}
+      output: "base64"
+  result: pdfRes
+  next: checkPdf
+checkPdf:
+  switch:
+    - condition: ${pdfRes.response == null || pdfRes.response.status < 200 || pdfRes.response.status >= 300}
+      next: renderError
+  next: success
+success:
+  return: ${pdfRes.response.body}
+  next: end
+notFound:
+  status: 404
+  return: '{"error":"NOT_FOUND"}'
+  next: end
+renderError:
+  status: 502
+  return: '{"error":"PDF_RENDER_FAILED"}'
+  next: end

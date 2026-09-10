@@ -44,6 +44,8 @@ export function NcrBuildModal({ spFormKey, spFormType, open, onClose }: NcrBuild
   );
 
   const [ncrTo, setNcrTo] = useState('');
+  // Tühjaks jätmisel eeltäidab build.sql originatingAuthority kontrollkaardi
+  // inspektori asutusest (nt PPA) — #328 p3. Ametnik saab siin üle kirjutada.
   const [originatingAuthority, setOriginatingAuthority] = useState('');
   const [requestSource, setRequestSource] = useState('');
   const [requestPurpose, setRequestPurpose] = useState('');

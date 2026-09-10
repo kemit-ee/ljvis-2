@@ -6,6 +6,8 @@ declaration:
     body:
       - field: vehicleTechnicalFormId
         type: string
+      - field: technicalFormType
+        type: string
       - field: vehicleRegistrationCountry
         type: string
       - field: vehicleCategory
@@ -26,6 +28,7 @@ declaration:
 extractRequestData:
   assign:
     form_id: "${('' + (incoming.body.vehicleTechnicalFormId || '')).trim()}"
+    technical_form_type: "${('' + (incoming.body.technicalFormType || 'vehicle')).trim()}"
     vehicle_registration_country: "${('' + (incoming.body.vehicleRegistrationCountry || '')).trim().toUpperCase()}"
     vehicle_category: "${('' + (incoming.body.vehicleCategory || '')).trim()}"
     originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
@@ -42,12 +45,29 @@ checkFormIdPresent:
   switch:
     - condition: ${!form_id}
       next: returnFormIdRequired
+  next: chooseFormType
+
+chooseFormType:
+  switch:
+    - condition: ${technical_form_type === 'trailer'}
+      next: getTrailerForm
   next: getForm
 
 getForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${form_id}
+  result: form_res
+  next: checkFormFound
+
+getTrailerForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
       type: json
     body:
@@ -76,11 +96,12 @@ extractFormData:
   assign:
     compound_form_key: "${('' + (form_res.response.body[0].compoundFormKey || '')).trim()}"
     parts_summary_array: "${(function(){ var ps = form_res.response.body[0].partsSummary; return typeof ps === 'string' ? JSON.parse(ps || '[]') : (Array.isArray(ps) ? ps : []); })()}"
+    parts_defects_array: "${(function(){ var pd = form_res.response.body[0].partsDefects; return typeof pd === 'string' ? JSON.parse(pd || '[]') : (Array.isArray(pd) ? pd : []); })()}"
   next: convertCheckedItems
 
 convertCheckedItems:
   assign:
-    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return i.partCode !== 'CAA_10';}))}"
+    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return i.status === 'checked' || i.status === 'non_compliant';}).map(function(i){return {partCode:i.partCode === 'CAA_11' ? 'CAA_20' : i.partCode,status:i.status,defects:parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode:d.defectCode,severity:d.severity};})};}))}"
   next: checkCompoundFormKeyPresent
 
 checkCompoundFormKeyPresent:
@@ -104,6 +125,16 @@ checkCompoundFormFound:
   switch:
     - condition: ${compound_res.response.body == null || compound_res.response.body.length != 1}
       next: returnCompoundFormNotFound
+  next: extractCompoundCollections
+
+extractCompoundCollections:
+  assign:
+    trailers_array: "${(function(){var t=compound_res.response.body[0].trailers;return typeof t==='string'?JSON.parse(t||'[]'):(Array.isArray(t)?t:[]);})()}"
+  next: extractSelectedVehicle
+
+extractSelectedVehicle:
+  assign:
+    selected_trailer: "${technical_form_type === 'trailer' ? (trailers_array.filter(function(t){return t.regNr === form_res.response.body[0].trailerRegNr;})[0] || {}) : {}}"
   next: extractCompoundFormData
 
 # The registration country/category are accepted from the caller (frontend already has the
@@ -111,10 +142,16 @@ checkCompoundFormFound:
 # still works if the caller omits them.
 extractCompoundFormData:
   assign:
-    vehicle_registration_number: "${(compound_res.response.body[0].vehicleRegNr || '').trim()}"
-    vehicle_identification_number: "${(compound_res.response.body[0].vehicleVin || '').trim()}"
-    vehicle_registration_country: "${vehicle_registration_country || (compound_res.response.body[0].vehicleCountryCode || '').trim().toUpperCase()}"
-    vehicle_category: "${vehicle_category || (compound_res.response.body[0].vehicleCategoryCode || '').trim()}"
+    vehicle_registration_number: "${technical_form_type === 'trailer' ? (selected_trailer.regNr || '') : (compound_res.response.body[0].vehicleRegNr || '').trim()}"
+    vehicle_identification_number: "${technical_form_type === 'trailer' ? (selected_trailer.vin || '') : (compound_res.response.body[0].vehicleVin || '').trim()}"
+    vehicle_category: "${vehicle_category || (technical_form_type === 'trailer' ? (selected_trailer.categoryCode || '') : (compound_res.response.body[0].vehicleCategoryCode || '').trim())}"
+    vehicle_registration_country: "${vehicle_registration_country || (technical_form_type === 'trailer' ? (selected_trailer.countryCode || '').trim().toUpperCase() : (compound_res.response.body[0].vehicleCountryCode || '').trim().toUpperCase())}"
+    odometer_reading: "${technical_form_type === 'vehicle' ? (compound_res.response.body[0].vehicleMileage || '') : ''}"
+    inspection_authority_or_name: "${inspection_authority_or_name || [compound_res.response.body[0].inspectorFirstName, compound_res.response.body[0].inspectorLastName].filter(Boolean).join(' ') || 'Politsei- ja Piirivalveamet'}"
+    originating_authority: "${originating_authority || 'KLIM'}"
+    inspection_identifier: "${(form_res.response.body[0].subFormNumber || '') + '/' + (form_res.response.body[0].version || 1)}"
+    inspection_location: "${inspection_location || [compound_res.response.body[0].city, compound_res.response.body[0].address, compound_res.response.body[0].roadOther].filter(Boolean).join(', ')}"
+    inspection_datetime: "${inspection_datetime || ((compound_res.response.body[0].controlDate || '') + 'T' + (compound_res.response.body[0].controlTime || '00:00'))}"
   next: checkVehicleRegCountryPresent
 
 checkVehicleRegCountryPresent:
@@ -144,13 +181,13 @@ createDraft:
       vehicleRegistrationNumber: ${vehicle_registration_number}
       vehicleRegistrationCountry: ${vehicle_registration_country}
       vehicleIdentificationNumber: ${vehicle_identification_number}
-      odometerReading: ""
+      odometerReading: ${odometer_reading}
       driverFirstName: ""
       driverFamilyName: ""
       driverLicenceNumber: ""
       driverLicenceCountry: ""
       identificationDetails: ""
-      inspectionIdentifier: ""
+      inspectionIdentifier: ${inspection_identifier}
       inspectionLocation: ${inspection_location}
       inspectionDatetime: ${inspection_datetime}
       inspectionAuthorityOrName: ${inspection_authority_or_name}

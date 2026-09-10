@@ -223,10 +223,10 @@ BEGIN
             ('VSI866', 'regulaarsed iganädalased puhkeperioodid või üle 45-tunnised iganädalased puhkeperioodid veedetakse sõidukis', 'VSI'),
             ('VSI867', 'autoveo-ettevõtja ei korralda juhtide tööd selliselt, et juht saab naasta tööandja tegevuskeskusesse või juhi elukohta', 'VSI'),
             ('VSI868', 'nõutavaid andmeid ei ole salvestuslehele kantud', 'VSI'),
-            ('VSI869', 'kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele', 'VSI'),
+            ('VSI869', 'veoseveo kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määrus (EÜ) nr 1072/2009 art 8 lg 2)', 'VSI'),
             ('VSI870', 'kabotaažvedude tegemine samas liikmesriigis 4 päeva jooksul pärast viimase seadusliku kabotaažveo lõppu selles liikmesriigis', 'VSI'),
             ('VSI871', 'vedaja ei suuda esitada selgeid tõendeid eelnenud rahvusvahelise veo ja/või iga järgneva teostatud kabotaažveo kohta ja/või kõigi tehtud vedude kohta juhul, kui sõiduk on vastuvõtvas liikmesriigis viibinud 4 päeva enne rahvusvahelist vedu, ning esitada need tõendid teel toimuva kontrolli vältel', 'VSI'),
-            ('VSI872', 'kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele', 'VSI'),
+            ('VSI872', 'sõitjateveo kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele (määrus (EÜ) nr 1073/2009 art 16)', 'VSI'),
             ('VSI873', 'sõidukis ei ole või ei ole kontrollima volitatud ametniku nõudmisel võimalik esitada kabotaažvedudeks vajalikke kontrolldokumente (juhuvedude sõiduleht või eriotstarbeliste liinivedude korral vedaja ja veo korraldaja vahel sõlmitud leping või selle tõestatud koopia)', 'VSI'),
             ('VSI874', 'lepinguliste võlasuhete suhtes kohaldatava õiguse rikkumine', 'VSI'),
             ('VSI832', 'ei esitata jooksval päeval ja eelnenud 56 päeval koostatud käsikirjalisi kandeid ja väljatrükke', 'VSI')

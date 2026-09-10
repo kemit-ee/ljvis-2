@@ -13,6 +13,40 @@ CATEGORIES=[('A_2012','N2'),('B_2012','N3'),('C_2012','O3'),('D_2012','O4'),('E_
 RESULTS={'ok':'Korras','warning':'Hoiatus','precept':'Ettekirjutus','misdemeanor_proceedings':'Väärteomenetlus','driving_ban':'Sõidukeeld / juhtimiselt kõrvaldamine','arrest':'Arest','transport_interruption':'Autovedu on katkestatud','extraordinary_inspection':'Erakorraline ülevaatus','extraordinary_inspection_ta':'Erakorraline ülevaatus ja liiklusregistri andmete täpsustamine'}
 PROCEEDINGS={'LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
 
+RSI_PARTS = {
+ 'CAA_0':'Sõiduki identifitseerimine','CAA_1':'Pidurisüsteem','CAA_2':'Rooliseade',
+ 'CAA_3':'Nähtavus','CAA_4':'Valgustusseadmed ja elektrisüsteemi osad',
+ 'CAA_5':'Teljed, veljed, rehvid, vedrustus','CAA_6':'Šassii ja selle kinnitused',
+ 'CAA_7':'Muu varustus','CAA_8':'Välisriigi vedaja kabotaažvedu','CAA_9':'Täiendavad ülevaatused reisijateveoks kasutatavale sõidukile',
+ 'CAA_10':'10. Sõiduki sobivus','CAA_20':'20. Kinnitusmeetodid'
+}
+
+def build_rsi_context(payload=None, blank=False):
+    raw = {} if blank else unwrap((payload or {}).get('rsiMessage', payload or {}))
+    if not blank and not raw.get('id'):
+        raise ValueError('Filled RSI mode requires rsiMessage.id')
+    checked = structured(raw.get('checkedItems'), list)
+    rows = []
+    by_code = {item.get('partCode'): item for item in checked}
+    for code, name in RSI_PARTS.items():
+        item = by_code.get(code, {})
+        rows.append({'name': name, 'status': item.get('status', ''), 'defects': structured(item.get('defects'), list)})
+    rows = [row for row in rows if row['status'] in ('checked', 'non_compliant') or not blank]
+    identification = structured(raw.get('identificationDetails'), dict)
+    address = identification.get('address') or {}
+    return {
+        'title': 'TEHNOKONTROLLI TEADE RSI', 'number': raw.get('businessCaseId', ''),
+        'blank': blank, 'r': raw, 'rows': rows, 'warnings': [], 'appendix': [],
+        'inspection_date': dt(raw.get('inspectionDatetime')),
+        'inspection_time': str(raw.get('inspectionDatetime') or '')[11:16],
+        'purpose': raw.get('requestPurpose', ''),
+        'holder_type': identification.get('isVehicleHolder', ''),
+        'holder_name': identification.get('transportUndertakingName') or identification.get('companyName') or joined(identification.get('firstName'), identification.get('familyName')),
+        'holder_licence': identification.get('communityLicenceNumber', ''),
+        'holder_address': address.get('address', ''), 'holder_city': address.get('city', ''),
+        'holder_country': address.get('country', ''), 'holder_postcode': address.get('postCode', ''),
+    }
+
 
 def yes(value):
     if value in (True, 'true'): return True

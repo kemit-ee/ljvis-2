@@ -10,6 +10,7 @@ import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { DetailRow } from '../../components/shared/DetailRow';
 import { PageActions } from '../../../../shared/components/PageActions';
+import { printRsiMessage } from '../../api';
 
 /**
  * RSI message detail (LJVIS2-147 vorm + LJVIS2-148 send). Modes:
@@ -41,6 +42,16 @@ export function RsiFormPage() {
     reload();
   };
   const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
+  const handlePrint = async () => {
+    const result = await printRsiMessage(message!.id);
+    const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
   const form = useRsiForm(message, handleSaved);
   const prevSubmitCount = useRef(0);
 
@@ -95,6 +106,9 @@ export function RsiFormPage() {
             {t('erru.rsi.form.version', { version: message.version })}
             {!editable && ` · ${t('erru.rsi.form.readOnly')}`}
           </Text>
+          <Button type="button" visualType="secondary" onClick={() => void handlePrint()}>
+            {t('common.printFilled')}
+          </Button>
           {message.errorMessage && (
             <Text modifiers="bold">{message.errorMessage}</Text>
           )}

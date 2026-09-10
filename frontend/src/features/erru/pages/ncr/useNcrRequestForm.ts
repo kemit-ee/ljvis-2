@@ -13,7 +13,9 @@ const emptySeriousInfringement: NcrSeriousInfringement = {
   infringementType: '',
   dateOfInfringement: '',
   detectionCheckDate: '',
-  appealPossible: true,
+  // "Karistust saab edasi kaevata" vaikimisi "Ei" — LJVIS saadab NCR teate välja
+  // valdavalt jõustunud otsuste kohta, mida enam edasi kaevata ei saa (#328).
+  appealPossible: false,
   penaltiesImposed: [],
   penaltiesRequested: [],
 };
