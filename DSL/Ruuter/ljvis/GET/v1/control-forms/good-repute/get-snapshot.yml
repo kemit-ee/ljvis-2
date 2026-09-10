@@ -22,7 +22,29 @@ getSnapshot:
       id: ${incoming.params.id}
       form_key: ${incoming.params.formKey}
   result: res
+  next: checkEmpty
+
+checkEmpty:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length == 0}
+      next: getFromArchive
   next: returnSuccess
+
+getFromArchive:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
+    headers:
+      type: json
+    body:
+      formType: "good-repute"
+      id: ${incoming.params.id}
+  result: archiveRes
+  next: returnArchive
+
+returnArchive:
+  return: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
+  next: end
 
 returnSuccess:
   return: ${res.response.body}

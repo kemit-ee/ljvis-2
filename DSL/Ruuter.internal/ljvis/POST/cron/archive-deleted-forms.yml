@@ -1,0 +1,167 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    ADR-010: kolib kustutatud kontrollvormid töö-baasist ERALDI arhiiv-andmebaasi
+    (ljvis_arhiiv_db / toodang ljvis2_<env>_arhiiv). Kolm faasi, kõik läbi resql:
+    (1) select_deleted_snapshots [töö-baas] — kõik snapshot-read olemitest mille
+    viimane seis on 'deleted', koos copy-time looja/org resolutsiooniga;
+    (2) insert_snapshots [arhiiv-baas] — ON CONFLICT DO NOTHING;
+    (3) count_present [arhiiv-baas] — verifitseerib, et IGA rida on arhiivis kohal;
+    (4) purge_confirmed [töö-baas] — REAALNE DELETE, ainult kui samm 3 = 100% vaste.
+    Kui vaste pole täielik, purge JÄETAKSE VAHELE (logi hoiatus), järgmine jooks
+    proovib uuesti (ON CONFLICT tõttu idempotentne). Kutsub CronManager
+    (DSL/CronManager/archive-deleted-forms.yaml).
+  namespace: cron
+  allowlist:
+    body: []
+
+selectStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/archive/select_deleted_snapshots"
+    headers:
+      type: json
+    body:
+      limit: 5000
+  result: selRes
+  next: assignRows
+
+assignRows:
+  assign:
+    rows: "${selRes.response.body || []}"
+    rowCount: "${(selRes.response.body || []).length}"
+    pairsJson: "${JSON.stringify((selRes.response.body || []).map(function(r){ return { form_type: r.formType, id: r.id }; }))}"
+  next: checkEmpty
+
+checkEmpty:
+  switch:
+    - condition: "${Number(rowCount) === 0}"
+      next: logNothing
+  next: insertStep
+
+insertStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/insert_snapshots"
+    headers:
+      type: json
+    body:
+      rows: "${JSON.stringify(rows)}"
+  result: insRes
+  next: assignInserted
+
+assignInserted:
+  assign:
+    inserted: "${(insRes.response.body && insRes.response.body[0] && insRes.response.body[0].inserted) || 0}"
+  next: verifyStep
+
+verifyStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/count_present"
+    headers:
+      type: json
+    body:
+      pairs: "${pairsJson}"
+  result: verRes
+  next: assignPresent
+
+assignPresent:
+  assign:
+    present: "${(verRes.response.body && verRes.response.body[0] && verRes.response.body[0].present) || 0}"
+  next: decidePurge
+
+decidePurge:
+  switch:
+    - condition: "${Number(present) !== Number(rowCount)}"
+      next: logNotVerified
+  next: purgeStep
+
+purgeStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/archive/purge_confirmed"
+    headers:
+      type: json
+    body:
+      ids: "${pairsJson}"
+  result: purgeRes
+  next: assignPurged
+
+assignPurged:
+  assign:
+    purged: "${(purgeRes.response.body && purgeRes.response.body[0] && purgeRes.response.body[0].purged) || 0}"
+  next: logDone
+
+logDone:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.deleted_forms.cron"
+      request_xml: "archive-deleted-forms"
+      response_xml: "${JSON.stringify({ copied: Number(rowCount), inserted: Number(inserted), verified: Number(present), purged: Number(purged) })}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnDone
+
+returnDone:
+  status: 200
+  return: "${({ copied: Number(rowCount), verified: Number(present), purged: Number(purged) })}"
+  next: end
+
+logNothing:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.deleted_forms.cron"
+      request_xml: "archive-deleted-forms"
+      response_xml: "${JSON.stringify({ copied: 0, verified: 0, purged: 0 })}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnNothing
+
+returnNothing:
+  status: 200
+  return: "${({ copied: 0, verified: 0, purged: 0 })}"
+  next: end
+
+logNotVerified:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.deleted_forms.cron"
+      request_xml: "archive-deleted-forms"
+      response_xml: "${JSON.stringify({ copied: Number(rowCount), verified: Number(present), purged: 0, note: 'purge skipped — archive not complete' })}"
+      duration_ms: 0
+      success: false
+      error_message: "${'archive incomplete: present ' + present + ' of ' + rowCount}"
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnNotVerified
+
+returnNotVerified:
+  status: 200
+  return: "${({ copied: Number(rowCount), verified: Number(present), purged: 0 })}"
+  next: end

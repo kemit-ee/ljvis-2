@@ -1,0 +1,13 @@
+# ADR-010: kolib kustutatud kontrollvormid töö-baasist eraldi arhiiv-andmebaasi
+# (copy → verify → real delete). Vt DSL/Ruuter.internal/ljvis/POST/cron/archive-deleted-forms.yml.
+#
+# PR A: trigger on INERTNE (2099) — voog ja SQL on valmis ja testitav käsitsi
+# (POST ${RUUTER_INTERNAL}/ljvis/cron/archive-deleted-forms), aga automaatset
+# kustutamist veel ei toimu. Aktiveeritakse PR B-s: trigger: "0 0 0/2 * * ?"
+# (iga 2h täistunnil, Europe/Tallinn).
+archive_deleted_forms:
+  trigger: "0 0 0 1 1 ? 2099"
+  type: exec
+  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/archive-deleted-forms" || true
+  allowedEnvs:
+    - RUUTER_INTERNAL

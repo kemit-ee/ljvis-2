@@ -121,6 +121,23 @@ services:
     networks:
       - ljvis-ci
 
+  # ── Archive DB migrations (ADR-010, separate database ljvis_arhiiv_db) ────
+  liquibase-arhiiv:
+    build:
+      context: .
+      dockerfile: docker/liquibase/Dockerfile
+    restart: "no"
+    volumes:
+      - ./DSL/Liquibase-arhiiv/liquibase.properties:/liquibase/liquibase.properties
+      - ./DSL/Liquibase-arhiiv/changelog:/liquibase/changelog
+      - ./DSL/Liquibase-arhiiv/changelog.yaml:/liquibase/changelog.yaml
+    command: --defaultsFile=/liquibase/liquibase.properties update
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - ljvis-ci
+
   # ── Application services ──────────────────────────────────────────────────
   resql-ljvis:
     build:
@@ -129,6 +146,8 @@ services:
     restart: unless-stopped
     depends_on:
       bootstrap:
+        condition: service_completed_successfully
+      liquibase-arhiiv:
         condition: service_completed_successfully
     environment:
       - RESQL_DB_PASSWORD=01234

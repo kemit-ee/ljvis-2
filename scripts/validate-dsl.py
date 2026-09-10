@@ -31,7 +31,7 @@ import sys
 import yaml
 
 RUUTER_GLOBS = ("DSL/Ruuter/**/*.yml", "DSL/Ruuter.internal/**/*.yml")
-SQL_DIRS = ("DSL/Resql", "DSL/Liquibase/changelog")
+SQL_DIRS = ("DSL/Resql", "DSL/Liquibase/changelog", "DSL/Liquibase-arhiiv/changelog")
 # `${...}` payloads only, so a plain string value cannot look like a variable reference.
 EXPRESSION_RE = re.compile(r"\$\{([^}]*)\}")
 

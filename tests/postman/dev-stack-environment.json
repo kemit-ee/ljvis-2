@@ -15,6 +15,12 @@
       "description": "Resql — DEV stack (docker-compose.yml resql-ljvis port 8090)"
     },
     {
+      "key": "resql_arhiiv_url",
+      "value": "http://localhost:8090/arhiiv",
+      "enabled": true,
+      "description": "Resql arhiiv-projekt (ADR-010, ljvis_arhiiv_db)"
+    },
+    {
       "key": "tim_url",
       "value": "http://localhost:8085",
       "enabled": true

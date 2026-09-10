@@ -2431,6 +2431,311 @@
    ]
   },
   {
+   "name": "[archive Setup] Insert labour_inspection_form (saved)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/insert",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "labour-inspection",
+      "insert"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"status\": \"saved\", \"inspectorName\": \"Archive Tester\", \"inspectionDate\": \"2026-02-01\", \"inspectionType\": \"cargo\", \"companyName\": \"Archive OU\", \"companyRegCode\": \"12345678\", \"vehicleCount\": \"\", \"totalDriversCount\": \"\", \"controlsMatrix\": \"[]\", \"prescriptionComposed\": \"false\", \"violations\": \"[]\", \"created_by\": \"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('arch_li_key', String(rows[0].id));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive Setup] Soft-delete it (writes deleted tombstone)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/delete",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "labour-inspection",
+      "delete"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{arch_li_key}}\", \"status\": \"deleted\", \"created_by\": \"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] get-snapshots BEFORE archival — from forms.* (work DB)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/get-snapshots",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "labour-inspection",
+      "get-snapshots"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{arch_li_key}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('>=1 snapshot before archival', () => pm.expect((rows||[]).length).to.be.at.least(1));",
+       "if (rows && rows.length) pm.environment.set('arch_snapshot_id', String(rows[rows.length-1].snapshot_id || rows[rows.length-1].snapshotId));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] POST cron/archive-deleted-forms — copy -> verify -> real delete",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{internal_api_url}}/ljvis/cron/archive-deleted-forms",
+     "host": [
+      "{{internal_api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "cron",
+      "archive-deleted-forms"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));",
+       "const r = pm.response.json().response || pm.response.json();",
+       "pm.test('copied >= 2 (saved + deleted snapshots)', () => pm.expect(Number(r.copied)).to.be.at.least(2));",
+       "pm.test('verified == copied', () => pm.expect(Number(r.verified)).to.eql(Number(r.copied)));",
+       "pm.test('purged >= 2 (real delete happened)', () => pm.expect(Number(r.purged)).to.be.at.least(2));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] get-snapshots AFTER archival — served from archive DB",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_arhiiv_url}}/deleted-forms/get_snapshots",
+     "host": [
+      "{{resql_arhiiv_url}}"
+     ],
+     "path": [
+      "deleted-forms",
+      "get_snapshots"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"formType\": \"labour-inspection\", \"formKey\": \"{{arch_li_key}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('history retrievable from archive after purge', () => pm.expect((rows||[]).length).to.be.at.least(1));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] get_snapshot direct from archive DB — payload present",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_arhiiv_url}}/deleted-forms/get_snapshot",
+     "host": [
+      "{{resql_arhiiv_url}}"
+     ],
+     "path": [
+      "deleted-forms",
+      "get_snapshot"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"formType\": \"labour-inspection\", \"id\": \"{{arch_snapshot_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('payload object', () => pm.expect(rows[0].payload).to.be.an('object'));",
+       "pm.test('payload has form_number', () => pm.expect(rows[0].payload.form_number || rows[0].payload.formNumber).to.be.ok);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] cron re-run — nothing left to copy/purge (idempotent)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{internal_api_url}}/ljvis/cron/archive-deleted-forms",
+     "host": [
+      "{{internal_api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "cron",
+      "archive-deleted-forms"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('200', () => pm.response.to.have.status(200));",
+       "const r = pm.response.json().response || pm.response.json();",
+       "pm.test('copied 0', () => pm.expect(Number(r.copied)).to.eql(0));",
+       "pm.test('purged 0', () => pm.expect(Number(r.purged)).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] ruuter-internal still alive",
+   "request": {
+    "method": "GET",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{internal_api_url}}/health",
+     "host": [
+      "{{internal_api_url}}"
+     ],
+     "path": [
+      "health"
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('alive', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+      ]
+     }
+    }
+   ]
+  },
+  {
    "name": "[NCR autodispatch] select-autodispatch-candidates — published KORRAS foreign-vehicle sub-form is a candidate",
    "request": {
     "method": "POST",

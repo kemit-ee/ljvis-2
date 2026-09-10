@@ -7,6 +7,8 @@ sql_dir: "/DSL"
 
 project_datasource_map:
   ljvis: ljvis
+  # ADR-010: eraldi kustutatud-vormide arhiivibaas. SQL: DSL/Resql/arhiiv/**
+  arhiiv: arhiiv
 
 allow_datasource_header: false
 
@@ -16,6 +18,12 @@ datasources:
     username: "ljvis"
     password_env: "RESQL_DB_PASSWORD"
     max_connections: 10
+    acquire_timeout_seconds: 5
+  - name: arhiiv
+    url: "postgres://database:5432/ljvis_arhiiv_db"
+    username: "ljvis"
+    password_env: "RESQL_DB_PASSWORD"
+    max_connections: 5
     acquire_timeout_seconds: 5
 
 cors:
