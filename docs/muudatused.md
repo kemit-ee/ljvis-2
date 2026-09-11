@@ -6,6 +6,12 @@
 
 ## 2026-09-11
 
+### NCR päringu ja Tööinspektsiooni kontrollkaardi parendused
+
+- NCR teate loomisel eeltäidetakse esitav pädev asutus üldosa kontrollija asutuse järgi ning sihtliikmesriik sõiduki riigi tunnusmärgi järgi.
+- NCR koostamise päring saadab seotud SP-vormi võtme alati stringina.
+- Tööinspektsiooni kontrollkaardi ettevõtte registrikood, sõidukite arv ja juhtide arv normaliseeritakse salvestamisel API stringivormingusse.
+
 ### Tööinspektsiooni kontrollkaart — äriregistri otsing
 
 - Ettevõtte nime ja registrikoodi välja kõrval on nüüd **"Otsi"** nupp, mis
