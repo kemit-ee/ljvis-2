@@ -19,6 +19,7 @@ export function LabourInspectionFormCreatePage() {
   const gridClass = styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'];
 
   const handleSaved = (id?: string) => {
+    window.scrollTo(0, 0);
     navigate(`/control-forms/labour-inspection/${id}`, {
       state: { justCreated: true },
     });

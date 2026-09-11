@@ -76,6 +76,7 @@ export function ForeignViolationFormPage() {
     form?.status === 'confirmed';
 
   const handleEditSaved = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
@@ -85,6 +86,7 @@ export function ForeignViolationFormPage() {
   };
 
   const handleConfirmed = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
@@ -94,6 +96,7 @@ export function ForeignViolationFormPage() {
   };
 
   const handlePublished = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(false);
@@ -126,6 +129,11 @@ export function ForeignViolationFormPage() {
     associatedPersonsLoading,
     triggerConfirm,
     triggerPublish,
+    counties,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
+    inspectionCitiesParishes,
+    handleInspectionRegionChange,
   } = useForeignViolationForm(
     form ?? undefined,
     handleEditSaved,
@@ -268,6 +276,11 @@ export function ForeignViolationFormPage() {
           closeCompanyPicker={closeCompanyPicker}
           associatedPersons={associatedPersons}
           associatedPersonsLoading={associatedPersonsLoading}
+          counties={counties}
+          companyCitiesParishes={companyCitiesParishes}
+          handleCompanyCountyChange={handleCompanyCountyChange}
+          inspectionCitiesParishes={inspectionCitiesParishes}
+          handleInspectionRegionChange={handleInspectionRegionChange}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
           showAdminSection={isAdmin}
           isPublished={form?.status === 'published'}

@@ -1,0 +1,20 @@
+{{#with forms.[0]}}
+{
+        "id": "{{this.id}}",
+        "formNumber": "{{this.formNumber}}",
+        "version": {{this.version}},
+        "status": "{{this.status}}",
+        "personalCode": "{{this.personalCode}}",
+        "firstName": "{{this.firstName}}",
+        "lastName": "{{this.lastName}}",
+        "dateOfBirth": {{#if this.dateOfBirth}}"{{this.dateOfBirth}}"{{else}}null{{/if}},
+        "placeOfBirth": {{#if this.placeOfBirth}}"{{this.placeOfBirth}}"{{else}}null{{/if}},
+        "certificateNumber": "{{this.certificateNumber}}",
+        "certificateIssueDate": {{#if this.certificateIssueDate}}"{{this.certificateIssueDate}}"{{else}}null{{/if}},
+        "certificateCountryCode": "{{this.certificateCountryCode}}",
+        "fitnessStatus": "{{this.fitnessStatus}}",
+        "unfitFromDate": {{#if this.unfitFromDate}}"{{this.unfitFromDate}}"{{else}}null{{/if}},
+        "unfitUntilDate": {{#if this.unfitUntilDate}}"{{this.unfitUntilDate}}"{{else}}null{{/if}},
+        "createdBy": "{{this.createdBy}}"
+}
+{{/with}}

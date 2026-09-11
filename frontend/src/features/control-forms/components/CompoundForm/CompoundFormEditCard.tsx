@@ -30,6 +30,7 @@ import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtil
 import { MaskedDateField } from '../shared/MaskedDateField';
 import { MaskedTimeField } from '../shared/MaskedTimeField';
 import React from 'react';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 interface CompoundFormValues {
   id: string;
@@ -235,9 +236,7 @@ export function CompoundFormEditCard({
 
   // Välisriigi ettevõtte puhul ei kohaldu Eesti EHAK-klassifikaator —
   // maakond/linn-vald sisestatakse vabatekstina.
-  const isCompanyForeign =
-    !!formik.values.companyCountryCode &&
-    formik.values.companyCountryCode !== 'EE';
+  const isCompanyForeign = formik.values.companyCountryCode !== 'EE';
 
   return (
     <Card className="mb-1">
@@ -544,9 +543,9 @@ export function CompoundFormEditCard({
                           : {})}
                       />
                     </div>
-                    <Button type="button" onClick={handleVehicleSearch}>
+                    <AsyncButton type="button" onClick={handleVehicleSearch}>
                       {t('common.search')}
-                    </Button>
+                    </AsyncButton>
                   </div>
                   <div />
                   <TextField
@@ -832,12 +831,12 @@ export function CompoundFormEditCard({
                                   : {})}
                               />
                             </div>
-                            <Button
+                            <AsyncButton
                               type="button"
                               onClick={() => handleTrailerSearch(index)}
                             >
                               {t('common.search')}
-                            </Button>
+                            </AsyncButton>
                           </div>
                           <div />
                           <TextField
@@ -1159,9 +1158,9 @@ export function CompoundFormEditCard({
                               : {})}
                           />
                         </div>
-                        <Button type="button" onClick={handleCompanySearch}>
+                        <AsyncButton type="button" onClick={handleCompanySearch}>
                           {t('forms.compound.companySearchButton')}
-                        </Button>
+                        </AsyncButton>
                       </div>
                       <div className={styles['select-row']}>
                         <div className={styles['select-wrapper']}>
@@ -1185,13 +1184,13 @@ export function CompoundFormEditCard({
                           />
                         </div>
                         {handleCompanyNameSearch && (
-                          <Button
+                          <AsyncButton
                             type="button"
                             visualType="secondary"
                             onClick={handleCompanyNameSearch}
                           >
                             {t('forms.compound.companyNameSearchButton')}
-                          </Button>
+                          </AsyncButton>
                         )}
                       </div>
                       <Select
@@ -1413,9 +1412,9 @@ export function CompoundFormEditCard({
                           }
                         />
                       </div>
-                      <Button type="button" onClick={handleMtrSearch}>
+                      <AsyncButton type="button" onClick={handleMtrSearch}>
                         {t('forms.compound.mtrSearchButton')}
-                      </Button>
+                      </AsyncButton>
                     </div>
                   </Card.Content>
                 </Card>
