@@ -454,7 +454,7 @@ export function useTramControlCard(
       // ── Sõidukijuhi kontrolli sisu ──────────────────────────────────
       transportType: form?.transportType ?? '',
       resultType: form?.resultType ?? 'ok',
-      proceedingType: form?.proceedingType ?? 'none',
+      proceedingType: form?.proceedingType ?? '',
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
       additionalMeasure: form?.additionalMeasure ?? '',
       notes: form?.notes ?? '',

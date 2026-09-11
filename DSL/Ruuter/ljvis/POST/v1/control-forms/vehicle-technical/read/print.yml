@@ -1,0 +1,100 @@
+declaration:
+  version: "1.0"
+  description: "Generate a filled vehicle technical-check PDF."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
+  next: getForm
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: formRes
+  next: checkForm
+
+checkForm:
+  switch:
+    - condition: ${formRes.response.body == null || formRes.response.body.length !== 1}
+      next: returnNotFound
+  next: getCompoundForm
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${formRes.response.body[0].compoundFormKey}
+  result: compoundFormRes
+  next: checkCompoundForm
+
+checkCompoundForm:
+  switch:
+    - condition: ${compoundFormRes.response.body == null || compoundFormRes.response.body.length !== 1}
+      next: returnNotFound
+  next: renderFilled
+
+renderFilled:
+  call: http.post
+  args:
+    url: "http://pdf-creator:3020/v1/render"
+    headers:
+      type: json
+    body:
+      templateCode: "vehicle-technical"
+      blank: false
+      fields:
+        compoundForm: ${compoundFormRes.response.body[0]}
+        technicalForm: ${formRes.response.body[0]}
+      output: "base64"
+  result: pdfRes
+  next: checkPdfResult
+
+checkPdfResult:
+  switch:
+    - condition: ${pdfRes.response == null || pdfRes.response.status < 200 || pdfRes.response.status >= 300 || pdfRes.response.body == null}
+      next: returnRenderError
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "control_form.vehicle_technical.print"
+    event_category: "control_form"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+    description: "Sõiduki tehnoülevaatuse kontrollkaart trükitud, alamvormi võti=${id}"
+    log_content: "{\"subFormKey\":\"${id}\"}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${pdfRes.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error":"NOT_FOUND"}'
+  next: end
+
+returnRenderError:
+  status: 502
+  return: '{"error":"PDF_RENDER_FAILED"}'
+  next: end

@@ -128,6 +128,17 @@ Rikkumiste modaalaknas valitakse kolmel tasemel:
 
 Raskusaste kuvatakse valiku ees **rasvases kirjas** enne rikkumise nime. Need väärtused võivad olla näiteks **MSI** (most serious infringement), **VSI**, **SI** või **MI**. Iga tase 3 valiku korral salvestatakse rikkumise kood (`violationCode`) ja raskusastme kood (`severityCode`) koos nimega.
 
+## PDF-printimine
+
+Salvestatud ja kinnitatud sõidu- ja puhkeaja kontrollkaardil on nupp **„Prindi"** rippmenüüga:
+
+| Valik | Kirjeldus |
+|---|---|
+| **Prindi täidetud vorm** | Laadib alla salvestatud andmetega PDF-i |
+| **Prindi tühi vorm** | Laadib alla tühja blanketi paberile täitmiseks |
+
+Salvestamata (uuel) vormil on saadaval ainult **„Prindi tühi vorm"**.
+
 ## Nipid
 
 - Määra kõigepealt **kontrolli tulemus** – see avab või peidab ülejäänud plokid.

@@ -153,6 +153,20 @@ Kuvatakse pärast kinnitamist. Muudetav ainult õigusega `control_form.edit_lock
 
 Pärast kinnitamist ei saa vormi tavaliselt enam muuta. Paranduste tegemiseks on vaja administraatori õigust `control_form.edit_locked`.
 
+## PDF-printimine
+
+Salvestatud ja kinnitatud ADR kontrollkaardil on nupp **„Prindi"** rippmenüüga:
+
+| Valik | Kirjeldus |
+|---|---|
+| **Prindi täidetud vorm** | Laadib alla salvestatud andmetega PDF-i |
+| **Prindi tühi vorm** | Laadib alla tühja blanketi paberile täitmiseks |
+
+Salvestamata (uuel) vormil on saadaval ainult **„Prindi tühi vorm"**.
+PDF genereeritakse serveri poolel ja saadetakse brauserisse allalaadimisena —
+eraldi printeridialoog ei avane.
+Varasema versiooni (hetktõmmise) vaatamisvaates töötab prindi-nupp samamoodi.
+
 ## Nipid
 
 - Autojuhi abi andmed ja koolitustunnistused täidetakse ainult rikkumise korral.

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, Heading } from '@tedi-design-system/react/tedi';
+import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { printTransportInterruptionForm } from '../../api';
 import type { TransportInterruptionForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { useTransportInterruptionForm } from '../../pages/transport-interruption-form/useTransportInterruptionForm';
@@ -18,7 +19,26 @@ interface TransportInterruptionFormViewCardProps {
 
 export function TransportInterruptionFormViewCard({ form, formType, canPublish, onPublish }: TransportInterruptionFormViewCardProps) {
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [printing, setPrinting] = useState(false);
   const { t } = useTranslation();
+
+  const handlePrint = async () => {
+    if (!form.id || printing) return;
+    setPrinting(true);
+    try {
+      const result = await printTransportInterruptionForm(String(form.id));
+      const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = result.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPrinting(false);
+    }
+  };
+
   const { formik, counties, addressValue, setAddressValue, toggleLegalBasis } =
     useTransportInterruptionForm(
       form,
@@ -52,6 +72,11 @@ export function TransportInterruptionFormViewCard({ form, formType, canPublish, 
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
         <div className="confirm-button">
           <div>
+            {form.id && (
+              <Button type="button" visualType="secondary" isLoading={printing} disabled={printing} onClick={() => void handlePrint()}>
+                {t('common.print')}
+              </Button>
+            )}
             {canPublish && onPublish && (
               <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
                 {t('common.publish')}
