@@ -1,5 +1,11 @@
 # Sissejuhatus
 
+## Süsteemi ülesehitus
+
+Järgmine joonis näitab LJVIS2 peamisi komponente, eraldi teenuseid ja nendevahelisi seoseid.
+
+![LJVIS2 süsteemi ülesehitus](../architecture/system-overview.svg)
+
 LJVIS2 (Liiklusjärelvalve infosüsteem 2) on veebipõhine tööriist transpordiametnikele ja ettevõtjatele. Selle abil dokumenteeritakse liiklus-, tööinspektsiooni- ja tehnilisi kontrolle, hallatakse kasutajaid ning vaadatakse auditilogi.
 
 ## Kellele juhend on mõeldud
