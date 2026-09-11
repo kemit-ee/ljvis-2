@@ -245,6 +245,7 @@
               "});",
               "pm.test('NU (Sobimatusteade) permissions present', () => {",
               "  ['nu.list','nu.read','nu.create','nu.send'].forEach(code => pm.expect(codes).to.include(code));",
+              "});",
               "pm.test('X-tee umbrella query permission present', () => {",
               "  pm.expect(codes).to.include('xtee.query');",
               "});",
