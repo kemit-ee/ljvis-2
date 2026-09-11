@@ -27,8 +27,22 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 
 | Tehnoloogia / komponent | Versioon | Kasutusel alates | Kasutusel kuni | Allikas või muudatus |
 |---|---|---|---|---|
-| Frontend | 1.2.2 | määramata | 2026-09-11 | `frontend/package.json` |
+| PostgreSQL | 14.1 | määramata | 2026-07-10 | `postgres:14.1` → `postgres:17` |
+| PostgreSQL | 17 | 2026-07-10 |  | `postgres:17` |
+| Ruuter | 0.9.10-rc | 2026-09-07 | 2026-09-08 | `0.9.9-rc` → `0.9.10-rc` |
+| Ruuter | 0.9.12-rc | 2026-09-08 | 2026-09-10 | Ruuteri image'i uuendus |
+| Ruuter | 0.9.15-rc | 2026-09-10 |  | `turnerrainer/ruuter:0.9.15-rc` + digest |
+| Resql | 0.2.0-alpha | 2026-09-07 | 2026-09-10 | Rust Resql DSL-i üleviimine |
+| Resql | 0.3.0-alpha | 2026-09-10 |  | `turnerrainer/resql:0.3.0-alpha` + digest |
+| DataMapper | 0.1.0-alpha.2 | määramata | 2026-09-07 | `0.1.0-alpha.2` → `0.1.3-alpha` |
+| DataMapper | 0.1.3-alpha | 2026-09-07 |  | `turnerrainer/datamapper:0.1.3-alpha` + digest |
+| TIM | 0.2.0-alpha.2 | määramata | 2026-09-07 | Rust TIM-i kasutuselevõtt |
+| TIM | 0.3.0-alpha | 2026-09-07 |  | `turnerrainer/tim:0.3.0-alpha` + digest |
+| Frontend | 1.0.0 | 2026-09-09 | 2026-09-11 | `frontend/package.json` 0.0.0 → 1.0.0 |
+| Frontend | 1.2.2 | 2026-09-11 | 2026-09-11 | `frontend/package.json` |
 | Frontend | 1.3.0 | 2026-09-11 |  | NCR ja Tööinspektsiooni salvestuse parendused |
+| pdf-creator | 1.0.0 | 2026-09-09 | 2026-09-11 | PDF-prindi teenuse kasutuselevõtt |
+| pdf-creator | 1.1.0 | 2026-09-11 |  | `pdf-creator/VERSION` |
 | Kõik Helm workload chartid | 0.1.0-main.222.g386a85d6 | 2026-09-10 |  | DevOpsi `environments/dev/release.yaml` |
 
 ## Täiendav info
