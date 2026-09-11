@@ -3,6 +3,7 @@
 Python + Jinja2 + WeasyPrint. Eraldi siseteenus LJVIS-i Docker-võrgus.
 Vastuvõetud andmetest genereeritakse PDF mälus; teenus ei loe andmebaasi ega
 salvesta dokumente. Autentimine, õigused ja vormi versiooni valik jäävad Ruuterisse.
+Teenuse SemVer versioon on failis `VERSION`.
 
 ## Käivitamine
 
@@ -70,6 +71,11 @@ registris olevad mallid ja nende andmed. Väliste ressursside laadimine on keela
 | templateCode | fields alamobjekt | Väljund |
 |---|---|---|
 | adr-form | adrForm | ADR-kontrollkaart, selgitused ja vajadusel lisa |
+| compound-form | compoundForm | Koondvormi üldosa, sõiduk, vedaja, juhid ja kontrollija |
+| foreign-violation-form | foreignViolationForm | Välisriigi rikkumise kontrollkaart ja haldusmenetlus |
+| labour-inspection | labourInspectionForm | Tööinspektsiooni kontrollkaart, kontrollimaatriks ja rikkumised |
+| good-repute | goodReputeForm | Veokorraldusjuhi hea maine andmevorm |
+| tram-card | tramCard | Transpordiameti kontrollkaart koos juhi kontrolli osaga |
 | vehicle-technical | technicalForm | Sõiduki tehnose voorkontrollkaart koos tagakülje detailidega; korras tulemuse puhul kontrollakt |
 | trailer-technical | technicalForm | Haagise tehnoseisundi kontrollkaart koos tagakülje detailidega; korras tulemuse puhul kontrollakt |
 | drive-rest-form | driveRestForm | Sõidu- ja puhkeaja kontrollkaart; tühjal lisaks rikkumiste kontroll-loend |

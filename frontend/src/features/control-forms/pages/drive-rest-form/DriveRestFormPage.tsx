@@ -616,6 +616,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               scope="driver"
               form={snapshot}
               formType={FORM_TYPE.DRIVER}
+              snapshotId={snapshotId}
             />
           </div>
         ) : (
@@ -624,6 +625,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               scope="teammate"
               form={snapshot}
               formType={FORM_TYPE.TEAMMATE}
+              snapshotId={snapshotId}
             />
           </div>
         )}

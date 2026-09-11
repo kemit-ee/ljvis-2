@@ -58,6 +58,27 @@ returns:
   type: string
   nullable: true
 */
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- ANDMETE ÜLEKANNE KONTROLLKAARDILT NCR-TEATESSE (#328 p3)
+--
+-- Politsei / TRAM kontrollkaardilt "Loo NCR teade" nupp ja öine automaatne
+-- väljasaatmine (erru-ncr-autodispatch.yml) kutsuvad seda päringut. Need
+-- kontrollkaardi väljad kanduvad NCR-teatesse ja PEAVAD olema täidetud, et
+-- teade oleks kehtiv:
+--   compound_form.company_name                              -> transport_undertaking_name
+--   compound_form.company_activity_licence_copy_number      -> community_licence_number
+--       (ühenduse tegevusloa / kinnitatud ärakirja / tõestatud koopia number)
+--   compound_form.vehicle_reg_nr                            -> vehicle_registration_number
+--   compound_form.vehicle_country_code (<> 'EE')            -> vehicle_registration_country + ncr_to
+--   compound_form.control_date                              -> check_date + iga rikkumise kuupäevad
+--   sp_*_form.erru_points[] (severity_category MSI/VSI/SI)  -> serious_infringements[] + check_result
+--   compound_form.vehicle_category_code = 'M1'              -> '302' (sõidukeeld) jäetakse välja
+--   compound_form.inspector_organisation_id (nt PPA)        -> originating_authority
+--       (kutsuja modaali originatingAuthority kirjutab selle vajadusel üle)
+--
+-- EI eeltäideta (spec LJVIS2-64 §4.1): minorInfringement, karistuste andmed.
+-- ─────────────────────────────────────────────────────────────────────────────
 WITH sp AS (
   (
     SELECT compound_form_key, erru_points
@@ -83,7 +104,8 @@ WITH sp AS (
     cf.vehicle_reg_nr,
     cf.vehicle_country_code,
     cf.vehicle_category_code,
-    cf.control_date
+    cf.control_date,
+    cf.inspector_organisation_id
   FROM forms.compound_form cf, sp
   WHERE cf.compound_form_key = sp.compound_form_key
   ORDER BY cf.created_at DESC
@@ -97,7 +119,9 @@ WITH sp AS (
         'infringementType', p->>'erru_code',
         'dateOfInfringement', cf.control_date,
         'detectionCheckDate', cf.control_date,
-        'appealPossible', true,
+        -- "Karistust saab edasi kaevata" vaikimisi false — NCR teade saadetakse
+        -- valdavalt jõustunud otsuste kohta; ametnik muudab vajadusel (#328).
+        'appealPossible', false,
         'penaltiesImposed', '[]'::JSONB,
         'penaltiesRequested', '[]'::JSONB
       )
@@ -141,7 +165,9 @@ WITH sp AS (
     'NCR-EE-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(nextval('erru.seq_ncr_business_case_no')::text, 5, '0'),
     'EE',
     NULLIF(:ncrTo, ''),
-    NULLIF(:originatingAuthority, ''),
+    -- Eeltäida kontrollkaardi inspektori asutusest (nt PPA); kutsuja modaal
+    -- võib selle üle kirjutada (#328 p3).
+    COALESCE(NULLIF(:originatingAuthority, ''), NULLIF(cf.inspector_organisation_id, '')),
     NULLIF(:requestSource, ''),
     NULLIF(:requestPurpose, ''),
     cf.company_name,

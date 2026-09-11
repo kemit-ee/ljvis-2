@@ -22,6 +22,8 @@
   - [ADR-vorm](user-guide/11-vorm-adr.md)
   - [Hea maine](user-guide/12-vorm-hea-maine.md)
   - [Sõidu- ja puhkeaeg](user-guide/13-vorm-soidu-puhkeaeg.md)
+- [ERRU tehnokontrolli teated RSI](user-guide/21-erru-rsi.md)
+- [ERRU kontrollitulemuse teated NCR](user-guide/22-erru-ncr.md)
 - [Failide lisamine](user-guide/14-failide-lisamine.md)
 - [Vormide vaatamine ja ajalugu](user-guide/15-vormide-vaatamine-ajalugu.md)
 - [Riskihindamine](user-guide/16-riskihindamine.md)

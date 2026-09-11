@@ -7,6 +7,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { ForeignViolationFormFields } from '../../components/ForeignViolationForm/ForeignViolationFormFields';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 
 export function ForeignViolationFormCreatePage() {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ export function ForeignViolationFormCreatePage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const handleSaved = (id?: string) => {
+    window.scrollTo(0, 0);
     navigate(`/control-forms/foreign-violation/${id}`, {
       state: { justCreated: true },
     });
@@ -46,6 +48,11 @@ export function ForeignViolationFormCreatePage() {
     closeCompanyPicker,
     associatedPersons,
     associatedPersonsLoading,
+    counties,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
+    inspectionCitiesParishes,
+    handleInspectionRegionChange,
   } = useForeignViolationForm(undefined, handleSaved);
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -80,11 +87,17 @@ export function ForeignViolationFormCreatePage() {
           closeCompanyPicker={closeCompanyPicker}
           associatedPersons={associatedPersons}
           associatedPersonsLoading={associatedPersonsLoading}
+          counties={counties}
+          companyCitiesParishes={companyCitiesParishes}
+          handleCompanyCountyChange={handleCompanyCountyChange}
+          inspectionCitiesParishes={inspectionCitiesParishes}
+          handleInspectionRegionChange={handleInspectionRegionChange}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
         />
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" />
 
             <AsyncButton type="button" onClick={() => formik.submitForm()}>
               {t('common.save')}

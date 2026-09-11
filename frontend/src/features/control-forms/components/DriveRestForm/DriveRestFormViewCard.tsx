@@ -8,6 +8,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { DriveRestFormFields } from './DriveRestFormFields';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 
@@ -17,6 +18,7 @@ interface DriveRestFormViewCardProps {
   formType: string;
   canPublish?: boolean;
   onPublish?: () => Promise<unknown>;
+  snapshotId?: string;
   /**
    * Peidab TRAM-kaardil kolm sektsiooni: sõidu- ja puhkeaeg, mass/mõõtmed,
    * ATP. Sünkroonis DriveRestFormCreatePage hideDriveRestExtras-ega.
@@ -30,6 +32,7 @@ export function DriveRestFormViewCard({
   formType,
   canPublish,
   onPublish,
+  snapshotId,
   hideDriveRestExtras,
 }: DriveRestFormViewCardProps) {
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
@@ -37,6 +40,7 @@ export function DriveRestFormViewCard({
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasAnyPermission } = useAuth();
   const [ncrModalOpen, setNcrModalOpen] = useState(false);
+
   // "Lisa NCR vorm" (LJVIS2-64 §4.1 eeltäitmine) — builds a new outgoing NCR draft from
   // this SP sub-form's control data. Requires a saved sub-form (form.id = spFormKey).
   const canBuildNcr = hasAnyPermission(['ncr.create']) && !!form.id;
@@ -95,6 +99,7 @@ export function DriveRestFormViewCard({
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
         <div className="confirm-button">
           <div>
+            <FormPrintButton endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`} id={form.id} snapshotId={snapshotId} />
             {canPublish && onPublish && (
               <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
                 {t('common.publish')}
@@ -106,6 +111,7 @@ export function DriveRestFormViewCard({
           <NcrBuildModal
             spFormKey={form.id}
             spFormType={scope}
+            compoundFormKey={form.compoundFormKey}
             open={ncrModalOpen}
             onClose={() => setNcrModalOpen(false)}
           />

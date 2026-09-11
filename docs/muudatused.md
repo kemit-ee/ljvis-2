@@ -33,6 +33,72 @@
 - ERRU väljade pikkusi, kuupäevi, lubatud väärtusi ning nime- ja tunnistuseplokkide terviklikkust kontrollitakse enne salvestamist või saatmist. NYSIIS võtme piir on 100 märki.
 - Saatmise identifikaatorid salvestatakse enne väliskutset. Vigane kinnitus lõpetab saatmise veaga.
 - Seotud veateadete sisemised vastuvõtjad säilitavad vahetuse ajaloo ning käsitlevad kordusi idempotentselt. Hilinenud edu ei taasta veaga lõppenud teadet.
+### Kontrollvormide PDF-printimise parendused
+
+- Kõigil kontrollvormidel saab nüüd alla laadida nii salvestatud andmetega PDF-i
+  kui ka tühja blanketi. Uuel salvestamata vormil on saadaval tühi blankett.
+- Lisandusid koondvormi, välisriigi rikkumise, tööinspektsiooni, hea maine ja
+  Transpordiameti kontrollkaardi PDF-mallid.
+- Sõiduki ja haagise tehnilise kontrollkaardi väljatrükk sisaldab alati kaardi
+  esi- ja tagakülge ühes PDF-is.
+- Varasema vormiversiooni vaatamisel prinditakse valitud versioon. Paarimehe
+  kontrollkaart kasutab väljatrükil paarimehe, mitte esimese juhi andmeid.
+
+### RSI päringu ja väljatrüki parendused
+
+- Tehnilise kontrollkaardi vaatest saab koostada RSI teate ning teatele kantakse
+  kontrollitud sõlmed, puudused ja nende raskusastmed.
+- RSI päringu vaates ja PDF-is kuvatakse päringu detailid ning väljatrüki paigutus
+  vastab paremini kontrollkaardi struktuurile.
+
+### Rahvastikuregistri sünniaja parendus
+
+- Rahvastikuregistrist saabunud sünniaeg teisendatakse vormivälja jaoks ühtsesse
+  kuupäevavormingusse, sõltumata X-tee vastuse algsest esitusviisist.
+
+### TRAM kontrollkaardi menetlusvälja parendus
+
+- Uuel TRAM kontrollkaardil kuvatakse menetluse liigi valik õigesti ka enne vormi
+  esimest salvestamist.
+### NCR päringu ja Tööinspektsiooni kontrollkaardi parendused
+
+- NCR teate loomisel eeltäidetakse esitav pädev asutus üldosa kontrollija asutuse järgi ning sihtliikmesriik sõiduki riigi tunnusmärgi järgi.
+- NCR koostamise päring saadab seotud SP-vormi võtme alati stringina.
+- Tööinspektsiooni kontrollkaardi ettevõtte registrikood, sõidukite arv ja juhtide arv normaliseeritakse salvestamisel API stringivormingusse.
+
+### Tööinspektsiooni kontrollkaart — äriregistri otsing
+
+- Ettevõtte nime ja registrikoodi välja kõrval on nüüd **"Otsi"** nupp, mis
+  teeb X-tee kaudu äriregistri päringu. Vaste korral (kummagi välja järgi)
+  täidetakse nii ettevõtte nimi kui registrikood automaatselt. Mitme vaste
+  puhul kuvatakse valiku aken.
+
+## 2026-09-10
+
+### Vormiotsingu ja teavituste parendused
+
+- Vormiotsingu filtrite paigutus on selgem ning teavituse loetuks märkimine
+  uuendab kohe ka päise lugemata teadete arvu.
+- Saadetud teadete filtri ja päise paigutust korrastati ning riskiskoori
+  risttabelis saab valida ka tühja riskitaseme.
+
+### Kustutatud kontrollvormide versiooniajaloo parendus
+
+- Kustutatud kontrollvormide versioonid säilitatakse eraldi arhiivis ja neid saab
+  vormi versiooniajaloo kaudu vaadata ka pärast tööandmete puhastamist.
+
+### NCR (kontrollitulemuse teate) täiendused
+
+- Raskete rikkumiste (MSI/VSI/SI) rippmenüü on nüüd ERRU koodi järjekorras
+  väiksemast suuremaks.
+- Kaks kabotaaži-koodi said täpsema kirjelduse: **VSI869** = veoseveo kabotaaž
+  (määrus (EÜ) nr 1072/2009), **VSI872** = sõitjateveo kabotaaž (määrus (EÜ)
+  nr 1073/2009) — varem oli mõlemal identne tekst.
+- Raske rikkumise juures on **"Karistust saab edasi kaevata"** vaikimisi
+  **"Ei"** (varem "Jah"). Ametnik saab vajadusel muuta.
+- NCR teate vaate **vastuseplokk** kuvab nüüd ka veoettevõtja aadressi,
+  kehtestatud karistused (määranud asutus, liik, kestus või määramata jätmise
+  põhjus) ning teate kuupäeva ja kellaaja.
 
 ### Rahvastikuregistri ja Postkasti X-tee liiklus läbi XTR-i
 

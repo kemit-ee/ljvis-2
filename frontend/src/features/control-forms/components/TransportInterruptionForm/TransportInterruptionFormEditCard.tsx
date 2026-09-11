@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { TransportInterruptionForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import {
   TransportInterruptionFormCreatePage,
   type TransportInterruptionFormCreatePageRef,
@@ -38,6 +39,7 @@ export const TransportInterruptionFormEditCard = forwardRef<
   const formRef = useRef<TransportInterruptionFormCreatePageRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
+
   useImperativeHandle(ref, () => ({
     save: () => formRef.current?.handleSubmit(),
     isDirty: () => formRef.current?.isDirty() ?? false,
@@ -71,6 +73,7 @@ export const TransportInterruptionFormEditCard = forwardRef<
         )}
         <div className="confirm-button">
           <div>
+            <FormPrintButton endpoint={`/v1/control-forms/transport-interruption/read/print`} id={form.id} />
             {canConfirm && (
               <Button
                 type="button"

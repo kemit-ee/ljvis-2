@@ -38,6 +38,23 @@ services:
     networks:
       - ljvisnetwork
 
+  # ADR-010: kustutatud-vormide arhiivibaasi (ljvis_arhiiv_db) migratsioon.
+  liquibase-arhiiv:
+    container_name: liquibase-arhiiv
+    build:
+      context: .
+      dockerfile: docker/liquibase/Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./DSL/Liquibase-arhiiv/liquibase.properties:/liquibase/liquibase.properties
+      - ./DSL/Liquibase-arhiiv/changelog:/liquibase/changelog
+      - ./DSL/Liquibase-arhiiv/changelog.yaml:/liquibase/changelog.yaml
+    command: --defaultsFile=/liquibase/liquibase.properties update
+    networks:
+      - ljvisnetwork
+
   resql-ljvis:
     container_name: resql-ljvis
     build:
@@ -46,6 +63,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      liquibase-arhiiv:
+        condition: service_completed_successfully
     environment:
       - RESQL_DB_PASSWORD=01234
     ports:

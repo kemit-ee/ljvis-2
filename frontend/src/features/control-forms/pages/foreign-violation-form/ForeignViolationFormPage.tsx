@@ -16,6 +16,7 @@ import { ForeignViolationFormFields } from '../../components/ForeignViolationFor
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 
 export function ForeignViolationFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -75,6 +76,7 @@ export function ForeignViolationFormPage() {
     form?.status === 'confirmed';
 
   const handleEditSaved = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
@@ -84,6 +86,7 @@ export function ForeignViolationFormPage() {
   };
 
   const handleConfirmed = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
@@ -93,6 +96,7 @@ export function ForeignViolationFormPage() {
   };
 
   const handlePublished = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(false);
@@ -125,6 +129,11 @@ export function ForeignViolationFormPage() {
     associatedPersonsLoading,
     triggerConfirm,
     triggerPublish,
+    counties,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
+    inspectionCitiesParishes,
+    handleInspectionRegionChange,
   } = useForeignViolationForm(
     form ?? undefined,
     handleEditSaved,
@@ -178,6 +187,11 @@ export function ForeignViolationFormPage() {
             refreshKey={versionsRefreshKey}
           />
         )}
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" id={id} snapshotId={snapshotId} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -262,6 +276,11 @@ export function ForeignViolationFormPage() {
           closeCompanyPicker={closeCompanyPicker}
           associatedPersons={associatedPersons}
           associatedPersonsLoading={associatedPersonsLoading}
+          counties={counties}
+          companyCitiesParishes={companyCitiesParishes}
+          handleCompanyCountyChange={handleCompanyCountyChange}
+          inspectionCitiesParishes={inspectionCitiesParishes}
+          handleInspectionRegionChange={handleInspectionRegionChange}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
           showAdminSection={isAdmin}
           isPublished={form?.status === 'published'}
@@ -277,6 +296,7 @@ export function ForeignViolationFormPage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" id={id} />
             {isEditActive ? (
               <>
                 <Button

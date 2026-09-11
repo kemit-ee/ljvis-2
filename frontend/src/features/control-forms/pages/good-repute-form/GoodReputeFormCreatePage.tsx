@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heading, Text, Alert } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { usePersonSearch } from '../../../xroad/hooks/usePersonSearch';
@@ -28,6 +29,7 @@ export function GoodReputeFormCreatePage() {
   );
 
   const handleSaved = (id?: string) => {
+    window.scrollTo(0, 0);
     navigate(`/control-forms/good-repute/${id}`, {
       state: { justCreated: true },
     });
@@ -76,6 +78,7 @@ export function GoodReputeFormCreatePage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/good-repute/read/print" />
 
             <AsyncButton type="button" onClick={() => formik.submitForm()}>
               {t('common.save')}

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FormikProps } from 'formik';
 import {
+  Alert,
   Button,
   ChoiceGroup,
   Heading,
@@ -15,8 +16,12 @@ import { formatDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
 import type { ControlsMatrixRow, ViolationEntry } from '../../types';
 import type { ClassifierEntry } from '../../../classifiers/types';
+import type { XRoadCompany } from '../../../xroad/types';
 import { ControlsMatrixTable } from './ControlsMatrixTable';
 import { ViolationPickerModal } from './ViolationPickerModal';
+import { CompanyPickerModal } from '../CompanyPickerModal';
+import styles from '../../pages/labour-inspection/LabourInspectionFormPage.module.css';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 export const INSPECTION_TYPES = [
   {
@@ -71,6 +76,14 @@ interface LabourInspectionFormFieldsProps {
   removeMatrixRow: (index: number) => void;
   addViolation: (violation: ViolationEntry) => void;
   removeViolation: (index: number) => void;
+  /** Äriregistri X-tee otsing — puuduvad snapshot/read-only vaates. */
+  handleCompanyRegSearch?: () => void;
+  handleCompanyNameSearch?: () => void;
+  companySearchError?: boolean;
+  setCompanySearchError?: (v: boolean) => void;
+  companyPickerResults?: XRoadCompany[];
+  onCompanyPicked?: (company: XRoadCompany) => void;
+  closeCompanyPicker?: () => void;
 }
 
 export function LabourInspectionFormFields({
@@ -84,6 +97,13 @@ export function LabourInspectionFormFields({
   removeMatrixRow,
   addViolation,
   removeViolation,
+  handleCompanyRegSearch,
+  handleCompanyNameSearch,
+  companySearchError,
+  setCompanySearchError,
+  companyPickerResults,
+  onCompanyPicked,
+  closeCompanyPicker,
 }: LabourInspectionFormFieldsProps) {
   const { t } = useTranslation();
   const [showViolationPicker, setShowViolationPicker] = useState(false);
@@ -221,41 +241,87 @@ export function LabourInspectionFormFields({
                   )
                 }
               />
-              <TextField
-                id="companyName"
-                label={t('forms.labour_inspection.companyName')}
-                value={formik.values.companyName}
-                onChange={(v) => formik.setFieldValue('companyName', v)}
-                required
-                input={{ maxLength: 300 }}
-                {...(formik.touched.companyName && formik.errors.companyName
-                  ? {
-                      helper: {
-                        text: formik.errors.companyName as string,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
-              />
-              <TextField
-                id="companyRegCode"
-                label={t('forms.labour_inspection.companyRegCode')}
-                value={formik.values.companyRegCode}
-                onChange={(v) => formik.setFieldValue('companyRegCode', v)}
-                required
-                input={{ maxLength: 20 }}
-                {...(formik.touched.companyRegCode &&
-                formik.errors.companyRegCode
-                  ? {
-                      helper: {
-                        text: formik.errors.companyRegCode as string,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
-              />
+              <div className={styles['search-row']}>
+                <div className={styles['search-wrapper']}>
+                  <TextField
+                    id="companyName"
+                    label={t('forms.labour_inspection.companyName')}
+                    value={formik.values.companyName}
+                    onChange={(v) => formik.setFieldValue('companyName', v)}
+                    required
+                    input={{ maxLength: 300 }}
+                    {...(formik.touched.companyName && formik.errors.companyName
+                      ? {
+                          helper: {
+                            text: formik.errors.companyName as string,
+                            type: 'error' as const,
+                          },
+                        }
+                      : {})}
+                  />
+                </div>
+                {handleCompanyNameSearch && (
+                  <AsyncButton
+                    type="button"
+                    visualType="secondary"
+                    onClick={handleCompanyNameSearch}
+                  >
+                    {t('forms.labour_inspection.companySearchButton')}
+                  </AsyncButton>
+                )}
+              </div>
+              <div className={styles['search-row']}>
+                <div className={styles['search-wrapper']}>
+                  <TextField
+                    id="companyRegCode"
+                    label={t('forms.labour_inspection.companyRegCode')}
+                    value={formik.values.companyRegCode}
+                    onChange={(v) => formik.setFieldValue('companyRegCode', v)}
+                    required
+                    input={{ maxLength: 20 }}
+                    {...(formik.touched.companyRegCode &&
+                    formik.errors.companyRegCode
+                      ? {
+                          helper: {
+                            text: formik.errors.companyRegCode as string,
+                            type: 'error' as const,
+                          },
+                        }
+                      : {})}
+                  />
+                </div>
+                {handleCompanyRegSearch && (
+                  <AsyncButton
+                    type="button"
+                    visualType="secondary"
+                    onClick={handleCompanyRegSearch}
+                  >
+                    {t('forms.labour_inspection.companySearchButton')}
+                  </AsyncButton>
+                )}
+              </div>
             </div>
           )}
+          {!readOnly && companySearchError && (
+            <Alert
+              type="danger"
+              size="small"
+              className="mt-1"
+              onClose={() => setCompanySearchError?.(false)}
+            >
+              {t('common.noResults')}
+            </Alert>
+          )}
+          {companyPickerResults &&
+            companyPickerResults.length > 0 &&
+            onCompanyPicked &&
+            closeCompanyPicker && (
+              <CompanyPickerModal
+                companies={companyPickerResults}
+                onSelect={onCompanyPicked}
+                onClose={closeCompanyPicker}
+              />
+            )}
         </Card.Content>
       </Card>
 

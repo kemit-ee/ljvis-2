@@ -461,15 +461,17 @@ export interface PdfRenderResponse {
   warnings: string[];
 }
 
-export const printAdrForm = (
-  id: string | undefined,
-  blank: boolean,
+export const printControlForm = (
+  endpoint: string,
+  id?: string | number,
+  blank = false,
   snapshotId?: string,
 ) =>
-  post<PdfRenderResponse>(
-    `/v1/control-forms/adr-form/read/print`,
-    { id: id ?? '', blank, snapshotId: snapshotId ?? '' },
-  );
+  post<PdfRenderResponse>(endpoint, {
+    id: id == null ? '' : String(id),
+    blank,
+    snapshotId: snapshotId ?? '',
+  });
 
 export const saveAdrFormXroadFields = (data: {
   id: string;

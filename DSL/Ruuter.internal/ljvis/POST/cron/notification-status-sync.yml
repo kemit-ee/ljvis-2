@@ -76,7 +76,7 @@ iterateRows:
           body:
             service_code: "pk.notification-management.v1"
             request_xml: "${'externalId=' + pendingRow.notificationKey}"
-            response_xml: "${JSON.stringify(opRes.response.body)}"
+            response_xml: "${JSON.stringify({ received: (opRes.response.body) != null, count: (Array.isArray(opRes.response.body) ? (opRes.response.body).length : null) })}"
             duration_ms: 0
             success: "${opRes.response.status >= 200 && opRes.response.status < 300}"
             error_message: ""

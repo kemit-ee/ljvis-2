@@ -110,12 +110,6 @@ export function RsiCheckedItemsTable({
 
   const radioItems = (partCode: string) => [
     {
-      id: `rsi-part-status-${partCode}-not-checked`,
-      value: 'not_checked',
-      label: t('erru.rsi.checkedItems.notChecked'),
-      disabled,
-    },
-    {
       id: `rsi-part-status-${partCode}-checked`,
       value: 'checked',
       label: t('erru.rsi.checkedItems.checked'),

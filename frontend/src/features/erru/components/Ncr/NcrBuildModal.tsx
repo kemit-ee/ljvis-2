@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, Modal, Select } from '@tedi-design-system/react/tedi';
@@ -6,11 +6,13 @@ import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { useOrganisations } from '../../../organisations/hooks';
 import { classifierOptions, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
 import { buildNcrRequest } from '../../api';
+import { getCompoundForm } from '../../../control-forms/api';
 import { ApiError } from '../../../../shared/api/client';
 
 interface NcrBuildModalProps {
-  spFormKey: string;
+  spFormKey: string | number;
   spFormType: 'driver' | 'teammate';
+  compoundFormKey?: string | number;
   open: boolean;
   onClose: () => void;
 }
@@ -24,7 +26,7 @@ interface NcrBuildModalProps {
  * M1 302 exception) is NOT re-entered — the officer only supplies what the control card
  * cannot know. On success, navigates to the freshly created NCR draft in edit mode.
  */
-export function NcrBuildModal({ spFormKey, spFormType, open, onClose }: NcrBuildModalProps) {
+export function NcrBuildModal({ spFormKey, spFormType, compoundFormKey, open, onClose }: NcrBuildModalProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { getByCode, getErruMemberCountries } = useClassifiers();
@@ -44,12 +46,27 @@ export function NcrBuildModal({ spFormKey, spFormType, open, onClose }: NcrBuild
   );
 
   const [ncrTo, setNcrTo] = useState('');
+  // Tühjaks jätmisel eeltäidab build.sql originatingAuthority kontrollkaardi
+  // inspektori asutusest (nt PPA) — #328 p3. Ametnik saab siin üle kirjutada.
   const [originatingAuthority, setOriginatingAuthority] = useState('');
   const [requestSource, setRequestSource] = useState('');
   const [requestPurpose, setRequestPurpose] = useState('');
   const [touched, setTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!open || compoundFormKey == null) return;
+    let cancelled = false;
+    getCompoundForm(Number(compoundFormKey)).then((compound) => {
+      if (cancelled) return;
+      setNcrTo(compound.vehicleCountryCode ?? '');
+      setOriginatingAuthority(compound.inspectorOrganisationId ?? '');
+    }).catch((e) => {
+      if (!cancelled) console.error('NCR prefill failed', e);
+    });
+    return () => { cancelled = true; };
+  }, [open, compoundFormKey]);
 
   const opts = classifierOptions;
   const selected = selectedClassifierOption;
@@ -77,7 +94,7 @@ export function NcrBuildModal({ spFormKey, spFormType, open, onClose }: NcrBuild
     setSubmitting(true);
     try {
       const result = await buildNcrRequest({
-        spFormKey,
+        spFormKey: String(spFormKey),
         spFormType,
         ncrTo,
         originatingAuthority,

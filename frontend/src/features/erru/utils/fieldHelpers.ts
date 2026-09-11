@@ -13,13 +13,30 @@ export interface ClassifierOption {
 export const classifierOptions = (list: ClassifierOption[]) =>
   list.map((c) => ({ value: c.code, label: c.name }));
 
+/** "VSI847" -> ["VSI", 847]; sorteerib prefiksi järgi tähestikuliselt, siis numbriliselt. */
+const compareInfringementCode = (a: string, b: string) => {
+  const parse = (code: string): [string, number] => {
+    const m = /^([A-Za-z]+)(\d+)$/.exec(code.trim());
+    return m ? [m[1], Number(m[2])] : [code, 0];
+  };
+  const [pa, na] = parse(a);
+  const [pb, nb] = parse(b);
+  return pa === pb ? na - nb : pa.localeCompare(pb);
+};
+
 /**
  * Options for EU_INFRINGEMENT (raske rikkumise liik) — kuvab ERRU koodi
  * kirjelduse ees, nt "MSI101 – ületatakse …". Kood on oluline iga raske
  * rikkumise juures (NCR/RSI ettepanek 11).
+ *
+ * Sorteeritud ERRU koodi järgi kasvavalt (MSI/VSI/SI prefiks, siis number) —
+ * klassifikaatori sisestusjärjekord on segamini ja koodid peavad loetelus
+ * olema numeratsiooni järjekorras väiksemast suuremaks (#328 p1).
  */
 export const infringementOptions = (list: ClassifierOption[]) =>
-  list.map((c) => ({ value: c.code, label: `${c.code} – ${c.name}` }));
+  [...list]
+    .sort((a, b) => compareInfringementCode(a.code, b.code))
+    .map((c) => ({ value: c.code, label: `${c.code} – ${c.name}` }));
 
 /** tedi Select works with option objects, not raw code strings. */
 export const selectedClassifierOption = (list: ClassifierOption[], code: string) =>

@@ -32,6 +32,32 @@ returns:
   type: string
   nullable: true
 */
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- AUTOMAATSE NCR-i EELDUSED (#328 p3) — automaatne öine NCR-väljasaatmine
+-- käivitub SP (autojuhi / meeskonnaliikme sõidu- ja puhkeaja) kontrollkaardi
+-- kohta AINULT kui KÕIK alljärgnev on täidetud:
+--   1. SP-alamvorm on AVALIKUSTATUD  (status = 'published')
+--   2. kontrolli tulemus on KORRAS   (result_type = 'ok')
+--   3. SP-alamvorm on aktiivne snapshot (selection_status = 'active')
+--   4. koondvorm ei ole kustutatud   (compound_form.status <> 'deleted')
+--   5. sõiduk on VÄLISRIIGI oma       (vehicle_country_code täidetud ja <> 'EE')
+--   6. veoettevõtja nimi on täidetud  (compound_form.company_name)
+--   7. ühenduse tegevusloa koopia number on täidetud
+--        (compound_form.company_activity_licence_copy_number)
+--   8. SP-alamvorm on loodud <= 365 päeva tagasi
+--   9. selle SP-alamvormi kohta pole veel NCR-i saadetud
+--        (rida puudub erru.ncr_autodispatch_log-is)
+--
+-- Otsused (#329):
+--   - Juhi / meeskonnaliikme isikukoodi EI nõuta — NCR on ettevõtja-tasandi
+--     teade, ERRU-le isikut ei edastata.
+--   - 365-päevane lagi on tahtlik: sama muster mis teistel öistel cronidel
+--     (nt select-etoimik-candidates.sql) — ei jäta juhtumit lõputult ootele.
+--   - requestPurpose = "Control", requestSource = "RSI" on ERRU-spetsi järgi
+--     väljaminevate NCR teadete süsteemikonstandid (NCR_REQUEST_PURPOSE /
+--     NCR_REQUEST_SOURCE klassifikaatorite kirjeldused).
+-- ─────────────────────────────────────────────────────────────────────────────
 WITH latest_sp AS (
   (
     SELECT DISTINCT ON (sp_driver_form_key)

@@ -13,6 +13,133 @@ CATEGORIES=[('A_2012','N2'),('B_2012','N3'),('C_2012','O3'),('D_2012','O4'),('E_
 RESULTS={'ok':'Korras','warning':'Hoiatus','precept':'Ettekirjutus','misdemeanor_proceedings':'Väärteomenetlus','driving_ban':'Sõidukeeld / juhtimiselt kõrvaldamine','arrest':'Arest','transport_interruption':'Autovedu on katkestatud','extraordinary_inspection':'Erakorraline ülevaatus','extraordinary_inspection_ta':'Erakorraline ülevaatus ja liiklusregistri andmete täpsustamine'}
 PROCEEDINGS={'LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
 
+STANDALONE_TITLES = {
+ 'compound-form': 'SÕIDUKI JA VEOETTEVÕTJA KONTROLLKAART',
+ 'foreign-violation-form': 'VÄLISRIIGI RIKKUMISE KONTROLLKAART',
+ 'labour-inspection': 'TÖÖINSPEKTSIOONI KONTROLLKAART',
+ 'good-repute': 'HEA MAINE NÕUDELE MITTEVASTAVAKS TUNNISTATUD VEOKORRALDUSJUHI ANDMEVORM',
+ 'tram-card': 'TRANSPORDIAMETI KONTROLLKAART',
+}
+
+
+class SafeDict(dict):
+    """A print-view mapping where an absent optional field renders as empty."""
+    def __missing__(self, key):
+        return ''
+
+
+def safe_tree(value):
+    if isinstance(value, dict):
+        return SafeDict({key: safe_tree(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return [safe_tree(item) for item in value]
+    return value
+
+
+def build_standalone_context(template, payload=None, blank=False):
+    """Normalise standalone control forms for their print-only Jinja templates."""
+    payload = {} if blank else (payload or {})
+    key = {
+        'compound-form': 'compoundForm',
+        'foreign-violation-form': 'foreignViolationForm',
+        'labour-inspection': 'labourInspectionForm',
+        'good-repute': 'goodReputeForm',
+        'tram-card': 'tramCard',
+    }[template]
+    f = safe_tree(unwrap(payload.get(key, {})))
+    if not blank and not f.get('id'):
+        raise ValueError('Filled mode requires ' + key + '.id')
+    labels = safe_tree(payload.get('labels', {}))
+    bundled = json.loads((ROOT/'templates/labels.json').read_text())
+    appendix, warnings = [], []
+
+    def label(group, code):
+        if code in ('', None):
+            return ''
+        return str(labels.get(group, {}).get(str(code), bundled.get(str(code), code)))
+
+    def short(title, value, limit=400):
+        value = str(value or '')
+        if len(value) > limit or value.count('\n') > 6:
+            appendix.append({'title': title, 'text': value})
+            return 'Vt lisa: ' + title
+        return value
+
+    drivers = safe_tree(structured(f.get('drivers'), list))
+    trailers = safe_tree(structured(f.get('trailers'), list))
+    fields = {
+        'place': short('Kontrolli koht', joined(label('countries', f.get('controlCountryCode')), f.get('county'), f.get('city'), f.get('address'), label('roads', f.get('road')), f.get('roadOther'), str(f['kilometer']) + ' km' if f.get('kilometer') else '')),
+        'date': dt(f.get('controlDate') or f.get('inspectionDate')),
+        'time': str(f.get('controlTime') or f.get('inspectionTime') or '')[:5],
+        'vehicle': joined(f.get('vehicleMake'), f.get('vehicleModel')),
+        'vehicleReg': joined(f.get('vehicleCountryCode'), f.get('vehicleRegNr')),
+        'vehicleVin': f.get('vehicleVin') or '',
+        'company': joined(f.get('companyName'), f.get('companyRegCode')),
+        'companyAddress': joined(f.get('companyAddressLine1'), f.get('companyAddressLine2'), f.get('companyCity'), f.get('companyCounty'), f.get('companyPostalCode'), label('countries', f.get('companyCountryCode'))),
+        'licence': f.get('companyActivityLicenceCopyNumber') or f.get('licenceCopyNumber') or '',
+        'inspector': joined(f.get('inspectorName'), f.get('inspectorFirstName'), f.get('inspectorLastName'), label('organisations', f.get('inspectorOrganisationId')), label('units', f.get('inspectorUnit')), f.get('inspectorProfession')),
+        'notes': short('Märkused', f.get('notes')),
+    }
+    people = [{**p, 'display': joined(' '.join(filter(None, [p.get('firstName'), p.get('lastName')])), p.get('personalCodeEe') or p.get('personalCodeForeign'), label('countries', p.get('citizenshipCode')), dt(p.get('birthDate')))} for p in drivers]
+    trailer_rows = [{**t, 'display': joined(t.get('make'), t.get('model'), t.get('countryCode'), t.get('regNr'), t.get('vin'))} for t in trailers]
+    data = dict(template=template, title=STANDALONE_TITLES[template], number=joined(f.get('formNumber'), 'v'+str(f['version']) if f.get('version') else ''), blank=blank, f=f, fields=fields, drivers=people, trailers=trailer_rows, appendix=appendix, warnings=warnings, label=label, yes=yes, dt=dt, short=short)
+    if template == 'foreign-violation-form':
+        data.update(
+            violations=[label('violations', x) for x in structured(f.get('violations'), list)],
+            additional_sanctions=[label('sanctions', x) for x in structured(f.get('additionalSanctionCodes'), list)],
+            sanction=label('sanctions', f.get('sanctionCode')),
+            recommendation=label('recommendedMeasures', f.get('recommendedMeasureCode')),
+        )
+    elif template == 'labour-inspection':
+        matrix = safe_tree(structured(f.get('controlsMatrix'), list))
+        data.update(matrix=matrix, violations=safe_tree(structured(f.get('violations'), list)))
+    elif template == 'tram-card':
+        data.update(
+            transport_classes=safe_tree(structured(f.get('transportClasses'), list)),
+            document_checks=safe_tree(structured(f.get('documentChecks'), list)),
+            other_documents=safe_tree(structured(f.get('otherDocuments'), list)),
+            cabotage=safe_tree(structured(f.get('cabotageViolations'), list)),
+            violation_groups=[
+                {'title': title, 'rows': safe_tree(structured(f.get(field), list))}
+                for field, title in [('violations5612006','Määrus (EÜ) nr 561/2006'),('violations1652014','Määrus (EL) nr 165/2014'),('violations200215','Direktiiv 2002/15/EÜ'),('violations5932008','Määrus (EÜ) nr 593/2008'),('violations20201057','Direktiiv (EL) 2020/1057')]
+            ],
+        )
+    return data
+
+RSI_PARTS = {
+ 'CAA_0':'Sõiduki identifitseerimine','CAA_1':'Pidurisüsteem','CAA_2':'Rooliseade',
+ 'CAA_3':'Nähtavus','CAA_4':'Valgustusseadmed ja elektrisüsteemi osad',
+ 'CAA_5':'Teljed, veljed, rehvid, vedrustus','CAA_6':'Šassii ja selle kinnitused',
+ 'CAA_7':'Muu varustus','CAA_8':'Välisriigi vedaja kabotaažvedu','CAA_9':'Täiendavad ülevaatused reisijateveoks kasutatavale sõidukile',
+ 'CAA_10':'10. Sõiduki sobivus','CAA_20':'20. Kinnitusmeetodid'
+}
+
+def build_rsi_context(payload=None, blank=False):
+    raw = {} if blank else unwrap((payload or {}).get('rsiMessage', payload or {}))
+    if not blank and not raw.get('id'):
+        raise ValueError('Filled RSI mode requires rsiMessage.id')
+    checked = structured(raw.get('checkedItems'), list)
+    rows = []
+    by_code = {item.get('partCode'): item for item in checked}
+    for code, name in RSI_PARTS.items():
+        item = by_code.get(code, {})
+        rows.append({'name': name, 'status': item.get('status', ''), 'defects': structured(item.get('defects'), list)})
+    rows = [row for row in rows if row['status'] in ('checked', 'non_compliant') or not blank]
+    identification = structured(raw.get('identificationDetails'), dict)
+    address = identification.get('address') or {}
+    return {
+        'title': 'TEHNOKONTROLLI TEADE RSI', 'number': raw.get('businessCaseId', ''),
+        'blank': blank, 'r': raw, 'rows': rows, 'warnings': [], 'appendix': [],
+        'inspection_date': dt(raw.get('inspectionDatetime')),
+        'inspection_time': str(raw.get('inspectionDatetime') or '')[11:16],
+        'purpose': raw.get('requestPurpose', ''),
+        'holder_type': identification.get('isVehicleHolder', ''),
+        'holder_name': identification.get('transportUndertakingName') or identification.get('companyName') or joined(identification.get('firstName'), identification.get('familyName')),
+        'holder_licence': identification.get('communityLicenceNumber', ''),
+        'holder_address': address.get('address', ''), 'holder_city': address.get('city', ''),
+        'holder_country': address.get('country', ''), 'holder_postcode': address.get('postCode', ''),
+    }
+
 
 def yes(value):
     if value in (True, 'true'): return True

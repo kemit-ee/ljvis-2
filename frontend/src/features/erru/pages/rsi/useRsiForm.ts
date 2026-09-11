@@ -17,9 +17,6 @@ import type { ClassifierEntry } from '../../../classifiers/types';
 
 const T = 'erru.rsi.validation';
 
-/** CAA_10 has no ERRU equivalent — never shown on the RSI checked-items table (LJVIS2-147). */
-const RSI_EXCLUDED_PARTS = ['CAA_10'];
-
 interface DraftIdentification {
   isVehicleHolder: RsiVehicleHolderType | '';
   isNaturalPerson: RsiOwnerType | '';
@@ -97,7 +94,7 @@ export function useRsiForm(
   const parts: ClassifierEntry[] = useMemo(
     () =>
       allParts
-        .filter((p) => p.parentKey === null && !RSI_EXCLUDED_PARTS.includes(p.code))
+        .filter((p) => p.parentKey === null)
         .sort((a, b) => {
           const numA = parseInt(a.code.replace(/^\D+/, ''), 10);
           const numB = parseInt(b.code.replace(/^\D+/, ''), 10);
@@ -163,6 +160,7 @@ export function useRsiForm(
       // RSI ettepanek 3 + 7: uue teate vaikeväärtused — teate esitanud pädev asutus
       // = Kliimaministeerium (KLIM), inspektor = Politsei- ja Piirivalveamet.
       originatingAuthority: message?.originatingAuthority ?? 'KLIM',
+      requestPurpose: message?.requestPurpose ?? '',
       vehicleCategory: message?.vehicleCategory ?? '',
       vehicleRegistrationNumber: message?.vehicleRegistrationNumber ?? '',
       vehicleRegistrationCountry: message?.vehicleRegistrationCountry ?? '',
@@ -276,7 +274,7 @@ export function useRsiForm(
         const payload = {
           originatingAuthority: values.originatingAuthority,
           requestSource: '',
-          requestPurpose: '',
+          requestPurpose: values.requestPurpose,
           vehicleCategory: values.vehicleCategory,
           vehicleRegistrationNumber: values.vehicleRegistrationNumber,
           vehicleRegistrationCountry: values.vehicleRegistrationCountry,

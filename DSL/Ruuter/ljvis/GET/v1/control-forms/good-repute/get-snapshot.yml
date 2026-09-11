@@ -12,6 +12,12 @@ declaration:
         type: string
         description: "Good repute form key"
 
+checkPermission:
+  switch:
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('good_repute_form.read'))}
+      next: getSnapshot
+  next: returnForbidden
+
 getSnapshot:
   call: http.post
   args:
@@ -22,8 +28,54 @@ getSnapshot:
       id: ${incoming.params.id}
       form_key: ${incoming.params.formKey}
   result: res
+  next: checkEmpty
+
+checkEmpty:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length == 0}
+      next: getFromArchive
+  next: mapResponse
+
+getFromArchive:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
+    headers:
+      type: json
+    body:
+      formType: "good-repute"
+      id: ${incoming.params.id}
+  result: archiveRes
+  next: mapResponseArchive
+
+mapResponseArchive:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_good_repute_form"
+    headers:
+      type: json
+    body:
+      forms: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
+  result: mapped
+  next: returnSuccess
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_good_repute_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body}
+  return: ${mapped.response.body}
   next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
+

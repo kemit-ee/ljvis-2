@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { TechnicalCheckForm, Trailer } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../../pages/technical-check-form/TechnicalCheckFormCreatePage.tsx';
 
 export interface TechnicalCheckFormEditCardRef {
@@ -49,6 +50,7 @@ export const TechnicalCheckFormEditCard = forwardRef<
   const formRef = useRef<TechnicalCheckFormCreatePageRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
+
   useImperativeHandle(ref, () => ({
     save: () => formRef.current?.handleSubmit(),
     isDirty: () => formRef.current?.isDirty() ?? false,
@@ -87,6 +89,7 @@ export const TechnicalCheckFormEditCard = forwardRef<
         )}
         <div className="confirm-button">
           <div>
+            <FormPrintButton endpoint={`/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`} id={form.id} />
             {canConfirm && (
               <Button
                 type="button"

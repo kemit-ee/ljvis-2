@@ -206,6 +206,15 @@ export function getRsiMessage(id: string): Promise<RsiMessage> {
   return get<RsiMessage>('/v1/erru/rsi/get', { q: id });
 }
 
+export function printRsiMessage(id: string): Promise<{
+  filename: string;
+  contentType: 'application/pdf';
+  base64: string;
+  warnings: string[];
+}> {
+  return post('/v1/erru/rsi/print', { id });
+}
+
 /**
  * Create or revise an outgoing RSI draft. businessCaseId, status, direction, rsiFrom and
  * rsiTo are server-assigned/derived — never accepted from the client. Pass `id` to revise
@@ -216,6 +225,16 @@ export function saveRsiMessage(
   body: RsiMessageWrite,
 ): Promise<RsiSaveResult> {
   return post<RsiSaveResult>('/v1/erru/rsi/request/save', { id, ...body });
+}
+
+export function buildRsiMessageFromTechnicalCard(
+  vehicleTechnicalFormId: string,
+  technicalFormType: 'vehicle' | 'trailer',
+): Promise<RsiSaveResult> {
+  return post('/v1/erru/rsi/request/build', {
+    vehicleTechnicalFormId,
+    technicalFormType,
+  });
 }
 
 /**

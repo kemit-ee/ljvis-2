@@ -189,3 +189,10 @@ lisafiltrit: **teatav riik** ja **sanktsioon**.
 - Kontrolli kellaaja väljal tekib koolon tunni ja minuti vahele automaatselt.
 - EL rikkumiste raskusastmed (MSI/VSI/SI/MI) mõjutavad ettevõtte riskiskoori.
 - Süsteem hoiatab, kui sama ettevõtte, sõiduki ja kuupäevaga vorm on juba olemas.
+
+## PDF-printimine
+
+Vormi toimingute juures on nupp **„Prindi"**. Salvestatud vormil saab valida
+**„Prindi täidetud vorm"** või **„Prindi tühi vorm"**. Uuel salvestamata vormil
+saab alla laadida tühja blanketi. Varasema versiooni vaatamisel sisaldab
+täidetud PDF valitud versiooni andmeid.

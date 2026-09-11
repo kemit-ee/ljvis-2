@@ -1,0 +1,125 @@
+declaration:
+  version: "1.0"
+  description: "Generate a filled, historical or blank compound-form PDF."
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: blank
+        type: boolean
+      - field: snapshotId
+        type: string
+
+extractRequestData:
+  assign:
+    id: "${incoming.body.id || ''}"
+    blank: ${incoming.body.blank === true}
+    snapshot_id: "${incoming.body.snapshotId || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
+  next: chooseMode
+
+chooseMode:
+  switch:
+    - condition: ${blank}
+      next: renderBlank
+    - condition: ${id === ''}
+      next: returnBadRequest
+  next: getCurrentForm
+
+getCurrentForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: currentFormRes
+  next: checkCurrentForm
+
+checkCurrentForm:
+  switch:
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
+      next: returnNotFound
+    - condition: ${snapshot_id !== ''}
+      next: getSnapshot
+  next: useCurrentForm
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${snapshot_id}
+      form_key: ${id}
+  result: snapshotRes
+  next: checkSnapshot
+
+checkSnapshot:
+  switch:
+    - condition: ${snapshotRes.response.body == null || snapshotRes.response.body.length !== 1}
+      next: returnNotFound
+  next: useSnapshot
+
+useSnapshot:
+  assign:
+    selected_form: ${snapshotRes.response.body[0]}
+  next: renderFilled
+
+useCurrentForm:
+  assign:
+    selected_form: ${currentFormRes.response.body[0]}
+  next: renderFilled
+
+renderBlank:
+  template: "templates/form/pdf/render"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    templateCode: "compound-form"
+    blank: true
+    fields: {}
+    eventType: "control_form.compound.print"
+    actorPersonalCode: ${actor_personal_code}
+    actorName: ${actor_name}
+    description: "compound-form tühi vorm trükitud"
+    logContent: '{"formKey":"","snapshotId":"","blank":true}'
+  result: pdfResult
+  next: returnSuccess
+
+renderFilled:
+  template: "templates/form/pdf/render"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    templateCode: "compound-form"
+    blank: false
+    fields:
+        compoundForm: ${selected_form}
+    eventType: "control_form.compound.print"
+    actorPersonalCode: ${actor_personal_code}
+    actorName: ${actor_name}
+    description: "compound-form vorm trükitud, võti=${id}, snapshot=${snapshot_id}"
+    logContent: '{"formKey":"${id}","snapshotId":"${snapshot_id}","blank":false}'
+  result: pdfResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${pdfResult}
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: '{"error":"FORM_ID_REQUIRED"}'
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"error":"NOT_FOUND"}'
+  next: end

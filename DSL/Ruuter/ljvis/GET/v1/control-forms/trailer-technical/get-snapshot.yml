@@ -12,6 +12,12 @@ declaration:
         type: string
         description: "Trailer technical form key"
 
+checkPermission:
+  switch:
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('trailer_technical_form.read'))}
+      next: getSnapshot
+  next: returnForbidden
+
 getSnapshot:
   call: http.post
   args:
@@ -22,8 +28,36 @@ getSnapshot:
       id: ${incoming.params.id}
       form_key: ${incoming.params.formKey}
   result: res
+  next: checkEmpty
+
+checkEmpty:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length == 0}
+      next: getFromArchive
   next: returnSuccess
+
+getFromArchive:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
+    headers:
+      type: json
+    body:
+      formType: "trailer-technical"
+      id: ${incoming.params.id}
+  result: archiveRes
+  next: returnArchive
+
+returnArchive:
+  return: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
+  next: end
 
 returnSuccess:
   return: ${res.response.body}
   next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
+

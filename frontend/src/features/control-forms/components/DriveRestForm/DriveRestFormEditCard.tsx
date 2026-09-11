@@ -5,6 +5,7 @@ import type { DriveRestForm } from '../../types';
 import { DriveRestFormCreatePage } from '../../pages/drive-rest-form/DriveRestFormCreatePage';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 
 interface DriveRestFormRef {
   formElement: HTMLFormElement;
@@ -52,6 +53,7 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
   const formRef = useRef<DriveRestFormRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
 
+
   useImperativeHandle(ref, () => ({
     save: () => formRef.current?.handleSubmit(),
     isDirty: () => formRef.current?.isDirty() ?? false,
@@ -79,6 +81,7 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
         <div className="confirm-button">
           <div>
+            <FormPrintButton endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`} id={form.id} />
             {canConfirm && (
               <Button
                 type="button"

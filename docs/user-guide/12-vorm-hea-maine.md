@@ -58,3 +58,10 @@ Isiku andmeid saab osaliselt automaatselt täita, sisestades isikukoodi ja klõp
 - Kui sobivuseks valitakse `Sobimatu`, ilmuvad lisaks kuupäevaväljad. Lõppkuupäev peab olema hilisem kui alguskuupäev.
 - Kohustuslikud väljad tuleb enne salvestamist täita.
 - Vormi salvestamiseks klõpsake nuppu **Salvesta** ja katkestamiseks **Tühista**.
+
+## PDF-printimine
+
+Vormi toimingute juures on nupp **„Prindi"**. Salvestatud vormil saab valida
+**„Prindi täidetud vorm"** või **„Prindi tühi vorm"**. Uuel salvestamata vormil
+saab alla laadida tühja blanketi. Varasema versiooni vaatamisel sisaldab
+täidetud PDF valitud versiooni andmeid.

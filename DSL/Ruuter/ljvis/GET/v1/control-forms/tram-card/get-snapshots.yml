@@ -23,6 +23,24 @@ getSnapshots:
     body:
       id: ${id}
   result: res
+  next: checkEmpty
+
+checkEmpty:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length == 0}
+      next: getFromArchive
+  next: returnSuccess
+
+getFromArchive:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshots"
+    headers:
+      type: json
+    body:
+      formType: "tram-card"
+      formKey: ${id}
+  result: res
   next: returnSuccess
 
 returnSuccess:

@@ -6,8 +6,12 @@ import type { TechnicalCheckForm } from '../../types';
 import { useTechnicalCheckForm } from '../../pages/technical-check-form/useTechnicalCheckForm';
 import { TechnicalCheckFormFields } from '../../pages/technical-check-form/TechnicalCheckFormFields';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../auth/AuthContext';
+import { buildRsiMessageFromTechnicalCard } from '../../../erru/api';
 
 interface TechnicalCheckFormViewCardProps {
   scope: 'vehicle' | 'trailer';
@@ -15,6 +19,7 @@ interface TechnicalCheckFormViewCardProps {
   formType: string;
   canPublish?: boolean;
   onPublish?: () => Promise<unknown>;
+  snapshotId?: string;
 }
 
 export function TechnicalCheckFormViewCard({
@@ -23,9 +28,13 @@ export function TechnicalCheckFormViewCard({
   formType,
   canPublish,
   onPublish,
+  snapshotId,
 }: TechnicalCheckFormViewCardProps) {
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+
   const {
     formik,
     parts,
@@ -76,6 +85,19 @@ export function TechnicalCheckFormViewCard({
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
         <div className="confirm-button">
           <div>
+            <FormPrintButton endpoint={`/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`} id={form.id} snapshotId={snapshotId} />
+            {form.id && hasPermission('rsi.create') && (
+              <AsyncButton
+                type="button"
+                visualType="secondary"
+                onClick={async () => {
+                  const created = await buildRsiMessageFromTechnicalCard(String(form.id), scope);
+                  navigate(`/erru/rsi/${created.id}`, { state: { justSaved: true } });
+                }}
+              >
+                {t('erru.rsi.form.createFromTechnicalCard')}
+              </AsyncButton>
+            )}
             {canPublish && onPublish && (
               <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
                 {t('common.publish')}

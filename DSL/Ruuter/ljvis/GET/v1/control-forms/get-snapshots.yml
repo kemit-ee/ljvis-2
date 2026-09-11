@@ -16,7 +16,18 @@ extractRequestData:
   assign:
     id: "${incoming.params.id}"
     formType: "${incoming.params.formType}"
-  next: getSnapshots
+  next: resolveRequiredPermission
+
+resolveRequiredPermission:
+  assign:
+    required_perm: "${({'compound-form':'compound_form.read','adr-form':'adr_form.read','vehicle-technical':'vehicle_technical_form.read','trailer-technical':'trailer_technical_form.read','transport-interruption':'transport_interruption_form.read','good-repute':'good_repute_form.read','foreign-violation-form':'foreign_violation_form.read','labour-inspection':'labour_inspection_form.read','drive-rest-form/driver':'sp_driver_form.read','drive-rest-form/teammate':'sp_teammate_form.read'})[formType] || '__no_such_permission__'}"
+  next: checkSnapshotPermission
+
+checkSnapshotPermission:
+  switch:
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes(required_perm))}
+      next: getSnapshots
+  next: returnForbidden
 
 getSnapshots:
   call: http.post
@@ -27,8 +38,31 @@ getSnapshots:
     body:
       id: ${id}
   result: res
+  next: checkEmpty
+
+checkEmpty:
+  switch:
+    - condition: ${res.response.body == null || res.response.body.length == 0}
+      next: getFromArchive
+  next: returnSuccess
+
+getFromArchive:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshots"
+    headers:
+      type: json
+    body:
+      formType: ${formType}
+      formKey: ${id}
+  result: res
   next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}
+  next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
   next: end

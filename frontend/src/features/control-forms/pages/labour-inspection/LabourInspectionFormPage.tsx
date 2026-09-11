@@ -15,6 +15,7 @@ import {
 import type { LabourInspectionForm } from '../../types';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import styles from './LabourInspectionFormPage.module.css';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
@@ -80,6 +81,7 @@ export function LabourInspectionFormPage() {
     (form?.violations?.length ?? 0) === 0;
 
   const handleEditSaved = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
@@ -89,6 +91,7 @@ export function LabourInspectionFormPage() {
   };
 
   const handleConfirmed = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
@@ -98,6 +101,7 @@ export function LabourInspectionFormPage() {
   };
 
   const handlePublished = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(false);
@@ -118,6 +122,13 @@ export function LabourInspectionFormPage() {
     triggerConfirm,
     triggerPublish,
     formError,
+    handleCompanyRegSearch,
+    handleCompanyNameSearch,
+    companySearchError,
+    setCompanySearchError,
+    companyPickerResults,
+    onCompanyPicked,
+    closeCompanyPicker,
   } = useLabourInspectionForm(form ?? undefined, handleEditSaved, handleConfirmed, handlePublished);
 
   const handleDelete = async () => {
@@ -161,6 +172,11 @@ export function LabourInspectionFormPage() {
           addViolation={() => {}}
           removeViolation={() => {}}
         />
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" id={id} snapshotId={snapshotId} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -236,6 +252,13 @@ export function LabourInspectionFormPage() {
           removeMatrixRow={removeMatrixRow}
           addViolation={addViolation}
           removeViolation={removeViolation}
+          handleCompanyRegSearch={handleCompanyRegSearch}
+          handleCompanyNameSearch={handleCompanyNameSearch}
+          companySearchError={companySearchError}
+          setCompanySearchError={setCompanySearchError}
+          companyPickerResults={companyPickerResults}
+          onCompanyPicked={onCompanyPicked}
+          closeCompanyPicker={closeCompanyPicker}
         />
 
         {id && (
@@ -248,6 +271,7 @@ export function LabourInspectionFormPage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" id={id} />
             {isEditActive ? (
               <>
                 <Button

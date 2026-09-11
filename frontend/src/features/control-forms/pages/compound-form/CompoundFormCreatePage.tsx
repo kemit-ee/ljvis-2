@@ -57,6 +57,7 @@ import { createTechnicalCheckValidationSchema } from '../technical-check-form/us
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm, saveTransportInterruptionForm } from '../../api';
 import type { TransportInterruptionForm } from '../../types';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 type AnySubFormData = Partial<DriveRestForm> | Partial<TechnicalCheckForm> | Partial<AdrForm> | Partial<TransportInterruptionForm>;
 
@@ -381,9 +382,7 @@ export function CompoundFormCreatePage() {
 
   // Välisriigi ettevõtte puhul ei kohaldu Eesti EHAK-klassifikaator —
   // maakond/linn-vald sisestatakse vabatekstina.
-  const isCompanyForeign =
-    !!formik.values.companyCountryCode &&
-    formik.values.companyCountryCode !== 'EE';
+  const isCompanyForeign = formik.values.companyCountryCode !== 'EE';
 
   const trailerTabDynamicLabels: Record<string, string> = {};
   formik.values.trailers.forEach((tr: Trailer, idx: number) => {
@@ -505,7 +504,10 @@ export function CompoundFormCreatePage() {
       </div>
 
       <Tabs value={activeTab} onChange={handleTabChange}>
-        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
+        <Tabs.List
+          aria-label={t('forms.compound_form')}
+          overflowMode="dropdown"
+        >
           <Tabs.Trigger id="tab-1">
             <span
               style={{
@@ -581,7 +583,7 @@ export function CompoundFormCreatePage() {
                           id="road"
                           label={t('forms.compound.road')}
                           options={[
-                            { value: '', label: '\u00a0' },
+                            { value: '', label: '—' },
                             ...roads.map((r) => ({
                               value: r.code,
                               label: r.name,
@@ -589,7 +591,7 @@ export function CompoundFormCreatePage() {
                           ]}
                           value={
                             [
-                              { value: '', label: '\u00a0' },
+                              { value: '', label: '—' },
                               ...roads.map((r) => ({
                                 value: r.code,
                                 label: r.name,
@@ -881,9 +883,12 @@ export function CompoundFormCreatePage() {
                                 : {})}
                             />
                           </div>
-                          <Button type="button" onClick={handleVehicleSearch}>
+                          <AsyncButton
+                            type="button"
+                            onClick={handleVehicleSearch}
+                          >
                             {t('common.search')}
-                          </Button>
+                          </AsyncButton>
                         </div>
                         <div></div>
                         <TextField
@@ -1204,14 +1209,14 @@ export function CompoundFormCreatePage() {
                                             : {})}
                                         />
                                       </div>
-                                      <Button
+                                      <AsyncButton
                                         type="button"
                                         onClick={() =>
                                           handleTrailerSearch(index)
                                         }
                                       >
                                         {t('common.search')}
-                                      </Button>
+                                      </AsyncButton>
                                     </div>
                                     <div></div>
                                     <TextField
@@ -1567,12 +1572,12 @@ export function CompoundFormCreatePage() {
                                     : {})}
                                 />
                               </div>
-                              <Button
+                              <AsyncButton
                                 type="button"
                                 onClick={handleCompanySearch}
                               >
                                 {t('forms.compound.companySearchButton')}
-                              </Button>
+                              </AsyncButton>
                             </div>
                             <div className={styles['select-row']}>
                               <div className={styles['select-wrapper']}>
@@ -1595,20 +1600,26 @@ export function CompoundFormCreatePage() {
                                     : {})}
                                 />
                               </div>
-                              <Button
+                              <AsyncButton
                                 type="button"
                                 visualType="secondary"
                                 onClick={handleCompanyNameSearch}
                               >
                                 {t('forms.compound.companyNameSearchButton')}
-                              </Button>
+                              </AsyncButton>
                             </div>
                             <Select
                               id="companyCountryCode"
                               label={t('forms.compound.companyCountryCode')}
-                              options={countries}
+                              options={[
+                                { value: '', label: '—' },
+                                ...countries,
+                              ]}
                               value={
-                                countries.find(
+                                [
+                                  { value: '', label: '—' },
+                                  ...countries,
+                                ].find(
                                   (o) =>
                                     o.value ===
                                     formik.values.companyCountryCode,
@@ -1652,20 +1663,24 @@ export function CompoundFormCreatePage() {
                               <Select
                                 id="companyCounty"
                                 label={t('forms.compound.companyCounty')}
-                                options={(counties ?? []).map((c) => ({
-                                  value: String(c.id),
-                                  label: c.name,
-                                }))}
+                                options={[
+                                  { value: '', label: '—' },
+                                  ...(counties ?? []).map((c) => ({
+                                    value: String(c.id),
+                                    label: c.name,
+                                  })),
+                                ]}
                                 value={
-                                  (counties ?? [])
-                                    .map((c) => ({
+                                  [
+                                    { value: '', label: '—' },
+                                    ...(counties ?? []).map((c) => ({
                                       value: String(c.id),
                                       label: c.name,
-                                    }))
-                                    .find(
-                                      (o) =>
-                                        o.value === formik.values.companyCounty,
-                                    ) ?? null
+                                    })),
+                                  ].find(
+                                    (o) =>
+                                      o.value === formik.values.companyCounty,
+                                  ) ?? null
                                 }
                                 onChange={(val) => {
                                   const v =
@@ -1692,22 +1707,24 @@ export function CompoundFormCreatePage() {
                               <Select
                                 id="companyCity"
                                 label={t('forms.compound.companyCity')}
-                                options={(companyCitiesParishes ?? []).map(
-                                  (c) => ({
+                                options={[
+                                  { value: '', label: '—' },
+                                  ...(companyCitiesParishes ?? []).map((c) => ({
                                     value: String(c.id),
                                     label: c.name,
-                                  }),
-                                )}
+                                  })),
+                                ]}
                                 value={
-                                  (companyCitiesParishes ?? [])
-                                    .map((c) => ({
+                                  [
+                                    { value: '', label: '—' },
+                                    ...(companyCitiesParishes ?? []).map((c) => ({
                                       value: String(c.id),
                                       label: c.name,
-                                    }))
-                                    .find(
-                                      (o) =>
-                                        o.value === formik.values.companyCity,
-                                    ) ?? null
+                                    })),
+                                  ].find(
+                                    (o) =>
+                                      o.value === formik.values.companyCity,
+                                  ) ?? null
                                 }
                                 onChange={(val) => {
                                   const v =
@@ -1828,9 +1845,12 @@ export function CompoundFormCreatePage() {
                                 }
                               />
                             </div>
-                            <Button type="button" onClick={handleMtrSearch}>
+                            <AsyncButton
+                              type="button"
+                              onClick={handleMtrSearch}
+                            >
                               {t('forms.compound.mtrSearchButton')}
-                            </Button>
+                            </AsyncButton>
                           </div>
                         </Card.Content>
                       </Card>
@@ -1922,7 +1942,7 @@ export function CompoundFormCreatePage() {
                         />
 
                         <div className="select-row">
-                          <div className="select-wrapper" >
+                          <div className="select-wrapper">
                             <TextField
                               id="personalCodeEe"
                               label={t('forms.compound.driverPersonalCodeEe')}
