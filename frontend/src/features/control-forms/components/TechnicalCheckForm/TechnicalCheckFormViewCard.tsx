@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, Heading } from '@tedi-design-system/react/tedi';
+import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { printTechnicalCheckForm } from '../../api';
 import type { TechnicalCheckForm } from '../../types';
 import { useTechnicalCheckForm } from '../../pages/technical-check-form/useTechnicalCheckForm';
 import { TechnicalCheckFormFields } from '../../pages/technical-check-form/TechnicalCheckFormFields';
@@ -28,9 +29,27 @@ export function TechnicalCheckFormViewCard({
   onPublish,
 }: TechnicalCheckFormViewCardProps) {
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [printing, setPrinting] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
+
+  const handlePrint = async () => {
+    if (!form.id || printing) return;
+    setPrinting(true);
+    try {
+      const result = await printTechnicalCheckForm(String(form.id), scope);
+      const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = result.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setPrinting(false);
+    }
+  };
   const {
     formik,
     parts,
@@ -81,6 +100,11 @@ export function TechnicalCheckFormViewCard({
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
         <div className="confirm-button">
           <div>
+            {form.id && (
+              <Button type="button" visualType="secondary" isLoading={printing} disabled={printing} onClick={() => void handlePrint()}>
+                {t('common.print')}
+              </Button>
+            )}
             {form.id && hasPermission('rsi.create') && (
               <AsyncButton
                 type="button"

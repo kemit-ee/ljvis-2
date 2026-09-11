@@ -84,6 +84,11 @@ Iga katkestamise vorm saab oma alamnumbri ja versiooni (`subFormNumber/version`)
 
 Pärast kinnitamist / avaldamist vormi enam muuta ei saa. Muudatuste tegemiseks tuleb luua uus versioon või pöörduda administraatori poole.
 
+## PDF-printimine
+
+Salvestatud ja kinnitatud autoveo katkestamise otsusel on nupp **„Prindi"**,
+mis laadib alla täidetud otsuse PDF-na.
+
 ## Nipid
 
 - Päis täidetakse automaatselt ametniku struktuuriüksuse aadressiga, kui vorm luuakse uuena.
