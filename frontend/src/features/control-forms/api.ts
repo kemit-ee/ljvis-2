@@ -471,6 +471,28 @@ export const printAdrForm = (
     { id: id ?? '', blank, snapshotId: snapshotId ?? '' },
   );
 
+export const printDriveRestForm = (
+  id: string,
+  scope: 'driver' | 'teammate',
+  blank: boolean,
+) =>
+  post<PdfRenderResponse>(
+    `/v1/control-forms/drive-rest-form/${scope}/print`,
+    { id, blank },
+  );
+
+export const printTransportInterruptionForm = (id: string) =>
+  post<PdfRenderResponse>(
+    `/v1/control-forms/transport-interruption/read/print`,
+    { id },
+  );
+
+export const printTechnicalCheckForm = (id: string, scope: 'vehicle' | 'trailer') =>
+  post<PdfRenderResponse>(
+    `/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`,
+    { id },
+  );
+
 export const saveAdrFormXroadFields = (data: {
   id: string;
   enforcementDecision?: string;

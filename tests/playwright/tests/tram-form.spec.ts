@@ -229,11 +229,21 @@ test.describe('TRAM kontrollkaart — haagise pealkiri', () => {
 // ─── Dokumentatsioon: veoliigi tingimuslikud väljad ──────────────────────────
 
 test.describe('TRAM kontrollkaart — veoliik (dok. jaotis „Veoliik")', () => {
-  test('kõik kolm veoliiki on nähtaval', async ({ page }) => {
+  // Tõlked: transportTypeCargo="Veosevedu", transportTypePassenger="Sõitjatevedu"
+  // "Tühisõit" on eraldi checkbox (mitte radio), id="transportEmptyRun"
+  test('Veosevedu ja Sõitjatevedu raadionupud on nähtaval', async ({ page }) => {
     await page.goto(NEW);
-    await expect(page.getByRole('radio', { name: /Kaubavedu/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('radio', { name: /Veosevedu/i })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('radio', { name: /Sõitjatevedu/i })).toBeVisible();
-    await expect(page.getByRole('radio', { name: /Tühi sõit/i })).toBeVisible();
+  });
+
+  test('„Tühisõit" on eraldi märkeruut (mitte radio)', async ({ page }) => {
+    await page.goto(NEW);
+    // Tühisõit on checkbox, mitte radio (DriveRestFormFields id="transport_empty_run")
+    // Kasutame label-teksti kaudu, kuna TEDI ChoiceGroup ei pruugi ARIA nime seada
+    await expect(page.locator('#transport_empty_run')).toBeVisible({ timeout: 15_000 });
+    // Kinnita et see on checkbox-tüüpi sisend (mitte radio)
+    await expect(page.locator('input#transport_empty_run[type="checkbox"]')).toHaveCount(1);
   });
 
   test('„Sõitjatevedu" valimisel ilmuvad liini number ja liini nimetus', async ({
@@ -255,8 +265,8 @@ test.describe('TRAM kontrollkaart — veoliik (dok. jaotis „Veoliik")', () => 
       await expect(page.locator('#liiniNimetus')).toBeVisible();
     });
 
-    await test.step('Kaubavedu valimisel peiduvad liini väljad uuesti', async () => {
-      await page.getByRole('radio', { name: /Kaubavedu/i }).check({ force: true });
+    await test.step('Veosevedu valimisel peiduvad liini väljad uuesti', async () => {
+      await page.getByRole('radio', { name: /Veosevedu/i }).check({ force: true });
       await expect(page.locator('#liiniNumber')).toHaveCount(0);
     });
   });
@@ -308,20 +318,19 @@ test.describe('TRAM kontrollkaart — kontrolli tulemus (dok. jaotis „Kontroll
   }) => {
     await page.goto(NEW);
 
-    await test.step('vaikimisi Menetluse liik ei ole nähtaval', async () => {
-      await expect(page.locator('#proceedingType-0, #proceedingType')).toHaveCount(0);
+    await test.step('vaikimisi Menetluse liik raadionupud ei ole nähtaval', async () => {
+      // Vaatame konkreetseid raadionuppe, mitte teksti (tekst võib olla DOM-is peidetud)
+      await expect(page.getByRole('radio', { name: /Lühimenetlus/i })).toHaveCount(0);
     });
 
-    await test.step('Hoiatus ei näita Menetluse liiki', async () => {
+    await test.step('Hoiatus ei näita menetluse liiki', async () => {
       await page.getByRole('radio', { name: /Hoiatus/i }).check({ force: true });
-      // Menetluse liik peaks puuduma ka Hoiatuse puhul
-      await expect(page.getByText('Menetluse liik')).toHaveCount(0);
+      await expect(page.getByRole('radio', { name: /Lühimenetlus/i })).toHaveCount(0);
     });
 
-    await test.step('Alustati → Menetluse liik ilmub', async () => {
+    await test.step('Alustati → Menetluse liik raadionupud ilmuvad', async () => {
       await page.getByRole('radio', { name: /Alustati väärteomenetlust/i }).check({ force: true });
-      await expect(page.getByText('Menetluse liik').first()).toBeVisible({ timeout: 5_000 });
-      await expect(page.getByRole('radio', { name: /Lühimenetlus/i })).toBeVisible();
+      await expect(page.getByRole('radio', { name: /Lühimenetlus/i })).toBeVisible({ timeout: 5_000 });
       await expect(page.getByRole('radio', { name: /Kiirmenetlus/i })).toBeVisible();
       await expect(page.getByRole('radio', { name: /Üldmenetlus/i })).toBeVisible();
     });
@@ -350,9 +359,10 @@ test.describe('TRAM kontrollkaart — vorminumber (dok. jaotis „Vorminumber")'
     await page.getByRole('button', { name: 'Salvesta' }).click();
     await expectSaved(page, ROUTE_PREFIX);
 
-    // Vorminumber peab vastama mustrale tram-YYYY-NNNNN/N
+    // Vorminumber peab vastama mustrile tram-YYYY-NNNNN
+    // CompoundFormEditCard näitab ainult split('/')[0] osa (ilma versiooninumbrita)
     await expect(
-      page.getByText(/tram-\d{4}-\d{5}\/\d+/).first(),
+      page.getByText(/tram-\d{4}-\d{5}/).first(),
     ).toBeVisible({ timeout: 15_000 });
   });
 });

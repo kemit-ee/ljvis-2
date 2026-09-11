@@ -110,6 +110,11 @@ Muud väljad ei ole vormilt otseselt kohustuslikud, kuid kontrolli tulemuse ja r
 4. Kinnitage valikud — rikked ilmuvad **Tuvastatud rikked** tabelisse ja osa olekuks jääb *Ei vasta nõuetele*.
 5. Vajadusel eemaldage rikked tuvastatud rikkete tabelist. Kui osal pole enam rikkeid, muutub olek tagasi *Kontrollituks*.
 
+## PDF-printimine
+
+Salvestatud ja kinnitatud tehniline kontrollkaardil on nupp **„Prindi"**,
+mis laadib alla täidetud vormi PDF-na.
+
 ## Nipid
 
 - Kui valite raskusastmega `OV` või `EOV` rikked, lukustab süsteem madalamad tulemused ja pakub automaatselt kõrgemat kontrolli tulemuse taset.
