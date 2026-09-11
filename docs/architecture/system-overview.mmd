@@ -1,0 +1,24 @@
+flowchart LR
+    U[Kasutaja\nveebibrauser] --> F[Frontend\nReact + TypeScript + Vite]
+    F --> R[Ruuter\navalik API\neraldi teenus]
+    F -. OIDC .-> T[TIM / TARA\nidentiteet]
+    R --> Q[Resql\nSQL-päringud]
+    R --> M[DataMapper\nHandlebars teisendus]
+    R --> P[pdf-creator\nPython PDF-teenus]
+    R --> X[XTR\nX-tee väljumispunkt]
+    R --> N[Nysiis\nERRU teenus]
+    R --> S[S3 proxy\nmanused]
+    Q --> D[(PostgreSQL 17\nLJVIS andmebaas)]
+    I[Ruuter internal\nsisesed töövood\neraldi teenus] --> D
+    C[CronManager\najastatud tööd] --> I
+
+    classDef frontend fill:#d9f0e3,stroke:#264653,color:#17324d;
+    classDef service fill:#e8f1f5,stroke:#264653,color:#17324d;
+    classDef router fill:#fbe8c8,stroke:#264653,color:#17324d;
+    classDef external fill:#f8d7da,stroke:#264653,color:#17324d;
+    classDef pdf fill:#eadcf8,stroke:#264653,color:#17324d;
+    class U,F frontend;
+    class Q,M,D,N,S,C service;
+    class R,I router;
+    class T,X external;
+    class P pdf;
