@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { TechnicalCheckForm, Trailer } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../../pages/technical-check-form/TechnicalCheckFormCreatePage.tsx';
-import { printTechnicalCheckForm } from '../../api';
 
 export interface TechnicalCheckFormEditCardRef {
   save: () => void;
@@ -49,24 +49,7 @@ export const TechnicalCheckFormEditCard = forwardRef<
   const { t } = useTranslation();
   const formRef = useRef<TechnicalCheckFormCreatePageRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
-  const [printing, setPrinting] = useState(false);
 
-  const handlePrint = async () => {
-    if (!form.id || printing) return;
-    setPrinting(true);
-    try {
-      const result = await printTechnicalCheckForm(String(form.id), scope);
-      const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
-      const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = result.filename;
-      link.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setPrinting(false);
-    }
-  };
 
   useImperativeHandle(ref, () => ({
     save: () => formRef.current?.handleSubmit(),
@@ -106,11 +89,7 @@ export const TechnicalCheckFormEditCard = forwardRef<
         )}
         <div className="confirm-button">
           <div>
-            {form.id && (
-              <Button type="button" visualType="secondary" isLoading={printing} disabled={printing} onClick={() => void handlePrint()}>
-                {t('common.print')}
-              </Button>
-            )}
+            <FormPrintButton endpoint={`/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`} id={form.id} />
             {canConfirm && (
               <Button
                 type="button"

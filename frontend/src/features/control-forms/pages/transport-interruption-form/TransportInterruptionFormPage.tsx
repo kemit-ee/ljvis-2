@@ -538,6 +538,7 @@ export function TransportInterruptionFormPage() {
         <TransportInterruptionFormViewCard
           form={snapshot}
           formType={FORM_TYPE.TRANSPORT_INTERRUPTION}
+          snapshotId={snapshotId}
         />
       </div>
     );

@@ -16,6 +16,7 @@ import { ForeignViolationFormFields } from '../../components/ForeignViolationFor
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 
 export function ForeignViolationFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -178,6 +179,11 @@ export function ForeignViolationFormPage() {
             refreshKey={versionsRefreshKey}
           />
         )}
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" id={id} snapshotId={snapshotId} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -277,6 +283,7 @@ export function ForeignViolationFormPage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" id={id} />
             {isEditActive ? (
               <>
                 <Button

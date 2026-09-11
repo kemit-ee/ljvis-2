@@ -86,8 +86,8 @@ Pärast kinnitamist / avaldamist vormi enam muuta ei saa. Muudatuste tegemiseks 
 
 ## PDF-printimine
 
-Salvestatud ja kinnitatud autoveo katkestamise otsusel on nupp **„Prindi"**,
-mis laadib alla täidetud otsuse PDF-na.
+Salvestatud autoveo katkestamise otsusel saab nupust **„Prindi"** alla laadida
+täidetud otsuse või tühja blanketi. Uuel vormil saab printida tühja blanketi.
 
 ## Nipid
 

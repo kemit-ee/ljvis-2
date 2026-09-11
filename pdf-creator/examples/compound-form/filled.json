@@ -1,0 +1,55 @@
+{
+  "compoundForm": {
+    "id": "1001",
+    "formNumber": "NÄIDIS-KOOND-2026-001",
+    "controlCountryCode": "EE",
+    "county": "Harjumaa",
+    "city": "Saue vald",
+    "address": "Näidise kontrollplats",
+    "controlDate": "2026-09-09",
+    "controlTime": "10:35:00",
+    "vehicleCountryCode": "EE",
+    "vehicleRegNr": "123ABC",
+    "trailers": [
+      {
+        "countryCode": "EE",
+        "regNr": "456DEF",
+        "make": "Näidishaagis",
+        "model": "Proov",
+        "categoryCode": "D_2012",
+        "vin": "TRAILERTEST001"
+      }
+    ],
+    "companyName": "Näidisvedu OÜ (väljamõeldud)",
+    "companyRegCode": "00000000",
+    "companyCountryCode": "EE",
+    "companyCity": "Tallinn",
+    "companyAddressLine1": "Näidise tee 1",
+    "drivers": [
+      {
+        "firstName": "Mari",
+        "lastName": "Näidis",
+        "citizenshipCode": "EE",
+        "birthDate": "1990-01-01"
+      }
+    ],
+    "inspectorFirstName": "Jüri",
+    "inspectorLastName": "Proov",
+    "inspectorOrganisationId": "DEMO",
+    "inspectorProfession": "Kontrollija",
+    "vehicleVin": "TESTVIN0000000001",
+    "vehicleCategoryCode": "B_2012",
+    "vehicleMileage": "125000",
+    "vehicleMake": "Näidismark",
+    "vehicleModel": "Proovimudel",
+    "companyActivityLicenceCopyNumber": "NÄIDIS-123"
+  },
+  "labels": {
+    "countries": {
+      "EE": "Eesti"
+    },
+    "organisations": {
+      "DEMO": "Näidisasutus"
+    }
+  }
+}

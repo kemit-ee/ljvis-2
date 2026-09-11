@@ -581,7 +581,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     if (!snapshot) return <FormNotFoundView title={t(titleKey)} />;
     return (
       <div>
-        <TechnicalCheckFormViewCard scope={variant} form={snapshot} formType={formType} />
+        <TechnicalCheckFormViewCard scope={variant} form={snapshot} formType={formType} snapshotId={snapshotId} />
       </div>
     );
   }

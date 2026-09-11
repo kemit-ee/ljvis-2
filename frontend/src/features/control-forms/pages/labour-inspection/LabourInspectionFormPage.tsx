@@ -15,6 +15,7 @@ import {
 import type { LabourInspectionForm } from '../../types';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import styles from './LabourInspectionFormPage.module.css';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
@@ -168,6 +169,11 @@ export function LabourInspectionFormPage() {
           addViolation={() => {}}
           removeViolation={() => {}}
         />
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" id={id} snapshotId={snapshotId} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -262,6 +268,7 @@ export function LabourInspectionFormPage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" id={id} />
             {isEditActive ? (
               <>
                 <Button

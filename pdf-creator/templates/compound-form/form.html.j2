@@ -1,0 +1,20 @@
+{% extends 'shared/base.html.j2' %}{% block body %}
+<div class="number">{{ number }}</div><h1>{{ title }}</h1>
+<table>
+<tr><th colspan="4" class="section">Kontroll</th></tr>
+<tr><td colspan="2">{{ field('Koht',fields.place) }}</td><td>{{ field('Kuupäev',fields.date) }}</td><td>{{ field('Kellaaeg',fields.time) }}</td></tr>
+<tr><th colspan="4" class="section">Sõiduk</th></tr>
+<tr><td>{{ field('Registreerimismärk',fields.vehicleReg) }}</td><td>{{ field('Mark ja mudel',fields.vehicle) }}</td><td colspan="2">{{ field('VIN',fields.vehicleVin) }}</td></tr>
+<tr><td>{{ field('Esmaregistreerimine',dt(f.vehicleFirstRegistration)) }}</td><td>{{ field('Keretüüp',f.vehicleBodyType) }}</td><td>{{ field('Kategooria',f.vehicleCategoryCode) }}</td><td>{{ field('Läbisõit',f.vehicleMileage) }}</td></tr>
+<tr><td colspan="4">{{ field('Teekasutustasu',label('roadTax',f.roadTaxStatus) ~ (' - ' ~ f.roadTaxNotes if f.roadTaxNotes else '')) }}</td></tr>
+<tr><th colspan="4" class="section">Haagised</th></tr>
+{% if trailers %}{% for row in trailers %}<tr><td colspan="4"><b>{{ loop.index }}.</b> {{ row.display }}</td></tr>{% endfor %}{% else %}<tr><td colspan="4" class="space"></td></tr>{% endif %}
+<tr><th colspan="4" class="section">Veoettevõtja</th></tr>
+<tr><td colspan="2">{{ field('Nimi ja registrikood',fields.company) }}</td><td colspan="2">{{ field('Tegevusloa või koopia number',fields.licence) }}</td></tr>
+<tr><td colspan="4">{{ field('Aadress',fields.companyAddress) }}</td></tr>
+<tr><td colspan="4">{{ field('Esindaja',([f.companyOwnerFirstName,f.companyOwnerLastName]|select|join(' '))) }}</td></tr>
+<tr><th colspan="4" class="section">Sõidukijuhid</th></tr>
+{% if drivers %}{% for row in drivers %}<tr><td colspan="4"><b>{{ loop.index }}.</b> {{ row.display }}</td></tr>{% endfor %}{% else %}<tr><td colspan="4" class="space"></td></tr>{% endif %}
+<tr><th colspan="4" class="section">Kontrollija</th></tr><tr><td colspan="3">{{ field('Nimi, asutus, üksus ja amet',fields.inspector) }}</td><td class="signature">Allkiri</td></tr>
+</table>
+{% endblock %}

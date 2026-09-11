@@ -21,6 +21,7 @@ import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { vehicleCategoryColWidth } from './vehicleCategoryLayout';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import type { XRoadCompany } from '../../../xroad/types';
@@ -156,6 +157,7 @@ interface CompoundFormEditCardProps {
   onDelete: () => void;
   formType: string;
   versionsRefreshKey?: number;
+  printEndpoint?: string;
   trailerFormRegNrs?: (string | null)[];
   onAddTrailerControlForm?: (index: number) => void;
   onEditTrailerControlForm?: (index: number) => void;
@@ -203,6 +205,7 @@ export function CompoundFormEditCard({
   handleMtrSearch,
   formType,
   versionsRefreshKey,
+  printEndpoint = '/v1/control-forms/compound-form/read/print',
   trailerFormRegNrs,
   onAddTrailerControlForm,
   onEditTrailerControlForm,
@@ -1764,6 +1767,11 @@ export function CompoundFormEditCard({
                 refreshKey={versionsRefreshKey}
               />
             )}
+            <div className="page-actions">
+              <div className="page-actions-buttons">
+                <FormPrintButton endpoint={printEndpoint} id={formik.values.id} />
+              </div>
+            </div>
           </div>
         </form>
       </Card.Content>
