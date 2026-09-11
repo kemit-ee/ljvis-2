@@ -8,8 +8,8 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 
 | Tehnoloogia / komponent | Otstarve | Versioon | Versiooni allikas | Kasutusel alates | Keskkond | Märkused |
 |---|---|---|---|---|---|---|
-| PostgreSQL | Põhiandmebaas | 17 | `postgres:17` | 2026-09-10 | DEV/CI | |
-| PostgreSQL | TIM andmebaas | 17 | `postgres:17` | 2026-09-10 | DEV/CI | |
+| PostgreSQL | Põhiandmebaas | 17 | `postgres:17` | 2026-07-10 | DEV/CI | |
+| PostgreSQL | TIM andmebaas | 17 | `postgres:17` | 2026-07-10 | DEV/CI | |
 | Liquibase | Andmebaasi migratsioonid | 4.29.2 | `liquibase/liquibase:4.29.2` | 2026-09-01 | DEV/CI | |
 | Ruuter | Avalik API ja töövood | 0.9.15-rc | `turnerrainer/ruuter:0.9.15-rc` + digest | 2026-09-10 | DEV/CI | Helm DEV release `0.1.0-main.222.g386a85d6`; avalik ja sisemine Ruuter on eraldi teenused. |
 | Resql | SQL-päringute teenus | 0.3.0-alpha | `turnerrainer/resql:0.3.0-alpha` + digest | 2026-09-10 | DEV/CI | |
