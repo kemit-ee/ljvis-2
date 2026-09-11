@@ -1,68 +1,67 @@
-# LJVIS2 — AWS arhitektuur
+# LJVIS2 — AWS baasarhitektuur
 
-## Ülevaade
+Rakendus jookseb jagatud EKS klastris. Andmebaasid ja S3 on LJVIS2 enda AWS kontol.
 
-LJVIS2 rakenduse AWS infrastruktuuri arhitektuur.
-
-## Komponentide skeem
+## Skeem
 
 ```
-  AVALIK LIGIPÄÄS (LIVE)                       SISEMINE LIGIPÄÄS (dev/test/prelive)
-  ======================                       ====================================
-
-  ┌────────────────────┐                       ┌────────────────────────┐
-  │  liiklusvalve.ee   │                       │ {env}.liiklusvalve.ee  │
-  │      (DNS)         │                       │        (DNS)           │
-  └─────────┬──────────┘                       └────────────┬───────────┘
-            │ CNAME                                         │ CNAME
-            v                                               v
-  ┌────────────────────┐                       ┌────────────────────────┐
-  │    Cloudflare      │                       │  ljvis2{env}.sise.     │
-  │      (DNS)         │                       │    kemitaws.ee         │
-  └─────────┬──────────┘                       └────────────┬───────────┘
-            │                                               │
-            │ ljvis2live.kemitaws.ee                        │
-            v                                               v
-  ┌────────────────────┐                       ┌────────────────────────┐
-  │    Public ALB      │                       │     Internal ALB       │
-  └─────────┬──────────┘                       └────────────┬───────────┘
-            │                                               │
-            v                                               v
-  ┌────────────────────┐                       ┌────────────────────────┐
-  │   Fortigate FW     │                       │      Fortigate FW      │
-  └─────────┬──────────┘                       └────────────┬───────────┘
-            │                                               │
-            v                                               v
-  ┌────────────────────────────────┐             ┌────────────────────────────────┐
-  │ SG - Teenuse taseme turvagrupp │             │ SG - Teenuse taseme turvagrupp │
-  └────────────────┬───────────────┘             └───────────────┬────────────────┘
-                   │                                             │
-                   └─────────────────┬───────────────────────────┘
-                                     │
-                         ┌───────────v───────────┐
-                         │  ENDPOINT Computing   │
-                         └───┬──────────────┬────┘
-                             │              │
-                ┌────────────────┐  ┌────────────────────┐
-                │ RDS PostgreSQL │  │   S3 (Manused)     │
-                └────────────────┘  └────────────────────┘
+        ┌──────────────────────────┐
+        │    *.liiklusvalve.ee     │
+        └────────────┬─────────────┘
+                     │ HTTPS
+                     v
+        ┌──────────────────────────┐
+        │   Jagatud ALB            │  TLS lõpeb siin
+        └────────────┬─────────────┘
+                     │ HTTP
+                     v
+        ┌──────────────────────────┐
+        │      FortiGate FW        │
+        └────────────┬─────────────┘
+                     │
+                     v
+        ┌──────────────────────────┐
+        │   Traefik Gateway        │  klastri ingress
+        └────────────┬─────────────┘
+                     │ HTTPRoute
+                     v
+        ┌──────────────────────────┐
+        │   EKS podid              │  ns ljvis2-dev
+        │   (ljvis2 komponendid)   │
+        └────────────┬─────────────┘
+                     │
+        ┌────────────┼────────────┐
+        v            v            v
+  ┌──────────┐ ┌──────────┐ ┌──────────┐
+  │ RDS      │ │ RDS      │ │ S3       │
+  │ ljvis2   │ │ tim      │ │          │
+  └──────────┘ └──────────┘ └──────────┘
 ```
 
 ## Komponendid
 
 | Komponent | Kirjeldus |
 |---|---|
-| **Cloudflare** | DNS, ainult LIVE keskkonnas |
-| **Public ALB** | Avalik ALB (LIVE) |
-| **Internal ALB** | Sisemine ALB (dev/test/prelive), ljvis2{env}.sise.kemitaws.ee |
-| **Fortigate FW** | Võrgu tulemüür ALB (INT ALB) ja teenuste vahel |
-| **SG - Teenuse taseme turvagrupp** | Endpoint Computing ees |
-| **ENDPOINT Computing** | Rakendusserver, Docker konteiner |
-| **RDS PostgreSQL** | Andmebaas |
-| **S3** | Manuste hoiustamine |
+| **Jagatud ALB** | Kuulub klastrile, teenindab kõiki klastri teenuseid. TLS lõpeb siin |
+| **FortiGate FW** | Võrgu tulemüür ALB ja klastri vahel |
+| **Traefik Gateway** | Klastri ingress; LJVIS2 HTTPRoute suunab liikluse frontendile |
+| **EKS podid** | Rakenduse komponendid namespace'is `ljvis2-dev` |
+| **RDS PostgreSQL** | Rakenduse andmebaas `ljvis2` |
+| **RDS (TIM)** | TIM-i andmebaas; eraldi instants, sest TIM migreerib ise |
+| **S3** | Failihoidla |
 
-## Vorguliikluse marsruutimine
+Kubernetesele üleminekul kadusid EC2 rakendusserver, sisemine ALB ja teenuse
+taseme turvagrupp.
 
-- **LIVE:** liiklusvalve.ee → Cloudflare → ljvis2live.kemitaws.ee → Public ALB → Fortigate FW → SG → EC2/EKS
-- **dev/test/prelive:** {env}.liiklusvalve.ee → Internal ALB → Fortigate FW → SG → ENDPOINT COMPUTING
-- **Mõlemad ALB-d** registreerivad vastava target grupi ENDPOINT COMPUTINGU jaoks
+## Ligipääs
+
+ALB-le pääseb ainult lubatud aadressidelt (KEMIT-i sisevõrk, arendajad, asutused).
+Sertifikaadid kuuluvad EKS klastri-le.
+
+## Keskkonnad
+
+| Keskkond | DNS |
+|---|---|
+| {env} | `*.liiklusvalve.ee` |
+
+Igal keskkonnal on oma AWS konto. Praegu on paigaldatud ainult `dev`.
