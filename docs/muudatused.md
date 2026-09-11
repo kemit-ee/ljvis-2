@@ -4,7 +4,28 @@
 
 ---
 
+## 2026-09-11
+
+### NU skeemile vastavuse kontrolli parendused
+
+- CI kontrollib NU väljade SQL-reegleid ja andmebaasipiiranguid versioonihalduses oleva ERRU MoveHub 3.5 XSD-koopia vastu. Staatika ja mutatsioonitestid töötavad ilma Dockerita; skeemist genereeritud PostgreSQL-testid ning saatmise ja EN-i regressioonitestid käivitatakse E2E andmebaasil pärast migratsioone.
+
+### NU andmebaasimigratsioonide parendused
+
+- NU valideerimise ja sõnumivahetuse SQL-migratsioonid on seotud Liquibase XML-muudatustega ning neil on tagasipööramise skriptid. Vajalikud funktsioonid luuakse nüüd tavapärase andmebaasiuuenduse käigus.
+
+### NU integratsiooni ulatuse parendused
+
+- Kokkuleppimata kinnituse edastamise callback ja automaatsed viieminutilised veastaatused on eemaldatud. Väljamineva päringu tulemus salvestatakse sünkroonse vastuse põhjal; seotud ERRU ErrorNotification teate käsitlus säilib.
+
 ## 2026-09-10
+
+### NU sõnumivahetuse ja valideerimise parendused
+
+- Kuupäevata saabunud sobimatusteade saab Eesti aja järgi esmase vastuvõtu kuupäeva; korduv teade säilitab algse kuupäeva ja kinnituse.
+- ERRU väljade pikkusi, kuupäevi, lubatud väärtusi ning nime- ja tunnistuseplokkide terviklikkust kontrollitakse enne salvestamist või saatmist. NYSIIS võtme piir on 100 märki.
+- Saatmise identifikaatorid salvestatakse enne väliskutset. Vigane kinnitus lõpetab saatmise veaga.
+- Seotud veateadete sisemised vastuvõtjad säilitavad vahetuse ajaloo ning käsitlevad kordusi idempotentselt. Hilinenud edu ei taasta veaga lõppenud teadet.
 
 ### Rahvastikuregistri ja Postkasti X-tee liiklus läbi XTR-i
 

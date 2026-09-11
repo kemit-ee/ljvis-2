@@ -63,6 +63,12 @@ returns:
 - name: id
   type: number
   nullable: true
+- name: unfit_start_date
+  type: string
+  nullable: true
+- name: acknowledgement
+  type: string
+  nullable: true
 - name: business_case_id
   type: string
   nullable: true
@@ -125,7 +131,7 @@ WITH ins_received AS (
     NULLIF(:certificateNumber, ''),
     NULLIF(:certificateIssueDate, '')::DATE,
     NULLIF(:certificateIssueCountry, ''),
-    NULLIF(:unfitStartDate, '')::DATE,
+    COALESCE(NULLIF(:unfitStartDate, '')::DATE, (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Tallinn')::DATE),
     :created_by
   )
   ON CONFLICT (technical_id) WHERE (direction = 'incoming' AND status = 'received')
@@ -191,6 +197,6 @@ WITH ins_received AS (
     r.unfit_start_date,
     :created_by
   FROM ins_received r
-  RETURNING nu_message_key, business_case_id, version, status
+  RETURNING nu_message_key, business_case_id, version, status, unfit_start_date
 )
-SELECT nu_message_key AS id, business_case_id, version, status FROM ins_acknowledged;
+SELECT nu_message_key AS id, business_case_id, version, status, unfit_start_date::TEXT, erru.nu_register_ack(nu_message_key)::TEXT AS acknowledgement FROM ins_acknowledged;

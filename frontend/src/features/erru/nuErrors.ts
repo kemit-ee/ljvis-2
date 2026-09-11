@@ -24,6 +24,8 @@ export function nuErrorDetails(error: unknown): {
 
 const codes = new Set([
   'required',
+  'invalid_value',
+  'invalid_date',
   'invalid_country_code',
   'max_length_exceeded',
   'source_exceeds_erru_limit',
@@ -38,6 +40,8 @@ const codes = new Set([
 const sourceFields = new Set([
   'tmFirstName',
   'tmFamilyName',
+  'tmDateOfBirth',
+  'certificateIssueDate',
   'tmPlaceOfBirth',
   'certificateNumber',
   'certificateIssueCountry',

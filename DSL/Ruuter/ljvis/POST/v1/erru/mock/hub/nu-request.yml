@@ -8,6 +8,12 @@ declaration:
         type: string
       - field: businessCaseId
         type: string
+      - field: sentAt
+        type: string
+      - field: from
+        type: string
+      - field: version
+        type: string
       - field: technicalId
         type: string
       - field: workflowId
@@ -38,6 +44,17 @@ declaration:
         type: string
       - field: unfitStartDate
         type: string
+
+validateHeader:
+  switch:
+    - condition: ${incoming.body.version !== '3.5' || !incoming.body.technicalId || !incoming.body.workflowId || !incoming.body.sentAt || !incoming.body.from}
+      next: returnInvalidHeader
+  next: selectScenario
+
+returnInvalidHeader:
+  status: 400
+  return: '{"code":"invalid_header"}'
+  next: end
 
 selectScenario:
   switch:

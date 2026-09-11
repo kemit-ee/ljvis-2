@@ -43,14 +43,7 @@ export function useNuForm(
   const required = t(`${T}.required`);
 
   const validationSchema = Yup.object({
-    nuTo: Yup.string().test(
-      'valid-country-code',
-      t(`${T}.invalid_country_code`),
-      (v) => !v || v.trim().length === 2,
-    ),
-    originatingAuthority: Yup.string()
-      .required(required)
-      .max(50, t(`${T}.max_length_exceeded`)),
+    originatingAuthority: Yup.string().required(required),
     requestSource: Yup.string().required(required),
     requestPurpose: Yup.string().required(required),
     unfitStartDate: Yup.string().required(required),

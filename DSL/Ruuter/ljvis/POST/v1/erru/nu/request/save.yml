@@ -95,13 +95,13 @@ checkSourceEligible:
 
 extractSourceFields:
   assign:
-    tm_first_name: "${source.response.body[0].firstName || ''}"
-    tm_family_name: "${source.response.body[0].lastName || ''}"
-    tm_date_of_birth: "${source.response.body[0].dateOfBirth || ''}"
-    tm_place_of_birth: "${source.response.body[0].placeOfBirth || ''}"
-    certificate_number: "${source.response.body[0].certificateNumber || ''}"
-    certificate_issue_date: "${source.response.body[0].certificateIssueDate || ''}"
-    certificate_issue_country: "${source.response.body[0].certificateCountryCode || ''}"
+    tm_first_name: "${('' + (source.response.body[0].firstName || '')).trim()}"
+    tm_family_name: "${('' + (source.response.body[0].lastName || '')).trim()}"
+    tm_date_of_birth: "${('' + (source.response.body[0].dateOfBirth || '')).trim()}"
+    tm_place_of_birth: "${('' + (source.response.body[0].placeOfBirth || '')).trim()}"
+    certificate_number: "${('' + (source.response.body[0].certificateNumber || '')).trim()}"
+    certificate_issue_date: "${('' + (source.response.body[0].certificateIssueDate || '')).trim()}"
+    certificate_issue_country: "${('' + (source.response.body[0].certificateCountryCode || '')).trim()}"
   next: validateRequest
 validateRequest:
   template: "templates/erru/nu/validate-nu-request"
@@ -116,8 +116,10 @@ validateRequest:
     unfitStartDate: ${unfit_start_date}
     tmFirstName: ${tm_first_name}
     tmFamilyName: ${tm_family_name}
+    tmDateOfBirth: ${tm_date_of_birth}
     tmPlaceOfBirth: ${tm_place_of_birth}
     certificateNumber: ${certificate_number}
+    certificateIssueDate: ${certificate_issue_date}
     certificateIssueCountry: ${certificate_issue_country}
   result: validationResult
   next: checkValidationResult

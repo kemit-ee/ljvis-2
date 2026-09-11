@@ -99,8 +99,10 @@ validateRequest:
     unfitStartDate: ${unfit_start_date}
     tmFirstName: ${tm_first_name}
     tmFamilyName: ${tm_family_name}
+    tmDateOfBirth: ${tm_date_of_birth}
     tmPlaceOfBirth: ${tm_place_of_birth}
     certificateNumber: ${certificate_number}
+    certificateIssueDate: ${certificate_issue_date}
     certificateIssueCountry: ${certificate_issue_country}
   result: validationResult
   next: checkValidationResult
@@ -168,6 +170,32 @@ prepareOutbound:
     start_time: "${new Date().getTime()}"
     tm_first_name_search_key: "${tm_first_name_search_key || ''}"
     tm_family_name_search_key: "${tm_family_name_search_key || ''}"
+  next: beginSend
+
+beginSend:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/begin-send"
+    body:
+      key: ${id}
+      firstKey: ${tm_first_name_search_key}
+      familyKey: ${tm_family_name_search_key}
+      actor: ${actor_personal_code}
+      actorName: ${actor_name}
+  result: prepared
+  next: extractHeader
+
+extractHeader:
+  assign:
+    outboundHeader: "${JSON.parse(prepared.response.body[0].result)}"
+  next: checkPrepared
+
+checkPrepared:
+  switch:
+    - condition: ${outboundHeader.code === 'nysiis_unavailable'}
+      next: returnNysiisError
+    - condition: ${!outboundHeader.technicalId}
+      next: returnNotSendable
   next: callErru
 
 callErru:
@@ -179,8 +207,11 @@ callErru:
     body:
       nuTo: ${nu_to}
       businessCaseId: ${business_case_id}
-      technicalId: ""
-      workflowId: ""
+      technicalId: ${outboundHeader.technicalId}
+      workflowId: ${outboundHeader.workflowId}
+      sentAt: ${outboundHeader.sentAt}
+      from: ${outboundHeader.from}
+      version: ${outboundHeader.version}
       originatingAuthority: ${originating_authority}
       requestSource: ${request_source}
       requestPurpose: ${request_purpose}
@@ -248,80 +279,66 @@ checkResponseEnvelope:
 
 extractErruResponseEnveloped:
   assign:
-    member_states_raw: "${JSON.parse(erru_res.response.body.response).memberStates || []}"
+    member_states_raw: "${(function(){try{return JSON.parse(erru_res.response.body.response).memberStates || [];}catch(e){return [];}})()}"
   next: checkMemberStates
 
 extractErruResponseDirect:
   assign:
-    member_states_raw: "${erru_res.response.body.memberStates || []}"
+    member_states_raw: "${(erru_res.response.body && erru_res.response.body.memberStates) || []}"
   next: checkMemberStates
 
+# Shared Ruuter/Ruuter.internal rules: erru.nu_validate (docs/integrations/erru-nu-exchange.md).
 checkMemberStates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/validate"
+    body:
+      payload: "${JSON.stringify({memberStates: member_states_raw})}"
+      kind: "ack"
+  result: ackValidation
+  next: checkAckValidation
+
+checkAckValidation:
   switch:
-    - condition: ${!member_states_raw || !Array.isArray(member_states_raw) || member_states_raw.length === 0}
+    - condition: ${JSON.parse(ackValidation.response.body[0].result).valid !== true}
       next: markErrorMissingResponse
   next: storeSent
 
 storeSent:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/erru/nu/append-transition"
-    headers:
-      type: json
+    url: "[#LJVIS_RESQL]/erru/nu/finish-send"
     body:
       key: ${id}
-      newStatus: "sent"
       memberStates: "${JSON.stringify(member_states_raw)}"
-      tmFirstNameSearchKey: ${tm_first_name_search_key}
-      tmFamilyNameSearchKey: ${tm_family_name_search_key}
-      handlerPersonalCode: ${actor_personal_code}
-      handlerName: ${actor_name}
-      errorMessage: ""
-      created_by: ${actor_personal_code}
+      failure: ""
   result: stored_res
   next: checkStoreSent
 
 checkStoreSent:
   switch:
-    - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
-      next: returnNotSendable
+    - condition: ${JSON.parse(stored_res.response.body[0].result).status !== 'sent'}
+      next: returnError
   next: buildMemberStateCounts
 
 markError:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/erru/nu/append-transition"
-    headers:
-      type: json
-    body:
-      key: ${id}
-      newStatus: "error"
-      memberStates: ""
-      tmFirstNameSearchKey: ${tm_first_name_search_key}
-      tmFamilyNameSearchKey: ${tm_family_name_search_key}
-      handlerPersonalCode: ${actor_personal_code}
-      handlerName: ${actor_name}
-      errorMessage: "ERRU transport failure — send a new NU sobimatusteade"
-      created_by: ${actor_personal_code}
-  result: error_res
-  next: logAuditError
+  assign:
+    failure_message: "ERRU transport failure"
+  next: storeFailure
 
 markErrorMissingResponse:
+  assign:
+    failure_message: "ERRU acknowledgement does not satisfy ERRU 3.5 requirements"
+  next: storeFailure
+
+storeFailure:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/erru/nu/append-transition"
-    headers:
-      type: json
+    url: "[#LJVIS_RESQL]/erru/nu/finish-send"
     body:
       key: ${id}
-      newStatus: "error"
       memberStates: ""
-      tmFirstNameSearchKey: ${tm_first_name_search_key}
-      tmFamilyNameSearchKey: ${tm_family_name_search_key}
-      handlerPersonalCode: ${actor_personal_code}
-      handlerName: ${actor_name}
-      errorMessage: "ERRU response carried no memberStates — not ERRU 3.5 compliant"
-      created_by: ${actor_personal_code}
+      failure: ${failure_message}
   result: error_res
   next: logAuditError
 

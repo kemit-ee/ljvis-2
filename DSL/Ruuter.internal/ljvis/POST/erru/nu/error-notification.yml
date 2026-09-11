@@ -1,0 +1,80 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Record correlated NU ErrorNotification messages idempotently. Internal endpoint.
+    TODO(M2M): OAuth2 machine-token auth. Pending platform client_credentials support,
+    following the CGR/CTUD/RSI/NCR inbound precedent.
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: from
+        type: string
+      - field: to
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: statusCode
+        type: string
+      - field: statusMessage
+        type: string
+      - field: originalMessage
+        type: string
+
+recordResult:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/exchange-result"
+    body:
+      payload: "${JSON.stringify(incoming.body)}"
+      kind: "ErrorNotification"
+  result: exchangeResult
+  next: extractResult
+
+extractResult:
+  assign:
+    outcome: "${JSON.parse(exchangeResult.response.body[0].result)}"
+  next: checkOutcome
+
+checkOutcome:
+  switch:
+    - condition: ${outcome.httpStatus === 400}
+      next: returnInvalid
+    - condition: ${outcome.httpStatus === 404}
+      next: returnNotFound
+    - condition: ${outcome.httpStatus === 409}
+      next: returnConflict
+    - condition: ${outcome.httpStatus === 202}
+      next: returnUncorrelated
+  next: returnOk
+
+returnInvalid:
+  status: 400
+  return: "${JSON.stringify(outcome)}"
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "${JSON.stringify(outcome)}"
+  next: end
+
+returnConflict:
+  status: 409
+  return: "${JSON.stringify(outcome)}"
+  next: end
+
+returnUncorrelated:
+  status: 202
+  return: "${JSON.stringify(outcome)}"
+  next: end
+
+returnOk:
+  status: 200
+  return: "${JSON.stringify(outcome)}"
+  next: end
+

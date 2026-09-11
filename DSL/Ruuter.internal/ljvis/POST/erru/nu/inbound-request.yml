@@ -1,6 +1,9 @@
 declaration:
   version: "1.0"
-  description: "Receive and acknowledge NU messages idempotently. Internal endpoint; M2M authentication is not yet implemented."
+  description: >-
+    Receive and acknowledge NU messages idempotently. Internal endpoint.
+    TODO(M2M): OAuth2 machine-token auth. Pending platform client_credentials support,
+    following the CGR/CTUD/RSI/NCR inbound precedent.
   namespace: erru
   allowlist:
     body:
@@ -41,33 +44,23 @@ declaration:
       - field: unfitStartDate
         type: string
 
+# Shared Ruuter/Ruuter.internal rules: erru.nu_validate (docs/integrations/erru-nu-exchange.md).
 validateEnvelope:
-  switch:
-    - condition: ${!(('' + (incoming.body.technicalId || '')).trim())}
-      next: returnInvalidData
-    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
-      next: returnInvalidData
-    - condition: ${!(('' + (incoming.body.from || '')).trim())}
-      next: returnInvalidData
-    - condition: ${!(('' + (incoming.body.businessCaseId || '')).trim())}
-      next: returnInvalidData
-    - condition: ${!(('' + (incoming.body.requestSource || '')).trim())}
-      next: returnInvalidData
-    - condition: ${!(('' + (incoming.body.requestPurpose || '')).trim())}
-      next: returnInvalidData
-  next: checkHeartbeat
-checkHeartbeat:
-  switch:
-    - condition: ${('' + (incoming.body.requestPurpose || '')).trim() === 'Heartbeat'}
-      next: returnHeartbeatAck
-  next: validateBusinessFields
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/validate"
+    body:
+      payload: "${JSON.stringify(incoming.body)}"
+      kind: "inbound"
+  result: validation
+  next: checkValidation
 
-validateBusinessFields:
+checkValidation:
   switch:
-    - condition: ${!(('' + (incoming.body.originatingAuthority || '')).trim())}
+    - condition: ${JSON.parse(validation.response.body[0].result).valid !== true}
       next: returnInvalidData
-    - condition: ${!(('' + (incoming.body.unfitStartDate || '')).trim())}
-      next: returnInvalidData
+    - condition: ${incoming.body.requestPurpose === 'Heartbeat'}
+      next: returnHeartbeatAck
   next: extractRequestData
 
 extractRequestData:
@@ -80,13 +73,13 @@ extractRequestData:
     originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
     request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
     request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
-    tm_first_name: "${('' + (incoming.body.tmFirstName || '')).trim().toUpperCase()}"
-    tm_family_name: "${('' + (incoming.body.tmFamilyName || '')).trim().toUpperCase()}"
+    tm_first_name: "${('' + (incoming.body.tmFirstName || '')).trim()}"
+    tm_family_name: "${('' + (incoming.body.tmFamilyName || '')).trim()}"
     tm_date_of_birth: "${('' + (incoming.body.tmDateOfBirth || '')).trim()}"
     tm_place_of_birth: "${('' + (incoming.body.tmPlaceOfBirth || '')).trim()}"
     tm_first_name_search_key: "${('' + (incoming.body.tmFirstNameSearchKey || '')).trim()}"
     tm_family_name_search_key: "${('' + (incoming.body.tmFamilyNameSearchKey || '')).trim()}"
-    certificate_number: "${('' + (incoming.body.certificateNumber || '')).trim().toUpperCase()}"
+    certificate_number: "${('' + (incoming.body.certificateNumber || '')).trim()}"
     certificate_issue_date: "${('' + (incoming.body.certificateIssueDate || '')).trim()}"
     certificate_issue_country: "${('' + (incoming.body.certificateIssueCountry || '')).trim().toUpperCase()}"
     unfit_start_date: "${('' + (incoming.body.unfitStartDate || '')).trim()}"
@@ -129,6 +122,7 @@ checkStored:
 extractStored:
   assign:
     message_key: "${stored_res.response.body[0].id}"
+    unfit_start_date: "${stored_res.response.body[0].unfit_start_date}"
   next: createNuNotification
 
 lookupExisting:
@@ -146,7 +140,7 @@ checkExisting:
   switch:
     - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
       next: returnInvalidData
-  next: returnReplayedAck
+  next: getSavedAck
 createNuNotification:
   call: http.post
   args:
@@ -193,12 +187,22 @@ logAudit:
   next: returnAck
 
 returnAck:
-  return: '{"acknowledgementType":"NotifyUnfitness_Acknowledgement","statusCode":"OK","statusMessage":""}'
+  return: "${stored_res.response.body[0].acknowledgement}"
   next: end
 
+getSavedAck:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-ack"
+    body:
+      key: ${existing_res.response.body[0].id}
+  result: savedAck
+  next: returnReplayedAck
+
 returnReplayedAck:
-  return: '{"acknowledgementType":"NotifyUnfitness_Acknowledgement","statusCode":"OK","statusMessage":""}'
+  return: "${savedAck.response.body.length === 1 ? savedAck.response.body[0].result : JSON.stringify({statusCode: 'ServerError'})}"
   next: end
+
 returnHeartbeatAck:
   return: '{"acknowledgementType":"NotifyUnfitness_Acknowledgement","statusCode":"OK","statusMessage":""}'
   next: end

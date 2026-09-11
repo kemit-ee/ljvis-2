@@ -1763,6 +1763,8 @@
         "not_resendable": "Päringut ei saa selles olekus uuesti saata",
         "send_failed": "Päringu saatmine ebaõnnestus",
         "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav",
+        "invalid_value": "Väärtus ei vasta ERRU nõuetele.",
+        "invalid_date": "Kuupäev ei ole korrektne.",
         "source_exceeds_erru_limit": "Allikandmed ületavad ERRU pikkusepiirangu. Parandage hea maine deklaratsiooni (ees- ja perekonnanimi: 100 tähemärki; sünnikoht: 50; tunnistuse number: 20).",
         "not_found": "NU sobimatusteadet ei leitud"
       }
@@ -2018,8 +2020,7 @@
         "title": "Allikdeklaratsiooni otsing",
         "hint": "Sisestage veokorraldusjuhi eesnimi, perekonnanimi ja sünniaeg, või ametialase pädevuse tunnistuse number. Väljaminevat NU sobimatusteadet saab koostada ainult avaldatud ja sobimatuks tunnistatud hea maine deklaratsiooni alusel.",
         "searchFailed": "Otsing ebaõnnestus",
-        "noResults": "Avaldatud ja sobimatuks tunnistatud deklaratsiooni ei leitud",
-        "notEligible": "Allikdeklaratsioon ei ole avaldatud, isik ei ole sobimatuks tunnistatud või sobimatuse lõppkuupäev puudub või on möödunud. Kontrollige allikdeklaratsiooni."
+        "noResults": "Avaldatud ja sobimatuks tunnistatud deklaratsiooni ei leitud"
       },
       "form": {
         "titleOutgoing": "NU sobimatusteade (EE → ERRU)",

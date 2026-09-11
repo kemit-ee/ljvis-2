@@ -1742,6 +1742,8 @@
         "not_resendable": "The request cannot be re-sent in this state",
         "send_failed": "Sending failed",
         "nysiis_unavailable": "The name search service is currently unavailable",
+        "invalid_value": "The value does not meet ERRU requirements.",
+        "invalid_date": "The date is invalid.",
         "source_exceeds_erru_limit": "The source value exceeds the ERRU limit. Correct the good repute declaration (first/family name: 100 characters; place of birth: 50; certificate number: 20).",
         "not_found": "NU unfitness notification not found"
       }
@@ -1997,8 +1999,7 @@
         "title": "Source declaration search",
         "hint": "Enter the transport manager's first name, family name and date of birth, or the certificate of professional competence number. An outgoing NU notification can only be composed from a published declaration where the person has been declared unfit.",
         "searchFailed": "Search failed",
-        "noResults": "No published, unfit declaration found",
-        "notEligible": "The source declaration is not published, the person is not declared unfit, or the unfitness end date is missing or has passed. Check the source declaration."
+        "noResults": "No published, unfit declaration found"
       },
       "form": {
         "titleOutgoing": "NU unfitness notification (EE → ERRU)",

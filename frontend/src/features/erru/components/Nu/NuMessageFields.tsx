@@ -4,7 +4,6 @@ import {
   Card,
   Heading,
   Select,
-  Text,
   TextField,
 } from '@tedi-design-system/react/tedi';
 import {
@@ -26,7 +25,6 @@ type NuFormApi = ReturnType<typeof useNuForm>;
 export function NuMessageFields({
   form,
   identity,
-  businessCaseId,
 }: {
   form: NuFormApi;
   identity: NuIdentity;

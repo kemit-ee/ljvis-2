@@ -52,6 +52,8 @@ done
 
 echo ""
 
+python3 -B "$REPO_ROOT/tests/contract/check_erru_contract.py" --emit-sql | $COMPOSE exec -T database psql -X -q -o /dev/null -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db
+
 # ── Newman runs ───────────────────────────────────────────────────────────────
 
 newman run "$COL/organisations.collection.json" -e "$ENV" \
