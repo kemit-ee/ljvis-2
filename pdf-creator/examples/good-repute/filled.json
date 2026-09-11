@@ -1,0 +1,27 @@
+{
+  "goodReputeForm": {
+    "id": "9001",
+    "formNumber": "NÄIDIS-MV-001",
+    "version": 1,
+    "status": "published",
+    "personalCode": "TEST-CODE-9001",
+    "firstName": "Test",
+    "lastName": "Veokorraldaja",
+    "dateOfBirth": "1985-03-04",
+    "placeOfBirth": "Tallinn",
+    "certificateNumber": "CPC-TEST",
+    "certificateIssueDate": "2020-02-03",
+    "certificateCountryCode": "EE",
+    "fitnessStatus": "UNFIT",
+    "unfitFromDate": "2026-09-01",
+    "unfitUntilDate": "2027-09-01"
+  },
+  "labels": {
+    "countries": {
+      "EE": "Eesti"
+    },
+    "organisations": {
+      "DEMO": "Näidisasutus"
+    }
+  }
+}

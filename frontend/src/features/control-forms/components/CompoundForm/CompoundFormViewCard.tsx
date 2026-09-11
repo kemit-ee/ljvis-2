@@ -13,6 +13,7 @@ import type { CompoundForm, Trailer, Driver } from '../../types';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 
 interface CompoundFormViewCardProps {
   form: CompoundForm;
@@ -32,6 +33,8 @@ interface CompoundFormViewCardProps {
   isSnapshot?: boolean;
   formType: string;
   versionsRefreshKey?: number;
+  printEndpoint?: string;
+  snapshotId?: string;
 }
 
 export function CompoundFormViewCard({
@@ -40,6 +43,8 @@ export function CompoundFormViewCard({
   orgOptions,
   formType,
   versionsRefreshKey,
+  printEndpoint = '/v1/control-forms/compound-form/read/print',
+  snapshotId,
 }: CompoundFormViewCardProps) {
   const { t } = useTranslation();
   const { getByCode, getChildren } = useClassifiers();
@@ -705,6 +710,15 @@ export function CompoundFormViewCard({
               refreshKey={versionsRefreshKey}
             />
           )}
+          <div className="page-actions">
+            <div className="page-actions-buttons">
+              <FormPrintButton
+                endpoint={printEndpoint}
+                id={form.id}
+                snapshotId={snapshotId}
+              />
+            </div>
+          </div>
         </div>
       </Card.Content>
     </Card>

@@ -112,8 +112,9 @@ Muud väljad ei ole vormilt otseselt kohustuslikud, kuid kontrolli tulemuse ja r
 
 ## PDF-printimine
 
-Salvestatud ja kinnitatud tehniline kontrollkaardil on nupp **„Prindi"**,
-mis laadib alla täidetud vormi PDF-na.
+Salvestatud tehnilisel kontrollkaardil saab nupust **„Prindi"** alla laadida
+täidetud kaardi või tühja blanketi. Uuel vormil saab printida tühja blanketi.
+Sõiduki ja haagise kontrollkaardi esi- ja tagakülg on alati samas PDF-is.
 
 ## Nipid
 

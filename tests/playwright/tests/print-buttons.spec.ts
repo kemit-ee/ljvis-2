@@ -100,7 +100,7 @@ test.describe('Printimise nupud — autojuhi SP vorm', () => {
     await page.getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja kontrollvorm/ }).click();
 
     // Prindi dropdown peab olema nähtaval
-    await page.route('**/v1/control-forms/drive-rest-form/driver/print', MOCK_PDF);
+    await page.route('**/v1/control-forms/drive-rest-form/driver/read/print', MOCK_PDF);
     const printBtn = page.getByRole('button', { name: /^Prindi$/i });
     await expect(printBtn).toBeVisible({ timeout: 10_000 });
 
@@ -160,7 +160,7 @@ test.describe('Printimise nupud — meeskonnaliikme SP vorm', () => {
     ).toBeVisible({ timeout: 20_000 });
     await page.getByRole('tab', { name: /Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm/ }).click();
 
-    await page.route('**/v1/control-forms/drive-rest-form/teammate/print', MOCK_PDF);
+    await page.route('**/v1/control-forms/drive-rest-form/teammate/read/print', MOCK_PDF);
     const printBtn = page.getByRole('button', { name: /^Prindi$/i });
     await expect(printBtn).toBeVisible({ timeout: 10_000 });
   });

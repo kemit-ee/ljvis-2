@@ -1,0 +1,62 @@
+{
+  "foreignViolationForm": {
+    "id": "7001",
+    "formNumber": "NÄIDIS-VR-001",
+    "version": 1,
+    "status": "published",
+    "reportingCountryCode": "LV",
+    "reportingAuthority": "Näidisamet",
+    "inspectionCountryCode": "LV",
+    "inspectionDate": "2026-09-08",
+    "inspectionTime": "09:25",
+    "inspectionAddressLine1": "Näidise iela 1",
+    "inspectionRegion": "Riia piirkond",
+    "inspectionCity": "Riia",
+    "companyRegCode": "TEST-7001",
+    "companyName": "Näidisvedaja OÜ",
+    "companyCountryCode": "EE",
+    "companyAddressLine1": "Näidise tee 7",
+    "companyCity": "Tallinn",
+    "companyPostalCode": "10000",
+    "driverFirstName": "Test",
+    "driverLastName": "Juht",
+    "vehicleRegNr": "TEST123",
+    "vehicleMake": "Näidismark",
+    "vehicleModel": "Mudel",
+    "vehicleCountryCode": "EE",
+    "vehicleVin": "TESTVIN7001",
+    "vehicleFirstRegistration": "2020-01-02",
+    "licenceCopyNumber": "LIC-TEST",
+    "violationDescription": "Sünteetiline rikkumise kirjeldus kujunduse kontrollimiseks.",
+    "minorViolationsCount": "1",
+    "sanctionCode": "WARNING",
+    "sanctionNotes": "Näidismärkus",
+    "additionalSanctionCodes": [
+      "DEMO"
+    ],
+    "violations": [
+      "VSI800"
+    ],
+    "recommendedMeasureCode": "DEMO",
+    "recommendedMeasureNotes": "Näidismeede",
+    "notes": "Sünteetilised andmed.",
+    "dataEntryDate": "2026-09-09",
+    "inspectorFirstName": "Test",
+    "inspectorLastName": "Inspektor",
+    "inspectorOrganisationId": "DEMO",
+    "inspectorUnit": "TEST",
+    "inspectorProfession": "inspektor",
+    "klimClarificationDate": "2026-09-09",
+    "penaltyExpiredOrProcessed": false,
+    "foreignAuthorityProposal": true,
+    "notifyCarrier": false
+  },
+  "labels": {
+    "countries": {
+      "EE": "Eesti"
+    },
+    "organisations": {
+      "DEMO": "Näidisasutus"
+    }
+  }
+}

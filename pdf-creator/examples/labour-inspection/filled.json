@@ -1,0 +1,42 @@
+{
+  "labourInspectionForm": {
+    "id": "8001",
+    "formNumber": "NÄIDIS-TI-001",
+    "version": 1,
+    "status": "published",
+    "inspectorName": "Test Inspektor",
+    "inspectionDate": "2026-09-08",
+    "externalInspectionId": "EXT-TEST",
+    "inspectionType": "DEMO",
+    "companyName": "Näidisettevõte OÜ",
+    "companyRegCode": "TEST-8001",
+    "vehicleCount": 3,
+    "totalDriversCount": 5,
+    "controlsMatrix": [
+      {
+        "transportClass": "DEMO",
+        "analogRecorderDrivers": 1,
+        "analogRecorderWorkDays": 4,
+        "digitalRecorderDrivers": 2,
+        "digitalRecorderWorkDays": 8,
+        "smartRecorderDrivers": 2,
+        "smartRecorderWorkDays": 6
+      }
+    ],
+    "prescriptionComposed": true,
+    "punishedPersonIdCode": "TEST-CODE",
+    "punishedPersonFirstName": "Test",
+    "punishedPersonLastName": "Isik",
+    "proceedingReferenceNumber": "TEST-2026",
+    "enforcementDecision": "Näidisotsus",
+    "proceedingClosureBasis": "",
+    "violations": [
+      {
+        "level1ValueKey": "DEMO-1",
+        "level2ValueKey": "DEMO-2",
+        "level3ValueKey": "DEMO-3",
+        "quantity": 1
+      }
+    ]
+  }
+}

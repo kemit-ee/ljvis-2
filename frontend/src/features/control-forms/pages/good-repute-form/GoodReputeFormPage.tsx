@@ -17,6 +17,7 @@ import type { GoodReputeForm } from '../../types';
 import { GoodReputeFormFields } from '../../components/GoodRepute/GoodReputeFormFields';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
@@ -187,6 +188,11 @@ export function GoodReputeFormPage() {
             refreshKey={versionsRefreshKey}
           />
         )}
+        <div className="page-actions">
+          <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/good-repute/read/print" id={id} snapshotId={snapshotId} />
+          </div>
+        </div>
       </div>
     );
   }
@@ -270,6 +276,7 @@ export function GoodReputeFormPage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/good-repute/read/print" id={id} />
             {isEditActive ? (
               <>
                 <Button

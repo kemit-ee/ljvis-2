@@ -173,3 +173,10 @@ mittemuudetav. Sektsioonid, mida TRAM kontrollkaardil ei kasutata (sõidu- ja
 puhkeaja nõuete täitmine, sõiduki mass ja mõõtmed, ATP kokkuleppe nõuete kontroll),
 ei kuvata ei redigeerimis- ega vaatamisvaates — need täidetakse salvestamisel
 vaikeväärtustega.
+
+## PDF-printimine
+
+Vormi toimingute juures on nupp **„Prindi"**. Salvestatud vormil saab valida
+**„Prindi täidetud vorm"** või **„Prindi tühi vorm"**. Uuel salvestamata vormil
+saab alla laadida tühja blanketi. Varasema versiooni vaatamisel sisaldab
+täidetud PDF valitud versiooni andmeid.

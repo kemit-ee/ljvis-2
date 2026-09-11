@@ -85,3 +85,10 @@ Rikkumistega akti puhul toimub kinnitamine e-toimiku kaudu, mitte otse vormi vaa
 - Ühte veoliiki saab kontrollimiste maatriksisse lisada ainult ühe korra.
 - Märkige ettekirjutus koostatuks, kui see on tehtud.
 - Kasutage rikkumiste lisamiseks rikkumiste valijat, et vältida vaba teksti sisestamist.
+
+## PDF-printimine
+
+Vormi toimingute juures on nupp **„Prindi"**. Salvestatud vormil saab valida
+**„Prindi täidetud vorm"** või **„Prindi tühi vorm"**. Uuel salvestamata vormil
+saab alla laadida tühja blanketi. Varasema versiooni vaatamisel sisaldab
+täidetud PDF valitud versiooni andmeid.

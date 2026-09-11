@@ -7,6 +7,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { ForeignViolationFormFields } from '../../components/ForeignViolationForm/ForeignViolationFormFields';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 
 export function ForeignViolationFormCreatePage() {
   const { t } = useTranslation();
@@ -85,6 +86,7 @@ export function ForeignViolationFormCreatePage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" />
 
             <AsyncButton type="button" onClick={() => formik.submitForm()}>
               {t('common.save')}
