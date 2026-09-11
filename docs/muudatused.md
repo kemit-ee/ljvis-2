@@ -33,6 +33,11 @@
 
 - Uuel TRAM kontrollkaardil kuvatakse menetluse liigi valik õigesti ka enne vormi
   esimest salvestamist.
+### NCR päringu ja Tööinspektsiooni kontrollkaardi parendused
+
+- NCR teate loomisel eeltäidetakse esitav pädev asutus üldosa kontrollija asutuse järgi ning sihtliikmesriik sõiduki riigi tunnusmärgi järgi.
+- NCR koostamise päring saadab seotud SP-vormi võtme alati stringina.
+- Tööinspektsiooni kontrollkaardi ettevõtte registrikood, sõidukite arv ja juhtide arv normaliseeritakse salvestamisel API stringivormingusse.
 
 ### Tööinspektsiooni kontrollkaart — äriregistri otsing
 
