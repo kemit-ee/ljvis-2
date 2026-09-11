@@ -210,6 +210,25 @@ const shots = [
   { name: 'user-guide/vorm-liitvorm', run: (p) => gotoShot(p, '/control-forms/compound/new', 'user-guide/images/07-vorm-liitvorm/01-loomisvaade.png') },
   { name: 'user-guide/vorm-tooinspektsioon', run: (p) => gotoShot(p, '/control-forms/labour-inspection/new', 'user-guide/images/08-vorm-tooinspektsioon/01-loomisvaade.png') },
   { name: 'user-guide/vorm-hea-maine', run: (p) => gotoShot(p, '/control-forms/good-repute/new', 'user-guide/images/12-vorm-hea-maine/01-loomisvaade.png') },
+
+  // --- NU sobimatusteated: hea maine vormi "Loo ERRU sobimatusteade" nupp ---
+  // Eeldab avaldatud + sobimatuks tunnistatud hea maine deklaratsiooni (good_repute_form_key=1).
+  {
+    name: 'user-guide/erru-nu-hea-maine-nupp',
+    run: async (page) => {
+      await page.goto(`${BASE}/control-forms/good-repute/1`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      const btn = page.getByRole('button', { name: /Loo ERRU sobimatusteade/i }).first();
+      await btn.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(400);
+      await shoot(page, 'user-guide/images/23-erru-nu/01-hea-maine-nupp.png');
+    },
+  },
+
+  { name: 'user-guide/erru-nu-loend', run: (p) => gotoShot(p, '/erru/nu', 'user-guide/images/23-erru-nu/02-loend.png') },
+  { name: 'user-guide/erru-nu-otsing', run: (p) => gotoShot(p, '/erru/nu/new', 'user-guide/images/23-erru-nu/03-allika-otsing.png') },
+  // Otse hea maine deklaratsioonist eeltäidetud vorm (sourceKey = good_repute_form_key).
+  { name: 'user-guide/erru-nu-vorm', run: (p) => gotoShot(p, '/erru/nu/new?sourceKey=1', 'user-guide/images/23-erru-nu/04-vorm.png') },
   {
     name: 'user-guide/vorm-tram-kontrollkaart',
     run: async (page) => {
