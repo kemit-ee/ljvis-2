@@ -22,8 +22,7 @@ DO $$
         FOR v_rec IN
             SELECT * FROM (VALUES
                 ('VSI869', 'kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele'),
-                ('VSI872', 'kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele'),
-                ('VSI873', 'sõidukis ei ole või ei ole kontrollima volitatud ametniku nõudmisel võimalik esitada kabotaažvedudeks vajalikke kontrolldokumente (juhuvedude sõiduleht või eriotstarbeliste liinivedude korral vedaja ja veo korraldaja vahel sõlmitud leping või selle tõestatud koopia)')
+                ('VSI872', 'kabotaažvedu ei vasta vastuvõtvas liikmesriigis kehtivatele õigus- ja haldusnormidele')
             ) AS t(code, old_name)
         LOOP
             UPDATE classifier.classifier_value
