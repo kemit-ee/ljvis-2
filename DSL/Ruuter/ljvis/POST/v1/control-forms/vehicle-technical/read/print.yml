@@ -1,20 +1,34 @@
 declaration:
   version: "1.0"
-  description: "Generate a filled vehicle technical-check PDF."
+  description: "Generate a filled, historical or blank vehicle-technical PDF."
   namespace: control-forms
   allowlist:
     body:
       - field: id
         type: string
+      - field: blank
+        type: boolean
+      - field: snapshotId
+        type: string
 
 extractRequestData:
   assign:
     id: "${incoming.body.id || ''}"
+    blank: ${incoming.body.blank === true}
+    snapshot_id: "${incoming.body.snapshotId || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
-  next: getForm
+  next: chooseMode
 
-getForm:
+chooseMode:
+  switch:
+    - condition: ${blank}
+      next: renderBlank
+    - condition: ${id === ''}
+      next: returnBadRequest
+  next: getCurrentForm
+
+getCurrentForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
@@ -22,13 +36,43 @@ getForm:
       type: json
     body:
       id: ${id}
-  result: formRes
-  next: checkForm
+  result: currentFormRes
+  next: checkCurrentForm
 
-checkForm:
+checkCurrentForm:
   switch:
-    - condition: ${formRes.response.body == null || formRes.response.body.length !== 1}
+    - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
       next: returnNotFound
+    - condition: ${snapshot_id !== ''}
+      next: getSnapshot
+  next: useCurrentForm
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${snapshot_id}
+      form_key: ${id}
+  result: snapshotRes
+  next: checkSnapshot
+
+checkSnapshot:
+  switch:
+    - condition: ${snapshotRes.response.body == null || snapshotRes.response.body.length !== 1}
+      next: returnNotFound
+  next: useSnapshot
+
+useSnapshot:
+  assign:
+    selected_form: ${snapshotRes.response.body[0]}
+  next: getCompoundForm
+
+useCurrentForm:
+  assign:
+    selected_form: ${currentFormRes.response.body[0]}
   next: getCompoundForm
 
 getCompoundForm:
@@ -38,7 +82,7 @@ getCompoundForm:
     headers:
       type: json
     body:
-      id: ${formRes.response.body[0].compoundFormKey}
+      id: ${selected_form.compoundFormKey}
   result: compoundFormRes
   next: checkCompoundForm
 
@@ -48,53 +92,52 @@ checkCompoundForm:
       next: returnNotFound
   next: renderFilled
 
-renderFilled:
-  call: http.post
-  args:
-    url: "http://pdf-creator:3020/v1/render"
-    headers:
-      type: json
-    body:
-      templateCode: "vehicle-technical"
-      blank: false
-      fields:
-        compoundForm: ${compoundFormRes.response.body[0]}
-        technicalForm: ${formRes.response.body[0]}
-      output: "base64"
-  result: pdfRes
-  next: checkPdfResult
-
-checkPdfResult:
-  switch:
-    - condition: ${pdfRes.response == null || pdfRes.response.status < 200 || pdfRes.response.status >= 300 || pdfRes.response.body == null}
-      next: returnRenderError
-  next: logAuditEvent
-
-logAuditEvent:
-  template: "templates/audit/log-audit-event"
+renderBlank:
+  template: "templates/form/pdf/render"
   requestType: GET
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    event_type: "control_form.vehicle_technical.print"
-    event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
-    description: "Sõiduki tehnoülevaatuse kontrollkaart trükitud, alamvormi võti=${id}"
-    log_content: "{\"subFormKey\":\"${id}\"}"
-  result: audit_result
+    templateCode: "vehicle-technical"
+    blank: true
+    fields: {}
+    eventType: "control_form.vehicle_technical.print"
+    actorPersonalCode: ${actor_personal_code}
+    actorName: ${actor_name}
+    description: "vehicle-technical tühi vorm trükitud"
+    logContent: '{"formKey":"","snapshotId":"","blank":true}'
+  result: pdfResult
+  next: returnSuccess
+
+renderFilled:
+  template: "templates/form/pdf/render"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    templateCode: "vehicle-technical"
+    blank: false
+    fields:
+        compoundForm: ${compoundFormRes.response.body[0]}
+        technicalForm: ${selected_form}
+    eventType: "control_form.vehicle_technical.print"
+    actorPersonalCode: ${actor_personal_code}
+    actorName: ${actor_name}
+    description: "vehicle-technical vorm trükitud, võti=${id}, snapshot=${snapshot_id}"
+    logContent: '{"formKey":"${id}","snapshotId":"${snapshot_id}","blank":false}'
+  result: pdfResult
   next: returnSuccess
 
 returnSuccess:
-  return: ${pdfRes.response.body}
+  return: ${pdfResult}
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: '{"error":"FORM_ID_REQUIRED"}'
   next: end
 
 returnNotFound:
   status: 404
   return: '{"error":"NOT_FOUND"}'
-  next: end
-
-returnRenderError:
-  status: 502
-  return: '{"error":"PDF_RENDER_FAILED"}'
   next: end

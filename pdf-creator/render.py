@@ -145,6 +145,11 @@ def context(payload=None, blank=False):
 
 TEMPLATES = {
     'adr-form': 'adr-form/adr.html.j2',
+    'compound-form': 'compound-form/form.html.j2',
+    'foreign-violation-form': 'foreign-violation-form/form.html.j2',
+    'labour-inspection': 'labour-inspection/form.html.j2',
+    'good-repute': 'good-repute/form.html.j2',
+    'tram-card': 'tram-card/form.html.j2',
     'vehicle-technical': 'vehicle-technical/form.html.j2',
     'trailer-technical': 'trailer-technical/form.html.j2',
     'drive-rest-form': 'drive-rest-form/form.html.j2',
@@ -163,6 +168,9 @@ def render_html(payload=None, blank=False, template='adr-form'):
     env = Environment(loader=FileSystemLoader(ROOT / 'templates'), autoescape=True, undefined=StrictUndefined)
     if template == 'adr-form':
         data = context(payload, blank)
+    elif template in ('compound-form', 'foreign-violation-form', 'labour-inspection', 'good-repute', 'tram-card'):
+        from forms import build_standalone_context
+        data = build_standalone_context(template, payload, blank)
     elif template == 'rsi':
         from forms import build_rsi_context
         data = build_rsi_context(payload, blank)

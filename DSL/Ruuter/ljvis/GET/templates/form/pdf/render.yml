@@ -1,0 +1,66 @@
+declaration:
+  version: "1.0"
+  description: "Render an allow-listed control-form PDF and record the print audit event."
+  namespace: service
+  allowlist:
+    body:
+      - field: templateCode
+        type: string
+      - field: blank
+        type: boolean
+      - field: fields
+        type: json
+      - field: eventType
+        type: string
+      - field: description
+        type: string
+      - field: logContent
+        type: string
+      - field: actorPersonalCode
+        type: string
+      - field: actorName
+        type: string
+
+renderPdf:
+  call: http.post
+  args:
+    url: "[#LJVIS_PDF_CREATOR]/v1/render"
+    headers:
+      type: json
+    body:
+      templateCode: ${incoming.body.templateCode}
+      blank: ${incoming.body.blank}
+      fields: ${incoming.body.fields}
+      output: "base64"
+  result: pdfRes
+  next: checkPdfResult
+
+checkPdfResult:
+  switch:
+    - condition: ${pdfRes.response == null || pdfRes.response.status < 200 || pdfRes.response.status >= 300 || pdfRes.response.body == null}
+      next: returnRenderError
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: ${incoming.body.eventType}
+    event_category: "control_form"
+    actor_personal_code: ${incoming.body.actorPersonalCode}
+    actor_name: ${incoming.body.actorName}
+    description: ${incoming.body.description}
+    log_content: ${incoming.body.logContent}
+  result: auditResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${pdfRes.response.body}
+  next: end
+
+returnRenderError:
+  status: 502
+  return: '{"error":"PDF_RENDER_FAILED"}'
+  next: end

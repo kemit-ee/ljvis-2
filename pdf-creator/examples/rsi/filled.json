@@ -1,0 +1,47 @@
+{
+  "rsiMessage": {
+    "id": "6001",
+    "businessCaseId": "EE-RSI-NÄIDIS",
+    "rsiFrom": "EE",
+    "rsiTo": "FI",
+    "originatingAuthority": "KLIM",
+    "vehicleCategory": "N3",
+    "vehicleRegistrationNumber": "ABC123",
+    "vehicleRegistrationCountry": "FI",
+    "vehicleIdentificationNumber": "TESTVIN123",
+    "odometerReading": 123456,
+    "driverFirstName": "TEST",
+    "driverFamilyName": "DRIVER",
+    "driverLicenceNumber": "TEST123",
+    "driverLicenceCountry": "FI",
+    "inspectionIdentifier": "th-2026-000453/1",
+    "inspectionLocation": "Tallinn",
+    "inspectionDatetime": "2026-09-10T12:30:00",
+    "inspectionAuthorityOrName": "Politsei- ja Piirivalveamet",
+    "inspectionPassed": false,
+    "ptiRequested": true,
+    "vehicleProhibitionOrRestriction": false,
+    "checkedItems": [
+      {
+        "partCode": "CAA_1",
+        "status": "non_compliant",
+        "defects": [
+          {
+            "defectCode": "CAA_1.1.1",
+            "severity": "OV"
+          }
+        ]
+      },
+      {
+        "partCode": "CAA_10",
+        "status": "checked",
+        "defects": []
+      },
+      {
+        "partCode": "CAA_20",
+        "status": "checked",
+        "defects": []
+      }
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heading, Text, Alert } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
@@ -79,6 +80,7 @@ export function LabourInspectionFormCreatePage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
+            <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" />
 
             <AsyncButton type="button" onClick={() => formik.submitForm()}>
               {t('common.save')}

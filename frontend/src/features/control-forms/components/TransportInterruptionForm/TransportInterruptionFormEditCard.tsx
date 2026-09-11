@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { TransportInterruptionForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import {
   TransportInterruptionFormCreatePage,
   type TransportInterruptionFormCreatePageRef,
 } from '../../pages/transport-interruption-form/TransportInterruptionFormCreatePage';
-import { printTransportInterruptionForm } from '../../api';
 
 export interface TransportInterruptionFormEditCardRef {
   save: () => void;
@@ -38,24 +38,7 @@ export const TransportInterruptionFormEditCard = forwardRef<
   const { t } = useTranslation();
   const formRef = useRef<TransportInterruptionFormCreatePageRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
-  const [printing, setPrinting] = useState(false);
 
-  const handlePrint = async () => {
-    if (!form.id || printing) return;
-    setPrinting(true);
-    try {
-      const result = await printTransportInterruptionForm(String(form.id));
-      const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
-      const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = result.filename;
-      link.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setPrinting(false);
-    }
-  };
 
   useImperativeHandle(ref, () => ({
     save: () => formRef.current?.handleSubmit(),
@@ -90,11 +73,7 @@ export const TransportInterruptionFormEditCard = forwardRef<
         )}
         <div className="confirm-button">
           <div>
-            {form.id && (
-              <Button type="button" visualType="secondary" isLoading={printing} disabled={printing} onClick={() => void handlePrint()}>
-                {t('common.print')}
-              </Button>
-            )}
+            <FormPrintButton endpoint={`/v1/control-forms/transport-interruption/read/print`} id={form.id} />
             {canConfirm && (
               <Button
                 type="button"
