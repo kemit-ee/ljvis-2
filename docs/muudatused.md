@@ -12,6 +12,7 @@
 - Saatmisel kontrollitakse deklaratsiooni kehtivust ja kaitstud isiku- ning tunnistuseandmeid. Muutunud allikandmed tuleb vormis värskendada, üle vaadata ja salvestada; salvestamata muudatustega saatmine on blokeeritud.
 - Väliskutsesse läheb terviklik salvestatud sõnum. Ühendusvead ja aegumised salvestatakse veana enne integratsioonilogi kirjutamist.
 - Lisatud on PostgreSQL-i samaaegsete tehingute, Ruuteri HTTP-/ühendusvigade ja kasutajavormi regressioonitestid.
+- Playwright kontrollib NU nimekirjast detailvaate avamist ning aegunud vormiversiooni konflikti kuvamist kasutajale.
 
 ### NU skeemile vastavuse kontrolli parendused
 
