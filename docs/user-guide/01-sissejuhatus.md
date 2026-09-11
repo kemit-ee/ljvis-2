@@ -13,6 +13,7 @@ flowchart LR
     R --> M[DataMapper]
     R --> P[pdf-creator\nPython PDF-teenus]
     R --> X[XTR\nX-tee]
+    X --> XT[X-tee\nregistrid ja teenused]
     R --> N[Nysiis\nERRU]
     R --> S[S3 proxy\nmanused]
     Q --> D[(PostgreSQL 17)]

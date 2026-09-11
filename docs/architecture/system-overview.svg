@@ -11,7 +11,7 @@
   <rect class="box" x="790" y="175" width="175" height="75" fill="#e8f1f5"/><text x="877" y="207" text-anchor="middle">DataMapper</text><text x="877" y="231" text-anchor="middle">Handlebars</text>
   <rect class="box" x="790" y="280" width="175" height="75" fill="#eadcf8"/><text x="877" y="312" text-anchor="middle">pdf-creator</text><text x="877" y="336" text-anchor="middle">Python PDF-teenus</text>
   <rect class="box" x="790" y="385" width="175" height="75" fill="#e8f1f5"/><text x="877" y="417" text-anchor="middle">PostgreSQL 17</text><text x="877" y="441" text-anchor="middle">LJVIS andmebaas</text>
-  <rect class="box" x="1020" y="70" width="145" height="65" fill="#f8d7da"/><text x="1092" y="98" text-anchor="middle">XTR</text><text x="1092" y="120" text-anchor="middle">X-tee</text>
+  <rect class="box" x="1020" y="70" width="145" height="65" fill="#f8d7da"/><text x="1092" y="98" text-anchor="middle">XTR</text><text x="1092" y="120" text-anchor="middle">→ X-tee</text>
   <rect class="box" x="1020" y="165" width="145" height="65" fill="#f8d7da"/><text x="1092" y="193" text-anchor="middle">TIM / TARA</text><text x="1092" y="215" text-anchor="middle">identiteet</text>
   <rect class="box" x="1020" y="260" width="145" height="65" fill="#e8f1f5"/><text x="1092" y="288" text-anchor="middle">Nysiis</text><text x="1092" y="310" text-anchor="middle">ERRU</text>
   <rect class="box" x="1020" y="355" width="145" height="65" fill="#e8f1f5"/><text x="1092" y="383" text-anchor="middle">S3 proxy</text><text x="1092" y="405" text-anchor="middle">manused</text>
