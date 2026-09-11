@@ -264,6 +264,8 @@ export function TramControlCardPage() {
           onEdit={() => {}}
           isSnapshot
           formType={FORM_TYPE}
+          printEndpoint="/v1/control-forms/tram-card/read/print"
+          snapshotId={snapshotId}
         />
       <DriveRestFormFields
         type="driver"
@@ -363,7 +365,10 @@ export function TramControlCardPage() {
 
       {showEdit ? (
         <>
-          <CompoundFormEditCard {...editCardProps} />
+          <CompoundFormEditCard
+            {...editCardProps}
+            printEndpoint="/v1/control-forms/tram-card/read/print"
+          />
       <DriveRestFormFields
         type="driver"
         formik={formik as never}
@@ -391,6 +396,7 @@ export function TramControlCardPage() {
             onEdit={() => setIsEditActive(true)}
             formType={FORM_TYPE}
             versionsRefreshKey={versionsRefreshKey}
+            printEndpoint="/v1/control-forms/tram-card/read/print"
           />
       <DriveRestFormFields
         type="driver"

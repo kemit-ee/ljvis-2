@@ -597,6 +597,7 @@ export function CompoundFormPage() {
           onEdit={() => {}}
           isSnapshot
           formType={FORM_TYPE.COMPOUND}
+          snapshotId={snapshotId}
         />
       </div>
     );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Dropdown, Heading } from '@tedi-design-system/react/tedi';
+import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import type { DriveRestForm } from '../../types';
 import { useDriveRestForm } from '../../pages/drive-rest-form/useDriveRestForm';
@@ -8,9 +8,9 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { DriveRestFormFields } from './DriveRestFormFields';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
-import { printDriveRestForm } from '../../api';
 
 interface DriveRestFormViewCardProps {
   scope: 'driver' | 'teammate';
@@ -18,6 +18,7 @@ interface DriveRestFormViewCardProps {
   formType: string;
   canPublish?: boolean;
   onPublish?: () => Promise<unknown>;
+  snapshotId?: string;
   /**
    * Peidab TRAM-kaardil kolm sektsiooni: sõidu- ja puhkeaeg, mass/mõõtmed,
    * ATP. Sünkroonis DriveRestFormCreatePage hideDriveRestExtras-ega.
@@ -31,31 +32,15 @@ export function DriveRestFormViewCard({
   formType,
   canPublish,
   onPublish,
+  snapshotId,
   hideDriveRestExtras,
 }: DriveRestFormViewCardProps) {
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
-  const [printing, setPrinting] = useState(false);
   const { t } = useTranslation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { hasAnyPermission } = useAuth();
   const [ncrModalOpen, setNcrModalOpen] = useState(false);
 
-  const handlePrint = async (blank: boolean) => {
-    if (!form.id || printing) return;
-    setPrinting(true);
-    try {
-      const result = await printDriveRestForm(String(form.id), scope, blank);
-      const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
-      const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = result.filename;
-      link.click();
-      URL.revokeObjectURL(url);
-    } finally {
-      setPrinting(false);
-    }
-  };
   // "Lisa NCR vorm" (LJVIS2-64 §4.1 eeltäitmine) — builds a new outgoing NCR draft from
   // this SP sub-form's control data. Requires a saved sub-form (form.id = spFormKey).
   const canBuildNcr = hasAnyPermission(['ncr.create']) && !!form.id;
@@ -114,23 +99,7 @@ export function DriveRestFormViewCard({
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
         <div className="confirm-button">
           <div>
-            {form.id && (
-              <Dropdown width="max-content">
-                <Dropdown.Trigger>
-                  <Button type="button" visualType="secondary" iconRight="keyboard_arrow_down" isLoading={printing} disabled={printing}>
-                    {t('common.print')}
-                  </Button>
-                </Dropdown.Trigger>
-                <Dropdown.Content>
-                  <Dropdown.Item index={0} onClick={() => void handlePrint(false)}>
-                    {t('common.printFilled')}
-                  </Dropdown.Item>
-                  <Dropdown.Item index={1} onClick={() => void handlePrint(true)}>
-                    {t('common.printBlank')}
-                  </Dropdown.Item>
-                </Dropdown.Content>
-              </Dropdown>
-            )}
+            <FormPrintButton endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`} id={form.id} snapshotId={snapshotId} />
             {canPublish && onPublish && (
               <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
                 {t('common.publish')}

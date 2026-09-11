@@ -11,6 +11,7 @@ RUN apk add --no-cache pango harfbuzz-subset font-liberation font-dejavu
 COPY --from=dependencies /install /usr/local
 WORKDIR /app
 COPY pdf-creator/render.py pdf-creator/forms.py pdf-creator/server.py ./
+COPY pdf-creator/VERSION ./VERSION
 COPY pdf-creator/templates ./templates
 USER 65534:65534
 EXPOSE 3020

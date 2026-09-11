@@ -12,6 +12,19 @@ class FormTests(unittest.TestCase):
                 self.assertNotIn('×',html)
                 for value in ('123ABC','Mari','Proovimudel','00000000'):
                     self.assertNotIn(value,html)
+    def test_every_control_form_template_has_blank_and_filled_contract(self):
+        names=('compound-form','foreign-violation-form','labour-inspection','good-repute','tram-card')
+        for name in names:
+            with self.subTest(template=name):
+                payload=self.fixture(name)
+                filled,_=render_html(payload,False,name)
+                blank,_=render_html(payload,True,name)
+                self.assertIn('<table',filled)
+                self.assertIn('<table',blank)
+                self.assertNotEqual(filled,blank)
+                key={'compound-form':'compoundForm','foreign-violation-form':'foreignViolationForm','labour-inspection':'labourInspectionForm','good-repute':'goodReputeForm','tram-card':'tramCard'}[name]
+                payload[key].pop('id')
+                with self.assertRaises(ValueError):render_html(payload,False,name)
     def test_correct_parent_and_json_text_contract(self):
         for name,key,field in [('vehicle-technical','technicalForm','partsDefects'),('drive-rest-form','driveRestForm','documentChecks'),('transport-interruption','transportInterruptionForm','legalBases')]:
             p=self.fixture(name);parsed=render_html(p,False,name)
