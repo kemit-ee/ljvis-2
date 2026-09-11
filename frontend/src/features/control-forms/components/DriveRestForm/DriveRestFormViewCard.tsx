@@ -111,6 +111,7 @@ export function DriveRestFormViewCard({
           <NcrBuildModal
             spFormKey={form.id}
             spFormType={scope}
+            compoundFormKey={form.compoundFormKey}
             open={ncrModalOpen}
             onClose={() => setNcrModalOpen(false)}
           />

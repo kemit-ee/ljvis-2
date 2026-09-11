@@ -79,9 +79,9 @@ export function useLabourInspectionForm(
       inspectionDate: form?.inspectionDate ?? '',
       inspectionType: form?.inspectionType ?? 'passenger',
       companyName: form?.companyName ?? '',
-      companyRegCode: form?.companyRegCode ?? '',
-      vehicleCount: form?.vehicleCount ?? '',
-      totalDriversCount: form?.totalDriversCount ?? '',
+      companyRegCode: form?.companyRegCode != null ? String(form.companyRegCode) : '',
+      vehicleCount: form?.vehicleCount != null ? String(form.vehicleCount) : '',
+      totalDriversCount: form?.totalDriversCount != null ? String(form.totalDriversCount) : '',
       controlsMatrix: form?.controlsMatrix ?? ([] as ControlsMatrixRow[]),
       prescriptionComposed: form?.prescriptionComposed ?? false,
       punishedPersonIdCode: form?.punishedPersonIdCode ?? '',
@@ -100,6 +100,9 @@ export function useLabourInspectionForm(
         pendingPublish.current = false;
         const payload = {
           ...values,
+          companyRegCode: values.companyRegCode == null ? '' : String(values.companyRegCode),
+          vehicleCount: values.vehicleCount == null ? '' : String(values.vehicleCount),
+          totalDriversCount: values.totalDriversCount == null ? '' : String(values.totalDriversCount),
           id: form?.id ?? '',
           status: isConfirming
             ? 'confirmed'
