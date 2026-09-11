@@ -1,6 +1,6 @@
 # LJVIS2 — AWS baasarhitektuur
 
-Rakendus jookseb jagatud EKS klastris. Andmebaasid ja S3 on LJVIS2 enda AWS kontol.
+LJVIS2 infosüsteem on paigaldatud KeMIT jagatud Kubernetese klastrisse. Andmebaasid ja S3 asuvad LJVIS2 enda vastaval keskkonnapõhisel teenuskontol. Kogu baasinfra on paigaldatud KeMIT-i AWS pilveplatvorm-le.
 
 ## Skeem
 
@@ -50,18 +50,13 @@ Rakendus jookseb jagatud EKS klastris. Andmebaasid ja S3 on LJVIS2 enda AWS kont
 | **RDS (TIM)** | TIM-i andmebaas; eraldi instants, sest TIM migreerib ise |
 | **S3** | Failihoidla |
 
-Kubernetesele üleminekul kadusid EC2 rakendusserver, sisemine ALB ja teenuse
-taseme turvagrupp.
-
 ## Ligipääs
 
 ALB-le pääseb ainult lubatud aadressidelt (KEMIT-i sisevõrk, arendajad, asutused).
-Sertifikaadid kuuluvad EKS klastri-le.
+Rakenduse sertifikaadid kuuluvad EKS klastrile ja uuenevad automaatselt.
 
 ## Keskkonnad
 
 | Keskkond | DNS |
 |---|---|
 | {env} | `*.liiklusvalve.ee` |
-
-Igal keskkonnal on oma AWS konto. Praegu on paigaldatud ainult `dev`.
