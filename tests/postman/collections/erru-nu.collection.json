@@ -254,7 +254,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_source_id}}}"
+          "raw": "{\"id\": \"{{nu_source_id}}\"}"
         }
       },
       "event": [
@@ -390,7 +390,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_fit_source_id}}}"
+          "raw": "{\"id\": \"{{nu_fit_source_id}}\"}"
         }
       },
       "event": [
@@ -1580,6 +1580,52 @@
       ]
     },
     {
+      "name": "[Concurrency] Save stale version → 409 version_conflict",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/nu/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "nu",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{nu_id}}\", \"nuTo\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"CA\", \"requestPurpose\": \"Issue\", \"unfitStartDate\": \"2026-01-01\", \"expectedVersion\": 1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Stale save is rejected', () => pm.response.to.have.status(409));",
+              "let b = pm.response.json().response; if (typeof b === 'string') b = JSON.parse(b);",
+              "pm.test('Version conflict is explicit', () => pm.expect(b.code).to.eql('version_conflict'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "[Permissions] Send without nu.send → 403",
       "request": {
         "method": "POST",
@@ -1714,7 +1760,7 @@
               "pm.test('workflowId present', () => pm.expect(body.workflowId).to.not.be.null);",
               "pm.test('sentAt present', () => pm.expect(body.sentAt).to.not.be.null);",
               "pm.test('handlerPersonalCode is sender, not creator field', () => pm.expect(body.handlerPersonalCode).to.eql(pm.environment.get('pc_admin')));",
-              "pm.test('version bumped by exactly 1 on send', () => pm.expect(body.version).to.eql(Number(pm.environment.get('nu_version_before_send')) + 1));"
+              "pm.test('version bumped by exactly 2 on send (begin-send + finish-send each append a snapshot)', () => pm.expect(body.version).to.eql(Number(pm.environment.get('nu_version_before_send')) + 2));"
             ]
           }
         }
@@ -2340,7 +2386,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_expired_source_id}}}"
+          "raw": "{\"id\": \"{{nu_expired_source_id}}\"}"
         }
       },
       "event": [
@@ -2652,7 +2698,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_deleted_source_id}}}"
+          "raw": "{\"id\": \"{{nu_deleted_source_id}}\"}"
         }
       },
       "event": [
@@ -2741,7 +2787,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_deleted_source_id}}, \"old_status\": \"published\"}"
+          "raw": "{\"id\": \"{{nu_deleted_source_id}}\", \"old_status\": \"published\"}"
         }
       },
       "event": [
@@ -3034,7 +3080,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"technicalId\": \"eeeeeeee-1111-2222-3333-444444444444\", \"workflowId\": \"ffffffff-1111-2222-3333-444444444444\", \"sentAt\": \"2026-09-10T10:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-NU-HEARTBEAT-0001\", \"originatingAuthority\": \"\", \"requestSource\": \"Hub\", \"requestPurpose\": \"Heartbeat\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"tmFirstNameSearchKey\": \"\", \"tmFamilyNameSearchKey\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\", \"unfitStartDate\": \"\"}"
+          "raw": "{\"technicalId\": \"eeeeeeee-1111-2222-3333-444444444444\", \"workflowId\": \"ffffffff-1111-2222-3333-444444444444\", \"sentAt\": \"2026-09-10T10:00:00Z\", \"from\": \"DE\", \"businessCaseId\": \"DE-NU-HEARTBEAT-0001\", \"originatingAuthority\": \"DE-BAG\", \"requestSource\": \"Hub\", \"requestPurpose\": \"Heartbeat\", \"tmFirstName\": \"\", \"tmFamilyName\": \"\", \"tmDateOfBirth\": \"\", \"tmPlaceOfBirth\": \"\", \"tmFirstNameSearchKey\": \"\", \"tmFamilyNameSearchKey\": \"\", \"certificateNumber\": \"\", \"certificateIssueDate\": \"\", \"certificateIssueCountry\": \"\", \"unfitStartDate\": \"\"}"
         }
       },
       "event": [
@@ -3216,7 +3262,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_oversized_source_id}}}"
+          "raw": "{\"id\": \"{{nu_oversized_source_id}}\"}"
         }
       },
       "event": [
@@ -3399,7 +3445,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_oversized_cert_source_id}}}"
+          "raw": "{\"id\": \"{{nu_oversized_cert_source_id}}\"}"
         }
       },
       "event": [
@@ -3459,6 +3505,42 @@
           }
         }
       ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const url = pm.request.url.toString();",
+          "if (url.endsWith('/v1/erru/nu/request/save') || url.endsWith('/v1/erru/nu/send')) {",
+          "  const body = JSON.parse(pm.variables.replaceIn(pm.request.body.raw));",
+          "  const isSave = url.endsWith('/request/save');",
+          "  if (isSave) {",
+          "    body.id ??= null;",
+          "    body.sourceGoodReputeFormKey ??= null;",
+          "    body.sourceSnapshotId ??= null;",
+          "  }",
+          "  const explicitVersion = Object.prototype.hasOwnProperty.call(body, 'expectedVersion');",
+          "  body.expectedVersion ??= null;",
+          "  const path = body.id ? '/v1/erru/nu/get?q=' + body.id",
+          "    : (body.sourceGoodReputeFormKey ? '/v1/erru/nu/source/get?q=' + body.sourceGoodReputeFormKey : null);",
+          "  if (path && !(body.id && explicitVersion)) {",
+          "    pm.sendRequest({url: pm.environment.get('api_url') + '/ljvis' + path,",
+          "      method: 'GET', header: {Cookie: pm.environment.get('cookie_admin')}}, (error, response) => {",
+          "      if (!error && response.code === 200) {",
+          "        let value = response.json().response;",
+          "        if (typeof value === 'string') value = JSON.parse(value);",
+          "        if (body.id) body.expectedVersion = value.version;",
+          "        else body.sourceSnapshotId = String(value.snapshotId);",
+          "      }",
+          "      pm.request.body.update(JSON.stringify(body));",
+          "    });",
+          "  } else pm.request.body.update(JSON.stringify(body));",
+          "}"
+        ]
+      }
     }
   ]
 }

@@ -359,7 +359,10 @@ END $$;''')
     validate('neither choice', {k: v for k, v in REQUEST.items() if k not in name_fields + cert_fields}, False)
     validate('empty ACK member states', {'memberStates': []}, False, 'ack')
     sql.extend(['ROLLBACK;', f'\\echo OK - {count} XSD-derived NU behavior checks'])
-    return '\n'.join(sql) + '\n' + (ROOT / 'tests/sql/erru-nu-validation-and-exchange.sql').read_text()
+    return '\n'.join(sql) + ''.join(
+        '\n' + p.read_text(encoding='utf-8')
+        for p in sorted((ROOT / 'tests/sql').glob('*.sql'))
+    )
 
 
 def main():

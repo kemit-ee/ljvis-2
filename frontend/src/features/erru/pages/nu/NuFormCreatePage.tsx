@@ -36,6 +36,7 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
   const [source, setSource] = useState<
     NuSource | NuSourceCandidate | undefined
   >();
+  const [initialUnfitStartDate, setInitialUnfitStartDate] = useState<string>();
   const [sourceLoading, setSourceLoading] = useState(!!sourceKeyParam);
   const [sourceError, setSourceError] = useState<string | null>(null);
 
@@ -44,7 +45,10 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
     if (sourceKeyParam) {
       getNuSource(sourceKeyParam)
         .then((value) => {
-          if (active) setSource(value);
+          if (active) {
+            setSource(value);
+            setInitialUnfitStartDate(value.unfitFromDate ?? undefined);
+          }
         })
         .catch((error) => {
           if (active)
@@ -61,13 +65,17 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
     };
   }, [sourceKeyParam, t]);
   const prefill: Partial<NuMessage> | undefined = source
-    ? { unfitStartDate: source.unfitFromDate ?? undefined }
+    ? { unfitStartDate: initialUnfitStartDate }
     : undefined;
 
-  const form = useNuForm(prefill, source?.id, (id) =>
-    navigate(id ? `/erru/nu/${id}` : '/erru/nu', {
-      state: { justSaved: true },
-    }),
+  const form = useNuForm(
+    prefill,
+    source?.id,
+    (id) =>
+      navigate(id ? `/erru/nu/${id}` : '/erru/nu', {
+        state: { justSaved: true },
+      }),
+    source?.snapshotId,
   );
 
   if (!hasAnyPermission(['nu.create']))
@@ -87,7 +95,12 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
             {sourceError}
           </Alert>
         )}
-        <NuSourcePicker onSelect={setSource} />
+        <NuSourcePicker
+          onSelect={(candidate) => {
+            setSource(candidate);
+            setInitialUnfitStartDate(candidate.unfitFromDate ?? undefined);
+          }}
+        />
       </div>
     );
   }
@@ -113,6 +126,11 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
         }}
       />
 
+      {sourceError && (
+        <Alert type="danger" size="small">
+          {sourceError}
+        </Alert>
+      )}
       {form.formError && (
         <Alert type="danger" size="small" className="mt-05">
           {form.formError}
@@ -126,6 +144,25 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
         )}
 
       <PageActions>
+        <Button
+          type="button"
+          visualType="secondary"
+          disabled={form.formik.isSubmitting || sourceLoading}
+          onClick={async () => {
+            setSourceError(null);
+            setSourceLoading(true);
+            try {
+              setSource(await getNuSource(source.id));
+              form.clearFormError();
+            } catch (error) {
+              setSourceError(nuErrorMessage(error, t));
+            } finally {
+              setSourceLoading(false);
+            }
+          }}
+        >
+          {t('erru.nu.form.refreshSource')}
+        </Button>
         <Button
           type="submit"
           disabled={form.formik.isSubmitting}

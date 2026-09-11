@@ -27,14 +27,18 @@ BEGIN
   PERFORM pg_temp.assert(erru.nu_validate('{"memberStates":[{"memberStateCode":12,"respondingAuthority":"DE-CA","statusCode":"OK"}]}','ack')->>'code'='invalid_value','ACK scalar types');
 END $$;
 DO $$
-DECLARE k BIGINT := nextval('erru.seq_nu_message_key'); h JSONB; x JSONB; a JSONB; err JSONB; outcome JSONB; n INT;
+DECLARE source_key BIGINT := nextval('forms.seq_good_repute_form_key'); source_id BIGINT; k BIGINT := nextval('erru.seq_nu_message_key'); h JSONB; x JSONB; a JSONB; err JSONB; outcome JSONB; n INT;
 BEGIN
-  INSERT INTO erru.nu_message(nu_message_key,version,direction,status,business_case_id,nu_from,nu_to,originating_authority,request_source,request_purpose,tm_first_name,tm_family_name,tm_date_of_birth,unfit_start_date,created_by)
-    VALUES(k,1,'outgoing','initiated','NU-TEST-SEND','EE','DE','EE-PPA','CA','Issue','Test','Manager','1980-01-01','2026-01-01','test');
-  h := erru.nu_begin_send(k,'A','B','test','Test User');
+  INSERT INTO forms.good_repute_form(good_repute_form_key,form_number,status,personal_code,first_name,last_name,date_of_birth,
+    certificate_number,certificate_issue_date,certificate_country_code,fitness_status,unfit_from_date,unfit_until_date)
+    VALUES(source_key,'NU-TEST','published','NU-TEST','Test','Manager','1980-01-01','CERT','2020-01-01','EE','unfit',current_date-1,current_date+30)
+    RETURNING id INTO source_id;
+  INSERT INTO erru.nu_message(nu_message_key,version,direction,status,business_case_id,nu_from,nu_to,originating_authority,request_source,request_purpose,tm_first_name,tm_family_name,tm_date_of_birth,unfit_start_date,created_by,source_good_repute_form_key,certificate_number,certificate_issue_date,certificate_issue_country)
+    VALUES(k,1,'outgoing','initiated','NU-TEST-SEND','EE','DE','EE-PPA','CA','Issue','Test','Manager','1980-01-01','2026-01-01','test',source_key,'CERT','2020-01-01','EE');
+  h := erru.nu_begin_send(k,1,'A','B','test','Test User');
   PERFORM pg_temp.assert(h->>'technicalId' IS NOT NULL AND h->>'sentAt' IS NOT NULL,'header before transport');
   PERFORM pg_temp.assert(EXISTS(SELECT 1 FROM erru.nu_message WHERE nu_message_key=k AND status='sent' AND technical_id::TEXT=h->>'technicalId'),'same persisted header');
-  PERFORM pg_temp.assert(erru.nu_begin_send(k,'A','B','test','Test User')->>'code'='not_sendable','second send forbidden');
+  PERFORM pg_temp.assert(erru.nu_begin_send(k,1,'A','B','test','Test User')->>'code'='not_sendable','second send forbidden');
   x := erru.nu_finish_send(k,'[{"memberStateCode":"DE","respondingAuthority":"DE-CA","statusCode":"OK"}]',NULL);
   PERFORM pg_temp.assert(x->>'status'='sent','send completes without adapter callback');
   SELECT count(*) INTO n FROM erru.nu_message WHERE nu_message_key=k;

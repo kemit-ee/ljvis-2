@@ -4,6 +4,8 @@ namespace: erru
 params:
   key:
     type: integer
+  expectedVersion:
+    type: integer
   firstKey:
     type: string
   familyKey:
@@ -16,4 +18,4 @@ returns:
 - name: result
   type: string
 */
-SELECT erru.nu_begin_send(:key::BIGINT,:firstKey,:familyKey,:actor,:actorName)::TEXT AS result;
+SELECT erru.nu_begin_send(:key::BIGINT,:expectedVersion::INTEGER,:firstKey,:familyKey,:actor,:actorName)::TEXT AS result;

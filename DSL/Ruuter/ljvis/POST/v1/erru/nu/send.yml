@@ -6,10 +6,15 @@ declaration:
     body:
       - field: id
         type: string
+      - field: expectedVersion
+        type: number
 
 extractRequestData:
   assign:
     id: "${('' + (incoming.body.id || '')).trim()}"
+    expected_version: "${incoming.body.expectedVersion || null}"
+    tm_first_name_search_key: ""
+    tm_family_name_search_key: ""
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
   next: checkIdPresent
@@ -18,6 +23,8 @@ checkIdPresent:
   switch:
     - condition: ${!id}
       next: returnIdRequired
+    - condition: ${!Number.isInteger(expected_version) || expected_version < 1}
+      next: returnVersionRequired
   next: getMessage
 
 getMessage:
@@ -62,6 +69,8 @@ checkSendable:
       next: returnNotSendable
     - condition: ${cur_status !== 'initiated'}
       next: returnNotSendable
+    - condition: ${current.response.body[0].version !== expected_version}
+      next: returnVersionConflict
   next: revalidateSource
 revalidateSource:
   call: http.post
@@ -178,6 +187,7 @@ beginSend:
     url: "[#LJVIS_RESQL]/erru/nu/begin-send"
     body:
       key: ${id}
+      expectedVersion: ${expected_version}
       firstKey: ${tm_first_name_search_key}
       familyKey: ${tm_family_name_search_key}
       actor: ${actor_personal_code}
@@ -194,6 +204,8 @@ checkPrepared:
   switch:
     - condition: ${outboundHeader.code === 'nysiis_unavailable'}
       next: returnNysiisError
+    - condition: ${outboundHeader.code === 'source_changed' || outboundHeader.code === 'source_not_eligible' || outboundHeader.code === 'version_conflict'}
+      next: returnPreparedConflict
     - condition: ${!outboundHeader.technicalId}
       next: returnNotSendable
   next: callErru
@@ -204,35 +216,17 @@ callErru:
     url: "[#ERRU_NU_ENDPOINT]"
     headers:
       type: json
-    body:
-      nuTo: ${nu_to}
-      businessCaseId: ${business_case_id}
-      technicalId: ${outboundHeader.technicalId}
-      workflowId: ${outboundHeader.workflowId}
-      sentAt: ${outboundHeader.sentAt}
-      from: ${outboundHeader.from}
-      version: ${outboundHeader.version}
-      originatingAuthority: ${originating_authority}
-      requestSource: ${request_source}
-      requestPurpose: ${request_purpose}
-      tmFirstName: ${tm_first_name}
-      tmFamilyName: ${tm_family_name}
-      tmDateOfBirth: ${tm_date_of_birth}
-      tmPlaceOfBirth: ${tm_place_of_birth}
-      tmFirstNameSearchKey: ${tm_first_name_search_key}
-      tmFamilyNameSearchKey: ${tm_family_name_search_key}
-      certificateNumber: ${certificate_number}
-      certificateIssueDate: ${certificate_issue_date}
-      certificateIssueCountry: ${certificate_issue_country}
-      unfitStartDate: ${unfit_start_date}
+    body: ${outboundHeader}
   result: erru_res
+  timeout: 30000
+  error: markError
   next: checkErruStatus
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
-      next: logIntegrationFailure
-  next: logIntegrationSuccess
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status < 200 || erru_res.response.status >= 300}
+      next: markError
+  next: checkResponseEnvelope
 
 logIntegrationSuccess:
   call: http.post
@@ -251,7 +245,8 @@ logIntegrationSuccess:
       source_type: "erru_nu"
       source_record_id: "${'' + business_case_id}"
   result: log_ok
-  next: checkResponseEnvelope
+  error: buildMemberStateCounts
+  next: buildMemberStateCounts
 
 logIntegrationFailure:
   call: http.post
@@ -270,7 +265,8 @@ logIntegrationFailure:
       source_type: "erru_nu"
       source_record_id: "${'' + business_case_id}"
   result: log_fail
-  next: markError
+  error: logAuditError
+  next: logAuditError
 checkResponseEnvelope:
   switch:
     - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
@@ -319,7 +315,7 @@ checkStoreSent:
   switch:
     - condition: ${JSON.parse(stored_res.response.body[0].result).status !== 'sent'}
       next: returnError
-  next: buildMemberStateCounts
+  next: logIntegrationSuccess
 
 markError:
   assign:
@@ -340,7 +336,7 @@ storeFailure:
       memberStates: ""
       failure: ${failure_message}
   result: error_res
-  next: logAuditError
+  next: logIntegrationFailure
 
 buildMemberStateCounts:
   assign:
@@ -422,4 +418,19 @@ returnNysiisError:
 returnValidationError:
   status: 422
   return: ${validationResult}
+  next: end
+
+returnVersionRequired:
+  status: 422
+  return: '{"field":"expectedVersion","code":"required"}'
+  next: end
+
+returnVersionConflict:
+  status: 409
+  return: '{"code":"version_conflict"}'
+  next: end
+
+returnPreparedConflict:
+  status: 409
+  return: ${JSON.stringify(outboundHeader)}
   next: end

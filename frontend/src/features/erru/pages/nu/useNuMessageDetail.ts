@@ -23,11 +23,11 @@ export function useNuMessageDetail(
   const [isSending, setIsSending] = useState(false);
 
   const send = useCallback(async () => {
-    if (!id || snapshotId) return;
+    if (!id || !entity || snapshotId || isSending) return;
     setIsSending(true);
     setSendError(null);
     try {
-      await sendNuMessage(id);
+      await sendNuMessage(id, entity.version);
     } catch (e) {
       setSendError(nuErrorMessage(e, t, 'erru.nu.validation.send_failed'));
       console.error('[useNuMessageDetail] send failed', e);
@@ -35,7 +35,7 @@ export function useNuMessageDetail(
       setIsSending(false);
       await reload();
     }
-  }, [id, snapshotId, reload, t]);
+  }, [id, entity, snapshotId, isSending, reload, t]);
 
   return {
     message: entity,

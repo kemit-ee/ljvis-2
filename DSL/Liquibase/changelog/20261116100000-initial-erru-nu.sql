@@ -24,6 +24,7 @@ CREATE TABLE erru.nu_message (
     request_source                  VARCHAR(30),
     request_purpose                 VARCHAR(30),
     source_good_repute_form_key     BIGINT,
+    source_snapshot_id              BIGINT,
     tm_first_name                   VARCHAR(100),
     tm_family_name                  VARCHAR(100),
     tm_date_of_birth                DATE,
@@ -76,6 +77,8 @@ COMMENT ON COLUMN erru.nu_message.handler_name IS 'Display name of the sending o
 COMMENT ON COLUMN erru.nu_message.error_message IS 'Diagnostic text for status = error.';
 COMMENT ON COLUMN erru.nu_message.created_at IS 'Snapshot creation timestamp; ordering key for latest-row resolution (see table comment re: id tiebreaker).';
 COMMENT ON COLUMN erru.nu_message.created_by IS 'Personal code (isikukood) of the actor, or a system identifier string for automated transitions.';
+
+CREATE UNIQUE INDEX uq_nu_message_key_version ON erru.nu_message(nu_message_key, version);
 
 CREATE INDEX idx_nu_key_ts                ON erru.nu_message (nu_message_key, created_at DESC, id DESC);
 CREATE INDEX idx_nu_business_case_id      ON erru.nu_message (business_case_id);

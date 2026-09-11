@@ -18,13 +18,15 @@ import { useNuMessageDetail } from './useNuMessageDetail';
 import { useNuForm } from './useNuForm';
 import { NuMessageFields } from '../../components/Nu/NuMessageFields';
 import { NuMemberStatesTable } from '../../components/Nu/NuMemberStatesTable';
-import { isNuEditable, isNuSendable } from '../../types';
+import { isNuEditable, isNuSendable, type NuSource } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { NuInfoBlock } from '../../components/Nu/NuInfoBlock';
 import { NuIdentityBlocks } from '../../components/Nu/NuIdentityBlocks';
 import { formatDate } from '../../../../hooks/dateUtils';
 import { PageActions } from '../../../../shared/components/PageActions';
+import { getNuSource } from '../../api';
+import { nuErrorMessage } from '../../nuErrors';
 import { NuVersionsTable } from '../../components/Nu/NuVersionsTable';
 
 // Only current outgoing drafts are editable.
@@ -57,17 +59,35 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
 
   const { message, isLoading, notFound, send, isSending, sendError, reload } =
     useNuMessageDetail(id, snapshotId);
-  const handleSaved = () => {
+  const [sourcePreview, setSourcePreview] = useState<NuSource>();
+  const [sourceLoading, setSourceLoading] = useState(false);
+  const [sourceError, setSourceError] = useState<string | null>(null);
+  const handleSaved = async () => {
+    await reload();
+    setSourcePreview(undefined);
     setSavedOk(true);
     window.scrollTo(0, 0);
-    reload();
   };
   const handleSend = () => {
+    if (
+      isLoading ||
+      form.formik.dirty ||
+      sourcePreview ||
+      sourceLoading ||
+      form.formik.isSubmitting ||
+      isSending
+    )
+      return;
     setSavedOk(false);
     window.scrollTo(0, 0);
     send();
   };
-  const form = useNuForm(message, undefined, handleSaved);
+  const form = useNuForm(
+    message,
+    undefined,
+    handleSaved,
+    sourcePreview?.snapshotId,
+  );
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading && !message) return <Text>{t('common.loading')}</Text>;
@@ -133,15 +153,28 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
           <NuMessageFields
             form={form}
             businessCaseId={message.businessCaseId}
-            identity={{
-              firstName: message.tmFirstName,
-              lastName: message.tmFamilyName,
-              dateOfBirth: message.tmDateOfBirth,
-              placeOfBirth: message.tmPlaceOfBirth,
-              certificateNumber: message.certificateNumber,
-              certificateIssueDate: message.certificateIssueDate,
-              certificateIssueCountry: message.certificateIssueCountry,
-            }}
+            identity={
+              sourcePreview
+                ? {
+                    firstName: sourcePreview.firstName,
+                    lastName: sourcePreview.lastName,
+                    dateOfBirth: sourcePreview.dateOfBirth,
+                    placeOfBirth: sourcePreview.placeOfBirth,
+                    certificateNumber: sourcePreview.certificateNumber,
+                    certificateIssueDate: sourcePreview.certificateIssueDate,
+                    certificateIssueCountry:
+                      sourcePreview.certificateCountryCode,
+                  }
+                : {
+                    firstName: message.tmFirstName,
+                    lastName: message.tmFamilyName,
+                    dateOfBirth: message.tmDateOfBirth,
+                    placeOfBirth: message.tmPlaceOfBirth,
+                    certificateNumber: message.certificateNumber,
+                    certificateIssueDate: message.certificateIssueDate,
+                    certificateIssueCountry: message.certificateIssueCountry,
+                  }
+            }
           />
           {form.formError && (
             <Alert
@@ -159,10 +192,51 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
                 {t('common.formHasErrors')}
               </Alert>
             )}
+          {sourceError && (
+            <Alert type="danger" size="small">
+              {sourceError}
+            </Alert>
+          )}
+          {(form.formik.dirty || sourcePreview) && (
+            <Alert type="info" size="small">
+              {t('erru.nu.form.saveBeforeSend')}
+            </Alert>
+          )}
           <PageActions>
             <Button
+              type="button"
+              visualType="secondary"
+              disabled={
+                isLoading ||
+                isSending ||
+                form.formik.isSubmitting ||
+                sourceLoading
+              }
+              onClick={async () => {
+                if (!message.sourceGoodReputeFormKey) return;
+                setSourceLoading(true);
+                setSourceError(null);
+                try {
+                  setSourcePreview(
+                    await getNuSource(message.sourceGoodReputeFormKey),
+                  );
+                } catch (error) {
+                  setSourceError(nuErrorMessage(error, t));
+                } finally {
+                  setSourceLoading(false);
+                }
+              }}
+            >
+              {t('erru.nu.form.refreshSource')}
+            </Button>
+            <Button
               type="submit"
-              disabled={form.formik.isSubmitting || isSending}
+              disabled={
+                isLoading ||
+                form.formik.isSubmitting ||
+                isSending ||
+                sourceLoading
+              }
               isLoading={form.formik.isSubmitting}
             >
               {t('common.save')}
@@ -171,7 +245,14 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
               <Button
                 type="button"
                 onClick={handleSend}
-                disabled={isSending || form.formik.isSubmitting}
+                disabled={
+                  isLoading ||
+                  isSending ||
+                  form.formik.isSubmitting ||
+                  form.formik.dirty ||
+                  !!sourcePreview ||
+                  sourceLoading
+                }
                 isLoading={isSending}
               >
                 {t('erru.nu.form.send')}
@@ -240,7 +321,14 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
               <Button
                 type="button"
                 onClick={handleSend}
-                disabled={isSending || form.formik.isSubmitting}
+                disabled={
+                  isLoading ||
+                  isSending ||
+                  form.formik.isSubmitting ||
+                  form.formik.dirty ||
+                  !!sourcePreview ||
+                  sourceLoading
+                }
                 isLoading={isSending}
               >
                 {t('erru.nu.form.send')}

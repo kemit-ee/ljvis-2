@@ -6,6 +6,9 @@ params:
     type: integer
     required: false
 returns:
+- name: snapshot_id
+  type: number
+  nullable: false
 - name: id
   type: number
   nullable: true
@@ -48,6 +51,7 @@ returns:
 */
 SELECT
   good_repute_form_key AS id,
+  g.id AS snapshot_id,
   status,
   first_name,
   last_name,

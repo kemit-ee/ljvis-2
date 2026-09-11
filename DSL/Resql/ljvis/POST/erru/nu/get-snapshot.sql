@@ -56,6 +56,9 @@ returns:
 - name: request_purpose
   type: string
   nullable: true
+- name: source_snapshot_id
+  type: number
+  nullable: true
 - name: source_good_repute_form_key
   type: number
   nullable: true
@@ -125,6 +128,7 @@ SELECT
   request_source,
   request_purpose,
   source_good_repute_form_key,
+  source_snapshot_id,
   tm_first_name,
   tm_family_name,
   tm_date_of_birth,

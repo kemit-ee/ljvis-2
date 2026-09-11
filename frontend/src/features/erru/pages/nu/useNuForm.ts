@@ -13,7 +13,8 @@ const T = 'erru.nu.validation';
 export function useNuForm(
   request: Partial<NuMessage> | undefined,
   sourceGoodReputeFormKey: string | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string) => void | Promise<void>,
+  sourceSnapshotId?: string,
 ) {
   const { t } = useTranslation();
   const isEdit = !!request?.id;
@@ -66,8 +67,10 @@ export function useNuForm(
           id: isEdit ? String(request!.id) : undefined,
           sourceGoodReputeFormKey: isEdit ? undefined : sourceGoodReputeFormKey,
           ...values,
+          expectedVersion: isEdit ? request?.version : undefined,
+          sourceSnapshotId,
         });
-        onSaved(String(result.id));
+        await onSaved(String(result.id));
       } catch (e) {
         const { field } = nuErrorDetails(e);
         const message = nuErrorMessage(e, t);

@@ -32,6 +32,8 @@ const codes = new Set([
   'not_editable',
   'not_sendable',
   'source_not_eligible',
+  'source_changed',
+  'version_conflict',
   'source_not_found',
   'not_found',
   'send_failed',

@@ -6,6 +6,10 @@ declaration:
     body:
       - field: id
         type: string
+      - field: expectedVersion
+        type: number
+      - field: sourceSnapshotId
+        type: string
       - field: sourceGoodReputeFormKey
         type: string
       - field: nuTo
@@ -22,6 +26,8 @@ declaration:
 extractRequestData:
   assign:
     id: "${('' + (incoming.body.id || '')).trim()}"
+    expected_version: "${incoming.body.expectedVersion || null}"
+    source_snapshot_id: "${incoming.body.sourceSnapshotId || null}"
     source_key_from_body: "${('' + (incoming.body.sourceGoodReputeFormKey || '')).trim()}"
     nu_to: "${('' + (incoming.body.nuTo || '')).trim()}"
     originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
@@ -36,7 +42,14 @@ checkIsNew:
   switch:
     - condition: ${!id}
       next: checkSourceKeyProvided
+  next: checkExpectedVersion
+
+checkExpectedVersion:
+  switch:
+    - condition: ${!Number.isInteger(expected_version) || expected_version < 1}
+      next: returnVersionRequired
   next: loadExisting
+
 checkSourceKeyProvided:
   switch:
     - condition: ${!source_key_from_body}
@@ -128,67 +141,52 @@ checkValidationResult:
   switch:
     - condition: ${validationResult.indexOf('"valid":true') === -1}
       next: returnValidationError
-  next: checkIsNewSave
+  next: saveDraft
 
-checkIsNewSave:
-  switch:
-    - condition: ${is_new === 'true'}
-      next: insertDraft
-  next: reviseDraft
-
-insertDraft:
+# Both creation and revision use the same atomic SQL function.
+saveDraft:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/erru/nu/append-draft"
-    headers:
-      type: json
+    url: "[#LJVIS_RESQL]/erru/nu/save-draft"
     body:
+      key: "${id || null}"
+      expectedVersion: ${expected_version}
       sourceGoodReputeFormKey: ${source_key}
-      nuTo: ${nu_to}
-      originatingAuthority: ${originating_authority}
-      requestSource: ${request_source}
-      requestPurpose: ${request_purpose}
-      tmFirstName: ${tm_first_name}
-      tmFamilyName: ${tm_family_name}
-      tmDateOfBirth: ${tm_date_of_birth}
-      tmPlaceOfBirth: ${tm_place_of_birth}
-      certificateNumber: ${certificate_number}
-      certificateIssueDate: ${certificate_issue_date}
-      certificateIssueCountry: ${certificate_issue_country}
-      unfitStartDate: ${unfit_start_date}
+      sourceSnapshotId: ${source_snapshot_id}
+      payload: "${JSON.stringify({nuTo:nu_to,originatingAuthority:originating_authority,requestSource:request_source,requestPurpose:request_purpose,unfitStartDate:unfit_start_date})}"
       created_by: ${actor_personal_code}
   result: saved
-  next: checkSaved
+  next: extractSaved
 
-reviseDraft:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/erru/nu/append-draft-revision"
-    headers:
-      type: json
-    body:
-      key: ${id}
-      nuTo: ${nu_to}
-      originatingAuthority: ${originating_authority}
-      requestSource: ${request_source}
-      requestPurpose: ${request_purpose}
-      tmFirstName: ${tm_first_name}
-      tmFamilyName: ${tm_family_name}
-      tmDateOfBirth: ${tm_date_of_birth}
-      tmPlaceOfBirth: ${tm_place_of_birth}
-      certificateNumber: ${certificate_number}
-      certificateIssueDate: ${certificate_issue_date}
-      certificateIssueCountry: ${certificate_issue_country}
-      unfitStartDate: ${unfit_start_date}
-      created_by: ${actor_personal_code}
-  result: saved
+extractSaved:
+  assign:
+    saved_row: "${JSON.parse(saved.response.body[0].result)}"
   next: checkSaved
 
 checkSaved:
   switch:
-    - condition: ${saved.response.body == null || saved.response.body.length != 1}
+    - condition: ${saved_row.code === 'not_editable'}
       next: returnNotSavable
+    - condition: ${saved_row.code === 'version_conflict' || saved_row.code === 'source_changed' || saved_row.code === 'source_not_eligible'}
+      next: returnConflict
+    - condition: ${!saved_row.id}
+      next: returnSaveValidationError
   next: logAuditSave
+
+returnConflict:
+  status: 409
+  return: ${JSON.stringify(saved_row)}
+  next: end
+
+returnSaveValidationError:
+  status: 422
+  return: ${JSON.stringify(saved_row)}
+  next: end
+
+returnVersionRequired:
+  status: 422
+  return: '{"field":"expectedVersion","code":"required"}'
+  next: end
 
 logAuditSave:
   template: "templates/audit/erru/nu/log-nu-message-save"
@@ -196,9 +194,9 @@ logAuditSave:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    business_case_id: "${saved.response.body[0].businessCaseId}"
+    business_case_id: "${saved_row.businessCaseId}"
     direction: "outgoing"
-    status: "${saved.response.body[0].status}"
+    status: "${saved_row.status}"
     is_new: ${is_new}
     actor_name: ${actor_name}
     actor_personal_code: ${actor_personal_code}
@@ -206,7 +204,7 @@ logAuditSave:
   next: returnSuccess
 
 returnSuccess:
-  return: "${JSON.stringify({id: saved.response.body[0].id, businessCaseId: saved.response.body[0].businessCaseId, version: saved.response.body[0].version, status: saved.response.body[0].status})}"
+  return: "${JSON.stringify({id: saved_row.id, businessCaseId: saved_row.businessCaseId, version: saved_row.version, status: saved_row.status})}"
   next: end
 
 returnSourceRequired:

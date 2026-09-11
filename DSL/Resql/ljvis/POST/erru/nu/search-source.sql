@@ -15,6 +15,9 @@ params:
     type: string
     required: false
 returns:
+- name: snapshot_id
+  type: number
+  nullable: false
 - name: id
   type: number
   nullable: true
@@ -48,6 +51,7 @@ returns:
 */
 WITH latest AS (
   SELECT DISTINCT ON (good_repute_form_key)
+    id AS snapshot_id,
     good_repute_form_key,
     status,
     first_name,
@@ -65,6 +69,7 @@ WITH latest AS (
 )
 SELECT
   good_repute_form_key AS id,
+  snapshot_id,
   first_name,
   last_name,
   date_of_birth,

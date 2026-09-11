@@ -6,6 +6,13 @@
 
 ## 2026-09-11
 
+### NU saatmise ja samaaegsete muudatuste parendused
+
+- Salvestamine ja saatmine kontrollivad sama lukustatud teate kehtivat versiooni. Saadetud või veaga lõppenud teadet ei saa vana mustandi kaudu uuesti avada ning versiooninumbrid on kordumatud.
+- Saatmisel kontrollitakse deklaratsiooni kehtivust ja kaitstud isiku- ning tunnistuseandmeid. Muutunud allikandmed tuleb vormis värskendada, üle vaadata ja salvestada; salvestamata muudatustega saatmine on blokeeritud.
+- Väliskutsesse läheb terviklik salvestatud sõnum. Ühendusvead ja aegumised salvestatakse veana enne integratsioonilogi kirjutamist.
+- Lisatud on PostgreSQL-i samaaegsete tehingute, Ruuteri HTTP-/ühendusvigade ja kasutajavormi regressioonitestid.
+
 ### NU skeemile vastavuse kontrolli parendused
 
 - CI kontrollib NU väljade SQL-reegleid ja andmebaasipiiranguid versioonihalduses oleva ERRU MoveHub 3.5 XSD-koopia vastu. Staatika ja mutatsioonitestid töötavad ilma Dockerita; skeemist genereeritud PostgreSQL-testid ning saatmise ja EN-i regressioonitestid käivitatakse E2E andmebaasil pärast migratsioone.

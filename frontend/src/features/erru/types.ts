@@ -806,6 +806,8 @@ export interface NuMessage {
 }
 
 export interface NuMessageWrite {
+  expectedVersion?: number;
+  sourceSnapshotId?: string;
   id?: string;
   sourceGoodReputeFormKey?: string;
   nuTo: string;
@@ -832,6 +834,7 @@ export interface NuSendResult {
 
 /** A source declaration candidate returned by GET /v1/erru/nu/source/search. */
 export interface NuSourceCandidate {
+  snapshotId: string;
   id: string;
   firstName: string | null;
   lastName: string | null;

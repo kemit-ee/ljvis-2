@@ -333,17 +333,19 @@ export async function searchNuSources(params: {
   if (!result || !Array.isArray(result.content)) {
     throw new Error('Invalid NU source search response');
   }
-  return { content: result.content.map((source) => ({ ...source, id: String(source.id) })) };
+  return { content: result.content.map((source) => ({ ...source, id: String(source.id), snapshotId: String(source.snapshotId) })) };
 }
 
 export async function getNuSource(goodReputeFormKey: string): Promise<NuSource> {
   const source = parseNuResponse(await get<NuSource | string>('/v1/erru/nu/source/get', { q: goodReputeFormKey }));
-  return { ...source, id: String(source.id) };
+  return { ...source, id: String(source.id), snapshotId: String(source.snapshotId) };
 }
 
 export async function saveNuMessage(body: NuMessageWrite): Promise<NuSaveResult> {
   const result = parseNuResponse(await post<NuSaveResult | string>('/v1/erru/nu/request/save', {
     ...body,
+    expectedVersion: body.expectedVersion,
+    sourceSnapshotId: body.sourceSnapshotId == null ? undefined : String(body.sourceSnapshotId),
     id: body.id == null ? undefined : String(body.id),
     sourceGoodReputeFormKey: body.sourceGoodReputeFormKey == null ? undefined : String(body.sourceGoodReputeFormKey),
   }));
@@ -351,6 +353,6 @@ export async function saveNuMessage(body: NuMessageWrite): Promise<NuSaveResult>
   return { ...result, id: String(result.id) };
 }
 
-export function sendNuMessage(id: string): Promise<NuSendResult> {
-  return post<NuSendResult | string>('/v1/erru/nu/send', { id: String(id) }).then(parseNuResponse);
+export function sendNuMessage(id: string, expectedVersion: number): Promise<NuSendResult> {
+  return post<NuSendResult | string>('/v1/erru/nu/send', { id: String(id), expectedVersion }).then(parseNuResponse);
 }
