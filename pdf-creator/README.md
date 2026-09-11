@@ -3,6 +3,7 @@
 Python + Jinja2 + WeasyPrint. Eraldi siseteenus LJVIS-i Docker-võrgus.
 Vastuvõetud andmetest genereeritakse PDF mälus; teenus ei loe andmebaasi ega
 salvesta dokumente. Autentimine, õigused ja vormi versiooni valik jäävad Ruuterisse.
+Teenuse SemVer versioon on failis `VERSION`.
 
 ## Käivitamine
 
