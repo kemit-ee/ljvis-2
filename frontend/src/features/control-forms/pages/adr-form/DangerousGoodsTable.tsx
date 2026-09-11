@@ -35,10 +35,12 @@ export function DangerousGoodsTable({
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
   const unitOptions = useMemo(
-    () =>
-      getByCode('ADR_QUANTITY_UNIT')
+    () => [
+      { value: '', label: '—' },
+      ...getByCode('ADR_QUANTITY_UNIT')
         .filter((e) => e.isValid !== false)
         .map((e) => ({ value: e.code, label: e.name })),
+    ],
     [getByCode],
   );
   const packingGroupOptions = useMemo(
@@ -79,12 +81,16 @@ export function DangerousGoodsTable({
                 label={t('forms.adr.dangerousGoods.packagingGroup')}
                 options={packingGroupOptions}
                 value={
-                  packingGroupOptions.find((o) => o.value === row.packagingGroup) ?? null
+                  packingGroupOptions.find(
+                    (o) => o.value === row.packagingGroup,
+                  ) ?? null
                 }
                 onChange={(val) =>
                   onUpdate(index, {
                     packagingGroup:
-                      val && !Array.isArray(val) ? (val as { value: string }).value : '',
+                      val && !Array.isArray(val)
+                        ? (val as { value: string }).value
+                        : '',
                   })
                 }
                 disabled={disabled}
@@ -93,11 +99,19 @@ export function DangerousGoodsTable({
                 id={`dangerousGoods-${index}-quantity`}
                 label={t('forms.adr.dangerousGoods.quantity')}
                 value={row.quantity}
-                {...((showAllErrors || rowTouched?.[index]?.quantity) && rowErrors?.[index]?.quantity
-                  ? { helper: { text: rowErrors[index]!.quantity!, type: 'error' as const } }
+                {...((showAllErrors || rowTouched?.[index]?.quantity) &&
+                rowErrors?.[index]?.quantity
+                  ? {
+                      helper: {
+                        text: rowErrors[index]!.quantity!,
+                        type: 'error' as const,
+                      },
+                    }
                   : {})}
                 onBlur={() => onQuantityBlur?.(index)}
-                onChange={(v) => onUpdate(index, { quantity: sanitizeDecimalInput(v) })}
+                onChange={(v) =>
+                  onUpdate(index, { quantity: sanitizeDecimalInput(v) })
+                }
                 disabled={disabled}
               />
               <Select

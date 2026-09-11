@@ -34,7 +34,7 @@ checkEmpty:
   switch:
     - condition: ${res.response.body == null || res.response.body.length == 0}
       next: getFromArchive
-  next: returnSuccess
+  next: mapResponse
 
 getFromArchive:
   call: http.post
@@ -46,14 +46,32 @@ getFromArchive:
       formType: "good-repute"
       id: ${incoming.params.id}
   result: archiveRes
-  next: returnArchive
+  next: mapResponseArchive
 
-returnArchive:
-  return: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
-  next: end
+mapResponseArchive:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_good_repute_form"
+    headers:
+      type: json
+    body:
+      forms: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
+  result: mapped
+  next: returnSuccess
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_good_repute_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body}
+  return: ${mapped.response.body}
   next: end
 
 returnForbidden:

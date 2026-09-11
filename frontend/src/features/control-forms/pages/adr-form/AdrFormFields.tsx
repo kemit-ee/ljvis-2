@@ -8,7 +8,6 @@ import {
   TextField,
   TextArea,
   Select,
-  Button,
   Alert,
 } from '@tedi-design-system/react/tedi';
 import { DangerousGoodsTable } from './DangerousGoodsTable';
@@ -24,6 +23,7 @@ import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import type { useAdrForm } from './useAdrForm';
 import styles from './AdrFormFields.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 const RESULT_OPTIONS = ['ok', 'misdemeanor_proceedings', 'warning'] as const;
 
@@ -205,7 +205,7 @@ export function AdrFormFields({
                 />
               </div>
               {canEdit && (
-                <Button
+                <AsyncButton
                   type="button"
                   disabled={searchLoading}
                   onClick={() =>
@@ -213,7 +213,7 @@ export function AdrFormFields({
                   }
                 >
                   {t('common.search')}
-                </Button>
+                </AsyncButton>
               )}
             </div>
             <TextField
