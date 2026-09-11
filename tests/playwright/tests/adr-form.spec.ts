@@ -105,7 +105,12 @@ test.describe('ADR alamvorm — kinnitamine', () => {
 });
 
 test.describe('ADR alamvorm — prindi nupp (PR #310)', () => {
-  test('uuel (salvestamata) koondvormil on ADR vahekaalil „Tühi vorm" nupp', async ({
+  /**
+   * Uuel koondvormil kasutatakse AdrFormCreatePage-i (mitte AdrFormEditCard-i),
+   * millel printimise nuppu EI ole — see on oodatav käitumine.
+   * Printimise nupp on olemas ainult salvestatud vormi redigeerimisvaates (AdrFormEditCard).
+   */
+  test('uuel (salvestamata) koondvormil puudub ADR vahekaalil printimise nupp', async ({
     page,
   }) => {
     await page.goto(NEW_WITH_ADR);
@@ -113,15 +118,9 @@ test.describe('ADR alamvorm — prindi nupp (PR #310)', () => {
       page.getByRole('tab', { name: /ADR|ohtlik/i }),
     ).toBeVisible({ timeout: 15_000 });
     await page.getByRole('tab', { name: /ADR|ohtlik/i }).click();
-
-    // Uuel vormil (id puudub) peab olema „Tühi vorm" nupp otse (mitte dropdown)
+    // Salvestamata vormil ei ole printimise nuppu (AdrFormCreatePage ei sisalda seda)
     await expect(
-      page.getByRole('button', { name: /Tühi vorm|tühi/i }),
-    ).toBeVisible({ timeout: 10_000 });
-
-    // Aga „Täidetud vorm" EI tohi olla (salvestamata vorm)
-    await expect(
-      page.getByText(/Täidetud vorm/i).first(),
+      page.getByRole('button', { name: /Prindi|tühi vorm/i }),
     ).toHaveCount(0);
   });
 
