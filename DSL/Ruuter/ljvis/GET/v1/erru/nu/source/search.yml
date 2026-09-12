@@ -1,0 +1,32 @@
+declaration:
+  version: "1.0"
+  description: "Search eligible source declarations."
+  namespace: erru
+  allowlist:
+    params:
+      - field: firstName
+        type: string
+      - field: lastName
+        type: string
+      - field: dateOfBirth
+        type: string
+      - field: certificateNumber
+        type: string
+
+searchSource:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/search-source"
+    headers:
+      type: json
+    body:
+      firstName: "${incoming.params.firstName || ''}"
+      lastName: "${incoming.params.lastName || ''}"
+      dateOfBirth: "${incoming.params.dateOfBirth || ''}"
+      certificateNumber: "${incoming.params.certificateNumber || ''}"
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: "${JSON.stringify({content: res.response.body})}"
+  next: end

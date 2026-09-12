@@ -1,0 +1,42 @@
+declaration:
+  version: "1.0"
+  description: "NU log nu message save."
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: direction
+        type: string
+      - field: status
+        type: string
+      - field: is_new
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "NU sobimatusteate mustandi salvestamine: juhtumi number ${incoming.body.business_case_id || '-'}, suund ${incoming.body.direction || '-'}, staatus ${incoming.body.status || '-'}, uus teade ${incoming.body.is_new === 'true' ? 'jah' : 'ei'}"
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['direction', incoming.body.direction || null], ['status', incoming.body.status || null], ['isNew', incoming.body.is_new === 'true']]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "nu.message.save"
+    event_category: "erru_management"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

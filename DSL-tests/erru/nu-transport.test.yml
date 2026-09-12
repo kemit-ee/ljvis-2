@@ -1,0 +1,107 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: http://nu-test/resql
+  LJVIS_TIM: http://nu-test/tim
+  NYSIIS_ENDPOINT: http://nu-test/nysiis
+  ERRU_NU_ENDPOINT: http://127.0.0.1:1/unreachable
+http_rewrite:
+  http://nu-test: '{MOCK}'
+tests:
+- name: connection refused persists terminal failure
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - nu.read
+        - nu.create
+        - nu.send
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /xroad/log_integration
+      method: POST
+      status: 503
+      body: {}
+    - url_matches: /erru/nu/finish-send
+      method: POST
+      status: 200
+      body:
+      - result: '{"status":"error"}'
+    - url_matches: /erru/nu/get-source
+      method: POST
+      status: 200
+      body:
+      - eligible: true
+    - url_matches: /erru/nu/begin-send
+      method: POST
+      status: 200
+      body:
+      - result: '{"version":"3.5","technicalId":"11111111-2222-4333-8444-555555555555","workflowId":"11111111-2222-4333-8444-555555555556","sentAt":"2026-09-11T12:00:00Z","nuTo":"DE","businessCaseId":"NU-TEST","tmFirstName":"Test","tmFamilyName":"Manager","tmFirstNameSearchKey":"TAST","tmFamilyNameSearchKey":"MANAGAR"}'
+    - url_matches: /erru/nu/validate
+      method: POST
+      status: 200
+      body:
+      - result: '{"valid":true}'
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /erru/nu/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 2
+        status: initiated
+        direction: outgoing
+        businessCaseId: NU-TEST
+        nuTo: DE
+        originatingAuthority: EE-PPA
+        requestSource: CA
+        requestPurpose: Issue
+        sourceGoodReputeFormKey: 10
+        tmFirstName: Test
+        tmFamilyName: Manager
+        tmDateOfBirth: '1980-01-01'
+        unfitStartDate: '2026-01-01'
+    - url_matches: /nysiis
+      method: POST
+      status: 200
+      body:
+        searchKey: KEY
+    - url_matches: /hub
+      method: POST
+      status: 503
+      body: null
+  request:
+    method: POST
+    path: /ljvis/v1/erru/nu/send
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      expectedVersion: 2
+  expect:
+    status: 502
+  verify_mocks:
+  - url_matches: /erru/nu/finish-send
+    count: 1
+    body_matches:
+      failure: ERRU transport failure
+  - url_matches: /log/insert_audit_event
+    count: 1

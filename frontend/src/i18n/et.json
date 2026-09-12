@@ -286,6 +286,7 @@
     "search": "Otsing",
     "rsi": "Tehnokontrolli teated RSI",
     "ncr": "Kontrollitulemuse teated NCR",
+    "nu": "NU sobimatusteated",
     "riskScores": "Riskiskoorid",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused"
@@ -1762,7 +1763,11 @@
         "not_sendable": "Päringut ei saa selles olekus saata",
         "not_resendable": "Päringut ei saa selles olekus uuesti saata",
         "send_failed": "Päringu saatmine ebaõnnestus",
-        "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav"
+        "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav",
+        "invalid_value": "Väärtus ei vasta ERRU nõuetele.",
+        "invalid_date": "Kuupäev ei ole korrektne.",
+        "source_exceeds_erru_limit": "Allikandmed ületavad ERRU pikkusepiirangu. Parandage hea maine deklaratsiooni (ees- ja perekonnanimi: 100 tähemärki; sünnikoht: 50; tunnistuse number: 20).",
+        "not_found": "NU sobimatusteadet ei leitud"
       }
     },
     "rsi": {
@@ -1989,6 +1994,101 @@
         "handlerFilter": "Menetleja (isikukood)",
         "automatic": "Automaatne"
       }
+    },
+    "nu": {
+      "history": {
+        "snapshotNotice": "Versioon {{version}} on avatud ainult vaatamiseks.",
+        "openCurrent": "Ava kehtiv versioon"
+      },
+      "notFound": "NU sobimatusteadet ei leitud",
+      "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
+      "createFromGoodRepute": "Loo ERRU sobimatusteade",
+      "list": {
+        "title": "NU sobimatusteated",
+        "newMessage": "Uus sobimatusteade",
+        "id": "Teate number",
+        "direction": "Suund",
+        "directionOutgoing": "Väljaminev",
+        "directionIncoming": "Sissetulev",
+        "date": "Kuupäev",
+        "country": "Riik",
+        "tmFirstName": "Eesnimi",
+        "tmFamilyName": "Perekonnanimi",
+        "handler": "Kasutaja",
+        "handlerFilter": "Kasutaja (isikukood)",
+        "status": "Staatus"
+      },
+      "filters": {
+        "dateFrom": "Kuupäev alates",
+        "dateUntil": "Kuupäev kuni"
+      },
+      "source": {
+        "title": "Allikdeklaratsiooni otsing",
+        "hint": "Sisestage veokorraldusjuhi eesnimi, perekonnanimi ja sünniaeg, või ametialase pädevuse tunnistuse number. Väljaminevat NU sobimatusteadet saab koostada ainult avaldatud ja sobimatuks tunnistatud hea maine deklaratsiooni alusel.",
+        "searchFailed": "Otsing ebaõnnestus",
+        "noResults": "Avaldatud ja sobimatuks tunnistatud deklaratsiooni ei leitud"
+      },
+      "form": {
+        "titleOutgoing": "NU sobimatusteade (EE → ERRU)",
+        "titleInbound": "NU sobimatusteade (ERRU → EE)",
+        "titleNew": "Uus NU sobimatusteade",
+        "refreshSource": "Värskenda allikandmeid",
+        "saveBeforeSend": "Enne saatmist salvestage muudatused.",
+        "version": "Versioon {{version}}",
+        "readOnly": "ainult lugemiseks",
+        "headerBlock": "Teate andmed",
+        "nameBlock": "Veokorraldusjuhi andmed (7A)",
+        "certificateBlock": "Kutseoskuse tunnistuse andmed (7B)",
+        "unfitnessBlock": "Sobimatuse andmed",
+        "nuFrom": "Taotlev liikmesriik",
+        "nuTo": "Sihtliikmesriik",
+        "nuToAll": "Kõik liikmesriigid",
+        "nuToHint": "Kui sihtliikmesriiki ei valita, saadetakse teade kõigile liikmesriikidele.",
+        "originatingAuthority": "Taotluse esitanud pädev asutus",
+        "requestSource": "Päringu allikas",
+        "requestPurpose": "Päringu eesmärk",
+        "tmFirstName": "Eesnimi",
+        "tmFamilyName": "Perekonnanimi",
+        "tmDateOfBirth": "Sünniaeg",
+        "tmPlaceOfBirth": "Sünnikoht",
+        "certificateNumber": "Ametialase pädevuse tunnistuse number",
+        "certificateIssueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
+        "certificateIssueCountry": "Ametialase pädevuse tunnistuse väljastanud riik",
+        "unfitStartDate": "Sobimatuse alguskuupäev",
+        "send": "Saada"
+      },
+      "requestSource": {
+        "CA": "Pädev asutus",
+        "RSI": "Teeäärne kontroll",
+        "Hub": "ERRU keskus",
+        "Other": "Muu allikas"
+      },
+      "requestPurpose": {
+        "Issue": "Väljastamine",
+        "Control": "Järelvalve",
+        "Other": "Muu eesmärk"
+      },
+      "response": {
+        "title": "Koondkinnituse andmed",
+        "memberState": "Liikmesriik",
+        "respondingAuthority": "Vastust esitav pädev asutus",
+        "status": "Staatus"
+      },
+      "validation": {
+        "required": "Väli on kohustuslik",
+        "invalid_country_code": "Riigi kood peab olema kahetäheline",
+        "max_length_exceeded": "Välja pikkus on ületatud",
+        "not_editable": "Teadet ei saa praeguses olekus muuta",
+        "not_sendable": "Teadet ei saa praeguses olekus saata",
+        "source_changed": "Allikandmed on muutunud. Värskendage allikandmeid, kontrollige neid ja salvestage enne saatmist.",
+        "version_conflict": "Teadet on teises sessioonis muudetud. Laadige leht uuesti ja kontrollige kehtivat versiooni.",
+        "source_not_eligible": "Allikdeklaratsioon ei ole avaldatud, isik ei ole sobimatuks tunnistatud või sobimatuse lõppkuupäev puudub või on möödunud. Kontrollige allikdeklaratsiooni.",
+        "source_not_found": "Hea maine deklaratsiooni ei leitud",
+        "send_failed": "Teate saatmine ebaõnnestus",
+        "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav",
+        "source_exceeds_erru_limit": "Allikandmed ületavad ERRU pikkusepiirangu. Parandage hea maine deklaratsiooni (ees- ja perekonnanimi: 100 tähemärki; sünnikoht: 50; tunnistuse number: 20).",
+        "not_found": "NU sobimatusteadet ei leitud"
+      }
     }
   },
   "search": {
@@ -2113,6 +2213,8 @@
     "rsiDetail": "RSI teade",
     "ncrCreate": "Uus NCR teade",
     "ncrDetail": "NCR teade",
+    "nuCreate": "Uus NU sobimatusteade",
+    "nuDetail": "NU sobimatusteade",
     "tramControlCard": "Transpordiameti kontrollkaart"
   }
 }

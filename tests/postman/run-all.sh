@@ -52,6 +52,11 @@ done
 
 echo ""
 
+python3 -B "$REPO_ROOT/tests/contract/check_erru_contract.py" --emit-sql | $COMPOSE exec -T database psql -X -q -o /dev/null -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db
+
+
+python3 "$REPO_ROOT/tests/sql/test_nu_concurrency.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
+
 # ── Newman runs ───────────────────────────────────────────────────────────────
 
 newman run "$COL/organisations.collection.json" -e "$ENV" \
@@ -119,6 +124,11 @@ newman run "$COL/erru-ncr.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/erru-ncr.html"
+
+newman run "$COL/erru-nu.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-nu.html"
 
 newman run "$COL/technical-check-forms.collection.json" -e "$ENV" \
   --delay-request 300 \
