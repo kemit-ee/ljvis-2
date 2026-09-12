@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-09-12
+
+### Sisemised parandused: salvestamine/kinnitamine/avalikustamine
+
+- Parandatud viga, kus kontrollkaardi/kontrollakti väljal sisestatud
+  väärtus **0** (nt kilomeeter, sõidukite/juhtide/päevade arv, väikeste
+  rikkumiste arv) võis salvestamisel või avalikustamisel vaikselt kaduma
+  minna. Puudutas koondvormi ja välisriigi rikkumise kaardi avalikustamist
+  ning Tööinspektsiooni akti ja TRAM-kaardi salvestamist/kinnitamist.
+- Koondvormil ja TRAM-kaardil "Muu tee" täpsustusvälja kohustuslikkuse
+  kontroll ei rakendunud varem kunagi — parandatud.
+- CTUD teate päringu allika ja eesmärgi väljad on nüüd nõutud ka
+  kasutajaliideses (serveripoolne kontroll oli juba olemas).
+- ADR alamvormil on menetlusnumbri ja erandi õigusliku aluse kohustuslikkus
+  nüüd kontrollitud ka serveripoolel, mitte ainult kasutajaliideses.
+
 ## 2026-09-11
 
 ### NU saatmise ja samaaegsete muudatuste parendused

@@ -565,7 +565,7 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('address', v);
                             if (v) {
                               formik.setFieldValue('road', '');
-                              formik.setFieldValue('road_other', '');
+                              formik.setFieldValue('roadOther', '');
                               formik.setFieldValue('kilometer', '');
                               formik.setFieldValue('road_type', ROAD.LOCAL);
                             }
