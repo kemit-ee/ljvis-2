@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-09-12
+
+### Riskiskoori värskendamine autojuhi/meeskonna alamvormi avalikustamisel
+
+- Sõidu- ja puhkeaja alamvormi (autojuht/meeskonnaliige) avalikustamine
+  käivitab nüüd ettevõtte riskiskoori ümberarvutuse kohe, samamoodi nagu
+  koondvormi ja TRAM-kaardi avalikustamine juba teeb. Varem uuenes skoor
+  alles järgmisel öisel taustatööl.
+
 ## 2026-09-11
 
 ### NU saatmise ja samaaegsete muudatuste parendused
