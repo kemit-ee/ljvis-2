@@ -152,7 +152,9 @@ extractRequestData:
     city: "${incoming.body.city || ''}"
     road: "${incoming.body.road || ''}"
     road_other: "${incoming.body.roadOther || ''}"
-    kilometer: "${incoming.body.kilometer || ''}"
+    # Ei coercida `|| ''`-ga — 0 on legitiimne kilomeetrinäit; `0 || ''` annaks
+    # '' -> NULL. Ruuteri allowlist garanteerib võtme olemasolu.
+    kilometer: "${incoming.body.kilometer}"
     address: "${incoming.body.address || ''}"
     road_type: "${incoming.body.road_type || ''}"
     road_tax_status: "${incoming.body.roadTaxStatus || ''}"
@@ -166,7 +168,7 @@ extractRequestData:
     vehicle_body_type: "${incoming.body.vehicleBodyType || ''}"
     vehicle_category_code: "${incoming.body.vehicleCategoryCode || ''}"
     vehicle_category_other: "${incoming.body.vehicleCategoryOther || ''}"
-    vehicle_mileage: "${incoming.body.vehicleMileage || ''}"
+    vehicle_mileage: "${incoming.body.vehicleMileage}"
     trailers: "${incoming.body.trailers || '[]'}"
     company_reg_code: "${incoming.body.companyRegCode || ''}"
     company_name: "${incoming.body.companyName || ''}"
@@ -200,9 +202,10 @@ extractRequestData:
     sp_applicability: "${incoming.body.spApplicability || ''}"
     tachograph_type_code: "${incoming.body.tachographTypeCode || ''}"
     tachograph_data_not_downloaded: "${String(incoming.body.tachographDataNotDownloaded == null ? 'false' : incoming.body.tachographDataNotDownloaded)}"
-    checked_days_count: "${incoming.body.checkedDaysCount || ''}"
-    work_days_count: "${incoming.body.workDaysCount || ''}"
-    other_activity_days_count: "${incoming.body.otherActivityDaysCount || ''}"
+    # 0 on legitiimne päevade arv kõigi kolme puhul — vt kilomeeter ülal.
+    checked_days_count: "${incoming.body.checkedDaysCount}"
+    work_days_count: "${incoming.body.workDaysCount}"
+    other_activity_days_count: "${incoming.body.otherActivityDaysCount}"
     violations_561_2006: "${incoming.body.violations5612006 || '[]'}"
     violations_165_2014: "${incoming.body.violations1652014 || '[]'}"
     violations_2002_15: "${incoming.body.violations200215 || '[]'}"

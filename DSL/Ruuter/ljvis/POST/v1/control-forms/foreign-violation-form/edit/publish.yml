@@ -71,7 +71,9 @@ extractCurrentFormData:
     vehicle_body_type: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleBodyType) || ''}"
     licence_copy_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].licenceCopyNumber) || ''}"
     violation_description: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].violationDescription) || ''}"
-    minor_violations_count: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].minorViolationsCount) || ''}"
+    # `!= null ? String(x) : ''` — mitte `|| ''`, sest 0 (nt "0 väikest
+    # rikkumist") on legitiimne väärtus, mille `|| ''` muudaks SQL NULL-iks.
+    minor_violations_count: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].minorViolationsCount != null) ? String(currentFormRes.response.body[0].minorViolationsCount) : ''}"
     sanction_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].sanctionCode) || ''}"
     sanction_notes: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].sanctionNotes) || ''}"
     recommended_measure_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].recommendedMeasureCode) || ''}"

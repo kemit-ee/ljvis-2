@@ -35,6 +35,10 @@ export function useCtudForm(
 
   const validationSchema = Yup.object({
     ctudTo: Yup.string().required(required).length(2, t(`${T}.invalid_country_code`)),
+    // Backend (validate-ctud-request.yml) rejects an empty value with 422 —
+    // mirror it client-side (samaväärne NCR vorm juba teeb seda).
+    requestSource: Yup.string().required(required),
+    requestPurpose: Yup.string().required(required),
     originatingAuthority: Yup.string().max(50, t(`${T}.max_length_exceeded`)),
     transportUndertakingName: Yup.string()
       .max(150, t(`${T}.max_length_exceeded`))
