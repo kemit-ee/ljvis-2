@@ -42,7 +42,9 @@ extractCurrentFormData:
     city: "${currentFormRes.response.body[0].city || ''}"
     road: "${currentFormRes.response.body[0].road || ''}"
     road_other: "${currentFormRes.response.body[0].roadOther || ''}"
-    kilometer: "${currentFormRes.response.body[0].kilometer || ''}"
+    # `!= null ? String(x) : ''` — mitte `|| ''`, sest 0 on legitiimne
+    # kilomeetrinäit ja `0 || ''` annaks '' -> SQL NULL (vaikne andmekadu).
+    kilometer: "${currentFormRes.response.body[0].kilometer != null ? String(currentFormRes.response.body[0].kilometer) : ''}"
     address: "${currentFormRes.response.body[0].address || ''}"
     road_type: "${currentFormRes.response.body[0].road_type || ''}"
     road_tax_status: "${currentFormRes.response.body[0].roadTaxStatus || ''}"
@@ -56,7 +58,7 @@ extractCurrentFormData:
     vehicle_body_type: "${currentFormRes.response.body[0].vehicleBodyType || ''}"
     vehicle_category_code: "${currentFormRes.response.body[0].vehicleCategoryCode || ''}"
     vehicle_category_other: "${currentFormRes.response.body[0].vehicleCategoryOther || ''}"
-    vehicle_mileage: "${currentFormRes.response.body[0].vehicleMileage || ''}"
+    vehicle_mileage: "${currentFormRes.response.body[0].vehicleMileage != null ? String(currentFormRes.response.body[0].vehicleMileage) : ''}"
     trailers: "${currentFormRes.response.body[0].trailers || '[]'}"
     company_reg_code: "${currentFormRes.response.body[0].companyRegCode || ''}"
     company_name: "${currentFormRes.response.body[0].companyName || ''}"
