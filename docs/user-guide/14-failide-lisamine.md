@@ -15,8 +15,10 @@ Failide lisamine on saadaval peamistes vormides, kus on vaja tõendada visuaalse
 
 ## Manuse lisamise sammud
 
-Failide plokk „Failid" ilmub vormile pärast esimest salvestamist. Nupp **Lisa manus**
-avab failivaliku; lisatud failid kuvatakse loendis.
+Fail seotakse vormi numbri ja vormi tüübiga. Seepärast aktiveerub jaotis
+**„Kontrolliga seotud failid“** ning nupp **„Lisa fail“** alles pärast vormi
+esimest edukat salvestamist. Salvestamata vormile faili lisada ei saa.
+Nupp avab failivaliku ning lisatud failid kuvatakse loendis.
 
 ![Failide plokk vormil](images/14-failide-lisamine/01-failide-plokk.png)
 

@@ -49,6 +49,11 @@ Vormis on täidetavad kaardid/akkordionid. Tärniga `*` tähistatud väljad on k
 | Veo iseloom (`transportNature`) | Ei | Valik: tasuline või oma kulul |
 | Tegevusloa nõudest vabastatud vedu (`transportNatureExempt`) | Ei | Märkeruut |
 
+Autojuhi vormil tehtud **Veo liigi** ja **Veoklassi** valikud kantakse
+meeskonnaliikme vormile automaatselt ning neid hoitakse omavahel kooskõlas.
+Liini number ja liini nimetus kuuluvad Transpordiameti kontrollkaardile ning
+PPA kontrollkaardil neid ei kuvata.
+
 ### 2. Veoklassid
 
 | Väli | Kohustuslik | Selgitus |
@@ -103,7 +108,10 @@ Aktiivne ainult autojuhil, kui tulemus pole `KORRAS`.
 
 ### 8. Failid
 
-- `FormFiles` – võimaldab lisada vormi seotud faile.
+Jaotises **„Kontrolliga seotud failid“** saab nupuga **„Lisa fail“** lisada
+kontrolli fotosid ja dokumente. Failide lisamine aktiveerub pärast vormi
+esimest edukat salvestamist, sest fail seotakse salvestamisel tekkinud
+vorminumbriga.
 
 ### 9. Märkused
 
@@ -127,6 +135,11 @@ Rikkumiste modaalaknas valitakse kolmel tasemel:
 3. **Tase 3** – rikkumise detail, kus `description` väli sisaldab raskusastet
 
 Raskusaste kuvatakse valiku ees **rasvases kirjas** enne rikkumise nime. Need väärtused võivad olla näiteks **MSI** (most serious infringement), **VSI**, **SI** või **MI**. Iga tase 3 valiku korral salvestatakse rikkumise kood (`violationCode`) ja raskusastme kood (`severityCode`) koos nimega.
+
+Rooma I lepingu rikkumised ja direktiivist (EL) 2020/1057 tulenevad autojuhi
+lähetamise nõuete rikkumised kuvatakse eraldi rühmadena. MSI, VSI ja SI
+rikkumistest moodustab süsteem ERRU jaoks vajalikud rikkumiskirjed
+automaatselt; MI rikkumisi ERRU raske rikkumisena ei edastata.
 
 ## PDF-printimine
 

@@ -99,6 +99,32 @@ test.describe('Koondvorm — validatsioon', () => {
 });
 
 test.describe('Koondvorm — salvestamine', () => {
+  test('täidetud üldosa ja autojuhi vorm salvestuvad ning kinnitamine on saadaval', async ({ page }) => {
+    await page.goto('/control-forms/compound/new?types=driver');
+    await fillGeneralPart(page, {
+      address: 'Kontrolli tee 1',
+      controlDate: '01032026',
+      controlTime: '1200',
+      county: 'Harju maakond',
+      vehicleRegNr: `SP${Date.now() % 100000}`,
+      vehicleCategoryCode: 'A_2012',
+      fillInspector: true,
+      driver: {
+        ids: COMPOUND_DRIVER_IDS,
+        firstName: 'Juht',
+        lastName: 'Testija',
+        birthDate: '01011990',
+      },
+    });
+    await page.getByRole('tab', { name: /^Autojuhi/i }).click();
+    await checkChoiceById(page, 'transport_type_cargo');
+    await checkChoiceById(page, 'result_korras');
+    await page.getByRole('button', SAVE).click();
+    await expectSaved(page, '/control-forms/compound');
+    await expect(page.getByRole('button', { name: 'Kinnita', exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Prindi', exact: true }).first()).toBeVisible();
+  });
+
   test('miinimumväljadega koondvorm salvestub ja väärtused püsivad', async ({
     page,
   }) => {
@@ -183,5 +209,32 @@ test.describe('Koondvorm — #280 muudatused', () => {
     await expect(
       page.getByText(/ei tagastanud|ei leitud|tulemus/i).first(),
     ).toBeVisible({ timeout: 15_000 });
+  });
+});
+
+test.describe('Koondvorm — PPA kasutusvoo parendused', () => {
+  test('liiklusregistri otsing ja haagise tehnovorm ei vii üldosast ära', async ({ page }, testInfo) => {
+    await page.goto(NEW);
+
+    await expect(
+      page.getByRole('button', { name: 'Otsi liiklusregistrist' }).first(),
+    ).toBeVisible();
+
+    await page.getByRole('button', { name: 'Lisa haagis' }).click();
+    await expect(page.getByRole('heading', { name: 'Haagis 1' })).toBeVisible();
+    await page.locator('#trailerRegNr_0').fill('123ABC');
+    await page.getByRole('button', { name: /Lisa haagise tehno kontrollvorm/i }).click();
+
+    await expect(
+      page.getByRole('tab', {
+        name: /HAAGIS 1 \(123ABC\) – tehnoseisundi kontrollkaart/i,
+      }),
+    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Kontrolli koht' })).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Valitud kontrollvormid' })).toBeVisible();
+    await page.getByRole('heading', { name: 'Kontrolli koht' }).scrollIntoViewIfNeeded();
+    await testInfo.attach('ppa-haagise-vahekaart', { body: await page.screenshot(), contentType: 'image/png' });
+    await page.getByRole('navigation', { name: 'Valitud kontrollvormid' }).scrollIntoViewIfNeeded();
+    await testInfo.attach('ppa-alumine-vorminavigatsioon', { body: await page.screenshot(), contentType: 'image/png' });
   });
 });

@@ -149,6 +149,9 @@ export const downloadFormFile = (formPath: string, id: string) =>
     q: id,
   });
 
+export const deleteFormFile = (formPath: string, id: string) =>
+  post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/delete`, { id });
+
 // ── TRAM (Transpordiamet) kontrollkaart ──────────────────────────────────
 // ADR-002: üks eraldiseisev olem forms.tram_control_card, oma guarditud
 // endpointid (tram_driver_form.write/read). GET-id käivad läbi

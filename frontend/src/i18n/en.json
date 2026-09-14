@@ -753,6 +753,9 @@
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
       "trailerNumber": "Trailer {{number}}",
+      "searchTrafficRegister": "Search the traffic register",
+      "selectedForms": "Selected control forms",
+      "trailerTechnicalTab": "technical condition inspection card",
       "addTrailerControlForm": "Add trailer control form",
       "editTrailerControlForm": "Edit trailer control form",
       "removeTrailer": "Remove trailer",
@@ -1432,7 +1435,7 @@
   "form": {
     "files": {
       "title": "Attachments",
-      "addBtn": "Add attachment",
+      "addBtn": "Add file",
       "uploadTitle": "Upload file",
       "uploadBtn": "Upload",
       "limits": "Allowed types: pdf, jpeg, png, asice, doc, docx. Max size: 20MB.",

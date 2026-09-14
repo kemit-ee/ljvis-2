@@ -22,6 +22,7 @@ export interface DriveRestFormEditCardRef {
   save: () => void;
   isDirty: () => boolean;
   validateForm?: () => void;
+  setFormData?: (data: Partial<DriveRestForm>) => void;
 }
 
 interface DriveRestFormEditCardProps {
@@ -58,6 +59,7 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
     save: () => formRef.current?.handleSubmit(),
     isDirty: () => formRef.current?.isDirty() ?? false,
     validateForm: () => formRef.current?.validateForm?.(),
+    setFormData: (data) => formRef.current?.setFormData?.(data),
   }));
 
   return (

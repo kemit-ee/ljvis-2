@@ -10,6 +10,10 @@ params:
     type: string
     required: false
     description: 'Vorminumbri prefiks — kohustuslik IDOR-kaitse (vt get_form_attachment_by_id.sql). Tühi/NULL → 0 rida kustutatud.'
+  attachment_form_type:
+    type: string
+    required: false
+    description: Optional S3 folder type, required by SP routes to distinguish driver and teammate forms with the same number
 returns:
 - name: id
   type: string
@@ -38,4 +42,5 @@ SET status = 'deleted'
 WHERE id = :id::BIGINT
   AND btrim(COALESCE(:form_number_prefix, '')) <> ''
   AND form_number LIKE :form_number_prefix || '%'
+  AND (btrim(COALESCE(:attachment_form_type, '')) = '' OR starts_with(s3_key, :attachment_form_type || '/'))
 RETURNING id, form_number, file_name, s3_key, status, created_at, created_by;

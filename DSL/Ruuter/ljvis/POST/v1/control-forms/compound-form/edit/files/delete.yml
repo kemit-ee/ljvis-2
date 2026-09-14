@@ -1,0 +1,34 @@
+declaration:
+
+  version: "1.0"
+  description: "Delete a file attachment for a compound form"
+  namespace: control-forms
+  allowlist:
+    body:
+      - field: id
+        type: string
+
+get_user_context:
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  assign:
+    auth_user: ${auth_user}
+  next: deleteFile
+
+deleteFile:
+  template: "templates/files/delete"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_number_prefix: "koond-"
+    id: ${incoming.body.id}
+    form_type: "compound-form"
+    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+  result: deleteResult
+  next: returnSuccess
+
+returnSuccess:
+  return: ${deleteResult}
+  status: 200
+  next: end

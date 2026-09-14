@@ -926,6 +926,9 @@
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
       "trailerNumber": "Haagis {{number}}",
+      "searchTrafficRegister": "Otsi liiklusregistrist",
+      "selectedForms": "Valitud kontrollvormid",
+      "trailerTechnicalTab": "tehnoseisundi kontrollkaart",
       "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
       "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",
@@ -1449,7 +1452,7 @@
   "form": {
     "files": {
       "title": "Kontrolliga seotud failid",
-      "addBtn": "Lisa manus",
+      "addBtn": "Lisa fail",
       "uploadTitle": "Lae fail üles",
       "uploadBtn": "Lae üles",
       "limits": "Lubatud tüübid: pdf, jpeg, png, asice, doc, docx. Max suurus: 20MB.",

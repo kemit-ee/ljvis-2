@@ -20,6 +20,7 @@ import styles from './LabourInspectionFormPage.module.css';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 
 export function LabourInspectionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -172,6 +173,12 @@ export function LabourInspectionFormPage() {
           addViolation={() => {}}
           removeViolation={() => {}}
         />
+        <FileUploadBlock
+          formPath="labour-inspection"
+          formNumber={snapshot.formNumber}
+          disabled
+          label={t('form.files.title')}
+        />
         <div className="page-actions">
           <div className="page-actions-buttons">
             <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" id={id} snapshotId={snapshotId} />
@@ -259,6 +266,12 @@ export function LabourInspectionFormPage() {
           companyPickerResults={companyPickerResults}
           onCompanyPicked={onCompanyPicked}
           closeCompanyPicker={closeCompanyPicker}
+        />
+        <FileUploadBlock
+          formPath="labour-inspection"
+          formNumber={form.formNumber}
+          disabled={!isEditActive}
+          label={t('form.files.title')}
         />
 
         {id && (

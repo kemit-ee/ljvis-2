@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileUpload, Alert } from '@tedi-design-system/react/tedi';
 import type { FileUploadFile } from '@tedi-design-system/react/tedi';
@@ -6,6 +6,7 @@ import {
   uploadFormFile,
   listFormFiles,
   downloadFormFile,
+  deleteFormFile,
 } from '../../api';
 import type { FormAttachment } from '../../types';
 
@@ -42,14 +43,25 @@ export function FileUploadBlock({
   const { t } = useTranslation();
   const [attachments, setAttachments] = useState<FormAttachment[]>([]);
   const [error, setError] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const refreshRequest = useRef(0);
+  const pendingOperations = useRef(0);
 
   const refresh = useCallback(() => {
     if (!formNumber) return;
-    listFormFiles(formPath, formNumber).then(setAttachments).catch(() => setError(true));
+    const request = ++refreshRequest.current;
+    listFormFiles(formPath, formNumber)
+      .then((result) => {
+        if (request === refreshRequest.current) setAttachments(result);
+      })
+      .catch(() => {
+        if (request === refreshRequest.current) setError(true);
+      });
   }, [formPath, formNumber]);
 
   useEffect(() => {
     refresh();
+    return () => { refreshRequest.current += 1; };
   }, [refresh]);
 
   const files: FileUploadFile[] = attachments.map((a) => ({
@@ -60,8 +72,11 @@ export function FileUploadBlock({
   const handleChange = async (updated: FileUploadFile[]) => {
     if (!formNumber) return;
     const newFiles = updated.filter(
-      (f): f is FileUploadFile & File => !f.id && f instanceof File,
+      (f): f is FileUploadFile & File => f instanceof File,
     );
+    if (newFiles.length === 0) return;
+    pendingOperations.current += 1;
+    setBusy(true);
     for (const raw of newFiles) {
       try {
         const base64 = await fileToBase64(raw);
@@ -75,12 +90,24 @@ export function FileUploadBlock({
         setError(true);
       }
     }
+    pendingOperations.current -= 1;
+    setBusy(pendingOperations.current > 0);
     refresh();
   };
 
-  const handleDelete = () => {
-    // File deletion is not part of the current scope; attachments list is refreshed from server.
-    refresh();
+  const handleDelete = async (file: FileUploadFile) => {
+    if (!file.id) return;
+    pendingOperations.current += 1;
+    setBusy(true);
+    try {
+      await deleteFormFile(formPath, file.id);
+      refresh();
+    } catch {
+      setError(true);
+    } finally {
+      pendingOperations.current -= 1;
+      setBusy(pendingOperations.current > 0);
+    }
   };
 
   const handleDownload = async (file: FileUploadFile) => {
@@ -104,7 +131,7 @@ export function FileUploadBlock({
         files={files}
         onChange={handleChange}
         onDelete={handleDelete}
-        disabled={disabled || !formNumber}
+        disabled={disabled || busy || !formNumber}
         helper={
           !formNumber
             ? { text: t('forms.shared.files.save_first'), type: 'hint' }

@@ -58,6 +58,8 @@ import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm, saveTransportInterruptionForm } from '../../api';
 import type { TransportInterruptionForm } from '../../types';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { SelectedFormsNavigation } from '../../components/CompoundForm/SelectedFormsNavigation';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 
 type AnySubFormData = Partial<DriveRestForm> | Partial<TechnicalCheckForm> | Partial<AdrForm> | Partial<TransportInterruptionForm>;
 
@@ -176,8 +178,7 @@ export function CompoundFormCreatePage() {
       setOpenTabs((prev) => [...prev, tabId]);
       setTabErrors((prev) => ({ ...prev, [tabId]: false }));
     }
-    handleTabChange(tabId);
-    window.scrollTo(0, 0);
+    // Haagise tehnovorm lisatakse menüüsse, kuid ametnik jätkab üldosa täitmist.
   };
 
   const editTrailerControlForm = (index: number) => {
@@ -386,9 +387,10 @@ export function CompoundFormCreatePage() {
 
   const trailerTabDynamicLabels: Record<string, string> = {};
   formik.values.trailers.forEach((tr: Trailer, idx: number) => {
+    const prefix = t('forms.compound.trailerNumber', { number: idx + 1 }).toUpperCase();
     trailerTabDynamicLabels[`tab-trailer-technical-${idx}`] = tr.regNr
-      ? `${t('forms.technical_check.trailerTitle')} (${tr.regNr})`
-      : t('forms.technical_check.trailerTitle');
+      ? `${prefix} (${tr.regNr}) – ${t('forms.compound.trailerTechnicalTab')}`
+      : `${prefix} – ${t('forms.compound.trailerTechnicalTab')}`;
   });
 
   const tabLabels: Record<string, string> = {
@@ -887,7 +889,7 @@ export function CompoundFormCreatePage() {
                             type="button"
                             onClick={handleVehicleSearch}
                           >
-                            {t('common.search')}
+                            {t('forms.compound.searchTrafficRegister')}
                           </AsyncButton>
                         </div>
                         <div></div>
@@ -1149,6 +1151,11 @@ export function CompoundFormCreatePage() {
                             <Col className="p-0 mt-1">
                               <Card className="mb-1">
                                 <Card.Content>
+                                  <Heading element="h3" className="mb-1">
+                                    {t('forms.compound.trailerNumber', {
+                                      number: index + 1,
+                                    })}
+                                  </Heading>
                                   {trailerSearchError === index && (
                                     <div className="mb-1">
                                       <Alert
@@ -1215,7 +1222,7 @@ export function CompoundFormCreatePage() {
                                           handleTrailerSearch(index)
                                         }
                                       >
-                                        {t('common.search')}
+                                        {t('forms.compound.searchTrafficRegister')}
                                       </AsyncButton>
                                     </div>
                                     <div></div>
@@ -2375,6 +2382,16 @@ export function CompoundFormCreatePage() {
                 </Col>
               </Row>
             </form>
+            <FileUploadBlock
+              formPath="compound-form"
+              disabled
+              label={t('form.files.title')}
+            />
+            <SelectedFormsNavigation
+              tabIds={openTabs}
+              labels={tabLabels}
+              onSelect={handleTabChange}
+            />
           </div>
         </Tabs.Content>
         {DRIVE_REST_ROUTES.map((route) => {
@@ -2394,6 +2411,20 @@ export function CompoundFormCreatePage() {
                 initialValidate={validatedTabs.has(tabId)}
                 onValuesChange={(values) => {
                   savedFormData.current[tabId] = values;
+                  if (tabType === 'driver' && values.transportType) {
+                    const teammateTabId = ROUTE_TO_TAB['/sp-teammate'].tabId;
+                    const sharedValues = {
+                      transportType: values.transportType,
+                      transportClasses: values.transportClasses,
+                    };
+                    savedFormData.current[teammateTabId] = {
+                      ...savedFormData.current[teammateTabId],
+                      ...sharedValues,
+                    };
+                    formRefs.current[teammateTabId]?.current?.setFormData?.(
+                      sharedValues,
+                    );
+                  }
                 }}
                 ref={(ref) => {
                   formRefs.current[tabId].current = ref;
@@ -2596,10 +2627,13 @@ export function CompoundFormCreatePage() {
 
               // Step 4: Wait for compoundFormId to be set
               const waitForCompoundFormId = () => {
-                return new Promise<number>((resolve) => {
+                return new Promise<number>((resolve, reject) => {
+                  const startedAt = Date.now();
                   const check = () => {
                     if (compoundFormIdRef.current) {
                       resolve(compoundFormIdRef.current);
+                    } else if (Date.now() - startedAt >= 15000) {
+                      reject(new Error('Compound form save did not return an id'));
                     } else {
                       setTimeout(check, 100);
                     }
@@ -2608,13 +2642,28 @@ export function CompoundFormCreatePage() {
                 });
               };
 
-              const id = await waitForCompoundFormId();
+              let id: number;
+              try {
+                id = await waitForCompoundFormId();
+              } catch (error) {
+                console.error(error);
+                setShowValidationError(true);
+                setActiveTab('tab-1');
+                window.scrollTo(0, 0);
+                return;
+              }
 
               // Step 5: Save all drive-rest forms sequentially. The active
               // tab's DriveRestFormCreatePage is mounted, so we submit it via
               // its ref. Inactive tabs are unmounted by Tabs.Content, so we
               // save them directly from the synced savedFormData snapshot.
-              for (const tabId of openTabs) {
+              // Autojuht on meeskonnaliikme veo liigi ja veoklassi allikas,
+              // seega salvestame ta alati enne meeskonnaliiget.
+              const orderedTabs = [
+                ROUTE_TO_TAB['/sp-driver'].tabId,
+                ...openTabs.filter((tabId) => tabId !== ROUTE_TO_TAB['/sp-driver'].tabId),
+              ].filter((tabId, index, tabs) => openTabs.includes(tabId) && tabs.indexOf(tabId) === index);
+              for (const tabId of orderedTabs) {
                 const tabFormRef = formRefs.current[tabId]?.current;
                 if (tabFormRef && tabFormRef.handleSubmit) {
                   tabFormRef.handleSubmit(id);

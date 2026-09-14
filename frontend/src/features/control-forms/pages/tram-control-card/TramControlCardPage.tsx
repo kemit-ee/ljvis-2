@@ -269,10 +269,11 @@ export function TramControlCardPage() {
         />
       <DriveRestFormFields
         type="driver"
+        authority="TRAM"
         formik={formik as never}
         isDesktop={isDesktop}
         hideDriveRestExtras
-        filesFormType="tram-control-card-form"
+        filesFormType="tram-card"
         filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
         readOnly
         transportClassItems={transportClassItems}
@@ -371,10 +372,11 @@ export function TramControlCardPage() {
           />
       <DriveRestFormFields
         type="driver"
+        authority="TRAM"
         formik={formik as never}
         isDesktop={isDesktop}
         hideDriveRestExtras
-        filesFormType="tram-control-card-form"
+        filesFormType="tram-card"
         filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
         readOnly={false}
         transportClassItems={transportClassItems}
@@ -400,10 +402,11 @@ export function TramControlCardPage() {
           />
       <DriveRestFormFields
         type="driver"
+        authority="TRAM"
         formik={formik as never}
         isDesktop={isDesktop}
         hideDriveRestExtras
-        filesFormType="tram-control-card-form"
+        filesFormType="tram-card"
         filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
         readOnly
         transportClassItems={transportClassItems}
