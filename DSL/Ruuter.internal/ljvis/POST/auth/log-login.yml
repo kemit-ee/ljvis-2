@@ -1,0 +1,46 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Writes an auth.login.success audit event for LJVIS2 officials.
+    Called by the public ruuter's oauth-callback DSL immediately after JWT
+    generation — at that point no cookie exists yet, so the audit template
+    guard (GET/templates/audit/.guard.yml) would reject the call.
+    Running this in ruuter-internal bypasses the cookie guard entirely.
+  namespace: auth
+  allowlist:
+    body:
+      - field: actor_name
+        type: string
+      - field: actor_user_account_id
+        type: string
+      - field: organisation_id
+        type: string
+
+generateEventId:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    trace_id: "${(incoming.headers.traceparent || '').split('-')[1] || ''}"
+    span_id: "${(incoming.headers.traceparent || '').split('-')[2] || ''}"
+  next: logToResql
+
+logToResql:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "auth.login.success"
+      event_category: "authentication"
+      actor_name: "${incoming.body.actor_name || ''}"
+      actor_personal_code: ""
+      description: "Edukas sisselogimine"
+      log_content: "{}"
+      organisation_id: "${incoming.body.organisation_id || ''}"
+      actor_user_account_id: "${incoming.body.actor_user_account_id || ''}"
+      created_by: "${incoming.body.actor_name || ''}"
+      trace_id: ${trace_id}
+      span_id: ${span_id}
+  result: res
+  next: end

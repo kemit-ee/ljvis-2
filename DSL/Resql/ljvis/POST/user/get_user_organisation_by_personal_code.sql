@@ -12,9 +12,13 @@ returns:
 - name: organisation_id
   type: string
   nullable: true
+- name: user_account_id
+  type: string
+  nullable: true
 */
 SELECT DISTINCT ON (user_account_key)
-    organisation_id::TEXT AS organisation_id
+    organisation_id::TEXT  AS organisation_id,
+    user_account_key::TEXT AS user_account_id
 FROM users.user_account
 WHERE personal_code = :personal_code
 ORDER BY user_account_key, created_at DESC
