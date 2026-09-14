@@ -525,7 +525,9 @@ export function CompoundFormPage() {
             lastLoadAddress: d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>) ? JSON.stringify(d.lastLoadAddress) : '',
             nextLoadAddress: d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>) ? JSON.stringify(d.nextLoadAddress) : '',
             dangerousGoods: JSON.stringify(d.dangerousGoods ?? []),
-            infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!(e as { checkStatus?: string }).checkStatus)),
+            containerTypes: JSON.stringify(d.containerTypes ?? []),
+            infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!e.inspectionStatus)),
+            otherInfringements: JSON.stringify((d.otherInfringements ?? []).filter((e) => !!e.title || !!e.inspectionStatus || e.records.length > 0)),
             correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []),
           } as unknown as AdrForm;
           saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!adr.form) resetCompoundFormToSaved();
