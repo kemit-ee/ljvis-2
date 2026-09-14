@@ -56,9 +56,13 @@ returns:
 - name: total
   type: number
   nullable: true
+- name: last_login_at
+  type: string
+  nullable: true
 */
 WITH latest AS (
     SELECT DISTINCT ON (user_account_key)
+        id,
         user_account_key,
         personal_code,
         first_name,
@@ -72,6 +76,15 @@ WITH latest AS (
         user_groups
     FROM users.user_account
     ORDER BY user_account_key, created_at DESC
+),
+last_login AS (
+    SELECT
+        actor_user_account_id,
+        MAX(created_at) AS last_login_at
+    FROM audit.audit_event
+    WHERE event_type = 'auth.login.success'
+      AND actor_user_account_id IS NOT NULL
+    GROUP BY actor_user_account_id
 )
 SELECT
     l.user_account_key AS id,
@@ -84,6 +97,7 @@ SELECT
     l.status,
     l.access_start,
     l.access_end,
+    ll.last_login_at,
     ARRAY_TO_JSON(
         COALESCE(
             ARRAY(
@@ -100,6 +114,7 @@ SELECT
     ) AS user_groups,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM latest l
+LEFT JOIN last_login ll ON ll.actor_user_account_id = l.user_account_key
 WHERE
     (:organisation_id IS NULL OR l.organisation_id = :organisation_id)
     AND (

@@ -16,6 +16,9 @@ declaration:
       - field: state
         type: string
         description: "OAuth2 state parameter"
+      - field: intent
+        type: string
+        description: "Login intent: 'officer' or 'citizen'"
 
 validate_input:
   switch:
@@ -87,10 +90,49 @@ generate_jwt:
 check_jwt:
   switch:
     - condition: ${200 <= jwt_result.response.status && jwt_result.response.status < 300}
-      next: return_token
+      next: lookup_user_for_audit
   next: jwt_error
 
-# Step 3: Return OK with Set-Cookie header.
+# Step 3: Look up LJVIS2 user account to stamp actor_user_account_id in the audit event.
+# If personal_code_clean does not match an active user (e.g. citizen without LJVIS2 account),
+# the RESQL returns no rows and no audit event is written — satisfying the constraint that
+# citizen sessions must not produce a LJVIS2 official's last-login record.
+lookup_user_for_audit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user_organisation_by_personal_code"
+    headers:
+      type: json
+    body:
+      personal_code: ${personal_code_clean}
+  result: audit_user_res
+  next: check_user_for_audit
+
+check_user_for_audit:
+  switch:
+    - condition: ${incoming.body.intent === 'officer' && Array.isArray(audit_user_res.response.body) && audit_user_res.response.body.length > 0 && audit_user_res.response.body[0].userAccountId != null}
+      next: log_login_success
+  next: return_token
+
+# Step 4: Write auth.login.success audit event for LJVIS2 officials only.
+# actor_personal_code is intentionally omitted — personal codes must not be stored as plaintext.
+# actor_user_account_id links the event to the exact user_account snapshot row.
+# NOTE: uses ruuter-internal (POST /auth/log-login) instead of the audit template because
+# at this point the JWT cookie has not been set yet — the audit guard would reject the call.
+log_login_success:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/auth/log-login"
+    headers:
+      type: json
+    body:
+      actor_name: "${callback_result.response.body.user_profile.first_name} ${callback_result.response.body.user_profile.last_name}"
+      actor_user_account_id: "${String(audit_user_res.response.body[0].userAccountId)}"
+      organisation_id: "${String(audit_user_res.response.body[0].organisationId ?? '')}"
+  result: audit_res
+  next: return_token
+
+# Step 5: Return OK with Set-Cookie header.
 # The JWT is set as an HttpOnly cookie so the browser sends it
 # automatically on subsequent requests.
 return_token:

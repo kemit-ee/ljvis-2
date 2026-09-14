@@ -16,6 +16,7 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
   userGroups?: string[];
+  lastLoginAt: string | null;
 }
 
 export interface UserListItem extends User {
