@@ -7,6 +7,7 @@ import type {
   EtoimikCase,
   MtrSoidukikaart,
 } from './types';
+import { mapRrCitizenshipToCountryCode } from './isoNumericCountryCodes';
 
 interface LihtandmedCompanyRaw {
   ariregistri_kood: string;
@@ -140,7 +141,17 @@ export const searchPersonByCode = async (
   const parsed: RrIsikudRawResponse | null =
     typeof raw === 'string' ? (JSON.parse(raw) as RrIsikudRawResponse) : raw;
   if (!parsed?.data) return null;
-  return { ...parsed.data, dateOfBirth: normalizeBirthDate(parsed.data.dateOfBirth) };
+  return {
+    ...parsed.data,
+    dateOfBirth: normalizeBirthDate(parsed.data.dateOfBirth),
+    // RR returns citizenshipCode as an ISO 3166-1 NUMERIC code (e.g. "233"
+    // for Eesti) or "XX" for määramata/stateless — translate to the alpha-2
+    // code the COUNTRY classifier (and this form's citizenship Select) use.
+    citizenshipCode: mapRrCitizenshipToCountryCode(
+      parsed.data.citizenshipCode,
+      parsed.data.citizenshipName,
+    ),
+  };
 };
 
 export const getAssociatedPersons = async (

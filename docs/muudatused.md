@@ -6,6 +6,15 @@
 
 ## 2026-09-14
 
+### Rahvastikuregistri kodakondsuse täitmise parandus
+
+- Isiku otsimisel rahvastikuregistrist ei täitnud koondvormi/TRAM-kaardi
+  kodakondsuse väli end ära — register tagastab kodakondsuse koodi
+  numbrilise ISO-koodina (nt "233" Eesti kohta), mida ei õnnestunud riigi
+  valikuloendiga sobitada. Kood teisendatakse nüüd valikuloendi koodiks.
+  Kui register tagastab kodakondsuse määramata ("XX"), täidetakse väli
+  valikuga „Määramata".
+
 ### PPA kontrollvormide sisendite ja failide parendused
 
 - Autojuhi ja meeskonnaliikme sisenditel on eraldi tunnused ja valikugrupid,
@@ -18,6 +27,22 @@
   vormi esimest edukat salvestamist.
 - Faililoendi serverivastus teisendatakse kasutajaliidese väljadeks, et failinimed
   oleksid nähtavad ja failitunnused sobiksid allalaadimise ning kustutamise päringutesse.
+
+### Mootorsõiduki ja haagise tehnokontrollkaardi rikete klassifikaatori parandus
+
+- Sõlmede ja osade nimekirja punktid 10 ja 11 on ministri määruse nr 114 Lisa 1
+  kohaselt „veose kinnitamine" ja „muu" (varem olid need vahetusse pandud ning
+  ekslikult oli tekkinud ka eraldiseisev punkt 20 „kinnitusmeetodid", mida
+  kehtestatud vormil ei ole).
+- Punktis 0 „identifitseerimine" on nüüd ainult määruse Lisa 2 kaks rikkerida
+  (registreerimismärgid, valmistajatehase tähis) — varasemad lisandunud read
+  eemaldati.
+- Rooliseadme, nähtavuse, valgustuse, muu varustuse ja saastete rikete
+  nimekirjades parandati mitu vale/puuduvat/fabritseeritud rida vastavalt
+  Lisa 2-le.
+- Veose kinnitamise (p 10) alla lisati täismahus rikete nimekiri (sõiduki
+  sobivus ja kinnitusmeetodid) vana kontrollkaardi süsteemi eeskujul, kuna
+  määruse Lisa 2 andis vaid ühe koondrea.
 
 ## 2026-09-12
 
