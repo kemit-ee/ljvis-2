@@ -519,7 +519,9 @@
           "expedited": "Expedited proceeding",
           "general": "General proceeding"
         },
-        "proceedingReferenceNumber": "Proceeding reference number"
+        "proceedingReferenceNumber": "Proceeding reference number",
+        "caseNumber": "Misdemeanour case number",
+        "autovs5131": "Transport has been interrupted under AutoVS § 51(3)(1)"
       },
       "notes": {
         "label": "Notes",
@@ -1158,6 +1160,12 @@
     },
     "restCheck": {
       "blockTitle": "Compliance with driving and rest time requirements"
+    },
+    "rooma1": {
+      "blockTitle": "Rome I regulation violations"
+    },
+    "posting": {
+      "blockTitle": "Driver posting requirement violations"
     },
     "tram_control_card_form": "Transport Administration inspection card",
     "tram_control_card": {

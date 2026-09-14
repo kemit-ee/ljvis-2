@@ -6,6 +6,43 @@
 
 ## 2026-09-14
 
+### Mootorsõiduki/haagise tehnokontrollkaardi rikete märkimise parendused
+
+- Osa/sõlme "Kontrollitud" ja "Ei vasta nõuetele" on nüüd kaks eraldi märget
+  ühise valiku asemel — rikke valimine märgib osa automaatselt kontrollituks
+  ning see jääb kontrollituks ka rikke hilisema eemaldamise korral.
+- Rikke muutmisel või eemaldamisel kustub selle kirjeldus ka märkuste
+  väljalt, mitte ei jää sinna alles.
+- Sõidukeelu märke eemaldamisel kustub automaatselt ka sellega kaasnenud
+  raske rikkumise kood (MSI302).
+- Üldmenetluse valikul on menetluse viitenumbri väli nüüd "Väärteoasja
+  number".
+- Lisandus märge "Autovedu on katkestatud AutoVS § 51 lõike 3 punkti 1
+  alusel".
+
+### Rikkevaliku ripploend ei avanenud pikkade nimekirjade lõpus olevatel ridadel
+
+- Sõidu- ja puhkeaja ning massi/mõõtmete rikkevaliku akendes ei avanenud
+  "Vali" ripploend, kui rida jäi akna nähtava/keritava ala allserva lähedale
+  (nt sõidumeerikute nimekirja lõpuosa, puhkeperioodide read) — ripploend
+  avanes tegelikult, kuid jäi akna serva taha peidetuks. Ripploend avaneb nüüd
+  vajadusel nupu kohale, mitte alla.
+
+### Rooma I ja autojuhi lähetamise rikkumistele omaette akordionid
+
+- Autojuhi sõidu- ja puhkeaja kontrollvormil said **Rooma I lepingu
+  rikkumised** (määrus 593/2008) ja **autojuhi lähetamise nõuete
+  rikkumised** (direktiiv 2020/1057) omaette akordionid "Sõidu- ja puhkeaja
+  nõuete täitmine" ja "Andmed sõiduki massi ja mõõtmete kohta" plokkide
+  vahele — varem sai neid valida ainult ühise rikkumiste valikuakna seest.
+
+### Tehnokontrollkaardi rikete klassifikaatori järelparandus
+
+- Sõlme "muu" (11) rikete loend oli tühi — lisatud "11.1 Muu tehniline viga"
+  (Lisa 2 järgi). Fabritseeritud sõlm "kinnitusmeetodid" (mis pidi eelmise
+  paranduse käigus aeguma, kuid jäi vea tõttu samaks päevaks nähtavaks)
+  eemaldatud täielikult.
+
 ### RSI teate eeltäitmise ja sõidu-/puhkeaja vormi salvestamise veaparandused
 
 - Tehnilise kontrollkaardi läbisõidumõõdiku näidu olemasolul ebaõnnestus RSI

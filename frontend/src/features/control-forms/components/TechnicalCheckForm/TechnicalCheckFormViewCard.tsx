@@ -41,7 +41,7 @@ export function TechnicalCheckFormViewCard({
     defectsByPartKey,
     euViolations,
     applyPartDefects,
-    setPartStatus,
+    setPartChecked,
     removeDefect,
     setResultType,
     toggleViolation,
@@ -72,13 +72,12 @@ export function TechnicalCheckFormViewCard({
           defectsByPartKey={defectsByPartKey}
           euViolations={euViolations}
           applyPartDefects={applyPartDefects}
-          setPartStatus={setPartStatus}
+          setPartChecked={setPartChecked}
           removeDefect={removeDefect}
           setResultType={setResultType}
           toggleViolation={toggleViolation}
           canEdit={false}
           canEditXroadFields={false}
-          isEditLocked={false}
           xroadBlockVisible={false}
           isDesktop={isDesktop}
         />

@@ -630,7 +630,9 @@
           "expedited": "Kiirmenetlus",
           "general": "Üldmenetlus"
         },
-        "proceedingReferenceNumber": "Menetluse viitenumber"
+        "proceedingReferenceNumber": "Menetluse viitenumber",
+        "caseNumber": "Väärteoasja number",
+        "autovs5131": "Autovedu on katkestatud AutoVS § 51 lõike 3 punkti 1 alusel"
       },
       "notes": {
         "label": "Märkused",
@@ -1286,6 +1288,12 @@
     },
     "restCheck": {
       "blockTitle": "Sõidu- ja puhkeaja nõuete täitmine"
+    },
+    "rooma1": {
+      "blockTitle": "Rooma I lepingu rikkumised"
+    },
+    "posting": {
+      "blockTitle": "Autojuhi lähetamise nõuete rikkumised"
     },
     "tram_control_card_form": "Transpordiameti kontrollkaart",
     "tram_control_card": {

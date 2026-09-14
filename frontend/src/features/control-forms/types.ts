@@ -323,12 +323,21 @@ export type MassDimensionMeasurement = {
 /** LJVIS2-72: shared "vehicle" | "trailer" technical roadworthiness check sub-form. */
 export type TechnicalCheckVariant = 'vehicle' | 'trailer';
 
+/** Legacy 3-way status, kept only to read old saved snapshots (see
+ *  normalizePartSummary in useTechnicalCheckForm.ts) — no longer written. */
 export type PartSummaryStatus = 'not_checked' | 'checked' | 'non_compliant';
 
 export type PartSummaryEntry = {
   /** TECHNICAL_CHECK level-1 classifier value code, e.g. "CAA_1". */
   partCode: string;
-  status: PartSummaryStatus;
+  /** Kontrollitud. Forced true whenever hasDefect is true (LJVIS2-72 15
+   *  ettepanekut p2: a recorded defect implies the part was checked, and
+   *  removing the defect does not revert this — the EL aruanne needs the
+   *  full "Kontrollitud" picture). */
+  checked: boolean;
+  /** Ei vasta nõuetele — true when at least one defect is recorded for this
+   *  part in partsDefects. */
+  hasDefect: boolean;
 };
 
 export type PartSeverity = 'VO' | 'OV' | 'EOV';
@@ -350,6 +359,9 @@ export interface TechnicalCheckForm {
   partsDefects?: PartDefectEntry[];
   resultType?: string;
   resultTransportInterruption?: boolean;
+  /** Autovedu on katkestatud AutoVS § 51 lg 3 p 1 alusel — sõltumatu
+   *  lisameede, kuvatakse menetluse liigi sektsiooni juures (15 ettepanekut p6). */
+  transportInterruptionAutovs5131?: boolean;
   eraYvMntRegnr?: boolean;
   eraYvMntVintin?: boolean;
   eraYvMntAxles?: boolean;

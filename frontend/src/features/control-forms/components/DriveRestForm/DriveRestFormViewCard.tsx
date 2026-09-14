@@ -54,6 +54,9 @@ export function DriveRestFormViewCard({
     docRightOtherDocs,
     tachographTypes,
     drivingViolations,
+    drivingViolationsMain,
+    rooma1Violations,
+    postingViolations,
     massDimensions,
   } = useDriveRestForm(
     form,
@@ -92,6 +95,9 @@ export function DriveRestFormViewCard({
           docRightOtherDocs={docRightOtherDocs}
           tachographTypes={tachographTypes}
           drivingViolations={drivingViolations}
+          drivingViolationsMain={drivingViolationsMain}
+          rooma1Violations={rooma1Violations}
+          postingViolations={postingViolations}
           massDimensions={massDimensions}
           hideDriveRestExtras={hideDriveRestExtras}
           readOnly

@@ -74,6 +74,20 @@ hilisema eraldi instantsi / eraldi teenuse triviaalseks (constants-string).
 > tavaline vaade EI ole turvapiir → `tableau_ro` vajab `SELECT`-i ka `forms.*`,
 > `classifier.*`, `users.organisation` peale (matview-versioonis polnud). PII on
 > vaadetes endas maskitud (variant A muutumatu).
+>
+> **Parandus 21.09.2026 (changeset `20261121100000-tableau-ro-decommission`):**
+> eelmine lõik oli **vale**. Postgres'i vaated (materialiseeritud ja tavalised)
+> jooksevad vaikimisi *omaniku*, mitte pärija õigustega, kui vaates pole eraldi
+> `security_invoker=true` (ei ole). Kontrollitud otse andmebaasist: `tableau_ro`
+> luges `tableau.*` vaateid ka ilma aluslaudade grant'ideta. Need liigsed
+> grant'id andsid `tableau_ro`-le tegeliku ligipääsu maskimata isikuandmetele
+> (`forms.*` aluslaudade kaudu), mööda minnes vaadete PII maskeerimisest.
+>
+> Ühtlasi otsustati rolli mitte parandada, vaid **kustutada** — roll
+> `kemit_andmelaadija` (vt Otsus 4 allpool) katab sama vajaduse (`SELECT`
+> ainult `tableau` skeemis) nii Tableau enda ühenduse kui andmehalduse (KEMIT)
+> andmelaadijate jaoks, nii et kaht peaaegu identset rolli pole mõtet
+> kõrvuti hoida.
 
 ### Kontekst
 
@@ -103,6 +117,13 @@ versioonihalduses.
    `SELECT` **ainult** `tableau` skeemis. `users`/`audit`/`notifications`/`xroad`
    jäävad kättesaamatuks — vajalik id→nimi (organisatsioon) materialiseeritakse
    `tableau` skeemi (matview on turvapiir).
+   **21.09.2026:** `tableau_ro` **kustutatud** (changeset
+   `20261121100000-tableau-ro-decommission`) ja asendatud ühtse rolliga
+   `kemit_andmelaadija` (`NOLOGIN`, `SELECT` ainult `tableau` skeemis;
+   DevOps annab konkreetsetele kasutajatele — sh Tableau teenusekontole —
+   rolli liikmesuse + oma `LOGIN`), changeset
+   `20261121110000-kemit-andmelaadija-role`. Sama roll teenindab nüüd nii
+   Tableau enda ühendust kui andmehalduse (KEMIT) andmelaadijaid.
 5. **`form_overview`** — ristvormi „üks rida per vorm", `authority` veerg
    (PPA / TRAM eristus), ehitatud otse baastabelitest.
 
@@ -125,7 +146,8 @@ per-matview `REFRESH … CONCURRENTLY` (vajab `UNIQUE` indeksit — `*_current`-
 - Iga `forms.*` skeemimuudatus peab uuendama vastavat `tableau.*_current` matview'd
   (sama PR-is). `validate-dsl.py` lisab hoiatuse (WARN), kui `forms.*` DDL muutus
   ilma `tableau` failita.
-- `tableau_ro` LOGIN + parool annab DevOps eraldi (changeset teeb ainult NOLOGIN rolli).
+- `kemit_andmelaadija` (endine `tableau_ro`) LOGIN + parool annab DevOps eraldi
+  (changeset teeb ainult NOLOGIN rolli).
 - Öine cron kell **03:00** (pärast e-Toimiku + riskiskoori öiseid töid).
 
 ---

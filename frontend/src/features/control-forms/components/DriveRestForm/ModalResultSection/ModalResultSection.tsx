@@ -45,9 +45,19 @@ interface Props {
   initialDocumentChecks?: DocumentCheck[];
   initialEntries?: CheckEntry[];
   initialViolations?: Record<string, Violation[]>;
+  /** type: 'drivingViolation' only. Restricts which of the 5 directive
+   *  violation fields this instance owns — both which fields get read from
+   *  `initialViolations` on mount and which get cleared to [] when this
+   *  instance's own `entries` no longer cover them. Defaults to all 5 (the
+   *  combined "Sõidu- ja puhkeaja nõuete täitmine" picker). Required when a
+   *  `checks` subtree covers only some directives (e.g. a dedicated Rooma I
+   *  or autojuhi lähetamise accordion) — without it, this instance would
+   *  wipe out the OTHER directives' already-saved violations on every
+   *  render, since they never appear in its own (deliberately narrow) `checks`. */
+  scopedFields?: string[];
 }
 
-export function ModalResultSection({ checks, type, transportType, setFieldValue, fieldName, readOnly, initialDocumentChecks, initialEntries: initialEntriesProp, initialViolations }: Props) {
+export function ModalResultSection({ checks, type, transportType, setFieldValue, fieldName, readOnly, initialDocumentChecks, initialEntries: initialEntriesProp, initialViolations, scopedFields }: Props) {
   const { t } = useTranslation();
 
   const isL2VisibleForTransport = (code: string) => {
@@ -244,7 +254,11 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
           setFieldValue(field, groupedViolations[field]);
         });
 
-        Object.values(directiveToFieldMap).forEach((field) => {
+        // Only clear fields THIS instance owns (scopedFields, when given) —
+        // a dedicated Rooma I / autojuhi lähetamise accordion's `checks`
+        // deliberately excludes the other directives, so their fields never
+        // show up in `entries` here and must not be wiped to [] on render.
+        (scopedFields ?? Object.values(directiveToFieldMap)).forEach((field) => {
           if (!groupedViolations[field]) {
             setFieldValue(field, []);
           }
@@ -253,7 +267,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
         setFieldValue(fieldName, entries);
       }
     }
-  }, [entries, setFieldValue, fieldName, type]);
+  }, [entries, setFieldValue, fieldName, type, scopedFields]);
 
   const groupedEntries = useMemo(() => {
     const groups: Record<

@@ -36,7 +36,7 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       defectsByPartKey,
       euViolations,
       applyPartDefects,
-      setPartStatus,
+      setPartChecked,
       removeDefect,
       setResultType,
       toggleViolation,
@@ -122,13 +122,12 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
           defectsByPartKey={defectsByPartKey}
           euViolations={euViolations}
           applyPartDefects={applyPartDefects}
-          setPartStatus={setPartStatus}
+          setPartChecked={setPartChecked}
           removeDefect={removeDefect}
           setResultType={setResultType}
           toggleViolation={toggleViolation}
           canEdit={true}
           canEditXroadFields={false}
-          isEditLocked={false}
           xroadBlockVisible={false}
           isDesktop={isDesktop}
           compoundTrailers={compoundTrailers}
