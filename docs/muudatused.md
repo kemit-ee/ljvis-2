@@ -36,6 +36,12 @@
   nõuete täitmine" ja "Andmed sõiduki massi ja mõõtmete kohta" plokkide
   vahele — varem sai neid valida ainult ühise rikkumiste valikuakna seest.
 
+### Autojuhi lähetamise rikkumiste ploki pealkirja täpsustus
+
+- Lähetamise rikkumiste ploki pealkiri kasutab nüüd direktiivist (EL)
+  2020/1057 tulenevate autojuhi lähetamise nõuete rikkumiste kategooriate
+  täielikku nimetust eesti ja inglise keeles.
+
 ### Tehnokontrollkaardi rikete klassifikaatori järelparandus
 
 - Sõlme "muu" (11) rikete loend oli tühi — lisatud "11.1 Muu tehniline viga"

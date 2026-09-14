@@ -1040,7 +1040,7 @@ export function DriveRestFormFields({
                     <Heading modifiers="h3" color="primary">
                       {t(
                         'forms.posting.blockTitle',
-                        'Autojuhi lähetamise nõuete rikkumised',
+                        'Direktiivist (EL) 2020/1057 tulenevate autojuhi lähetamise nõuete rikkumiste kategooriad',
                       )}
                     </Heading>
                   }
