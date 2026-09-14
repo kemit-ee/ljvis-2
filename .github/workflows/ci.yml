@@ -271,6 +271,11 @@ jobs:
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test '${{ steps.ruuter.outputs.img }}' \
             --dsl DSL/Ruuter --tests DSL-tests --constants constants.ini
 
+      - name: X-tee developer mock — contract and isolated runtime scenarios
+        run: |
+          pip3 install pyyaml -q
+          bash scripts/test-xtee-mock.sh
+
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
   # Runs after E2E so the security checks are the final CI validation stage.
   # Secret findings are blocking on main, but remain advisory on dev.

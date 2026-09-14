@@ -108,6 +108,7 @@ services:
       - RUST_LOG=ruuter_on_rust::steps::http=debug,info
     volumes:
       - ./DSL/Ruuter/ljvis:/app/DSL/ljvis:ro
+      - ./DSL/Ruuter/xtee-mock:/app/DSL/xtee-mock:ro
       - ${CONSTANTS_FILE:-./constants.ini}:/app/constants.ini:ro
       - ./ruuter.yaml:/app/ruuter.yaml:ro
     ports:
