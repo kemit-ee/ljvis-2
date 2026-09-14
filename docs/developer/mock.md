@@ -24,6 +24,8 @@ Edukas vastus on `{"status":"OK","mock":true}`. HTML-vastus või 404 ei ole tö�
 
 ## Testtunnused
 
+Allpool kirjeldatud andmeväljad asuvad lahtiparsitud `response` sisus. Teenuste HTTP-keha säilitab päris teenuste Ruuteri ümbrise; klient loeb seda `JSON.parse(body.response)` abil. Tervisekontroll tagastab otse JSON-objekti.
+
 | Tunnus | Tulemus |
 |---|---|
 | `isikukood=60001019906` | Isiku- ja ettevõttepäring tagastavad kaks sünteetilist kirjet |

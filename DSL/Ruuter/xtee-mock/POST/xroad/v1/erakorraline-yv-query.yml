@@ -82,9 +82,8 @@ logSuccess:
   next: returnSuccess
 returnSuccess:
   status: 200
-  return: '${JSON.parse(JSON.stringify({targeted_for_inspection: {item: mapped_items}}))}'
+  return: '${JSON.stringify({targeted_for_inspection: {item: mapped_items}})}'
   next: end
-  wrapper: false
 logFailure:
   assign:
     logResult:
@@ -94,29 +93,17 @@ logFailure:
   next: returnServerError
 returnServerError:
   status: 500
-  return:
-    error: SERVER_ERROR
-    message: Internal error
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
   next: end
-  wrapper: false
 returnMissingAlates:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: alates is required
+  return: '{"error": "MISSING_PARAMETER", "message": "alates is required"}'
   next: end
-  wrapper: false
 returnMissingKuni:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: kuni is required
+  return: '{"error": "MISSING_PARAMETER", "message": "kuni is required"}'
   next: end
-  wrapper: false
 returnInvalidDateRange:
   status: 400
-  return:
-    error: INVALID_PARAMETER
-    message: alates must not be after kuni
+  return: '{"error": "INVALID_PARAMETER", "message": "alates must not be after kuni"}'
   next: end
-  wrapper: false

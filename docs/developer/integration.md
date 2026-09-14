@@ -47,4 +47,10 @@ AJ `usagePeriod` ja `heartbeat` handler ei nõua `X-Road-UserId` ega rakenduse t
 Päris turvaserveri kaudu pöördudes on tarbija identifikaator ja teenuse kasutusõigus siiski vajalikud.
 Mock ei nõua ametniku sessiooni, TARA autentimist ega platvormi API võtit.
 
+## HTTP-vastuse ümbris
+
+Pakutavad teenused kasutavad Ruuteri vaikeümbrist: HTTP JSON-kehas on `response` väli, mille väärtus on JSON-tekst. Mock säilitab sama kuju nii edu- kui ka rakenduse veavastustes. Loe esmalt HTTP-keha JSON-ina, seejärel tee `JSON.parse(body.response)`. Näiteks HTTP-keha `{"response":"{\"confirmed\":1}"}` annab lahtiparsimisel `{ "confirmed": 1 }`.
+
+Teenuste näidetes on näidatud nii HTTP-keha kui ka `response` välja lahtiparsitud sisu. `/developer/health/ready` tagastab otse JSON-objekti.
+
 Ära saada avalikku mocki päris isikukoode, menetlusandmeid ega saladusi. Mock ei salvesta rakenduse tasemel andmeid, kuid ühine proxy või infrastruktuur võib logida URL-e.
