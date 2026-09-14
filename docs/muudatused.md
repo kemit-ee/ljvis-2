@@ -6,6 +6,17 @@
 
 ## 2026-09-14
 
+### RSI teate eeltäitmise ja sõidu-/puhkeaja vormi salvestamise veaparandused
+
+- Tehnilise kontrollkaardi läbisõidumõõdiku näidu olemasolul ebaõnnestus RSI
+  teate eeltäitmine ("RSI teate loomiseks eeltäitmine nurjus") — näit saadeti
+  serverile vale andmetüübina. Parandatud.
+- RSI teatele ei kanta enam sõlme "veose kinnitamine" (sellel puudub ERRU
+  vaste), kooskõlas endaga juba dokumenteeritud reegliga.
+- Sõidu- ja puhkeaja vormi salvestamine (koondvormi "Salvesta kõik" kaudu, kui
+  vormi ATP-välja ise ei muudetud) ebaõnnestus veaga "atpViolationFound
+  expected string, got boolean". Parandatud.
+
 ### PPA kontrollvormide sisendite ja failide parendused
 
 - Autojuhi ja meeskonnaliikme sisenditel on eraldi tunnused ja valikugrupid,
