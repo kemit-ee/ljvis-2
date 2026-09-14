@@ -13,11 +13,7 @@ allow:
   status: 200
   return: ok
   next: end
-  wrapper: false
 deny:
   status: 403
-  return:
-    error: FORBIDDEN
-    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+  return: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)"}'
   next: end
-  wrapper: false

@@ -69,9 +69,8 @@ buildResponse:
   next: returnSuccess
 returnSuccess:
   status: 200
-  return: ${JSON.parse(result_body)}
+  return: ${result_body}
   next: end
-  wrapper: false
 logFailure:
   assign:
     logResult:
@@ -81,22 +80,13 @@ logFailure:
   next: returnServerError
 returnServerError:
   status: 500
-  return:
-    error: SERVER_ERROR
-    message: Internal error
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
   next: end
-  wrapper: false
 returnMissingIsikukood:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: isikukood is required
+  return: '{"error": "MISSING_PARAMETER", "message": "isikukood is required"}'
   next: end
-  wrapper: false
 returnInvalidIsikukood:
   status: 400
-  return:
-    error: INVALID_PARAMETER
-    message: isikukood must be 11 digits starting with 1-6
+  return: '{"error": "INVALID_PARAMETER", "message": "isikukood must be 11 digits starting with 1-6"}'
   next: end
-  wrapper: false

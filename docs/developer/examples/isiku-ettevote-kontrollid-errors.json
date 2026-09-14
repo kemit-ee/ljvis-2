@@ -2,29 +2,25 @@
   {
     "status": 500,
     "body": {
-      "error": "SERVER_ERROR",
-      "message": "Internal error"
+      "response": "{\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "isikukood is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"isikukood is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "INVALID_PARAMETER",
-      "message": "isikukood must be 11 digits starting with 1-6"
+      "response": "{\"error\": \"INVALID_PARAMETER\", \"message\": \"isikukood must be 11 digits starting with 1-6\"}"
     }
   },
   {
     "status": 403,
     "body": {
-      "error": "FORBIDDEN",
-      "message": "X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)"
+      "response": "{\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}"
     }
   }
 ]

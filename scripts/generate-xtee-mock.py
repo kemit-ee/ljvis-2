@@ -43,17 +43,17 @@ def expression(value):
     return "${" + value + "}"
 
 
+def wire_body(value):
+    # Preserve Ruuter's JSON string inside the real provider's response envelope.
+    literal = 'error' in value or value == {'message': 'Success'} or value.get('status') == 'OK'
+    separators = (', ', ': ') if literal else (',', ':')
+    return {'response': json.dumps(value, ensure_ascii=False, sort_keys=not literal, separators=separators)}
+
+
 def adapt_runtime(value):
-    """Use the pinned engine's query interface and return JSON without its wrapper."""
+    """Use the pinned engine's query interface and preserve provider wire wrappers."""
     if isinstance(value, dict):
         result = {k: adapt_runtime(v) for k, v in value.items()}
-        if "return" in result:
-            result["wrapper"] = False
-            returned = result["return"]
-            if isinstance(returned, str) and returned.startswith("${"):
-                result["return"] = expression("JSON.parse(" + returned[2:-1] + ")")
-            elif isinstance(returned, str) and returned.startswith("{"):
-                result["return"] = json.loads(returned)
         return result
     if isinstance(value, list):
         return [adapt_runtime(v) for v in value]
@@ -192,7 +192,7 @@ def add_test(name, method, path, body=None, query=None, headers=None, status=200
         request["query"] = query
     expect = {"status": status}
     if expected is not None:
-        expect["body_matches"] = expected
+        expect["body_matches"] = expected if path == '/health/ready' else wire_body(expected)
     tests.append({"name": name, "request": request, "expect": expect})
 
 
@@ -245,7 +245,7 @@ for method, name, service, version, sample, success in operations:
         data["assignRows"] = rows_step
     emit(DEST / (method + mock_path + ".yml"), data)
     emit(DOCS / "examples" / (name + "-request.json"), json_text(sample))
-    emit(DOCS / "examples" / (name + "-success.json"), json_text(success))
+    emit(DOCS / "examples" / (name + "-success.json"), json_text(wire_body(success)))
     errors = []
     for step in data.values():
         if isinstance(step, dict) and isinstance(step.get("status"), int) and step["status"] >= 400:
@@ -257,7 +257,7 @@ for method, name, service, version, sample, success in operations:
                 errors.append((step["status"], error))
     if method == "POST":
         errors.append((403, json.loads(guard["deny"]["return"])))
-    emit(DOCS / "examples" / (name + "-errors.json"), json_text([{"status": s, "body": e} for s, e in errors]))
+    emit(DOCS / "examples" / (name + "-errors.json"), json_text([{"status": s, "body": wire_body(e)} for s, e in errors]))
     headers = {"content-type": "application/json", "x-road-client": CLIENT} if method == "POST" else {}
     if name == "findUsage":
         headers["x-road-userid"] = SUCCESS_PERSON
@@ -278,13 +278,13 @@ for method, name, service, version, sample, success in operations:
         params.append({"in": "header", "name": "X-Road-UserId", "required": True, "schema": {"type": "string"}, "example": SUCCESS_PERSON})
         for k in ["userCode", "periodStart", "periodEnd", "offset", "limit"]:
             params.append({"in": "query", "name": k, "required": k == "userCode", "schema": {"type": "integer" if k in ["offset", "limit"] else "string"}})
-    responses = {"200": {"description": "Edukas vastus; tühi loend on edukas.", "content": {"application/json": {"schema": schema(success), "example": success}}}}
+    responses = {"200": {"description": "Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.", "content": {"application/json": {"schema": schema(wire_body(success)), "example": wire_body(success), "x-decoded-response-schema": schema(success)}}}}
     # Merge all error variants at each HTTP status instead of hiding individual codes.
     for status in sorted({s for s, e in errors}):
         variants = [e for s, e in errors if s == status]
         responses[str(status)] = {"description": ", ".join(dict.fromkeys(e["error"] for e in variants)), "content": {"application/json": {
-            "schema": {"type": "object", "required": ["error", "message"], "properties": {"error": {"type": "string"}, "message": {"type": "string"}}},
-            "examples": {f"error{i}": {"value": e} for i, e in enumerate(variants)}}}}
+            "schema": schema(wire_body(variants[0])),
+            "examples": {f"error{i}": {"value": wire_body(e)} for i, e in enumerate(variants)}}}}
     op = {"operationId": service, "summary": service, "x-xroad-service": {"code": service, "version": version},
           "x-provider-path": "/ljvis/xroad/" + ("provide/" if method == "POST" else "v2/") + name,
           "parameters": params, "responses": responses}
@@ -318,7 +318,7 @@ for method, name, service, version, sample, success in operations:
     if method == "POST":
         req["body"] = {"mode": "raw", "raw": raw, "options": {"raw": {"language": "json"}}}
     assertions = ['pm.test("HTTP 200", () => pm.response.to.have.status(200));',
-                  'const body = pm.response.json();',
+                  'const wire = pm.response.json(); const body = typeof wire.response === "string" ? JSON.parse(wire.response) : wire;',
                   f'pm.test("Response envelope", () => pm.expect(body).to.have.property({json.dumps(next(iter(success)))}));']
     if name == "findUsage":
         assertions.append('pm.test("Deterministic page", () => {pm.expect(body.totalUsages).to.eql(3); pm.expect(body.usages).to.have.lengthOf(1); pm.expect(body.usages[0].logtime).to.eql("2026-06-15T12:00:00Z");});')
@@ -333,7 +333,7 @@ for method, name, service, version, sample, success in operations:
         curl += f" \\\n  -H 'Content-Type: application/json' -H 'X-Road-Client: {CLIENT}' \\\n  --data-binary @docs/developer/examples/{name}-request.json"
     if name == "findUsage":
         curl += f" -H 'X-Road-UserId: {SUCCESS_PERSON}'"
-    sections.append(f"\n## {service}\n\n- Meetod: `{method}`; mock: `/developer{mock_path}`.\n- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{{instance}}/GOV/70001231/ljvis2/{service}/{version}`.\n- Pakkuja sisetee: `{op['x-provider-path']}`; [workflow](../../{manifest[-1]['source']}).\n- Sisend: [JSON näidis](examples/{name}-request.json) (GET puhul query parameetrid, mitte keha).\n- Vastus: [edukas JSON](examples/{name}-success.json); [vead koos staatustega](examples/{name}-errors.json).\n\n```bash\n{curl}\n```\n\nHTTP 200:\n\n```json\n{json_text(success).strip()}\n```\n")
+    sections.append(f"\n## {service}\n\n- Meetod: `{method}`; mock: `/developer{mock_path}`.\n- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{{instance}}/GOV/70001231/ljvis2/{service}/{version}`.\n- Pakkuja sisetee: `{op['x-provider-path']}`; [workflow](../../{manifest[-1]['source']}).\n- Sisend: [JSON näidis](examples/{name}-request.json) (GET puhul query parameetrid, mitte keha).\n- Vastus: [edukas HTTP-keha](examples/{name}-success.json); [vead koos staatustega](examples/{name}-errors.json).\n\n```bash\n{curl}\n```\n\nHTTP 200, keha:\n\n```json\n{json_text(wire_body(success)).strip()}\n```\n\n`JSON.parse(response)` tulemus:\n\n```json\n{json_text(success).strip()}\n```\n")
     if errors:
         error_status, error_body = next(((s, e) for s, e in errors if s == 400 and e['error'].startswith('MISSING')), errors[0])
         if method == "POST":
@@ -342,7 +342,7 @@ for method, name, service, version, sample, success in operations:
             faulty = f"curl -i 'https://dev.liiklusvalve.ee/developer{mock_path}?userCode={SUCCESS_PERSON}'"
         else:
             faulty = f"curl -i 'https://dev.liiklusvalve.ee/developer{mock_path}' -H 'X-Mock-Scenario: server-error'"
-        sections.append(f"\nVeastsenaariumi käivitatav näide:\n\n```bash\n{faulty}\n```\n\nHTTP {error_status}:\n\n```json\n{json_text(error_body).strip()}\n```\n")
+        sections.append(f"\nVeastsenaariumi käivitatav näide:\n\n```bash\n{faulty}\n```\n\nHTTP {error_status}:\n\n```json\n{json_text(wire_body(error_body)).strip()}\n```\n")
 
 add_test("health is public without session and X-Road headers", "GET", "/health/ready", headers={}, expected={"status": "OK", "mock": True})
 for name in ["isiku-kontroll", "isiku-ettevote-kontrollid"]:
