@@ -22,6 +22,14 @@ export interface RegCodeOption {
 
 interface AdrInfringementRecordCardProps {
   index: number;
+  /**
+   * Kontekstiga unikaalne ID-prefiks (nt kontrollkaardi punkti kood või
+   * "muu rikkumise" indeks) — ilma selleta jagavad kõik ADR_CONTROL_CHECKPOINT
+   * punktide (ja "muude rikkumiste") esimesed kirjed sama `adr-record-0-*`
+   * ID/name'i, mistõttu raadionuppude natiivne name-põhine grupeerimine
+   * segab eri punktide valikuid omavahel kokku.
+   */
+  idPrefix: string;
   record: AdrInfringementRecord;
   regCodeOptions: RegCodeOption[];
   onChange: (patch: Partial<AdrInfringementRecord>) => void;
@@ -36,6 +44,7 @@ interface AdrInfringementRecordCardProps {
  */
 export function AdrInfringementRecordCard({
   index,
+  idPrefix,
   record,
   regCodeOptions,
   onChange,
@@ -43,7 +52,7 @@ export function AdrInfringementRecordCard({
   disabled,
 }: AdrInfringementRecordCardProps) {
   const { t } = useTranslation();
-  const idp = `adr-record-${index}`;
+  const idp = `adr-record-${idPrefix}-${index}`;
 
   const regEnabled = record.responsibleParticipants.includes('C');
   const participantOptions = PARTICIPANTS.map((p) => ({
