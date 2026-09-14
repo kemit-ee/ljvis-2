@@ -60,7 +60,7 @@ export const confirmForeignViolationForm = (data: ForeignViolationForm) =>
 export const publishForeignViolationForm = (id: string) =>
   post<ForeignViolationForm[]>(
     `/v1/control-forms/foreign-violation-form/edit/publish`,
-    { id },
+    { id: String(id) },
   );
 
 export const createVrFormFromNcr = (businessCaseId: string) =>
@@ -113,7 +113,7 @@ export const confirmCompoundForm = (data: CompoundForm) =>
 export const publishCompoundForm = (id: string) =>
   post<CompoundForm[]>(
     `/v1/control-forms/compound-form/edit/publish`,
-    { id }
+    { id: String(id) }
   );
 
 export const deleteCompoundForm = (
@@ -190,7 +190,9 @@ export const confirmTramForm = (data: CompoundForm) =>
   );
 
 export const publishTramForm = (id: string) =>
-  post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/publish`, { id });
+  post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/publish`, {
+    id: String(id),
+  });
 
 export const deleteTramForm = (id: string, old_status: string) =>
   post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/delete`, {
@@ -240,7 +242,7 @@ export const publishDriveRestForm = (
 ) =>
   post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/publish`,
-    { id },
+    { id: String(id) },
   );
 
 export const getDriveRestForm = (scope: 'driver' | 'teammate', id: number) =>
@@ -314,7 +316,7 @@ export const confirmLabourInspectionForm = (data: LabourInspectionForm) =>
 export const publishLabourInspectionForm = (id: string) =>
   post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/publish`,
-    { id },
+    { id: String(id) },
   );
 
 export const deleteLabourInspectionForm = (id: string, old_status: string) =>
@@ -380,7 +382,7 @@ export const publishTechnicalCheckForm = (
 ) =>
   post<TechnicalCheckForm[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/edit/publish`,
-    { id }
+    { id: String(id) }
   );
 
 export const getTransportInterruptionForm = (id: string) =>
@@ -426,7 +428,7 @@ export const publishTransportInterruptionForm = (
 ) =>
   post<TransportInterruptionForm[]>(
     `/v1/control-forms/transport-interruption/edit/publish`,
-    { id }
+    { id: String(id) }
   );
 
 export const getAdrForm = (id: string) =>
@@ -456,7 +458,7 @@ export const confirmAdrForm = (data: AdrForm) =>
 export const publishAdrForm = (id: string) =>
   post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/publish`,
-    { id }
+    { id: String(id) }
   );
 
 export interface PdfRenderResponse {
@@ -524,7 +526,7 @@ export const confirmGoodReputeForm = (data: GoodReputeForm) =>
 export const publishGoodReputeForm = (id: string) =>
   post<GoodReputeForm[]>(
     `/v1/control-forms/good-repute/edit/publish`,
-    { id },
+    { id: String(id) },
   );
 
 
