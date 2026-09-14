@@ -1,0 +1,132 @@
+declaration:
+  version: '1.0'
+  description: 'ErakorralineYVconfirm: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
+    POST/xroad/provide/erakorraline-yv-confirm.yml. X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body:
+    - field: confirmed
+      required: false
+    params: []
+validateItems:
+  switch:
+  - condition: ${incoming.body.confirmed == null || incoming.body.confirmed.item == null || incoming.body.confirmed.item.length
+      === 0}
+    next: returnMissingItems
+  next: assignParams
+assignParams:
+  assign:
+    items: ${incoming.body.confirmed.item}
+    total: ${incoming.body.confirmed.item.length}
+    processed: 0
+    current_index: 0
+    start_time: ${new Date().getTime()}
+  next: validateItem
+validateItem:
+  switch:
+  - condition: ${current_index >= total}
+    next: processItem
+  - condition: ${items[current_index].inspection_id == null || items[current_index].inspection_id == ''}
+    next: returnInvalidItem
+  - condition: ${items[current_index].code == null || !(['INSPECTION_DATE','ENFORCEMENT_DECISION','CLOSURE_BASIS'].indexOf(String(items[current_index].code))
+      >= 0)}
+    next: returnInvalidCode
+  - condition: ${items[current_index].value == null || items[current_index].value == ''}
+    next: returnInvalidItem
+  next: advanceValidation
+advanceValidation:
+  assign:
+    current_index: ${current_index + 1}
+  next: validateItem
+processItem:
+  assign:
+    current_index: 0
+  next: processNextItem
+processNextItem:
+  switch:
+  - condition: ${current_index >= total}
+    next: logSuccess
+  next: updateXroadField
+updateXroadField:
+  assign:
+    updateResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: '${[''900001'',''900002''].indexOf(String(items[current_index].inspection_id)) >= 0 ? [{confirmed:true}]
+          : []}'
+  next: checkUpdateResult
+checkUpdateResult:
+  switch:
+  - condition: ${updateResult.response.status < 200 || updateResult.response.status >= 300}
+    next: logFailure
+  - condition: ${updateResult.response.body == null || updateResult.response.body.length === 0}
+    next: returnNotFound
+  next: advanceProcessing
+advanceProcessing:
+  assign:
+    processed: ${processed + 1}
+    current_index: ${current_index + 1}
+  next: processNextItem
+logSuccess:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnSuccess
+returnSuccess:
+  status: 200
+  return: '${JSON.parse(JSON.stringify({confirmed: processed}))}'
+  next: end
+  wrapper: false
+logFailure:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnServerError
+returnMissingItems:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: confirmed.item must be a non-empty array
+  next: end
+  wrapper: false
+returnInvalidItem:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: Each item requires inspection_id, code and value
+  next: end
+  wrapper: false
+returnInvalidCode:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: 'code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS'
+  next: end
+  wrapper: false
+returnNotFound:
+  status: 404
+  return:
+    error: NOT_FOUND
+    message: inspection_id not found or form is not in confirmed status
+  next: end
+  wrapper: false
+returnServerError:
+  status: 500
+  return:
+    error: SERVER_ERROR
+    message: Internal error
+  next: end
+  wrapper: false

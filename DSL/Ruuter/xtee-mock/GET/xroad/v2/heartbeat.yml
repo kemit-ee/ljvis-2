@@ -1,0 +1,24 @@
+declaration:
+  version: '1.0'
+  description: 'heartbeat: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st GET/xroad/v2/heartbeat.yml.
+    X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body: []
+    params: []
+returnOk:
+  status: 200
+  return:
+    status: OK
+    message: API is ready
+  next: end
+  wrapper: false

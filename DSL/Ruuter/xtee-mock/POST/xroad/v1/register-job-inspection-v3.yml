@@ -1,0 +1,244 @@
+declaration:
+  version: '1.0'
+  description: 'RegisterJobInspection_v3: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
+    POST/xroad/provide/register-job-inspection-v3.yml. X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body:
+    - field: juhi_eesnimi
+      required: false
+    - field: juhi_isikukood
+      required: false
+    - field: juhi_perekonnanimi
+      required: false
+    - field: kontrolli_id
+      required: false
+    - field: kontrolli_kp
+      required: false
+    - field: kontrollija
+      required: false
+    - field: kontrollimised
+      required: false
+    - field: koostatatud_ettekirjutus
+      required: false
+    - field: menetluse_liik
+      required: false
+    - field: menetluse_number
+      required: false
+    - field: rikkumised
+      required: false
+    - field: soiduki_reg_nr
+      required: false
+    - field: soiduki_vin
+      required: false
+    - field: soidukite_arv
+      required: false
+    - field: tooandja_nimi
+      required: false
+    - field: tooandja_reg_kood
+      required: false
+    params: []
+validateKontrollija:
+  switch:
+  - condition: ${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}
+    next: returnMissingKontrollija
+  next: validateKontrolliId
+validateKontrolliId:
+  switch:
+  - condition: ${incoming.body.kontrolli_id == null}
+    next: returnMissingKontrolliId
+  next: validateKontrolliKp
+validateKontrolliKp:
+  switch:
+  - condition: ${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}
+    next: returnMissingKontrolliKp
+  - condition: ${isNaN(new Date(incoming.body.kontrolli_kp).getTime())}
+    next: returnInvalidKontrolliKp
+  next: validateTooandja
+validateTooandja:
+  switch:
+  - condition: ${incoming.body.tooandja_nimi == null || incoming.body.tooandja_nimi == ''}
+    next: returnMissingTooandja
+  - condition: ${incoming.body.tooandja_reg_kood == null || incoming.body.tooandja_reg_kood == ''}
+    next: returnMissingTooandjaRegKood
+  next: validateKontrollimised
+validateKontrollimised:
+  switch:
+  - condition: ${incoming.body.kontrollimised == null}
+    next: returnMissingKontrollimised
+  - condition: ${incoming.body.rikkumised == null}
+    next: returnMissingRikkumised
+  - condition: ${incoming.body.koostatatud_ettekirjutus == null}
+    next: returnMissingEttekirjutus
+  next: validateJuhiIsikukood
+validateJuhiIsikukood:
+  switch:
+  - condition: ${incoming.body.juhi_isikukood != null && incoming.body.juhi_isikukood != '' && !(/^[1-6][0-9]{10}$/.test(String(incoming.body.juhi_isikukood).trim()))}
+    next: returnInvalidIsikukood
+  next: validateMenetluseLiik
+validateMenetluseLiik:
+  switch:
+  - condition: ${incoming.body.menetluse_liik != null && incoming.body.menetluse_liik != '' && !(['lyhimenetlus','kiirmenetlus','uldmenetlus'].indexOf(incoming.body.menetluse_liik)
+      >= 0)}
+    next: returnInvalidMenetluseLiik
+  next: assignParams
+assignParams:
+  assign:
+    kontrollija: ${incoming.body.kontrollija.trim()}
+    kontrolli_id: ${'v3-' + String(incoming.body.kontrolli_id)}
+    kontrolli_kp: ${incoming.body.kontrolli_kp}
+    tooandja_nimi: ${incoming.body.tooandja_nimi.trim()}
+    tooandja_reg_kood: ${incoming.body.tooandja_reg_kood.trim()}
+    soidukite_arv: '${incoming.body.soidukite_arv != null ? String(incoming.body.soidukite_arv) : ''''}'
+    koostatatud_ettekirjutus: ${String(incoming.body.koostatatud_ettekirjutus)}
+    juhi_isikukood: ${(incoming.body.juhi_isikukood || '').trim()}
+    juhi_eesnimi: ${incoming.body.juhi_eesnimi || ''}
+    juhi_perekonnanimi: ${incoming.body.juhi_perekonnanimi || ''}
+    menetluse_number: ${incoming.body.menetluse_number || ''}
+    inspection_type: '${(incoming.body.kontrollimised && incoming.body.kontrollimised.kontrollitud_soitjate_veol)
+      ? ''passenger'' : ''cargo''}'
+    controls_matrix_with_vehicle: "${JSON.stringify(Object.assign({}, incoming.body.kontrollimised, {\n  v2_soiduki_reg_nr:\
+      \ incoming.body.soiduki_reg_nr || null,\n  v2_soiduki_vin: incoming.body.soiduki_vin || null,\n  v2_menetluse_liik:\
+      \ incoming.body.menetluse_liik || null\n}))}"
+    rikkumised_json: ${JSON.stringify(incoming.body.rikkumised)}
+    start_time: ${new Date().getTime()}
+    xroad_member_code: ${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}
+    xroad_subsystem: ${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}
+  next: insertInspection
+insertInspection:
+  assign:
+    insertResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[{"id":900001,"form_number":"MOCK-TI-001","skipped":false}]}
+  next: checkInsertStatus
+checkInsertStatus:
+  switch:
+  - condition: ${insertResult.response.status < 200 || insertResult.response.status >= 300}
+    next: logFailure
+  next: logSuccess
+logSuccess:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: checkAjUsageLog
+checkAjUsageLog:
+  switch:
+  - condition: ${juhi_isikukood == null || juhi_isikukood == ''}
+    next: returnSuccess
+  next: logAjUsage
+logAjUsage:
+  assign:
+    ajLogResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnSuccess
+returnSuccess:
+  status: 200
+  return:
+    message: Success
+  next: end
+  wrapper: false
+logFailure:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnServerError
+returnServerError:
+  status: 500
+  return:
+    error: SERVER_ERROR
+    message: Internal error
+  next: end
+  wrapper: false
+returnMissingKontrollija:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrollija is required
+  next: end
+  wrapper: false
+returnMissingKontrolliId:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrolli_id is required
+  next: end
+  wrapper: false
+returnMissingKontrolliKp:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrolli_kp is required
+  next: end
+  wrapper: false
+returnInvalidKontrolliKp:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: kontrolli_kp must be a valid date
+  next: end
+  wrapper: false
+returnMissingTooandja:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: tooandja_nimi is required
+  next: end
+  wrapper: false
+returnMissingTooandjaRegKood:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: tooandja_reg_kood is required
+  next: end
+  wrapper: false
+returnMissingKontrollimised:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrollimised is required
+  next: end
+  wrapper: false
+returnMissingRikkumised:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: rikkumised is required
+  next: end
+  wrapper: false
+returnMissingEttekirjutus:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: koostatatud_ettekirjutus is required
+  next: end
+  wrapper: false
+returnInvalidIsikukood:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: juhi_isikukood must be 11 digits starting with 1-6
+  next: end
+  wrapper: false
+returnInvalidMenetluseLiik:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: 'menetluse_liik must be one of: lyhimenetlus, kiirmenetlus, uldmenetlus'
+  next: end
+  wrapper: false

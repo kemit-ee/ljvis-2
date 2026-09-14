@@ -157,6 +157,7 @@ secret_detection:
     - set -euo pipefail
     - pip3 install --quiet pyyaml
     - python3 scripts/validate-dsl.py
+    - bash scripts/test-xtee-mock.sh
 
 .frontend:
   stage: test

@@ -1,0 +1,188 @@
+declaration:
+  version: '1.0'
+  description: 'RegisterJobInspection: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
+    POST/xroad/provide/register-job-inspection.yml. X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body:
+    - field: kontrolli_id
+      required: false
+    - field: kontrolli_kp
+      required: false
+    - field: kontrollija
+      required: false
+    - field: kontrollimised
+      required: false
+    - field: koostatatud_ettekirjutus
+      required: false
+    - field: rikkumised
+      required: false
+    - field: soidukite_arv
+      required: false
+    - field: tooandja_nimi
+      required: false
+    - field: tooandja_reg_kood
+      required: false
+    - field: vaarteomenetlus
+      required: false
+    params: []
+validateKontrollija:
+  switch:
+  - condition: ${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}
+    next: returnMissingKontrollija
+  next: validateKontrolliId
+validateKontrolliId:
+  switch:
+  - condition: ${incoming.body.kontrolli_id == null}
+    next: returnMissingKontrolliId
+  next: validateKontrolliKp
+validateKontrolliKp:
+  switch:
+  - condition: ${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}
+    next: returnMissingKontrolliKp
+  - condition: ${isNaN(new Date(incoming.body.kontrolli_kp).getTime())}
+    next: returnInvalidKontrolliKp
+  next: validateTooandja
+validateTooandja:
+  switch:
+  - condition: ${incoming.body.tooandja_nimi == null || incoming.body.tooandja_nimi == ''}
+    next: returnMissingTooandja
+  - condition: ${incoming.body.tooandja_reg_kood == null || incoming.body.tooandja_reg_kood == ''}
+    next: returnMissingTooandjaRegKood
+  next: validateKontrollimised
+validateKontrollimised:
+  switch:
+  - condition: ${incoming.body.kontrollimised == null}
+    next: returnMissingKontrollimised
+  - condition: ${incoming.body.rikkumised == null}
+    next: returnMissingRikkumised
+  - condition: ${incoming.body.koostatatud_ettekirjutus == null}
+    next: returnMissingEttekirjutus
+  next: assignParams
+assignParams:
+  assign:
+    kontrollija: ${incoming.body.kontrollija.trim()}
+    kontrolli_id: ${String(incoming.body.kontrolli_id)}
+    kontrolli_kp: ${incoming.body.kontrolli_kp}
+    tooandja_nimi: ${incoming.body.tooandja_nimi.trim()}
+    tooandja_reg_kood: ${incoming.body.tooandja_reg_kood.trim()}
+    soidukite_arv: '${incoming.body.soidukite_arv != null ? String(incoming.body.soidukite_arv) : ''''}'
+    koostatatud_ettekirjutus: ${String(incoming.body.koostatatud_ettekirjutus)}
+    kontrollimised_json: ${JSON.stringify(incoming.body.kontrollimised)}
+    rikkumised_json: ${JSON.stringify(incoming.body.rikkumised)}
+    vaarteomenetlus: ${incoming.body.vaarteomenetlus || ''}
+    inspection_type: '${(incoming.body.kontrollimised && incoming.body.kontrollimised.kontrollitud_soitjate_veol)
+      ? ''passenger'' : ''cargo''}'
+    start_time: ${new Date().getTime()}
+  next: insertInspection
+insertInspection:
+  assign:
+    insertResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[{"id":900001,"form_number":"MOCK-TI-001","skipped":false}]}
+  next: checkInsertStatus
+checkInsertStatus:
+  switch:
+  - condition: ${insertResult.response.status < 200 || insertResult.response.status >= 300}
+    next: logFailure
+  next: logSuccess
+logSuccess:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnSuccess
+returnSuccess:
+  status: 200
+  return:
+    message: Success
+  next: end
+  wrapper: false
+logFailure:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnServerError
+returnServerError:
+  status: 500
+  return:
+    error: SERVER_ERROR
+    message: Internal error
+  next: end
+  wrapper: false
+returnMissingKontrollija:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrollija is required
+  next: end
+  wrapper: false
+returnMissingKontrolliId:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrolli_id is required
+  next: end
+  wrapper: false
+returnMissingKontrolliKp:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrolli_kp is required
+  next: end
+  wrapper: false
+returnInvalidKontrolliKp:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: kontrolli_kp must be a valid date
+  next: end
+  wrapper: false
+returnMissingTooandja:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: tooandja_nimi is required
+  next: end
+  wrapper: false
+returnMissingTooandjaRegKood:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: tooandja_reg_kood is required
+  next: end
+  wrapper: false
+returnMissingKontrollimised:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kontrollimised is required
+  next: end
+  wrapper: false
+returnMissingRikkumised:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: rikkumised is required
+  next: end
+  wrapper: false
+returnMissingEttekirjutus:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: koostatatud_ettekirjutus is required
+  next: end
+  wrapper: false

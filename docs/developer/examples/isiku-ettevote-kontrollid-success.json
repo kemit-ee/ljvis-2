@@ -1,0 +1,32 @@
+{
+  "kontrollid": {
+    "item": [
+      {
+        "kuupaev": "2026-06-15",
+        "nimetus": "MOCK-KV-001",
+        "asutus": "Mockvedaja OÜ",
+        "soiduki_reg_nr": "MOCK123",
+        "rikkumise_liik": "extraordinary_inspection",
+        "kontrolli_nimetus": "KOONDVORM",
+        "juhi_nimi": "Test",
+        "juhi_perekonnanimi": "Juht",
+        "rikkumised": null,
+        "rikkumised_lopetatud": null,
+        "ettevote_reg_nr": "00000001"
+      },
+      {
+        "kuupaev": "2026-06-14",
+        "nimetus": "MOCK-TI-002",
+        "asutus": "Mockvedaja OÜ",
+        "soiduki_reg_nr": null,
+        "rikkumise_liik": null,
+        "kontrolli_nimetus": "TOOINSPEKTION",
+        "juhi_nimi": "Test",
+        "juhi_perekonnanimi": "Juht",
+        "rikkumised": null,
+        "rikkumised_lopetatud": "Mock lõpetamine",
+        "ettevote_reg_nr": "00000001"
+      }
+    ]
+  }
+}

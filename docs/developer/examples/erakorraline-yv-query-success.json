@@ -1,0 +1,57 @@
+{
+  "targeted_for_inspection": {
+    "item": [
+      {
+        "licence_plate_no": "MOCK123",
+        "trailer_no": null,
+        "inspection_id": "900001",
+        "inspection_no": "MOCK-KV-001",
+        "inspection_date": "2026-06-15",
+        "inspection_type": "extraordinary_inspection",
+        "inspection_unit": "Mockvedaja OÜ",
+        "inspection_notes": "Sünteetiline näidiskontroll",
+        "inspector": null,
+        "issues": {
+          "item": [
+            {
+              "code": "B01",
+              "value": "defect_minor"
+            }
+          ]
+        },
+        "notes": {
+          "item": []
+        },
+        "inspection_refine_options": {
+          "item": [
+            "REGNR",
+            "VINTIN",
+            "AXLES",
+            "PLACES",
+            "REBUILT"
+          ]
+        }
+      },
+      {
+        "licence_plate_no": "MOCK456",
+        "trailer_no": null,
+        "inspection_id": "900002",
+        "inspection_no": "MOCK-KV-002",
+        "inspection_date": "2026-06-14",
+        "inspection_type": "extraordinary_inspection_ta",
+        "inspection_unit": "Mockvedaja OÜ",
+        "inspection_notes": null,
+        "inspector": null,
+        "issues": {
+          "item": []
+        },
+        "notes": {
+          "item": []
+        },
+        "inspection_refine_options": {
+          "item": []
+        }
+      }
+    ]
+  }
+}

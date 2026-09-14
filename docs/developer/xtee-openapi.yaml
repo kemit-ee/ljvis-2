@@ -1,0 +1,1413 @@
+openapi: 3.0.3
+info:
+  title: LJVIS2 X-tee arendaja-mock
+  version: 1.0.0
+  description: 'Sünteetiline sandbox. Päris turvaserveri teenusekoodide vastavus: x-xroad-service ja x-provider-path.
+    Ei salvesta ega kutsu päristeenuseid.'
+servers:
+- url: https://dev.liiklusvalve.ee/developer
+- url: http://localhost:3001/developer
+- url: http://localhost:8086/xtee-mock
+paths:
+  /xroad/v1/isiku-kontroll:
+    post:
+      operationId: IsikuKontroll
+      summary: IsikuKontroll
+      x-xroad-service:
+        code: IsikuKontroll
+        version: v1
+      x-provider-path: /ljvis/xroad/provide/isiku-kontroll
+      parameters:
+      - in: header
+        name: X-Road-Client
+        required: true
+        schema:
+          type: string
+        example: ee-dev/GOV/70001490/liiklusregister
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kontrollid:
+                    type: object
+                    properties:
+                      item:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            kuupaev:
+                              type: string
+                            nimetus:
+                              type: string
+                            asutus:
+                              type: string
+                            soiduki_reg_nr:
+                              type: string
+                              nullable: true
+                            rikkumise_liik:
+                              type: string
+                              nullable: true
+                            kontrolli_nimetus:
+                              type: string
+                            juhi_nimi:
+                              type: string
+                            juhi_perekonnanimi:
+                              type: string
+                            rikkumised:
+                              type: string
+                              nullable: true
+                            rikkumised_lopetatud:
+                              type: string
+                              nullable: true
+                          required:
+                          - kuupaev
+                          - nimetus
+                          - asutus
+                          - soiduki_reg_nr
+                          - rikkumise_liik
+                          - kontrolli_nimetus
+                          - juhi_nimi
+                          - juhi_perekonnanimi
+                          - rikkumised
+                          - rikkumised_lopetatud
+                          additionalProperties: false
+                    required:
+                    - item
+                    additionalProperties: false
+                required:
+                - kontrollid
+                additionalProperties: false
+              example:
+                kontrollid:
+                  item:
+                  - kuupaev: '2026-06-15'
+                    nimetus: MOCK-KV-001
+                    asutus: Mockvedaja OÜ
+                    soiduki_reg_nr: MOCK123
+                    rikkumise_liik: extraordinary_inspection
+                    kontrolli_nimetus: KOONDVORM
+                    juhi_nimi: Test
+                    juhi_perekonnanimi: Juht
+                    rikkumised: null
+                    rikkumised_lopetatud: null
+                  - kuupaev: '2026-06-14'
+                    nimetus: MOCK-TI-002
+                    asutus: Mockvedaja OÜ
+                    soiduki_reg_nr: null
+                    rikkumise_liik: null
+                    kontrolli_nimetus: TOOINSPEKTION
+                    juhi_nimi: Test
+                    juhi_perekonnanimi: Juht
+                    rikkumised: null
+                    rikkumised_lopetatud: Mock lõpetamine
+        '400':
+          description: MISSING_PARAMETER, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: isikukood is required
+                error1:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: isikukood must be 11 digits starting with 1-6
+        '403':
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: FORBIDDEN
+                    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isikukood:
+                  type: string
+                  pattern: ^[1-6][0-9]{10}$
+              required:
+              - isikukood
+              additionalProperties: true
+            example:
+              isikukood: '60001019906'
+  /xroad/v1/isiku-ettevote-kontrollid:
+    post:
+      operationId: IsikuEttevoteKontrollid
+      summary: IsikuEttevoteKontrollid
+      x-xroad-service:
+        code: IsikuEttevoteKontrollid
+        version: v1
+      x-provider-path: /ljvis/xroad/provide/isiku-ettevote-kontrollid
+      parameters:
+      - in: header
+        name: X-Road-Client
+        required: true
+        schema:
+          type: string
+        example: ee-dev/GOV/70001490/liiklusregister
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  kontrollid:
+                    type: object
+                    properties:
+                      item:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            kuupaev:
+                              type: string
+                            nimetus:
+                              type: string
+                            asutus:
+                              type: string
+                            soiduki_reg_nr:
+                              type: string
+                              nullable: true
+                            rikkumise_liik:
+                              type: string
+                              nullable: true
+                            kontrolli_nimetus:
+                              type: string
+                            juhi_nimi:
+                              type: string
+                            juhi_perekonnanimi:
+                              type: string
+                            rikkumised:
+                              type: string
+                              nullable: true
+                            rikkumised_lopetatud:
+                              type: string
+                              nullable: true
+                            ettevote_reg_nr:
+                              type: string
+                          required:
+                          - kuupaev
+                          - nimetus
+                          - asutus
+                          - soiduki_reg_nr
+                          - rikkumise_liik
+                          - kontrolli_nimetus
+                          - juhi_nimi
+                          - juhi_perekonnanimi
+                          - rikkumised
+                          - rikkumised_lopetatud
+                          - ettevote_reg_nr
+                          additionalProperties: false
+                    required:
+                    - item
+                    additionalProperties: false
+                required:
+                - kontrollid
+                additionalProperties: false
+              example:
+                kontrollid:
+                  item:
+                  - kuupaev: '2026-06-15'
+                    nimetus: MOCK-KV-001
+                    asutus: Mockvedaja OÜ
+                    soiduki_reg_nr: MOCK123
+                    rikkumise_liik: extraordinary_inspection
+                    kontrolli_nimetus: KOONDVORM
+                    juhi_nimi: Test
+                    juhi_perekonnanimi: Juht
+                    rikkumised: null
+                    rikkumised_lopetatud: null
+                    ettevote_reg_nr: '00000001'
+                  - kuupaev: '2026-06-14'
+                    nimetus: MOCK-TI-002
+                    asutus: Mockvedaja OÜ
+                    soiduki_reg_nr: null
+                    rikkumise_liik: null
+                    kontrolli_nimetus: TOOINSPEKTION
+                    juhi_nimi: Test
+                    juhi_perekonnanimi: Juht
+                    rikkumised: null
+                    rikkumised_lopetatud: Mock lõpetamine
+                    ettevote_reg_nr: '00000001'
+        '400':
+          description: MISSING_PARAMETER, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: isikukood is required
+                error1:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: isikukood must be 11 digits starting with 1-6
+        '403':
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: FORBIDDEN
+                    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isikukood:
+                  type: string
+                  pattern: ^[1-6][0-9]{10}$
+              required:
+              - isikukood
+              additionalProperties: true
+            example:
+              isikukood: '60001019906'
+  /xroad/v1/erakorraline-yv-query:
+    post:
+      operationId: ErakorralineYVquery
+      summary: ErakorralineYVquery
+      x-xroad-service:
+        code: ErakorralineYVquery
+        version: v1
+      x-provider-path: /ljvis/xroad/provide/erakorraline-yv-query
+      parameters:
+      - in: header
+        name: X-Road-Client
+        required: true
+        schema:
+          type: string
+        example: ee-dev/GOV/70001490/liiklusregister
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  targeted_for_inspection:
+                    type: object
+                    properties:
+                      item:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            licence_plate_no:
+                              type: string
+                            trailer_no:
+                              type: string
+                              nullable: true
+                            inspection_id:
+                              type: string
+                            inspection_no:
+                              type: string
+                            inspection_date:
+                              type: string
+                            inspection_type:
+                              type: string
+                            inspection_unit:
+                              type: string
+                            inspection_notes:
+                              type: string
+                              nullable: true
+                            inspector:
+                              type: string
+                              nullable: true
+                            issues:
+                              type: object
+                              properties:
+                                item:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      code:
+                                        type: string
+                                      value:
+                                        type: string
+                                    required:
+                                    - code
+                                    - value
+                                    additionalProperties: false
+                              required:
+                              - item
+                              additionalProperties: false
+                            notes:
+                              type: object
+                              properties:
+                                item:
+                                  type: array
+                                  items: {}
+                              required:
+                              - item
+                              additionalProperties: false
+                            inspection_refine_options:
+                              type: object
+                              properties:
+                                item:
+                                  type: array
+                                  items:
+                                    type: string
+                              required:
+                              - item
+                              additionalProperties: false
+                          required:
+                          - licence_plate_no
+                          - trailer_no
+                          - inspection_id
+                          - inspection_no
+                          - inspection_date
+                          - inspection_type
+                          - inspection_unit
+                          - inspection_notes
+                          - inspector
+                          - issues
+                          - notes
+                          - inspection_refine_options
+                          additionalProperties: false
+                    required:
+                    - item
+                    additionalProperties: false
+                required:
+                - targeted_for_inspection
+                additionalProperties: false
+              example:
+                targeted_for_inspection:
+                  item:
+                  - licence_plate_no: MOCK123
+                    trailer_no: null
+                    inspection_id: '900001'
+                    inspection_no: MOCK-KV-001
+                    inspection_date: '2026-06-15'
+                    inspection_type: extraordinary_inspection
+                    inspection_unit: Mockvedaja OÜ
+                    inspection_notes: Sünteetiline näidiskontroll
+                    inspector: null
+                    issues:
+                      item:
+                      - code: B01
+                        value: defect_minor
+                    notes:
+                      item: []
+                    inspection_refine_options:
+                      item:
+                      - REGNR
+                      - VINTIN
+                      - AXLES
+                      - PLACES
+                      - REBUILT
+                  - licence_plate_no: MOCK456
+                    trailer_no: null
+                    inspection_id: '900002'
+                    inspection_no: MOCK-KV-002
+                    inspection_date: '2026-06-14'
+                    inspection_type: extraordinary_inspection_ta
+                    inspection_unit: Mockvedaja OÜ
+                    inspection_notes: null
+                    inspector: null
+                    issues:
+                      item: []
+                    notes:
+                      item: []
+                    inspection_refine_options:
+                      item: []
+        '400':
+          description: MISSING_PARAMETER, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: alates is required
+                error1:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kuni is required
+                error2:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: alates must not be after kuni
+        '403':
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: FORBIDDEN
+                    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alates:
+                  type: string
+                kuni:
+                  type: string
+              required:
+              - alates
+              - kuni
+              additionalProperties: true
+            example:
+              alates: '2026-06-01'
+              kuni: '2026-06-30'
+  /xroad/v1/erakorraline-yv-confirm:
+    post:
+      operationId: ErakorralineYVconfirm
+      summary: ErakorralineYVconfirm
+      x-xroad-service:
+        code: ErakorralineYVconfirm
+        version: v1
+      x-provider-path: /ljvis/xroad/provide/erakorraline-yv-confirm
+      parameters:
+      - in: header
+        name: X-Road-Client
+        required: true
+        schema:
+          type: string
+        example: ee-dev/GOV/70001490/liiklusregister
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  confirmed:
+                    type: integer
+                required:
+                - confirmed
+                additionalProperties: false
+              example:
+                confirmed: 1
+        '400':
+          description: MISSING_PARAMETER, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: confirmed.item must be a non-empty array
+                error1:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: Each item requires inspection_id, code and value
+                error2:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: 'code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS'
+        '403':
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: FORBIDDEN
+                    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+        '404':
+          description: NOT_FOUND
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: NOT_FOUND
+                    message: inspection_id not found or form is not in confirmed status
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirmed:
+                  type: object
+                  properties:
+                    item:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          inspection_id:
+                            type: string
+                          code:
+                            type: string
+                            enum:
+                            - INSPECTION_DATE
+                            - ENFORCEMENT_DECISION
+                            - CLOSURE_BASIS
+                          value:
+                            type: string
+                        required:
+                        - inspection_id
+                        - code
+                        - value
+                        additionalProperties: false
+                      minItems: 1
+                  required:
+                  - item
+                  additionalProperties: false
+              required:
+              - confirmed
+              additionalProperties: true
+            example:
+              confirmed:
+                item:
+                - inspection_id: '900001'
+                  code: INSPECTION_DATE
+                  value: '2026-06-16'
+  /xroad/v1/register-job-inspection:
+    post:
+      operationId: RegisterJobInspection
+      summary: RegisterJobInspection
+      x-xroad-service:
+        code: RegisterJobInspection
+        version: v1
+      x-provider-path: /ljvis/xroad/provide/register-job-inspection
+      parameters:
+      - in: header
+        name: X-Road-Client
+        required: true
+        schema:
+          type: string
+        example: ee-dev/GOV/70001490/liiklusregister
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                - message
+                additionalProperties: false
+              example:
+                message: Success
+        '400':
+          description: MISSING_PARAMETER, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrollija is required
+                error1:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrolli_id is required
+                error2:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrolli_kp is required
+                error3:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: kontrolli_kp must be a valid date
+                error4:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: tooandja_nimi is required
+                error5:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: tooandja_reg_kood is required
+                error6:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrollimised is required
+                error7:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: rikkumised is required
+                error8:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: koostatatud_ettekirjutus is required
+        '403':
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: FORBIDDEN
+                    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kontrollija:
+                  type: string
+                kontrolli_id:
+                  type: integer
+                kontrolli_kp:
+                  type: string
+                tooandja_nimi:
+                  type: string
+                tooandja_reg_kood:
+                  type: string
+                soidukite_arv:
+                  type: integer
+                koostatatud_ettekirjutus:
+                  type: boolean
+                kontrollimised:
+                  type: object
+                  additionalProperties: true
+                rikkumised:
+                  type: object
+                  additionalProperties: true
+                vaarteomenetlus:
+                  type: string
+              required:
+              - kontrollija
+              - kontrolli_id
+              - kontrolli_kp
+              - tooandja_nimi
+              - tooandja_reg_kood
+              - koostatatud_ettekirjutus
+              - kontrollimised
+              - rikkumised
+              additionalProperties: true
+            example:
+              kontrollija: Mock Kontrollija
+              kontrolli_id: 900001
+              kontrolli_kp: '2026-06-15'
+              tooandja_nimi: Mockvedaja OÜ
+              tooandja_reg_kood: '00000001'
+              soidukite_arv: 2
+              koostatatud_ettekirjutus: false
+              kontrollimised: &id001
+                kontrollitud_soitjate_veol: false
+              rikkumised: &id002
+                rikkumised_loend: []
+              vaarteomenetlus: MOCK-VM-001
+  /xroad/v1/register-job-inspection-v3:
+    post:
+      operationId: RegisterJobInspection_v3
+      summary: RegisterJobInspection_v3
+      x-xroad-service:
+        code: RegisterJobInspection_v3
+        version: v3
+      x-provider-path: /ljvis/xroad/provide/register-job-inspection-v3
+      parameters:
+      - in: header
+        name: X-Road-Client
+        required: true
+        schema:
+          type: string
+        example: ee-dev/GOV/70001490/liiklusregister
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                - message
+                additionalProperties: false
+              example:
+                message: Success
+        '400':
+          description: MISSING_PARAMETER, INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrollija is required
+                error1:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrolli_id is required
+                error2:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrolli_kp is required
+                error3:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: kontrolli_kp must be a valid date
+                error4:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: tooandja_nimi is required
+                error5:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: tooandja_reg_kood is required
+                error6:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: kontrollimised is required
+                error7:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: rikkumised is required
+                error8:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: koostatatud_ettekirjutus is required
+                error9:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: juhi_isikukood must be 11 digits starting with 1-6
+                error10:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: 'menetluse_liik must be one of: lyhimenetlus, kiirmenetlus, uldmenetlus'
+        '403':
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: FORBIDDEN
+                    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kontrollija:
+                  type: string
+                kontrolli_id:
+                  type: integer
+                kontrolli_kp:
+                  type: string
+                tooandja_nimi:
+                  type: string
+                tooandja_reg_kood:
+                  type: string
+                soidukite_arv:
+                  type: integer
+                koostatatud_ettekirjutus:
+                  type: boolean
+                kontrollimised:
+                  type: object
+                  additionalProperties: true
+                rikkumised:
+                  type: object
+                  additionalProperties: true
+                vaarteomenetlus:
+                  type: string
+                soiduki_reg_nr:
+                  type: string
+                soiduki_vin:
+                  type: string
+                juhi_isikukood:
+                  type: string
+                juhi_eesnimi:
+                  type: string
+                juhi_perekonnanimi:
+                  type: string
+                menetluse_liik:
+                  type: string
+                menetluse_number:
+                  type: string
+              required:
+              - kontrollija
+              - kontrolli_id
+              - kontrolli_kp
+              - tooandja_nimi
+              - tooandja_reg_kood
+              - koostatatud_ettekirjutus
+              - kontrollimised
+              - rikkumised
+              additionalProperties: true
+            example:
+              kontrollija: Mock Kontrollija
+              kontrolli_id: 900001
+              kontrolli_kp: '2026-06-15'
+              tooandja_nimi: Mockvedaja OÜ
+              tooandja_reg_kood: '00000001'
+              soidukite_arv: 2
+              koostatatud_ettekirjutus: false
+              kontrollimised: *id001
+              rikkumised: *id002
+              vaarteomenetlus: MOCK-VM-001
+              soiduki_reg_nr: MOCK123
+              soiduki_vin: MOCKVIN0000000001
+              juhi_isikukood: '60001019906'
+              juhi_eesnimi: Test
+              juhi_perekonnanimi: Juht
+              menetluse_liik: uldmenetlus
+              menetluse_number: MOCK-001
+  /xroad/v2/findUsage:
+    get:
+      operationId: findUsage
+      summary: findUsage
+      x-xroad-service:
+        code: findUsage
+        version: v2
+      x-provider-path: /ljvis/xroad/v2/findUsage
+      parameters:
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      - in: header
+        name: X-Road-UserId
+        required: true
+        schema:
+          type: string
+        example: '60001019906'
+      - in: query
+        name: userCode
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: periodStart
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: periodEnd
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: offset
+        required: false
+        schema:
+          type: integer
+      - in: query
+        name: limit
+        required: false
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalUsages:
+                    type: integer
+                  usages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        logtime:
+                          type: string
+                        action:
+                          type: string
+                        receiverCode:
+                          type: string
+                        receiverName:
+                          type: string
+                          nullable: true
+                        receiverSystem:
+                          type: string
+                          nullable: true
+                      required:
+                      - logtime
+                      - action
+                      - receiverCode
+                      - receiverName
+                      - receiverSystem
+                      additionalProperties: false
+                required:
+                - totalUsages
+                - usages
+                additionalProperties: false
+              example:
+                totalUsages: 3
+                usages:
+                - logtime: '2026-06-15T12:00:00Z'
+                  action: Mock kontrollipäring
+                  receiverCode: '70001490'
+                  receiverName: Mock tarbija
+                  receiverSystem: liiklusregister
+                - logtime: '2026-06-14T12:00:00Z'
+                  action: Mock töökontroll
+                  receiverCode: '70001969'
+                  receiverName: null
+                  receiverSystem: null
+                - logtime: '2026-06-13T12:00:00Z'
+                  action: Mock korduspäring
+                  receiverCode: '70001490'
+                  receiverName: Mock tarbija
+                  receiverSystem: liiklusregister
+        '400':
+          description: MISSING_HEADER, MISSING_PARAMETER, FORBIDDEN
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: MISSING_HEADER
+                    message: X-Road-UserId header is required
+                error1:
+                  value:
+                    error: MISSING_PARAMETER
+                    message: userCode query parameter is required
+                error2:
+                  value:
+                    error: FORBIDDEN
+                    message: X-Road-UserId must match userCode
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+  /xroad/v2/usagePeriod:
+    get:
+      operationId: usagePeriod
+      summary: usagePeriod
+      x-xroad-service:
+        code: usagePeriod
+        version: v2
+      x-provider-path: /ljvis/xroad/v2/usagePeriod
+      parameters:
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  periodStart:
+                    type: string
+                required:
+                - periodStart
+                additionalProperties: false
+              example:
+                periodStart: '2026-06-13T12:00:00Z'
+        '500':
+          description: SERVER_ERROR
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - error
+                - message
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+              examples:
+                error0:
+                  value:
+                    error: SERVER_ERROR
+                    message: Internal error
+  /xroad/v2/heartbeat:
+    get:
+      operationId: heartbeat
+      summary: heartbeat
+      x-xroad-service:
+        code: heartbeat
+        version: v2
+      x-provider-path: /ljvis/xroad/v2/heartbeat
+      parameters:
+      - in: header
+        name: X-Mock-Scenario
+        required: false
+        schema:
+          type: string
+          enum:
+          - empty
+          - server-error
+        description: Ainult mockis; heartbeat ignoreerib.
+      responses:
+        '200':
+          description: Edukas vastus; tühi loend on edukas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - status
+                - message
+                additionalProperties: false
+              example:
+                status: OK
+                message: API is ready
