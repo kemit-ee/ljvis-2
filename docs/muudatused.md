@@ -16,6 +16,9 @@
 - Sõidu- ja puhkeaja vormi salvestamine (koondvormi "Salvesta kõik" kaudu, kui
   vormi ATP-välja ise ei muudetud) ebaõnnestus veaga "atpViolationFound
   expected string, got boolean". Parandatud.
+- Mõlemale veale lisati regressioonitest: RSI eeltäitmisele Ruuteri enda
+  dsl-test stsenaarium (DSL-tests/erru/rsi-build.test.yml, jooksutatud
+  reaalse DSL-mootoriga), puhkeaja vormile Vitest üksuse test.
 
 ### PPA kontrollvormide sisendite ja failide parendused
 
