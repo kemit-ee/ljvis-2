@@ -9,6 +9,14 @@
 > = ADR-009 revisjonimärkus. `_current` / fakt-vaated (PR2/PR3) = samuti plain view.
 >
 > **Staatus:** PR1 (#305) merged. PR2/PR3 lahtised.
+>
+> **Revisjon 21.09.2026:** roll `tableau_ro` on **kustutatud**
+> (`20261121100000-tableau-ro-decommission`) — ta sai vahepeal (ekslikult,
+> vt ADR-009 parandusmärkus) `SELECT`-i ka `forms`/`classifier` aluslaudadele,
+> mis mööda läks vaadete PII maskeerimisest. Asendatud rolliga
+> `kemit_andmelaadija` (`20261121110000-kemit-andmelaadija-role`), sama
+> õigustega — `SELECT` ainult `tableau` skeemis, ei midagi enamat. Allpool
+> jaotiste 2 ja 9 `tableau_ro`-viited on **AEGUNUD**, autoriteet = ADR-009.
 > **Kontekst:** `docs/planning/Tableau_guidlines.md` §3 pakkus juba `tableau.*_current`
 > vaadete komplekti, aga **kopeeri-kleebi kujul, mille DBA jooksutab käsitsi**. See
 > triivib iga `forms.*` skeemimuudatusega. Käesolev plaan viib need versioonihaldusse

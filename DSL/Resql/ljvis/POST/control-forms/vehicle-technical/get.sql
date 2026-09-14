@@ -33,6 +33,9 @@ returns:
 - name: resultTransportInterruption
   type: string
   nullable: true
+- name: transportInterruptionAutovs5131
+  type: string
+  nullable: true
 - name: eraYvMntRegnr
   type: string
   nullable: true
@@ -83,6 +86,7 @@ SELECT
   parts_defects::text,
   result_type,
   result_transport_interruption,
+  transport_interruption_autovs_51_3_1,
   era_yv_mnt_regnr,
   era_yv_mnt_vintin,
   era_yv_mnt_axles,

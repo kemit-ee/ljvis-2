@@ -8,6 +8,7 @@ import type {
   TechnicalCheckForm,
   TechnicalCheckVariant,
   PartSummaryEntry,
+  PartSummaryStatus,
   PartDefectEntry,
   PartSeverity,
 } from '../../types';
@@ -40,6 +41,36 @@ const computeAutoResult = (defects: PartDefectEntry[]): 'ok' | 'extraordinary_in
   return 'ok';
 };
 
+/** Reads a saved snapshot's partsSummary — old rows still carry the legacy
+ * `{partCode, status}` shape (3-way radio), new ones carry
+ * `{partCode, checked, hasDefect}`. Normalizes to the new shape so a form
+ * saved before this change still displays correctly. */
+function normalizePartSummary(
+  raw: (Partial<PartSummaryEntry> & { status?: PartSummaryStatus })[],
+): PartSummaryEntry[] {
+  return raw.map((p) => {
+    if (typeof p.checked === 'boolean' || typeof p.hasDefect === 'boolean') {
+      return { partCode: p.partCode!, checked: !!p.checked, hasDefect: !!p.hasDefect };
+    }
+    return {
+      partCode: p.partCode!,
+      checked: p.status === 'checked' || p.status === 'non_compliant',
+      hasDefect: p.status === 'non_compliant',
+    };
+  });
+}
+
+/** Auto-generated "Märkused" line prefix for a given part — lets a later
+ * defect edit find and replace exactly this part's own lines without
+ * touching other parts' lines or the officer's own free text (p8/p14). */
+const noteLinePrefix = (partCode: string) => `${partCode}: `;
+
+function syncPartNoteLines(notes: string, partCode: string, lines: string[]): string {
+  const prefix = noteLinePrefix(partCode);
+  const otherLines = (notes ?? '').split('\n').filter((l) => l && !l.startsWith(prefix));
+  return [...otherLines, ...lines].join('\n').slice(0, 2000);
+}
+
 export function createTechnicalCheckValidationSchema(
   t: (key: string) => string,
 ) {
@@ -69,7 +100,6 @@ export function useTechnicalCheckForm(
   form: TechnicalCheckForm | undefined,
   onSaved: (id?: string) => void,
   compoundFormKey?: number,
-  isEditLocked = false,
   onPublished?: () => void,
 ) {
   const { t } = useTranslation();
@@ -128,7 +158,10 @@ export function useTechnicalCheckForm(
       partsSummary: (() => {
         const raw = form?.partsSummary;
         const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        return (Array.isArray(parsed) ? parsed : parts.map((p) => ({ partCode: p.code, status: 'not_checked' }))) as PartSummaryEntry[];
+        const entries = Array.isArray(parsed)
+          ? parsed
+          : parts.map((p) => ({ partCode: p.code, checked: false, hasDefect: false }));
+        return normalizePartSummary(entries);
       })(),
       partsDefects: (() => {
         const raw = form?.partsDefects;
@@ -137,6 +170,7 @@ export function useTechnicalCheckForm(
       })(),
       resultType: form?.resultType ?? 'ok',
       resultTransportInterruption: form?.resultTransportInterruption ?? false,
+      transportInterruptionAutovs5131: form?.transportInterruptionAutovs5131 ?? false,
       eraYvMntRegnr: form?.eraYvMntRegnr ?? false,
       eraYvMntVintin: form?.eraYvMntVintin ?? false,
       eraYvMntAxles: form?.eraYvMntAxles ?? false,
@@ -209,11 +243,12 @@ export function useTechnicalCheckForm(
   };
 
   /** Pure: given the current form values and the defect change, returns the
-   * result-type / violations updates (auto-escalation / -downgrade, auto MSI302
-   * on driving_ban). Returned as a partial so callers can fold it into ONE
-   * atomic setValues — multiple sequential formik.setFieldValue calls clobber
-   * each other (each reads the same stale values snapshot), which is why the
-   * defect/summary updates were being lost. */
+   * result-type / violations updates (auto-escalation / -downgrade, auto
+   * add-or-remove MSI302 to match the FINAL result_type). Returned as a
+   * partial so callers can fold it into ONE atomic setValues — multiple
+   * sequential formik.setFieldValue calls clobber each other (each reads the
+   * same stale values snapshot), which is why the defect/summary updates
+   * were being lost. */
   const computeResultChanges = (
     values: typeof formik.values,
     previousDefects: PartDefectEntry[],
@@ -232,14 +267,24 @@ export function useTechnicalCheckForm(
       changes.resultType = wasTa && autoLevel >= 1 ? 'extraordinary_inspection_ta' : autoResult;
     }
 
+    const finalResultType = changes.resultType ?? values.resultType;
     const currentViolations = values.violations ?? [];
-    if (autoResult === 'driving_ban' && !currentViolations.includes(DRIVING_BAN_VIOLATION_CODE)) {
+    const hasDrivingBan = currentViolations.includes(DRIVING_BAN_VIOLATION_CODE);
+    if (finalResultType === 'driving_ban' && !hasDrivingBan) {
       changes.violations = [...currentViolations, DRIVING_BAN_VIOLATION_CODE];
+    } else if (finalResultType !== 'driving_ban' && hasDrivingBan) {
+      // MSI302 is fully automatic — dropping below driving_ban must always
+      // clear it too, whether the drop came from removing the triggering
+      // defect or from a manual result-type change (15 ettepanekut p10).
+      changes.violations = currentViolations.filter((c) => c !== DRIVING_BAN_VIOLATION_CODE);
     }
     return changes;
   };
 
-  /** Applies the outcome of the "Ei vasta nõuetele" defect-selection modal for one part. */
+  /** Applies the outcome of the "Ei vasta nõuetele" defect-selection modal for
+   * one part. Selecting a defect always forces checked=true for that part —
+   * "hasDefect" implies "checked", and checked never reverts to false once a
+   * defect exists (15 ettepanekut p2, EL aruande "Kontrollitud" nõue). */
   const applyPartDefects = (partCode: string, selected: { defectCode: string; severity: PartSeverity }[]) => {
     const v = formik.values;
     const previousDefects = v.partsDefects ?? [];
@@ -250,24 +295,22 @@ export function useTechnicalCheckForm(
     ];
 
     const prevSummary = v.partsSummary ?? [];
+    const nextEntry: PartSummaryEntry = { partCode, checked: true, hasDefect: selected.length > 0 };
     const summary = prevSummary.some((p) => p.partCode === partCode)
-      ? prevSummary.map((p) =>
-          p.partCode === partCode ? { ...p, status: 'non_compliant' as const } : p,
-        )
-      : [...prevSummary, { partCode, status: 'non_compliant' as const }];
+      ? prevSummary.map((p) => (p.partCode === partCode ? nextEntry : p))
+      : [...prevSummary, nextEntry];
 
-    // Append a note line per newly selected defect (defect removal does not remove the note — LJVIS2-72 §4).
-    let notes = v.notes ?? '';
-    if (selected.length > 0) {
-      const defectNames = defectsByPartKey.get(
-        parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
-      ) ?? [];
-      const noteLines = selected.map((s) => {
-        const defect = defectNames.find((d) => d.code === s.defectCode);
-        return `${defect?.name ?? s.defectCode} – ${s.severity}`;
-      });
-      notes = [notes, ...noteLines].filter(Boolean).join('\n').slice(0, 2000);
-    }
+    // Replace (not append) this part's own auto-generated note lines with the
+    // current selection, so removed/changed defects don't leave stale text
+    // behind (15 ettepanekut p8/p14).
+    const defectNames = defectsByPartKey.get(
+      parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
+    ) ?? [];
+    const noteLines = selected.map((s) => {
+      const defect = defectNames.find((d) => d.code === s.defectCode);
+      return `${noteLinePrefix(partCode)}${defect?.name ?? s.defectCode} – ${s.severity}`;
+    });
+    const notes = syncPartNoteLines(v.notes ?? '', partCode, noteLines);
 
     // Single atomic update — see computeResultChanges note.
     formik.setValues({
@@ -279,50 +322,60 @@ export function useTechnicalCheckForm(
     });
   };
 
-  const setPartStatus = (partCode: string, status: PartSummaryEntry['status']) => {
+  /** Sets "Kontrollitud" directly (not via the defect modal). Cannot be
+   * turned off while the part has a recorded defect — hasDefect always
+   * implies checked (15 ettepanekut p2). */
+  const setPartChecked = (partCode: string, checked: boolean) => {
     const v = formik.values;
     const prevSummary = v.partsSummary ?? [];
-    const summary = prevSummary.some((p) => p.partCode === partCode)
-      ? prevSummary.map((p) => (p.partCode === partCode ? { ...p, status } : p))
-      : [...prevSummary, { partCode, status }];
-
-    // 'non_compliant' normally arrives via the modal flow (applyPartDefects);
-    // if it is set directly, only the summary status changes — defects and the
-    // auto-derived result are left to the modal.
-    if (status === 'non_compliant') {
-      formik.setValues({ ...v, partsSummary: summary });
-      return;
-    }
-    const previousDefects = v.partsDefects ?? [];
-    const newDefects = previousDefects.filter((d) => d.partCode !== partCode);
-    formik.setValues({
-      ...v,
-      partsSummary: summary,
-      partsDefects: newDefects,
-      ...computeResultChanges(v, previousDefects, newDefects),
-    });
+    const existing = prevSummary.find((p) => p.partCode === partCode);
+    if (!checked && existing?.hasDefect) return;
+    const nextEntry: PartSummaryEntry = { partCode, checked, hasDefect: existing?.hasDefect ?? false };
+    const summary = existing
+      ? prevSummary.map((p) => (p.partCode === partCode ? nextEntry : p))
+      : [...prevSummary, nextEntry];
+    formik.setFieldValue('partsSummary', summary);
   };
 
   /** Removes a single defect from the results table (LJVIS2-72 §4, UC-11/UC-12).
-   * Does NOT remove the corresponding auto-generated "Märkused" line. If the part
-   * has no remaining defects afterwards, its summary status reverts to "checked". */
+   * "Kontrollitud" stays on (15 ettepanekut p2 — the part was checked, that
+   * doesn't stop being true because a defect got corrected/removed). The
+   * defect's auto-generated "Märkused" line is removed along with it
+   * (p8/p14) — remaining defects for the part get their lines rewritten so
+   * nothing stale is left over. */
   const removeDefect = (partCode: string, defectCode: string) => {
     const v = formik.values;
     const previousDefects = v.partsDefects ?? [];
     const newDefects = previousDefects.filter(
       (d) => !(d.partCode === partCode && d.defectCode === defectCode),
     );
-    const partHasRemainingDefects = newDefects.some((d) => d.partCode === partCode);
-    const summary = partHasRemainingDefects
-      ? v.partsSummary ?? []
-      : (v.partsSummary ?? []).map((p) =>
-          p.partCode === partCode ? { ...p, status: 'checked' as const } : p,
-        );
+    const remainingForPart = newDefects.filter((d) => d.partCode === partCode);
+
+    const prevSummary = v.partsSummary ?? [];
+    const existing = prevSummary.find((p) => p.partCode === partCode);
+    const nextEntry: PartSummaryEntry = {
+      partCode,
+      checked: existing?.checked ?? true,
+      hasDefect: remainingForPart.length > 0,
+    };
+    const summary = existing
+      ? prevSummary.map((p) => (p.partCode === partCode ? nextEntry : p))
+      : [...prevSummary, nextEntry];
+
+    const defectNames = defectsByPartKey.get(
+      parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
+    ) ?? [];
+    const noteLines = remainingForPart.map((d) => {
+      const defect = defectNames.find((dd) => dd.code === d.defectCode);
+      return `${noteLinePrefix(partCode)}${defect?.name ?? d.defectCode} – ${d.severity}`;
+    });
+    const notes = syncPartNoteLines(v.notes ?? '', partCode, noteLines);
 
     formik.setValues({
       ...v,
       partsDefects: newDefects,
       partsSummary: summary,
+      notes,
       ...computeResultChanges(v, previousDefects, newDefects),
     });
   };
@@ -338,33 +391,28 @@ export function useTechnicalCheckForm(
       formik.setFieldValue('eraYvMntPlaces', false);
       formik.setFieldValue('eraYvMntRebuilt', false);
     }
+    const currentViolations = formik.values.violations ?? [];
     if (resultType === 'ok') {
       formik.setFieldValue('violations', []);
       formik.setFieldValue('proceedingType', '');
       formik.setFieldValue('proceedingReferenceNumber', '');
-    }
-    if (resultType === 'driving_ban') {
-      const currentViolations = formik.values.violations ?? [];
+    } else if (resultType === 'driving_ban') {
       if (!currentViolations.includes(DRIVING_BAN_VIOLATION_CODE)) {
         formik.setFieldValue('violations', [...currentViolations, DRIVING_BAN_VIOLATION_CODE]);
       }
+    } else if (currentViolations.includes(DRIVING_BAN_VIOLATION_CODE)) {
+      // Leaving driving_ban (to extraordinary_inspection[_ta]) always clears
+      // MSI302 too — it is fully automatic (15 ettepanekut p10).
+      formik.setFieldValue(
+        'violations',
+        currentViolations.filter((c) => c !== DRIVING_BAN_VIOLATION_CODE),
+      );
     }
   };
 
   const isDrivingBanTriggerActive = resultLevel(computeAutoResult(formik.values.partsDefects ?? [])) >= 2;
 
   const toggleViolation = (code: string, checked: boolean) => {
-    // MSI302 cannot be unchecked by a regular user while an EOV defect forces
-    // driving_ban. An administrator (control_form.edit_locked) may override
-    // this regardless of form status — LJVIS2-72 §4, UC-13.
-    if (
-      code === DRIVING_BAN_VIOLATION_CODE &&
-      !checked &&
-      isDrivingBanTriggerActive &&
-      !isEditLocked
-    ) {
-      return;
-    }
     const current = formik.values.violations ?? [];
     formik.setFieldValue(
       'violations',
@@ -378,7 +426,7 @@ export function useTechnicalCheckForm(
     defectsByPartKey,
     euViolations,
     applyPartDefects,
-    setPartStatus,
+    setPartChecked,
     removeDefect,
     setResultType,
     toggleViolation,
