@@ -6,14 +6,6 @@
 
 ## 2026-09-14
 
-### Kontrollvormide alamvormide avalikustamine ei töötanud
-
-- Ühegi kontrollvormi alamvormi (autoveo katkestamine, autojuhi/meeskonnaliikme
-  sõidu- ja puhkeaeg, ADR, tehnokontroll, tööinspektsiooni akt, hea maine,
-  koondvorm, TRAM kontrollkaart) "Avalikusta" nupp ei töötanud pärast
-  kinnitamist — päring ebaõnnestus veaga "Field type mismatch in body: id
-  expected string, got number". Nüüd avalikustamine töötab.
-
 ### Mootorsõiduki/haagise tehnokontrollkaardi X-tee andmete automatiseerimine
 
 - "Jõustunud otsus", "Menetluse lõpetamise alus" ja "Erakorraline tehnoülevaatus
