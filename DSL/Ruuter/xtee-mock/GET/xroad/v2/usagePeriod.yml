@@ -34,13 +34,9 @@ buildResponse:
   next: returnOk
 returnOk:
   status: 200
-  return: '${JSON.parse(JSON.stringify({periodStart: period_start}))}'
+  return: '${JSON.stringify({periodStart: period_start})}'
   next: end
-  wrapper: false
 returnServerError:
   status: 500
-  return:
-    error: SERVER_ERROR
-    message: Internal error
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
   next: end
-  wrapper: false

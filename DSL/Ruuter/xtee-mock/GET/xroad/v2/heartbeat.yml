@@ -17,8 +17,5 @@ declaration:
     params: []
 returnOk:
   status: 200
-  return:
-    status: OK
-    message: API is ready
+  return: '{"status": "OK", "message": "API is ready"}'
   next: end
-  wrapper: false

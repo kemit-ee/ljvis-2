@@ -2,43 +2,37 @@
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "confirmed.item must be a non-empty array"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"confirmed.item must be a non-empty array\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "INVALID_PARAMETER",
-      "message": "Each item requires inspection_id, code and value"
+      "response": "{\"error\": \"INVALID_PARAMETER\", \"message\": \"Each item requires inspection_id, code and value\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "INVALID_PARAMETER",
-      "message": "code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS"
+      "response": "{\"error\": \"INVALID_PARAMETER\", \"message\": \"code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS\"}"
     }
   },
   {
     "status": 404,
     "body": {
-      "error": "NOT_FOUND",
-      "message": "inspection_id not found or form is not in confirmed status"
+      "response": "{\"error\": \"NOT_FOUND\", \"message\": \"inspection_id not found or form is not in confirmed status\"}"
     }
   },
   {
     "status": 500,
     "body": {
-      "error": "SERVER_ERROR",
-      "message": "Internal error"
+      "response": "{\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}"
     }
   },
   {
     "status": 403,
     "body": {
-      "error": "FORBIDDEN",
-      "message": "X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)"
+      "response": "{\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}"
     }
   }
 ]

@@ -147,10 +147,8 @@ logAjUsage:
   next: returnSuccess
 returnSuccess:
   status: 200
-  return:
-    message: Success
+  return: '{"message": "Success"}'
   next: end
-  wrapper: false
 logFailure:
   assign:
     logResult:
@@ -160,85 +158,50 @@ logFailure:
   next: returnServerError
 returnServerError:
   status: 500
-  return:
-    error: SERVER_ERROR
-    message: Internal error
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
   next: end
-  wrapper: false
 returnMissingKontrollija:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: kontrollija is required
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollija is required"}'
   next: end
-  wrapper: false
 returnMissingKontrolliId:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: kontrolli_id is required
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_id is required"}'
   next: end
-  wrapper: false
 returnMissingKontrolliKp:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: kontrolli_kp is required
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_kp is required"}'
   next: end
-  wrapper: false
 returnInvalidKontrolliKp:
   status: 400
-  return:
-    error: INVALID_PARAMETER
-    message: kontrolli_kp must be a valid date
+  return: '{"error": "INVALID_PARAMETER", "message": "kontrolli_kp must be a valid date"}'
   next: end
-  wrapper: false
 returnMissingTooandja:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: tooandja_nimi is required
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_nimi is required"}'
   next: end
-  wrapper: false
 returnMissingTooandjaRegKood:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: tooandja_reg_kood is required
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_reg_kood is required"}'
   next: end
-  wrapper: false
 returnMissingKontrollimised:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: kontrollimised is required
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollimised is required"}'
   next: end
-  wrapper: false
 returnMissingRikkumised:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: rikkumised is required
+  return: '{"error": "MISSING_PARAMETER", "message": "rikkumised is required"}'
   next: end
-  wrapper: false
 returnMissingEttekirjutus:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: koostatatud_ettekirjutus is required
+  return: '{"error": "MISSING_PARAMETER", "message": "koostatatud_ettekirjutus is required"}'
   next: end
-  wrapper: false
 returnInvalidIsikukood:
   status: 400
-  return:
-    error: INVALID_PARAMETER
-    message: juhi_isikukood must be 11 digits starting with 1-6
+  return: '{"error": "INVALID_PARAMETER", "message": "juhi_isikukood must be 11 digits starting with 1-6"}'
   next: end
-  wrapper: false
 returnInvalidMenetluseLiik:
   status: 400
-  return:
-    error: INVALID_PARAMETER
-    message: 'menetluse_liik must be one of: lyhimenetlus, kiirmenetlus, uldmenetlus'
+  return: '{"error": "INVALID_PARAMETER", "message": "menetluse_liik must be one of: lyhimenetlus, kiirmenetlus,
+    uldmenetlus"}'
   next: end
-  wrapper: false

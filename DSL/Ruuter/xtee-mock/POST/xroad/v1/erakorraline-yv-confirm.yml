@@ -85,9 +85,8 @@ logSuccess:
   next: returnSuccess
 returnSuccess:
   status: 200
-  return: '${JSON.parse(JSON.stringify({confirmed: processed}))}'
+  return: '${JSON.stringify({confirmed: processed})}'
   next: end
-  wrapper: false
 logFailure:
   assign:
     logResult:
@@ -97,36 +96,22 @@ logFailure:
   next: returnServerError
 returnMissingItems:
   status: 400
-  return:
-    error: MISSING_PARAMETER
-    message: confirmed.item must be a non-empty array
+  return: '{"error": "MISSING_PARAMETER", "message": "confirmed.item must be a non-empty array"}'
   next: end
-  wrapper: false
 returnInvalidItem:
   status: 400
-  return:
-    error: INVALID_PARAMETER
-    message: Each item requires inspection_id, code and value
+  return: '{"error": "INVALID_PARAMETER", "message": "Each item requires inspection_id, code and value"}'
   next: end
-  wrapper: false
 returnInvalidCode:
   status: 400
-  return:
-    error: INVALID_PARAMETER
-    message: 'code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS'
+  return: '{"error": "INVALID_PARAMETER", "message": "code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION,
+    CLOSURE_BASIS"}'
   next: end
-  wrapper: false
 returnNotFound:
   status: 404
-  return:
-    error: NOT_FOUND
-    message: inspection_id not found or form is not in confirmed status
+  return: '{"error": "NOT_FOUND", "message": "inspection_id not found or form is not in confirmed status"}'
   next: end
-  wrapper: false
 returnServerError:
   status: 500
-  return:
-    error: SERVER_ERROR
-    message: Internal error
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
   next: end
-  wrapper: false

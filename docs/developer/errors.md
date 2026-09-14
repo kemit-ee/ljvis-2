@@ -10,7 +10,7 @@
 | 404 | `NOT_FOUND` | Kinnituse `inspection_id` puudub või vorm ei ole kinnitatud |
 | 500 | `SERVER_ERROR` | Taustateenuse viga; mockis sünteetiline `server-error` stsenaarium |
 
-Keha kuju on `{"error":"...","message":"..."}`. Kõik iga operatsiooni rakenduse veateated on [näidisfailides](artifacts.md) ja [OpenAPI-s](xtee-openapi.yaml).
+Lahtiparsitud `response` välja kuju on `{"error":"...","message":"..."}`. HTTP-kehas on see JSON-tekst Ruuteri `response` ümbrises, nagu päris teenustel. Kõik iga operatsiooni rakenduse veateated on [näidisfailides](artifacts.md) ja [OpenAPI-s](xtee-openapi.yaml).
 Ruuteri enda süntaksi/tüübivead ning turvaserveri vead võivad anda teistsuguse keha. `heartbeat` ei paku sünteetilist veastsenaariumi.
 
 Näide puuduva päise kohta:
@@ -23,7 +23,7 @@ curl -i -X POST https://dev.liiklusvalve.ee/developer/xroad/v1/isiku-kontroll \
 HTTP 403:
 
 ```json
-{"error":"FORBIDDEN","message":"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)"}
+{"response":"{\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}"}
 ```
 
 ## Kasutuselevõtt

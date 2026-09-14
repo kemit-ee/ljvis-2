@@ -2,92 +2,79 @@
   {
     "status": 500,
     "body": {
-      "error": "SERVER_ERROR",
-      "message": "Internal error"
+      "response": "{\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "kontrollija is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"kontrollija is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "kontrolli_id is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"kontrolli_id is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "kontrolli_kp is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"kontrolli_kp is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "INVALID_PARAMETER",
-      "message": "kontrolli_kp must be a valid date"
+      "response": "{\"error\": \"INVALID_PARAMETER\", \"message\": \"kontrolli_kp must be a valid date\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "tooandja_nimi is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"tooandja_nimi is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "tooandja_reg_kood is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"tooandja_reg_kood is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "kontrollimised is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"kontrollimised is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "rikkumised is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"rikkumised is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "MISSING_PARAMETER",
-      "message": "koostatatud_ettekirjutus is required"
+      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"koostatatud_ettekirjutus is required\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "INVALID_PARAMETER",
-      "message": "juhi_isikukood must be 11 digits starting with 1-6"
+      "response": "{\"error\": \"INVALID_PARAMETER\", \"message\": \"juhi_isikukood must be 11 digits starting with 1-6\"}"
     }
   },
   {
     "status": 400,
     "body": {
-      "error": "INVALID_PARAMETER",
-      "message": "menetluse_liik must be one of: lyhimenetlus, kiirmenetlus, uldmenetlus"
+      "response": "{\"error\": \"INVALID_PARAMETER\", \"message\": \"menetluse_liik must be one of: lyhimenetlus, kiirmenetlus, uldmenetlus\"}"
     }
   },
   {
     "status": 403,
     "body": {
-      "error": "FORBIDDEN",
-      "message": "X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)"
+      "response": "{\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}"
     }
   }
 ]

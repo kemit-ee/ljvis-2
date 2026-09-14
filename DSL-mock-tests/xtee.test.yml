@@ -12,28 +12,9 @@ tests:
   expect:
     status: 200
     body_matches:
-      kontrollid:
-        item:
-        - kuupaev: '2026-06-15'
-          nimetus: MOCK-KV-001
-          asutus: Mockvedaja OÜ
-          soiduki_reg_nr: MOCK123
-          rikkumise_liik: extraordinary_inspection
-          kontrolli_nimetus: KOONDVORM
-          juhi_nimi: Test
-          juhi_perekonnanimi: Juht
-          rikkumised: null
-          rikkumised_lopetatud: null
-        - kuupaev: '2026-06-14'
-          nimetus: MOCK-TI-002
-          asutus: Mockvedaja OÜ
-          soiduki_reg_nr: null
-          rikkumise_liik: null
-          kontrolli_nimetus: TOOINSPEKTION
-          juhi_nimi: Test
-          juhi_perekonnanimi: Juht
-          rikkumised: null
-          rikkumised_lopetatud: Mock lõpetamine
+      response: '{"kontrollid":{"item":[{"asutus":"Mockvedaja OÜ","juhi_nimi":"Test","juhi_perekonnanimi":"Juht","kontrolli_nimetus":"KOONDVORM","kuupaev":"2026-06-15","nimetus":"MOCK-KV-001","rikkumise_liik":"extraordinary_inspection","rikkumised":null,"rikkumised_lopetatud":null,"soiduki_reg_nr":"MOCK123"},{"asutus":"Mockvedaja
+        OÜ","juhi_nimi":"Test","juhi_perekonnanimi":"Juht","kontrolli_nimetus":"TOOINSPEKTION","kuupaev":"2026-06-14","nimetus":"MOCK-TI-002","rikkumise_liik":null,"rikkumised":null,"rikkumised_lopetatud":"Mock
+        lõpetamine","soiduki_reg_nr":null}]}}'
 - name: IsikuKontroll missing client
   request:
     method: POST
@@ -44,8 +25,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: IsikuKontroll malformed client
   request:
     method: POST
@@ -57,8 +38,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: IsikuKontroll denied client
   request:
     method: POST
@@ -70,8 +51,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: IsikuKontroll missing body
   request:
     method: POST
@@ -94,8 +75,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: IsikuEttevoteKontrollid success
   request:
     method: POST
@@ -108,30 +88,9 @@ tests:
   expect:
     status: 200
     body_matches:
-      kontrollid:
-        item:
-        - kuupaev: '2026-06-15'
-          nimetus: MOCK-KV-001
-          asutus: Mockvedaja OÜ
-          soiduki_reg_nr: MOCK123
-          rikkumise_liik: extraordinary_inspection
-          kontrolli_nimetus: KOONDVORM
-          juhi_nimi: Test
-          juhi_perekonnanimi: Juht
-          rikkumised: null
-          rikkumised_lopetatud: null
-          ettevote_reg_nr: '00000001'
-        - kuupaev: '2026-06-14'
-          nimetus: MOCK-TI-002
-          asutus: Mockvedaja OÜ
-          soiduki_reg_nr: null
-          rikkumise_liik: null
-          kontrolli_nimetus: TOOINSPEKTION
-          juhi_nimi: Test
-          juhi_perekonnanimi: Juht
-          rikkumised: null
-          rikkumised_lopetatud: Mock lõpetamine
-          ettevote_reg_nr: '00000001'
+      response: '{"kontrollid":{"item":[{"asutus":"Mockvedaja OÜ","ettevote_reg_nr":"00000001","juhi_nimi":"Test","juhi_perekonnanimi":"Juht","kontrolli_nimetus":"KOONDVORM","kuupaev":"2026-06-15","nimetus":"MOCK-KV-001","rikkumise_liik":"extraordinary_inspection","rikkumised":null,"rikkumised_lopetatud":null,"soiduki_reg_nr":"MOCK123"},{"asutus":"Mockvedaja
+        OÜ","ettevote_reg_nr":"00000001","juhi_nimi":"Test","juhi_perekonnanimi":"Juht","kontrolli_nimetus":"TOOINSPEKTION","kuupaev":"2026-06-14","nimetus":"MOCK-TI-002","rikkumise_liik":null,"rikkumised":null,"rikkumised_lopetatud":"Mock
+        lõpetamine","soiduki_reg_nr":null}]}}'
 - name: IsikuEttevoteKontrollid missing client
   request:
     method: POST
@@ -142,8 +101,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: IsikuEttevoteKontrollid malformed client
   request:
     method: POST
@@ -155,8 +114,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: IsikuEttevoteKontrollid denied client
   request:
     method: POST
@@ -168,8 +127,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: IsikuEttevoteKontrollid missing body
   request:
     method: POST
@@ -192,8 +151,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: ErakorralineYVquery success
   request:
     method: POST
@@ -207,45 +165,10 @@ tests:
   expect:
     status: 200
     body_matches:
-      targeted_for_inspection:
-        item:
-        - licence_plate_no: MOCK123
-          trailer_no: null
-          inspection_id: '900001'
-          inspection_no: MOCK-KV-001
-          inspection_date: '2026-06-15'
-          inspection_type: extraordinary_inspection
-          inspection_unit: Mockvedaja OÜ
-          inspection_notes: Sünteetiline näidiskontroll
-          inspector: null
-          issues:
-            item:
-            - code: B01
-              value: defect_minor
-          notes:
-            item: []
-          inspection_refine_options:
-            item:
-            - REGNR
-            - VINTIN
-            - AXLES
-            - PLACES
-            - REBUILT
-        - licence_plate_no: MOCK456
-          trailer_no: null
-          inspection_id: '900002'
-          inspection_no: MOCK-KV-002
-          inspection_date: '2026-06-14'
-          inspection_type: extraordinary_inspection_ta
-          inspection_unit: Mockvedaja OÜ
-          inspection_notes: null
-          inspector: null
-          issues:
-            item: []
-          notes:
-            item: []
-          inspection_refine_options:
-            item: []
+      response: '{"targeted_for_inspection":{"item":[{"inspection_date":"2026-06-15","inspection_id":"900001","inspection_no":"MOCK-KV-001","inspection_notes":"Sünteetiline
+        näidiskontroll","inspection_refine_options":{"item":["REGNR","VINTIN","AXLES","PLACES","REBUILT"]},"inspection_type":"extraordinary_inspection","inspection_unit":"Mockvedaja
+        OÜ","inspector":null,"issues":{"item":[{"code":"B01","value":"defect_minor"}]},"licence_plate_no":"MOCK123","notes":{"item":[]},"trailer_no":null},{"inspection_date":"2026-06-14","inspection_id":"900002","inspection_no":"MOCK-KV-002","inspection_notes":null,"inspection_refine_options":{"item":[]},"inspection_type":"extraordinary_inspection_ta","inspection_unit":"Mockvedaja
+        OÜ","inspector":null,"issues":{"item":[]},"licence_plate_no":"MOCK456","notes":{"item":[]},"trailer_no":null}]}}'
 - name: ErakorralineYVquery missing client
   request:
     method: POST
@@ -256,8 +179,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: ErakorralineYVquery malformed client
   request:
     method: POST
@@ -269,8 +192,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: ErakorralineYVquery denied client
   request:
     method: POST
@@ -282,8 +205,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: ErakorralineYVquery missing body
   request:
     method: POST
@@ -306,8 +229,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: ErakorralineYVconfirm success
   request:
     method: POST
@@ -324,7 +246,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      confirmed: 1
+      response: '{"confirmed":1}'
 - name: ErakorralineYVconfirm missing client
   request:
     method: POST
@@ -335,8 +257,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: ErakorralineYVconfirm malformed client
   request:
     method: POST
@@ -348,8 +270,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: ErakorralineYVconfirm denied client
   request:
     method: POST
@@ -361,8 +283,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: ErakorralineYVconfirm missing body
   request:
     method: POST
@@ -385,8 +307,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: RegisterJobInspection success
   request:
     method: POST
@@ -410,7 +331,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      message: Success
+      response: '{"message": "Success"}'
 - name: RegisterJobInspection missing client
   request:
     method: POST
@@ -421,8 +342,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: RegisterJobInspection malformed client
   request:
     method: POST
@@ -434,8 +355,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: RegisterJobInspection denied client
   request:
     method: POST
@@ -447,8 +368,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: RegisterJobInspection missing body
   request:
     method: POST
@@ -471,8 +392,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: RegisterJobInspection_v3 success
   request:
     method: POST
@@ -501,7 +421,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      message: Success
+      response: '{"message": "Success"}'
 - name: RegisterJobInspection_v3 missing client
   request:
     method: POST
@@ -512,8 +432,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: RegisterJobInspection_v3 malformed client
   request:
     method: POST
@@ -525,8 +445,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: RegisterJobInspection_v3 denied client
   request:
     method: POST
@@ -538,8 +458,8 @@ tests:
   expect:
     status: 403
     body_matches:
-      error: FORBIDDEN
-      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+      response: '{"error": "FORBIDDEN", "message": "X-Road-Client header is missing or has invalid format (expected:
+        instance/memberClass/memberCode/subsystem)"}'
 - name: RegisterJobInspection_v3 missing body
   request:
     method: POST
@@ -562,8 +482,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: findUsage success
   request:
     method: GET
@@ -577,26 +496,9 @@ tests:
   expect:
     status: 200
     body_matches:
-      totalUsages: 3
-      usages:
-      - &id010
-        logtime: '2026-06-15T12:00:00Z'
-        action: Mock kontrollipäring
-        receiverCode: '70001490'
-        receiverName: Mock tarbija
-        receiverSystem: liiklusregister
-      - &id011
-        logtime: '2026-06-14T12:00:00Z'
-        action: Mock töökontroll
-        receiverCode: '70001969'
-        receiverName: null
-        receiverSystem: null
-      - &id012
-        logtime: '2026-06-13T12:00:00Z'
-        action: Mock korduspäring
-        receiverCode: '70001490'
-        receiverName: Mock tarbija
-        receiverSystem: liiklusregister
+      response: '{"totalUsages":3,"usages":[{"action":"Mock kontrollipäring","logtime":"2026-06-15T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
+        tarbija","receiverSystem":"liiklusregister"},{"action":"Mock töökontroll","logtime":"2026-06-14T12:00:00Z","receiverCode":"70001969","receiverName":null,"receiverSystem":null},{"action":"Mock
+        korduspäring","logtime":"2026-06-13T12:00:00Z","receiverCode":"70001490","receiverName":"Mock tarbija","receiverSystem":"liiklusregister"}]}'
 - name: findUsage server error
   request:
     method: GET
@@ -608,8 +510,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: usagePeriod success
   request:
     method: GET
@@ -618,7 +519,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      periodStart: '2026-06-13T12:00:00Z'
+      response: '{"periodStart":"2026-06-13T12:00:00Z"}'
 - name: usagePeriod server error
   request:
     method: GET
@@ -628,8 +529,7 @@ tests:
   expect:
     status: 500
     body_matches:
-      error: SERVER_ERROR
-      message: Internal error
+      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
 - name: heartbeat success
   request:
     method: GET
@@ -638,8 +538,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      status: OK
-      message: API is ready
+      response: '{"status": "OK", "message": "API is ready"}'
 - name: health is public without session and X-Road headers
   request:
     method: GET
@@ -662,8 +561,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      kontrollid:
-        item: []
+      response: '{"kontrollid":{"item":[]}}'
 - name: isiku-kontroll invalid person
   request:
     method: POST
@@ -676,8 +574,7 @@ tests:
   expect:
     status: 400
     body_matches:
-      error: INVALID_PARAMETER
-      message: isikukood must be 11 digits starting with 1-6
+      response: '{"error": "INVALID_PARAMETER", "message": "isikukood must be 11 digits starting with 1-6"}'
 - name: isiku-ettevote-kontrollid unknown valid person is empty
   request:
     method: POST
@@ -690,8 +587,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      kontrollid:
-        item: []
+      response: '{"kontrollid":{"item":[]}}'
 - name: isiku-ettevote-kontrollid invalid person
   request:
     method: POST
@@ -704,8 +600,7 @@ tests:
   expect:
     status: 400
     body_matches:
-      error: INVALID_PARAMETER
-      message: isikukood must be 11 digits starting with 1-6
+      response: '{"error": "INVALID_PARAMETER", "message": "isikukood must be 11 digits starting with 1-6"}'
 - name: date order
   request:
     method: POST
@@ -731,8 +626,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      targeted_for_inspection:
-        item: []
+      response: '{"targeted_for_inspection":{"item":[]}}'
 - name: confirmation unknown identifier
   request:
     method: POST
@@ -774,7 +668,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      confirmed: 1
+      response: '{"confirmed":1}'
 - name: v3 optional fields absent
   request:
     method: POST
@@ -794,7 +688,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      message: Success
+      response: '{"message": "Success"}'
 - name: v3 invalid optional person
   request:
     method: POST
@@ -860,7 +754,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      message: Success
+      response: '{"message": "Success"}'
 - name: AJ missing userid
   request:
     method: GET
@@ -871,8 +765,7 @@ tests:
   expect:
     status: 400
     body_matches:
-      error: MISSING_HEADER
-      message: X-Road-UserId header is required
+      response: '{"error": "MISSING_HEADER", "message": "X-Road-UserId header is required"}'
 - name: AJ missing userCode
   request:
     method: GET
@@ -892,8 +785,7 @@ tests:
   expect:
     status: 400
     body_matches:
-      error: FORBIDDEN
-      message: X-Road-UserId must match userCode
+      response: '{"error": "FORBIDDEN", "message": "X-Road-UserId must match userCode"}'
 - name: AJ deterministic page 0
   request:
     method: GET
@@ -907,9 +799,8 @@ tests:
   expect:
     status: 200
     body_matches:
-      totalUsages: 3
-      usages:
-      - *id010
+      response: '{"totalUsages":3,"usages":[{"action":"Mock kontrollipäring","logtime":"2026-06-15T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
+        tarbija","receiverSystem":"liiklusregister"}]}'
 - name: AJ deterministic page 1
   request:
     method: GET
@@ -923,9 +814,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      totalUsages: 3
-      usages:
-      - *id011
+      response: '{"totalUsages":3,"usages":[{"action":"Mock töökontroll","logtime":"2026-06-14T12:00:00Z","receiverCode":"70001969","receiverName":null,"receiverSystem":null}]}'
 - name: AJ deterministic page 2
   request:
     method: GET
@@ -939,9 +828,8 @@ tests:
   expect:
     status: 200
     body_matches:
-      totalUsages: 3
-      usages:
-      - *id012
+      response: '{"totalUsages":3,"usages":[{"action":"Mock korduspäring","logtime":"2026-06-13T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
+        tarbija","receiverSystem":"liiklusregister"}]}'
 - name: AJ deterministic page 3
   request:
     method: GET
@@ -955,8 +843,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      totalUsages: 0
-      usages: []
+      response: '{"totalUsages":0,"usages":[]}'
 - name: AJ unknown person
   request:
     method: GET
@@ -968,8 +855,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      totalUsages: 0
-      usages: []
+      response: '{"totalUsages":0,"usages":[]}'
 - name: AJ date filtering
   request:
     method: GET
@@ -983,9 +869,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      totalUsages: 1
-      usages:
-      - *id011
+      response: '{"totalUsages":1,"usages":[{"action":"Mock töökontroll","logtime":"2026-06-14T12:00:00Z","receiverCode":"70001969","receiverName":null,"receiverSystem":null}]}'
 - name: usage period empty
   request:
     method: GET
@@ -995,4 +879,4 @@ tests:
   expect:
     status: 200
     body_matches:
-      periodStart: null
+      response: '{"periodStart":null}'
