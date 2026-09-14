@@ -247,7 +247,7 @@ export interface DriveRestForm {
   massDimensionMeasurements?: MassDimensionMeasurement[];
   atpViolationFound?: string;
   atpViolationDescription?: string;
-  erruPoints?: string[];
+  erruPoints?: ErruPoint[];
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
   notes?: string;
@@ -287,6 +287,12 @@ export type Violation = {
   violationCode: string;
   severityCode: string;
   isDetected: string;
+};
+
+export type ErruPoint = {
+  erru_code: string;
+  severity_category: 'MSI' | 'VSI' | 'SI';
+  source_type: 'auto_from_violation' | 'manual';
 };
 
 export interface CheckEntry {

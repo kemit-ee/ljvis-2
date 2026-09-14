@@ -10,6 +10,10 @@ params:
     type: string
     required: false
     description: 'Valikuline vorminumbri prefiks — kui antud, peab form_number sellega algama (IDOR-kaitse).'
+  attachment_form_type:
+    type: string
+    required: false
+    description: Optional S3 folder type, required by SP routes to distinguish driver and teammate forms with the same number
 returns:
 - name: id
   type: string
@@ -45,4 +49,5 @@ FROM forms.form_attachment
 WHERE form_number = :form_number
   AND status = 'active'
   AND (btrim(COALESCE(:form_number_prefix, '')) = '' OR form_number LIKE :form_number_prefix || '%')
+  AND (btrim(COALESCE(:attachment_form_type, '')) = '' OR starts_with(s3_key, :attachment_form_type || '/'))
 ORDER BY created_at DESC;

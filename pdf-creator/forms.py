@@ -101,7 +101,7 @@ def build_standalone_context(template, payload=None, blank=False):
             cabotage=safe_tree(structured(f.get('cabotageViolations'), list)),
             violation_groups=[
                 {'title': title, 'rows': safe_tree(structured(f.get(field), list))}
-                for field, title in [('violations5612006','Määrus (EÜ) nr 561/2006'),('violations1652014','Määrus (EL) nr 165/2014'),('violations200215','Direktiiv 2002/15/EÜ'),('violations5932008','Määrus (EÜ) nr 593/2008'),('violations20201057','Direktiiv (EL) 2020/1057')]
+                for field, title in [('violations5612006','Määrus (EÜ) nr 561/2006'),('violations1652014','Määrus (EL) nr 165/2014'),('violations200215','Direktiiv 2002/15/EÜ'),('violations5932008','Rooma I lepingu rikkumised'),('violations20201057','Direktiivist (EL) 2020/1057 tulenevate autojuhi lähetamise nõuete rikkumiste kategooriad')]
             ],
         )
     return data
@@ -247,7 +247,7 @@ def build_context(template, payload=None, blank=False):
         data['cabotage']=[{'name':label('violations',r.get('violationCode')),'severity':r.get('severityCode','')} for r in structured(f.get('cabotageViolations'),list)]
         catalog=json.loads((ROOT/'templates/drive-rest-form/violations.json').read_text())
         groups=[]
-        for field,title in [('violations5612006','Määrus (EÜ) nr 561/2006'),('violations1652014','Määrus (EL) nr 165/2014'),('violations200215','Direktiiv 2002/15/EÜ'),('violations5932008','Määrus (EÜ) nr 593/2008'),('violations20201057','Direktiiv (EL) 2020/1057')]:
+        for field,title in [('violations5612006','Määrus (EÜ) nr 561/2006'),('violations1652014','Määrus (EL) nr 165/2014'),('violations200215','Direktiiv 2002/15/EÜ'),('violations5932008','Rooma I lepingu rikkumised'),('violations20201057','Direktiivist (EL) 2020/1057 tulenevate autojuhi lähetamise nõuete rikkumiste kategooriad')]:
             rows=[]
             for r in structured(f.get(field),list):
                 matches=[x for x in catalog if x['code']==r.get('violationCode')]

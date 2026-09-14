@@ -11,6 +11,7 @@ import type {
   OtherDocument,
   Violation,
   MassDimensionMeasurement,
+  ErruPoint,
 } from '../../types';
 import {
   saveDriveRestForm,
@@ -122,9 +123,6 @@ export function useDriveRestForm(
 ) {
   const { t } = useTranslation();
 
-  // ADR-002: the TRAM control card is a single entity with no separate driver
-  // sub-form, so this hook only ever serves the PPA driver/teammate forms.
-  void authority;
   const api = {
     save: saveDriveRestForm,
     confirm: confirmDriveRestForm,
@@ -258,7 +256,7 @@ export function useDriveRestForm(
         ? form.erruPoints
         : typeof form?.erruPoints === 'string'
           ? JSON.parse(form.erruPoints)
-          : []) as string[],
+          : []) as ErruPoint[],
       enforcementDecision: form?.enforcementDecision ?? '',
       proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
       notes: form?.notes ?? '',
@@ -287,6 +285,7 @@ export function useDriveRestForm(
         const trimmedValues = {
           ...serializeDriveRestFormValues(values, nextStatus),
           compoundFormKey: overrideKey ?? values.compoundFormKey,
+          ...(authority === 'PPA' ? { liiniNumber: '', liiniNimetus: '' } : {}),
         };
 
         const result = isConfirming

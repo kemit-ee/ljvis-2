@@ -544,7 +544,7 @@ export function CompoundFormEditCard({
                       />
                     </div>
                     <AsyncButton type="button" onClick={handleVehicleSearch}>
-                      {t('common.search')}
+                      {t('forms.compound.searchTrafficRegister')}
                     </AsyncButton>
                   </div>
                   <div />
@@ -835,7 +835,7 @@ export function CompoundFormEditCard({
                               type="button"
                               onClick={() => handleTrailerSearch(index)}
                             >
-                              {t('common.search')}
+                              {t('forms.compound.searchTrafficRegister')}
                             </AsyncButton>
                           </div>
                           <div />

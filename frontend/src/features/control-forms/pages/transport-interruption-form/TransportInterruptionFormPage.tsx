@@ -141,8 +141,8 @@ export function TransportInterruptionFormPage() {
       .finally(() => setSnapshotLoading(false));
   }, [snapshotId, id]);
 
-  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | `tab-trailer-technical-check-${number}` | 'tab-adr' | 'tab-transport-interruption') =>
-    addTab(tabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab });
+  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | `tab-trailer-technical-check-${number}` | 'tab-adr' | 'tab-transport-interruption', activate = true) =>
+    addTab(tabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab, activate });
 
   useEffect(() => {
     if (!compoundFormKey) return;
@@ -655,7 +655,7 @@ export function TransportInterruptionFormPage() {
                         ? t('forms.adr.title')
                         : tid === 'tab-transport-interruption'
                           ? t('forms.transport_interruption.title')
-                          : (() => { const idx = Number(tid.replace('tab-trailer-technical-check-', '')); const regNr = compoundTrailerRegNrs[idx] || (trailers[idx]?.form as TechnicalCheckForm | null)?.trailerRegNr; return regNr ? `${t('forms.technical_check.trailerTitle')} (${regNr})` : t('forms.technical_check.trailerTitle'); })();
+                          : (() => { const idx = Number(tid.replace('tab-trailer-technical-check-', '')); const regNr = compoundTrailerRegNrs[idx] || (trailers[idx]?.form as TechnicalCheckForm | null)?.trailerRegNr; const prefix = t('forms.compound.trailerNumber', { number: idx + 1 }).toUpperCase(); return regNr ? `${prefix} (${regNr}) – ${t('forms.compound.trailerTechnicalTab')}` : `${prefix} – ${t('forms.compound.trailerTechnicalTab')}`; })();
               return (
                 <Tabs.Trigger key={tid} id={tid}>
                   <span style={{ position: 'relative' }}>
@@ -714,7 +714,7 @@ export function TransportInterruptionFormPage() {
               formType={FORM_TYPE.COMPOUND}
               versionsRefreshKey={compoundVersionsRefreshKey}
               trailerFormRegNrs={trailers.map((t) => t.form?.trailerRegNr ?? null)}
-              onAddTrailerControlForm={(index) => handleAddTab(`tab-trailer-technical-check-${index}`)}
+              onAddTrailerControlForm={(index) => handleAddTab(`tab-trailer-technical-check-${index}`, false)}
               onEditTrailerControlForm={(index) => setActiveTab(`tab-trailer-technical-check-${index}`)}
               onRemoveTrailer={(index) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0])}
             />

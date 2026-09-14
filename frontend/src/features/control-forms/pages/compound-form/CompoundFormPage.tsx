@@ -80,6 +80,8 @@ import { useSubForm, type SubFormHandle } from '../../hooks/useSubForm';
 import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { isAnySubFormSaved, useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
+import { SelectedFormsNavigation } from '../../components/CompoundForm/SelectedFormsNavigation';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import {useIsAdmin} from "../../../../hooks/useIsAdmin.ts";
 
@@ -437,8 +439,8 @@ export function CompoundFormPage() {
 
   const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
 
-  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | `tab-trailer-technical-check-${number}` | 'tab-adr' | 'tab-transport-interruption') =>
-    addTab(tabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab });
+  const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | `tab-trailer-technical-check-${number}` | 'tab-adr' | 'tab-transport-interruption', activate = true) =>
+    addTab(tabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab, activate });
 
   const { removeConfirmTab, handleRemove, handleRemoveTrailerFromCompound, handleRemoveConfirmed, handleRemoveCancel, removeTrailerFromCompound } = useRemoveSubFormTab({
     driver,
@@ -660,7 +662,7 @@ export function CompoundFormPage() {
     formType: FORM_TYPE.COMPOUND,
     versionsRefreshKey,
     trailerFormRegNrs: trailers.map((t, i) => openTabs.includes(`tab-trailer-technical-check-${i}`) ? (t.form?.trailerRegNr ?? formik.values.trailers[i]?.regNr ?? '') : null),
-    onAddTrailerControlForm: (index: number) => { handleAddTab(`tab-trailer-technical-check-${index}`); window.scrollTo(0, 0); },
+    onAddTrailerControlForm: (index: number) => { handleAddTab(`tab-trailer-technical-check-${index}`, false); },
     onEditTrailerControlForm: (index: number) => { setActiveTab(`tab-trailer-technical-check-${index}`); window.scrollTo(0, 0); },
     onRemoveTrailer: (index: number) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0]),
   };
@@ -904,9 +906,10 @@ export function CompoundFormPage() {
                               compoundTrailerRegNrs[idx] ||
                               (trailers[idx]?.form as TechnicalCheckForm | null)
                                 ?.trailerRegNr;
+                            const prefix = t('forms.compound.trailerNumber', { number: idx + 1 }).toUpperCase();
                             return regNr
-                              ? `${t('forms.technical_check.trailerTitle')} (${regNr})`
-                              : t('forms.technical_check.trailerTitle');
+                              ? `${prefix} (${regNr}) – ${t('forms.compound.trailerTechnicalTab')}`
+                              : `${prefix} – ${t('forms.compound.trailerTechnicalTab')}`;
                           })()
                         : tid === 'tab-transport-interruption'
                           ? t('forms.transport_interruption.title')
@@ -949,6 +952,17 @@ export function CompoundFormPage() {
               versionsRefreshKey={versionsRefreshKey}
             />
           )}
+          <FileUploadBlock
+            formPath="compound-form"
+            formNumber={form?.formNumber}
+            disabled={!isEditActive}
+            label={t('form.files.title')}
+          />
+          <SelectedFormsNavigation
+            tabIds={openTabs}
+            labels={tabLabels}
+            onSelect={setActiveTab}
+          />
         </Tabs.Content>
 
         <SubFormTab
@@ -1000,6 +1014,16 @@ export function CompoundFormPage() {
                   ...(driver.draftRef.current ?? form ?? {}),
                   ...v,
                 } as DriveRestForm);
+                if (!v.transportType) return;
+                const sharedValues = {
+                  transportType: v.transportType,
+                  transportClasses: v.transportClasses,
+                };
+                teammate.setDraftValue({
+                  ...(teammate.draftRef.current ?? teammate.form ?? {}),
+                  ...sharedValues,
+                } as DriveRestForm);
+                teammate.editCardRef.current?.setFormData?.(sharedValues);
               }}
               initialValidate={validatedTabs.has('tab-driver')}
             />

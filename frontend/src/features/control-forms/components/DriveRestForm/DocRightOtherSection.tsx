@@ -42,6 +42,7 @@ interface Props {
   otherDocuments: OtherDocument[];
   setFieldValue: (field: string, value: unknown) => void;
   readOnly?: boolean;
+  idPrefix?: string;
 }
 
 export function DocRightOtherSection({
@@ -50,6 +51,7 @@ export function DocRightOtherSection({
   otherDocuments,
   setFieldValue,
   readOnly,
+  idPrefix = '',
 }: Props) {
   const { t } = useTranslation();
   const [remarkOpenStates, setRemarkOpenStates] = useState<Record<number, boolean>>({});
@@ -198,16 +200,16 @@ export function DocRightOtherSection({
                   <Text>{doc.name}</Text>
                 </div>
                 <ChoiceGroup
-                  id={`doc-result-${id}`}
+                  id={`${idPrefix}doc-result-${id}`}
                   label=""
-                  name={`doc-result-${id}`}
+                  name={`${idPrefix}doc-result-${id}`}
                   inputType="radio"
                   direction="row"
                   value={row.result}
                   onChange={(val) => setResult(id, val as ResultValue)}
                   className="gap-1"
                   items={RESULT_OPTIONS.map((opt) => ({
-                    id: `${id}-${opt.value}`,
+                    id: `${idPrefix}${id}-${opt.value}`,
                     value: opt.value,
                     label: opt.label,
                     disabled: readOnly
@@ -217,7 +219,7 @@ export function DocRightOtherSection({
                 <div className="pos-rel-left">
                   <Button
                     icon="comment"
-                    id="commentOther"
+                    id={`${idPrefix}commentOther-${id}`}
                     visualType="neutral"
                     onClick={() => toggleRemark(id)}
                     size="small"
@@ -231,7 +233,7 @@ export function DocRightOtherSection({
             {remarkOpen && (
               <div className={styles.remarkRow}>
                 <TextField
-                  id={`remark-${id}`}
+                  id={`${idPrefix}remark-${id}`}
                   label=""
                   placeholder={t('forms.otherDocs.remarkPlaceholder')}
                   value={row.notes}
@@ -241,7 +243,7 @@ export function DocRightOtherSection({
                 {!readOnly && (
                 <Button
                   icon="delete"
-                  id="deleteOtherc"
+                  id={`${idPrefix}deleteOther-${id}`}
                   visualType="neutral"
                   color="danger"
                   size="small"

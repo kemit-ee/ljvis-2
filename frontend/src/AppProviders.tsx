@@ -8,11 +8,11 @@ import type { ReactNode } from 'react';
 export type TediLocale = 'et' | 'en';
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const locale = (i18n.language?.substring(0, 2) as TediLocale) || 'et';
 
   return (
-    <LabelProvider locale={locale}>
+    <LabelProvider locale={locale} labels={{ 'file-upload.add': t('form.files.addBtn') }}>
       <PrintingProvider>{children}</PrintingProvider>
     </LabelProvider>
   );

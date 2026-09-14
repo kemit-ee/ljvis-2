@@ -4,7 +4,35 @@
 
 ---
 
+## 2026-09-14
+
+### PPA kontrollvormide sisendite ja failide parendused
+
+- Autojuhi ja meeskonnaliikme sisenditel on eraldi tunnused ja valikugrupid,
+  et meeskonnaliikme märkeruutude ja raadionuppude kasutamine ei muudaks
+  peidetud autojuhi vormi.
+- Faili valimine käivitab üleslaadimise ka TEDI antud ajutise failitunnusega.
+  Failide eemaldamine jõuab serverisse ning aegunud faililoendi päring ei
+  kirjuta uuemat loendit üle.
+- Faili lisamise nupu nimi on „Lisa fail“ ning lisamine aktiveerub pärast
+  vormi esimest edukat salvestamist.
+- Faililoendi serverivastus teisendatakse kasutajaliidese väljadeks, et failinimed
+  oleksid nähtavad ja failitunnused sobiksid allalaadimise ning kustutamise päringutesse.
+
 ## 2026-09-12
+
+### PPA kontrollkaardi üldosa ja sõidu- ja puhkeaja vormide parendused
+
+- Liiklusregistri otsingu nupp nimetab registri selgelt ning haagised ja nende
+  tehnoseisundi kontrollkaardid kuvatakse nummerdatult koos registreerimismärgiga.
+- Haagise tehnokontrollvorm lisatakse menüüsse ilma üldosast lahkumata ning
+  valitud kontrollvormide menüü on kättesaadav ka üldosa allservas.
+- PPA sõidu- ja puhkeaja vormilt eemaldati Transpordiameti liiniandmed ning
+  meeskonnaliikme veo liik ja veoklass hoitakse autojuhi vormiga kooskõlas.
+- Lisati lähetusdeklaratsiooni kontrollid, parandati EL-i rikkumiste raskusastmed
+  ning ERRU punktid tuletatakse automaatselt valitud rikkumistest.
+- Sõidu- ja puhkeaja vormile saab pärast esimest salvestamist lisada kontrolliga
+  seotud faile.
 
 ### Riskiskoori värskendamine autojuhi/meeskonna alamvormi avalikustamisel
 
@@ -13,7 +41,7 @@
   koondvormi ja TRAM-kaardi avalikustamine juba teeb. Varem uuenes skoor
   alles järgmisel öisel taustatööl.
 
-### Sisemised parandused: salvestamine/kinnitamine/avalikustamine
+### Sisemised parendused: salvestamine/kinnitamine/avalikustamine
 
 - Parandatud viga, kus kontrollkaardi/kontrollakti väljal sisestatud
   väärtus **0** (nt kilomeeter, sõidukite/juhtide/päevade arv, väikeste

@@ -9,6 +9,7 @@ import { BREAKPOINTS } from '../../../../constants/constants';
 import { useLabourInspectionForm } from './useLabourInspectionForm';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import styles from './LabourInspectionFormPage.module.css';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 
 export function LabourInspectionFormCreatePage() {
   const { t } = useTranslation();
@@ -77,6 +78,11 @@ export function LabourInspectionFormCreatePage() {
           companyPickerResults={companyPickerResults}
           onCompanyPicked={onCompanyPicked}
           closeCompanyPicker={closeCompanyPicker}
+        />
+        <FileUploadBlock
+          formPath="labour-inspection"
+          disabled
+          label={t('form.files.title')}
         />
 
         <div className="page-actions">

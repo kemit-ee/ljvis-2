@@ -125,6 +125,7 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       <form ref={formRef} onSubmit={formik.handleSubmit}>
         <DriveRestFormFields
           type={type}
+          authority={authority}
           formik={formik}
           hideDriveRestExtras={authority === 'TRAM'}
           isDesktop={isDesktop}

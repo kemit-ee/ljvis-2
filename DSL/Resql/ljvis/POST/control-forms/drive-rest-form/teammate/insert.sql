@@ -161,11 +161,21 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         1,
         :status,
         NULLIF(:selectionStatus, ''),
-        NULLIF(:transportType, ''),
+        COALESCE((
+          SELECT d.transport_type FROM forms.sp_driver_form d
+           WHERE d.compound_form_key = :compoundFormKey::BIGINT
+             AND d.status <> 'deleted'
+           ORDER BY d.version DESC, d.created_at DESC LIMIT 1
+        ), NULLIF(:transportType, '')),
         COALESCE(:transportEmptyRun::BOOLEAN, FALSE),
         NULLIF(:transportNature, ''),
         NULLIF(:transportNatureExempt::text, '')::BOOLEAN,
-        COALESCE(NULLIF(:transportClasses, '')::jsonb, '[]'::jsonb),
+        COALESCE((
+          SELECT d.transport_classes FROM forms.sp_driver_form d
+           WHERE d.compound_form_key = :compoundFormKey::BIGINT
+             AND d.status <> 'deleted'
+           ORDER BY d.version DESC, d.created_at DESC LIMIT 1
+        ), COALESCE(NULLIF(:transportClasses, '')::jsonb, '[]'::jsonb)),
         NULLIF(:resultType, ''),
         NULLIF(:additionalMeasure, ''),
         COALESCE(:proceedingType, 'none'),
@@ -185,7 +195,14 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
         CASE WHEN :atpViolationFound = 'true' THEN TRUE ELSE FALSE END,
         NULLIF(:atpViolationDescription, ''),
-        COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb),
+        forms.derive_sp_erru_points(
+          COALESCE(NULLIF(:violations5612006, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations1652014, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations200215, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb)
+        ),
         NULLIF(:enforcementDecision, ''),
         NULLIF(:proceedingClosureBasis, ''),
         NULLIF(:notes, ''),
