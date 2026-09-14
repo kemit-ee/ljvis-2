@@ -148,6 +148,27 @@ export function UserListPage() {
           );
         },
       }),
+      columnHelper.accessor('lastLoginAt', {
+        header: t('users.lastLoginAt'),
+        enableSorting: false,
+        cell: (info) => {
+          if (info.row.original.isAdditionalGroupRow) return null;
+          const val = info.getValue();
+          return (
+            <span
+              className={
+                info.row.original.status === 'inactive'
+                  ? 'inactive-text'
+                  : undefined
+              }
+            >
+              {val
+                ? new Date(val).toLocaleString('et-EE')
+                : t('common.missing')}
+            </span>
+          );
+        },
+      }),
       columnHelper.accessor('userGroups', {
         header: t('users.userGroups'),
         enableSorting: false,

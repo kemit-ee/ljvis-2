@@ -35,6 +35,11 @@ params:
     required: false
     description: Actor's organisation id at write time (derived from actor_personal_code). Empty for system
       processes.
+  actor_user_account_id:
+    type: string
+    required: false
+    description: FK to users.user_account(id) — the exact snapshot row of the actor at write time. NULL for
+      system processes and anonymous events.
   created_by:
     type: string
     required: false
@@ -63,6 +68,7 @@ INSERT INTO audit.audit_event (
     description,
     log_content,
     organisation_id,
+    actor_user_account_id,
     created_by,
     trace_id,
     span_id
@@ -75,6 +81,7 @@ INSERT INTO audit.audit_event (
     :description,
     :log_content::json,
     NULLIF(:organisation_id, '')::BIGINT,
+    NULLIF(:actor_user_account_id, '')::BIGINT,
     :created_by,
     NULLIF(:trace_id, ''),
     NULLIF(:span_id, '')
