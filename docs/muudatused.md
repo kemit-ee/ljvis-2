@@ -6,6 +6,14 @@
 
 ## 2026-09-14
 
+### Rikkevaliku ripploend ei avanenud pikkade nimekirjade lõpus olevatel ridadel
+
+- Sõidu- ja puhkeaja ning massi/mõõtmete rikkevaliku akendes ei avanenud
+  "Vali" ripploend, kui rida jäi akna nähtava/keritava ala allserva lähedale
+  (nt sõidumeerikute nimekirja lõpuosa, puhkeperioodide read) — ripploend
+  avanes tegelikult, kuid jäi akna serva taha peidetuks. Ripploend avaneb nüüd
+  vajadusel nupu kohale, mitte alla.
+
 ### Rooma I ja autojuhi lähetamise rikkumistele omaette akordionid
 
 - Autojuhi sõidu- ja puhkeaja kontrollvormil said **Rooma I lepingu
