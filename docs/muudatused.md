@@ -6,6 +6,20 @@
 
 ## 2026-09-14
 
+### RSI teate eeltäitmise ja sõidu-/puhkeaja vormi salvestamise veaparandused
+
+- Tehnilise kontrollkaardi läbisõidumõõdiku näidu olemasolul ebaõnnestus RSI
+  teate eeltäitmine ("RSI teate loomiseks eeltäitmine nurjus") — näit saadeti
+  serverile vale andmetüübina. Parandatud.
+- RSI teatele ei kanta enam sõlme "veose kinnitamine" (sellel puudub ERRU
+  vaste), kooskõlas endaga juba dokumenteeritud reegliga.
+- Sõidu- ja puhkeaja vormi salvestamine (koondvormi "Salvesta kõik" kaudu, kui
+  vormi ATP-välja ise ei muudetud) ebaõnnestus veaga "atpViolationFound
+  expected string, got boolean". Parandatud.
+- Mõlemale veale lisati regressioonitest: RSI eeltäitmisele Ruuteri enda
+  dsl-test stsenaarium (DSL-tests/erru/rsi-build.test.yml, jooksutatud
+  reaalse DSL-mootoriga), puhkeaja vormile Vitest üksuse test.
+
 ### Rahvastikuregistri kodakondsuse täitmise parandus
 
 - Isiku otsimisel rahvastikuregistrist ei täitnud koondvormi/TRAM-kaardi

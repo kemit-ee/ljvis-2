@@ -72,6 +72,17 @@ export function serializeDriveRestFormValues(
   return {
     ...values,
     status,
+    // atpViolationFound is stored/sent as the string 'true'/'false' (Resql param is
+    // type: string, see DSL/Resql/.../drive-rest-form/driver/{insert,update}.sql —
+    // CASE WHEN :atpViolationFound = 'true'). Formik's own initialValues stringify it
+    // (String(form?.atpViolationFound)), but callers that merge a raw, never-edited
+    // subForm.form snapshot into the save draft (e.g. createSaveAllHandler's
+    // draftRef.current ?? subForm.form fallback) can pass the original DB boolean
+    // straight through — normalize here, the single chokepoint all save paths share.
+    atpViolationFound:
+      typeof values.atpViolationFound === 'boolean'
+        ? String(values.atpViolationFound)
+        : (values.atpViolationFound ?? 'false'),
     transportClasses: Array.isArray(values.transportClasses)
       ? JSON.stringify(values.transportClasses)
       : (values.transportClasses ?? '[]'),
