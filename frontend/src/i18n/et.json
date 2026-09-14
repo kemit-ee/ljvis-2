@@ -1287,6 +1287,12 @@
     "restCheck": {
       "blockTitle": "Sõidu- ja puhkeaja nõuete täitmine"
     },
+    "rooma1": {
+      "blockTitle": "Rooma I lepingu rikkumised"
+    },
+    "posting": {
+      "blockTitle": "Autojuhi lähetamise nõuete rikkumised"
+    },
     "tram_control_card_form": "Transpordiameti kontrollkaart",
     "tram_control_card": {
       "driverControlTitle": "Sõidukijuhi kontrolli tulemus",

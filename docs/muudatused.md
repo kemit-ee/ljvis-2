@@ -6,6 +6,14 @@
 
 ## 2026-09-14
 
+### Rooma I ja autojuhi lähetamise rikkumistele omaette akordionid
+
+- Autojuhi sõidu- ja puhkeaja kontrollvormil said **Rooma I lepingu
+  rikkumised** (määrus 593/2008) ja **autojuhi lähetamise nõuete
+  rikkumised** (direktiiv 2020/1057) omaette akordionid "Sõidu- ja puhkeaja
+  nõuete täitmine" ja "Andmed sõiduki massi ja mõõtmete kohta" plokkide
+  vahele — varem sai neid valida ainult ühise rikkumiste valikuakna seest.
+
 ### RSI teate eeltäitmise ja sõidu-/puhkeaja vormi salvestamise veaparandused
 
 - Tehnilise kontrollkaardi läbisõidumõõdiku näidu olemasolul ebaõnnestus RSI
