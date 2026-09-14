@@ -1,0 +1,280 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Nightly batch (LJVIS2-72 15 ettepanekut p9): for every confirmed vehicle
+    or trailer technical-check sub-form with a väärteomenetlus reference
+    number and the parent compound_form's first driver's Estonian personal
+    code, but no enforcement_decision yet, ask e-toimik
+    (AnnaIsikuKvalifikatsioonid) whether a decision has entered into force,
+    and write the result (jõustunud otsus + menetluse lõpetamise alus) onto
+    the sub-form IN PLACE — does not publish, does not bump version.
+    Processes vehicle and trailer sub-forms as two independent candidate
+    sets in one flow (same source data, same X-tee call — kept together
+    per LJVIS2-72 §0 "Variandid"). Called by CronManager at 01:45
+    Europe/Tallinn (DSL/CronManager/etoimik-technical-check-decision-sync.yaml).
+    Same flat-iterate-sequence pattern as
+    cron/etoimik-sp-driver-decision-sync.yml (Ruuter's `iterate` `do:` can't
+    branch on `next:`, so every outcome funnels into one `decision` assign
+    and the write calls after it always fire unconditionally; the resql
+    scripts themselves no-op when found=false).
+  namespace: cron
+  allowlist:
+    body: []
+
+fetchVehicleCandidates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/select_etoimik_candidates"
+    headers:
+      type: json
+    body: {}
+  result: vehicleCandidatesRes
+  next: assignVehicleCandidates
+
+assignVehicleCandidates:
+  assign:
+    vehicleCandidates: "${vehicleCandidatesRes.response.body || []}"
+  next: processVehicleCandidates
+
+processVehicleCandidates:
+  iterate:
+    over: "${vehicleCandidates}"
+    as: candidate
+    max_items: 1000
+    do:
+      - assign:
+          candidate_key: "${String(candidate.id)}"
+          reference_number: "${candidate.proceedingReferenceNumber || candidate.proceeding_reference_number || ''}"
+          driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
+          case_start: "${new Date().getTime()}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body:
+            reference_number: ${reference_number}
+            personal_code: ${driver_personal_code}
+            userId: "LJVIS-CRON"
+            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
+            service_version: "[#ETOIMIK_SERVICE_VERSION]"
+        result: xtrResponse
+
+      - assign:
+          decision: >-
+            ${(function(){
+              function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+              var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
+              if (!httpOk) {
+                return { success: false, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+              }
+              var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+              var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
+              var responseNode = responseKey ? soapBody[responseKey] : {};
+              var caseNode = responseNode.response || null;
+              if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+              }
+              var decisions = [];
+              var bases = [];
+              toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
+                toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
+                  toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
+                    var person = p.Isik || {};
+                    if (String(person.Kood || '') !== driver_personal_code) { return; }
+                    toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
+                      toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
+                        if (!cp.SulgemiseKP) { return; }
+                        decisions.push((cp.LahendKL || '') + (cp.LahendiKP ? (' (' + cp.LahendiKP + ')') : ''));
+                        bases.push(cp.SyydistusPunktCSV || cp.LahendKL || '');
+                      });
+                    });
+                  });
+                });
+              });
+              if (decisions.length === 0) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+              }
+              return { success: true, found: true, enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+            })()}
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.vehicle_technical"
+            request_xml: "${'referenceNumber=' + reference_number}"
+            response_xml: "${decision.rawResponse}"
+            duration_ms: "${new Date().getTime() - case_start}"
+            success: ${decision.success}
+            error_message: "${decision.errorMessage}"
+            person_identifier: ${driver_personal_code}
+            source_type: "vehicle_technical_form"
+            source_record_id: ${candidate_key}
+        result: logRes
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update-xroad-fields"
+          headers:
+            type: json
+          body:
+            key: ${candidate_key}
+            found: "${decision.found ? 'true' : 'false'}"
+            enforcementDecision: "${decision.enforcementDecision}"
+            proceedingClosureBasis: "${decision.proceedingClosureBasis}"
+        result: applyRes
+
+      - assign:
+          applied_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"
+          applied_sub_form_number: "${(applyRes.response.body && applyRes.response.body[0] && (applyRes.response.body[0].subFormNumber || applyRes.response.body[0].sub_form_number)) || ''}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/log_etoimik_xroad_audit"
+          headers:
+            type: json
+          body:
+            found: "${applied_now ? 'true' : 'false'}"
+            key: ${candidate_key}
+            sub_form_number: ${applied_sub_form_number}
+            driver_personal_code: ${driver_personal_code}
+        result: auditRes
+    collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
+    into: vehicleResults
+  next: fetchTrailerCandidates
+
+fetchTrailerCandidates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/select_etoimik_candidates"
+    headers:
+      type: json
+    body: {}
+  result: trailerCandidatesRes
+  next: assignTrailerCandidates
+
+assignTrailerCandidates:
+  assign:
+    trailerCandidates: "${trailerCandidatesRes.response.body || []}"
+  next: processTrailerCandidates
+
+processTrailerCandidates:
+  iterate:
+    over: "${trailerCandidates}"
+    as: candidate
+    max_items: 1000
+    do:
+      - assign:
+          candidate_key: "${String(candidate.id)}"
+          reference_number: "${candidate.proceedingReferenceNumber || candidate.proceeding_reference_number || ''}"
+          driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
+          case_start: "${new Date().getTime()}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body:
+            reference_number: ${reference_number}
+            personal_code: ${driver_personal_code}
+            userId: "LJVIS-CRON"
+            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
+            service_version: "[#ETOIMIK_SERVICE_VERSION]"
+        result: xtrResponse
+
+      - assign:
+          decision: >-
+            ${(function(){
+              function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+              var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
+              if (!httpOk) {
+                return { success: false, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+              }
+              var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+              var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
+              var responseNode = responseKey ? soapBody[responseKey] : {};
+              var caseNode = responseNode.response || null;
+              if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+              }
+              var decisions = [];
+              var bases = [];
+              toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
+                toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
+                  toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
+                    var person = p.Isik || {};
+                    if (String(person.Kood || '') !== driver_personal_code) { return; }
+                    toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
+                      toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
+                        if (!cp.SulgemiseKP) { return; }
+                        decisions.push((cp.LahendKL || '') + (cp.LahendiKP ? (' (' + cp.LahendiKP + ')') : ''));
+                        bases.push(cp.SyydistusPunktCSV || cp.LahendKL || '');
+                      });
+                    });
+                  });
+                });
+              });
+              if (decisions.length === 0) {
+                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+              }
+              return { success: true, found: true, enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+            })()}
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.trailer_technical"
+            request_xml: "${'referenceNumber=' + reference_number}"
+            response_xml: "${decision.rawResponse}"
+            duration_ms: "${new Date().getTime() - case_start}"
+            success: ${decision.success}
+            error_message: "${decision.errorMessage}"
+            person_identifier: ${driver_personal_code}
+            source_type: "trailer_technical_form"
+            source_record_id: ${candidate_key}
+        result: logRes
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-xroad-fields"
+          headers:
+            type: json
+          body:
+            key: ${candidate_key}
+            found: "${decision.found ? 'true' : 'false'}"
+            enforcementDecision: "${decision.enforcementDecision}"
+            proceedingClosureBasis: "${decision.proceedingClosureBasis}"
+        result: applyRes
+
+      - assign:
+          applied_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"
+          applied_sub_form_number: "${(applyRes.response.body && applyRes.response.body[0] && (applyRes.response.body[0].subFormNumber || applyRes.response.body[0].sub_form_number)) || ''}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/trailer-technical/log_etoimik_xroad_audit"
+          headers:
+            type: json
+          body:
+            found: "${applied_now ? 'true' : 'false'}"
+            key: ${candidate_key}
+            sub_form_number: ${applied_sub_form_number}
+            driver_personal_code: ${driver_personal_code}
+        result: auditRes
+    collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
+    into: trailerResults
+  next: returnSummary
+
+returnSummary:
+  status: 200
+  return: "${({ vehicleCandidatesChecked: vehicleCandidates.length, vehicleDecisionsApplied: vehicleResults.filter(r => r.applied).length, trailerCandidatesChecked: trailerCandidates.length, trailerDecisionsApplied: trailerResults.filter(r => r.applied).length, failures: vehicleResults.filter(r => !r.success).length + trailerResults.filter(r => !r.success).length })}"
+  next: end

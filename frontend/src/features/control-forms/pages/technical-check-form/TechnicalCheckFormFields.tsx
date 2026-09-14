@@ -9,7 +9,6 @@ import {
   Text,
   Alert,
 } from '@tedi-design-system/react/tedi';
-import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import type { Trailer } from '../../types';
@@ -40,9 +39,6 @@ interface TechnicalCheckFormFieldsProps {
   toggleViolation: (code: string, checked: boolean) => void;
   /** Editable up to and including "confirmed" for regular fields; false once published. */
   canEdit: boolean;
-  /** True only for an admin (control_form.edit_locked) editing an already-confirmed form. */
-  canEditXroadFields: boolean;
-  xroadBlockVisible: boolean;
   isDesktop: boolean;
   /** Trailers from the parent compound form — used to populate the trailer reg-nr selector. */
   compoundTrailers?: Trailer[];
@@ -74,8 +70,6 @@ export function TechnicalCheckFormFields({
   setResultType,
   toggleViolation,
   canEdit,
-  canEditXroadFields,
-  xroadBlockVisible,
   isDesktop,
   compoundTrailers,
   trailerIndex,
@@ -491,7 +485,12 @@ export function TechnicalCheckFormFields({
         </Card>
       )}
 
-      {xroadBlockVisible && (
+      {/* X-tee andmed: alates 15 ettepanekut p9 täidetakse neid ainult
+          öise/tunnise X-tee sünkroonimise cron'idega (etoimik-technical-check-decision-sync.yml,
+          yvkehtivus-sync.yml) — käsitsi-admin muutmise voog on eemaldatud.
+          Kuvatakse alati loetavana (mitte muudetavana) niipea kui alamvorm
+          on kinnitatud — enne seda pole väljadel veel sisu. */}
+      {(values.status === 'confirmed' || values.status === 'published') && (
         <Card className="mb-1">
           <Card.Content>
             <Heading element="h3" className="mb-1">
@@ -508,29 +507,22 @@ export function TechnicalCheckFormFields({
                   ? new Date(values.extraordinaryInspectionDate)
                   : undefined
               }
-              onSelect={(v) =>
-                formik.setFieldValue(
-                  'extraordinaryInspectionDate',
-                  toIsoDate(v as Date | undefined),
-                )
-              }
-              readOnly={!canEditXroadFields}
+              onSelect={() => {}}
+              readOnly
             />
             <TextArea
               id="enforcementDecision"
               label={t('forms.technical_check.xroad.enforcementDecision')}
               value={values.enforcementDecision ?? ''}
-              onChange={(v) => formik.setFieldValue('enforcementDecision', v)}
-              disabled={!canEditXroadFields}
+              onChange={() => {}}
+              disabled
             />
             <TextArea
               id="proceedingClosureBasis"
               label={t('forms.technical_check.xroad.proceedingClosureBasis')}
               value={values.proceedingClosureBasis ?? ''}
-              onChange={(v) =>
-                formik.setFieldValue('proceedingClosureBasis', v)
-              }
-              disabled={!canEditXroadFields}
+              onChange={() => {}}
+              disabled
             />
           </Card.Content>
         </Card>

@@ -3,8 +3,8 @@ description: 'Write the extraordinary inspection date found via the hourly yvkeh
   onto the latest vehicle_technical_form snapshot, in place — same X-tee-block exception to the insert-only
   snapshot convention as update-xroad-fields.sql (LJVIS2-72 §4: X-tee fields don''t bump version /V).
   Scoped to only this one column so this job can never clobber enforcement_decision/proceeding_closure_basis,
-  which come from a separate manual channel (edit/xroad/save-xroad-fields.yml) this cron job knows nothing
-  about. Self-guarded (status=''confirmed'' AND extraordinary_inspection_date IS NULL AND the incoming
+  which come from a separate cron (cron/etoimik-technical-check-decision-sync.yml, 15 ettepanekut p9) this
+  job knows nothing about. Self-guarded (status=''confirmed'' AND extraordinary_inspection_date IS NULL AND the incoming
   date is non-empty) — makes repeat calls idempotent, and the caller invokes this unconditionally once
   per candidate even when yvkehtivus found nothing (Ruuter''s iterate step can''t branch on `next:` inside
   `do:`). The NULLIF(...) IS NOT NULL guard matters specifically because without it an empty date would

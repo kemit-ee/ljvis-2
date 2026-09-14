@@ -383,20 +383,6 @@ export const publishTechnicalCheckForm = (
     { id }
   );
 
-export const saveTechnicalCheckFormXroadFields = (
-  variant: TechnicalCheckVariant,
-  data: {
-    id: string;
-    extraordinaryInspectionDate?: string;
-    enforcementDecision?: string;
-    proceedingClosureBasis?: string;
-  },
-) =>
-  post<TechnicalCheckForm[]>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/edit/xroad/save-xroad-fields`,
-    data,
-  );
-
 export const getTransportInterruptionForm = (id: string) =>
   get<TransportInterruptionForm>(`/v1/control-forms/transport-interruption`, {
     q: id,

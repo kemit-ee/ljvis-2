@@ -77,8 +77,6 @@ export function TechnicalCheckFormViewCard({
           setResultType={setResultType}
           toggleViolation={toggleViolation}
           canEdit={false}
-          canEditXroadFields={false}
-          xroadBlockVisible={false}
           isDesktop={isDesktop}
         />
         {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
