@@ -1,0 +1,105 @@
+declaration:
+  version: "1.0"
+  description: "Search NU messages with filters and pagination."
+  namespace: erru
+  allowlist:
+    params:
+      - field: businessCaseId
+        type: string
+      - field: dateFrom
+        type: string
+      - field: dateUntil
+        type: string
+      - field: country
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: handlerPersonalCode
+        type: string
+      - field: status
+        type: string
+      - field: direction
+        type: string
+      - field: sorting
+        type: string
+      - field: pageSize
+        type: string
+      - field: page
+        type: string
+
+extractRequestData:
+  assign:
+    business_case_id: "${incoming.params.businessCaseId || ''}"
+    date_from: "${incoming.params.dateFrom || ''}"
+    date_until: "${incoming.params.dateUntil || ''}"
+    country: "${incoming.params.country || ''}"
+    tm_first_name: "${incoming.params.tmFirstName || ''}"
+    tm_family_name: "${incoming.params.tmFamilyName || ''}"
+    handler_personal_code: "${incoming.params.handlerPersonalCode || ''}"
+    status: "${incoming.params.status || ''}"
+    direction: "${incoming.params.direction || ''}"
+    sorting: "${incoming.params.sorting || 'message_date desc'}"
+    page: "${incoming.params.page || '1'}"
+    page_size: "${incoming.params.pageSize || '20'}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: searchMessages
+
+searchMessages:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/search"
+    headers:
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      dateFrom: ${date_from}
+      dateUntil: ${date_until}
+      country: ${country}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      handlerPersonalCode: ${handler_personal_code}
+      status: ${status}
+      direction: ${direction}
+      sorting: ${sorting}
+      page: ${page}
+      page_size: ${page_size}
+  result: res
+  next: buildFilterSummary
+
+buildFilterSummary:
+  assign:
+    result_count: "${res.response.body.length}"
+    filter_summary: "${'businessCaseId=' + business_case_id + '; dateFrom=' + date_from + '; dateUntil=' + date_until + '; country=' + country + '; tmFirstName=' + tm_first_name + '; tmFamilyName=' + tm_family_name + '; status=' + status + '; direction=' + direction + '; handler=' + handler_personal_code}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/nu/log-nu-list-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    filters: ${filter_summary}
+    result_count: ${result_count}
+    page: ${page}
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_nu_list"
+    headers:
+      type: json
+    body:
+      messages: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end

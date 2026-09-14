@@ -29,6 +29,7 @@ export function GoodReputeFormCreatePage() {
   );
 
   const handleSaved = (id?: string) => {
+    window.scrollTo(0, 0);
     navigate(`/control-forms/good-repute/${id}`, {
       state: { justCreated: true },
     });

@@ -290,7 +290,7 @@
               "  pm.expect(Array.isArray(data.content)).to.be.true;",
               "  pm.expect(data.total).to.be.a('number');",
               "});",
-              "pm.test('Total equals 60 (production Liquibase migrations + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(60));",
+              "pm.test('Total equals 62 (production Liquibase migrations incl. NU_MESSAGE_STATUS/NU_MEMBER_STATE_STATUS + 1 CI-only TEST classifier)', () => pm.expect(data.total).to.eql(62));",
               "pm.test('Each item has id, code, name, description', () => {",
               "  data.content.forEach(c => {",
               "    pm.expect(c).to.include.keys('id', 'code', 'name', 'description');",
@@ -559,7 +559,7 @@
               "var body = pm.response.json();",
               "var data = (body && body.response) ? body.response : body;",
               "pm.test('Page 1 has exactly 1 item', () => pm.expect(data.content.length).to.eql(1));",
-              "pm.test('Total is still 60', () => pm.expect(data.total).to.eql(60));"
+              "pm.test('Total is still 62', () => pm.expect(data.total).to.eql(62));"
             ]
           }
         }

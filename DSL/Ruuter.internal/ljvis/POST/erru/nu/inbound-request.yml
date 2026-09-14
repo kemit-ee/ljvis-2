@@ -1,0 +1,213 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Receive and acknowledge NU messages idempotently. Internal endpoint.
+    TODO(M2M): OAuth2 machine-token auth. Pending platform client_credentials support,
+    following the CGR/CTUD/RSI/NCR inbound precedent.
+  namespace: erru
+  allowlist:
+    body:
+      - field: technicalId
+        type: string
+      - field: workflowId
+        type: string
+      - field: sentAt
+        type: string
+      - field: from
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: originatingAuthority
+        type: string
+      - field: requestSource
+        type: string
+      - field: requestPurpose
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: tmDateOfBirth
+        type: string
+      - field: tmPlaceOfBirth
+        type: string
+      - field: tmFirstNameSearchKey
+        type: string
+      - field: tmFamilyNameSearchKey
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueDate
+        type: string
+      - field: certificateIssueCountry
+        type: string
+      - field: unfitStartDate
+        type: string
+
+# Shared Ruuter/Ruuter.internal rules: erru.nu_validate (docs/integrations/erru-nu-exchange.md).
+validateEnvelope:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/validate"
+    body:
+      payload: "${JSON.stringify(incoming.body)}"
+      kind: "inbound"
+  result: validation
+  next: checkValidation
+
+checkValidation:
+  switch:
+    - condition: ${JSON.parse(validation.response.body[0].result).valid !== true}
+      next: returnInvalidData
+    - condition: ${incoming.body.requestPurpose === 'Heartbeat'}
+      next: returnHeartbeatAck
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    technical_id: "${('' + (incoming.body.technicalId || '')).trim()}"
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    sent_at: "${('' + (incoming.body.sentAt || '')).trim()}"
+    nu_from: "${('' + (incoming.body.from || '')).trim().toUpperCase()}"
+    business_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
+    request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
+    request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
+    tm_first_name: "${('' + (incoming.body.tmFirstName || '')).trim()}"
+    tm_family_name: "${('' + (incoming.body.tmFamilyName || '')).trim()}"
+    tm_date_of_birth: "${('' + (incoming.body.tmDateOfBirth || '')).trim()}"
+    tm_place_of_birth: "${('' + (incoming.body.tmPlaceOfBirth || '')).trim()}"
+    tm_first_name_search_key: "${('' + (incoming.body.tmFirstNameSearchKey || '')).trim()}"
+    tm_family_name_search_key: "${('' + (incoming.body.tmFamilyNameSearchKey || '')).trim()}"
+    certificate_number: "${('' + (incoming.body.certificateNumber || '')).trim()}"
+    certificate_issue_date: "${('' + (incoming.body.certificateIssueDate || '')).trim()}"
+    certificate_issue_country: "${('' + (incoming.body.certificateIssueCountry || '')).trim().toUpperCase()}"
+    unfit_start_date: "${('' + (incoming.body.unfitStartDate || '')).trim()}"
+  next: storeAtomic
+
+storeAtomic:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/append-inbound"
+    headers:
+      type: json
+    body:
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      nuFrom: ${nu_from}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+      unfitStartDate: ${unfit_start_date}
+      created_by: "system"
+  result: stored_res
+  next: checkStored
+checkStored:
+  switch:
+    - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
+      next: lookupExisting
+  next: extractStored
+
+extractStored:
+  assign:
+    message_key: "${stored_res.response.body[0].id}"
+    unfit_start_date: "${stored_res.response.body[0].unfit_start_date}"
+  next: createNuNotification
+
+lookupExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-by-technical-id"
+    headers:
+      type: json
+    body:
+      technical_id: ${technical_id}
+  result: existing_res
+  next: checkExisting
+
+checkExisting:
+  switch:
+    - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
+      next: returnInvalidData
+  next: getSavedAck
+createNuNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "nu_inbound_received"
+      required_permission: "nu.read"
+      related_entity_type: "nu"
+      related_entity_id: "${'' + message_key}"
+      title_et: "Saabus uus NU sobimatusteade"
+      body_et: "${'Saabus sobimatusteade ' + business_case_id + ' riigist ' + nu_from + '.'}"
+      created_by: "system"
+  result: notifRes
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    audit_description: "NU sissetuleva sobimatusteate salvestamine: teate number ${business_case_id}, saatjariik ${nu_from}, päringu allikas ${request_source}, päringu eesmärk ${request_purpose}, veokorraldusjuht ${tm_family_name} ${tm_first_name} (${tm_date_of_birth}), tunnistuse number ${certificate_number}, sobimatuse algus ${unfit_start_date}"
+    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['nuFrom', nu_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['tmFirstName', tm_first_name || null], ['tmFamilyName', tm_family_name || null], ['certificateNumber', certificate_number || null], ['unfitStartDate', unfit_start_date || null]]))}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "nu.inbound_request.store"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU NU inbound service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      organisation_id: ""
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  next: returnAck
+
+returnAck:
+  return: "${stored_res.response.body[0].acknowledgement}"
+  next: end
+
+getSavedAck:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-ack"
+    body:
+      key: ${existing_res.response.body[0].id}
+  result: savedAck
+  next: returnReplayedAck
+
+returnReplayedAck:
+  return: "${savedAck.response.body.length === 1 ? savedAck.response.body[0].result : JSON.stringify({statusCode: 'ServerError'})}"
+  next: end
+
+returnHeartbeatAck:
+  return: '{"acknowledgementType":"NotifyUnfitness_Acknowledgement","statusCode":"OK","statusMessage":""}'
+  next: end
+
+returnInvalidData:
+  status: 400
+  return: '{"acknowledgementType":"NotifyUnfitness_Acknowledgement","statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU 3.5 NU requirements"}'
+  next: end

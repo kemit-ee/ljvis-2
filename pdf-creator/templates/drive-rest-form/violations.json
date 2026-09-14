@@ -632,66 +632,66 @@
     "group": "SALVESTUSED"
   },
   {
-    "code": "MI",
+    "code": "VSI874",
     "name": "Lepinguliste võlasuhete suhtes kohaldatava õiguse rikkumine",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "VSI",
+    "severity": "VSI",
     "article": "Rooma I määrus",
     "group": "ROOMA_I"
   },
   {
-    "code": "MI",
+    "code": "SI951",
     "name": "Mittetäielik teave lähetusdeklaratsioonil",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "SI",
+    "severity": "SI",
     "article": "Artikli 1 lõike 11 punkt a",
     "group": "LAHETAMINE"
   },
   {
-    "code": "MI",
+    "code": "VSI875",
     "name": "Liikmesriigile, kuhu juht lähetatakse, ei esitata hiljemalt lähetuse alguses lähetusdeklaratsiooni",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "VSI",
+    "severity": "VSI",
     "article": "Artikli 1 lõike 11 punkt a",
     "group": "LAHETAMINE"
   },
   {
-    "code": "MI",
+    "code": "VSI876",
     "name": "Juhil on võltsitud lähetusdeklaratsioon",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "VSI",
+    "severity": "VSI",
     "article": "Artikli 1 lõike 11 punkt b",
     "group": "LAHETAMINE"
   },
   {
-    "code": "MI",
+    "code": "VSI877",
     "name": "Juhil ei ole võimalik esitada kehtivat lähetusdeklaratsiooni",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "VSI",
+    "severity": "VSI",
     "article": "Artikli 1 lõike 11 punkt b",
     "group": "LAHETAMINE"
   },
   {
-    "code": "MI",
+    "code": "VSI878",
     "name": "Juhi käsutusse ei anta kehtivat lähetusdeklaratsiooni",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "VSI",
+    "severity": "VSI",
     "article": "Artikli 1 lõike 11 punkt b",
     "group": "LAHETAMINE"
   },
   {
-    "code": "MI",
+    "code": "VSI879",
     "name": "Taotletud dokumendid jäetakse lähetuse sihtliikmesriigile esitamata kaheksa nädala jooksul alates taotluse esitamise kuupäevast",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "VSI",
+    "severity": "VSI",
     "article": "Artikli 1 lõike 11 punkt c",
     "group": "LAHETAMINE"
   },
   {
-    "code": "MI",
+    "code": "SI952",
     "name": "Autoveoettevõtja ei ajakohasta lähetusdeklaratsioone siseturu infosüsteemi avalikus liideses",
-    "threshold": "MI",
-    "severity": "MI",
+    "threshold": "SI",
+    "severity": "SI",
     "article": "Artikli 1 lõige 12",
     "group": "LAHETAMINE"
   }

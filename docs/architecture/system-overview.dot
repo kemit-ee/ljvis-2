@@ -1,0 +1,30 @@
+digraph LJVIS2 {
+  rankdir=LR; graph [bgcolor="white", pad="0.2", nodesep="0.45", ranksep="0.8"];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=11, color="#264653", fillcolor="#e8f1f5", margin="0.16,0.10"];
+  edge [fontname="Arial", fontsize=9, color="#527783", arrowsize=0.7];
+  user [label="Kasutaja\n(veebibrauser)", fillcolor="#d9f0e3"];
+  frontend [label="Frontend\nReact + TypeScript + Vite"];
+  ruuter [label="Ruuter\navalik API\n(eraldi teenus)", fillcolor="#fbe8c8"];
+  internal [label="Ruuter internal\nsisesed töövood\n(eraldi teenus)", fillcolor="#fbe8c8"];
+  resql [label="Resql\nSQL-päringud"];
+  mapper [label="DataMapper\nHandlebars teisendus"];
+  db [label="PostgreSQL 17\nLJVIS andmebaas"];
+  pdf [label="pdf-creator\nPython PDF-teenus\n(eraldi teenus)", fillcolor="#eadcf8"];
+  xtr [label="XTR\nX-tee väljumispunkt", fillcolor="#f8d7da"];
+  tim [label="TIM / TARA\nidentiteet", fillcolor="#f8d7da"];
+  nysiis [label="Nysiis\nERRU teenus"];
+  s3 [label="S3 proxy\nmanused"];
+  cron [label="CronManager\najastatud tööd"];
+  user -> frontend [label="HTTPS"];
+  frontend -> ruuter [label="REST API"];
+  ruuter -> resql [label="SQL workflow"];
+  ruuter -> mapper [label="andmete teisendus"];
+  resql -> db;
+  ruuter -> pdf [label="PDF päring"];
+  ruuter -> xtr [label="X-tee"];
+  ruuter -> nysiis [label="ERRU"];
+  ruuter -> s3 [label="manused"];
+  internal -> db;
+  cron -> internal [label="ajastus"];
+  frontend -> tim [label="OIDC"];
+}

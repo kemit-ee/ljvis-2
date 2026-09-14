@@ -7,7 +7,7 @@ params:
     required: false
 returns:
 - name: id
-  type: number
+  type: string
   nullable: true
 - name: form_number
   type: string

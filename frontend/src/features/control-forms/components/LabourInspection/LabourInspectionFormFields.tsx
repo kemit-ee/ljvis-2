@@ -21,6 +21,7 @@ import { ControlsMatrixTable } from './ControlsMatrixTable';
 import { ViolationPickerModal } from './ViolationPickerModal';
 import { CompanyPickerModal } from '../CompanyPickerModal';
 import styles from '../../pages/labour-inspection/LabourInspectionFormPage.module.css';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 export const INSPECTION_TYPES = [
   {
@@ -260,13 +261,13 @@ export function LabourInspectionFormFields({
                   />
                 </div>
                 {handleCompanyNameSearch && (
-                  <Button
+                  <AsyncButton
                     type="button"
                     visualType="secondary"
                     onClick={handleCompanyNameSearch}
                   >
                     {t('forms.labour_inspection.companySearchButton')}
-                  </Button>
+                  </AsyncButton>
                 )}
               </div>
               <div className={styles['search-row']}>
@@ -290,13 +291,13 @@ export function LabourInspectionFormFields({
                   />
                 </div>
                 {handleCompanyRegSearch && (
-                  <Button
+                  <AsyncButton
                     type="button"
                     visualType="secondary"
                     onClick={handleCompanyRegSearch}
                   >
                     {t('forms.labour_inspection.companySearchButton')}
-                  </Button>
+                  </AsyncButton>
                 )}
               </div>
             </div>

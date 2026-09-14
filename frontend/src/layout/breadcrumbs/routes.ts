@@ -262,6 +262,11 @@ export const BREADCRUMB_ROUTES: BreadcrumbRouteEntry[] = [
   },
   { pattern: '/erru/ncr', labelKey: 'nav.ncr', parent: '/' },
 
+  // ERRU — NU
+  { pattern: '/erru/nu/new', labelKey: 'breadcrumbs.nuCreate', parent: '/erru/nu' },
+  { pattern: '/erru/nu/:id', labelKey: 'breadcrumbs.nuDetail', parent: '/erru/nu' },
+  { pattern: '/erru/nu', labelKey: 'nav.nu', parent: '/' },
+
   // Citizen
   { pattern: '/my-companies', labelKey: 'citizen.formsList.title', parent: '/' },
   {

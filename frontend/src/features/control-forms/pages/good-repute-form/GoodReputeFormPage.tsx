@@ -86,8 +86,15 @@ export function GoodReputeFormPage() {
   const canPublish =
     (isAdmin || hasPermission('good_repute_form.write')) &&
     form?.status === 'confirmed';
+  // LJVIS2-160 §4: an outgoing NU sobimatusteade may only be composed from a
+  // published, unfit declaration — the same condition gates prefill navigation here.
+  const canCreateNu =
+    hasPermission('nu.create') &&
+    form?.status === 'published' &&
+    form?.fitnessStatus === 'unfit';
 
   const handleEditSaved = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
@@ -97,6 +104,7 @@ export function GoodReputeFormPage() {
   };
 
   const handleConfirmed = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
@@ -106,6 +114,7 @@ export function GoodReputeFormPage() {
   };
 
   const handlePublished = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(false);
@@ -314,6 +323,15 @@ export function GoodReputeFormPage() {
                     <AsyncButton type="button" onClick={() => triggerPublish()}>
                       {t('common.publish')}
                     </AsyncButton>
+                  )}
+                  {canCreateNu && (
+                    <Button
+                      type="button"
+                      visualType="secondary"
+                      onClick={() => navigate(`/erru/nu/new?sourceKey=${id}`)}
+                    >
+                      {t('erru.nu.createFromGoodRepute')}
+                    </Button>
                   )}
                 </>
               )

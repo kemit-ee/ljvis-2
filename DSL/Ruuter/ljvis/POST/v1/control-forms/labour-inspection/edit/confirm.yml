@@ -44,8 +44,9 @@ extractRequestData:
     inspection_type: "${incoming.body.inspectionType || ''}"
     company_name: "${incoming.body.companyName || ''}"
     company_reg_code: "${incoming.body.companyRegCode || ''}"
-    vehicle_count: "${incoming.body.vehicleCount || ''}"
-    total_drivers_count: "${incoming.body.totalDriversCount || ''}"
+    # Ei coercida `|| ''`-ga — 0 on legitiimne sõidukite/juhtide arv (vt save.yml).
+    vehicle_count: "${incoming.body.vehicleCount}"
+    total_drivers_count: "${incoming.body.totalDriversCount}"
     controls_matrix: "${incoming.body.controlsMatrix || '[]'}"
     prescription_composed: "${incoming.body.prescriptionComposed || 'false'}"
     punished_person_id_code: "${incoming.body.punishedPersonIdCode || ''}"

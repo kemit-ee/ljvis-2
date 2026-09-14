@@ -90,6 +90,7 @@ export function CtudRequestFields({
             <Select
               id="ctud-request-source"
               label={t('erru.ctud.form.requestSource')}
+              required
               options={opts(requestSources)}
               value={selected(requestSources, formik.values.requestSource)}
               onChange={(o) => formik.setFieldValue('requestSource', pick(o))}
@@ -99,6 +100,7 @@ export function CtudRequestFields({
             <Select
               id="ctud-request-purpose"
               label={t('erru.ctud.form.requestPurpose')}
+              required
               options={opts(requestPurposes)}
               value={selected(requestPurposes, formik.values.requestPurpose)}
               onChange={(o) => formik.setFieldValue('requestPurpose', pick(o))}

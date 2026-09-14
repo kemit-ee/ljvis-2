@@ -1,0 +1,113 @@
+declaration:
+  version: "1.0"
+  description: "Read the current NU message or a snapshot, with version history."
+  namespace: erru
+  allowlist:
+    params:
+      - field: q
+        type: string
+        description: "NU message logical key (nu_message_key)"
+
+      - field: snapshotId
+        type: string
+        description: "Optional immutable snapshot ID, scoped to q"
+
+extractRequestData:
+  assign:
+    id: "${incoming.params.q || ''}"
+    snapshot_id: "${incoming.params.snapshotId || ''}"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkIdPresent
+
+checkIdPresent:
+  switch:
+    - condition: ${!/^[1-9][0-9]*$/.test(id) || (snapshot_id !== '' && !/^[1-9][0-9]*$/.test(snapshot_id))}
+      next: returnNotFound
+    - condition: ${snapshot_id !== ''}
+      next: getSnapshot
+  next: getMessage
+
+getSnapshot:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-snapshot"
+    headers:
+      type: json
+    body:
+      id: ${id}
+      snapshotId: ${snapshot_id}
+  result: res
+  next: checkResponse
+
+getMessage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: res
+  next: checkResponse
+
+checkResponse:
+  switch:
+    - condition: ${res.response.body.length != 1}
+      next: returnNotFound
+  next: extractMessageFields
+
+extractMessageFields:
+  assign:
+    business_case_id: "${res.response.body[0].businessCaseId || ''}"
+    direction: "${res.response.body[0].direction || ''}"
+    status: "${res.response.body[0].status || ''}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/erru/nu/log-nu-message-view"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    business_case_id: ${business_case_id}
+    direction: ${direction}
+    status: ${status}
+    snapshot_id: "${'' + res.response.body[0].snapshotId}"
+    snapshot_version: "${'' + res.response.body[0].version}"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+  result: audit_result
+  next: getHistory
+
+getHistory:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-snapshots"
+    headers:
+      type: json
+    body:
+      id: ${id}
+  result: history
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_nu_request"
+    headers:
+      type: json
+    body:
+      requests: ${res.response.body}
+      snapshots: "${JSON.stringify(history.response.body)}"
+  result: mapped
+  next: returnSuccess
+
+returnSuccess:
+  return: ${mapped.response.body}
+  next: end
+
+returnNotFound:
+  status: 404
+  return: '{"valid":false,"code":"not_found","message":"NU sobimatusteade ei leitud"}'
+  next: end

@@ -13,6 +13,7 @@ getFilesFromDB:
     body:
       form_number: ${incoming.body.form_number}
       form_number_prefix: ${incoming.body.form_number_prefix}
+      attachment_form_type: ${incoming.body.attachment_form_type || ""}
   result: dbResult
 
 returnSuccess:

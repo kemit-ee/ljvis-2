@@ -22,7 +22,8 @@ import type { CheckEntry } from '../../types.ts';
 import { ModalResultSection } from './ModalResultSection/ModalResultSection';
 import { DocRightOtherSection } from './DocRightOtherSection';
 import styles from '../../pages/drive-rest-form/DriveRestFormPage.module.css';
-import { FormFiles } from '../../../forms/components/FormFiles.tsx';
+import { FileUploadBlock } from '../shared/FileUploadBlock';
+import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 
 interface ChoiceItem {
   id: string;
@@ -65,6 +66,7 @@ interface Props {
   drivingViolations: ClassifierValueData[];
   massDimensions: ClassifierValueData[];
   readOnly?: boolean;
+  authority?: FormAuthority;
   /**
    * TRAM kontrollkaardil (issue #180, 2. faas) on kolm sektsiooni peidetud:
    * „Sõidu- ja puhkeaja nõuete täitmine", „Sõiduki mass ja mõõtmed" ja
@@ -90,14 +92,20 @@ export function DriveRestFormFields({
   drivingViolations,
   massDimensions,
   readOnly,
+  authority = 'PPA',
   hideDriveRestExtras,
-  filesFormType = 'foreign-violation-form',
+  filesFormType,
   filesFormNumber,
 }: Props) {
   const { t } = useTranslation();
 
+  const fieldId = (id: string) => type === 'teammate' ? `teammate-${id}` : id;
   const withDisabled = (items: ChoiceItem[]): ChoiceItem[] =>
-    readOnly ? items.map((item) => ({ ...item, disabled: true })) : items;
+    items.map((item) => ({
+      ...item,
+      id: fieldId(item.id),
+      disabled: readOnly || item.disabled,
+    }));
 
   const transportType = formik.values.transportType;
   const isClassDisabled = (code: string) =>
@@ -211,14 +219,14 @@ export function DriveRestFormFields({
                 {t('forms.sp_form.transportClass')}
               </Heading>
               <ChoiceGroup
-                id="transportType"
+                id={fieldId('transportType')}
                 label={
                   <strong>
                     {t('forms.sp_form.transportType')}{' '}
                     <span className={styles['required-star']}>*</span>
                   </strong>
                 }
-                name="transportType"
+                name={fieldId('transportType')}
                 inputType="radio"
                 direction="row"
                 value={formik.values.transportType}
@@ -249,9 +257,9 @@ export function DriveRestFormFields({
                   : {})}
               />
               <ChoiceGroup
-                id="transportEmptyRun"
+                id={fieldId('transportEmptyRun')}
                 label=""
-                name="transportEmptyRun"
+                name={fieldId('transportEmptyRun')}
                 className="mb-1"
                 inputType="checkbox"
                 value={formik.values.transportEmptyRun ? ['Tühisõit'] : []}
@@ -270,9 +278,9 @@ export function DriveRestFormFields({
                 ])}
               />
               <ChoiceGroup
-                id="transportNature"
+                id={fieldId('transportNature')}
                 label={<strong>{t('forms.sp_form.transportNature')}</strong>}
-                name="transportNature"
+                name={fieldId('transportNature')}
                 className="mb-1"
                 inputType="radio"
                 direction="row"
@@ -294,9 +302,9 @@ export function DriveRestFormFields({
                 ])}
               />
               <ChoiceGroup
-                id="transportNatureExempt"
+                id={fieldId('transportNatureExempt')}
                 label=""
-                name="transportNatureExempt"
+                name={fieldId('transportNatureExempt')}
                 inputType="checkbox"
                 value={
                   formik.values.transportNatureExempt
@@ -319,13 +327,13 @@ export function DriveRestFormFields({
                   },
                 ])}
               />
-              {/* Liini number ja nimetus — nähtav ainult sõitjateveo korral */}
-              {formik.values.transportType === 'Sõitjatevedu' && (
+              {/* Liiniandmed kuuluvad ainult Transpordiameti kontrollkaardile. */}
+              {authority === 'TRAM' && formik.values.transportType === 'Sõitjatevedu' && (
                 <>
                   <TextField
-                    id="liiniNumber"
+                    id={fieldId('liiniNumber')}
                     label={t('forms.sp_form.liiniNumber')}
-                    name="liiniNumber"
+                    name={fieldId('liiniNumber')}
                     className="mt-1"
                     value={formik.values.liiniNumber ?? ''}
                     onChange={(val) =>
@@ -334,9 +342,9 @@ export function DriveRestFormFields({
                     disabled={readOnly}
                   />
                   <TextField
-                    id="liiniNimetus"
+                    id={fieldId('liiniNimetus')}
                     label={t('forms.sp_form.liiniNimetus')}
-                    name="liiniNimetus"
+                    name={fieldId('liiniNimetus')}
                     className="mt-1"
                     value={formik.values.liiniNimetus ?? ''}
                     onChange={(val) =>
@@ -406,10 +414,10 @@ export function DriveRestFormFields({
                 return (
                   <>
                     <ChoiceGroup
-                      id="transportClassesBefore"
+                      id={fieldId('transportClassesBefore')}
                       className={styles['choice-item-gap']}
                       label=""
-                      name="transportClasses"
+                      name={fieldId('transportClasses')}
                       inputType="checkbox"
                       value={transportClassesValue}
                       onChange={(val) => handleChange(val as string[])}
@@ -420,10 +428,10 @@ export function DriveRestFormFields({
                       cabotageSubItems.length > 0 && (
                         <div className={styles['cabotage-indent']}>
                           <ChoiceGroup
-                            id="cabotageViolations"
+                            id={fieldId('cabotageViolations')}
                             className={styles['choice-item-gap']}
                             label=""
-                            name="cabotageViolations"
+                            name={fieldId('cabotageViolations')}
                             inputType="checkbox"
                             value={cabotageViolationsValue}
                             onChange={(val) => {
@@ -449,10 +457,10 @@ export function DriveRestFormFields({
                       )}
                     {afterCabotage.length > 0 && (
                       <ChoiceGroup
-                        id="transportClassesAfter"
+                        id={fieldId('transportClassesAfter')}
                         className={styles['choice-item-gap']}
                         label=""
-                        name="transportClasses"
+                        name={fieldId('transportClasses')}
                         inputType="checkbox"
                         value={transportClassesValue}
                         onChange={(val) => handleChange(val as string[])}
@@ -475,14 +483,14 @@ export function DriveRestFormFields({
                 {t('forms.sp_form.controlResult')}
               </Heading>
               <ChoiceGroup
-                id="controlResult"
+                id={fieldId('controlResult')}
                 label={
                   <strong>
                     {t('forms.sp_form.controlResultLabel')}{' '}
                     <span className={styles['required-star']}>*</span>
                   </strong>
                 }
-                name="resultType"
+                name={fieldId('resultType')}
                 inputType="radio"
                 direction="row"
                 value={formik.values.resultType}
@@ -525,9 +533,9 @@ export function DriveRestFormFields({
               {(formik.values.resultType === 'warning' ||
                 formik.values.resultType === 'misdemeanor_proceedings') && (
                 <ChoiceGroup
-                  id="additionalMeasure"
+                  id={fieldId('additionalMeasure')}
                   label={<strong>{t('forms.sp_form.additionalMeasure')}</strong>}
-                  name="additionalMeasure"
+                  name={fieldId('additionalMeasure')}
                   inputType="radio"
                   direction="row"
                   className="mb-1"
@@ -594,10 +602,10 @@ export function DriveRestFormFields({
                         <>
                           {formik.values.proceedingType === '' && (
                             <ChoiceGroup
-                              id="proceedingTypePart0"
+                              id={fieldId('proceedingTypePart0')}
                               className={styles['choice-item-gap']}
                               label={t('forms.sp_form.proceedingType')}
-                              name="proceedingType"
+                              name={fieldId('proceedingType')}
                               inputType="radio"
                               value={formik.values.proceedingType}
                               onChange={(val) => {
@@ -615,10 +623,10 @@ export function DriveRestFormFields({
                           )}
                           {isValidType && labelIdx > 0 && (
                             <ChoiceGroup
-                              id="proceedingTypePart1"
+                              id={fieldId('proceedingTypePart1')}
                               className={styles['choice-item-gap']}
                               label={t('forms.sp_form.proceedingType')}
-                              name="proceedingType"
+                              name={fieldId('proceedingType')}
                               inputType="radio"
                               value={formik.values.proceedingType}
                               onChange={(val) => {
@@ -640,14 +648,14 @@ export function DriveRestFormFields({
                             <>
                               <div className={styles['proceeding-row']}>
                                 <ChoiceGroup
-                                  id="proceedingTypeSelected"
+                                  id={fieldId('proceedingTypeSelected')}
                                   className={styles['choice-item-gap']}
                                   label={
                                     labelIdx === 0
                                       ? t('forms.sp_form.proceedingType')
                                       : ''
                                   }
-                                  name="proceedingType"
+                                  name={fieldId('proceedingType')}
                                   inputType="radio"
                                   value={formik.values.proceedingType}
                                   onChange={(val) => {
@@ -666,7 +674,7 @@ export function DriveRestFormFields({
                                 />
                                 <div className={styles['proceeding-width']}>
                                   <TextField
-                                    id="proceedingReferenceNumber"
+                                    id={fieldId('proceedingReferenceNumber')}
                                     label=""
                                     value={
                                       formik.values.proceedingReferenceNumber
@@ -699,10 +707,10 @@ export function DriveRestFormFields({
                               </div>
                               {labelIdx < PROCEEDING_TYPES.length - 1 && (
                                 <ChoiceGroup
-                                  id="proceedingTypePart2"
+                                  id={fieldId('proceedingTypePart2')}
                                   className={styles['choice-item-gap']}
                                   label=""
-                                  name="proceedingType"
+                                  name={fieldId('proceedingType')}
                                   inputType="radio"
                                   value={formik.values.proceedingType}
                                   onChange={(val) => {
@@ -736,7 +744,7 @@ export function DriveRestFormFields({
         formik.values.resultType !== 'ok' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id="doc-right-check">
+              <AccordionItem id={fieldId('doc-right-check')}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -770,6 +778,7 @@ export function DriveRestFormFields({
                     <div className="mt-1">
                       <DocRightOtherSection
                         transportType={formik.values.transportType}
+                        idPrefix={type === 'teammate' ? 'teammate-' : ''}
                         docRightOtherDocs={docRightOtherDocs}
                         otherDocuments={formik.values.otherDocuments}
                         setFieldValue={formik.setFieldValue}
@@ -788,7 +797,7 @@ export function DriveRestFormFields({
       {!hideDriveRestExtras && formik.values.resultType !== '' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id="drive-rest-violations">
+              <AccordionItem id={fieldId('drive-rest-violations')}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -810,9 +819,9 @@ export function DriveRestFormFields({
                         </div>
                       )}
                     <ChoiceGroup
-                      id="applicability"
+                      id={fieldId('applicability')}
                       label=""
-                      name="applicability"
+                      name={fieldId('applicability')}
                       inputType="radio"
                       direction="row"
                       value={formik.values.spApplicability}
@@ -849,14 +858,14 @@ export function DriveRestFormFields({
                     />
                     {formik.values.spApplicability === 'RAKENDATAKSE' && (
                       <ChoiceGroup
-                        id="tachographTypeCode"
+                        id={fieldId('tachographTypeCode')}
                         label={
                           <strong>
                             {t('forms.sp_form.tachograph_type_code')}{' '}
                             <span className={styles['required-star']}>*</span>
                           </strong>
                         }
-                        name="tachographTypeCode"
+                        name={fieldId('tachographTypeCode')}
                         inputType="radio"
                         direction="row"
                         value={formik.values.tachographTypeCode}
@@ -879,7 +888,7 @@ export function DriveRestFormFields({
                     <Text>{t('forms.drive_rest.checkedDaysCount')}</Text>
                     <TextField
                       className={styles['days-number']}
-                      id="checkedDaysCount"
+                      id={fieldId('checkedDaysCount')}
                       label=""
                       value={formik.values.checkedDaysCount?.toString() || ''}
                       placeholder={t('common.numberPlaceholder', 'Nr')}
@@ -897,7 +906,7 @@ export function DriveRestFormFields({
                     <Text>{t('forms.drive_rest.workDaysCount')}</Text>
                     <TextField
                       className={styles['days-number']}
-                      id="workDaysCount"
+                      id={fieldId('workDaysCount')}
                       label=""
                       value={formik.values.workDaysCount?.toString() || ''}
                       placeholder={t('common.numberPlaceholder', 'Nr')}
@@ -915,7 +924,7 @@ export function DriveRestFormFields({
                     <Text>{t('forms.drive_rest.otherActivityDaysCount')}</Text>
                     <TextField
                       className={styles['days-number']}
-                      id="otherActivityDaysCount"
+                      id={fieldId('otherActivityDaysCount')}
                       label=""
                       value={
                         formik.values.otherActivityDaysCount?.toString() || ''
@@ -965,7 +974,7 @@ export function DriveRestFormFields({
         type === 'driver' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id="mass-dimension-violations">
+              <AccordionItem id={fieldId('mass-dimension-violations')}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1006,11 +1015,11 @@ export function DriveRestFormFields({
               </Heading>
               <div>
                 <ChoiceGroup
-                  id="atpViolationFound"
+                  id={fieldId('atpViolationFound')}
                   label={
                     <strong>{t('forms.sp_form.atpViolationFound')}</strong>
                   }
-                  name="roadTaxStatus"
+                  name={fieldId('roadTaxStatus')}
                   inputType="radio"
                   direction="row"
                   value={formik.values.atpViolationFound}
@@ -1040,7 +1049,7 @@ export function DriveRestFormFields({
                 {formik.values.atpViolationFound === 'true' && (
                   <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
                     <TextArea
-                      id="atpViolationDescription"
+                      id={fieldId('atpViolationDescription')}
                       maxHeight="8rem"
                       label={
                         <strong>
@@ -1090,7 +1099,7 @@ export function DriveRestFormFields({
                 </Heading>
                 <div className="mb-1">
                   <TextArea
-                    id="enforcementDecision"
+                    id={fieldId('enforcementDecision')}
                     label={<strong>{t('forms.sp_form.enforcedDecision')}</strong>}
                     value={formik.values.enforcementDecision ?? ''}
                     maxHeight="8rem"
@@ -1100,7 +1109,7 @@ export function DriveRestFormFields({
                 </div>
                 <div>
                   <TextArea
-                    id="proceedingClosureBasis"
+                    id={fieldId('proceedingClosureBasis')}
                     label={
                       <strong>
                         {t('forms.sp_form.proceedingTerminationBasis')}
@@ -1120,10 +1129,11 @@ export function DriveRestFormFields({
       {/* Plokk: Failid */}
       <Row className="m-0">
         <Col className="p-0">
-          <FormFiles
-            formType={filesFormType}
+          <FileUploadBlock
+            formPath={filesFormType ?? `drive-rest-form/${type}`}
             formNumber={filesFormNumber ?? formik.values.subFormNumber}
-            canEdit={!readOnly}
+            disabled={readOnly}
+            label={t('form.files.title')}
           />
         </Col>
       </Row>
@@ -1137,7 +1147,7 @@ export function DriveRestFormFields({
               </Heading>
               <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
                 <TextArea
-                  id="sanctionNotes"
+                  id={fieldId('sanctionNotes')}
                   label=""
                   value={formik.values.notes}
                   placeholder={

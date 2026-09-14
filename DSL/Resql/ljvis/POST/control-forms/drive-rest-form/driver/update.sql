@@ -213,7 +213,14 @@ SELECT
         COALESCE(NULLIF(:massDimensionMeasurements, '') ::jsonb, '[]' ::jsonb),
         CASE WHEN :atpViolationFound = 'true' THEN TRUE ELSE FALSE END,
         NULLIF(:atpViolationDescription, ''),
-        COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb),
+        forms.derive_sp_erru_points(
+          COALESCE(NULLIF(:violations5612006, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations1652014, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations200215, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb)
+        ),
         COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),
         COALESCE(NULLIF(:proceedingClosureBasis, ''), l.proceeding_closure_basis),
         NULLIF(:notes, ''),

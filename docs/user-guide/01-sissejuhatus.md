@@ -1,5 +1,26 @@
 # Sissejuhatus
 
+## Süsteemi ülesehitus
+
+Järgmine joonis näitab LJVIS2 peamisi komponente, eraldi teenuseid ja nendevahelisi seoseid.
+
+```mermaid
+flowchart LR
+    U[Kasutaja\nveebibrauser] --> F[Frontend\nReact + TypeScript + Vite]
+    F --> R[Ruuter\navalik API]
+    F -. OIDC .-> T[TIM / TARA]
+    R --> Q[Resql]
+    R --> M[DataMapper]
+    R --> P[pdf-creator\nPython PDF-teenus]
+    R --> X[XTR\nX-tee]
+    X --> XT[X-tee\nregistrid ja teenused]
+    R --> N[Nysiis\nERRU]
+    R --> S[S3 proxy\nmanused]
+    Q --> D[(PostgreSQL 17)]
+    I[Ruuter internal] --> D
+    C[CronManager] --> I
+```
+
 LJVIS2 (Liiklusjärelvalve infosüsteem 2) on veebipõhine tööriist transpordiametnikele ja ettevõtjatele. Selle abil dokumenteeritakse liiklus-, tööinspektsiooni- ja tehnilisi kontrolle, hallatakse kasutajaid ning vaadatakse auditilogi.
 
 ## Kellele juhend on mõeldud

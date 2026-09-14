@@ -92,6 +92,13 @@ checkNotesLength:
   switch:
     - condition: ${notes.length > 4000}
       next: returnNotesTooLongError
+    # Peegeldab useAdrForm.ts Yup-skeemi (proceedingReferenceNumber kohustuslik
+    # kui proceedingType valitud; exemptionAdrProvision kohustuslik kui
+    # exemptionApplied=true) — varem oli see kontroll ainult kliendipoolne.
+    - condition: ${!!proceeding_type && proceeding_reference_number.trim() === ''}
+      next: returnProceedingReferenceNumberRequiredError
+    - condition: ${exemption_applied === true && exemption_adr_provision.trim() === ''}
+      next: returnExemptionAdrProvisionRequiredError
     - condition: ${id == null || id === ''}
       next: checkCompoundFormKeyForCreate
   next: getCurrentFormForStatus
@@ -332,6 +339,16 @@ returnMissingCompoundFormKeyError:
 returnNotesTooLongError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"notes","code":"max_length_4000"}'
+  next: end
+
+returnProceedingReferenceNumberRequiredError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"required"}'
+  next: end
+
+returnExemptionAdrProvisionRequiredError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"exemptionAdrProvision","code":"required"}'
   next: end
 
 returnFormLockedError:

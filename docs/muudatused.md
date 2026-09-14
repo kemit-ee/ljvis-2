@@ -4,8 +4,87 @@
 
 ---
 
+## 2026-09-14
+
+### PPA kontrollvormide sisendite ja failide parendused
+
+- Autojuhi ja meeskonnaliikme sisenditel on eraldi tunnused ja valikugrupid,
+  et meeskonnaliikme märkeruutude ja raadionuppude kasutamine ei muudaks
+  peidetud autojuhi vormi.
+- Faili valimine käivitab üleslaadimise ka TEDI antud ajutise failitunnusega.
+  Failide eemaldamine jõuab serverisse ning aegunud faililoendi päring ei
+  kirjuta uuemat loendit üle.
+- Faili lisamise nupu nimi on „Lisa fail“ ning lisamine aktiveerub pärast
+  vormi esimest edukat salvestamist.
+- Faililoendi serverivastus teisendatakse kasutajaliidese väljadeks, et failinimed
+  oleksid nähtavad ja failitunnused sobiksid allalaadimise ning kustutamise päringutesse.
+
+## 2026-09-12
+
+### PPA kontrollkaardi üldosa ja sõidu- ja puhkeaja vormide parendused
+
+- Liiklusregistri otsingu nupp nimetab registri selgelt ning haagised ja nende
+  tehnoseisundi kontrollkaardid kuvatakse nummerdatult koos registreerimismärgiga.
+- Haagise tehnokontrollvorm lisatakse menüüsse ilma üldosast lahkumata ning
+  valitud kontrollvormide menüü on kättesaadav ka üldosa allservas.
+- PPA sõidu- ja puhkeaja vormilt eemaldati Transpordiameti liiniandmed ning
+  meeskonnaliikme veo liik ja veoklass hoitakse autojuhi vormiga kooskõlas.
+- Lisati lähetusdeklaratsiooni kontrollid, parandati EL-i rikkumiste raskusastmed
+  ning ERRU punktid tuletatakse automaatselt valitud rikkumistest.
+- Sõidu- ja puhkeaja vormile saab pärast esimest salvestamist lisada kontrolliga
+  seotud faile.
+
+### Riskiskoori värskendamine autojuhi/meeskonna alamvormi avalikustamisel
+
+- Sõidu- ja puhkeaja alamvormi (autojuht/meeskonnaliige) avalikustamine
+  käivitab nüüd ettevõtte riskiskoori ümberarvutuse kohe, samamoodi nagu
+  koondvormi ja TRAM-kaardi avalikustamine juba teeb. Varem uuenes skoor
+  alles järgmisel öisel taustatööl.
+
+### Sisemised parendused: salvestamine/kinnitamine/avalikustamine
+
+- Parandatud viga, kus kontrollkaardi/kontrollakti väljal sisestatud
+  väärtus **0** (nt kilomeeter, sõidukite/juhtide/päevade arv, väikeste
+  rikkumiste arv) võis salvestamisel või avalikustamisel vaikselt kaduma
+  minna. Puudutas koondvormi ja välisriigi rikkumise kaardi avalikustamist
+  ning Tööinspektsiooni akti ja TRAM-kaardi salvestamist/kinnitamist.
+- Koondvormil ja TRAM-kaardil "Muu tee" täpsustusvälja kohustuslikkuse
+  kontroll ei rakendunud varem kunagi — parandatud.
+- CTUD teate päringu allika ja eesmärgi väljad on nüüd nõutud ka
+  kasutajaliideses (serveripoolne kontroll oli juba olemas).
+- ADR alamvormil on menetlusnumbri ja erandi õigusliku aluse kohustuslikkus
+  nüüd kontrollitud ka serveripoolel, mitte ainult kasutajaliideses.
+
 ## 2026-09-11
 
+### NU saatmise ja samaaegsete muudatuste parendused
+
+- Salvestamine ja saatmine kontrollivad sama lukustatud teate kehtivat versiooni. Saadetud või veaga lõppenud teadet ei saa vana mustandi kaudu uuesti avada ning versiooninumbrid on kordumatud.
+- Saatmisel kontrollitakse deklaratsiooni kehtivust ja kaitstud isiku- ning tunnistuseandmeid. Muutunud allikandmed tuleb vormis värskendada, üle vaadata ja salvestada; salvestamata muudatustega saatmine on blokeeritud.
+- Väliskutsesse läheb terviklik salvestatud sõnum. Ühendusvead ja aegumised salvestatakse veana enne integratsioonilogi kirjutamist.
+- Lisatud on PostgreSQL-i samaaegsete tehingute, Ruuteri HTTP-/ühendusvigade ja kasutajavormi regressioonitestid.
+- Playwright kontrollib NU nimekirjast detailvaate avamist ning aegunud vormiversiooni konflikti kuvamist kasutajale.
+
+### NU skeemile vastavuse kontrolli parendused
+
+- CI kontrollib NU väljade SQL-reegleid ja andmebaasipiiranguid versioonihalduses oleva ERRU MoveHub 3.5 XSD-koopia vastu. Staatika ja mutatsioonitestid töötavad ilma Dockerita; skeemist genereeritud PostgreSQL-testid ning saatmise ja EN-i regressioonitestid käivitatakse E2E andmebaasil pärast migratsioone.
+
+### NU andmebaasimigratsioonide parendused
+
+- NU valideerimise ja sõnumivahetuse SQL-migratsioonid on seotud Liquibase XML-muudatustega ning neil on tagasipööramise skriptid. Vajalikud funktsioonid luuakse nüüd tavapärase andmebaasiuuenduse käigus.
+
+### NU integratsiooni ulatuse parendused
+
+- Kokkuleppimata kinnituse edastamise callback ja automaatsed viieminutilised veastaatused on eemaldatud. Väljamineva päringu tulemus salvestatakse sünkroonse vastuse põhjal; seotud ERRU ErrorNotification teate käsitlus säilib.
+
+## 2026-09-10
+
+### NU sõnumivahetuse ja valideerimise parendused
+
+- Kuupäevata saabunud sobimatusteade saab Eesti aja järgi esmase vastuvõtu kuupäeva; korduv teade säilitab algse kuupäeva ja kinnituse.
+- ERRU väljade pikkusi, kuupäevi, lubatud väärtusi ning nime- ja tunnistuseplokkide terviklikkust kontrollitakse enne salvestamist või saatmist. NYSIIS võtme piir on 100 märki.
+- Saatmise identifikaatorid salvestatakse enne väliskutset. Vigane kinnitus lõpetab saatmise veaga.
+- Seotud veateadete sisemised vastuvõtjad säilitavad vahetuse ajaloo ning käsitlevad kordusi idempotentselt. Hilinenud edu ei taasta veaga lõppenud teadet.
 ### Kontrollvormide PDF-printimise parendused
 
 - Kõigil kontrollvormidel saab nüüd alla laadida nii salvestatud andmetega PDF-i

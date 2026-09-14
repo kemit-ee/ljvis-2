@@ -57,6 +57,9 @@ import { createTechnicalCheckValidationSchema } from '../technical-check-form/us
 import { createAdrValidationSchema } from '../adr-form/useAdrForm';
 import { saveDriveRestForm, saveTechnicalCheckForm, saveAdrForm, saveTransportInterruptionForm } from '../../api';
 import type { TransportInterruptionForm } from '../../types';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { SelectedFormsNavigation } from '../../components/CompoundForm/SelectedFormsNavigation';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 
 type AnySubFormData = Partial<DriveRestForm> | Partial<TechnicalCheckForm> | Partial<AdrForm> | Partial<TransportInterruptionForm>;
 
@@ -175,8 +178,7 @@ export function CompoundFormCreatePage() {
       setOpenTabs((prev) => [...prev, tabId]);
       setTabErrors((prev) => ({ ...prev, [tabId]: false }));
     }
-    handleTabChange(tabId);
-    window.scrollTo(0, 0);
+    // Haagise tehnovorm lisatakse menüüsse, kuid ametnik jätkab üldosa täitmist.
   };
 
   const editTrailerControlForm = (index: number) => {
@@ -381,15 +383,14 @@ export function CompoundFormCreatePage() {
 
   // Välisriigi ettevõtte puhul ei kohaldu Eesti EHAK-klassifikaator —
   // maakond/linn-vald sisestatakse vabatekstina.
-  const isCompanyForeign =
-    !!formik.values.companyCountryCode &&
-    formik.values.companyCountryCode !== 'EE';
+  const isCompanyForeign = formik.values.companyCountryCode !== 'EE';
 
   const trailerTabDynamicLabels: Record<string, string> = {};
   formik.values.trailers.forEach((tr: Trailer, idx: number) => {
+    const prefix = t('forms.compound.trailerNumber', { number: idx + 1 }).toUpperCase();
     trailerTabDynamicLabels[`tab-trailer-technical-${idx}`] = tr.regNr
-      ? `${t('forms.technical_check.trailerTitle')} (${tr.regNr})`
-      : t('forms.technical_check.trailerTitle');
+      ? `${prefix} (${tr.regNr}) – ${t('forms.compound.trailerTechnicalTab')}`
+      : `${prefix} – ${t('forms.compound.trailerTechnicalTab')}`;
   });
 
   const tabLabels: Record<string, string> = {
@@ -505,7 +506,10 @@ export function CompoundFormCreatePage() {
       </div>
 
       <Tabs value={activeTab} onChange={handleTabChange}>
-        <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
+        <Tabs.List
+          aria-label={t('forms.compound_form')}
+          overflowMode="dropdown"
+        >
           <Tabs.Trigger id="tab-1">
             <span
               style={{
@@ -563,7 +567,7 @@ export function CompoundFormCreatePage() {
                             formik.setFieldValue('address', v);
                             if (v) {
                               formik.setFieldValue('road', '');
-                              formik.setFieldValue('road_other', '');
+                              formik.setFieldValue('roadOther', '');
                               formik.setFieldValue('kilometer', '');
                               formik.setFieldValue('road_type', ROAD.LOCAL);
                             }
@@ -581,7 +585,7 @@ export function CompoundFormCreatePage() {
                           id="road"
                           label={t('forms.compound.road')}
                           options={[
-                            { value: '', label: '\u00a0' },
+                            { value: '', label: '—' },
                             ...roads.map((r) => ({
                               value: r.code,
                               label: r.name,
@@ -589,7 +593,7 @@ export function CompoundFormCreatePage() {
                           ]}
                           value={
                             [
-                              { value: '', label: '\u00a0' },
+                              { value: '', label: '—' },
                               ...roads.map((r) => ({
                                 value: r.code,
                                 label: r.name,
@@ -881,9 +885,12 @@ export function CompoundFormCreatePage() {
                                 : {})}
                             />
                           </div>
-                          <Button type="button" onClick={handleVehicleSearch}>
-                            {t('common.search')}
-                          </Button>
+                          <AsyncButton
+                            type="button"
+                            onClick={handleVehicleSearch}
+                          >
+                            {t('forms.compound.searchTrafficRegister')}
+                          </AsyncButton>
                         </div>
                         <div></div>
                         <TextField
@@ -1144,6 +1151,11 @@ export function CompoundFormCreatePage() {
                             <Col className="p-0 mt-1">
                               <Card className="mb-1">
                                 <Card.Content>
+                                  <Heading element="h3" className="mb-1">
+                                    {t('forms.compound.trailerNumber', {
+                                      number: index + 1,
+                                    })}
+                                  </Heading>
                                   {trailerSearchError === index && (
                                     <div className="mb-1">
                                       <Alert
@@ -1204,14 +1216,14 @@ export function CompoundFormCreatePage() {
                                             : {})}
                                         />
                                       </div>
-                                      <Button
+                                      <AsyncButton
                                         type="button"
                                         onClick={() =>
                                           handleTrailerSearch(index)
                                         }
                                       >
-                                        {t('common.search')}
-                                      </Button>
+                                        {t('forms.compound.searchTrafficRegister')}
+                                      </AsyncButton>
                                     </div>
                                     <div></div>
                                     <TextField
@@ -1567,12 +1579,12 @@ export function CompoundFormCreatePage() {
                                     : {})}
                                 />
                               </div>
-                              <Button
+                              <AsyncButton
                                 type="button"
                                 onClick={handleCompanySearch}
                               >
                                 {t('forms.compound.companySearchButton')}
-                              </Button>
+                              </AsyncButton>
                             </div>
                             <div className={styles['select-row']}>
                               <div className={styles['select-wrapper']}>
@@ -1595,20 +1607,26 @@ export function CompoundFormCreatePage() {
                                     : {})}
                                 />
                               </div>
-                              <Button
+                              <AsyncButton
                                 type="button"
                                 visualType="secondary"
                                 onClick={handleCompanyNameSearch}
                               >
                                 {t('forms.compound.companyNameSearchButton')}
-                              </Button>
+                              </AsyncButton>
                             </div>
                             <Select
                               id="companyCountryCode"
                               label={t('forms.compound.companyCountryCode')}
-                              options={countries}
+                              options={[
+                                { value: '', label: '—' },
+                                ...countries,
+                              ]}
                               value={
-                                countries.find(
+                                [
+                                  { value: '', label: '—' },
+                                  ...countries,
+                                ].find(
                                   (o) =>
                                     o.value ===
                                     formik.values.companyCountryCode,
@@ -1652,20 +1670,24 @@ export function CompoundFormCreatePage() {
                               <Select
                                 id="companyCounty"
                                 label={t('forms.compound.companyCounty')}
-                                options={(counties ?? []).map((c) => ({
-                                  value: String(c.id),
-                                  label: c.name,
-                                }))}
+                                options={[
+                                  { value: '', label: '—' },
+                                  ...(counties ?? []).map((c) => ({
+                                    value: String(c.id),
+                                    label: c.name,
+                                  })),
+                                ]}
                                 value={
-                                  (counties ?? [])
-                                    .map((c) => ({
+                                  [
+                                    { value: '', label: '—' },
+                                    ...(counties ?? []).map((c) => ({
                                       value: String(c.id),
                                       label: c.name,
-                                    }))
-                                    .find(
-                                      (o) =>
-                                        o.value === formik.values.companyCounty,
-                                    ) ?? null
+                                    })),
+                                  ].find(
+                                    (o) =>
+                                      o.value === formik.values.companyCounty,
+                                  ) ?? null
                                 }
                                 onChange={(val) => {
                                   const v =
@@ -1692,22 +1714,24 @@ export function CompoundFormCreatePage() {
                               <Select
                                 id="companyCity"
                                 label={t('forms.compound.companyCity')}
-                                options={(companyCitiesParishes ?? []).map(
-                                  (c) => ({
+                                options={[
+                                  { value: '', label: '—' },
+                                  ...(companyCitiesParishes ?? []).map((c) => ({
                                     value: String(c.id),
                                     label: c.name,
-                                  }),
-                                )}
+                                  })),
+                                ]}
                                 value={
-                                  (companyCitiesParishes ?? [])
-                                    .map((c) => ({
+                                  [
+                                    { value: '', label: '—' },
+                                    ...(companyCitiesParishes ?? []).map((c) => ({
                                       value: String(c.id),
                                       label: c.name,
-                                    }))
-                                    .find(
-                                      (o) =>
-                                        o.value === formik.values.companyCity,
-                                    ) ?? null
+                                    })),
+                                  ].find(
+                                    (o) =>
+                                      o.value === formik.values.companyCity,
+                                  ) ?? null
                                 }
                                 onChange={(val) => {
                                   const v =
@@ -1828,9 +1852,12 @@ export function CompoundFormCreatePage() {
                                 }
                               />
                             </div>
-                            <Button type="button" onClick={handleMtrSearch}>
+                            <AsyncButton
+                              type="button"
+                              onClick={handleMtrSearch}
+                            >
                               {t('forms.compound.mtrSearchButton')}
-                            </Button>
+                            </AsyncButton>
                           </div>
                         </Card.Content>
                       </Card>
@@ -1922,7 +1949,7 @@ export function CompoundFormCreatePage() {
                         />
 
                         <div className="select-row">
-                          <div className="select-wrapper" >
+                          <div className="select-wrapper">
                             <TextField
                               id="personalCodeEe"
                               label={t('forms.compound.driverPersonalCodeEe')}
@@ -2355,6 +2382,16 @@ export function CompoundFormCreatePage() {
                 </Col>
               </Row>
             </form>
+            <FileUploadBlock
+              formPath="compound-form"
+              disabled
+              label={t('form.files.title')}
+            />
+            <SelectedFormsNavigation
+              tabIds={openTabs}
+              labels={tabLabels}
+              onSelect={handleTabChange}
+            />
           </div>
         </Tabs.Content>
         {DRIVE_REST_ROUTES.map((route) => {
@@ -2374,6 +2411,20 @@ export function CompoundFormCreatePage() {
                 initialValidate={validatedTabs.has(tabId)}
                 onValuesChange={(values) => {
                   savedFormData.current[tabId] = values;
+                  if (tabType === 'driver' && values.transportType) {
+                    const teammateTabId = ROUTE_TO_TAB['/sp-teammate'].tabId;
+                    const sharedValues = {
+                      transportType: values.transportType,
+                      transportClasses: values.transportClasses,
+                    };
+                    savedFormData.current[teammateTabId] = {
+                      ...savedFormData.current[teammateTabId],
+                      ...sharedValues,
+                    };
+                    formRefs.current[teammateTabId]?.current?.setFormData?.(
+                      sharedValues,
+                    );
+                  }
                 }}
                 ref={(ref) => {
                   formRefs.current[tabId].current = ref;
@@ -2576,10 +2627,13 @@ export function CompoundFormCreatePage() {
 
               // Step 4: Wait for compoundFormId to be set
               const waitForCompoundFormId = () => {
-                return new Promise<number>((resolve) => {
+                return new Promise<number>((resolve, reject) => {
+                  const startedAt = Date.now();
                   const check = () => {
                     if (compoundFormIdRef.current) {
                       resolve(compoundFormIdRef.current);
+                    } else if (Date.now() - startedAt >= 15000) {
+                      reject(new Error('Compound form save did not return an id'));
                     } else {
                       setTimeout(check, 100);
                     }
@@ -2588,13 +2642,28 @@ export function CompoundFormCreatePage() {
                 });
               };
 
-              const id = await waitForCompoundFormId();
+              let id: number;
+              try {
+                id = await waitForCompoundFormId();
+              } catch (error) {
+                console.error(error);
+                setShowValidationError(true);
+                setActiveTab('tab-1');
+                window.scrollTo(0, 0);
+                return;
+              }
 
               // Step 5: Save all drive-rest forms sequentially. The active
               // tab's DriveRestFormCreatePage is mounted, so we submit it via
               // its ref. Inactive tabs are unmounted by Tabs.Content, so we
               // save them directly from the synced savedFormData snapshot.
-              for (const tabId of openTabs) {
+              // Autojuht on meeskonnaliikme veo liigi ja veoklassi allikas,
+              // seega salvestame ta alati enne meeskonnaliiget.
+              const orderedTabs = [
+                ROUTE_TO_TAB['/sp-driver'].tabId,
+                ...openTabs.filter((tabId) => tabId !== ROUTE_TO_TAB['/sp-driver'].tabId),
+              ].filter((tabId, index, tabs) => openTabs.includes(tabId) && tabs.indexOf(tabId) === index);
+              for (const tabId of orderedTabs) {
                 const tabFormRef = formRefs.current[tabId]?.current;
                 if (tabFormRef && tabFormRef.handleSubmit) {
                   tabFormRef.handleSubmit(id);

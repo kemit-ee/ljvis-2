@@ -466,6 +466,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       | `tab-trailer-technical-check-${number}`
       | 'tab-adr'
       | 'tab-transport-interruption',
+    activate = true,
   ) =>
     addTab(tabId, {
       driver,
@@ -476,6 +477,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       transportInterruption,
       setOpenTabs,
       setActiveTab,
+      activate,
     });
 
   const anyEditActive =
@@ -695,7 +697,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                         ? t('forms.adr.title')
                         : tid === 'tab-transport-interruption'
                           ? t('forms.transport_interruption.title')
-                          : (() => { const idx = Number(tid.replace('tab-trailer-technical-check-', '')); const regNr = compoundTrailerRegNrs[idx] || (trailers[idx]?.form as TechnicalCheckForm | null)?.trailerRegNr; return regNr ? `${t('forms.technical_check.trailerTitle')} (${regNr})` : t('forms.technical_check.trailerTitle'); })();
+                          : (() => { const idx = Number(tid.replace('tab-trailer-technical-check-', '')); const regNr = compoundTrailerRegNrs[idx] || (trailers[idx]?.form as TechnicalCheckForm | null)?.trailerRegNr; const prefix = t('forms.compound.trailerNumber', { number: idx + 1 }).toUpperCase(); return regNr ? `${prefix} (${regNr}) – ${t('forms.compound.trailerTechnicalTab')}` : `${prefix} – ${t('forms.compound.trailerTechnicalTab')}`; })();
               const canClose =
                 subForm?.editActive && (tabsWithStatus > 1 || !subForm.form);
               return (
@@ -755,7 +757,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               formType={FORM_TYPE.COMPOUND}
               versionsRefreshKey={compoundVersionsRefreshKey}
               trailerFormRegNrs={trailers.map((tr) => tr.form?.trailerRegNr ?? null)}
-              onAddTrailerControlForm={(index) => handleAddTab(`tab-trailer-technical-check-${index}`)}
+              onAddTrailerControlForm={(index) => handleAddTab(`tab-trailer-technical-check-${index}`, false)}
               onEditTrailerControlForm={(index) => setActiveTab(`tab-trailer-technical-check-${index}`)}
               onRemoveTrailer={(index) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0])}
             />

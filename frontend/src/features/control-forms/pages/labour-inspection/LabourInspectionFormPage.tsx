@@ -20,6 +20,7 @@ import styles from './LabourInspectionFormPage.module.css';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 
 export function LabourInspectionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -81,6 +82,7 @@ export function LabourInspectionFormPage() {
     (form?.violations?.length ?? 0) === 0;
 
   const handleEditSaved = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(form?.status === 'saved');
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
@@ -90,6 +92,7 @@ export function LabourInspectionFormPage() {
   };
 
   const handleConfirmed = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
@@ -99,6 +102,7 @@ export function LabourInspectionFormPage() {
   };
 
   const handlePublished = () => {
+    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(false);
@@ -168,6 +172,12 @@ export function LabourInspectionFormPage() {
           removeMatrixRow={() => {}}
           addViolation={() => {}}
           removeViolation={() => {}}
+        />
+        <FileUploadBlock
+          formPath="labour-inspection"
+          formNumber={snapshot.formNumber}
+          disabled
+          label={t('form.files.title')}
         />
         <div className="page-actions">
           <div className="page-actions-buttons">
@@ -256,6 +266,12 @@ export function LabourInspectionFormPage() {
           companyPickerResults={companyPickerResults}
           onCompanyPicked={onCompanyPicked}
           closeCompanyPicker={closeCompanyPicker}
+        />
+        <FileUploadBlock
+          formPath="labour-inspection"
+          formNumber={form.formNumber}
+          disabled={!isEditActive}
+          label={t('form.files.title')}
         />
 
         {id && (

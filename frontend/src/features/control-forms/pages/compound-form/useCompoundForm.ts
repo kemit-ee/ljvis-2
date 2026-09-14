@@ -200,7 +200,7 @@ export function useCompoundForm(
       t('forms.foreign_violation.validation.max_length', { max: 300 }),
     ),
     road: Yup.string(),
-    road_other: Yup.string().when('road', {
+    roadOther: Yup.string().when('road', {
       is: OTHER.ROAD,
       then: (schema) =>
         schema.required(t('forms.foreign_violation.validation.required')),

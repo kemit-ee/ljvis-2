@@ -26,6 +26,7 @@ import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
 import type { ForeignViolationForm } from '../../types';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 interface ForeignViolationFormFieldsProps {
   formik: FormikProps<ForeignViolationForm & Record<string, unknown>>;
@@ -55,6 +56,11 @@ interface ForeignViolationFormFieldsProps {
   handleCompanyNameSearch?: () => void;
   handleVehicleSearch?: () => void;
   handleLicenceCopyNumberSearch?: () => void;
+  counties?: { id: number; name: string }[];
+  companyCitiesParishes?: { id: number; name: string }[];
+  handleCompanyCountyChange?: () => void;
+  inspectionCitiesParishes?: { id: number; name: string }[];
+  handleInspectionRegionChange?: () => void;
   companyPickerResults?: XRoadCompany[];
   onCompanyPicked?: (company: XRoadCompany) => void;
   closeCompanyPicker?: () => void;
@@ -147,6 +153,11 @@ export function ForeignViolationFormFields({
   handleCompanyNameSearch,
   handleVehicleSearch,
   handleLicenceCopyNumberSearch,
+  counties = [],
+  companyCitiesParishes = [],
+  handleCompanyCountyChange,
+  inspectionCitiesParishes = [],
+  handleInspectionRegionChange,
   companyPickerResults,
   onCompanyPicked,
   closeCompanyPicker,
@@ -169,13 +180,43 @@ export function ForeignViolationFormFields({
     })),
   }));
 
-  const countries = useMemo(
+  const countriesBase = useMemo(
     () =>
       getByCode('COUNTRY')
         .filter((c) => readOnly || c.isValid !== false)
         .map((c) => ({ value: c.code, label: c.name }))
         .sort((a, b) => a.label.localeCompare(b.label)),
     [getByCode, readOnly],
+  );
+  const countries = countriesBase;
+  const countriesWithEmpty = useMemo(
+    () => [{ value: '', label: '\u2014' }, ...countriesBase],
+    [countriesBase],
+  );
+
+  const isCompanyEstonia = values.companyCountryCode === 'EE';
+  const isInspectionEstonian = values.inspectionCountryCode === 'EE';
+
+  const countyOptions = useMemo(
+    () => [
+      { value: '', label: '\u2014' },
+      ...counties.map((c) => ({ value: String(c.id), label: c.name })),
+    ],
+    [counties],
+  );
+  const cityOptions = useMemo(
+    () => [
+      { value: '', label: '\u2014' },
+      ...companyCitiesParishes.map((c) => ({ value: String(c.id), label: c.name })),
+    ],
+    [companyCitiesParishes],
+  );
+  const inspectionCityOptions = useMemo(
+    () => [
+      { value: '', label: '\u2014' },
+      ...inspectionCitiesParishes.map((c) => ({ value: String(c.id), label: c.name })),
+    ],
+    [inspectionCitiesParishes],
   );
 
   return (
@@ -335,39 +376,84 @@ export function ForeignViolationFormFields({
               onChange={(v) => setFieldValue('inspectionAddressLine2', v)}
               disabled={readOnly}
             />
-            <TextField
-              id="inspectionRegion"
-              label={t('forms.foreign_violation.inspectionRegion')}
-              value={(values.inspectionRegion as string) ?? ''}
-              onChange={(v) => setFieldValue('inspectionRegion', v)}
-              input={{ maxLength: 100 }}
-              disabled={readOnly}
-            />
-            <TextField
-              id="inspectionCity"
-              label={t('forms.foreign_violation.inspectionCity')}
-              value={(values.inspectionCity as string) ?? ''}
-              onChange={(v) => setFieldValue('inspectionCity', v)}
-              input={{ maxLength: 100 }}
-              disabled={readOnly}
-            />
+            {isInspectionEstonian ? (
+              <Select
+                id="inspectionRegion"
+                label={t('forms.foreign_violation.inspectionRegion')}
+                options={countyOptions}
+                value={
+                  countyOptions.find(
+                    (o) => o.value === String(values.inspectionRegion ?? ''),
+                  ) ?? null
+                }
+                onChange={(val) => {
+                  const v =
+                    val && !Array.isArray(val)
+                      ? (val as { value: string }).value
+                      : '';
+                  setFieldValue('inspectionRegion', v);
+                  handleInspectionRegionChange?.();
+                }}
+                disabled={readOnly}
+              />
+            ) : !isInspectionEstonian ? (
+              <TextField
+                id="inspectionRegion"
+                label={t('forms.foreign_violation.inspectionRegion')}
+                value={(values.inspectionRegion as string) ?? ''}
+                onChange={(v) => setFieldValue('inspectionRegion', v)}
+                input={{ maxLength: 100 }}
+                disabled={readOnly}
+              />
+            ) : null}
+            {isInspectionEstonian ? (
+              <Select
+                id="inspectionCity"
+                label={t('forms.foreign_violation.inspectionCity')}
+                options={inspectionCityOptions}
+                value={
+                  inspectionCityOptions.find(
+                    (o) => o.value === String(values.inspectionCity ?? ''),
+                  ) ?? null
+                }
+                onChange={(val) =>
+                  setFieldValue(
+                    'inspectionCity',
+                    val && !Array.isArray(val)
+                      ? (val as { value: string }).value
+                      : '',
+                  )
+                }
+                disabled={readOnly || !values.inspectionRegion}
+              />
+            ) : !isInspectionEstonian ? (
+              <TextField
+                id="inspectionCity"
+                label={t('forms.foreign_violation.inspectionCity')}
+                value={(values.inspectionCity as string) ?? ''}
+                onChange={(v) => setFieldValue('inspectionCity', v)}
+                input={{ maxLength: 100 }}
+                disabled={readOnly}
+              />
+            ) : null}
             <Select
               id="inspectionCountry"
               label={t('forms.foreign_violation.inspectionCountry')}
-              options={countries}
+              options={countriesWithEmpty}
               value={
-                countries.find(
+                countriesWithEmpty.find(
                   (o) => o.value === values.inspectionCountryCode,
                 ) ?? null
               }
-              onChange={(val) =>
-                setFieldValue(
-                  'inspectionCountryCode',
+              onChange={(val) => {
+                const code =
                   val && !Array.isArray(val)
                     ? (val as { value: string }).value
-                    : '',
-                )
-              }
+                    : '';
+                setFieldValue('inspectionCountryCode', code);
+                setFieldValue('inspectionRegion', '');
+                setFieldValue('inspectionCity', '');
+              }}
               disabled={readOnly}
             />
           </div>
@@ -418,9 +504,12 @@ export function ForeignViolationFormFields({
                       onChange={(v) => setFieldValue('companyRegCode', v)}
                     />
                   </div>
-                  <Button type="button" onClick={handleCompanyRegCodeSearch}>
+                  <AsyncButton
+                    type="button"
+                    onClick={() => handleCompanyRegCodeSearch?.()}
+                  >
                     {t('common.search')}
-                  </Button>
+                  </AsyncButton>
                 </div>
                 <div className={styles['select-row']}>
                   <div className={styles['select-wrapper']}>
@@ -432,30 +521,65 @@ export function ForeignViolationFormFields({
                       onChange={(v) => setFieldValue('companyName', v)}
                     />
                   </div>
-                  <Button type="button" onClick={handleCompanyNameSearch}>
+                  <AsyncButton
+                    type="button"
+                    onClick={() => handleCompanyNameSearch?.()}
+                  >
                     {t('common.search')}
-                  </Button>
+                  </AsyncButton>
                 </div>
               </>
             )}
             <Select
               id="companyCountry"
               label={t('forms.foreign_violation.companyCountry')}
-              options={countries}
+              options={countriesWithEmpty}
               value={
-                countries.find((o) => o.value === values.companyCountryCode) ??
-                null
+                countriesWithEmpty.find(
+                  (o) => o.value === values.companyCountryCode,
+                ) ?? null
               }
-              onChange={(val) =>
-                setFieldValue(
-                  'companyCountryCode',
+              onChange={(val) => {
+                const code =
                   val && !Array.isArray(val)
                     ? (val as { value: string }).value
-                    : '',
-                )
-              }
+                    : '';
+                setFieldValue('companyCountryCode', code);
+                setFieldValue('companyAddressLine2', '');
+                setFieldValue('companyCity', '');
+              }}
               disabled={readOnly}
             />
+            {isCompanyEstonia ? (
+              <Select
+                id="companyAddressLine2"
+                label={t('forms.foreign_violation.companyAddressLine2')}
+                options={countyOptions}
+                value={
+                  countyOptions.find(
+                    (o) => o.value === String(values.companyAddressLine2 ?? ''),
+                  ) ?? null
+                }
+                onChange={(val) => {
+                  const v =
+                    val && !Array.isArray(val)
+                      ? (val as { value: string }).value
+                      : '';
+                  setFieldValue('companyAddressLine2', v);
+                  handleCompanyCountyChange?.();
+                }}
+                disabled={readOnly}
+              />
+            ) : !isCompanyEstonia ? (
+              <TextField
+                id="companyAddressLine2"
+                label={t('forms.foreign_violation.companyAddressLine2')}
+                value={String(values.companyAddressLine2 ?? '')}
+                input={{ maxLength: 300 }}
+                onChange={(v) => setFieldValue('companyAddressLine2', v)}
+                disabled={readOnly}
+              />
+            ) : null}
             <TextField
               id="companyAddressLine1"
               label={t('forms.foreign_violation.companyAddressLine1')}
@@ -464,22 +588,36 @@ export function ForeignViolationFormFields({
               onChange={(v) => setFieldValue('companyAddressLine1', v)}
               disabled={readOnly}
             />
-            <TextField
-              id="companyAddressLine2"
-              label={t('forms.foreign_violation.companyAddressLine2')}
-              value={(values.companyAddressLine2 as string) ?? ''}
-              input={{ maxLength: 300 }}
-              onChange={(v) => setFieldValue('companyAddressLine2', v)}
-              disabled={readOnly}
-            />
-            <TextField
-              id="companyCity"
-              label={t('forms.foreign_violation.companyCity')}
-              value={(values.companyCity as string) ?? ''}
-              input={{ maxLength: 100 }}
-              onChange={(v) => setFieldValue('companyCity', v)}
-              disabled={readOnly}
-            />
+            {isCompanyEstonia ? (
+              <Select
+                id="companyCity"
+                label={t('forms.foreign_violation.companyCity')}
+                options={cityOptions}
+                value={
+                  cityOptions.find(
+                    (o) => o.value === String(values.companyCity ?? ''),
+                  ) ?? null
+                }
+                onChange={(val) =>
+                  setFieldValue(
+                    'companyCity',
+                    val && !Array.isArray(val)
+                      ? (val as { value: string }).value
+                      : '',
+                  )
+                }
+                disabled={readOnly || !values.companyAddressLine2}
+              />
+            ) : !isCompanyEstonia ? (
+              <TextField
+                id="companyCity"
+                label={t('forms.foreign_violation.companyCity')}
+                value={(values.companyCity as string) ?? ''}
+                input={{ maxLength: 100 }}
+                onChange={(v) => setFieldValue('companyCity', v)}
+                disabled={readOnly}
+              />
+            ) : null}
             <TextField
               id="companyPostalCode"
               label={t('forms.foreign_violation.companyPostalCode')}
@@ -583,9 +721,12 @@ export function ForeignViolationFormFields({
                     }
                   />
                 </div>
-                <Button type="button" onClick={handleVehicleSearch}>
+                <AsyncButton
+                  type="button"
+                  onClick={() => handleVehicleSearch?.()}
+                >
                   {t('common.search')}
-                </Button>
+                </AsyncButton>
               </div>
             )}
             <TextField
@@ -607,10 +748,11 @@ export function ForeignViolationFormFields({
             <Select
               id="vehicleCountry"
               label={t('forms.foreign_violation.vehicleCountry')}
-              options={countries}
+              options={countriesWithEmpty}
               value={
-                countries.find((o) => o.value === values.vehicleCountryCode) ??
-                null
+                countriesWithEmpty.find(
+                  (o) => o.value === values.vehicleCountryCode,
+                ) ?? null
               }
               onChange={(val) =>
                 setFieldValue(
@@ -795,7 +937,8 @@ export function ForeignViolationFormFields({
             </div>
           )}
           {(showAdditionalSanctions ||
-            ((values.additionalSanctionCodes as string[])?.length ?? 0) > 0) && (
+            ((values.additionalSanctionCodes as string[])?.length ?? 0) >
+              0) && (
             <div className="mb-1">
               <ChoiceGroup
                 id="additionalSanctionCodes"
@@ -812,7 +955,9 @@ export function ForeignViolationFormFields({
                     : []
                 }
                 items={sanctionOptions
-                  .filter((opt) => opt.value !== (values.sanctionCode as string))
+                  .filter(
+                    (opt) => opt.value !== (values.sanctionCode as string),
+                  )
                   .map((opt) => ({
                     id: `additionalSanctionCode_${opt.value}`,
                     label: t(opt.labelKey),
@@ -1215,9 +1360,7 @@ export function ForeignViolationFormFields({
               >
                 <MaskedDateField
                   id="commissionLastDecisionDate"
-                  label={t(
-                    'forms.foreign_violation.adminProc.commissionDate',
-                  )}
+                  label={t('forms.foreign_violation.adminProc.commissionDate')}
                   monthYearSelectType="grid"
                   selected={
                     values.commissionLastDecisionDate
@@ -1303,11 +1446,14 @@ export function ForeignViolationFormFields({
                     'forms.foreign_violation.notifications.foreignProposal',
                   ),
                   value: 'foreignAuthorityProposal',
-                  disabled: readOnly || Boolean(values.foreignAuthorityProposal),
+                  disabled:
+                    readOnly || Boolean(values.foreignAuthorityProposal),
                 },
                 {
                   id: 'notifyCarrier',
-                  label: t('forms.foreign_violation.notifications.notifyCarrier'),
+                  label: t(
+                    'forms.foreign_violation.notifications.notifyCarrier',
+                  ),
                   value: 'notifyCarrier',
                   disabled: readOnly || Boolean(values.notifyCarrier),
                 },
@@ -1347,7 +1493,6 @@ export function ForeignViolationFormFields({
           />
         </Card.Content>
       </Card>
-
     </div>
   );
 }

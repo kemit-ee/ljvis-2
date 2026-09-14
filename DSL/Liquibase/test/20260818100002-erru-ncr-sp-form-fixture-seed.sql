@@ -38,10 +38,11 @@ BEGIN
     );
     INSERT INTO forms.sp_driver_form (
         sp_driver_form_key, compound_form_key, sub_form_number, template_version, status,
-        transport_type, erru_points, created_by
+        transport_type, violations_561_2006, erru_points, created_by
     ) VALUES (
         v_sp_m1, v_cf_m1, 'NCR-FIXTURE-SP-M1', 1, 'confirmed',
         'international',
+        '[{"level3Code":"302","severity":"MSI"}]'::JSONB,
         '[{"erru_code":"302","severity_category":"MSI","source_type":"auto_from_violation"},{"erru_code":"105","severity_category":"SI","source_type":"manual"}]'::JSONB,
         'system'
     );
@@ -62,10 +63,11 @@ BEGIN
     );
     INSERT INTO forms.sp_driver_form (
         sp_driver_form_key, compound_form_key, sub_form_number, template_version, status,
-        transport_type, erru_points, created_by
+        transport_type, violations_561_2006, erru_points, created_by
     ) VALUES (
         v_sp_n2, v_cf_n2, 'NCR-FIXTURE-SP-N2', 1, 'confirmed',
         'international',
+        '[{"level3Code":"302","severity":"MSI"}]'::JSONB,
         '[{"erru_code":"302","severity_category":"MSI","source_type":"auto_from_violation"},{"erru_code":"105","severity_category":"SI","source_type":"manual"}]'::JSONB,
         'system'
     );

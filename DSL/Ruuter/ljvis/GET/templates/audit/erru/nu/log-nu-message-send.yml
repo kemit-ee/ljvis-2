@@ -1,0 +1,48 @@
+declaration:
+  version: "1.0"
+  description: "NU log nu message send."
+  namespace: service
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: business_case_id
+        type: string
+      - field: nu_to
+        type: string
+      - field: result_status
+        type: string
+      - field: member_state_count
+        type: string
+      - field: ok_count
+        type: string
+      - field: timeout_count
+        type: string
+      - field: not_available_count
+        type: string
+      - field: actor_name
+        type: string
+      - field: actor_personal_code
+        type: string
+
+buildAudit:
+  assign:
+    description: "NU sobimatusteade ${incoming.body.business_case_id || '-'} saadeti sihtriiki ${incoming.body.nu_to || '-'}, tulemus: ${incoming.body.result_status || '-'}, liikmesriike: ${incoming.body.member_state_count || '0'}, vastu võetud: ${incoming.body.ok_count || '0'}, aegumine: ${incoming.body.timeout_count || '0'}, ei ole saadaval: ${incoming.body.not_available_count || '0'}."
+    log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['nuTo', incoming.body.nu_to || null], ['resultStatus', incoming.body.result_status || null], ['memberStateCount', incoming.body.member_state_count || '0'], ['okCount', incoming.body.ok_count || '0'], ['timeoutCount', incoming.body.timeout_count || '0'], ['notAvailableCount', incoming.body.not_available_count || '0']]))}"
+  next: writeAudit
+
+writeAudit:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "nu.message.send"
+    event_category: "erru_message_exchange"
+    actor_name: ${incoming.body.actor_name || ''}
+    actor_personal_code: ${incoming.body.actor_personal_code || ''}
+    description: ${description}
+    log_content: ${log_content}
+  result: res
+  next: end

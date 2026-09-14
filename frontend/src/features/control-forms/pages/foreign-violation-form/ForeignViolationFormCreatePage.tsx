@@ -21,6 +21,7 @@ export function ForeignViolationFormCreatePage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const handleSaved = (id?: string) => {
+    window.scrollTo(0, 0);
     navigate(`/control-forms/foreign-violation/${id}`, {
       state: { justCreated: true },
     });
@@ -47,6 +48,11 @@ export function ForeignViolationFormCreatePage() {
     closeCompanyPicker,
     associatedPersons,
     associatedPersonsLoading,
+    counties,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
+    inspectionCitiesParishes,
+    handleInspectionRegionChange,
   } = useForeignViolationForm(undefined, handleSaved);
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -81,6 +87,11 @@ export function ForeignViolationFormCreatePage() {
           closeCompanyPicker={closeCompanyPicker}
           associatedPersons={associatedPersons}
           associatedPersonsLoading={associatedPersonsLoading}
+          counties={counties}
+          companyCitiesParishes={companyCitiesParishes}
+          handleCompanyCountyChange={handleCompanyCountyChange}
+          inspectionCitiesParishes={inspectionCitiesParishes}
+          handleInspectionRegionChange={handleInspectionRegionChange}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
         />
 

@@ -29,7 +29,7 @@ export function useForeignViolationForm(
 ) {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
-  const { getByCode } = useClassifiers();
+  const { getByCode, getChildren } = useClassifiers();
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [licenceCopyNumberError, setLicenceCopyNumberError] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<{
@@ -342,6 +342,38 @@ export function useForeignViolationForm(
     if (!result) setLicenceCopyNumberError(true);
   };
 
+  const counties = useMemo(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null && e.isValid !== false)
+        .map((e) => ({ id: e.classifierValueKey, name: e.name })),
+    [getByCode],
+  );
+
+  const companyCitiesParishes = useMemo(
+    () =>
+      formik.values.companyAddressLine2
+        ? getChildren('EHAK', Number(formik.values.companyAddressLine2)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [formik.values.companyAddressLine2, getChildren],
+  );
+
+  const handleCompanyCountyChange = () => {
+    formik.setFieldValue('companyCity', '');
+  };
+
+  const inspectionCitiesParishes = useMemo(
+    () =>
+      formik.values.inspectionRegion
+        ? getChildren('EHAK', Number(formik.values.inspectionRegion)).map((e) => ({ id: e.classifierValueKey, name: e.name }))
+        : [],
+    [formik.values.inspectionRegion, getChildren],
+  );
+
+  const handleInspectionRegionChange = () => {
+    formik.setFieldValue('inspectionCity', '');
+  };
+
   const handleStructuralUnitChange = (
     val:
       | { value: string; label: string | React.ReactNode }
@@ -390,5 +422,10 @@ export function useForeignViolationForm(
     closeCompanyPicker,
     associatedPersons,
     associatedPersonsLoading,
+    counties,
+    companyCitiesParishes,
+    handleCompanyCountyChange,
+    inspectionCitiesParishes,
+    handleInspectionRegionChange,
   };
 }

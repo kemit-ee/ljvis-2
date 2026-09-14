@@ -48,6 +48,7 @@ export const PERMISSIONS = {
   CGR_READ: 'cgr.read',
   RSI_READ: 'rsi.read',
   NCR_LIST: 'ncr.list',
+  NU_LIST: 'nu.list',
   RISK_REPORT_LIST: 'risk_report.list',
   NOTIFICATION_LIST: 'notification.list',
   NOTIFICATION_RESEND: 'notification.resend',

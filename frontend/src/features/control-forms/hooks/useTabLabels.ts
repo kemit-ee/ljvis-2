@@ -21,9 +21,10 @@ export function buildTabLabels(
 ): Record<string, string> {
   const trailerTabDynamicLabels: Record<string, string> = {};
   trailersList.forEach((tr, idx) => {
+    const prefix = t('forms.compound.trailerNumber', { number: idx + 1 }).toUpperCase();
     trailerTabDynamicLabels[`tab-trailer-technical-check-${idx}`] = tr.regNr
-      ? `${t('forms.technical_check.trailerTitle')} (${tr.regNr})`
-      : t('forms.technical_check.trailerTitle');
+      ? `${prefix} (${tr.regNr}) – ${t('forms.compound.trailerTechnicalTab')}`
+      : `${prefix} – ${t('forms.compound.trailerTechnicalTab')}`;
   });
   return {
     'tab-compound': compoundTabLabel ?? t('forms.compound_form'),

@@ -40,6 +40,7 @@ async function shoot(page, relPath) {
   const abs = resolve(DOCS, relPath);
   await mkdir(dirname(abs), { recursive: true });
   await settle(page);
+  await page.getByText(/^Loading\.\.\.$/).waitFor({ state: 'hidden', timeout: 30000 });
   await page.screenshot({ path: abs, fullPage: false });
   console.log('  ✓', relPath);
 }
@@ -140,6 +141,12 @@ const shots = [
         path: resolve(DOCS, 'user-guide/images/04-toolaud/02-toolaud-tabel.png'),
       });
       console.log('  ✓', 'user-guide/images/04-toolaud/02-toolaud-tabel.png');
+      // Tähelepanu vajab plokk (tähtajad, kinnitamata jne) — kui eksisteerib
+      await scrollToHeading('Tähelepanu vajab');
+      await page.screenshot({
+        path: resolve(DOCS, 'user-guide/images/04-toolaud/03-tahelepanu.png'),
+      }).catch(() => {});
+      console.log('  ✓', 'user-guide/images/04-toolaud/03-tahelepanu.png');
       // "Töös olevad vormid" tabel (iseseisvad vormid).
       await scrollToHeading('Töös olevad vormid');
       await page.screenshot({
@@ -158,9 +165,23 @@ const shots = [
     name: 'user-guide/teavitused',
     run: async (page) => {
       await gotoShot(page, '/notifications', 'user-guide/images/20-teavitused/01-teavitused.png');
+      // Kelluke (teavituste arv) — näita badge'i
+      const bell = page.locator('button[aria-label*="Teavitused"]').first();
+      if (await bell.count() > 0) {
+        await bell.scrollIntoViewIfNeeded().catch(() => {});
+        await sleep(300);
+      }
+      // Saadetud kirjad vahekaart
       await page.getByRole('tab', { name: /Saadetud kirjad/i }).click({ timeout: 5000 }).catch(() => {});
-      await sleep(900);
+      await sleep(1200);
       await shoot(page, 'user-guide/images/20-teavitused/02-saadetud-kirjad.png');
+      // Klõpsa esimesele "Ebaõnnestunud" kirjele (error-staatusega) et näha raport-nupp
+      const errorRow = page.locator('tr, [class*="row"]').filter({ hasText: /Viga|error/i }).first();
+      if (await errorRow.count() > 0) {
+        await errorRow.scrollIntoViewIfNeeded().catch(() => {});
+        await sleep(400);
+        await shoot(page, 'user-guide/images/20-teavitused/03-veaga-kiri.png');
+      }
     },
   },
   {
@@ -187,9 +208,44 @@ const shots = [
 
   // --- Vormide loomisvaated (tühjad) ---
   { name: 'user-guide/vorm-valisrikkumine', run: (p) => gotoShot(p, '/control-forms/foreign-violation/new', 'user-guide/images/06-vorm-valisrikkumine/01-loomisvaade.png') },
-  { name: 'user-guide/vorm-liitvorm', run: (p) => gotoShot(p, '/control-forms/compound/new', 'user-guide/images/07-vorm-liitvorm/01-loomisvaade.png') },
+  {
+    name: 'user-guide/vorm-liitvorm',
+    run: async (page) => {
+      await gotoShot(page, '/control-forms/compound/new?types=transport-interruption', 'user-guide/images/07-vorm-liitvorm/01-loomisvaade.png');
+      await page.getByRole('button', { name: 'Lisa haagis' }).click();
+      await page.locator('#trailerRegNr_0').fill('123ABC');
+      await page.getByRole('button', { name: /Lisa haagise tehno kontrollvorm/i }).click();
+      const trailerHeading = page.getByRole('heading', { name: 'Haagis 1' });
+      await trailerHeading.scrollIntoViewIfNeeded();
+      await sleep(500);
+      await shoot(page, 'user-guide/images/07-vorm-liitvorm/03-haagis-ja-tehnovormi-vahekaart.png');
+      const formNavigation = page.getByRole('navigation', { name: 'Valitud kontrollvormid' });
+      await formNavigation.scrollIntoViewIfNeeded();
+      await sleep(500);
+      await shoot(page, 'user-guide/images/07-vorm-liitvorm/04-alumine-vorminavigatsioon.png');
+    },
+  },
   { name: 'user-guide/vorm-tooinspektsioon', run: (p) => gotoShot(p, '/control-forms/labour-inspection/new', 'user-guide/images/08-vorm-tooinspektsioon/01-loomisvaade.png') },
   { name: 'user-guide/vorm-hea-maine', run: (p) => gotoShot(p, '/control-forms/good-repute/new', 'user-guide/images/12-vorm-hea-maine/01-loomisvaade.png') },
+
+  // --- NU sobimatusteated: hea maine vormi "Loo ERRU sobimatusteade" nupp ---
+  // Eeldab avaldatud + sobimatuks tunnistatud hea maine deklaratsiooni (good_repute_form_key=1).
+  {
+    name: 'user-guide/erru-nu-hea-maine-nupp',
+    run: async (page) => {
+      await page.goto(`${BASE}/control-forms/good-repute/1`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      const btn = page.getByRole('button', { name: /Loo ERRU sobimatusteade/i }).first();
+      await btn.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(400);
+      await shoot(page, 'user-guide/images/23-erru-nu/01-hea-maine-nupp.png');
+    },
+  },
+
+  { name: 'user-guide/erru-nu-loend', run: (p) => gotoShot(p, '/erru/nu', 'user-guide/images/23-erru-nu/02-loend.png') },
+  { name: 'user-guide/erru-nu-otsing', run: (p) => gotoShot(p, '/erru/nu/new', 'user-guide/images/23-erru-nu/03-allika-otsing.png') },
+  // Otse hea maine deklaratsioonist eeltäidetud vorm (sourceKey = good_repute_form_key).
+  { name: 'user-guide/erru-nu-vorm', run: (p) => gotoShot(p, '/erru/nu/new?sourceKey=1', 'user-guide/images/23-erru-nu/04-vorm.png') },
   {
     name: 'user-guide/vorm-tram-kontrollkaart',
     run: async (page) => {
@@ -227,10 +283,67 @@ const shots = [
   //     DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql) ---
   { name: 'user-guide/vorm-liitvorm-detail', run: (p) => openCompoundTab(p, 95002001, null, 'user-guide/images/07-vorm-liitvorm/02-detailvaade.png') },
   { name: 'user-guide/vorm-soidu-puhkeaeg', run: (p) => openCompoundTab(p, 95002001, /Autojuhi sõidu- ja puhkeaja/, 'user-guide/images/13-vorm-soidu-puhkeaeg/01-alamvorm.png') },
+  {
+    name: 'user-guide/vorm-soidu-puhkeaeg-uus',
+    run: async (page) => {
+      await page.goto(`${BASE}/control-forms/compound/new?types=driver`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      await page.getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja/i }).click();
+      const saveFirst = page.getByText(/Salvesta vorm enne failide lisamist/i).first();
+      await saveFirst.scrollIntoViewIfNeeded();
+      await sleep(500);
+      await shoot(page, 'user-guide/images/13-vorm-soidu-puhkeaeg/06-failid-enne-salvestamist.png');
+    },
+  },
   { name: 'user-guide/vorm-tehniline-kontroll', run: (p) => openCompoundTab(p, 95002001, /tehnonõuetele vastavuse/, 'user-guide/images/09-vorm-tehniline-kontroll/01-alamvorm.png') },
   { name: 'user-guide/vorm-adr', run: (p) => openCompoundTab(p, 95002001, /ADR kontrollvorm/, 'user-guide/images/11-vorm-adr/01-alamvorm.png') },
   { name: 'user-guide/vorm-vedude-katkestamine', run: (p) => openCompoundTab(p, 95002002, /katkestamine/, 'user-guide/images/10-vorm-vedude-katkestamine/01-alamvorm.png') },
   { name: 'user-guide/vorm-trailer-tehniline', run: (p) => openCompoundTab(p, 95002002, /[Hh]aagise tehno/, 'user-guide/images/09-vorm-tehniline-kontroll/02-haagis.png') },
+
+  // --- Print-nupp: avaldatud koondvorm 95002001 → SP autojuht alamvorm ---
+  {
+    name: 'user-guide/print-nupp',
+    run: async (page) => {
+      await page.goto(`${BASE}/control-forms/compound/95002001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      // Klõpsa SP autojuht vahekaardile
+      await page.getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja/i }).click({ timeout: 8000 }).catch(() => {});
+      await sleep(900);
+      // Scroll printimise nupu juurde
+      const printBtn = page.getByRole('button', { name: /Prindi|Print/i }).first();
+      await printBtn.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(400);
+      await shoot(page, 'user-guide/images/13-vorm-soidu-puhkeaeg/02-print-nupp.png');
+      // Ava print-dropdown
+      await printBtn.click().catch(() => {});
+      await sleep(600);
+      await shoot(page, 'user-guide/images/13-vorm-soidu-puhkeaeg/03-print-dropdown.png');
+      await page.keyboard.press('Escape').catch(() => {});
+    },
+  },
+
+  // --- NCR teade: avaldatud koondvorm 95002001 → SP autojuht → "Loo NCR teade" nupp + modal ---
+  {
+    name: 'user-guide/ncr-modal',
+    run: async (page) => {
+      await page.goto(`${BASE}/control-forms/compound/95002001`, { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      // Klõpsa SP autojuht vahekaardile (kus on NCR nupp)
+      await page.getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja/i }).click({ timeout: 8000 }).catch(() => {});
+      await sleep(900);
+      // Pilt enne modali (nupp nähtav)
+      const ncrBtn = page.getByRole('button', { name: /Loo NCR teade/i }).first();
+      await ncrBtn.scrollIntoViewIfNeeded().catch(() => {});
+      await sleep(400);
+      await shoot(page, 'user-guide/images/13-vorm-soidu-puhkeaeg/04-ncr-nupp.png');
+      // Ava NCR modal
+      await ncrBtn.click().catch(() => {});
+      await sleep(1200);
+      await shoot(page, 'user-guide/images/13-vorm-soidu-puhkeaeg/05-ncr-modal.png');
+      await page.keyboard.press('Escape').catch(() => {});
+      await sleep(400);
+    },
+  },
 
   // --- Failide lisamine: välisriigi rikkumise vorm 95003001 (salvestatud, manustega) ---
   {
@@ -310,23 +423,33 @@ const shots = [
 
 (async () => {
   const browser = await chromium.launch();
-  const context = await browser.newContext({ viewport: VIEWPORT, locale: 'et-EE', deviceScaleFactor: 2 });
+  const context = await browser.newContext({
+    viewport: VIEWPORT,
+    locale: 'et-EE',
+    deviceScaleFactor: 2,
+    storageState: process.env.LJVIS_STORAGE_STATE || undefined,
+  });
   await context.addInitScript(() => localStorage.setItem('i18nextLng', 'et'));
 
   console.log('Sisselogimine…');
-  const page = await login(context);
+  const page = process.env.LJVIS_STORAGE_STATE
+    ? await context.newPage()
+    : await login(context);
   console.log('Sisse logitud.\n');
 
+  let failures = 0;
   for (const s of shots) {
     if (filter && !s.name.includes(filter)) continue;
     console.log('▶', s.name);
     try {
       await s.run(page);
     } catch (err) {
+      failures += 1;
       console.error('  ✗', s.name, '-', err.message);
     }
   }
 
   await browser.close();
+  if (failures) process.exitCode = 1;
   console.log('\nValmis.');
 })();

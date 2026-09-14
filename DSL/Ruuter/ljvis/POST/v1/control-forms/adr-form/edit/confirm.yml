@@ -84,7 +84,29 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkRequiredFields
+
+# Peegeldab useAdrForm.ts Yup-skeemi (proceedingReferenceNumber kohustuslik
+# kui proceedingType valitud; exemptionAdrProvision kohustuslik kui
+# exemptionApplied=true) — varem oli see kontroll ainult kliendipoolne
+# (vt sama valve save.yml-is).
+checkRequiredFields:
+  switch:
+    - condition: ${!!proceeding_type && proceeding_reference_number.trim() === ''}
+      next: returnProceedingReferenceNumberRequiredError
+    - condition: ${exemption_applied === true && exemption_adr_provision.trim() === ''}
+      next: returnExemptionAdrProvisionRequiredError
   next: getCurrentForm
+
+returnProceedingReferenceNumberRequiredError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"required"}'
+  next: end
+
+returnExemptionAdrProvisionRequiredError:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"exemptionAdrProvision","code":"required"}'
+  next: end
 
 getCurrentForm:
   call: http.post

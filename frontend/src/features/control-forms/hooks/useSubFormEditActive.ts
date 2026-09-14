@@ -166,9 +166,10 @@ interface AddTabOptions {
   transportInterruption?: Pick<SubFormHandle<{ status?: string }>, 'setLoaded' | 'setEditActive'>;
   setOpenTabs: React.Dispatch<React.SetStateAction<string[]>>;
   setActiveTab: (tab: string) => void;
+  activate?: boolean;
 }
 
-export function addTab(tabId: SubFormTabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab }: AddTabOptions): void {
+export function addTab(tabId: SubFormTabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab, activate = true }: AddTabOptions): void {
   setOpenTabs((prev) => (prev.includes(tabId) ? prev : [...prev, tabId]));
   if (tabId === 'tab-driver') { driver.setLoaded(true); driver.setEditActive(true); }
   if (tabId === 'tab-teammate') { teammate.setLoaded(true); teammate.setEditActive(true); }
@@ -179,7 +180,7 @@ export function addTab(tabId: SubFormTabId, { driver, teammate, vehicle, trailer
   }
   if (tabId === 'tab-adr' && adr) { adr.setLoaded(true); adr.setEditActive(true); }
   if (tabId === 'tab-transport-interruption' && transportInterruption) { transportInterruption.setLoaded(true); transportInterruption.setEditActive(true); }
-  setActiveTab(tabId);
+  if (activate) setActiveTab(tabId);
 }
 
 type SubFormWithStatus = Pick<SubFormHandle<{ id?: unknown; status?: string }>, 'form'>;

@@ -39,6 +39,9 @@ import { RsiFormPage } from './features/erru/pages/rsi/RsiFormPage';
 import { NcrListPage } from './features/erru/pages/ncr/NcrListPage';
 import { NcrFormCreatePage } from './features/erru/pages/ncr/NcrFormCreatePage';
 import { NcrFormPage } from './features/erru/pages/ncr/NcrFormPage';
+import { NuListPage } from './features/erru/pages/nu/NuListPage';
+import { NuFormCreatePage } from './features/erru/pages/nu/NuFormCreatePage';
+import { NuFormPage } from './features/erru/pages/nu/NuFormPage';
 import { TechnicalCheckFormPage } from './features/control-forms/pages/technical-check-form/TechnicalCheckFormPage';
 import { TransportInterruptionFormPage } from './features/control-forms/pages/transport-interruption-form/TransportInterruptionFormPage';
 import { AdrFormPage } from './features/control-forms/pages/adr-form/AdrFormPage';
@@ -223,6 +226,9 @@ function AppRoutes() {
           <Route path="/erru/ncr" element={<NcrListPage />} />
           <Route path="/erru/ncr/new" element={<NcrFormCreatePage />} />
           <Route path="/erru/ncr/:businessCaseId" element={<NcrFormPage />} />
+          <Route path="/erru/nu" element={<NuListPage />} />
+          <Route path="/erru/nu/new" element={<NuFormCreatePage />} />
+          <Route path="/erru/nu/:id" element={<NuFormPage />} />
           <Route
             path="/control-forms/vehicle-technical/new/:compoundFormKey"
             element={<TechnicalCheckFormPage variant="vehicle" />}

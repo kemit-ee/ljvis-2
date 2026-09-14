@@ -127,6 +127,9 @@ returns:
 - name: createdBy
   type: string
   nullable: true
+- name: companyRegCode
+  type: string
+  nullable: true
 */
 SELECT
   sp_teammate_form_key AS id,
@@ -168,8 +171,15 @@ SELECT
   notes,
   liini_number AS "liiniNumber",
   liini_nimetus AS "liiniNimetus",
-  created_by
-FROM forms.sp_teammate_form
+  created_by,
+  (
+    SELECT company_reg_code
+    FROM forms.compound_form
+    WHERE compound_form_key = spt.compound_form_key
+    ORDER BY created_at DESC
+    LIMIT 1
+  ) AS company_reg_code
+FROM forms.sp_teammate_form spt
 WHERE sp_teammate_form_key = :id::BIGINT
 ORDER BY created_at DESC
 LIMIT 1;

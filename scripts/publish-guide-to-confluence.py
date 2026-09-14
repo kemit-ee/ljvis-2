@@ -133,7 +133,7 @@ def descendants(page_id):
 
 def existing_attachments(page_id):
     if DRY_RUN or str(page_id).startswith("DRY-"):
-        return set()
+        return {}
     r = api("GET", f"/rest/api/content/{page_id}/child/attachment?limit=200")
     return {a["title"]: a["id"] for a in r.get("results", [])}
 

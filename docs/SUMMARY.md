@@ -24,6 +24,7 @@
   - [Sõidu- ja puhkeaeg](user-guide/13-vorm-soidu-puhkeaeg.md)
 - [ERRU tehnokontrolli teated RSI](user-guide/21-erru-rsi.md)
 - [ERRU kontrollitulemuse teated NCR](user-guide/22-erru-ncr.md)
+- [ERRU sobimatusteated NU](user-guide/23-erru-nu.md)
 - [Failide lisamine](user-guide/14-failide-lisamine.md)
 - [Vormide vaatamine ja ajalugu](user-guide/15-vormide-vaatamine-ajalugu.md)
 - [Riskihindamine](user-guide/16-riskihindamine.md)

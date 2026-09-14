@@ -12,6 +12,10 @@ data/
 node_modules/
 tim-db/
 
+# Python bytecode (tests/contract runs with -B in CI, but not always locally)
+__pycache__/
+*.pyc
+
 .ssl/
 ssl/
 

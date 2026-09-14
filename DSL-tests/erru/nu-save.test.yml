@@ -1,0 +1,514 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: http://nu-test/resql
+  LJVIS_TIM: http://nu-test/tim
+  NYSIIS_ENDPOINT: http://nu-test/nysiis
+  ERRU_NU_ENDPOINT: http://nu-test/hub
+http_rewrite:
+  http://nu-test: '{MOCK}'
+tests:
+- name: create persists preview
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - nu.read
+        - nu.create
+        - nu.send
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/nu/get-source
+      method: POST
+      status: 200
+      body:
+      - eligible: true
+        id: 10
+        snapshotId: 11
+        firstName: Test
+        lastName: Manager
+        dateOfBirth: '1980-01-01'
+        certificateNumber: CERT
+        certificateIssueDate: '2020-01-01'
+        certificateCountryCode: EE
+    - url_matches: /erru/nu/validate
+      method: POST
+      status: 200
+      body:
+      - result: '{"valid":true}'
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /erru/nu/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 2
+        status: initiated
+        direction: outgoing
+        businessCaseId: NU-TEST
+        nuTo: DE
+        originatingAuthority: EE-PPA
+        requestSource: CA
+        requestPurpose: Issue
+        sourceGoodReputeFormKey: 10
+        tmFirstName: Test
+        tmFamilyName: Manager
+        tmDateOfBirth: '1980-01-01'
+        unfitStartDate: '2026-01-01'
+    - url_matches: /nysiis
+      method: POST
+      status: 200
+      body:
+        searchKey: KEY
+    - url_matches: /erru/nu/save-draft
+      method: POST
+      status: 200
+      body:
+      - result: '{"id": 1, "businessCaseId": "NU-TEST", "version": 1, "status": "initiated"}'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/nu/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: null
+      expectedVersion: null
+      sourceSnapshotId: '11'
+      sourceGoodReputeFormKey: '10'
+      nuTo: DE
+      originatingAuthority: EE-PPA
+      requestSource: CA
+      requestPurpose: Issue
+      unfitStartDate: '2026-01-01'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/nu/save-draft
+    count: 1
+    body_matches:
+      sourceSnapshotId: '11'
+      key: null
+      expectedVersion: null
+      sourceGoodReputeFormKey: '10'
+- name: revision persists expected version
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - nu.read
+        - nu.create
+        - nu.send
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/nu/get-source
+      method: POST
+      status: 200
+      body:
+      - eligible: true
+        id: 10
+        snapshotId: 11
+        firstName: Test
+        lastName: Manager
+        dateOfBirth: '1980-01-01'
+        certificateNumber: CERT
+        certificateIssueDate: '2020-01-01'
+        certificateCountryCode: EE
+    - url_matches: /erru/nu/validate
+      method: POST
+      status: 200
+      body:
+      - result: '{"valid":true}'
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /erru/nu/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 2
+        status: initiated
+        direction: outgoing
+        businessCaseId: NU-TEST
+        nuTo: DE
+        originatingAuthority: EE-PPA
+        requestSource: CA
+        requestPurpose: Issue
+        sourceGoodReputeFormKey: 10
+        tmFirstName: Test
+        tmFamilyName: Manager
+        tmDateOfBirth: '1980-01-01'
+        unfitStartDate: '2026-01-01'
+    - url_matches: /nysiis
+      method: POST
+      status: 200
+      body:
+        searchKey: KEY
+    - url_matches: /erru/nu/save-draft
+      method: POST
+      status: 200
+      body:
+      - result: '{"id": 1, "businessCaseId": "NU-TEST", "version": 3, "status": "initiated"}'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/nu/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      expectedVersion: 2
+      sourceSnapshotId: '11'
+      sourceGoodReputeFormKey: '10'
+      nuTo: DE
+      originatingAuthority: EE-PPA
+      requestSource: CA
+      requestPurpose: Issue
+      unfitStartDate: '2026-01-01'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/nu/save-draft
+    count: 1
+    body_matches:
+      sourceSnapshotId: '11'
+      expectedVersion: 2
+      key: '1'
+      sourceGoodReputeFormKey: '10'
+- name: revision conflict is HTTP 409
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - nu.read
+        - nu.create
+        - nu.send
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/nu/get-source
+      method: POST
+      status: 200
+      body:
+      - eligible: true
+        id: 10
+        snapshotId: 11
+        firstName: Test
+        lastName: Manager
+        dateOfBirth: '1980-01-01'
+        certificateNumber: CERT
+        certificateIssueDate: '2020-01-01'
+        certificateCountryCode: EE
+    - url_matches: /erru/nu/validate
+      method: POST
+      status: 200
+      body:
+      - result: '{"valid":true}'
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /erru/nu/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 2
+        status: initiated
+        direction: outgoing
+        businessCaseId: NU-TEST
+        nuTo: DE
+        originatingAuthority: EE-PPA
+        requestSource: CA
+        requestPurpose: Issue
+        sourceGoodReputeFormKey: 10
+        tmFirstName: Test
+        tmFamilyName: Manager
+        tmDateOfBirth: '1980-01-01'
+        unfitStartDate: '2026-01-01'
+    - url_matches: /nysiis
+      method: POST
+      status: 200
+      body:
+        searchKey: KEY
+    - url_matches: /erru/nu/save-draft
+      method: POST
+      status: 200
+      body:
+      - result: '{"code": "version_conflict"}'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/nu/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      expectedVersion: 2
+      sourceSnapshotId: '11'
+      sourceGoodReputeFormKey: '10'
+      nuTo: DE
+      originatingAuthority: EE-PPA
+      requestSource: CA
+      requestPurpose: Issue
+      unfitStartDate: '2026-01-01'
+  expect:
+    status: 409
+  verify_mocks:
+  - url_matches: /erru/nu/save-draft
+    count: 1
+    body_matches:
+      sourceSnapshotId: '11'
+      expectedVersion: 2
+      key: '1'
+      sourceGoodReputeFormKey: '10'
+- name: stale source preview is HTTP 409
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - nu.read
+        - nu.create
+        - nu.send
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/nu/get-source
+      method: POST
+      status: 200
+      body:
+      - eligible: true
+        id: 10
+        snapshotId: 11
+        firstName: Test
+        lastName: Manager
+        dateOfBirth: '1980-01-01'
+        certificateNumber: CERT
+        certificateIssueDate: '2020-01-01'
+        certificateCountryCode: EE
+    - url_matches: /erru/nu/validate
+      method: POST
+      status: 200
+      body:
+      - result: '{"valid":true}'
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /erru/nu/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 2
+        status: initiated
+        direction: outgoing
+        businessCaseId: NU-TEST
+        nuTo: DE
+        originatingAuthority: EE-PPA
+        requestSource: CA
+        requestPurpose: Issue
+        sourceGoodReputeFormKey: 10
+        tmFirstName: Test
+        tmFamilyName: Manager
+        tmDateOfBirth: '1980-01-01'
+        unfitStartDate: '2026-01-01'
+    - url_matches: /nysiis
+      method: POST
+      status: 200
+      body:
+        searchKey: KEY
+    - url_matches: /erru/nu/save-draft
+      method: POST
+      status: 200
+      body:
+      - result: '{"code": "source_changed"}'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/nu/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: null
+      expectedVersion: null
+      sourceSnapshotId: '11'
+      sourceGoodReputeFormKey: '10'
+      nuTo: DE
+      originatingAuthority: EE-PPA
+      requestSource: CA
+      requestPurpose: Issue
+      unfitStartDate: '2026-01-01'
+  expect:
+    status: 409
+  verify_mocks:
+  - url_matches: /erru/nu/save-draft
+    count: 1
+    body_matches:
+      sourceSnapshotId: '11'
+      key: null
+      expectedVersion: null
+      sourceGoodReputeFormKey: '10'
+- name: sent cannot be revised
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - nu.read
+        - nu.create
+        - nu.send
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/nu/get-source
+      method: POST
+      status: 200
+      body:
+      - eligible: true
+        id: 10
+        snapshotId: 11
+        firstName: Test
+        lastName: Manager
+        dateOfBirth: '1980-01-01'
+        certificateNumber: CERT
+        certificateIssueDate: '2020-01-01'
+        certificateCountryCode: EE
+    - url_matches: /erru/nu/validate
+      method: POST
+      status: 200
+      body:
+      - result: '{"valid":true}'
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /erru/nu/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 2
+        status: initiated
+        direction: outgoing
+        businessCaseId: NU-TEST
+        nuTo: DE
+        originatingAuthority: EE-PPA
+        requestSource: CA
+        requestPurpose: Issue
+        sourceGoodReputeFormKey: 10
+        tmFirstName: Test
+        tmFamilyName: Manager
+        tmDateOfBirth: '1980-01-01'
+        unfitStartDate: '2026-01-01'
+    - url_matches: /nysiis
+      method: POST
+      status: 200
+      body:
+        searchKey: KEY
+    - url_matches: /erru/nu/save-draft
+      method: POST
+      status: 200
+      body:
+      - result: '{"code": "not_editable"}'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/nu/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      expectedVersion: 2
+      sourceSnapshotId: '11'
+      sourceGoodReputeFormKey: '10'
+      nuTo: DE
+      originatingAuthority: EE-PPA
+      requestSource: CA
+      requestPurpose: Issue
+      unfitStartDate: '2026-01-01'
+  expect:
+    status: 409
+  verify_mocks:
+  - url_matches: /erru/nu/save-draft
+    count: 1
+    body_matches:
+      sourceSnapshotId: '11'
+      expectedVersion: 2
+      key: '1'
+      sourceGoodReputeFormKey: '10'

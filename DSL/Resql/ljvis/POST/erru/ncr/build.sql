@@ -81,7 +81,10 @@ returns:
 -- ─────────────────────────────────────────────────────────────────────────────
 WITH sp AS (
   (
-    SELECT compound_form_key, erru_points
+    SELECT compound_form_key, forms.derive_sp_erru_points(
+      violations_561_2006, violations_165_2014, violations_2002_15,
+      violations_593_2008, violations_2020_1057, erru_points
+    ) AS erru_points
     FROM forms.sp_driver_form
     WHERE sp_driver_form_key = :spFormKey::BIGINT
       AND :spFormType = 'driver'
@@ -90,7 +93,10 @@ WITH sp AS (
   )
   UNION ALL
   (
-    SELECT compound_form_key, erru_points
+    SELECT compound_form_key, forms.derive_sp_erru_points(
+      violations_561_2006, violations_165_2014, violations_2002_15,
+      violations_593_2008, violations_2020_1057, erru_points
+    ) AS erru_points
     FROM forms.sp_teammate_form
     WHERE sp_teammate_form_key = :spFormKey::BIGINT
       AND :spFormType = 'teammate'

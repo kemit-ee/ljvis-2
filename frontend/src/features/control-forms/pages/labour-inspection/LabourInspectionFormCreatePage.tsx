@@ -9,6 +9,7 @@ import { BREAKPOINTS } from '../../../../constants/constants';
 import { useLabourInspectionForm } from './useLabourInspectionForm';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import styles from './LabourInspectionFormPage.module.css';
+import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 
 export function LabourInspectionFormCreatePage() {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ export function LabourInspectionFormCreatePage() {
   const gridClass = styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'];
 
   const handleSaved = (id?: string) => {
+    window.scrollTo(0, 0);
     navigate(`/control-forms/labour-inspection/${id}`, {
       state: { justCreated: true },
     });
@@ -76,6 +78,11 @@ export function LabourInspectionFormCreatePage() {
           companyPickerResults={companyPickerResults}
           onCompanyPicked={onCompanyPicked}
           closeCompanyPicker={closeCompanyPicker}
+        />
+        <FileUploadBlock
+          formPath="labour-inspection"
+          disabled
+          label={t('form.files.title')}
         />
 
         <div className="page-actions">

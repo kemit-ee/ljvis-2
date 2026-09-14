@@ -11,6 +11,7 @@ on:
     branches: [main, dev]
     paths:
       - 'DSL/**'
+      - 'contracts/**'
       - 'DSL-tests/**'
       - 'docker/**'
       - 'pdf-creator/**'
@@ -25,6 +26,7 @@ on:
     branches: [main, dev]
     paths:
       - 'DSL/**'
+      - 'contracts/**'
       - 'DSL-tests/**'
       - 'docker/**'
       - 'pdf-creator/**'
@@ -54,6 +56,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: ERRU NU XSD contract (static rules and mutation tests)
+        run: |
+          python3 -B tests/contract/check_erru_contract.py
+          python3 -B -m unittest discover -s tests/contract -p 'test_*.py'
 
       - name: Validate Ruuter YAML files
         run: |

@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { FormikProps } from 'formik';
 import {
-  Button,
   Card,
   ChoiceGroup,
   Heading,
@@ -14,6 +13,7 @@ import { MaskedDateField } from '../shared/MaskedDateField';
 import type { GoodReputeForm } from '../../types';
 import styles from '../../../classifiers/components/ClassifierValueInfoCard/ClassifierValueInfoCard.module.css';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
+import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
 interface CountryOption {
   value: string;
@@ -106,13 +106,13 @@ export function GoodReputeFormFields({
                 />
               </div>
               {!readOnly && (
-                <Button
+                <AsyncButton
                   type="button"
                   disabled={searchLoading}
                   onClick={onSearchPerson}
                 >
                   {t('common.search')}
-                </Button>
+                </AsyncButton>
               )}
             </div>
             <TextField

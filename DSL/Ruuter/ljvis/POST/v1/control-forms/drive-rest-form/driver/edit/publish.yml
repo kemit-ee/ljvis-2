@@ -38,6 +38,7 @@ checkFormIsConfirmed:
     current_status: "${currentFormRes.response.body[0].status}"
     compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
     sub_form_number: "${currentFormRes.response.body[0].subFormNumber}"
+    company_reg_code: "${currentFormRes.response.body[0].companyRegCode || ''}"
   next: checkStatusSwitch
 
 checkStatusSwitch:
@@ -157,7 +158,7 @@ checkWeightViolation:
   switch:
     - condition: ${mass_dimension_non_compliant === true || mass_dimension_non_compliant === 'true'}
       next: createWeightViolationNotification
-  next: returnSuccess
+  next: triggerRiskRecalculate
 
 createWeightViolationNotification:
   call: http.post
@@ -174,6 +175,30 @@ createWeightViolationNotification:
       body_et: "${'Koondvormi võti: ' + compound_form_key}"
       created_by: ${actor_personal_code}
   result: notifRes
+  error: triggerRiskRecalculate
+  next: triggerRiskRecalculate
+
+# calculate_risk_score.sql loeb otse forms.sp_driver_form-i, seega
+# alamvormi avalikustamine peab riskiskoori värskendama samamoodi nagu
+# kompaundvormi/TRAM-kaardi avalikustamine juba teeb (compound-form/edit/
+# publish.yml, tram-card/edit/publish.yml) — muidu jääb skoor vananenuks
+# kuni öise risk-score-recalc-sync cron'ini.
+triggerRiskRecalculate:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test('' + (company_reg_code || ''))}"
+      next: returnSuccess
+  next: callRiskRecalculate
+
+callRiskRecalculate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: recalc_result
   error: returnSuccess
   next: returnSuccess
 

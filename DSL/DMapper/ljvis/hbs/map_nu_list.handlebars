@@ -1,0 +1,19 @@
+{
+    "content": [
+        {{#each messages}}
+        {
+            "id": "{{this.id}}",
+            "version": {{this.version}},
+            "direction": "{{this.direction}}",
+            "status": "{{this.status}}",
+            "businessCaseId": "{{this.businessCaseId}}",
+            "messageDate": {{#if this.messageDate}}"{{this.messageDate}}"{{else}}null{{/if}},
+            "countryCode": {{#if this.countryCode}}"{{this.countryCode}}"{{else}}null{{/if}},
+            "tmFirstName": {{#if this.tmFirstName}}"{{this.tmFirstName}}"{{else}}null{{/if}},
+            "tmFamilyName": {{#if this.tmFamilyName}}"{{this.tmFamilyName}}"{{else}}null{{/if}},
+            "handlerName": {{#if this.handlerName}}"{{this.handlerName}}"{{else}}null{{/if}}
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+    ],
+    "total": {{#with messages.[0]}}{{total}}{{else}}0{{/with}}
+}
