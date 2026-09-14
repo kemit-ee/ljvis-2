@@ -62,7 +62,7 @@ import { TransportInterruptionFormViewCard } from '../../components/TransportInt
 import { TransportInterruptionFormEditCard, type TransportInterruptionFormEditCardRef } from '../../components/TransportInterruptionForm/TransportInterruptionFormEditCard';
 import { listTechnicalCheckFormsByCompoundFormKey, getTechnicalCheckForm, saveTechnicalCheckForm } from '../../api';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
-import { createAdrValidationSchema } from '../adr-form/useAdrForm';
+import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/useAdrForm';
 import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
@@ -553,9 +553,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         subForm: adr as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
         schema: createAdrValidationSchema(t) as ReturnType<typeof createAdrValidationSchema>,
         fallbackSave: (draft) => {
-          const d = draft as AdrForm;
-          const isBlank = (obj: Record<string, unknown>) => Object.values(obj).every((v) => v == null || v === '');
-          const payload = { ...d, driverAssistant: d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>) ? JSON.stringify(d.driverAssistant) : '', lastLoadAddress: d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>) ? JSON.stringify(d.lastLoadAddress) : '', nextLoadAddress: d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>) ? JSON.stringify(d.nextLoadAddress) : '', dangerousGoods: JSON.stringify(d.dangerousGoods ?? []), infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!(e as { checkStatus?: string }).checkStatus)), correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []) } as unknown as AdrForm;
+          const payload = serializeAdrFormPayload(draft as AdrForm);
           saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchAdr(() => { adr.draftRef.current = null; adr.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
         },
       },
