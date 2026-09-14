@@ -84,6 +84,9 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       docRightOtherDocs,
       tachographTypes,
       drivingViolations,
+      drivingViolationsMain,
+      rooma1Violations,
+      postingViolations,
       massDimensions,
       triggerConfirm,
     } = useDriveRestForm(initialData, handleSaved, type as 'driver' | 'teammate', compoundFormKey, undefined, authority);
@@ -136,6 +139,9 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
           docRightOtherDocs={docRightOtherDocs}
           tachographTypes={tachographTypes}
           drivingViolations={drivingViolations}
+          drivingViolationsMain={drivingViolationsMain}
+          rooma1Violations={rooma1Violations}
+          postingViolations={postingViolations}
           massDimensions={massDimensions}
         />
       </form>

@@ -1159,6 +1159,12 @@
     "restCheck": {
       "blockTitle": "Compliance with driving and rest time requirements"
     },
+    "rooma1": {
+      "blockTitle": "Rome I regulation violations"
+    },
+    "posting": {
+      "blockTitle": "Driver posting requirement violations"
+    },
     "tram_control_card_form": "Transport Administration inspection card",
     "tram_control_card": {
       "driverControlTitle": "Driver check outcome",

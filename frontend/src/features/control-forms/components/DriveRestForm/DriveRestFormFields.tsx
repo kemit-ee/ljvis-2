@@ -32,6 +32,17 @@ interface ChoiceItem {
   disabled?: boolean;
 }
 
+// ModalResultSection scopedFields — module-level constants so their
+// reference stays stable across renders (they're a useEffect dep there;
+// a fresh array literal on every render would re-run that effect every time).
+const MAIN_DRIVING_VIOLATION_FIELDS = [
+  'violations5612006',
+  'violations1652014',
+  'violations200215',
+];
+const ROOMA1_VIOLATION_FIELDS = ['violations5932008'];
+const POSTING_VIOLATION_FIELDS = ['violations20201057'];
+
 // Veoliigi (transportType) järgi mittetäidetavad väljad.
 const PASSENGER_CLASS_CODES = [
   'PASSENGER_REGULAR',
@@ -64,6 +75,17 @@ interface Props {
   docRightOtherDocs: ClassifierValueData[];
   tachographTypes: ClassifierValueData[];
   drivingViolations: ClassifierValueData[];
+  /**
+   * Rooma I (593/2008) ja autojuhi lähetamise (2020/1057) rikkumised on
+   * eraldatud omaette akordionitesse (vt drivingViolationsMain,
+   * rooma1Violations, postingViolations) — nende puudumisel (nt TRAM-kaart,
+   * mis "Sõidu- ja puhkeaja nõuete täitmine" plokki üldse ei näita)
+   * langetakse tagasi täieliku drivingViolations loendi peale, säilitades
+   * varasema (ühise valikuakna) käitumise.
+   */
+  drivingViolationsMain?: ClassifierValueData[];
+  rooma1Violations?: ClassifierValueData[];
+  postingViolations?: ClassifierValueData[];
   massDimensions: ClassifierValueData[];
   readOnly?: boolean;
   authority?: FormAuthority;
@@ -90,6 +112,9 @@ export function DriveRestFormFields({
   docRightOtherDocs,
   tachographTypes,
   drivingViolations,
+  drivingViolationsMain = drivingViolations,
+  rooma1Violations = [],
+  postingViolations = [],
   massDimensions,
   readOnly,
   authority = 'PPA',
@@ -945,18 +970,90 @@ export function DriveRestFormFields({
 
                   <div className={styles['overflow-visible']}>
                     <ModalResultSection
-                      checks={drivingViolations}
+                      checks={drivingViolationsMain}
                       type="drivingViolation"
                       setFieldValue={formik.setFieldValue}
                       readOnly={readOnly}
+                      scopedFields={MAIN_DRIVING_VIOLATION_FIELDS}
                       initialViolations={{
                         violations5612006:
                           formik.values.violations5612006 ?? [],
                         violations1652014:
                           formik.values.violations1652014 ?? [],
                         violations200215: formik.values.violations200215 ?? [],
+                      }}
+                    />
+                  </div>
+                </AccordionItemContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        )}
+      {/* Plokk: Rooma I (määrus 593/2008) lepingu rikkumised — omaette akordion,
+          eraldatud ühisest rikkumiste valikuaknast (vt scopedFields'i kommentaar
+          ModalResultSection'is). */}
+      {!hideDriveRestExtras &&
+        formik.values.resultType !== '' &&
+        rooma1Violations.length > 0 && (
+          <div className={`${styles['overflow-visible']} mb-1`}>
+            <Accordion>
+              <AccordionItem id={fieldId('rooma1-violations')}>
+                <AccordionItemHeader
+                  title={
+                    <Heading modifiers="h3" color="primary">
+                      {t(
+                        'forms.rooma1.blockTitle',
+                        'Rooma I lepingu rikkumised',
+                      )}
+                    </Heading>
+                  }
+                />
+                <AccordionItemContent>
+                  <div className={styles['overflow-visible']}>
+                    <ModalResultSection
+                      checks={rooma1Violations}
+                      type="drivingViolation"
+                      setFieldValue={formik.setFieldValue}
+                      readOnly={readOnly}
+                      scopedFields={ROOMA1_VIOLATION_FIELDS}
+                      initialViolations={{
                         violations5932008:
                           formik.values.violations5932008 ?? [],
+                      }}
+                    />
+                  </div>
+                </AccordionItemContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        )}
+      {/* Plokk: autojuhi lähetamise nõuete rikkumised (direktiiv 2020/1057) —
+          omaette akordion, eraldatud ühisest rikkumiste valikuaknast. */}
+      {!hideDriveRestExtras &&
+        formik.values.resultType !== '' &&
+        postingViolations.length > 0 && (
+          <div className={`${styles['overflow-visible']} mb-1`}>
+            <Accordion>
+              <AccordionItem id={fieldId('posting-violations')}>
+                <AccordionItemHeader
+                  title={
+                    <Heading modifiers="h3" color="primary">
+                      {t(
+                        'forms.posting.blockTitle',
+                        'Autojuhi lähetamise nõuete rikkumised',
+                      )}
+                    </Heading>
+                  }
+                />
+                <AccordionItemContent>
+                  <div className={styles['overflow-visible']}>
+                    <ModalResultSection
+                      checks={postingViolations}
+                      type="drivingViolation"
+                      setFieldValue={formik.setFieldValue}
+                      readOnly={readOnly}
+                      scopedFields={POSTING_VIOLATION_FIELDS}
+                      initialViolations={{
                         violations20201057:
                           formik.values.violations20201057 ?? [],
                       }}
