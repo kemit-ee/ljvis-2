@@ -94,7 +94,12 @@ export function useRsiForm(
   const parts: ClassifierEntry[] = useMemo(
     () =>
       allParts
-        .filter((p) => p.parentKey === null)
+        // CAA_10 (veose kinnitamine) has no ERRU equivalent and must never
+        // appear in an RSI message (see erru.rsi_message.checked_items
+        // column comment, LJVIS2-148 §4.1) — excluded here too, not just in
+        // the vehicle-technical-check build/prefill flow, since this screen
+        // lets the user pick checked items manually as well.
+        .filter((p) => p.parentKey === null && p.code !== 'CAA_10')
         .sort((a, b) => {
           const numA = parseInt(a.code.replace(/^\D+/, ''), 10);
           const numB = parseInt(b.code.replace(/^\D+/, ''), 10);

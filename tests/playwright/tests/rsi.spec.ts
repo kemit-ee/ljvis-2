@@ -8,8 +8,10 @@ test.describe('RSI teade', () => {
     await expect(page.getByRole('heading', { name: /RSI/i }).first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/Kontrollitud punkt/i)).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/Ei kontrollitud/i)).toHaveCount(0);
-    await expect(page.getByText(/Sõiduki sobivus/i)).toBeVisible();
-    await expect(page.getByText(/Kinnitusmeetodid/i)).toBeVisible();
+    // Veose kinnitamine (CAA_10) has no ERRU equivalent and must never appear
+    // in an RSI message (LJVIS2-148 §4.1) — excluded from this checklist too.
+    await expect(page.getByText(/Veose kinnitamine/i)).toHaveCount(0);
+    await expect(page.getByText(/^muu$/i)).toBeVisible();
   });
 
   test('mittevastava kontrollpunkt avab rikkemodaliga valiku', async ({ page }) => {
