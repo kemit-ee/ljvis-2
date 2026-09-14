@@ -1,0 +1,9 @@
+declaration:
+  description: Avalik sünteetilise mocki tervisekontroll.
+ready:
+  status: 200
+  return:
+    status: OK
+    mock: true
+  wrapper: false
+  next: end

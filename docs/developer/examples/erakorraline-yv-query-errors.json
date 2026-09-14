@@ -1,0 +1,37 @@
+[
+  {
+    "status": 500,
+    "body": {
+      "error": "SERVER_ERROR",
+      "message": "Internal error"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "MISSING_PARAMETER",
+      "message": "alates is required"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "MISSING_PARAMETER",
+      "message": "kuni is required"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "INVALID_PARAMETER",
+      "message": "alates must not be after kuni"
+    }
+  },
+  {
+    "status": 403,
+    "body": {
+      "error": "FORBIDDEN",
+      "message": "X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)"
+    }
+  }
+]

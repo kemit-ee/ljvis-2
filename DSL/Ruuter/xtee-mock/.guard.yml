@@ -1,0 +1,6 @@
+declaration:
+  description: Avalik sünteetiline mock. POST X-tee päise kontroll alampuus; AJ UserId kontroll handleris.
+allow:
+  status: 200
+  return: ok
+  next: end

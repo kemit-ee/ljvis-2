@@ -1,0 +1,102 @@
+declaration:
+  version: '1.0'
+  description: 'IsikuEttevoteKontrollid: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
+    POST/xroad/provide/isiku-ettevote-kontrollid.yml. X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body:
+    - field: isikukood
+      required: false
+    params: []
+validateInput:
+  switch:
+  - condition: ${incoming.body.isikukood == null || incoming.body.isikukood == ''}
+    next: returnMissingIsikukood
+  - condition: ${!(/^[1-6][0-9]{10}$/.test(incoming.body.isikukood.trim()))}
+    next: returnInvalidIsikukood
+  next: assignParams
+assignParams:
+  assign:
+    isikukood: ${incoming.body.isikukood.trim()}
+    start_time: ${new Date().getTime()}
+    xroad_member_code: ${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}
+    xroad_subsystem: ${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}
+  next: queryKontrollid
+queryKontrollid:
+  assign:
+    kontrollResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: '${incoming.headers[''x-mock-scenario''] === ''empty'' || !(isikukood === ''60001019906'') ? [] :
+          [{"kuupaev": "2026-06-15", "nimetus": "MOCK-KV-001", "asutus": "Mockvedaja O\u00dc", "soiduki_reg_nr":
+          "MOCK123", "rikkumise_liik": "extraordinary_inspection", "kontrolli_nimetus": "KOONDVORM", "juhi_nimi":
+          "Test", "juhi_perekonnanimi": "Juht", "rikkumised": null, "rikkumised_lopetatud": null, "ettevote_reg_nr":
+          "00000001"}, {"kuupaev": "2026-06-14", "nimetus": "MOCK-TI-002", "asutus": "Mockvedaja O\u00dc", "soiduki_reg_nr":
+          null, "rikkumise_liik": null, "kontrolli_nimetus": "TOOINSPEKTION", "juhi_nimi": "Test", "juhi_perekonnanimi":
+          "Juht", "rikkumised": null, "rikkumised_lopetatud": "Mock l\u00f5petamine", "ettevote_reg_nr": "00000001"}]}'
+  next: checkQueryStatus
+checkQueryStatus:
+  switch:
+  - condition: ${kontrollResult.response.status < 200 || kontrollResult.response.status >= 300}
+    next: logFailure
+  next: logSuccess
+logSuccess:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: logAjUsage
+logAjUsage:
+  assign:
+    ajLogResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: buildResponse
+buildResponse:
+  assign:
+    result_body: '${JSON.stringify({kontrollid: {item: kontrollResult.response.body || []}})}'
+  next: returnSuccess
+returnSuccess:
+  status: 200
+  return: ${JSON.parse(result_body)}
+  next: end
+  wrapper: false
+logFailure:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnServerError
+returnServerError:
+  status: 500
+  return:
+    error: SERVER_ERROR
+    message: Internal error
+  next: end
+  wrapper: false
+returnMissingIsikukood:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: isikukood is required
+  next: end
+  wrapper: false
+returnInvalidIsikukood:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: isikukood must be 11 digits starting with 1-6
+  next: end
+  wrapper: false
