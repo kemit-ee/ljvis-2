@@ -16,6 +16,8 @@
   kirjuta uuemat loendit üle.
 - Faili lisamise nupu nimi on „Lisa fail“ ning lisamine aktiveerub pärast
   vormi esimest edukat salvestamist.
+- Faililoendi serverivastus teisendatakse kasutajaliidese väljadeks, et failinimed
+  oleksid nähtavad ja failitunnused sobiksid allalaadimise ning kustutamise päringutesse.
 
 ## 2026-09-12
 

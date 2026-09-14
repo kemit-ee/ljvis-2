@@ -139,18 +139,34 @@ export const uploadFormFile = (
 ) =>
   post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/upload`, data);
 
-export const listFormFiles = (formPath: string, formNumber: string) =>
-  get<FormAttachment[]>(`/v1/control-forms/${formPath}/read/files/list`, {
+export const listFormFiles = async (formPath: string, formNumber: string): Promise<FormAttachment[]> => {
+  const rows = await get<Array<FormAttachment & {
+    file_name?: string;
+    form_number?: string;
+    s3_key?: string;
+    created_at?: string;
+    created_by?: string;
+  }>>(`/v1/control-forms/${formPath}/read/files/list`, {
     form_number: formNumber,
   });
+  return rows.map((row) => ({
+    id: String(row.id),
+    fileName: row.fileName ?? row.file_name ?? '',
+    formNumber: row.formNumber ?? row.form_number,
+    s3Key: row.s3Key ?? row.s3_key,
+    status: row.status,
+    createdAt: row.createdAt ?? row.created_at,
+    createdBy: row.createdBy ?? row.created_by,
+  }));
+};
 
 export const downloadFormFile = (formPath: string, id: string) =>
   get<{ url: string }>(`/v1/control-forms/${formPath}/read/files/download`, {
-    q: id,
+    q: String(id),
   });
 
 export const deleteFormFile = (formPath: string, id: string) =>
-  post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/delete`, { id });
+  post<FormAttachment>(`/v1/control-forms/${formPath}/edit/files/delete`, { id: String(id) });
 
 // ── TRAM (Transpordiamet) kontrollkaart ──────────────────────────────────
 // ADR-002: üks eraldiseisev olem forms.tram_control_card, oma guarditud
