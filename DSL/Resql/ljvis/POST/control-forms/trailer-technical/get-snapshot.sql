@@ -35,6 +35,9 @@ returns:
 - name: resultTransportInterruption
   type: string
   nullable: true
+- name: transportInterruptionAutovs5131
+  type: string
+  nullable: true
 - name: proceedingType
   type: string
   nullable: true
@@ -72,6 +75,7 @@ SELECT
   parts_defects::text,
   result_type,
   result_transport_interruption,
+  transport_interruption_autovs_51_3_1,
   proceeding_type,
   proceeding_reference_number,
   violations::text,

@@ -6,6 +6,20 @@
 
 ## 2026-09-14
 
+### Mootorsõiduki/haagise tehnokontrollkaardi rikete märkimise parendused
+
+- Osa/sõlme "Kontrollitud" ja "Ei vasta nõuetele" on nüüd kaks eraldi märget
+  ühise valiku asemel — rikke valimine märgib osa automaatselt kontrollituks
+  ning see jääb kontrollituks ka rikke hilisema eemaldamise korral.
+- Rikke muutmisel või eemaldamisel kustub selle kirjeldus ka märkuste
+  väljalt, mitte ei jää sinna alles.
+- Sõidukeelu märke eemaldamisel kustub automaatselt ka sellega kaasnenud
+  raske rikkumise kood (MSI302).
+- Üldmenetluse valikul on menetluse viitenumbri väli nüüd "Väärteoasja
+  number".
+- Lisandus märge "Autovedu on katkestatud AutoVS § 51 lõike 3 punkti 1
+  alusel".
+
 ### Rikkevaliku ripploend ei avanenud pikkade nimekirjade lõpus olevatel ridadel
 
 - Sõidu- ja puhkeaja ning massi/mõõtmete rikkevaliku akendes ei avanenud

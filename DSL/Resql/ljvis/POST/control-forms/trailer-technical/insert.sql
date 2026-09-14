@@ -20,6 +20,9 @@ params:
   resultTransportInterruption:
     type: boolean
     required: false
+  transportInterruptionAutovs5131:
+    type: boolean
+    required: false
   eraYvMntRegnr:
     type: boolean
     required: false
@@ -75,6 +78,7 @@ WITH ins AS (
     parts_defects,
     result_type,
     result_transport_interruption,
+    transport_interruption_autovs_51_3_1,
     era_yv_mnt_regnr,
     era_yv_mnt_vintin,
     era_yv_mnt_axles,
@@ -97,6 +101,7 @@ WITH ins AS (
     COALESCE(NULLIF(:partsDefects, '')::jsonb, '[]'::jsonb),
     COALESCE(NULLIF(:resultType, ''), 'ok'),
     COALESCE(:resultTransportInterruption::BOOLEAN, FALSE),
+    COALESCE(:transportInterruptionAutovs5131::BOOLEAN, FALSE),
     COALESCE(:eraYvMntRegnr::BOOLEAN, FALSE),
     COALESCE(:eraYvMntVintin::BOOLEAN, FALSE),
     COALESCE(:eraYvMntAxles::BOOLEAN, FALSE),

@@ -53,6 +53,7 @@ extractCurrentFormData:
     parts_defects: "${currentFormRes.response.body[0].partsDefects || '[]'}"
     result_type: "${currentFormRes.response.body[0].resultType || 'ok'}"
     result_transport_interruption: "${currentFormRes.response.body[0].resultTransportInterruption || false}"
+    transport_interruption_autovs_51_3_1: "${currentFormRes.response.body[0].transportInterruptionAutovs5131 || false}"
     era_yv_mnt_regnr: "${currentFormRes.response.body[0].eraYvMntRegnr || false}"
     era_yv_mnt_vintin: "${currentFormRes.response.body[0].eraYvMntVintin || false}"
     era_yv_mnt_axles: "${currentFormRes.response.body[0].eraYvMntAxles || false}"
@@ -78,6 +79,7 @@ publishForm:
       partsDefects: ${parts_defects}
       resultType: ${result_type}
       resultTransportInterruption: ${result_transport_interruption}
+      transportInterruptionAutovs5131: ${transport_interruption_autovs_51_3_1}
       eraYvMntRegnr: ${era_yv_mnt_regnr}
       eraYvMntVintin: ${era_yv_mnt_vintin}
       eraYvMntAxles: ${era_yv_mnt_axles}

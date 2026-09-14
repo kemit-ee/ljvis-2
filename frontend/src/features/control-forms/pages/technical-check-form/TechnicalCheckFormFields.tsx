@@ -16,7 +16,6 @@ import type { Trailer } from '../../types';
 import type {
   TechnicalCheckForm,
   TechnicalCheckVariant,
-  PartSummaryStatus,
   PartSeverity,
 } from '../../types';
 import { useTechnicalCheckForm } from './useTechnicalCheckForm';
@@ -35,7 +34,7 @@ interface TechnicalCheckFormFieldsProps {
     partCode: string,
     selected: { defectCode: string; severity: PartSeverity }[],
   ) => void;
-  setPartStatus: (partCode: string, status: PartSummaryStatus) => void;
+  setPartChecked: (partCode: string, checked: boolean) => void;
   removeDefect: (partCode: string, defectCode: string) => void;
   setResultType: (resultType: string) => void;
   toggleViolation: (code: string, checked: boolean) => void;
@@ -43,10 +42,6 @@ interface TechnicalCheckFormFieldsProps {
   canEdit: boolean;
   /** True only for an admin (control_form.edit_locked) editing an already-confirmed form. */
   canEditXroadFields: boolean;
-  /** True for any admin (control_form.edit_locked), regardless of form status — used
-   * for the MSI302 manual-override gate (LJVIS2-72 §4, UC-13), distinct from
-   * canEditXroadFields which additionally requires status=confirmed. */
-  isEditLocked: boolean;
   xroadBlockVisible: boolean;
   isDesktop: boolean;
   /** Trailers from the parent compound form — used to populate the trailer reg-nr selector. */
@@ -74,13 +69,12 @@ export function TechnicalCheckFormFields({
   defectsByPartKey,
   euViolations,
   applyPartDefects,
-  setPartStatus,
+  setPartChecked,
   removeDefect,
   setResultType,
   toggleViolation,
   canEdit,
   canEditXroadFields,
-  isEditLocked,
   xroadBlockVisible,
   isDesktop,
   compoundTrailers,
@@ -97,11 +91,16 @@ export function TechnicalCheckFormFields({
   const modalPart = parts.find((p) => p.code === modalPartCode);
   const modalDefects = modalPart ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? []) : [];
 
-  const handlePartStatusChange = (partCode: string, status: PartSummaryStatus) => {
-    if (status === 'non_compliant') {
+  const handleDefectToggle = (partCode: string, hasDefect: boolean) => {
+    if (hasDefect) {
+      // Turning "Ei vasta nõuetele" on (or re-clicking "muuda rikkeid") opens
+      // the picker; applyPartDefects runs on confirm.
       setModalPartCode(partCode);
     } else {
-      setPartStatus(partCode, status);
+      // Turning it off clears all of this part's defects directly — the
+      // modal itself requires at least one selection, so it can't be used
+      // for that. "Kontrollitud" is left as-is (LJVIS2-72 15 ettepanekut p2).
+      applyPartDefects(partCode, []);
     }
   };
 
@@ -173,7 +172,8 @@ export function TechnicalCheckFormFields({
           <PartsSummaryTable
             parts={parts}
             partsSummary={values.partsSummary ?? []}
-            onStatusChange={handlePartStatusChange}
+            onCheckedChange={setPartChecked}
+            onDefectToggle={handleDefectToggle}
             disabled={!canEdit}
             partsDefects={values.partsDefects ?? []}
             defectsByPartKey={defectsByPartKey}
@@ -360,7 +360,9 @@ export function TechnicalCheckFormFields({
                 <TextField
                   id="proceedingReferenceNumber"
                   label={t(
-                    'forms.technical_check.result.proceedingReferenceNumber',
+                    values.proceedingType === 'general'
+                      ? 'forms.technical_check.result.caseNumber'
+                      : 'forms.technical_check.result.proceedingReferenceNumber',
                   )}
                   value={values.proceedingReferenceNumber ?? ''}
                   onChange={(v) =>
@@ -378,6 +380,28 @@ export function TechnicalCheckFormFields({
                   }
                 />
               )}
+              <ChoiceGroup
+                id="transportInterruptionAutovs5131"
+                name="transportInterruptionAutovs5131"
+                label={t('forms.technical_check.result.autovs5131')}
+                inputType="checkbox"
+                value={values.transportInterruptionAutovs5131 ? 'true' : ''}
+                onChange={(val) =>
+                  canEdit &&
+                  formik.setFieldValue(
+                    'transportInterruptionAutovs5131',
+                    Array.isArray(val) ? val.includes('true') : val === 'true',
+                  )
+                }
+                items={[
+                  {
+                    id: 'transportInterruptionAutovs5131-item',
+                    value: 'true',
+                    label: t('forms.technical_check.result.autovs5131'),
+                    disabled: !canEdit,
+                  },
+                ]}
+              />
             </div>
           )}
         </Card.Content>
@@ -442,12 +466,7 @@ export function TechnicalCheckFormFields({
                       id: `violation-${i.code}`,
                       value: i.code,
                       label: `${i.code} — ${i.name}`,
-                      disabled:
-                        !canEdit ||
-                        (i.code === 'MSI302' &&
-                          (values.violations ?? []).includes('MSI302') &&
-                          !isEditLocked &&
-                          values.resultType === 'driving_ban'),
+                      disabled: !canEdit,
                     }))}
                   />
                 </div>

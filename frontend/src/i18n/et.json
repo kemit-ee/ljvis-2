@@ -630,7 +630,9 @@
           "expedited": "Kiirmenetlus",
           "general": "Üldmenetlus"
         },
-        "proceedingReferenceNumber": "Menetluse viitenumber"
+        "proceedingReferenceNumber": "Menetluse viitenumber",
+        "caseNumber": "Väärteoasja number",
+        "autovs5131": "Autovedu on katkestatud AutoVS § 51 lõike 3 punkti 1 alusel"
       },
       "notes": {
         "label": "Märkused",
