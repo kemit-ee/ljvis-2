@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import type { ClassifierEntry } from '../../../classifiers/types';
 import type {
   DriveRestForm,
   TransportClass,
@@ -180,6 +181,45 @@ export function useDriveRestForm(
     [getByCode],
   );
 
+  // Rooma I (593/2008) ja autojuhi lähetamise (2020/1057) rikkumised said
+  // omaette akordionid (eraldatud ühisest rikkumiste valikuaknast) —
+  // eraldame nende DRIVING_VIOLATION alampuud (L1 + L2 + L3) ühise loendi
+  // seast, et need saaks eraldi ModalResultSection'i instantsi toita.
+  const classifierSubtree = (
+    all: ClassifierEntry[],
+    rootCode: string,
+  ): ClassifierEntry[] => {
+    const root = all.find((c) => c.code === rootCode && !c.parentKey);
+    if (!root) return [];
+    const level2 = all.filter((c) => c.parentKey === root.classifierValueKey);
+    const level2Keys = new Set(level2.map((c) => c.classifierValueKey));
+    const level3 = all.filter(
+      (c) => c.parentKey != null && level2Keys.has(c.parentKey),
+    );
+    return [root, ...level2, ...level3];
+  };
+
+  const rooma1Violations = useMemo(
+    () => classifierSubtree(drivingViolations, 'ROOMA_I'),
+    [drivingViolations],
+  );
+
+  const postingViolations = useMemo(
+    () => classifierSubtree(drivingViolations, 'LAHETAMINE'),
+    [drivingViolations],
+  );
+
+  const drivingViolationsMain = useMemo(() => {
+    const extractedKeys = new Set(
+      [...rooma1Violations, ...postingViolations].map(
+        (c) => c.classifierValueKey,
+      ),
+    );
+    return drivingViolations.filter(
+      (c) => !extractedKeys.has(c.classifierValueKey),
+    );
+  }, [drivingViolations, rooma1Violations, postingViolations]);
+
   const massDimensions = useMemo(
     () => getByCode('MASS_DIMENSION').filter((c) => c.isValid !== false),
     [getByCode],
@@ -338,6 +378,9 @@ export function useDriveRestForm(
     docRightOtherDocs,
     tachographTypes,
     drivingViolations,
+    drivingViolationsMain,
+    rooma1Violations,
+    postingViolations,
     massDimensions,
     triggerConfirm,
     triggerPublish,

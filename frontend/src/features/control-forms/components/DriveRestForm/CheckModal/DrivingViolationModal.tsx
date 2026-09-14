@@ -26,6 +26,9 @@ interface Props {
 interface DropdownState {
   open: boolean;
   selected: string[];
+  /** True when the menu should render above the trigger instead of below
+   *  it — see toggleDropdown's comment. */
+  openUpward?: boolean;
 }
 
 export function DrivingViolationModal({
@@ -92,10 +95,37 @@ export function DrivingViolationModal({
   }, [initialDropdowns, myLevel2]);
 
   const toggleDropdown = (l2Code: string) => {
-    setDropdowns((prev) => ({
-      ...prev,
-      [l2Code]: { ...prev[l2Code], open: !prev[l2Code]?.open },
-    }));
+    setDropdowns((prev) => {
+      if (prev[l2Code]?.open) {
+        return { ...prev, [l2Code]: { ...prev[l2Code], open: false } };
+      }
+      // Opening: the menu (.dropdown-menu, CheckModal.module.css) is
+      // position:absolute/top:100% and always drops downward. Rows near
+      // the bottom of a long list (e.g. Sõidumeerikud's 18 items) then
+      // render it clipped by the modal body's own overflow:auto — it
+      // "opens" in the DOM but is invisible, which reads as the button
+      // doing nothing. Flip it above the trigger when there isn't enough
+      // room below within the modal's scrollable body.
+      const wrapper = dropdownRefs.current[l2Code];
+      let openUpward = false;
+      if (wrapper) {
+        const rect = wrapper.getBoundingClientRect();
+        const scrollParent = wrapper.closest(
+          '[class*="modal__body"], [class*="modal-body"]',
+        );
+        const boundaryBottom = scrollParent
+          ? scrollParent.getBoundingClientRect().bottom
+          : window.innerHeight;
+        const estimatedMenuHeight = 200; // generous — a handful of checkbox rows
+        openUpward =
+          boundaryBottom - rect.bottom < estimatedMenuHeight &&
+          rect.top > estimatedMenuHeight;
+      }
+      return {
+        ...prev,
+        [l2Code]: { ...prev[l2Code], open: true, openUpward },
+      };
+    });
   };
 
   const toggleLevel3 = (l2Code: string, l3Code: string) => {
@@ -294,7 +324,13 @@ export function DrivingViolationModal({
                                 </span>
                               </button>
                               {state.open && (
-                                <div className={styles['dropdown-menu']}>
+                                <div
+                                  className={
+                                    state.openUpward
+                                      ? `${styles['dropdown-menu']} ${styles['dropdown-menu-up']}`
+                                      : styles['dropdown-menu']
+                                  }
+                                >
                                   {l3Options.map((l3) => (
                                     <div
                                       key={l3.code}

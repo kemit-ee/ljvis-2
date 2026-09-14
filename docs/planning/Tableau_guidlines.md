@@ -32,8 +32,8 @@ Soovitused:
 | Teema | Soovitus |
 |---|---|
 | **Instants** | Ühenduda **read-replica** vastu, mitte primaarbaasi. Analüütikapäringud (eriti `DISTINCT ON` + suured skaneeringud) ei tohi koormata OLTP-baasi. |
-| **Andmebaasi kasutaja** | Eraldi **read-only roll** (`GRANT USAGE ON SCHEMA ... ; GRANT SELECT ON ALL TABLES ...`). Ei tohi olla `ljvis` rakenduse kasutaja. |
-| **Skeemid** | Anna `SELECT` ainult analüütiliselt olulistele skeemidele: `forms`, `classifier`, `risk`, `erru`, pluss allpool loodav `tableau` vaadete-skeem. **Ära** anna ligipääsu `audit`, `users`, `notifications`, `xroad` skeemidele (vt [§4](#4-skeemide-ülevaade)). |
+| **Andmebaasi kasutaja** | Eraldi **read-only roll** (`GRANT USAGE ON SCHEMA tableau ; GRANT SELECT ON ALL TABLES IN SCHEMA tableau ...`). Ei tohi olla `ljvis` rakenduse kasutaja. |
+| **Skeemid** | Anna `SELECT` **ainult** allpool loodud `tableau` vaadete-skeemile — mitte kunagi otse `forms`/`classifier`/`risk`/`erru` aluslaudadele. Tavaline (mitte materialiseeritud) vaade jookseb Postgres'is vaikimisi *omaniku* õigustega, nii et rollil ei ole aluslaudade ligipääsu vaja ega tohigi olla — see mööduks vaadete PII maskeerimisest (vt [§8](#8-isikuandmed-pii--hoiatus)). **Ära** anna ligipääsu ka `audit`, `users`, `notifications`, `xroad` skeemidele (vt [§4](#4-skeemide-ülevaade)). |
 | **Ühendusmudel** | Kasuta Tableau's **Custom SQL** või allpool loodud `tableau.*` vaateid — **mitte** toorelt `forms.*` tabeleid (vt [§2](#2-kriitiline-insert-only-snapshot-mudel)). |
 | **Live vs Extract** | Vt [§10](#10-tableau-spetsiifilised-soovitused). Vaikimisi: **Extract** öise värskendusega. |
 
@@ -106,7 +106,7 @@ annab andmed vahemällu.
 | `tableau.form_overview` | Üks rida per kontrollvorm (kõik tüübid). `authority` = PPA / TRAM, `is_published`, maakonna nimi, asutuse nimi, `has_violation`. **Dashboardide alusvaade.** |
 | `tableau.classifier_value_current` | Koodide → nimede tõlge. `classifier_code`, `value_code`, `value_name`, `parent_value_name`, `is_valid`. JOIN: `forms.*.<x>_code = value_code` VÕI `forms.*.<x>` (nt `county`) `= classifier_value_key::text`. |
 | `tableau.ehak` | EHAK haldusüksused lamedaks (maakond ↔ linn/vald). |
-| `tableau.organisation` | Asutus id → nimi/kood. NB: tavaline vaade → `tableau_ro` vajab `SELECT`-i ka `users.organisation` peale (changeset annab). |
+| `tableau.organisation` | Asutus id → nimi/kood. |
 
 **Tuleb (PR2):** `tableau.<olem>_current` (üks per olem, kõik veerud + `_name`
 tulbad), fakt-vaated `tableau.violation_line` / `driver_line` / `trailer_line` /
@@ -118,11 +118,21 @@ tulbad), fakt-vaated `tableau.violation_line` / `driver_line` / `trailer_line` /
 (sisaldab isikukoode) **ei ole** eksporditud — `tableau.form_overview` pakub
 `driver_search_names` (ainult nimed). Vt [§8](#8-isikuandmed-pii--hoiatus).
 
-**Ühendus:** DevOps annab `tableau_ro` rollile `LOGIN` + parooli. Roll näeb
-`SELECT`-i **ainult** `tableau` skeemis.
+**Ühendus:** rollile `kemit_andmelaadija` (`NOLOGIN`, `USAGE` + `SELECT`
+ainult `tableau` skeemis) annab DevOps konkreetsetele kasutajatele
+(sh Tableau enda teenusekontole) rolli liikmesuse + oma `LOGIN` + parooli.
 
-> Kui vajad täpselt seda mida `tableau.*_current` veel ei kata (PR2 tulekul),
-> anna ka `GRANT SELECT ON forms.form_search TO tableau_ro` ja päri sealt otse.
+> **21.09.2026:** varasem eraldi roll `tableau_ro` on kustutatud
+> (changeset `20261121100000-tableau-ro-decommission`) — `kemit_andmelaadija`
+> on nüüd ainus ja ühtne "loe ainult `tableau` skeemi" roll, nii Tableau
+> enda ühenduse kui andmehalduse (KEMIT) andmelaadijate jaoks. Kahte
+> peaaegu identset rolli ei ole mõtet kõrvuti hoida.
+
+**Ära kunagi** lisa sellele rollile `GRANT`-i mõnele `forms`/`classifier`/
+`users` aluslauale, isegi kui mõni vaade veel midagi ei kata — vaadete
+puudujääk tuleb lahendada uue `tableau.*` vaatega, mitte aluslaua
+otse-ligipääsuga (vt hoiatus eelmises reas: tavaline vaade jookseb
+omaniku, mitte pärija õigustega, nii et aluslaua grant on nagunii üleliigne).
 
 **Ajaloo/trendi analüüsiks** (nt "kui palju vorme oli mustandis igal kuul") ühenda
 otse toortabeli külge — seal on kõik snapshot-read alles.

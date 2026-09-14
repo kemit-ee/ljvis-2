@@ -14,6 +14,7 @@ declaration:
       - field: resultType
         type: string
       - field: resultTransportInterruption
+      - field: transportInterruptionAutovs5131
       - field: eraYvMntRegnr
       - field: eraYvMntVintin
       - field: eraYvMntAxles
@@ -38,6 +39,7 @@ extractRequestData:
     parts_defects: "${incoming.body.partsDefects || '[]'}"
     result_type: "${incoming.body.resultType || 'ok'}"
     result_transport_interruption: "${incoming.body.resultTransportInterruption || false}"
+    transport_interruption_autovs_51_3_1: "${incoming.body.transportInterruptionAutovs5131 || false}"
     era_yv_mnt_regnr: "${incoming.body.eraYvMntRegnr || false}"
     era_yv_mnt_vintin: "${incoming.body.eraYvMntVintin || false}"
     era_yv_mnt_axles: "${incoming.body.eraYvMntAxles || false}"
@@ -89,6 +91,7 @@ insertForm:
       partsDefects: ${parts_defects}
       resultType: ${result_type}
       resultTransportInterruption: ${result_transport_interruption}
+      transportInterruptionAutovs5131: ${transport_interruption_autovs_51_3_1}
       eraYvMntRegnr: ${era_yv_mnt_regnr}
       eraYvMntVintin: ${era_yv_mnt_vintin}
       eraYvMntAxles: ${era_yv_mnt_axles}
@@ -139,6 +142,7 @@ updateForm:
       partsDefects: ${parts_defects}
       resultType: ${result_type}
       resultTransportInterruption: ${result_transport_interruption}
+      transportInterruptionAutovs5131: ${transport_interruption_autovs_51_3_1}
       eraYvMntRegnr: ${era_yv_mnt_regnr}
       eraYvMntVintin: ${era_yv_mnt_vintin}
       eraYvMntAxles: ${era_yv_mnt_axles}
