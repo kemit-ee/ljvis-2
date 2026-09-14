@@ -158,6 +158,7 @@ export function AdrOtherInfringementsSection({
                     <AdrInfringementRecordCard
                       key={ri}
                       index={ri}
+                      idPrefix={`other-${idx}`}
                       record={rec}
                       regCodeOptions={regOptions}
                       onChange={(patch) => updateOtherRecord(idx, ri, patch)}
