@@ -1,0 +1,112 @@
+declaration:
+  version: '1.0'
+  description: 'findUsage: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st GET/xroad/v2/findUsage.yml.
+    X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body: []
+    params:
+    - field: userCode
+      required: false
+    - field: periodStart
+      required: false
+    - field: periodEnd
+      required: false
+    - field: offset
+      required: false
+    - field: limit
+      required: false
+validateXRoadUserId:
+  switch:
+  - condition: ${incoming.headers['x-road-userid'] == null || incoming.headers['x-road-userid'] == ''}
+    next: returnMissingUserId
+  next: validateUserCode
+validateUserCode:
+  switch:
+  - condition: ${incoming.params.userCode == null || incoming.params.userCode == ''}
+    next: returnMissingUserCode
+  next: validateUserCodeMatch
+validateUserCodeMatch:
+  switch:
+  - condition: ${incoming.headers['x-road-userid'] !== incoming.params.userCode}
+    next: returnForbidden
+  next: assignParams
+assignParams:
+  assign:
+    user_code: ${incoming.params.userCode}
+    period_start: ${incoming.params.periodStart || ''}
+    period_end: ${incoming.params.periodEnd || ''}
+    offset_val: '${incoming.params.offset != null ? parseInt(incoming.params.offset) : 0}'
+    limit_val: '${incoming.params.limit != null ? Math.min(parseInt(incoming.params.limit), 1000) : 1000}'
+  next: queryUsages
+queryUsages:
+  assign:
+    usageResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: '${(incoming.headers[''x-mock-scenario''] === ''empty'' || user_code !== ''60001019906'' ? [] : [{"logtime":
+          "2026-06-15T12:00:00Z", "action": "Mock kontrollip\u00e4ring", "receiver_code": "70001490", "receiver_name":
+          "Mock tarbija", "receiver_system": "liiklusregister"}, {"logtime": "2026-06-14T12:00:00Z", "action": "Mock
+          t\u00f6\u00f6kontroll", "receiver_code": "70001969", "receiver_name": "", "receiver_system": ""}, {"logtime":
+          "2026-06-13T12:00:00Z", "action": "Mock kordusp\u00e4ring", "receiver_code": "70001490", "receiver_name":
+          "Mock tarbija", "receiver_system": "liiklusregister"}]).filter(function(r) {return (!period_start || r.logtime
+          >= period_start) && (!period_end || r.logtime <= period_end);}).map(function(r, i, all) {return Object.assign({},
+          r, {total_usages:all.length});}).slice(offset_val, offset_val + limit_val)}'
+  next: checkQueryStatus
+checkQueryStatus:
+  switch:
+  - condition: ${usageResult.response.status < 200 || usageResult.response.status >= 300}
+    next: returnServerError
+  next: assignRows
+buildResponse:
+  assign:
+    total_usages: '${rows.length > 0 ? rows[0].total_usages : 0}'
+    usages: "${rows.map(function(r) { return {\n  logtime: r.logtime,\n  action: r.action,\n  receiverCode: r.receiver_code,\n\
+      \  receiverName: r.receiver_name || null,\n  receiverSystem: r.receiver_system || null\n}; })}"
+  next: returnOk
+returnOk:
+  status: 200
+  return: '${JSON.parse(JSON.stringify({totalUsages: total_usages, usages: usages}))}'
+  next: end
+  wrapper: false
+returnMissingUserId:
+  status: 400
+  return:
+    error: MISSING_HEADER
+    message: X-Road-UserId header is required
+  next: end
+  wrapper: false
+returnMissingUserCode:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: userCode query parameter is required
+  next: end
+  wrapper: false
+returnForbidden:
+  status: 400
+  return:
+    error: FORBIDDEN
+    message: X-Road-UserId must match userCode
+  next: end
+  wrapper: false
+returnServerError:
+  status: 500
+  return:
+    error: SERVER_ERROR
+    message: Internal error
+  next: end
+  wrapper: false
+assignRows:
+  assign:
+    rows: ${usageResult.response.body || []}
+  next: buildResponse

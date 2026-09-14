@@ -1,0 +1,30 @@
+[
+  {
+    "status": 400,
+    "body": {
+      "error": "MISSING_HEADER",
+      "message": "X-Road-UserId header is required"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "MISSING_PARAMETER",
+      "message": "userCode query parameter is required"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "FORBIDDEN",
+      "message": "X-Road-UserId must match userCode"
+    }
+  },
+  {
+    "status": 500,
+    "body": {
+      "error": "SERVER_ERROR",
+      "message": "Internal error"
+    }
+  }
+]

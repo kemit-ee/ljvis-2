@@ -1,0 +1,46 @@
+declaration:
+  version: '1.0'
+  description: 'usagePeriod: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st GET/xroad/v2/usagePeriod.yml.
+    X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body: []
+    params: []
+queryPeriod:
+  assign:
+    periodResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: '${[{period_start: incoming.headers[''x-mock-scenario''] === ''empty'' ? null : ''2026-06-13T12:00:00Z''}]}'
+  next: checkStatus
+checkStatus:
+  switch:
+  - condition: ${periodResult.response.status < 200 || periodResult.response.status >= 300}
+    next: returnServerError
+  next: buildResponse
+buildResponse:
+  assign:
+    period_start: '${(periodResult.response.body && periodResult.response.body[0]) ? periodResult.response.body[0].period_start
+      : null}'
+  next: returnOk
+returnOk:
+  status: 200
+  return: '${JSON.parse(JSON.stringify({periodStart: period_start}))}'
+  next: end
+  wrapper: false
+returnServerError:
+  status: 500
+  return:
+    error: SERVER_ERROR
+    message: Internal error
+  next: end
+  wrapper: false

@@ -1,0 +1,122 @@
+declaration:
+  version: '1.0'
+  description: 'ErakorralineYVquery: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st POST/xroad/provide/erakorraline-yv-query.yml.
+    X-Mock-Scenario: empty või server-error.'
+  namespace: xtee-mock
+  allowlist:
+    headers:
+    - field: content-type
+      required: false
+    - field: x-road-client
+      required: false
+    - field: x-road-userid
+      required: false
+    - field: x-mock-scenario
+      required: false
+    body:
+    - field: alates
+      required: false
+    - field: kuni
+      required: false
+    params: []
+validateAlates:
+  switch:
+  - condition: ${incoming.body.alates == null || incoming.body.alates == ''}
+    next: returnMissingAlates
+  next: validateKuni
+validateKuni:
+  switch:
+  - condition: ${incoming.body.kuni == null || incoming.body.kuni == ''}
+    next: returnMissingKuni
+  next: validateDateOrder
+validateDateOrder:
+  switch:
+  - condition: ${new Date(incoming.body.alates) > new Date(incoming.body.kuni)}
+    next: returnInvalidDateRange
+  next: assignParams
+assignParams:
+  assign:
+    alates: ${incoming.body.alates}
+    kuni: ${incoming.body.kuni}
+    start_time: ${new Date().getTime()}
+  next: queryTargeted
+queryTargeted:
+  assign:
+    queryResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: '${(incoming.headers[''x-mock-scenario''] === ''empty'' || !(true) ? [] : [{"licence_plate_no": "MOCK123",
+          "trailer_no": null, "inspection_id": "900001", "inspection_no": "MOCK-KV-001", "inspection_date": "2026-06-15",
+          "inspection_type": "extraordinary_inspection", "inspection_unit": "Mockvedaja O\u00dc", "inspection_notes":
+          "S\u00fcnteetiline n\u00e4idiskontroll", "inspector": null, "issues_json": "[{\"partCode\":\"B01\",\"defectCode\":\"defect_minor\"}]",
+          "era_yv_mnt_regnr": true, "era_yv_mnt_vintin": true, "era_yv_mnt_axles": true, "era_yv_mnt_places": true,
+          "era_yv_mnt_rebuilt": true}, {"licence_plate_no": "MOCK456", "trailer_no": null, "inspection_id": "900002",
+          "inspection_no": "MOCK-KV-002", "inspection_date": "2026-06-14", "inspection_type": "extraordinary_inspection_ta",
+          "inspection_unit": "Mockvedaja O\u00dc", "inspection_notes": null, "inspector": null, "issues_json": "[]"}]).filter(function(r)
+          {return r.inspection_date >= alates && r.inspection_date <= kuni;})}'
+  next: checkQueryStatus
+checkQueryStatus:
+  switch:
+  - condition: ${queryResult.response.status < 200 || queryResult.response.status >= 300}
+    next: logFailure
+  next: buildItems
+buildItems:
+  assign:
+    mapped_items: "${(queryResult.response.body || []).map(function(row) {\n  var defects = [];\n  try { defects\
+      \ = JSON.parse(row.issues_json || '[]'); } catch(e) {}\n  var refine = [];\n  if (row.era_yv_mnt_regnr) refine.push('REGNR');\n\
+      \  if (row.era_yv_mnt_vintin) refine.push('VINTIN');\n  if (row.era_yv_mnt_axles) refine.push('AXLES');\n\
+      \  if (row.era_yv_mnt_places) refine.push('PLACES');\n  if (row.era_yv_mnt_rebuilt) refine.push('REBUILT');\n\
+      \  return {\n    licence_plate_no: row.licence_plate_no || '',\n    trailer_no: row.trailer_no || null,\n\
+      \    inspection_id: String(row.inspection_id || ''),\n    inspection_no: row.inspection_no || '',\n    inspection_date:\
+      \ row.inspection_date || '',\n    inspection_type: row.inspection_type || '',\n    inspection_unit: row.inspection_unit\
+      \ || '',\n    inspection_notes: row.inspection_notes || null,\n    inspector: row.inspector || null,\n   \
+      \ issues: {item: defects.map(function(d) { return {code: d.partCode || '', value: d.defectCode || ''}; })},\n\
+      \    notes: {item: []},\n    inspection_refine_options: {item: refine}\n  };\n})}"
+  next: logSuccess
+logSuccess:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnSuccess
+returnSuccess:
+  status: 200
+  return: '${JSON.parse(JSON.stringify({targeted_for_inspection: {item: mapped_items}}))}'
+  next: end
+  wrapper: false
+logFailure:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnServerError
+returnServerError:
+  status: 500
+  return:
+    error: SERVER_ERROR
+    message: Internal error
+  next: end
+  wrapper: false
+returnMissingAlates:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: alates is required
+  next: end
+  wrapper: false
+returnMissingKuni:
+  status: 400
+  return:
+    error: MISSING_PARAMETER
+    message: kuni is required
+  next: end
+  wrapper: false
+returnInvalidDateRange:
+  status: 400
+  return:
+    error: INVALID_PARAMETER
+    message: alates must not be after kuni
+  next: end
+  wrapper: false

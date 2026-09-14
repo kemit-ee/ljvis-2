@@ -1,0 +1,998 @@
+mode: inprocess
+tests:
+- name: IsikuKontroll success
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: &id001
+      isikukood: '60001019906'
+  expect:
+    status: 200
+    body_matches:
+      kontrollid:
+        item:
+        - kuupaev: '2026-06-15'
+          nimetus: MOCK-KV-001
+          asutus: Mockvedaja OÜ
+          soiduki_reg_nr: MOCK123
+          rikkumise_liik: extraordinary_inspection
+          kontrolli_nimetus: KOONDVORM
+          juhi_nimi: Test
+          juhi_perekonnanimi: Juht
+          rikkumised: null
+          rikkumised_lopetatud: null
+        - kuupaev: '2026-06-14'
+          nimetus: MOCK-TI-002
+          asutus: Mockvedaja OÜ
+          soiduki_reg_nr: null
+          rikkumise_liik: null
+          kontrolli_nimetus: TOOINSPEKTION
+          juhi_nimi: Test
+          juhi_perekonnanimi: Juht
+          rikkumised: null
+          rikkumised_lopetatud: Mock lõpetamine
+- name: IsikuKontroll missing client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+    body: *id001
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: IsikuKontroll malformed client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+      x-road-client: bad
+    body: *id001
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: IsikuKontroll denied client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70000000/denied
+    body: *id001
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: IsikuKontroll missing body
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: {}
+  expect:
+    status: 400
+- name: IsikuKontroll server error
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+      x-mock-scenario: server-error
+    body: *id001
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: IsikuEttevoteKontrollid success
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: &id002
+      isikukood: '60001019906'
+  expect:
+    status: 200
+    body_matches:
+      kontrollid:
+        item:
+        - kuupaev: '2026-06-15'
+          nimetus: MOCK-KV-001
+          asutus: Mockvedaja OÜ
+          soiduki_reg_nr: MOCK123
+          rikkumise_liik: extraordinary_inspection
+          kontrolli_nimetus: KOONDVORM
+          juhi_nimi: Test
+          juhi_perekonnanimi: Juht
+          rikkumised: null
+          rikkumised_lopetatud: null
+          ettevote_reg_nr: '00000001'
+        - kuupaev: '2026-06-14'
+          nimetus: MOCK-TI-002
+          asutus: Mockvedaja OÜ
+          soiduki_reg_nr: null
+          rikkumise_liik: null
+          kontrolli_nimetus: TOOINSPEKTION
+          juhi_nimi: Test
+          juhi_perekonnanimi: Juht
+          rikkumised: null
+          rikkumised_lopetatud: Mock lõpetamine
+          ettevote_reg_nr: '00000001'
+- name: IsikuEttevoteKontrollid missing client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+    body: *id002
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: IsikuEttevoteKontrollid malformed client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+      x-road-client: bad
+    body: *id002
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: IsikuEttevoteKontrollid denied client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70000000/denied
+    body: *id002
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: IsikuEttevoteKontrollid missing body
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: {}
+  expect:
+    status: 400
+- name: IsikuEttevoteKontrollid server error
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+      x-mock-scenario: server-error
+    body: *id002
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: ErakorralineYVquery success
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: &id003
+      alates: '2026-06-01'
+      kuni: '2026-06-30'
+  expect:
+    status: 200
+    body_matches:
+      targeted_for_inspection:
+        item:
+        - licence_plate_no: MOCK123
+          trailer_no: null
+          inspection_id: '900001'
+          inspection_no: MOCK-KV-001
+          inspection_date: '2026-06-15'
+          inspection_type: extraordinary_inspection
+          inspection_unit: Mockvedaja OÜ
+          inspection_notes: Sünteetiline näidiskontroll
+          inspector: null
+          issues:
+            item:
+            - code: B01
+              value: defect_minor
+          notes:
+            item: []
+          inspection_refine_options:
+            item:
+            - REGNR
+            - VINTIN
+            - AXLES
+            - PLACES
+            - REBUILT
+        - licence_plate_no: MOCK456
+          trailer_no: null
+          inspection_id: '900002'
+          inspection_no: MOCK-KV-002
+          inspection_date: '2026-06-14'
+          inspection_type: extraordinary_inspection_ta
+          inspection_unit: Mockvedaja OÜ
+          inspection_notes: null
+          inspector: null
+          issues:
+            item: []
+          notes:
+            item: []
+          inspection_refine_options:
+            item: []
+- name: ErakorralineYVquery missing client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+    body: *id003
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: ErakorralineYVquery malformed client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+      x-road-client: bad
+    body: *id003
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: ErakorralineYVquery denied client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70000000/denied
+    body: *id003
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: ErakorralineYVquery missing body
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: {}
+  expect:
+    status: 400
+- name: ErakorralineYVquery server error
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+      x-mock-scenario: server-error
+    body: *id003
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: ErakorralineYVconfirm success
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: &id004
+      confirmed:
+        item:
+        - inspection_id: '900001'
+          code: INSPECTION_DATE
+          value: '2026-06-16'
+  expect:
+    status: 200
+    body_matches:
+      confirmed: 1
+- name: ErakorralineYVconfirm missing client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+    body: *id004
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: ErakorralineYVconfirm malformed client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: bad
+    body: *id004
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: ErakorralineYVconfirm denied client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70000000/denied
+    body: *id004
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: ErakorralineYVconfirm missing body
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: {}
+  expect:
+    status: 400
+- name: ErakorralineYVconfirm server error
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+      x-mock-scenario: server-error
+    body: *id004
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: RegisterJobInspection success
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: &id005
+      kontrollija: Mock Kontrollija
+      kontrolli_id: 900001
+      kontrolli_kp: '2026-06-15'
+      tooandja_nimi: Mockvedaja OÜ
+      tooandja_reg_kood: '00000001'
+      soidukite_arv: 2
+      koostatatud_ettekirjutus: false
+      kontrollimised: &id006
+        kontrollitud_soitjate_veol: false
+      rikkumised: &id007
+        rikkumised_loend: []
+      vaarteomenetlus: MOCK-VM-001
+  expect:
+    status: 200
+    body_matches:
+      message: Success
+- name: RegisterJobInspection missing client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection
+    headers:
+      content-type: application/json
+    body: *id005
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: RegisterJobInspection malformed client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection
+    headers:
+      content-type: application/json
+      x-road-client: bad
+    body: *id005
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: RegisterJobInspection denied client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70000000/denied
+    body: *id005
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: RegisterJobInspection missing body
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: {}
+  expect:
+    status: 400
+- name: RegisterJobInspection server error
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+      x-mock-scenario: server-error
+    body: *id005
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: RegisterJobInspection_v3 success
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: &id008
+      kontrollija: Mock Kontrollija
+      kontrolli_id: 900001
+      kontrolli_kp: '2026-06-15'
+      tooandja_nimi: Mockvedaja OÜ
+      tooandja_reg_kood: '00000001'
+      soidukite_arv: 2
+      koostatatud_ettekirjutus: false
+      kontrollimised: *id006
+      rikkumised: *id007
+      vaarteomenetlus: MOCK-VM-001
+      soiduki_reg_nr: MOCK123
+      soiduki_vin: MOCKVIN0000000001
+      juhi_isikukood: '60001019906'
+      juhi_eesnimi: Test
+      juhi_perekonnanimi: Juht
+      menetluse_liik: uldmenetlus
+      menetluse_number: MOCK-001
+  expect:
+    status: 200
+    body_matches:
+      message: Success
+- name: RegisterJobInspection_v3 missing client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+    body: *id008
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: RegisterJobInspection_v3 malformed client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: bad
+    body: *id008
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: RegisterJobInspection_v3 denied client
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70000000/denied
+    body: *id008
+  expect:
+    status: 403
+    body_matches:
+      error: FORBIDDEN
+      message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+- name: RegisterJobInspection_v3 missing body
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: {}
+  expect:
+    status: 400
+- name: RegisterJobInspection_v3 server error
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+      x-mock-scenario: server-error
+    body: *id008
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: findUsage success
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query: &id009
+      userCode: '60001019906'
+      offset: '0'
+      limit: '1000'
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 3
+      usages:
+      - &id010
+        logtime: '2026-06-15T12:00:00Z'
+        action: Mock kontrollipäring
+        receiverCode: '70001490'
+        receiverName: Mock tarbija
+        receiverSystem: liiklusregister
+      - &id011
+        logtime: '2026-06-14T12:00:00Z'
+        action: Mock töökontroll
+        receiverCode: '70001969'
+        receiverName: null
+        receiverSystem: null
+      - &id012
+        logtime: '2026-06-13T12:00:00Z'
+        action: Mock korduspäring
+        receiverCode: '70001490'
+        receiverName: Mock tarbija
+        receiverSystem: liiklusregister
+- name: findUsage server error
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+      x-mock-scenario: server-error
+    query: *id009
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: usagePeriod success
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/usagePeriod
+    headers: {}
+  expect:
+    status: 200
+    body_matches:
+      periodStart: '2026-06-13T12:00:00Z'
+- name: usagePeriod server error
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/usagePeriod
+    headers:
+      x-mock-scenario: server-error
+  expect:
+    status: 500
+    body_matches:
+      error: SERVER_ERROR
+      message: Internal error
+- name: heartbeat success
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/heartbeat
+    headers: {}
+  expect:
+    status: 200
+    body_matches:
+      status: OK
+      message: API is ready
+- name: health is public without session and X-Road headers
+  request:
+    method: GET
+    path: /xtee-mock/health/ready
+    headers: {}
+  expect:
+    status: 200
+    body_matches:
+      status: OK
+      mock: true
+- name: isiku-kontroll unknown valid person is empty
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      isikukood: '60001019907'
+  expect:
+    status: 200
+    body_matches:
+      kontrollid:
+        item: []
+- name: isiku-kontroll invalid person
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-kontroll
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      isikukood: bad
+  expect:
+    status: 400
+    body_matches:
+      error: INVALID_PARAMETER
+      message: isikukood must be 11 digits starting with 1-6
+- name: isiku-ettevote-kontrollid unknown valid person is empty
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      isikukood: '60001019907'
+  expect:
+    status: 200
+    body_matches:
+      kontrollid:
+        item: []
+- name: isiku-ettevote-kontrollid invalid person
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/isiku-ettevote-kontrollid
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      isikukood: bad
+  expect:
+    status: 400
+    body_matches:
+      error: INVALID_PARAMETER
+      message: isikukood must be 11 digits starting with 1-6
+- name: date order
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      alates: '2026-07-01'
+      kuni: '2026-06-01'
+  expect:
+    status: 400
+- name: date filter empty
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-query
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      alates: '2027-01-01'
+      kuni: '2027-02-01'
+  expect:
+    status: 200
+    body_matches:
+      targeted_for_inspection:
+        item: []
+- name: confirmation unknown identifier
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      confirmed:
+        item:
+        - inspection_id: '999999'
+          code: INSPECTION_DATE
+          value: '2026-06-16'
+  expect:
+    status: 404
+- name: confirmation invalid enum
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      confirmed:
+        item:
+        - inspection_id: '900001'
+          code: BAD
+          value: x
+  expect:
+    status: 400
+- name: confirmation repeated request is deterministic
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/erakorraline-yv-confirm
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: *id004
+  expect:
+    status: 200
+    body_matches:
+      confirmed: 1
+- name: v3 optional fields absent
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      kontrollija: Mock Kontrollija
+      kontrolli_id: 900001
+      kontrolli_kp: '2026-06-15'
+      tooandja_nimi: Mockvedaja OÜ
+      tooandja_reg_kood: '00000001'
+      koostatatud_ettekirjutus: false
+      kontrollimised: *id006
+      rikkumised: *id007
+  expect:
+    status: 200
+    body_matches:
+      message: Success
+- name: v3 invalid optional person
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      kontrollija: Mock Kontrollija
+      kontrolli_id: 900001
+      kontrolli_kp: '2026-06-15'
+      tooandja_nimi: Mockvedaja OÜ
+      tooandja_reg_kood: '00000001'
+      soidukite_arv: 2
+      koostatatud_ettekirjutus: false
+      kontrollimised: *id006
+      rikkumised: *id007
+      vaarteomenetlus: MOCK-VM-001
+      soiduki_reg_nr: MOCK123
+      soiduki_vin: MOCKVIN0000000001
+      juhi_isikukood: bad
+      juhi_eesnimi: Test
+      juhi_perekonnanimi: Juht
+      menetluse_liik: uldmenetlus
+      menetluse_number: MOCK-001
+  expect:
+    status: 400
+- name: v3 invalid optional enum
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection-v3
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body:
+      kontrollija: Mock Kontrollija
+      kontrolli_id: 900001
+      kontrolli_kp: '2026-06-15'
+      tooandja_nimi: Mockvedaja OÜ
+      tooandja_reg_kood: '00000001'
+      soidukite_arv: 2
+      koostatatud_ettekirjutus: false
+      kontrollimised: *id006
+      rikkumised: *id007
+      vaarteomenetlus: MOCK-VM-001
+      soiduki_reg_nr: MOCK123
+      soiduki_vin: MOCKVIN0000000001
+      juhi_isikukood: '60001019906'
+      juhi_eesnimi: Test
+      juhi_perekonnanimi: Juht
+      menetluse_liik: bad
+      menetluse_number: MOCK-001
+  expect:
+    status: 400
+- name: job repeated request
+  request:
+    method: POST
+    path: /xtee-mock/xroad/v1/register-job-inspection
+    headers:
+      content-type: application/json
+      x-road-client: ee-dev/GOV/70001490/liiklusregister
+    body: *id005
+  expect:
+    status: 200
+    body_matches:
+      message: Success
+- name: AJ missing userid
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers: {}
+    query:
+      userCode: '60001019906'
+  expect:
+    status: 400
+    body_matches:
+      error: MISSING_HEADER
+      message: X-Road-UserId header is required
+- name: AJ missing userCode
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+  expect:
+    status: 400
+- name: AJ mismatched userid
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019907'
+    query:
+      userCode: '60001019906'
+  expect:
+    status: 400
+    body_matches:
+      error: FORBIDDEN
+      message: X-Road-UserId must match userCode
+- name: AJ deterministic page 0
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: '0'
+      limit: '1'
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 3
+      usages:
+      - *id010
+- name: AJ deterministic page 1
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: '1'
+      limit: '1'
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 3
+      usages:
+      - *id011
+- name: AJ deterministic page 2
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: '2'
+      limit: '1'
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 3
+      usages:
+      - *id012
+- name: AJ deterministic page 3
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: '3'
+      limit: '1'
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 0
+      usages: []
+- name: AJ unknown person
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019907'
+    query:
+      userCode: '60001019907'
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 0
+      usages: []
+- name: AJ date filtering
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      periodStart: '2026-06-14T00:00:00Z'
+      periodEnd: '2026-06-14T23:59:59Z'
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 1
+      usages:
+      - *id011
+- name: usage period empty
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/usagePeriod
+    headers:
+      x-mock-scenario: empty
+  expect:
+    status: 200
+    body_matches:
+      periodStart: null

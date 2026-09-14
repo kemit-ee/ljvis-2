@@ -1,0 +1,74 @@
+[
+  {
+    "method": "POST",
+    "mockPath": "/xroad/v1/isiku-kontroll",
+    "service": "IsikuKontroll",
+    "version": "v1",
+    "providerPath": "/ljvis/xroad/provide/isiku-kontroll",
+    "source": "DSL/Ruuter.internal/ljvis/POST/xroad/provide/isiku-kontroll.yml"
+  },
+  {
+    "method": "POST",
+    "mockPath": "/xroad/v1/isiku-ettevote-kontrollid",
+    "service": "IsikuEttevoteKontrollid",
+    "version": "v1",
+    "providerPath": "/ljvis/xroad/provide/isiku-ettevote-kontrollid",
+    "source": "DSL/Ruuter.internal/ljvis/POST/xroad/provide/isiku-ettevote-kontrollid.yml"
+  },
+  {
+    "method": "POST",
+    "mockPath": "/xroad/v1/erakorraline-yv-query",
+    "service": "ErakorralineYVquery",
+    "version": "v1",
+    "providerPath": "/ljvis/xroad/provide/erakorraline-yv-query",
+    "source": "DSL/Ruuter.internal/ljvis/POST/xroad/provide/erakorraline-yv-query.yml"
+  },
+  {
+    "method": "POST",
+    "mockPath": "/xroad/v1/erakorraline-yv-confirm",
+    "service": "ErakorralineYVconfirm",
+    "version": "v1",
+    "providerPath": "/ljvis/xroad/provide/erakorraline-yv-confirm",
+    "source": "DSL/Ruuter.internal/ljvis/POST/xroad/provide/erakorraline-yv-confirm.yml"
+  },
+  {
+    "method": "POST",
+    "mockPath": "/xroad/v1/register-job-inspection",
+    "service": "RegisterJobInspection",
+    "version": "v1",
+    "providerPath": "/ljvis/xroad/provide/register-job-inspection",
+    "source": "DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection.yml"
+  },
+  {
+    "method": "POST",
+    "mockPath": "/xroad/v1/register-job-inspection-v3",
+    "service": "RegisterJobInspection_v3",
+    "version": "v3",
+    "providerPath": "/ljvis/xroad/provide/register-job-inspection-v3",
+    "source": "DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection-v3.yml"
+  },
+  {
+    "method": "GET",
+    "mockPath": "/xroad/v2/findUsage",
+    "service": "findUsage",
+    "version": "v2",
+    "providerPath": "/ljvis/xroad/v2/findUsage",
+    "source": "DSL/Ruuter.internal/ljvis/GET/xroad/v2/findUsage.yml"
+  },
+  {
+    "method": "GET",
+    "mockPath": "/xroad/v2/usagePeriod",
+    "service": "usagePeriod",
+    "version": "v2",
+    "providerPath": "/ljvis/xroad/v2/usagePeriod",
+    "source": "DSL/Ruuter.internal/ljvis/GET/xroad/v2/usagePeriod.yml"
+  },
+  {
+    "method": "GET",
+    "mockPath": "/xroad/v2/heartbeat",
+    "service": "heartbeat",
+    "version": "v2",
+    "providerPath": "/ljvis/xroad/v2/heartbeat",
+    "source": "DSL/Ruuter.internal/ljvis/GET/xroad/v2/heartbeat.yml"
+  }
+]

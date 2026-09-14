@@ -1,0 +1,23 @@
+declaration:
+  description: X-Road-Client peab olema neljaosaline. Ainult mockis 70000000 tähistab keelatud tarbijat.
+checkXRoadClient:
+  switch:
+  - condition: ${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}
+    next: deny
+  - condition: ${incoming.headers['x-road-client'].split('/').filter(function(p){return p !== ''}).length !== 4}
+    next: deny
+  - condition: ${(incoming.headers['x-road-client'] || '').split('/')[2] === '70000000'}
+    next: deny
+  next: allow
+allow:
+  status: 200
+  return: ok
+  next: end
+  wrapper: false
+deny:
+  status: 403
+  return:
+    error: FORBIDDEN
+    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+  next: end
+  wrapper: false

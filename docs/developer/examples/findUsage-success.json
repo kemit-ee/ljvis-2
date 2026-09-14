@@ -1,0 +1,26 @@
+{
+  "totalUsages": 3,
+  "usages": [
+    {
+      "logtime": "2026-06-15T12:00:00Z",
+      "action": "Mock kontrollipäring",
+      "receiverCode": "70001490",
+      "receiverName": "Mock tarbija",
+      "receiverSystem": "liiklusregister"
+    },
+    {
+      "logtime": "2026-06-14T12:00:00Z",
+      "action": "Mock töökontroll",
+      "receiverCode": "70001969",
+      "receiverName": null,
+      "receiverSystem": null
+    },
+    {
+      "logtime": "2026-06-13T12:00:00Z",
+      "action": "Mock korduspäring",
+      "receiverCode": "70001490",
+      "receiverName": "Mock tarbija",
+      "receiverSystem": "liiklusregister"
+    }
+  ]
+}

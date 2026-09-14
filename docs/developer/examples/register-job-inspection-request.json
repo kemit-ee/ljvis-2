@@ -1,0 +1,16 @@
+{
+  "kontrollija": "Mock Kontrollija",
+  "kontrolli_id": 900001,
+  "kontrolli_kp": "2026-06-15",
+  "tooandja_nimi": "Mockvedaja OÜ",
+  "tooandja_reg_kood": "00000001",
+  "soidukite_arv": 2,
+  "koostatatud_ettekirjutus": false,
+  "kontrollimised": {
+    "kontrollitud_soitjate_veol": false
+  },
+  "rikkumised": {
+    "rikkumised_loend": []
+  },
+  "vaarteomenetlus": "MOCK-VM-001"
+}

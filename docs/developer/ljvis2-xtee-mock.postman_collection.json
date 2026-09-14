@@ -1,0 +1,2300 @@
+{
+  "info": {
+    "name": "LJVIS2 X-tee developer mock",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://dev.liiklusvalve.ee/developer"
+    },
+    {
+      "key": "xRoadClient",
+      "value": "ee-dev/GOV/70001490/liiklusregister"
+    },
+    {
+      "key": "personCode",
+      "value": "60001019906"
+    },
+    {
+      "key": "inspectionId",
+      "value": "900001"
+    },
+    {
+      "key": "offset",
+      "value": "0"
+    },
+    {
+      "key": "limit",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "IsikuKontroll",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"{{personCode}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"kontrollid\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"kontrollid\": {\"item\": [{\"kuupaev\": \"2026-06-15\", \"nimetus\": \"MOCK-KV-001\", \"asutus\": \"Mockvedaja OÜ\", \"soiduki_reg_nr\": \"MOCK123\", \"rikkumise_liik\": \"extraordinary_inspection\", \"kontrolli_nimetus\": \"KOONDVORM\", \"juhi_nimi\": \"Test\", \"juhi_perekonnanimi\": \"Juht\", \"rikkumised\": null, \"rikkumised_lopetatud\": null}, {\"kuupaev\": \"2026-06-14\", \"nimetus\": \"MOCK-TI-002\", \"asutus\": \"Mockvedaja OÜ\", \"soiduki_reg_nr\": null, \"rikkumise_liik\": null, \"kontrolli_nimetus\": \"TOOINSPEKTION\", \"juhi_nimi\": \"Test\", \"juhi_perekonnanimi\": \"Juht\", \"rikkumised\": null, \"rikkumised_lopetatud\": \"Mock lõpetamine\"}]}}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"{{personCode}}\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"kontrollid\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"kontrollid\": {\"item\": [{\"kuupaev\": \"2026-06-15\", \"nimetus\": \"MOCK-KV-001\", \"asutus\": \"Mockvedaja OÜ\", \"soiduki_reg_nr\": \"MOCK123\", \"rikkumise_liik\": \"extraordinary_inspection\", \"kontrolli_nimetus\": \"KOONDVORM\", \"juhi_nimi\": \"Test\", \"juhi_perekonnanimi\": \"Juht\", \"rikkumised\": null, \"rikkumised_lopetatud\": null, \"ettevote_reg_nr\": \"00000001\"}, {\"kuupaev\": \"2026-06-14\", \"nimetus\": \"MOCK-TI-002\", \"asutus\": \"Mockvedaja OÜ\", \"soiduki_reg_nr\": null, \"rikkumise_liik\": null, \"kontrolli_nimetus\": \"TOOINSPEKTION\", \"juhi_nimi\": \"Test\", \"juhi_perekonnanimi\": \"Juht\", \"rikkumised\": null, \"rikkumised_lopetatud\": \"Mock lõpetamine\", \"ettevote_reg_nr\": \"00000001\"}]}}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alates\": \"2026-06-01\",\n  \"kuni\": \"2026-06-30\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"targeted_for_inspection\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"targeted_for_inspection\": {\"item\": [{\"licence_plate_no\": \"MOCK123\", \"trailer_no\": null, \"inspection_id\": \"900001\", \"inspection_no\": \"MOCK-KV-001\", \"inspection_date\": \"2026-06-15\", \"inspection_type\": \"extraordinary_inspection\", \"inspection_unit\": \"Mockvedaja OÜ\", \"inspection_notes\": \"Sünteetiline näidiskontroll\", \"inspector\": null, \"issues\": {\"item\": [{\"code\": \"B01\", \"value\": \"defect_minor\"}]}, \"notes\": {\"item\": []}, \"inspection_refine_options\": {\"item\": [\"REGNR\", \"VINTIN\", \"AXLES\", \"PLACES\", \"REBUILT\"]}}, {\"licence_plate_no\": \"MOCK456\", \"trailer_no\": null, \"inspection_id\": \"900002\", \"inspection_no\": \"MOCK-KV-002\", \"inspection_date\": \"2026-06-14\", \"inspection_type\": \"extraordinary_inspection_ta\", \"inspection_unit\": \"Mockvedaja OÜ\", \"inspection_notes\": null, \"inspector\": null, \"issues\": {\"item\": []}, \"notes\": {\"item\": []}, \"inspection_refine_options\": {\"item\": []}}]}}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVconfirm",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"{{inspectionId}}\",\n        \"code\": \"INSPECTION_DATE\",\n        \"value\": \"2026-06-16\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"confirmed\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"confirmed\": 1}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"message\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"message\": \"Success\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection_v3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-Client",
+            "value": "{{xRoadClient}}"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"{{personCode}}\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"message\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"message\": \"Success\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "findUsage",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Road-UserId",
+            "value": "{{personCode}}"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode={{personCode}}&offset={{offset}}&limit={{limit}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"totalUsages\"));",
+              "pm.test(\"Deterministic page\", () => {pm.expect(body.totalUsages).to.eql(3); pm.expect(body.usages).to.have.lengthOf(1); pm.expect(body.usages[0].logtime).to.eql(\"2026-06-15T12:00:00Z\");});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "usagePeriod",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v2/usagePeriod"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"periodStart\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"periodStart\": \"2026-06-13T12:00:00Z\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "heartbeat",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/xroad/v2/heartbeat"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Response envelope\", () => pm.expect(body).to.have.property(\"status\"));",
+              "pm.test(\"Response fixture\", () => pm.expect(body).to.deep.equal({\"status\": \"OK\", \"message\": \"API is ready\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuKontroll missing client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuKontroll malformed client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "bad"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuKontroll denied client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70000000/denied"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuKontroll missing body",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuKontroll server error",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          },
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid missing client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid malformed client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "bad"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid denied client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70000000/denied"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid missing body",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid server error",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          },
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019906\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery missing client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alates\": \"2026-06-01\",\n  \"kuni\": \"2026-06-30\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery malformed client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "bad"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alates\": \"2026-06-01\",\n  \"kuni\": \"2026-06-30\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery denied client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70000000/denied"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alates\": \"2026-06-01\",\n  \"kuni\": \"2026-06-30\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery missing body",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery server error",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          },
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alates\": \"2026-06-01\",\n  \"kuni\": \"2026-06-30\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVconfirm missing client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"900001\",\n        \"code\": \"INSPECTION_DATE\",\n        \"value\": \"2026-06-16\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVconfirm malformed client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "bad"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"900001\",\n        \"code\": \"INSPECTION_DATE\",\n        \"value\": \"2026-06-16\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVconfirm denied client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70000000/denied"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"900001\",\n        \"code\": \"INSPECTION_DATE\",\n        \"value\": \"2026-06-16\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVconfirm missing body",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVconfirm server error",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          },
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"900001\",\n        \"code\": \"INSPECTION_DATE\",\n        \"value\": \"2026-06-16\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection missing client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection malformed client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "bad"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection denied client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70000000/denied"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection missing body",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection server error",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          },
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection_v3 missing client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection_v3 malformed client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "bad"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection_v3 denied client",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70000000/denied"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection_v3 missing body",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection_v3 server error",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          },
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "findUsage server error",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&offset=0&limit=1000",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          },
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "usagePeriod server error",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/usagePeriod",
+        "header": [
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "health is public without session and X-Road headers",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health/ready",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"status\": \"OK\", \"mock\": true}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "isiku-kontroll unknown valid person is empty",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019907\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"kontrollid\": {\"item\": []}}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "isiku-kontroll invalid person",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-kontroll",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"bad\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"INVALID_PARAMETER\", \"message\": \"isikukood must be 11 digits starting with 1-6\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "isiku-ettevote-kontrollid unknown valid person is empty",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"60001019907\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"kontrollid\": {\"item\": []}}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "isiku-ettevote-kontrollid invalid person",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/isiku-ettevote-kontrollid",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isikukood\": \"bad\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"INVALID_PARAMETER\", \"message\": \"isikukood must be 11 digits starting with 1-6\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "date order",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alates\": \"2026-07-01\",\n  \"kuni\": \"2026-06-01\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "date filter empty",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-query",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"alates\": \"2027-01-01\",\n  \"kuni\": \"2027-02-01\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"targeted_for_inspection\": {\"item\": []}}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "confirmation unknown identifier",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"999999\",\n        \"code\": \"INSPECTION_DATE\",\n        \"value\": \"2026-06-16\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "confirmation invalid enum",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"900001\",\n        \"code\": \"BAD\",\n        \"value\": \"x\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "confirmation repeated request is deterministic",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/erakorraline-yv-confirm",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"confirmed\": {\n    \"item\": [\n      {\n        \"inspection_id\": \"900001\",\n        \"code\": \"INSPECTION_DATE\",\n        \"value\": \"2026-06-16\"\n      }\n    ]\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"confirmed\": 1}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "v3 optional fields absent",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  }\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"message\": \"Success\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "v3 invalid optional person",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"bad\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "v3 invalid optional enum",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"bad\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "job repeated request",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/xroad/v1/register-job-inspection",
+        "header": [
+          {
+            "key": "content-type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-road-client",
+            "value": "ee-dev/GOV/70001490/liiklusregister"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\"\n}\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"message\": \"Success\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ missing userid",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"MISSING_HEADER\", \"message\": \"X-Road-UserId header is required\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ missing userCode",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ mismatched userid",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019907"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"FORBIDDEN\", \"message\": \"X-Road-UserId must match userCode\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ deterministic page 0",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&offset=0&limit=1",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-15T12:00:00Z\", \"action\": \"Mock kontrollipäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}]}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ deterministic page 1",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&offset=1&limit=1",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-14T12:00:00Z\", \"action\": \"Mock töökontroll\", \"receiverCode\": \"70001969\", \"receiverName\": null, \"receiverSystem\": null}]}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ deterministic page 2",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&offset=2&limit=1",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-13T12:00:00Z\", \"action\": \"Mock korduspäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}]}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ deterministic page 3",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&offset=3&limit=1",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 0, \"usages\": []}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ unknown person",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019907",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019907"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 0, \"usages\": []}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ date filtering",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&periodStart=2026-06-14T00%3A00%3A00Z&periodEnd=2026-06-14T23%3A59%3A59Z",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 1, \"usages\": [{\"logtime\": \"2026-06-14T12:00:00Z\", \"action\": \"Mock töökontroll\", \"receiverCode\": \"70001969\", \"receiverName\": null, \"receiverSystem\": null}]}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "usage period empty",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/usagePeriod",
+        "header": [
+          {
+            "key": "x-mock-scenario",
+            "value": "empty"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"periodStart\": null}));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
