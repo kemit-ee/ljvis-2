@@ -44,7 +44,7 @@ export function AuthCallback() {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, state }),
+      body: JSON.stringify({ code, state, intent }),
     })
       .then(async (res) => {
         if (!res.ok) throw new Error(`callback failed: ${res.status}`);

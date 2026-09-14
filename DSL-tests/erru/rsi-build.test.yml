@@ -1,0 +1,105 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: http://rsi-build-test/resql
+  LJVIS_TIM: http://rsi-build-test/tim
+http_rewrite:
+  http://rsi-build-test: '{MOCK}'
+tests:
+- name: build sends odometer reading as a string and excludes CAA_10 from checked items
+  # Regression test for the "RSI teate loomiseks eeltäitmine nurjus" bug
+  # (fixed alongside the drive-rest-form atpViolationFound issue): resql's
+  # odometerReading param is `type: string`, but compound_form.vehicleMileage
+  # is a Postgres INTEGER — the mock below returns it as a JSON number, and
+  # the assertion below requires the value build.yml sends onward to be a
+  # JSON string, not a number. Also asserts CAA_10 (veose kinnitamine) is
+  # excluded from checkedItems (erru.rsi_message.checked_items — LJVIS2-148 §4.1).
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - rsi.create
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /control-forms/vehicle-technical/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        compoundFormKey: 5
+        subFormNumber: TA-1
+        version: 1
+        partsSummary: '[{"partCode":"CAA_10","status":"non_compliant","defects":[]},{"partCode":"CAA_1","status":"checked","defects":[]}]'
+        partsDefects: '[]'
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        vehicleRegNr: ABC123
+        vehicleVin: VIN1
+        vehicleCategoryCode: M1
+        vehicleCountryCode: EE
+        vehicleMileage: 45000
+        controlDate: '2026-09-01'
+        controlTime: '10:00:00'
+        inspectorFirstName: Mari
+        inspectorLastName: Maasikas
+        city: Tallinn
+        address: ''
+        roadOther: ''
+        trailers: '[]'
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-2026-00001
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/build
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      vehicleTechnicalFormId: '1'
+      technicalFormType: vehicle
+      vehicleRegistrationCountry: ''
+      vehicleCategory: ''
+      originatingAuthority: ''
+      inspectionLocation: ''
+      inspectionDatetime: ''
+      inspectionAuthorityOrName: ''
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      odometerReading: "$type:string"
+      vehicleRegistrationNumber: ABC123
+      vehicleIdentificationNumber: VIN1
+      vehicleRegistrationCountry: EE
+      checkedItems: '[{"partCode":"CAA_1","status":"checked","defects":[]}]'

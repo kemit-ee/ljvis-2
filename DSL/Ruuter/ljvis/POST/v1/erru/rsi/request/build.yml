@@ -101,7 +101,7 @@ extractFormData:
 
 convertCheckedItems:
   assign:
-    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return i.status === 'checked' || i.status === 'non_compliant';}).map(function(i){return {partCode:i.partCode === 'CAA_11' ? 'CAA_20' : i.partCode,status:i.status,defects:parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode:d.defectCode,severity:d.severity};})};}))}"
+    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return (i.status === 'checked' || i.status === 'non_compliant') && i.partCode !== 'CAA_10';}).map(function(i){return {partCode:i.partCode === 'CAA_11' ? 'CAA_20' : i.partCode,status:i.status,defects:parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode:d.defectCode,severity:d.severity};})};}))}"
   next: checkCompoundFormKeyPresent
 
 checkCompoundFormKeyPresent:
@@ -146,7 +146,7 @@ extractCompoundFormData:
     vehicle_identification_number: "${technical_form_type === 'trailer' ? (selected_trailer.vin || '') : (compound_res.response.body[0].vehicleVin || '').trim()}"
     vehicle_category: "${vehicle_category || (technical_form_type === 'trailer' ? (selected_trailer.categoryCode || '') : (compound_res.response.body[0].vehicleCategoryCode || '').trim())}"
     vehicle_registration_country: "${vehicle_registration_country || (technical_form_type === 'trailer' ? (selected_trailer.countryCode || '').trim().toUpperCase() : (compound_res.response.body[0].vehicleCountryCode || '').trim().toUpperCase())}"
-    odometer_reading: "${technical_form_type === 'vehicle' ? (compound_res.response.body[0].vehicleMileage || '') : ''}"
+    odometer_reading: "${technical_form_type === 'vehicle' ? ('' + (compound_res.response.body[0].vehicleMileage || '')) : ''}"
     inspection_authority_or_name: "${inspection_authority_or_name || [compound_res.response.body[0].inspectorFirstName, compound_res.response.body[0].inspectorLastName].filter(Boolean).join(' ') || 'Politsei- ja Piirivalveamet'}"
     originating_authority: "${originating_authority || 'KLIM'}"
     inspection_identifier: "${(form_res.response.body[0].subFormNumber || '') + '/' + (form_res.response.body[0].version || 1)}"
