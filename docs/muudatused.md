@@ -6,6 +6,13 @@
 
 ## 2026-09-14
 
+### Tehnokontrollkaardi rikete klassifikaatori järelparandus
+
+- Sõlme "muu" (11) rikete loend oli tühi — lisatud "11.1 Muu tehniline viga"
+  (Lisa 2 järgi). Fabritseeritud sõlm "kinnitusmeetodid" (mis pidi eelmise
+  paranduse käigus aeguma, kuid jäi vea tõttu samaks päevaks nähtavaks)
+  eemaldatud täielikult.
+
 ### RSI teate eeltäitmise ja sõidu-/puhkeaja vormi salvestamise veaparandused
 
 - Tehnilise kontrollkaardi läbisõidumõõdiku näidu olemasolul ebaõnnestus RSI
