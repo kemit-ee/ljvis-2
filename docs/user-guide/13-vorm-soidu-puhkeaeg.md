@@ -113,6 +113,8 @@ kontrolli fotosid ja dokumente. Failide lisamine aktiveerub pärast vormi
 esimest edukat salvestamist, sest fail seotakse salvestamisel tekkinud
 vorminumbriga.
 
+![Failide lisamine enne esimest salvestamist](images/13-vorm-soidu-puhkeaeg/06-failid-enne-salvestamist.png)
+
 ### 9. Märkused
 
 | Väli | Kohustuslik | Selgitus |

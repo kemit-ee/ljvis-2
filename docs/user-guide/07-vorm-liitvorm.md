@@ -96,11 +96,15 @@ Koondvormil võib lisada ühe või mitu haagist. Haagiste puhul on täidetavad:
 
 Haagised on nummerdatud **HAAGIS 1**, **HAAGIS 2** ja **HAAGIS 3**. Haagise
 tehnoseisundi kontrollkaardi lisamisel tekib menüüsse näiteks
-**HAAGIS 1 (123 ABC) – tehnoseisundi kontrollkaart**. Kontrollkaart lisatakse
+**HAAGIS 1 (123ABC) – tehnoseisundi kontrollkaart**. Kontrollkaart lisatakse
 menüüsse taustal ja üldosa jääb avatuks, et selle täitmist saaks kohe jätkata.
+
+![Haagise tehnovorm lisatakse üldosast lahkumata](images/07-vorm-liitvorm/03-haagis-ja-tehnovormi-vahekaart.png)
 
 Avatud kontrollvormide menüü on nähtav ka üldosa allservas. Sealt saab pärast
 üldosa lõpuni täitmist liikuda otse soovitud alamvormile.
+
+![Valitud kontrollvormid üldosa allservas](images/07-vorm-liitvorm/04-alumine-vorminavigatsioon.png)
 
 ## Alamvormide lisamine
 

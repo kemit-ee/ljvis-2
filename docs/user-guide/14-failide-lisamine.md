@@ -20,7 +20,7 @@ Fail seotakse vormi numbri ja vormi tüübiga. Seepärast aktiveerub jaotis
 esimest edukat salvestamist. Salvestamata vormile faili lisada ei saa.
 Nupp avab failivaliku ning lisatud failid kuvatakse loendis.
 
-![Failide plokk vormil](images/14-failide-lisamine/01-failide-plokk.png)
+![Failide lisamine aktiveerub pärast salvestamist](images/13-vorm-soidu-puhkeaeg/06-failid-enne-salvestamist.png)
 
 ```mermaid
 sequenceDiagram
