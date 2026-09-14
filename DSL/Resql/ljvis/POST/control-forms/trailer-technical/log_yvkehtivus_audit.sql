@@ -1,10 +1,9 @@
 /*
-description: Audit event for the hourly yvkehtivus sync writing extraordinary_inspection_date onto a vehicle
-  technical-check sub-form (LJVIS2-135/58/23). Uses the same event_type as the e-toimik decision-sync cron's log_etoimik_xroad_audit.sql
-  (control_form.vehicle_technical.save_xroad) — same X-tee block, different source field. Writes
-  directly to audit.audit_event rather than through the session-gated log-audit-event template, since
-  Ruuter.internal has no session. No-op (0 rows) when applied=false, mirroring update-extraordinary-inspection-date.sql's
-  guard.
+description: Audit event for the hourly yvkehtivus sync writing extraordinary_inspection_date onto a trailer
+  technical-check sub-form (LJVIS2-135/58/23, 15 ettepanekut p15). Mirrors vehicle-technical/log_yvkehtivus_audit.sql.
+  Writes directly to audit.audit_event rather than through the session-gated log-audit-event template,
+  since Ruuter.internal has no session. No-op (0 rows) when applied=false, mirroring
+  update-extraordinary-inspection-date.sql's guard.
 namespace: control-forms
 params:
   applied:
@@ -41,7 +40,7 @@ INSERT INTO audit.audit_event (
 )
 SELECT
     audit.generate_ulid(),
-    'control_form.vehicle_technical.save_xroad',
+    'control_form.trailer_technical.save_xroad',
     'control_form',
     'system',
     audit.hash_personal_code(''),
