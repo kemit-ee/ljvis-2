@@ -59,7 +59,7 @@ import {
   createDriveRestValidationSchema,
 } from '../drive-rest-form/useDriveRestForm';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm.ts';
-import { createAdrValidationSchema } from '../adr-form/useAdrForm';
+import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/useAdrForm';
 import {
   TechnicalCheckFormEditCard,
   type TechnicalCheckFormEditCardRef,
@@ -378,6 +378,7 @@ export function CompoundFormPage() {
     setShowPublishedAlert(true);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
+    window.scrollTo(0, 0);
   };
 
   const {
@@ -517,17 +518,7 @@ export function CompoundFormPage() {
         subForm: adr as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
         schema: createAdrValidationSchema(t) as ReturnType<typeof createAdrValidationSchema>,
         fallbackSave: (draft) => {
-          const d = draft as AdrForm;
-          const isBlank = (obj: Record<string, unknown>) => Object.values(obj).every((v) => v == null || v === '');
-          const payload = {
-            ...d,
-            driverAssistant: d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>) ? JSON.stringify(d.driverAssistant) : '',
-            lastLoadAddress: d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>) ? JSON.stringify(d.lastLoadAddress) : '',
-            nextLoadAddress: d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>) ? JSON.stringify(d.nextLoadAddress) : '',
-            dangerousGoods: JSON.stringify(d.dangerousGoods ?? []),
-            infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!(e as { checkStatus?: string }).checkStatus)),
-            correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []),
-          } as unknown as AdrForm;
+          const payload = serializeAdrFormPayload(draft as AdrForm);
           saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!adr.form) resetCompoundFormToSaved();
           refetchAdr(() => {
             adr.resetDraft();

@@ -22,6 +22,37 @@ import {
 
 const NOTES_MAX_LENGTH = 4000;
 
+export function serializeAdrFormPayload(d: AdrForm): AdrForm {
+  const isBlank = (obj: Record<string, unknown>) =>
+    Object.values(obj).every((v) => v == null || v === '');
+  return {
+    ...d,
+    driverAssistant:
+      d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>)
+        ? JSON.stringify(d.driverAssistant)
+        : '',
+    lastLoadAddress:
+      d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>)
+        ? JSON.stringify(d.lastLoadAddress)
+        : '',
+    nextLoadAddress:
+      d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>)
+        ? JSON.stringify(d.nextLoadAddress)
+        : '',
+    dangerousGoods: JSON.stringify(d.dangerousGoods ?? []),
+    containerTypes: JSON.stringify(d.containerTypes ?? []),
+    infringements: JSON.stringify(
+      (d.infringements ?? []).filter((e) => !!(e as { inspectionStatus?: string }).inspectionStatus),
+    ),
+    otherInfringements: JSON.stringify(
+      (d.otherInfringements ?? []).filter(
+        (e) => !!e.title || !!e.inspectionStatus || e.records.length > 0,
+      ),
+    ),
+    correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []),
+  } as unknown as AdrForm;
+}
+
 export function createAdrValidationSchema(t: (key: string, opts?: Record<string, unknown>) => string) {
   return Yup.object({
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
