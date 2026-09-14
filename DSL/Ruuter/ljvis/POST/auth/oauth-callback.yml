@@ -16,6 +16,9 @@ declaration:
       - field: state
         type: string
         description: "OAuth2 state parameter"
+      - field: intent
+        type: string
+        description: "Login intent: 'officer' or 'citizen'"
 
 validate_input:
   switch:
@@ -107,7 +110,7 @@ lookup_user_for_audit:
 
 check_user_for_audit:
   switch:
-    - condition: ${Array.isArray(audit_user_res.response.body) && audit_user_res.response.body.length > 0 && audit_user_res.response.body[0].userAccountId != null}
+    - condition: ${incoming.body.intent === 'officer' && Array.isArray(audit_user_res.response.body) && audit_user_res.response.body.length > 0 && audit_user_res.response.body[0].userAccountId != null}
       next: log_login_success
   next: return_token
 
