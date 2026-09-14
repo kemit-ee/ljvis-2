@@ -645,9 +645,7 @@
         "title": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
         "extraordinaryInspectionDate": "Erakorraline tehnoülevaatus läbitud",
         "enforcementDecision": "Jõustunud otsus",
-        "proceedingClosureBasis": "Menetluse lõpetamise alus",
-        "save": "Salvesta X-tee andmed",
-        "saveError": "X-tee andmete salvestamine ebaõnnestus"
+        "proceedingClosureBasis": "Menetluse lõpetamise alus"
       }
     },
     "transport_interruption": {

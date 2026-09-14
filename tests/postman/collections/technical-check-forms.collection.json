@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Vehicle/Trailer Technical Check Forms",
     "_postman_id": "ljvis-technical-check-forms-v1",
-    "description": "Functional tests for /control-forms/{vehicle-technical|trailer-technical} endpoints (LJVIS2-72). Covers permission boundaries (vehicle_technical_form.write/read, trailer_technical_form.write/read, control_form.edit_locked), backend validation (compoundFormKey required, notes max length, trailer-exclusion of vehicle-only codes), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data), and the X-tee fields block. Self-contained: authenticates and creates its own compound form + sub-forms.",
+    "description": "Functional tests for /control-forms/{vehicle-technical|trailer-technical} endpoints (LJVIS2-72). Covers permission boundaries (vehicle_technical_form.write/read, trailer_technical_form.write/read, control_form.edit_locked), backend validation (compoundFormKey required, notes max length, trailer-exclusion of vehicle-only codes), version/status lifecycle (saved -> confirmed, the saved-state no-version-bump rule, already_confirmed, and the edit_locked-gated re-save of confirmed/published data). The X-tee fields block (extraordinary_inspection_date/enforcement_decision/proceeding_closure_basis) is written only by the nightly/hourly X-Road sync crons, not through a public endpoint — no manual-edit test coverage here by design. Self-contained: authenticates and creates its own compound form + sub-forms.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -608,54 +608,6 @@
       ]
     },
     {
-      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields — form not confirmed yet → 422",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Cookie",
-            "value": "{{cookie_admin}}"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical/edit/xroad/save-xroad-fields",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "ljvis",
-            "v1",
-            "control-forms",
-            "vehicle-technical",
-            "edit",
-            "xroad",
-            "save-xroad-fields"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"extraordinaryInspectionDate\": \"2024-05-01\", \"enforcementDecision\": \"otsus\", \"proceedingClosureBasis\": \"alus\"}"
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
-              "var raw = pm.response.json();",
-              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('code is xroad_fields_require_confirmed_status', () => pm.expect(body.code).to.eql('xroad_fields_require_confirmed_status'));"
-            ]
-          }
-        }
-      ]
-    },
-    {
       "name": "POST vehicle-technical/edit/confirm — no permission → 403",
       "request": {
         "method": "POST",
@@ -832,145 +784,6 @@
               "var raw = pm.response.json();",
               "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('code is already_confirmed', () => pm.expect(body.code).to.eql('already_confirmed'));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields — no control_form.edit_locked → 403",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Cookie",
-            "value": "{{cookie_noperm}}"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical/edit/xroad/save-xroad-fields",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "ljvis",
-            "v1",
-            "control-forms",
-            "vehicle-technical",
-            "edit",
-            "xroad",
-            "save-xroad-fields"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"extraordinaryInspectionDate\": \"2024-05-01\", \"enforcementDecision\": \"otsus\", \"proceedingClosureBasis\": \"alus\"}"
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Returns 403 without control_form.edit_locked', () => pm.response.to.have.status(403));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "POST vehicle-technical/edit/xroad/save-xroad-fields — happy path (confirmed status) → 200",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Cookie",
-            "value": "{{cookie_admin}}"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical/edit/xroad/save-xroad-fields",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "ljvis",
-            "v1",
-            "control-forms",
-            "vehicle-technical",
-            "edit",
-            "xroad",
-            "save-xroad-fields"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\"id\": \"{{created_vtf_id}}\", \"extraordinaryInspectionDate\": \"2024-05-01\", \"enforcementDecision\": \"Otsus jõustunud\", \"proceedingClosureBasis\": \"Menetlus lõpetatud\"}"
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-              "var raw = pm.response.json();",
-              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-              "pm.test('version NOT incremented (still 1)', () => pm.expect(Number(row.version)).to.eql(1));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "GET vehicle-technical — X-tee fields persisted, version unchanged",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Cookie",
-            "value": "{{cookie_admin}}"
-          }
-        ],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/vehicle-technical?q={{created_vtf_id}}",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "ljvis",
-            "v1",
-            "control-forms",
-            "vehicle-technical"
-          ],
-          "query": [
-            {
-              "key": "q",
-              "value": "{{created_vtf_id}}"
-            }
-          ]
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-              "var raw = pm.response.json();",
-              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('extraordinaryInspectionDate persisted', () => pm.expect(body.extraordinaryInspectionDate).to.eql('2024-05-01'));",
-              "pm.test('enforcementDecision persisted', () => pm.expect(body.enforcementDecision).to.eql('Otsus jõustunud'));",
-              "pm.test('version still 1', () => pm.expect(Number(body.version)).to.eql(1));"
             ]
           }
         }

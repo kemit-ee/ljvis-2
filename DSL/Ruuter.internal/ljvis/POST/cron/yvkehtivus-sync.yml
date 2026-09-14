@@ -2,20 +2,23 @@ declaration:
 
   version: "1.0"
   description: >-
-    Hourly batch (LJVIS2-135/58/23): for every confirmed vehicle
-    technical-check sub-form directed to extraordinary inspection
+    Hourly batch (LJVIS2-135/58/23; trailer variant LJVIS2-72 15
+    ettepanekut p15): for every confirmed vehicle OR trailer technical-check
+    sub-form directed to extraordinary inspection
     (result_type IN extraordinary_inspection/extraordinary_inspection_ta)
     that hasn't passed it yet, ask liiklusregister (yvkehtivus) whether it
     has. If yes (kood=0 with a yv_kp date), write
     extraordinary_inspection_date in place
     (update-extraordinary-inspection-date.sql — does not touch
-    enforcement_decision/proceeding_closure_basis, which come from a
-    separate manual channel) and log an audit event, mirroring the human
-    save-xroad-fields.yml endpoint's event_type. Otherwise (kood=1/2, or no
-    date yet) nothing happens this run; retried next hour, capped at 365
-    days from the sub-form's created_at (LJVIS2-135, Eda Rembel comment
-    09.07.2026) via select_yvkehtivus_candidates.sql. Idempotent: writing
-    extraordinary_inspection_date drops the row out of that candidate query.
+    enforcement_decision/proceeding_closure_basis, which come from
+    cron/etoimik-technical-check-decision-sync.yml) and log an audit event.
+    Otherwise (kood=1/2, or no date yet) nothing happens this run; retried
+    next hour, capped at 365 days from the sub-form's created_at (LJVIS2-135,
+    Eda Rembel comment 09.07.2026) via select_yvkehtivus_candidates.sql.
+    Idempotent: writing extraordinary_inspection_date drops the row out of
+    that candidate query. Vehicle and trailer are processed as two
+    independent candidate sets in one flow (same source data, same X-tee
+    call — kept together per LJVIS2-72 §0 "Variandid").
 
     Calls XTR directly (DSL/xtr/liiklusregister/yvkehtivus.yml), not
     through a public Ruuter endpoint — none exists; it was built during
@@ -29,24 +32,24 @@ declaration:
   allowlist:
     body: []
 
-fetchCandidates:
+fetchVehicleCandidates:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/select_yvkehtivus_candidates"
     headers:
       type: json
     body: {}
-  result: candidatesRes
-  next: assignCandidates
+  result: vehicleCandidatesRes
+  next: assignVehicleCandidates
 
-assignCandidates:
+assignVehicleCandidates:
   assign:
-    candidates: "${candidatesRes.response.body || []}"
-  next: processCandidates
+    vehicleCandidates: "${vehicleCandidatesRes.response.body || []}"
+  next: processVehicleCandidates
 
-processCandidates:
+processVehicleCandidates:
   iterate:
-    over: "${candidates}"
+    over: "${vehicleCandidates}"
     as: candidate
     max_items: 1000
     do:
@@ -144,10 +147,119 @@ processCandidates:
             inspection_date: "${outcome.inspectionDate}"
         result: auditRes
     collect: "${({ id: candidate.id, applied: applied_now, success: outcome.success })}"
-    into: results
+    into: vehicleResults
+  next: fetchTrailerCandidates
+
+fetchTrailerCandidates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/select_yvkehtivus_candidates"
+    headers:
+      type: json
+    body: {}
+  result: trailerCandidatesRes
+  next: assignTrailerCandidates
+
+assignTrailerCandidates:
+  assign:
+    trailerCandidates: "${trailerCandidatesRes.response.body || []}"
+  next: processTrailerCandidates
+
+processTrailerCandidates:
+  iterate:
+    over: "${trailerCandidates}"
+    as: candidate
+    max_items: 1000
+    do:
+      - assign:
+          candidate_key: "${String(candidate.id)}"
+          reg_nr: "${(candidate.registrationNumber || candidate.registration_number || '').trim().toUpperCase()}"
+          vin: "${(candidate.vin || '').trim().toUpperCase()}"
+          case_start: "${new Date().getTime()}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/liiklusregister/yvkehtivus"
+          headers:
+            type: json
+          body:
+            registration_mark: ${reg_nr}
+            vin_code: ${vin}
+            userId: "LJVIS-CRON"
+        result: xtrResponse
+
+      - assign:
+          outcome: >-
+            ${(function(){
+              var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
+              if (!httpOk) {
+                return { success: false, applied: false, inspectionDate: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+              }
+              var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
+              var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('yvkehtivusResponse'); });
+              var node = responseKey ? soapBody[responseKey] : {};
+              var kood = String(node.kood != null ? node.kood : '');
+              if (kood !== '0') {
+                return { success: true, applied: false, inspectionDate: '', errorMessage: '', rawResponse: JSON.stringify(node) };
+              }
+              var raw = node.yv_kp || '';
+              var parts = raw.split('.');
+              var iso = parts.length === 3 ? (parts[2] + '-' + parts[1] + '-' + parts[0]) : '';
+              if (!iso) {
+                return { success: true, applied: false, inspectionDate: '', errorMessage: '', rawResponse: JSON.stringify(node) };
+              }
+              return { success: true, applied: true, inspectionDate: iso, errorMessage: '', rawResponse: JSON.stringify(node) };
+            })()}
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          headers:
+            type: json
+          body:
+            service_code: "liiklusregister.yvkehtivus.v1.cron.trailer"
+            request_xml: "${'registrationMark=' + reg_nr + ';vinCode=' + vin}"
+            response_xml: "${outcome.rawResponse}"
+            duration_ms: "${new Date().getTime() - case_start}"
+            success: ${outcome.success}
+            error_message: "${outcome.errorMessage}"
+            person_identifier: ""
+            source_type: "trailer_technical_form"
+            source_record_id: ${candidate_key}
+        result: logRes
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-extraordinary-inspection-date"
+          headers:
+            type: json
+          body:
+            key: ${candidate_key}
+            extraordinaryInspectionDate: "${outcome.applied ? outcome.inspectionDate : ''}"
+        result: updateRes
+
+      - assign:
+          applied_now: "${!!(updateRes.response.body && updateRes.response.body[0])}"
+          updated_sub_form_number: "${(updateRes.response.body && updateRes.response.body[0] && (updateRes.response.body[0].subFormNumber || updateRes.response.body[0].sub_form_number)) || ''}"
+          updated_version: "${(updateRes.response.body && updateRes.response.body[0] && updateRes.response.body[0].version) || ''}"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/trailer-technical/log_yvkehtivus_audit"
+          headers:
+            type: json
+          body:
+            applied: "${applied_now ? 'true' : 'false'}"
+            key: ${candidate_key}
+            sub_form_number: ${updated_sub_form_number}
+            version: "${String(updated_version)}"
+            inspection_date: "${outcome.inspectionDate}"
+        result: auditRes
+    collect: "${({ id: candidate.id, applied: applied_now, success: outcome.success })}"
+    into: trailerResults
   next: returnSummary
 
 returnSummary:
   status: 200
-  return: "${({ candidatesChecked: candidates.length, applied: results.filter(r => r.applied).length, failures: results.filter(r => !r.success).length })}"
+  return: "${({ vehicleCandidatesChecked: vehicleCandidates.length, vehicleApplied: vehicleResults.filter(r => r.applied).length, trailerCandidatesChecked: trailerCandidates.length, trailerApplied: trailerResults.filter(r => r.applied).length, failures: vehicleResults.filter(r => !r.success).length + trailerResults.filter(r => !r.success).length })}"
   next: end

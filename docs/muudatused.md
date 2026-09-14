@@ -6,6 +6,13 @@
 
 ## 2026-09-14
 
+### Mootorsõiduki/haagise tehnokontrollkaardi X-tee andmete automatiseerimine
+
+- "Jõustunud otsus", "Menetluse lõpetamise alus" ja "Erakorraline tehnoülevaatus
+  läbitud" täidetakse nüüd automaatselt (e-toimiku ja liiklusregistri
+  päringutega) ning kuvatakse kontrollkaardil loetava, mitte muudetava
+  väljana — käsitsi sisestamise võimalus on eemaldatud.
+
 ### Mootorsõiduki/haagise tehnokontrollkaardi rikete märkimise parendused
 
 - Osa/sõlme "Kontrollitud" ja "Ei vasta nõuetele" on nüüd kaks eraldi märget

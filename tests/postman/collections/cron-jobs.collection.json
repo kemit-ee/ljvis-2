@@ -1,8 +1,8 @@
 {
  "info": {
-  "name": "LJVIS — Cron Jobs (LJVIS2-12, LJVIS2-56/69, LJVIS2-135/58/23)",
+  "name": "LJVIS — Cron Jobs (LJVIS2-12, LJVIS2-56/69, LJVIS2-135/58/23, LJVIS2-72)",
   "_postman_id": "ljvis-cron-jobs-v1",
-  "description": "Functional tests for the CronManager-triggered batch endpoints: nightly user deactivation (LJVIS2-12), nightly e-toimik decision sync + auto-publish (LJVIS2-56/LJVIS2-69), hourly yvkehtivus sync (LJVIS2-135/58/23), and nightly risk-score recalculation (LJVIS2-150/151/152). No auth needed — all endpoints under test are either Ruuter.internal (no session) or Resql called directly. XTR is not part of the CI stack (no certs/secrets available there), so e-toimik/yvkehtivus are tested at the Resql layer, which is where the real bugs were found (latest-snapshot-vs-filter resolution order, idempotency guards, not clobbering manually-entered fields); the X-Road round-trip was verified manually against the real ee-dev sandbox instead (see .ai/future-plans/etoimik-vaarteomenetlus-nightly.md and cronmanager-scheduled-jobs.md). The etoimik/yvkehtivus resilience folder regression-tests that a bad candidate never takes the whole ruuter-internal process down, using the CI stack's absence of `xtr` as the fault condition — the risk-score-recalc block doesn't need that folder at all, since it calls Ruuter.internal's own `risk-scores/recalculate` endpoint (no XTR dependency).",
+  "description": "Functional tests for the CronManager-triggered batch endpoints: nightly user deactivation (LJVIS2-12), nightly e-toimik decision sync + auto-publish (LJVIS2-56/LJVIS2-69), hourly yvkehtivus sync (LJVIS2-135/58/23, extended to trailers LJVIS2-72 15 ettepanekut p15), nightly risk-score recalculation (LJVIS2-150/151/152), and nightly vehicle/trailer technical-check e-toimik decision sync (LJVIS2-72 15 ettepanekut p9 — replaces the removed manual edit/xroad/save-xroad-fields.yml admin flow). No auth needed — all endpoints under test are either Ruuter.internal (no session) or Resql called directly. XTR is not part of the CI stack (no certs/secrets available there), so e-toimik/yvkehtivus are tested at the Resql layer, which is where the real bugs were found (latest-snapshot-vs-filter resolution order, idempotency guards, not clobbering manually-entered fields); the X-Road round-trip was verified manually against the real ee-dev sandbox instead (see .ai/future-plans/etoimik-vaarteomenetlus-nightly.md and cronmanager-scheduled-jobs.md). The etoimik/yvkehtivus resilience folder regression-tests that a bad candidate never takes the whole ruuter-internal process down, using the CI stack's absence of `xtr` as the fault condition — the risk-score-recalc block doesn't need that folder at all, since it calls Ruuter.internal's own `risk-scores/recalculate` endpoint (no XTR dependency).",
   "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
  },
  "item": [
@@ -2425,6 +2425,1189 @@
      "script": {
       "exec": [
        "pm.test('ruuter-internal responds', () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[technical-check e-toimik Setup] Insert compound_form with a driver + 2 trailers",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/compound-form/insert",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "compound-form",
+      "insert"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"status\":\"confirmed\",\"controlDate\":\"2026-08-01\",\"controlTime\":\"10:00\",\"controlCountryCode\":\"EE\",\"county\":\"\",\"city\":\"\",\"road\":\"\",\"roadOther\":\"\",\"kilometer\":\"\",\"address\":\"\",\"road_type\":\"\",\"roadTaxStatus\":\"\",\"roadTaxNotes\":\"\",\"vehicleRegNr\":\"TCK123\",\"vehicleMake\":\"\",\"vehicleModel\":\"\",\"vehicleCountryCode\":\"EE\",\"vehicleVin\":\"\",\"vehicleFirstRegistration\":\"\",\"vehicleBodyType\":\"\",\"vehicleCategoryCode\":\"\",\"vehicleCategoryOther\":\"\",\"vehicleMileage\":\"\",\"trailers\":\"[{\\\"trailer_index\\\":1,\\\"reg_nr\\\":\\\"TCKTRL1\\\",\\\"vin\\\":\\\"TCKVIN1\\\"}]\",\"companyRegCode\":\"12345678\",\"companyName\":\"Newman OU\",\"companyCountryCode\":\"EE\",\"companyCounty\":\"\",\"companyCity\":\"\",\"companyAddressLine1\":\"\",\"companyPostalCode\":\"\",\"companyOwnerFirstName\":\"\",\"companyOwnerLastName\":\"\",\"companyActivityLicenceCopyNumber\":\"\",\"drivers\":\"[{\\\"driver_role\\\":\\\"primary\\\",\\\"personal_code_ee\\\":\\\"60001019906\\\",\\\"first_name\\\":\\\"Test\\\",\\\"last_name\\\":\\\"Juht\\\"}]\",\"inspectorFirstName\":\"Newman\",\"inspectorLastName\":\"Tester\",\"inspectorOrganisationId\":\"{{cron_org_id}}\",\"inspectorUnit\":\"Unit\",\"inspectorProfession\":\"Tester\",\"created_by\":\"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('cron_tck_cf_id', String(rows[0].id));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[technical-check e-toimik Setup] Insert confirmed vehicle_technical_form (candidate)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/insert",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "insert"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"compoundFormKey\":\"{{cron_tck_cf_id}}\",\"status\":\"confirmed\",\"partsSummary\":\"[]\",\"partsDefects\":\"[]\",\"resultType\":\"driving_ban\",\"resultTransportInterruption\":false,\"eraYvMntRegnr\":false,\"eraYvMntVintin\":false,\"eraYvMntAxles\":false,\"eraYvMntPlaces\":false,\"eraYvMntRebuilt\":false,\"proceedingType\":\"general\",\"proceedingReferenceNumber\":\"1-20/26/TCK-VEH-CRON\",\"violations\":\"[]\",\"notes\":\"\",\"created_by\":\"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('cron_tck_vtf_id', String(rows[0].id));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[technical-check e-toimik Setup] Insert confirmed trailer_technical_form (candidate)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/insert",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "insert"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"compoundFormKey\":\"{{cron_tck_cf_id}}\",\"status\":\"confirmed\",\"partsSummary\":\"[]\",\"partsDefects\":\"[]\",\"resultType\":\"driving_ban\",\"resultTransportInterruption\":false,\"eraYvMntRegnr\":false,\"eraYvMntVintin\":false,\"eraYvMntAxles\":false,\"eraYvMntPlaces\":false,\"eraYvMntRebuilt\":false,\"proceedingType\":\"general\",\"proceedingReferenceNumber\":\"1-20/26/TCK-TRL-CRON\",\"trailerRegNr\":\"TCKTRL1\",\"violations\":\"[]\",\"notes\":\"\",\"created_by\":\"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('cron_tck_ttf_id', String(rows[0].id));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/select_etoimik_candidates",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "select_etoimik_candidates"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "const match = rows.find(r => String(r.id) === pm.environment.get('cron_tck_vtf_id'));",
+       "pm.test('Seeded sub-form appears as a candidate', () => pm.expect(match).to.exist);",
+       "pm.test(\"Candidate carries the driver personal code from compound_form drivers[0]\", () => pm.expect(match.driverPersonalCode).to.eql('60001019906'));",
+       "pm.test('Candidate carries the proceeding reference number', () => pm.expect(match.proceedingReferenceNumber).to.eql('1-20/26/TCK-VEH-CRON'));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] update-xroad-fields found=false — no-op (0 rows)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-xroad-fields",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update-xroad-fields"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_tck_vtf_id}}\",\"found\":\"false\",\"enforcementDecision\":\"\",\"proceedingClosureBasis\":\"\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('found=false writes nothing', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] update-xroad-fields found=true — writes decision in place",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-xroad-fields",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update-xroad-fields"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_tck_vtf_id}}\",\"found\":\"true\",\"enforcementDecision\":\"Rahatrahv 200 eurot (2026-08-20)\",\"proceedingClosureBasis\":\"VTMS § 29\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('Wrote exactly one row (in-place update on the latest confirmed snapshot)', () => pm.expect(rows.length).to.eql(1));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] select_etoimik_candidates — resolved sub-form no longer a candidate (regression)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/select_etoimik_candidates",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "select_etoimik_candidates"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "const ids = rows.map(r => String(r.id));",
+       "pm.test('Regression: sub-form with enforcement_decision set drops out of the candidate list', () => pm.expect(ids).to.not.include(pm.environment.get('cron_tck_vtf_id')));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] update-xroad-fields again, same key — guarded no-op (enforcement_decision already set)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-xroad-fields",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update-xroad-fields"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_tck_vtf_id}}\",\"found\":\"true\",\"enforcementDecision\":\"Should not overwrite\",\"proceedingClosureBasis\":\"Should not overwrite\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('enforcement_decision IS NULL guard holds — no second write', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] Verify final state via get.sql (decision persisted, status unchanged)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\":\"{{cron_tck_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('status still confirmed — the cron never publishes or bumps the version', () => pm.expect(rows[0].status).to.eql('confirmed'));",
+       "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Rahatrahv 200 eurot (2026-08-20)'));",
+       "pm.test('proceeding_closure_basis persisted (first value, not the no-op attempt)', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] log_etoimik_xroad_audit found=false — no audit row",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/log_etoimik_xroad_audit",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "log_etoimik_xroad_audit"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"found\":\"false\",\"key\":\"{{cron_tck_vtf_id}}\",\"sub_form_number\":\"\",\"driver_personal_code\":\"60001019906\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('No audit event written', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[vehicle-technical e-toimik] log_etoimik_xroad_audit found=true — audit event written",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/log_etoimik_xroad_audit",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "log_etoimik_xroad_audit"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"found\":\"true\",\"key\":\"{{cron_tck_vtf_id}}\",\"sub_form_number\":\"\",\"driver_personal_code\":\"60001019906\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('Audit event written with an event_id', () => { pm.expect(rows.length).to.eql(1); pm.expect(rows[0].eventId || rows[0].event_id).to.exist; });"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/select_etoimik_candidates",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "select_etoimik_candidates"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "const match = rows.find(r => String(r.id) === pm.environment.get('cron_tck_ttf_id'));",
+       "pm.test('Seeded sub-form appears as a candidate', () => pm.expect(match).to.exist);",
+       "pm.test(\"Candidate carries the driver personal code from compound_form drivers[0]\", () => pm.expect(match.driverPersonalCode).to.eql('60001019906'));",
+       "pm.test('Candidate carries the proceeding reference number', () => pm.expect(match.proceedingReferenceNumber).to.eql('1-20/26/TCK-TRL-CRON'));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] update-xroad-fields found=false — no-op (0 rows)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/update-xroad-fields",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "update-xroad-fields"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_tck_ttf_id}}\",\"found\":\"false\",\"enforcementDecision\":\"\",\"proceedingClosureBasis\":\"\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('found=false writes nothing', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] update-xroad-fields found=true — writes decision in place",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/update-xroad-fields",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "update-xroad-fields"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_tck_ttf_id}}\",\"found\":\"true\",\"enforcementDecision\":\"Rahatrahv 150 eurot (2026-08-21)\",\"proceedingClosureBasis\":\"VTMS § 29\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('Wrote exactly one row (in-place update on the latest confirmed snapshot)', () => pm.expect(rows.length).to.eql(1));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] select_etoimik_candidates — resolved sub-form no longer a candidate (regression)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/select_etoimik_candidates",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "select_etoimik_candidates"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "const ids = rows.map(r => String(r.id));",
+       "pm.test('Regression: sub-form with enforcement_decision set drops out of the candidate list', () => pm.expect(ids).to.not.include(pm.environment.get('cron_tck_ttf_id')));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] update-xroad-fields again, same key — guarded no-op (enforcement_decision already set)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/update-xroad-fields",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "update-xroad-fields"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_tck_ttf_id}}\",\"found\":\"true\",\"enforcementDecision\":\"Should not overwrite\",\"proceedingClosureBasis\":\"Should not overwrite\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('enforcement_decision IS NULL guard holds — no second write', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] Verify final state via get.sql (decision persisted, status unchanged)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\":\"{{cron_tck_ttf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('status still confirmed — the cron never publishes or bumps the version', () => pm.expect(rows[0].status).to.eql('confirmed'));",
+       "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Rahatrahv 150 eurot (2026-08-21)'));",
+       "pm.test('proceeding_closure_basis persisted (first value, not the no-op attempt)', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] log_etoimik_xroad_audit found=false — no audit row",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/log_etoimik_xroad_audit",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "log_etoimik_xroad_audit"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"found\":\"false\",\"key\":\"{{cron_tck_ttf_id}}\",\"sub_form_number\":\"\",\"driver_personal_code\":\"60001019906\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('No audit event written', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical e-toimik] log_etoimik_xroad_audit found=true — audit event written",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/log_etoimik_xroad_audit",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "log_etoimik_xroad_audit"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"found\":\"true\",\"key\":\"{{cron_tck_ttf_id}}\",\"sub_form_number\":\"\",\"driver_personal_code\":\"60001019906\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('Audit event written with an event_id', () => { pm.expect(rows.length).to.eql(1); pm.expect(rows[0].eventId || rows[0].event_id).to.exist; });"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[Resilience] cron/etoimik-technical-check-decision-sync with XTR unreachable — no crash",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{internal_api_url}}/ljvis/cron/etoimik-technical-check-decision-sync",
+     "host": [
+      "{{internal_api_url}}"
+     ],
+     "path": [
+      "ljvis",
+      "cron",
+      "etoimik-technical-check-decision-sync"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Does not hang / returns some HTTP response', () => pm.expect(pm.response.code).to.be.oneOf([200, 500, 502]));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[Resilience] ruuter-internal still alive after the technical-check sync run",
+   "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+     "raw": "{{internal_api_url}}/health",
+     "host": [
+      "{{internal_api_url}}"
+     ],
+     "path": [
+      "health"
+     ]
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('ruuter-internal /health still responds 200', () => pm.response.to.have.status(200));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus Setup] Insert confirmed trailer_technical_form (extraordinary_inspection) matching trailer #1",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/insert",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "insert"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"compoundFormKey\":\"{{cron_cf_id}}\",\"status\":\"confirmed\",\"partsSummary\":\"[]\",\"partsDefects\":\"[]\",\"resultType\":\"extraordinary_inspection\",\"resultTransportInterruption\":false,\"eraYvMntRegnr\":false,\"eraYvMntVintin\":false,\"eraYvMntAxles\":false,\"eraYvMntPlaces\":false,\"eraYvMntRebuilt\":false,\"proceedingType\":\"\",\"proceedingReferenceNumber\":\"\",\"trailerRegNr\":\"TRLYVK1\",\"violations\":\"[]\",\"notes\":\"\",\"created_by\":\"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "pm.environment.set('cron_ttf_id', String(rows[0].id));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate (matches own trailer via trailer_reg_nr)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/select_yvkehtivus_candidates",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "select_yvkehtivus_candidates"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "const match = rows.find(r => String(r.id) === pm.environment.get('cron_ttf_id'));",
+       "pm.test('Seeded sub-form appears as a candidate', () => pm.expect(match).to.exist);",
+       "pm.test('Candidate carries the trailer_reg_nr as the registration number', () => pm.expect(match.registrationNumber).to.eql('TRLYVK1'));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] update-extraordinary-inspection-date, empty date — no-op (0 rows)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/update-extraordinary-inspection-date",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "update-extraordinary-inspection-date"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_ttf_id}}\",\"extraordinaryInspectionDate\":\"\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "pm.test('Empty date writes nothing', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] update-extraordinary-inspection-date, real date — writes in place",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/update-extraordinary-inspection-date",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "update-extraordinary-inspection-date"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_ttf_id}}\",\"extraordinaryInspectionDate\":\"2024-07-30\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "pm.test('Wrote exactly one row', () => pm.expect(rows.length).to.eql(1));",
+       "pm.test('version stays 1 — in-place update, not a new snapshot', () => pm.expect(rows[0].version).to.eql(1));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] select_yvkehtivus_candidates — resolved sub-form no longer a candidate",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/select_yvkehtivus_candidates",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "select_yvkehtivus_candidates"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "const ids = rows.map(r => String(r.id));",
+       "pm.test('Resolved sub-form does not reappear', () => pm.expect(ids).to.not.include(pm.environment.get('cron_ttf_id')));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] update-extraordinary-inspection-date again, same key — idempotent no-op",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/update-extraordinary-inspection-date",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "update-extraordinary-inspection-date"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\":\"{{cron_ttf_id}}\",\"extraordinaryInspectionDate\":\"2024-08-16\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "pm.test('Already-resolved sub-form is not overwritten again', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] Verify final state — date set, xroad fields untouched (no clobbering)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\":\"{{cron_ttf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "pm.test('extraordinary_inspection_date is the FIRST value written, not the second no-op attempt', () => pm.expect(rows[0].extraordinaryInspectionDate).to.eql('2024-07-30'));",
+       "pm.test('enforcement_decision untouched (still null) — this job must never clobber it', () => pm.expect(rows[0].enforcementDecision).to.be.oneOf([null, '']));",
+       "pm.test('proceeding_closure_basis untouched (still null)', () => pm.expect(rows[0].proceedingClosureBasis).to.be.oneOf([null, '']));",
+       "pm.test('version still 1', () => pm.expect(rows[0].version).to.eql(1));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] log_yvkehtivus_audit found=false — no audit row",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/log_yvkehtivus_audit",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "log_yvkehtivus_audit"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"applied\":\"false\",\"key\":\"{{cron_ttf_id}}\",\"sub_form_number\":\"\",\"version\":\"\",\"inspection_date\":\"\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "pm.test('No audit event written', () => pm.expect(rows.length).to.eql(0));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[trailer-technical yvkehtivus] log_yvkehtivus_audit found=true — audit event written",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/trailer-technical/log_yvkehtivus_audit",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "trailer-technical",
+      "log_yvkehtivus_audit"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"applied\":\"true\",\"key\":\"{{cron_ttf_id}}\",\"sub_form_number\":\"th-test\",\"version\":\"1\",\"inspection_date\":\"2024-07-30\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const body = pm.response.json();",
+       "const rows = body.response || body;",
+       "pm.test('Audit event written with an event_id', () => { pm.expect(rows.length).to.eql(1); pm.expect(rows[0].eventId || rows[0].event_id).to.exist; });"
       ]
      }
     }

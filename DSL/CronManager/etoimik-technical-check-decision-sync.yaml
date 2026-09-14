@@ -1,0 +1,13 @@
+# LJVIS2-72 15 ettepanekut p9: nightly sync of vehicle/trailer technical-check
+# enforcement decisions from e-toimik. Logic lives in
+# DSL/Ruuter.internal/ljvis/POST/cron/etoimik-technical-check-decision-sync.yml
+# (candidate selection, X-Road query, in-place field write, audit).
+#
+# Runs at 01:45 Tallinn time (TZ pinned in docker-compose.yml) — after the
+# PPA sp-driver sync (01:30) to avoid XTR contention.
+etoimik_technical_check_decision_sync:
+  trigger: "0 45 1 * * ?"
+  type: exec
+  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/etoimik-technical-check-decision-sync" || true
+  allowedEnvs:
+    - RUUTER_INTERNAL

@@ -1,7 +1,7 @@
 /*
 description: Audit event for the hourly yvkehtivus sync writing extraordinary_inspection_date onto a vehicle
-  technical-check sub-form (LJVIS2-135/58/23). Uses the same event_type as the human edit/xroad/save-xroad-fields.yml
-  path (control_form.vehicle_technical.save_xroad), actor_name='system' is the only difference. Writes
+  technical-check sub-form (LJVIS2-135/58/23). Uses the same event_type as the e-toimik decision-sync cron's log_etoimik_xroad_audit.sql
+  (control_form.vehicle_technical.save_xroad) — same X-tee block, different source field. Writes
   directly to audit.audit_event rather than through the session-gated log-audit-event template, since
   Ruuter.internal has no session. No-op (0 rows) when applied=false, mirroring update-extraordinary-inspection-date.sql's
   guard.

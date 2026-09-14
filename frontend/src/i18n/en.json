@@ -534,9 +534,7 @@
         "title": "Data entered via the X-Road query",
         "extraordinaryInspectionDate": "Extraordinary roadworthiness test passed",
         "enforcementDecision": "Final decision",
-        "proceedingClosureBasis": "Basis for closing proceedings",
-        "save": "Save X-Road data",
-        "saveError": "Failed to save X-Road data"
+        "proceedingClosureBasis": "Basis for closing proceedings"
       }
     },
     "transport_interruption": {
