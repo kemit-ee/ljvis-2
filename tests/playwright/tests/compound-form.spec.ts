@@ -121,6 +121,7 @@ test.describe('Koondvorm — salvestamine', () => {
     await checkChoiceById(page, 'result_korras');
     await page.getByRole('button', SAVE).click();
     await expectSaved(page, '/control-forms/compound');
+    await page.getByRole('tab', { name: /^Autojuhi/i }).click();
     await expect(page.getByRole('button', { name: 'Kinnita', exact: true }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Prindi', exact: true }).first()).toBeVisible();
   });

@@ -78,7 +78,7 @@ test('autojuhi veo liik ja veoklass kanduvad meeskonna liikme vormile', async ({
   const selectedClass = await firstTransportClass.getAttribute('value');
   expect(selectedClass).toBeTruthy();
 
-  await page.getByRole('tab', { name: /Meeskonna liikme/i }).click();
+  await page.getByRole('tab', { name: /Meeskonnaliikme/i }).click();
   const teammatePanel = page.locator('#tab-sp-teammate-panel');
   await expect(teammatePanel.locator('#teammate-transport_type_cargo')).toBeChecked();
   await expect(

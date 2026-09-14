@@ -48,8 +48,9 @@ async function fillDriveRestSubForm(
     page.getByText(/Veoliik/i).first(),
   ).toBeVisible({ timeout: 10_000 });
   // Täida kohustuslikud väljad
-  await checkChoiceById(page, 'transport_type_cargo');  // Veosevedu
-  await checkChoiceById(page, 'result_korras');          // Korras
+  const prefix = /meeskon/i.test(tabName.source) ? 'teammate-' : '';
+  await checkChoiceById(page, `${prefix}transport_type_cargo`);  // Veosevedu
+  await checkChoiceById(page, `${prefix}result_korras`);          // Korras
   // Liigu Üldosa tabile tagasi — see ootab, kuni Formik async-valideerimine lõpeb
   await page.getByRole('tab', { name: /Üldosa/ }).click();
   await expect(
