@@ -335,7 +335,14 @@ for method, name, service, version, sample, success in operations:
         curl += f" -H 'X-Road-UserId: {SUCCESS_PERSON}'"
     sections.append(f"\n## {service}\n\n- Meetod: `{method}`; mock: `/developer{mock_path}`.\n- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{{instance}}/GOV/70001231/ljvis2/{service}/{version}`.\n- Pakkuja sisetee: `{op['x-provider-path']}`; [workflow](../../{manifest[-1]['source']}).\n- Sisend: [JSON näidis](examples/{name}-request.json) (GET puhul query parameetrid, mitte keha).\n- Vastus: [edukas JSON](examples/{name}-success.json); [vead koos staatustega](examples/{name}-errors.json).\n\n```bash\n{curl}\n```\n\nHTTP 200:\n\n```json\n{json_text(success).strip()}\n```\n")
     if errors:
-        sections.append(f"\nVigane päring: {'kohustuslik keha-väli puudub' if method == 'POST' else 'AJ päis puudub või ei vasta userCode-le'}. HTTP {errors[0][0]}:\n\n```json\n{json_text(errors[0][1]).strip()}\n```\n")
+        error_status, error_body = next(((s, e) for s, e in errors if s == 400 and e['error'].startswith('MISSING')), errors[0])
+        if method == "POST":
+            faulty = f"curl -i -X POST 'https://dev.liiklusvalve.ee/developer{mock_path}' -H 'Content-Type: application/json' -H 'X-Road-Client: {CLIENT}' -d '{{}}'"
+        elif name == "findUsage":
+            faulty = f"curl -i 'https://dev.liiklusvalve.ee/developer{mock_path}?userCode={SUCCESS_PERSON}'"
+        else:
+            faulty = f"curl -i 'https://dev.liiklusvalve.ee/developer{mock_path}' -H 'X-Mock-Scenario: server-error'"
+        sections.append(f"\nVeastsenaariumi käivitatav näide:\n\n```bash\n{faulty}\n```\n\nHTTP {error_status}:\n\n```json\n{json_text(error_body).strip()}\n```\n")
 
 add_test("health is public without session and X-Road headers", "GET", "/health/ready", headers={}, expected={"status": "OK", "mock": True})
 for name in ["isiku-kontroll", "isiku-ettevote-kontrollid"]:

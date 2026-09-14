@@ -53,12 +53,18 @@ HTTP 200:
 }
 ```
 
-Vigane päring: kohustuslik keha-väli puudub. HTTP 500:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/isiku-kontroll' -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' -d '{}'
+```
+
+HTTP 400:
 
 ```json
 {
-  "error": "SERVER_ERROR",
-  "message": "Internal error"
+  "error": "MISSING_PARAMETER",
+  "message": "isikukood is required"
 }
 ```
 
@@ -113,12 +119,18 @@ HTTP 200:
 }
 ```
 
-Vigane päring: kohustuslik keha-väli puudub. HTTP 500:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/isiku-ettevote-kontrollid' -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' -d '{}'
+```
+
+HTTP 400:
 
 ```json
 {
-  "error": "SERVER_ERROR",
-  "message": "Internal error"
+  "error": "MISSING_PARAMETER",
+  "message": "isikukood is required"
 }
 ```
 
@@ -198,12 +210,18 @@ HTTP 200:
 }
 ```
 
-Vigane päring: kohustuslik keha-väli puudub. HTTP 500:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/erakorraline-yv-query' -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' -d '{}'
+```
+
+HTTP 400:
 
 ```json
 {
-  "error": "SERVER_ERROR",
-  "message": "Internal error"
+  "error": "MISSING_PARAMETER",
+  "message": "alates is required"
 }
 ```
 
@@ -229,7 +247,13 @@ HTTP 200:
 }
 ```
 
-Vigane päring: kohustuslik keha-väli puudub. HTTP 400:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/erakorraline-yv-confirm' -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' -d '{}'
+```
+
+HTTP 400:
 
 ```json
 {
@@ -260,12 +284,18 @@ HTTP 200:
 }
 ```
 
-Vigane päring: kohustuslik keha-väli puudub. HTTP 500:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/register-job-inspection' -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' -d '{}'
+```
+
+HTTP 400:
 
 ```json
 {
-  "error": "SERVER_ERROR",
-  "message": "Internal error"
+  "error": "MISSING_PARAMETER",
+  "message": "kontrollija is required"
 }
 ```
 
@@ -291,12 +321,18 @@ HTTP 200:
 }
 ```
 
-Vigane päring: kohustuslik keha-väli puudub. HTTP 500:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/register-job-inspection-v3' -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' -d '{}'
+```
+
+HTTP 400:
 
 ```json
 {
-  "error": "SERVER_ERROR",
-  "message": "Internal error"
+  "error": "MISSING_PARAMETER",
+  "message": "kontrollija is required"
 }
 ```
 
@@ -343,7 +379,13 @@ HTTP 200:
 }
 ```
 
-Vigane päring: AJ päis puudub või ei vasta userCode-le. HTTP 400:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i 'https://dev.liiklusvalve.ee/developer/xroad/v2/findUsage?userCode=60001019906'
+```
+
+HTTP 400:
 
 ```json
 {
@@ -372,7 +414,13 @@ HTTP 200:
 }
 ```
 
-Vigane päring: AJ päis puudub või ei vasta userCode-le. HTTP 500:
+Veastsenaariumi käivitatav näide:
+
+```bash
+curl -i 'https://dev.liiklusvalve.ee/developer/xroad/v2/usagePeriod' -H 'X-Mock-Scenario: server-error'
+```
+
+HTTP 500:
 
 ```json
 {
