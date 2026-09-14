@@ -6,6 +6,15 @@
 
 ## 2026-09-14
 
+### Rahvastikuregistri kodakondsuse täitmise parandus
+
+- Isiku otsimisel rahvastikuregistrist ei täitnud koondvormi/TRAM-kaardi
+  kodakondsuse väli end ära — register tagastab kodakondsuse koodi
+  numbrilise ISO-koodina (nt "233" Eesti kohta), mida ei õnnestunud riigi
+  valikuloendiga sobitada. Kood teisendatakse nüüd valikuloendi koodiks.
+  Kui register tagastab kodakondsuse määramata ("XX"), täidetakse väli
+  valikuga „Määramata".
+
 ### PPA kontrollvormide sisendite ja failide parendused
 
 - Autojuhi ja meeskonnaliikme sisenditel on eraldi tunnused ja valikugrupid,
