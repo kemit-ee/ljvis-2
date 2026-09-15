@@ -287,7 +287,7 @@
     "rsi": "Tehnokontrolli teated RSI",
     "ncr": "Kontrollitulemuse teated NCR",
     "nu": "NU sobimatusteated",
-    "riskScores": "Riskiskoorid",
+    "riskScores": "Riskitasemed",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused"
   },
@@ -1553,10 +1553,10 @@
     "logoAlt": "Euroopa Sotsiaalfond"
   },
   "riskScores": {
-    "title": "Riskiskoorid",
+    "title": "Riskitasemed",
     "companyName": "Veoettevõtja",
     "companyRegCode": "Registrikood",
-    "riskScore": "Riskiskoor",
+    "riskScore": "Riskitase",
     "riskBand": "Riskitase",
     "totalControls": "Kontrolle kokku",
     "filterCompany": "Veoettevõtja",
