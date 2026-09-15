@@ -1,19 +1,17 @@
 {
-  "totalFound": {{#if lihtandmed_v3Response.keha.leitud}}{{lihtandmed_v3Response.keha.leitud}}{{else}}0{{/if}},
+  "totalFound": {{totalFound}},
   "data": [
-    {{#each lihtandmed_v3Response.keha.ettevotjad.item}}
+    {{#each companies}}
     {
       "registryCode": "{{this.ariregistri_kood}}",
-      "companyName": "{{this.ettevotja_nimi}}",
-      "status": "{{this.ettevotja_staatus}}",
-      "statusText": "{{this.ettevotja_staatus_tekstina}}",
-      "legalForm": "{{this.oiguslik_vorm}}",
-      "legalFormText": "{{this.oiguslik_vorm_tekstina}}",
-      "locationCode": "{{this.asukoha_ehak_kood}}",
-      "locationText": "{{this.asukoha_ehak_tekstina}}",
-      "addressCode": "{{this.aadress_ehak_kood}}",
-      "address": "{{this.aadress_ehak_tekstina}}",
-      "addressNormalized": "{{this.aadress_ads_normaliseeritud_taisaadress}}"
+      "companyName": {{#if this.evnimi}}{{{json this.evnimi}}}{{else}}""{{/if}},
+      {{#if this.oiguslik_vorm}}"legalForm": {{{json this.oiguslik_vorm}}},{{/if}}
+      "status": "{{this.staatus}}",
+      "statusText": {{#if this.staatus_tekstina}}{{{json this.staatus_tekstina}}}{{else}}""{{/if}},
+      "address": {{#if this.evaadressid.aadress_ads__ads_normaliseeritud_taisaadress}}{{{json this.evaadressid.aadress_ads__ads_normaliseeritud_taisaadress}}}{{else}}""{{/if}},
+      "street": {{#if this.evaadressid.asukoht_ettevotja_aadressis}}{{{json this.evaadressid.asukoht_ettevotja_aadressis}}}{{else}}""{{/if}},
+      "city": {{#if this.evaadressid.asukoha_ehak_tekstina}}{{{json this.evaadressid.asukoha_ehak_tekstina}}}{{else}}""{{/if}},
+      "postalCode": "{{this.evaadressid.indeks_ettevotja_aadressis}}"
     }{{#unless @last}},{{/unless}}
     {{/each}}
   ]

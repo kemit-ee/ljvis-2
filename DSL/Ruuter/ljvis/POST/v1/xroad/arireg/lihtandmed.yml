@@ -78,18 +78,13 @@ logSuccess:
       source_type: ""
       source_record_id: ""
   result: logResult
-  next: mapResponse
+  next: prepareMapperInput
 
-# Routing through the real Security Server (vs. the old ariregxmlv6.rik.ee
-# HTTPS bypass) means XTR now returns the full X-Road SOAP envelope split
-# into {headers, body}, with every response element namespace-prefixed
-# (e.g. "ns1:lihtandmed_v1Response") — confirmed via a live smoke test
-# against ee-dev/GOV/70000310/arireg. Strip the wrapper/prefixes the same
-# way esindus.yml/paring2.yml already do, so the frontend's existing
-# `raw.lihtandmed_v1Response.keha.*` access keeps working unchanged.
-mapResponse:
+# Unwrap XTR's SOAP body and normalize singleton/array responses before
+# DMapper translates the v1 fields into the application company contract.
+prepareMapperInput:
   assign:
-    mapped_result: >-
+    mapper_input: >-
       ${(function(){
         function stripNs(v) {
           if (Array.isArray(v)) return v.map(stripNs);
@@ -107,9 +102,34 @@ mapResponse:
         var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
         var responseKey = Object.keys(soapBody).find(function(k) { return k.endsWith('lihtandmed_v1Response'); });
         var responseNode = responseKey ? stripNs(soapBody[responseKey]) : {keha: {leitud_ettevotjate_arv: '0'}};
-        return {lihtandmed_v1Response: responseNode};
+        var keha = (responseNode && responseNode.keha) || {};
+        var totalFound = Number(keha.leitud_ettevotjate_arv || 0);
+        var items = keha.ettevotjad && keha.ettevotjad.item;
+        var companies = totalFound > 0 && items ? (Array.isArray(items) ? items : [items]) : [];
+        return {totalFound: totalFound, companies: companies};
       })()}
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/arireg_lihtandmed_response"
+    headers:
+      type: json
+    body: ${mapper_input}
+  result: mapped
+  next: checkMapperStatus
+
+checkMapperStatus:
+  switch:
+    - condition: "${mapped.response.status < 200 || mapped.response.status >= 300}"
+      next: returnMappingError
   next: returnResponse
+
+returnMappingError:
+  status: 502
+  return: '{"error": "MAPPING_ERROR", "message": "Äriregistri vastuse teisendamine ebaõnnestus"}'
+  next: end
 
 logFailure:
   call: http.post
@@ -131,7 +151,7 @@ logFailure:
   next: returnError
 
 returnResponse:
-  return: ${mapped_result}
+  return: ${mapped.response.body}
   status: 200
   next: end
 

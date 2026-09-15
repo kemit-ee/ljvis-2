@@ -9,29 +9,9 @@ import type {
 } from './types';
 import { mapRrCitizenshipToCountryCode } from './isoNumericCountryCodes';
 
-interface LihtandmedCompanyRaw {
-  ariregistri_kood: string;
-  evnimi: string;
-  oiguslik_vorm?: string;
-  staatus: string;
-  staatus_tekstina: string;
-  evaadressid?: {
-    aadress_ads__ads_normaliseeritud_taisaadress?: string;
-    asukoha_ehak_tekstina?: string;
-    asukoht_ettevotja_aadressis?: string;
-    indeks_ettevotja_aadressis?: string;
-  };
-}
-
-interface LihtandmedRawResponse {
-  lihtandmed_v1Response: {
-    keha: {
-      leitud_ettevotjate_arv: string;
-      ettevotjad?: {
-        item: LihtandmedCompanyRaw | LihtandmedCompanyRaw[];
-      };
-    };
-  };
+interface CompanySearchResponse {
+  totalFound: number;
+  data: XRoadCompany[];
 }
 
 interface AssociatedPersonRaw {
@@ -56,20 +36,6 @@ interface AssociatedPersonsRawResponse {
   };
 }
 
-function mapCompany(raw: LihtandmedCompanyRaw): XRoadCompany {
-  return {
-    registryCode: raw.ariregistri_kood ?? '',
-    companyName: raw.evnimi ?? '',
-    legalForm: raw.oiguslik_vorm,
-    status: raw.staatus ?? '',
-    statusText: raw.staatus_tekstina ?? '',
-    address: raw.evaadressid?.aadress_ads__ads_normaliseeritud_taisaadress ?? '',
-    street: raw.evaadressid?.asukoht_ettevotja_aadressis ?? '',
-    city: raw.evaadressid?.asukoha_ehak_tekstina ?? '',
-    postalCode: raw.evaadressid?.indeks_ettevotja_aadressis ?? '',
-  };
-}
-
 function mapPerson(raw: AssociatedPersonRaw): XRoadAssociatedPerson {
   return {
     personType: (raw.isiku_tyyp as 'F' | 'J') ?? 'F',
@@ -87,36 +53,24 @@ function mapPerson(raw: AssociatedPersonRaw): XRoadAssociatedPerson {
 export const searchCompanyByRegCode = async (
   registryCode: string,
 ): Promise<XRoadCompany[]> => {
-  const raw = await post<LihtandmedRawResponse>('/v1/xroad/arireg/lihtandmed', {
+  const result = await post<CompanySearchResponse>('/v1/xroad/arireg/lihtandmed', {
     registryCode,
     companyName: null,
     maxResults: null,
   });
-  const keha = raw?.lihtandmed_v1Response?.keha;
-  const leitud = parseInt(keha?.leitud_ettevotjate_arv ?? '0', 10);
-  if (leitud === 0 || !keha?.ettevotjad?.item) return [];
-  const items = Array.isArray(keha.ettevotjad.item)
-    ? keha.ettevotjad.item
-    : [keha.ettevotjad.item];
-  return items.map(mapCompany);
+  return result.data;
 };
 
 export const searchCompanyByName = async (
   companyName: string,
   maxResults = 10,
 ): Promise<XRoadCompany[]> => {
-  const raw = await post<LihtandmedRawResponse>('/v1/xroad/arireg/lihtandmed', {
+  const result = await post<CompanySearchResponse>('/v1/xroad/arireg/lihtandmed', {
     registryCode: null,
     companyName,
     maxResults,
   });
-  const keha = raw?.lihtandmed_v1Response?.keha;
-  const leitud = parseInt(keha?.leitud_ettevotjate_arv ?? '0', 10);
-  if (leitud === 0 || !keha?.ettevotjad?.item) return [];
-  const items = Array.isArray(keha.ettevotjad.item)
-    ? keha.ettevotjad.item
-    : [keha.ettevotjad.item];
-  return items.map(mapCompany);
+  return result.data;
 };
 
 interface RrIsikudRawResponse {
