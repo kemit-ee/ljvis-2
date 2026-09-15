@@ -2731,10 +2731,20 @@ export function CompoundFormCreatePage() {
                         dangerousGoods: JSON.stringify(
                           raw.dangerousGoods ?? [],
                         ),
+                        containerTypes: JSON.stringify(
+                          raw.containerTypes ?? [],
+                        ),
                         infringements: JSON.stringify(
                           (raw.infringements ?? []).filter(
+                            (e) => !!e.inspectionStatus,
+                          ),
+                        ),
+                        otherInfringements: JSON.stringify(
+                          (raw.otherInfringements ?? []).filter(
                             (e) =>
-                              !!(e as { checkStatus?: string }).checkStatus,
+                              !!e.title ||
+                              !!e.inspectionStatus ||
+                              e.records.length > 0,
                           ),
                         ),
                         correctiveMeasures: JSON.stringify(
