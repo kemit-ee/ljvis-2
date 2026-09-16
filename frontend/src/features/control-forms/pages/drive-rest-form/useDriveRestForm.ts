@@ -117,6 +117,9 @@ export function serializeDriveRestFormValues(
     enforcementDecision: sanitizeText(values.enforcementDecision as string),
     proceedingClosureBasis: sanitizeText(values.proceedingClosureBasis as string),
     notes: sanitizeText(values.notes as string),
+    liiniNumber: sanitizeText(values.liiniNumber as string),
+    liiniNimetus: sanitizeText(values.liiniNimetus as string),
+    proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber as string),
   };
 }
 

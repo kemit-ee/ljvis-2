@@ -179,6 +179,8 @@ export function useTechnicalCheckForm(
           partsSummary: JSON.stringify(values.partsSummary ?? []),
           partsDefects: JSON.stringify(values.partsDefects ?? []),
           violations: JSON.stringify(values.violations ?? []),
+          proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber),
+          trailerRegNr: sanitizeText(values.trailerRegNr),
           notes: sanitizeText(values.notes),
           enforcementDecision: sanitizeText(values.enforcementDecision),
           proceedingClosureBasis: sanitizeText(values.proceedingClosureBasis),

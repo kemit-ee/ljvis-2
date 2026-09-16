@@ -245,8 +245,13 @@ export function useAdrForm(
             ),
           ),
           correctiveMeasures: JSON.stringify(values.correctiveMeasures ?? []),
-          notes: sanitizeText(values.notes),
+          driverAdrCertificateNumber: sanitizeText(values.driverAdrCertificateNumber),
+          crewAdrCertificateNumber: sanitizeText(values.crewAdrCertificateNumber),
+          assistantAdrCertificateNumber: sanitizeText(values.assistantAdrCertificateNumber),
+          exemptionAdrProvision: sanitizeText(values.exemptionAdrProvision),
           exemptionNotes: sanitizeText(values.exemptionNotes),
+          proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber),
+          notes: sanitizeText(values.notes),
         } as unknown as AdrForm;
         const result = isConfirming
           ? await confirmAdrForm(payload)
