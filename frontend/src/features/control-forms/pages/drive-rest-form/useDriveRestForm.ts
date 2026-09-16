@@ -18,6 +18,7 @@ import {
   confirmDriveRestForm,
   publishDriveRestForm,
 } from '../../api';
+import { sanitizeText } from '../../formTextUtils';
 
 export type FormAuthority = 'PPA' | 'TRAM';
 
@@ -112,6 +113,10 @@ export function serializeDriveRestFormValues(
     erruPoints: Array.isArray(values.erruPoints)
       ? JSON.stringify(values.erruPoints)
       : (values.erruPoints ?? '[]'),
+    atpViolationDescription: sanitizeText(values.atpViolationDescription as string),
+    enforcementDecision: sanitizeText(values.enforcementDecision as string),
+    proceedingClosureBasis: sanitizeText(values.proceedingClosureBasis as string),
+    notes: sanitizeText(values.notes as string),
   };
 }
 

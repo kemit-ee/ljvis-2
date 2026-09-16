@@ -13,6 +13,7 @@ import {
 import type { Organisation } from '../../../organisations/types';
 import { listOrganisations } from '../../../organisations/api';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../formTextUtils';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
@@ -185,6 +186,10 @@ export function useForeignViolationForm(
           penaltyExpiredOrProcessed: String(values.penaltyExpiredOrProcessed ?? false),
           foreignAuthorityProposal: String(values.foreignAuthorityProposal ?? false),
           notifyCarrier: String(values.notifyCarrier ?? false),
+          violationDescription: sanitizeText(values.violationDescription as string),
+          sanctionNotes: sanitizeText(values.sanctionNotes as string),
+          notes: sanitizeText(values.recommendedMeasureGeneralNotes as string),
+          adminProcedureDecision: sanitizeText(values.adminProcedureDecision as string),
         };
         const payload = {
           ...trimmedValues,

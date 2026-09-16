@@ -13,6 +13,7 @@ import type {
 } from '../../types';
 import { confirmAdrForm, saveAdrForm, publishAdrForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../formTextUtils';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 import {
   EMPTY_ADR_RECORD,
@@ -244,6 +245,8 @@ export function useAdrForm(
             ),
           ),
           correctiveMeasures: JSON.stringify(values.correctiveMeasures ?? []),
+          notes: sanitizeText(values.notes),
+          exemptionNotes: sanitizeText(values.exemptionNotes),
         } as unknown as AdrForm;
         const result = isConfirming
           ? await confirmAdrForm(payload)

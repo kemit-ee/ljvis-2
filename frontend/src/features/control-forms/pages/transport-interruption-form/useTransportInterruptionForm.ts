@@ -12,6 +12,7 @@ import {
   publishTransportInterruptionForm,
 } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../formTextUtils';
 
 const DEFAULT_TERMINATION_CONDITION =
   'KUNI VEO KATKESTAMISE ALUSE ÄRALANGEMISENI.';
@@ -119,6 +120,10 @@ export function useTransportInterruptionForm(
           id: form?.id ?? '',
           compoundFormKey: overrideKey ?? values.compoundFormKey,
           legalBases: JSON.stringify(values.legalBases ?? []),
+          headerText: sanitizeText(values.headerText),
+          interruptionReason: sanitizeText(values.interruptionReason),
+          terminationCondition: sanitizeText(values.terminationCondition),
+          personApplications: sanitizeText(values.personApplications),
         } as unknown as TransportInterruptionForm;
         const result = isConfirming
           ? await confirmTransportInterruptionForm(payload)

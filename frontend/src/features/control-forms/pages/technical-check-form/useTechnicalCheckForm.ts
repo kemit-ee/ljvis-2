@@ -12,6 +12,7 @@ import type {
   PartSeverity,
 } from '../../types';
 import { confirmTechnicalCheckForm, saveTechnicalCheckForm, publishTechnicalCheckForm } from '../../api';
+import { sanitizeText } from '../../formTextUtils';
 import { applyValidationError } from '../../../../shared/api/errors';
 
 /** Parts excluded from the trailer variant (LJVIS2-72 §0/§4). */
@@ -178,6 +179,9 @@ export function useTechnicalCheckForm(
           partsSummary: JSON.stringify(values.partsSummary ?? []),
           partsDefects: JSON.stringify(values.partsDefects ?? []),
           violations: JSON.stringify(values.violations ?? []),
+          notes: sanitizeText(values.notes),
+          enforcementDecision: sanitizeText(values.enforcementDecision),
+          proceedingClosureBasis: sanitizeText(values.proceedingClosureBasis),
         } as unknown as TechnicalCheckForm;
         compoundFormKeyOverride.current = undefined;
         const result = isConfirming

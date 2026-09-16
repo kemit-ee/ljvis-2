@@ -16,6 +16,7 @@ import {
 import type { FormAuthority } from '../drive-rest-form/useDriveRestForm';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../formTextUtils';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';
@@ -484,6 +485,7 @@ export function useCompoundForm(
           driver1PersonalCodeForeign: driver1?.personalCodeForeign || '',
           driver2PersonalCodeEe: driver2?.personalCodeEe || '',
           driver2PersonalCodeForeign: driver2?.personalCodeForeign || '',
+          roadTaxNotes: sanitizeText(values.roadTaxNotes),
         };
         if (values.id) {
           if (nextStatus === 'confirmed') {
