@@ -81,10 +81,6 @@ export function serializeDriveRestFormValues(
     // subForm.form snapshot into the save draft (e.g. createSaveAllHandler's
     // draftRef.current ?? subForm.form fallback) can pass the original DB boolean
     // straight through — normalize here, the single chokepoint all save paths share.
-    atpViolationFound:
-      typeof values.atpViolationFound === 'boolean'
-        ? String(values.atpViolationFound)
-        : (values.atpViolationFound ?? 'false'),
     transportClasses: Array.isArray(values.transportClasses)
       ? JSON.stringify(values.transportClasses)
       : (values.transportClasses ?? '[]'),
