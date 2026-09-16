@@ -451,7 +451,7 @@
               "pm.test('personApplications is uppercased', () => pm.expect(body.personApplications).to.eql('CI PERSON APPLICATION'));",
               "pm.test('residenceAddressLine is uppercased', () => pm.expect(body.residenceAddressLine).to.eql('CI TEST STREET 1'));",
               "pm.test('terminationCondition defaulted', () => pm.expect(body.terminationCondition).to.eql('KUNI VEO KATKESTAMISE ALUSE ÄRALANGEMISENI.'));",
-              "pm.test('legalBases contains selected code', () => pm.expect(JSON.parse(body.legalBases)).to.include('autovs_51_lg3_p1'));",
+              "pm.test('legalBases contains selected code', () => pm.expect(Array.isArray(body.legalBases) ? body.legalBases : JSON.parse(body.legalBases)).to.include('autovs_51_lg3_p1'));",
               "pm.test('subFormNumber matches created id', () => pm.expect(body.subFormNumber).to.eql(pm.environment.get('created_kv_sub_form_number')));",
               "pm.test('compoundFormKey matches', () => pm.expect(Number(body.compoundFormKey)).to.eql(Number(pm.environment.get('created_kv_compound_key'))));"
             ]
@@ -547,7 +547,7 @@
               "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('terminationCondition custom value is uppercased', () => pm.expect(body.terminationCondition).to.eql('KUNI ASJAOLUD ARA LANGEVAD'));",
               "pm.test('all 4 legalBases codes stored', () => {",
-              "  var bases = JSON.parse(body.legalBases);",
+              "  var bases = Array.isArray(body.legalBases) ? body.legalBases : JSON.parse(body.legalBases);",
               "  ['autovs_51_lg3_p1','autovs_51_lg3_p2','autovs_51_lg3_p3','autovs_51_lg3_p4'].forEach(code => pm.expect(bases).to.include(code));",
               "});"
             ]
