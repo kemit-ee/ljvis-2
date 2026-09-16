@@ -125,7 +125,7 @@ export function AdrFormPage() {
     return tabErrors[tabId] ?? false;
   };
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
 
   const containerWidth = useContainerWidth(isDesktop, openTabs);
 

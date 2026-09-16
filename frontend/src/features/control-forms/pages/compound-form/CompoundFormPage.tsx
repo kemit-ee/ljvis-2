@@ -160,7 +160,7 @@ export function CompoundFormPage() {
     }
   }, [form?.status]);
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
 
   useEffect(() => {
     if (!form?.id) return;
@@ -338,6 +338,10 @@ export function CompoundFormPage() {
   const canEdit = isAdmin && form?.status !== 'deleted';
 
   const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
+  const getSubFormsStatusRef = useRef({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
+  useEffect(() => {
+    getSubFormsStatusRef.current = { openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption };
+  });
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
@@ -420,6 +424,7 @@ export function CompoundFormPage() {
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
+    triggerSaveAfterSubFormDelete,
   } = useCompoundForm(
     form ?? undefined,
     handleEditSaved,
@@ -427,6 +432,11 @@ export function CompoundFormPage() {
     subFormsAllConfirmedOrPublished,
     () => { setVersionsRefreshKey((k) => k + 1); refetch(); },
     handlePublished,
+    undefined,
+    () => {
+      const result = getSubFormsStatus(getSubFormsStatusRef.current);
+      return { allConfirmedOrPublished: result.subFormsAllConfirmedOrPublished, allPublished: result.subFormsAllPublished };
+    },
   );
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm: form, triggerConfirm });
@@ -454,7 +464,12 @@ export function CompoundFormPage() {
     setActiveTab,
     checkAndAutoConfirm: checkAndAutoConfirmCompound,
     navigateAfterRemove: () => { navigate(`/control-forms/compound/${id}`); window.scrollTo(0, 0); },
-    onEditActiveChange: setIsEditActive,
+    onEditActiveChange: (_anySaved: boolean, allPublished: boolean) => {
+      setIsEditActive(!allPublished && form?.status === 'saved');
+      if (form?.status === 'saved' || (form?.status === 'confirmed' && allPublished)) {
+        triggerSaveAfterSubFormDelete(allPublished);
+      }
+    },
     onTrailerRemoved: (index: number) => formik.setFieldValue('trailers', formik.values.trailers.filter((_: Trailer, i: number) => i !== index)),
     onTrailerRemovedSave: undefined,
     onTrailerDeletionDeferred: (idx, subFormId, subFormNumber, status) => {

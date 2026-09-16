@@ -107,6 +107,7 @@ export function useCompoundForm(
   onResetToSaved?: () => void,
   onPublished?: () => void,
   authority: FormAuthority = 'PPA',
+  getSubFormsStatus?: () => { allConfirmedOrPublished: boolean; allPublished: boolean },
 ) {
   const { t } = useTranslation();
   const { user: authUser, permissions } = useAuth();
@@ -125,10 +126,40 @@ export function useCompoundForm(
   const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
   const pendingPreserveStatus = useRef(false);
+  const pendingOverrideAllPublished = useRef<boolean | null>(null);
   const subFormsAllConfirmedOrPublishedRef = useRef(subFormsAllConfirmedOrPublished);
+  const subFormsAllPublishedRef = useRef(false);
   useEffect(() => {
     subFormsAllConfirmedOrPublishedRef.current = subFormsAllConfirmedOrPublished;
   });
+
+  const syncSubFormsStatus = () => {
+    if (pendingOverrideAllPublished.current !== null) {
+      subFormsAllPublishedRef.current = pendingOverrideAllPublished.current;
+      subFormsAllConfirmedOrPublishedRef.current = pendingOverrideAllPublished.current || (subFormsAllConfirmedOrPublishedRef.current ?? false);
+      pendingOverrideAllPublished.current = null;
+    } else if (getSubFormsStatus) {
+      const { allConfirmedOrPublished, allPublished } = getSubFormsStatus();
+      subFormsAllConfirmedOrPublishedRef.current = allConfirmedOrPublished;
+      subFormsAllPublishedRef.current = allPublished;
+    }
+  };
+
+  const resolveNextStatus = (isConfirming: boolean, forceSaved: boolean, preserveStatus: boolean): string => {
+    syncSubFormsStatus();
+    const allPublished = subFormsAllPublishedRef.current;
+    const allConfirmedOrPublished = subFormsAllConfirmedOrPublishedRef.current;
+    const currentStatus = form?.status;
+    const canEscalate = !isConfirming && !forceSaved;
+    const isReconfirmedEdit = (canEscalate && currentStatus === 'confirmed' && (allConfirmedOrPublished ?? true) && !allPublished) || (preserveStatus && currentStatus === 'confirmed' && !allPublished);
+    const isRepublishedEdit = (canEscalate && (currentStatus === 'published' || (currentStatus === 'confirmed' && allPublished)) && (allConfirmedOrPublished ?? true)) || (preserveStatus && currentStatus === 'published');
+    const isSavedRepublishedEdit = canEscalate && currentStatus === 'saved' && allPublished;
+    const isSavedConfirmedEdit = canEscalate && currentStatus === 'saved' && (allConfirmedOrPublished ?? false) && !allPublished;
+    if (isConfirming || isReconfirmedEdit || isSavedConfirmedEdit) return 'confirmed';
+    if (isRepublishedEdit || isSavedRepublishedEdit) return 'published';
+    return 'saved';
+  };
+
   const { getByCode, getChildren } = useClassifiers();
 
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
@@ -426,15 +457,7 @@ export function useCompoundForm(
           onPublished?.();
           return;
         }
-        const isReconfirmedEdit = (!isConfirming && !forceSaved && form?.status === 'confirmed' && (subFormsAllConfirmedOrPublishedRef.current ?? true)) || (preserveStatus && form?.status === 'confirmed');
-        const isRepublishedEdit = (!isConfirming && !forceSaved && form?.status === 'published' && (subFormsAllConfirmedOrPublishedRef.current ?? true)) || (preserveStatus && form?.status === 'published');
-        const nextStatus = isConfirming
-          ? 'confirmed'
-          : isReconfirmedEdit
-            ? 'confirmed'
-            : isRepublishedEdit
-              ? 'published'
-              : 'saved';
+        const nextStatus = resolveNextStatus(isConfirming, forceSaved, preserveStatus);
         const driver1 = values.drivers[0];
         const driver2 = values.drivers[1];
         const trimmedValues = {
@@ -463,17 +486,16 @@ export function useCompoundForm(
           driver2PersonalCodeForeign: driver2?.personalCodeForeign || '',
         };
         if (values.id) {
-          if (isConfirming || isReconfirmedEdit) {
+          if (nextStatus === 'confirmed') {
             await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else if (isPublishing) {
             await api.publish(values.id);
             onPublished?.();
-          } else if (isRepublishedEdit) {
+          } else if (nextStatus === 'published') {
             await api.save(trimmedValues as unknown as CompoundForm);
             onPublished?.();
-          }
-          else {
+          } else {
             await api.save(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();
@@ -533,6 +555,12 @@ export function useCompoundForm(
 
   const triggerSaveAsSaved = () => {
     pendingForceSaved.current = true;
+    formik.submitForm();
+  };
+
+  const triggerSaveAfterSubFormDelete = (allRemainingPublished: boolean) => {
+    pendingOverrideAllPublished.current = allRemainingPublished;
+    if (!allRemainingPublished) pendingForceSaved.current = true;
     formik.submitForm();
   };
 
@@ -869,6 +897,7 @@ export function useCompoundForm(
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
+    triggerSaveAfterSubFormDelete,
     triggerSaveWithCurrentStatus,
     availableForms,
   };

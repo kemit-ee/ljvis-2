@@ -111,7 +111,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
   const adr = useSubForm<AdrForm, AdrFormEditCardRef>({ permPrefix: 'adr_form' });
   const transportInterruption = useSubForm<TransportInterruptionForm, TransportInterruptionFormEditCardRef>({ permPrefix: 'transport_interruption_form' });
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
 
   const containerWidth = useContainerWidth(isDesktop, openTabs);
 
