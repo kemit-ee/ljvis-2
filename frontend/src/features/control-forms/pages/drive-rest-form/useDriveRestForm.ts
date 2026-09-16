@@ -19,6 +19,7 @@ import {
   confirmDriveRestForm,
   publishDriveRestForm,
 } from '../../api';
+import { sanitizeText } from '../../formTextUtils';
 
 export type FormAuthority = 'PPA' | 'TRAM';
 
@@ -119,9 +120,18 @@ export function serializeDriveRestFormValues(
     massDimensionMeasurements: Array.isArray(values.massDimensionMeasurements)
       ? JSON.stringify(values.massDimensionMeasurements)
       : (values.massDimensionMeasurements ?? '[]'),
+    massDimensionNonCompliant: String(values.massDimensionNonCompliant ?? false),
+    atpViolationFound: String(values.atpViolationFound ?? false),
     erruPoints: Array.isArray(values.erruPoints)
       ? JSON.stringify(values.erruPoints)
       : (values.erruPoints ?? '[]'),
+    atpViolationDescription: sanitizeText(values.atpViolationDescription as string),
+    enforcementDecision: sanitizeText(values.enforcementDecision as string),
+    proceedingClosureBasis: sanitizeText(values.proceedingClosureBasis as string),
+    notes: sanitizeText(values.notes as string),
+    liiniNumber: sanitizeText(values.liiniNumber as string),
+    liiniNimetus: sanitizeText(values.liiniNimetus as string),
+    proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber as string),
   };
 }
 

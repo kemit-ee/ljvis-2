@@ -13,6 +13,7 @@ import {
 import type { Organisation } from '../../../organisations/types';
 import { listOrganisations } from '../../../organisations/api';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../formTextUtils';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
@@ -185,6 +186,32 @@ export function useForeignViolationForm(
           penaltyExpiredOrProcessed: String(values.penaltyExpiredOrProcessed ?? false),
           foreignAuthorityProposal: String(values.foreignAuthorityProposal ?? false),
           notifyCarrier: String(values.notifyCarrier ?? false),
+          inspectionAddressLine1: sanitizeText(values.inspectionAddressLine1),
+          inspectionAddressLine2: sanitizeText(values.inspectionAddressLine2),
+          inspectionRegion: sanitizeText(values.inspectionRegion),
+          inspectionCity: sanitizeText(values.inspectionCity),
+          companyRegCode: sanitizeText(values.companyRegCode),
+          companyName: sanitizeText(values.companyName),
+          companyAddressLine1: sanitizeText(values.companyAddressLine1),
+          companyAddressLine2: sanitizeText(values.companyAddressLine2 as string),
+          companyCity: sanitizeText(values.companyCity),
+          companyPostalCode: sanitizeText(values.companyPostalCode),
+          driverFirstName: sanitizeText(values.driverFirstName),
+          driverLastName: sanitizeText(values.driverLastName),
+          vehicleRegNr: sanitizeText(values.vehicleRegNr),
+          vehicleMake: sanitizeText(values.vehicleMake),
+          vehicleModel: sanitizeText(values.vehicleModel),
+          vehicleVin: sanitizeText(values.vehicleVin),
+          vehicleBodyType: sanitizeText(values.vehicleBodyType),
+          licenceCopyNumber: sanitizeText(values.licenceCopyNumber),
+          recommendedMeasureNotes: sanitizeText(values.recommendedMeasureNotes),
+          inspectorFirstName: sanitizeText(values.inspectorFirstName),
+          inspectorLastName: sanitizeText(values.inspectorLastName),
+          inspectorProfession: sanitizeText(values.inspectorProfession),
+          violationDescription: sanitizeText(values.violationDescription as string),
+          sanctionNotes: sanitizeText(values.sanctionNotes as string),
+          notes: sanitizeText(values.recommendedMeasureGeneralNotes as string),
+          adminProcedureDecision: sanitizeText(values.adminProcedureDecision as string),
         };
         const payload = {
           ...trimmedValues,

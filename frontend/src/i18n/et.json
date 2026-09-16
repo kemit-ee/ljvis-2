@@ -1528,7 +1528,7 @@
     "clear": "Tühista filtrid",
     "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
     "deleteTrailerSubConfirmTitle": "Haagise eemaldamine ja alamvormi kustutamine",
-    "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada?",
+    "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada? Lõplikult rakenduvad muudatused pärast \"Salvesta\" vajutamist vormil.",
     "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
     "print": "Prindi",
     "printFilled": "Prindi täidetud vorm",

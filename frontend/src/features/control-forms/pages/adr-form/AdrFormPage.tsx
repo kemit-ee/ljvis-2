@@ -43,7 +43,7 @@ import {
   createDriveRestValidationSchema,
 } from '../drive-rest-form/useDriveRestForm';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm';
-import { createAdrValidationSchema } from './useAdrForm';
+import { createAdrValidationSchema, serializeAdrFormPayload } from './useAdrForm';
 import type { DriveRestForm, TechnicalCheckForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Trailer } from '../../types';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
@@ -125,7 +125,7 @@ export function AdrFormPage() {
     return tabErrors[tabId] ?? false;
   };
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
 
   const containerWidth = useContainerWidth(isDesktop, openTabs);
 
@@ -512,9 +512,7 @@ export function AdrFormPage() {
         subForm: adr as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
         schema: createAdrValidationSchema(t) as ReturnType<typeof createAdrValidationSchema>,
         fallbackSave: (draft) => {
-          const d = draft as AdrForm;
-          const isBlank = (obj: Record<string, unknown>) => Object.values(obj).every((v) => v == null || v === '');
-          const payload = { ...d, driverAssistant: d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>) ? JSON.stringify(d.driverAssistant) : '', lastLoadAddress: d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>) ? JSON.stringify(d.lastLoadAddress) : '', nextLoadAddress: d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>) ? JSON.stringify(d.nextLoadAddress) : '', dangerousGoods: JSON.stringify(d.dangerousGoods ?? []), containerTypes: JSON.stringify(d.containerTypes ?? []), infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!e.inspectionStatus)), otherInfringements: JSON.stringify((d.otherInfringements ?? []).filter((e) => !!e.title || !!e.inspectionStatus || e.records.length > 0)), correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []) } as unknown as AdrForm;
+          const payload = serializeAdrFormPayload(draft as AdrForm);
           saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); refetchAdr(() => { adr.draftRef.current = null; adr.setDraft(null); }); handleSubformEditActive(); }).catch(console.error);
         },
       },

@@ -73,17 +73,29 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
           authority={authority}
           initialData={form}
           compoundFormKey={compoundFormKey}
-          onSaved={(id) => { setVersionsRefreshKey((k) => k + 1); onSaved(id); }}
+          onSaved={(id) => {
+            setVersionsRefreshKey((k) => k + 1);
+            onSaved(id);
+          }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}
           ref={(ref) => {
             formRef.current = ref;
           }}
         />
-        {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
+        {form.id && (
+          <FormVersionsTable
+            formId={form.id}
+            formType={formType}
+            refreshKey={versionsRefreshKey}
+          />
+        )}
         <div className="confirm-button">
-          <div>
-            <FormPrintButton endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`} id={form.id} />
+          <div className="page-actions-buttons">
+            <FormPrintButton
+              endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`}
+              id={form.id}
+            />
             {canConfirm && (
               <Button
                 type="button"

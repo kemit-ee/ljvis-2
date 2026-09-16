@@ -88,8 +88,11 @@ export const TechnicalCheckFormEditCard = forwardRef<
           />
         )}
         <div className="confirm-button">
-          <div>
-            <FormPrintButton endpoint={`/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`} id={form.id} />
+          <div className="page-actions-buttons">
+            <FormPrintButton
+              endpoint={`/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`}
+              id={form.id}
+            />
             {canConfirm && (
               <Button
                 type="button"

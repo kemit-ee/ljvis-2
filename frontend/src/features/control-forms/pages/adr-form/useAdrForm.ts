@@ -13,6 +13,7 @@ import type {
 } from '../../types';
 import { confirmAdrForm, saveAdrForm, publishAdrForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../formTextUtils';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 import {
   EMPTY_ADR_RECORD,
@@ -21,6 +22,37 @@ import {
 } from './adrRecordUtils';
 
 const NOTES_MAX_LENGTH = 4000;
+
+export function serializeAdrFormPayload(d: AdrForm): AdrForm {
+  const isBlank = (obj: Record<string, unknown>) =>
+    Object.values(obj).every((v) => v == null || v === '');
+  return {
+    ...d,
+    driverAssistant:
+      d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>)
+        ? JSON.stringify(d.driverAssistant)
+        : '',
+    lastLoadAddress:
+      d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>)
+        ? JSON.stringify(d.lastLoadAddress)
+        : '',
+    nextLoadAddress:
+      d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>)
+        ? JSON.stringify(d.nextLoadAddress)
+        : '',
+    dangerousGoods: JSON.stringify(d.dangerousGoods ?? []),
+    containerTypes: JSON.stringify(d.containerTypes ?? []),
+    infringements: JSON.stringify(
+      (d.infringements ?? []).filter((e) => !!(e as { inspectionStatus?: string }).inspectionStatus),
+    ),
+    otherInfringements: JSON.stringify(
+      (d.otherInfringements ?? []).filter(
+        (e) => !!e.title || !!e.inspectionStatus || e.records.length > 0,
+      ),
+    ),
+    correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []),
+  } as unknown as AdrForm;
+}
 
 export function createAdrValidationSchema(t: (key: string, opts?: Record<string, unknown>) => string) {
   return Yup.object({
@@ -213,6 +245,13 @@ export function useAdrForm(
             ),
           ),
           correctiveMeasures: JSON.stringify(values.correctiveMeasures ?? []),
+          driverAdrCertificateNumber: sanitizeText(values.driverAdrCertificateNumber),
+          crewAdrCertificateNumber: sanitizeText(values.crewAdrCertificateNumber),
+          assistantAdrCertificateNumber: sanitizeText(values.assistantAdrCertificateNumber),
+          exemptionAdrProvision: sanitizeText(values.exemptionAdrProvision),
+          exemptionNotes: sanitizeText(values.exemptionNotes),
+          proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber),
+          notes: sanitizeText(values.notes),
         } as unknown as AdrForm;
         const result = isConfirming
           ? await confirmAdrForm(payload)

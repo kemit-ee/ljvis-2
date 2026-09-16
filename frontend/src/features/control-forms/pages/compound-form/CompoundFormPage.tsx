@@ -59,7 +59,7 @@ import {
   createDriveRestValidationSchema,
 } from '../drive-rest-form/useDriveRestForm';
 import { createTechnicalCheckValidationSchema } from '../technical-check-form/useTechnicalCheckForm.ts';
-import { createAdrValidationSchema } from '../adr-form/useAdrForm';
+import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/useAdrForm';
 import {
   TechnicalCheckFormEditCard,
   type TechnicalCheckFormEditCardRef,
@@ -160,7 +160,7 @@ export function CompoundFormPage() {
     }
   }, [form?.status]);
 
-  const handleSubformEditActive = useSubFormEditActive({ driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
+  const handleSubformEditActive = useSubFormEditActive({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption, hasPermission });
 
   useEffect(() => {
     if (!form?.id) return;
@@ -338,6 +338,10 @@ export function CompoundFormPage() {
   const canEdit = isAdmin && form?.status !== 'deleted';
 
   const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
+  const getSubFormsStatusRef = useRef({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
+  useEffect(() => {
+    getSubFormsStatusRef.current = { openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption };
+  });
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
@@ -378,6 +382,7 @@ export function CompoundFormPage() {
     setShowPublishedAlert(true);
     setVersionsRefreshKey((k) => k + 1);
     refetch();
+    window.scrollTo(0, 0);
   };
 
   const {
@@ -419,6 +424,7 @@ export function CompoundFormPage() {
     triggerConfirm,
     triggerPublish,
     triggerSaveAsSaved,
+    triggerSaveAfterSubFormDelete,
   } = useCompoundForm(
     form ?? undefined,
     handleEditSaved,
@@ -426,6 +432,11 @@ export function CompoundFormPage() {
     subFormsAllConfirmedOrPublished,
     () => { setVersionsRefreshKey((k) => k + 1); refetch(); },
     handlePublished,
+    undefined,
+    () => {
+      const result = getSubFormsStatus(getSubFormsStatusRef.current);
+      return { allConfirmedOrPublished: result.subFormsAllConfirmedOrPublished, allPublished: result.subFormsAllPublished };
+    },
   );
 
   const checkAndAutoConfirmCompound = makeCheckAndAutoConfirm({ compoundForm: form, triggerConfirm });
@@ -453,7 +464,12 @@ export function CompoundFormPage() {
     setActiveTab,
     checkAndAutoConfirm: checkAndAutoConfirmCompound,
     navigateAfterRemove: () => { navigate(`/control-forms/compound/${id}`); window.scrollTo(0, 0); },
-    onEditActiveChange: setIsEditActive,
+    onEditActiveChange: (_anySaved: boolean, allPublished: boolean) => {
+      setIsEditActive(!allPublished && form?.status === 'saved');
+      if (form?.status === 'saved' || (form?.status === 'confirmed' && allPublished)) {
+        triggerSaveAfterSubFormDelete(allPublished);
+      }
+    },
     onTrailerRemoved: (index: number) => formik.setFieldValue('trailers', formik.values.trailers.filter((_: Trailer, i: number) => i !== index)),
     onTrailerRemovedSave: undefined,
     onTrailerDeletionDeferred: (idx, subFormId, subFormNumber, status) => {
@@ -517,19 +533,7 @@ export function CompoundFormPage() {
         subForm: adr as SubFormHandle<unknown, { save: () => void; validateForm?: () => void }>,
         schema: createAdrValidationSchema(t) as ReturnType<typeof createAdrValidationSchema>,
         fallbackSave: (draft) => {
-          const d = draft as AdrForm;
-          const isBlank = (obj: Record<string, unknown>) => Object.values(obj).every((v) => v == null || v === '');
-          const payload = {
-            ...d,
-            driverAssistant: d.driverAssistant && !isBlank(d.driverAssistant as Record<string, unknown>) ? JSON.stringify(d.driverAssistant) : '',
-            lastLoadAddress: d.lastLoadAddress && !isBlank(d.lastLoadAddress as Record<string, unknown>) ? JSON.stringify(d.lastLoadAddress) : '',
-            nextLoadAddress: d.nextLoadAddress && !isBlank(d.nextLoadAddress as Record<string, unknown>) ? JSON.stringify(d.nextLoadAddress) : '',
-            dangerousGoods: JSON.stringify(d.dangerousGoods ?? []),
-            containerTypes: JSON.stringify(d.containerTypes ?? []),
-            infringements: JSON.stringify((d.infringements ?? []).filter((e) => !!e.inspectionStatus)),
-            otherInfringements: JSON.stringify((d.otherInfringements ?? []).filter((e) => !!e.title || !!e.inspectionStatus || e.records.length > 0)),
-            correctiveMeasures: JSON.stringify(d.correctiveMeasures ?? []),
-          } as unknown as AdrForm;
+          const payload = serializeAdrFormPayload(draft as AdrForm);
           saveAdrForm(payload).then(() => { setShowSavedAlert(true); window.scrollTo(0, 0); if (!adr.form) resetCompoundFormToSaved();
           refetchAdr(() => {
             adr.resetDraft();
