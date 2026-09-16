@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Text, Alert } from '@tedi-design-system/react/tedi';
+import { Heading, Text, Alert, Card } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
@@ -79,11 +79,18 @@ export function LabourInspectionFormCreatePage() {
           onCompanyPicked={onCompanyPicked}
           closeCompanyPicker={closeCompanyPicker}
         />
-        <FileUploadBlock
-          formPath="labour-inspection"
-          disabled
-          label={t('form.files.title')}
-        />
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.shared.files.label')}
+            </Heading>
+            <FileUploadBlock
+              formPath="labour-inspection"
+              disabled
+              label={t('form.files.title')}
+            />
+          </Card.Content>
+        </Card>
 
         <div className="page-actions">
           <div className="page-actions-buttons">

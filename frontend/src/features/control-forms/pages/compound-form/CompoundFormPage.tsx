@@ -9,7 +9,7 @@ import {
   Dropdown,
   StatusIndicator,
   ClosingButton,
-  Heading,
+  Heading, Card,
 } from '@tedi-design-system/react/tedi';
 import { useCompoundForm } from './useCompoundForm';
 import { useCompoundFormDetail } from './useCompoundFormDetail';
@@ -912,7 +912,9 @@ export function CompoundFormPage() {
                               compoundTrailerRegNrs[idx] ||
                               (trailers[idx]?.form as TechnicalCheckForm | null)
                                 ?.trailerRegNr;
-                            const prefix = t('forms.compound.trailerNumber', { number: idx + 1 }).toUpperCase();
+                            const prefix = t('forms.compound.trailerNumber', {
+                              number: idx + 1,
+                            }).toUpperCase();
                             return regNr
                               ? `${prefix} (${regNr}) – ${t('forms.compound.trailerTechnicalTab')}`
                               : `${prefix} – ${t('forms.compound.trailerTechnicalTab')}`;
@@ -958,12 +960,19 @@ export function CompoundFormPage() {
               versionsRefreshKey={versionsRefreshKey}
             />
           )}
-          <FileUploadBlock
-            formPath="compound-form"
-            formNumber={form?.formNumber}
-            disabled={!isEditActive}
-            label={t('form.files.title')}
-          />
+          <Card className="mb-1">
+            <Card.Content>
+              <Heading element="h3" className="mb-1">
+                {t('forms.shared.files.label')}
+              </Heading>
+              <FileUploadBlock
+                formPath="compound-form"
+                formNumber={form?.formNumber}
+                disabled={!isEditActive}
+                label={t('form.files.title')}
+              />
+            </Card.Content>
+          </Card>
           <SelectedFormsNavigation
             tabIds={openTabs}
             labels={tabLabels}

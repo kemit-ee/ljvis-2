@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
+import { Button, Heading, Text, Alert, Card } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -157,12 +157,14 @@ export function LabourInspectionFormPage() {
           </Heading>
         </div>
         <LabourInspectionFormFields
-          formik={{
-            values: snapshot,
-            touched: {},
-            errors: {},
-            setFieldValue: () => Promise.resolve(),
-          } as never}
+          formik={
+            {
+              values: snapshot,
+              touched: {},
+              errors: {},
+              setFieldValue: () => Promise.resolve(),
+            } as never
+          }
           gridClass={gridClass}
           readOnly
           transportTypes={transportTypes}
@@ -173,15 +175,26 @@ export function LabourInspectionFormPage() {
           addViolation={() => {}}
           removeViolation={() => {}}
         />
-        <FileUploadBlock
-          formPath="labour-inspection"
-          formNumber={snapshot.formNumber}
-          disabled
-          label={t('form.files.title')}
-        />
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.shared.files.label')}
+            </Heading>
+            <FileUploadBlock
+              formPath="labour-inspection"
+              formNumber={snapshot.formNumber}
+              disabled
+              label={t('form.files.title')}
+            />
+          </Card.Content>
+        </Card>
         <div className="page-actions">
           <div className="page-actions-buttons">
-            <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" id={id} snapshotId={snapshotId} />
+            <FormPrintButton
+              endpoint="/v1/control-forms/labour-inspection/read/print"
+              id={id}
+              snapshotId={snapshotId}
+            />
           </div>
         </div>
       </div>
@@ -267,13 +280,19 @@ export function LabourInspectionFormPage() {
           onCompanyPicked={onCompanyPicked}
           closeCompanyPicker={closeCompanyPicker}
         />
-        <FileUploadBlock
-          formPath="labour-inspection"
-          formNumber={form.formNumber}
-          disabled={!isEditActive}
-          label={t('form.files.title')}
-        />
-
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.shared.files.label')}
+            </Heading>
+            <FileUploadBlock
+              formPath="labour-inspection"
+              formNumber={form.formNumber}
+              disabled={!isEditActive}
+              label={t('form.files.title')}
+            />
+          </Card.Content>
+        </Card>
         {id && (
           <FormVersionsTable
             formId={id}
@@ -284,7 +303,10 @@ export function LabourInspectionFormPage() {
 
         <div className="page-actions">
           <div className="page-actions-buttons">
-            <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" id={id} />
+            <FormPrintButton
+              endpoint="/v1/control-forms/labour-inspection/read/print"
+              id={id}
+            />
             {isEditActive ? (
               <>
                 <Button

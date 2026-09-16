@@ -1222,7 +1222,9 @@ export function CompoundFormCreatePage() {
                                           handleTrailerSearch(index)
                                         }
                                       >
-                                        {t('forms.compound.searchTrafficRegister')}
+                                        {t(
+                                          'forms.compound.searchTrafficRegister',
+                                        )}
                                       </AsyncButton>
                                     </div>
                                     <div></div>
@@ -1623,10 +1625,7 @@ export function CompoundFormCreatePage() {
                                 ...countries,
                               ]}
                               value={
-                                [
-                                  { value: '', label: '—' },
-                                  ...countries,
-                                ].find(
+                                [{ value: '', label: '—' }, ...countries].find(
                                   (o) =>
                                     o.value ===
                                     formik.values.companyCountryCode,
@@ -1724,10 +1723,12 @@ export function CompoundFormCreatePage() {
                                 value={
                                   [
                                     { value: '', label: '—' },
-                                    ...(companyCitiesParishes ?? []).map((c) => ({
-                                      value: String(c.id),
-                                      label: c.name,
-                                    })),
+                                    ...(companyCitiesParishes ?? []).map(
+                                      (c) => ({
+                                        value: String(c.id),
+                                        label: c.name,
+                                      }),
+                                    ),
                                   ].find(
                                     (o) =>
                                       o.value === formik.values.companyCity,
@@ -2382,11 +2383,18 @@ export function CompoundFormCreatePage() {
                 </Col>
               </Row>
             </form>
-            <FileUploadBlock
-              formPath="compound-form"
-              disabled
-              label={t('form.files.title')}
-            />
+            <Card className="mb-1">
+              <Card.Content>
+                <Heading element="h3" className="mb-1">
+                  {t('forms.shared.files.label')}
+                </Heading>
+                <FileUploadBlock
+                  formPath="compound-form"
+                  disabled
+                  label={t('form.files.title')}
+                />
+              </Card.Content>
+            </Card>
             <SelectedFormsNavigation
               tabIds={openTabs}
               labels={tabLabels}
@@ -2633,7 +2641,9 @@ export function CompoundFormCreatePage() {
                     if (compoundFormIdRef.current) {
                       resolve(compoundFormIdRef.current);
                     } else if (Date.now() - startedAt >= 15000) {
-                      reject(new Error('Compound form save did not return an id'));
+                      reject(
+                        new Error('Compound form save did not return an id'),
+                      );
                     } else {
                       setTimeout(check, 100);
                     }
@@ -2661,8 +2671,13 @@ export function CompoundFormCreatePage() {
               // seega salvestame ta alati enne meeskonnaliiget.
               const orderedTabs = [
                 ROUTE_TO_TAB['/sp-driver'].tabId,
-                ...openTabs.filter((tabId) => tabId !== ROUTE_TO_TAB['/sp-driver'].tabId),
-              ].filter((tabId, index, tabs) => openTabs.includes(tabId) && tabs.indexOf(tabId) === index);
+                ...openTabs.filter(
+                  (tabId) => tabId !== ROUTE_TO_TAB['/sp-driver'].tabId,
+                ),
+              ].filter(
+                (tabId, index, tabs) =>
+                  openTabs.includes(tabId) && tabs.indexOf(tabId) === index,
+              );
               for (const tabId of orderedTabs) {
                 const tabFormRef = formRefs.current[tabId]?.current;
                 if (tabFormRef && tabFormRef.handleSubmit) {

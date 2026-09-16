@@ -1483,7 +1483,7 @@ export function ForeignViolationFormFields({
       <Card className="mb-1">
         <Card.Content>
           <Heading element="h3" className="mb-1">
-            {t('forms.foreign_violation.filesBasicInfo')}
+            {t('forms.shared.files.label')}
           </Heading>
           <FileUploadBlock
             formPath="foreign-violation-form"
