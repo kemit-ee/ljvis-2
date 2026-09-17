@@ -6,7 +6,6 @@ Alusta [X-tee liidestumisest ja turbest](integration.md), seejärel vaata [teenu
 - [Mocki käivitamine oma masinas](lokaalne-mock.md)
 - [Vead ja kasutuselevõtu kontrollnimekiri](errors.md)
 - [OpenAPI ja testikogumikud](artifacts.md)
-- [Senine teenuste publitseerimise juhend](../xtee/00-xtee-teenused-publikatsiooni-juhend.md)
 
 ## Arendaja-mock
 
