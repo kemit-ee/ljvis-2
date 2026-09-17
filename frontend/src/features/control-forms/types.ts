@@ -235,6 +235,7 @@ export interface DriveRestForm {
   spApplicability?: string;
   tachographTypeCode?: string;
   tachographDataNotDownloaded?: boolean;
+  tachographNotes?: string;
   checkedDaysCount?: string;
   workDaysCount?: string;
   otherActivityDaysCount?: string;

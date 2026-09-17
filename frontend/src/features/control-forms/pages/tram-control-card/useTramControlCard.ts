@@ -470,6 +470,7 @@ export function useTramControlCard(
       spApplicability: form?.spApplicability ?? 'not_checked',
       tachographTypeCode: form?.tachographTypeCode ?? '',
       tachographDataNotDownloaded: form?.tachographDataNotDownloaded ?? false,
+      tachographNotes: form?.tachographNotes ?? '',
       checkedDaysCount: form?.checkedDaysCount ?? '',
       workDaysCount: form?.workDaysCount ?? '',
       otherActivityDaysCount: form?.otherActivityDaysCount ?? '',

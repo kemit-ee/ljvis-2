@@ -170,6 +170,9 @@ params:
   tachographDataNotDownloaded:
     type: string
     required: false
+  tachographNotes:
+    type: string
+    required: false
   checkedDaysCount:
     type: string
     required: false
@@ -285,6 +288,7 @@ WITH ins AS (
     sp_applicability,
     tachograph_type_code,
     tachograph_data_not_downloaded,
+    tachograph_notes,
     checked_days_count,
     work_days_count,
     other_activity_days_count,
@@ -361,6 +365,7 @@ WITH ins AS (
     COALESCE(NULLIF(:spApplicability, ''), 'not_checked'),
     NULLIF(:tachographTypeCode, ''),
     COALESCE(NULLIF(:tachographDataNotDownloaded, '') IN ('true', '1', 'yes'), FALSE),
+    NULLIF(:tachographNotes, ''),
     NULLIF(:checkedDaysCount, '')::INTEGER,
     NULLIF(:workDaysCount, '')::INTEGER,
     NULLIF(:otherActivityDaysCount, '')::INTEGER,

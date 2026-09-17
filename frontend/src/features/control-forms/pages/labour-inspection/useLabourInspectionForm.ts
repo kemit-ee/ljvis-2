@@ -41,7 +41,7 @@ export function useLabourInspectionForm(
   );
 
   const violationClassifiers = useMemo(
-    () => getByCode('DRIVING_VIOLATION'),
+    () => getByCode('LABOUR_INSPECTION_VIOLATION'),
     [getByCode],
   );
 
@@ -88,6 +88,8 @@ export function useLabourInspectionForm(
       punishedPersonFirstName: form?.punishedPersonFirstName ?? '',
       punishedPersonLastName: form?.punishedPersonLastName ?? '',
       proceedingReferenceNumber: form?.proceedingReferenceNumber ?? '',
+      enforcementDecision: form?.enforcementDecision ?? '',
+      proceedingClosureBasis: form?.proceedingClosureBasis ?? '',
       violations: form?.violations ?? ([] as ViolationEntry[]),
     },
     validationSchema,

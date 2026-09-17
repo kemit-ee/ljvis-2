@@ -53,6 +53,9 @@ params:
   tachographDataNotDownloaded:
     type: boolean
     required: false
+  tachographNotes:
+    type: string
+    required: false
   checkedDaysCount:
     type: string
     required: false
@@ -136,6 +139,7 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   sp_applicability,
                                   tachograph_type_code,
                                   tachograph_data_not_downloaded,
+                                  tachograph_notes,
                                   checked_days_count,
                                   work_days_count,
                                   other_activity_days_count,
@@ -185,6 +189,7 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         NULLIF(:spApplicability, ''),
         NULLIF(:tachographTypeCode, ''),
         COALESCE(:tachographDataNotDownloaded::BOOLEAN, FALSE),
+        NULLIF(:tachographNotes, ''),
         NULLIF(:checkedDaysCount, '')::INTEGER,
         NULLIF(:workDaysCount, '')::INTEGER,
         NULLIF(:otherActivityDaysCount, '')::INTEGER,

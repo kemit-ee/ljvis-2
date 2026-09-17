@@ -23,6 +23,13 @@ const TRAILER_EXCLUDED_VIOLATIONS = ['MSI203', 'MSI204', 'VSI847', 'SI926'];
 /** The 5 EU_INFRINGEMENT codes shown on the vehicle variant (all of them). */
 const VEHICLE_VIOLATION_CODES = ['MSI203', 'MSI204', 'MSI302', 'VSI847', 'SI926'];
 const DRIVING_BAN_VIOLATION_CODE = 'MSI302';
+/**
+ * CAA_10 (veose kinnitamine) is a cargo-loading/securing violation, not a
+ * vehicle roadworthiness defect — a mark here must never auto-trigger
+ * extraordinary inspection or a driving ban on either the vehicle or trailer
+ * variant. Keep this filter in sync with TechnicalCheckFormFields.tsx.
+ */
+export const AUTO_RESULT_EXCLUDED_PARTS = ['CAA_10'];
 
 const resultLevel = (resultType: string): number => {
   switch (resultType) {
@@ -37,8 +44,9 @@ const resultLevel = (resultType: string): number => {
 };
 
 const computeAutoResult = (defects: PartDefectEntry[]): 'ok' | 'extraordinary_inspection' | 'driving_ban' => {
-  if (defects.some((d) => d.severity === 'EOV')) return 'driving_ban';
-  if (defects.some((d) => d.severity === 'OV')) return 'extraordinary_inspection';
+  const scored = defects.filter((d) => !AUTO_RESULT_EXCLUDED_PARTS.includes(d.partCode));
+  if (scored.some((d) => d.severity === 'EOV')) return 'driving_ban';
+  if (scored.some((d) => d.severity === 'OV')) return 'extraordinary_inspection';
   return 'ok';
 };
 

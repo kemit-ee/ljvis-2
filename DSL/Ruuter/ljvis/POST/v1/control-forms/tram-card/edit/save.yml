@@ -115,6 +115,8 @@ declaration:
         type: string
       - field: tachographDataNotDownloaded
         type: string
+      - field: tachographNotes
+        type: string
       - field: checkedDaysCount
         type: string
       - field: workDaysCount
@@ -202,6 +204,7 @@ extractRequestData:
     sp_applicability: "${incoming.body.spApplicability || ''}"
     tachograph_type_code: "${incoming.body.tachographTypeCode || ''}"
     tachograph_data_not_downloaded: "${String(incoming.body.tachographDataNotDownloaded == null ? 'false' : incoming.body.tachographDataNotDownloaded)}"
+    tachograph_notes: "${incoming.body.tachographNotes}"
     # 0 on legitiimne päevade arv kõigi kolme puhul — vt kilomeeter ülal.
     checked_days_count: "${incoming.body.checkedDaysCount}"
     work_days_count: "${incoming.body.workDaysCount}"
@@ -310,6 +313,7 @@ insertForm:
       spApplicability: ${sp_applicability}
       tachographTypeCode: ${tachograph_type_code}
       tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      tachographNotes: ${tachograph_notes}
       checkedDaysCount: ${checked_days_count}
       workDaysCount: ${work_days_count}
       otherActivityDaysCount: ${other_activity_days_count}
@@ -419,6 +423,7 @@ updateForm:
       spApplicability: ${sp_applicability}
       tachographTypeCode: ${tachograph_type_code}
       tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      tachographNotes: ${tachograph_notes}
       checkedDaysCount: ${checked_days_count}
       workDaysCount: ${work_days_count}
       otherActivityDaysCount: ${other_activity_days_count}

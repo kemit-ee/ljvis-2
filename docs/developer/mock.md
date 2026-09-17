@@ -1,19 +1,5 @@
 # Arendaja-mock ja testimine
 
-## Käivitamine
-
-Tavapärases lokaalses süsteemis:
-
-```bash
-docker compose up -d --build ruuter frontend
-curl --fail http://localhost:3001/developer/health/ready
-```
-
-Mock on projektis `DSL/Ruuter/xtee-mock`. Dockerfile kopeerib selle olemasolevasse Ruuteri pilti ja Compose mountib selle sama instantsi kõrvale.
-Nginx suunab välise `/developer/` prefiksi sisemisele `/xtee-mock/` prefiksile, jättes ülejäänud tee alles.
-
-Dev-keskkonnas mountitav frontend ConfigMap asendab pildi `nginx.conf` faili. Avalikuks juurutuseks peab sama `/developer/` reegel sisalduma ka keskkonna Nginxi konfiguratsioonis. Rakenduse PR üksi ei lisa seda mountitud konfiguratsiooni.
-
 Avalik tervisekontroll:
 
 ```bash
@@ -21,6 +7,8 @@ curl --fail https://dev.liiklusvalve.ee/developer/health/ready
 ```
 
 Edukas vastus on `{"status":"OK","mock":true}`. HTML-vastus või 404 ei ole töötav mock.
+
+Mocki saab käivitada ka oma masinas — vt [lokaalne-mock.md](lokaalne-mock.md).
 
 ## Testtunnused
 
@@ -54,29 +42,12 @@ Praegune päris SQL kasutab `COUNT(*) OVER ()`: kui leht on tühi, annab mapper 
 Negatiivsete/mittearvuliste offset/limit väärtuste ning vigaste kuupäevade SQL-tasemel vigade detailset käitumist mock ei emuleeri; kasuta kehtivaid väärtusi.
 
 ```bash
-curl --fail 'http://localhost:3001/developer/xroad/v2/findUsage?userCode=60001019906&offset=1&limit=1' \
+curl --fail 'https://dev.liiklusvalve.ee/developer/xroad/v2/findUsage?userCode=60001019906&offset=1&limit=1' \
   -H 'X-Road-UserId: 60001019906'
 ```
 
-## Testid ja lepingu sünkroonimine
-
-```bash
-python3 scripts/generate-xtee-mock.py --check
-python3 tests/contract/check_xtee_mock.py
-bash scripts/test-xtee-mock.sh
-```
-
-Generaator kopeerib ainult üheksa lubatud pakutava teenuse valideerimise ja kaardistamise töövoogu. Kõik `http.*` sammud, sh audit, asendatakse mälus olevate vastustega.
-Päris lepingu muutmisel käivita `python3 scripts/generate-xtee-mock.py` ja vaata genereeritud diff üle.
-
-Testid käivad päris Ruuteri `dsl-test` runtime'is, kirjutuskaitstud failidega, ilma välisvõrguta ja ilma `constants.ini` või keskkonnafailide mountimiseta.
-CI kontrollib ka seda, et mock ei sisalda `call`, `template` ega päristeenuste konstante. Mõlemad CI torud käivitavad sama testiskripti.
-
 ## Piirangud
 
-- Ei ole eraldi instants: mock jagab Ruuteri protsessi ja ressursse päris avaliku rakendusega. Projekti eraldamine ei ole konteineri- ega võrguisolatsioon.
-- Mocki DSL ei tee ühtegi väljaminevat päringut. Ühise Ruuteri globaalset outbound-poliitikat ei muudeta, sest rakendus vajab oma taustateenuseid.
 - Salvestamist, auditikirjete loomist, tegelikke õigusi ega pärisandmeid ei ole; korduspäring on deterministlik, mitte andmebaasi idempotentsuse test.
-- Päris kinnitusteenus töötleb SQL-uuendused järjestikku. Mock ei tõenda andmebaasitehingu atomaarsust ega rollback'i.
 - Turvaserveri mTLS-i, sõnumipäiseid, signatuure ja turvaserveri enda veakehasid mock ei emuleeri.
 - Valideerimine lähtub olemasolevast rakenduse DSL-ist, mitte täielikust X-tee või JSON Schema validaatorist.

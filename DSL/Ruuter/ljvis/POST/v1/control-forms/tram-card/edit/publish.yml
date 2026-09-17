@@ -108,6 +108,7 @@ extractCurrentFormFields:
     sp_applicability: "${cur.spApplicability != null ? String(cur.spApplicability) : ''}"
     tachograph_type_code: "${cur.tachographTypeCode != null ? String(cur.tachographTypeCode) : ''}"
     tachograph_data_not_downloaded: "${cur.tachographDataNotDownloaded != null ? String(cur.tachographDataNotDownloaded) : ''}"
+    tachograph_notes: "${cur.tachographNotes != null ? String(cur.tachographNotes) : ''}"
     checked_days_count: "${cur.checkedDaysCount != null ? String(cur.checkedDaysCount) : ''}"
     work_days_count: "${cur.workDaysCount != null ? String(cur.workDaysCount) : ''}"
     other_activity_days_count: "${cur.otherActivityDaysCount != null ? String(cur.otherActivityDaysCount) : ''}"
@@ -187,6 +188,7 @@ publishForm:
       spApplicability: ${sp_applicability}
       tachographTypeCode: ${tachograph_type_code}
       tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      tachographNotes: ${tachograph_notes}
       checkedDaysCount: ${checked_days_count}
       workDaysCount: ${work_days_count}
       otherActivityDaysCount: ${other_activity_days_count}

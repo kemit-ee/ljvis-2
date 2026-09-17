@@ -40,6 +40,8 @@ declaration:
       - field: tachographTypeCode
         type: string
       - field: tachographDataNotDownloaded
+      - field: tachographNotes
+        type: string
       - field: checkedDaysCount
       - field: workDaysCount
       - field: otherActivityDaysCount
@@ -90,6 +92,7 @@ extractRequestData:
     sp_applicability: "${incoming.body.spApplicability}"
     tachograph_type_code: "${incoming.body.tachographTypeCode}"
     tachograph_data_not_downloaded: "${incoming.body.tachographDataNotDownloaded}"
+    tachograph_notes: "${incoming.body.tachographNotes}"
     checked_days_count: "${incoming.body.checkedDaysCount == null ? '' : String(incoming.body.checkedDaysCount)}"
     work_days_count: "${incoming.body.workDaysCount == null ? '' : String(incoming.body.workDaysCount)}"
     other_activity_days_count: "${incoming.body.otherActivityDaysCount == null ? '' : String(incoming.body.otherActivityDaysCount)}"
@@ -148,6 +151,7 @@ insertForm:
       spApplicability: ${sp_applicability}
       tachographTypeCode: ${tachograph_type_code}
       tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      tachographNotes: ${tachograph_notes}
       checkedDaysCount: ${checked_days_count}
       workDaysCount: ${work_days_count}
       otherActivityDaysCount: ${other_activity_days_count}
@@ -269,6 +273,7 @@ updateForm:
       spApplicability: ${sp_applicability}
       tachographTypeCode: ${tachograph_type_code}
       tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      tachographNotes: ${tachograph_notes}
       checkedDaysCount: ${checked_days_count}
       workDaysCount: ${work_days_count}
       otherActivityDaysCount: ${other_activity_days_count}

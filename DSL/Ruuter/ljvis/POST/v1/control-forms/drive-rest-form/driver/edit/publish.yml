@@ -67,6 +67,7 @@ extractCurrentFormData:
     sp_applicability: "${currentFormRes.response.body[0].spApplicability || ''}"
     tachograph_type_code: "${currentFormRes.response.body[0].tachographTypeCode || ''}"
     tachograph_data_not_downloaded: "${currentFormRes.response.body[0].tachographDataNotDownloaded || false}"
+    tachograph_notes: "${currentFormRes.response.body[0].tachographNotes || ''}"
     checked_days_count: "${currentFormRes.response.body[0].checkedDaysCount != null ? String(currentFormRes.response.body[0].checkedDaysCount) : ''}"
     work_days_count: "${currentFormRes.response.body[0].workDaysCount != null ? String(currentFormRes.response.body[0].workDaysCount) : ''}"
     other_activity_days_count: "${currentFormRes.response.body[0].otherActivityDaysCount != null ? String(currentFormRes.response.body[0].otherActivityDaysCount) : ''}"
@@ -112,6 +113,7 @@ publishForm:
       spApplicability: ${sp_applicability}
       tachographTypeCode: ${tachograph_type_code}
       tachographDataNotDownloaded: ${tachograph_data_not_downloaded}
+      tachographNotes: ${tachograph_notes}
       checkedDaysCount: ${checked_days_count}
       workDaysCount: ${work_days_count}
       otherActivityDaysCount: ${other_activity_days_count}

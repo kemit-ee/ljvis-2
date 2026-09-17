@@ -26,7 +26,7 @@ import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import type { XRoadCompany } from '../../../xroad/types';
 import { CompanyPickerModal } from '../CompanyPickerModal';
-import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
 import { MaskedTimeField } from '../shared/MaskedTimeField';
 import React from 'react';
@@ -1525,13 +1525,9 @@ export function CompoundFormEditCard({
                           input={{ maxLength: 11 }}
                           onChange={(v) => {
                             const u = [...formik.values.drivers];
-                            const computed = !u[index]?.birthDate
-                              ? birthDateFromEstonianCode(v)
-                              : null;
                             u[index] = {
                               ...u[index],
                               personalCodeEe: v,
-                              ...(computed ? { birthDate: computed } : {}),
                             };
                             formik.setFieldValue('drivers', u);
                           }}

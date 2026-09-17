@@ -13,8 +13,10 @@ Päris turvaserveri testimiseks **ei piisa** ainult `baseUrl` muutmisest: mocki 
 
 ```bash
 npx newman run docs/developer/ljvis2-xtee-mock.postman_collection.json \
-  --env-var baseUrl=http://localhost:3001/developer
+  --env-var baseUrl=https://dev.liiklusvalve.ee/developer
 ```
+
+Kollektsiooni saab käivitada ka [oma masinas käivitatud mocki](lokaalne-mock.md) vastu, muutes `baseUrl` väärtust.
 
 JSON/REST lepingus XML-päringuid ei ole; XML-näidiseid ei lisata. GET näidisfailide võtmed on query parameetrid, mitte JSON-keha.
 Kõik artefaktid genereeritakse samast sünteetilisest andmestikust ja päris teenuste töövoogudest; CI tuvastab nende lahknemise.

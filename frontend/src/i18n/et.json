@@ -505,6 +505,9 @@
       "punishedPersonFirstName": "Karistatud isiku eesnimi",
       "punishedPersonLastName": "Karistatud isiku perekonnanimi",
       "proceedingReferenceNumber": "Väärteomenetluse viitenumber",
+      "xroadDecisionSection": "Andmevahetuskihi päringuga sisestatavad andmed (x-tee)",
+      "enforcementDecision": "Jõustunud otsus",
+      "proceedingClosureBasis": "Menetluse lõpetamise alus",
       "violations": {
         "title": "Rikkumised",
         "pickerTitle": "Vali rikkumine",
@@ -880,6 +883,8 @@
       "proceedingCaseNumberPlaceholder": "Väärteoasja number",
       "sp_applicability": "Rakendamine",
       "tachograph_type_code": "Sõidumeeriku liik",
+      "tachographDataNotDownloaded": "Andmed sõidumeerikust või juhikaardilt alla laadimata (teade Tööinspektsioonile)",
+      "tachographNotes": "Märkused",
       "applicabilityApplied": "Rakendatakse",
       "applicabilityNotApplied": "Ei rakendata",
       "applicabilityNotChecked": "Ei kontrollitud",

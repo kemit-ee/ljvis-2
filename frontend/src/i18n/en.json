@@ -393,6 +393,9 @@
       "punishedPersonFirstName": "Punished person's first name",
       "punishedPersonLastName": "Punished person's last name",
       "proceedingReferenceNumber": "Proceeding reference number",
+      "xroadDecisionSection": "Data queried via the data exchange layer (X-Road)",
+      "enforcementDecision": "Decision entered into force",
+      "proceedingClosureBasis": "Basis for closing proceedings",
       "violations": {
         "title": "Violations",
         "pickerTitle": "Select violation",
@@ -1113,6 +1116,8 @@
       "proceedingTypeYld": "General proceedings",
       "proceedingReferenceNumberPlaceholder": "Reference number",
       "tachograph_type_code": "Tachograph type",
+      "tachographDataNotDownloaded": "Tachograph or driver card data not downloaded (notification to Labour Inspectorate)",
+      "tachographNotes": "Notes",
       "applicabilityApplied": "Applied",
       "applicabilityNotApplied": "Not applied",
       "applicabilityNotChecked": "Not checked",

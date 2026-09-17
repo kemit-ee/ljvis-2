@@ -967,6 +967,47 @@ export function DriveRestFormFields({
                   />
                 </div>
 
+                <ChoiceGroup
+                  id={fieldId('tachographDataNotDownloaded')}
+                  name={fieldId('tachographDataNotDownloaded')}
+                  inputType="checkbox"
+                  label=""
+                  className="mb-1"
+                  value={
+                    formik.values.tachographDataNotDownloaded
+                      ? ['tachographDataNotDownloaded']
+                      : []
+                  }
+                  items={[
+                    {
+                      id: fieldId('tachographDataNotDownloadedCheckbox'),
+                      value: 'tachographDataNotDownloaded',
+                      label: t('forms.sp_form.tachographDataNotDownloaded'),
+                      disabled: readOnly,
+                    },
+                  ]}
+                  onChange={(val) => {
+                    const vals = Array.isArray(val) ? val : [val];
+                    formik.setFieldValue(
+                      'tachographDataNotDownloaded',
+                      vals.includes('tachographDataNotDownloaded'),
+                    );
+                  }}
+                />
+                <div className="mb-1">
+                  <TextArea
+                    id={fieldId('tachographNotes')}
+                    maxHeight="8rem"
+                    label={t('forms.sp_form.tachographNotes')}
+                    value={formik.values.tachographNotes ?? ''}
+                    input={{ maxLength: 4000 }}
+                    onChange={(v) =>
+                      formik.setFieldValue('tachographNotes', v)
+                    }
+                    disabled={readOnly}
+                  />
+                </div>
+
                 <div className={styles['overflow-visible']}>
                   <ModalResultSection
                     checks={drivingViolationsMain}

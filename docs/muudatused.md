@@ -4,7 +4,74 @@
 
 ---
 
+## 2026-09-18
+
+### Kontrollvormide täiendused (tehnoseisund, sõidumeerik, koondvorm)
+
+- **Tehnoseisundi kontrollkaart** (mootorsõiduki ja haagise, PPA ja TRAM) —
+  punkt 10 "Veose kinnitamine" (CAA_10) mis tahes VO/OV/EOV märge ei lülita
+  enam automaatselt sisse erakorralist tehnoülevaatust ega sõidukeeldu. Veose
+  paigutamise/kinnitamise/katmise rikkumine on eraldiseisev ja ei tohi
+  mõjutada sõiduki tehnoseisundi tulemust.
+- **Koondvormi sõidukijuhi andmed** — eemaldatud isikukoodist automaatselt
+  sünniaja tuletamine. Varasemalt jäi sünniaeg muutumatuks, kui täitja
+  parandas eksitud isikukoodi. Sünniaeg täidetakse nüüd ainult "Otsi"
+  nupuga rahvastikuregistrist (Eesti isikukoodi korral) või käsitsi
+  (välisriigi juhi korral).
+- **Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollkaart** (PPA ja
+  TRAM) — sõidumeeriku ossa lisatud uus rida "Kontrollitud päevade arv" alla:
+  märkeruut "Andmed sõidumeerikust või juhikaardilt alla laadimata (teade
+  Tööinspektsioonile)" ja selle alla sõidumeeriku märkuste väli.
+
+### Tööinspektsiooni kontrollvorm — rikkumised ja väärteomenetlus
+
+- **Rikkumiste osa** täielikult ümber tehtud: senise puuduliku loetelu asemel
+  uus, Tööinspektsiooni järelevalvet silmas pidav rikkumiste klassifikaator
+  kahe pealkirja all — "Sõidu- ja puhkeaja rikkumised" ning "Ühenduse
+  tegevusloa ja juhitunnistuse rikkumised". Iga rikkumise juures on nüüd
+  tunnivahemik, mis määrab raskusastme (MSI/VSI/SI/MI), ja vastav ametlik
+  ERRU kood. Kirjeldused on Tööinspektsiooni kontekstile omased, mitte
+  üle võetud PPA autojuhi sõidu- ja puhkeaja kontrollvormilt.
+- Rikkumiste tabelis kuvatakse valitud rea raskusaste ja vahemik (nt "SI —
+  10 h ≤ … < 11 h"), samas stiilis mis PPA sõidu-puhkeaja kontrollkaardil.
+- **Väärteomenetluse plokk** — lisatud uus alajaotus "Andmevahetuskihi
+  päringuga sisestatavad andmed (x-tee)" väljadega "Jõustunud otsus" ja
+  "Menetluse lõpetamise alus". Need täidetakse automaatselt öise e-toimiku
+  päringu tulemusel (kui väärteomenetluse viitenumber on täidetud) ning
+  kontrollkaart avalikustatakse automaatselt niipea, kui jõustunud otsus
+  leitakse.
+
 ## 2026-09-17
+
+### Liidestuja arendaja-dokumentatsioon ja X-tee OpenAPI
+
+- **Arendajajuhend** (`docs/developer/`) korrastatud liidestuja vaatest: sisemised
+  URL-id, Docker/Nginx/K8s-seadistuse detailid ja CI-skriptid eemaldatud;
+  alles jäid avalik mocki aadress (`dev.liiklusvalve.ee/developer`), teenuste
+  näidised ja testtunnused.
+- Lisatud märkus, et avaliku mocki kasutamine nõuab liidestuja välise
+  IP-aadressi eelnevat whitelistimist (Kemiti teenuseomaniku kaudu).
+- Uus eraldiseisev juhend ja Compose-fail mocki käivitamiseks liidestuja enda
+  masinas (`docs/developer/lokaalne-mock.md`), sõltumatu ülejäänud rakendusest.
+- Uus masinloetav **XroadOpenapi** leping (`docs/xtee/XroadOpenapi.yaml`) kõigi
+  üheksa päris X-tee teenuse jaoks, koos näidis sisendite/väljunditega iga
+  vastuskoodi kohta.
+- Publitseerimisjuhendisse ja arendajajuhendisse lisatud Mermaid diagrammid
+  (arhitektuur, üldine päringuvoog, `ErakorralineYVquery`/`ErakorralineYVconfirm`
+  kahesammuline voog).
+- Lisatud `docs/developer/smoke-test.sh` — kiire kontroll, kas lokaalne mock
+  on üleval ja vastab ootuspäraselt (tervisekontroll + üks edukas ja üks
+  veapäring). Täieliku regressiooni jaoks juhendatud Postmani kollektsiooni
+  Newmaniga käivitamine lokaalse mocki vastu.
+- Lokaalse mocki Compose-failis uuendatud `turnerrainer/ruuter` image
+  0.10.0-rc peale; kontrollitud, et mock ja kogu Postmani/Newmani
+  regressioonikomplekt (65 päringut, 127 assertsiooni) töötavad muutumatult.
+- Eemaldatud arendajajuhendist viide sisemisele turvaserveri seadistuse
+  juhendile — liidestujale piisab teenuste tabelist, näidetest ja
+  XroadOpenapi lepingust.
+- Arendajajuhendi POST-näidiste curl-käsud on nüüd otse kopeeritavad: varem
+  viitasid nad kohapealsele failile (`--data-binary @docs/developer/
+  examples/...`), mis eeldas repo olemasolu; nüüd on JSON-keha käsu sees.
 
 ### Haldus > eToimiku X-tee logid
 
