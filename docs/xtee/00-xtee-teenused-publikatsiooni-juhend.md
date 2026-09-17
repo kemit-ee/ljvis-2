@@ -2,6 +2,9 @@
 
 Dokument kirjeldab kõiki LJVIS2 alamsüsteemi poolt pakutavaid X-tee teenuseid: teenuse kood, sisendid, väljundid, näidispäringud ja turvaserveri admin juhend.
 
+Masinloetav OpenAPI 3.0.3 leping (kõik üheksa teenust, sh näidis sisendid/väljundid iga vastuskoodi kohta): [XroadOpenapi.yaml](XroadOpenapi.yaml).
+Sünteetiliste testandmetega mocki leping on eraldi failis [../developer/xtee-openapi.yaml](../developer/xtee-openapi.yaml).
+
 ---
 
 ## 1. LJVIS2 X-tee identiteet
@@ -283,6 +286,22 @@ curl -X POST https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/ErakorralineYVconfi
 {"confirmed": 2}
 ```
 
+#### Kahesammuline voog
+
+`ErakorralineYVquery` ja `ErakorralineYVconfirm` moodustavad koos ühe töövoo: päring toob sõidukid koos nende `inspection_id`-dega, kinnitus salvestab tulemuse samade `inspection_id` väärtuste peale.
+
+```mermaid
+sequenceDiagram
+    participant T as Tarbija (Transpordiamet)
+    participant L as LJVIS2
+
+    T->>L: POST ErakorralineYVquery/v1 (alates, kuni)
+    L-->>T: 200 targeted_for_inspection.item[] (koos inspection_id)
+    Note over T: Ülevaatus toimub,<br/>tulemus selgub
+    T->>L: POST ErakorralineYVconfirm/v1 (confirmed.item[inspection_id, code, value])
+    L-->>T: 200 {confirmed: N}
+```
+
 ---
 
 ### 3.5 RegisterJobInspection (v1)
@@ -515,13 +534,12 @@ curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/heartbeat/v2" \
 
 LJVIS2 pakub X-tee teenuseid läbi **Ruuter.internal** komponendi, mis ei ole nginx-ist publiku poolt kättesaadav. Turvaserver peab päringud suunama otse Ruuter.internal-ile.
 
-```
-X-tee tarbija
-    │
-    ▼
-[X-tee turvaserver] ──── HTTPS ────► [Ruuter.internal]
-                                        port 8080 (Docker-sisene)
-                                        port 8089 (hostsüsteemist)
+```mermaid
+flowchart LR
+    A[X-tee tarbija] -->|X-Road protokoll| B[Tarbija turvaserver]
+    B -->|X-Road protokoll| C[Pakkuja turvaserver]
+    C -->|"HTTPS, X-Road-Client päis"| D["Ruuter.internal\nport 8080 (Docker-sisene)\nport 8089 (hostsüsteemist)"]
+    D -->|SQL| E[(LJVIS2 andmebaas)]
 ```
 
 ### 4.2 Sihtaadress

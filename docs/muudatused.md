@@ -6,6 +6,23 @@
 
 ## 2026-09-17
 
+### Liidestuja arendaja-dokumentatsioon ja X-tee OpenAPI
+
+- **Arendajajuhend** (`docs/developer/`) korrastatud liidestuja vaatest: sisemised
+  URL-id, Docker/Nginx/K8s-seadistuse detailid ja CI-skriptid eemaldatud;
+  alles jäid avalik mocki aadress (`dev.liiklusvalve.ee/developer`), teenuste
+  näidised ja testtunnused.
+- Lisatud märkus, et avaliku mocki kasutamine nõuab liidestuja välise
+  IP-aadressi eelnevat whitelistimist (Kemiti teenuseomaniku kaudu).
+- Uus eraldiseisev juhend ja Compose-fail mocki käivitamiseks liidestuja enda
+  masinas (`docs/developer/lokaalne-mock.md`), sõltumatu ülejäänud rakendusest.
+- Uus masinloetav **XroadOpenapi** leping (`docs/xtee/XroadOpenapi.yaml`) kõigi
+  üheksa päris X-tee teenuse jaoks, koos näidis sisendite/väljunditega iga
+  vastuskoodi kohta.
+- Publitseerimisjuhendisse ja arendajajuhendisse lisatud Mermaid diagrammid
+  (arhitektuur, üldine päringuvoog, `ErakorralineYVquery`/`ErakorralineYVconfirm`
+  kahesammuline voog).
+
 ### Haldus > eToimiku X-tee logid
 
 - Uus vaade Haldus-menüüs — kuvab eToimiku `AnnaIsikuKvalifikatsioonid`
