@@ -22,6 +22,13 @@
 - Publitseerimisjuhendisse ja arendajajuhendisse lisatud Mermaid diagrammid
   (arhitektuur, üldine päringuvoog, `ErakorralineYVquery`/`ErakorralineYVconfirm`
   kahesammuline voog).
+- Lisatud `docs/developer/smoke-test.sh` — kiire kontroll, kas lokaalne mock
+  on üleval ja vastab ootuspäraselt (tervisekontroll + üks edukas ja üks
+  veapäring). Täieliku regressiooni jaoks juhendatud Postmani kollektsiooni
+  Newmaniga käivitamine lokaalse mocki vastu.
+- Lokaalse mocki Compose-failis uuendatud `turnerrainer/ruuter` image
+  0.10.0-rc peale; kontrollitud, et mock ja kogu Postmani/Newmani
+  regressioonikomplekt (65 päringut, 127 assertsiooni) töötavad muutumatult.
 
 ### Haldus > eToimiku X-tee logid
 
