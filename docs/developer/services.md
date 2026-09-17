@@ -15,7 +15,7 @@ Mock matkib rakenduse valideerimist ja vastusekuju, mitte turvaserveri krüptogr
 ```bash
 curl --fail-with-body -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/isiku-kontroll' \
   -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' \
-  --data-binary @docs/developer/examples/isiku-kontroll-request.json
+  -d '{"isikukood": "60001019906"}'
 ```
 
 HTTP 200, keha:
@@ -86,7 +86,7 @@ HTTP 400:
 ```bash
 curl --fail-with-body -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/isiku-ettevote-kontrollid' \
   -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' \
-  --data-binary @docs/developer/examples/isiku-ettevote-kontrollid-request.json
+  -d '{"isikukood": "60001019906"}'
 ```
 
 HTTP 200, keha:
@@ -159,7 +159,7 @@ HTTP 400:
 ```bash
 curl --fail-with-body -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/erakorraline-yv-query' \
   -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' \
-  --data-binary @docs/developer/examples/erakorraline-yv-query-request.json
+  -d '{"alates": "2026-06-01", "kuni": "2026-06-30"}'
 ```
 
 HTTP 200, keha:
@@ -257,7 +257,7 @@ HTTP 400:
 ```bash
 curl --fail-with-body -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/erakorraline-yv-confirm' \
   -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' \
-  --data-binary @docs/developer/examples/erakorraline-yv-confirm-request.json
+  -d '{"confirmed": {"item": [{"inspection_id": "900001", "code": "INSPECTION_DATE", "value": "2026-06-16"}]}}'
 ```
 
 HTTP 200, keha:
@@ -301,7 +301,7 @@ HTTP 400:
 ```bash
 curl --fail-with-body -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/register-job-inspection' \
   -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' \
-  --data-binary @docs/developer/examples/register-job-inspection-request.json
+  -d '{"kontrollija": "Mock Kontrollija", "kontrolli_id": 900001, "kontrolli_kp": "2026-06-15", "tooandja_nimi": "Mockvedaja OÜ", "tooandja_reg_kood": "00000001", "soidukite_arv": 2, "koostatatud_ettekirjutus": false, "kontrollimised": {"kontrollitud_soitjate_veol": false}, "rikkumised": {"rikkumised_loend": []}, "vaarteomenetlus": "MOCK-VM-001"}'
 ```
 
 HTTP 200, keha:
@@ -345,7 +345,7 @@ HTTP 400:
 ```bash
 curl --fail-with-body -X POST 'https://dev.liiklusvalve.ee/developer/xroad/v1/register-job-inspection-v3' \
   -H 'Content-Type: application/json' -H 'X-Road-Client: ee-dev/GOV/70001490/liiklusregister' \
-  --data-binary @docs/developer/examples/register-job-inspection-v3-request.json
+  -d '{"kontrollija": "Mock Kontrollija", "kontrolli_id": 900001, "kontrolli_kp": "2026-06-15", "tooandja_nimi": "Mockvedaja OÜ", "tooandja_reg_kood": "00000001", "soidukite_arv": 2, "koostatatud_ettekirjutus": false, "kontrollimised": {"kontrollitud_soitjate_veol": false}, "rikkumised": {"rikkumised_loend": []}, "vaarteomenetlus": "MOCK-VM-001", "soiduki_reg_nr": "MOCK123", "soiduki_vin": "MOCKVIN0000000001", "juhi_isikukood": "60001019906", "juhi_eesnimi": "Test", "juhi_perekonnanimi": "Juht", "menetluse_liik": "uldmenetlus", "menetluse_number": "MOCK-001"}'
 ```
 
 HTTP 200, keha:
