@@ -283,6 +283,8 @@ services:
     image: turnerrainer/cronmanager:0.1.4-alpha@sha256:429080e890699e11b7330487a04f55596023ef7c5601950716aa3694ceed0a75
     environment:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
+      # Required by CronManager 0.1.4-alpha when binding outside loopback.
+      - CRONMANAGER_ADMIN_TOKEN=${CRONMANAGER_ADMIN_TOKEN:-dev-admin-token}
       # Quartz-cron triggers (DSL/CronManager/*.yaml) run in this timezone.
       - TZ=Europe/Tallinn
     volumes:
@@ -290,6 +292,12 @@ services:
       - ./DSL/CronManager:/app/DSL/jobs:ro
     depends_on:
       - ruuter-internal
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
     ports:
       - 8087:8080
     networks:
