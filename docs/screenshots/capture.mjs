@@ -419,6 +419,16 @@ const shots = [
   },
   { name: 'admin-guide/auditilogi', run: (p) => gotoShot(p, '/logs', 'admin-guide/images/05-auditilogi/01-auditilogi.png') },
   { name: 'admin-guide/riskihindamine', run: (p) => gotoShot(p, '/admin/risk-scores', 'admin-guide/images/06-riskihindamine-admin/01-riskitasemed.png') },
+  {
+    name: 'admin-guide/etoimiku-xtee-logid',
+    run: async (page) => {
+      await gotoShot(page, '/admin/xroad-logs', 'admin-guide/images/10-etoimiku-xtee-logid/01-loend.png');
+      await page.getByRole('button', { name: 'Vaata päringut' }).first().click().catch(() => {});
+      await sleep(300);
+      await shoot(page, 'admin-guide/images/10-etoimiku-xtee-logid/02-sisu.png');
+      await page.getByRole('button', { name: 'Sulge' }).click().catch(() => {});
+    },
+  },
 ];
 
 (async () => {
