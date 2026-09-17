@@ -49,17 +49,22 @@ processVehicleCandidates:
           driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
           case_start: "${new Date().getTime()}"
 
-      - call: http.post
-        args:
-          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
-          headers:
-            type: json
-          body:
+      # Built once so the log_integration call below can log the exact same
+      # full request body that is actually sent to XTR.
+      - assign:
+          xtr_request_body:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
             userId: "LJVIS-CRON"
             subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
             service_version: "[#ETOIMIK_SERVICE_VERSION]"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body: ${xtr_request_body}
         result: xtrResponse
 
       - assign:
@@ -107,7 +112,7 @@ processVehicleCandidates:
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.vehicle_technical"
-            request_xml: "${'referenceNumber=' + reference_number}"
+            request_xml: "${JSON.stringify(xtr_request_body)}"
             response_xml: "${decision.rawResponse}"
             duration_ms: "${new Date().getTime() - case_start}"
             success: ${decision.success}
@@ -175,17 +180,22 @@ processTrailerCandidates:
           driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
           case_start: "${new Date().getTime()}"
 
-      - call: http.post
-        args:
-          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
-          headers:
-            type: json
-          body:
+      # Built once so the log_integration call below can log the exact same
+      # full request body that is actually sent to XTR.
+      - assign:
+          xtr_request_body:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
             userId: "LJVIS-CRON"
             subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
             service_version: "[#ETOIMIK_SERVICE_VERSION]"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body: ${xtr_request_body}
         result: xtrResponse
 
       - assign:
@@ -233,7 +243,7 @@ processTrailerCandidates:
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.trailer_technical"
-            request_xml: "${'referenceNumber=' + reference_number}"
+            request_xml: "${JSON.stringify(xtr_request_body)}"
             response_xml: "${decision.rawResponse}"
             duration_ms: "${new Date().getTime() - case_start}"
             success: ${decision.success}

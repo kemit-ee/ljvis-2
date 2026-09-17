@@ -871,3 +871,15 @@ Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 - Eraldi vorminumbri seeria `tram-AAAA-NNNNN`.
 - Transpordiameti ja PPA kontrollkaardid on üksteisele nähtamatud (õiguste ja
   otsingu tasemel).
+
+---
+
+## 2026-09 — X-tee (e-toimik) päringute logi täiendus
+
+- `xroad.xroad_integration_log` kirjed e-toimiku
+  `AnnaIsikuKvalifikatsioonid` päringute kohta salvestavad nüüd XTR-ile
+  saadetud **täieliku päringu** ja sealt saadud **täieliku toore vastuse**
+  (varem salvestati vaid lühendatud kokkuvõte, nt „caseNumber=...").
+- Muudatus puudutab avalikku e-toimiku otsingut (`v1/xroad/etoimik/
+  kvalifikatsioonid`) ja kõiki nelja e-toimiku öist sünkiga cron-voogu
+  (autojuht, tehnoülevaatus, SP-juht, TRAM).

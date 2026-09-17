@@ -44,18 +44,23 @@ processCandidates:
           punished_person_id_code: "${candidate.punishedPersonIdCode || candidate.punished_person_id_code || ''}"
           case_start: "${new Date().getTime()}"
 
-      - call: http.post
-        args:
-          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
-          headers:
-            type: json
-          body:
+      # Built once so the log_integration call below can log the exact same
+      # full request body that is actually sent to XTR.
+      - assign:
+          xtr_request_body:
             reference_number: ${reference_number}
             personal_code: ${punished_person_id_code}
             # System caller id for the X-Road audit trail — no user session exists here.
             userId: "LJVIS-CRON"
             subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
             service_version: "[#ETOIMIK_SERVICE_VERSION]"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body: ${xtr_request_body}
         result: xtrResponse
 
       - assign:
@@ -103,7 +108,7 @@ processCandidates:
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron"
-            request_xml: "${'referenceNumber=' + reference_number}"
+            request_xml: "${JSON.stringify(xtr_request_body)}"
             response_xml: "${decision.rawResponse}"
             duration_ms: "${new Date().getTime() - case_start}"
             success: ${decision.success}
