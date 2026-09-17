@@ -69,6 +69,9 @@ returns:
 - name: tachographDataNotDownloaded
   type: boolean
   nullable: true
+- name: tachographNotes
+  type: string
+  nullable: true
 - name: checkedDaysCount
   type: number
   nullable: true
@@ -149,6 +152,7 @@ SELECT
   sp_applicability,
   tachograph_type_code,
   tachograph_data_not_downloaded,
+  tachograph_notes,
   checked_days_count,
   work_days_count,
   other_activity_days_count,

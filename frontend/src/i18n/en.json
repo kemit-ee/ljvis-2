@@ -1113,6 +1113,8 @@
       "proceedingTypeYld": "General proceedings",
       "proceedingReferenceNumberPlaceholder": "Reference number",
       "tachograph_type_code": "Tachograph type",
+      "tachographDataNotDownloaded": "Tachograph or driver card data not downloaded (notification to Labour Inspectorate)",
+      "tachographNotes": "Notes",
       "applicabilityApplied": "Applied",
       "applicabilityNotApplied": "Not applied",
       "applicabilityNotChecked": "Not checked",
