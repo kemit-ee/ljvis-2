@@ -29,6 +29,12 @@
 - Lokaalse mocki Compose-failis uuendatud `turnerrainer/ruuter` image
   0.10.0-rc peale; kontrollitud, et mock ja kogu Postmani/Newmani
   regressioonikomplekt (65 päringut, 127 assertsiooni) töötavad muutumatult.
+- Eemaldatud arendajajuhendist viide sisemisele turvaserveri seadistuse
+  juhendile — liidestujale piisab teenuste tabelist, näidetest ja
+  XroadOpenapi lepingust.
+- Arendajajuhendi POST-näidiste curl-käsud on nüüd otse kopeeritavad: varem
+  viitasid nad kohapealsele failile (`--data-binary @docs/developer/
+  examples/...`), mis eeldas repo olemasolu; nüüd on JSON-keha käsu sees.
 
 ### Haldus > eToimiku X-tee logid
 
