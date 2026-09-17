@@ -1,0 +1,35 @@
+config_path: /app/DSL
+port: 8080
+http_request_timeout: 15000
+
+cors:
+  allowed_origins: []
+  allow_credentials: false
+
+incoming_requests:
+  allowed_method_types: [GET, POST, OPTIONS]
+
+internal_requests:
+  disabled: true
+  block_private_networks: true
+  allowed_urls: []
+  allowed_ips: []
+
+http_codes_allow_list: [200, 201, 202, 400, 401, 403, 404, 409, 422, 500, 502]
+
+response_default_headers:
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+
+# csrf.allowed_origins jääb tühjaks tahtlikult: mock on server-server X-tee
+# simulatsioon (curl/Postman/Newman), mitte brauserist kasutatav pind.
+
+logging:
+  display_request_content: false
+  display_response_content: false
+  print_stack_trace: false
+  meaningful_errors: true
+
+dsl:
+  allow_dsl_reloading: false

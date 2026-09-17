@@ -1,0 +1,11 @@
+services:
+  ljvis_xtee_mock:
+    image: turnerrainer/ruuter:0.10.0-rc@sha256:620a4ed561603e23ce28770dbc1d01bfb4ec54d5553ed09388b8b94697c5ea7b
+    container_name: ljvis_xtee_mock
+    volumes:
+      - ../../DSL/Ruuter/xtee-mock:/app/DSL/xtee-mock:ro
+      - ./ruuter.mock.yaml:/app/ruuter.yaml:ro
+      - /app/DSL/samples
+      - /app/DSL/guarded-demo
+    ports:
+      - "40386:8080"
