@@ -1,0 +1,93 @@
+declaration:
+  version: "2.0"
+  description: >-
+    Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
+    integratsioonipäringute logi vaatamine. Filtrid: dateFrom/dateTo (loomise
+    kuupäevavahemik, vaikimisi eile-täna frontendis), includeFound/
+    includeNotFound/includeError (kolm sõltumatut checkbox-lippu, vaikimisi
+    kõik true). Leheküljed page + pageSize. Nõuab xroad.log.read õigust
+    (kaitstud logs/.guard kaudu). Iga avamine logitakse auditisse
+    (xroad.log.view) — vaates kuvatakse isikuandmeid (isikukoodid,
+    X-tee päringute/vastuste täissisu).
+  namespace: xroad
+  allowlist:
+    params:
+      - field: dateFrom
+        type: string
+      - field: dateTo
+        type: string
+      - field: includeFound
+        type: string
+      - field: includeNotFound
+        type: string
+      - field: includeError
+        type: string
+      - field: page
+      - field: pageSize
+
+extractParams:
+  assign:
+    date_from: "${incoming.params.dateFrom ?? ''}"
+    date_to: "${incoming.params.dateTo ?? ''}"
+    include_found: "${incoming.params.includeFound !== 'false'}"
+    include_not_found: "${incoming.params.includeNotFound !== 'false'}"
+    include_error: "${incoming.params.includeError !== 'false'}"
+    page: "${incoming.params.page ?? 1}"
+    page_size: "${incoming.params.pageSize ?? 20}"
+  next: queryLog
+
+queryLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/etoimik/list_integration_log"
+    headers:
+      type: json
+    body:
+      date_from: ${date_from}
+      date_to: ${date_to}
+      include_found: ${include_found}
+      include_not_found: ${include_not_found}
+      include_error: ${include_error}
+      page: ${page}
+      page_size: ${page_size}
+  result: res
+  next: buildResult
+
+buildResult:
+  assign:
+    result_obj: >-
+      ${({
+        content: (res.response.body || []),
+        total: (res.response.body && res.response.body[0]) ? res.response.body[0].total : 0
+      })}
+  next: buildAuditDescription
+
+# Isikuandmete kaitse §-i mõttes (sarnaselt outbound-log'ile): vaates
+# nähtavad isikukoodid ja X-tee täispäringud/vastused, seega iga avamine
+# logitakse auditisse. description on lühike (filter + lehekülg + kirjete
+# arv), nähtud kirjete tunnused lähevad struktureeritud log_content'i.
+buildAuditDescription:
+  assign:
+    shown_count: "${(res.response.body || []).length}"
+    shown_ids_json: "${JSON.stringify((res.response.body || []).map(function(r){ return r.id; }))}"
+    filter_summary: "${'dateFrom=' + (date_from || '-') + ', dateTo=' + (date_to || '-') + ', includeFound=' + include_found + ', includeNotFound=' + include_not_found + ', includeError=' + include_error}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "xroad.log.view"
+    event_category: "xroad_integration_log"
+    actor_personal_code: "${u.personalcode || ''}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+    description: "${('eToimiku X-tee logi vaadatud, filter ' + filter_summary + ', lehekülg ' + page + ', kuvatud ' + shown_count + ' kirjet').substring(0, 480)}"
+    log_content: "${JSON.stringify({ page: page, pageSize: page_size, filters: { dateFrom: date_from, dateTo: date_to, includeFound: include_found, includeNotFound: include_not_found, includeError: include_error }, shownLogIds: JSON.parse(shown_ids_json) })}"
+  result: audit_result
+  next: returnResult
+
+returnResult:
+  return: ${result_obj}
+  next: end

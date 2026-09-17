@@ -49,7 +49,7 @@ checkViewerDiffersFromCreator:
   switch:
     - condition: ${res.response.body[0].createdBy != null && res.response.body[0].createdBy !== auth_user.personalcode}
       next: logView
-  next: returnSuccess
+  next: mapResponse
 
 logView:
   assign:
@@ -69,10 +69,21 @@ logAuditEvent:
     actor_name: ${actor_name}
     actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_trailer_technical_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body[0]}
+  return: ${mapped.response.body}
   next: end
 
 returnNotFound:

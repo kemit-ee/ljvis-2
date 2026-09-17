@@ -1,6 +1,6 @@
 # LJVIS2 code/build repo. One release view: verify -> build -> package -> dev.
 #
-# Ten images are built, nine wrapper charts are packaged, and all nine workload
+# Twelve images are built, eleven wrapper charts are packaged, and all eleven workload
 # entries move atomically in one Git release-manifest commit. Liquibase has no independent
 # entry: resql-ljvis renders a release-identified wave -1 Job using the same release version.
 #
@@ -72,6 +72,8 @@ include:
     inputs: { name: nysiis, image_path: nysiis/images, dockerfile: docker/nysiis/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
     inputs: { name: pdf-creator, image_path: pdf-creator/images, dockerfile: docker/pdf-creator/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
+    inputs: { name: cronmanager, image_path: cronmanager/images, dockerfile: docker/cronmanager/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
 
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
     inputs: { name: ruuter, service_code: $SERVICECODE, project: $SERVICECODE, image_path: ruuter/images, version: $RELEASE_VERSION, arch: arm64 }
@@ -98,6 +100,8 @@ include:
     inputs: { name: nysiis, service_code: $SERVICECODE, project: $SERVICECODE, image_path: nysiis/images, version: $RELEASE_VERSION, arch: arm64 }
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
     inputs: { name: pdf-creator, service_code: $SERVICECODE, project: $SERVICECODE, image_path: pdf-creator/images, version: $RELEASE_VERSION, arch: arm64 }
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
+    inputs: { name: cronmanager, service_code: $SERVICECODE, project: $SERVICECODE, image_path: cronmanager/images, version: $RELEASE_VERSION, arch: arm64 }
 
   - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-pin@6.6.0
     inputs:
@@ -118,6 +122,7 @@ include:
         tim
         nysiis
         pdf-creator
+        cronmanager
       artifacts: >-
         $CHART_REPOSITORY/resql-ljvis
         $CHART_REPOSITORY/data-mapper
@@ -129,6 +134,7 @@ include:
         $CHART_REPOSITORY/tim
         $CHART_REPOSITORY/nysiis
         $CHART_REPOSITORY/pdf-creator
+        $CHART_REPOSITORY/cronmanager
       applications: >-
         resql-ljvis-dev
         data-mapper-dev
@@ -140,6 +146,7 @@ include:
         tim-dev
         nysiis-dev
         pdf-creator-dev
+        cronmanager-dev
 
 # ---------------------------------------------------------------------------- test
 
@@ -229,8 +236,10 @@ secret_detection:
 "sbom:nysiis":           { extends: .protected-refs, needs: ["release:version", "build:nysiis"] }
 "build:pdf-creator":     { extends: .protected-refs }
 "sbom:pdf-creator":      { extends: .protected-refs, needs: ["release:version", "build:pdf-creator"] }
+"build:cronmanager":     { extends: .protected-refs }
+"sbom:cronmanager":      { extends: .protected-refs, needs: ["release:version", "build:cronmanager"] }
 
-# strategy: depend keeps the source release red when any of eight package jobs fails.
+# strategy: depend keeps the source release red when any package job fails.
 package:charts:
   extends: .protected-refs
   stage: package
@@ -250,6 +259,8 @@ package:charts:
     - "build:data-mapper"
     - "build:tim"
     - "build:nysiis"
+    - "build:pdf-creator"
+    - "build:cronmanager"
   variables:
     # Forward the resolved dotenv value under a different name across the trigger.
     IMAGE_VERSION: $RELEASE_VERSION

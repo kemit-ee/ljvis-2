@@ -62,7 +62,9 @@ export const TransportInterruptionFormEditCard = forwardRef<
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}
-          ref={(r) => { formRef.current = r; }}
+          ref={(r) => {
+            formRef.current = r;
+          }}
         />
         {form.id && (
           <FormVersionsTable
@@ -72,8 +74,11 @@ export const TransportInterruptionFormEditCard = forwardRef<
           />
         )}
         <div className="confirm-button">
-          <div>
-            <FormPrintButton endpoint={`/v1/control-forms/transport-interruption/read/print`} id={form.id} />
+          <div className="page-actions-buttons">
+            <FormPrintButton
+              endpoint={`/v1/control-forms/transport-interruption/read/print`}
+              id={form.id}
+            />
             {canConfirm && (
               <Button
                 type="button"

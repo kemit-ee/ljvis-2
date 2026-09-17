@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { Classifier } from '../../types';
 import { updateClassifier } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 export function useClassifierForm(
   classifier: Classifier | undefined,
@@ -29,8 +30,8 @@ export function useClassifierForm(
         if (isEdit && classifier) {
           await updateClassifier({
             id: classifier.id,
-            name: values.name,
-            description: values.description,
+            name: sanitizeText(values.name),
+            description: sanitizeText(values.description),
           });
           onSaved();
         }

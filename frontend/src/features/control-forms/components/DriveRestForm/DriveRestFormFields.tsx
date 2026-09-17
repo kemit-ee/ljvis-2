@@ -353,32 +353,33 @@ export function DriveRestFormFields({
                 ])}
               />
               {/* Liiniandmed kuuluvad ainult Transpordiameti kontrollkaardile. */}
-              {authority === 'TRAM' && formik.values.transportType === 'Sõitjatevedu' && (
-                <>
-                  <TextField
-                    id={fieldId('liiniNumber')}
-                    label={t('forms.sp_form.liiniNumber')}
-                    name={fieldId('liiniNumber')}
-                    className="mt-1"
-                    value={formik.values.liiniNumber ?? ''}
-                    onChange={(val) =>
-                      formik.setFieldValue('liiniNumber', val as string)
-                    }
-                    disabled={readOnly}
-                  />
-                  <TextField
-                    id={fieldId('liiniNimetus')}
-                    label={t('forms.sp_form.liiniNimetus')}
-                    name={fieldId('liiniNimetus')}
-                    className="mt-1"
-                    value={formik.values.liiniNimetus ?? ''}
-                    onChange={(val) =>
-                      formik.setFieldValue('liiniNimetus', val as string)
-                    }
-                    disabled={readOnly}
-                  />
-                </>
-              )}
+              {authority === 'TRAM' &&
+                formik.values.transportType === 'Sõitjatevedu' && (
+                  <>
+                    <TextField
+                      id={fieldId('liiniNumber')}
+                      label={t('forms.sp_form.liiniNumber')}
+                      name={fieldId('liiniNumber')}
+                      className="mt-1"
+                      value={formik.values.liiniNumber ?? ''}
+                      onChange={(val) =>
+                        formik.setFieldValue('liiniNumber', val as string)
+                      }
+                      disabled={readOnly}
+                    />
+                    <TextField
+                      id={fieldId('liiniNimetus')}
+                      label={t('forms.sp_form.liiniNimetus')}
+                      name={fieldId('liiniNimetus')}
+                      className="mt-1"
+                      value={formik.values.liiniNimetus ?? ''}
+                      onChange={(val) =>
+                        formik.setFieldValue('liiniNimetus', val as string)
+                      }
+                      disabled={readOnly}
+                    />
+                  </>
+                )}
             </Card.Content>
           </Card>
         </Col>
@@ -559,7 +560,9 @@ export function DriveRestFormFields({
                 formik.values.resultType === 'misdemeanor_proceedings') && (
                 <ChoiceGroup
                   id={fieldId('additionalMeasure')}
-                  label={<strong>{t('forms.sp_form.additionalMeasure')}</strong>}
+                  label={
+                    <strong>{t('forms.sp_form.additionalMeasure')}</strong>
+                  }
                   name={fieldId('additionalMeasure')}
                   inputType="radio"
                   direction="row"
@@ -765,230 +768,224 @@ export function DriveRestFormFields({
         </Col>
       </Row>
       {/* Plokk: Dokumendi või õiguse kontroll */}
-      {formik.values.resultType !== '' &&
-        formik.values.resultType !== 'ok' && (
-          <div className={`${styles['overflow-visible']} mb-1`}>
-            <Accordion>
-              <AccordionItem id={fieldId('doc-right-check')}>
-                <AccordionItemHeader
-                  title={
-                    <Heading modifiers="h3" color="primary">
-                      {t(
-                        'forms.docRightCheck.blockTitle',
-                        'Dokumendi või õiguse kontroll',
-                      )}
-                    </Heading>
-                  }
-                />
-                <AccordionItemContent>
-                  <div className={styles['modal-margin']}>
-                    <ModalResultSection
-                      key={formik.values.transportType}
-                      checks={docRightChecks}
-                      type="docCheck"
+      {formik.values.resultType !== '' && formik.values.resultType !== 'ok' && (
+        <div className={`${styles['overflow-visible']} mb-1`}>
+          <Accordion>
+            <AccordionItem id={fieldId('doc-right-check')}>
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t(
+                      'forms.docRightCheck.blockTitle',
+                      'Dokumendi või õiguse kontroll',
+                    )}
+                  </Heading>
+                }
+              />
+              <AccordionItemContent>
+                <div className={styles['modal-margin']}>
+                  <ModalResultSection
+                    key={formik.values.transportType}
+                    checks={docRightChecks}
+                    type="docCheck"
+                    transportType={formik.values.transportType}
+                    setFieldValue={formik.setFieldValue}
+                    fieldName="documentChecks"
+                    readOnly={readOnly}
+                    initialDocumentChecks={formik.values.documentChecks}
+                  />
+                </div>
+                <div>
+                  <Text modifiers="bold">
+                    {t('forms.docRightCheck.otherDocuments', 'Muud dokumendid')}
+                  </Text>
+                  <div className="mt-1">
+                    <DocRightOtherSection
                       transportType={formik.values.transportType}
+                      idPrefix={type === 'teammate' ? 'teammate-' : ''}
+                      docRightOtherDocs={docRightOtherDocs}
+                      otherDocuments={formik.values.otherDocuments}
                       setFieldValue={formik.setFieldValue}
-                      fieldName="documentChecks"
                       readOnly={readOnly}
-                      initialDocumentChecks={formik.values.documentChecks}
                     />
                   </div>
-                  <div>
-                    <Text modifiers="bold">
-                      {t(
-                        'forms.docRightCheck.otherDocuments',
-                        'Muud dokumendid',
-                      )}
-                    </Text>
-                    <div className="mt-1">
-                      <DocRightOtherSection
-                        transportType={formik.values.transportType}
-                        idPrefix={type === 'teammate' ? 'teammate-' : ''}
-                        docRightOtherDocs={docRightOtherDocs}
-                        otherDocuments={formik.values.otherDocuments}
-                        setFieldValue={formik.setFieldValue}
-                        readOnly={readOnly}
-                      />
-                    </div>
-                  </div>
-                </AccordionItemContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        )}
+                </div>
+              </AccordionItemContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
       {/* Plokk: Sõidu- ja puhkeaja nõuete täitmine.
           Nähtav ka "Korras" tulemuse korral (P2) — politsei fikseerib
           rakendamise, sõidumeeriku liigi ja päevade arvud ka korras kontrollil. */}
       {!hideDriveRestExtras && formik.values.resultType !== '' && (
-          <div className={`${styles['overflow-visible']} mb-1`}>
-            <Accordion>
-              <AccordionItem id={fieldId('drive-rest-violations')}>
-                <AccordionItemHeader
-                  title={
-                    <Heading modifiers="h3" color="primary">
-                      {t(
-                        'forms.restCheck.blockTitle',
-                        'Sõidu- ja puhkeaja nõuete täitmine',
-                      )}
-                    </Heading>
-                  }
-                />
-                <AccordionItemContent>
-                  <div>
-                    {formik.touched.workDaysCount &&
-                      formik.errors.workDaysCount && (
-                        <div className="mb-1">
-                          <Alert type="danger" size="small">
-                            {formik.errors.workDaysCount}
-                          </Alert>
-                        </div>
-                      )}
+        <div className={`${styles['overflow-visible']} mb-1`}>
+          <Accordion>
+            <AccordionItem id={fieldId('drive-rest-violations')}>
+              <AccordionItemHeader
+                title={
+                  <Heading modifiers="h3" color="primary">
+                    {t(
+                      'forms.restCheck.blockTitle',
+                      'Sõidu- ja puhkeaja nõuete täitmine',
+                    )}
+                  </Heading>
+                }
+              />
+              <AccordionItemContent>
+                <div>
+                  {formik.touched.workDaysCount &&
+                    formik.errors.workDaysCount && (
+                      <div className="mb-1">
+                        <Alert type="danger" size="small">
+                          {formik.errors.workDaysCount}
+                        </Alert>
+                      </div>
+                    )}
+                  <ChoiceGroup
+                    id={fieldId('applicability')}
+                    label=""
+                    name={fieldId('applicability')}
+                    inputType="radio"
+                    direction="row"
+                    value={formik.values.spApplicability}
+                    onChange={(val) =>
+                      formik.setFieldValue('spApplicability', val as string)
+                    }
+                    className="mb-1"
+                    items={withDisabled([
+                      {
+                        id: 'applicability_applied',
+                        value: 'RAKENDATAKSE',
+                        label: t(
+                          'forms.sp_form.applicabilityApplied',
+                          'Rakendatakse',
+                        ),
+                      },
+                      {
+                        id: 'applicability_not_applied',
+                        value: 'EI_RAKENDATA',
+                        label: t(
+                          'forms.sp_form.applicabilityNotApplied',
+                          'Ei rakendata',
+                        ),
+                      },
+                      {
+                        id: 'applicability_not_checked',
+                        value: 'EI_KONTROLLITUD',
+                        label: t(
+                          'forms.sp_form.applicabilityNotChecked',
+                          'Ei kontrollitud',
+                        ),
+                      },
+                    ])}
+                  />
+                  {formik.values.spApplicability === 'RAKENDATAKSE' && (
                     <ChoiceGroup
-                      id={fieldId('applicability')}
-                      label=""
-                      name={fieldId('applicability')}
+                      id={fieldId('tachographTypeCode')}
+                      label={
+                        <strong>
+                          {t('forms.sp_form.tachograph_type_code')}{' '}
+                          <span className={styles['required-star']}>*</span>
+                        </strong>
+                      }
+                      name={fieldId('tachographTypeCode')}
                       inputType="radio"
                       direction="row"
-                      value={formik.values.spApplicability}
+                      value={formik.values.tachographTypeCode}
                       onChange={(val) =>
-                        formik.setFieldValue('spApplicability', val as string)
+                        handleTachographTypeChange(val as string)
                       }
                       className="mb-1"
-                      items={withDisabled([
-                        {
-                          id: 'applicability_applied',
-                          value: 'RAKENDATAKSE',
-                          label: t(
-                            'forms.sp_form.applicabilityApplied',
-                            'Rakendatakse',
-                          ),
-                        },
-                        {
-                          id: 'applicability_not_applied',
-                          value: 'EI_RAKENDATA',
-                          label: t(
-                            'forms.sp_form.applicabilityNotApplied',
-                            'Ei rakendata',
-                          ),
-                        },
-                        {
-                          id: 'applicability_not_checked',
-                          value: 'EI_KONTROLLITUD',
-                          label: t(
-                            'forms.sp_form.applicabilityNotChecked',
-                            'Ei kontrollitud',
-                          ),
-                        },
-                      ])}
+                      required
+                      items={withDisabled(
+                        tachographTypes.map((v) => ({
+                          id: `tachograph_${v.code}`,
+                          value: v.code,
+                          label: v.name,
+                        })),
+                      )}
                     />
-                    {formik.values.spApplicability === 'RAKENDATAKSE' && (
-                      <ChoiceGroup
-                        id={fieldId('tachographTypeCode')}
-                        label={
-                          <strong>
-                            {t('forms.sp_form.tachograph_type_code')}{' '}
-                            <span className={styles['required-star']}>*</span>
-                          </strong>
-                        }
-                        name={fieldId('tachographTypeCode')}
-                        inputType="radio"
-                        direction="row"
-                        value={formik.values.tachographTypeCode}
-                        onChange={(val) =>
-                          handleTachographTypeChange(val as string)
-                        }
-                        className="mb-1"
-                        required
-                        items={withDisabled(
-                          tachographTypes.map((v) => ({
-                            id: `tachograph_${v.code}`,
-                            value: v.code,
-                            label: v.name,
-                          })),
-                        )}
-                      />
-                    )}
-                  </div>
-                  <div className={styles['days-row']}>
-                    <Text>{t('forms.drive_rest.checkedDaysCount')}</Text>
-                    <TextField
-                      className={styles['days-number']}
-                      id={fieldId('checkedDaysCount')}
-                      label=""
-                      value={formik.values.checkedDaysCount?.toString() || ''}
-                      placeholder={t('common.numberPlaceholder', 'Nr')}
-                      onChange={(v) => {
-                        const numericValue = v.replace(/\D/g, '');
-                        const parsedValue = parseInt(numericValue, 10) || 0;
-                        formik.setFieldValue(
-                          'checkedDaysCount',
-                          String(parsedValue),
-                        );
-                      }}
-                      input={{ maxLength: 3 }}
-                      disabled={readOnly}
-                    />
-                    <Text>{t('forms.drive_rest.workDaysCount')}</Text>
-                    <TextField
-                      className={styles['days-number']}
-                      id={fieldId('workDaysCount')}
-                      label=""
-                      value={formik.values.workDaysCount?.toString() || ''}
-                      placeholder={t('common.numberPlaceholder', 'Nr')}
-                      onChange={(v) => {
-                        const numericValue = v.replace(/\D/g, '');
-                        const parsedValue = parseInt(numericValue, 10) || 0;
-                        formik.setFieldValue(
-                          'workDaysCount',
-                          String(parsedValue),
-                        );
-                      }}
-                      input={{ maxLength: 3 }}
-                      disabled={readOnly}
-                    />
-                    <Text>{t('forms.drive_rest.otherActivityDaysCount')}</Text>
-                    <TextField
-                      className={styles['days-number']}
-                      id={fieldId('otherActivityDaysCount')}
-                      label=""
-                      value={
-                        formik.values.otherActivityDaysCount?.toString() || ''
-                      }
-                      placeholder={t('common.numberPlaceholder', 'Nr')}
-                      onChange={(v) => {
-                        const numericValue = v.replace(/\D/g, '');
-                        const parsedValue = parseInt(numericValue, 10) || 0;
-                        formik.setFieldValue(
-                          'otherActivityDaysCount',
-                          String(parsedValue),
-                        );
-                      }}
-                      input={{ maxLength: 3 }}
-                      disabled={readOnly}
-                    />
-                  </div>
+                  )}
+                </div>
+                <div className={styles['days-row']}>
+                  <Text>{t('forms.drive_rest.checkedDaysCount')}</Text>
+                  <TextField
+                    className={styles['days-number']}
+                    id={fieldId('checkedDaysCount')}
+                    label=""
+                    value={formik.values.checkedDaysCount?.toString() || ''}
+                    placeholder={t('common.numberPlaceholder', 'Nr')}
+                    onChange={(v) => {
+                      const numericValue = v.replace(/\D/g, '');
+                      const parsedValue = parseInt(numericValue, 10) || 0;
+                      formik.setFieldValue(
+                        'checkedDaysCount',
+                        String(parsedValue),
+                      );
+                    }}
+                    input={{ maxLength: 3 }}
+                    disabled={readOnly}
+                  />
+                  <Text>{t('forms.drive_rest.workDaysCount')}</Text>
+                  <TextField
+                    className={styles['days-number']}
+                    id={fieldId('workDaysCount')}
+                    label=""
+                    value={formik.values.workDaysCount?.toString() || ''}
+                    placeholder={t('common.numberPlaceholder', 'Nr')}
+                    onChange={(v) => {
+                      const numericValue = v.replace(/\D/g, '');
+                      const parsedValue = parseInt(numericValue, 10) || 0;
+                      formik.setFieldValue(
+                        'workDaysCount',
+                        String(parsedValue),
+                      );
+                    }}
+                    input={{ maxLength: 3 }}
+                    disabled={readOnly}
+                  />
+                  <Text>{t('forms.drive_rest.otherActivityDaysCount')}</Text>
+                  <TextField
+                    className={styles['days-number']}
+                    id={fieldId('otherActivityDaysCount')}
+                    label=""
+                    value={
+                      formik.values.otherActivityDaysCount?.toString() || ''
+                    }
+                    placeholder={t('common.numberPlaceholder', 'Nr')}
+                    onChange={(v) => {
+                      const numericValue = v.replace(/\D/g, '');
+                      const parsedValue = parseInt(numericValue, 10) || 0;
+                      formik.setFieldValue(
+                        'otherActivityDaysCount',
+                        String(parsedValue),
+                      );
+                    }}
+                    input={{ maxLength: 3 }}
+                    disabled={readOnly}
+                  />
+                </div>
 
-                  <div className={styles['overflow-visible']}>
-                    <ModalResultSection
-                      checks={drivingViolationsMain}
-                      type="drivingViolation"
-                      setFieldValue={formik.setFieldValue}
-                      readOnly={readOnly}
-                      scopedFields={MAIN_DRIVING_VIOLATION_FIELDS}
-                      initialViolations={{
-                        violations5612006:
-                          formik.values.violations5612006 ?? [],
-                        violations1652014:
-                          formik.values.violations1652014 ?? [],
-                        violations200215: formik.values.violations200215 ?? [],
-                      }}
-                    />
-                  </div>
-                </AccordionItemContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        )}
+                <div className={styles['overflow-visible']}>
+                  <ModalResultSection
+                    checks={drivingViolationsMain}
+                    type="drivingViolation"
+                    setFieldValue={formik.setFieldValue}
+                    readOnly={readOnly}
+                    scopedFields={MAIN_DRIVING_VIOLATION_FIELDS}
+                    initialViolations={{
+                      violations5612006: formik.values.violations5612006 ?? [],
+                      violations1652014: formik.values.violations1652014 ?? [],
+                      violations200215: formik.values.violations200215 ?? [],
+                    }}
+                  />
+                </div>
+              </AccordionItemContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
       {/* Plokk: Rooma I (määrus 593/2008) lepingu rikkumised — omaette akordion,
           eraldatud ühisest rikkumiste valikuaknast (vt scopedFields'i kommentaar
           ModalResultSection'is). */}
@@ -1103,84 +1100,88 @@ export function DriveRestFormFields({
         )}
       {/* Plokk: ATP kokkuleppe nõuete kontroll */}
       {!hideDriveRestExtras && (
-      <Row className="m-0">
-        <Col className="p-0">
-          <Card className="mb-1">
-            <Card.Content>
-              <Heading element="h3" className="mb-1">
-                {t('forms.drive_rest.atpTitle')}
-              </Heading>
-              <div>
-                <ChoiceGroup
-                  id={fieldId('atpViolationFound')}
-                  label={
-                    <strong>{t('forms.sp_form.atpViolationFound')}</strong>
-                  }
-                  name={fieldId('roadTaxStatus')}
-                  inputType="radio"
-                  direction="row"
-                  value={formik.values.atpViolationFound}
-                  className="mb-1"
-                  onChange={(val) => {
-                    formik.setFieldValue('atpViolationFound', val as string);
-                    if (val !== 'true') {
-                      formik.setFieldValue('atpViolationDescription', '');
+        <Row className="m-0">
+          <Col className="p-0">
+            <Card className="mb-1">
+              <Card.Content>
+                <Heading element="h3" className="mb-1">
+                  {t('forms.drive_rest.atpTitle')}
+                </Heading>
+                <div>
+                  <ChoiceGroup
+                    id={fieldId('atpViolationFound')}
+                    label={
+                      <strong>{t('forms.sp_form.atpViolationFound')}</strong>
                     }
-                  }}
-                  items={withDisabled([
-                    {
-                      id: 'atp_violation_yes',
-                      value: 'true',
-                      label: t('common.yes'),
-                      disabled: atpDisabledForPassenger,
-                    },
-                    {
-                      id: 'atp_violation_no',
-                      value: 'false',
-                      label: t('common.no'),
-                      disabled: atpDisabledForPassenger,
-                    },
-                  ])}
-                />
-                <div></div>
-                {formik.values.atpViolationFound === 'true' && (
-                  <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
-                    <TextArea
-                      id={fieldId('atpViolationDescription')}
-                      maxHeight="8rem"
-                      label={
-                        <strong>
-                          {t('forms.sp_form.atpViolationDescription')}{' '}
-                          <span className={styles['required-star']}>*</span>
-                        </strong>
+                    name={fieldId('roadTaxStatus')}
+                    inputType="radio"
+                    direction="row"
+                    value={formik.values.atpViolationFound}
+                    className="mb-1"
+                    onChange={(val) => {
+                      formik.setFieldValue('atpViolationFound', val as string);
+                      if (val !== 'true') {
+                        formik.setFieldValue('atpViolationDescription', '');
                       }
-                      value={formik.values.atpViolationDescription}
-                      input={{ maxLength: 4000 }}
-                      placeholder={t('forms.sp_form.atpDescriptionPlaceholder')}
-                      onChange={(v) =>
-                        formik.setFieldValue(
-                          'atpViolationDescription',
-                          v as string,
-                        )
-                      }
-                      disabled={readOnly || atpDisabledForPassenger}
-                      {...(formik.touched.atpViolationDescription &&
-                      formik.errors.atpViolationDescription
-                        ? {
-                            helper: {
-                              text: formik.errors.atpViolationDescription,
-                              type: 'error' as const,
-                            },
-                          }
-                        : {})}
-                    />
-                  </div>
-                )}
-              </div>
-            </Card.Content>
-          </Card>
-        </Col>
-      </Row>
+                    }}
+                    items={withDisabled([
+                      {
+                        id: 'atp_violation_yes',
+                        value: 'true',
+                        label: t('common.yes'),
+                        disabled: atpDisabledForPassenger,
+                      },
+                      {
+                        id: 'atp_violation_no',
+                        value: 'false',
+                        label: t('common.no'),
+                        disabled: atpDisabledForPassenger,
+                      },
+                    ])}
+                  />
+                  <div></div>
+                  {formik.values.atpViolationFound === 'true' && (
+                    <div
+                      className={styles[isDesktop ? 'width-80' : 'width-100']}
+                    >
+                      <TextArea
+                        id={fieldId('atpViolationDescription')}
+                        maxHeight="8rem"
+                        label={
+                          <strong>
+                            {t('forms.sp_form.atpViolationDescription')}{' '}
+                            <span className={styles['required-star']}>*</span>
+                          </strong>
+                        }
+                        value={formik.values.atpViolationDescription}
+                        input={{ maxLength: 4000 }}
+                        placeholder={t(
+                          'forms.sp_form.atpDescriptionPlaceholder',
+                        )}
+                        onChange={(v) =>
+                          formik.setFieldValue(
+                            'atpViolationDescription',
+                            v as string,
+                          )
+                        }
+                        disabled={readOnly || atpDisabledForPassenger}
+                        {...(formik.touched.atpViolationDescription &&
+                        formik.errors.atpViolationDescription
+                          ? {
+                              helper: {
+                                text: formik.errors.atpViolationDescription,
+                                type: 'error' as const,
+                              },
+                            }
+                          : {})}
+                      />
+                    </div>
+                  )}
+                </div>
+              </Card.Content>
+            </Card>
+          </Col>
+        </Row>
       )}
       {/* Plokk: Andmevahetuskihi (X-tee) päringuga sisestatavad andmed.
           Täidetakse automaatselt e-toimiku päringuga (cron), kuvatakse loetavalt. */}
@@ -1197,7 +1198,9 @@ export function DriveRestFormFields({
                 <div className="mb-1">
                   <TextArea
                     id={fieldId('enforcementDecision')}
-                    label={<strong>{t('forms.sp_form.enforcedDecision')}</strong>}
+                    label={
+                      <strong>{t('forms.sp_form.enforcedDecision')}</strong>
+                    }
                     value={formik.values.enforcementDecision ?? ''}
                     maxHeight="8rem"
                     onChange={() => {}}
@@ -1226,40 +1229,42 @@ export function DriveRestFormFields({
       {/* Plokk: Failid */}
       <Row className="m-0">
         <Col className="p-0">
-          <FileUploadBlock
-            formPath={filesFormType ?? `drive-rest-form/${type}`}
-            formNumber={filesFormNumber ?? formik.values.subFormNumber}
-            disabled={readOnly}
-            label={t('form.files.title')}
-          />
-        </Col>
-      </Row>
-      {/* Plokk: Märkused */}
-      {formik.values.resultType !== '' &&
-        formik.values.resultType !== 'ok' && (
           <Card className="mb-1">
             <Card.Content>
               <Heading element="h3" className="mb-1">
-                {t('forms.sp_form.notes')}
+                {t('forms.shared.files.label')}
               </Heading>
-              <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
-                <TextArea
-                  id={fieldId('sanctionNotes')}
-                  label=""
-                  value={formik.values.notes}
-                  placeholder={
-                    readOnly ? '' : t('common.enterNotesPlaceholder')
-                  }
-                  onChange={(val) =>
-                    formik.setFieldValue('notes', val as string)
-                  }
-                  maxHeight="8rem"
-                  disabled={readOnly}
-                />
-              </div>
+              <FileUploadBlock
+                formPath={filesFormType ?? `drive-rest-form/${type}`}
+                formNumber={filesFormNumber ?? formik.values.subFormNumber}
+                disabled={readOnly}
+                label={t('form.files.title')}
+              />
             </Card.Content>
           </Card>
-        )}
+        </Col>
+      </Row>
+      {/* Plokk: Märkused */}
+      {formik.values.resultType !== '' && formik.values.resultType !== 'ok' && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.sp_form.notes')}
+            </Heading>
+            <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
+              <TextArea
+                id={fieldId('sanctionNotes')}
+                label=""
+                value={formik.values.notes}
+                placeholder={readOnly ? '' : t('common.enterNotesPlaceholder')}
+                onChange={(val) => formik.setFieldValue('notes', val as string)}
+                maxHeight="8rem"
+                disabled={readOnly}
+              />
+            </div>
+          </Card.Content>
+        </Card>
+      )}
     </div>
   );
 }

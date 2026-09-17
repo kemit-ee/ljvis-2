@@ -14,6 +14,7 @@ import type {
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { ClassifierEntry } from '../../../classifiers/types';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 const T = 'erru.rsi.validation';
 
@@ -244,34 +245,37 @@ export function useRsiForm(
                   ? values.identification.isNaturalPerson || undefined
                   : undefined,
               transportUndertakingName:
-                values.identification.isVehicleHolder === 'transport_undertaking'
-                  ? values.identification.transportUndertakingName
+                values.identification.isVehicleHolder ===
+                'transport_undertaking'
+                  ? sanitizeText(values.identification.transportUndertakingName)
                   : undefined,
               communityLicenceNumber:
-                values.identification.isVehicleHolder === 'transport_undertaking'
-                  ? values.identification.communityLicenceNumber
+                values.identification.isVehicleHolder ===
+                'transport_undertaking'
+                  ? sanitizeText(values.identification.communityLicenceNumber)
                   : undefined,
               companyName:
                 values.identification.isVehicleHolder === 'owner' &&
                 values.identification.isNaturalPerson === 'company'
-                  ? values.identification.companyName
+                  ? sanitizeText(values.identification.companyName)
                   : undefined,
               firstName:
                 values.identification.isVehicleHolder === 'owner' &&
                 values.identification.isNaturalPerson === 'natural_person'
-                  ? values.identification.firstName
+                  ? sanitizeText(values.identification.firstName)
                   : undefined,
               familyName:
                 values.identification.isVehicleHolder === 'owner' &&
                 values.identification.isNaturalPerson === 'natural_person'
-                  ? values.identification.familyName
+                  ? sanitizeText(values.identification.familyName)
                   : undefined,
-              registrationCertificate: values.identification.registrationCertificate || undefined,
+              registrationCertificate:
+                values.identification.registrationCertificate || undefined,
               address: {
-                address: values.identification.address,
-                city: values.identification.city,
+                address: sanitizeText(values.identification.address),
+                city: sanitizeText(values.identification.city),
                 country: values.identification.country,
-                postCode: values.identification.postCode,
+                postCode: sanitizeText(values.identification.postCode),
               },
             } as RsiIdentificationDetails)
           : null;
@@ -279,27 +283,44 @@ export function useRsiForm(
         const payload = {
           originatingAuthority: values.originatingAuthority,
           requestSource: '',
-          requestPurpose: values.requestPurpose,
+          requestPurpose: sanitizeText(values.requestPurpose),
           vehicleCategory: values.vehicleCategory,
-          vehicleRegistrationNumber: values.vehicleRegistrationNumber,
+          vehicleRegistrationNumber: sanitizeText(
+            values.vehicleRegistrationNumber,
+          ),
           vehicleRegistrationCountry: values.vehicleRegistrationCountry,
-          vehicleIdentificationNumber: values.vehicleIdentificationNumber,
+          vehicleIdentificationNumber: sanitizeText(
+            values.vehicleIdentificationNumber,
+          ),
           odometerReading: values.odometerReading,
-          driverFirstName: driverBlockOpen ? values.driverFirstName : '',
-          driverFamilyName: driverBlockOpen ? values.driverFamilyName : '',
-          driverLicenceNumber: driverBlockOpen ? values.driverLicenceNumber : '',
-          driverLicenceCountry: driverBlockOpen ? values.driverLicenceCountry : '',
-          identificationDetails: identification ? JSON.stringify(identification) : '',
-          inspectionIdentifier: values.inspectionIdentifier,
-          inspectionLocation: values.inspectionLocation,
+          driverFirstName: driverBlockOpen
+            ? sanitizeText(values.driverFirstName)
+            : '',
+          driverFamilyName: driverBlockOpen
+            ? sanitizeText(values.driverFamilyName)
+            : '',
+          driverLicenceNumber: driverBlockOpen
+            ? sanitizeText(values.driverLicenceNumber)
+            : '',
+          driverLicenceCountry: driverBlockOpen
+            ? values.driverLicenceCountry
+            : '',
+          identificationDetails: identification
+            ? JSON.stringify(identification)
+            : '',
+          inspectionIdentifier: sanitizeText(values.inspectionIdentifier),
+          inspectionLocation: sanitizeText(values.inspectionLocation),
           inspectionDatetime:
             values.inspectionDate && values.inspectionTime
               ? `${values.inspectionDate}T${values.inspectionTime}:00`
               : '',
-          inspectionAuthorityOrName: values.inspectionAuthorityOrName,
+          inspectionAuthorityOrName: sanitizeText(
+            values.inspectionAuthorityOrName,
+          ),
           inspectionPassed: values.inspectionPassed,
           ptiRequested: values.ptiRequested,
-          vehicleProhibitionOrRestriction: values.vehicleProhibitionOrRestriction,
+          vehicleProhibitionOrRestriction:
+            values.vehicleProhibitionOrRestriction,
           checkedItems: JSON.stringify(values.checkedItems ?? []),
         };
         const result = await saveRsiMessage(message?.id ?? '', payload);

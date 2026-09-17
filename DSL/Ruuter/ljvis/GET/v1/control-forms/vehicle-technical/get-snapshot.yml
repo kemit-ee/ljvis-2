@@ -34,7 +34,7 @@ checkEmpty:
   switch:
     - condition: ${res.response.body == null || res.response.body.length == 0}
       next: getFromArchive
-  next: returnSuccess
+  next: mapResponse
 
 getFromArchive:
   call: http.post
@@ -52,8 +52,19 @@ returnArchive:
   return: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
   next: end
 
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_vehicle_technical_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
+  next: returnSuccess
+
 returnSuccess:
-  return: ${res.response.body}
+  return: ${[mapped.response.body]}
   next: end
 
 returnForbidden:

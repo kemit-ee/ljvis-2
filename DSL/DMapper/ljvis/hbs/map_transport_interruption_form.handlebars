@@ -1,0 +1,20 @@
+{{#with forms.[0]}}
+{
+        "id": "{{this.id}}",
+        "compoundFormKey": "{{this.compoundFormKey}}",
+        "subFormNumber": "{{this.subFormNumber}}",
+        "version": {{#if this.version}}{{this.version}}{{else}}null{{/if}},
+        "status": "{{this.status}}",
+        "headerText": {{#if this.headerText}}"{{this.headerText}}"{{else}}null{{/if}},
+        "residenceCountry": {{#if this.residenceCountry}}"{{this.residenceCountry}}"{{else}}null{{/if}},
+        "residenceRegion": {{#if this.residenceRegion}}"{{this.residenceRegion}}"{{else}}null{{/if}},
+        "residenceCity": {{#if this.residenceCity}}"{{this.residenceCity}}"{{else}}null{{/if}},
+        "residenceAddressLine": {{#if this.residenceAddressLine}}"{{this.residenceAddressLine}}"{{else}}null{{/if}},
+        "residencePostalCode": {{#if this.residencePostalCode}}"{{this.residencePostalCode}}"{{else}}null{{/if}},
+        "interruptionReason": {{#if this.interruptionReason}}"{{this.interruptionReason}}"{{else}}null{{/if}},
+        "legalBases": {{#if this.legalBases}}{{{this.legalBases}}}{{else}}[]{{/if}},
+        "terminationCondition": {{#if this.terminationCondition}}"{{this.terminationCondition}}"{{else}}null{{/if}},
+        "personApplications": {{#if this.personApplications}}"{{this.personApplications}}"{{else}}null{{/if}},
+        "createdBy": "{{this.createdBy}}"
+}
+{{/with}}

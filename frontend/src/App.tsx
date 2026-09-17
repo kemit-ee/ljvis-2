@@ -17,6 +17,7 @@ import { ClassifierValueCreatePage } from './features/classifiers/pages/Classifi
 import { ClassifierValueEditPage } from './features/classifiers/pages/ClassifierValueEditPage/ClassifierValueEditPage';
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
 import { RiskScoresListPage } from './features/risk-scores/pages/RiskScoresListPage/RiskScoresListPage';
+import { XroadLogListPage } from './features/xroad-logs/pages/XroadLogListPage/XroadLogListPage';
 import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
 import { LoginPage } from './features/auth/LoginPage/LoginPage';
@@ -139,6 +140,7 @@ function AppRoutes() {
           />
           <Route path="/logs" element={<LogListPage />} />
           <Route path="/admin/risk-scores" element={<RiskScoresListPage />} />
+          <Route path="/admin/xroad-logs" element={<XroadLogListPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/logs/:id" element={<LogDetailPage />} />
           <Route

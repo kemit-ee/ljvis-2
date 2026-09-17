@@ -1071,7 +1071,6 @@
       "inspectorOrganisation": "Authority",
       "inspectorUnit": "Structural unit",
       "inspectorProfession": "Job title",
-      "filesBasicInfo": "Inspection-related files",
       "filesUpload": "Upload a file",
       "filesBoxInfo": "Drop files here or click to browse",
       "filesHelper": "Allowed formats: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maximum file size 10 MB.",
@@ -1196,7 +1195,8 @@
     "nu": "NU unfitness notifications",
     "riskScores": "Risk scores",
     "myCompany": "My company",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "xroadLogs": "e-Toimik X-Road logs"
   },
   "citizen": {
     "formsList": {
@@ -1508,7 +1508,7 @@
     "clear": "Clear filters",
     "formHasErrors": "The form contains errors. Please check the fields marked in red.",
     "deleteTrailerSubConfirmTitle": "Remove trailer and delete sub-form",
-    "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form?",
+    "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form? The changes take effect once you click \"Save\" on the form.",
     "print": "Print",
     "printFilled": "Print completed form",
     "printBlank": "Print blank form"
@@ -1547,6 +1547,38 @@
     "bandRoheline": "Green",
     "bandKollane": "Amber",
     "bandPunane": "Red"
+  },
+  "xroadLogs": {
+    "title": "e-Toimik X-Road logs",
+    "emptyResult": "No entries match the filter",
+    "empty": "No content",
+    "viewRequest": "View request",
+    "viewResponse": "View response",
+    "filter": {
+      "dateFrom": "From",
+      "dateTo": "To",
+      "all": "All"
+    },
+    "status": {
+      "found": "Match found",
+      "notFound": "No response",
+      "error": "Error"
+    },
+    "column": {
+      "createdAt": "Request time",
+      "form": "Form",
+      "status": "Status",
+      "request": "Outgoing request",
+      "response": "Incoming response"
+    },
+    "sourceType": {
+      "compound_form": "Transport supervision and vehicle technical condition control card",
+      "labour_inspection_form": "Labour inspection control card",
+      "vehicle_technical_form": "Motor vehicle technical compliance control form",
+      "trailer_technical_form": "Trailer technical compliance control form",
+      "sp_driver_form": "Driver's driving and rest time control form",
+      "tram_control_card": "Transport Administration control card"
+    }
   },
   "etoimik": {
     "title": "e-Toimik qualification check",

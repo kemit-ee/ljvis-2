@@ -185,6 +185,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.XROAD_LOG_READ)) {
+      adminSubItems.push({
+        children: t('nav.xroadLogs'),
+        to: '/admin/xroad-logs',
+        isActive: pathname.startsWith('/admin/xroad-logs'),
+      });
+    }
+
     const adminIsActive = adminSubItems.some((item) => item.isActive);
 
     if (adminSubItems.length > 0) {

@@ -289,7 +289,8 @@
     "nu": "NU sobimatusteated",
     "riskScores": "Riskitasemed",
     "myCompany": "Minu ettevõte",
-    "notifications": "Teavitused"
+    "notifications": "Teavitused",
+    "xroadLogs": "eToimiku X-tee logid"
   },
   "citizen": {
     "formsList": {
@@ -1235,7 +1236,6 @@
       "inspectorOrganisation": "Asutus",
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",
-      "filesBasicInfo": "Kontrolliga seotud failid",
       "filesUpload": "Laadi üles fail",
       "filesBoxInfo": "Kukuta failid siia või klõpsa valimiseks",
       "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB.",
@@ -1528,7 +1528,7 @@
     "clear": "Tühista filtrid",
     "deleteSubConfirm": "Kas olete kindel, et soovite alamvormi kustutada?",
     "deleteTrailerSubConfirmTitle": "Haagise eemaldamine ja alamvormi kustutamine",
-    "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada?",
+    "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada? Lõplikult rakenduvad muudatused pärast \"Salvesta\" vajutamist vormil.",
     "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
     "print": "Prindi",
     "printFilled": "Prindi täidetud vorm",
@@ -1568,6 +1568,38 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
+  },
+  "xroadLogs": {
+    "title": "eToimiku X-tee logid",
+    "emptyResult": "Filtrile vastavaid kirjeid ei leitud",
+    "empty": "Sisu puudub",
+    "viewRequest": "Vaata päringut",
+    "viewResponse": "Vaata vastust",
+    "filter": {
+      "dateFrom": "Alates",
+      "dateTo": "Kuni",
+      "all": "Kõik"
+    },
+    "status": {
+      "found": "Vaste leitud",
+      "notFound": "Vastuseta",
+      "error": "Vigane"
+    },
+    "column": {
+      "createdAt": "Päringu aeg",
+      "form": "Vorm",
+      "status": "Staatus",
+      "request": "Väljuv päring",
+      "response": "Saabunud vastus"
+    },
+    "sourceType": {
+      "compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
+      "labour_inspection_form": "Tööinspektsiooni kontrollkaart",
+      "vehicle_technical_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
+      "trailer_technical_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
+      "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
+      "tram_control_card": "Transpordiameti kontrollkaart"
+    }
   },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",

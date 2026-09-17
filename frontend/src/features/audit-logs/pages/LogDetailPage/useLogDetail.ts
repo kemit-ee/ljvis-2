@@ -35,10 +35,13 @@ export function useLogDetail(id: string | undefined) {
     cleanedLogContent = cleanedLogContent.slice(1, -1);
   }
 
+  const decodedDescription = decodeHtmlEntities(auditLog?.description || '');
+
   return {
     auditLog,
     loading,
     person,
     decodedLogContent: cleanedLogContent,
+    decodedDescription,
   };
 }

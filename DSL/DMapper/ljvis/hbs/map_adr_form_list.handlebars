@@ -1,0 +1,13 @@
+[
+        {{#each forms}}
+        {
+                "id": "{{this.id}}",
+                "compoundFormKey": "{{this.compoundFormKey}}",
+                "subFormNumber": "{{this.subFormNumber}}",
+                "version": {{#if this.version}}{{this.version}}{{else}}null{{/if}},
+                "status": "{{this.status}}",
+                "resultType": {{#if this.resultType}}"{{this.resultType}}"{{else}}null{{/if}},
+                "createdBy": "{{this.createdBy}}"
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+]

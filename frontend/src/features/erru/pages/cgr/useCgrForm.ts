@@ -6,6 +6,7 @@ import { createCgrRequest, updateCgrRequest } from '../../api';
 import type { CgrRequest, CgrRequestWrite } from '../../types';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 const T = 'erru.cgr.validation';
 
@@ -123,9 +124,16 @@ export function useCgrForm(
     onSubmit: async (values, { setFieldError }) => {
       setFormError(null);
       try {
+        const trimmedValues = {
+          ...values,
+          tmFirstName: sanitizeText(values.tmFirstName),
+          tmFamilyName: sanitizeText(values.tmFamilyName),
+          tmPlaceOfBirth: sanitizeText(values.tmPlaceOfBirth),
+          certificateNumber: sanitizeText(values.certificateNumber),
+        };
         const result = isEdit
-          ? await updateCgrRequest(String(request!.id), values)
-          : await createCgrRequest(values);
+          ? await updateCgrRequest(String(request!.id), trimmedValues)
+          : await createCgrRequest(trimmedValues);
         onSaved(String(result.id));
       } catch (e) {
         const handled = applyValidationError(

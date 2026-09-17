@@ -22,10 +22,21 @@ checkResponse:
   switch:
     - condition: ${res.response.body.length != 1}
       next: returnEmpty
+  next: mapResponse
+
+mapResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_DMAPPER_HBS]/map_sp_driver_form"
+    headers:
+      type: json
+    body:
+      forms: ${res.response.body}
+  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${res.response.body[0]}
+  return: ${mapped.response.body}
   next: end
 
 returnEmpty:

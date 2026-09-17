@@ -5,6 +5,7 @@ import { listOrganisations } from '../../../organisations/api';
 import type { Permission } from '../../../permissions/types';
 import { listPermissions } from '../../../permissions/api';
 import { insertUserGroup } from '../../api';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 export function useUserGroupForm(onSaved: (id: string) => void) {
   const { t } = useTranslation();
@@ -79,7 +80,7 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
     setSaving(true);
     try {
       const result = await insertUserGroup({
-        name: name.trim(),
+        name: sanitizeText(name),
         organisationIds: Array.from(selectedOrgs),
         permissionIds: Array.from(selectedPerms),
       });

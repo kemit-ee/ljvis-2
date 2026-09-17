@@ -102,12 +102,27 @@ export function DriveRestFormViewCard({
           hideDriveRestExtras={hideDriveRestExtras}
           readOnly
         />
-        {form.id && <FormVersionsTable formId={form.id} formType={formType} refreshKey={versionsRefreshKey} />}
+        {form.id && (
+          <FormVersionsTable
+            formId={form.id}
+            formType={formType}
+            refreshKey={versionsRefreshKey}
+          />
+        )}
         <div className="confirm-button">
-          <div>
-            <FormPrintButton endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`} id={form.id} snapshotId={snapshotId} />
+          <div className="page-actions-buttons">
+            <FormPrintButton
+              endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`}
+              id={form.id}
+              snapshotId={snapshotId}
+            />
             {canPublish && onPublish && (
-              <AsyncButton type="button" onClick={() => onPublish().then(() => setVersionsRefreshKey((k) => k + 1))}>
+              <AsyncButton
+                type="button"
+                onClick={() =>
+                  onPublish().then(() => setVersionsRefreshKey((k) => k + 1))
+                }
+              >
                 {t('common.publish')}
               </AsyncButton>
             )}

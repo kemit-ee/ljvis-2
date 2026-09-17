@@ -52,6 +52,7 @@ export const PERMISSIONS = {
   RISK_REPORT_LIST: 'risk_report.list',
   NOTIFICATION_LIST: 'notification.list',
   NOTIFICATION_RESEND: 'notification.resend',
+  XROAD_LOG_READ: 'xroad.log.read',
 } as const;
 
 export const FORM_READ_PERMISSIONS: string[] = [

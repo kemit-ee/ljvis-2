@@ -49,6 +49,14 @@ if [ -f "$REPO_ROOT/tests/bootstrap/seed_classifiers.sql" ]; then
     || echo "    seed_classifiers.sql — hoiatus (võib olla juba seeditud)"
 fi
 
+# eToimiku X-tee logide vaate testandmed (xroad-etoimik-logs.spec.ts).
+if [ -f "$REPO_ROOT/tests/bootstrap/seed_xroad_etoimik_logs.sql" ]; then
+  psql -h localhost -p 5433 -U ljvis -d ljvis_db -q \
+    -f "$REPO_ROOT/tests/bootstrap/seed_xroad_etoimik_logs.sql" \
+    && echo "    seed_xroad_etoimik_logs.sql OK" \
+    || echo "    seed_xroad_etoimik_logs.sql — hoiatus (võib olla juba seeditud)"
+fi
+
 echo "==> Ehitan frontendi (staatiline build → vite preview)…"
 export VITE_PROXY_API=http://localhost:9086
 export VITE_PROXY_TIM=http://localhost:9085

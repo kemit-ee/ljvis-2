@@ -1,0 +1,10 @@
+[
+        {{#each forms}}
+        {
+                "id": "{{this.id}}",
+                "subFormNumber": "{{this.subFormNumber}}",
+                "version": {{#if this.version}}{{this.version}}{{else}}null{{/if}},
+                "status": "{{this.status}}"
+        }{{#unless @last}},{{/unless}}
+        {{/each}}
+]

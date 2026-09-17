@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import { saveNcrRequest } from '../../api';
 import type { NcrMessage, NcrSeriousInfringement } from '../../types';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 const T = 'erru.ncr.validation';
 
@@ -98,7 +99,21 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
                 numberOfInfringements: Number(values.minorInfringementCount || 0),
               })
             : '';
-        const seriousInfringements = values.checkPassed ? '[]' : JSON.stringify(values.seriousInfringements);
+        const seriousInfringements = values.checkPassed
+          ? '[]'
+          : JSON.stringify(
+              values.seriousInfringements.map((si) => ({
+                ...si,
+                penaltiesImposed: si.penaltiesImposed.map((p) => ({
+                  ...p,
+                  penaltyImposedIdentifier: sanitizeText(p.penaltyImposedIdentifier),
+                })),
+                penaltiesRequested: si.penaltiesRequested.map((p) => ({
+                  ...p,
+                  penaltyRequestedIdentifier: sanitizeText(p.penaltyRequestedIdentifier),
+                })),
+              })),
+            );
 
         const result = await saveNcrRequest({
           businessCaseId: message?.businessCaseId ?? '',
@@ -106,9 +121,13 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
           requestSource: values.requestSource,
           requestPurpose: values.requestPurpose,
           ncrTo: values.ncrTo,
-          transportUndertakingName: values.transportUndertakingName,
-          communityLicenceNumber: values.communityLicenceNumber,
-          vehicleRegistrationNumber: values.vehicleRegistrationNumber,
+          transportUndertakingName: sanitizeText(
+            values.transportUndertakingName,
+          ),
+          communityLicenceNumber: sanitizeText(values.communityLicenceNumber),
+          vehicleRegistrationNumber: sanitizeText(
+            values.vehicleRegistrationNumber,
+          ),
           vehicleRegistrationCountry: values.vehicleRegistrationCountry,
           checkResult,
           checkDate: values.checkDate,

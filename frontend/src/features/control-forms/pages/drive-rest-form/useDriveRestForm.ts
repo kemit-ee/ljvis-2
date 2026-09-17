@@ -19,6 +19,7 @@ import {
   confirmDriveRestForm,
   publishDriveRestForm,
 } from '../../api';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 export type FormAuthority = 'PPA' | 'TRAM';
 
@@ -80,10 +81,6 @@ export function serializeDriveRestFormValues(
     // subForm.form snapshot into the save draft (e.g. createSaveAllHandler's
     // draftRef.current ?? subForm.form fallback) can pass the original DB boolean
     // straight through — normalize here, the single chokepoint all save paths share.
-    atpViolationFound:
-      typeof values.atpViolationFound === 'boolean'
-        ? String(values.atpViolationFound)
-        : (values.atpViolationFound ?? 'false'),
     transportClasses: Array.isArray(values.transportClasses)
       ? JSON.stringify(values.transportClasses)
       : (values.transportClasses ?? '[]'),
@@ -119,9 +116,18 @@ export function serializeDriveRestFormValues(
     massDimensionMeasurements: Array.isArray(values.massDimensionMeasurements)
       ? JSON.stringify(values.massDimensionMeasurements)
       : (values.massDimensionMeasurements ?? '[]'),
+    massDimensionNonCompliant: String(values.massDimensionNonCompliant ?? false),
+    atpViolationFound: String(values.atpViolationFound ?? false),
     erruPoints: Array.isArray(values.erruPoints)
       ? JSON.stringify(values.erruPoints)
       : (values.erruPoints ?? '[]'),
+    atpViolationDescription: sanitizeText(values.atpViolationDescription as string),
+    enforcementDecision: sanitizeText(values.enforcementDecision as string),
+    proceedingClosureBasis: sanitizeText(values.proceedingClosureBasis as string),
+    notes: sanitizeText(values.notes as string),
+    liiniNumber: sanitizeText(values.liiniNumber as string),
+    liiniNimetus: sanitizeText(values.liiniNimetus as string),
+    proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber as string),
   };
 }
 

@@ -56,5 +56,6 @@ export function decodeHtmlEntities(text: string): string {
   return text
     .replace(/&quot;/g, '"')
     .replace(/&#x27;/g, "'")
+    .replace(/&#x3D;/g, '=')
     .replace(/&amp;/g, '&');
 }

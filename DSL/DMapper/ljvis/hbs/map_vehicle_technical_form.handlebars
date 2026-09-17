@@ -1,0 +1,26 @@
+{{#with forms.[0]}}
+{
+        "id": "{{this.id}}",
+        "compoundFormKey": "{{this.compoundFormKey}}",
+        "subFormNumber": "{{this.subFormNumber}}",
+        "version": {{#if this.version}}{{this.version}}{{else}}null{{/if}},
+        "status": "{{this.status}}",
+        "partsSummary": {{#if this.partsSummary}}{{{this.partsSummary}}}{{else}}[]{{/if}},
+        "partsDefects": {{#if this.partsDefects}}{{{this.partsDefects}}}{{else}}[]{{/if}},
+        "resultType": {{#if this.resultType}}"{{this.resultType}}"{{else}}null{{/if}},
+        "resultTransportInterruption": {{#if this.resultTransportInterruption}}"{{this.resultTransportInterruption}}"{{else}}null{{/if}},
+        "eraYvMntRegnr": {{#if this.eraYvMntRegnr}}"{{this.eraYvMntRegnr}}"{{else}}null{{/if}},
+        "eraYvMntVintin": {{#if this.eraYvMntVintin}}"{{this.eraYvMntVintin}}"{{else}}null{{/if}},
+        "eraYvMntAxles": {{#if this.eraYvMntAxles}}"{{this.eraYvMntAxles}}"{{else}}null{{/if}},
+        "eraYvMntPlaces": {{#if this.eraYvMntPlaces}}"{{this.eraYvMntPlaces}}"{{else}}null{{/if}},
+        "eraYvMntRebuilt": {{#if this.eraYvMntRebuilt}}"{{this.eraYvMntRebuilt}}"{{else}}null{{/if}},
+        "proceedingType": {{#if this.proceedingType}}"{{this.proceedingType}}"{{else}}null{{/if}},
+        "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}"{{this.proceedingReferenceNumber}}"{{else}}null{{/if}},
+        "violations": {{#if this.violations}}{{{this.violations}}}{{else}}[]{{/if}},
+        "notes": {{#if this.notes}}"{{this.notes}}"{{else}}null{{/if}},
+        "extraordinaryInspectionDate": {{#if this.extraordinaryInspectionDate}}"{{this.extraordinaryInspectionDate}}"{{else}}null{{/if}},
+        "enforcementDecision": {{#if this.enforcementDecision}}"{{this.enforcementDecision}}"{{else}}null{{/if}},
+        "proceedingClosureBasis": {{#if this.proceedingClosureBasis}}"{{this.proceedingClosureBasis}}"{{else}}null{{/if}},
+        "createdBy": "{{this.createdBy}}"
+}
+{{/with}}

@@ -37,7 +37,7 @@ export function LogDetailPage() {
   const forbidden =
     !hasPermission('audit.read') && !hasPermission('audit.read.local');
 
-  const { auditLog, loading, person, decodedLogContent } = useLogDetail(id);
+  const { auditLog, loading, person, decodedLogContent, decodedDescription } = useLogDetail(id);
 
   if (loading && !auditLog) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -71,7 +71,7 @@ export function LogDetailPage() {
                     {auditLog.eventType}
                   </Field>
                   <Field label={t('logs.description')}>
-                    {auditLog.description}
+                    {decodedDescription}
                   </Field>
                   <Field label={t('logs.content')}>{decodedLogContent}</Field>
                 </div>

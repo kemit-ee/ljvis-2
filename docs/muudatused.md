@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-09-17
+
+### Haldus > eToimiku X-tee logid
+
+- Uus vaade Haldus-menüüs — kuvab eToimiku `AnnaIsikuKvalifikatsioonid`
+  X-tee päringute ajaloo (nii käsitsi otsingud kui öised automaatsed
+  kontrollid), sh väljuva päringu ja saabunud vastuse täissisu.
+- Filtrid: kuupäevavahemik (vaikimisi eile-täna) ja kolm staatuse checkboxi
+  (Vaste leitud / Vastuseta / Vigane) + tuletatud "Kõik" checkbox.
+- Iga rida lingib vormile, mille andmete põhjal päring tehti (kui vorm on
+  tuvastatav).
+- Nõuab uut õigust `xroad.log.read` (antud ainult Super Admin Groupile).
+
 ## 2026-09-14
 
 ### Mootorsõiduki/haagise tehnokontrollkaardi X-tee andmete automatiseerimine
@@ -871,3 +884,15 @@ Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 - Eraldi vorminumbri seeria `tram-AAAA-NNNNN`.
 - Transpordiameti ja PPA kontrollkaardid on üksteisele nähtamatud (õiguste ja
   otsingu tasemel).
+
+---
+
+## 2026-09 — X-tee (e-toimik) päringute logi täiendus
+
+- `xroad.xroad_integration_log` kirjed e-toimiku
+  `AnnaIsikuKvalifikatsioonid` päringute kohta salvestavad nüüd XTR-ile
+  saadetud **täieliku päringu** ja sealt saadud **täieliku toore vastuse**
+  (varem salvestati vaid lühendatud kokkuvõte, nt „caseNumber=...").
+- Muudatus puudutab avalikku e-toimiku otsingut (`v1/xroad/etoimik/
+  kvalifikatsioonid`) ja kõiki nelja e-toimiku öist sünkiga cron-voogu
+  (autojuht, tehnoülevaatus, SP-juht, TRAM).
