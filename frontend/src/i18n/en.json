@@ -1195,7 +1195,8 @@
     "nu": "NU unfitness notifications",
     "riskScores": "Risk scores",
     "myCompany": "My company",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "xroadLogs": "e-Toimik X-Road logs"
   },
   "citizen": {
     "formsList": {
@@ -1546,6 +1547,38 @@
     "bandRoheline": "Green",
     "bandKollane": "Amber",
     "bandPunane": "Red"
+  },
+  "xroadLogs": {
+    "title": "e-Toimik X-Road logs",
+    "emptyResult": "No entries match the filter",
+    "empty": "No content",
+    "viewRequest": "View request",
+    "viewResponse": "View response",
+    "filter": {
+      "dateFrom": "From",
+      "dateTo": "To",
+      "all": "All"
+    },
+    "status": {
+      "found": "Match found",
+      "notFound": "No response",
+      "error": "Error"
+    },
+    "column": {
+      "createdAt": "Request time",
+      "form": "Form",
+      "status": "Status",
+      "request": "Outgoing request",
+      "response": "Incoming response"
+    },
+    "sourceType": {
+      "compound_form": "Transport supervision and vehicle technical condition control card",
+      "labour_inspection_form": "Labour inspection control card",
+      "vehicle_technical_form": "Motor vehicle technical compliance control form",
+      "trailer_technical_form": "Trailer technical compliance control form",
+      "sp_driver_form": "Driver's driving and rest time control form",
+      "tram_control_card": "Transport Administration control card"
+    }
   },
   "etoimik": {
     "title": "e-Toimik qualification check",

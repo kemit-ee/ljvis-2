@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-09-17
+
+### Haldus > eToimiku X-tee logid
+
+- Uus vaade Haldus-menüüs — kuvab eToimiku `AnnaIsikuKvalifikatsioonid`
+  X-tee päringute ajaloo (nii käsitsi otsingud kui öised automaatsed
+  kontrollid), sh väljuva päringu ja saabunud vastuse täissisu.
+- Filtrid: kuupäevavahemik (vaikimisi eile-täna) ja kolm staatuse checkboxi
+  (Vaste leitud / Vastuseta / Vigane) + tuletatud "Kõik" checkbox.
+- Iga rida lingib vormile, mille andmete põhjal päring tehti (kui vorm on
+  tuvastatav).
+- Nõuab uut õigust `xroad.log.read` (antud ainult Super Admin Groupile).
+
 ## 2026-09-14
 
 ### Mootorsõiduki/haagise tehnokontrollkaardi X-tee andmete automatiseerimine

@@ -289,7 +289,8 @@
     "nu": "NU sobimatusteated",
     "riskScores": "Riskitasemed",
     "myCompany": "Minu ettevõte",
-    "notifications": "Teavitused"
+    "notifications": "Teavitused",
+    "xroadLogs": "eToimiku X-tee logid"
   },
   "citizen": {
     "formsList": {
@@ -1567,6 +1568,38 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
+  },
+  "xroadLogs": {
+    "title": "eToimiku X-tee logid",
+    "emptyResult": "Filtrile vastavaid kirjeid ei leitud",
+    "empty": "Sisu puudub",
+    "viewRequest": "Vaata päringut",
+    "viewResponse": "Vaata vastust",
+    "filter": {
+      "dateFrom": "Alates",
+      "dateTo": "Kuni",
+      "all": "Kõik"
+    },
+    "status": {
+      "found": "Vaste leitud",
+      "notFound": "Vastuseta",
+      "error": "Vigane"
+    },
+    "column": {
+      "createdAt": "Päringu aeg",
+      "form": "Vorm",
+      "status": "Staatus",
+      "request": "Väljuv päring",
+      "response": "Saabunud vastus"
+    },
+    "sourceType": {
+      "compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
+      "labour_inspection_form": "Tööinspektsiooni kontrollkaart",
+      "vehicle_technical_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
+      "trailer_technical_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
+      "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
+      "tram_control_card": "Transpordiameti kontrollkaart"
+    }
   },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",

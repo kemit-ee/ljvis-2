@@ -34,13 +34,18 @@ params:
     type: string
     required: false
     description: 'Optional: the specific record identifier within source_type, e.g. a compound_form_key.'
+  result_status:
+    type: string
+    required: false
+    description: 'Optional: caller-computed outcome classification — ''found'', ''not_found'' or ''error''.
+      Powers the Haldus > eToimiku X-tee logid status filter.'
 returns:
 - name: id
   type: string
   nullable: true
 */
 INSERT INTO xroad.xroad_integration_log
-    (service_code, request_xml, response_xml, duration_ms, success, error_message, person_identifier, source_type, source_record_id)
+    (service_code, request_xml, response_xml, duration_ms, success, error_message, person_identifier, source_type, source_record_id, result_status)
 VALUES
-    (:service_code, :request_xml, :response_xml, :duration_ms::INTEGER, :success, :error_message, NULLIF(:person_identifier, ''), NULLIF(:source_type, ''), NULLIF(:source_record_id, ''))
+    (:service_code, :request_xml, :response_xml, :duration_ms::INTEGER, :success, :error_message, NULLIF(:person_identifier, ''), NULLIF(:source_type, ''), NULLIF(:source_record_id, ''), NULLIF(:result_status, ''))
 RETURNING id;

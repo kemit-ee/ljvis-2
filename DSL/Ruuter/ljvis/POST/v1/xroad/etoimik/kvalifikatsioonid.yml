@@ -269,6 +269,7 @@ logSuccessFound:
       person_identifier: "${personal_code || ''}"
       source_type: ${source_type}
       source_record_id: ${source_record_id}
+      result_status: "found"
   result: logResult
   next: returnFoundResult
 
@@ -293,6 +294,7 @@ logSuccessNotFound:
       person_identifier: "${personal_code || ''}"
       source_type: ${source_type}
       source_record_id: ${source_record_id}
+      result_status: "not_found"
   result: logResult
   next: returnNotFoundResult
 
@@ -323,6 +325,7 @@ logFailure:
       person_identifier: "${personal_code || ''}"
       source_type: ${source_type}
       source_record_id: ${source_record_id}
+      result_status: "error"
   result: logResult
   next: returnXtrError
 

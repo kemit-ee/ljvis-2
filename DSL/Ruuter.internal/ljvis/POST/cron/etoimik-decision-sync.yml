@@ -69,14 +69,14 @@ processCandidates:
               function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
               var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
               if (!httpOk) {
-                return { success: false, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+                return { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
               }
               var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
               var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
               var responseNode = responseKey ? soapBody[responseKey] : {};
               var caseNode = responseNode.response || null;
               if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
               }
               var decisions = [];
               var bases = [];
@@ -96,9 +96,9 @@ processCandidates:
                 });
               });
               if (decisions.length === 0) {
-                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
               }
-              return { success: true, found: true, enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+              return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
             })()}
 
       - call: http.post
@@ -116,6 +116,7 @@ processCandidates:
             person_identifier: ${punished_person_id_code}
             source_type: "labour_inspection_form"
             source_record_id: ${candidate_key}
+            result_status: "${decision.resultStatus}"
         result: logRes
 
       - call: http.post
