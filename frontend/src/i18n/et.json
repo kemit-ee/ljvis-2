@@ -505,6 +505,9 @@
       "punishedPersonFirstName": "Karistatud isiku eesnimi",
       "punishedPersonLastName": "Karistatud isiku perekonnanimi",
       "proceedingReferenceNumber": "Väärteomenetluse viitenumber",
+      "xroadDecisionSection": "Andmevahetuskihi päringuga sisestatavad andmed (x-tee)",
+      "enforcementDecision": "Jõustunud otsus",
+      "proceedingClosureBasis": "Menetluse lõpetamise alus",
       "violations": {
         "title": "Rikkumised",
         "pickerTitle": "Vali rikkumine",

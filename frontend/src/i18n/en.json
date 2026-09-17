@@ -393,6 +393,9 @@
       "punishedPersonFirstName": "Punished person's first name",
       "punishedPersonLastName": "Punished person's last name",
       "proceedingReferenceNumber": "Proceeding reference number",
+      "xroadDecisionSection": "Data queried via the data exchange layer (X-Road)",
+      "enforcementDecision": "Decision entered into force",
+      "proceedingClosureBasis": "Basis for closing proceedings",
       "violations": {
         "title": "Violations",
         "pickerTitle": "Select violation",

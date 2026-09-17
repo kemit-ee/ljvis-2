@@ -23,6 +23,24 @@
   märkeruut "Andmed sõidumeerikust või juhikaardilt alla laadimata (teade
   Tööinspektsioonile)" ja selle alla sõidumeeriku märkuste väli.
 
+### Tööinspektsiooni kontrollvorm — rikkumised ja väärteomenetlus
+
+- **Rikkumiste osa** täielikult ümber tehtud: senise puuduliku loetelu asemel
+  uus, Tööinspektsiooni järelevalvet silmas pidav rikkumiste klassifikaator
+  kahe pealkirja all — "Sõidu- ja puhkeaja rikkumised" ning "Ühenduse
+  tegevusloa ja juhitunnistuse rikkumised". Iga rikkumise juures on nüüd
+  tunnivahemik, mis määrab raskusastme (MSI/VSI/SI/MI), ja vastav ametlik
+  ERRU kood. Kirjeldused on Tööinspektsiooni kontekstile omased, mitte
+  üle võetud PPA autojuhi sõidu- ja puhkeaja kontrollvormilt.
+- Rikkumiste tabelis kuvatakse valitud rea raskusaste ja vahemik (nt "SI —
+  10 h ≤ … < 11 h"), samas stiilis mis PPA sõidu-puhkeaja kontrollkaardil.
+- **Väärteomenetluse plokk** — lisatud uus alajaotus "Andmevahetuskihi
+  päringuga sisestatavad andmed (x-tee)" väljadega "Jõustunud otsus" ja
+  "Menetluse lõpetamise alus". Need täidetakse automaatselt öise e-toimiku
+  päringu tulemusel (kui väärteomenetluse viitenumber on täidetud) ning
+  kontrollkaart avalikustatakse automaatselt niipea, kui jõustunud otsus
+  leitakse.
+
 ## 2026-09-17
 
 ### Liidestuja arendaja-dokumentatsioon ja X-tee OpenAPI

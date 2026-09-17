@@ -17,6 +17,16 @@ import { STORAGE_STATE } from '../playwright.config';
  * modaalides avanevat JSON-sisu (reference_number/faultCode on unikaalsed).
  */
 
+// Seedi kuupäevad (tests/bootstrap/seed_xroad_etoimik_logs.sql) on suhtelised
+// (`now() - INTERVAL ...`), mitte fikseeritud — VT-006 kuupäev tuleb siin
+// samamoodi jooksu-ajast tuletada, mitte kõvakoodida, muidu läheb assert
+// iga päev valeks.
+function formatEtDate(date: Date): string {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  return `${dd}.${mm}.${date.getFullYear()}`;
+}
+
 test.describe('eToimiku X-tee logid', () => {
   test('vaikefilter näitab eile-täna kirjeid, vanem kirje ei ole nähtav', async ({ page }) => {
     await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
@@ -26,7 +36,9 @@ test.describe('eToimiku X-tee logid', () => {
 
     await expect(page.getByText('5 tulemust')).toBeVisible({ timeout: 20_000 });
     // VT-006 (10 päeva tagasi) kuupäev ei tohi olla nähtaval.
-    await expect(page.getByText('07.09.2026')).toHaveCount(0);
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    await expect(page.getByText(formatEtDate(tenDaysAgo))).toHaveCount(0);
   });
 
   test('"Kõik" checkbox eemaldamine tühjendab tabeli, tagasi märkimine taastab', async ({
