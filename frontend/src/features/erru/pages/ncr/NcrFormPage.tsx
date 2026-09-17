@@ -59,8 +59,8 @@ export function NcrFormPage() {
     !!(location.state as { justSaved?: boolean } | null)?.justSaved,
   );
 
-  const requestForm = useNcrRequestForm(current, () => { setSavedOk(true); reload(); });
-  const responseForm = useNcrResponseForm(current, () => { setSavedOk(true); reload(); });
+  const requestForm = useNcrRequestForm(current, () => { setSavedOk(true); reload(); window.scrollTo(0, 0); });
+  const responseForm = useNcrResponseForm(current, () => { setSavedOk(true); reload(); window.scrollTo(0, 0); });
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
   if (isLoading) return <Text>{t('common.loading')}</Text>;

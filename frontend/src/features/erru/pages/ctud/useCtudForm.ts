@@ -7,6 +7,7 @@ import type { CtudRequest, CtudRequestWrite } from '../../types';
 import { ApiError } from '../../../../shared/api/client';
 import { ValidationError, applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 const T = 'erru.ctud.validation';
 
@@ -93,9 +94,19 @@ export function useCtudForm(
         return;
       }
       try {
+        const trimmedValues = {
+          ...values,
+          transportUndertakingName: sanitizeText(
+            values.transportUndertakingName,
+          ),
+          communityLicenceNumber: sanitizeText(values.communityLicenceNumber),
+          vehicleRegistrationNumber: sanitizeText(
+            values.vehicleRegistrationNumber,
+          ),
+        };
         const result = isEdit
-          ? await updateCtudRequest(String(request!.id), values)
-          : await createCtudRequest(values);
+          ? await updateCtudRequest(String(request!.id), trimmedValues)
+          : await createCtudRequest(trimmedValues);
         if (!isEdit && sendAfterCreate) {
           await sendCtudRequest(String(result.id));
         }

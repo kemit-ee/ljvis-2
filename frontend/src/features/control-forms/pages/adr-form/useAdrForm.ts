@@ -13,7 +13,7 @@ import type {
 } from '../../types';
 import { confirmAdrForm, saveAdrForm, publishAdrForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
-import { sanitizeText } from '../../formTextUtils';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 import {
   EMPTY_ADR_RECORD,
