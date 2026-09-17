@@ -42,7 +42,7 @@ import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { toIsoDate, birthDateFromEstonianCode } from '../../../../hooks/dateUtils';
+import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import { MaskedTimeField } from '../../components/shared/MaskedTimeField';
 import styles from './CompoundFormPage.module.css';
@@ -1960,13 +1960,9 @@ export function CompoundFormCreatePage() {
                               input={{ maxLength: 11 }}
                               onChange={(v) => {
                                 const u = [...formik.values.drivers];
-                                const computed = !u[0]?.birthDate
-                                  ? birthDateFromEstonianCode(v)
-                                  : null;
                                 u[0] = {
                                   ...u[0],
                                   personalCodeEe: v,
-                                  ...(computed ? { birthDate: computed } : {}),
                                 };
                                 formik.setFieldValue('drivers', u);
                               }}
@@ -2164,12 +2160,10 @@ export function CompoundFormCreatePage() {
                             input={{ maxLength: 11 }}
                             onChange={(v) => {
                               const u = [...formik.values.drivers];
-                              const computed = !u[1]?.birthDate ? birthDateFromEstonianCode(v) : null;
                               u[1] = {
                                 ...emptyDriver(),
                                 ...u[1],
                                 personalCodeEe: v,
-                                ...(computed ? { birthDate: computed } : {}),
                               };
                               formik.setFieldValue('drivers', u);
                             }}
