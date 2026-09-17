@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-09-18
+
+### Kontrollvormide täiendused (tehnoseisund, sõidumeerik, koondvorm)
+
+- **Tehnoseisundi kontrollkaart** (mootorsõiduki ja haagise, PPA ja TRAM) —
+  punkt 10 "Veose kinnitamine" (CAA_10) mis tahes VO/OV/EOV märge ei lülita
+  enam automaatselt sisse erakorralist tehnoülevaatust ega sõidukeeldu. Veose
+  paigutamise/kinnitamise/katmise rikkumine on eraldiseisev ja ei tohi
+  mõjutada sõiduki tehnoseisundi tulemust.
+- **Koondvormi sõidukijuhi andmed** — eemaldatud isikukoodist automaatselt
+  sünniaja tuletamine. Varasemalt jäi sünniaeg muutumatuks, kui täitja
+  parandas eksitud isikukoodi. Sünniaeg täidetakse nüüd ainult "Otsi"
+  nupuga rahvastikuregistrist (Eesti isikukoodi korral) või käsitsi
+  (välisriigi juhi korral).
+- **Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollkaart** (PPA ja
+  TRAM) — sõidumeeriku ossa lisatud uus rida "Kontrollitud päevade arv" alla:
+  märkeruut "Andmed sõidumeerikust või juhikaardilt alla laadimata (teade
+  Tööinspektsioonile)" ja selle alla sõidumeeriku märkuste väli.
+
 ## 2026-09-17
 
 ### Liidestuja arendaja-dokumentatsioon ja X-tee OpenAPI

@@ -880,6 +880,8 @@
       "proceedingCaseNumberPlaceholder": "Väärteoasja number",
       "sp_applicability": "Rakendamine",
       "tachograph_type_code": "Sõidumeeriku liik",
+      "tachographDataNotDownloaded": "Andmed sõidumeerikust või juhikaardilt alla laadimata (teade Tööinspektsioonile)",
+      "tachographNotes": "Märkused",
       "applicabilityApplied": "Rakendatakse",
       "applicabilityNotApplied": "Ei rakendata",
       "applicabilityNotChecked": "Ei kontrollitud",
