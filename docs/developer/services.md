@@ -1,6 +1,6 @@
 # Pakutavad teenused
 
-Kõik näited on sünteetilised. Päris teenuste taust, SQL ja turvaserveri seadistus: [senine juhend](../xtee/00-xtee-teenused-publikatsiooni-juhend.md).
+Kõik näited on sünteetilised.
 
 Mock matkib rakenduse valideerimist ja vastusekuju, mitte turvaserveri krüptograafiat või õiguste konfiguratsiooni. `X-Mock-Scenario` on ainult mocki päis.
 

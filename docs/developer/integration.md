@@ -22,7 +22,7 @@ Mocki URL sama operatsiooni jaoks:
 https://dev.liiklusvalve.ee/developer/xroad/v1/isiku-kontroll
 ```
 
-Teenusekood, versioon ja sihttee tuleb turvaserveris tegeliku konfiguratsiooniga kooskõlastada. [Teenuste tabel ja näited](services.md) ning [publitseerimise juhend](../xtee/00-xtee-teenused-publikatsiooni-juhend.md) annavad vastavused. Masinloetav leping: [XroadOpenapi.yaml](../xtee/XroadOpenapi.yaml).
+Teenusekood, versioon ja sihttee tuleb turvaserveris tegeliku konfiguratsiooniga kooskõlastada. [Teenuste tabel ja näited](services.md) annavad vastavused. Masinloetav leping: [XroadOpenapi.yaml](../xtee/XroadOpenapi.yaml).
 
 Pärispäringu tee:
 
