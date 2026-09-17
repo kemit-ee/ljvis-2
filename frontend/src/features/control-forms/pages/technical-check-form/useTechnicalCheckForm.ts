@@ -13,7 +13,7 @@ import type {
   PartSeverity,
 } from '../../types';
 import { confirmTechnicalCheckForm, saveTechnicalCheckForm, publishTechnicalCheckForm } from '../../api';
-import { sanitizeText } from '../../formTextUtils';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 import { applyValidationError } from '../../../../shared/api/errors';
 
 /** Parts excluded from the trailer variant (LJVIS2-72 §0/§4). */

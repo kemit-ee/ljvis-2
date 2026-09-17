@@ -11,6 +11,7 @@ import {
 } from './api';
 import type { UserGroup } from '../user-groups/types';
 import { listUserGroups } from '../user-groups/api';
+import { sanitizeText } from '../../hooks/formTextUtils';
 import type { Organisation } from '../organisations/types';
 import { listOrganisations } from '../organisations/api';
 import { useAuth } from '../auth/AuthContext';
@@ -151,6 +152,9 @@ export function useUserForm(
       try {
         const trimmedValues = {
           ...values,
+          firstName: sanitizeText(values.firstName),
+          lastName: sanitizeText(values.lastName),
+          jobTitleName: sanitizeText(values.jobTitleName),
           phone: values.phone.trim(),
           accessStart: toIsoDate(values.accessStart),
           accessEnd: toIsoDate(values.accessEnd),

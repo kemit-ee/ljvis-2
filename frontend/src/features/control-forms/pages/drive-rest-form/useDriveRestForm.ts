@@ -19,7 +19,7 @@ import {
   confirmDriveRestForm,
   publishDriveRestForm,
 } from '../../api';
-import { sanitizeText } from '../../formTextUtils';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 export type FormAuthority = 'PPA' | 'TRAM';
 
