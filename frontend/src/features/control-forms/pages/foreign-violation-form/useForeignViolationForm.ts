@@ -286,16 +286,17 @@ export function useForeignViolationForm(
   }));
 
   const structureUnits = useMemo(() => {
-    const orgCode =
-      formik.values.inspectorOrganisationId || authUser?.organisationcode || '';
+    const orgCode = formik.values.inspectorOrganisationId as string;
+    if (!orgCode) return [];
     // backward-compat: vana DB-s võib olla numbriline ID string ('1') — leia kood või ID järgi
     const org = organisations.find(
       (o) => o.code === orgCode || String(o.id) === orgCode,
     );
+    if (!org) return [];
     return getByCode('STRUCTURE_UNIT')
-      .filter((e) => !org || e.description === org.code)
+      .filter((e) => e.description === org.code)
       .map((e) => ({ code: e.code, name: e.name }));
-  }, [getByCode, organisations, formik.values.inspectorOrganisationId, authUser?.organisationcode]);
+  }, [getByCode, organisations, formik.values.inspectorOrganisationId]);
 
   const handleOrgChange = (
     val:

@@ -95,14 +95,6 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Rows near the bottom of the modal's scrollable list (see toggleDropdown
-   in DrivingViolationModal.tsx) render the menu above the trigger instead,
-   so it isn't clipped by the modal body's overflow:auto. */
-.dropdown-menu-up {
-    top: auto;
-    bottom: 100%;
-}
-
 .dropdown-item {
     display: flex;
     align-items: center;

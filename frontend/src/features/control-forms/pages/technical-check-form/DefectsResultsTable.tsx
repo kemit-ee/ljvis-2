@@ -37,7 +37,7 @@ export function DefectsResultsTable({
   return (
     <Card className="mb-1">
       <Card.Content>
-        <Heading element="h4" className="mb-1">
+        <Heading element="h3" className="mb-1">
           {t('forms.technical_check.resultsTable.title')}
         </Heading>
         {partsDefects.length === 0 ? (
