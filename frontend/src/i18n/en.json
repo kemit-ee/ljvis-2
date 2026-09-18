@@ -1564,14 +1564,22 @@
       "dateTo": "To",
       "all": "All"
     },
+    "scope": {
+      "prefix": "Showing",
+      "etoimik": "e-Toimik",
+      "all": "all",
+      "suffix": "X-Road logs"
+    },
     "status": {
       "found": "Match found",
       "notFound": "No response",
-      "error": "Error"
+      "error": "Error",
+      "success": "Succeeded"
     },
     "column": {
       "createdAt": "Request time",
       "form": "Form",
+      "serviceCode": "Service",
       "status": "Status",
       "request": "Outgoing request",
       "response": "Incoming response"

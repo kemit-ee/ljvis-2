@@ -26,4 +26,6 @@ export interface XroadLogFilters {
   includeFound?: string;
   includeNotFound?: string;
   includeError?: string;
+  /** 'true' näitab kõiki teenuseid, mitte ainult eToimikut (vt XroadLogScopeToggle). */
+  allServices?: string;
 }

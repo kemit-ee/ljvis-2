@@ -25,5 +25,8 @@ export function fetchXroadLogList(
     ...(filters.includeError !== undefined
       ? { includeError: filters.includeError }
       : {}),
+    ...(filters.allServices !== undefined
+      ? { allServices: filters.allServices }
+      : {}),
   });
 }
