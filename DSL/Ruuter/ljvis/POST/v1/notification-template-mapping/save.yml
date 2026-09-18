@@ -1,0 +1,97 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Lisab notification_template_mapping'ile uue versiooni (append-only —
+    olemasolevat rida ei uuendata, vt 20261121140000-notification-template-mapping-append-only.sql).
+    Kasutab send-postkast.yml PK_TEMPLATE_* konstantide ja LABOUR_INSPECTOR_EMAIL
+    asemel. Nõuab notification_template_mapping.edit õigust (kaitstud .guard.yml kaudu).
+  namespace: notification
+  allowlist:
+    body:
+      - field: notification_type
+        type: string
+      - field: original_template_id
+        type: string
+      - field: channel
+        type: string
+      - field: default_language
+        type: string
+      - field: active
+        type: boolean
+      - field: default_recipient_email
+        type: string
+
+get_user_context:
+  assign:
+    auth_user: ${auth_user}
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    notification_type: "${incoming.body.notification_type ?? ''}"
+    original_template_id: "${incoming.body.original_template_id ?? ''}"
+    channel: "${incoming.body.channel ?? ''}"
+    default_language: "${incoming.body.default_language || 'et'}"
+    active: "${incoming.body.active ?? true}"
+    default_recipient_email_raw: "${(incoming.body.default_recipient_email ?? '').trim()}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
+  next: checkRequired
+
+checkRequired:
+  switch:
+    - condition: >-
+        ${notification_type === '' || (channel !== 'postkast' && channel !== 'desktop')}
+      next: returnBadRequest
+    - condition: >-
+        ${default_recipient_email_raw !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(default_recipient_email_raw)}
+      next: returnBadRequest
+  next: insertMapping
+
+insertMapping:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/insert_template_mapping"
+    headers:
+      type: json
+    body:
+      notification_type: ${notification_type}
+      original_template_id: ${original_template_id}
+      channel: ${channel}
+      default_language: ${default_language}
+      active: ${active}
+      default_recipient_email: ${default_recipient_email_raw}
+      created_by: ${actor_personal_code}
+  result: insertRes
+  next: buildAuditContent
+
+buildAuditContent:
+  assign:
+    description: >-
+      ${'Teavituse liigi \'' + notification_type + '\' Postkast 2.0 seadistus muudetud (malli tunnus, vaikimisi vastuvõtja või olek)'}
+    log_content: "{\"notificationType\":\"${notification_type}\",\"channel\":\"${channel}\",\"active\":${active}}"
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "notification_template_mapping.edit"
+    event_category: "notification_management"
+    actor_name: ${actor_name}
+    actor_personal_code: ${actor_personal_code}
+    description: ${description}
+    log_content: ${log_content}
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: ${insertRes.response.body}
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "notification_type, channel (postkast|desktop) on kohustuslikud; default_recipient_email peab olema tühi või korrektne e-posti aadress"
+  next: end

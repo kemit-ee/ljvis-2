@@ -6,6 +6,23 @@
 
 ## 2026-09-18
 
+### Postkasti mallide ja vastuvõtjate seaded: uus Haldus-vaade
+
+- Postkast 2.0 malli tunnused ja tööinspektori vastuvõtja e-post olid
+  seni serveri keskkonnamuutujatena (constants.ini / Kubernetes
+  ConfigMap) — muutmiseks oli vaja uut väljalaset. Kui keskkonnamuutuja
+  jäi seadistamata, ei saanud teavitus üldse teele (X-tee logisse ei
+  jõudnudki midagi, mistõttu tõrkeotsing oli keeruline).
+- Nüüd on need seadistused **Haldus → "Postkasti mallide ja vastuvõtjate
+  seaded"** vaates muudetavad ilma väljalaset ootamata: iga teavituse
+  liigi (nt "labor_foreign_proposal") malli tunnus, vaikimisi
+  vastuvõtja e-post, keel ja olek. Muudatus salvestub uue kirjena
+  (ajalugu säilib), mitte üleskirjutusega.
+- `docs/pk2-templates/README.md` ja malli JSON-failid uuendatud: malli
+  loob PK 2.0 haldusliidese ligipääsuga kolmas osapool (LJVIS2 ühendub
+  Postkastiga ainult X-tee kaudu, mitte haldusliidese API-t pidi), ja
+  JSON-failid on nüüd otse haldusliidesesse üleslaaditavad.
+
 ### Välisriigi rikkumise kaart: "Teavita vedajat" saadab nüüd tegelikult Postkasti
 
 - Avalikustatud välisriigi rikkumise kaardil oli "teavita vedajat" märkeruut

@@ -13,6 +13,8 @@ import { UserGroupAddUserPage } from './features/user-groups/pages/UserGroupAddU
 import { UserGroupDetailPage } from './features/user-groups/pages/UserGroupDetailPage/UserGroupDetailPage';
 import { ClassifierListPage } from './features/classifiers/pages/ClassifierListPage/ClassifierListPage';
 import { ClassifierDetailPage } from './features/classifiers/pages/ClassifierDetailPage/ClassifierDetailPage';
+import { NotificationTemplateMappingListPage } from './features/notificationTemplateMapping/pages/NotificationTemplateMappingListPage/NotificationTemplateMappingListPage';
+import { NotificationTemplateMappingDetailPage } from './features/notificationTemplateMapping/pages/NotificationTemplateMappingDetailPage/NotificationTemplateMappingDetailPage';
 import { ClassifierValueCreatePage } from './features/classifiers/pages/ClassifierValueCreatePage/ClassifierValueCreatePage';
 import { ClassifierValueEditPage } from './features/classifiers/pages/ClassifierValueEditPage/ClassifierValueEditPage';
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
@@ -141,6 +143,14 @@ function AppRoutes() {
           <Route path="/logs" element={<LogListPage />} />
           <Route path="/admin/risk-scores" element={<RiskScoresListPage />} />
           <Route path="/admin/xroad-logs" element={<XroadLogListPage />} />
+          <Route
+            path="/notification-template-mapping"
+            element={<NotificationTemplateMappingListPage />}
+          />
+          <Route
+            path="/notification-template-mapping/:notificationType"
+            element={<NotificationTemplateMappingDetailPage />}
+          />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/logs/:id" element={<LogDetailPage />} />
           <Route

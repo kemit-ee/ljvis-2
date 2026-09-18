@@ -11,7 +11,7 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 | Liquibase | Andmebaasi migratsioonid | 4.29.2 | `liquibase/liquibase:4.29.2` | 2026-09-01 | DEV/CI | |
 | Ruuter | Avalik API ja töövood | 0.9.15-rc | `turnerrainer/ruuter:0.9.15-rc` + digest | 2026-09-10 | DEV/CI | Avalik ja sisemine Ruuter on eraldi teenused. |
 | Resql | SQL-päringute teenus | 0.3.0-alpha | `turnerrainer/resql:0.3.0-alpha` + digest | 2026-09-10 | DEV/CI | |
-| DataMapper | Andmete teisendamine | 0.1.3-alpha | `turnerrainer/datamapper:0.1.3-alpha` + digest | 2026-09-07 | DEV/CI | |
+| DataMapper | Andmete teisendamine | 0.2.1-alpha | `turnerrainer/datamapper:0.2.1-alpha` + digest | 2026-09-18 | DEV/CI | `APP_ENV=dev` lisatud env_safety gate'i tõttu (vt versiooniajalugu). |
 | XTR | X-tee väljumispunkt | määramata | `turnerrainer/xtr:rc` (lokaal); release Dockerfile digest | 2026-09-10 | DEV/CI/PROD | Täpset runtime-versiooni ei ole tagist usaldusväärselt tuvastatud. |
 | TIM | TARA identiteediteenus | 0.3.0-alpha | `turnerrainer/tim:0.3.0-alpha` + digest | 2026-09-07 | DEV/CI | |
 | Nysiis | ERRU sõnumite teenus | määramata | `eclipse-temurin:21-jdk-alpine` / `eclipse-temurin:21-jre-alpine` | 2026-08-19 | DEV/CI | Rakenduse versiooni projekt ei määra. |
@@ -27,6 +27,8 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 |---|---|---|---|---|
 | Frontend | 1.2.2 | määramata | 2026-09-11 | `frontend/package.json` |
 | Frontend | 1.3.0 | 2026-09-11 |  | NCR ja Tööinspektsiooni salvestuse parendused |
+| DataMapper | 0.1.3-alpha | 2026-09-07 | 2026-09-18 | `turnerrainer/datamapper:0.1.3-alpha` |
+| DataMapper | 0.2.1-alpha | 2026-09-18 |  | Turvakõvendus (v0.2.0-alpha) + 405/graceful shutdown patch (v0.2.1-alpha); `APP_ENV=dev` lisatud, kuna env_safety langeb muidu Production-režiimi tagasi. Väljundmallid muutumatud. |
 
 ## Täiendav info
 

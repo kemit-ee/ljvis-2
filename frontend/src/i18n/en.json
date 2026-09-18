@@ -1201,7 +1201,8 @@
     "riskScores": "Risk scores",
     "myCompany": "My company",
     "notifications": "Notifications",
-    "xroadLogs": "e-Toimik X-Road logs"
+    "xroadLogs": "e-Toimik X-Road logs",
+    "notificationTemplateMapping": "Postkast template and recipient settings"
   },
   "citizen": {
     "formsList": {
@@ -1429,6 +1430,27 @@
       "api": {
         "required": "Required field"
       }
+    }
+  },
+  "notificationTemplateMapping": {
+    "title": "Postkast template and recipient settings",
+    "notificationType": "Notification type",
+    "channel": "Channel",
+    "originalTemplateId": "Template ID",
+    "defaultLanguage": "Default language",
+    "defaultRecipientEmail": "Default recipient email",
+    "active": "Active",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "viewDetails": "View",
+    "data": "Settings",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editedNote": "Settings have been updated",
+    "validation": {
+      "required": "Required field",
+      "emailInvalid": "Email address is not in a valid format"
     }
   },
   "logs": {

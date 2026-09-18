@@ -1,0 +1,17 @@
+# Nõutav õigus: notification_template_mapping.list (Postkast 2.0 malli/vastuvõtja
+# seadistuste vaatamine). auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+check:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('notification_template_mapping.list')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end
