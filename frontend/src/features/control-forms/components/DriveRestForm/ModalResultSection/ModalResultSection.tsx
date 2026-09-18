@@ -8,6 +8,7 @@ import {
   Card,
   Separator,
   Heading,
+  Checkbox,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierEntry } from '../../../../classifiers/types';
 import type { CheckEntry, DocumentCheck, Violation } from '../../../types.ts';
@@ -55,9 +56,19 @@ interface Props {
    *  wipe out the OTHER directives' already-saved violations on every
    *  render, since they never appear in its own (deliberately narrow) `checks`. */
   scopedFields?: string[];
+  /** Suppresses the internal "Sõidu- ja puhkeaja nõuete rikkumised" heading —
+   *  for an accordion (Rooma I, autojuhi lähetamine) whose own
+   *  AccordionItemHeader title already names the violation category, this
+   *  generic inner heading is wrong/redundant. */
+  hideTitle?: boolean;
+  /** type: 'drivingViolation' only. When the `checks` subtree is exactly one
+   *  level1 > level2 > level3 (e.g. Rooma I, which has a single violation),
+   *  skip the whole add-button/dropdown/modal machinery and render that one
+   *  violation directly as a checkbox with its ERRU code visible. */
+  singleCheckbox?: boolean;
 }
 
-export function ModalResultSection({ checks, type, transportType, setFieldValue, fieldName, readOnly, initialDocumentChecks, initialEntries: initialEntriesProp, initialViolations, scopedFields }: Props) {
+export function ModalResultSection({ checks, type, transportType, setFieldValue, fieldName, readOnly, initialDocumentChecks, initialEntries: initialEntriesProp, initialViolations, scopedFields, hideTitle, singleCheckbox }: Props) {
   const { t } = useTranslation();
 
   const isL2VisibleForTransport = (code: string) => {
@@ -332,9 +343,62 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
     }
   }, [dropdownOpen]);
 
+  if (singleCheckbox && type === 'drivingViolation') {
+    const l1 = level1Items[0];
+    const l2 = level2Items[0];
+    const l3 = level3Items[0];
+    if (!l1 || !l2 || !l3) return null;
+    const checked = entries.some((e) => e.level3Code === l3.code);
+    const toggle = () => {
+      setEntries(
+        checked
+          ? []
+          : [
+              {
+                level1Code: l1.code,
+                level1Name: l1.name,
+                level2Code: l2.code,
+                level2Name: l2.name,
+                level2Description: l2.description ?? '',
+                level3Code: l3.code,
+                level3Name: l3.name,
+                severity: l3.description ?? '',
+                articleDirective: l1.description ?? '',
+              },
+            ],
+      );
+    };
+    return (
+      <Checkbox
+        id={`single-violation-${l3.code}`}
+        name={`single-violation-${l3.code}`}
+        value={l3.code}
+        checked={checked}
+        disabled={readOnly}
+        onChange={toggle}
+        label={
+          <Text>
+            <strong>{l3.code}</strong>
+            <Separator
+              axis="vertical"
+              color="secondary"
+              display="inline"
+              dotSize="small"
+              element="span"
+              spacing={0.3}
+              variant="dot-only"
+            />
+            {l2.name}
+          </Text>
+        }
+      />
+    );
+  }
+
   return (
     <div>
       <div className={styles.header}>
+        {!hideTitle && (
         <Heading element="h5" modifiers="bold">
           {type === 'docCheck'
             ? t(
@@ -351,6 +415,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
                   'Sõidu- ja puhkeaja nõuete rikkumised',
                 )}
         </Heading>
+        )}
         {!readOnly && (
         <div className="pos-relative">
           <Button

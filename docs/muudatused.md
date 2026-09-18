@@ -40,6 +40,17 @@
   analoogsed parandused), (2) `DRIVING_VIOLATION` ja `DOC_RIGHT_CHECK`
   laadimine viidi PPA vormil ja TRAM kontrollkaardil üle dedubleerimata
   loendile, et ükski tulevane sama viga enam midagi vaikimisi ei kustutaks.
+- Rooma I ja autojuhi lähetamise nõuete akordionite sisse tekkis lisaks
+  õigele akordioni pealkirjale ka ModalResultSection'i enda sisemine
+  pealkiri "Sõidu- ja puhkeaja nõuete rikkumised" — vale ja üleliigne,
+  sest õige pealkiri oli juba akordionil endal. Peidetud mõlemal need
+  sisemised pealkirjad ära.
+- Rooma I lepingu rikkumine (üks ainus VSI874 kirje) nõudis varem "Lisa"
+  nupu, rippmenüü ja modaali kaudu valimist nagu mitme valikuga
+  rikkumiste puhul. Nüüd kuvatakse see kohe akordioni avades ühe
+  märkeruuduna koos ERRU koodiga (nt "VSI874") — pole enam vaja klõpsata
+  läbi mitme sammu ühe rikkumise jaoks. Autojuhi lähetamise nõuete
+  akordion (8 rikkumist) jäi endise Lisa-nupu/modaali loogika juurde.
 - Rikkumise (MSI/VSI/SI/MI) valimisel kuvati varem paksus kirjas ainult
   raskusaste ("VSI"), mitte tegelik ERRU kood — nii rippmenüü valikutes,
   märkeruutude siltidel kui ka valitud rikkumiste kokkuvõttes. Nüüd

@@ -1070,6 +1070,7 @@ export function DriveRestFormFields({
                         violations5932008:
                           formik.values.violations5932008 ?? [],
                       }}
+                      singleCheckbox
                     />
                   </div>
                 </AccordionItemContent>
@@ -1107,6 +1108,7 @@ export function DriveRestFormFields({
                         violations20201057:
                           formik.values.violations20201057 ?? [],
                       }}
+                      hideTitle
                     />
                   </div>
                 </AccordionItemContent>
