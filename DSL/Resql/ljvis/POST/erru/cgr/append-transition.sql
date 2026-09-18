@@ -15,6 +15,12 @@ params:
   newStatus:
     type: string
     required: false
+  technicalId:
+    type: string
+    required: false
+  workflowId:
+    type: string
+    required: false
   memberStates:
     type: string
     required: false
@@ -105,15 +111,21 @@ WITH latest AS (
     l.direction,
     :newStatus,
     l.business_case_id,
-    -- technicalId: generate a fresh UUID on each outgoing send (including resend and retry).
-    -- For incoming transitions the technicalId is already in the latest snapshot.
+    -- technicalId: an explicit value from the caller always wins (Ruuter generates it
+    -- BEFORE calling XTR so the same id is stored here and sent in the SOAP message —
+    -- otherwise the DB-side and wire-side ids would diverge and an inbound ACK/error
+    -- keyed by technicalId could never be matched back to this case). Falls back to a
+    -- fresh UUID on each outgoing send if the caller omitted it.
     CASE
+      WHEN NULLIF(:technicalId, '') IS NOT NULL THEN NULLIF(:technicalId, '')::UUID
       WHEN l.direction = 'outgoing' AND :newStatus = 'sent' THEN gen_random_uuid()
       ELSE l.technical_id
     END,
-    -- workflowId correlates all sends for this business case; generated once on the first
-    -- send and preserved on retries, resends and incoming transitions.
+    -- workflowId correlates all sends for this business case; an explicit value from
+    -- the caller always wins, else generated once on the first send and preserved on
+    -- retries, resends and incoming transitions.
     CASE
+      WHEN NULLIF(:workflowId, '') IS NOT NULL THEN NULLIF(:workflowId, '')::UUID
       WHEN :newStatus = 'sent' THEN COALESCE(l.workflow_id, gen_random_uuid())
       ELSE l.workflow_id
     END,

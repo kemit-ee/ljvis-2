@@ -126,7 +126,13 @@ WITH latest AS (
     l.direction,
     :newStatus,
     l.business_case_id,
-    CASE WHEN :newStatus = 'sent' THEN COALESCE(NULLIF(:technicalId, '')::UUID, gen_random_uuid()) ELSE l.technical_id END,
+    -- 'answered' also stores an explicit technicalId: that transition is the OUTBOUND
+    -- NCR response send (response-send.yml), which generates its own fresh technicalId
+    -- for the wire message and must persist that exact value here too — otherwise the
+    -- id actually sent would never be recorded anywhere. sent_at is left untouched for
+    -- 'answered' (it tracks the case's original outgoing/inbound send time, not this
+    -- response — the response's own timestamp is only meaningful on the wire).
+    CASE WHEN :newStatus IN ('sent', 'answered') THEN COALESCE(NULLIF(:technicalId, '')::UUID, gen_random_uuid()) ELSE l.technical_id END,
     CASE WHEN :newStatus = 'sent' THEN COALESCE(NULLIF(:workflowId, '')::UUID, l.workflow_id, gen_random_uuid()) ELSE l.workflow_id END,
     CASE WHEN :newStatus = 'sent' THEN COALESCE(NULLIF(:sentAt, '')::TIMESTAMPTZ, now()) ELSE l.sent_at END,
     l.ncr_from,

@@ -70,6 +70,26 @@ mapOriginatingAuthority:
         : current.originatingAuthority === 'TI' ? 'Estonian Labour Inspectorate'
         : current.originatingAuthority === 'MTA' ? 'Estonian Tax and Customs Board'
         : current.originatingAuthority}
+  next: generateErruIds
+
+# Generated HERE so the same ids are sent in the SOAP message (callErru below) and stored in
+# our DB (storeSent below) for correlation. Source is Postgres gen_random_uuid(), not
+# Math.random() — a JS PRNG is not a secure source for an id that correlates inbound messages.
+generateErruIds:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/generate-uuid-pair"
+    headers:
+      type: json
+    body: {}
+  result: erru_ids_res
+  next: extractErruIds
+
+extractErruIds:
+  assign:
+    erru_technical_id: "${erru_ids_res.response.body[0].technicalId}"
+    erru_workflow_id: "${erru_ids_res.response.body[0].workflowId}"
+    erru_sent_at: "${new Date().toISOString().slice(0,19) + 'Z'}"
   next: callErru
 
 callErru:
@@ -81,7 +101,12 @@ callErru:
     body:
       ncrTo: ${current.ncrTo}
       businessCaseId: ${business_case_id}
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
+      sentAt: ${erru_sent_at}
       originatingAuthority: ${originating_authority_out}
+      requestSource: "${current.requestSource || 'CA'}"
+      requestPurpose: "${current.requestPurpose || 'Control'}"
       transportUndertakingName: ${current.transportUndertakingName}
       communityLicenceNumber: ${current.communityLicenceNumber}
       vehicleRegistrationNumber: ${current.vehicleRegistrationNumber}
@@ -116,9 +141,9 @@ storeSent:
     body:
       businessCaseId: ${business_case_id}
       newStatus: "sent"
-      technicalId: ""
-      workflowId: ""
-      sentAt: ""
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
+      sentAt: ${erru_sent_at}
       ackStatusCode: ""
 
       ackStatusMessage: ""

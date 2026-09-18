@@ -58,6 +58,12 @@ extractCurrentState:
     pti_requested: "${current.response.body[0].ptiRequested != null ? String(current.response.body[0].ptiRequested) : 'false'}"
     vehicle_prohibition: "${current.response.body[0].vehicleProhibitionOrRestriction != null ? String(current.response.body[0].vehicleProhibitionOrRestriction) : 'false'}"
     checked_items_raw: "${current.response.body[0].checkedItems || '[]'}"
+    inspection_identifier: "${current.response.body[0].inspectionIdentifier || ''}"
+    driver_first_name: "${current.response.body[0].driverFirstName || ''}"
+    driver_family_name: "${current.response.body[0].driverFamilyName || ''}"
+    driver_licence_number: "${current.response.body[0].driverLicenceNumber || ''}"
+    driver_licence_country: "${current.response.body[0].driverLicenceCountry || ''}"
+    identification_details_raw: "${current.response.body[0].identificationDetails || ''}"
   next: checkSendable
 
 # RSI differs from CGR: only 'initiated' is sendable. 'error' has NO outgoing transition
@@ -68,6 +74,40 @@ checkSendable:
       next: returnNotSendable
     - condition: ${cur_status !== 'initiated'}
       next: returnNotSendable
+  next: resolveIdentificationDetails
+
+# IdentificationDetails is a choice in the ERRU 3.5 XSD (TransportUndertakingDetails vs
+# HolderDetails/Company/NaturalPerson). The officer's explicit "Veoettevõtja või omaniku
+# andmed" form choice (RsiIdentificationDetails.isVehicleHolder / isNaturalPerson) is stored
+# verbatim in identification_details; this step resolves it into the boolean-ish string flags
+# ('true'/'') that the DSL template's {{#if}} gates expect.
+# Deliberately explicit (not "guessed" from whether a name string is present): a transport
+# undertaking with no real community licence may legitimately carry a placeholder value (a
+# real inbound RSI from Norway used "N/A"), which would look "present" to a truthiness check.
+resolveIdentificationDetails:
+  assign:
+    id_details: "${identification_details_raw ? (typeof identification_details_raw === 'string' ? JSON.parse(identification_details_raw) : identification_details_raw) : null}"
+  next: extractIdentificationFields
+
+extractIdentificationFields:
+  assign:
+    is_tu_holder: "${id_details && id_details.isVehicleHolder === 'transport_undertaking' ? 'true' : ''}"
+    is_company_holder: "${id_details && id_details.isNaturalPerson === 'company' ? 'true' : ''}"
+    tu_name: "${(id_details && id_details.transportUndertakingName) || ''}"
+    tu_licence: "${(id_details && id_details.communityLicenceNumber) || ''}"
+    holder_registration_certificate: "${(id_details && id_details.registrationCertificate) || ''}"
+    holder_company_name: "${(id_details && id_details.companyName) || ''}"
+    holder_first_name: "${(id_details && id_details.firstName) || ''}"
+    holder_family_name: "${(id_details && id_details.familyName) || ''}"
+    id_address: "${(id_details && id_details.address) || {}}"
+  next: extractIdentificationAddress
+
+extractIdentificationAddress:
+  assign:
+    id_address_line: "${id_address.address || ''}"
+    id_address_postcode: "${id_address.postCode || ''}"
+    id_address_city: "${id_address.city || ''}"
+    id_address_country: "${id_address.country || ''}"
   next: prepareOutbound
 
 # Convert checked_items from national TECHNICAL_CHECK format to ERRU rsiCheckedItemType.
@@ -91,9 +131,22 @@ prepareOutbound:
     checked_items_array: "${typeof checked_items_raw === 'string' ? JSON.parse(checked_items_raw) : (Array.isArray(checked_items_raw) ? checked_items_raw : [])}"
   next: convertCheckedItems
 
+# Build a plain JSON array (NOT an XML string) — the XTR DSL template (rsi-request.yml) owns
+# the `{{#each}}` loop and the erru: namespace prefixing, so this step only needs to produce
+# structured data. itemType/itemFailed are emitted as literal strings ('0'..'20' / 'true'/
+# 'false'), matching the project convention that boolean-ish values are always sent as strings
+# (the XTR `xml_attr` helper only escapes string values). itemType skips items whose partCode
+# doesn't parse to a number (rather than emitting itemType="NaN", which would fail MOVEHUB
+# validation).
 convertCheckedItems:
   assign:
-    erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.status === 'checked' || i.status === 'non_compliant';}).map(function(i){ var n = parseInt((i.partCode||'').replace('CAA_',''),10); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};}))}"
+    erru_checked_items: >-
+      ${checked_items_array.filter(function(i){return i.status === 'checked' || i.status === 'non_compliant';}).map(function(i){
+        var n = parseInt((i.partCode||'').replace('CAA_',''),10);
+        var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'};
+        var failedChecks = (i.defects||[]).map(function(d){return {failedReason: d.defectCode, failedAssessment: sevMap[d.severity]||d.severity};});
+        return {itemType: isNaN(n) ? null : String(n), itemFailed: i.status === 'non_compliant' ? 'true' : 'false', failedChecks: failedChecks};
+      }).filter(function(i){return i.itemType !== null;})}
   next: mapAuthorities
 
 # RSI ettepanek 7: teate esitanud pädev asutus (org-kood) ja inspektor
@@ -111,6 +164,28 @@ mapAuthorities:
       ${inspection_authority_or_name === 'Politsei- ja Piirivalveamet'
         ? 'Estonian Police and Border Guard Board'
         : inspection_authority_or_name}
+  next: generateErruIds
+
+# Generated HERE (not in XTR or the DB function) so the same ids are sent in the SOAP
+# message (callErru below) and stored in our DB (storeSent below) for correlation. IDs come
+# from Postgres gen_random_uuid() (erru/generate-uuid-pair), not Math.random() — technicalId
+# is what correlates an incoming ACK/ErrorNotification back to this message, so it needs a
+# real random source, not a JS PRNG.
+generateErruIds:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/generate-uuid-pair"
+    headers:
+      type: json
+    body: {}
+  result: erru_ids_res
+  next: extractErruIds
+
+extractErruIds:
+  assign:
+    erru_technical_id: "${erru_ids_res.response.body[0].technicalId}"
+    erru_workflow_id: "${erru_ids_res.response.body[0].workflowId}"
+    erru_sent_at: "${new Date().toISOString().slice(0,19) + 'Z'}"
   next: callErru
 
 callErru:
@@ -122,8 +197,9 @@ callErru:
     body:
       rsiTo: ${rsi_to}
       businessCaseId: ${business_case_id}
-      technicalId: ""
-      workflowId: ""
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
+      sentAt: ${erru_sent_at}
       originatingAuthority: ${originating_authority_out}
       requestSource: ${request_source}
       requestPurpose: ${request_purpose}
@@ -131,12 +207,30 @@ callErru:
       vehicleRegistrationCountry: ${vehicle_registration_country}
       vehicleCategory: ${vehicle_category}
       vehicleIdentificationNumber: ${vehicle_identification_number}
+      odometerReading: ${odometer_reading}
+      inspectionIdentifier: ${inspection_identifier}
       inspectionLocation: ${inspection_location}
       inspectionDatetime: ${inspection_datetime}
       inspectionAuthorityOrName: ${inspection_authority_out}
       inspectionPassed: ${inspection_passed}
       ptiRequested: ${pti_requested}
       vehicleProhibitionOrRestriction: ${vehicle_prohibition}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      isTuHolder: ${is_tu_holder}
+      isCompanyHolder: ${is_company_holder}
+      transportUndertakingName: ${tu_name}
+      communityLicenceNumber: ${tu_licence}
+      holderRegistrationCertificate: ${holder_registration_certificate}
+      holderCompanyName: ${holder_company_name}
+      holderFirstName: ${holder_first_name}
+      holderFamilyName: ${holder_family_name}
+      tuAddress: ${id_address_line}
+      tuPostCode: ${id_address_postcode}
+      tuCity: ${id_address_city}
+      tuCountry: ${id_address_country}
       checkedItems: ${erru_checked_items}
   result: erru_res
   next: checkErruStatus
@@ -155,7 +249,7 @@ logIntegrationSuccess:
       type: json
     body:
       service_code: "erru/rsi/request"
-      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + erru_checked_items}"
+      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + JSON.stringify(erru_checked_items)}"
       response_xml: "${JSON.stringify({ received: (erru_res.response.body) != null, count: (Array.isArray(erru_res.response.body) ? (erru_res.response.body).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
@@ -174,7 +268,7 @@ logIntegrationFailure:
       type: json
     body:
       service_code: "erru/rsi/request"
-      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + erru_checked_items}"
+      request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + JSON.stringify(erru_checked_items)}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
@@ -194,6 +288,8 @@ storeSent:
     body:
       key: ${id}
       newStatus: "sent"
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
       responseStatusCode: ""
       responseStatusMessage: ""
       errorMessage: ""

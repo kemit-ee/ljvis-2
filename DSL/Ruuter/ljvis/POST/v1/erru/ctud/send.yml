@@ -61,6 +61,28 @@ checkSendable:
       next: returnNotSendable
     - condition: ${cur_status !== 'initiated' && cur_status !== 'error'}
       next: returnNotSendable
+  next: generateErruIds
+
+# technicalId/workflowId are generated HERE so the exact same values are both stored in our
+# DB (markSent below) and sent in the SOAP message (callErru below); two independently
+# generated UUIDs would never match and the ACK/error callback could not be matched to this
+# case. Source is Postgres gen_random_uuid(), not Math.random() — a JS PRNG is not a secure
+# source for an id that correlates inbound messages.
+generateErruIds:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/generate-uuid-pair"
+    headers:
+      type: json
+    body: {}
+  result: erru_ids_res
+  next: extractErruIds
+
+extractErruIds:
+  assign:
+    erru_technical_id: "${erru_ids_res.response.body[0].technicalId}"
+    erru_workflow_id: "${erru_ids_res.response.body[0].workflowId}"
+    erru_sent_at: "${new Date().toISOString().slice(0,19) + 'Z'}"
   next: markSent
 
 markSent:
@@ -72,8 +94,8 @@ markSent:
     body:
       key: ${id}
       newStatus: "sent"
-      technicalId: ""
-      workflowId: ""
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
       respondingAuthority: ""
       responseStatusCode: ""
       responseStatusMessage: ""
@@ -103,8 +125,9 @@ callErru:
     body:
       ctudTo: ${ctud_to}
       businessCaseId: ${business_case_id}
-      technicalId: ""
-      workflowId: ""
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
+      sentAt: ${erru_sent_at}
       originatingAuthority: ${originating_authority}
       requestSource: ${request_source}
       requestPurpose: ${request_purpose}
