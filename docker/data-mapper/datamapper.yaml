@@ -13,3 +13,11 @@ port: 3005
 #   <dsl_path>/<project>/<view>.hbs
 #   <dsl_path>/<project>/hbs/<view>.hbs   <- matches ljvis-2's layout
 dsl_path: /app/DSL
+
+# 0.2.0-alpha+ rejects request bodies whose top-level array exceeds this
+# many elements (default 10000). DSL/Resql/ljvis/POST/log/list_logs_csv.sql
+# caps its audit-log export at LIMIT 10000 — right at the default boundary —
+# so map_logs_list_csv could get rejected by a coincidental off-by-one.
+# Set well above that cap instead of relying on the exact default matching.
+limits:
+  max_body_array_length: 20000
