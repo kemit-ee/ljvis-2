@@ -2336,19 +2336,23 @@ export function CompoundFormCreatePage() {
                         <Select
                           id="inspectorUnit"
                           label={t('forms.compound.inspectorUnit')}
-                          options={structureUnits.map((opt) => ({
-                            label: opt.name,
-                            value: opt.code,
-                          }))}
+                          options={[
+                            { value: '', label: '—' },
+                            ...structureUnits.map((opt) => ({
+                              label: opt.name,
+                              value: opt.code,
+                            })),
+                          ]}
                           value={
-                            structureUnits
-                              .map((opt) => ({
+                            [
+                              { value: '', label: '—' },
+                              ...structureUnits.map((opt) => ({
                                 label: opt.name,
                                 value: opt.code,
-                              }))
-                              .find(
-                                (o) => o.value === formik.values.inspectorUnit,
-                              ) ?? null
+                              })),
+                            ].find(
+                              (o) => o.value === (formik.values.inspectorUnit ?? ''),
+                            ) ?? null
                           }
                           onChange={handleStructuralUnitChange}
                         />

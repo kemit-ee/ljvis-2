@@ -100,6 +100,14 @@ interface DriverErrors {
   birthDate?: string;
 }
 
+interface DriverTouched {
+  firstName?: boolean;
+  lastName?: boolean;
+  personalCodeForeign?: boolean;
+  personalCodeEe?: boolean;
+  birthDate?: boolean;
+}
+
 interface CompoundFormEditCardProps {
   formik: FormikProps<CompoundFormValues>;
   isDesktop: boolean;
@@ -257,11 +265,19 @@ export function CompoundFormEditCard({
                 <Heading element="h3" className="mb-1">
                   {t('forms.compound.controlPlaceBasicInfo')}
                 </Heading>
-                {formik.touched.address && formik.errors.address && !formik.values.address && !formik.values.road && (
-                  <Alert type="danger" size="small" className="mb-1" icon="error">
-                    {t('forms.compound.addressOrRoadRequired')}
-                  </Alert>
-                )}
+                {formik.touched.address &&
+                  formik.errors.address &&
+                  !formik.values.address &&
+                  !formik.values.road && (
+                    <Alert
+                      type="danger"
+                      size="small"
+                      className="mb-1"
+                      icon="error"
+                    >
+                      {t('forms.compound.addressOrRoadRequired')}
+                    </Alert>
+                  )}
                 <div className={gridClass}>
                   <TextField
                     id="address"
@@ -290,7 +306,7 @@ export function CompoundFormEditCard({
                     id="road"
                     label={t('forms.compound.road')}
                     options={[
-                      { value: '', label: '\u00a0' },
+                      { value: '', label: '—' },
                       ...roads.map((r) => ({
                         value: r.code,
                         label: r.name,
@@ -298,7 +314,7 @@ export function CompoundFormEditCard({
                     ]}
                     value={
                       [
-                        { value: '', label: '\u00a0' },
+                        { value: '', label: '—' },
                         ...roads.map((r) => ({ value: r.code, label: r.name })),
                       ].find((o) => o.value === formik.values.road) ?? null
                     }
@@ -653,8 +669,7 @@ export function CompoundFormEditCard({
                       formik.errors.vehicleCategoryCode
                         ? {
                             helper: {
-                              text: formik.errors
-                                .vehicleCategoryCode as string,
+                              text: formik.errors.vehicleCategoryCode as string,
                               type: 'error' as const,
                             },
                           }
@@ -1151,14 +1166,18 @@ export function CompoundFormEditCard({
                             formik.errors.companyRegCode
                               ? {
                                   helper: {
-                                    text: formik.errors.companyRegCode as string,
+                                    text: formik.errors
+                                      .companyRegCode as string,
                                     type: 'error' as const,
                                   },
                                 }
                               : {})}
                           />
                         </div>
-                        <AsyncButton type="button" onClick={handleCompanySearch}>
+                        <AsyncButton
+                          type="button"
+                          onClick={handleCompanySearch}
+                        >
                           {t('forms.compound.companySearchButton')}
                         </AsyncButton>
                       </div>
@@ -1196,10 +1215,12 @@ export function CompoundFormEditCard({
                       <Select
                         id="companyCountryCode"
                         label={t('forms.compound.companyCountryCode')}
-                        options={countries}
+                        options={[{ value: '', label: '—' }, ...countries]}
                         value={
-                          countries.find(
-                            (o) => o.value === formik.values.companyCountryCode,
+                          [{ value: '', label: '—' }, ...countries].find(
+                            (o) =>
+                              o.value ===
+                              (formik.values.companyCountryCode ?? ''),
                           ) ?? null
                         }
                         onChange={(val) => {
@@ -1241,19 +1262,24 @@ export function CompoundFormEditCard({
                         <Select
                           id="companyCounty"
                           label={t('forms.compound.companyCounty')}
-                          options={counties.map((c) => ({
-                            value: String(c.id),
-                            label: c.name,
-                          }))}
+                          options={[
+                            { value: '', label: '—' },
+                            ...counties.map((c) => ({
+                              value: String(c.id),
+                              label: c.name,
+                            })),
+                          ]}
                           value={
-                            counties
-                              .map((c) => ({
+                            [
+                              { value: '', label: '—' },
+                              ...counties.map((c) => ({
                                 value: String(c.id),
                                 label: c.name,
-                              }))
-                              .find(
-                                (o) => o.value === formik.values.companyCounty,
-                              ) ?? null
+                              })),
+                            ].find(
+                              (o) =>
+                                o.value === (formik.values.companyCounty ?? ''),
+                            ) ?? null
                           }
                           onChange={(val) => {
                             const v =
@@ -1283,19 +1309,24 @@ export function CompoundFormEditCard({
                         <Select
                           id="companyCity"
                           label={t('forms.compound.companyCity')}
-                          options={companyCitiesParishes.map((c) => ({
-                            value: String(c.id),
-                            label: c.name,
-                          }))}
+                          options={[
+                            { value: '', label: '—' },
+                            ...companyCitiesParishes.map((c) => ({
+                              value: String(c.id),
+                              label: c.name,
+                            })),
+                          ]}
                           value={
-                            companyCitiesParishes
-                              .map((c) => ({
+                            [
+                              { value: '', label: '—' },
+                              ...companyCitiesParishes.map((c) => ({
                                 value: String(c.id),
                                 label: c.name,
-                              }))
-                              .find(
-                                (o) => o.value === formik.values.companyCity,
-                              ) ?? null
+                              })),
+                            ].find(
+                              (o) =>
+                                o.value === (formik.values.companyCity ?? ''),
+                            ) ?? null
                           }
                           onChange={(val) =>
                             formik.setFieldValue(
@@ -1431,20 +1462,21 @@ export function CompoundFormEditCard({
                       : t('forms.compound.driver')}
                   </Heading>
                   {authority === 'TRAM' && index === 0 && (
-                    <Checkbox
-                      id="driverNotApplicable"
-                      name="driverNotApplicable"
-                      value="driverNotApplicable"
-                      className="mb-1"
-                      label={t('forms.compound.driverNotApplicable')}
-                      checked={formik.values.driverNotApplicable ?? false}
-                      onChange={() =>
-                        formik.setFieldValue(
-                          'driverNotApplicable',
-                          !formik.values.driverNotApplicable,
-                        )
-                      }
-                    />
+                    <div className="mb-1">
+                      <Checkbox
+                        id="driverNotApplicable"
+                        name="driverNotApplicable"
+                        value="driverNotApplicable"
+                        label={t('forms.compound.driverNotApplicable')}
+                        checked={formik.values.driverNotApplicable ?? false}
+                        onChange={() =>
+                          formik.setFieldValue(
+                            'driverNotApplicable',
+                            !formik.values.driverNotApplicable,
+                          )
+                        }
+                      />
+                    </div>
                   )}
                   {driverSearchError === index && (
                     <Alert
@@ -1477,8 +1509,12 @@ export function CompoundFormEditCard({
                         u[index] = { ...u[index], firstName: v };
                         formik.setFieldValue('drivers', u);
                       }}
-                      required={index === 0 && !formik.values.driverNotApplicable}
-                      {...((formik.errors.drivers as DriverErrors[])?.[index]
+                      required={
+                        index === 0 && !formik.values.driverNotApplicable
+                      }
+                      {...((formik.touched.drivers as DriverTouched[])?.[index]
+                        ?.firstName &&
+                      (formik.errors.drivers as DriverErrors[])?.[index]
                         ?.firstName
                         ? {
                             helper: {
@@ -1500,8 +1536,12 @@ export function CompoundFormEditCard({
                         u[index] = { ...u[index], lastName: v };
                         formik.setFieldValue('drivers', u);
                       }}
-                      required={index === 0 && !formik.values.driverNotApplicable}
-                      {...((formik.errors.drivers as DriverErrors[])?.[index]
+                      required={
+                        index === 0 && !formik.values.driverNotApplicable
+                      }
+                      {...((formik.touched.drivers as DriverTouched[])?.[index]
+                        ?.lastName &&
+                      (formik.errors.drivers as DriverErrors[])?.[index]
                         ?.lastName
                         ? {
                             helper: {
@@ -1531,7 +1571,10 @@ export function CompoundFormEditCard({
                             };
                             formik.setFieldValue('drivers', u);
                           }}
-                          {...((formik.errors.drivers as DriverErrors[])?.[index]
+                          {...((formik.touched.drivers as DriverTouched[])?.[
+                            index
+                          ]?.personalCodeEe &&
+                          (formik.errors.drivers as DriverErrors[])?.[index]
                             ?.personalCodeEe
                             ? {
                                 helper: {
@@ -1569,13 +1612,15 @@ export function CompoundFormEditCard({
                         };
                         formik.setFieldValue('drivers', u);
                       }}
-                      {...((formik.errors.drivers as DriverErrors[])?.[index]
+                      {...((formik.touched.drivers as DriverTouched[])?.[index]
+                        ?.personalCodeForeign &&
+                      (formik.errors.drivers as DriverErrors[])?.[index]
                         ?.personalCodeForeign
                         ? {
                             helper: {
-                              text: (
-                                formik.errors.drivers as DriverErrors[]
-                              )[index].personalCodeForeign,
+                              text: (formik.errors.drivers as DriverErrors[])[
+                                index
+                              ].personalCodeForeign,
                               type: 'error' as const,
                             },
                           }
@@ -1584,12 +1629,13 @@ export function CompoundFormEditCard({
                     <Select
                       id={`driverCitizenshipCode_${index}`}
                       label={t('forms.compound.driverCitizenshipCode')}
-                      options={countries}
+                      options={[{ value: '', label: '—' }, ...countries]}
                       value={
-                        countries.find(
+                        [{ value: '', label: '—' }, ...countries].find(
                           (o) =>
                             o.value ===
-                            formik.values.drivers[index]?.citizenshipCode,
+                            (formik.values.drivers[index]?.citizenshipCode ??
+                              ''),
                         ) ?? null
                       }
                       onChange={(val) => {
@@ -1629,6 +1675,8 @@ export function CompoundFormEditCard({
                         placeholder={t('common.dateFieldPlaceholder')}
                         required={index === 0}
                         inputProps={
+                          (formik.touched.drivers as DriverTouched[])?.[index]
+                            ?.birthDate &&
                           (formik.errors.drivers as DriverErrors[])?.[index]
                             ?.birthDate
                             ? {
@@ -1720,15 +1768,23 @@ export function CompoundFormEditCard({
                   <Select
                     id="inspectorUnit"
                     label={t('forms.compound.inspectorUnit')}
-                    options={structureUnits.map((opt) => ({
-                      label: opt.name,
-                      value: opt.code,
-                    }))}
+                    options={[
+                      { value: '', label: '—' },
+                      ...structureUnits.map((opt) => ({
+                        label: opt.name,
+                        value: opt.code,
+                      })),
+                    ]}
                     value={
-                      structureUnits
-                        .map((opt) => ({ label: opt.name, value: opt.code }))
-                        .find((o) => o.value === formik.values.inspectorUnit) ??
-                      null
+                      [
+                        { value: '', label: '—' },
+                        ...structureUnits.map((opt) => ({
+                          label: opt.name,
+                          value: opt.code,
+                        })),
+                      ].find(
+                        (o) => o.value === (formik.values.inspectorUnit ?? ''),
+                      ) ?? null
                     }
                     onChange={handleStructuralUnitChange}
                   />
@@ -1762,9 +1818,12 @@ export function CompoundFormEditCard({
                 refreshKey={versionsRefreshKey}
               />
             )}
-            <div className="page-actions">
+            <div className="confirm-button">
               <div className="page-actions-buttons">
-                <FormPrintButton endpoint={printEndpoint} id={formik.values.id} />
+                <FormPrintButton
+                  endpoint={printEndpoint}
+                  id={formik.values.id}
+                />
               </div>
             </div>
           </div>

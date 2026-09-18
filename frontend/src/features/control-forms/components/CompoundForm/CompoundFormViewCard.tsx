@@ -6,6 +6,7 @@ import {
   Heading,
   Select,
   Text,
+  TextArea,
   TextField,
   TimeField,
 } from '@tedi-design-system/react/tedi';
@@ -352,10 +353,11 @@ export function CompoundFormViewCard({
                   disabled={disabled}
                 />
                 <div />
-                <TextField
+                <TextArea
                   id="roadTaxNotes"
                   label={t('forms.compound.roadTaxNotes')}
                   value={form.roadTaxNotes ?? ''}
+                  className={styles['full-span']}
                   disabled={disabled}
                 />
               </div>
@@ -710,7 +712,7 @@ export function CompoundFormViewCard({
               refreshKey={versionsRefreshKey}
             />
           )}
-          <div className="page-actions">
+          <div className="confirm-button">
             <div className="page-actions-buttons">
               <FormPrintButton
                 endpoint={printEndpoint}
