@@ -32,7 +32,11 @@ export default defineConfig({
   // route-kompileerimise pärast ja tekitavad ebastabiilsust. Seriaalne on
   // ~3 min, aga usaldusväärne.
   workers: 1,
-  timeout: 60_000,
+  // Vaikimisi timeout puudub (0 = piiramatu). Lokaalseks silumiseks saab
+  // LJVIS_PW_TEST_TIMEOUT env'iga piirangu juurde anda (millisekundites).
+  timeout: process.env.LJVIS_PW_TEST_TIMEOUT
+    ? Number(process.env.LJVIS_PW_TEST_TIMEOUT)
+    : 0,
   expect: { timeout: 12_000 },
 
   reporter: [
