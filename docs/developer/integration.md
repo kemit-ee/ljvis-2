@@ -22,14 +22,33 @@ Mocki URL sama operatsiooni jaoks:
 https://dev.liiklusvalve.ee/developer/xroad/v1/isiku-kontroll
 ```
 
-Teenusekood, versioon ja sihttee tuleb turvaserveris tegeliku konfiguratsiooniga kooskõlastada. [Teenuste tabel ja näited](services.md) ning [publitseerimise juhend](../xtee/00-xtee-teenused-publikatsiooni-juhend.md) annavad vastavused.
+Teenusekood, versioon ja sihttee tuleb turvaserveris tegeliku konfiguratsiooniga kooskõlastada. [Teenuste tabel ja näited](services.md) annavad vastavused. Masinloetav leping: [XroadOpenapi.yaml](../xtee/XroadOpenapi.yaml).
+
+Pärispäringu tee:
+
+```mermaid
+sequenceDiagram
+    participant K as Tarbija infosüsteem
+    participant TS as Tarbija turvaserver
+    participant PS as Pakkuja turvaserver
+    participant L as LJVIS2
+
+    K->>TS: Päring (rakenduse andmed)
+    TS->>PS: X-Road protokoll (signeeritud, autenditud)
+    PS->>L: HTTPS + X-Road-Client päis
+    L-->>PS: JSON vastus (edu või rakenduse veakood)
+    PS-->>TS: X-Road protokoll
+    TS-->>K: Vastus
+```
+
+Testimiseks (ilma turvaserverita) asendub PS→L osa avaliku mockiga, vt allpool.
 
 ## Eeltingimused ja õigused
 
 1. Tarbija alamsüsteem on registreeritud samas X-tee keskkonnas kui pakkuja.
 2. Tarbija turvaserveri ühendus ja TLS-seadistus on korras.
 3. Pakkuja turvaserveris on soovitud teenus publitseeritud ning tarbijale antud teenuse kasutusõigus.
-4. Pakkuja turvaserver saab ühenduda `ruuter-internal` teenusega. Päris teenused ei ole üldise avaliku veebidomeeni kaudu kasutatavad.
+4. Päris teenused ei ole üldise avaliku veebidomeeni kaudu kasutatavad, need on kättesaadavad ainult pakkuja turvaserveri kaudu.
 
 Turvaserver vastutab tarbija autentimise ja teenuseõiguste kontrolli eest. Päise käsitsi lisamine ei asenda seda.
 Rakenduse POST-teenused kontrollivad neljaosalist `X-Road-Client` päist. Mocki keelatud tarbija `ee-dev/GOV/70000000/denied` on ainult teststsenaarium, mitte päris õiguste register.

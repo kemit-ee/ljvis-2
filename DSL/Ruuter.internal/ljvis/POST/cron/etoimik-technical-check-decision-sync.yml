@@ -49,17 +49,22 @@ processVehicleCandidates:
           driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
           case_start: "${new Date().getTime()}"
 
-      - call: http.post
-        args:
-          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
-          headers:
-            type: json
-          body:
+      # Built once so the log_integration call below can log the exact same
+      # full request body that is actually sent to XTR.
+      - assign:
+          xtr_request_body:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
             userId: "LJVIS-CRON"
             subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
             service_version: "[#ETOIMIK_SERVICE_VERSION]"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body: ${xtr_request_body}
         result: xtrResponse
 
       - assign:
@@ -68,14 +73,14 @@ processVehicleCandidates:
               function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
               var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
               if (!httpOk) {
-                return { success: false, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+                return { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
               }
               var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
               var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
               var responseNode = responseKey ? soapBody[responseKey] : {};
               var caseNode = responseNode.response || null;
               if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
               }
               var decisions = [];
               var bases = [];
@@ -95,9 +100,9 @@ processVehicleCandidates:
                 });
               });
               if (decisions.length === 0) {
-                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
               }
-              return { success: true, found: true, enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+              return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
             })()}
 
       - call: http.post
@@ -107,7 +112,7 @@ processVehicleCandidates:
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.vehicle_technical"
-            request_xml: "${'referenceNumber=' + reference_number}"
+            request_xml: "${JSON.stringify(xtr_request_body)}"
             response_xml: "${decision.rawResponse}"
             duration_ms: "${new Date().getTime() - case_start}"
             success: ${decision.success}
@@ -115,6 +120,7 @@ processVehicleCandidates:
             person_identifier: ${driver_personal_code}
             source_type: "vehicle_technical_form"
             source_record_id: ${candidate_key}
+            result_status: "${decision.resultStatus}"
         result: logRes
 
       - call: http.post
@@ -175,17 +181,22 @@ processTrailerCandidates:
           driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
           case_start: "${new Date().getTime()}"
 
-      - call: http.post
-        args:
-          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
-          headers:
-            type: json
-          body:
+      # Built once so the log_integration call below can log the exact same
+      # full request body that is actually sent to XTR.
+      - assign:
+          xtr_request_body:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
             userId: "LJVIS-CRON"
             subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
             service_version: "[#ETOIMIK_SERVICE_VERSION]"
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+          headers:
+            type: json
+          body: ${xtr_request_body}
         result: xtrResponse
 
       - assign:
@@ -194,14 +205,14 @@ processTrailerCandidates:
               function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
               var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
               if (!httpOk) {
-                return { success: false, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
+                return { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
               }
               var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
               var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
               var responseNode = responseKey ? soapBody[responseKey] : {};
               var caseNode = responseNode.response || null;
               if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
               }
               var decisions = [];
               var bases = [];
@@ -221,9 +232,9 @@ processTrailerCandidates:
                 });
               });
               if (decisions.length === 0) {
-                return { success: true, found: false, enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
               }
-              return { success: true, found: true, enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+              return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
             })()}
 
       - call: http.post
@@ -233,7 +244,7 @@ processTrailerCandidates:
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.trailer_technical"
-            request_xml: "${'referenceNumber=' + reference_number}"
+            request_xml: "${JSON.stringify(xtr_request_body)}"
             response_xml: "${decision.rawResponse}"
             duration_ms: "${new Date().getTime() - case_start}"
             success: ${decision.success}
@@ -241,6 +252,7 @@ processTrailerCandidates:
             person_identifier: ${driver_personal_code}
             source_type: "trailer_technical_form"
             source_record_id: ${candidate_key}
+            result_status: "${decision.resultStatus}"
         result: logRes
 
       - call: http.post

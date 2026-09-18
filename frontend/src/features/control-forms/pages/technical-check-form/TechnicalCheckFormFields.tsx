@@ -17,7 +17,7 @@ import type {
   TechnicalCheckVariant,
   PartSeverity,
 } from '../../types';
-import { useTechnicalCheckForm } from './useTechnicalCheckForm';
+import { useTechnicalCheckForm, AUTO_RESULT_EXCLUDED_PARTS } from './useTechnicalCheckForm';
 import { PartsSummaryTable } from './PartsSummaryTable';
 import { DefectsResultsTable } from './DefectsResultsTable';
 import { DefectSelectionModal } from './DefectSelectionModal';
@@ -114,7 +114,9 @@ export function TechnicalCheckFormFields({
   // lowest resultType the form's current defects allow. Options below this
   // floor are disabled (LJVIS2-72 §4) — previously they were silently
   // rejected on click by setResultType, which looked like a broken radio.
-  const defectSeverities = (values.partsDefects ?? []).map((d) => d.severity);
+  const defectSeverities = (values.partsDefects ?? [])
+    .filter((d) => !AUTO_RESULT_EXCLUDED_PARTS.includes(d.partCode))
+    .map((d) => d.severity);
   const autoLevel = defectSeverities.includes('EOV') ? 2 : defectSeverities.includes('OV') ? 1 : 0;
   const optionLevel = (opt: string) =>
     opt === 'driving_ban' ? 2 : opt === 'ok' ? 0 : 1;

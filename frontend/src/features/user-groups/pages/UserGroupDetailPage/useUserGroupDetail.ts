@@ -23,6 +23,7 @@ import { listOrganisations } from '../../../organisations/api';
 import type { Permission } from '../../../permissions/types';
 import { listPermissions } from '../../../permissions/api';
 import { toSnakeCase } from '../../../../hooks/stringUtils';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 export function useUserGroupDetail(id: string | undefined) {
   const { t } = useTranslation();
@@ -110,7 +111,7 @@ export function useUserGroupDetail(id: string | undefined) {
       setNameError(t('userGroups.validation.nameRequired'));
       return;
     }
-    await updateUserGroupName(id, editName.trim());
+    await updateUserGroupName(id, sanitizeText(editName));
     setEditingName(false);
     fetchData();
   };

@@ -2,8 +2,9 @@ import { useCallback, useState } from 'react';
 import { usePaginatedList } from './usePaginatedList';
 import type { ListParams, PagedResponse } from './usePaginatedList';
 
-export interface UseFilteredListOptions {
+export interface UseFilteredListOptions<TFilters = object> {
   defaultSort?: string;
+  defaultFilters?: TFilters;
 }
 
 /**
@@ -18,12 +19,13 @@ export interface UseFilteredListOptions {
  */
 export function useFilteredList<TItem, TFilters extends object>(
   listFn: (params: ListParams, filters: TFilters) => Promise<PagedResponse<TItem>>,
-  options: UseFilteredListOptions = {},
+  options: UseFilteredListOptions<TFilters> = {},
 ) {
+  const initialFilters = options.defaultFilters ?? ({} as TFilters);
   // what the user is editing
-  const [draftFilters, setDraftFilters] = useState<TFilters>({} as TFilters);
+  const [draftFilters, setDraftFilters] = useState<TFilters>(initialFilters);
   // what is actually applied to the query
-  const [appliedFilters, setAppliedFilters] = useState<TFilters>({} as TFilters);
+  const [appliedFilters, setAppliedFilters] = useState<TFilters>(initialFilters);
   const [resetKey, setResetKey] = useState(0);
 
   const fetchFn = useCallback(
@@ -43,11 +45,11 @@ export function useFilteredList<TItem, TFilters extends object>(
   }, [draftFilters, list]);
 
   const resetFilters = useCallback(() => {
-    setDraftFilters({} as TFilters);
-    setAppliedFilters({} as TFilters);
+    setDraftFilters(initialFilters);
+    setAppliedFilters(initialFilters);
     list.setPagination((p) => ({ ...p, pageIndex: 0 }));
     setResetKey((k) => k + 1);
-  }, [list]);
+  }, [list, initialFilters]);
 
   return { ...list, draftFilters, setFilter, applyFilters, resetFilters, resetKey };
 }

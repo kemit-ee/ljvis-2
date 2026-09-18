@@ -29,7 +29,7 @@ function formatLogRow(log: AuditLog): string[] {
     person,
     log.eventCategory || '',
     log.eventType || '',
-    log.description || '',
+    decodeHtmlEntities(log.description || ''),
     decodedLogContent,
   ];
 }

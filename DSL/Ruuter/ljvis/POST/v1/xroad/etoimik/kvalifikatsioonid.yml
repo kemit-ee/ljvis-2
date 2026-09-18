@@ -23,7 +23,10 @@ declaration:
     trimmed; firstName/lastName uppercased per spec. Response nesting
     (proceedings -> actions -> participants -> sanctions ->
     convictionPoints -> qualificationParagraphs) is preserved but every
-    Estonian field name is translated to English. Logs every call (success
+    Estonian field name is translated to English. request_xml/response_xml
+    record the full request sent to XTR and the full raw response received
+    from it (not a summary), so the log table doubles as the complete audit
+    trail of what was exchanged. Logs every call (success
     and failure) to xroad.xroad_integration_log, recording person_identifier
     in plaintext ONLY for the personalCode path (never for the
     name+birthdate/foreigner path, per §7 Logimine).
@@ -103,6 +106,26 @@ assignXtrParams:
   assign:
     x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
     start_time: "${new Date().getTime()}"
+  next: buildXtrRequestBody
+
+# Built once so logSuccessFound/logSuccessNotFound/logFailure can all log the
+# exact same full request body that was actually sent to XTR.
+# subsystem_code/service_version: per-environment override (LJVIS2-56) — ee-dev
+# sandbox uses "etoimik-arendus", production/ee-test almost certainly use plain
+# "etoimik" (confirmed live for ee-dev only, 2026-08-25; re-verify per
+# environment via listClients/allowedMethods, see constants.ini).
+buildXtrRequestBody:
+  assign:
+    xtr_request_body:
+      case_number: ${case_number}
+      reference_number: ${reference_number}
+      personal_code: ${personal_code}
+      first_name: ${first_name}
+      last_name: ${last_name}
+      birth_date: ${birth_date}
+      userId: ${x_road_user_id}
+      subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
+      service_version: "[#ETOIMIK_SERVICE_VERSION]"
   next: callXtr
 
 callXtr:
@@ -111,20 +134,7 @@ callXtr:
     url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
     headers:
       type: json
-    body:
-      case_number: ${case_number}
-      reference_number: ${reference_number}
-      personal_code: ${personal_code}
-      first_name: ${first_name}
-      last_name: ${last_name}
-      birth_date: ${birth_date}
-      userId: ${x_road_user_id}
-      # Per-environment override (LJVIS2-56) — ee-dev sandbox uses
-      # "etoimik-arendus", production/ee-test almost certainly use plain
-      # "etoimik" (confirmed live for ee-dev only, 2026-08-25; re-verify
-      # per environment via listClients/allowedMethods, see constants.ini).
-      subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-      service_version: "[#ETOIMIK_SERVICE_VERSION]"
+    body: ${xtr_request_body}
   result: xtrResponse
   next: checkXtrStatus
 
@@ -251,14 +261,15 @@ logSuccessFound:
       type: json
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
-      request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
-      response_xml: "${JSON.stringify({ received: (mapped_case) != null, count: (Array.isArray(mapped_case) ? (mapped_case).length : null) })}"
+      request_xml: "${JSON.stringify(xtr_request_body)}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
       person_identifier: "${personal_code || ''}"
       source_type: ${source_type}
       source_record_id: ${source_record_id}
+      result_status: "found"
   result: logResult
   next: returnFoundResult
 
@@ -275,14 +286,15 @@ logSuccessNotFound:
       type: json
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
-      request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
-      response_xml: "null"
+      request_xml: "${JSON.stringify(xtr_request_body)}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
       person_identifier: "${personal_code || ''}"
       source_type: ${source_type}
       source_record_id: ${source_record_id}
+      result_status: "not_found"
   result: logResult
   next: returnNotFoundResult
 
@@ -305,14 +317,15 @@ logFailure:
       type: json
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
-      request_xml: "${'caseNumber=' + case_number + ';referenceNumber=' + reference_number}"
-      response_xml: "${JSON.stringify({ received: (xtrResponse.response.body) != null, count: (Array.isArray(xtrResponse.response.body) ? (xtrResponse.response.body).length : null) })}"
+      request_xml: "${JSON.stringify(xtr_request_body)}"
+      response_xml: "${JSON.stringify(xtrResponse.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "${'XTR HTTP ' + xtrResponse.response.status}"
       person_identifier: "${personal_code || ''}"
       source_type: ${source_type}
       source_record_id: ${source_record_id}
+      result_status: "error"
   result: logResult
   next: returnXtrError
 

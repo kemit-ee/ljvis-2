@@ -12,7 +12,7 @@ import {
   publishTransportInterruptionForm,
 } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
-import { sanitizeText } from '../../formTextUtils';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 const DEFAULT_TERMINATION_CONDITION =
   'KUNI VEO KATKESTAMISE ALUSE ÄRALANGEMISENI.';

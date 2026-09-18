@@ -5,6 +5,7 @@ import type { ClassifierValue } from '../../types.ts';
 import { insertClassifierValue, updateClassifierValue } from '../../api.ts';
 import { applyValidationError } from '../../../../shared/api/errors.ts';
 import { toIsoDate } from '../../../../hooks/dateUtils.ts';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 export function useClassifierValueForm(
   classifierId: string | undefined,
@@ -63,8 +64,8 @@ export function useClassifierValueForm(
         } else {
           await insertClassifierValue({
             classifierId: classifierId,
-            code: trimmedValues.code,
-            name: trimmedValues.name,
+            code: sanitizeText(trimmedValues.code),
+            name: sanitizeText(trimmedValues.name),
             validFrom: trimmedValues.validFrom,
             validUntil: trimmedValues.validUntil,
           });

@@ -16,7 +16,7 @@ import {
 import type { FormAuthority } from '../drive-rest-form/useDriveRestForm';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
-import { sanitizeText } from '../../formTextUtils';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 import { useAuth } from '../../../auth/AuthContext';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';
 import { OTHER, ROAD } from '../../../../constants/constants.ts';

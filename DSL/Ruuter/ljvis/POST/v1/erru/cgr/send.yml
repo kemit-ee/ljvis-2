@@ -195,7 +195,7 @@ logIntegrationSuccess:
     body:
       service_code: "erru/cgr/request"
       request_xml: "${'businessCaseId=' + business_case_id + ' cgrTo=' + cgr_to}"
-      response_xml: "${JSON.stringify({ received: (erru_res.response.body) != null, count: (Array.isArray(erru_res.response.body) ? (erru_res.response.body).length : null) })}"
+      response_xml: "${JSON.stringify(erru_res.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: true
       error_message: ""
@@ -214,7 +214,7 @@ logIntegrationFailure:
     body:
       service_code: "erru/cgr/request"
       request_xml: "${'businessCaseId=' + business_case_id + ' cgrTo=' + cgr_to}"
-      response_xml: ""
+      response_xml: "${erru_res.response != null ? JSON.stringify(erru_res.response.body) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "ERRU transport failure or error response"

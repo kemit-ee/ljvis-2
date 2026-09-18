@@ -4,6 +4,128 @@
 
 ---
 
+## 2026-09-18
+
+### Välisriigi rikkumise kaart: "Teavita vedajat" saadab nüüd tegelikult Postkasti
+
+- Avalikustatud välisriigi rikkumise kaardil oli "teavita vedajat" märkeruut
+  olemas ja salvestus andmebaasi, aga selle märkimine ei saatnud kunagi
+  midagi Postkast 2.0-le — funktsioon jäi pooleli, kuna puudus vedaja
+  e-posti aadress.
+- Nüüd, kui märge lülitatakse sisse avalikustatud vormil, otsitakse vedaja
+  e-post äriregistrist (arireg/detailandmed) ja saadetakse leidmise korral
+  Postkasti kaudu teavitus (`carrier_violation` liik, mis oli andmebaasis
+  juba ette valmistatud, aga kunagi kasutusele võtmata). Kui e-posti ei
+  leita või äriregister/Postkast ei vasta, jääb märge lihtsalt salvestatuks
+  ilma teavituseta (best-effort, ei blokeeri vormi salvestamist).
+
+### ERRU saatmiste logi: täisvastus mitte kokkuvõte (ka tõrke korral)
+
+- `erru/cgr/send`, `erru/cgr/resend`, `erru/ctud/send` ja `erru/rsi/send`
+  kirjutasid X-tee integratsioonilogisse (`xroad.xroad_integration_log.
+  response_xml`) senini vaid tuletatud kokkuvõtte (`{received, count}`),
+  mitte ERRU/XTR-i tegelikku vastust. Nüüd kirjutatakse sinna täisvastus
+  (samamoodi nagu `erru/nu/send` juba tegi), et tõrkeotsingul oleks
+  reaalne sisu näha, mitte platsholder.
+- Sama puudujääk oli ka tõrke harul (kõigi viie ERRU saatmise, sh
+  `erru/nu/send`): ebaõnnestunud päringu puhul jäi `response_xml` alati
+  tühjaks stringiks, isegi kui ERRU/XTR vastas veakehaga (nt 4xx koos
+  veakirjeldusega). Nüüd salvestatakse ka tõrke korral tegelik vastuse
+  sisu, kui see olemas on — tühi string jääb ainult siis, kui vastust
+  üldse ei tulnud (nt transpordi tõrge).
+
+### Kontrollvormide täiendused (tehnoseisund, sõidumeerik, koondvorm)
+
+- **Tehnoseisundi kontrollkaart** (mootorsõiduki ja haagise, PPA ja TRAM) —
+  punkt 10 "Veose kinnitamine" (CAA_10) mis tahes VO/OV/EOV märge ei lülita
+  enam automaatselt sisse erakorralist tehnoülevaatust ega sõidukeeldu. Veose
+  paigutamise/kinnitamise/katmise rikkumine on eraldiseisev ja ei tohi
+  mõjutada sõiduki tehnoseisundi tulemust.
+- **Koondvormi sõidukijuhi andmed** — eemaldatud isikukoodist automaatselt
+  sünniaja tuletamine. Varasemalt jäi sünniaeg muutumatuks, kui täitja
+  parandas eksitud isikukoodi. Sünniaeg täidetakse nüüd ainult "Otsi"
+  nupuga rahvastikuregistrist (Eesti isikukoodi korral) või käsitsi
+  (välisriigi juhi korral).
+- **Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollkaart** (PPA ja
+  TRAM) — sõidumeeriku ossa lisatud uus rida "Kontrollitud päevade arv" alla:
+  märkeruut "Andmed sõidumeerikust või juhikaardilt alla laadimata (teade
+  Tööinspektsioonile)" ja selle alla sõidumeeriku märkuste väli.
+
+### Tööinspektsiooni kontrollvorm — rikkumised ja väärteomenetlus
+
+- **Rikkumiste osa** täielikult ümber tehtud: senise puuduliku loetelu asemel
+  uus, Tööinspektsiooni järelevalvet silmas pidav rikkumiste klassifikaator
+  kahe pealkirja all — "Sõidu- ja puhkeaja rikkumised" ning "Ühenduse
+  tegevusloa ja juhitunnistuse rikkumised". Iga rikkumise juures on nüüd
+  tunnivahemik, mis määrab raskusastme (MSI/VSI/SI/MI), ja vastav ametlik
+  ERRU kood. Kirjeldused on Tööinspektsiooni kontekstile omased, mitte
+  üle võetud PPA autojuhi sõidu- ja puhkeaja kontrollvormilt.
+- Rikkumiste tabelis kuvatakse valitud rea raskusaste ja vahemik (nt "SI —
+  10 h ≤ … < 11 h"), samas stiilis mis PPA sõidu-puhkeaja kontrollkaardil.
+- **Väärteomenetluse plokk** — lisatud uus alajaotus "Andmevahetuskihi
+  päringuga sisestatavad andmed (x-tee)" väljadega "Jõustunud otsus" ja
+  "Menetluse lõpetamise alus". Need täidetakse automaatselt öise e-toimiku
+  päringu tulemusel (kui väärteomenetluse viitenumber on täidetud) ning
+  kontrollkaart avalikustatakse automaatselt niipea, kui jõustunud otsus
+  leitakse.
+
+### Haldus > eToimiku X-tee logid: kõigi teenuste vaade
+
+- Lehe kohale lisatud lüliti-tekst "Näidatakse eToimiku / kõiki X-tee
+  logisid" — klõps sildil ("eToimiku" ↔ "kõiki") lülitab, kas nimekirjas
+  näidatakse ainult eToimiku päringuid (endine vaikekäitumine, filtreeritud
+  `service_code LIKE 'etoimik.%'`) või kõiki `xroad.xroad_integration_log`
+  kirjeid (nt ka ERRU CGR/NU saatmiste transpordivead), staatusfiltrit
+  eirates.
+- Rea staatusesilt: kui kirjel puudub eToimikule omane `result_status`
+  (nt ERRU read), näidatakse nüüd üldist "Õnnestus"/"Vigane" märgistust
+  `success` välja põhjal, mitte alati "Vigane".
+- "Kõiki" vaates on tabelis lisaks uus "Teenus" veerg (`service_code`) —
+  eToimiku-vaates on see alati sama väärtus ja seega peidetud.
+
+## 2026-09-17
+
+### Liidestuja arendaja-dokumentatsioon ja X-tee OpenAPI
+
+- **Arendajajuhend** (`docs/developer/`) korrastatud liidestuja vaatest: sisemised
+  URL-id, Docker/Nginx/K8s-seadistuse detailid ja CI-skriptid eemaldatud;
+  alles jäid avalik mocki aadress (`dev.liiklusvalve.ee/developer`), teenuste
+  näidised ja testtunnused.
+- Lisatud märkus, et avaliku mocki kasutamine nõuab liidestuja välise
+  IP-aadressi eelnevat whitelistimist (Kemiti teenuseomaniku kaudu).
+- Uus eraldiseisev juhend ja Compose-fail mocki käivitamiseks liidestuja enda
+  masinas (`docs/developer/lokaalne-mock.md`), sõltumatu ülejäänud rakendusest.
+- Uus masinloetav **XroadOpenapi** leping (`docs/xtee/XroadOpenapi.yaml`) kõigi
+  üheksa päris X-tee teenuse jaoks, koos näidis sisendite/väljunditega iga
+  vastuskoodi kohta.
+- Publitseerimisjuhendisse ja arendajajuhendisse lisatud Mermaid diagrammid
+  (arhitektuur, üldine päringuvoog, `ErakorralineYVquery`/`ErakorralineYVconfirm`
+  kahesammuline voog).
+- Lisatud `docs/developer/smoke-test.sh` — kiire kontroll, kas lokaalne mock
+  on üleval ja vastab ootuspäraselt (tervisekontroll + üks edukas ja üks
+  veapäring). Täieliku regressiooni jaoks juhendatud Postmani kollektsiooni
+  Newmaniga käivitamine lokaalse mocki vastu.
+- Lokaalse mocki Compose-failis uuendatud `turnerrainer/ruuter` image
+  0.10.0-rc peale; kontrollitud, et mock ja kogu Postmani/Newmani
+  regressioonikomplekt (65 päringut, 127 assertsiooni) töötavad muutumatult.
+- Eemaldatud arendajajuhendist viide sisemisele turvaserveri seadistuse
+  juhendile — liidestujale piisab teenuste tabelist, näidetest ja
+  XroadOpenapi lepingust.
+- Arendajajuhendi POST-näidiste curl-käsud on nüüd otse kopeeritavad: varem
+  viitasid nad kohapealsele failile (`--data-binary @docs/developer/
+  examples/...`), mis eeldas repo olemasolu; nüüd on JSON-keha käsu sees.
+
+### Haldus > eToimiku X-tee logid
+
+- Uus vaade Haldus-menüüs — kuvab eToimiku `AnnaIsikuKvalifikatsioonid`
+  X-tee päringute ajaloo (nii käsitsi otsingud kui öised automaatsed
+  kontrollid), sh väljuva päringu ja saabunud vastuse täissisu.
+- Filtrid: kuupäevavahemik (vaikimisi eile-täna) ja kolm staatuse checkboxi
+  (Vaste leitud / Vastuseta / Vigane) + tuletatud "Kõik" checkbox.
+- Iga rida lingib vormile, mille andmete põhjal päring tehti (kui vorm on
+  tuvastatav).
+- Nõuab uut õigust `xroad.log.read` (antud ainult Super Admin Groupile).
+
 ## 2026-09-14
 
 ### Mootorsõiduki/haagise tehnokontrollkaardi X-tee andmete automatiseerimine
@@ -871,3 +993,15 @@ Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 - Eraldi vorminumbri seeria `tram-AAAA-NNNNN`.
 - Transpordiameti ja PPA kontrollkaardid on üksteisele nähtamatud (õiguste ja
   otsingu tasemel).
+
+---
+
+## 2026-09 — X-tee (e-toimik) päringute logi täiendus
+
+- `xroad.xroad_integration_log` kirjed e-toimiku
+  `AnnaIsikuKvalifikatsioonid` päringute kohta salvestavad nüüd XTR-ile
+  saadetud **täieliku päringu** ja sealt saadud **täieliku toore vastuse**
+  (varem salvestati vaid lühendatud kokkuvõte, nt „caseNumber=...").
+- Muudatus puudutab avalikku e-toimiku otsingut (`v1/xroad/etoimik/
+  kvalifikatsioonid`) ja kõiki nelja e-toimiku öist sünkiga cron-voogu
+  (autojuht, tehnoülevaatus, SP-juht, TRAM).

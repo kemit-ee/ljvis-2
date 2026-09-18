@@ -31,19 +31,7 @@ export const INSPECTION_TYPES = [
   { value: 'cargo', labelKey: 'forms.labour_inspection.inspectionTypeCargo' },
 ];
 
-export const CURATED_LEVEL1_CODES = [
-  'SOIDUAJAD',
-  'VAHEAJAD_561',
-  'PUHKEPERIOODID',
-  'PAEVA_12_ERAND',
-  'TOOKORRALDUS',
-  'SOIDUMEERIKUD',
-  'RIKKED',
-  'MAKS_TOOAEG',
-  'VAHEAJAD_TOOAEG',
-  'OOTOO',
-  'SALVESTUSED',
-];
+export const CURATED_LEVEL1_CODES = ['TI_SP', 'TI_LIC'];
 
 interface LabourInspectionFormValues {
   id: string;
@@ -62,6 +50,8 @@ interface LabourInspectionFormValues {
   punishedPersonFirstName: string;
   punishedPersonLastName: string;
   proceedingReferenceNumber: string;
+  enforcementDecision: string;
+  proceedingClosureBasis: string;
   violations: ViolationEntry[];
 }
 
@@ -84,6 +74,7 @@ interface LabourInspectionFormFieldsProps {
   companyPickerResults?: XRoadCompany[];
   onCompanyPicked?: (company: XRoadCompany) => void;
   closeCompanyPicker?: () => void;
+  formStatus?: string;
 }
 
 export function LabourInspectionFormFields({
@@ -104,6 +95,7 @@ export function LabourInspectionFormFields({
   companyPickerResults,
   onCompanyPicked,
   closeCompanyPicker,
+  formStatus,
 }: LabourInspectionFormFieldsProps) {
   const { t } = useTranslation();
   const [showViolationPicker, setShowViolationPicker] = useState(false);
@@ -473,6 +465,29 @@ export function LabourInspectionFormFields({
         </Card.Content>
       </Card>
 
+      {formStatus && formStatus !== 'saved' && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.labour_inspection.xroadDecisionSection')}
+            </Heading>
+            {/* Read-only in both view and edit mode: these fields are populated
+                only by the nightly e-toimik cron (etoimik-decision-sync.yml),
+                never entered by the officer. */}
+            <div className={gridClass}>
+              <Text>
+                <b>{t('forms.labour_inspection.enforcementDecision')}:</b>{' '}
+                {formik.values.enforcementDecision}
+              </Text>
+              <Text>
+                <b>{t('forms.labour_inspection.proceedingClosureBasis')}:</b>{' '}
+                {formik.values.proceedingClosureBasis}
+              </Text>
+            </div>
+          </Card.Content>
+        </Card>
+      )}
+
       <Card className="mb-1">
         <Card.Content>
           <div
@@ -563,7 +578,14 @@ export function LabourInspectionFormFields({
                               {l2?.name ?? '-'}
                             </td>
                             <td style={{ padding: '0.5rem' }}>
-                              {l3?.name ?? '-'}
+                              {l3 ? (
+                                <>
+                                  <strong>{l3.description}</strong>
+                                  {l3.name ? ` — ${l3.name}` : ''}
+                                </>
+                              ) : (
+                                '-'
+                              )}
                             </td>
                             <td style={{ padding: '0.5rem' }}>{v.quantity}</td>
                             {!readOnly && (

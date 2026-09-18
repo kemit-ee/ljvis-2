@@ -13,7 +13,7 @@ import {
 import type { Organisation } from '../../../organisations/types';
 import { listOrganisations } from '../../../organisations/api';
 import { applyValidationError } from '../../../../shared/api/errors';
-import { sanitizeText } from '../../formTextUtils';
+import { sanitizeText } from '../../../../hooks/formTextUtils';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate, toIsoTime } from '../../../../hooks/dateUtils';

@@ -393,6 +393,9 @@
       "punishedPersonFirstName": "Punished person's first name",
       "punishedPersonLastName": "Punished person's last name",
       "proceedingReferenceNumber": "Proceeding reference number",
+      "xroadDecisionSection": "Data queried via the data exchange layer (X-Road)",
+      "enforcementDecision": "Decision entered into force",
+      "proceedingClosureBasis": "Basis for closing proceedings",
       "violations": {
         "title": "Violations",
         "pickerTitle": "Select violation",
@@ -1113,6 +1116,8 @@
       "proceedingTypeYld": "General proceedings",
       "proceedingReferenceNumberPlaceholder": "Reference number",
       "tachograph_type_code": "Tachograph type",
+      "tachographDataNotDownloaded": "Tachograph or driver card data not downloaded (notification to Labour Inspectorate)",
+      "tachographNotes": "Notes",
       "applicabilityApplied": "Applied",
       "applicabilityNotApplied": "Not applied",
       "applicabilityNotChecked": "Not checked",
@@ -1195,7 +1200,8 @@
     "nu": "NU unfitness notifications",
     "riskScores": "Risk scores",
     "myCompany": "My company",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "xroadLogs": "e-Toimik X-Road logs"
   },
   "citizen": {
     "formsList": {
@@ -1546,6 +1552,46 @@
     "bandRoheline": "Green",
     "bandKollane": "Amber",
     "bandPunane": "Red"
+  },
+  "xroadLogs": {
+    "title": "e-Toimik X-Road logs",
+    "emptyResult": "No entries match the filter",
+    "empty": "No content",
+    "viewRequest": "View request",
+    "viewResponse": "View response",
+    "filter": {
+      "dateFrom": "From",
+      "dateTo": "To",
+      "all": "All"
+    },
+    "scope": {
+      "prefix": "Showing",
+      "etoimik": "e-Toimik",
+      "all": "all",
+      "suffix": "X-Road logs"
+    },
+    "status": {
+      "found": "Match found",
+      "notFound": "No response",
+      "error": "Error",
+      "success": "Succeeded"
+    },
+    "column": {
+      "createdAt": "Request time",
+      "form": "Form",
+      "serviceCode": "Service",
+      "status": "Status",
+      "request": "Outgoing request",
+      "response": "Incoming response"
+    },
+    "sourceType": {
+      "compound_form": "Transport supervision and vehicle technical condition control card",
+      "labour_inspection_form": "Labour inspection control card",
+      "vehicle_technical_form": "Motor vehicle technical compliance control form",
+      "trailer_technical_form": "Trailer technical compliance control form",
+      "sp_driver_form": "Driver's driving and rest time control form",
+      "tram_control_card": "Transport Administration control card"
+    }
   },
   "etoimik": {
     "title": "e-Toimik qualification check",
