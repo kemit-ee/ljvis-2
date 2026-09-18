@@ -16,6 +16,7 @@ import {
   AccordionItemHeader,
   TextArea,
   Alert,
+  Checkbox,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierValueData } from '../../../classifier-values/types';
 import type { CheckEntry } from '../../types.ts';
@@ -137,6 +138,64 @@ export function DriveRestFormFields({
     (transportType === 'Veosevedu' && PASSENGER_CLASS_CODES.includes(code)) ||
     (transportType === 'Sõitjatevedu' && CARGO_ONLY_CLASS_CODES.includes(code));
   const atpDisabledForPassenger = transportType === 'Sõitjatevedu';
+
+  // Plokk: ATP kokkuleppe nõuete kontroll. Ainult "Jah" on märgitav — vale
+  // vastuse (Ei) eraldi valikut ei kasutata kunagi, seega ChoiceGroup
+  // radio asendati ühe checkboxiga. Checkbox eeltäitub ise, kui rikkumise
+  // kirjeldus sisestatakse (ja tühjeneb, kui kirjeldus kustutatakse) —
+  // ametnik ei pea mõlemat eraldi märkima.
+  const renderAtpSection = (showHeading: boolean) => (
+    <>
+      {showHeading && (
+        <Heading element="h4" className="mb-1">
+          {t('forms.drive_rest.atpTitle')}
+        </Heading>
+      )}
+      <Checkbox
+        id={fieldId('atpViolationFound')}
+        name={fieldId('atpViolationFound')}
+        value="true"
+        checked={formik.values.atpViolationFound === 'true'}
+        disabled={readOnly || atpDisabledForPassenger}
+        onChange={() => {
+          const next = formik.values.atpViolationFound === 'true';
+          formik.setFieldValue('atpViolationFound', next ? 'false' : 'true');
+          if (next) {
+            formik.setFieldValue('atpViolationDescription', '');
+          }
+        }}
+        label={<strong>{t('forms.sp_form.atpViolationFound')}</strong>}
+      />
+      <div className={`mt-1 ${styles[isDesktop ? 'width-80' : 'width-100']}`}>
+        <TextArea
+          id={fieldId('atpViolationDescription')}
+          maxHeight="8rem"
+          label={<strong>{t('forms.sp_form.atpViolationDescription')}</strong>}
+          value={formik.values.atpViolationDescription}
+          input={{ maxLength: 4000 }}
+          placeholder={t('forms.sp_form.atpDescriptionPlaceholder')}
+          onChange={(v) => {
+            const text = v as string;
+            formik.setFieldValue('atpViolationDescription', text);
+            formik.setFieldValue(
+              'atpViolationFound',
+              text.trim() ? 'true' : 'false',
+            );
+          }}
+          disabled={readOnly || atpDisabledForPassenger}
+          {...(formik.touched.atpViolationDescription &&
+          formik.errors.atpViolationDescription
+            ? {
+                helper: {
+                  text: formik.errors.atpViolationDescription,
+                  type: 'error' as const,
+                },
+              }
+            : {})}
+        />
+      </div>
+    </>
+  );
 
   const isDocRightVisibleForTransport = (code: string) => {
     const v = DOC_RIGHT_TRANSPORT_VISIBILITY[code];
@@ -1116,7 +1175,9 @@ export function DriveRestFormFields({
             </Accordion>
           </div>
         )}
-      {/* Plokk: Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta ainult autojuhile */}
+      {/* Plokk: Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta ainult autojuhile.
+          ATP on siin teise sisemise pealkirjana, mitte omaette alati nähtava
+          kaardina — see pole tavajuhtum, ei vaja esiletõstmist (#-i pole). */}
       {!hideDriveRestExtras &&
         formik.values.resultType !== '' &&
         formik.values.resultType !== 'ok' &&
@@ -1148,96 +1209,36 @@ export function DriveRestFormFields({
                       }
                     />
                   </div>
+                  <div className="mt-1">{renderAtpSection(true)}</div>
                 </AccordionItemContent>
               </AccordionItem>
             </Accordion>
           </div>
         )}
-      {/* Plokk: ATP kokkuleppe nõuete kontroll */}
-      {!hideDriveRestExtras && (
-        <Row className="m-0">
-          <Col className="p-0">
-            <Card className="mb-1">
-              <Card.Content>
-                <Heading element="h3" className="mb-1">
-                  {t('forms.drive_rest.atpTitle')}
-                </Heading>
-                <div>
-                  <ChoiceGroup
-                    id={fieldId('atpViolationFound')}
-                    label={
-                      <strong>{t('forms.sp_form.atpViolationFound')}</strong>
-                    }
-                    name={fieldId('roadTaxStatus')}
-                    inputType="radio"
-                    direction="row"
-                    value={formik.values.atpViolationFound}
-                    className="mb-1"
-                    onChange={(val) => {
-                      formik.setFieldValue('atpViolationFound', val as string);
-                      if (val !== 'true') {
-                        formik.setFieldValue('atpViolationDescription', '');
-                      }
-                    }}
-                    items={withDisabled([
-                      {
-                        id: 'atp_violation_yes',
-                        value: 'true',
-                        label: t('common.yes'),
-                        disabled: atpDisabledForPassenger,
-                      },
-                      {
-                        id: 'atp_violation_no',
-                        value: 'false',
-                        label: t('common.no'),
-                        disabled: atpDisabledForPassenger,
-                      },
-                    ])}
-                  />
-                  <div></div>
-                  {formik.values.atpViolationFound === 'true' && (
-                    <div
-                      className={styles[isDesktop ? 'width-80' : 'width-100']}
-                    >
-                      <TextArea
-                        id={fieldId('atpViolationDescription')}
-                        maxHeight="8rem"
-                        label={
-                          <strong>
-                            {t('forms.sp_form.atpViolationDescription')}{' '}
-                            <span className={styles['required-star']}>*</span>
-                          </strong>
-                        }
-                        value={formik.values.atpViolationDescription}
-                        input={{ maxLength: 4000 }}
-                        placeholder={t(
-                          'forms.sp_form.atpDescriptionPlaceholder',
-                        )}
-                        onChange={(v) =>
-                          formik.setFieldValue(
-                            'atpViolationDescription',
-                            v as string,
-                          )
-                        }
-                        disabled={readOnly || atpDisabledForPassenger}
-                        {...(formik.touched.atpViolationDescription &&
-                        formik.errors.atpViolationDescription
-                          ? {
-                              helper: {
-                                text: formik.errors.atpViolationDescription,
-                                type: 'error' as const,
-                              },
-                            }
-                          : {})}
-                      />
-                    </div>
-                  )}
-                </div>
-              </Card.Content>
-            </Card>
-          </Col>
-        </Row>
-      )}
+      {/* Plokk: ATP kokkuleppe nõuete kontroll meeskonnaliikme vormil —
+          seal pole massi/mõõtmete plokki, kuhu ATP teise pealkirjana
+          paigutada, seega omaette (samuti tagasihoidlik) akordion. */}
+      {!hideDriveRestExtras &&
+        formik.values.resultType !== '' &&
+        formik.values.resultType !== 'ok' &&
+        type === 'teammate' && (
+          <div className={`${styles['overflow-visible']} mb-1`}>
+            <Accordion>
+              <AccordionItem id={fieldId('atp-violation')}>
+                <AccordionItemHeader
+                  title={
+                    <Heading modifiers="h3" color="primary">
+                      {t('forms.drive_rest.atpTitle')}
+                    </Heading>
+                  }
+                />
+                <AccordionItemContent>
+                  {renderAtpSection(false)}
+                </AccordionItemContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        )}
       {/* Plokk: Andmevahetuskihi (X-tee) päringuga sisestatavad andmed.
           Täidetakse automaatselt e-toimiku päringuga (cron), kuvatakse loetavalt. */}
       {(formik.values.enforcementDecision ||

@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-09-20 (jätk)
+
+### ATP kokkuleppe nõuete kontroll ei ole enam alati nähtaval eraldi kaardina
+
+- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil oli "ATP
+  kokkuleppe nõuete kontroll" alati (ka enne tulemuse valimist) nähtaval
+  eraldiseisva kaardina, jättes mulje, et see on iga kontrolli juures
+  oluline teema — tegelikult on tegu erandliku ja harva kasutatava
+  kontrolliga. Autojuhi vormil on see nüüd teise pealkirjana olemasoleva
+  "Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele
+  vastavuse kohta" akordioni sees (mis juba ATP-d nimetab); meeskonnaliikme
+  vormil, kus massi/mõõtmete plokki pole, jäi see omaette tagasihoidlikuks
+  akordioniks. Mõlemad ilmuvad nüüd alles pärast tulemuse valimist, nagu
+  teisedki rikkumiste plokid.
+- "Jah"/"Ei" valikuga raadionupp asendati ühe märkeruuduga ("ATP lepingut
+  on rikutud") — "Ei" vastust ei kasutatud kunagi. Märkeruut täitub nüüd
+  ise, kui ametnik sisestab rikkumise kirjelduse (ja tühjeneb koos
+  kirjeldusega, kui see kustutatakse), nii ei pea mõlemat eraldi märkima.
+
 ## 2026-09-19
 
 ### Autojuhi sõidu- ja puhkeaja kontrollvorm: kabotaažrikkumised nüüd NCR-teates, haagise tehnoülevaatuse rikkumine taas valitav, TRAM-spetsiifilised kirjeldused PPA vormilt eemaldatud
