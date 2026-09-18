@@ -101,7 +101,12 @@ extractFormData:
 
 convertCheckedItems:
   assign:
-    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return (i.status === 'checked' || i.status === 'non_compliant') && i.partCode !== 'CAA_10';}).map(function(i){return {partCode:i.partCode === 'CAA_11' ? 'CAA_20' : i.partCode,status:i.status,defects:parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode:d.defectCode,severity:d.severity};})};}))}"
+    # partCode stays in national TECHNICAL_CHECK form (e.g. 'CAA_11') here — the RSI record
+    # keeps the national shape until sent (see erru.rsi_message.checked_items column comment);
+    # the CAA_11 -> ERRU itemType 20 conversion happens only in send.yml's convertCheckedItems,
+    # so both this eeltäitmine path and manual entry (useRsiForm.ts, which also stores 'CAA_11')
+    # are converted identically and exactly once, at send time.
+    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return (i.status === 'checked' || i.status === 'non_compliant') && i.partCode !== 'CAA_10';}).map(function(i){return {partCode:i.partCode,status:i.status,defects:parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode:d.defectCode,severity:d.severity};})};}))}"
   next: checkCompoundFormKeyPresent
 
 checkCompoundFormKeyPresent:
