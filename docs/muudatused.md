@@ -6,6 +6,19 @@
 
 ## 2026-09-18
 
+### Välisriigi rikkumise kaart: "Teavita vedajat" saadab nüüd tegelikult Postkasti
+
+- Avalikustatud välisriigi rikkumise kaardil oli "teavita vedajat" märkeruut
+  olemas ja salvestus andmebaasi, aga selle märkimine ei saatnud kunagi
+  midagi Postkast 2.0-le — funktsioon jäi pooleli, kuna puudus vedaja
+  e-posti aadress.
+- Nüüd, kui märge lülitatakse sisse avalikustatud vormil, otsitakse vedaja
+  e-post äriregistrist (arireg/detailandmed) ja saadetakse leidmise korral
+  Postkasti kaudu teavitus (`carrier_violation` liik, mis oli andmebaasis
+  juba ette valmistatud, aga kunagi kasutusele võtmata). Kui e-posti ei
+  leita või äriregister/Postkast ei vasta, jääb märge lihtsalt salvestatuks
+  ilma teavituseta (best-effort, ei blokeeri vormi salvestamist).
+
 ### ERRU saatmiste logi: täisvastus mitte kokkuvõte (ka tõrke korral)
 
 - `erru/cgr/send`, `erru/cgr/resend`, `erru/ctud/send` ja `erru/rsi/send`
