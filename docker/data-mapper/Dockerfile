@@ -5,6 +5,11 @@ FROM busybox:1.36-uclibc AS prep
 COPY DSL/DMapper/ljvis /tmp/ljvis
 RUN find /tmp/ljvis -name '*.handlebars' -exec sh -c 'mv "$1" "${1%.handlebars}.hbs"' _ {} \;
 
-FROM turnerrainer/datamapper:0.1.3-alpha@sha256:cc73f953cfdd45e2f7f6d1360e4dbfdad4249e0fb16916f3e1cbe99883cb6cc8
+FROM turnerrainer/datamapper:0.2.1-alpha@sha256:b1286c486da7ddb033a76bf0fd95aa01c605332f8ed6d6b1e633810fa1d06eeb
 COPY docker/data-mapper/datamapper.yaml /app/datamapper.yaml
 COPY --from=prep /tmp/ljvis /app/DSL/ljvis
+
+# 0.2.0-alpha+ resolves bare `datamapper` to the `serve` subcommand, but
+# positional args after it no longer work — pin the subcommand explicitly
+# so the CMD stays correct if that fallback ever changes upstream.
+CMD ["datamapper", "serve"]
