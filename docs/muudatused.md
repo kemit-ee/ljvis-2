@@ -6,6 +6,15 @@
 
 ## 2026-09-18
 
+### ERRU CGR/CTUD/RSI saatmiste logi: täisvastus mitte kokkuvõte
+
+- `erru/cgr/send`, `erru/cgr/resend`, `erru/ctud/send` ja `erru/rsi/send`
+  kirjutasid X-tee integratsioonilogisse (`xroad.xroad_integration_log.
+  response_xml`) senini vaid tuletatud kokkuvõtte (`{received, count}`),
+  mitte ERRU/XTR-i tegelikku vastust. Nüüd kirjutatakse sinna täisvastus
+  (samamoodi nagu `erru/nu/send` juba tegi), et tõrkeotsingul oleks
+  reaalne sisu näha, mitte platsholder.
+
 ### Kontrollvormide täiendused (tehnoseisund, sõidumeerik, koondvorm)
 
 - **Tehnoseisundi kontrollkaart** (mootorsõiduki ja haagise, PPA ja TRAM) —
