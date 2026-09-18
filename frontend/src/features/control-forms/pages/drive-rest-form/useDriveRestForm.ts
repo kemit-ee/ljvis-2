@@ -151,7 +151,7 @@ export function useDriveRestForm(
   const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
 
-  const { getByCode } = useClassifiers();
+  const { getByCode, values: classifierValues } = useClassifiers();
 
   const cargoCabotageViolations = useMemo(
     () => getByCode('CARGO_CABOTAGE_VIOLATION').filter((c) => c.isValid !== false),
@@ -168,9 +168,17 @@ export function useDriveRestForm(
     [getByCode],
   );
 
+  // NB: getByCode() dedupes by `code`, but DOC_RIGHT_CHECK legitimately
+  // reuses the same level-3 ERRU code (e.g. MSI301) under two different
+  // level-2 parents (Mootorsõiduki tehnoülevaatus vs Haagise tehnoülevaatus).
+  // Filter the raw classifier values so both survive — ModalResultSection
+  // disambiguates by parentKey, not by code uniqueness.
   const docRightChecks = useMemo(
-    () => getByCode('DOC_RIGHT_CHECK').filter((c) => c.isValid !== false),
-    [getByCode],
+    () =>
+      classifierValues.filter(
+        (c) => c.classifierCode === 'DOC_RIGHT_CHECK' && c.isValid !== false,
+      ),
+    [classifierValues],
   );
 
   const docRightOtherDocs = useMemo(
@@ -183,9 +191,21 @@ export function useDriveRestForm(
     [getByCode],
   );
 
+  // NB: getByCode() dedupes by `code` — DRIVING_VIOLATION has repeatedly
+  // ended up with a duplicate level-3 code shared by several level-2 parents
+  // (bare 'MI' on many rows, fixed in PR #210; reintroduced by
+  // 20261016100000 for 3 rows). Each time, getByCode() silently drops all
+  // but one of the duplicates, which — since `values` has no guaranteed
+  // order from the API — can differ per environment (works on one machine,
+  // breaks on another with the same data). Filter the raw classifier values
+  // instead; ModalResultSection/DrivingViolationModal disambiguate by
+  // parentKey, not by code uniqueness.
   const drivingViolations = useMemo(
-    () => getByCode('DRIVING_VIOLATION').filter((c) => c.isValid !== false),
-    [getByCode],
+    () =>
+      classifierValues.filter(
+        (c) => c.classifierCode === 'DRIVING_VIOLATION' && c.isValid !== false,
+      ),
+    [classifierValues],
   );
 
   // Rooma I (593/2008) ja autojuhi lähetamise (2020/1057) rikkumised said

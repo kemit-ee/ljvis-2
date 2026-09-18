@@ -518,7 +518,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
                             <Text>{entry.level2Description}</Text>
                             <Text>{entry.level2Name}</Text>
                             <Text>
-                              <strong>{entry.severity}</strong>
+                              <strong>{entry.level3Code}</strong>
                               <Separator
                                 axis="vertical"
                                 color="secondary"

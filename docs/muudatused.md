@@ -4,7 +4,52 @@
 
 ---
 
-## 2026-09-18
+## 2026-09-19
+
+### Autojuhi sõidu- ja puhkeaja kontrollvorm: kabotaažrikkumised nüüd NCR-teates, haagise tehnoülevaatuse rikkumine taas valitav, TRAM-spetsiifilised kirjeldused PPA vormilt eemaldatud
+
+- Kontrollvormil valitud kabotaažveo rikkumised (VSI869-871 veoseveol,
+  VSI872-873 sõitjateveol) ei jõudnud kunagi NCR-teate raske rikkumise
+  loetellu (`seriousInfringements[]`) — `forms.derive_sp_erru_points()`
+  arvestas ainult viie sõidu-/puhkeaja direktiivi rikkumiste välju, mitte
+  `cabotage_violations` veergu. Lisaks pandi sõitjateveo kabotaažrikkumise
+  valimisel süsteemselt valele klassifikaatorile (veoseveo omale) — nii
+  jäi sõitjateveo rikkumise raskusaste (severityCode) alati määramata.
+  Mõlemad parandatud: `derive_sp_erru_points()` sai uue
+  `violations_cabotage` parameetri ja UI valib nüüd veoliigile vastava
+  klassifikaatori. Ühtlasi kuvatakse iga kabotaažrikkumise märkeruudu
+  ees nüüd ERRU kood ise (nt "VSI869"), varem näidati koodi asemel
+  ainult raskusastet ("VSI").
+- "Dokumendi või õiguse kontroll" plokis ei saanud "Haagise
+  tehnoülevaatus" valikule kunagi rikkumist (MSI301) märkida — sama
+  ERRU kood MSI301 esineb klassifikaatoris kahe erineva vanemkirje all
+  (mootorsõiduki ja haagise tehnoülevaatus) ning klassifikaatoripäringu
+  dedubleerimine `code` järgi kustutas teise esinemise. Andmete
+  laadimine viidi selles kohas üle dedubleerimata loendile.
+- Sõidu- ja puhkeaja rikkumiste (sh Rooma I ja autojuhi lähetamise)
+  valimine ei töötanud osadel juhtudel üldse — "Vali" rippmenüü oli
+  hall ja klõpsamatu. Põhjus oli sama `getByCode()` dedubleerimise viga:
+  `DRIVING_VIOLATION` klassifikaatoris on (endiselt) mõni level-3 rida,
+  kus mitu erineva vanemaga kirjet jagavad sama koodi (nt bare `'MI'`
+  kolmel real, mille lisas 2026-10-16 migratsioon — täpselt sama viga,
+  mis varem juba korra parandati). Kuna klassifikaatori väärtuste
+  loendil pole serverist garanteeritud järjekorda, "võitis" dedup-lahingu
+  erinevates keskkondades erinev kirje — sama andmetega toimis kohalikus
+  arvutis, aga mitte dev-keskkonnas. Parandatud kahes kihis: (1) kolme
+  jäänud dubleeriva `'MI'` koodi unikaalseks nimetamine (nagu varasemad
+  analoogsed parandused), (2) `DRIVING_VIOLATION` ja `DOC_RIGHT_CHECK`
+  laadimine viidi PPA vormil ja TRAM kontrollkaardil üle dedubleerimata
+  loendile, et ükski tulevane sama viga enam midagi vaikimisi ei kustutaks.
+- Rikkumise (MSI/VSI/SI/MI) valimisel kuvati varem paksus kirjas ainult
+  raskusaste ("VSI"), mitte tegelik ERRU kood — nii rippmenüü valikutes,
+  märkeruutude siltidel kui ka valitud rikkumiste kokkuvõttes. Nüüd
+  näidatakse kõikjal otse koodi (nt "VSI800"), mis on ka see väärtus,
+  mis kandub NCR-teatesse.
+- PPA sõidu- ja puhkeaja kontrollvormile olid "Muud dokumendid" alla
+  tekkinud Transpordiameti liiniveo-spetsiifilised rikkumiste kirjeldused
+  (vedaja nimi/kaubamärk sõidukil, liini number/nimetus, sõiduplaanist
+  kinnipidamine jm), mis kuuluvad ainult TRAM kontrollkaardile. Need on
+  nüüd PPA vormil peidetud, TRAM kontrollkaardil jäävad muutumatult alles.
 
 ### Vedaja teavituse ebaõnnestunud aadressi otsing jääb nüüd Teavituste vaatesse nähtavale
 

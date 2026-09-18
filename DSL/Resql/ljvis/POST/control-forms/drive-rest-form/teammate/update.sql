@@ -219,6 +219,7 @@ SELECT
           COALESCE(NULLIF(:violations200215, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:cabotageViolations, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb)
         ),
         COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),

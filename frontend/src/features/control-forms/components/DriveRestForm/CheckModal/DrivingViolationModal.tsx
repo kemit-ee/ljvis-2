@@ -218,9 +218,9 @@ export function DrivingViolationModal({
           (v) => v.code === code && v.parentKey === l2?.classifierValueKey,
         );
         if (!l3) return code;
-        return l3.description ? (
+        return l3.code ? (
           <span key={code} style={{ display: 'inline' }}>
-            <strong>{l3.description}</strong>
+            <strong>{l3.code}</strong>
             <Separator
               axis="vertical"
               color="secondary"
@@ -359,7 +359,7 @@ export function DrivingViolationModal({
                                         }
                                         label={
                                           <Text>
-                                            <strong>{l3.description}</strong>
+                                            <strong>{l3.code}</strong>
                                             <Separator
                                               axis="vertical"
                                               color="secondary"

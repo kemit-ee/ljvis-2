@@ -195,7 +195,7 @@ export function DriveRestFormFields({
           value: v.code,
           label: (
             <Text>
-              <strong>{v.description}</strong>
+              <strong>{v.code}</strong>
               <Separator
                 axis="vertical"
                 color="secondary"
@@ -216,7 +216,7 @@ export function DriveRestFormFields({
           value: v.code,
           label: (
             <Text>
-              <strong>{v.description}</strong>
+              <strong>{v.code}</strong>
               <Separator
                 axis="vertical"
                 color="secondary"
@@ -467,10 +467,14 @@ export function DriveRestFormFields({
                             inputType="checkbox"
                             value={cabotageViolationsValue}
                             onChange={(val) => {
+                              const activeCabotageViolations =
+                                formik.values.transportType === 'Sõitjatevedu'
+                                  ? passengerCabotageViolations
+                                  : cargoCabotageViolations;
                               const cabotageViolationObjects = (
                                 val as string[]
                               ).map((code) => {
-                                const violation = cargoCabotageViolations.find(
+                                const violation = activeCabotageViolations.find(
                                   (v) => v.code === code,
                                 );
                                 return {
@@ -813,6 +817,7 @@ export function DriveRestFormFields({
                       otherDocuments={formik.values.otherDocuments}
                       setFieldValue={formik.setFieldValue}
                       readOnly={readOnly}
+                      authority={authority}
                     />
                   </div>
                 </div>

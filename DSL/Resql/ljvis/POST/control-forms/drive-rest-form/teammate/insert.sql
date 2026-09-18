@@ -206,6 +206,7 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
           COALESCE(NULLIF(:violations200215, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:cabotageViolations, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb)
         ),
         NULLIF(:enforcementDecision, ''),
