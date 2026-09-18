@@ -1012,7 +1012,7 @@
               "var raw = pm.response.json();",
               "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
-              "pm.test('status is confirmed', () => pm.expect(row.status).to.eql('confirmed'));"
+              "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
             ]
           }
         }
