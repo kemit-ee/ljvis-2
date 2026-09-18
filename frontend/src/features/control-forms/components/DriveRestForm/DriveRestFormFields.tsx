@@ -999,6 +999,9 @@ export function DriveRestFormFields({
                     id={fieldId('tachographNotes')}
                     maxHeight="8rem"
                     label={t('forms.sp_form.tachographNotes')}
+                    placeholder={
+                      readOnly ? '' : t('common.enterNotesPlaceholder')
+                    }
                     value={formik.values.tachographNotes ?? ''}
                     input={{ maxLength: 4000 }}
                     onChange={(v) =>

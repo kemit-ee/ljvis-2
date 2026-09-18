@@ -1284,7 +1284,7 @@
     "otherDocs": {
       "notChecked": "Ei kontrollitud",
       "compliant": "Nõuetekohane",
-      "nonCompliant": "ei vasta nõuetele",
+      "nonCompliant": "Ei vasta nõuetele",
       "missing": "Puudub",
       "addRemark": "Lisa märkus",
       "remarkPlaceholder": "Sisestage märkus..."
