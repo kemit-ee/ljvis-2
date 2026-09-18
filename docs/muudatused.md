@@ -6,6 +6,22 @@
 
 ## 2026-09-18
 
+### Tööinspektsiooni kontrollakti kinnitamine ei ole enam rikkumiste korral blokeeritud
+
+- Tööinspektsiooni kontrollaktil oli ainsa vormina serveripoolne reegel,
+  mis keelas akti kinnitamise (`edit/confirm`) täielikult, kui aktil oli
+  ühtegi rikkumist — vastav tõrge (`violations_present_requires_e_toimik_publish`)
+  viitas, et selliste aktide avaldamine käib e-toimiku kaudu, kuid see
+  integratsioon on veel tegemata. Sisuliselt jäi see piirang unustatud
+  vahepealseks seisundiks, mitte kavatsuslikuks käitumiseks, ja erines
+  kõigist teistest kontrollvormidest (nt TRAM kontrollkaart), kus
+  rikkumistega akti saab vabalt kinnitada.
+- Nüüd viidud kooskõlla TRAM kontrollkaardi mustriga: rikkumiste-värav
+  eemaldatud nii `edit/confirm.yml`-ist kui haldusliidese
+  kinnitamis-/avaldamisnuppude loogikast. Rikkumistega akti saab nüüd
+  kinnitada ja seejärel kas käsitsi avaldada või lasta e-toimikul
+  automaatselt avaldada, samamoodi nagu teistel vormidel.
+
 ### Postkasti mallide ja vastuvõtjate seaded: uus Haldus-vaade
 
 - Postkast 2.0 malli tunnused ja tööinspektori vastuvõtja e-post olid
