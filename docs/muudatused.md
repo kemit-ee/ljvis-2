@@ -41,6 +41,20 @@
   kontrollkaart avalikustatakse automaatselt niipea, kui jõustunud otsus
   leitakse.
 
+### Haldus > eToimiku X-tee logid: kõigi teenuste vaade
+
+- Lehe kohale lisatud lüliti-tekst "Näidatakse eToimiku / kõiki X-tee
+  logisid" — klõps sildil ("eToimiku" ↔ "kõiki") lülitab, kas nimekirjas
+  näidatakse ainult eToimiku päringuid (endine vaikekäitumine, filtreeritud
+  `service_code LIKE 'etoimik.%'`) või kõiki `xroad.xroad_integration_log`
+  kirjeid (nt ka ERRU CGR/NU saatmiste transpordivead), staatusfiltrit
+  eirates.
+- Rea staatusesilt: kui kirjel puudub eToimikule omane `result_status`
+  (nt ERRU read), näidatakse nüüd üldist "Õnnestus"/"Vigane" märgistust
+  `success` välja põhjal, mitte alati "Vigane".
+- "Kõiki" vaates on tabelis lisaks uus "Teenus" veerg (`service_code`) —
+  eToimiku-vaates on see alati sama väärtus ja seega peidetud.
+
 ## 2026-09-17
 
 ### Liidestuja arendaja-dokumentatsioon ja X-tee OpenAPI

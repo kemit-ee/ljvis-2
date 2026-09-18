@@ -16,6 +16,7 @@ const DEFAULT_FILTERS: XroadLogFilters = {
   includeFound: 'true',
   includeNotFound: 'true',
   includeError: 'true',
+  allServices: 'false',
 };
 
 export function useXroadLogList() {

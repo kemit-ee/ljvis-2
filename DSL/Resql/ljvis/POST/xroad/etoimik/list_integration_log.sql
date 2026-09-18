@@ -6,9 +6,12 @@ description: 'Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
   include_found/include_not_found/include_error lippu (checkbox-grupi
   filter, mitte massiiv-parameeter — Resql-is puudub sellele siiani
   eeskuju). Kolme lipu OR-kombinatsioon; kui kõik kolm on false, ei tagasta
-  midagi. Leheküljed: page + page_size. total sisaldab filtreerimata
-  koguarvu (samas date-range piires, ilma staatusfiltrita rakendamata).
-  xroad.log.read õiguse kontroll on Ruuter DSL-i tasemel.'
+  midagi. all_services=true eemaldab nii service_code ''etoimik.%'' filtri
+  kui ka staatusfiltri (teised allikad, nt erru_cgr, ei täida result_status''i
+  üldse, seega found/not_found/error semantika neile ei kehti). Leheküljed:
+  page + page_size. total sisaldab filtreerimata koguarvu (samas date-range
+  piires, ilma staatusfiltrita rakendamata). xroad.log.read õiguse kontroll
+  on Ruuter DSL-i tasemel.'
 namespace: xroad
 params:
   date_from:
@@ -24,6 +27,9 @@ params:
     type: boolean
     required: false
   include_error:
+    type: boolean
+    required: false
+  all_services:
     type: boolean
     required: false
   page:
@@ -88,13 +94,16 @@ SELECT
     created_at,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM xroad.xroad_integration_log
-WHERE service_code LIKE 'etoimik.%'
+WHERE (COALESCE(:all_services::BOOLEAN, false) OR service_code LIKE 'etoimik.%')
   AND created_at >= COALESCE(NULLIF(:date_from, '')::TIMESTAMPTZ, '-infinity'::TIMESTAMPTZ)
   AND created_at <  COALESCE(NULLIF(:date_to, '')::TIMESTAMPTZ + INTERVAL '1 day', 'infinity'::TIMESTAMPTZ)
   AND (
-    (COALESCE(:include_found::BOOLEAN, false)     AND result_status = 'found')
-    OR (COALESCE(:include_not_found::BOOLEAN, false) AND result_status = 'not_found')
-    OR (COALESCE(:include_error::BOOLEAN, false)     AND result_status = 'error')
+    COALESCE(:all_services::BOOLEAN, false)
+    OR (
+      (COALESCE(:include_found::BOOLEAN, false)     AND result_status = 'found')
+      OR (COALESCE(:include_not_found::BOOLEAN, false) AND result_status = 'not_found')
+      OR (COALESCE(:include_error::BOOLEAN, false)     AND result_status = 'error')
+    )
   )
 ORDER BY created_at DESC
 LIMIT  COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER

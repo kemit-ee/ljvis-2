@@ -13,15 +13,19 @@ import type { XroadLogEntry } from './types';
 
 const columnHelper = createColumnHelper<XroadLogEntry>();
 
-function statusBadgeColor(status: XroadLogEntry['resultStatus']): 'success' | 'warning' | 'danger' {
-  switch (status) {
+// resultStatus only carries found/not_found/error semantics for eToimik rows (see
+// list_integration_log.sql). Other sources (e.g. erru_cgr) never set it, so those
+// rows fall back to the generic success flag instead of being mislabelled "error".
+function statusBadgeColor(entry: Pick<XroadLogEntry, 'resultStatus' | 'success'>): 'success' | 'warning' | 'danger' {
+  switch (entry.resultStatus) {
     case 'found':
       return 'success';
     case 'error':
       return 'danger';
     case 'not_found':
-    default:
       return 'warning';
+    default:
+      return entry.success ? 'success' : 'danger';
   }
 }
 
@@ -47,6 +51,12 @@ export function XroadLogTable() {
   const includeFound = draftFilters.includeFound !== 'false';
   const includeNotFound = draftFilters.includeNotFound !== 'false';
   const includeError = draftFilters.includeError !== 'false';
+  const allServices = draftFilters.allServices === 'true';
+
+  const toggleScope = () => {
+    setFilter('allServices', String(!allServices));
+    applyFilters();
+  };
 
   const handleStatusChange = (next: {
     includeFound: boolean;
@@ -77,17 +87,26 @@ export function XroadLogTable() {
           return href ? <Link to={href}>{label}</Link> : label;
         },
       }),
+      ...(allServices
+        ? [
+            columnHelper.accessor('serviceCode', {
+              header: t('xroadLogs.column.serviceCode'),
+              enableSorting: false,
+              cell: (info) => info.getValue() ?? '—',
+            }),
+          ]
+        : []),
       columnHelper.accessor('resultStatus', {
         header: t('xroadLogs.column.status'),
         enableSorting: false,
         cell: (info) => {
-          const status = info.getValue();
+          const entry = info.row.original;
+          const status = entry.resultStatus;
+          const labelKey = status
+            ? `xroadLogs.status.${status === 'not_found' ? 'notFound' : status}`
+            : `xroadLogs.status.${entry.success ? 'success' : 'error'}`;
           return (
-            <StatusBadge color={statusBadgeColor(status)}>
-              {t(
-                `xroadLogs.status.${status === 'not_found' ? 'notFound' : status ?? 'error'}`,
-              )}
-            </StatusBadge>
+            <StatusBadge color={statusBadgeColor(entry)}>{t(labelKey)}</StatusBadge>
           );
         },
       }),
@@ -118,11 +137,18 @@ export function XroadLogTable() {
         ),
       }),
     ],
-    [t],
+    [t, allServices],
   );
 
   return (
     <>
+      <Text>
+        {t('xroadLogs.scope.prefix')}{' '}
+        <Button visualType="link" size="small" onClick={toggleScope}>
+          {t(allServices ? 'xroadLogs.scope.all' : 'xroadLogs.scope.etoimik')}
+        </Button>{' '}
+        {t('xroadLogs.scope.suffix')}
+      </Text>
       <div className="filter-bar">
         <DateField
           key={`xroad-log-date-from-${resetKey}`}

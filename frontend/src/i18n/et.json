@@ -1585,14 +1585,22 @@
       "dateTo": "Kuni",
       "all": "Kõik"
     },
+    "scope": {
+      "prefix": "Näidatakse",
+      "etoimik": "eToimiku",
+      "all": "kõiki",
+      "suffix": "X-tee logisid"
+    },
     "status": {
       "found": "Vaste leitud",
       "notFound": "Vastuseta",
-      "error": "Vigane"
+      "error": "Vigane",
+      "success": "Õnnestus"
     },
     "column": {
       "createdAt": "Päringu aeg",
       "form": "Vorm",
+      "serviceCode": "Teenus",
       "status": "Staatus",
       "request": "Väljuv päring",
       "response": "Saabunud vastus"
