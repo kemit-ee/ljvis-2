@@ -193,6 +193,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.NOTIFICATION_TEMPLATE_MAPPING_LIST)) {
+      adminSubItems.push({
+        children: t('nav.notificationTemplateMapping'),
+        to: '/notification-template-mapping',
+        isActive: pathname.startsWith('/notification-template-mapping'),
+      });
+    }
+
     const adminIsActive = adminSubItems.some((item) => item.isActive);
 
     if (adminSubItems.length > 0) {
