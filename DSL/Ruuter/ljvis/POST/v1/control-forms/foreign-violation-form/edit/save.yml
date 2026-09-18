@@ -443,7 +443,7 @@ checkForeignProposalNotification:
           && foreign_authority_proposal === 'true'
           && !(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].foreignAuthorityProposal === true)}
       next: sendForeignProposalNotification
-  next: extractUpdateResponseData
+  next: checkNotifyCarrierNotification
 
 sendForeignProposalNotification:
   call: http.post
@@ -462,13 +462,88 @@ sendForeignProposalNotification:
       created_by: ${created_by}
       template_variables: "${ { formNumber: saveRes.response.body[0].formNumber, companyName: company_name, companyRegCode: company_reg_code } }"
   result: foreignProposalNotifRes
-  error: extractUpdateResponseData
+  error: checkNotifyCarrierNotification
+  next: checkNotifyCarrierNotification
+
+# 10b: vedaja teavitamine (notifyCarrier). Sama "flip" muster mis ülal —
+# saada ainult kui märge läks nüüd true-ks ja registrikood on olemas.
+# E-posti aadress küsitakse äriregistrist (arireg/detailandmed_v1, mis juba
+# nõuab yandmed=true ehk üldandmed, kus RIK-i skeemi järgi asub
+# sidevahendid). Best-effort kogu ahelas: kui äriregister ei vasta, sealt
+# e-posti ei leia või Postkast 2.0 kutse ebaõnnestub, salvestamine ei tohi
+# 500-tada — vaikimisi liigutakse lihtsalt edasi teavituseta.
+# TÄHELEPANU: sidevahendid'i täpne JSON-tee pärast XTR SOAP→JSON teisendust
+# ei ole selles koodibaasis kunagi varem kasutusele võetud (detailandmed.yml
+# tagastab siiani toorvastuse, kellelgi pole seda kaardistatud) — allolev
+# extractCarrierEmail proovib mitut usutavat kuju, aga tuleb kontrollida
+# päris X-tee vastuse vastu enne toodangusse laskmist.
+checkNotifyCarrierNotification:
+  switch:
+    - condition: >-
+        ${current_status === 'published'
+          && notify_carrier === 'true'
+          && (company_reg_code || '').trim() !== ''
+          && !(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyCarrier === true)}
+      next: lookupCarrierRegistryData
   next: extractUpdateResponseData
 
-# 10b: vedaja teavitamine (notifyCarrier) vajab veoettevõtte äriregistri
-# e-posti aadressi (arireg/detailandmed 'sidevahendid') — eraldi töö.
-# Kuni selleni jõuab: märge salvestatakse, kuid Postkast 2.0 teavitust
-# ei saadeta.
+lookupCarrierRegistryData:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/detailandmed_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${company_reg_code}
+  result: carrierRegistryRes
+  error: extractUpdateResponseData
+  next: extractCarrierEmail
+
+extractCarrierEmail:
+  assign:
+    carrier_email: >-
+      ${(() => {
+        var body = carrierRegistryRes.response && carrierRegistryRes.response.body;
+        if (!body) return '';
+        var list = body.ettevotjad || (body.keha && body.keha.ettevotjad) || body.item || body;
+        var company = Array.isArray(list) ? list[0] : list;
+        if (!company) return '';
+        var yld = company.yldandmed || company;
+        var sv = (yld && yld.sidevahendid) || company.sidevahendid;
+        if (sv && sv.item) sv = sv.item;
+        var svList = Array.isArray(sv) ? sv : (sv ? [sv] : []);
+        var match = svList.find(function(s) {
+          return s && typeof s.liik === 'string' && s.liik.toUpperCase().indexOf('POST') !== -1;
+        });
+        return (match && (match.sisu || match.vaartus || match.value)) || '';
+      })()}
+  next: checkCarrierEmailFound
+
+checkCarrierEmailFound:
+  switch:
+    - condition: ${(carrier_email || '').trim() !== ''}
+      next: sendCarrierNotification
+  next: extractUpdateResponseData
+
+sendCarrierNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "carrier_violation"
+      recipient_email: ${carrier_email}
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: saveRes.response.body[0].formNumber, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: carrierNotifRes
+  error: extractUpdateResponseData
+  next: extractUpdateResponseData
 
 extractUpdateResponseData:
   assign:
