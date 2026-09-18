@@ -56,6 +56,81 @@ checkSendableState:
       next: returnNotSendable
     - condition: ${current.status !== 'answer_drafted' && current.status !== 'error'}
       next: returnNotSendable
+  next: extractResponseData
+
+# TransportUndertaking (name, vehicle count, address, community licence status) and the
+# imposed-penalty decisions are collected on the response form and stored by
+# response/save.yml (append-response-draft.sql); this step forwards them to XTR. They are
+# sent even though the ERRU 3.5 XSD marks both elements optional (minOccurs="0") —
+# see the ncr-response.yml header.
+extractResponseData:
+  assign:
+    response_tu_name: "${current.transportUndertakingName || ''}"
+    response_licence_number: "${current.communityLicenceNumber || ''}"
+    response_number_of_vehicles: "${current.responseNumberOfVehicles != null ? String(current.responseNumberOfVehicles) : ''}"
+    response_licence_status: "${current.responseCommunityLicenceStatus || ''}"
+    response_address_raw: "${current.responseAddress || ''}"
+    response_penalties_raw: "${current.responsePenaltiesImposed || '[]'}"
+  next: parseResponseAddress
+
+parseResponseAddress:
+  assign:
+    response_address_obj: "${response_address_raw ? (typeof response_address_raw === 'string' ? JSON.parse(response_address_raw) : response_address_raw) : {}}"
+  next: parseResponsePenalties
+
+# Build a plain JSON array (NOT an XML string) — the XTR DSL template (ncr-response.yml) owns
+# the `{{#each}}` loop and the erru: namespace prefixing (every schema in contracts/erru/3.5/
+# declares elementFormDefault="qualified", so a string-built fragment inserted with {{{ }}}
+# would produce unprefixed PenaltyImposed elements under the namespace-qualified
+# PenaltiesImposed parent — schema-invalid). penaltyTypeImposed is XSD-required even when
+# isImposed=false — response/save.yml strips it client-side for display purposes (LJVIS2-63
+# §4 "Määrati karistus = Ei peidab ja tühjendab välja"), so it falls back to '102' (Other)
+# here to keep the outbound message schema-valid. reason is only emitted for isImposed=false,
+# matching ncrPenaltyImposedResponseType's documented intent ("Reason if penalty is not
+# imposed").
+parseResponsePenalties:
+  assign:
+    response_penalties_array: "${typeof response_penalties_raw === 'string' ? JSON.parse(response_penalties_raw || '[]') : (Array.isArray(response_penalties_raw) ? response_penalties_raw : [])}"
+  next: buildPenaltiesImposed
+
+buildPenaltiesImposed:
+  assign:
+    response_penalties_imposed: >-
+      ${response_penalties_array.map(function(p){
+        var isImposed = p.isImposed === true;
+        return {
+          penaltyRequestedIdentifier: '' + p.penaltyRequestedIdentifier,
+          authorityImposingPenalty: p.authorityImposingPenalty || '',
+          isImposed: isImposed ? 'true' : 'false',
+          penaltyTypeImposed: p.penaltyTypeImposed || '102',
+          startDate: p.startDate || '',
+          endDate: p.endDate || '',
+          reason: (!isImposed && p.reason) ? p.reason : ''
+        };
+      })}
+  next: generateErruIds
+
+# technicalId is fresh per outbound message; generated HERE so the same value is both sent
+# in the SOAP message (callErru below) and stored in our DB (storeAnswered below) for
+# correlation. workflowId is NOT generated — it must be the incoming request's workflowId
+# (current.workflowId), already fetched above, so the hub can match the reply; the
+# workflow_id this endpoint also returns is deliberately ignored. Source is Postgres
+# gen_random_uuid(), not Math.random() — a JS PRNG is not a secure source for a
+# correlation id.
+generateErruIds:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/generate-uuid-pair"
+    headers:
+      type: json
+    body: {}
+  result: erru_ids_res
+  next: extractErruIds
+
+extractErruIds:
+  assign:
+    erru_technical_id: "${erru_ids_res.response.body[0].technicalId}"
+    erru_sent_at: "${new Date().toISOString().slice(0,19) + 'Z'}"
   next: callErru
 
 callErru:
@@ -67,9 +142,21 @@ callErru:
     body:
       ncrTo: ${current.ncrFrom}
       businessCaseId: ${business_case_id}
+      technicalId: ${erru_technical_id}
+      workflowId: "${current.workflowId || ''}"
+      sentAt: ${erru_sent_at}
       originatingAuthority: ${current.originatingAuthority}
       respondingAuthority: ${current.respondingAuthority}
       responseStatusCode: ${current.responseStatusCode}
+      transportUndertakingName: ${response_tu_name}
+      communityLicenceNumber: ${response_licence_number}
+      numberOfVehicles: ${response_number_of_vehicles}
+      communityLicenceStatus: ${response_licence_status}
+      tuAddress: "${response_address_obj.address || ''}"
+      tuPostCode: "${response_address_obj.postCode || ''}"
+      tuCity: "${response_address_obj.city || ''}"
+      tuCountry: "${response_address_obj.country || ''}"
+      penaltiesImposed: ${response_penalties_imposed}
   result: erru_res
   next: checkErruStatus
 
@@ -104,7 +191,7 @@ storeAnswered:
     body:
       businessCaseId: ${business_case_id}
       newStatus: "answered"
-      technicalId: ""
+      technicalId: ${erru_technical_id}
       workflowId: ""
       sentAt: ""
       ackStatusCode: ${ack_status_code}

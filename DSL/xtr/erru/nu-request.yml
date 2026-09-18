@@ -1,0 +1,90 @@
+# NotifyUnfitness_Request — broadcasts a transport manager unfitness notification.
+#
+# Estonia notifies all other MS (or a specific MS) that a transport manager's
+# certificate has been withdrawn or reinstated.
+# The `nuTo` field is "ZZ" for broadcast to all MS, or a specific MS code.
+# All header/body fields are pre-populated by the `erru.nu_begin_send` PG function
+# and passed as-is in the outboundHeader JSON object (including technicalId/workflowId/
+# sentAt, which the erru.nu_begin_send PG function already generates in the correct
+# ERRU 3.5 format so they can be correlated and stored before this call is made).
+#
+# Search mode:
+#  - tmFirstName present  →  TransportManagerNameDetails  (+optional CertificateOfProfessionalCompetence)
+#  - only certificateNumber present  →  TransportManagerCertificateDetails
+#
+# Endpoint URLs:
+#   Acceptance: https://webgate.acceptance.ec.testa.eu/move-hub/ERRU/soap/ReqRes/ERRU.svc
+#   Production:  https://webgate.ec.testa.eu/move-hub/ERRU/soap/ReqRes/ERRU.svc
+
+params:
+  - nuTo
+  - businessCaseId
+  - technicalId
+  - workflowId
+  - sentAt
+  - from
+  - version
+  - originatingAuthority
+  - requestSource
+  - requestPurpose
+  - tmFirstName
+  - tmFamilyName
+  - tmDateOfBirth
+  - tmPlaceOfBirth
+  - tmFirstNameSearchKey
+  - tmFamilyNameSearchKey
+  - certificateNumber
+  - certificateIssueDate
+  - certificateIssueCountry
+  - unfitStartDate
+
+method: POST
+
+service: https://webgate.acceptance.ec.testa.eu/move-hub/ERRU/soap/ReqRes/ERRU.svc
+
+soap_action: NotifyUnfitness_Request
+
+envelope: >
+  <?xml version="1.0" encoding="UTF-8"?>
+  <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                    xmlns:erru="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+    <soapenv:Header/>
+    <soapenv:Body>
+      <erru:NotifyUnfitness_Request>
+        <erru:Header version="3.5"
+                     technicalId="{{technicalId}}"
+                     workflowId="{{workflowId}}"
+                     sentAt="{{sentAt}}"
+                     from="{{#if from}}{{from}}{{else}}EE{{/if}}"
+                     to="{{nuTo}}"/>
+        <erru:Body businessCaseId="{{businessCaseId}}"
+                   originatingAuthority="{{originatingAuthority}}"
+                   requestSource="{{requestSource}}"
+                   requestPurpose="{{requestPurpose}}">
+          <erru:TransportManager {{#if unfitStartDate}}unfitStartDate="{{unfitStartDate}}"{{/if}}>
+            {{#if tmFirstName}}
+              <erru:TransportManagerNameDetails>
+                <erru:TransportManager firstName="{{tmFirstName}}"
+                                       familyName="{{tmFamilyName}}"
+                                       dateOfBirth="{{tmDateOfBirth}}"
+                                       {{#if tmPlaceOfBirth}}placeOfBirth="{{tmPlaceOfBirth}}"{{/if}}
+                                       {{#if tmFamilyNameSearchKey}}familyNameSearchKey="{{tmFamilyNameSearchKey}}"{{/if}}
+                                       {{#if tmFirstNameSearchKey}}firstNameSearchKey="{{tmFirstNameSearchKey}}"{{/if}}/>
+                {{#if certificateNumber}}
+                <erru:CertificateOfProfessionalCompetence certificateNumber="{{certificateNumber}}"
+                                                          certificateIssueDate="{{certificateIssueDate}}"
+                                                          certificateIssueCountry="{{certificateIssueCountry}}"/>
+                {{/if}}
+              </erru:TransportManagerNameDetails>
+            {{else}}
+              <erru:TransportManagerCertificateDetails>
+                <erru:CertificateOfProfessionalCompetence certificateNumber="{{certificateNumber}}"
+                                                          certificateIssueDate="{{certificateIssueDate}}"
+                                                          certificateIssueCountry="{{certificateIssueCountry}}"/>
+              </erru:TransportManagerCertificateDetails>
+            {{/if}}
+          </erru:TransportManager>
+        </erru:Body>
+      </erru:NotifyUnfitness_Request>
+    </soapenv:Body>
+  </soapenv:Envelope>

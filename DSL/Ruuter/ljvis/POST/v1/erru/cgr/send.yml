@@ -129,6 +129,28 @@ storeNysiisKeys:
 prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
+  next: generateErruIds
+
+# technicalId/workflowId are generated HERE so the exact same values are both sent in the
+# SOAP message (callErru below) and stored in our DB (storeSent below); two independently
+# generated UUIDs would never match and the ACK/response could not be correlated.
+# Source is Postgres gen_random_uuid(), not Math.random() — a JS PRNG is not a secure
+# source for an id that correlates inbound messages.
+generateErruIds:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/generate-uuid-pair"
+    headers:
+      type: json
+    body: {}
+  result: erru_ids_res
+  next: extractErruIds
+
+extractErruIds:
+  assign:
+    erru_technical_id: "${erru_ids_res.response.body[0].technicalId}"
+    erru_workflow_id: "${erru_ids_res.response.body[0].workflowId}"
+    erru_sent_at: "${new Date().toISOString().slice(0,19) + 'Z'}"
   next: callErru
 
 callErru:
@@ -140,8 +162,12 @@ callErru:
     body:
       cgrTo: ${cgr_to}
       businessCaseId: ${business_case_id}
-      technicalId: ""
-      workflowId: ""
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
+      sentAt: ${erru_sent_at}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
       tmFirstName: ${tm_first_name}
       tmFamilyName: ${tm_family_name}
       tmDateOfBirth: ${tm_date_of_birth}
@@ -231,6 +257,8 @@ storeSent:
     body:
       key: ${id}
       newStatus: "sent"
+      technicalId: ${erru_technical_id}
+      workflowId: ${erru_workflow_id}
       memberStates: "${JSON.stringify(member_states_raw)}"
       tmFirstNameSearchKey: ${tm_first_name_search_key}
       tmFamilyNameSearchKey: ${tm_family_name_search_key}
