@@ -247,10 +247,10 @@ export function AdrFormFields({
             <Select
               id={`${idPrefix}driverAssistantCitizenship`}
               label={t('forms.adr.driverAssistant.citizenship')}
-              options={citizenshipOptions}
+              options={[{ value: '', label: '—' }, ...citizenshipOptions]}
               value={
-                citizenshipOptions.find(
-                  (o) => o.value === values.driverAssistant?.citizenshipCode,
+                [{ value: '', label: '—' }, ...citizenshipOptions].find(
+                  (o) => o.value === (values.driverAssistant?.citizenshipCode ?? ''),
                 ) ?? null
               }
               onChange={(val) =>
