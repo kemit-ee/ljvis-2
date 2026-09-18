@@ -182,7 +182,7 @@
               "const body = pm.response.json();",
               "const perms = Array.isArray(body) ? body : (body.response || []);",
               "pm.test('Response is an array', () => pm.expect(perms).to.be.an('array'));",
-              "pm.test('Exactly 75 seeded permissions (69 + xtee.query + nu.list/read/create/send + xroad.log.read)', () => pm.expect(perms.length).to.equal(75));",
+              "pm.test('Exactly 77 seeded permissions (69 + xtee.query + nu.list/read/create/send + xroad.log.read + notification_template_mapping.list/edit)', () => pm.expect(perms.length).to.equal(77));",
               "pm.test('Each permission has id, code and description', () => {",
               "  perms.forEach(p => {",
               "    pm.expect(p).to.have.property('id');",
