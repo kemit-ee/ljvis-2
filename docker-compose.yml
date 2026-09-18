@@ -290,6 +290,11 @@ services:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
       # Required by CronManager 0.1.4-alpha when binding outside loopback.
       - CRONMANAGER_ADMIN_TOKEN=${CRONMANAGER_ADMIN_TOKEN:-dev-admin-token}
+      # No-op on 0.1.4-alpha (no env_safety gate yet), but a future bump to
+      # 0.2.1-alpha would otherwise fall back to Production and refuse to
+      # boot with the dev-admin-token default above — set ahead of time,
+      # same reasoning as data-mapper's APP_ENV.
+      - APP_ENV=dev
       # Quartz-cron triggers (DSL/CronManager/*.yaml) run in this timezone.
       - TZ=Europe/Tallinn
     volumes:
