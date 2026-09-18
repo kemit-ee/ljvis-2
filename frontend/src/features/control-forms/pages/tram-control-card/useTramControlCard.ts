@@ -121,7 +121,7 @@ export function useTramControlCard(
   const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
   const pendingPreserveStatus = useRef(false);
-  const { getByCode, getChildren } = useClassifiers();
+  const { getByCode, getChildren, values: classifierValues } = useClassifiers();
 
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [trailerSearchError, setTrailerSearchError] = useState<number | null>(
@@ -199,9 +199,16 @@ export function useTramControlCard(
     () => getByCode('TRANSPORT_CLASS').filter((c) => c.isValid !== false),
     [getByCode],
   );
+  // NB: getByCode() dedupes by `code` within DOC_RIGHT_CHECK/DRIVING_VIOLATION
+  // legitimate (or accidentally reintroduced) duplicate level-3 codes across
+  // different level-2 parents — see useDriveRestForm.ts for the full story.
+  // Filter the raw classifier values so no level-3 row is silently dropped.
   const docRightChecks = useMemo(
-    () => getByCode('DOC_RIGHT_CHECK').filter((c) => c.isValid !== false),
-    [getByCode],
+    () =>
+      classifierValues.filter(
+        (c) => c.classifierCode === 'DOC_RIGHT_CHECK' && c.isValid !== false,
+      ),
+    [classifierValues],
   );
   const docRightOtherDocs = useMemo(
     () => getByCode('OTHER_DOCUMENTS').filter((c) => c.isValid !== false),
@@ -212,8 +219,11 @@ export function useTramControlCard(
     [getByCode],
   );
   const drivingViolations = useMemo(
-    () => getByCode('DRIVING_VIOLATION').filter((c) => c.isValid !== false),
-    [getByCode],
+    () =>
+      classifierValues.filter(
+        (c) => c.classifierCode === 'DRIVING_VIOLATION' && c.isValid !== false,
+      ),
+    [classifierValues],
   );
   const massDimensions = useMemo(
     () => getByCode('MASS_DIMENSION').filter((c) => c.isValid !== false),

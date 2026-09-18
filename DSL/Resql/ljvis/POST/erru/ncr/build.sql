@@ -73,6 +73,8 @@ returns:
 --   compound_form.vehicle_country_code (<> 'EE')            -> vehicle_registration_country + ncr_to
 --   compound_form.control_date                              -> check_date + iga rikkumise kuupäevad
 --   sp_*_form.erru_points[] (severity_category MSI/VSI/SI)  -> serious_infringements[] + check_result
+--       (derive_sp_erru_points arvestab ka sp_*_form.cabotage_violations,
+--        nt VSI869-873, mitte ainult 5 direktiivipõhist rikkumiste välja)
 --   compound_form.vehicle_category_code = 'M1'              -> '302' (sõidukeeld) jäetakse välja
 --   compound_form.inspector_organisation_id (nt PPA)        -> originating_authority
 --       (kutsuja modaali originatingAuthority kirjutab selle vajadusel üle)
@@ -83,7 +85,7 @@ WITH sp AS (
   (
     SELECT compound_form_key, forms.derive_sp_erru_points(
       violations_561_2006, violations_165_2014, violations_2002_15,
-      violations_593_2008, violations_2020_1057, erru_points
+      violations_593_2008, violations_2020_1057, cabotage_violations, erru_points
     ) AS erru_points
     FROM forms.sp_driver_form
     WHERE sp_driver_form_key = :spFormKey::BIGINT
@@ -95,7 +97,7 @@ WITH sp AS (
   (
     SELECT compound_form_key, forms.derive_sp_erru_points(
       violations_561_2006, violations_165_2014, violations_2002_15,
-      violations_593_2008, violations_2020_1057, erru_points
+      violations_593_2008, violations_2020_1057, cabotage_violations, erru_points
     ) AS erru_points
     FROM forms.sp_teammate_form
     WHERE sp_teammate_form_key = :spFormKey::BIGINT

@@ -32,6 +32,20 @@ const CODE_TO_VISIBILITY: Record<string, Visibility> = {
   ATL_VALE_SOIDUK: 'PASSENGER',
 };
 
+// Liiniveo-spetsiifilised kirjed kuuluvad ainult Transpordiameti
+// kontrollkaardile (samamoodi nagu liiniNumber/liiniNimetus väljad
+// DriveRestFormFields.tsx-is) — PPA sõidu- ja puhkeaja kontrollvormil
+// neid kirjeldusi ei kuvata.
+const TRAM_ONLY_CODES = new Set([
+  'SOIDUKI_VEDAJA_NIMI',
+  'LIINI_NUMBER',
+  'LIINI_NIMETUS',
+  'ATL_SOIDUPLAAN_ENNETAB',
+  'ATL_PEATUS_PUUDUMINE',
+  'ATL_VALE_PEATUS',
+  'ATL_VALE_SOIDUK',
+]);
+
 export function getVisibility(code: string): Visibility {
   return CODE_TO_VISIBILITY[code] ?? 'BOTH';
 }
@@ -43,6 +57,7 @@ interface Props {
   setFieldValue: (field: string, value: unknown) => void;
   readOnly?: boolean;
   idPrefix?: string;
+  authority?: 'PPA' | 'TRAM';
 }
 
 export function DocRightOtherSection({
@@ -52,12 +67,14 @@ export function DocRightOtherSection({
   setFieldValue,
   readOnly,
   idPrefix = '',
+  authority = 'PPA',
 }: Props) {
   const { t } = useTranslation();
   const [remarkOpenStates, setRemarkOpenStates] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const filteredDocs = (otherDocuments as OtherDocument[]).filter((doc) => {
+      if (authority !== 'TRAM' && TRAM_ONLY_CODES.has(doc.documentCode)) return false;
       const visibility = CODE_TO_VISIBILITY[doc.documentCode] ?? 'BOTH';
       if (visibility === 'BOTH') return true;
       if (visibility === 'CARGO') return transportType === 'Veosevedu';
@@ -65,11 +82,12 @@ export function DocRightOtherSection({
       return true;
     });
     setFieldValue('otherDocuments', filteredDocs);
-  }, [transportType, setFieldValue]);
+  }, [transportType, authority, setFieldValue]);
 
   const visibleDocs = useMemo(
     () =>
       docRightOtherDocs.filter((doc) => {
+        if (authority !== 'TRAM' && TRAM_ONLY_CODES.has(doc.code)) return false;
         const visibility = getVisibility(doc.code);
         if (visibility === 'BOTH') return true;
         if (visibility === 'CARGO') return transportType === 'Veosevedu';
@@ -77,7 +95,7 @@ export function DocRightOtherSection({
           return transportType === 'Sõitjatevedu';
         return true;
       }),
-    [docRightOtherDocs, transportType],
+    [docRightOtherDocs, transportType, authority],
   );
 
   const getRow = (id: number) => {
