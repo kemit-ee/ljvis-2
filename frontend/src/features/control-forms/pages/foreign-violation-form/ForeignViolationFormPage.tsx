@@ -283,7 +283,6 @@ export function ForeignViolationFormPage() {
           handleInspectionRegionChange={handleInspectionRegionChange}
           formType={FORM_TYPE.FOREIGN_VIOLATION}
           showAdminSection={isAdmin}
-          isPublished={form?.status === 'published'}
         />
 
         {id && (

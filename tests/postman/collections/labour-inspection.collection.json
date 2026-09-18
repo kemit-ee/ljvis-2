@@ -971,7 +971,7 @@
       ]
     },
     {
-      "name": "POST edit/confirm — act with violations present → 422 violations_present_requires_e_toimik_publish",
+      "name": "POST edit/confirm — act with violations present → 200 confirmed",
       "request": {
         "method": "POST",
         "header": [
@@ -1008,11 +1008,11 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Returns 422', () => pm.response.to.have.status(422));",
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
               "var raw = pm.response.json();",
-              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('field is violations', () => pm.expect(body.field).to.eql('violations'));",
-              "pm.test('code is violations_present_requires_e_toimik_publish', () => pm.expect(body.code).to.eql('violations_present_requires_e_toimik_publish'));"
+              "var unwrapped = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var row = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;",
+              "pm.test('version unchanged by confirm', () => pm.expect(Number(row.version)).to.eql(1));"
             ]
           }
         }

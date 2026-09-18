@@ -6,6 +6,37 @@
 
 ## 2026-09-18
 
+### Vedaja teavituse ebaõnnestunud aadressi otsing jääb nüüd Teavituste vaatesse nähtavale
+
+- Välisriigi rikkumise vormil "Teavita vedajat" märkeruudu saatmiskäik
+  (foreign-violation-form) otsis vedaja e-posti äriregistrist ja saatis
+  Postkast 2.0 teavituse ainult siis, kui aadress leiti — kui äriregistri
+  päring ebaõnnestus või sealt e-posti ei leitud, jäeti Postkasti saatmise
+  teenus (`send-postkast.yml`) üldse kutsumata. Kuna just see teenus loob
+  `notifications.outbound_log` kirje, ei tekkinud sellisel juhul mitte
+  mingit jälge — ebaõnnestunud katse oli täiesti nähtamatu, ka Teavituste
+  haldusvaates.
+- Nüüd kutsutakse `send-postkast.yml` alati, ka siis kui aadressi ei
+  leitud või äriregistri päring ise ebaõnnestus (tühja `recipient_email`-ga)
+  — teenus tuvastab vigase/puuduva aadressi ise ja loob veakirje
+  (`status: error`, põhjusega), mis on nüüd Teavituste vaates näha.
+
+### Tööinspektsiooni kontrollakti kinnitamine ei ole enam rikkumiste korral blokeeritud
+
+- Tööinspektsiooni kontrollaktil oli ainsa vormina serveripoolne reegel,
+  mis keelas akti kinnitamise (`edit/confirm`) täielikult, kui aktil oli
+  ühtegi rikkumist — vastav tõrge (`violations_present_requires_e_toimik_publish`)
+  viitas, et selliste aktide avaldamine käib e-toimiku kaudu, kuid see
+  integratsioon on veel tegemata. Sisuliselt jäi see piirang unustatud
+  vahepealseks seisundiks, mitte kavatsuslikuks käitumiseks, ja erines
+  kõigist teistest kontrollvormidest (nt TRAM kontrollkaart), kus
+  rikkumistega akti saab vabalt kinnitada.
+- Nüüd viidud kooskõlla TRAM kontrollkaardi mustriga: rikkumiste-värav
+  eemaldatud nii `edit/confirm.yml`-ist kui haldusliidese
+  kinnitamis-/avaldamisnuppude loogikast. Rikkumistega akti saab nüüd
+  kinnitada ja seejärel kas käsitsi avaldada või lasta e-toimikul
+  automaatselt avaldada, samamoodi nagu teistel vormidel.
+
 ### Postkasti mallide ja vastuvõtjate seaded: uus Haldus-vaade
 
 - Postkast 2.0 malli tunnused ja tööinspektori vastuvõtja e-post olid

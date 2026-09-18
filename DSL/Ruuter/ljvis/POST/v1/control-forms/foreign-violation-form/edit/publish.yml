@@ -161,6 +161,134 @@ publishForm:
   result: publishRes
   next: check_publishRes_persisted
 
+# --- Avalikustamisel märgitud teavituste saatmine (LJVIS2 VR ettepanek 10) ---
+# Best-effort: teavituse saatmise viga EI tohi avalikustamist 500-tada.
+# Vorm saab avalikustuda ainult üks kord (checkFormIsConfirmedSwitch tõkestab
+# korduva avalikustamise), seega pole flip/dubleerimise kontrolli vaja —
+# piisab lipu hetkeväärtuse kontrollist.
+checkForeignProposalNotification:
+  switch:
+    - condition: ${foreign_authority_proposal === 'true'}
+      next: sendForeignProposalNotification
+  next: checkNotifyCarrierNotification
+
+sendForeignProposalNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_foreign_proposal"
+      # recipient_email puudub teadlikult — send-postkast.yml kasutab
+      # notification_template_mapping.default_recipient_email't (haldusliidesest
+      # seadistatav, vt notification-template-mapping/save.yml).
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: foreignProposalNotifRes
+  error: checkNotifyCarrierNotification
+  next: checkNotifyCarrierNotification
+
+# 10b: vedaja teavitamine (notifyCarrier). E-posti aadress küsitakse
+# äriregistrist (arireg/detailandmed_v1, mis juba nõuab yandmed=true ehk
+# üldandmed, kus RIK-i skeemi järgi asub sidevahendid). Best-effort kogu
+# ahelas: kui äriregister ei vasta, sealt e-posti ei leia või Postkast 2.0
+# kutse ebaõnnestub, avalikustamine ei tohi 500-tada — vaikimisi liigutakse
+# lihtsalt edasi teavituseta.
+# TÄHELEPANU: sidevahendid'i täpne JSON-tee pärast XTR SOAP→JSON teisendust
+# ei ole selles koodibaasis kunagi varem kasutusele võetud (detailandmed.yml
+# tagastab siiani toorvastuse, kellelgi pole seda kaardistatud) — allolev
+# extractCarrierEmail proovib mitut usutavat kuju, aga tuleb kontrollida
+# päris X-tee vastuse vastu enne toodangusse laskmist.
+# NB: send-postkast.yml kutsutakse ALATI (ka siis kui aadressi ei leitud või
+# äriregistri päring ise ebaõnnestus) — see teenus loob igal juhul
+# notifications.outbound_log kirje (edukal juhul "queued", vigase/puuduva
+# aadressi korral "error" koos põhjusega, vt send-postkast.yml
+# checkRecipientFormat/markInvalidRecipient), et ebaõnnestunud katse ei
+# jääks Teavituste vaates jälgi jätmata.
+checkNotifyCarrierNotification:
+  switch:
+    - condition: >-
+        ${notify_carrier === 'true' && (company_reg_code || '').trim() !== ''}
+      next: lookupCarrierRegistryData
+  next: extractResponseData
+
+lookupCarrierRegistryData:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/detailandmed_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${company_reg_code}
+  result: carrierRegistryRes
+  error: markCarrierRegistryLookupFailed
+  next: checkCarrierRegistryStatus
+
+# Kaks eraldi ebaõnnestumise teed: error (ühenduse/timeout'i tase, http.post
+# ise ei jõudnudki vastuseni) ja siin all mitte-2xx vastus (nt X-tee/XTR
+# tagastas veakoodi). Mõlemad viivad sama markCarrierRegistryLookupFailed'ini.
+checkCarrierRegistryStatus:
+  switch:
+    - condition: >-
+        ${carrierRegistryRes.response == null || carrierRegistryRes.response.status == null || carrierRegistryRes.response.status < 200 || carrierRegistryRes.response.status >= 300}
+      next: markCarrierRegistryLookupFailed
+  next: extractCarrierEmail
+
+# Äriregistri päring ise ebaõnnestus (X-tee/XTR viga, timeout või mitte-2xx
+# vastus) — carrier_email jääb tühjaks ja liigutakse ikkagi
+# sendCarrierNotification'i, et katse jääks nähtavale (send-postkast.yml
+# logib selle tühja/vigase aadressi veana).
+markCarrierRegistryLookupFailed:
+  assign:
+    carrier_email: ""
+  next: sendCarrierNotification
+
+extractCarrierEmail:
+  assign:
+    carrier_email: >-
+      ${(() => {
+        var body = carrierRegistryRes.response && carrierRegistryRes.response.body;
+        if (!body) return '';
+        var list = body.ettevotjad || (body.keha && body.keha.ettevotjad) || body.item || body;
+        var company = Array.isArray(list) ? list[0] : list;
+        if (!company) return '';
+        var yld = company.yldandmed || company;
+        var sv = (yld && yld.sidevahendid) || company.sidevahendid;
+        if (sv && sv.item) sv = sv.item;
+        var svList = Array.isArray(sv) ? sv : (sv ? [sv] : []);
+        var match = svList.find(function(s) {
+          return s && typeof s.liik === 'string' && s.liik.toUpperCase().indexOf('POST') !== -1;
+        });
+        return (match && (match.sisu || match.vaartus || match.value)) || '';
+      })()}
+  next: sendCarrierNotification
+
+sendCarrierNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "carrier_violation"
+      recipient_email: ${carrier_email}
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: carrierNotifRes
+  error: extractResponseData
+  next: extractResponseData
+
 extractResponseData:
   assign:
     form_number: "${publishRes.response.body[0].formNumber + '/' + publishRes.response.body[0].version}"
@@ -200,7 +328,7 @@ check_publishRes_persisted:
   switch:
     - condition: ${publishRes.response == null || publishRes.response.status < 200 || publishRes.response.status >= 300 || publishRes.response.body == null || publishRes.response.body.length == null || publishRes.response.body.length === 0}
       next: returnResqlWriteError
-  next: extractResponseData
+  next: checkForeignProposalNotification
 
 returnResqlWriteError:
   status: 500

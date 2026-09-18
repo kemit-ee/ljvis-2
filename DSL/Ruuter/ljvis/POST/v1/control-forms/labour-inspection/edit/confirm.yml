@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Confirm (kinnita) a labour inspection form. Server-side rule: an act with any recorded violations cannot be confirmed here — publishing those requires the (out-of-scope) e-toimik integration. A violations-free act may be confirmed manually."
+  description: "Confirm (kinnita) a labour inspection form. Validates the form, then appends a 'confirmed' snapshot. Like tram-card, there is no violations gate — an act with violations may be confirmed and then either published manually or auto-published when e-toimik returns an entered-into-force decision."
   namespace: control-forms
   allowlist:
     body:
@@ -54,7 +54,6 @@ extractRequestData:
     punished_person_last_name: "${incoming.body.punishedPersonLastName || ''}"
     proceeding_reference_number: "${incoming.body.proceedingReferenceNumber || ''}"
     violations: "${incoming.body.violations || '[]'}"
-    violations_count: "${(JSON.parse(incoming.body.violations || '[]')).length}"
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
@@ -78,12 +77,6 @@ checkValidationResult:
   switch:
     - condition: ${validationResult.indexOf('"valid":true') === -1}
       next: returnValidationError
-  next: checkViolationsEmpty
-
-checkViolationsEmpty:
-  switch:
-    - condition: ${violations_count > 0}
-      next: returnViolationsPresentError
   next: getCurrentFormForStatus
 
 getCurrentFormForStatus:
@@ -187,11 +180,6 @@ logAuditEvent:
 
 returnSuccess:
   return: ${confirmRes.response.body}
-  next: end
-
-returnViolationsPresentError:
-  status: 422
-  return: '{"type":"VALIDATION_ERROR","field":"violations","code":"violations_present_requires_e_toimik_publish"}'
   next: end
 
 returnValidationError:
