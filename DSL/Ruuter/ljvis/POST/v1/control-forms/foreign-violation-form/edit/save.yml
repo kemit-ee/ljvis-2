@@ -453,7 +453,9 @@ sendForeignProposalNotification:
       type: json
     body:
       notification_type: "labor_foreign_proposal"
-      recipient_email: "[#LABOUR_INSPECTOR_EMAIL]"
+      # recipient_email puudub teadlikult — send-postkast.yml kasutab
+      # notification_template_mapping.default_recipient_email't (haldusliidesest
+      # seadistatav, vt notification-template-mapping/save.yml).
       language: "et"
       send_time: ""
       related_entity_type: "foreign_violation_form"

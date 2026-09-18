@@ -65,30 +65,16 @@ validateInput:
     created_by: "${incoming.body.created_by || 'system'}"
   next: checkRequired
 
+# recipient_email on nüüd valikuline sisendväli — kui kutsuja seda ei saada
+# (nt foreign-violation-form/edit/save.yml), kasutatakse allpool
+# notification_template_mapping.default_recipient_email't (haldusliidesest
+# seadistatav, vt notification-template-mapping/save.yml). Siin on kohustuslik
+# ainult notification_type, sest ilma sellegita ei saa mapping'it lugeda.
 checkRequired:
   switch:
-    - condition: ${notification_type === '' || recipient_email_raw === ''}
+    - condition: ${notification_type === ''}
       next: returnBadRequest
-  next: normalizeRecipient
-
-# 12-1 §4 "Saatmise sisend": aadressi algusest/lõpust eemaldatakse tühikud,
-# e-post teisendatakse väiketähtedeks.
-normalizeRecipient:
-  assign:
-    recipient_email: "${recipient_email_raw.trim().toLowerCase()}"
-    generated_key: "${'ljvis-' + (related_entity_type || 'notif') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 10)}"
-  next: checkRecipientFormat
-
-checkRecipientFormat:
-  switch:
-    - condition: ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient_email)}
-      next: markInvalidRecipient
   next: getTemplateMapping
-
-markInvalidRecipient:
-  assign:
-    pre_send_failure_reason: "Adressaadi e-posti aadress puudub või ei vasta lubatud kujule"
-  next: insertAsError
 
 getTemplateMapping:
   call: http.post
@@ -111,33 +97,43 @@ checkMappingValid:
     - condition: >-
         ${mapping == null || mapping.active !== true || mapping.channel !== 'postkast'}
       next: returnNotPostkastChannel
+  next: resolveRecipient
+
+# 12-1 §4 "Saatmise sisend": aadressi algusest/lõpust eemaldatakse tühikud,
+# e-post teisendatakse väiketähtedeks. Kui kutsuja recipient_email't ei saada,
+# langetakse tagasi mapping.defaultRecipientEmail'ile.
+resolveRecipient:
+  assign:
+    recipient_email_source: "${recipient_email_raw || mapping.defaultRecipientEmail || ''}"
+    generated_key: "${'ljvis-' + (related_entity_type || 'notif') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 10)}"
+  next: normalizeRecipient
+
+normalizeRecipient:
+  assign:
+    recipient_email: "${recipient_email_source.trim().toLowerCase()}"
+  next: checkRecipientFormat
+
+checkRecipientFormat:
+  switch:
+    - condition: ${recipient_email === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient_email)}
+      next: markInvalidRecipient
   next: resolveTemplateId
 
-# original_template_id tuleb eelistatult kataloogist (notification_template_mapping);
-# kuni PK 2.0 toodangu malli tunnused on RIA-lt saadud (LJVIS2-156/157), langeb
-# tagasi konstantidele, nagu enne seda muudatust.
+markInvalidRecipient:
+  assign:
+    pre_send_failure_reason: "Adressaadi e-posti aadress puudub või ei vasta lubatud kujule"
+  next: insertAsError
+
+# original_template_id tuleb kataloogist (notification_template_mapping,
+# haldusliidesest seadistatav — vt notification-template-mapping/save.yml).
+# Konstandifallback ([#PK_TEMPLATE_*]) on eemaldatud; puuduva tunnuse korral
+# ei tohi X-tee kutset tühja originalTemplateId'ga saata — logi kohe veaga.
 resolveTemplateId:
   assign:
-    fallback_template_id: >-
-      ${notification_type === 'carrier_violation'
-        ? '[#PK_TEMPLATE_CARRIER_VIOLATION]'
-        : notification_type === 'labor_kabotage'
-          ? '[#PK_TEMPLATE_LABOR_KABOTAGE]'
-          : notification_type === 'labor_foreign_proposal'
-            ? '[#PK_TEMPLATE_LABOR_FOREIGN_PROPOSAL]'
-            : ''}
+    original_template_id: "${mapping.originalTemplateId || ''}"
     effective_language: "${language || mapping.defaultLanguage || 'et'}"
-  next: resolveTemplateId2
-
-resolveTemplateId2:
-  assign:
-    original_template_id: "${mapping.originalTemplateId || fallback_template_id}"
   next: checkTemplateIdResolved
 
-# Kaitse: kui notification_template_mapping.original_template_id on tühi JA
-# liigil pole PK_TEMPLATE_* tagavarakonstanti (nt uus liik lisati kataloogi
-# andmetega, aga see tagavara-switch unustati uuendada), ei tohi X-tee kutset
-# tühja originalTemplateId'ga saata — logi kohe veaga selle asemel.
 checkTemplateIdResolved:
   switch:
     - condition: ${original_template_id === ''}
@@ -406,5 +402,5 @@ returnNotPostkastChannel:
 
 returnBadRequest:
   status: 400
-  return: "notification_type ja recipient_email on kohustuslikud"
+  return: "notification_type on kohustuslik"
   next: end

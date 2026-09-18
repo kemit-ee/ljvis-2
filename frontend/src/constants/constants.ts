@@ -52,6 +52,8 @@ export const PERMISSIONS = {
   RISK_REPORT_LIST: 'risk_report.list',
   NOTIFICATION_LIST: 'notification.list',
   NOTIFICATION_RESEND: 'notification.resend',
+  NOTIFICATION_TEMPLATE_MAPPING_LIST: 'notification_template_mapping.list',
+  NOTIFICATION_TEMPLATE_MAPPING_EDIT: 'notification_template_mapping.edit',
   XROAD_LOG_READ: 'xroad.log.read',
 } as const;
 

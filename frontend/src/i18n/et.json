@@ -290,7 +290,8 @@
     "riskScores": "Riskitasemed",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused",
-    "xroadLogs": "eToimiku X-tee logid"
+    "xroadLogs": "eToimiku X-tee logid",
+    "notificationTemplateMapping": "Postkasti mallide ja vastuvõtjate seaded"
   },
   "citizen": {
     "formsList": {
@@ -1446,6 +1447,27 @@
       "api": {
         "required": "Kohustuslik väli"
       }
+    }
+  },
+  "notificationTemplateMapping": {
+    "title": "Postkasti mallide ja vastuvõtjate seaded",
+    "notificationType": "Teavituse liik",
+    "channel": "Kanal",
+    "originalTemplateId": "Malli tunnus",
+    "defaultLanguage": "Vaikimisi keel",
+    "defaultRecipientEmail": "Vaikimisi vastuvõtja e-post",
+    "active": "Aktiivne",
+    "statusActive": "Aktiivne",
+    "statusInactive": "Mitteaktiivne",
+    "viewDetails": "Vaata",
+    "data": "Seadistus",
+    "edit": "Muuda",
+    "save": "Salvesta",
+    "cancel": "Tühista",
+    "editedNote": "Seadistus on muudetud",
+    "validation": {
+      "required": "Kohustuslik väli",
+      "emailInvalid": "E-posti aadress ei vasta lubatud kujule"
     }
   },
   "logs": {

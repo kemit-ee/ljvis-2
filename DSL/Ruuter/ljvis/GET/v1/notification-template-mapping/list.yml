@@ -1,0 +1,26 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Kõik teavituse liigid ja nende kehtiv Postkast 2.0 malli tunnus / vaikimisi
+    vastuvõtja seadistus (halduse loendivaade). Nõuab notification_template_mapping.list
+    õigust (kaitstud .guard.yml kaudu).
+  namespace: notification
+
+get_user_context:
+  assign:
+    auth_user: ${auth_user}
+  next: listMappings
+
+listMappings:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/list_template_mappings"
+    headers:
+      type: json
+    body: {}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
