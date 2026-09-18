@@ -74,6 +74,7 @@ interface LabourInspectionFormFieldsProps {
   companyPickerResults?: XRoadCompany[];
   onCompanyPicked?: (company: XRoadCompany) => void;
   closeCompanyPicker?: () => void;
+  formStatus?: string;
 }
 
 export function LabourInspectionFormFields({
@@ -94,6 +95,7 @@ export function LabourInspectionFormFields({
   companyPickerResults,
   onCompanyPicked,
   closeCompanyPicker,
+  formStatus,
 }: LabourInspectionFormFieldsProps) {
   const { t } = useTranslation();
   const [showViolationPicker, setShowViolationPicker] = useState(false);
@@ -463,26 +465,28 @@ export function LabourInspectionFormFields({
         </Card.Content>
       </Card>
 
-      <Card className="mb-1">
-        <Card.Content>
-          <Heading element="h3" className="mb-1">
-            {t('forms.labour_inspection.xroadDecisionSection')}
-          </Heading>
-          {/* Read-only in both view and edit mode: these fields are populated
-              only by the nightly e-toimik cron (etoimik-decision-sync.yml),
-              never entered by the officer. */}
-          <div className={gridClass}>
-            <Text>
-              <b>{t('forms.labour_inspection.enforcementDecision')}:</b>{' '}
-              {formik.values.enforcementDecision}
-            </Text>
-            <Text>
-              <b>{t('forms.labour_inspection.proceedingClosureBasis')}:</b>{' '}
-              {formik.values.proceedingClosureBasis}
-            </Text>
-          </div>
-        </Card.Content>
-      </Card>
+      {formStatus && formStatus !== 'saved' && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3" className="mb-1">
+              {t('forms.labour_inspection.xroadDecisionSection')}
+            </Heading>
+            {/* Read-only in both view and edit mode: these fields are populated
+                only by the nightly e-toimik cron (etoimik-decision-sync.yml),
+                never entered by the officer. */}
+            <div className={gridClass}>
+              <Text>
+                <b>{t('forms.labour_inspection.enforcementDecision')}:</b>{' '}
+                {formik.values.enforcementDecision}
+              </Text>
+              <Text>
+                <b>{t('forms.labour_inspection.proceedingClosureBasis')}:</b>{' '}
+                {formik.values.proceedingClosureBasis}
+              </Text>
+            </div>
+          </Card.Content>
+        </Card>
+      )}
 
       <Card className="mb-1">
         <Card.Content>

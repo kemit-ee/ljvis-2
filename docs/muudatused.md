@@ -6,7 +6,7 @@
 
 ## 2026-09-18
 
-### ERRU CGR/CTUD/RSI saatmiste logi: täisvastus mitte kokkuvõte
+### ERRU saatmiste logi: täisvastus mitte kokkuvõte (ka tõrke korral)
 
 - `erru/cgr/send`, `erru/cgr/resend`, `erru/ctud/send` ja `erru/rsi/send`
   kirjutasid X-tee integratsioonilogisse (`xroad.xroad_integration_log.
@@ -14,6 +14,12 @@
   mitte ERRU/XTR-i tegelikku vastust. Nüüd kirjutatakse sinna täisvastus
   (samamoodi nagu `erru/nu/send` juba tegi), et tõrkeotsingul oleks
   reaalne sisu näha, mitte platsholder.
+- Sama puudujääk oli ka tõrke harul (kõigi viie ERRU saatmise, sh
+  `erru/nu/send`): ebaõnnestunud päringu puhul jäi `response_xml` alati
+  tühjaks stringiks, isegi kui ERRU/XTR vastas veakehaga (nt 4xx koos
+  veakirjeldusega). Nüüd salvestatakse ka tõrke korral tegelik vastuse
+  sisu, kui see olemas on — tühi string jääb ainult siis, kui vastust
+  üldse ei tulnud (nt transpordi tõrge).
 
 ### Kontrollvormide täiendused (tehnoseisund, sõidumeerik, koondvorm)
 

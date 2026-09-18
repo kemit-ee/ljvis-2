@@ -174,6 +174,7 @@ export function LabourInspectionFormPage() {
           removeMatrixRow={() => {}}
           addViolation={() => {}}
           removeViolation={() => {}}
+          formStatus={snapshot.status}
         />
         <Card className="mb-1">
           <Card.Content>
@@ -279,6 +280,7 @@ export function LabourInspectionFormPage() {
           companyPickerResults={companyPickerResults}
           onCompanyPicked={onCompanyPicked}
           closeCompanyPicker={closeCompanyPicker}
+          formStatus={form.status}
         />
         <Card className="mb-1">
           <Card.Content>

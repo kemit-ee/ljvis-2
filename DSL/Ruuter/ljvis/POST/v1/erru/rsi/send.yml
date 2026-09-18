@@ -175,7 +175,7 @@ logIntegrationFailure:
     body:
       service_code: "erru/rsi/request"
       request_xml: "${'businessCaseId=' + business_case_id + ' rsiTo=' + rsi_to + ' checkedItems=' + erru_checked_items}"
-      response_xml: ""
+      response_xml: "${erru_res.response != null ? JSON.stringify(erru_res.response.body) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: "ERRU RSI transport failure or error response"
