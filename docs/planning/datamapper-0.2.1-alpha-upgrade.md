@@ -46,7 +46,7 @@ Kõik 0.2.0-alpha lepingumuutused (vt allpool) kehtivad ka 0.2.1-alpha-le.
 | 5 uut vaikimisi turvapäist (CSP, HSTS, X-Frame-Options jne) | v0.2.0-alpha | Puudub — Ruuter loeb ainult `mapped.response.body`, mitte DataMapperi vastuse päiseid (kontrollitud `tram-card/get.yml` näitel), seega päised ei jõua kliendini. |
 | W3C `traceparent`/`x-trace-id` igal vastusel | v0.2.0-alpha | Puudub, samal põhjusel. |
 | **`env_safety`**: keeldub käivitumast väljaspool `dev`-i, kui DSL-juur on kirjutatav VÕI `.hbs` vastab dev-fixture mustrile | v0.2.0-alpha | **Kriitiline — vt punkt 4.** |
-| CLI: `datamapper` → `serve` alamkäsk vaikimisi; positsioonilised argumendid peale alamkäsku ei tööta | v0.2.0-alpha | Madal — meie Dockerfile ei anna custom argumente, aga lisame selguse mõttes `CMD`. |
+| CLI: `datamapper` → `serve` alamkäsk vaikimisi; positsioonilised argumendid peale alamkäsku ei tööta | v0.2.0-alpha | Madal — meie Dockerfile ei anna custom argumente, seega pole meil siin midagi katki minna. **CI regressioon (parandatud)**: algne muudatus lisas `CMD ["datamapper", "serve"]`, mis eeldas ekslikult, et "datamapper" on PATH-il — tegelikult on base image `CMD` `["/app/datamapper"]` ja `ENTRYPOINT` `["/usr/bin/tini", "--"]`, käivitatuna mitte-root `datamapper` kasutajana, kelle PATH ei sisalda `/app`-i. See lõhkus DataMapperi käivitumise päriselt (CI E2E/UI testid nägid Ruuterist `connect`-tõrkeid). Lahendus: `CMD` eemaldatud, base image vaikeväärtus jäetud kehtima. |
 | `datamapper doctor [--strict]` uus alamkäsk | v0.2.0-alpha | Uus tööriist eelkontrolliks — kasutame CI-s ja käsitsi. |
 | 405 nüüd struktureeritud JSON + `Allow` päis | v0.2.1-alpha | Puudub — me ei tee kunagi vale HTTP-meetodiga päringuid DataMapperile. |
 | Graceful shutdown (SIGTERM/SIGINT/SIGHUP, in-flight kuni `request_timeout_secs`) | v0.2.1-alpha | Positiivne — parandab restart/deploy käitumist, ei nõua meie poolt midagi. |
@@ -88,8 +88,11 @@ enne PROD-i paigaldust.
 1. **`docker/data-mapper/Dockerfile`**
    - Uuendada base image tag + digest 0.2.1-alpha-le (punkt 2 väärtus, pärast
      uuesti kontrollimist).
-   - Lisada selgusesse `CMD ["datamapper", "serve"]` (CLI-liidese muutuse
-     dokumenteerimiseks, ka kui vaikeväärtus juba töötaks).
+   - **Mitte** lisada `CMD`-d — base image `CMD ["/app/datamapper"]` +
+     `ENTRYPOINT ["/usr/bin/tini", "--"]` juba töötab (vt punkt 3 CLI rida).
+     `CMD ["datamapper", "serve"]` (paljas binaari nimi, mitte täisrada)
+     lõhub käivitumise, kuna image jookseb non-root `datamapper`
+     kasutajana, kelle PATH ei sisalda `/app`-i.
 2. **`docker/data-mapper/datamapper.yaml`**
    - Läbi vaadata, kas `limits.max_body_array_length` vajab tõstmist (vt
      punkt 3 tabel) — kontrollida `DSL/DMapper/ljvis/**/*.hbs` sisendite
