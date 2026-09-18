@@ -356,28 +356,34 @@ export function DriveRestFormFields({
               {authority === 'TRAM' &&
                 formik.values.transportType === 'Sõitjatevedu' && (
                   <>
-                    <TextField
-                      id={fieldId('liiniNumber')}
-                      label={t('forms.sp_form.liiniNumber')}
-                      name={fieldId('liiniNumber')}
-                      className="mt-1"
-                      value={formik.values.liiniNumber ?? ''}
-                      onChange={(val) =>
-                        formik.setFieldValue('liiniNumber', val as string)
+                    <div
+                      className={
+                        isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
                       }
-                      disabled={readOnly}
-                    />
-                    <TextField
-                      id={fieldId('liiniNimetus')}
-                      label={t('forms.sp_form.liiniNimetus')}
-                      name={fieldId('liiniNimetus')}
-                      className="mt-1"
-                      value={formik.values.liiniNimetus ?? ''}
-                      onChange={(val) =>
-                        formik.setFieldValue('liiniNimetus', val as string)
-                      }
-                      disabled={readOnly}
-                    />
+                    >
+                      <TextField
+                        id={fieldId('liiniNumber')}
+                        label={t('forms.sp_form.liiniNumber')}
+                        name={fieldId('liiniNumber')}
+                        className="mt-1"
+                        value={formik.values.liiniNumber ?? ''}
+                        onChange={(val) =>
+                          formik.setFieldValue('liiniNumber', val as string)
+                        }
+                        disabled={readOnly}
+                      />
+                      <TextField
+                        id={fieldId('liiniNimetus')}
+                        label={t('forms.sp_form.liiniNimetus')}
+                        name={fieldId('liiniNimetus')}
+                        className="mt-1"
+                        value={formik.values.liiniNimetus ?? ''}
+                        onChange={(val) =>
+                          formik.setFieldValue('liiniNimetus', val as string)
+                        }
+                        disabled={readOnly}
+                      />
+                    </div>
                   </>
                 )}
             </Card.Content>
@@ -999,11 +1005,12 @@ export function DriveRestFormFields({
                     id={fieldId('tachographNotes')}
                     maxHeight="8rem"
                     label={t('forms.sp_form.tachographNotes')}
+                    placeholder={
+                      readOnly ? '' : t('common.enterNotesPlaceholder')
+                    }
                     value={formik.values.tachographNotes ?? ''}
                     input={{ maxLength: 4000 }}
-                    onChange={(v) =>
-                      formik.setFieldValue('tachographNotes', v)
-                    }
+                    onChange={(v) => formik.setFieldValue('tachographNotes', v)}
                     disabled={readOnly}
                   />
                 </div>

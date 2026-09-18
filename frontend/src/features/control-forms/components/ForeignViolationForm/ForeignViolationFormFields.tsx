@@ -1236,15 +1236,23 @@ export function ForeignViolationFormFields({
             <Select
               id="inspectorUnit"
               label={t('forms.foreign_violation.inspectorUnit')}
-              options={structureUnits.map((opt) => ({
-                label: opt.name,
-                value: opt.code,
-              }))}
+              options={[
+                { value: '', label: '—' },
+                ...structureUnits.map((opt) => ({
+                  label: opt.name,
+                  value: opt.code,
+                })),
+              ]}
               value={
-                structureUnits
-                  .map((opt) => ({ label: opt.name, value: opt.code }))
-                  .find((o) => o.value === (values.inspectorUnit as string)) ??
-                null
+                [
+                  { value: '', label: '—' },
+                  ...structureUnits.map((opt) => ({
+                    label: opt.name,
+                    value: opt.code,
+                  })),
+                ].find(
+                  (o) => o.value === ((values.inspectorUnit as string) ?? ''),
+                ) ?? null
               }
               onChange={handleStructuralUnitChange ?? (() => {})}
               disabled={readOnly}

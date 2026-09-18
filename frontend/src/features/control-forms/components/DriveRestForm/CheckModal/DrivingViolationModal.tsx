@@ -23,12 +23,17 @@ interface Props {
   setIsModalOpen: (open: boolean) => void;
 }
 
+interface MenuPosition {
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+}
+
 interface DropdownState {
   open: boolean;
   selected: string[];
-  /** True when the menu should render above the trigger instead of below
-   *  it — see toggleDropdown's comment. */
-  openUpward?: boolean;
+  menuPos?: MenuPosition;
 }
 
 export function DrivingViolationModal({
@@ -99,31 +104,34 @@ export function DrivingViolationModal({
       if (prev[l2Code]?.open) {
         return { ...prev, [l2Code]: { ...prev[l2Code], open: false } };
       }
-      // Opening: the menu (.dropdown-menu, CheckModal.module.css) is
-      // position:absolute/top:100% and always drops downward. Rows near
-      // the bottom of a long list (e.g. Sõidumeerikud's 18 items) then
-      // render it clipped by the modal body's own overflow:auto — it
-      // "opens" in the DOM but is invisible, which reads as the button
-      // doing nothing. Flip it above the trigger when there isn't enough
-      // room below within the modal's scrollable body.
+      // Use position:fixed so the menu is never clipped by any overflow
+      // ancestor (modal body, scroll containers, etc.).
       const wrapper = dropdownRefs.current[l2Code];
-      let openUpward = false;
+      let menuPos: MenuPosition | undefined;
       if (wrapper) {
         const rect = wrapper.getBoundingClientRect();
-        const scrollParent = wrapper.closest(
-          '[class*="modal__body"], [class*="modal-body"]',
-        );
-        const boundaryBottom = scrollParent
-          ? scrollParent.getBoundingClientRect().bottom
-          : window.innerHeight;
-        const estimatedMenuHeight = 200; // generous — a handful of checkbox rows
-        openUpward =
-          boundaryBottom - rect.bottom < estimatedMenuHeight &&
-          rect.top > estimatedMenuHeight;
+        const l2 = myLevel2.find((item) => item.code === l2Code);
+        const l3Count = l2
+          ? level3Items.filter((v) => v.parentKey === l2.classifierValueKey)
+              .length
+          : 3;
+        // ~40px per checkbox row + ~50px for the "Eemalda" button row
+        const estimatedMenuHeight = l3Count * 40 + 50;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const menuPos_: MenuPosition = {
+          left: rect.left,
+          width: rect.width,
+        };
+        if (spaceBelow >= estimatedMenuHeight || rect.top < estimatedMenuHeight) {
+          menuPos_.top = rect.bottom;
+        } else {
+          menuPos_.bottom = window.innerHeight - rect.top;
+        }
+        menuPos = menuPos_;
       }
       return {
         ...prev,
-        [l2Code]: { ...prev[l2Code], open: true, openUpward },
+        [l2Code]: { ...prev[l2Code], open: true, menuPos },
       };
     });
   };
@@ -325,11 +333,14 @@ export function DrivingViolationModal({
                               </button>
                               {state.open && (
                                 <div
-                                  className={
-                                    state.openUpward
-                                      ? `${styles['dropdown-menu']} ${styles['dropdown-menu-up']}`
-                                      : styles['dropdown-menu']
-                                  }
+                                  className={styles['dropdown-menu']}
+                                  style={{
+                                    position: 'fixed',
+                                    top: state.menuPos?.top,
+                                    bottom: state.menuPos?.bottom,
+                                    left: state.menuPos?.left,
+                                    width: state.menuPos?.width,
+                                  }}
                                 >
                                   {l3Options.map((l3) => (
                                     <div

@@ -138,9 +138,9 @@ export function TechnicalCheckFormFields({
                 value={
                   (trailerIndex !== undefined
                     ? compoundTrailers?.[trailerIndex]?.regNr
-                    : undefined)
-                  ?? values.trailerRegNr
-                  ?? ''
+                    : undefined) ??
+                  values.trailerRegNr ??
+                  ''
                 }
                 disabled
                 onChange={() => undefined}
@@ -190,7 +190,11 @@ export function TechnicalCheckFormFields({
         open={modalPartCode !== null}
         onClose={() => setModalPartCode(null)}
         partCode={modalPartCode}
-        partName={modalPart ? `${modalPart.code.replace(/^[A-Z]+_/, '')} \u2014 ${modalPart.name}` : ''}
+        partName={
+          modalPart
+            ? `${modalPart.code.replace(/^[A-Z]+_/, '')} \u2014 ${modalPart.name}`
+            : ''
+        }
         defects={modalDefects}
         existingDefects={(values.partsDefects ?? []).filter(
           (d) => d.partCode === modalPartCode,
@@ -231,34 +235,36 @@ export function TechnicalCheckFormFields({
           />
 
           {values.resultType === 'driving_ban' && (
-            <ChoiceGroup
-              id="resultTransportInterruption"
-              name="resultTransportInterruption"
-              label={t('forms.technical_check.result.transportInterruption')}
-              inputType="checkbox"
-              value={values.resultTransportInterruption ? 'true' : ''}
-              onChange={(val) =>
-                canEdit &&
-                formik.setFieldValue(
-                  'resultTransportInterruption',
-                  Array.isArray(val) ? val.includes('true') : val === 'true',
-                )
-              }
-              items={[
-                {
-                  id: 'resultTransportInterruption-item',
-                  value: 'true',
-                  label: t(
-                    'forms.technical_check.result.transportInterruption',
-                  ),
-                  disabled: !canEdit,
-                },
-              ]}
-            />
+            <div className="mt-1">
+              <ChoiceGroup
+                id="resultTransportInterruption"
+                name="resultTransportInterruption"
+                label={t('forms.technical_check.result.transportInterruption')}
+                inputType="checkbox"
+                value={values.resultTransportInterruption ? 'true' : ''}
+                onChange={(val) =>
+                  canEdit &&
+                  formik.setFieldValue(
+                    'resultTransportInterruption',
+                    Array.isArray(val) ? val.includes('true') : val === 'true',
+                  )
+                }
+                items={[
+                  {
+                    id: 'resultTransportInterruption-item',
+                    value: 'true',
+                    label: t(
+                      'forms.technical_check.result.transportInterruption',
+                    ),
+                    disabled: !canEdit,
+                  },
+                ]}
+              />
+            </div>
           )}
 
           {values.resultType === 'extraordinary_inspection_ta' && (
-            <div className="mb-1">
+            <div className="mb-1 mt-1">
               <Text modifiers="bold">
                 {t('forms.technical_check.result.taFieldsTitle')}
               </Text>
@@ -376,28 +382,32 @@ export function TechnicalCheckFormFields({
                   }
                 />
               )}
-              <ChoiceGroup
-                id="transportInterruptionAutovs5131"
-                name="transportInterruptionAutovs5131"
-                label={t('forms.technical_check.result.autovs5131')}
-                inputType="checkbox"
-                value={values.transportInterruptionAutovs5131 ? 'true' : ''}
-                onChange={(val) =>
-                  canEdit &&
-                  formik.setFieldValue(
-                    'transportInterruptionAutovs5131',
-                    Array.isArray(val) ? val.includes('true') : val === 'true',
-                  )
-                }
-                items={[
-                  {
-                    id: 'transportInterruptionAutovs5131-item',
-                    value: 'true',
-                    label: t('forms.technical_check.result.autovs5131'),
-                    disabled: !canEdit,
-                  },
-                ]}
-              />
+              <div className="mt-1">
+                <ChoiceGroup
+                  id="transportInterruptionAutovs5131"
+                  name="transportInterruptionAutovs5131"
+                  label={t('forms.technical_check.result.autovs5131')}
+                  inputType="checkbox"
+                  value={values.transportInterruptionAutovs5131 ? 'true' : ''}
+                  onChange={(val) =>
+                    canEdit &&
+                    formik.setFieldValue(
+                      'transportInterruptionAutovs5131',
+                      Array.isArray(val)
+                        ? val.includes('true')
+                        : val === 'true',
+                    )
+                  }
+                  items={[
+                    {
+                      id: 'transportInterruptionAutovs5131-item',
+                      value: 'true',
+                      label: t('forms.technical_check.result.autovs5131'),
+                      disabled: !canEdit,
+                    },
+                  ]}
+                />
+              </div>
             </div>
           )}
         </Card.Content>
@@ -441,7 +451,10 @@ export function TechnicalCheckFormFields({
                   <ChoiceGroup
                     id={`violations-${category}`}
                     name={`violations-${category}`}
-                    label={t(`citizen.compoundDetail.severity.${category}`, category)}
+                    label={t(
+                      `citizen.compoundDetail.severity.${category}`,
+                      category,
+                    )}
                     inputType="checkbox"
                     value={(values.violations ?? []).filter((c) =>
                       items.some((i) => i.code === c),

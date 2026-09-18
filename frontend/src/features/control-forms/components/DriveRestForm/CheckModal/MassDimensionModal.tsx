@@ -26,9 +26,6 @@ interface DropdownState {
   open: boolean;
   selected: string[];
   note?: string;
-  /** True when the menu should render above the trigger instead of below
-   *  it — see toggleDropdown's comment. */
-  openUpward?: boolean;
 }
 
 export function MassDimensionModal({
@@ -83,31 +80,9 @@ export function MassDimensionModal({
       if (prev[l2Code]?.open) {
         return { ...prev, [l2Code]: { ...prev[l2Code], open: false } };
       }
-      // Opening: the menu (.dropdown-menu, CheckModal.module.css) is
-      // position:absolute/top:100% and always drops downward. Rows near
-      // the bottom of a long list render it clipped by the modal body's
-      // own overflow:auto — it "opens" in the DOM but is invisible, which
-      // reads as the button doing nothing (same bug as
-      // DrivingViolationModal.tsx). Flip it above the trigger when there
-      // isn't enough room below within the modal's scrollable body.
-      const wrapper = dropdownRefs.current[l2Code];
-      let openUpward = false;
-      if (wrapper) {
-        const rect = wrapper.getBoundingClientRect();
-        const scrollParent = wrapper.closest(
-          '[class*="modal__body"], [class*="modal-body"]',
-        );
-        const boundaryBottom = scrollParent
-          ? scrollParent.getBoundingClientRect().bottom
-          : window.innerHeight;
-        const estimatedMenuHeight = 200;
-        openUpward =
-          boundaryBottom - rect.bottom < estimatedMenuHeight &&
-          rect.top > estimatedMenuHeight;
-      }
       return {
         ...prev,
-        [l2Code]: { ...prev[l2Code], open: true, openUpward },
+        [l2Code]: { ...prev[l2Code], open: true },
       };
     });
   };
@@ -349,13 +324,7 @@ export function MassDimensionModal({
                                         </span>
                                       </button>
                                       {state.open && (
-                                        <div
-                                          className={
-                                            state.openUpward
-                                              ? `${styles['dropdown-menu']} ${styles['dropdown-menu-up']}`
-                                              : styles['dropdown-menu']
-                                          }
-                                        >
+                                        <div className={styles['dropdown-menu']}>
                                           {l2Items.map((l2) => {
                                             return (
                                               <div
