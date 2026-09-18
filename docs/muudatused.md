@@ -6,6 +6,21 @@
 
 ## 2026-09-18
 
+### Vedaja teavituse ebaõnnestunud aadressi otsing jääb nüüd Teavituste vaatesse nähtavale
+
+- Välisriigi rikkumise vormil "Teavita vedajat" märkeruudu saatmiskäik
+  (foreign-violation-form) otsis vedaja e-posti äriregistrist ja saatis
+  Postkast 2.0 teavituse ainult siis, kui aadress leiti — kui äriregistri
+  päring ebaõnnestus või sealt e-posti ei leitud, jäeti Postkasti saatmise
+  teenus (`send-postkast.yml`) üldse kutsumata. Kuna just see teenus loob
+  `notifications.outbound_log` kirje, ei tekkinud sellisel juhul mitte
+  mingit jälge — ebaõnnestunud katse oli täiesti nähtamatu, ka Teavituste
+  haldusvaates.
+- Nüüd kutsutakse `send-postkast.yml` alati, ka siis kui aadressi ei
+  leitud või äriregistri päring ise ebaõnnestus (tühja `recipient_email`-ga)
+  — teenus tuvastab vigase/puuduva aadressi ise ja loob veakirje
+  (`status: error`, põhjusega), mis on nüüd Teavituste vaates näha.
+
 ### Tööinspektsiooni kontrollakti kinnitamine ei ole enam rikkumiste korral blokeeritud
 
 - Tööinspektsiooni kontrollaktil oli ainsa vormina serveripoolne reegel,

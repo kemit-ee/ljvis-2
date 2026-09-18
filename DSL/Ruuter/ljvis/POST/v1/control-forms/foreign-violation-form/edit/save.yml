@@ -479,6 +479,13 @@ sendForeignProposalNotification:
 # tagastab siiani toorvastuse, kellelgi pole seda kaardistatud) — allolev
 # extractCarrierEmail proovib mitut usutavat kuju, aga tuleb kontrollida
 # päris X-tee vastuse vastu enne toodangusse laskmist.
+# NB: send-postkast.yml kutsutakse ALATI (ka siis kui aadressi ei leitud või
+# äriregistri päring ise ebaõnnestus) — see teenus loob igal juhul
+# notifications.outbound_log kirje (edukal juhul "queued", vigase/puuduva
+# aadressi korral "error" koos põhjusega, vt send-postkast.yml
+# checkRecipientFormat/markInvalidRecipient). Varem hüpati vigase/puuduva
+# aadressi korral vaikimisi edasi ilma seda teenust kutsumata, mistõttu
+# ebaõnnestunud katse ei jätnud Teavituste vaatesse mitte mingit jälge.
 checkNotifyCarrierNotification:
   switch:
     - condition: >-
@@ -498,8 +505,16 @@ lookupCarrierRegistryData:
     body:
       reg_code: ${company_reg_code}
   result: carrierRegistryRes
-  error: extractUpdateResponseData
+  error: markCarrierRegistryLookupFailed
   next: extractCarrierEmail
+
+# Äriregistri päring ise ebaõnnestus (X-tee/XTR viga või timeout) — carrier_email
+# jääb tühjaks ja liigutakse ikkagi sendCarrierNotification'i, et katse jääks
+# nähtavale (send-postkast.yml logib selle tühja/vigase aadressi veana).
+markCarrierRegistryLookupFailed:
+  assign:
+    carrier_email: ""
+  next: sendCarrierNotification
 
 extractCarrierEmail:
   assign:
@@ -519,13 +534,7 @@ extractCarrierEmail:
         });
         return (match && (match.sisu || match.vaartus || match.value)) || '';
       })()}
-  next: checkCarrierEmailFound
-
-checkCarrierEmailFound:
-  switch:
-    - condition: ${(carrier_email || '').trim() !== ''}
-      next: sendCarrierNotification
-  next: extractUpdateResponseData
+  next: sendCarrierNotification
 
 sendCarrierNotification:
   call: http.post
