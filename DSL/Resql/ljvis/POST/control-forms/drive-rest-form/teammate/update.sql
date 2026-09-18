@@ -219,6 +219,12 @@ SELECT
           COALESCE(NULLIF(:violations200215, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
+          COALESCE((
+            SELECT d.cabotage_violations FROM forms.sp_driver_form d
+             WHERE d.compound_form_key = COALESCE(NULLIF(:compoundFormKey::text, ''), l.compound_form_key::text)::BIGINT
+               AND d.status <> 'deleted'
+             ORDER BY d.version DESC, d.created_at DESC LIMIT 1
+          ), '[]'::jsonb),
           COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb)
         ),
         COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),
