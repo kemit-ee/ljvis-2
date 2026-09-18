@@ -32,11 +32,7 @@ export default defineConfig({
   // route-kompileerimise pärast ja tekitavad ebastabiilsust. Seriaalne on
   // ~3 min, aga usaldusväärne.
   workers: 1,
-  // Vaikimisi timeout puudub (0 = piiramatu). Lokaalseks silumiseks saab
-  // LJVIS_PW_TEST_TIMEOUT env'iga piirangu juurde anda (millisekundites).
-  timeout: process.env.LJVIS_PW_TEST_TIMEOUT
-    ? Number(process.env.LJVIS_PW_TEST_TIMEOUT)
-    : 0,
+  timeout: 60_000,
   expect: { timeout: 12_000 },
 
   reporter: [
@@ -56,6 +52,14 @@ export default defineConfig({
     actionTimeout: 15_000,
     // Esimene navigatsioon route'ile käivitab vite külmkompileerimise.
     navigationTimeout: 60_000,
+    // Vaikimisi tegevuste vahel ootamist ei ole. Visuaalseks jälgimiseks
+    // saab LJVIS_PW_SLOWMO env'iga (millisekundites) tegevuste vahele
+    // pausi lisada.
+    launchOptions: {
+      slowMo: process.env.LJVIS_PW_SLOWMO
+        ? Number(process.env.LJVIS_PW_SLOWMO)
+        : undefined,
+    },
   },
 
   projects: [
