@@ -3,6 +3,7 @@
 Dokument kirjeldab kõiki LJVIS2 alamsüsteemi poolt pakutavaid X-tee teenuseid: teenuse kood, sisendid, väljundid, näidispäringud ja turvaserveri admin juhend.
 
 Masinloetav OpenAPI 3.0.3 leping (kõik üheksa teenust, sh näidis sisendid/väljundid iga vastuskoodi kohta): [XroadOpenapi.yaml](XroadOpenapi.yaml).
+Sama sisu on turvaserverile kättesaadav ka otse Ruuter.internal-i kaudu (vt [4.8](#48-openapi-kirjelduse-registreerimine-turvaserveris)) — turvaserver saab selle URL-i teenuse kirjeldusena registreerida ja lepingut automaatselt uuendada.
 Sünteetiliste testandmetega mocki leping on eraldi failis [../developer/xtee-openapi.yaml](../developer/xtee-openapi.yaml).
 
 ---
@@ -631,3 +632,41 @@ curl -v -X POST "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/IsikuKontroll/v
 | 403 `FORBIDDEN` | `X-Road-Client` päis puudub või vale formaat |
 | 404 `NOT_FOUND` | Otsitav kirje puudub andmebaasist (`ErakorralineYVconfirm`) |
 | 500 `SERVER_ERROR` | Sisemine viga — ei sisalda SQL-i ega stack trace'i |
+
+### 4.8 OpenAPI kirjelduse registreerimine turvaserveris
+
+**DSL:** `DSL/Ruuter.internal/ljvis/GET/xroad/provide/openapi.yml`
+
+Sama Ruuter.internal komponent serveerib [XroadOpenapi.yaml](XroadOpenapi.yaml) sisu muutmata kujul GET-päringu peale. Turvaserver saab selle URL-i registreerida REST-teenuse **kirjeldusena** ja lepingut sealt automaatselt värskendada, selle asemel et OpenAPI faili käsitsi üles laadida.
+
+**URL turvaserveri jaoks (DEV, hosti aadress):**
+```
+http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/openapi
+```
+
+**URL Docker-sisevõrgust:**
+```
+http://ruuter-internal:8080/ljvis/xroad/provide/openapi
+```
+
+**Registreerimine turvaserveri admin liideses:**
+
+1. Vali vasakul alamsüsteem → **Teenused** → **Lisa REST**.
+2. Vali kirjelduse tüüp **"Kirjeldus URL-ilt"** (mitte fail).
+3. Sisesta ülalpool toodud URL (vastavalt keskkonnale) ja teenuse kood/versioon.
+4. Kinnita — turvaserver laeb OpenAPI kirjelduse ja loob iga `paths` all oleva operatsiooni jaoks eraldi X-tee teenuse (vastavalt kirjelduses olevale `x-provider-path` laiendile, mis viitab tabelis [4.3](#43-suunamisreeglid-teenuse-kaupa) toodud teele).
+5. Edaspidi saab lepingut värskendada nupuga **"Värskenda"** — käsitsi uuesti üleslaadimist pole vaja.
+
+**Oluline:**
+- See endpoint ei nõua `X-Road-Client` päist ega muud autentimist — turvaserver ei toeta kirjelduse tõmbamisel autentimist. Seega peab tee jääma samasse Ruuter.internal komponenti, mis muidu polegi avalikult (nginx-i kaudu) ligipääsetav ([4.1](#41-ülevaade)) — ainult turvaserverile otse.
+- Ruuter DSL ei toeta faili lugemist kettalt, seega on kirjelduse sisu embed'itud otse DSL-faili sisse. Sisu hoiab failiga `XroadOpenapi.yaml` sünkroonis skript `scripts/generate-xroad-openapi-dsl.py` — kui leping muutub, jooksuta:
+  ```bash
+  python3 scripts/generate-xroad-openapi-dsl.py
+  ```
+  CI (`dsl-lint` job, samm "X-Road OpenAPI DSL route — in sync with docs/xtee/XroadOpenapi.yaml") jooksutab sama skripti `--check` lipuga ja nurjub, kui `openapi.yml` on lähtefailiga lahknenud — DSL-faili käsitsi ei muudeta.
+
+**Testimine:**
+```bash
+curl -v "http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/openapi"
+# Oodatav: HTTP 200, kogu XroadOpenapi.yaml sisu tekstina
+```

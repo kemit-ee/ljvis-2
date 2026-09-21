@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Text, Alert, Heading } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  Text,
+  Alert,
+  Heading,
+  Card,
+} from '@tedi-design-system/react/tedi';
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useFormDetail } from './useFormDetail.ts';
 import { useAuth } from '../../../auth/AuthContext';
@@ -157,39 +163,47 @@ export function ForeignViolationFormPage() {
     if (!snapshot) return <Text>{t('common.error')}</Text>;
     return (
       <div>
-        <div className="card-main">
-          <Heading element="h1">
-            {snapshot.formNumber
-              ? `${snapshot.formNumber}/${(snapshot as { version?: number }).version ?? 1}`
-              : t('forms.foreign_violation_form')}
-          </Heading>
-        </div>
-        <ForeignViolationFormFields
-          formik={
-            {
-              values: snapshot,
-              errors: {},
-              touched: {},
-              setFieldValue: () => Promise.resolve(),
-            } as never
-          }
-          readOnly
-          isDesktop={isDesktop}
-          orgOptions={orgOptions}
-          structureUnits={structureUnits}
-          formType={FORM_TYPE.FOREIGN_VIOLATION}
-        />
+        <Card>
+          <Card.Content className="pb-0">
+            <div className="card-main">
+              <Heading element="h1">
+                {snapshot.formNumber
+                  ? `${snapshot.formNumber}/${(snapshot as { version?: number }).version ?? 1}`
+                  : t('forms.foreign_violation_form')}
+              </Heading>
+            </div>
+            <ForeignViolationFormFields
+              formik={
+                {
+                  values: snapshot,
+                  errors: {},
+                  touched: {},
+                  setFieldValue: () => Promise.resolve(),
+                } as never
+              }
+              readOnly
+              isDesktop={isDesktop}
+              orgOptions={orgOptions}
+              structureUnits={structureUnits}
+              formType={FORM_TYPE.FOREIGN_VIOLATION}
+            />
 
-        {id && (
-          <FormVersionsTable
-            formId={id}
-            formType={FORM_TYPE.FOREIGN_VIOLATION}
-            refreshKey={versionsRefreshKey}
-          />
-        )}
+            {id && (
+              <FormVersionsTable
+                formId={id}
+                formType={FORM_TYPE.FOREIGN_VIOLATION}
+                refreshKey={versionsRefreshKey}
+              />
+            )}
+          </Card.Content>
+        </Card>
         <div className="page-actions">
           <div className="page-actions-buttons">
-            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" id={id} snapshotId={snapshotId} />
+            <FormPrintButton
+              endpoint="/v1/control-forms/foreign-violation-form/read/print"
+              id={id}
+              snapshotId={snapshotId}
+            />
           </div>
         </div>
       </div>
@@ -244,104 +258,111 @@ export function ForeignViolationFormPage() {
         </Alert>
       )}
 
-      <div className="card-main">
-        <Heading element="h1">
-          {form.formNumber
-            ? `${form.formNumber}/${(form as { version?: number }).version ?? 1}`
-            : t('forms.foreign_violation_form')}
-        </Heading>
-      </div>
+      <Card>
+        <Card.Content className="pb-0">
+          <div className="card-main">
+            <Heading element="h1">
+              {form.formNumber
+                ? `${form.formNumber}/${(form as { version?: number }).version ?? 1}`
+                : t('forms.foreign_violation_form')}
+            </Heading>
+          </div>
 
-      <form onSubmit={formik.handleSubmit}>
-        <ForeignViolationFormFields
-          formik={formik as never}
-          readOnly={!isEditActive}
-          isDesktop={isDesktop}
-          orgOptions={orgOptions}
-          structureUnits={structureUnits}
-          companySearchError={companySearchError}
-          setCompanySearchError={setCompanySearchError}
-          vehicleSearchError={vehicleSearchError}
-          setVehicleSearchError={setVehicleSearchError}
-          licenceCopyNumberError={licenceCopyNumberError}
-          setLicenceCopyNumberError={setLicenceCopyNumberError}
-          handleOrgChange={handleOrgChange}
-          handleStructuralUnitChange={handleStructuralUnitChange}
-          handleCompanyRegCodeSearch={handleCompanyRegCodeSearch}
-          handleCompanyNameSearch={handleCompanyNameSearch}
-          handleVehicleSearch={handleVehicleSearch}
-          handleLicenceCopyNumberSearch={handleLicenceCopyNumberSearch}
-          companyPickerResults={companyPickerResults}
-          onCompanyPicked={onCompanyPicked}
-          closeCompanyPicker={closeCompanyPicker}
-          associatedPersons={associatedPersons}
-          associatedPersonsLoading={associatedPersonsLoading}
-          counties={counties}
-          companyCitiesParishes={companyCitiesParishes}
-          handleCompanyCountyChange={handleCompanyCountyChange}
-          inspectionCitiesParishes={inspectionCitiesParishes}
-          handleInspectionRegionChange={handleInspectionRegionChange}
-          formType={FORM_TYPE.FOREIGN_VIOLATION}
-          showAdminSection={isAdmin}
-        />
+          <form onSubmit={formik.handleSubmit}>
+            <ForeignViolationFormFields
+              formik={formik as never}
+              readOnly={!isEditActive}
+              isDesktop={isDesktop}
+              orgOptions={orgOptions}
+              structureUnits={structureUnits}
+              companySearchError={companySearchError}
+              setCompanySearchError={setCompanySearchError}
+              vehicleSearchError={vehicleSearchError}
+              setVehicleSearchError={setVehicleSearchError}
+              licenceCopyNumberError={licenceCopyNumberError}
+              setLicenceCopyNumberError={setLicenceCopyNumberError}
+              handleOrgChange={handleOrgChange}
+              handleStructuralUnitChange={handleStructuralUnitChange}
+              handleCompanyRegCodeSearch={handleCompanyRegCodeSearch}
+              handleCompanyNameSearch={handleCompanyNameSearch}
+              handleVehicleSearch={handleVehicleSearch}
+              handleLicenceCopyNumberSearch={handleLicenceCopyNumberSearch}
+              companyPickerResults={companyPickerResults}
+              onCompanyPicked={onCompanyPicked}
+              closeCompanyPicker={closeCompanyPicker}
+              associatedPersons={associatedPersons}
+              associatedPersonsLoading={associatedPersonsLoading}
+              counties={counties}
+              companyCitiesParishes={companyCitiesParishes}
+              handleCompanyCountyChange={handleCompanyCountyChange}
+              inspectionCitiesParishes={inspectionCitiesParishes}
+              handleInspectionRegionChange={handleInspectionRegionChange}
+              formType={FORM_TYPE.FOREIGN_VIOLATION}
+              showAdminSection={isAdmin}
+            />
 
-        {id && (
-          <FormVersionsTable
-            formId={id}
-            formType={FORM_TYPE.FOREIGN_VIOLATION}
-            refreshKey={versionsRefreshKey}
+            {id && (
+              <FormVersionsTable
+                formId={id}
+                formType={FORM_TYPE.FOREIGN_VIOLATION}
+                refreshKey={versionsRefreshKey}
+              />
+            )}
+          </form>
+        </Card.Content>
+      </Card>
+
+      <div className="page-actions">
+        <div className="page-actions-buttons">
+          <FormPrintButton
+            endpoint="/v1/control-forms/foreign-violation-form/read/print"
+            id={id}
           />
-        )}
-
-        <div className="page-actions">
-          <div className="page-actions-buttons">
-            <FormPrintButton endpoint="/v1/control-forms/foreign-violation-form/read/print" id={id} />
-            {isEditActive ? (
+          {isEditActive ? (
+            <>
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  formik.resetForm();
+                  setIsEditActive(false);
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+              <AsyncButton type="button" onClick={() => formik.submitForm()}>
+                {t('common.save')}
+              </AsyncButton>
+              {canConfirm && (
+                <AsyncButton type="button" onClick={() => triggerConfirm()}>
+                  {t('common.confirm')}
+                </AsyncButton>
+              )}
+              {isEditActive && canDelete && (
+                <DeleteConfirmModal onDelete={handleDelete} />
+              )}
+            </>
+          ) : (
+            canEdit && (
               <>
                 <Button
+                  iconLeft="edit"
                   type="button"
                   visualType="secondary"
-                  onClick={() => {
-                    formik.resetForm();
-                    setIsEditActive(false);
-                  }}
+                  onClick={() => setIsEditActive(true)}
                 >
-                  {t('common.cancel')}
+                  {t('common.edit')}
                 </Button>
-                <AsyncButton type="button" onClick={() => formik.submitForm()}>
-                  {t('common.save')}
-                </AsyncButton>
-                {canConfirm && (
-                  <AsyncButton type="button" onClick={() => triggerConfirm()}>
-                    {t('common.confirm')}
+                {canPublish && (
+                  <AsyncButton type="button" onClick={() => triggerPublish()}>
+                    {t('common.publish')}
                   </AsyncButton>
                 )}
-                {isEditActive && canDelete && (
-                  <DeleteConfirmModal onDelete={handleDelete} />
-                )}
               </>
-            ) : (
-              canEdit && (
-                <>
-                  <Button
-                    iconLeft="edit"
-                    type="button"
-                    visualType="secondary"
-                    onClick={() => setIsEditActive(true)}
-                  >
-                    {t('common.edit')}
-                  </Button>
-                  {canPublish && (
-                    <AsyncButton type="button" onClick={() => triggerPublish()}>
-                      {t('common.publish')}
-                    </AsyncButton>
-                  )}
-                </>
-              )
-            )}
-          </div>
+            )
+          )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }

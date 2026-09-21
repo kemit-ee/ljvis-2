@@ -65,6 +65,18 @@ export const BREADCRUMB_ROUTES: BreadcrumbRouteEntry[] = [
   { pattern: '/logs/:id', labelKey: 'breadcrumbs.logDetail', parent: '/logs' },
   { pattern: '/logs', labelKey: 'nav.logs', parent: '/' },
 
+  // Notification template
+  {
+    pattern: '/notification-template-mapping/:notificationType',
+    labelKey: 'breadcrumbs.notificationTemplateMappingDetail',
+    parent: '/notification-template-mapping',
+  },
+  {
+    pattern: '/notification-template-mapping',
+    labelKey: 'nav.notificationTemplateMapping',
+    parent: '/',
+  },
+
   // Admin / misc
   { pattern: '/admin/risk-scores', labelKey: 'nav.riskScores', parent: '/' },
   { pattern: '/admin/xroad-logs', labelKey: 'nav.xroadLogs', parent: '/' },

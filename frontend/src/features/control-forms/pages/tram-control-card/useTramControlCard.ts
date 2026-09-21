@@ -339,13 +339,13 @@ export function useTramControlCard(
     drivers: Yup.array().test('drivers-validation', '', function (drivers) {
       if (!drivers) return true;
       const req = t('forms.foreign_violation.validation.required');
-      // TRAM „Ei ole asjakohane" — autojuhi ees-/perekonnanime ei nõuta.
-      const driverNameNotRequired =
+      // TRAM „Ei ole asjakohane" — autojuhi ees-/perekonnanime/sünniaega ei nõuta.
+      const driverDataNotRequired =
         (this.parent as CompoundForm)?.driverNotApplicable === true;
       const errors: Yup.ValidationError[] = [];
       drivers.forEach((driver: Driver, index: number) => {
         if (index === 0) {
-          if (!driverNameNotRequired && !driver?.firstName)
+          if (!driverDataNotRequired && !driver?.firstName)
             errors.push(
               new Yup.ValidationError(
                 req,
@@ -353,7 +353,7 @@ export function useTramControlCard(
                 `drivers[${index}].firstName`,
               ),
             );
-          if (!driverNameNotRequired && !driver?.lastName)
+          if (!driverDataNotRequired && !driver?.lastName)
             errors.push(
               new Yup.ValidationError(
                 req,
@@ -361,7 +361,7 @@ export function useTramControlCard(
                 `drivers[${index}].lastName`,
               ),
             );
-          if (!driver?.birthDate)
+          if (!driverDataNotRequired && !driver?.birthDate)
             errors.push(
               new Yup.ValidationError(
                 req,
@@ -567,7 +567,7 @@ export function useTramControlCard(
           files: jstr(values.files),
         };
         if (values.id) {
-          if (isConfirming || isReconfirmedEdit) {
+          if (isConfirming) {
             await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else if (isPublishing) {
@@ -576,8 +576,10 @@ export function useTramControlCard(
           } else if (isRepublishedEdit) {
             await api.save(trimmedValues as unknown as CompoundForm);
             onPublished?.();
-          }
-          else {
+          } else if (isReconfirmedEdit) {
+            await api.save(trimmedValues as unknown as CompoundForm);
+            onConfirmed?.();
+          } else {
             await api.save(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();

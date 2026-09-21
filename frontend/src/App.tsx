@@ -52,6 +52,7 @@ import { GoodReputeFormCreatePage } from './features/control-forms/pages/good-re
 import { GoodReputeFormPage } from './features/control-forms/pages/good-repute-form/GoodReputeFormPage';
 import { DriveRestFormPage } from './features/control-forms/pages/drive-rest-form/DriveRestFormPage';
 import { TramControlCardPage } from './features/control-forms/pages/tram-control-card/TramControlCardPage';
+import { TramControlCardCreatePage } from './features/control-forms/pages/tram-control-card/TramControlCardCreatePage';
 import { FormSearchPage } from './features/control-forms/pages/search/FormSearchPage';
 import { CompanyFormsListPage } from './features/citizen/pages/CompanyFormsListPage/CompanyFormsListPage';
 import { CitizenDashboardPage } from './features/citizen/pages/CitizenDashboardPage/CitizenDashboardPage';
@@ -187,7 +188,7 @@ function AppRoutes() {
           />
           <Route
             path="/control-forms/tram-control-card/new"
-            element={<TramControlCardPage />}
+            element={<TramControlCardCreatePage />}
           />
           <Route
             path="/control-forms/tram-control-card/:id"

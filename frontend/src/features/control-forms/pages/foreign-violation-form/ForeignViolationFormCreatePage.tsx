@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Text } from '@tedi-design-system/react/tedi';
+import { Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useForeignViolationForm } from './useForeignViolationForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
@@ -60,40 +60,46 @@ export function ForeignViolationFormCreatePage() {
   return (
     <div>
       <form onSubmit={formik.handleSubmit}>
-        <div className="card-main">
-          <Heading element="h1">{t('forms.foreign_violation_form')}</Heading>
-        </div>
+        <Card>
+          <Card.Content className="pb-0">
+            <div className="card-main">
+              <Heading element="h1">
+                {t('forms.foreign_violation_form')}
+              </Heading>
+            </div>
 
-        <ForeignViolationFormFields
-          formik={formik as never}
-          readOnly={false}
-          isDesktop={isDesktop}
-          orgOptions={orgOptions}
-          structureUnits={structureUnits}
-          companySearchError={companySearchError}
-          setCompanySearchError={setCompanySearchError}
-          vehicleSearchError={vehicleSearchError}
-          setVehicleSearchError={setVehicleSearchError}
-          licenceCopyNumberError={licenceCopyNumberError}
-          setLicenceCopyNumberError={setLicenceCopyNumberError}
-          handleOrgChange={handleOrgChange}
-          handleStructuralUnitChange={handleStructuralUnitChange}
-          handleCompanyRegCodeSearch={handleCompanyRegCodeSearch}
-          handleCompanyNameSearch={handleCompanyNameSearch}
-          handleVehicleSearch={handleVehicleSearch}
-          handleLicenceCopyNumberSearch={handleLicenceCopyNumberSearch}
-          companyPickerResults={companyPickerResults}
-          onCompanyPicked={onCompanyPicked}
-          closeCompanyPicker={closeCompanyPicker}
-          associatedPersons={associatedPersons}
-          associatedPersonsLoading={associatedPersonsLoading}
-          counties={counties}
-          companyCitiesParishes={companyCitiesParishes}
-          handleCompanyCountyChange={handleCompanyCountyChange}
-          inspectionCitiesParishes={inspectionCitiesParishes}
-          handleInspectionRegionChange={handleInspectionRegionChange}
-          formType={FORM_TYPE.FOREIGN_VIOLATION}
-        />
+            <ForeignViolationFormFields
+              formik={formik as never}
+              readOnly={false}
+              isDesktop={isDesktop}
+              orgOptions={orgOptions}
+              structureUnits={structureUnits}
+              companySearchError={companySearchError}
+              setCompanySearchError={setCompanySearchError}
+              vehicleSearchError={vehicleSearchError}
+              setVehicleSearchError={setVehicleSearchError}
+              licenceCopyNumberError={licenceCopyNumberError}
+              setLicenceCopyNumberError={setLicenceCopyNumberError}
+              handleOrgChange={handleOrgChange}
+              handleStructuralUnitChange={handleStructuralUnitChange}
+              handleCompanyRegCodeSearch={handleCompanyRegCodeSearch}
+              handleCompanyNameSearch={handleCompanyNameSearch}
+              handleVehicleSearch={handleVehicleSearch}
+              handleLicenceCopyNumberSearch={handleLicenceCopyNumberSearch}
+              companyPickerResults={companyPickerResults}
+              onCompanyPicked={onCompanyPicked}
+              closeCompanyPicker={closeCompanyPicker}
+              associatedPersons={associatedPersons}
+              associatedPersonsLoading={associatedPersonsLoading}
+              counties={counties}
+              companyCitiesParishes={companyCitiesParishes}
+              handleCompanyCountyChange={handleCompanyCountyChange}
+              inspectionCitiesParishes={inspectionCitiesParishes}
+              handleInspectionRegionChange={handleInspectionRegionChange}
+              formType={FORM_TYPE.FOREIGN_VIOLATION}
+            />
+          </Card.Content>
+        </Card>
 
         <div className="page-actions">
           <div className="page-actions-buttons">

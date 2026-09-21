@@ -6,6 +6,13 @@
 
 ## 2026-09-21
 
+### X-tee OpenAPI kirjeldus on nüüd turvaserverile otse kättesaadav
+
+- Turvaserver saab nüüd LJVIS2 pakutavate X-tee teenuste OpenAPI 3.0
+  kirjelduse tõmmata otse teenuse URL-i pealt (`/ljvis/xroad/provide/openapi`)
+  ja seda automaatselt värskendada, ilma et faili tuleks käsitsi turvaserveri
+  admin liidesesse üles laadida. Vt [00-xtee-teenused-publikatsiooni-juhend.md §4.8](xtee/00-xtee-teenused-publikatsiooni-juhend.md#48-openapi-kirjelduse-registreerimine-turvaserveris).
+
 ### Koondvormi tehnokontrollkaardit ei saanud salvestada, kuigi sõiduki osa oli märgitud
 
 - Koondvormis (nt sõidukijuht + sõiduki tehnokontroll) ei saanud salvestada,

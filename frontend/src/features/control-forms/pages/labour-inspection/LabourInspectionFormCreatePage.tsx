@@ -50,48 +50,53 @@ export function LabourInspectionFormCreatePage() {
   return (
     <div>
       <form onSubmit={formik.handleSubmit}>
-        <div className="card-main">
-          <Heading element="h1">{t('forms.labour_inspection_form')}</Heading>
-        </div>
+        <Card>
+          <Card.Content className="pb-0">
+            <div className="card-main">
+              <Heading element="h1">
+                {t('forms.labour_inspection_form')}
+              </Heading>
+            </div>
 
-        {formError && (
-          <Alert type="danger" size="small" className="mb-1">
-            {formError}
-          </Alert>
-        )}
+            {formError && (
+              <Alert type="danger" size="small" className="mb-1">
+                {formError}
+              </Alert>
+            )}
 
-        <LabourInspectionFormFields
-          formik={formik}
-          gridClass={gridClass}
-          readOnly={false}
-          transportTypes={transportTypes}
-          violationClassifiers={violationClassifiers}
-          addMatrixRow={addMatrixRow}
-          updateMatrixRow={updateMatrixRow}
-          removeMatrixRow={removeMatrixRow}
-          addViolation={addViolation}
-          removeViolation={removeViolation}
-          handleCompanyRegSearch={handleCompanyRegSearch}
-          handleCompanyNameSearch={handleCompanyNameSearch}
-          companySearchError={companySearchError}
-          setCompanySearchError={setCompanySearchError}
-          companyPickerResults={companyPickerResults}
-          onCompanyPicked={onCompanyPicked}
-          closeCompanyPicker={closeCompanyPicker}
-        />
-        <Card className="mb-1">
-          <Card.Content>
-            <Heading element="h3" className="mb-1">
-              {t('forms.shared.files.label')}
-            </Heading>
-            <FileUploadBlock
-              formPath="labour-inspection"
-              disabled
-              label={t('form.files.title')}
+            <LabourInspectionFormFields
+              formik={formik}
+              gridClass={gridClass}
+              readOnly={false}
+              transportTypes={transportTypes}
+              violationClassifiers={violationClassifiers}
+              addMatrixRow={addMatrixRow}
+              updateMatrixRow={updateMatrixRow}
+              removeMatrixRow={removeMatrixRow}
+              addViolation={addViolation}
+              removeViolation={removeViolation}
+              handleCompanyRegSearch={handleCompanyRegSearch}
+              handleCompanyNameSearch={handleCompanyNameSearch}
+              companySearchError={companySearchError}
+              setCompanySearchError={setCompanySearchError}
+              companyPickerResults={companyPickerResults}
+              onCompanyPicked={onCompanyPicked}
+              closeCompanyPicker={closeCompanyPicker}
             />
+            <Card className="mb-1">
+              <Card.Content>
+                <Heading element="h3" className="mb-1">
+                  {t('forms.shared.files.label')}
+                </Heading>
+                <FileUploadBlock
+                  formPath="labour-inspection"
+                  disabled
+                  label={t('form.files.title')}
+                />
+              </Card.Content>
+            </Card>
           </Card.Content>
         </Card>
-
         <div className="page-actions">
           <div className="page-actions-buttons">
             <FormPrintButton endpoint="/v1/control-forms/labour-inspection/read/print" />

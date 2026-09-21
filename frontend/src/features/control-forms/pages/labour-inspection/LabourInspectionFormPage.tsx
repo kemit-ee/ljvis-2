@@ -147,44 +147,48 @@ export function LabourInspectionFormPage() {
       return <FormNotFoundView title={t('forms.labour_inspection_form')} />;
     return (
       <div>
-        <div className="card-main">
-          <Heading element="h1">
-            {snapshot.formNumber
-              ? `${snapshot.formNumber}/${snapshot.version ?? 1}`
-              : t('forms.labour_inspection_form')}
-          </Heading>
-        </div>
-        <LabourInspectionFormFields
-          formik={
-            {
-              values: snapshot,
-              touched: {},
-              errors: {},
-              setFieldValue: () => Promise.resolve(),
-            } as never
-          }
-          gridClass={gridClass}
-          readOnly
-          transportTypes={transportTypes}
-          violationClassifiers={violationClassifiers}
-          addMatrixRow={() => {}}
-          updateMatrixRow={() => {}}
-          removeMatrixRow={() => {}}
-          addViolation={() => {}}
-          removeViolation={() => {}}
-          formStatus={snapshot.status}
-        />
-        <Card className="mb-1">
-          <Card.Content>
-            <Heading element="h3" className="mb-1">
-              {t('forms.shared.files.label')}
-            </Heading>
-            <FileUploadBlock
-              formPath="labour-inspection"
-              formNumber={snapshot.formNumber}
-              disabled
-              label={t('form.files.title')}
+        <Card>
+          <Card.Content className="pb-0">
+            <div className="card-main">
+              <Heading element="h1">
+                {snapshot.formNumber
+                  ? `${snapshot.formNumber}/${snapshot.version ?? 1}`
+                  : t('forms.labour_inspection_form')}
+              </Heading>
+            </div>
+            <LabourInspectionFormFields
+              formik={
+                {
+                  values: snapshot,
+                  touched: {},
+                  errors: {},
+                  setFieldValue: () => Promise.resolve(),
+                } as never
+              }
+              gridClass={gridClass}
+              readOnly
+              transportTypes={transportTypes}
+              violationClassifiers={violationClassifiers}
+              addMatrixRow={() => {}}
+              updateMatrixRow={() => {}}
+              removeMatrixRow={() => {}}
+              addViolation={() => {}}
+              removeViolation={() => {}}
+              formStatus={snapshot.status}
             />
+            <Card className="mb-1">
+              <Card.Content>
+                <Heading element="h3" className="mb-1">
+                  {t('forms.shared.files.label')}
+                </Heading>
+                <FileUploadBlock
+                  formPath="labour-inspection"
+                  formNumber={snapshot.formNumber}
+                  disabled
+                  label={t('form.files.title')}
+                />
+              </Card.Content>
+            </Card>
           </Card.Content>
         </Card>
         <div className="page-actions">
@@ -250,109 +254,112 @@ export function LabourInspectionFormPage() {
           {t('forms.labour_inspection.unsavedChangesWarning')}
         </Alert>
       )}
-
-      <div className="card-main">
-        <Heading element="h1">
-          {form.formNumber
-            ? `${form.formNumber}/${form.version ?? 1}`
-            : t('forms.labour_inspection_form')}
-        </Heading>
-      </div>
-
-      <form onSubmit={formik.handleSubmit}>
-        <LabourInspectionFormFields
-          formik={formik}
-          gridClass={gridClass}
-          readOnly={!isEditActive}
-          transportTypes={transportTypes}
-          violationClassifiers={violationClassifiers}
-          addMatrixRow={addMatrixRow}
-          updateMatrixRow={updateMatrixRow}
-          removeMatrixRow={removeMatrixRow}
-          addViolation={addViolation}
-          removeViolation={removeViolation}
-          handleCompanyRegSearch={handleCompanyRegSearch}
-          handleCompanyNameSearch={handleCompanyNameSearch}
-          companySearchError={companySearchError}
-          setCompanySearchError={setCompanySearchError}
-          companyPickerResults={companyPickerResults}
-          onCompanyPicked={onCompanyPicked}
-          closeCompanyPicker={closeCompanyPicker}
-          formStatus={form.status}
-        />
-        <Card className="mb-1">
-          <Card.Content>
-            <Heading element="h3" className="mb-1">
-              {t('forms.shared.files.label')}
+      <Card>
+        <Card.Content className="pb-0">
+          <div className="card-main">
+            <Heading element="h1">
+              {form.formNumber
+                ? `${form.formNumber}/${form.version ?? 1}`
+                : t('forms.labour_inspection_form')}
             </Heading>
-            <FileUploadBlock
-              formPath="labour-inspection"
-              formNumber={form.formNumber}
-              disabled={!isEditActive}
-              label={t('form.files.title')}
-            />
-          </Card.Content>
-        </Card>
-        {id && (
-          <FormVersionsTable
-            formId={id}
-            formType={FORM_TYPE.LABOUR_INSPECTION}
-            refreshKey={versionsRefreshKey}
-          />
-        )}
+          </div>
 
-        <div className="page-actions">
-          <div className="page-actions-buttons">
-            <FormPrintButton
-              endpoint="/v1/control-forms/labour-inspection/read/print"
-              id={id}
+          <form onSubmit={formik.handleSubmit}>
+            <LabourInspectionFormFields
+              formik={formik}
+              gridClass={gridClass}
+              readOnly={!isEditActive}
+              transportTypes={transportTypes}
+              violationClassifiers={violationClassifiers}
+              addMatrixRow={addMatrixRow}
+              updateMatrixRow={updateMatrixRow}
+              removeMatrixRow={removeMatrixRow}
+              addViolation={addViolation}
+              removeViolation={removeViolation}
+              handleCompanyRegSearch={handleCompanyRegSearch}
+              handleCompanyNameSearch={handleCompanyNameSearch}
+              companySearchError={companySearchError}
+              setCompanySearchError={setCompanySearchError}
+              companyPickerResults={companyPickerResults}
+              onCompanyPicked={onCompanyPicked}
+              closeCompanyPicker={closeCompanyPicker}
+              formStatus={form.status}
             />
-            {isEditActive ? (
-              <>
-                <Button
-                  type="button"
-                  visualType="secondary"
-                  onClick={() => {
-                    formik.resetForm();
-                    setIsEditActive(false);
-                  }}
-                >
-                  {t('common.cancel')}
-                </Button>
-                <AsyncButton type="button" onClick={() => formik.submitForm()}>
-                  {t('common.save')}
+            <Card className="mb-1">
+              <Card.Content>
+                <Heading element="h3" className="mb-1">
+                  {t('forms.shared.files.label')}
+                </Heading>
+                <FileUploadBlock
+                  formPath="labour-inspection"
+                  formNumber={form.formNumber}
+                  disabled={!isEditActive}
+                  label={t('form.files.title')}
+                />
+              </Card.Content>
+            </Card>
+            {id && (
+              <FormVersionsTable
+                formId={id}
+                formType={FORM_TYPE.LABOUR_INSPECTION}
+                refreshKey={versionsRefreshKey}
+              />
+            )}
+          </form>
+        </Card.Content>
+      </Card>
+
+      <div className="page-actions">
+        <div className="page-actions-buttons">
+          <FormPrintButton
+            endpoint="/v1/control-forms/labour-inspection/read/print"
+            id={id}
+          />
+          {isEditActive ? (
+            <>
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  formik.resetForm();
+                  setIsEditActive(false);
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+              <AsyncButton type="button" onClick={() => formik.submitForm()}>
+                {t('common.save')}
+              </AsyncButton>
+              {canConfirm && (
+                <AsyncButton type="button" onClick={() => triggerConfirm()}>
+                  {t('common.confirm')}
                 </AsyncButton>
-                {canConfirm && (
-                  <AsyncButton type="button" onClick={() => triggerConfirm()}>
-                    {t('common.confirm')}
+              )}
+            </>
+          ) : (
+            canEdit && (
+              <>
+                <AsyncButton
+                  type="button"
+                  iconLeft="edit"
+                  visualType="secondary"
+                  onClick={() => setIsEditActive(true)}
+                >
+                  {t('common.edit')}
+                </AsyncButton>
+                {canPublish && (
+                  <AsyncButton type="button" onClick={() => triggerPublish()}>
+                    {t('common.publish')}
                   </AsyncButton>
                 )}
               </>
-            ) : (
-              canEdit && (
-                <>
-                  <AsyncButton
-                    type="button"
-                    iconLeft="edit"
-                    visualType="secondary"
-                    onClick={() => setIsEditActive(true)}
-                  >
-                    {t('common.edit')}
-                  </AsyncButton>
-                  {canPublish && (
-                    <AsyncButton type="button" onClick={() => triggerPublish()}>
-                      {t('common.publish')}
-                    </AsyncButton>
-                  )}
-                </>
-              )
-            )}
-            {isEditActive && canDelete && (
-              <DeleteConfirmModal onDelete={handleDelete} />
-            )}
-          </div>
+            )
+          )}
+          {isEditActive && canDelete && (
+            <DeleteConfirmModal onDelete={handleDelete} />
+          )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }

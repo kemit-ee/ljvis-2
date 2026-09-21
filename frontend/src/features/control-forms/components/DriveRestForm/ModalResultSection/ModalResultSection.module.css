@@ -5,6 +5,10 @@
     margin-bottom: 0.75rem;
 }
 
+.headerFlexEnd {
+    justify-content: flex-end;
+}
+
 .dropdown {
     background: #fff;
     border: 1px solid #d1d5db;
