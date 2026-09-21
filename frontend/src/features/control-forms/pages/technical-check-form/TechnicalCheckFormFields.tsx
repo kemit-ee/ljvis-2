@@ -216,8 +216,19 @@ export function TechnicalCheckFormFields({
             label={t('forms.technical_check.result.resultType')}
             inputType="radio"
             direction="row"
-            value={values.resultType ?? 'ok'}
-            onChange={(val) => canEdit && setResultType(val as string)}
+            value={
+              // "Muu meede" is an independent flag, not a resultType value —
+              // while it's on and resultType is still the (unescalated) 'ok'
+              // default, show no radio option as selected.
+              values.otherMeasure && (values.resultType ?? 'ok') === 'ok'
+                ? ''
+                : (values.resultType ?? 'ok')
+            }
+            onChange={(val) => {
+              if (!canEdit) return;
+              setResultType(val as string);
+              if (val === 'ok') formik.setFieldValue('otherMeasure', false);
+            }}
             items={RESULT_OPTIONS.map((opt) => ({
               id: `resultType-${opt}`,
               value: opt,
@@ -234,14 +245,41 @@ export function TechnicalCheckFormFields({
               : {})}
           />
 
+          <div className="mt-1">
+            <ChoiceGroup
+              id="otherMeasure"
+              name="otherMeasure"
+              label={t('forms.technical_check.result.otherMeasure')}
+              hideLabel
+              inputType="checkbox"
+              value={values.otherMeasure ? ['true'] : []}
+              onChange={(val) =>
+                canEdit &&
+                formik.setFieldValue(
+                  'otherMeasure',
+                  Array.isArray(val) ? val.includes('true') : val === 'true',
+                )
+              }
+              items={[
+                {
+                  id: 'otherMeasure-item',
+                  value: 'true',
+                  label: t('forms.technical_check.result.otherMeasure'),
+                  disabled: !canEdit,
+                },
+              ]}
+            />
+          </div>
+
           {values.resultType === 'driving_ban' && (
             <div className="mt-1">
               <ChoiceGroup
                 id="resultTransportInterruption"
                 name="resultTransportInterruption"
                 label={t('forms.technical_check.result.transportInterruption')}
+                hideLabel
                 inputType="checkbox"
-                value={values.resultTransportInterruption ? 'true' : ''}
+                value={values.resultTransportInterruption ? ['true'] : []}
                 onChange={(val) =>
                   canEdit &&
                   formik.setFieldValue(
@@ -337,7 +375,7 @@ export function TechnicalCheckFormFields({
             </div>
           )}
 
-          {values.resultType !== 'ok' && (
+          {(values.resultType !== 'ok' || values.otherMeasure) && (
             <div className="mt-1">
               <ChoiceGroup
                 id="proceedingType"
@@ -387,8 +425,9 @@ export function TechnicalCheckFormFields({
                   id="transportInterruptionAutovs5131"
                   name="transportInterruptionAutovs5131"
                   label={t('forms.technical_check.result.autovs5131')}
+                  hideLabel
                   inputType="checkbox"
-                  value={values.transportInterruptionAutovs5131 ? 'true' : ''}
+                  value={values.transportInterruptionAutovs5131 ? ['true'] : []}
                   onChange={(val) =>
                     canEdit &&
                     formik.setFieldValue(

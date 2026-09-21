@@ -509,6 +509,7 @@
           "extraordinary_inspection_ta": "Referred for extraordinary roadworthiness test with Transport Administration data verification",
           "driving_ban": "Driving ban"
         },
+        "otherMeasure": "Other measure",
         "transportInterruption": "Road transport interrupted",
         "taFieldsTitle": "Transport Administration verification",
         "taRegnr": "Registration number (A)",

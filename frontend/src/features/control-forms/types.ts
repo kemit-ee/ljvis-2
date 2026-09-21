@@ -363,6 +363,11 @@ export interface TechnicalCheckForm {
   /** Autovedu on katkestatud AutoVS § 51 lg 3 p 1 alusel — sõltumatu
    *  lisameede, kuvatakse menetluse liigi sektsiooni juures (15 ettepanekut p6). */
   transportInterruptionAutovs5131?: boolean;
+  /** "Muu meede" — sõltumatu lisameede paralleelselt result_type raadionupuga
+   *  (nt punkti 10, veose kinnitamine, rikke korral, mis ise result_type'i ei
+   *  eskaleeri). Sisselülitamine avab väärteomenetluse ja veo katkestamise
+   *  andmeväljad, mõjutamata resultType salvestatud väärtust. */
+  otherMeasure?: boolean;
   eraYvMntRegnr?: boolean;
   eraYvMntVintin?: boolean;
   eraYvMntAxles?: boolean;

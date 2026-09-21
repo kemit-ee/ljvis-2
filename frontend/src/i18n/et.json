@@ -622,6 +622,7 @@
           "extraordinary_inspection_ta": "Suunatud erakorralisele tehnoülevaatusele liiklusregistri andmete täpsustamiseks Transpordiametis",
           "driving_ban": "Sõidukeeld"
         },
+        "otherMeasure": "Muu meede",
         "transportInterruption": "Autovedu on katkestatud",
         "taFieldsTitle": "Transpordiameti täpsustus",
         "taRegnr": "Registreerimisnumber (A)",

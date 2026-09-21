@@ -38,6 +38,9 @@ returns:
 - name: transportInterruptionAutovs5131
   type: string
   nullable: true
+- name: otherMeasure
+  type: string
+  nullable: true
 - name: proceedingType
   type: string
   nullable: true
@@ -76,6 +79,7 @@ SELECT
   result_type,
   result_transport_interruption,
   transport_interruption_autovs_51_3_1,
+  other_measure,
   proceeding_type,
   proceeding_reference_number,
   violations::text,
