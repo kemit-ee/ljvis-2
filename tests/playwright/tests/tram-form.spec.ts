@@ -7,6 +7,7 @@ import {
 import {
   checkChoiceById,
   expectFieldError,
+  expectNoFieldError,
   hasRequiredMark,
   fillMaskedDate,
 } from '../support/tedi';
@@ -56,7 +57,7 @@ test.describe('TRAM kontrollkaart — validatsioon', () => {
 });
 
 test.describe('TRAM kontrollkaart — "Ei ole asjakohane"', () => {
-  test('märkeruut eemaldab juhi nime kohustuslikkuse (sünniaeg jääb)', async ({
+  test('märkeruut eemaldab juhi nime ja sünniaja kohustuslikkuse', async ({
     page,
   }) => {
     await page.goto(NEW);
@@ -87,12 +88,12 @@ test.describe('TRAM kontrollkaart — "Ei ole asjakohane"', () => {
         .toBe(false);
     });
 
-    await test.step('salvestamisel ei nõuta juhi nime, kuid nõutakse sünniaega', async () => {
+    await test.step('salvestamisel ei nõuta juhi nime ega sünniaega', async () => {
       await page.getByRole('button', { name: 'Salvesta' }).click();
       await expect(
         page.locator(`#${TRAM_DRIVER_IDS.firstName}-helper`),
       ).toHaveCount(0);
-      await expectFieldError(page, TRAM_DRIVER_IDS.birthDate);
+      await expectNoFieldError(page, TRAM_DRIVER_IDS.birthDate);
     });
   });
 
