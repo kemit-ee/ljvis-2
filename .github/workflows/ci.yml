@@ -94,7 +94,7 @@ jobs:
               refs = set()
               if isinstance(obj, dict):
                   for k, v in obj.items():
-                      if k == 'next' and isinstance(v, str):
+                      if k in ('next', 'error') and isinstance(v, str):
                           refs.add(v)
                       else:
                           refs.update(collect_next_refs(v))

@@ -6,6 +6,15 @@
 
 ## 2026-09-21
 
+### Koondvormi tehnokontrollkaardit ei saanud salvestada, kuigi sõiduki osa oli märgitud
+
+- Koondvormis (nt sõidukijuht + sõiduki tehnokontroll) ei saanud salvestada,
+  kuigi vähemalt üks sõiduki osa/sõlm oli tehnokontrolli plokis "Kontrollitud"
+  või "Mittevastav" märkega — vormil kuvati ekslikult "Salvestamiseks peab
+  olema vähemalt üks sõiduki osa või sõlm kontrollitud", ehkki see tingimus
+  oli tegelikult täidetud. Valideerimisreegel kontrollis vananenud andmevälja,
+  mida enam ei kirjutata; nüüd kontrollib õigeid välju ja salvestamine töötab.
+
 ### Mootorsõiduki/haagise tehnokontrollkaardi veo katkestamise märget ei saanud eemaldada
 
 - "Autovedu on katkestatud" märkeruutu (kuvatakse Sõidukeelu valimisel) sai
