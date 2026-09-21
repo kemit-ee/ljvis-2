@@ -544,14 +544,21 @@ flowchart LR
 
 ### 4.2 Sihtaadress
 
-| Parameeter | Väärtus |
-|---|---|
-| **Protokoll** | HTTP (Docker-sisevõrgus) |
-| **Hostinimi** | `ruuter-internal` (Docker network) |
-| **Port** | `8080` |
-| **Tee prefiks** | `/ljvis` (automaatne Ruuteri DSL-i tee) |
+Turvaserver edastab X-tee päringud otse Ruuter.internal-ile. Turvaserver ei asu Docker-võrgus, seega kasutab hosti välist aadressi:
 
-**Täielik URL näide:**
+| Parameeter | Docker-sisevõrk | Turvaserveri vaade |
+|---|---|---|
+| **Protokoll** | HTTP | HTTP |
+| **Hostinimi** | `ruuter-internal` | `ljvis2dev.xtpnl.kemitaws.ee` |
+| **Port** | `8080` | `8089` |
+| **Tee prefiks** | `/ljvis` | `/ljvis` |
+
+**Täielik URL turvaserverile (DEV):**
+```
+http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/isiku-kontroll
+```
+
+**Täielik URL Docker-sisevõrgust:**
 ```
 http://ruuter-internal:8080/ljvis/xroad/provide/isiku-kontroll
 ```

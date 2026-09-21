@@ -167,6 +167,11 @@ services:
     build:
       context: .
       dockerfile: docker/data-mapper/Dockerfile
+    environment:
+      # 0.2.0-alpha+ env_safety refuses to boot outside dev if unset (falls
+      # back to Production). CI has no secrets in the DSL tree, so dev is
+      # the correct posture here.
+      - APP_ENV=dev
     restart: unless-stopped
     depends_on:
       - bootstrap

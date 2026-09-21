@@ -74,12 +74,10 @@ export function LabourInspectionFormPage() {
   const canDelete = isAdmin && form?.status !== 'deleted';
   const canConfirm =
     (isAdmin || hasPermission('labour_inspection_form.write')) &&
-    form?.status === 'saved' &&
-    (form?.violations?.length ?? 0) === 0;
+    form?.status === 'saved';
   const canPublish =
     (isAdmin || hasPermission('labour_inspection_form.write')) &&
-    form?.status === 'confirmed' &&
-    (form?.violations?.length ?? 0) === 0;
+    form?.status === 'confirmed';
 
   const handleEditSaved = () => {
     window.scrollTo(0, 0);

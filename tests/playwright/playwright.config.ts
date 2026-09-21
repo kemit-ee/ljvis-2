@@ -52,6 +52,14 @@ export default defineConfig({
     actionTimeout: 15_000,
     // Esimene navigatsioon route'ile käivitab vite külmkompileerimise.
     navigationTimeout: 60_000,
+    // Vaikimisi tegevuste vahel ootamist ei ole. Visuaalseks jälgimiseks
+    // saab LJVIS_PW_SLOWMO env'iga (millisekundites) tegevuste vahele
+    // pausi lisada.
+    launchOptions: {
+      slowMo: process.env.LJVIS_PW_SLOWMO
+        ? Number(process.env.LJVIS_PW_SLOWMO)
+        : undefined,
+    },
   },
 
   projects: [

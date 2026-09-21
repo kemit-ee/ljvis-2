@@ -68,7 +68,6 @@ interface ForeignViolationFormFieldsProps {
   associatedPersonsLoading?: boolean;
   formType?: string;
   showAdminSection?: boolean;
-  isPublished?: boolean;
 }
 
 const recommendedMeasureOptions = [
@@ -164,7 +163,6 @@ export function ForeignViolationFormFields({
   associatedPersons,
   associatedPersonsLoading,
   showAdminSection,
-  isPublished,
 }: ForeignViolationFormFieldsProps) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
@@ -1427,66 +1425,60 @@ export function ForeignViolationFormFields({
         </Card>
       )}
 
-      {isPublished && (
-        <Card className="mb-1">
-          <Card.Content>
-            <Heading element="h3" className="mb-1">
-              {t('forms.foreign_violation.notifications.title')}
-            </Heading>
-            <Text element="p" className="mb-1">
-              {t('forms.foreign_violation.notifications.hint')}
-            </Text>
-            <ChoiceGroup
-              id="vrNotificationCheckboxes"
-              name="vrNotificationCheckboxes"
-              inputType="checkbox"
-              label=""
-              value={[
-                ...(values.foreignAuthorityProposal
-                  ? ['foreignAuthorityProposal']
-                  : []),
-                ...(values.notifyCarrier ? ['notifyCarrier'] : []),
-              ]}
-              items={[
-                {
-                  id: 'foreignAuthorityProposal',
-                  label: t(
-                    'forms.foreign_violation.notifications.foreignProposal',
-                  ),
-                  value: 'foreignAuthorityProposal',
-                  disabled:
-                    readOnly || Boolean(values.foreignAuthorityProposal),
-                },
-                {
-                  id: 'notifyCarrier',
-                  label: t(
-                    'forms.foreign_violation.notifications.notifyCarrier',
-                  ),
-                  value: 'notifyCarrier',
-                  disabled: readOnly || Boolean(values.notifyCarrier),
-                },
-              ]}
-              onChange={(val) => {
-                if (!readOnly) {
-                  const vals = Array.isArray(val) ? val : [val];
-                  if (!values.foreignAuthorityProposal) {
-                    setFieldValue(
-                      'foreignAuthorityProposal',
-                      vals.includes('foreignAuthorityProposal'),
-                    );
-                  }
-                  if (!values.notifyCarrier) {
-                    setFieldValue(
-                      'notifyCarrier',
-                      vals.includes('notifyCarrier'),
-                    );
-                  }
+      <Card className="mb-1">
+        <Card.Content>
+          <Heading element="h3" className="mb-1">
+            {t('forms.foreign_violation.notifications.title')}
+          </Heading>
+          <Text element="p" className="mb-1">
+            {t('forms.foreign_violation.notifications.hint')}
+          </Text>
+          <ChoiceGroup
+            id="vrNotificationCheckboxes"
+            name="vrNotificationCheckboxes"
+            inputType="checkbox"
+            label=""
+            value={[
+              ...(values.foreignAuthorityProposal
+                ? ['foreignAuthorityProposal']
+                : []),
+              ...(values.notifyCarrier ? ['notifyCarrier'] : []),
+            ]}
+            items={[
+              {
+                id: 'foreignAuthorityProposal',
+                label: t(
+                  'forms.foreign_violation.notifications.foreignProposal',
+                ),
+                value: 'foreignAuthorityProposal',
+                disabled: readOnly || Boolean(values.foreignAuthorityProposal),
+              },
+              {
+                id: 'notifyCarrier',
+                label: t(
+                  'forms.foreign_violation.notifications.notifyCarrier',
+                ),
+                value: 'notifyCarrier',
+                disabled: readOnly || Boolean(values.notifyCarrier),
+              },
+            ]}
+            onChange={(val) => {
+              if (!readOnly) {
+                const vals = Array.isArray(val) ? val : [val];
+                if (!values.foreignAuthorityProposal) {
+                  setFieldValue(
+                    'foreignAuthorityProposal',
+                    vals.includes('foreignAuthorityProposal'),
+                  );
                 }
-              }}
-            />
-          </Card.Content>
-        </Card>
-      )}
+                if (!values.notifyCarrier) {
+                  setFieldValue('notifyCarrier', vals.includes('notifyCarrier'));
+                }
+              }
+            }}
+          />
+        </Card.Content>
+      </Card>
 
       <Card className="mb-1">
         <Card.Content>
