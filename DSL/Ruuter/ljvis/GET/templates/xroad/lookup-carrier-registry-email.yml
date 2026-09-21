@@ -1,0 +1,155 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Ühine äriregistri (arireg.detailandmed_v1) e-posti otsingu + logimise
+    tee (NCR->välisriigi kontrollkaart andmeülekande testimise plaan, p.8).
+    Varem kutsuti XTR-i otse mitmes kohas (foreign-violation-form/edit/publish.yml
+    lookupCarrierRegistryData, ja punkt 6 UI jaoks planeeritud uus otspunkt)
+    igaüks oma käsitsi lisatud xroad.xroad_integration_log kirjega — see
+    template koondab loogika ÜHTE kohta, et kõik kutsujad (save.yml,
+    carrier-registry-email.yml GET otspunkt) logiksid täpselt samamoodi ja
+    samale service_code'ile ('arireg.detailandmed_v1.v1'), nagu ka
+    DSL/Ruuter/ljvis/POST/v1/xroad/arireg/detailandmed.yml kasutab.
+    NB: erinevalt detailandmed.yml-ist, mis logib response_xml tühjana,
+    logib SEE template reaalse vastuse (JSON.stringify) — kliendi kaebus
+    "ei näe logikirjet" tuleneb tõenäoliselt sellest, et vastust ise ei
+    saanud kunagi kontrollida, ainult see, et kutse üldse toimus.
+    Tagastab JSON-stringina: {"email":"...","found":true|false}.
+  namespace: service
+  allowlist:
+    body:
+      - field: companyRegCode
+        type: string
+      - field: sourceType
+        type: string
+      - field: sourceRecordId
+        type: string
+
+extractParams:
+  assign:
+    company_reg_code: "${(incoming.body.companyRegCode || '').trim()}"
+    source_type: "${incoming.body.sourceType || ''}"
+    source_record_id: "${incoming.body.sourceRecordId || ''}"
+    start_time: "${new Date().getTime()}"
+  next: checkRegCode
+
+checkRegCode:
+  switch:
+    - condition: ${company_reg_code === ''}
+      next: returnEmpty
+  next: callXtr
+
+callXtr:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/detailandmed_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${company_reg_code}
+  result: carrierRegistryRes
+  error: logNetworkFailure
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: >-
+        ${carrierRegistryRes.response == null || carrierRegistryRes.response.status == null || carrierRegistryRes.response.status < 200 || carrierRegistryRes.response.status >= 300}
+      next: logStatusFailure
+  next: logSuccess
+
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'regCode=' + company_reg_code}"
+      response_xml: "${JSON.stringify(carrierRegistryRes.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logRes
+  error: extractEmail
+  next: extractEmail
+
+logStatusFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'regCode=' + company_reg_code}"
+      response_xml: "${JSON.stringify(carrierRegistryRes.response.body)}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'XTR HTTP ' + carrierRegistryRes.response.status}"
+      person_identifier: ""
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logFailRes
+  error: returnNotFound
+  next: returnNotFound
+
+logNetworkFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'regCode=' + company_reg_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "Äriregister ei ole kättesaadav või päring aegus"
+      person_identifier: ""
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+  result: logNetFailRes
+  error: returnNotFound
+  next: returnNotFound
+
+# Sama sidevahendite-parsimise loogika mis varem publish.yml
+# extractCarrierEmail-is — vt sealne TÄHELEPANU-kommentaar: JSON-tee pärast
+# XTR SOAP->JSON teisendust ei ole päris X-tee vastuse vastu valideeritud.
+extractEmail:
+  assign:
+    carrier_email: >-
+      ${(() => {
+        var body = carrierRegistryRes.response && carrierRegistryRes.response.body;
+        if (!body) return '';
+        var list = body.ettevotjad || (body.keha && body.keha.ettevotjad) || body.item || body;
+        var company = Array.isArray(list) ? list[0] : list;
+        if (!company) return '';
+        var yld = company.yldandmed || company;
+        var sv = (yld && yld.sidevahendid) || company.sidevahendid;
+        if (sv && sv.item) sv = sv.item;
+        var svList = Array.isArray(sv) ? sv : (sv ? [sv] : []);
+        var match = svList.find(function(s) {
+          return s && typeof s.liik === 'string' && s.liik.toUpperCase().indexOf('POST') !== -1;
+        });
+        return (match && (match.sisu || match.vaartus || match.value)) || '';
+      })()}
+  next: returnResult
+
+returnResult:
+  return: "${JSON.stringify({ email: carrier_email, found: carrier_email !== '' })}"
+  next: end
+
+returnNotFound:
+  return: '{"email":"","found":false}'
+  next: end
+
+returnEmpty:
+  return: '{"email":"","found":false}'
+  next: end

@@ -92,6 +92,8 @@ declaration:
         type: string
       - field: notifyCarrier
         type: string
+      - field: notifyLaborInspector
+        type: string
       - field: violations
         type: string
       - field: dataEntryDate
@@ -153,6 +155,7 @@ extractRequestData:
     admin_procedure_decision: "${incoming.body.adminProcedureDecision}"
     foreign_authority_proposal: "${incoming.body.foreignAuthorityProposal}"
     notify_carrier: "${incoming.body.notifyCarrier}"
+    notify_labor_inspector: "${incoming.body.notifyLaborInspector}"
     violations: "${incoming.body.violations}"
     data_entry_date: "${incoming.body.dataEntryDate}"
     inspector_first_name: "${incoming.body.inspectorFirstName}"
@@ -248,6 +251,7 @@ insertForm:
       adminProcedureDecision: ${admin_procedure_decision}
       foreignAuthorityProposal: ${foreign_authority_proposal}
       notifyCarrier: ${notify_carrier}
+      notifyLaborInspector: ${notify_labor_inspector}
       violations: ${violations}
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}
@@ -361,6 +365,104 @@ extractResult:
 parseChangedFieldsResult:
   assign:
     changed_fields_result: ${parsed_result.changed_fields}
+  next: computeNotifyTransitions
+
+# --- Teavituse saatmine salvestamisel (p.5, kolitud publish.yml-ist) ---
+# Saatmine käivitub false->true üleminekul (mitte iga korra, kui checkbox on
+# true, vastasel juhul saadetaks uuesti igal salvestusel, kuni kasutaja
+# lipu käsitsi maha võtab). Lipp lülitatakse update'i sees kohe tagasi
+# false-ks (finalizeNotifyFlags allpool) — saatmise fakt/kuupäev säilib
+# notifications.outbound_log-is (append-only), mitte kaardi enda veerus.
+computeNotifyTransitions:
+  assign:
+    old_notify_carrier: "${Boolean(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyCarrier)}"
+    old_notify_labor_inspector: "${Boolean(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyLaborInspector)}"
+    send_carrier_notification: "${!(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyCarrier) && notify_carrier === 'true'}"
+    send_labor_inspector_notification: "${!(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyLaborInspector) && notify_labor_inspector === 'true'}"
+    notification_form_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].formNumber) || ''}"
+  next: checkSendCarrierNotification
+
+checkSendCarrierNotification:
+  switch:
+    - condition: ${send_carrier_notification}
+      next: lookupCarrierEmailForNotification
+  next: checkSendLaborInspectorNotification
+
+# Äriregistri e-posti otsing käib jagatud template'i kaudu (p.8) — mitte
+# otse XTR-i, nagu varem publish.yml lookupCarrierRegistryData tegi. Sama
+# template teenindab ka p.6 UI otspunkti (GET carrier-registry-email.yml).
+lookupCarrierEmailForNotification:
+  template: "templates/xroad/lookup-carrier-registry-email"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    companyRegCode: ${company_reg_code}
+    sourceType: "foreign_violation_form"
+    sourceRecordId: ${id}
+  result: carrierLookupResult
+  error: checkSendLaborInspectorNotification
+  next: parseCarrierLookupResult
+
+parseCarrierLookupResult:
+  assign:
+    carrier_email: "${(JSON.parse(carrierLookupResult) || {}).email || ''}"
+  next: sendCarrierNotification
+
+# send-postkast.yml on best-effort: kutsujat ei tohi 500-tada, ka kui aadress
+# puudub/on vale (vt sealne checkRecipientFormat) või Postkast 2.0 ei vasta.
+sendCarrierNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "carrier_violation"
+      recipient_email: ${carrier_email}
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: carrierNotifRes
+  error: checkSendLaborInspectorNotification
+  next: checkSendLaborInspectorNotification
+
+checkSendLaborInspectorNotification:
+  switch:
+    - condition: ${send_labor_inspector_notification}
+      next: sendLaborInspectorNotification
+  next: finalizeNotifyFlags
+
+# Taaskasutab 'labor_foreign_proposal' malli/adressaati (tööinspektor) —
+# sama teavituse liik, mida varem päästis foreignAuthorityProposal fakt,
+# nüüd päästab eraldiseisev notifyLaborInspector checkbox (p.5).
+sendLaborInspectorNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_foreign_proposal"
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: laborInspectorNotifRes
+  error: finalizeNotifyFlags
+  next: finalizeNotifyFlags
+
+finalizeNotifyFlags:
+  assign:
+    notify_carrier_persisted: "${send_carrier_notification ? 'false' : notify_carrier}"
+    notify_labor_inspector_persisted: "${send_labor_inspector_notification ? 'false' : notify_labor_inspector}"
   next: updateForm
 
 updateForm:
@@ -413,7 +515,8 @@ updateForm:
       commissionLastDecisionDate: ${commission_last_decision_date}
       adminProcedureDecision: ${admin_procedure_decision}
       foreignAuthorityProposal: ${foreign_authority_proposal}
-      notifyCarrier: ${notify_carrier}
+      notifyCarrier: ${notify_carrier_persisted}
+      notifyLaborInspector: ${notify_labor_inspector_persisted}
       violations: ${violations}
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}
@@ -432,11 +535,9 @@ checkUpdateSaved:
       next: returnResqlSaveError
   next: extractUpdateResponseData
 
-# Avalikustatud vormil märgitud teavituste (foreignAuthorityProposal /
-# notifyCarrier — LJVIS2 VR ettepanek 10) saatmine toimub ainuüksi
-# avalikustamise hetkel, vt edit/publish.yml — sest vorm saab avalikustuda
-# ainult üks kord, see on ainuke koht, kus lippude tõesus on üheselt
-# tõlgendatav "saada nüüd" signaal ilma flip/dubleerimise probleemideta.
+# Teavituste saatmine (notifyCarrier / notifyLaborInspector) toimub eespool
+# (computeNotifyTransitions..finalizeNotifyFlags) — LJVIS2 VR ettepanek 10,
+# refaktoritud p.5 järgi publish.yml-ist siia, korduva saatmise toega.
 
 extractUpdateResponseData:
   assign:

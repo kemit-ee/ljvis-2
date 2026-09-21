@@ -63,6 +63,12 @@ export const publishForeignViolationForm = (id: string) =>
     { id: String(id) },
   );
 
+export const getCarrierRegistryEmail = (companyRegCode: string, id?: string) =>
+  get<{ email: string; found: boolean }>(
+    '/v1/control-forms/foreign-violation-form/carrier-registry-email',
+    { companyRegCode, id: id ?? '' },
+  );
+
 export const createVrFormFromNcr = (businessCaseId: string) =>
   post<{ id: string; formNumber: string; version: number }[]>(
     `/v1/control-forms/foreign-violation-form/edit/create-from-ncr`,

@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261121100000 ignore:true splitStatements:false
+-- changeset ljvis:20261124100000 ignore:true splitStatements:false
 --
 -- *** AJUTINE — ÜHEKORDNE TESTANDMESTIK, EEMALDA PEALE KLIENDI TESTIMISE LÕPPU ***
 --
