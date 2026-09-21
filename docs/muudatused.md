@@ -4,6 +4,39 @@
 
 ---
 
+## 2026-09-21
+
+### Mootorsõiduki/haagise tehnokontrollkaardi veo katkestamise märget ei saanud eemaldada
+
+- "Autovedu on katkestatud" märkeruutu (kuvatakse Sõidukeelu valimisel) sai
+  ainult sisse lülitada — väljalülitamiseks kasutatud märke sisse polnud
+  võimalik enam kunagi eemaldada. Sama viga oli ka AutoVS § 51³ lisameetme
+  märkeruudul. Mõlemad on nüüd tavaliselt sisse/välja lülitatavad.
+- Sama märkeruudu tekst ei kordu enam kahel real (pealkiri ja märkeruudu
+  enda tekst olid identsed) — jääb alles ainult märkeruudu ees olev rida.
+
+### Tehnokontrollkaardile lisandus "Muu meede"
+
+- Kui punkti 10 (veose kinnitamine) all on VO/OV/EOV rike, ei tõsta see
+  automaatselt kontrolli tulemust erakorralisele tehnoülevaatusele ega
+  sõidukeelule (kuna see on veose, mitte sõiduki enda rike) — tulemuseks
+  jääb "Tehniliselt korras". Sellise rikke kõige sagedasem meede on siiski
+  väärteomenetlus või veo katkestamine, mistõttu lisandus "Kontrolli
+  tulemus" plokki Sõidukeelu rea alla omaette märkeruut "Muu meede" —
+  selle sisselülitamine eemaldab "Tehniliselt korras" märke ja avab
+  väärteomenetluse ning veo katkestamise andmeväljad täitmiseks, mõjutamata
+  ise kontrolli tulemuse salvestatud väärtust.
+
+### Autojuhi "Tühisõit" ja "Tegevusloa nõudest vabastatud vedu" ei kandunud meeskonnaliikme vormile
+
+- Veo liik ja veoklassid kanduvad autojuhi sõidu- ja puhkeaja kontrollvormilt
+  meeskonnaliikme vormile juba automaatselt, kuid "Tühisõit" ja "Tegevusloa
+  nõudest vabastatud vedu" märked jäid kandmata — andmebaasipäring, mis
+  meeskonnaliikme vormi salvestamisel need väljad autojuhi vormilt üle
+  võtab, ei hõlmanud neid kahte välja. Nüüd käituvad kõik neli välja
+  (veo liik, veoklassid, tühisõit, tegevusloa nõudest vabastatud vedu)
+  ühtemoodi.
+
 ## 2026-09-20 (jätk)
 
 ### ATP kokkuleppe nõuete kontroll ei ole enam alati nähtaval eraldi kaardina

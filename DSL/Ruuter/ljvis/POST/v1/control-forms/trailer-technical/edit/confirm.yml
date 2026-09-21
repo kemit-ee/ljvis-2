@@ -14,6 +14,7 @@ declaration:
         type: string
       - field: resultTransportInterruption
       - field: transportInterruptionAutovs5131
+      - field: otherMeasure
       - field: eraYvMntRegnr
       - field: eraYvMntVintin
       - field: eraYvMntAxles
@@ -38,6 +39,7 @@ extractRequestData:
     result_type: "${incoming.body.resultType || 'ok'}"
     result_transport_interruption: "${incoming.body.resultTransportInterruption || false}"
     transport_interruption_autovs_51_3_1: "${incoming.body.transportInterruptionAutovs5131 || false}"
+    other_measure: "${incoming.body.otherMeasure || false}"
     era_yv_mnt_regnr: "${incoming.body.eraYvMntRegnr || false}"
     era_yv_mnt_vintin: "${incoming.body.eraYvMntVintin || false}"
     era_yv_mnt_axles: "${incoming.body.eraYvMntAxles || false}"
@@ -107,6 +109,7 @@ confirmForm:
       resultType: ${result_type}
       resultTransportInterruption: ${result_transport_interruption}
       transportInterruptionAutovs5131: ${transport_interruption_autovs_51_3_1}
+      otherMeasure: ${other_measure}
       eraYvMntRegnr: ${era_yv_mnt_regnr}
       eraYvMntVintin: ${era_yv_mnt_vintin}
       eraYvMntAxles: ${era_yv_mnt_axles}
