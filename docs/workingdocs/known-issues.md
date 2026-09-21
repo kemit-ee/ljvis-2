@@ -11,30 +11,29 @@ Teadaolevate probleemide ja piirangute register. Iga kirje sisaldab staatuse, m�
 
 ## KI-001 · PostgreSQL JDBC driver ceiling (RESQL + TIM)
 
-**Staatus:** 🟡 Mitigated  
-**Mõjutatud komponendid:** `resql-ljvis`, `tim`
+**Staatus:** � Resolved (2026-09-10)  
+**Mõjutatud komponendid:** ~~`resql-ljvis`, `tim`~~
 
-### Kirjeldus
+### Kirjeldus (ajalooline)
 
-`resql-ljvis` (`ghcr.io/buerokratt/resql:v1.3.4`) ja `tim` (`ghcr.io/buerokratt/tim:pre-apha-2.7.1`) kasutavad mõlemad sisseehitatud PostgreSQL JDBC draiverit **42.3.9**, mis ametlikult toetab PostgreSQL serverit kuni versioonini **15**.
+`resql-ljvis` (`ghcr.io/buerokratt/resql:v1.3.4`) ja `tim` (`ghcr.io/buerokratt/tim:pre-apha-2.7.1`) kasutasid sisseehitatud PostgreSQL JDBC draiverit **42.3.9**, mis ametlikult toetab PostgreSQL serverit kuni versioonini **15**. Süsteem käitati PostgreSQL 17-ga — see oli testitud kalkuleeritud risk.
 
-Süsteem käitatakse hetkel **PostgreSQL 17-ga** — see on testitud kalkuleeritud risk. JDBC wire-protokoll on tagasiühilduv ning kõik rakenduses kasutatavad operatsioonid (INSERT, SELECT, UPDATE, DELETE, pgcrypto funktsioonid) toimivad korrektselt.
+### Lahendus
 
-| Komponent | JDBC driver | Ametlik PG tugi | Testitud |
-|-----------|-------------|-----------------|---------|
-| `resql-ljvis` `v1.3.4` | `42.3.9` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
-| `tim` `pre-apha-2.7.1` | `42.3.9` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
-| `liquibase` `4.29.2` | `42.7.11` | ≤ PostgreSQL 15 | PostgreSQL 17 ✓ |
+Mõlemad komponendid on migreeritud **Rust-põhistele `turnerrainer` versioonidele**, mis ei kasuta JVM-i ega JDBC draiverit üldse. Rust binary suhtleb PostgreSQL-iga otse `libpq`-protokolli teel, mistõttu PostgreSQL versioonipiirang kaob.
 
-### Piirang
+| Komponent | Vana (Java/JDBC) | Uus (Rust, ei kasuta JDBC) | Muutuse kuupäev |
+|-----------|-----------------|---------------------------|-----------------|
+| `resql-ljvis` | `ghcr.io/buerokratt/resql:v1.3.4` | `turnerrainer/resql:0.3.0-alpha` | 2026-09-07 → 2026-09-10 |
+| `tim` | `ghcr.io/buerokratt/tim:pre-apha-2.7.1` | `turnerrainer/tim:0.3.0-alpha` | 2026-09-07 |
 
-**PostgreSQL 18 või uuemat ei tohi kasutada** seni, kuni RESQL ja TIM ei ole uuendatud versioonile, mis kasutab JDBC draiverit ≥ 42.6.
+**PostgreSQL 17 (ja edaspidi ka 18+) on kasutatav piiranguteta.** Liquibase kasutab endiselt oma JDBC draiverit, kuid `42.7.11` toetab PostgreSQL 18.
 
-### Järgmine samm
+### Viited
 
-1. Jälgi Buerostack upstream repositooriumites (`resql`, `tim`) uuendusi.
-2. Kontrolli uue versiooni bundled JDBC draiveri versiooni.
-3. Kui JDBC ≥ 42.6 → saab minna PostgreSQL 18 peale.
+- `feat(resql): convert 212 SQL declarations to turnerrainer/resql:0.2.0 params: format` (2026-09-07)
+- `chore: bump Ruuter 0.9.12-rc → 0.9.15-rc, Resql 0.2.0-alpha → 0.3.0-alpha` (2026-09-10)
+- `docker/resql-ljvis/Dockerfile`, `docker/tim/Dockerfile` — praegused versioonid
 
 ## KI-002 · Liquibase 5.0.x — changelog file not found
 

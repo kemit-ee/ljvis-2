@@ -177,6 +177,20 @@ Vorm läbib kolm olekut: **Salvestatud → Kinnitatud → Avalikustatud**.
 Kinnitatud/avalikustatud vormi saab administraator uuesti avada nupuga **Muuda**;
 iga muudatus tõstab versiooninumbrit.
 
+## Haldusmenetluse elutsükkel
+
+Haldusmenetluse plokk (sektsioon 13) on mõeldud raske autoveoalase rikkumise menetluse käigu jälgimiseks. Kõik haldusmenetluse väljad täidab **ametnik käsitsi** — automaatset süsteemi siin ei ole.
+
+| Etapp | Tegevus |
+|-------|---------|
+| KLIM selgitustaotlus | Märgi kuupäev, millal Kliimaministeeriumile selgitustaotlus saadeti |
+| Vedaja seletus | Märgi kuupäev, millal vedaja seletuse tähtaeg möödus |
+| Karistuse kehtivus | Märgi karistuse kehtivuse lõpukuupäev ja vajaduse korral „Kehtetu või menetletud" |
+| AKVK koosolek | Märgi järgmise autoveo koordineerimise komisjoni (AKVK) koosoleku kuupäev |
+| Komisjoni otsus | Märgi viimase komisjoni otsuse kuupäev ja otsuse sisu |
+
+Pärast avalikustamist saab ametnik saata teavitusi (sektsioon 15): vedajale Postkast 2.0 kaudu ja/või tööinspektorile e-kirja teel.
+
 ## Otsing
 
 Vormiotsingus (menüü **Otsing**) on välisriigi rikkumise kontrollkaardil kaks

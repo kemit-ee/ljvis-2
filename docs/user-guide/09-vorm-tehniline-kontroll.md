@@ -84,13 +84,22 @@ Kuvatakse, kui tulemus pole *Tehniliselt korras*. Võimalik märgata EU määrus
 
 Vormi number olemasolul saab lisada faile.
 
-### 7. X-tee andmed
+### 7. Automaatselt täidetavad andmed
 
-Kuvatakse pärast salvestamist (mitte mustandis). Administraator saab täita:
+Järgmised väljad kuvatakse pärast salvestamist ja täidetakse automaatselt süsteemi poolt:
 
-- **Erakorraline tehnoülevaatus läbitud**
-- **Jõustunud otsus**
-- **Menetluse lõpetamise alus**
+- **Erakorraline tehnoülevaatus läbitud** — kui kontrolli tulemus on *Suunatud erakorralisele tehnoülevaatusele*, kontrollib süsteem iga tund liiklusregistrist (YVkehtivus), kas tehnoülevaatus on läbitud. Läbimise korral täidetakse see kuupäev automaatselt.
+- **Jõustunud otsus** — kui vormil on täidetud väärteomenetluse viitenumber ja koondvormi juhi Eesti isikukood, kontrollitakse iga öö (ligikaudu kell 01:45) e-toimikust, kas menetluses on karistus jõustunud. Jõustumise korral täidetakse otsuse tekst automaatselt.
+- **Menetluse lõpetamise alus** — täidetakse automaatselt koos jõustunud otsusega.
+
+## Vormi elutsükkel
+
+Tehniline kontroll on koondvormi alamvorm — selle kinnitamine ja avalikustamine toimub koos koondvormiga.
+
+Pärast kinnitamist toimub automaatne taustaprotsessing:
+
+- Kui tulemus on **suunatud erakorralisele tehnoülevaatusele**, kontrollitakse iga tund liiklusregistrist, kas sõiduk on tehnoülevaatuse läbinud — läbimise korral täidetakse kuupäev automaatselt (kuni 365 päeva alates vormi loomisest).
+- Kui täidetud on väärteomenetluse viitenumber ja juhi Eesti isikukood, kontrollitakse iga öö e-toimikust, kas menetluses on karistus jõustunud — jõustumise korral täidetakse **jõustunud otsus** ja **menetluse lõpetamise alus** automaatselt.
 
 ## Kohustuslikud väljad
 

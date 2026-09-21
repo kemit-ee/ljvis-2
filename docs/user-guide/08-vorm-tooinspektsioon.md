@@ -74,9 +74,20 @@ Rikkumisi saab lisada nupuga **Lisa rikkumine**. Avanevas valikus saab valida ri
 1. Täitke kõik kohustuslikud väljad.
 2. Klõpsake **Salvesta** — vorm salvestatakse (staatus Salvestatud).
 3. Kontrollige andmed.
-4. Klõpsake **Kinnita** — vorm muutub lõplikuks.
+4. Klõpsake **Kinnita** — vorm muutub kinnitatuks.
 
-Rikkumistega akti puhul toimub kinnitamine e-toimiku kaudu, mitte otse vormi vaates.
+## Vormi elutsükkel ja automaatne täitmine
+
+Vorm läbib kolm staatust: **Salvestatud → Kinnitatud → Avalikustatud**.
+
+Kui kinnitatud vormil on täidetud **väärteomenetluse viitenumber** ja **karistatud isiku isikukood**, jälgib süsteem automaatselt, kas e-toimikus on menetluses otsus jõustunud. Iga öösel (ligikaudu kell 01:00) kontrollitakse kõiki selliseid kinnitatud vorme e-toimiku kaudu. Kui otsus on jõustunud, täidetakse vormile automaatselt:
+
+- **Jõustunud otsus** — otsuse tekst
+- **Menetluse lõpetamise alus** — lõpetamise aluse tekst
+
+Need väljad täidetakse automaatselt — ametniku sekkumist ei nõuta. Andmeid lisatakse vormi olemasolevale kinnitatud versioonile kohapeal, ilma uut versiooni avaldamata.
+
+Kui menetlus lõpetatakse karistust määramata, jäävad need väljad tühjaks ja ametnik avalikustab vormi käsitsi.
 
 ## Nipid
 
