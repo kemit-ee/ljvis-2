@@ -25,17 +25,14 @@ const FORM_TYPE = 'tram-card';
 /**
  * Transpordiameti (TRAM) kontrollkaart — ADR-002: üks olem, üks elutsükkel.
  * Serves:
- *   /control-forms/tram-control-card/new
  *   /control-forms/tram-control-card/:id
  *   /control-forms/tram-control-card/:id/:snapshotId
  */
 export function TramControlCardPage() {
-  const { id: idParam, snapshotId } = useParams<{
+  const { id, snapshotId } = useParams<{
     id: string;
     snapshotId?: string;
   }>();
-  const isNew = !idParam || idParam === 'new';
-  const id = isNew ? undefined : idParam;
 
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -45,12 +42,10 @@ export function TramControlCardPage() {
   const isAdmin = useIsAdmin();
 
   const forbidden = !(
-    (isNew
-      ? hasPermission('tram_driver_form.write')
-      : hasPermission('tram_driver_form.read')) && hasPermission('classifier.read')
+    hasPermission('tram_driver_form.read') && hasPermission('classifier.read')
   );
 
-  const [isEditActive, setIsEditActive] = useState(isNew);
+  const [isEditActive, setIsEditActive] = useState(false);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -83,13 +78,7 @@ export function TramControlCardPage() {
     }
   }, [form?.status, hasPermission]);
 
-  const handleSaved = (savedId?: string) => {
-    if (isNew && savedId) {
-      navigate(`/control-forms/tram-control-card/${savedId}`, {
-        state: { justCreated: true },
-      });
-      return;
-    }
+  const handleSaved = () => {
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
     setShowPublishedAlert(false);
@@ -176,7 +165,7 @@ export function TramControlCardPage() {
     if (!id || !form) return;
     try {
       await deleteTramForm(id, form.status ?? '');
-      navigate('/', { state: { justCreated: true } });
+      navigate('/');
     } catch (e) {
       console.error('Delete failed', e);
     }
@@ -243,8 +232,7 @@ export function TramControlCardPage() {
     handleMtrSearch,
     onCancel: () => {
       formik.resetForm();
-      if (isNew) navigate('/');
-      else setIsEditActive(false);
+      setIsEditActive(false);
     },
     onConfirm: () => {},
     onDelete: handleDelete,
@@ -303,7 +291,7 @@ export function TramControlCardPage() {
   }
 
   if (loading) return <Text>{t('common.loading')}</Text>;
-  if (!isNew && !form)
+  if (!form)
     return <FormNotFoundView title={t('forms.tram_control_card_form')} />;
 
   const drivers: Driver[] = Array.isArray(form?.drivers)
@@ -363,13 +351,13 @@ export function TramControlCardPage() {
     </>
   );
 
-  const showEdit = isNew || isEditActive;
+  const showEdit = isEditActive;
 
   return (
     <div>
       {alerts}
 
-      {!isNew && form && id && drivers.length > 0 && (
+      {form && id && drivers.length > 0 && (
         <EtoimikQueryCard
           drivers={drivers}
           referenceNumberOptions={etoimikReferenceOptions}
@@ -464,18 +452,16 @@ export function TramControlCardPage() {
           />
           {showEdit ? (
             <>
-              {!isNew && (
-                <Button
-                  type="button"
-                  visualType="secondary"
-                  onClick={() => {
-                    formik.resetForm();
-                    setIsEditActive(false);
-                  }}
-                >
-                  {t('common.cancel')}
-                </Button>
-              )}
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  formik.resetForm();
+                  setIsEditActive(false);
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
               <AsyncButton
                 type="button"
                 onClick={() => {
@@ -510,7 +496,7 @@ export function TramControlCardPage() {
               )}
             </>
           )}
-          {canDelete && !isNew && (
+          {canDelete && (
             <DeleteConfirmModal onDelete={handleDelete} />
           )}
         </div>

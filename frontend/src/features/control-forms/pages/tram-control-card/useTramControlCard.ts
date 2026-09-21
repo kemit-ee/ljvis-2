@@ -567,7 +567,7 @@ export function useTramControlCard(
           files: jstr(values.files),
         };
         if (values.id) {
-          if (isConfirming || isReconfirmedEdit) {
+          if (isConfirming) {
             await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else if (isPublishing) {
@@ -576,8 +576,10 @@ export function useTramControlCard(
           } else if (isRepublishedEdit) {
             await api.save(trimmedValues as unknown as CompoundForm);
             onPublished?.();
-          }
-          else {
+          } else if (isReconfirmedEdit) {
+            await api.save(trimmedValues as unknown as CompoundForm);
+            onConfirmed?.();
+          } else {
             await api.save(trimmedValues as unknown as CompoundForm);
             if (forceSaved && onResetToSaved) {
               onResetToSaved();
