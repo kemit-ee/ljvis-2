@@ -13,6 +13,22 @@
   ja seda automaatselt värskendada, ilma et faili tuleks käsitsi turvaserveri
   admin liidesesse üles laadida. Vt [00-xtee-teenused-publikatsiooni-juhend.md §4.8](xtee/00-xtee-teenused-publikatsiooni-juhend.md#48-openapi-kirjelduse-registreerimine-turvaserveris).
 
+### Mõnes keskkonnas ei saanud valida suurt osa sõidu- ja puhkeaja rikkumistest
+
+- Sõidu- ja puhkeaja kontrollis oli mõnes keskkonnas 53 rikkumisliigil
+  (sh Rooma I, kõik 7 autojuhi lähetamise koodi ja kogu sõiduaegade
+  rikkumiste haru) raskusastme valik täiesti puudu — Rooma I puhul kadus
+  seetõttu terve "Lisa" nupp/märkeruut, teistel jäi "Vali" rippmenüü
+  halliks. Nende rikkumisliikide raskusastme kirjed polnud klassifikaatoris
+  kunagi tekkinud (sama viga, mida 20261016100000 parandas 16 teise
+  rikkumisliigi jaoks, kuid mille loend nende 53 jaoks lühike jäi). Lisati
+  migratsioon, mis loob puuduvad kirjed õige koodi ja raskusastmega
+  kõigis keskkondades, kus need seni puudu olid.
+- Lisaks parandati 12 juba olemasoleva rikkumisliigi (mh RIKKED_01,
+  TOOKORRALDUS_01, ANDMETE_ESITAMINE_05–07) raskusaste, mis oli
+  2016/403 I lisaga joondamata jäänud, kuna need kirjed lisandusid
+  klassifikaatorisse alles pärast eelmist joondusmigratsiooni.
+
 ### Koondvormi tehnokontrollkaardit ei saanud salvestada, kuigi sõiduki osa oli märgitud
 
 - Koondvormis (nt sõidukijuht + sõiduki tehnokontroll) ei saanud salvestada,
