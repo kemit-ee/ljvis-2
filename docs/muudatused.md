@@ -123,6 +123,20 @@
   kinnipidamine jm), mis kuuluvad ainult TRAM kontrollkaardile. Need on
   nüüd PPA vormil peidetud, TRAM kontrollkaardil jäävad muutumatult alles.
 
+### Vedaja e-posti otsingu äriregistripäring jõuab nüüd X-tee logisse
+
+- Välisriigi rikkumise vormi avalikustamisel ("Teavita vedajat rikkumisest")
+  otsitakse vedaja e-post äriregistrist (XTR `ar/detailandmed_v1`) — see
+  päring läks siiani otse XTR-i, ilma et sellest jääks jälge
+  "eToimiku X-tee logid" haldusvaatesse, erinevalt samale teenusele juba
+  varem loodud logivast otsingu-endpoint'ist.
+- Nüüd logitakse see päring (õnnestumine, viga ja katkenud ühendus eraldi)
+  X-tee integratsioonilogisse koos tegeliku äriregistri vastusega, et
+  vedaja e-posti tuvastamise vigu (nt vale kontaktandmete kirje valimine)
+  saaks otse haldusvaatest diagnoosida.
+
+## 2026-09-18
+
 ### Vedaja teavituse ebaõnnestunud aadressi otsing jääb nüüd Teavituste vaatesse nähtavale
 
 - Välisriigi rikkumise vormil "Teavita vedajat" märkeruudu saatmiskäik
