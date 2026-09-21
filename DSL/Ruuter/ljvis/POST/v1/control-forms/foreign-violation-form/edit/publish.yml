@@ -227,18 +227,84 @@ lookupCarrierRegistryData:
     body:
       reg_code: ${company_reg_code}
   result: carrierRegistryRes
-  error: markCarrierRegistryLookupFailed
+  error: logCarrierRegistryLookupNetworkFailure
   next: checkCarrierRegistryStatus
 
 # Kaks eraldi ebaõnnestumise teed: error (ühenduse/timeout'i tase, http.post
 # ise ei jõudnudki vastuseni) ja siin all mitte-2xx vastus (nt X-tee/XTR
-# tagastas veakoodi). Mõlemad viivad sama markCarrierRegistryLookupFailed'ini.
+# tagastas veakoodi). Mõlemad logitakse X-tee integratsioonilogisse enne
+# markCarrierRegistryLookupFailed'ile jõudmist (varem puudus: see päring läks
+# otse XTR-i, ilma et xroad.xroad_integration_log kirjet tekiks — vt
+# DSL/Ruuter/ljvis/POST/v1/xroad/arireg/detailandmed.yml, mis samale
+# teenusele juba logib). response_xml sisaldab siin (erinevalt sellest
+# wrapper'ist) reaalset vastust, et extractCarrierEmail'i sisendit saaks
+# "eToimiku X-tee logid" vaates otse kontrollida.
 checkCarrierRegistryStatus:
   switch:
     - condition: >-
         ${carrierRegistryRes.response == null || carrierRegistryRes.response.status == null || carrierRegistryRes.response.status < 200 || carrierRegistryRes.response.status >= 300}
-      next: markCarrierRegistryLookupFailed
+      next: logCarrierRegistryLookupStatusFailure
+  next: logCarrierRegistryLookupSuccess
+
+logCarrierRegistryLookupSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'regCode=' + company_reg_code}"
+      response_xml: "${JSON.stringify(carrierRegistryRes.response.body)}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "foreign_violation_form"
+      source_record_id: ${id}
+  result: carrierRegistryLogRes
+  error: extractCarrierEmail
   next: extractCarrierEmail
+
+logCarrierRegistryLookupStatusFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'regCode=' + company_reg_code}"
+      response_xml: "${JSON.stringify(carrierRegistryRes.response.body)}"
+      duration_ms: 0
+      success: false
+      error_message: "${'XTR HTTP ' + carrierRegistryRes.response.status}"
+      person_identifier: ""
+      source_type: "foreign_violation_form"
+      source_record_id: ${id}
+  result: carrierRegistryLogFailRes
+  error: markCarrierRegistryLookupFailed
+  next: markCarrierRegistryLookupFailed
+
+logCarrierRegistryLookupNetworkFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'regCode=' + company_reg_code}"
+      response_xml: ""
+      duration_ms: 0
+      success: false
+      error_message: "Äriregister ei ole kättesaadav või päring aegus"
+      person_identifier: ""
+      source_type: "foreign_violation_form"
+      source_record_id: ${id}
+  result: carrierRegistryLogNetFailRes
+  error: markCarrierRegistryLookupFailed
+  next: markCarrierRegistryLookupFailed
 
 # Äriregistri päring ise ebaõnnestus (X-tee/XTR viga, timeout või mitte-2xx
 # vastus) — carrier_email jääb tühjaks ja liigutakse ikkagi
