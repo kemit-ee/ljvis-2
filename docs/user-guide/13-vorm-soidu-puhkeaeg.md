@@ -143,6 +143,29 @@ lähetamise nõuete rikkumised kuvatakse eraldi rühmadena. MSI, VSI ja SI
 rikkumistest moodustab süsteem ERRU jaoks vajalikud rikkumiskirjed
 automaatselt; MI rikkumisi ERRU raske rikkumisena ei edastata.
 
+## Vormi elutsükkel ja automaatne täitmine
+
+Sõidu- ja puhkeaja kontrollvorm on koondvormi alamvorm — selle elutsükkel sõltub koondvormi kinnitamisest ja avalikustamisest.
+
+### Automaatne e-toimiku sünkroon (autojuhi vorm)
+
+Kui autojuhi sõidu- ja puhkeaja alamvormil on täidetud **väärteomenetluse viitenumber** ja koondvormi juhi **Eesti isikukood**, kontrollib süsteem iga öö (ligikaudu kell 01:30), kas e-toimikus on menetluses otsus jõustunud. Kui otsus on jõustunud, täidetakse alamvormile automaatselt:
+
+- **Jõustunud otsus** — otsuse tekst
+- **Menetluse lõpetamise alus** — lõpetamise aluse tekst
+
+Andmed kirjutatakse alamvormi sisse kohapeal, ilma uut versiooni loomata ja ilma koondvormi uuesti avaldamata. Ametniku sekkumist ei nõuta.
+
+### Automaatne NCR teate saatmine (välisriigi sõiduk, tulemus „Korras")
+
+Kui autojuhi või meeskonnaliikme alamvorm on **avalikustatud** ja täidetud on:
+- sõiduki registreerimisriik on välisriigi oma,
+- kontrolli tulemus on **Korras** (`resultType = ok`),
+
+siis saadab süsteem iga öö automaatselt **NCR (NotifyCheckResult) teate** sõiduki registreerimisriigi pädevale asutusele ERRU kaudu. Ametnik ei pea teadet käsitsi koostama ega saatma — see toimub automaatselt. Loodud NCR teated on nähtavad menüüs **Kontrollitulemuste teated NCR**.
+
+Negatiivse kinnitusvastuse või sidevea korral jääb NCR teade olekusse **Viga** — sellisel juhul saab ametnik teate sealt käsitsi uuesti saata.
+
 ## PDF-printimine
 
 Salvestatud ja kinnitatud sõidu- ja puhkeaja kontrollkaardil on nupp **„Prindi"** rippmenüüga:
