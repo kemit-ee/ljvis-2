@@ -26,6 +26,9 @@ params:
   transportInterruptionAutovs5131:
     type: boolean
     required: false
+  otherMeasure:
+    type: boolean
+    required: false
   eraYvMntRegnr:
     type: boolean
     required: false
@@ -87,6 +90,7 @@ INSERT INTO forms.vehicle_technical_form (
   result_type,
   result_transport_interruption,
   transport_interruption_autovs_51_3_1,
+  other_measure,
   era_yv_mnt_regnr,
   era_yv_mnt_vintin,
   era_yv_mnt_axles,
@@ -112,6 +116,7 @@ SELECT
   COALESCE(NULLIF(:resultType, ''), 'ok'),
   COALESCE(:resultTransportInterruption::BOOLEAN, FALSE),
   COALESCE(:transportInterruptionAutovs5131::BOOLEAN, FALSE),
+  COALESCE(:otherMeasure::BOOLEAN, FALSE),
   COALESCE(:eraYvMntRegnr::BOOLEAN, FALSE),
   COALESCE(:eraYvMntVintin::BOOLEAN, FALSE),
   COALESCE(:eraYvMntAxles::BOOLEAN, FALSE),

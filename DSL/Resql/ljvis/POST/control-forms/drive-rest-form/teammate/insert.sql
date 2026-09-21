@@ -171,9 +171,19 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
              AND d.status <> 'deleted'
            ORDER BY d.version DESC, d.created_at DESC LIMIT 1
         ), NULLIF(:transportType, '')),
-        COALESCE(:transportEmptyRun::BOOLEAN, FALSE),
+        COALESCE((
+          SELECT d.transport_empty_run FROM forms.sp_driver_form d
+           WHERE d.compound_form_key = :compoundFormKey::BIGINT
+             AND d.status <> 'deleted'
+           ORDER BY d.version DESC, d.created_at DESC LIMIT 1
+        ), COALESCE(:transportEmptyRun::BOOLEAN, FALSE)),
         NULLIF(:transportNature, ''),
-        NULLIF(:transportNatureExempt::text, '')::BOOLEAN,
+        COALESCE((
+          SELECT d.transport_nature_exempt FROM forms.sp_driver_form d
+           WHERE d.compound_form_key = :compoundFormKey::BIGINT
+             AND d.status <> 'deleted'
+           ORDER BY d.version DESC, d.created_at DESC LIMIT 1
+        ), NULLIF(:transportNatureExempt::text, '')::BOOLEAN),
         COALESCE((
           SELECT d.transport_classes FROM forms.sp_driver_form d
            WHERE d.compound_form_key = :compoundFormKey::BIGINT

@@ -97,7 +97,7 @@ export function createTechnicalCheckValidationSchema(
         const resultType: string = (this.parent as { resultType?: string }).resultType ?? 'ok';
         if (resultType !== 'ok') return true;
         return (value ?? []).some(
-          (p: { status: string }) => p.status === 'checked' || p.status === 'non_compliant',
+          (p: { checked?: boolean; hasDefect?: boolean }) => p.checked === true || p.hasDefect === true,
         );
       },
     ),
@@ -180,6 +180,7 @@ export function useTechnicalCheckForm(
       resultType: form?.resultType ?? 'ok',
       resultTransportInterruption: form?.resultTransportInterruption ?? false,
       transportInterruptionAutovs5131: form?.transportInterruptionAutovs5131 ?? false,
+      otherMeasure: form?.otherMeasure ?? false,
       eraYvMntRegnr: form?.eraYvMntRegnr ?? false,
       eraYvMntVintin: form?.eraYvMntVintin ?? false,
       eraYvMntAxles: form?.eraYvMntAxles ?? false,
