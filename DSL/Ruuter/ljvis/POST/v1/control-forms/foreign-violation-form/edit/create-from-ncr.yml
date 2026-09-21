@@ -27,17 +27,23 @@ getNcrData:
     body:
       businessCaseId: ${business_case_id}
   result: ncrRes
+  next: checkNcrResult
+
+checkNcrResult:
+  switch:
+    - condition: ${ncrRes.response == null || ncrRes.response.status < 200 || ncrRes.response.status >= 300 || ncrRes.response.body == null || ncrRes.response.body.length == null || ncrRes.response.body.length === 0}
+      next: returnNcrReadError
   next: extractNcrFields
 
 extractNcrFields:
   assign:
-    ncr_id: "${ncrRes.response.body[0].id || ''}"
-    reporting_country_code: "${ncrRes.response.body[0].ncrFrom || ''}"
-    company_name: "${ncrRes.response.body[0].transportUndertakingName || ''}"
-    vehicle_reg_nr: "${ncrRes.response.body[0].vehicleRegistrationNumber || ''}"
-    vehicle_country_code: "${ncrRes.response.body[0].vehicleRegistrationCountry || ''}"
-    licence_copy_number: "${ncrRes.response.body[0].communityLicenceNumber || ''}"
-    inspection_date: "${ncrRes.response.body[0].checkDate || ''}"
+    ncr_id: "${ncrRes.response.body[ncrRes.response.body.length - 1].id || ''}"
+    reporting_country_code: "${ncrRes.response.body[ncrRes.response.body.length - 1].ncrFrom || ''}"
+    company_name: "${ncrRes.response.body[ncrRes.response.body.length - 1].transportUndertakingName || ''}"
+    vehicle_reg_nr: "${ncrRes.response.body[ncrRes.response.body.length - 1].vehicleRegistrationNumber || ''}"
+    vehicle_country_code: "${ncrRes.response.body[ncrRes.response.body.length - 1].vehicleRegistrationCountry || ''}"
+    licence_copy_number: "${ncrRes.response.body[ncrRes.response.body.length - 1].communityLicenceNumber || ''}"
+    inspection_date: "${ncrRes.response.body[ncrRes.response.body.length - 1].checkDate || ''}"
     data_entry_date: "${new Date().toISOString().slice(0, 10)}"
   next: insertVrForm
 
@@ -93,6 +99,12 @@ insertVrForm:
       erruNcrMessageKey: ${ncr_id}
       created_by: ${created_by}
   result: insertRes
+  next: checkInsertResult
+
+checkInsertResult:
+  switch:
+    - condition: ${insertRes.response == null || insertRes.response.status < 200 || insertRes.response.status >= 300 || insertRes.response.body == null || insertRes.response.body.length == null || insertRes.response.body.length === 0}
+      next: returnInsertError
   next: extractVrFormKey
 
 extractVrFormKey:
@@ -110,8 +122,29 @@ updateNcrLink:
       businessCaseId: ${business_case_id}
       foreignViolationFormKey: ${vr_form_key}
   result: linkRes
+  next: checkLinkResult
+
+checkLinkResult:
+  switch:
+    - condition: ${linkRes.response == null || linkRes.response.status < 200 || linkRes.response.status >= 300 || linkRes.response.body == null || linkRes.response.body.length == null || linkRes.response.body.length === 0}
+      next: returnLinkError
   next: returnResult
 
 returnResult:
   return: ${insertRes.response.body}
+  next: end
+
+returnNcrReadError:
+  status: 404
+  return: "${(ncrRes.response != null && ncrRes.response.body) || {type: 'NCR_NOT_FOUND', code: 'ncr_not_found', message: 'NCR teadet ei leitud'}}"
+  next: end
+
+returnInsertError:
+  status: 500
+  return: "${(insertRes.response != null && insertRes.response.body) || {type: 'RESQL_ERROR', code: 'create_failed', message: 'Välisriigis toimunud rikkumise kaardi loomine ebaõnnestus'}}"
+  next: end
+
+returnLinkError:
+  status: 500
+  return: "${(linkRes.response != null && linkRes.response.body) || {type: 'RESQL_ERROR', code: 'link_failed', message: 'NCR teate ja rikkumise kaardi sidumine ebaõnnestus'}}"
   next: end
