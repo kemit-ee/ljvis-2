@@ -266,6 +266,9 @@ jobs:
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
             --dsl DSL/Ruuter.internal --constants constants.ini
 
+      - name: X-Road OpenAPI DSL route — in sync with docs/xtee/XroadOpenapi.yaml
+        run: python3 scripts/generate-xroad-openapi-dsl.py --check
+
       - name: dsl-test — DSL-tests/ scenario suite
         run: |
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test '${{ steps.ruuter.outputs.img }}' \

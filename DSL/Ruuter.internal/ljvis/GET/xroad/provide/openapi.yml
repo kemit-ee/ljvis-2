@@ -1,0 +1,680 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    X-Road (X-tee) REST-teenuste OpenAPI 3.0 kirjeldus turvaserveri jaoks.
+    Turvaserver saab selle URL-i teenuse kirjeldusena registreerida
+    (Teenused -> Lisa REST -> Kirjelduse URL), et automaatselt teenuste
+    lepingut uuendada. Sisu on genereeritud failist docs/xtee/XroadOpenapi.yaml
+    skriptiga scripts/generate-xroad-openapi-dsl.py — ÄRA MUUDA KÄSITSI.
+  namespace: xroad-openapi
+
+returnOpenapi:
+  status: 200
+  return: |
+    openapi: 3.0.3
+    info:
+      title: XroadOpenapi
+      version: 1.0.0
+      description: >
+        LJVIS2 alamsüsteemi poolt pakutavate X-tee teenuste ametlik leping (production).
+        Vastab dokumendis 00-xtee-teenused-publikatsiooni-juhend.md kirjeldatud üheksale
+        teenusele. Iga tarbija pöördub oma turvaserveri kaudu — vt server-URL-id allpool
+        ja asenda {securityserver} enda turvaserveriga.
+        Sünteetilise mocki leping (samad teed, testandmed) on eraldi failis:
+        ../developer/xtee-openapi.yaml.
+    servers:
+      - url: https://{securityserver}/r1/EE/GOV/70001231/ljvis2
+        description: LIVE (toodang)
+        variables:
+          securityserver:
+            default: turvaserver.näide.ee
+      - url: https://{securityserver}/r1/ee-test/GOV/70001231/ljvis2
+        description: TEST
+        variables:
+          securityserver:
+            default: turvaserver.näide.ee
+      - url: https://{securityserver}/r1/ee-dev/GOV/70001231/ljvis2
+        description: DEV
+        variables:
+          securityserver:
+            default: turvaserver.näide.ee
+    components:
+      parameters:
+        XRoadClient:
+          in: header
+          name: X-Road-Client
+          required: true
+          schema:
+            type: string
+          example: EE/GOV/70001490/liiklusregister
+          description: Tarbija turvaserveri identiteet (instance/memberClass/memberCode/subsystem). Lisab turvaserver automaatselt.
+      responses:
+        Forbidden:
+          description: X-Road-Client päis puudub või on vale formaadiga
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required: [error, message]
+              example:
+                error: FORBIDDEN
+                message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+        ServerError:
+          description: Sisemine viga
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required: [error, message]
+              example:
+                error: SERVER_ERROR
+                message: Internal error
+    paths:
+      /IsikuKontroll/v1:
+        post:
+          operationId: IsikuKontroll
+          summary: IsikuKontroll — kõik LJVIS-i kontrollid ja rikkumised isikukoodi kohta
+          description: Read-only. Andmeallikad koondvorm (juhi andmed) ja tööinspektsiooniakt (karistatu isikukood).
+          x-provider-path: /ljvis/xroad/provide/isiku-kontroll
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    isikukood:
+                      type: string
+                      pattern: ^[1-6][0-9]{10}$
+                  required: [isikukood]
+                example:
+                  isikukood: '39001010001'
+          responses:
+            '200':
+              description: Leitud kontrollikirjed (tühi array = 0 kirjet, ka HTTP 200)
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      kontrollid:
+                        type: object
+                        properties:
+                          item:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                kuupaev: {type: string}
+                                nimetus: {type: string}
+                                asutus: {type: string}
+                                soiduki_reg_nr: {type: string, nullable: true}
+                                rikkumise_liik: {type: string, nullable: true}
+                                kontrolli_nimetus: {type: string, enum: [KOONDVORM, TOOINSPEKTION]}
+                                juhi_nimi: {type: string}
+                                juhi_perekonnanimi: {type: string}
+                                rikkumised: {type: string, nullable: true}
+                                rikkumised_lopetatud: {type: string, nullable: true}
+                  example:
+                    kontrollid:
+                      item:
+                        - kuupaev: '2026-06-15'
+                          nimetus: kv-2026-00042
+                          asutus: OÜ Kiirkaubaveos
+                          soiduki_reg_nr: 123ABC
+                          rikkumise_liik: extraordinary_inspection
+                          kontrolli_nimetus: KOONDVORM
+                          juhi_nimi: Jaan
+                          juhi_perekonnanimi: Tamm
+                          rikkumised: null
+                          rikkumised_lopetatud: null
+            '400':
+              description: MISSING_PARAMETER / INVALID_PARAMETER
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  examples:
+                    missing:
+                      value: {error: MISSING_PARAMETER, message: isikukood is required}
+                    invalid:
+                      value: {error: INVALID_PARAMETER, message: isikukood must be 11 digits starting with 1-6}
+            '403':
+              $ref: '#/components/responses/Forbidden'
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /IsikuEttevoteKontrollid/v1:
+        post:
+          operationId: IsikuEttevoteKontrollid
+          summary: IsikuEttevoteKontrollid — kontrollid ettevõtete kohta, millega isik juhina seotud
+          description: Read-only, ainult lokaalne andmebaas — äriregistri välispäringut ei tehta.
+          x-provider-path: /ljvis/xroad/provide/isiku-ettevote-kontrollid
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    isikukood:
+                      type: string
+                      pattern: ^[1-6][0-9]{10}$
+                  required: [isikukood]
+                example:
+                  isikukood: '39001010001'
+          responses:
+            '200':
+              description: Kontrollide loend (tühi array = 0 kirjet)
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      kontrollid:
+                        type: object
+                        properties:
+                          item:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ettevote_reg_nr: {type: string}
+                                kuupaev: {type: string}
+                                kontrolli_nimetus: {type: string, enum: [KOONDVORM, TOOINSPEKTION]}
+                                asutus: {type: string}
+                                nimetus: {type: string}
+                                soiduki_reg_nr: {type: string, nullable: true}
+                                juhi_nimi: {type: string, nullable: true}
+                                juhi_perekonnanimi: {type: string, nullable: true}
+                  example:
+                    kontrollid:
+                      item:
+                        - ettevote_reg_nr: '12345678'
+                          kuupaev: '2026-05-10'
+                          kontrolli_nimetus: KOONDVORM
+                          asutus: OÜ Kiirkaubaveos
+                          nimetus: kv-2026-00042
+                          soiduki_reg_nr: 123ABC
+                          juhi_nimi: null
+                          juhi_perekonnanimi: null
+            '400':
+              description: MISSING_PARAMETER / INVALID_PARAMETER
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  examples:
+                    missing:
+                      value: {error: MISSING_PARAMETER, message: isikukood is required}
+                    invalid:
+                      value: {error: INVALID_PARAMETER, message: isikukood must be 11 digits starting with 1-6}
+            '403':
+              $ref: '#/components/responses/Forbidden'
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /ErakorralineYVquery/v1:
+        post:
+          operationId: ErakorralineYVquery
+          summary: ErakorralineYVquery — ajavahemikul erakorralisele ülevaatusele suunatud sõidukid
+          description: Read-only. Esimene samm kahesammulises voos — vastuse `inspection_id` kasutatakse ErakorralineYVconfirm päringus.
+          x-provider-path: /ljvis/xroad/provide/erakorraline-yv-query
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    alates: {type: string, format: date}
+                    kuni: {type: string, format: date}
+                  required: [alates, kuni]
+                example:
+                  alates: '2026-01-01'
+                  kuni: '2026-06-30'
+          responses:
+            '200':
+              description: Sõidukite loend (tühi array = 0 kirjet). Nõue alates ≤ kuni.
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      targeted_for_inspection:
+                        type: object
+                        properties:
+                          item:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                licence_plate_no: {type: string}
+                                trailer_no: {type: string, nullable: true}
+                                inspection_id: {type: string}
+                                inspection_no: {type: string}
+                                inspection_date: {type: string}
+                                inspection_type: {type: string, enum: [extraordinary_inspection, extraordinary_inspection_ta]}
+                                inspection_unit: {type: string}
+                                inspector: {type: string, nullable: true}
+                                issues:
+                                  type: object
+                                  properties:
+                                    item:
+                                      type: array
+                                      items:
+                                        type: object
+                                        properties: {code: {type: string}, value: {type: string}}
+                                inspection_refine_options:
+                                  type: object
+                                  properties:
+                                    item:
+                                      type: array
+                                      items: {type: string, enum: [REGNR, VINTIN, AXLES, PLACES, REBUILT]}
+                  example:
+                    targeted_for_inspection:
+                      item:
+                        - licence_plate_no: 123ABC
+                          trailer_no: null
+                          inspection_id: '42'
+                          inspection_no: kv-2026-00042
+                          inspection_date: '2026-03-15'
+                          inspection_type: extraordinary_inspection
+                          inspection_unit: PPA
+                          inspector: Jaan Tamm
+                          issues:
+                            item:
+                              - code: B01
+                                value: defect_minor
+                          inspection_refine_options:
+                            item: [REGNR, AXLES]
+            '400':
+              description: MISSING_PARAMETER / INVALID_PARAMETER
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  examples:
+                    missingAlates:
+                      value: {error: MISSING_PARAMETER, message: alates is required}
+                    missingKuni:
+                      value: {error: MISSING_PARAMETER, message: kuni is required}
+                    invalidRange:
+                      value: {error: INVALID_PARAMETER, message: alates must not be after kuni}
+            '403':
+              $ref: '#/components/responses/Forbidden'
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /ErakorralineYVconfirm/v1:
+        post:
+          operationId: ErakorralineYVconfirm
+          summary: ErakorralineYVconfirm — erakorralise ülevaatuse tulemuse kinnitamine
+          description: >
+            Kirjutav teenus, teine samm kahesammulises voos (vt ErakorralineYVquery).
+            Atomaarne — ühe elemendi vea korral kogu batch katkeb. Idempotentne.
+          x-provider-path: /ljvis/xroad/provide/erakorraline-yv-confirm
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    confirmed:
+                      type: object
+                      properties:
+                        item:
+                          type: array
+                          minItems: 1
+                          items:
+                            type: object
+                            properties:
+                              inspection_id: {type: string}
+                              code: {type: string, enum: [INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS]}
+                              value: {type: string}
+                            required: [inspection_id, code, value]
+                      required: [item]
+                  required: [confirmed]
+                example:
+                  confirmed:
+                    item:
+                      - inspection_id: '42'
+                        code: INSPECTION_DATE
+                        value: '2026-07-01'
+                      - inspection_id: '42'
+                        code: ENFORCEMENT_DECISION
+                        value: Otsus jõustus
+          responses:
+            '200':
+              description: Edukalt salvestatud elementide arv
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      confirmed: {type: integer}
+                  example:
+                    confirmed: 2
+            '400':
+              description: MISSING_PARAMETER / INVALID_PARAMETER
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  examples:
+                    emptyItems:
+                      value: {error: MISSING_PARAMETER, message: confirmed.item must be a non-empty array}
+                    missingFields:
+                      value: {error: INVALID_PARAMETER, message: Each item requires inspection_id, code and value}
+                    badCode:
+                      value: {error: INVALID_PARAMETER, message: 'code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS'}
+            '403':
+              $ref: '#/components/responses/Forbidden'
+            '404':
+              description: NOT_FOUND — inspection_id puudub või vorm ei ole erakorralisele ülevaatusele suunatud
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  example:
+                    error: NOT_FOUND
+                    message: inspection_id not found or form is not in confirmed status
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /RegisterJobInspection/v1:
+        post:
+          operationId: RegisterJobInspection
+          summary: RegisterJobInspection — Tööinspektsiooni töökontrolli andmed (v1)
+          description: >
+            Vana WSDL RegisterJobInspectionRequestType, teisendatud REST/JSON-iks.
+            Salvestab forms.labour_inspection_form tabelisse. Idempotentne kontrolli_id võtme alusel.
+          x-provider-path: /ljvis/xroad/provide/register-job-inspection
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    kontrollija: {type: string}
+                    kontrolli_id: {type: integer}
+                    kontrolli_kp: {type: string, format: date}
+                    tooandja_nimi: {type: string}
+                    tooandja_reg_kood: {type: string}
+                    soidukite_arv: {type: integer}
+                    koostatatud_ettekirjutus: {type: boolean}
+                    kontrollimised: {type: object, additionalProperties: true}
+                    rikkumised: {type: object, additionalProperties: true}
+                    vaarteomenetlus: {type: string}
+                  required: [kontrollija, kontrolli_id, kontrolli_kp, tooandja_nimi, tooandja_reg_kood, koostatatud_ettekirjutus, kontrollimised, rikkumised]
+                example:
+                  kontrollija: Mari Mets
+                  kontrolli_id: 12345
+                  kontrolli_kp: '2026-06-10'
+                  tooandja_nimi: OÜ Kiirkaubaveos
+                  tooandja_reg_kood: '12345678'
+                  soidukite_arv: 3
+                  koostatatud_ettekirjutus: true
+                  kontrollimised: {kontrollitud_soitjate_veol: false}
+                  rikkumised: {rikkumised_loend: []}
+                  vaarteomenetlus: VM-2026-001
+          responses:
+            '200':
+              description: Salvestamine õnnestus
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {message: {type: string}}
+                  example:
+                    message: Success
+            '400':
+              description: MISSING_PARAMETER / INVALID_PARAMETER
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  examples:
+                    missingKontrollija:
+                      value: {error: MISSING_PARAMETER, message: kontrollija is required}
+                    missingKontrolliId:
+                      value: {error: MISSING_PARAMETER, message: kontrolli_id is required}
+                    invalidDate:
+                      value: {error: INVALID_PARAMETER, message: kontrolli_kp must be a valid date}
+            '403':
+              $ref: '#/components/responses/Forbidden'
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /RegisterJobInspection_v3/v3:
+        post:
+          operationId: RegisterJobInspection_v3
+          summary: RegisterJobInspection_v3 — laiendatud töökontrolli leping
+          description: >
+            v1 väljadele lisanduvad sõiduki (reg.nr, VIN), juhi isikukoodi ja menetluse väljad.
+            Sama tabel forms.labour_inspection_form; idempotentsuse võti v3- + kontrolli_id.
+          x-provider-path: /ljvis/xroad/provide/register-job-inspection-v3
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    kontrollija: {type: string}
+                    kontrolli_id: {type: integer}
+                    kontrolli_kp: {type: string, format: date}
+                    tooandja_nimi: {type: string}
+                    tooandja_reg_kood: {type: string}
+                    soidukite_arv: {type: integer}
+                    koostatatud_ettekirjutus: {type: boolean}
+                    kontrollimised: {type: object, additionalProperties: true}
+                    rikkumised: {type: object, additionalProperties: true}
+                    vaarteomenetlus: {type: string}
+                    soiduki_reg_nr: {type: string}
+                    soiduki_vin: {type: string}
+                    juhi_isikukood:
+                      type: string
+                      pattern: ^[1-6][0-9]{10}$
+                    juhi_eesnimi: {type: string}
+                    juhi_perekonnanimi: {type: string}
+                    menetluse_liik: {type: string, enum: [lyhimenetlus, kiirmenetlus, uldmenetlus]}
+                    menetluse_number: {type: string}
+                  required: [kontrollija, kontrolli_id, kontrolli_kp, tooandja_nimi, tooandja_reg_kood, koostatatud_ettekirjutus, kontrollimised, rikkumised]
+                example:
+                  kontrollija: Mari Mets
+                  kontrolli_id: 12346
+                  kontrolli_kp: '2026-06-10'
+                  tooandja_nimi: OÜ Kiirkaubaveos
+                  tooandja_reg_kood: '12345678'
+                  soidukite_arv: 2
+                  koostatatud_ettekirjutus: false
+                  kontrollimised: {kontrollitud_soitjate_veol: false}
+                  rikkumised: {rikkumised_loend: []}
+                  soiduki_reg_nr: 123ABC
+                  soiduki_vin: WDB9634031L123456
+                  juhi_isikukood: '39001010001'
+                  juhi_eesnimi: Jaan
+                  juhi_perekonnanimi: Tamm
+                  menetluse_liik: kiirmenetlus
+                  menetluse_number: KM-2026-001
+          responses:
+            '200':
+              description: Salvestamine õnnestus
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {message: {type: string}}
+                  example:
+                    message: Success
+            '400':
+              description: MISSING_PARAMETER / INVALID_PARAMETER
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  examples:
+                    invalidIsikukood:
+                      value: {error: INVALID_PARAMETER, message: juhi_isikukood must be 11 digits starting with 1-6}
+                    invalidMenetlus:
+                      value: {error: INVALID_PARAMETER, message: 'menetluse_liik must be one of: lyhimenetlus, kiirmenetlus, uldmenetlus'}
+            '403':
+              description: X-Road-Client päis puudub või vale formaat. Peab olema 4-osalises formaadis.
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  example:
+                    error: FORBIDDEN
+                    message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /findUsage/v2:
+        get:
+          operationId: findUsage
+          summary: findUsage — Andmejälgija (AJ) kasutusteabe päring
+          description: >
+            DUMonitor OpenAPI v2 /v2/findUsage. X-Road-UserId peab vastama userCode
+            parameetrile (AJ protokoll §6.1.3), muidu 400 FORBIDDEN.
+          x-provider-path: /ljvis/xroad/v2/findUsage
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+            - in: header
+              name: X-Road-UserId
+              required: true
+              schema: {type: string}
+              example: '39001010001'
+            - in: query
+              name: userCode
+              required: true
+              schema: {type: string}
+              example: '39001010001'
+            - in: query
+              name: periodStart
+              required: false
+              schema: {type: string, format: date-time}
+            - in: query
+              name: periodEnd
+              required: false
+              schema: {type: string, format: date-time}
+            - in: query
+              name: offset
+              required: false
+              schema: {type: integer, default: 0}
+            - in: query
+              name: limit
+              required: false
+              schema: {type: integer, default: 1000, maximum: 1000}
+          responses:
+            '200':
+              description: Kasutusteabe kirjed ajaliselt kahanevas järjekorras
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      totalUsages: {type: integer}
+                      usages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            logtime: {type: string}
+                            action: {type: string}
+                            receiverCode: {type: string}
+                            receiverName: {type: string, nullable: true}
+                            receiverSystem: {type: string, nullable: true}
+                  example:
+                    totalUsages: 2
+                    usages:
+                      - logtime: '2026-06-10T14:32:00Z'
+                        action: LJVIS-i kontrollide küsimine X-tee kaudu
+                        receiverCode: '70001490'
+                        receiverName: null
+                        receiverSystem: liiklusregister
+            '400':
+              description: MISSING_HEADER / MISSING_PARAMETER / FORBIDDEN
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties: {error: {type: string}, message: {type: string}}
+                  examples:
+                    missingHeader:
+                      value: {error: MISSING_HEADER, message: X-Road-UserId header is required}
+                    missingParam:
+                      value: {error: MISSING_PARAMETER, message: userCode query parameter is required}
+                    mismatch:
+                      value: {error: FORBIDDEN, message: X-Road-UserId must match userCode}
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /usagePeriod/v2:
+        get:
+          operationId: usagePeriod
+          summary: usagePeriod — Andmejälgija (AJ) kasutusteabe saadaoleva perioodi päring
+          x-provider-path: /ljvis/xroad/v2/usagePeriod
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          responses:
+            '200':
+              description: Varaseim kasutusteabe aeg (null kui tabel tühi)
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      periodStart: {type: string, nullable: true}
+                  example:
+                    periodStart: '2026-01-15T09:00:00Z'
+            '500':
+              $ref: '#/components/responses/ServerError'
+      /heartbeat/v2:
+        get:
+          operationId: heartbeat
+          summary: heartbeat — Andmejälgija (AJ) elutuukse päring
+          x-provider-path: /ljvis/xroad/v2/heartbeat
+          parameters:
+            - $ref: '#/components/parameters/XRoadClient'
+          responses:
+            '200':
+              description: Teenus töötab
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      status: {type: string}
+                      message: {type: string}
+                  example:
+                    status: OK
+                    message: API is ready
+  next: end
