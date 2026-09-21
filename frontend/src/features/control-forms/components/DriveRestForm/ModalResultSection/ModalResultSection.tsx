@@ -397,7 +397,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
 
   return (
     <div>
-      <div className={styles.header}>
+      <div className={`${styles.header}${hideTitle ? ` ${styles.headerFlexEnd}` : ''}`}>
         {!hideTitle && (
         <Heading element="h5" modifiers="bold">
           {type === 'docCheck'

@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Heading, Text, Alert } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  Heading,
+  Text,
+  Alert,
+  Card,
+} from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -157,49 +163,57 @@ export function GoodReputeFormPage() {
     if (!snapshot) return <FormNotFoundView title={t('forms.good_repute_form')} />;
     return (
       <div>
-        <div className="card-main">
-          <Heading element="h1">
-            {snapshot.formNumber
-              ? `${snapshot.formNumber}/${snapshot.version ?? 1}`
-              : t('forms.good_repute_form')}
-          </Heading>
-        </div>
-        <GoodReputeFormFields
-          formik={
-            {
-              values: snapshot,
-              errors: {},
-              touched: {},
-              setFieldValue: () => Promise.resolve(),
-            } as never
-          }
-          readOnly
-          countryOptions={countryOptions}
-          onSearchPerson={() => {}}
-          searchLoading={false}
-          searchError={false}
-          onSearchErrorClose={() => {}}
-          searchNotFound={false}
-          onSearchNotFoundClose={() => {}}
-          isDesktop={isDesktop}
-        />
+        <Card>
+          <Card.Content className="pb-0">
+            <div className="card-main">
+              <Heading element="h1">
+                {snapshot.formNumber
+                  ? `${snapshot.formNumber}/${snapshot.version ?? 1}`
+                  : t('forms.good_repute_form')}
+              </Heading>
+            </div>
+            <GoodReputeFormFields
+              formik={
+                {
+                  values: snapshot,
+                  errors: {},
+                  touched: {},
+                  setFieldValue: () => Promise.resolve(),
+                } as never
+              }
+              readOnly
+              countryOptions={countryOptions}
+              onSearchPerson={() => {}}
+              searchLoading={false}
+              searchError={false}
+              onSearchErrorClose={() => {}}
+              searchNotFound={false}
+              onSearchNotFoundClose={() => {}}
+              isDesktop={isDesktop}
+            />
 
-        <FileUploadBlock
-          formPath="good-repute"
-          formNumber={snapshot.formNumber}
-          disabled={true}
-        />
+            <FileUploadBlock
+              formPath="good-repute"
+              formNumber={snapshot.formNumber}
+              disabled={true}
+            />
 
-        {id && (
-          <FormVersionsTable
-            formId={id}
-            formType={FORM_TYPE.GOOD_REPUTE}
-            refreshKey={versionsRefreshKey}
-          />
-        )}
+            {id && (
+              <FormVersionsTable
+                formId={id}
+                formType={FORM_TYPE.GOOD_REPUTE}
+                refreshKey={versionsRefreshKey}
+              />
+            )}
+          </Card.Content>
+        </Card>
         <div className="page-actions">
           <div className="page-actions-buttons">
-            <FormPrintButton endpoint="/v1/control-forms/good-repute/read/print" id={id} snapshotId={snapshotId} />
+            <FormPrintButton
+              endpoint="/v1/control-forms/good-repute/read/print"
+              id={id}
+              snapshotId={snapshotId}
+            />
           </div>
         </div>
       </div>
@@ -250,95 +264,100 @@ export function GoodReputeFormPage() {
           {formError}
         </Alert>
       )}
+      <Card>
+        <Card.Content className="pb-0">
+          <div className="card-main">
+            <Heading element="h1">
+              {form.formNumber
+                ? `${form.formNumber}/${form.version ?? 1}`
+                : t('forms.good_repute_form')}
+            </Heading>
+          </div>
 
-      <div className="card-main">
-        <Heading element="h1">
-          {form.formNumber
-            ? `${form.formNumber}/${form.version ?? 1}`
-            : t('forms.good_repute_form')}
-        </Heading>
-      </div>
+          <form onSubmit={formik.handleSubmit}>
+            <GoodReputeFormFields
+              formik={formik as never}
+              readOnly={!isEditActive}
+              countryOptions={countryOptions}
+              onSearchPerson={() =>
+                searchByPersonalCode(formik.values.personalCode)
+              }
+              searchLoading={searchLoading}
+              searchError={searchError}
+              onSearchErrorClose={() => setSearchError(false)}
+              searchNotFound={searchNotFound}
+              onSearchNotFoundClose={() => setSearchNotFound(false)}
+              isDesktop={isDesktop}
+            />
 
-      <form onSubmit={formik.handleSubmit}>
-        <GoodReputeFormFields
-          formik={formik as never}
-          readOnly={!isEditActive}
-          countryOptions={countryOptions}
-          onSearchPerson={() =>
-            searchByPersonalCode(formik.values.personalCode)
-          }
-          searchLoading={searchLoading}
-          searchError={searchError}
-          onSearchErrorClose={() => setSearchError(false)}
-          searchNotFound={searchNotFound}
-          onSearchNotFoundClose={() => setSearchNotFound(false)}
-          isDesktop={isDesktop}
-        />
-
-        {id && (
-          <FormVersionsTable
-            formId={id}
-            formType={FORM_TYPE.GOOD_REPUTE}
-            refreshKey={versionsRefreshKey}
+            {id && (
+              <FormVersionsTable
+                formId={id}
+                formType={FORM_TYPE.GOOD_REPUTE}
+                refreshKey={versionsRefreshKey}
+              />
+            )}
+          </form>
+        </Card.Content>
+      </Card>
+      <div className="page-actions">
+        <div className="page-actions-buttons">
+          <FormPrintButton
+            endpoint="/v1/control-forms/good-repute/read/print"
+            id={id}
           />
-        )}
-
-        <div className="page-actions">
-          <div className="page-actions-buttons">
-            <FormPrintButton endpoint="/v1/control-forms/good-repute/read/print" id={id} />
-            {isEditActive ? (
+          {isEditActive ? (
+            <>
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  formik.resetForm();
+                  setIsEditActive(false);
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
+              <AsyncButton type="button" onClick={() => formik.submitForm()}>
+                {t('common.save')}
+              </AsyncButton>
+              {canConfirm && (
+                <AsyncButton type="button" onClick={() => triggerConfirm()}>
+                  {t('common.confirm')}
+                </AsyncButton>
+              )}
+              {canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
+            </>
+          ) : (
+            canEdit && (
               <>
                 <Button
+                  iconLeft="edit"
                   type="button"
                   visualType="secondary"
-                  onClick={() => {
-                    formik.resetForm();
-                    setIsEditActive(false);
-                  }}
+                  onClick={() => setIsEditActive(true)}
                 >
-                  {t('common.cancel')}
+                  {t('common.edit')}
                 </Button>
-                <AsyncButton type="button" onClick={() => formik.submitForm()}>
-                  {t('common.save')}
-                </AsyncButton>
-                {canConfirm && (
-                  <AsyncButton type="button" onClick={() => triggerConfirm()}>
-                    {t('common.confirm')}
+                {canPublish && (
+                  <AsyncButton type="button" onClick={() => triggerPublish()}>
+                    {t('common.publish')}
                   </AsyncButton>
                 )}
-                {canDelete && <DeleteConfirmModal onDelete={handleDelete} />}
-              </>
-            ) : (
-              canEdit && (
-                <>
+                {canCreateNu && (
                   <Button
-                    iconLeft="edit"
                     type="button"
                     visualType="secondary"
-                    onClick={() => setIsEditActive(true)}
+                    onClick={() => navigate(`/erru/nu/new?sourceKey=${id}`)}
                   >
-                    {t('common.edit')}
+                    {t('erru.nu.createFromGoodRepute')}
                   </Button>
-                  {canPublish && (
-                    <AsyncButton type="button" onClick={() => triggerPublish()}>
-                      {t('common.publish')}
-                    </AsyncButton>
-                  )}
-                  {canCreateNu && (
-                    <Button
-                      type="button"
-                      visualType="secondary"
-                      onClick={() => navigate(`/erru/nu/new?sourceKey=${id}`)}
-                    >
-                      {t('erru.nu.createFromGoodRepute')}
-                    </Button>
-                  )}
-                </>
-              )
-            )}
-          </div>
+                )}
+              </>
+            )
+          )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }

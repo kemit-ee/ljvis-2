@@ -105,8 +105,12 @@ export function CgrRequestFields({
             <Select
               id="cgr-to"
               label={t('erru.cgr.form.cgrTo')}
-              options={[{ value: '', label: '\u00a0' }, ...opts(countries)]}
-              value={selected(countries, formik.values.cgrTo)}
+              options={[{ value: '', label: '—' }, ...opts(countries)]}
+              value={
+                [{ value: '', label: '—' }, ...opts(countries)].find(
+                  (o) => o.value === (formik.values.cgrTo ?? ''),
+                ) ?? null
+              }
               onChange={(o) => formik.setFieldValue('cgrTo', pick(o))}
               helper={{ text: t('erru.cgr.form.cgrToHint') }}
               {...err('cgrTo')}
@@ -221,8 +225,13 @@ export function CgrRequestFields({
               id="cgr-certificate-issue-country"
               label={t('erru.cgr.form.certificateIssueCountry')}
               required={certificateBlockStarted}
-              options={[{ value: '', label: '\u00a0' }, ...opts(countries)]}
-              value={selected(countries, formik.values.certificateIssueCountry)}
+              options={[{ value: '', label: '—' }, ...opts(countries)]}
+              value={
+                [{ value: '', label: '—' }, ...opts(countries)].find(
+                  (o) =>
+                    o.value === (formik.values.certificateIssueCountry ?? ''),
+                ) ?? null
+              }
               onChange={(o) =>
                 formik.setFieldValue('certificateIssueCountry', pick(o))
               }

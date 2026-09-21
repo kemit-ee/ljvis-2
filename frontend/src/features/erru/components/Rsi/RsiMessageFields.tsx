@@ -166,8 +166,12 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
             <Select
               id="rsi-vehicle-category"
               label={t('erru.rsi.form.vehicleCategory')}
-              options={opts(vehicleCategories)}
-              value={selected(vehicleCategories, formik.values.vehicleCategory)}
+              options={[{ value: '', label: '—' }, ...opts(vehicleCategories)]}
+              value={
+                [{ value: '', label: '—' }, ...opts(vehicleCategories)].find(
+                  (o) => o.value === (formik.values.vehicleCategory ?? ''),
+                ) ?? null
+              }
               onChange={(o) => formik.setFieldValue('vehicleCategory', pick(o))}
             />
             <TextField
