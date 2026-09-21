@@ -10,7 +10,7 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 OPENAPI="$REPO_ROOT/docs/openapi.yaml"
-MATRIX="$REPO_ROOT/docs/permissions-matrix.md"
+MATRIX="$REPO_ROOT/docs/workingdocs/permissions-matrix.md"
 
 if [[ ! -f "$OPENAPI" || ! -f "$MATRIX" ]]; then
   echo "expected $OPENAPI and $MATRIX to exist" >&2
@@ -45,8 +45,11 @@ for path, ops in (doc.get("paths") or {}).items():
             sys.exit(1)
         api_ops[opid] = f"{method.upper()} {path}"
         xperm = op.get("x-permissions") or {}
-        # Accept either { public: true } or { anyOf: [...] } (non-empty).
+        # Accept { public: true }, { authenticated: true, anyOf: [] } (no specific
+        # permission, session only), or { anyOf: [...] } (non-empty permission list).
         if xperm.get("public") is True:
+            continue
+        if xperm.get("authenticated") is True:
             continue
         any_of = xperm.get("anyOf")
         if not (isinstance(any_of, list) and len(any_of) > 0):

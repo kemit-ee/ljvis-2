@@ -56,6 +56,25 @@ tags:
       single-country request/response with another EU member state. Storage is an
       INSERT-only snapshot table, so every state change appends a row and the current
       state is the latest row per request.
+  - name: erru-cgr
+    description: |
+      ERRU CGR (Check Good Repute / Hea maine kontroll) — outgoing-only query to another
+      EU member state about a transport manager's good repute. Draft, send, and resend flow.
+  - name: erru-ncr
+    description: |
+      ERRU NCR (NotifyCheckResult / Kontrollitulemuste teade) — notify the vehicle's
+      registration country of a roadside check result. Includes both outgoing (build/send)
+      and incoming (respond/forward) flows.
+  - name: erru-rsi
+    description: |
+      ERRU RSI (RoadSide Inspection / Teeäärse kontrolli teade) — notify another EU member
+      state of a roadside inspection involving their-registered vehicle.
+  - name: erru-nu
+    description: |
+      ERRU NU (NotifyUndertaking / Vedaja teavitamine) — notify a transport undertaking's
+      home country of a serious infringement found at roadside.
+  - name: risk-scores
+    description: Risk score list (admin) and own-company score (citizen/representative).
 
 paths:
 
@@ -421,6 +440,7 @@ paths:
       tags: [classifier-values]
       operationId: getClassifierValuesFlat
       x-permissions:
+        authenticated: true
         anyOf: []
       summary: Flat list of all classifier values (FE bulk cache source).
       description: |
@@ -1897,6 +1917,904 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── ERRU CGR ──────────────────────────────────────────────────
+  # Inbound CGR machine endpoint (POST /v1/erru/cgr/inbound-request) is served
+  # by ruuter-internal and is not publicly exposed — not documented here.
+
+  /v1/erru/cgr/search:
+    get:
+      tags: [erru-cgr]
+      operationId: getCgrRequests
+      x-permissions:
+        anyOf: [cgr.read]
+      summary: Paginated list of outgoing CGR requests.
+      description: |
+        Returns outgoing CGR requests only. All filters are optional and AND-combined.
+        Audited on every load. Requires `cgr.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: businessCaseId, schema: { type: string } }
+        - { in: query, name: tmFirstName, schema: { type: string } }
+        - { in: query, name: tmFamilyName, schema: { type: string } }
+        - { in: query, name: sentFrom, schema: { type: string, format: date } }
+        - { in: query, name: sentUntil, schema: { type: string, format: date } }
+        - { in: query, name: cgrTo, schema: { type: string } }
+        - { in: query, name: status, schema: { type: string } }
+        - { in: query, name: handlerPersonalCode, schema: { type: string } }
+        - { in: query, name: sorting, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200':
+          description: CGR request page.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items: { type: object }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/cgr/get:
+    get:
+      tags: [erru-cgr]
+      operationId: getCgrRequest
+      x-permissions:
+        anyOf: [cgr.read]
+      summary: Get one CGR request by businessCaseId.
+      description: Audited on every open. Requires `cgr.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string },
+            description: CGR request logical key (business_case_id). }
+      responses:
+        '200':
+          description: The CGR request.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: CGR request not found. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/cgr/draft/create:
+    post:
+      tags: [erru-cgr]
+      operationId: postCgrDraft
+      x-permissions:
+        anyOf: [cgr.create]
+      summary: Create a new outgoing CGR request draft.
+      description: |
+        Creates a new draft in status `initiated`. `businessCaseId`, `direction`,
+        `status`, and `cgrFrom` are assigned server-side. Requires `cgr.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cgrTo: { type: string }
+                originatingAuthority: { type: string }
+                requestSource: { type: string }
+                requestPurpose: { type: string }
+                tmFirstName: { type: string }
+                tmFamilyName: { type: string }
+                tmDateOfBirth: { type: string }
+                tmPlaceOfBirth: { type: string }
+                certificateNumber: { type: string }
+                certificateIssueDate: { type: string }
+                certificateIssueCountry: { type: string }
+      responses:
+        '200':
+          description: Created draft.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/cgr/draft/revise:
+    put:
+      tags: [erru-cgr]
+      operationId: putCgrDraft
+      x-permissions:
+        anyOf: [cgr.create]
+      summary: Update an existing CGR request draft.
+      description: Revises an editable draft. Requires `cgr.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+                cgrTo: { type: string }
+                originatingAuthority: { type: string }
+                requestSource: { type: string }
+                requestPurpose: { type: string }
+                tmFirstName: { type: string }
+                tmFamilyName: { type: string }
+                tmDateOfBirth: { type: string }
+                tmPlaceOfBirth: { type: string }
+                certificateNumber: { type: string }
+                certificateIssueDate: { type: string }
+                certificateIssueCountry: { type: string }
+      responses:
+        '200':
+          description: Updated draft.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/cgr/send:
+    post:
+      tags: [erru-cgr]
+      operationId: postCgrSend
+      x-permissions:
+        anyOf: [cgr.send]
+      summary: Send a CGR request to the target member state.
+      description: |
+        Sends the CGR request and awaits the response. On transport failure the
+        request moves to `error` and can be retried with resend. Requires `cgr.send`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string, description: CGR request logical key. }
+      responses:
+        '200':
+          description: Sent and answered.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: CGR request not found. }
+        '422': { description: Validation error. }
+        '502': { description: ERRU transport failure — request left in error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/cgr/resend:
+    post:
+      tags: [erru-cgr]
+      operationId: postCgrResend
+      x-permissions:
+        anyOf: [cgr.send]
+      summary: Resend a failed CGR request.
+      description: Retries a CGR request that is in `error` status. Requires `cgr.send`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        '200':
+          description: Resent successfully.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: CGR request not found. }
+        '422': { description: Not in error status. }
+        '502': { description: ERRU transport failure. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── ERRU NCR ──────────────────────────────────────────────────
+  # Inbound machine endpoint (POST /v1/erru/ncr/inbound-request) is served
+  # by ruuter-internal and is not publicly exposed — not documented here.
+
+  /v1/erru/ncr/list/search:
+    get:
+      tags: [erru-ncr]
+      operationId: getNcrCases
+      x-permissions:
+        anyOf: [ncr.list]
+      summary: Paginated list of NCR cases (both directions).
+      description: |
+        Returns both outgoing and incoming NCR cases. All filters are optional and
+        AND-combined. Audited on every load. Requires `ncr.list`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: businessCaseId, schema: { type: string } }
+        - { in: query, name: vehicleRegistrationNumber, schema: { type: string } }
+        - { in: query, name: sentFrom, schema: { type: string, format: date } }
+        - { in: query, name: sentUntil, schema: { type: string, format: date } }
+        - { in: query, name: ncrFrom, schema: { type: string } }
+        - { in: query, name: ncrTo, schema: { type: string } }
+        - { in: query, name: status, schema: { type: string } }
+        - { in: query, name: direction, schema: { type: string, enum: [outgoing, incoming] } }
+        - { in: query, name: handlerPersonalCode, schema: { type: string } }
+        - { in: query, name: sorting, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200':
+          description: NCR case page.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items: { type: object }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ncr/get:
+    get:
+      tags: [erru-ncr]
+      operationId: getNcrCase
+      x-permissions:
+        anyOf: [ncr.read]
+      summary: Get one NCR case by businessCaseId (full snapshot history).
+      description: |
+        Returns the full snapshot array; the last element is the current state.
+        Incoming cases in `received` status are auto-transitioned to `viewed` on
+        first open. Audited on every open. Requires `ncr.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string },
+            description: NCR business_case_id. }
+      responses:
+        '200':
+          description: NCR case snapshot list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: NCR case not found. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ncr/request/build:
+    post:
+      tags: [erru-ncr]
+      operationId: postNcrRequestBuild
+      x-permissions:
+        anyOf: [ncr.create]
+      summary: Build a new outgoing NCR request draft from an SP/TH control form.
+      description: |
+        Creates a new NCR draft in status `initiated` pre-filled from the SP/TH
+        sub-form (`spFormKey`). All derivation logic is in `build.sql`.
+        Requires `ncr.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [spFormKey, spFormType]
+              properties:
+                spFormKey: { type: string }
+                spFormType: { type: string }
+                originatingAuthority: { type: string }
+                requestSource: { type: string }
+                requestPurpose: { type: string }
+                ncrTo: { type: string }
+      responses:
+        '200':
+          description: Created NCR draft.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ncr/request/save:
+    post:
+      tags: [erru-ncr]
+      operationId: postNcrRequestSave
+      x-permissions:
+        anyOf: [ncr.create]
+      summary: Save edits to an outgoing NCR request draft.
+      description: |
+        Saves (updates) an existing NCR draft. Does not send.
+        Requires `ncr.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+                ncrTo: { type: string }
+                originatingAuthority: { type: string }
+                requestSource: { type: string }
+                requestPurpose: { type: string }
+      responses:
+        '200':
+          description: Saved draft.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ncr/response/save:
+    post:
+      tags: [erru-ncr]
+      operationId: postNcrResponseSave
+      x-permissions:
+        anyOf: [ncr.respond]
+      summary: Save a response to an incoming NCR request.
+      description: |
+        Saves (drafts) the response to an incoming NCR case before sending.
+        Requires `ncr.respond`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+                responseText: { type: string }
+      responses:
+        '200':
+          description: Saved response.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ncr/response-send:
+    post:
+      tags: [erru-ncr]
+      operationId: postNcrResponseSend
+      x-permissions:
+        anyOf: [ncr.send]
+      summary: Send the response to an incoming NCR request.
+      description: |
+        Sends the response to the originating member state. The case moves to
+        `responded`. Requires `ncr.send`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        '200':
+          description: Response sent.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '502': { description: ERRU transport failure. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/ncr/send:
+    post:
+      tags: [erru-ncr]
+      operationId: postNcrSend
+      x-permissions:
+        anyOf: [ncr.send]
+      summary: Send an outgoing NCR notification to the target member state.
+      description: |
+        Sends the NCR notification. On transport failure the case stays in `error`
+        and the send can be retried. Requires `ncr.send`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        '200':
+          description: NCR sent.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: NCR case not found. }
+        '422': { description: Validation error. }
+        '502': { description: ERRU transport failure. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── ERRU RSI ──────────────────────────────────────────────────
+
+  /v1/erru/rsi/search:
+    get:
+      tags: [erru-rsi]
+      operationId: getRsiMessages
+      x-permissions:
+        anyOf: [rsi.read]
+      summary: Paginated list of RSI messages (both directions).
+      description: |
+        Returns both outgoing and incoming RSI messages. `businessCaseId` and
+        `vehicleRegistrationNumber` filters are OR-combined; all others AND-combined.
+        Audited on every load. Requires `rsi.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: businessCaseId, schema: { type: string } }
+        - { in: query, name: vehicleRegistrationNumber, schema: { type: string } }
+        - { in: query, name: sentFrom, schema: { type: string, format: date } }
+        - { in: query, name: sentUntil, schema: { type: string, format: date } }
+        - { in: query, name: rsiFrom, schema: { type: string } }
+        - { in: query, name: rsiTo, schema: { type: string } }
+        - { in: query, name: status, schema: { type: string } }
+        - { in: query, name: direction, schema: { type: string, enum: [outgoing, incoming] } }
+        - { in: query, name: handlerPersonalCode, schema: { type: string } }
+        - { in: query, name: sorting, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200':
+          description: RSI message page.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items: { type: object }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/rsi/get:
+    get:
+      tags: [erru-rsi]
+      operationId: getRsiMessage
+      x-permissions:
+        anyOf: [rsi.read]
+      summary: Get one RSI message by businessCaseId.
+      description: Audited on every open. Requires `rsi.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string },
+            description: RSI business_case_id. }
+      responses:
+        '200':
+          description: The RSI message.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: RSI message not found. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/rsi/request/build:
+    post:
+      tags: [erru-rsi]
+      operationId: postRsiRequestBuild
+      x-permissions:
+        anyOf: [rsi.create]
+      summary: Build a new outgoing RSI message draft from an SP/TH control form.
+      description: Pre-fills an RSI draft from the SP/TH sub-form. Requires `rsi.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [spFormKey, spFormType]
+              properties:
+                spFormKey: { type: string }
+                spFormType: { type: string }
+                originatingAuthority: { type: string }
+                requestSource: { type: string }
+                rsiTo: { type: string }
+      responses:
+        '200':
+          description: Created RSI draft.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/rsi/request/save:
+    post:
+      tags: [erru-rsi]
+      operationId: postRsiRequestSave
+      x-permissions:
+        anyOf: [rsi.create]
+      summary: Save edits to an outgoing RSI message draft.
+      description: Saves an existing RSI draft without sending. Requires `rsi.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+                rsiTo: { type: string }
+                originatingAuthority: { type: string }
+                requestSource: { type: string }
+      responses:
+        '200':
+          description: Saved draft.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/rsi/send:
+    post:
+      tags: [erru-rsi]
+      operationId: postRsiSend
+      x-permissions:
+        anyOf: [rsi.send]
+      summary: Send an outgoing RSI notification.
+      description: Sends the RSI message to the target member state. Requires `rsi.send`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        '200':
+          description: RSI sent.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: RSI message not found. }
+        '422': { description: Validation error. }
+        '502': { description: ERRU transport failure. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── ERRU NU ───────────────────────────────────────────────────
+  # Inbound NU machine endpoint is served by ruuter-internal — not documented here.
+
+  /v1/erru/nu/list/search:
+    get:
+      tags: [erru-nu]
+      operationId: getNuMessages
+      x-permissions:
+        anyOf: [nu.read]
+      summary: Paginated list of NU messages (both directions).
+      description: All filters are optional and AND-combined. Requires `nu.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: businessCaseId, schema: { type: string } }
+        - { in: query, name: dateFrom, schema: { type: string, format: date } }
+        - { in: query, name: dateUntil, schema: { type: string, format: date } }
+        - { in: query, name: country, schema: { type: string } }
+        - { in: query, name: tmFirstName, schema: { type: string } }
+        - { in: query, name: tmFamilyName, schema: { type: string } }
+        - { in: query, name: handlerPersonalCode, schema: { type: string } }
+        - { in: query, name: status, schema: { type: string } }
+        - { in: query, name: direction, schema: { type: string, enum: [outgoing, incoming] } }
+        - { in: query, name: sorting, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200':
+          description: NU message page.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items: { type: object }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/nu/get:
+    get:
+      tags: [erru-nu]
+      operationId: getNuMessage
+      x-permissions:
+        anyOf: [nu.read]
+      summary: Get one NU message by businessCaseId.
+      description: Audited on every open. Requires `nu.read`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string },
+            description: NU business_case_id. }
+      responses:
+        '200':
+          description: The NU message.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: NU message not found. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/nu/source/search:
+    get:
+      tags: [erru-nu]
+      operationId: getNuSourceMessages
+      x-permissions:
+        anyOf: [nu.create]
+      summary: Search SP/TH source declarations eligible for NU composition.
+      description: Returns SP/TH sub-forms that can be the basis for a new NU draft. Requires `nu.create`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200':
+          description: Source declaration list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items: { type: object }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/nu/source/get:
+    get:
+      tags: [erru-nu]
+      operationId: getNuSourceMessage
+      x-permissions:
+        anyOf: [nu.create]
+      summary: Read one SP/TH source declaration for NU composition.
+      description: Returns a single source SP/TH declaration. Requires `nu.create`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: The source declaration.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: Source declaration not found. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/nu/request/save:
+    post:
+      tags: [erru-nu]
+      operationId: postNuRequestSave
+      x-permissions:
+        anyOf: [nu.create]
+      summary: Save an outgoing NU message draft.
+      description: Saves an NU draft without sending. Requires `nu.create`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+                nuTo: { type: string }
+      responses:
+        '200':
+          description: Saved draft.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: Validation error. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/erru/nu/send:
+    post:
+      tags: [erru-nu]
+      operationId: postNuSend
+      x-permissions:
+        anyOf: [nu.send]
+      summary: Send an outgoing NU notification to the target member state.
+      description: Sends the NU message. Requires `nu.send`.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id: { type: string }
+      responses:
+        '200':
+          description: NU sent.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: NU message not found. }
+        '422': { description: Validation error. }
+        '502': { description: ERRU transport failure. }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ── Risk scores ────────────────────────────────────────────────
+
+  /v1/admin/risk-scores/list:
+    get:
+      tags: [risk-scores]
+      operationId: getRiskScoresList
+      x-permissions:
+        anyOf: [risk_report.list]
+      summary: Paginated admin list of the latest risk score per company.
+      description: |
+        Returns the most recent risk score per transport undertaking.
+        All filters are optional. Audited on every load.
+        Requires `risk_report.list`.
+      security:
+        - cookieAuth: []
+      parameters:
+        - { in: query, name: q, schema: { type: string },
+            description: Company name filter (substring, case-insensitive). }
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200':
+          description: Risk score list page.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items: { type: object }
+                  total: { type: integer }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /v1/citizen/risk-scores/my-company:
+    get:
+      tags: [risk-scores]
+      operationId: getRiskScoreMyCompany
+      x-permissions:
+        authenticated: true
+        anyOf: []
+      summary: Citizen/representative view of their own company's current risk score.
+      description: |
+        Returns the current risk score of the company the authenticated citizen
+        represents. Auth via TARA JWT (TIM). Requires an active representative
+        session; the representative's company is resolved from the session claims.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Own company risk score.
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
