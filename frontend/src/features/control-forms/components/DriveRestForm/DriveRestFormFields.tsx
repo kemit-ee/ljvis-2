@@ -1148,10 +1148,7 @@ export function DriveRestFormFields({
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
-                      {t(
-                        'forms.posting.blockTitle',
-                        'Direktiivist (EL) 2020/1057 tulenevate autojuhi lähetamise nõuete rikkumiste kategooriad',
-                      )}
+                      {t('forms.posting.blockTitle')}
                     </Heading>
                   }
                 />

@@ -705,22 +705,24 @@ export function CompoundFormViewCard({
             </Card.Content>
           </Card>
 
-          {form.id && (
+          {form.id && formType !== 'tram-card' && (
             <FormVersionsTable
               formId={form.id}
               formType={formType}
               refreshKey={versionsRefreshKey}
             />
           )}
-          <div className="confirm-button">
-            <div className="page-actions-buttons">
-              <FormPrintButton
-                endpoint={printEndpoint}
-                id={form.id}
-                snapshotId={snapshotId}
-              />
+          {formType !== 'tram-card' && (
+            <div className="confirm-button">
+              <div className="page-actions-buttons">
+                <FormPrintButton
+                  endpoint={printEndpoint}
+                  id={form.id}
+                  snapshotId={snapshotId}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Card.Content>
     </Card>

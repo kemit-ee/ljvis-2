@@ -160,11 +160,12 @@ export function CtudRequestFields({
                 id="ctud-vehicle-country"
                 label={t('erru.ctud.form.vehicleCountry')}
                 required={!!formik.values.vehicleRegistrationNumber}
-                options={[{ value: '', label: '\u00a0' }, ...opts(countries)]}
-                value={selected(
-                  countries,
-                  formik.values.vehicleRegistrationCountry,
-                )}
+                options={[{ value: '', label: '—' }, ...opts(countries)]}
+                value={
+                  [{ value: '', label: '—' }, ...opts(countries)].find(
+                    (o) => o.value === (formik.values.vehicleRegistrationCountry ?? ''),
+                  ) ?? null
+                }
                 onChange={(o) =>
                   formik.setFieldValue('vehicleRegistrationCountry', pick(o))
                 }

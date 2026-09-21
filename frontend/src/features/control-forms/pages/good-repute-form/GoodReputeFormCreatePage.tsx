@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Text, Alert } from '@tedi-design-system/react/tedi';
+import { Heading, Text, Alert, Card } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
@@ -53,29 +53,34 @@ export function GoodReputeFormCreatePage() {
   return (
     <div>
       <form onSubmit={formik.handleSubmit}>
-        <div className="card-main">
-          <Heading element="h1">{t('forms.good_repute_form')}</Heading>
-        </div>
+        <Card>
+          <Card.Content className="pb-0">
+            <div className="card-main">
+              <Heading element="h1">{t('forms.good_repute_form')}</Heading>
+            </div>
 
-        {formError && (
-          <Alert type="danger" size="small" className="mb-1">
-            {formError}
-          </Alert>
-        )}
+            {formError && (
+              <Alert type="danger" size="small" className="mb-1">
+                {formError}
+              </Alert>
+            )}
 
-        <GoodReputeFormFields
-          formik={formik as never}
-          readOnly={false}
-          countryOptions={countryOptions}
-          onSearchPerson={() => searchByPersonalCode(formik.values.personalCode)}
-          searchLoading={searchLoading}
-          searchError={searchError}
-          onSearchErrorClose={() => setSearchError(false)}
-          searchNotFound={searchNotFound}
-          onSearchNotFoundClose={() => setSearchNotFound(false)}
-          isDesktop={isDesktop}
-        />
-
+            <GoodReputeFormFields
+              formik={formik as never}
+              readOnly={false}
+              countryOptions={countryOptions}
+              onSearchPerson={() =>
+                searchByPersonalCode(formik.values.personalCode)
+              }
+              searchLoading={searchLoading}
+              searchError={searchError}
+              onSearchErrorClose={() => setSearchError(false)}
+              searchNotFound={searchNotFound}
+              onSearchNotFoundClose={() => setSearchNotFound(false)}
+              isDesktop={isDesktop}
+            />
+          </Card.Content>
+        </Card>
         <div className="page-actions">
           <div className="page-actions-buttons">
             <FormPrintButton endpoint="/v1/control-forms/good-repute/read/print" />

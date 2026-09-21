@@ -255,6 +255,9 @@ export function CompoundFormEditCard({
               <Heading element="h1">
                 {(formik.values.formNumber ?? '').split('/')[0]}
               </Heading>
+              {!formik.values.id && formType === 'tram-card' && (
+                <Heading element="h1">{t('forms.tram_driver_form')}</Heading>
+              )}
             </div>
           </div>
 
@@ -1673,7 +1676,9 @@ export function CompoundFormEditCard({
                           formik.setFieldValue('drivers', u);
                         }}
                         placeholder={t('common.dateFieldPlaceholder')}
-                        required={index === 0}
+                        required={
+                          index === 0 && !formik.values.driverNotApplicable
+                        }
                         inputProps={
                           (formik.touched.drivers as DriverTouched[])?.[index]
                             ?.birthDate &&
@@ -1811,21 +1816,23 @@ export function CompoundFormEditCard({
               </Card.Content>
             </Card>
 
-            {formik.values.id && (
+            {formik.values.id && formType !== 'tram-card' && (
               <FormVersionsTable
                 formId={formik.values.id}
                 formType={formType}
                 refreshKey={versionsRefreshKey}
               />
             )}
-            <div className="confirm-button">
-              <div className="page-actions-buttons">
-                <FormPrintButton
-                  endpoint={printEndpoint}
-                  id={formik.values.id}
-                />
+            {formType !== 'tram-card' && (
+              <div className="confirm-button">
+                <div className="page-actions-buttons">
+                  <FormPrintButton
+                    endpoint={printEndpoint}
+                    id={formik.values.id}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </form>
       </Card.Content>

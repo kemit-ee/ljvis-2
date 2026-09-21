@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Text, Alert } from '@tedi-design-system/react/tedi';
+import { Button, Text, Alert, Card } from '@tedi-design-system/react/tedi';
 import { useTramControlCard } from './useTramControlCard';
 import { useTramControlCardDetail } from './useTramControlCardDetail';
 import { useAuth } from '../../../auth/AuthContext';
@@ -17,23 +17,22 @@ import { EtoimikQueryCard } from '../../components/EtoimikQueryCard/EtoimikQuery
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
+import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
+import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
 
 const FORM_TYPE = 'tram-card';
 
 /**
  * Transpordiameti (TRAM) kontrollkaart — ADR-002: üks olem, üks elutsükkel.
  * Serves:
- *   /control-forms/tram-control-card/new
  *   /control-forms/tram-control-card/:id
  *   /control-forms/tram-control-card/:id/:snapshotId
  */
 export function TramControlCardPage() {
-  const { id: idParam, snapshotId } = useParams<{
+  const { id, snapshotId } = useParams<{
     id: string;
     snapshotId?: string;
   }>();
-  const isNew = !idParam || idParam === 'new';
-  const id = isNew ? undefined : idParam;
 
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -43,12 +42,10 @@ export function TramControlCardPage() {
   const isAdmin = useIsAdmin();
 
   const forbidden = !(
-    (isNew
-      ? hasPermission('tram_driver_form.write')
-      : hasPermission('tram_driver_form.read')) && hasPermission('classifier.read')
+    hasPermission('tram_driver_form.read') && hasPermission('classifier.read')
   );
 
-  const [isEditActive, setIsEditActive] = useState(isNew);
+  const [isEditActive, setIsEditActive] = useState(false);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -81,13 +78,7 @@ export function TramControlCardPage() {
     }
   }, [form?.status, hasPermission]);
 
-  const handleSaved = (savedId?: string) => {
-    if (isNew && savedId) {
-      navigate(`/control-forms/tram-control-card/${savedId}`, {
-        state: { justCreated: true },
-      });
-      return;
-    }
+  const handleSaved = () => {
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
     setShowPublishedAlert(false);
@@ -174,7 +165,7 @@ export function TramControlCardPage() {
     if (!id || !form) return;
     try {
       await deleteTramForm(id, form.status ?? '');
-      navigate('/', { state: { justCreated: true } });
+      navigate('/');
     } catch (e) {
       console.error('Delete failed', e);
     }
@@ -241,8 +232,7 @@ export function TramControlCardPage() {
     handleMtrSearch,
     onCancel: () => {
       formik.resetForm();
-      if (isNew) navigate('/');
-      else setIsEditActive(false);
+      setIsEditActive(false);
     },
     onConfirm: () => {},
     onDelete: handleDelete,
@@ -267,30 +257,41 @@ export function TramControlCardPage() {
           printEndpoint="/v1/control-forms/tram-card/read/print"
           snapshotId={snapshotId}
         />
-      <DriveRestFormFields
-        type="driver"
-        authority="TRAM"
-        formik={formik as never}
-        isDesktop={isDesktop}
-        hideDriveRestExtras
-        filesFormType="tram-card"
-        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
-        readOnly
-        transportClassItems={transportClassItems}
-        cargoCabotageViolations={cargoCabotageViolations}
-        passengerCabotageViolations={passengerCabotageViolations}
-        docRightChecks={docRightChecks}
-        docRightOtherDocs={docRightOtherDocs}
-        tachographTypes={tachographTypes}
-        drivingViolations={drivingViolations}
-        massDimensions={massDimensions}
-      />
+        <Card>
+          <Card.Content className="pb-0">
+            <DriveRestFormFields
+              type="driver"
+              authority="TRAM"
+              formik={formik as never}
+              isDesktop={isDesktop}
+              hideDriveRestExtras
+              filesFormType="tram-card"
+              filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
+              readOnly
+              transportClassItems={transportClassItems}
+              cargoCabotageViolations={cargoCabotageViolations}
+              passengerCabotageViolations={passengerCabotageViolations}
+              docRightChecks={docRightChecks}
+              docRightOtherDocs={docRightOtherDocs}
+              tachographTypes={tachographTypes}
+              drivingViolations={drivingViolations}
+              massDimensions={massDimensions}
+            />
+            {id && (
+              <FormVersionsTable
+                formId={id}
+                formType={FORM_TYPE}
+                refreshKey={versionsRefreshKey}
+              />
+            )}
+          </Card.Content>
+        </Card>
       </div>
     );
   }
 
   if (loading) return <Text>{t('common.loading')}</Text>;
-  if (!isNew && !form)
+  if (!form)
     return <FormNotFoundView title={t('forms.tram_control_card_form')} />;
 
   const drivers: Driver[] = Array.isArray(form?.drivers)
@@ -350,13 +351,13 @@ export function TramControlCardPage() {
     </>
   );
 
-  const showEdit = isNew || isEditActive;
+  const showEdit = isEditActive;
 
   return (
     <div>
       {alerts}
 
-      {!isNew && form && id && drivers.length > 0 && (
+      {form && id && drivers.length > 0 && (
         <EtoimikQueryCard
           drivers={drivers}
           referenceNumberOptions={etoimikReferenceOptions}
@@ -370,73 +371,97 @@ export function TramControlCardPage() {
             {...editCardProps}
             printEndpoint="/v1/control-forms/tram-card/read/print"
           />
-      <DriveRestFormFields
-        type="driver"
-        authority="TRAM"
-        formik={formik as never}
-        isDesktop={isDesktop}
-        hideDriveRestExtras
-        filesFormType="tram-card"
-        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
-        readOnly={false}
-        transportClassItems={transportClassItems}
-        cargoCabotageViolations={cargoCabotageViolations}
-        passengerCabotageViolations={passengerCabotageViolations}
-        docRightChecks={docRightChecks}
-        docRightOtherDocs={docRightOtherDocs}
-        tachographTypes={tachographTypes}
-        drivingViolations={drivingViolations}
-        massDimensions={massDimensions}
-      />
+          <Card>
+            <Card.Content className="pb-0">
+              <DriveRestFormFields
+                type="driver"
+                authority="TRAM"
+                formik={formik as never}
+                isDesktop={isDesktop}
+                hideDriveRestExtras
+                filesFormType="tram-card"
+                filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
+                readOnly={false}
+                transportClassItems={transportClassItems}
+                cargoCabotageViolations={cargoCabotageViolations}
+                passengerCabotageViolations={passengerCabotageViolations}
+                docRightChecks={docRightChecks}
+                docRightOtherDocs={docRightOtherDocs}
+                tachographTypes={tachographTypes}
+                drivingViolations={drivingViolations}
+                massDimensions={massDimensions}
+              />
+              {id && (
+                <FormVersionsTable
+                  formId={id}
+                  formType={FORM_TYPE}
+                  refreshKey={versionsRefreshKey}
+                />
+              )}
+            </Card.Content>
+          </Card>
         </>
       ) : (
         <>
-          <CompoundFormViewCard
-            form={form!}
-            {...sharedProps}
-            canEdit={canEditLocked}
-            onEdit={() => setIsEditActive(true)}
-            formType={FORM_TYPE}
-            versionsRefreshKey={versionsRefreshKey}
-            printEndpoint="/v1/control-forms/tram-card/read/print"
-          />
-      <DriveRestFormFields
-        type="driver"
-        authority="TRAM"
-        formik={formik as never}
-        isDesktop={isDesktop}
-        hideDriveRestExtras
-        filesFormType="tram-card"
-        filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
-        readOnly
-        transportClassItems={transportClassItems}
-        cargoCabotageViolations={cargoCabotageViolations}
-        passengerCabotageViolations={passengerCabotageViolations}
-        docRightChecks={docRightChecks}
-        docRightOtherDocs={docRightOtherDocs}
-        tachographTypes={tachographTypes}
-        drivingViolations={drivingViolations}
-        massDimensions={massDimensions}
-      />
+          <Card>
+            <Card.Content className="pb-0">
+              <CompoundFormViewCard
+                form={form!}
+                {...sharedProps}
+                canEdit={canEditLocked}
+                onEdit={() => setIsEditActive(true)}
+                formType={FORM_TYPE}
+                versionsRefreshKey={versionsRefreshKey}
+                printEndpoint="/v1/control-forms/tram-card/read/print"
+              />
+              <DriveRestFormFields
+                type="driver"
+                authority="TRAM"
+                formik={formik as never}
+                isDesktop={isDesktop}
+                hideDriveRestExtras
+                filesFormType="tram-card"
+                filesFormNumber={form?.formNumber ?? snapshot?.formNumber ?? ''}
+                readOnly
+                transportClassItems={transportClassItems}
+                cargoCabotageViolations={cargoCabotageViolations}
+                passengerCabotageViolations={passengerCabotageViolations}
+                docRightChecks={docRightChecks}
+                docRightOtherDocs={docRightOtherDocs}
+                tachographTypes={tachographTypes}
+                drivingViolations={drivingViolations}
+                massDimensions={massDimensions}
+              />
+              {id && (
+                <FormVersionsTable
+                  formId={id}
+                  formType={FORM_TYPE}
+                  refreshKey={versionsRefreshKey}
+                />
+              )}
+            </Card.Content>
+          </Card>
         </>
       )}
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
+          <FormPrintButton
+            endpoint="/v1/control-forms/good-repute/read/print"
+            id={id}
+          />
           {showEdit ? (
             <>
-              {!isNew && (
-                <Button
-                  type="button"
-                  visualType="secondary"
-                  onClick={() => {
-                    formik.resetForm();
-                    setIsEditActive(false);
-                  }}
-                >
-                  {t('common.cancel')}
-                </Button>
-              )}
+              <Button
+                type="button"
+                visualType="secondary"
+                onClick={() => {
+                  formik.resetForm();
+                  setIsEditActive(false);
+                }}
+              >
+                {t('common.cancel')}
+              </Button>
               <AsyncButton
                 type="button"
                 onClick={() => {
@@ -471,7 +496,7 @@ export function TramControlCardPage() {
               )}
             </>
           )}
-          {canDelete && !isNew && (
+          {canDelete && (
             <DeleteConfirmModal onDelete={handleDelete} />
           )}
         </div>

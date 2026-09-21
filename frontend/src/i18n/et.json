@@ -2294,6 +2294,7 @@
     "ncrDetail": "NCR teade",
     "nuCreate": "Uus NU sobimatusteade",
     "nuDetail": "NU sobimatusteade",
-    "tramControlCard": "Transpordiameti kontrollkaart"
+    "tramControlCard": "Transpordiameti kontrollkaart",
+    "notificationTemplateMappingDetail": "Postkasti mall"
   }
 }
