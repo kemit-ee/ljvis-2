@@ -1,17 +1,17 @@
 -- liquibase formatted sql
 -- changeset ljvis:20261122130000 ignore:true splitStatements:false
 --
--- UAT-ONLY testandmed Andmejälgija (xroad.aj_usage_log) X-tee OpenAPI/turvaserveri
--- katsetuseks — isikukoodile 60001019906 (repo test-kasutaja) lisatakse mitu
--- kasutusteabe kirjet, et findUsage/usagePeriod endpoint'e saaks päris andmete
--- peal kontrollida.
+-- Test/dev-only fixture: Andmejälgija (AJ) kasutusteabe logi kirjed isikukoodile
+-- 60001019906 (repo seedatud Super Admin testkasutaja, vt 20260519100001-seed-data.sql).
+-- Võimaldab kontrollida GET /ljvis/xroad/v2/findUsage ja /ljvis/xroad/v2/usagePeriod
+-- vastuseid ilma päris X-tee liiklust tekitamata.
 --
--- TÄHTIS: see changeset on mõeldud AINULT UAT/testkeskkonnale. See EI TOHI
--- jõuda kliendi päris toodangusse, kus see logi on DUMonitori kaudu kodanikule
--- endale nähtav (IKS § 19, § 25) — kirjed on väljamõeldud, mitte päris X-tee
--- liiklusest tekkinud. Enne kui sama changelog kunagi toodangu vastu jookseb,
--- TULEB see changeset (koos rollback-failiga) changelogist eemaldada, või
--- rakendada `liquibase rollback` selleks changeset'iks enne toodangumigratsiooni.
+-- NB! See fail EI kuulu master changelogisse (DSL/Liquibase/changelog.yaml
+-- includeAll't ainult changelog/ kataloogi) ega docker-compose.ci.yml bootstrap
+-- sammu — see rakendub AINULT käsitsi psql-iga, kunagi mitte liquibase update
+-- kaudu. Sama sisu käis korra läbi ka päris changelogist (#408), aga see
+-- eemaldati sealt (ei tohtinud kunagi kliendi toodangusse jõuda — IKS § 19/§ 25
+-- Andmejälgija logi on kodanikule endale DUMonitori kaudu nähtav).
 --
 DO $$
 BEGIN
@@ -19,7 +19,7 @@ BEGIN
         SELECT 1 FROM xroad.aj_usage_log
         WHERE user_code = '60001019906' AND action LIKE 'LJVIS-UAT-testandmed:%'
     ) THEN
-        RAISE NOTICE 'UAT AJ usage log fixture for 60001019906 already exists, skipping';
+        RAISE NOTICE 'AJ usage log fixture for 60001019906 already exists, skipping';
         RETURN;
     END IF;
 
