@@ -97,7 +97,7 @@ export function createTechnicalCheckValidationSchema(
         const resultType: string = (this.parent as { resultType?: string }).resultType ?? 'ok';
         if (resultType !== 'ok') return true;
         return (value ?? []).some(
-          (p: { status: string }) => p.status === 'checked' || p.status === 'non_compliant',
+          (p: { checked?: boolean; hasDefect?: boolean }) => p.checked === true || p.hasDefect === true,
         );
       },
     ),

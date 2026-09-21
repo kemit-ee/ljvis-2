@@ -6,6 +6,15 @@
 
 ## 2026-09-21
 
+### Koondvormi tehnokontrollkaardit ei saanud salvestada, kuigi sõiduki osa oli märgitud
+
+- Koondvormis (nt sõidukijuht + sõiduki tehnokontroll) ei saanud salvestada,
+  kuigi vähemalt üks sõiduki osa/sõlm oli tehnokontrolli plokis "Kontrollitud"
+  või "Mittevastav" märkega — vormil kuvati ekslikult "Salvestamiseks peab
+  olema vähemalt üks sõiduki osa või sõlm kontrollitud", ehkki see tingimus
+  oli tegelikult täidetud. Valideerimisreegel kontrollis vananenud andmevälja,
+  mida enam ei kirjutata; nüüd kontrollib õigeid välju ja salvestamine töötab.
+
 ### Mootorsõiduki/haagise tehnokontrollkaardi veo katkestamise märget ei saanud eemaldada
 
 - "Autovedu on katkestatud" märkeruutu (kuvatakse Sõidukeelu valimisel) sai
@@ -113,6 +122,20 @@
   (vedaja nimi/kaubamärk sõidukil, liini number/nimetus, sõiduplaanist
   kinnipidamine jm), mis kuuluvad ainult TRAM kontrollkaardile. Need on
   nüüd PPA vormil peidetud, TRAM kontrollkaardil jäävad muutumatult alles.
+
+### Vedaja e-posti otsingu äriregistripäring jõuab nüüd X-tee logisse
+
+- Välisriigi rikkumise vormi avalikustamisel ("Teavita vedajat rikkumisest")
+  otsitakse vedaja e-post äriregistrist (XTR `ar/detailandmed_v1`) — see
+  päring läks siiani otse XTR-i, ilma et sellest jääks jälge
+  "eToimiku X-tee logid" haldusvaatesse, erinevalt samale teenusele juba
+  varem loodud logivast otsingu-endpoint'ist.
+- Nüüd logitakse see päring (õnnestumine, viga ja katkenud ühendus eraldi)
+  X-tee integratsioonilogisse koos tegeliku äriregistri vastusega, et
+  vedaja e-posti tuvastamise vigu (nt vale kontaktandmete kirje valimine)
+  saaks otse haldusvaatest diagnoosida.
+
+## 2026-09-18
 
 ### Vedaja teavituse ebaõnnestunud aadressi otsing jääb nüüd Teavituste vaatesse nähtavale
 
