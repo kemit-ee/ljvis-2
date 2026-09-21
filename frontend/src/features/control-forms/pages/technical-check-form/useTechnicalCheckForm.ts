@@ -180,6 +180,7 @@ export function useTechnicalCheckForm(
       resultType: form?.resultType ?? 'ok',
       resultTransportInterruption: form?.resultTransportInterruption ?? false,
       transportInterruptionAutovs5131: form?.transportInterruptionAutovs5131 ?? false,
+      otherMeasure: form?.otherMeasure ?? false,
       eraYvMntRegnr: form?.eraYvMntRegnr ?? false,
       eraYvMntVintin: form?.eraYvMntVintin ?? false,
       eraYvMntAxles: form?.eraYvMntAxles ?? false,
