@@ -44,11 +44,11 @@ def ruuter_files() -> list[str]:
 
 
 def collect_next_refs(obj) -> set[str]:
-    """Every string value of a `next` key, at any depth."""
+    """Every string value of a `next` or `error` key, at any depth."""
     refs: set[str] = set()
     if isinstance(obj, dict):
         for key, value in obj.items():
-            if key == "next" and isinstance(value, str):
+            if key in ("next", "error") and isinstance(value, str):
                 refs.add(value)
             else:
                 refs |= collect_next_refs(value)
