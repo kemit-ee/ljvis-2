@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-09-22 (parandus)
+
+### Liquibase: NU väljamineva teate migratsiooni checksum-viga
+
+PR #415 muutis otse juba rakendunud migratsiooni
+(`20261117121000-erru-nu-exchange.sql`) sisu, mis rikkus liquibase
+kontrollsumma valideerimise igas keskkonnas, kus see migratsioon oli
+juba käivitunud (`Validation Failed: check sum ... was: X but is now: Y`).
+Taastati migratsiooni algne (juba rakendunud) sisu ning PR #415 tegelik
+sisuline muudatus toodi uue, eraldiseisva migratsioonina
+(`20261124140000-erru-nu-align-outgoing-fields`), mis kasutab
+`CREATE OR REPLACE FUNCTION` — turvaliselt korduvkäivitatav nii
+värsketel kui juba migreerunud andmebaasidel. Kasutajale nähtavat
+käitumist see ei muuda (funktsioonide lõpp-tulemus jääb samaks, mis
+PR #415 pärast).
+
+---
+
 ## 2026-09-22
 
 ### Välisriigi kontrollkaart: teavituse saatmise ja rikkumiste sanktsioonide korrektuurid
