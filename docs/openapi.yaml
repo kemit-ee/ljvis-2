@@ -5043,9 +5043,32 @@ components:
         violations:
           type: array
           items:
-            type: string
+            type: object
+            properties:
+              code:
+                type: string
+                description: EU Regulation 1071/2009 violation code (from `EU_INFRINGEMENT` classifier), e.g. "MSI101".
+              sanctionCode:
+                type: string
+                nullable: true
+                description: Sanction applied for this specific violation. Optional at save time; required before confirm/publish.
+              sanctionNotes:
+                type: string
+                nullable: true
+              recommendedMeasureCode:
+                type: string
+                nullable: true
+              recommendedMeasureNotes:
+                type: string
+                nullable: true
+            required:
+              - code
           nullable: true
-          description: Array of EU Regulation 1071/2009 violation codes (from `EU_INFRINGEMENT` classifier).
+          description: >-
+            Array of per-violation objects, each carrying its own sanction/recommended measure.
+            Empty array means no violations were selected — in that case the top-level
+            sanctionCode/recommendedMeasureCode act as the general-result fallback.
+            Migrated 2026-11-24 from a flat array of violation code strings.
         recommendedMeasureCode:
           type: string
           description: |

@@ -84,8 +84,23 @@ def build_standalone_context(template, payload=None, blank=False):
     trailer_rows = [{**t, 'display': joined(t.get('make'), t.get('model'), t.get('countryCode'), t.get('regNr'), t.get('vin'))} for t in trailers]
     data = dict(template=template, title=STANDALONE_TITLES[template], number=joined(f.get('formNumber'), 'v'+str(f['version']) if f.get('version') else ''), blank=blank, f=f, fields=fields, drivers=people, trailers=trailer_rows, appendix=appendix, warnings=warnings, label=label, yes=yes, dt=dt, short=short)
     if template == 'foreign-violation-form':
+        # violations[] elements are objects since the 20261124110000 migration
+        # ({code, sanctionCode, sanctionNotes, recommendedMeasureCode,
+        # recommendedMeasureNotes}) — previously a flat code string. Extract
+        # the code before labelling; append the violation's own sanction (if
+        # any) so the printed card isn't reduced to the card-level fallback
+        # 'sanction' alone. Backward-compatible with any lingering plain
+        # string entries (pre-migration snapshots read via get-snapshot).
+        def _violation_summary(v):
+            code = v.get('code') if isinstance(v, dict) else v
+            code_label = label('violations', code)
+            own_sanction = v.get('sanctionCode') if isinstance(v, dict) else None
+            if own_sanction:
+                return code_label + ' (' + label('sanctions', own_sanction) + ')'
+            return code_label
+
         data.update(
-            violations=[label('violations', x) for x in structured(f.get('violations'), list)],
+            violations=[_violation_summary(x) for x in structured(f.get('violations'), list)],
             additional_sanctions=[label('sanctions', x) for x in structured(f.get('additionalSanctionCodes'), list)],
             sanction=label('sanctions', f.get('sanctionCode')),
             recommendation=label('recommendedMeasures', f.get('recommendedMeasureCode')),

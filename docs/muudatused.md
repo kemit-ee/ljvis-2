@@ -4,6 +4,36 @@
 
 ---
 
+## 2026-09-22
+
+### Välisriigi kontrollkaart: teavituse saatmise ja rikkumiste sanktsioonide korrektuurid
+
+Eilse (2026-09-21) rikkumisepõhise sanktsiooni ja teavituse saatmise
+muudatuse (vt allpool) koodiülevaatusel leitud parandused:
+
+- Rikkumise oma sanktsioon (violations[].sanctionCode) on nüüd täidetav
+  ja **muudetav ka pärast kaardi salvestamist** — see ei blokeeri enam
+  lihtsat salvestamist, kui see on veel täitmata (nt NCR-ilt üle kandunud
+  read, kus sanktsiooni ei suudetud automaatselt tuvastada). Iga rikkumise
+  sanktsioon on kohustuslik **enne kinnitamist ja avalikustamist**.
+- Teavituse saatmine (vedaja/tööinspektor) ei käivitu enam kaardi ESIMESE
+  salvestamise (loomise) hetkel — see on liiga varajane, andmed on veel
+  läbi vaatamata. Teavituse saab (uuesti) märkida ja saata alates
+  järgmisest salvestusest või kinnitamisel.
+- Ka **kinnitamine** (mitte ainult salvestamine) käivitab nüüd teavituse
+  saatmise, kui linnuke on märgitud — varem läks "Teavita tööinspektorit"
+  linnuke kinnitamisel kaotsi ja "Teavita vedajat" linnuke jäi kinnitamisel
+  DB-sse märgituks ilma, et teavitus kunagi väljuks.
+- Äriregistri e-posti otsingu ebaõnnestumisel (nt X-tee ajutine tõrge)
+  logitakse teavituse saatmiskatse nüüd korrektselt "ebaõnnestunud" reana
+  (varem kadus katse jäljetult).
+- Prinditaval kontrollkaardil (PDF) näidatakse rikkumiste koode taas
+  loetavalt (varem, rikkumiste uue struktuuri tõttu, kuvati toores
+  Python-objekti tekstivorming); igale rikkumisele lisati prinditud
+  vaates ka selle oma sanktsioon, kui see on määratud.
+
+---
+
 ## 2026-09-21
 
 ### Ajutine NCR->välisriigi kontrollkaart testandmestik (eemaldatakse eraldi PR-iga)

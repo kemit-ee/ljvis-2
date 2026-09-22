@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
-import type { ForeignViolationForm } from '../../../control-forms/types';
+import type {
+  ForeignViolationForm,
+  ForeignViolationFormViolation,
+} from '../../../control-forms/types';
 import {
   saveForeignViolationForm,
   confirmForeignViolationForm,
@@ -81,12 +84,18 @@ export function useForeignViolationForm(
         schema.required(t('forms.foreign_violation.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
+    // sanctionCode on per-rikkumine VALIKULINE lihtsal salvestamisel — see
+    // pidi olema täidetav/muudetav ka pärast kaardi loomist, mitte kohe
+    // salvestamist blokeeriv (nt 20261124110000 migreeritud read on
+    // {code}-ainult, ja create-from-ncr.yml ei suuda alati sanctionCode'i
+    // tuletada, vt fixture TEST-NCR-TRANSFER-03 tühja penaltiesImposed'iga).
+    // Kinnitamisel/avalikustamisel on täitmine kohustuslik — vt allpool
+    // onSubmit'i isConfirming/isPublishing haru, mis kontrollib seda eraldi,
+    // formik context'ita (Yup.when ei saa siin formik pending-ref'ile ligi).
     violations: Yup.array().of(
       Yup.object({
         code: Yup.string().required(),
-        sanctionCode: Yup.string().required(
-          t('forms.foreign_violation.validation.required'),
-        ),
+        sanctionCode: Yup.string().optional(),
         sanctionNotes: Yup.string().optional(),
         recommendedMeasureCode: Yup.string().optional(),
         recommendedMeasureNotes: Yup.string().optional(),
@@ -193,6 +202,27 @@ export function useForeignViolationForm(
         const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
         pendingPublish.current = false;
+
+        // Per-rikkumise sanctionCode on valikuline lihtsal salvestamisel
+        // (Yup schema), aga kohustuslik enne kinnitamist/avalikustamist —
+        // kontrollitakse siin, formik context'ist sõltumatult, sest
+        // pendingConfirm/pendingPublish on refid, mitte formik state.
+        if (isConfirming || isPublishing) {
+          const violationsArr = Array.isArray(values.violations)
+            ? (values.violations as ForeignViolationFormViolation[])
+            : [];
+          const missingIndex = violationsArr.findIndex(
+            (v) => !v.sanctionCode || !String(v.sanctionCode).trim(),
+          );
+          if (missingIndex !== -1) {
+            setFieldError(
+              `violations[${missingIndex}].sanctionCode`,
+              t('forms.foreign_violation.validation.required'),
+            );
+            return;
+          }
+        }
+
         const trimmedValues = {
           ...values,
           inspectionDate: toIsoDate(values.inspectionDate),

@@ -1,0 +1,164 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Ühine teavituse saatmise otsustus- ja saatmisloogika (p.5/6/8 refaktor,
+    code review 2026-09-22 leidude 2/3/4/5 parandus). Kutsutakse KOLMEST
+    kirjutamisteest — edit/save.yml (nii insertForm kui updateForm haru) ja
+    edit/confirm.yml — et vältida loogika kolmekordset kopeerimist ja tagada
+    ühtne käitumine kõikjal.
+
+    Disainiotsus: notifyCarrier/notifyLaborInspector on MOMENDIVÄLJAD
+    ("saada nüüd"), mitte püsiv olek — see template ei tagasta kunagi
+    "persisted=true"; iga kutse lõpetab kaardi peale kirjutamiseks mõeldud
+    väärtusega 'false' ('{"notifyCarrierPersisted":"false","notifyLaborInspectorPersisted":"false"}'),
+    olenemata sellest, kas saatmine toimus. See kõrvaldab tervikliku
+    veaklassi (checkbox jääb DB-s "true" kinni, kui saatmist ei toimunud —
+    vt review leiud 2/3): kaardil ei tekigi olekut, mida false->true
+    üleminekuna hiljem enam kunagi ei tuvastataks. Kutsuja (save.yml/confirm.yml)
+    ei pea seega enne kutset "vana väärtust" DB-st võrdlema — piisab lugeda
+    kasutaja PRAEGUSEST päringust soovitud väärtus (newNotifyCarrier/
+    newNotifyLaborInspector) ja otsustada, kas saatmine on lubatud
+    (sendGateMet — kutsuja vastutusel, vt allpool).
+
+    sendGateMet: kutsuja otsustab, KAS praegu on lubatud reaalset teavitust
+    saata (review leid 3 — varem sai avalikustamisel saata ainult
+    confirmed staatuselt; nüüd, kui saatmine on kolitud save/confirm'i,
+    peab gate olema endiselt eksplitsiitne, mitte puuduv):
+      - edit/save.yml insertForm haru: sendGateMet ALATI 'false' (uus rida
+        on ALATI staatuses 'saved', mitte kunagi juba kinnitatud).
+      - edit/save.yml updateForm haru: sendGateMet = (praegune, EELMINE
+        staatus salvestamise eest !== 'saved') — st vorm on vähemalt korra
+        kinnitatud.
+      - edit/confirm.yml: sendGateMet ALATI 'true' — confirm.yml enda
+        tulemus ON staatuse üleminek 'confirmed'-ks, mis rahuldab sama
+        tingimust ("vähemalt kinnitatud").
+    Kui sendGateMet on 'false' ja kasutaja märkis linnukese, EI saadeta
+    teavitust — checkbox lähtestub siiski false-ks (momendiväli), kasutaja
+    saab selle uuesti märkida pärast kinnitamist, mil sendGateMet muutub
+    tõeseks.
+
+    Äriregistri e-posti otsingu VIGA (review leid 4): kui jagatud
+    lookup-carrier-registry-email template ebaõnnestub (transpordi tase),
+    ei jäeta sendCarrierNotification'it vahele — kutsutakse ikka, tühja
+    recipient_email'iga, et send-postkast.yml (checkRecipientFormat /
+    markInvalidRecipient) looks korrektse "error" rea notifications.outbound_log-i.
+    Nii ei kao kasutaja saatmissoov jäljetult.
+  namespace: service
+  allowlist:
+    body:
+      - field: formId
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: companyName
+        type: string
+      - field: formNumber
+        type: string
+      - field: createdBy
+        type: string
+      - field: newNotifyCarrier
+        type: string
+      - field: newNotifyLaborInspector
+        type: string
+      - field: sendGateMet
+        type: string
+
+extractInputs:
+  assign:
+    form_id: "${incoming.body.formId || ''}"
+    company_reg_code: "${incoming.body.companyRegCode || ''}"
+    company_name: "${incoming.body.companyName || ''}"
+    notification_form_number: "${incoming.body.formNumber || ''}"
+    created_by: "${incoming.body.createdBy || 'system'}"
+    send_carrier: "${incoming.body.newNotifyCarrier === 'true' && incoming.body.sendGateMet === 'true'}"
+    send_labor_inspector: "${incoming.body.newNotifyLaborInspector === 'true' && incoming.body.sendGateMet === 'true'}"
+  next: checkSendCarrier
+
+checkSendCarrier:
+  switch:
+    - condition: ${send_carrier}
+      next: lookupCarrierEmail
+  next: checkSendLaborInspector
+
+lookupCarrierEmail:
+  template: "templates/xroad/lookup-carrier-registry-email"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    companyRegCode: ${company_reg_code}
+    sourceType: "foreign_violation_form"
+    sourceRecordId: ${form_id}
+  result: carrierLookupResult
+  error: markCarrierEmailLookupFailed
+  next: parseCarrierLookupResult
+
+parseCarrierLookupResult:
+  assign:
+    carrier_email: >-
+      ${(() => {
+        try { return (JSON.parse(carrierLookupResult) || {}).email || ''; }
+        catch (e) { return ''; }
+      })()}
+  next: sendCarrierNotification
+
+# review leid 4: lookup ebaõnnestumisel (transpordi tase — template'i enda
+# error haru) EI jäeta sendCarrierNotification'it vahele, vaid kutsutakse
+# tühja aadressiga — send-postkast.yml logib selle korrektselt "error"-rea.
+markCarrierEmailLookupFailed:
+  assign:
+    carrier_email: ""
+  next: sendCarrierNotification
+
+sendCarrierNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "carrier_violation"
+      recipient_email: ${carrier_email}
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${form_id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: carrierNotifRes
+  error: checkSendLaborInspector
+  next: checkSendLaborInspector
+
+checkSendLaborInspector:
+  switch:
+    - condition: ${send_labor_inspector}
+      next: sendLaborInspectorNotification
+  next: returnResult
+
+# Taaskasutab 'labor_foreign_proposal' malli/adressaati (tööinspektor) —
+# sama teavituse liik, mida varem päästis foreignAuthorityProposal fakt,
+# nüüd päästab eraldiseisev notifyLaborInspector checkbox (p.5).
+sendLaborInspectorNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_foreign_proposal"
+      language: "et"
+      send_time: ""
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${form_id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: laborInspectorNotifRes
+  error: returnResult
+  next: returnResult
+
+returnResult:
+  return: '{"notifyCarrierPersisted":"false","notifyLaborInspectorPersisted":"false"}'
+  next: end
