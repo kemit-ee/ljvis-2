@@ -9,7 +9,6 @@ import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 
 const T = 'erru.nu.validation';
 
-// Identity is server-derived; revisions retain the original source.
 export function useNuForm(
   request: Partial<NuMessage> | undefined,
   sourceGoodReputeFormKey: string | undefined,
@@ -47,6 +46,34 @@ export function useNuForm(
     originatingAuthority: Yup.string().required(required),
     requestSource: Yup.string().required(required),
     requestPurpose: Yup.string().required(required),
+    primaryElement: Yup.string()
+      .oneOf(['transportManager', 'certificate'])
+      .required(required),
+    tmFirstName: Yup.string().when('primaryElement', {
+      is: 'transportManager',
+      then: (schema) => schema.required(required).max(100),
+    }),
+    tmFamilyName: Yup.string().when('primaryElement', {
+      is: 'transportManager',
+      then: (schema) => schema.required(required).max(100),
+    }),
+    tmDateOfBirth: Yup.string().when('primaryElement', {
+      is: 'transportManager',
+      then: (schema) => schema.required(required),
+    }),
+    tmPlaceOfBirth: Yup.string().max(50),
+    certificateNumber: Yup.string().when('primaryElement', {
+      is: 'certificate',
+      then: (schema) => schema.required(required).max(20),
+    }),
+    certificateIssueDate: Yup.string().when('primaryElement', {
+      is: 'certificate',
+      then: (schema) => schema.required(required),
+    }),
+    certificateIssueCountry: Yup.string().when('primaryElement', {
+      is: 'certificate',
+      then: (schema) => schema.required(required),
+    }),
     unfitStartDate: Yup.string().required(required),
   });
 
@@ -57,6 +84,17 @@ export function useNuForm(
       originatingAuthority: request?.originatingAuthority ?? '',
       requestSource: request?.requestSource ?? 'CA',
       requestPurpose: request?.requestPurpose ?? '',
+      primaryElement:
+        request?.tmFirstName || !request?.certificateNumber
+          ? 'transportManager'
+          : 'certificate',
+      tmFirstName: request?.tmFirstName ?? '',
+      tmFamilyName: request?.tmFamilyName ?? '',
+      tmDateOfBirth: request?.tmDateOfBirth ?? '',
+      tmPlaceOfBirth: request?.tmPlaceOfBirth ?? '',
+      certificateNumber: request?.certificateNumber ?? '',
+      certificateIssueDate: request?.certificateIssueDate ?? '',
+      certificateIssueCountry: request?.certificateIssueCountry ?? '',
       unfitStartDate: request?.unfitStartDate ?? '',
     },
     validationSchema,
@@ -79,6 +117,14 @@ export function useNuForm(
           'originatingAuthority',
           'requestSource',
           'requestPurpose',
+          'primaryElement',
+          'tmFirstName',
+          'tmFamilyName',
+          'tmDateOfBirth',
+          'tmPlaceOfBirth',
+          'certificateNumber',
+          'certificateIssueDate',
+          'certificateIssueCountry',
           'unfitStartDate',
         ];
         if (field && editableFields.includes(field))
