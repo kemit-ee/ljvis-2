@@ -131,13 +131,13 @@ checkSourceEligible:
 
 extractSourceFields:
   assign:
-    tm_first_name: "${tm_first_name_input}"
-    tm_family_name: "${tm_family_name_input}"
-    tm_date_of_birth: "${tm_date_of_birth_input}"
-    tm_place_of_birth: "${tm_place_of_birth_input}"
-    certificate_number: "${certificate_number_input}"
-    certificate_issue_date: "${certificate_issue_date_input}"
-    certificate_issue_country: "${certificate_issue_country_input}"
+    tm_first_name: "${incoming.body.tmFirstName !== undefined ? tm_first_name_input : ('' + (source.response.body[0].firstName || '')).trim()}"
+    tm_family_name: "${incoming.body.tmFamilyName !== undefined ? tm_family_name_input : ('' + (source.response.body[0].lastName || '')).trim()}"
+    tm_date_of_birth: "${incoming.body.tmDateOfBirth !== undefined ? tm_date_of_birth_input : ('' + (source.response.body[0].dateOfBirth || '')).trim()}"
+    tm_place_of_birth: "${incoming.body.tmPlaceOfBirth !== undefined ? tm_place_of_birth_input : ('' + (source.response.body[0].placeOfBirth || '')).trim()}"
+    certificate_number: "${incoming.body.certificateNumber !== undefined ? certificate_number_input : ('' + (source.response.body[0].certificateNumber || '')).trim()}"
+    certificate_issue_date: "${incoming.body.certificateIssueDate !== undefined ? certificate_issue_date_input : ('' + (source.response.body[0].certificateIssueDate || '')).trim()}"
+    certificate_issue_country: "${incoming.body.certificateIssueCountry !== undefined ? certificate_issue_country_input : ('' + (source.response.body[0].certificateCountryCode || '')).trim()}"
   next: validateRequest
 validateRequest:
   template: "templates/erru/nu/validate-nu-request"

@@ -63,6 +63,9 @@ BEGIN
   -- correct the outgoing NU fields according to the signed decision.
   IF expected_source_snapshot IS NOT NULL AND expected_source_snapshot <> g.id
     THEN RETURN '{"code":"source_changed"}'; END IF;
+  -- Keep the source values as backwards-compatible defaults for direct callers.
+  -- Explicit form values in p win because the right-hand JSONB object overrides.
+  p := erru.nu_source_identity(g) || p;
   v := erru.nu_validate(p,'outgoing');
   IF v->>'valid' IS DISTINCT FROM 'true' THEN RETURN v; END IF;
   IF k IS NULL THEN
