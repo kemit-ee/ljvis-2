@@ -141,13 +141,20 @@ export interface CtudListFilters {
 }
 
 /** A request is editable only while it is an outgoing draft. */
-export function isCtudEditable(r: Pick<CtudRequest, 'status' | 'direction'>): boolean {
+export function isCtudEditable(
+  r: Pick<CtudRequest, 'status' | 'direction'>,
+): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
 }
 
 /** Sending is allowed from a draft and, deliberately, after a failed send. */
-export function isCtudSendable(r: Pick<CtudRequest, 'status' | 'direction'>): boolean {
-  return r.direction === 'outgoing' && (r.status === 'initiated' || r.status === 'error');
+export function isCtudSendable(
+  r: Pick<CtudRequest, 'status' | 'direction'>,
+): boolean {
+  return (
+    r.direction === 'outgoing' &&
+    (r.status === 'initiated' || r.status === 'error')
+  );
 }
 
 /**
@@ -159,7 +166,12 @@ export function isCtudSendable(r: Pick<CtudRequest, 'status' | 'direction'>): bo
  */
 export type CgrDirection = 'outgoing' | 'incoming';
 
-export type CgrStatus = 'initiated' | 'sent' | 'received' | 'answered' | 'error';
+export type CgrStatus =
+  | 'initiated'
+  | 'sent'
+  | 'received'
+  | 'answered'
+  | 'error';
 
 export interface CgrMemberStateTransportManagerDetails {
   respondingAuthority?: string | null;
@@ -280,13 +292,20 @@ export interface CgrResendResult extends CgrSendResult {
 }
 
 /** A CGR draft is editable only while it is an outgoing draft, same rule as CTUD. */
-export function isCgrEditable(r: Pick<CgrRequest, 'status' | 'direction'>): boolean {
+export function isCgrEditable(
+  r: Pick<CgrRequest, 'status' | 'direction'>,
+): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
 }
 
 /** Sending is allowed from a draft and, deliberately, after a failed send (see CTUD). */
-export function isCgrSendable(r: Pick<CgrRequest, 'status' | 'direction'>): boolean {
-  return r.direction === 'outgoing' && (r.status === 'initiated' || r.status === 'error');
+export function isCgrSendable(
+  r: Pick<CgrRequest, 'status' | 'direction'>,
+): boolean {
+  return (
+    r.direction === 'outgoing' &&
+    (r.status === 'initiated' || r.status === 'error')
+  );
 }
 
 /**
@@ -333,7 +352,13 @@ export interface CgrListFilters {
  */
 export type RsiDirection = 'outgoing' | 'incoming';
 
-export type RsiStatus = 'initiated' | 'sent' | 'responded' | 'received' | 'answered' | 'error';
+export type RsiStatus =
+  | 'initiated'
+  | 'sent'
+  | 'responded'
+  | 'received'
+  | 'answered'
+  | 'error';
 
 export type RsiResponseStatusCode = 'OK' | 'NotFound';
 
@@ -455,7 +480,9 @@ export interface RsiSaveResult {
 }
 
 /** An RSI draft is editable only while it is an outgoing draft, same rule as CTUD/CGR. */
-export function isRsiEditable(r: Pick<RsiMessage, 'status' | 'direction'>): boolean {
+export function isRsiEditable(
+  r: Pick<RsiMessage, 'status' | 'direction'>,
+): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
 }
 
@@ -464,7 +491,9 @@ export function isRsiEditable(r: Pick<RsiMessage, 'status' | 'direction'>): bool
  * terminal — a failed send is never retried, a new message must be composed instead
  * (see send.yml description).
  */
-export function isRsiSendable(r: Pick<RsiMessage, 'status' | 'direction'>): boolean {
+export function isRsiSendable(
+  r: Pick<RsiMessage, 'status' | 'direction'>,
+): boolean {
   return r.direction === 'outgoing' && r.status === 'initiated';
 }
 
@@ -694,23 +723,40 @@ export interface NcrBuildRequest {
 }
 
 /** Outgoing draft: editable only while status='initiated' (LJVIS2-63 §4). */
-export function isNcrRequestEditable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
+export function isNcrRequestEditable(
+  m: Pick<NcrMessage, 'status' | 'direction'>,
+): boolean {
   return m.direction === 'outgoing' && m.status === 'initiated';
 }
 
 /** Incoming response draft: editable while status is 'viewed' or 'answer_drafted'. */
-export function isNcrResponseEditable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
-  return m.direction === 'incoming' && (m.status === 'viewed' || m.status === 'answer_drafted');
+export function isNcrResponseEditable(
+  m: Pick<NcrMessage, 'status' | 'direction'>,
+): boolean {
+  return (
+    m.direction === 'incoming' &&
+    (m.status === 'viewed' || m.status === 'answer_drafted')
+  );
 }
 
 /** Outgoing request sendable from 'initiated' (first send) or 'error' (retry). */
-export function isNcrRequestSendable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
-  return m.direction === 'outgoing' && (m.status === 'initiated' || m.status === 'error');
+export function isNcrRequestSendable(
+  m: Pick<NcrMessage, 'status' | 'direction'>,
+): boolean {
+  return (
+    m.direction === 'outgoing' &&
+    (m.status === 'initiated' || m.status === 'error')
+  );
 }
 
 /** Incoming response sendable from 'answer_drafted' (first send) or 'error' (retry). */
-export function isNcrResponseSendable(m: Pick<NcrMessage, 'status' | 'direction'>): boolean {
-  return m.direction === 'incoming' && (m.status === 'answer_drafted' || m.status === 'error');
+export function isNcrResponseSendable(
+  m: Pick<NcrMessage, 'status' | 'direction'>,
+): boolean {
+  return (
+    m.direction === 'incoming' &&
+    (m.status === 'answer_drafted' || m.status === 'error')
+  );
 }
 
 /**
@@ -752,7 +798,12 @@ export interface NcrListFilters {
 
 export type NuDirection = 'outgoing' | 'incoming';
 
-export type NuStatus = 'initiated' | 'sent' | 'received' | 'acknowledged' | 'error';
+export type NuStatus =
+  | 'initiated'
+  | 'sent'
+  | 'received'
+  | 'acknowledged'
+  | 'error';
 
 export interface NuMemberState {
   memberStateCode: string;
@@ -814,6 +865,14 @@ export interface NuMessageWrite {
   originatingAuthority: string;
   requestSource: string;
   requestPurpose: string;
+  primaryElement: 'transportManager' | 'certificate';
+  tmFirstName: string;
+  tmFamilyName: string;
+  tmDateOfBirth: string;
+  tmPlaceOfBirth: string;
+  certificateNumber: string;
+  certificateIssueDate: string;
+  certificateIssueCountry: string;
   unfitStartDate: string;
 }
 
@@ -854,12 +913,16 @@ export interface NuSource extends NuSourceCandidate {
 }
 
 /** An outgoing NU draft is editable only while it is 'initiated'. */
-export function isNuEditable(m: Pick<NuMessage, 'status' | 'direction'>): boolean {
+export function isNuEditable(
+  m: Pick<NuMessage, 'status' | 'direction'>,
+): boolean {
   return m.direction === 'outgoing' && m.status === 'initiated';
 }
 
 /** Sending is allowed only from 'initiated' — no retry-in-place after error. */
-export function isNuSendable(m: Pick<NuMessage, 'status' | 'direction'>): boolean {
+export function isNuSendable(
+  m: Pick<NuMessage, 'status' | 'direction'>,
+): boolean {
   return m.direction === 'outgoing' && m.status === 'initiated';
 }
 
