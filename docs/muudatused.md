@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-09-22 (parandus)
+
+### Ajutine NCR->välisriigi kontrollkaart testandmestiku changelog eemaldatud
+
+Eemaldati liquibase migratsioonifail (`20261124100000-erru-ncr-foreign-transfer-test-fixtures`),
+mis lisas viis ajutist testrida (`TEST-NCR-TRANSFER-01`...`05`) ERRU NCR
+teadete loendisse. Juba rakendunud testkeskkondades **jäävad testread
+alles** — see pole tootmisandmestik, andmete eemaldamine polnud vajalik.
+Eemaldamise mõte on ainult see, et see changeset ei rakenduks enam
+liquibase kaudu ühelgi uuel/värskel andmebaasil (nt uus keskkond, CI).
+
+---
+
 ## 2026-09-22
 
 ### Välisriigi kontrollkaart: teavituse saatmise ja rikkumiste sanktsioonide korrektuurid
