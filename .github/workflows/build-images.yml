@@ -71,7 +71,7 @@ jobs:
       - name: Build and push frontend
         run: |
           docker build -f frontend/Dockerfile \
-            -t $IMAGE_BASE/frontend:$TAG -t $IMAGE_BASE/frontend:latest frontend/
+            -t $IMAGE_BASE/frontend:$TAG -t $IMAGE_BASE/frontend:latest .
           docker push $IMAGE_BASE/frontend --all-tags
 
       - name: Print image tags

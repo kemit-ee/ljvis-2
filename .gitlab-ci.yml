@@ -1,15 +1,11 @@
-# LJVIS2 code/build repo. One release view: verify -> build -> package -> dev.
+# LJVIS2 source pipeline: standard-service-delivery@8.0.0.
+# Twelve ARM64 images, twelve release components (config + eleven workloads),
+# automatic pin to dev on protected main. Liquibase is a build-only image;
+# resql-ljvis bakes the same RELEASE_VERSION into databaseMigration.
 #
-# Twelve images are built, eleven wrapper charts are packaged, and all eleven workload
-# entries move atomically in one Git release-manifest commit. Liquibase has no independent
-# entry: resql-ljvis renders a release-identified wave -1 Job using the same release version.
-#
-# Only dev exists. Adding test also requires its infra/config values; a release manifest
-# alone is not a deployable environment.
-#
-# Required CI/CD variables: HARBOR_URL, HARBOR_USERNAME, HARBOR_PASSWORD,
-# SERVICECODE=ljvis2, SONAR_HOST_URL, SONAR_TOKEN, GITOPS_TOKEN and nonlive Argo CD
-# read-only status credentials.
+# Consumer-owned: DSL validation, secret detection, frontend checks.
+# Required subgroup variables: SERVICECODE, GITOPS_TOKEN, DTRACK_API_KEY.
+# Inherited: HARBOR_*, SONAR_*, DTRACK_URL, ARGOCD_KUBERNETES_NONLIVE_*.
 
 stages:
   - test
@@ -17,12 +13,9 @@ stages:
   - scan
   - package
   - deploy-dev
-
-variables:
-  VERSION_BASE: "0.1.0"
-  CHART_REPOSITORY: harbor.kemitaws.ee/ljvis2/charts
-  NONLIVE_CLUSTER: kubernetes-nonlive
-  SECRET_DETECTION_ENABLED: "true"
+  - deploy-test
+  - deploy-prelive
+  - deploy-live
 
 workflow:
   rules:
@@ -31,122 +24,75 @@ workflow:
     - if: $CI_COMMIT_BRANCH =~ /^release\//
     - when: never
 
+variables:
+  SECRET_DETECTION_ENABLED: "true"
+
 include:
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-version@6.6.0
-    inputs: { base: $VERSION_BASE, arch: arm64 }
-
-  # Sonar runs on amd64 because the pinned scanner image has no arm64 variant.
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/sonar-scan@6.6.0
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/standard-service-delivery@8.0.0
     inputs:
-      name: frontend
-      sources: frontend
-      quality_gate: false
-      extra_args: "-Dsonar.exclusions=**/node_modules/**,**/dist/**"
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/sonar-scan@6.6.0
-    inputs:
-      name: backend
-      sources: DSL
-      quality_gate: false
-      extra_args: "-Dsonar.exclusions=**/draft/**,**/test/**"
+      service_code: ljvis2
+      version_base: "0.1.0"
+      architecture: arm64
+      sonar_name: ljvis2
+      sonar_sources: frontend,DSL
+      sonar_quality_gate: false
+      sonar_architecture: amd64
+      sonar_extra_args: >-
+        -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/draft/**,**/test/**
+      builds:
+        - name: ruuter
+          image_repository: ruuter/images
+          dockerfile: docker/ruuter/Dockerfile
+        - name: ruuter-internal
+          image_repository: ruuter-internal/images
+          dockerfile: docker/ruuter-internal/Dockerfile
+        - name: xtr
+          image_repository: xtr/images
+          dockerfile: docker/xtr/Dockerfile
+        - name: frontend
+          image_repository: frontend/images
+          dockerfile: frontend/Dockerfile
+        - name: s3-proxy
+          image_repository: s3-proxy/images
+          dockerfile: docker/s3-proxy/Dockerfile
+        - name: liquibase
+          image_repository: liquibase/images
+          dockerfile: docker/liquibase/Dockerfile
+        - name: resql-ljvis
+          image_repository: resql-ljvis/images
+          dockerfile: docker/resql-ljvis/Dockerfile
+        - name: data-mapper
+          image_repository: data-mapper/images
+          dockerfile: docker/data-mapper/Dockerfile
+        - name: tim
+          image_repository: tim/images
+          dockerfile: docker/tim/Dockerfile.release
+        - name: nysiis
+          image_repository: nysiis/images
+          dockerfile: docker/nysiis/Dockerfile
+        - name: pdf-creator
+          image_repository: pdf-creator/images
+          dockerfile: docker/pdf-creator/Dockerfile
+        - name: cronmanager
+          image_repository: cronmanager/images
+          dockerfile: docker/cronmanager/Dockerfile
+      components:
+        - name: ljvis2-config
+        - name: resql-ljvis
+        - name: data-mapper
+        - name: xtr
+        - name: ruuter
+        - name: ruuter-internal
+        - name: s3-proxy
+        - name: frontend
+        - name: tim
+        - name: nysiis
+        - name: pdf-creator
+        - name: cronmanager
+      deploy:
+        - environment: dev
+          mode: auto
   - template: Security/Secret-Detection.gitlab-ci.yml
-
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: ruuter, image_path: ruuter/images, dockerfile: docker/ruuter/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: ruuter-internal, image_path: ruuter-internal/images, dockerfile: docker/ruuter-internal/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: xtr, image_path: xtr/images, dockerfile: docker/xtr/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: frontend, image_path: frontend/images, dockerfile: frontend/Dockerfile, context: frontend, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: s3-proxy, image_path: s3-proxy/images, dockerfile: docker/s3-proxy/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: liquibase, image_path: liquibase/images, dockerfile: docker/liquibase/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: resql-ljvis, image_path: resql-ljvis/images, dockerfile: docker/resql-ljvis/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: data-mapper, image_path: data-mapper/images, dockerfile: docker/data-mapper/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: tim, image_path: tim/images, dockerfile: docker/tim/Dockerfile.release, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: nysiis, image_path: nysiis/images, dockerfile: docker/nysiis/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: pdf-creator, image_path: pdf-creator/images, dockerfile: docker/pdf-creator/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/image-build@6.6.0
-    inputs: { name: cronmanager, image_path: cronmanager/images, dockerfile: docker/cronmanager/Dockerfile, version: $RELEASE_VERSION, arch: arm64 }
-
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: ruuter, service_code: $SERVICECODE, project: $SERVICECODE, image_path: ruuter/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: ruuter-internal, service_code: $SERVICECODE, project: $SERVICECODE, image_path: ruuter-internal/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: xtr, service_code: $SERVICECODE, project: $SERVICECODE, image_path: xtr/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: frontend, service_code: $SERVICECODE, project: $SERVICECODE, image_path: frontend/images, version: $RELEASE_VERSION, arch: arm64 }
-
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/trivy-image-scan@6.6.0
-    inputs: { name: frontend, project: $SERVICECODE, image_path: frontend/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: s3-proxy, service_code: $SERVICECODE, project: $SERVICECODE, image_path: s3-proxy/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: liquibase, service_code: $SERVICECODE, project: $SERVICECODE, image_path: liquibase/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: resql-ljvis, service_code: $SERVICECODE, project: $SERVICECODE, image_path: resql-ljvis/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: data-mapper, service_code: $SERVICECODE, project: $SERVICECODE, image_path: data-mapper/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: tim, service_code: $SERVICECODE, project: $SERVICECODE, image_path: tim/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: nysiis, service_code: $SERVICECODE, project: $SERVICECODE, image_path: nysiis/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: pdf-creator, service_code: $SERVICECODE, project: $SERVICECODE, image_path: pdf-creator/images, version: $RELEASE_VERSION, arch: arm64 }
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/dependency-track-sbom@6.6.0
-    inputs: { name: cronmanager, service_code: $SERVICECODE, project: $SERVICECODE, image_path: cronmanager/images, version: $RELEASE_VERSION, arch: arm64 }
-
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/release-pin@6.6.0
-    inputs:
-      environment: dev
-      repository: gitlab.kemitaws.ee/services/ljvis2/devops.git
-      stage: deploy-dev
-      version: $RELEASE_VERSION
-      argocd_context: $NONLIVE_CLUSTER
-      release_file: environments/dev/release.yaml
-      components: >-
-        resql-ljvis
-        data-mapper
-        xtr
-        ruuter
-        ruuter-internal
-        s3-proxy
-        frontend
-        tim
-        nysiis
-        pdf-creator
-        cronmanager
-      artifacts: >-
-        $CHART_REPOSITORY/resql-ljvis
-        $CHART_REPOSITORY/data-mapper
-        $CHART_REPOSITORY/xtr
-        $CHART_REPOSITORY/ruuter
-        $CHART_REPOSITORY/ruuter-internal
-        $CHART_REPOSITORY/s3-proxy
-        $CHART_REPOSITORY/frontend
-        $CHART_REPOSITORY/tim
-        $CHART_REPOSITORY/nysiis
-        $CHART_REPOSITORY/pdf-creator
-        $CHART_REPOSITORY/cronmanager
-      applications: >-
-        resql-ljvis-dev
-        data-mapper-dev
-        xtr-dev
-        ruuter-dev
-        ruuter-internal-dev
-        s3-proxy-dev
-        frontend-dev
-        tim-dev
-        nysiis-dev
-        pdf-creator-dev
-        cronmanager-dev
 
 # ---------------------------------------------------------------------------- test
 
@@ -204,72 +150,7 @@ secret_detection:
   script:
     - npm run build
 
-# ----------------------------------------------------------- build, package, deploy
-
-.protected-refs:
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_BRANCH =~ /^release\//
-
-"build:ruuter":          { extends: .protected-refs }
-"sbom:ruuter":           { extends: .protected-refs, needs: ["release:version", "build:ruuter"] }
-"build:ruuter-internal": { extends: .protected-refs }
-"sbom:ruuter-internal":  { extends: .protected-refs, needs: ["release:version", "build:ruuter-internal"] }
-"build:xtr":             { extends: .protected-refs }
-"sbom:xtr":              { extends: .protected-refs, needs: ["release:version", "build:xtr"] }
-"build:frontend":        { extends: .protected-refs }
-"sbom:frontend":         { extends: .protected-refs, needs: ["release:version", "build:frontend"] }
-"trivy:frontend":
-  extends: .protected-refs
-  needs: ["release:version", "build:frontend"]
-"build:s3-proxy":        { extends: .protected-refs }
-"sbom:s3-proxy":         { extends: .protected-refs, needs: ["release:version", "build:s3-proxy"] }
-"build:liquibase":       { extends: .protected-refs }
-"sbom:liquibase":        { extends: .protected-refs, needs: ["release:version", "build:liquibase"] }
-"build:resql-ljvis":     { extends: .protected-refs }
-"sbom:resql-ljvis":      { extends: .protected-refs, needs: ["release:version", "build:resql-ljvis"] }
-"build:data-mapper":     { extends: .protected-refs }
-"sbom:data-mapper":      { extends: .protected-refs, needs: ["release:version", "build:data-mapper"] }
-"build:tim":             { extends: .protected-refs }
-"sbom:tim":              { extends: .protected-refs, needs: ["release:version", "build:tim"] }
-"build:nysiis":          { extends: .protected-refs }
-"sbom:nysiis":           { extends: .protected-refs, needs: ["release:version", "build:nysiis"] }
-"build:pdf-creator":     { extends: .protected-refs }
-"sbom:pdf-creator":      { extends: .protected-refs, needs: ["release:version", "build:pdf-creator"] }
-"build:cronmanager":     { extends: .protected-refs }
-"sbom:cronmanager":      { extends: .protected-refs, needs: ["release:version", "build:cronmanager"] }
-
-# strategy: depend keeps the source release red when any package job fails.
-package:charts:
-  extends: .protected-refs
-  stage: package
-  trigger:
-    project: services/ljvis2/devops
-    branch: main
-    strategy: depend
-  needs:
-    - "release:version"
-    - "build:ruuter"
-    - "build:ruuter-internal"
-    - "build:xtr"
-    - "build:frontend"
-    - "build:s3-proxy"
-    - "build:liquibase"
-    - "build:resql-ljvis"
-    - "build:data-mapper"
-    - "build:tim"
-    - "build:nysiis"
-    - "build:pdf-creator"
-    - "build:cronmanager"
-  variables:
-    # Forward the resolved dotenv value under a different name across the trigger.
-    IMAGE_VERSION: $RELEASE_VERSION
-
 "release:pin:dev":
-  # release/* produces immutable artifacts for manual promotion; it must not overwrite
-  # the main-owned dev environment.
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   environment:
     name: dev
     url: https://ljvis2dev.kemitaws.ee
