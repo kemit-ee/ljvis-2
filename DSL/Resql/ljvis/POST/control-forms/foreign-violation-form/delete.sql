@@ -64,7 +64,19 @@ WITH latest AS (
     inspector_last_name,
     inspector_organisation_id,
     inspector_unit,
-    inspector_profession
+    inspector_profession,
+    additional_sanction_codes,
+    klim_clarification_date,
+    carrier_explanation_date,
+    penalty_valid_until,
+    penalty_expired_or_processed,
+    akvk_next_meeting_date,
+    commission_last_decision_date,
+    admin_procedure_decision,
+    foreign_authority_proposal,
+    notify_carrier,
+    notify_labor_inspector,
+    erru_ncr_message_key
   FROM forms.foreign_violation_form
   WHERE foreign_violation_form_key = :id::BIGINT
   ORDER BY foreign_violation_form_key, created_at DESC
@@ -115,6 +127,18 @@ INSERT INTO forms.foreign_violation_form (
   inspector_organisation_id,
   inspector_unit,
   inspector_profession,
+  additional_sanction_codes,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
+  foreign_authority_proposal,
+  notify_carrier,
+  notify_labor_inspector,
+  erru_ncr_message_key,
   created_by
 )
 SELECT
@@ -163,6 +187,18 @@ SELECT
   l.inspector_organisation_id,
   l.inspector_unit,
   l.inspector_profession,
+  l.additional_sanction_codes,
+  l.klim_clarification_date,
+  l.carrier_explanation_date,
+  l.penalty_valid_until,
+  l.penalty_expired_or_processed,
+  l.akvk_next_meeting_date,
+  l.commission_last_decision_date,
+  l.admin_procedure_decision,
+  l.foreign_authority_proposal,
+  l.notify_carrier,
+  l.notify_labor_inspector,
+  l.erru_ncr_message_key,
   :created_by
 FROM latest l
 RETURNING foreign_violation_form_key AS id, form_number, version;

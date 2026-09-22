@@ -4,7 +4,101 @@
 
 ---
 
+## 2026-09-22
+
+### Välisriigi kontrollkaart: teavituse saatmise ja rikkumiste sanktsioonide korrektuurid
+
+Eilse (2026-09-21) rikkumisepõhise sanktsiooni ja teavituse saatmise
+muudatuse (vt allpool) koodiülevaatusel leitud parandused:
+
+- Rikkumise oma sanktsioon (violations[].sanctionCode) on nüüd täidetav
+  ja **muudetav ka pärast kaardi salvestamist** — see ei blokeeri enam
+  lihtsat salvestamist, kui see on veel täitmata (nt NCR-ilt üle kandunud
+  read, kus sanktsiooni ei suudetud automaatselt tuvastada). Iga rikkumise
+  sanktsioon on kohustuslik **enne kinnitamist ja avalikustamist**.
+- Teavituse saatmine (vedaja/tööinspektor) ei käivitu enam kaardi ESIMESE
+  salvestamise (loomise) hetkel — see on liiga varajane, andmed on veel
+  läbi vaatamata. Teavituse saab (uuesti) märkida ja saata alates
+  järgmisest salvestusest või kinnitamisel.
+- Ka **kinnitamine** (mitte ainult salvestamine) käivitab nüüd teavituse
+  saatmise, kui linnuke on märgitud — varem läks "Teavita tööinspektorit"
+  linnuke kinnitamisel kaotsi ja "Teavita vedajat" linnuke jäi kinnitamisel
+  DB-sse märgituks ilma, et teavitus kunagi väljuks.
+- Äriregistri e-posti otsingu ebaõnnestumisel (nt X-tee ajutine tõrge)
+  logitakse teavituse saatmiskatse nüüd korrektselt "ebaõnnestunud" reana
+  (varem kadus katse jäljetult).
+- Prinditaval kontrollkaardil (PDF) näidatakse rikkumiste koode taas
+  loetavalt (varem, rikkumiste uue struktuuri tõttu, kuvati toores
+  Python-objekti tekstivorming); igale rikkumisele lisati prinditud
+  vaates ka selle oma sanktsioon, kui see on määratud.
+
+---
+
 ## 2026-09-21
+
+### Ajutine NCR->välisriigi kontrollkaart testandmestik (eemaldatakse eraldi PR-iga)
+
+- ERRU NCR teadete loendisse lisati **viis ajutist testrida** (`business_case_id`
+  prefiksiga `TEST-NCR-TRANSFER-01`...`05`), et klient (RS) saaks testida
+  andmete ülekandumist sissetulevast NCR teatest genereeritavale välisriigi
+  kontrollkaardile. Read on tähistatud kommentaariga migratsioonifailis kui
+  **ajutised** ja need **tuleb eemaldada eraldi rollback-PR-iga peale
+  kliendipoolse testimise lõppu**, enne kui need reaalsesse tootmisandmestikku
+  jõuavad (need EI ilmu ise kunagi tavakasutajale kättesaadavana, ent ei sobi
+  jäädavaks andmestikuks).
+
+### Välisriigi kontrollkaart: rikkumisepõhine "Kontrolli tulemus" + NCR andmeülekanne
+
+- Kontrollkaardil saab nüüd igale valitud EL 1071/2009 rikkumisele (MSI/VSI/SI)
+  märkida **oma sanktsiooni ja soovitatud meetme**, mitte ainult üht üldist
+  "Kontrolli tulemust" kogu kaardi kohta. Üldine "Kontrolli tulemus" jääb
+  kasutusele fallback'ina, kui rikkumisi ei valitud.
+- "Loo kontrollkaart" (NCR teate põhjal) täidab varasemast oluliselt rohkem
+  välju automaatselt: rikkumised (koos tuvastatud sanktsiooniga, kus võimalik),
+  kergemate rikkumiste arv ja kontrolli koha riik. Varem läks NCR-i rikkumiste
+  info genereerimisel täielikult kaduma.
+- **Kontrolli koha riik** on nüüd kohustuslik väli ja täitub/lukustub
+  automaatselt teate saatnud riigi järgi.
+- Haldusametniku sisevaates parandati kaardi lugemisel puudu olnud
+  väljade (lisasanktsioonid, haldusmenetluse plokk) kadumist mõne
+  vaate juures.
+- Andmeanalüütikasse (Tableau) lisati rikkumisepõhine detailvaade.
+- **Lahtine koht:** NCR-i karistusliigi koodide (101/102/201–204/301–307)
+  täpne vastavus kohalikele sanktsioonikoodidele on praegu provisoorne
+  (kommenteeritud koodis) ja vajab kliendi/RS kinnitust.
+
+### Vormil "KLIM selgitustaotluse kuupäev" -> "Selgitustaotluse kuupäev"
+
+- Väljasilt lühendatud kliendi soovil, andmevälja ega loogikat ei muudetud.
+
+### Teavituste plokk tõsteti haldusmenetluse plokist ette
+
+- Välisriigi kontrollkaardil kuvatakse "Teavitused" plokk nüüd enne
+  haldusmenetluse plokki.
+
+### Teavituse saatmine salvestamisel, korduvalt, koos saatmise ajalooga
+
+- Vedaja ja tööinspektori teavitamine käivitub nüüd **vormi salvestamisel**
+  (varem alles avalikustamisel, ja ainult üks kord). Teavituse saab
+  hiljem andmete muutumisel uuesti saata, märkides linnukese ja
+  salvestades vormi uuesti — checkbox ei jää enam püsivalt märgituks/lukku.
+  Teavituste plokis kuvatakse ka varasemate saatmiste ajalugu (kuupäev + staatus).
+- Lisandus eraldi "Teavita tööinspektorit" märkeruut, mis on eraldiseisev
+  faktiväljast "Saabus välisriigi pädeva asutuse ettepanek".
+
+### Äriregistri e-post kontrollkaardil
+
+- Vedaja nime kõrval kuvatakse nüüd äriregistrist pärit e-posti aadress
+  (või teade, et see puudub).
+- Äriregistri päringud (nii teavituse saatmisel kui uuel e-posti väljal)
+  käivad nüüd ühtse, juba varem logitud tee kaudu, et X-tee integratsioonilogi
+  kajastaks kõiki päringuid usaldusväärselt.
+
+### Kinnitamisel enam lehte üles ei keri
+
+- Vormi kinnitamisel jääb vaade sinna, kus kasutaja parasjagu on — varem
+  kerinud lehe automaatselt üles. Salvestamisel ja avalikustamisel käitumine
+  ei muutunud.
 
 ### X-tee OpenAPI kirjeldus on nüüd turvaserverile otse kättesaadav
 

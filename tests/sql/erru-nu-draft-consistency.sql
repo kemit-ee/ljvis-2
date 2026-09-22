@@ -4,7 +4,7 @@ CREATE FUNCTION pg_temp.assert(ok BOOLEAN, message TEXT) RETURNS VOID LANGUAGE p
 BEGIN IF ok IS DISTINCT FROM TRUE THEN RAISE EXCEPTION 'Assertion failed: %',message; END IF; END $$;
 DO $$
 DECLARE g forms.good_repute_form; r erru.nu_message; x JSONB; h JSONB; k BIGINT; old_source BIGINT;
-  p JSONB := '{"nuTo":"DE","originatingAuthority":"EE-PPA","requestSource":"CA","requestPurpose":"Issue","unfitStartDate":"2026-01-01"}';
+  p JSONB := '{"nuTo":"DE","originatingAuthority":"EE-PPA","requestSource":"CA","requestPurpose":"Issue","unfitStartDate":"2026-01-01","tmFirstName":"Test","tmFamilyName":"Manager","tmDateOfBirth":"1980-01-01","tmPlaceOfBirth":"","certificateNumber":"CERT","certificateIssueDate":"2020-01-01","certificateIssueCountry":"EE"}';
 BEGIN
   INSERT INTO forms.good_repute_form(good_repute_form_key,form_number,status,personal_code,first_name,last_name,date_of_birth,
     certificate_number,certificate_issue_date,certificate_country_code,fitness_status,unfit_from_date,unfit_until_date)
@@ -19,17 +19,16 @@ BEGIN
   PERFORM pg_temp.assert(erru.nu_save_draft(k,1,NULL,NULL,p,'test')->>'code'='version_conflict','stale save rejected');
   PERFORM pg_temp.assert(erru.nu_begin_send(k,1,'A','B','test','Test')->>'code'='version_conflict','save during NYSIIS rejects stale send');
   PERFORM pg_temp.assert(NOT EXISTS(SELECT 1 FROM erru.nu_exchange_event WHERE nu_message_key=k),'conflicts do not reserve a send');
-  -- Source remains eligible, but its protected identity/certificate changed.
+  -- Source remains eligible, but its identity/certificate changed. The draft
+  -- keeps the values entered by the official according to the decision.
   g.id := nextval('forms.good_repute_form_id_seq'); g.created_at := clock_timestamp(); g.certificate_number := 'NEW-CERT';
   INSERT INTO forms.good_repute_form SELECT g.*;
-  PERFORM pg_temp.assert(erru.nu_begin_send(k,2,'A','B','test','Test')->>'code'='source_changed','changed certificate rejected');
-  PERFORM pg_temp.assert(erru.nu_save_draft(k,2,NULL,NULL,p,'test')->>'code'='source_changed','save cannot silently replace protected data');
   PERFORM pg_temp.assert(erru.nu_save_draft(k,2,NULL,old_source,p,'test')->>'code'='source_changed','stale source preview rejected');
   PERFORM pg_temp.assert(erru.nu_save_draft(NULL,NULL,g.good_repute_form_key,old_source,p,'test')->>'code'='source_changed','stale create preview rejected');
   x := erru.nu_save_draft(k,2,NULL,g.id,p || '{"nuTo":"FR"}','test');
-  PERFORM pg_temp.assert(x->>'version'='3','explicit source refresh saved');
+  PERFORM pg_temp.assert(x->>'version'='3','official decision fields saved');
   h := erru.nu_begin_send(k,3,'A','B','test','Test');
-  PERFORM pg_temp.assert(h->>'nuTo'='FR' AND h->>'certificateNumber'='NEW-CERT','wire payload comes from reserved revision');
+  PERFORM pg_temp.assert(h->>'nuTo'='FR' AND h->>'certificateNumber'='CERT','wire payload keeps official decision fields');
   SELECT * INTO r FROM erru.nu_message WHERE nu_message_key=k ORDER BY created_at DESC,id DESC LIMIT 1;
   PERFORM pg_temp.assert(r.version=4 AND r.technical_id::TEXT=h->>'technicalId','reservation is persisted');
   PERFORM pg_temp.assert((SELECT payload FROM erru.nu_exchange_event WHERE nu_message_key=k AND kind='Request')=h,'entire wire body is auditable');

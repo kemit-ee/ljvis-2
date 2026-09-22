@@ -3,12 +3,16 @@ import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import dayjs from 'dayjs';
-import type { ForeignViolationForm } from '../../../control-forms/types';
+import type {
+  ForeignViolationForm,
+  ForeignViolationFormViolation,
+} from '../../../control-forms/types';
 import {
   saveForeignViolationForm,
   confirmForeignViolationForm,
   publishForeignViolationForm,
   checkDuplicateForeignViolationForm,
+  getCarrierRegistryEmail,
 } from '../../api';
 import type { Organisation } from '../../../organisations/types';
 import { listOrganisations } from '../../../organisations/api';
@@ -57,14 +61,45 @@ export function useForeignViolationForm(
     reportingAuthority: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
+    inspectionCountryCode: Yup.string().required(
+      t('forms.foreign_violation.validation.required'),
+    ),
     inspectionDate: Yup.string().required(
       t('forms.foreign_violation.validation.required'),
     ),
-    sanctionCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
-    ),
-    recommendedMeasureCode: Yup.string().required(
-      t('forms.foreign_violation.validation.required'),
+    // Üldine "Kontrolli tulemus" on kohustuslik vaid siis, kui rikkumisi ei
+    // ole valitud (violations tühi) — sel juhul toimib see üldise fallback'ina.
+    // Kui rikkumised on valitud, on igal rikkumisel oma sanctionCode (vt allpool).
+    sanctionCode: Yup.string().when('violations', {
+      is: (violations: unknown) =>
+        !Array.isArray(violations) || violations.length === 0,
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    recommendedMeasureCode: Yup.string().when('violations', {
+      is: (violations: unknown) =>
+        !Array.isArray(violations) || violations.length === 0,
+      then: (schema) =>
+        schema.required(t('forms.foreign_violation.validation.required')),
+      otherwise: (schema) => schema.optional(),
+    }),
+    // sanctionCode on per-rikkumine VALIKULINE lihtsal salvestamisel — see
+    // pidi olema täidetav/muudetav ka pärast kaardi loomist, mitte kohe
+    // salvestamist blokeeriv (nt 20261124110000 migreeritud read on
+    // {code}-ainult, ja create-from-ncr.yml ei suuda alati sanctionCode'i
+    // tuletada, vt fixture TEST-NCR-TRANSFER-03 tühja penaltiesImposed'iga).
+    // Kinnitamisel/avalikustamisel on täitmine kohustuslik — vt allpool
+    // onSubmit'i isConfirming/isPublishing haru, mis kontrollib seda eraldi,
+    // formik context'ita (Yup.when ei saa siin formik pending-ref'ile ligi).
+    violations: Yup.array().of(
+      Yup.object({
+        code: Yup.string().required(),
+        sanctionCode: Yup.string().optional(),
+        sanctionNotes: Yup.string().optional(),
+        recommendedMeasureCode: Yup.string().optional(),
+        recommendedMeasureNotes: Yup.string().optional(),
+      }),
     ),
     recommendedMeasureNotes: Yup.string().optional(),
     minorViolationsCount: Yup.string().matches(
@@ -149,6 +184,9 @@ export function useForeignViolationForm(
       adminProcedureDecision: form?.adminProcedureDecision ?? '',
       foreignAuthorityProposal: form?.foreignAuthorityProposal ?? false,
       notifyCarrier: form?.notifyCarrier ?? false,
+      notifyLaborInspector: form?.notifyLaborInspector ?? false,
+      notificationHistory: form?.notificationHistory ?? [],
+      carrierRegistryEmail: form?.carrierRegistryEmail ?? '',
       inspectorFirstName: form?.inspectorFirstName ?? authUser?.firstname ?? '',
       inspectorLastName: form?.inspectorLastName ?? authUser?.lastname ?? '',
       inspectorOrganisationId:
@@ -164,6 +202,27 @@ export function useForeignViolationForm(
         const isPublishing = pendingPublish.current;
         pendingConfirm.current = false;
         pendingPublish.current = false;
+
+        // Per-rikkumise sanctionCode on valikuline lihtsal salvestamisel
+        // (Yup schema), aga kohustuslik enne kinnitamist/avalikustamist —
+        // kontrollitakse siin, formik context'ist sõltumatult, sest
+        // pendingConfirm/pendingPublish on refid, mitte formik state.
+        if (isConfirming || isPublishing) {
+          const violationsArr = Array.isArray(values.violations)
+            ? (values.violations as ForeignViolationFormViolation[])
+            : [];
+          const missingIndex = violationsArr.findIndex(
+            (v) => !v.sanctionCode || !String(v.sanctionCode).trim(),
+          );
+          if (missingIndex !== -1) {
+            setFieldError(
+              `violations[${missingIndex}].sanctionCode`,
+              t('forms.foreign_violation.validation.required'),
+            );
+            return;
+          }
+        }
+
         const trimmedValues = {
           ...values,
           inspectionDate: toIsoDate(values.inspectionDate),
@@ -186,6 +245,7 @@ export function useForeignViolationForm(
           penaltyExpiredOrProcessed: String(values.penaltyExpiredOrProcessed ?? false),
           foreignAuthorityProposal: String(values.foreignAuthorityProposal ?? false),
           notifyCarrier: String(values.notifyCarrier ?? false),
+          notifyLaborInspector: String(values.notifyLaborInspector ?? false),
           inspectionAddressLine1: sanitizeText(values.inspectionAddressLine1),
           inspectionAddressLine2: sanitizeText(values.inspectionAddressLine2),
           inspectionRegion: sanitizeText(values.inspectionRegion),
@@ -240,6 +300,20 @@ export function useForeignViolationForm(
       }
     },
   });
+
+  // p.6: äriregistri e-post kuvatakse vedaja nime kõrval — eraldi päring
+  // (mitte osa põhi-GET-ist), et see ei aeglustaks kaardi igakordset avamist.
+  useEffect(() => {
+    if (!form?.companyRegCode) return;
+    getCarrierRegistryEmail(form.companyRegCode, form?.id)
+      .then((res) => {
+        formik.setFieldValue('carrierRegistryEmail', res?.email ?? '');
+      })
+      .catch(() => {
+        formik.setFieldValue('carrierRegistryEmail', '');
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form?.companyRegCode, form?.id]);
 
   useEffect(() => {
     const { companyRegCode, vehicleRegNr, inspectionDate } = formik.values;

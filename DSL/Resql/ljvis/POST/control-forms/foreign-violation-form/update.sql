@@ -113,6 +113,7 @@ params:
   violations:
     type: string
     required: false
+    description: "JSON array of per-violation objects [{code, sanctionCode, sanctionNotes, recommendedMeasureCode, recommendedMeasureNotes}], or '[]' when no violations selected (top-level sanctionCode/recommendedMeasureCode act as the general-result fallback then)."
   dataEntryDate:
     type: string
     required: false
@@ -159,6 +160,9 @@ params:
     type: string
     required: false
   notifyCarrier:
+    type: string
+    required: false
+  notifyLaborInspector:
     type: string
     required: false
   created_by:
@@ -240,6 +244,7 @@ INSERT INTO forms.foreign_violation_form (
   admin_procedure_decision,
   foreign_authority_proposal,
   notify_carrier,
+  notify_labor_inspector,
   created_by
 )
 SELECT
@@ -298,6 +303,7 @@ SELECT
   NULLIF(:adminProcedureDecision, ''),
   COALESCE(NULLIF(:foreignAuthorityProposal, ''), 'false')::BOOLEAN,
   COALESCE(NULLIF(:notifyCarrier, ''), 'false')::BOOLEAN,
+  COALESCE(NULLIF(:notifyLaborInspector, ''), 'false')::BOOLEAN,
   :created_by
 FROM latest
 RETURNING foreign_violation_form_key AS id, form_number, version;

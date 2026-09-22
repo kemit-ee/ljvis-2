@@ -1,0 +1,50 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    Kontrollkaardi vedaja-plokis kuvatav äriregistri e-post (p.6).
+    Eraldi otspunkt (mitte osa põhi-GET-ist), et äriregistri X-tee kutse ei
+    lisanduks igale kaardi avamisele — frontend kutsub seda lisaks, kui
+    companyRegCode on olemas. Kutsub jagatud templates/xroad/lookup-carrier-registry-email
+    kaudu (p.8) — sama tee, mida kasutab ka edit/save.yml teavituse saatmisel,
+    et xroad.xroad_integration_log kirje oleks alati olemas ja identsel kujul.
+  namespace: control-forms
+  allowlist:
+    params:
+      - field: companyRegCode
+        type: string
+      - field: id
+        type: string
+
+checkPermission:
+  switch:
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('foreign_violation_form.read'))}
+      next: extractParams
+  next: returnForbidden
+
+extractParams:
+  assign:
+    company_reg_code: "${incoming.params.companyRegCode || ''}"
+    form_id: "${incoming.params.id || ''}"
+  next: lookupEmail
+
+lookupEmail:
+  template: "templates/xroad/lookup-carrier-registry-email"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    companyRegCode: ${company_reg_code}
+    sourceType: "foreign_violation_form"
+    sourceRecordId: ${form_id}
+  result: lookupResult
+  next: returnResult
+
+returnResult:
+  return: ${JSON.parse(lookupResult)}
+  next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end

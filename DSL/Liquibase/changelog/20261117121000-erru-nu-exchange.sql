@@ -59,11 +59,13 @@ BEGIN
   IF g.status IS DISTINCT FROM 'published' OR g.fitness_status IS DISTINCT FROM 'unfit'
     OR g.unfit_until_date IS NULL OR g.unfit_until_date < (clock_timestamp() AT TIME ZONE 'Europe/Tallinn')::DATE
     THEN RETURN '{"code":"source_not_eligible"}'; END IF;
-  -- Explicit previews must still be current. Without refresh, protected data must match.
-  IF (expected_source_snapshot IS NOT NULL AND expected_source_snapshot <> g.id)
-    OR (expected_source_snapshot IS NULL AND (k IS NULL OR erru.nu_message_identity(r) IS DISTINCT FROM erru.nu_source_identity(g)))
+  -- The source search remains as a prefill/eligibility step. The official may
+  -- correct the outgoing NU fields according to the signed decision.
+  IF expected_source_snapshot IS NOT NULL AND expected_source_snapshot <> g.id
     THEN RETURN '{"code":"source_changed"}'; END IF;
-  p := p || erru.nu_source_identity(g);
+  -- Keep the source values as backwards-compatible defaults for direct callers.
+  -- Explicit form values in p win because the right-hand JSONB object overrides.
+  p := erru.nu_source_identity(g) || p;
   v := erru.nu_validate(p,'outgoing');
   IF v->>'valid' IS DISTINCT FROM 'true' THEN RETURN v; END IF;
   IF k IS NULL THEN
@@ -97,7 +99,6 @@ BEGIN
   IF g.status IS DISTINCT FROM 'published' OR g.fitness_status IS DISTINCT FROM 'unfit'
     OR g.unfit_until_date IS NULL OR g.unfit_until_date < (clock_timestamp() AT TIME ZONE 'Europe/Tallinn')::DATE
     THEN RETURN '{"code":"source_not_eligible"}'; END IF;
-  IF erru.nu_message_identity(r) IS DISTINCT FROM erru.nu_source_identity(g) THEN RETURN '{"code":"source_changed"}'; END IF;
   IF length(first_key)>100 OR length(family_key)>100
     OR (r.tm_first_name IS NOT NULL AND (COALESCE(first_key,'')='' OR COALESCE(family_key,'')=''))
     THEN RETURN '{"code":"nysiis_unavailable"}'; END IF;

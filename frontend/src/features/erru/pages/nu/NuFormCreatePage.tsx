@@ -65,7 +65,16 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
     };
   }, [sourceKeyParam, t]);
   const prefill: Partial<NuMessage> | undefined = source
-    ? { unfitStartDate: initialUnfitStartDate }
+    ? {
+        tmFirstName: source.firstName,
+        tmFamilyName: source.lastName,
+        tmDateOfBirth: source.dateOfBirth,
+        tmPlaceOfBirth: source.placeOfBirth,
+        certificateNumber: source.certificateNumber,
+        certificateIssueDate: source.certificateIssueDate,
+        certificateIssueCountry: source.certificateCountryCode,
+        unfitStartDate: initialUnfitStartDate,
+      }
     : undefined;
 
   const form = useNuForm(
@@ -113,18 +122,7 @@ function NuFormCreateContent({ sourceKeyParam }: { sourceKeyParam?: string }) {
         </Card.Content>
       </Card>
 
-      <NuMessageFields
-        form={form}
-        identity={{
-          firstName: source.firstName,
-          lastName: source.lastName,
-          dateOfBirth: source.dateOfBirth,
-          placeOfBirth: source.placeOfBirth,
-          certificateNumber: source.certificateNumber,
-          certificateIssueDate: source.certificateIssueDate,
-          certificateIssueCountry: source.certificateCountryCode,
-        }}
-      />
+      <NuMessageFields form={form} />
 
       {sourceError && (
         <Alert type="danger" size="small">

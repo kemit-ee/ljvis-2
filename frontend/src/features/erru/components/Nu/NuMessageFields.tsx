@@ -1,8 +1,8 @@
-import { NuIdentityBlocks, type NuIdentity } from './NuIdentityBlocks';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
   Heading,
+  Radio,
   Select,
   TextField,
 } from '@tedi-design-system/react/tedi';
@@ -24,10 +24,9 @@ type NuFormApi = ReturnType<typeof useNuForm>;
 
 export function NuMessageFields({
   form,
-  identity,
+  businessCaseId,
 }: {
   form: NuFormApi;
-  identity: NuIdentity;
   businessCaseId?: string;
 }) {
   const { t } = useTranslation();
@@ -94,6 +93,16 @@ export function NuMessageFields({
               {...err('nuTo')}
             />
 
+            {businessCaseId && (
+              <TextField
+                id="nu-business-case-id"
+                label={t('erru.nu.form.businessCaseId')}
+                value={businessCaseId}
+                disabled
+                onChange={() => undefined}
+              />
+            )}
+
             <Select
               id="nu-request-source"
               label={t('erru.nu.form.requestSource')}
@@ -125,7 +134,119 @@ export function NuMessageFields({
         </Card.Content>
       </Card>
 
-      <NuIdentityBlocks identity={identity} />
+      <Card className="mt-05">
+        <Card.Content>
+          <Heading element="h2" className="mb-1">
+            {t('erru.nu.form.primaryElement')}
+          </Heading>
+          <div className="d-flex gap-3 mb-2">
+            <Radio
+              id="nu-primary-transport-manager"
+              name="nu-primary-element"
+              value="transportManager"
+              label={t('erru.nu.form.primaryTransportManager')}
+              checked={formik.values.primaryElement === 'transportManager'}
+              onChange={() =>
+                formik.setFieldValue('primaryElement', 'transportManager')
+              }
+            />
+            <Radio
+              id="nu-primary-certificate"
+              name="nu-primary-element"
+              value="certificate"
+              label={t('erru.nu.form.primaryCertificate')}
+              checked={formik.values.primaryElement === 'certificate'}
+              onChange={() =>
+                formik.setFieldValue('primaryElement', 'certificate')
+              }
+            />
+          </div>
+
+          <Heading element="h3" className="mb-1">
+            {t('erru.nu.form.nameBlock')}
+          </Heading>
+          <div className={gridClass}>
+            <TextField
+              id="nu-tm-first-name"
+              label={t('erru.nu.form.tmFirstName')}
+              required={formik.values.primaryElement === 'transportManager'}
+              {...formik.getFieldProps('tmFirstName')}
+              {...err('tmFirstName')}
+            />
+            <TextField
+              id="nu-tm-family-name"
+              label={t('erru.nu.form.tmFamilyName')}
+              required={formik.values.primaryElement === 'transportManager'}
+              {...formik.getFieldProps('tmFamilyName')}
+              {...err('tmFamilyName')}
+            />
+            <MaskedDateField
+              id="nu-tm-date-of-birth"
+              label={t('erru.nu.form.tmDateOfBirth')}
+              required={formik.values.primaryElement === 'transportManager'}
+              selected={dateValue(formik.values.tmDateOfBirth)}
+              onSelect={(v) =>
+                formik.setFieldValue(
+                  'tmDateOfBirth',
+                  toIsoDate(v as Date | undefined),
+                )
+              }
+              monthYearSelectType="grid"
+              inputProps={{
+                ...dateErr('tmDateOfBirth').inputProps,
+                onClear: () => formik.setFieldValue('tmDateOfBirth', ''),
+              }}
+            />
+            <TextField
+              id="nu-tm-place-of-birth"
+              label={t('erru.nu.form.tmPlaceOfBirth')}
+              {...formik.getFieldProps('tmPlaceOfBirth')}
+              {...err('tmPlaceOfBirth')}
+            />
+          </div>
+
+          <Heading element="h3" className="mt-2 mb-1">
+            {t('erru.nu.form.certificateBlock')}
+          </Heading>
+          <div className={gridClass}>
+            <TextField
+              id="nu-certificate-number"
+              label={t('erru.nu.form.certificateNumber')}
+              required={formik.values.primaryElement === 'certificate'}
+              {...formik.getFieldProps('certificateNumber')}
+              {...err('certificateNumber')}
+            />
+            <MaskedDateField
+              id="nu-certificate-issue-date"
+              label={t('erru.nu.form.certificateIssueDate')}
+              required={formik.values.primaryElement === 'certificate'}
+              selected={dateValue(formik.values.certificateIssueDate)}
+              onSelect={(v) =>
+                formik.setFieldValue(
+                  'certificateIssueDate',
+                  toIsoDate(v as Date | undefined),
+                )
+              }
+              monthYearSelectType="grid"
+              inputProps={{
+                ...dateErr('certificateIssueDate').inputProps,
+                onClear: () => formik.setFieldValue('certificateIssueDate', ''),
+              }}
+            />
+            <Select
+              id="nu-certificate-issue-country"
+              label={t('erru.nu.form.certificateIssueCountry')}
+              required={formik.values.primaryElement === 'certificate'}
+              options={opts(countries)}
+              value={selected(countries, formik.values.certificateIssueCountry)}
+              onChange={(o) =>
+                formik.setFieldValue('certificateIssueCountry', pick(o))
+              }
+              {...err('certificateIssueCountry')}
+            />
+          </div>
+        </Card.Content>
+      </Card>
 
       <Card className="mt-05">
         <Card.Content>

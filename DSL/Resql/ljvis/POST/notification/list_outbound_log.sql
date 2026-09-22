@@ -25,6 +25,12 @@ params:
   notification_key:
     type: string
     required: false
+  related_entity_type:
+    type: string
+    required: false
+  related_entity_id:
+    type: string
+    required: false
   sort_by:
     type: string
     required: false
@@ -64,6 +70,8 @@ WHERE (NULLIF(:status, '') IS NULL OR ol.status = :status)
           replace(replace(replace(:recipient, '\', '\\'), '%', '\%'), '_', '\_')
           || '%' ESCAPE '\')
   AND (NULLIF(:notification_key, '') IS NULL OR ol.notification_key = :notification_key)
+  AND (NULLIF(:related_entity_type, '') IS NULL OR ol.related_entity_type = :related_entity_type)
+  AND (NULLIF(:related_entity_id, '') IS NULL OR ol.related_entity_id = :related_entity_id)
   AND ol.send_date >= COALESCE(NULLIF(:date_from, '')::TIMESTAMPTZ, '-infinity'::TIMESTAMPTZ)
   AND ol.send_date <  COALESCE(NULLIF(:date_to, '')::TIMESTAMPTZ + INTERVAL '1 day', 'infinity'::TIMESTAMPTZ)
 ORDER BY

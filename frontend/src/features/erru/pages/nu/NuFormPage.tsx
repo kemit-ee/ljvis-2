@@ -153,28 +153,6 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
           <NuMessageFields
             form={form}
             businessCaseId={message.businessCaseId}
-            identity={
-              sourcePreview
-                ? {
-                    firstName: sourcePreview.firstName,
-                    lastName: sourcePreview.lastName,
-                    dateOfBirth: sourcePreview.dateOfBirth,
-                    placeOfBirth: sourcePreview.placeOfBirth,
-                    certificateNumber: sourcePreview.certificateNumber,
-                    certificateIssueDate: sourcePreview.certificateIssueDate,
-                    certificateIssueCountry:
-                      sourcePreview.certificateCountryCode,
-                  }
-                : {
-                    firstName: message.tmFirstName,
-                    lastName: message.tmFamilyName,
-                    dateOfBirth: message.tmDateOfBirth,
-                    placeOfBirth: message.tmPlaceOfBirth,
-                    certificateNumber: message.certificateNumber,
-                    certificateIssueDate: message.certificateIssueDate,
-                    certificateIssueCountry: message.certificateIssueCountry,
-                  }
-            }
           />
           {form.formError && (
             <Alert
@@ -217,9 +195,26 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
                 setSourceLoading(true);
                 setSourceError(null);
                 try {
-                  setSourcePreview(
-                    await getNuSource(message.sourceGoodReputeFormKey),
+                  const refreshed = await getNuSource(
+                    message.sourceGoodReputeFormKey,
                   );
+                  setSourcePreview(refreshed);
+                  await form.formik.setValues({
+                    ...form.formik.values,
+                    primaryElement:
+                      refreshed.firstName || !refreshed.certificateNumber
+                        ? 'transportManager'
+                        : 'certificate',
+                    tmFirstName: refreshed.firstName ?? '',
+                    tmFamilyName: refreshed.lastName ?? '',
+                    tmDateOfBirth: refreshed.dateOfBirth ?? '',
+                    tmPlaceOfBirth: refreshed.placeOfBirth ?? '',
+                    certificateNumber: refreshed.certificateNumber ?? '',
+                    certificateIssueDate: refreshed.certificateIssueDate ?? '',
+                    certificateIssueCountry:
+                      refreshed.certificateCountryCode ?? '',
+                    unfitStartDate: refreshed.unfitFromDate ?? '',
+                  });
                 } catch (error) {
                   setSourceError(nuErrorMessage(error, t));
                 } finally {

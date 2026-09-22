@@ -747,7 +747,7 @@
       ]
     },
     {
-      "name": "[Setup] POST foreign-violation-form/edit/save — create with foreignAuthorityProposal=true (not published yet)",
+      "name": "[Setup] POST foreign-violation-form/edit/save — create notify-flow form (no notify flags yet)",
       "request": {
         "method": "POST",
         "header": [
@@ -776,7 +776,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": null, \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"true\", \"notifyCarrier\": \"false\"}"
+          "raw": "{\"id\": null, \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"false\", \"notifyCarrier\": \"false\", \"notifyLaborInspector\": \"false\"}"
         }
       },
       "event": [
@@ -796,7 +796,7 @@
       ]
     },
     {
-      "name": "[Setup] POST foreign-violation-form/edit/confirm — notify-flow form (saved -> confirmed)",
+      "name": "POST foreign-violation-form/edit/save — notifyLaborInspector=true triggers postkast notification",
       "request": {
         "method": "POST",
         "header": [
@@ -810,7 +810,7 @@
           }
         ],
         "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/confirm",
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
           "host": [
             "{{api_url}}"
           ],
@@ -820,56 +820,12 @@
             "control-forms",
             "foreign-violation-form",
             "edit",
-            "confirm"
+            "save"
           ]
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{fv_notify_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"true\", \"notifyCarrier\": \"false\"}"
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "POST foreign-violation-form/edit/publish — foreignAuthorityProposal=true triggers postkast notification",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Cookie",
-            "value": "{{cookie_admin}}"
-          },
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/publish",
-          "host": [
-            "{{api_url}}"
-          ],
-          "path": [
-            "ljvis",
-            "v1",
-            "control-forms",
-            "foreign-violation-form",
-            "edit",
-            "publish"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\"id\": \"{{fv_notify_id}}\"}"
+          "raw": "{\"id\": \"{{fv_notify_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"false\", \"notifyCarrier\": \"false\", \"notifyLaborInspector\": \"true\"}"
         }
       },
       "event": [

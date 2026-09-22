@@ -71,6 +71,21 @@ export interface ControlForm {
   typeParam?: string;
 }
 
+export interface ForeignViolationFormViolation {
+  /** EU 1071/2009 violation code, e.g. "MSI101", "VSI819", "SI912". */
+  code: string;
+  sanctionCode?: string;
+  sanctionNotes?: string;
+  recommendedMeasureCode?: string;
+  recommendedMeasureNotes?: string;
+}
+
+export interface NotificationHistoryEntry {
+  type: string;
+  sentAt: string;
+  status: string;
+}
+
 export interface ForeignViolationForm {
   id?: string;
   formNumber: string;
@@ -107,7 +122,7 @@ export interface ForeignViolationForm {
   sanctionCode: string;
   sanctionNotes?: string;
   additionalSanctionCodes?: string[];
-  violations?: string[];
+  violations?: ForeignViolationFormViolation[];
   recommendedMeasureCode: string;
   recommendedMeasureNotes?: string;
   notes?: string;
@@ -121,6 +136,9 @@ export interface ForeignViolationForm {
   adminProcedureDecision?: string;
   foreignAuthorityProposal?: boolean;
   notifyCarrier?: boolean;
+  notifyLaborInspector?: boolean;
+  notificationHistory?: NotificationHistoryEntry[];
+  carrierRegistryEmail?: string;
   erruNcrMessageKey?: number | null;
   inspectorFirstName: string;
   inspectorLastName: string;

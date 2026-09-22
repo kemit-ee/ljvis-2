@@ -563,6 +563,74 @@ export const EU_VIOLATION_GROUPS = [
   },
 ];
 
+// Rikkumisepõhine "Kontrolli tulemus" (sanktsioon + soovitatud meede) —
+// tõstetud lokaalsest ForeignViolationFormFields.tsx-ist, et neid saaks
+// taaskasutada nii üldise (kaardi-tasemel fallback) kui rikkumisepõhise
+// (violations[].sanctionCode) sanktsiooni valikuna.
+export const FOREIGN_VIOLATION_SANCTION_OPTIONS = [
+  { value: 'KORRAS', labelKey: 'forms.foreign_violation.sanctionKorras' },
+  { value: 'HOIATUS', labelKey: 'forms.foreign_violation.sanctionHoiatus' },
+  {
+    value: 'KABOTAAŽVEO AJUTINE KEELAMINE',
+    labelKey: 'forms.foreign_violation.sanctionKabotaaz',
+  },
+  { value: 'TRAHV', labelKey: 'forms.foreign_violation.sanctionTrahv' },
+  {
+    value: 'LIIKLEMISKEELD',
+    labelKey: 'forms.foreign_violation.sanctionLiiklemiskeeld',
+  },
+  {
+    value: 'SÕIDUKI KASUTAMISE TAKISTAMINE',
+    labelKey: 'forms.foreign_violation.sanctionSoiduk',
+  },
+  { value: 'MUU', labelKey: 'forms.foreign_violation.sanctionMuu' },
+];
+
+export const FOREIGN_VIOLATION_RECOMMENDED_MEASURE_OPTIONS = [
+  {
+    value: 'PUUDUVAD',
+    labelKey: 'forms.foreign_violation.recommendedMeasureMissing',
+  },
+  {
+    value: 'HOIATUS',
+    labelKey: 'forms.foreign_violation.recommendedMeasureWarning',
+  },
+  {
+    value: 'UHENDUSE_TEGEVUSLOA_PEATAMINE',
+    labelKey:
+      'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseSuspension',
+  },
+  {
+    value: 'UHENDUSE_TEGEVUSLUBA_KEHTETUKS',
+    labelKey:
+      'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseWithdrawal',
+  },
+  {
+    value: 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE',
+    labelKey:
+      'forms.foreign_violation.recommendedMeasureActivityLicenseRecordsSuspension',
+  },
+  {
+    value: 'TEGEVUSLUBA_KEHTETUKS',
+    labelKey:
+      'forms.foreign_violation.recommendedMeasureActivityLicenseWithdrawal',
+  },
+  {
+    value: 'JUHITUNNISTUSEST_KEELDUMINE',
+    labelKey:
+      'forms.foreign_violation.recommendedMeasureDriverCertificateRefusal',
+  },
+  {
+    value: 'JUHITUNNISTUS_KEHTETUKS',
+    labelKey:
+      'forms.foreign_violation.recommendedMeasureDriverCertificateWithdrawal',
+  },
+  {
+    value: 'MUU',
+    labelKey: 'forms.foreign_violation.recommendedMeasureOther',
+  },
+];
+
 export const COUNTRIES = [
   { value: 'AD', labelKey: 'countries.AD' },
   { value: 'AE', labelKey: 'countries.AE' },

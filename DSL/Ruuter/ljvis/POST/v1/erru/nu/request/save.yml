@@ -20,6 +20,22 @@ declaration:
         type: string
       - field: requestPurpose
         type: string
+      - field: primaryElement
+        type: string
+      - field: tmFirstName
+        type: string
+      - field: tmFamilyName
+        type: string
+      - field: tmDateOfBirth
+        type: string
+      - field: tmPlaceOfBirth
+        type: string
+      - field: certificateNumber
+        type: string
+      - field: certificateIssueDate
+        type: string
+      - field: certificateIssueCountry
+        type: string
       - field: unfitStartDate
         type: string
 
@@ -33,6 +49,13 @@ extractRequestData:
     originating_authority: "${('' + (incoming.body.originatingAuthority || '')).trim()}"
     request_source: "${('' + (incoming.body.requestSource || '')).trim()}"
     request_purpose: "${('' + (incoming.body.requestPurpose || '')).trim()}"
+    tm_first_name_input: "${('' + (incoming.body.tmFirstName || '')).trim()}"
+    tm_family_name_input: "${('' + (incoming.body.tmFamilyName || '')).trim()}"
+    tm_date_of_birth_input: "${('' + (incoming.body.tmDateOfBirth || '')).trim()}"
+    tm_place_of_birth_input: "${('' + (incoming.body.tmPlaceOfBirth || '')).trim()}"
+    certificate_number_input: "${('' + (incoming.body.certificateNumber || '')).trim()}"
+    certificate_issue_date_input: "${('' + (incoming.body.certificateIssueDate || '')).trim()}"
+    certificate_issue_country_input: "${('' + (incoming.body.certificateIssueCountry || '')).trim()}"
     unfit_start_date: "${('' + (incoming.body.unfitStartDate || '')).trim()}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
@@ -108,13 +131,13 @@ checkSourceEligible:
 
 extractSourceFields:
   assign:
-    tm_first_name: "${('' + (source.response.body[0].firstName || '')).trim()}"
-    tm_family_name: "${('' + (source.response.body[0].lastName || '')).trim()}"
-    tm_date_of_birth: "${('' + (source.response.body[0].dateOfBirth || '')).trim()}"
-    tm_place_of_birth: "${('' + (source.response.body[0].placeOfBirth || '')).trim()}"
-    certificate_number: "${('' + (source.response.body[0].certificateNumber || '')).trim()}"
-    certificate_issue_date: "${('' + (source.response.body[0].certificateIssueDate || '')).trim()}"
-    certificate_issue_country: "${('' + (source.response.body[0].certificateCountryCode || '')).trim()}"
+    tm_first_name: "${incoming.body.tmFirstName !== undefined ? tm_first_name_input : ('' + (source.response.body[0].firstName || '')).trim()}"
+    tm_family_name: "${incoming.body.tmFamilyName !== undefined ? tm_family_name_input : ('' + (source.response.body[0].lastName || '')).trim()}"
+    tm_date_of_birth: "${incoming.body.tmDateOfBirth !== undefined ? tm_date_of_birth_input : ('' + (source.response.body[0].dateOfBirth || '')).trim()}"
+    tm_place_of_birth: "${incoming.body.tmPlaceOfBirth !== undefined ? tm_place_of_birth_input : ('' + (source.response.body[0].placeOfBirth || '')).trim()}"
+    certificate_number: "${incoming.body.certificateNumber !== undefined ? certificate_number_input : ('' + (source.response.body[0].certificateNumber || '')).trim()}"
+    certificate_issue_date: "${incoming.body.certificateIssueDate !== undefined ? certificate_issue_date_input : ('' + (source.response.body[0].certificateIssueDate || '')).trim()}"
+    certificate_issue_country: "${incoming.body.certificateIssueCountry !== undefined ? certificate_issue_country_input : ('' + (source.response.body[0].certificateCountryCode || '')).trim()}"
   next: validateRequest
 validateRequest:
   template: "templates/erru/nu/validate-nu-request"
@@ -153,7 +176,7 @@ saveDraft:
       expectedVersion: ${expected_version}
       sourceGoodReputeFormKey: ${source_key}
       sourceSnapshotId: ${source_snapshot_id}
-      payload: "${JSON.stringify({nuTo:nu_to,originatingAuthority:originating_authority,requestSource:request_source,requestPurpose:request_purpose,unfitStartDate:unfit_start_date})}"
+      payload: "${JSON.stringify({nuTo:nu_to,originatingAuthority:originating_authority,requestSource:request_source,requestPurpose:request_purpose,tmFirstName:tm_first_name,tmFamilyName:tm_family_name,tmDateOfBirth:tm_date_of_birth,tmPlaceOfBirth:tm_place_of_birth,certificateNumber:certificate_number,certificateIssueDate:certificate_issue_date,certificateIssueCountry:certificate_issue_country,unfitStartDate:unfit_start_date})}"
       created_by: ${actor_personal_code}
   result: saved
   next: extractSaved
