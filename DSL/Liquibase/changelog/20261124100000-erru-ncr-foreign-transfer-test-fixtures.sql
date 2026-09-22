@@ -61,7 +61,7 @@ BEGIN
         '597BCH', 'EE',
         'Fail', DATE '2026-06-23',
         '{"dateOfInfringement":"2026-08-04","numberOfInfringements":2}'::JSONB,
-        '[{"category":"SI","infringementType":"912","dateOfInfringement":"2026-06-05","detectionCheckDate":"2026-06-05","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":122087187,"penaltyTypeImposed":"202","finalDecisionDate":"2026-07-17","isExecuted":"Yes"},{"penaltyImposedIdentifier":122087188,"penaltyTypeImposed":"202","finalDecisionDate":"2026-07-17","isExecuted":"Yes"}]},{"category":"VSI","infringementType":"819","dateOfInfringement":"2026-06-23","detectionCheckDate":"2026-06-23","appealPossible":false,"penaltiesImposed":[{"penaltyImposedIdentifier":122087030,"penaltyTypeImposed":"203","finalDecisionDate":"2026-08-04","isExecuted":"Yes"}]}]'::JSONB,
+        '[{"category":"SI","infringementType":"912","dateOfInfringement":"2026-06-05","detectionCheckDate":"2026-06-05","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":122087187,"penaltyTypeImposed":"202","finalDecisionDate":"2026-07-17","isExecuted":"Yes"},{"penaltyImposedIdentifier":122087188,"penaltyTypeImposed":"202","finalDecisionDate":"2026-07-17","isExecuted":"Yes"}],"penaltiesRequested":[]},{"category":"VSI","infringementType":"819","dateOfInfringement":"2026-06-23","detectionCheckDate":"2026-06-23","appealPossible":false,"penaltiesImposed":[{"penaltyImposedIdentifier":122087030,"penaltyTypeImposed":"203","finalDecisionDate":"2026-08-04","isExecuted":"Yes"}],"penaltiesRequested":[]}]'::JSONB,
         'system'
     );
 END $$;
@@ -95,7 +95,7 @@ BEGIN
         'PL-TEST-9002', 'PL',
         'Fail', DATE '2026-06-10',
         '{"dateOfInfringement":"2026-06-10","numberOfInfringements":3}'::JSONB,
-        '[' ||
+        ('[' ||
         '{"category":"MSI","infringementType":"101","dateOfInfringement":"2026-06-08","detectionCheckDate":"2026-06-08","appealPossible":false,"penaltiesImposed":[{"penaltyImposedIdentifier":222000001,"penaltyTypeImposed":"101","finalDecisionDate":"2026-06-09","isExecuted":"Yes"}],"penaltiesRequested":[]},' ||
         '{"category":"VSI","infringementType":"602","dateOfInfringement":"2026-06-09","detectionCheckDate":"2026-06-09","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":222000002,"penaltyTypeImposed":"203","finalDecisionDate":"2026-06-10","isExecuted":"Yes"}],"penaltiesRequested":[{"penaltyRequestedIdentifier":222000003,"penaltyTypeRequested":"303","duration":14}]},' ||
         '{"category":"SI","infringementType":"912","dateOfInfringement":"2026-06-10","detectionCheckDate":"2026-06-10","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":222000004,"penaltyTypeImposed":"202","finalDecisionDate":"2026-06-10","isExecuted":"Yes"}],"penaltiesRequested":[{"penaltyRequestedIdentifier":222000005,"penaltyTypeRequested":"305"}]}' ||
@@ -167,9 +167,9 @@ BEGIN
         'DE-TEST-9004', 'DE',
         'Fail', DATE '2026-05-20',
         NULL,
-        '[' ||
-        '{"category":"VSI","infringementType":"601","dateOfInfringement":"2026-05-18","detectionCheckDate":"2026-05-18","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":333000001,"penaltyTypeImposed":"201","finalDecisionDate":"2026-05-19","isExecuted":"Yes"}]},' ||
-        '{"category":"VSI","infringementType":"819","dateOfInfringement":"2026-05-20","detectionCheckDate":"2026-05-20","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":333000002,"penaltyTypeImposed":"204","finalDecisionDate":"2026-05-20","isExecuted":"No","notExecutedReason":"Appeal pending"}]}' ||
+        ('[' ||
+        '{"category":"VSI","infringementType":"601","dateOfInfringement":"2026-05-18","detectionCheckDate":"2026-05-18","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":333000001,"penaltyTypeImposed":"201","finalDecisionDate":"2026-05-19","isExecuted":"Yes"}],"penaltiesRequested":[]},' ||
+        '{"category":"VSI","infringementType":"819","dateOfInfringement":"2026-05-20","detectionCheckDate":"2026-05-20","appealPossible":true,"penaltiesImposed":[{"penaltyImposedIdentifier":333000002,"penaltyTypeImposed":"204","finalDecisionDate":"2026-05-20","isExecuted":"No","notExecutedReason":"Appeal pending"}],"penaltiesRequested":[]}' ||
         ']')::JSONB,
         'system'
     );
