@@ -78,10 +78,42 @@ mapResponse:
     body:
       forms: ${res.response.body}
   result: mapped
+  next: getNotificationHistory
+
+# p.5: teavituse saatmise ajalugu (kuupäevad) tuleb notifications.outbound_log-ist,
+# mitte kaardilt endalt — vt DSL/Resql/ljvis/POST/notification/list_outbound_log.sql,
+# millele lisati related_entity_type/related_entity_id filtrid selle jaoks.
+getNotificationHistory:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/list_outbound_log"
+    headers:
+      type: json
+    body:
+      related_entity_type: "foreign_violation_form"
+      related_entity_id: ${id}
+      page: 1
+      page_size: 50
+      sort_by: "send_date"
+      sort_dir: "desc"
+  result: historyRes
+  error: returnSuccessWithoutHistory
+  next: mergeNotificationHistory
+
+mergeNotificationHistory:
+  assign:
+    notification_history: >-
+      ${(historyRes.response.body || []).map(function(row) {
+        return { type: row.notificationType, sentAt: row.sendDate, status: row.status };
+      })}
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${Object.assign({}, mapped.response.body, { notificationHistory: notification_history })}"
+  next: end
+
+returnSuccessWithoutHistory:
+  return: "${Object.assign({}, mapped.response.body, { notificationHistory: [] })}"
   next: end
 
 returnNotFound:

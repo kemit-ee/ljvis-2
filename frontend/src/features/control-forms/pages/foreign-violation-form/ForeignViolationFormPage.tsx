@@ -92,7 +92,9 @@ export function ForeignViolationFormPage() {
   };
 
   const handleConfirmed = () => {
-    window.scrollTo(0, 0);
+    // p.7: kinnitamisel scroll-to-top eemaldatud kliendi soovil (jääb
+    // alles salvestamisel handleEditSaved-is ja avalikustamisel
+    // handlePublished-is).
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);

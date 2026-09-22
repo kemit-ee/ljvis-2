@@ -1008,12 +1008,14 @@
       "inspectionRegion": "Maakond",
       "inspectionCity": "Linn / Vald",
       "inspectionCountry": "Riik",
+      "inspectionCountryAutoHint": "Määratakse automaatselt teate saatnud riigi järgi.",
       "control_country_code": "Riik",
       "county": "Maakond",
       "city": "Linn / Vald",
       "companyBasicInfo": "Ettevõtte/vedaja andmed",
       "companyRegCode": "Registrikood",
       "companyName": "Ettevõtte nimi",
+      "carrierRegistryEmailMissing": "e-post äriregistrist määramata",
       "companyCountry": "Riik",
       "companyAddressLine1": "Asula / Tänav / Maja nr",
       "companyAddressLine2": "Maakond",
@@ -1052,7 +1054,7 @@
       "addSanction": "+ Lisa sanktsioon",
       "additionalSanctions": "Lisasanktsioonid",
       "adminProc": {
-        "klimDate": "KLIM selgitustaotluse kuupäev",
+        "klimDate": "Selgitustaotluse kuupäev",
         "carrierDate": "Vedaja seletuse kuupäev",
         "penaltyUntil": "Karistus kehtib kuni",
         "akvkDate": "Järgmise komisjoni koosolek (AKVK)",
@@ -1062,9 +1064,11 @@
       },
       "notifications": {
         "title": "Teavitused",
-        "hint": "Märkige teavitus ja salvestage vorm — süsteem saadab valitud teavituse. Saadetud teavitust ei saa tühistada.",
+        "hint": "Märkige teavitus ja salvestage vorm — süsteem saadab valitud teavituse. Teavitust saab hiljem andmete muutumisel uuesti saata, märkides linnukese ja salvestades vormi uuesti.",
         "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks. Edasta teavitus tööinspektorile.",
-        "notifyCarrier": "Teavita vedajat rikkumisest"
+        "notifyCarrier": "Teavita vedajat rikkumisest",
+        "notifyLaborInspector": "Teavita tööinspektorit",
+        "historyTitle": "Varasemad saatmised"
       },
       "euViolationGroupMsi": "Kõige raskemad rikkumised (MSI)",
       "euViolationMsi101": "MSI101 - ületatakse 2 järjestikuse nädala maksimaalset sõiduaega 25% või rohkem 112h30 ≤ ...",

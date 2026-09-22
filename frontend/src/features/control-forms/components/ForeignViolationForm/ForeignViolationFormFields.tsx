@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FormikProps } from 'formik';
 import {
@@ -20,11 +20,15 @@ import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
 import { MaskedTimeField } from '../shared/MaskedTimeField';
 import { CompanyPickerModal } from '../CompanyPickerModal';
-import { EU_VIOLATION_GROUPS } from '../../../../constants/constants';
+import {
+  EU_VIOLATION_GROUPS,
+  FOREIGN_VIOLATION_SANCTION_OPTIONS,
+  FOREIGN_VIOLATION_RECOMMENDED_MEASURE_OPTIONS,
+} from '../../../../constants/constants';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
-import type { ForeignViolationForm } from '../../types';
+import type { ForeignViolationForm, ForeignViolationFormViolation } from '../../types';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
@@ -70,69 +74,9 @@ interface ForeignViolationFormFieldsProps {
   showAdminSection?: boolean;
 }
 
-const recommendedMeasureOptions = [
-  {
-    value: 'PUUDUVAD',
-    labelKey: 'forms.foreign_violation.recommendedMeasureMissing',
-  },
-  {
-    value: 'HOIATUS',
-    labelKey: 'forms.foreign_violation.recommendedMeasureWarning',
-  },
-  {
-    value: 'UHENDUSE_TEGEVUSLOA_PEATAMINE',
-    labelKey:
-      'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseSuspension',
-  },
-  {
-    value: 'UHENDUSE_TEGEVUSLUBA_KEHTETUKS',
-    labelKey:
-      'forms.foreign_violation.recommendedMeasureAssociationActivityLicenseWithdrawal',
-  },
-  {
-    value: 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE',
-    labelKey:
-      'forms.foreign_violation.recommendedMeasureActivityLicenseRecordsSuspension',
-  },
-  {
-    value: 'TEGEVUSLUBA_KEHTETUKS',
-    labelKey:
-      'forms.foreign_violation.recommendedMeasureActivityLicenseWithdrawal',
-  },
-  {
-    value: 'JUHITUNNISTUSEST_KEELDUMINE',
-    labelKey:
-      'forms.foreign_violation.recommendedMeasureDriverCertificateRefusal',
-  },
-  {
-    value: 'JUHITUNNISTUS_KEHTETUKS',
-    labelKey:
-      'forms.foreign_violation.recommendedMeasureDriverCertificateWithdrawal',
-  },
-  {
-    value: 'MUU',
-    labelKey: 'forms.foreign_violation.recommendedMeasureOther',
-  },
-];
+const recommendedMeasureOptions = FOREIGN_VIOLATION_RECOMMENDED_MEASURE_OPTIONS;
 
-const sanctionOptions = [
-  { value: 'KORRAS', labelKey: 'forms.foreign_violation.sanctionKorras' },
-  { value: 'HOIATUS', labelKey: 'forms.foreign_violation.sanctionHoiatus' },
-  {
-    value: 'KABOTAAŽVEO AJUTINE KEELAMINE',
-    labelKey: 'forms.foreign_violation.sanctionKabotaaz',
-  },
-  { value: 'TRAHV', labelKey: 'forms.foreign_violation.sanctionTrahv' },
-  {
-    value: 'LIIKLEMISKEELD',
-    labelKey: 'forms.foreign_violation.sanctionLiiklemiskeeld',
-  },
-  {
-    value: 'SÕIDUKI KASUTAMISE TAKISTAMINE',
-    labelKey: 'forms.foreign_violation.sanctionSoiduk',
-  },
-  { value: 'MUU', labelKey: 'forms.foreign_violation.sanctionMuu' },
-];
+const sanctionOptions = FOREIGN_VIOLATION_SANCTION_OPTIONS;
 
 export function ForeignViolationFormFields({
   formik,
@@ -169,6 +113,14 @@ export function ForeignViolationFormFields({
   const { values, errors, touched, setFieldValue } = formik;
   const [showAdditionalSanctions, setShowAdditionalSanctions] = useState(false);
 
+  // violations on nüüd objektide massiiv (p.2): {code, sanctionCode, ...}[].
+  // violationEntries/violationCodes on mugavusabistajad, mida kasutatakse
+  // nii checkbox-gruppide kui rikkumisepõhiste sanktsiooniplokkide juures.
+  const violationEntries = Array.isArray(values.violations)
+    ? (values.violations as ForeignViolationFormViolation[])
+    : [];
+  const violationCodes = violationEntries.map((v) => v.code);
+
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
     ...group,
     label: t(group.labelKey),
@@ -191,6 +143,19 @@ export function ForeignViolationFormFields({
     () => [{ value: '', label: '\u2014' }, ...countriesBase],
     [countriesBase],
   );
+
+  // Kontrolli koha riik on lukustatud teate saatnud riigi (reportingCountryCode)
+  // külge (p.1) — sünkroonitakse alati, ka kui reportingCountryCode muutub
+  // pärast esialgset täitmist.
+  useEffect(() => {
+    if (
+      !readOnly &&
+      values.inspectionCountryCode !== values.reportingCountryCode
+    ) {
+      setFieldValue('inspectionCountryCode', values.reportingCountryCode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.reportingCountryCode, readOnly]);
 
   const isCompanyEstonia = values.companyCountryCode === 'EE';
   const isInspectionEstonian = values.inspectionCountryCode === 'EE';
@@ -437,22 +402,24 @@ export function ForeignViolationFormFields({
             <Select
               id="inspectionCountry"
               label={t('forms.foreign_violation.inspectionCountry')}
-              options={countriesWithEmpty}
+              options={countries}
               value={
-                countriesWithEmpty.find(
+                countries.find(
                   (o) => o.value === values.inspectionCountryCode,
                 ) ?? null
               }
-              onChange={(val) => {
-                const code =
-                  val && !Array.isArray(val)
-                    ? (val as { value: string }).value
-                    : '';
-                setFieldValue('inspectionCountryCode', code);
-                setFieldValue('inspectionRegion', '');
-                setFieldValue('inspectionCity', '');
+              onChange={() => {
+                // Väli on lukustatud reportingCountryCode külge — vt allolev
+                // useEffect (import ülal) — kasutajal ei ole seda vaja käsitsi
+                // muuta, "Loo kontrollkaart" (create-from-ncr.yml) täidab selle
+                // teate saatnud riigi järgi.
               }}
-              disabled={readOnly}
+              required={!readOnly}
+              disabled
+              helper={{
+                text: t('forms.foreign_violation.inspectionCountryAutoHint'),
+                type: 'hint' as const,
+              }}
             />
           </div>
         </Card.Content>
@@ -630,6 +597,18 @@ export function ForeignViolationFormFields({
               <Text element="p">{t('common.loading')}</Text>
             </div>
           )}
+          {values.companyName ? (
+            <div className="mt-1">
+              <Text element="p">
+                {values.companyName as string}
+                {' ('}
+                {(values.carrierRegistryEmail as string)
+                  ? (values.carrierRegistryEmail as string)
+                  : t('forms.foreign_violation.carrierRegistryEmailMissing')}
+                {')'}
+              </Text>
+            </div>
+          ) : null}
           {!associatedPersonsLoading &&
             associatedPersons &&
             associatedPersons.length > 0 && (
@@ -890,6 +869,7 @@ export function ForeignViolationFormFields({
         </Card.Content>
       </Card>
 
+      {violationCodes.length === 0 && (
       <Card className="mb-1">
         <Card.Content>
           <Heading element="h3" className="mb-1">
@@ -996,6 +976,7 @@ export function ForeignViolationFormFields({
           </div>
         </Card.Content>
       </Card>
+      )}
 
       <Card className="mb-1">
         <Card.Content>
@@ -1009,43 +990,172 @@ export function ForeignViolationFormFields({
                 }
               />
               <AccordionItemContent>
-                {euViolationGroups.map((group) => (
-                  <div key={group.id} className="mb-1">
-                    <Text element="p" modifiers="bold">
-                      {group.label}
-                    </Text>
-                    <ChoiceGroup
-                      id={`euViolations_${group.id}`}
-                      name={`euViolations_${group.id}`}
-                      inputType="checkbox"
-                      label=""
-                      value={
-                        Array.isArray(values.violations)
-                          ? (values.violations as string[])
-                          : []
-                      }
-                      items={group.items.map((item) => ({
-                        id: `euViolation_${item.value}`,
-                        label: item.label,
-                        value: item.value,
-                        disabled: readOnly,
-                        ...(readOnly
-                          ? {
-                              defaultChecked:
-                                (
-                                  values.violations as string[] | undefined
-                                )?.includes(item.value) ?? false,
+                {euViolationGroups.map((group) => {
+                  const groupCodes = new Set(
+                    group.items.map((item) => item.value),
+                  );
+                  const selectedInGroup = violationEntries.filter((v) =>
+                    groupCodes.has(v.code),
+                  );
+                  return (
+                    <div key={group.id} className="mb-1">
+                      <Text element="p" modifiers="bold">
+                        {group.label}
+                      </Text>
+                      <ChoiceGroup
+                        id={`euViolations_${group.id}`}
+                        name={`euViolations_${group.id}`}
+                        inputType="checkbox"
+                        label=""
+                        value={selectedInGroup.map((v) => v.code)}
+                        items={group.items.map((item) => ({
+                          id: `euViolation_${item.value}`,
+                          label: item.label,
+                          value: item.value,
+                          disabled: readOnly,
+                          ...(readOnly
+                            ? {
+                                defaultChecked: groupCodes.has(item.value)
+                                  ? selectedInGroup.some(
+                                      (v) => v.code === item.value,
+                                    )
+                                  : false,
+                              }
+                            : {}),
+                        }))}
+                        onChange={(val) => {
+                          if (readOnly) return;
+                          // BUG-fix (p.2): mitte asendada tervet violations
+                          // massiivi selle grupi valikuga — säilita teiste
+                          // gruppide kirjed, uuenda ainult SEDA gruppi, ja
+                          // säilita juba valitud rikkumiste sanktsiooniandmed.
+                          const selectedCodes = Array.isArray(val)
+                            ? val
+                            : [val];
+                          const keepOtherGroups = violationEntries.filter(
+                            (v) => !groupCodes.has(v.code),
+                          );
+                          const updatedGroupEntries = selectedCodes.map(
+                            (code) =>
+                              violationEntries.find((v) => v.code === code) ?? {
+                                code,
+                              },
+                          );
+                          setFieldValue('violations', [
+                            ...keepOtherGroups,
+                            ...updatedGroupEntries,
+                          ]);
+                        }}
+                      />
+                      {selectedInGroup.map((violation) => (
+                        <div
+                          key={violation.code}
+                          className="mb-1"
+                          style={{ marginLeft: '1.5rem' }}
+                        >
+                          <Text element="p" modifiers="bold">
+                            {
+                              group.items.find(
+                                (i) => i.value === violation.code,
+                              )?.label
                             }
-                          : {}),
-                      }))}
-                      onChange={(val) => {
-                        if (!readOnly) {
-                          setFieldValue('violations', val);
-                        }
-                      }}
-                    />
-                  </div>
-                ))}
+                            {' — '}
+                            {t('forms.foreign_violation.sanctionBasicInfo')}
+                          </Text>
+                          <ChoiceGroup
+                            id={`violationSanction_${violation.code}`}
+                            name={`violationSanction_${violation.code}`}
+                            inputType="radio"
+                            label={t('forms.foreign_violation.sanctionCode')}
+                            value={
+                              readOnly
+                                ? (violation.sanctionCode ?? '')
+                                : [violation.sanctionCode ?? '']
+                            }
+                            required={!readOnly}
+                            items={sanctionOptions.map((opt) => ({
+                              id: `violationSanction_${violation.code}_${opt.value}`,
+                              label: t(opt.labelKey),
+                              value: opt.value,
+                              disabled: readOnly,
+                            }))}
+                            onChange={(val) => {
+                              if (readOnly) return;
+                              const newVal = Array.isArray(val) ? val[0] : val;
+                              setFieldValue(
+                                'violations',
+                                violationEntries.map((v) =>
+                                  v.code === violation.code
+                                    ? { ...v, sanctionCode: newVal }
+                                    : v,
+                                ),
+                              );
+                            }}
+                            className="mb-1"
+                          />
+                          <TextArea
+                            id={`violationSanctionNotes_${violation.code}`}
+                            label={t('forms.foreign_violation.sanctionNotes')}
+                            value={violation.sanctionNotes ?? ''}
+                            placeholder={
+                              readOnly
+                                ? undefined
+                                : t('common.enterNotesPlaceholder')
+                            }
+                            maxHeight="6rem"
+                            onChange={(v) =>
+                              setFieldValue(
+                                'violations',
+                                violationEntries.map((entry) =>
+                                  entry.code === violation.code
+                                    ? { ...entry, sanctionNotes: v }
+                                    : entry,
+                                ),
+                              )
+                            }
+                            className="mb-1"
+                            disabled={readOnly}
+                          />
+                          <ChoiceGroup
+                            id={`violationMeasure_${violation.code}`}
+                            name={`violationMeasure_${violation.code}`}
+                            inputType="radio"
+                            label={t(
+                              'forms.foreign_violation.recommendedMeasureCode',
+                            )}
+                            value={
+                              readOnly
+                                ? (violation.recommendedMeasureCode ?? '')
+                                : [violation.recommendedMeasureCode ?? '']
+                            }
+                            items={recommendedMeasureOptions.map((opt) => ({
+                              id: `violationMeasure_${violation.code}_${opt.value}`,
+                              label: t(opt.labelKey),
+                              value: opt.value,
+                              disabled: readOnly,
+                            }))}
+                            onChange={(val) => {
+                              if (readOnly) return;
+                              const newVal = Array.isArray(val) ? val[0] : val;
+                              setFieldValue(
+                                'violations',
+                                violationEntries.map((v) =>
+                                  v.code === violation.code
+                                    ? {
+                                        ...v,
+                                        recommendedMeasureCode: newVal,
+                                      }
+                                    : v,
+                                ),
+                              );
+                            }}
+                            className="mb-1"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
               </AccordionItemContent>
             </AccordionItem>
           </Accordion>
@@ -1057,6 +1167,8 @@ export function ForeignViolationFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.foreign_violation.recommendedMeasureBasicInfo')}
           </Heading>
+          {violationCodes.length === 0 && (
+          <>
           <ChoiceGroup
             id="recommendedMeasureCode"
             name="recommendedMeasureCode"
@@ -1101,6 +1213,8 @@ export function ForeignViolationFormFields({
                 disabled={readOnly}
               />
             </div>
+          )}
+          </>
           )}
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
             <TextArea
@@ -1266,6 +1380,101 @@ export function ForeignViolationFormFields({
         </Card.Content>
       </Card>
 
+      <Card className="mb-1">
+        <Card.Content>
+          <Heading element="h3" className="mb-1">
+            {t('forms.foreign_violation.notifications.title')}
+          </Heading>
+          <Text element="p" className="mb-1">
+            {t('forms.foreign_violation.notifications.hint')}
+          </Text>
+          <ChoiceGroup
+            id="vrNotificationCheckboxes"
+            name="vrNotificationCheckboxes"
+            inputType="checkbox"
+            label=""
+            value={[
+              ...(values.foreignAuthorityProposal
+                ? ['foreignAuthorityProposal']
+                : []),
+              ...(values.notifyCarrier ? ['notifyCarrier'] : []),
+              ...(values.notifyLaborInspector ? ['notifyLaborInspector'] : []),
+            ]}
+            items={[
+              {
+                id: 'foreignAuthorityProposal',
+                label: t(
+                  'forms.foreign_violation.notifications.foreignProposal',
+                ),
+                value: 'foreignAuthorityProposal',
+                disabled: readOnly || Boolean(values.foreignAuthorityProposal),
+              },
+              {
+                id: 'notifyCarrier',
+                label: t(
+                  'forms.foreign_violation.notifications.notifyCarrier',
+                ),
+                value: 'notifyCarrier',
+                disabled: readOnly,
+              },
+              {
+                id: 'notifyLaborInspector',
+                label: t(
+                  'forms.foreign_violation.notifications.notifyLaborInspector',
+                ),
+                value: 'notifyLaborInspector',
+                disabled: readOnly,
+              },
+            ]}
+            onChange={(val) => {
+              if (!readOnly) {
+                const vals = Array.isArray(val) ? val : [val];
+                if (!values.foreignAuthorityProposal) {
+                  setFieldValue(
+                    'foreignAuthorityProposal',
+                    vals.includes('foreignAuthorityProposal'),
+                  );
+                }
+                // notifyCarrier/notifyLaborInspector jäävad korduvalt
+                // märgitavaks (p.5) — backend (save.yml) lülitab lipu peale
+                // eduka saatmise tagasi false-ks, ajalugu säilib
+                // notifications.outbound_log-is (vt allpool).
+                setFieldValue('notifyCarrier', vals.includes('notifyCarrier'));
+                setFieldValue(
+                  'notifyLaborInspector',
+                  vals.includes('notifyLaborInspector'),
+                );
+              }
+            }}
+          />
+          {((values.notificationHistory as { type: string; sentAt: string; status: string }[] | undefined)?.length ?? 0) > 0 && (
+            <div className="mt-1">
+              <Text element="p" modifiers="bold">
+                {t('forms.foreign_violation.notifications.historyTitle')}
+              </Text>
+              {(
+                values.notificationHistory as
+                  | { type: string; sentAt: string; status: string }[]
+                  | undefined
+              )?.map((entry, i) => (
+                <Text element="p" key={i}>
+                  {t(
+                    entry.type === 'carrier_violation'
+                      ? 'forms.foreign_violation.notifications.notifyCarrier'
+                      : 'forms.foreign_violation.notifications.notifyLaborInspector',
+                  )}
+                  {' — '}
+                  {entry.sentAt}
+                  {' ('}
+                  {entry.status}
+                  {')'}
+                </Text>
+              ))}
+            </div>
+          )}
+        </Card.Content>
+      </Card>
+
       {showAdminSection && (
         <Card className="mb-1">
           <Card.Content>
@@ -1424,61 +1633,6 @@ export function ForeignViolationFormFields({
           </Card.Content>
         </Card>
       )}
-
-      <Card className="mb-1">
-        <Card.Content>
-          <Heading element="h3" className="mb-1">
-            {t('forms.foreign_violation.notifications.title')}
-          </Heading>
-          <Text element="p" className="mb-1">
-            {t('forms.foreign_violation.notifications.hint')}
-          </Text>
-          <ChoiceGroup
-            id="vrNotificationCheckboxes"
-            name="vrNotificationCheckboxes"
-            inputType="checkbox"
-            label=""
-            value={[
-              ...(values.foreignAuthorityProposal
-                ? ['foreignAuthorityProposal']
-                : []),
-              ...(values.notifyCarrier ? ['notifyCarrier'] : []),
-            ]}
-            items={[
-              {
-                id: 'foreignAuthorityProposal',
-                label: t(
-                  'forms.foreign_violation.notifications.foreignProposal',
-                ),
-                value: 'foreignAuthorityProposal',
-                disabled: readOnly || Boolean(values.foreignAuthorityProposal),
-              },
-              {
-                id: 'notifyCarrier',
-                label: t(
-                  'forms.foreign_violation.notifications.notifyCarrier',
-                ),
-                value: 'notifyCarrier',
-                disabled: readOnly || Boolean(values.notifyCarrier),
-              },
-            ]}
-            onChange={(val) => {
-              if (!readOnly) {
-                const vals = Array.isArray(val) ? val : [val];
-                if (!values.foreignAuthorityProposal) {
-                  setFieldValue(
-                    'foreignAuthorityProposal',
-                    vals.includes('foreignAuthorityProposal'),
-                  );
-                }
-                if (!values.notifyCarrier) {
-                  setFieldValue('notifyCarrier', vals.includes('notifyCarrier'));
-                }
-              }
-            }}
-          />
-        </Card.Content>
-      </Card>
 
       <Card className="mb-1">
         <Card.Content>

@@ -166,6 +166,9 @@ returns:
 - name: notify_carrier
   type: string
   nullable: true
+- name: notify_labor_inspector
+  type: string
+  nullable: true
 - name: erru_ncr_message_key
   type: number
   nullable: true
@@ -230,6 +233,7 @@ SELECT
   admin_procedure_decision,
   foreign_authority_proposal,
   notify_carrier,
+  notify_labor_inspector,
   erru_ncr_message_key,
   status,
   created_by

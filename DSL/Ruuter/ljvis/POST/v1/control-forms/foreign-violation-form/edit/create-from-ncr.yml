@@ -37,7 +37,7 @@ checkNcrResult:
 
 extractNcrFields:
   assign:
-    ncr_id: "${ncrRes.response.body[ncrRes.response.body.length - 1].id || ''}"
+    ncr_id: "${String(ncrRes.response.body[ncrRes.response.body.length - 1].id || '')}"
     reporting_country_code: "${ncrRes.response.body[ncrRes.response.body.length - 1].ncrFrom || ''}"
     company_name: "${ncrRes.response.body[ncrRes.response.body.length - 1].transportUndertakingName || ''}"
     vehicle_reg_nr: "${ncrRes.response.body[ncrRes.response.body.length - 1].vehicleRegistrationNumber || ''}"
@@ -45,6 +45,36 @@ extractNcrFields:
     licence_copy_number: "${ncrRes.response.body[ncrRes.response.body.length - 1].communityLicenceNumber || ''}"
     inspection_date: "${ncrRes.response.body[ncrRes.response.body.length - 1].checkDate || ''}"
     data_entry_date: "${new Date().toISOString().slice(0, 10)}"
+    check_result: "${ncrRes.response.body[ncrRes.response.body.length - 1].checkResult || ''}"
+    minor_infringement_raw: "${ncrRes.response.body[ncrRes.response.body.length - 1].minorInfringement || null}"
+    serious_infringements_raw: "${ncrRes.response.body[ncrRes.response.body.length - 1].seriousInfringements || '[]'}"
+  next: mapMinorInfringement
+
+# p.1: kontrolli koha riik lukustub teate saatnud riigi (ncrFrom) järgi —
+# frontend lukustab välja täiendavalt (ForeignViolationFormFields.tsx
+# useEffect), aga täidetakse ka siin loomisel.
+mapMinorInfringement:
+  assign:
+    inspection_country_code: ${reporting_country_code}
+    minor_violations_count: >-
+      ${(() => {
+        var mi = minor_infringement_raw;
+        if (typeof mi === 'string') {
+          try { mi = JSON.parse(mi); } catch (e) { mi = null; }
+        }
+        return (mi && mi.numberOfInfringements != null) ? String(mi.numberOfInfringements) : '';
+      })()}
+  next: mapSeriousInfringements
+
+# p.2: NCR serious_infringements (category+infringementType, nt "SI"+"912")
+# -> violations[].code (nt "SI912"), samas kujus mis EU_VIOLATION_GROUPS
+# checkbox-väärtused (frontend/src/constants/constants.ts). Igale rikkumisele
+# lisatakse esimese penaltiesImposed kirje penaltyTypeImposed ERRU-koodi
+# põhjal kohalik sanctionCode — vt allolev PROVISOORNE vastavustabel, mis
+# vajab kliendi/RS kinnitust (vt plaani "Lahtised kohad" p.b).
+mapSeriousInfringements:
+  assign:
+    violations: "${(() => { var list = serious_infringements_raw; if (typeof list === 'string') { try { list = JSON.parse(list); } catch (e) { list = []; } } if (!Array.isArray(list)) list = []; var PENALTY_TO_SANCTION = { '101': 'HOIATUS', '102': 'MUU', '201': 'KABOTAAŽVEO AJUTINE KEELAMINE', '202': 'TRAHV', '203': 'LIIKLEMISKEELD', '204': 'SÕIDUKI KASUTAMISE TAKISTAMINE' }; return list.map(function(inf) { var code = String(inf.category || '') + String(inf.infringementType || ''); var penalties = Array.isArray(inf.penaltiesImposed) ? inf.penaltiesImposed : []; var first = penalties[0]; var entry = { code: code }; if (first && first.penaltyTypeImposed != null) { var ptype = String(first.penaltyTypeImposed); var mapped = PENALTY_TO_SANCTION[ptype]; if (mapped) { entry.sanctionCode = mapped; } else { entry.sanctionCode = 'MUU'; entry.sanctionNotes = 'ERRU penaltyTypeImposed=' + ptype + ' (kaardistamata, vt provisoorne vastavustabel)'; } } return entry; }); })()}"
   next: insertVrForm
 
 insertVrForm:
@@ -57,7 +87,7 @@ insertVrForm:
       status: "saved"
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ""
-      inspectionCountryCode: ""
+      inspectionCountryCode: ${inspection_country_code}
       inspectionDate: ${inspection_date}
       inspectionTime: "00:00:00"
       inspectionAddressLine1: ""
@@ -82,14 +112,14 @@ insertVrForm:
       vehicleBodyType: ""
       licenceCopyNumber: ${licence_copy_number}
       violationDescription: ""
-      minorViolationsCount: ""
-      sanctionCode: "KORRAS"
+      minorViolationsCount: ${minor_violations_count}
+      sanctionCode: "${check_result === 'CleanCheck' || check_result === '' ? 'KORRAS' : 'MUU'}"
       sanctionNotes: ""
       recommendedMeasureCode: "PUUDUVAD"
       recommendedMeasureNotes: ""
       recommendedMeasureGeneralNotes: ""
       additionalSanctionCodes: "[]"
-      violations: "[]"
+      violations: "${JSON.stringify(violations)}"
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}
       inspectorLastName: ${inspector_last_name}
