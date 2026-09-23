@@ -119,6 +119,7 @@ test.describe('Koondvorm — salvestamine', () => {
     await page.getByRole('tab', { name: /^Autojuhi/i }).click();
     await checkChoiceById(page, 'transport_type_cargo');
     await checkChoiceById(page, 'result_korras');
+    await checkChoiceById(page, 'applicability_not_checked');
     await page.getByRole('button', SAVE).click();
     await expectSaved(page, '/control-forms/compound');
     await page.getByRole('tab', { name: /^Autojuhi/i }).click();
