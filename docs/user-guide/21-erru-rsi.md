@@ -24,6 +24,8 @@ nupp **„Loo RSI teade"** eeltäidab teate sõiduki, vedaja ja kontrolliandmete
 
 ## Teate ülesehitus
 
+![RSI teadete loend](images/21-erru-rsi/01-loend.png)
+
 RSI teade koosneb kaheksast plokist:
 
 | Plokk | Sisu |
@@ -34,14 +36,41 @@ RSI teade koosneb kaheksast plokist:
 | **Veoettevõtja / omaniku andmed** | Valikuline plokk — ettevõtja nimi, tegevusloa number, sõiduki omaniku nimi |
 | **Kontrollimise andmed** | Koht, kuupäev ja kellaaeg, kontrolliasutus/inspektor |
 | **Tehnokontrolli tulemused** | Vastab nõuetele · Korraline tehnoülevaatus · Keelamine või piiramine (märkeruudud) |
-| **Kontrollitud punkt** | Kontrollitud sõidukiosade tabel koos tuvastatud riketega |
+| **Kontrollitud punkt** | 12 kontrollpunkti (0–10 ja 20) ning iga nõuetele mittevastava punkti mitteläbimise põhjused koos hinnanguga |
 | **Vastuse andmed** | Kuvatakse, kui sihtliikmesriik on vastanud (kirjutuskaitstud) |
 
 ### Kontrollitud punkt
 
-Sõidukiosade tabelis saab iga osa kohta:
-- märkida **kontrollitud** / **ei kontrollitud** / **ei kohaldata**;
-- lisada tuvastatud **rikked** koos ERRU rikkekoodiga (ilma `CAA_` eesliiteta).
+Kontrollpunktid ja mitteläbimise põhjused tulevad klassifikaatorist
+**RSI kontrollitud punktid ja mitteläbimise põhjused** (`RSI_FAILED_REASON`) —
+direktiivi 2014/47/EL II lisa (punktid 0–9) ja III lisa (10 Sõiduki sobivus,
+20 Kinnitusmeetodid). Koodid on samad, mis ERRU teates.
+
+![Kontrollitud punkt](images/21-erru-rsi/02-kontrollitud-punkt.png)
+
+Iga kontrollpunkti real on kaks märkeruutu:
+- **Kontrollitud** — punkt kontrolliti;
+- **Ei vasta nõuetele** — märgib punkti ka kontrollituks ja avab rea all
+  punkti kõigi mitteläbimise põhjuste tabeli (aspekt, põhjus, *Väheoluline*,
+  *Oluline*, *Ohtlik*).
+
+Põhjuste tabelis on märkeruut ainult nende hinnangute juures, mida direktiiv
+selle põhjuse puhul lubab. Ühe põhjuse kohta saab valida ühe hinnangu; märgitud
+ruudu uuesti klõpsamine eemaldab valiku. Nõuetele mittevastaval punktil peab
+olema valitud vähemalt üks põhjus — muidu teadet salvestada ega saata ei saa.
+
+![Mitteläbimise põhjuste tabel](images/21-erru-rsi/03-pohjuste-tabel.png)
+
+**Kontrollitud** märke eemaldamine tühjendab ka punkti põhjused.
+
+#### Eeltäitmine tehnoseisundi kontrollkaardilt
+
+Kontrollkaardilt loodud teatel täidetakse ainult kontrollpunktide olek
+(punktid 0–9 vastavad kontrollkaardi punktidele; kontrollkaardi punkt 10
+„Veose kinnitamine" jaotub RSI punktideks 10 ja 20, punkt 11 „Muu" jääb
+välja). Kontrollkaardil märgitud rikked kuvatakse punkti juures vihjena —
+vastavad ERRU mitteläbimise põhjused tuleb tabelist ise valida, sest riikliku
+kontrollkaardi rikkekood ei määra ERRU põhjuse alapunkti (a, b, c …).
 
 ### Vaikeväärtused
 
@@ -68,6 +97,11 @@ Saadetud teadet enam muuta ei saa.
 
 Igal salvestatud RSI teatel on nupp **„Prindi täidetud vorm"**, mis laadib alla
 teate PDF-na. Printimiseks ei avane eraldi printeridialoog.
+
+Väljatrükis on alati kõik 12 kontrollpunkti ning plokk **„Kontrollitud punkti
+andmed"** kogu mitteläbimise põhjuste tabeliga — ka nende punktide kohta, mida
+ei kontrollitud. Märkeruut on trükitud ainult lubatud hinnangute juurde ja
+valitud hinnangud on märgitud ristiga.
 
 ## Nipid
 

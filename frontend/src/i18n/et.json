@@ -1862,18 +1862,19 @@
       "notFound": "Tehnokontrolli teadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
       "checkedItems": {
-        "part": "Osa/sõlm",
-        "result": "Tulemus",
-        "notChecked": "Ei kontrollitud",
+        "part": "Punkt",
         "checked": "Kontrollitud",
         "nonCompliant": "Ei vasta nõuetele",
-        "editDefects": "Muuda puudusi"
-      },
-      "defectModal": {
-        "noDefects": "Sellel osal ei ole rikkeid",
-        "selectAtLeastOne": "Valige vähemalt üks rike",
-        "select": "Vali",
-        "clear": "Puudub"
+        "aspect": "Aspekt",
+        "reason": "Tehnoülevaatuse mitteläbimise põhjus",
+        "severity": {
+          "VO": "Väheoluline",
+          "OV": "Oluline",
+          "EOV": "Ohtlik"
+        },
+        "nationalHint": "Kontrollkaardil märgitud rikked (valige allolevast tabelist vastavad mitteläbimise põhjused):",
+        "noneChecked": "Kontrollitud punkte ei ole.",
+        "legacyNotice": "Teade on koostatud enne ERRU mitteläbimise põhjuste klassifikaatori kasutuselevõttu — kuvatakse riiklikud tehnokontrolli koodid."
       },
       "form": {
         "titleOutgoing": "Tehnokontrolli teade RSI (EST → ERRU)",
@@ -1951,7 +1952,9 @@
         "draft_not_created": "Mustandi salvestamine ebaõnnestus",
         "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
         "not_sendable": "Teadet ei saa selles olekus saata",
-        "send_failed": "Teate saatmine ebaõnnestus"
+        "send_failed": "Teate saatmine ebaõnnestus",
+        "reason_required": "Punktil „Ei vasta nõuetele” peab olema valitud vähemalt üks mitteläbimise põhjus ja selle hinnang.",
+        "invalid_checked_items": "Teadet ei saadetud: kontrollitud punktid on vanas vormingus või punktil „Ei vasta nõuetele” puudub mitteläbimise põhjus. Parandage ja salvestage teade ning proovige uuesti."
       },
       "list": {
         "title": "Tehnokontrolli teated RSI",

@@ -263,6 +263,23 @@ Migratsioon: `20260828230000-initial-erru-rsi-classifiers.sql`
 | O3 | O3 — haagis, täismass 3,5–10t |
 | O4 | O4 — haagis, täismass > 10t |
 
+### RSI_FAILED_REASON — RSI kontrollitud punktid ja mitteläbimise põhjused
+Migratsioon: `20261125100000-rsi-failed-reason-classifier.sql`
+
+Direktiivi 2014/47/EL II lisa (punktid 0–9) ja III lisa (10 Sõiduki sobivus,
+20 Kinnitusmeetodid, 30 Veos täielikult kinnitamata) eestikeelse teksti järgi.
+Hierarhiline (muutuva sügavusega):
+
+| Tase | Kood | Tähendus |
+|---|---|---|
+| 1 | `0`…`10`, `20` | Kontrollpunkt = ERRU `rsiItemType` |
+| rühm | `G:<nr>` (nt `G:1.1`, `G:1.1.3`) | Pealkiri või aspekt; ERRU-sse ei saadeta |
+| leht | ERRU `rsiFailedReason` (nt `1.1.3.a`, `1.1.4`, `30`) | Valitav mitteläbimise põhjus; kirjeldus = lubatud hinnangud (`VO`, `OV`, `EOV`) |
+
+Lehtede koodid kattuvad täpselt ERRU XSD `rsiFailedReason` loendiga (476 tk);
+seda kontrollib frontendi test `rsiReasons.test.ts`. Riiklik `TECHNICAL_CHECK`
+(tehnoseisundi kontrollkaart) on eraldi ja RSI teade seda ei kasuta.
+
 ---
 
 ## ERRU NCR klassifikaatorid

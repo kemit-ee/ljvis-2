@@ -23,24 +23,33 @@
     "vehicleProhibitionOrRestriction": false,
     "checkedItems": [
       {
-        "partCode": "CAA_1",
+        "partCode": "0",
+        "status": "checked",
+        "defects": []
+      },
+      {
+        "partCode": "1",
         "status": "non_compliant",
         "defects": [
           {
-            "defectCode": "CAA_1.1.1",
+            "defectCode": "1.1.3.a",
             "severity": "OV"
+          },
+          {
+            "defectCode": "1.1.4",
+            "severity": "VO"
           }
         ]
       },
       {
-        "partCode": "CAA_10",
-        "status": "checked",
-        "defects": []
-      },
-      {
-        "partCode": "CAA_20",
-        "status": "checked",
-        "defects": []
+        "partCode": "20",
+        "status": "non_compliant",
+        "defects": [
+          {
+            "defectCode": "20.1.2.1",
+            "severity": "EOV"
+          }
+        ]
       }
     ]
   }

@@ -1837,18 +1837,19 @@
       "notFound": "RSI message not found",
       "sendFailed": "Sending the message to ERRU failed. The message stays in 'error' state — no retry is possible, a new message must be composed.",
       "checkedItems": {
-        "part": "Part / assembly",
-        "result": "Result",
-        "notChecked": "Not checked",
+        "part": "Item",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant",
-        "editDefects": "Edit defects"
-      },
-      "defectModal": {
-        "noDefects": "This part has no defects",
-        "selectAtLeastOne": "Select at least one defect",
-        "select": "Select",
-        "clear": "None"
+        "nonCompliant": "Failed",
+        "aspect": "Item checked",
+        "reason": "Reason for failure",
+        "severity": {
+          "VO": "Minor",
+          "OV": "Major",
+          "EOV": "Dangerous"
+        },
+        "nationalHint": "Defects recorded on the technical control card (select the matching reasons for failure in the table below):",
+        "noneChecked": "No items checked.",
+        "legacyNotice": "This notification was composed before the ERRU reasons-for-failure classifier — national technical check codes are shown."
       },
       "form": {
         "titleOutgoing": "Roadside inspection message RSI (EST → ERRU)",
@@ -1926,7 +1927,9 @@
         "draft_not_created": "Saving the draft failed",
         "formHasErrors": "The form contains errors. Please check the fields marked in red.",
         "not_sendable": "The message cannot be sent in this state",
-        "send_failed": "Sending failed"
+        "send_failed": "Sending failed",
+        "reason_required": "A failed item must have at least one reason for failure with an assessment.",
+        "invalid_checked_items": "Not sent: the checked items use the old format or a failed item has no reason for failure. Fix and save the notification, then try again."
       },
       "list": {
         "title": "Roadside inspection messages RSI",

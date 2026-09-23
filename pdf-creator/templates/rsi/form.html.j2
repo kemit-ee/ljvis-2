@@ -19,7 +19,15 @@
 <tr><td colspan="2">{{ field('Liiklevate sõidukite tehnokontrolli tunnus',r.get('inspectionIdentifier','')) }}</td></tr>
 <tr><td>{{ field('Kontrolli koht',r.get('inspectionLocation','')) }}</td><td>{{ field('Kuupäev ja kellaaeg',inspection_date ~ ' ' ~ inspection_time) }}</td></tr>
 <tr><td colspan="2">{{ field('Kontrolliasutus või kontrollija nimi',r.get('inspectionAuthorityOrName','')) }}</td></tr></table>
-<h2>Tehnokontrolli tulemused</h2><table><tr><td>{{ box(r.get('inspectionPassed') == true) }} Vastab nõuetele</td><td>{{ box(r.get('ptiRequested') == true) }} On vaja teha korraline tehnoülevaatus</td><td>{{ box(r.get('vehicleProhibitionOrRestriction') == true) }} Keelamine või viimine</td></tr></table>
-<h2>Kontrollitud punkt</h2><table class="small"><thead><tr><th>Punkt</th><th>Kontrollitud</th><th>Ei vasta nõuetele</th><th>Rikked</th></tr></thead><tbody>
-{% for item in rows %}<tr><td>{{ item.name }}</td><td class="center">{{ box(item.status == 'checked') }}</td><td class="center">{{ box(item.status == 'non_compliant') }}</td><td>{% for d in item.defects %}{{ d.get('defectCode','') }} ({{ d.get('severity','') }}){% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>{% endfor %}
-</tbody></table>{% endblock %}
+<h2>Tehnokontrolli tulemused</h2><table><tr><td>{{ box(r.get('inspectionPassed') == true) }} Vastab nõuetele</td><td>{{ box(r.get('ptiRequested') == true) }} On vaja teha korraline tehnoülevaatus</td><td>{{ box(r.get('vehicleProhibitionOrRestriction') == true) }} Keelamine või piiramine</td></tr></table>
+{% if legacy %}<h2>Kontrollitud punkt</h2><p class="small">Teade on koostatud enne ERRU mitteläbimise põhjuste klassifikaatori kasutuselevõttu — kuvatakse riiklikud tehnokontrolli koodid.</p><table class="small"><thead><tr><th>Punkt</th><th style="width:22mm">Kontrollitud</th><th style="width:26mm">Ei vasta nõuetele</th><th>Rikked</th></tr></thead><tbody>
+{% for item in legacy_rows %}<tr><td>{{ item.name }}</td><td class="center">{{ box(item.status in ('checked', 'non_compliant')) }}</td><td class="center">{{ box(item.status == 'non_compliant') }}</td><td>{% for d in item.defects %}{{ d.get('defectCode','') }} ({{ d.get('severity','') }}){% if not loop.last %}<br>{% endif %}{% endfor %}</td></tr>{% endfor %}
+</tbody></table>{% else %}
+<h2>Kontrollitud punkt</h2><table class="small"><thead><tr><th>Punkt</th><th style="width:22mm" class="center">Kontrollitud</th><th style="width:26mm" class="center">Ei vasta nõuetele</th></tr></thead><tbody>
+{% for item in parts %}<tr><td>{{ item.name }}</td><td class="center">{{ box(item.status in ('checked', 'non_compliant')) }}</td><td class="center">{{ box(item.status == 'non_compliant') }}</td></tr>{% endfor %}
+</tbody></table>
+<h2>Kontrollitud punkti andmed</h2><table class="reason-table"><colgroup><col style="width:26%"><col><col style="width:12mm"><col style="width:12mm"><col style="width:12mm"></colgroup>
+<thead><tr><th>Aspekt</th><th>Tehnoülevaatuse mitteläbimise põhjused</th><th class="center">Vähe&shy;oluline</th><th class="center">Oluline</th><th class="center">Ohtlik</th></tr></thead><tbody>
+{% for row in reason_rows %}{% if row.kind == 'heading' %}<tr class="{{ 'item' if row.item else 'group' }}"><td colspan="5">{{ row.text }}</td></tr>
+{% else %}<tr>{% if row.aspect is none %}<td colspan="2">{{ row.label }}</td>{% else %}{% if row.rowspan %}<td rowspan="{{ row.rowspan }}">{{ row.aspect }}</td>{% endif %}<td>{{ row.label }}</td>{% endif %}{% for b in row.boxes %}<td class="center">{% if b.allowed %}{{ box(b.checked) }}{% endif %}</td>{% endfor %}</tr>
+{% endif %}{% endfor %}</tbody></table>{% endif %}{% endblock %}

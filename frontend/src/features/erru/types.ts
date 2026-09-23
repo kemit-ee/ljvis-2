@@ -396,11 +396,18 @@ export interface RsiCheckedItemDefect {
   severity: RsiDefectSeverity;
 }
 
-/** National shape until sent (TECHNICAL_CHECK classifier codes); CAA_10 never present. */
+/**
+ * One "Kontrollitud punkt" row. partCode = RSI_FAILED_REASON level-1 code (ERRU
+ * rsiItemType '0'..'10', '20'); defects[].defectCode = RSI_FAILED_REASON leaf (ERRU
+ * rsiFailedReason, e.g. '1.1.3.a'). nationalDefects = TECHNICAL_CHECK defects carried
+ * over from the technical-check card (hint only, never sent). Messages stored before
+ * the RSI_FAILED_REASON classifier may still hold TECHNICAL_CHECK codes ('CAA_*').
+ */
 export interface RsiCheckedItem {
   partCode: string;
   status: RsiCheckedItemStatus;
   defects: RsiCheckedItemDefect[];
+  nationalDefects?: RsiCheckedItemDefect[];
 }
 
 export interface RsiMessage {

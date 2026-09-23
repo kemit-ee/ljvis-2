@@ -6,6 +6,27 @@
 
 ## 2026-09-23
 
+### RSI teade: ERRU mitteläbimise põhjused ja täielik väljatrükk
+
+- Uus klassifikaator **RSI kontrollitud punktid ja mitteläbimise põhjused**
+  (`RSI_FAILED_REASON`, direktiivi 2014/47/EL II ja III lisa): 12 kontrollpunkti
+  ja 476 ERRU mitteläbimise põhjust koos lubatud hinnangutega (väheoluline,
+  oluline, ohtlik). RSI teade ei kasuta enam riiklikku tehnoseisundi
+  kontrollkaardi klassifikaatorit.
+- Plokk **„Kontrollitud punkt"**: iga punkti real märkeruudud „Kontrollitud" ja
+  „Ei vasta nõuetele"; viimane avab rea all punkti kõigi põhjuste tabeli, kus
+  hinnangu märkeruut on ainult lubatud hinnangute juures. Nõuetele
+  mittevastaval punktil peab olema vähemalt üks põhjus.
+- ERRU-sse saadetakse nüüd kehtivad koodid (`itemType`, `failedReason`,
+  `failedAssessment`). Vanas vormingus või põhjuseta teadet ei saadeta.
+- Kontrollkaardilt eeltäitmisel täidetakse ainult punktide olek; kontrollkaardi
+  rikked kuvatakse vihjena.
+- Saadetud ja saabunud teadete vaates kuvatakse kontrollitud punktid ja valitud
+  põhjused.
+- **Väljatrükk**: alati kõik 12 punkti ja kogu põhjuste tabel märkeruutudega
+  (vana süsteemi vormi eeskujul); parandatud tekst „Keelamine või piiramine".
+- Saatmata RSI mustandid (vanas vormingus) kustutati.
+
 ### Välisriigi kontrollkaardi loomine NCR teate pealt ebaõnnestus
 
 - "Loo kontrollkaart" NCR teate vaates andis vea: kaart loodi, kuid NCR

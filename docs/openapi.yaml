@@ -2563,7 +2563,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: RSI message not found. }
-        '422': { description: Validation error. }
+        '422': { description: "not_sendable (status is not initiated) or invalid_checked_items (checkedItems not in RSI_FAILED_REASON codes, or a failed item without a reason)." }
         '502': { description: ERRU transport failure. }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
