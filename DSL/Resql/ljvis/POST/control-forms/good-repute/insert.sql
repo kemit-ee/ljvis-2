@@ -73,7 +73,7 @@ WITH ins AS (
   )
   VALUES (
     nextval('forms.seq_good_repute_form_key'),
-    'mv-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_good_repute_form_key')::text, 5, '0'),
+    'mv-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_good_repute_form_key')::text, GREATEST(5, LENGTH(currval('forms.seq_good_repute_form_key')::text)), '0'),
     1,
     :status,
     UPPER(:personalCode),

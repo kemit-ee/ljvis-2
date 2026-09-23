@@ -1,7 +1,7 @@
 # LJVIS 1 → LJVIS 2 andmemigratsioon — vajalikud sisendid ja ligipääsud
 
 **Saaja:** LJVIS 1 süsteemihaldur / andmebaasi administraator, KEMIT taristumeeskond
-**Kuupäev:** 21.09.2026
+**Kuupäev:** 22.09.2026
 **Seotud:** Jira LJVIS2-131, LJVIS2-132 · Wiki „LJVIS 1 -> 2 migratsioon" (pageId 333185857)
 
 ---
@@ -10,7 +10,8 @@
 
 Valmistame ette LJVIS 1 kontrollvormide andmete ülekandmist LJVIS 2-te. Ettevalmistav töö
 (vormitüüpide ja väljade vastavustabelid, teisendusskriptid) on tehtud lähtekoodi põhjal ja
-testitud sünteetilistel andmetel.
+testitud sünteetilistel andmetel. Ülevaatus leidis lõpetamata vastendusi; tootmiskäik
+on kuni nende lahendamiseni blokeeritud. Käivitusjuhend: `DSL/migration/README.md`.
 
 Edasi liikumiseks vajame andmeid ja ligipääse. Allpool on need jaotatud **nelja etappi**
 tähtsuse järjekorras. Esimene etapp ei nõua ühtki ligipääsu andmist.
@@ -23,7 +24,7 @@ tähtsuse järjekorras. Esimene etapp ei nõua ühtki ligipääsu andmist.
 
 | Küsimus | Kokkulepe |
 |---|---|
-| Ajavahemik | Viimased ~3 aastat, `ControlForm.CreatedDate` järgi |
+| Ajavahemik | Viimased **3 aastat** (omaniku kinnitus 22.09.2026), `ControlForm.CreatedDate` järgi |
 | Staatused | Ainult `Published` ja `Confirmed` |
 | Vormitüübid | `RoadControlCard2012`, `Roadworthiness2012`, `ForeignViolate`, `TransportInterruption`, `DangerousDelivery2012`, `GoodRepute`, `JobInspection` |
 | Välja jäävad | `FuelSample` (LJVIS 2-s vastet ei ole) |
@@ -38,6 +39,10 @@ tähtsuse järjekorras. Esimene etapp ei nõua ühtki ligipääsu andmist.
 Kõik päringud on **ainult lugemine** (`SELECT`), ei muuda andmebaasis midagi.
 Palume tulemused Exceli failina, nagu LJVIS2-132 puhul.
 
+Kõigis päringutes on sama näidispiir `2023-09-22` (üleminek 22.09.2026). Tegeliku
+ülemineku jaoks leppida kokku üks kuupäev täpselt kolm aastat varem ja kasutada seda
+kõigis päringutes ning ETL-i `CUTOFF` väärtusena.
+
 Päringud on tähtsuse järjekorras. Kui mõni osutub liiga koormavaks, andke teada —
 kirjutame ümber või jätame koopia jaoks.
 
@@ -51,11 +56,11 @@ Määrab, kui suur osa tööst puudutab koondvorme.
 SELECT
     cf.FormTypeName,
     cf.UnitedFormPart,
-    COUNT(*)                        AS Arv,
+    COUNT(DISTINCT cf.Id)            AS Arv,
     COUNT(DISTINCT ctfb.Control_id) AS SeotudKontrolle
 FROM ljvis.dbo.ControlForm cf
 LEFT JOIN ljvis.dbo.ControlToFormBinding ctfb ON ctfb.ControlForm_id = cf.Id
-WHERE cf.CreatedDate >= '2021-06-01'
+WHERE cf.CreatedDate >= '2023-09-22'
   AND cf.ControlStage IN ('Published','Confirmed')
 GROUP BY cf.FormTypeName, cf.UnitedFormPart
 ORDER BY cf.FormTypeName, cf.UnitedFormPart;
@@ -70,7 +75,10 @@ SELECT c.Id AS ControlId,
 FROM ljvis.dbo.Control c
 JOIN ljvis.dbo.ControlToFormBinding ctfb ON ctfb.Control_id = c.Id
 JOIN ljvis.dbo.ControlForm cf            ON cf.Id = ctfb.ControlForm_id
-WHERE cf.CreatedDate >= '2021-06-01'
+WHERE EXISTS (SELECT 1 FROM ljvis.dbo.ControlToFormBinding b
+              JOIN ljvis.dbo.ControlForm f ON f.Id=b.ControlForm_id
+              WHERE b.Control_id=c.Id AND f.CreatedDate >= '2023-09-22'
+                AND f.ControlStage IN ('Published','Confirmed'))
 GROUP BY c.Id
 HAVING COUNT(*) <> SUM(CASE WHEN cf.ControlStage IN ('Published','Confirmed') THEN 1 ELSE 0 END);
 ```
@@ -99,7 +107,7 @@ SELECT
     SUM(CASE WHEN cfv.IntValue  IS NOT NULL THEN 1 ELSE 0 END)  AS ArvVaartusi
 FROM ljvis.dbo.ControlForm cf
 JOIN ljvis.dbo.ControlFormValue cfv ON cfv.ControlForm_id = cf.Id
-WHERE cf.CreatedDate >= '2023-01-01'
+WHERE cf.CreatedDate >= '2023-09-22'
   AND cf.ControlStage IN ('Published','Confirmed')
 GROUP BY cf.FormTypeName, cfv.ClassifierName
 ORDER BY cf.FormTypeName, COUNT(*) DESC;
@@ -119,7 +127,8 @@ FROM (
     HAVING COUNT(*) > 1
 ) x
 JOIN ljvis.dbo.ControlForm cf ON cf.Id = x.ControlForm_id
-WHERE cf.CreatedDate >= '2023-01-01'
+WHERE cf.CreatedDate >= '2023-09-22'
+  AND cf.ControlStage IN ('Published','Confirmed')
 GROUP BY cf.FormTypeName, x.ClassifierName
 ORDER BY MAX(x.Ridu) DESC;
 ```
@@ -134,7 +143,7 @@ WITH Nummerdatud AS (
                               ORDER BY NEWID()) AS rn
     FROM ljvis.dbo.ControlForm cf
     JOIN ljvis.dbo.ControlFormValue cfv ON cfv.ControlForm_id = cf.Id
-    WHERE cf.CreatedDate >= '2023-01-01'
+    WHERE cf.CreatedDate >= '2023-09-22'
       AND cf.ControlStage IN ('Published','Confirmed')
       AND cfv.Value IS NOT NULL
 )
@@ -157,7 +166,7 @@ SELECT
     cf.ControlStage,
     COUNT(*) AS Arv
 FROM ljvis.dbo.ControlForm cf
-WHERE cf.CreatedDate >= '2021-06-01'
+WHERE cf.CreatedDate >= '2023-09-22'
 GROUP BY YEAR(cf.CreatedDate), cf.FormTypeName, cf.ControlStage
 ORDER BY Aasta DESC, cf.FormTypeName;
 ```
@@ -173,7 +182,7 @@ SELECT cf.FormTypeName,
        COUNT(*)                                             AS Kokku,
        SUM(CASE WHEN cf.FormCode IS NULL THEN 1 ELSE 0 END) AS FormCodePuudub
 FROM ljvis.dbo.ControlForm cf
-WHERE cf.CreatedDate >= '2021-06-01'
+WHERE cf.CreatedDate >= '2023-09-22'
   AND cf.ControlStage IN ('Published','Confirmed')
 GROUP BY cf.FormTypeName;
 ```
@@ -181,7 +190,7 @@ GROUP BY cf.FormTypeName;
 ```sql
 SELECT cf.FormCode, COUNT(*) AS Kordusi
 FROM ljvis.dbo.ControlForm cf
-WHERE cf.CreatedDate >= '2021-06-01'
+WHERE cf.CreatedDate >= '2023-09-22'
   AND cf.ControlStage IN ('Published','Confirmed')
   AND cf.FormCode IS NOT NULL
 GROUP BY cf.FormCode
@@ -212,9 +221,9 @@ LJVIS 2-s on piirang „kontrolli kuupäev ei tohi olla tulevikus".
 SELECT cf.FormTypeName, COUNT(*) AS Arv,
        MAX(DATEDIFF(DAY, cf.CreatedDate, cf.ControlledDate)) AS MaxPaevaErinevus
 FROM ljvis.dbo.ControlForm cf
-WHERE cf.CreatedDate >= '2021-06-01'
+WHERE cf.CreatedDate >= '2023-09-22'
   AND cf.ControlStage IN ('Published','Confirmed')
-  AND cf.ControlledDate > cf.CreatedDate
+  AND cf.ControlledDate > GETDATE()
 GROUP BY cf.FormTypeName;
 ```
 
@@ -223,7 +232,7 @@ GROUP BY cf.FormTypeName;
 ### 7. Klassifikaatorid
 
 ```sql
-SELECT c.ClassifierType, c.Code, c.Name, c.IsActive
+SELECT c.Id, c.ClassifierType, c.Code, c.Name, c.ValidFrom, c.ValidTo
 FROM ljvis.dbo.Classifier c
 ORDER BY c.ClassifierType, c.Code;
 ```
@@ -237,7 +246,7 @@ Kinnitatud vormid, millel ei ole ühtegi väärtust.
 ```sql
 SELECT cf.FormTypeName, COUNT(*) AS TuhjiVorme
 FROM ljvis.dbo.ControlForm cf
-WHERE cf.CreatedDate >= '2021-06-01'
+WHERE cf.CreatedDate >= '2023-09-22'
   AND cf.ControlStage IN ('Published','Confirmed')
   AND NOT EXISTS (SELECT 1 FROM ljvis.dbo.ControlFormValue v
                   WHERE v.ControlForm_id = cf.Id)
@@ -252,26 +261,28 @@ LJVIS 1 hoiab tööinspektsiooni akte eraldi andmebaasis RavenDB.
 
 **Enne ligipääsu korraldamist palume kontrollida, kas andmeid üldse on:**
 
-1. Kas RavenDB instants töötab ja on ligipääsetav?
-2. Mitu dokumenti on kollektsioonides `JobInspection` ja `JobInspectionV2`?
-3. Mis on uusima dokumendi kuupäev?
+1. RavenDB täpne versioon, andmebaasi nimi ning autentimise viis (kliendisertifikaat/CA).
+2. Tegelikud kollektsiooninimed ja arvud RavenDB Studio või `/collections/stats` kaudu.
+   .NET nimede tavapärased kollektsioonid on **`JobInspections` ja `JobInspectionV2s`**;
+   palume tegelikud nimed üle kontrollida.
+3. V1 `kontrolli_kp` ja V2 `InspectionDate` min/max ning arvud migratsiooni ajapiiri ja
+   V2 `Stage` kaupa. V2 `InspectionType` väärtused on lähtekoodi vormil **`S`/`V`**.
+4. V1 ja V2 anonümiseeritud näited koos `@metadata`, rikkumiste, kontrollmaatriksi ning
+   menetluse andmetega; vähemalt üks lõppakt, Saved ja Deleted, kui need on olemas.
 
-Kui viimaste aastate dokumente ei ole, jääb see vormitüüp migratsioonist välja ja
-ligipääsu ei ole vaja.
+Dokumendi ID ei ole tingimata prefiksiga: V1 kasutab numbrilisi ID-sid, V2 välist
+`InspectionId` väärtust. Prefiksiga `JobInspections/` otsing ei anna usaldusväärset arvu.
+`@last-modified` on **muutmise aeg**; tegelik kontrollkuupäev on dokumendis. See ei tõenda
+loomise aega ning taastamine/muutmine ei tohi tuua vana akti migratsiooni ulatusse.
 
-**Kui dokumente on**, vajame JSON-eksporti:
+**Kui dokumente on**, palume kogu vastavate kollektsioonide eksporti RavenDB Studio
+versioonile vastava ekspordi abil või varukoopiat. `.ravendbdump` ei ole tavaline JSON:
+see taastatakse kõigepealt ühilduvasse isoleeritud instantsi, kust ETL loeb REST API kaudu.
+Palume säilitada dokumendi ID, `@metadata`, kogu keha ja rikkumiste massiivid.
 
-```bash
-rvn smuggler export --url http://<raven-host>:8080 --database <db-nimi> \
-    --collection JobInspection --collection JobInspectionV2 \
-    --output ljvis1-jobinspection.ravendbdump
-```
-
-Sobib ka eksport RavenDB Studio kaudu („Export database" → JSON) või varukoopia, mille me
-ise isoleeritud instantsi taastame.
-
-Palume eksportida **koos metaandmetega** (`@metadata`) — dokumendi muutmise aeg
-(`@last-modified`) on ainus kuupäev nendel kirjetel.
+Andmeomanikult on vaja kinnitada V1 aktide (staatuse väli puudub) käsitlus lõppaktina
+ning RavenDB ulatus kontrollkuupäeva järgi. Kui andmeid pole, palume kirjalik kinnitus;
+ETL-i `absent-confirmed` režiim nõuab viidet sellele. Ligipääsuviga ei tähenda andmete puudumist.
 
 ---
 
@@ -281,10 +292,12 @@ Migratsiooni proovimiseks vajame andmete koopiat.
 
 **Eelistatud: varukoopia fail**
 
-- `.bak` fail LJVIS 1 andmebaasist (võib olla osaline)
+- Taastatav `.bak` fail LJVIS 1 andmebaasist koos koopia tegemise aja ja SQL Serveri versiooniga;
+  eelistatult terviklik varukoopia. Osalise ekspordi korral tuleb eraldi kinnitada, et seotud
+  kontrollid, nende kõik osad ja vajalikud klassifikaatorid säilivad.
 - Vajalikud tabelid: `ControlForm`, `ControlFormValue`, `Control`, `ControlToFormBinding`,
   `Person`, `Company`, `Vehicle`, `AddressEntity`, `Classifier`, `User`,
-  `EstablishmentRole`, `Versions`
+  `EstablishmentRole`, `Versions`, `ControlDecision`
 - Taastame isoleeritud arendus-instantsi, väljapoole KEMIT-i võrku andmed ei liigu
 
 **Alternatiiv:** lugemisõigusega (`db_datareader`) kasutaja olemasolevale test-koopiale.
@@ -327,9 +340,67 @@ find    <FormDocuments tee> -type f | wc -l    # failide arv
 find    <FormDocuments tee> -maxdepth 1 -type d | wc -l   # kaustade (pileId) arv
 ```
 
-Manuste migratsioon ei ole praegu skoobis — vastus on vajalik ainult mahu hindamiseks.
+Manuste ülekannet praegune ETL ei teosta. Enne väidet „kõik andmed migreeritud” on vaja
+otsustada, kas failid viiakse uude hoidlasse või jäävad kokkulepitud loetavasse arhiivi.
+Palume failide arvud/mahud, vormi-ID → pileId vastavus, puuduvad failid ning võimalusel
+failinimi/suurus/SHA-256 manifest. Vana kataloog ja seosed tuleb säilitada koos varukoopiaga.
 Arvestage, et kaustu on tõenäoliselt rohkem kui manustega vorme: LJVIS 1 loob `pileId`
 juba vormi avamisel, seega salvestamata jäänud vormidest jääb maha tühje kaustu.
+
+---
+
+# Täiendavad kontrollid pärast lähtekoodi ülevaatust
+
+Need on lugemispäringud. Need ei eelda oletatavat `ControlDecision.ControlForm_id`
+veergu (sellist veergu genereeritud mudelis ei ole). Tegelikud vormiotsused on vähemalt
+osaliselt EAV-s: `otsus`, `otsus_vaarteomenetlus` ja viitenumbrite väljad.
+
+### 9. Alamtüübid, otsused ja viited
+
+```sql
+SELECT cf.FormTypeName, cf.FormVersion, v.ClassifierName, v.Value, COUNT(*) AS Arv
+FROM ljvis.dbo.ControlForm cf
+JOIN ljvis.dbo.ControlFormValue v ON v.ControlForm_id=cf.Id
+WHERE cf.CreatedDate >= '2023-09-22'
+  AND cf.ControlStage IN ('Published','Confirmed')
+  AND v.ClassifierName IN ('RoadControlTrailer','RoadWorthinessTeamMember',
+      'otsus','otsus_vaarteomenetlus','SoidumeerikType','Veoliik')
+GROUP BY cf.FormTypeName,cf.FormVersion,v.ClassifierName,v.Value
+ORDER BY cf.FormTypeName,cf.FormVersion,v.ClassifierName;
+```
+
+Palume 2–3 anonümiseeritud terviklikku kontrolli (kõik seotud `ControlForm`, EAV ja
+`ControlToFormBinding` read), kus on auto + haagis, juht + teine juht, ADR või katkestamine.
+Vajame ka segastaatustega/osaliselt ajapiirist väljapoole jääva kontrolli näidet.
+
+### 10. Andmevorming ja sihtväljade pikkused
+
+```sql
+SELECT cf.FormTypeName, v.ClassifierName,
+       MAX(LEN(v.Value)) AS MaxPikkus,
+       SUM(CASE WHEN v.DateValue IS NULL AND v.Value IS NOT NULL THEN 1 ELSE 0 END) AS AinultTekst
+FROM ljvis.dbo.ControlForm cf
+JOIN ljvis.dbo.ControlFormValue v ON v.ControlForm_id=cf.Id
+WHERE cf.CreatedDate >= '2023-09-22' AND cf.ControlStage IN ('Published','Confirmed')
+GROUP BY cf.FormTypeName,v.ClassifierName
+ORDER BY cf.FormTypeName,v.ClassifierName;
+```
+
+Palume tehniliste vigade, ADR-i rikkumiste ja SP rikkumiste anonümiseeritud näiteid iga
+kasutusel oleva vormiversiooni kohta. Klassifikaatorite vastendusi kinnitab valdkonna
+spetsialist; vana koodi sarnane nimi ei tõenda uue õigusnormi samatähenduslikkust.
+
+### 11. Koopia ja ülemineku töökorraldus
+
+- Kinnitada SQL Serveri ja RavenDB koopiate ühine ajahetk, ajavöönd `Europe/Tallinn`,
+  külmutatud allikas ning `SNAPSHOT` isolatsiooni võimalus taastatud SQL Serveril.
+- Esitada loetavate tabelite tegelik DDL/veergude metadata; fixture kontrollib ainult
+  lähtekoodis nähtavat skeemi alamhulka, mitte võimalikke LIVE skeemimuudatusi.
+- Leppida kokku sihtbaasi varundamine/taastamine, hooldusaken, ajastatud välisteadete
+  peatamine ning andmeomaniku vastuvõtu vastutaja.
+- Kinnitada, kuidas käsitleda kohustuslikku välja, millel vanas süsteemis vaste puudub
+  (nt hea maine tunnistuse riik), ja NULL `CreatedDate`-ga lõppvorme. Vaikeväärtus `'-'`
+  ega tänane kuupäev ei ole automaatselt äriliselt õige vastus.
 
 ---
 

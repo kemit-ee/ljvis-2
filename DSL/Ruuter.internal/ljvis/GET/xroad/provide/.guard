@@ -1,0 +1,23 @@
+# Permissive guard for GET /xroad/provide/openapi — the X-Road (X-tee) OpenAPI
+# description document.
+#
+# The X-tee turvaserver fetches this URL directly (Teenused -> Lisa REST ->
+# Kirjelduse URL) to auto-register/refresh the service contract, BEFORE any
+# X-Road-Client header context exists for this call — it is not a normal
+# X-tee service invocation, just a plain document fetch. It must therefore
+# stay reachable without the X-Road-Client header check that the sibling
+# POST/xroad/provide/.guard enforces for the actual service endpoints, and
+# without any session/cookie auth (there is no LJVIS user session here).
+#
+# override_ancestors: true — Rust Ruuter stacks ancestor guards by default;
+# this keeps the route open even if a GET/.guard or GET/xroad/.guard is added
+# later. (Not required by CI today: Ruuter.internal is IP-restricted, not
+# guard-restricted, see .github/workflows/ci.yml "Guard Audit" — this file
+# documents intent explicitly rather than relying on that exemption.)
+declaration:
+  override_ancestors: true
+
+allow:
+  return: "success"
+  status: 200
+  next: end

@@ -1398,7 +1398,6 @@ export function ForeignViolationFormFields({
                 ? ['foreignAuthorityProposal']
                 : []),
               ...(values.notifyCarrier ? ['notifyCarrier'] : []),
-              ...(values.notifyLaborInspector ? ['notifyLaborInspector'] : []),
             ]}
             items={[
               {
@@ -1417,33 +1416,22 @@ export function ForeignViolationFormFields({
                 value: 'notifyCarrier',
                 disabled: readOnly,
               },
-              {
-                id: 'notifyLaborInspector',
-                label: t(
-                  'forms.foreign_violation.notifications.notifyLaborInspector',
-                ),
-                value: 'notifyLaborInspector',
-                disabled: readOnly,
-              },
             ]}
             onChange={(val) => {
               if (!readOnly) {
                 const vals = Array.isArray(val) ? val : [val];
                 if (!values.foreignAuthorityProposal) {
-                  setFieldValue(
-                    'foreignAuthorityProposal',
-                    vals.includes('foreignAuthorityProposal'),
-                  );
+                  // Eraldi "Teavita tööinspektorit" linnukest pole — ettepaneku
+                  // märkimine ise tellib tööinspektori teavituse (backend
+                  // saadab selle salvestamisel ja lähtestab lipu).
+                  const proposal = vals.includes('foreignAuthorityProposal');
+                  setFieldValue('foreignAuthorityProposal', proposal);
+                  setFieldValue('notifyLaborInspector', proposal);
                 }
-                // notifyCarrier/notifyLaborInspector jäävad korduvalt
-                // märgitavaks (p.5) — backend (save.yml) lülitab lipu peale
-                // eduka saatmise tagasi false-ks, ajalugu säilib
-                // notifications.outbound_log-is (vt allpool).
+                // notifyCarrier jääb korduvalt märgitavaks (p.5) — backend
+                // (save.yml) lülitab lipu peale saatmise tagasi false-ks,
+                // ajalugu säilib notifications.outbound_log-is (vt allpool).
                 setFieldValue('notifyCarrier', vals.includes('notifyCarrier'));
-                setFieldValue(
-                  'notifyLaborInspector',
-                  vals.includes('notifyLaborInspector'),
-                );
               }
             }}
           />

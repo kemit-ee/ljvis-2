@@ -306,7 +306,10 @@ WITH ins AS (
   )
   VALUES (
     nextval('forms.seq_tram_control_card_key'),
-    'tram-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(nextval('forms.seq_tram_control_card_number')::text, 5, '0'),
+    'tram-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || (
+      SELECT LPAD(n::text, GREATEST(5, LENGTH(n::text)), '0')
+      FROM (SELECT nextval('forms.seq_tram_control_card_number') AS n) allocated_number
+    ),
     EXTRACT(YEAR FROM CURRENT_DATE)::INTEGER,
     1,
     :status,

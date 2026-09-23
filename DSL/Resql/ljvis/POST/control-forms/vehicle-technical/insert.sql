@@ -94,7 +94,7 @@ WITH ins AS (
   VALUES (
     nextval('forms.seq_vehicle_technical_form_key'),
     :compoundFormKey::BIGINT,
-    'th-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_vehicle_technical_form_key')::text, 5, '0'),
+    'th-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_vehicle_technical_form_key')::text, GREATEST(5, LENGTH(currval('forms.seq_vehicle_technical_form_key')::text)), '0'),
     1,
     :status,
     COALESCE(NULLIF(:partsSummary, '')::jsonb, '[]'::jsonb),

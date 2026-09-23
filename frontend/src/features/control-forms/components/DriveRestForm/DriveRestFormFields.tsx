@@ -897,7 +897,7 @@ export function DriveRestFormFields({
                   <Heading modifiers="h3" color="primary">
                     {t(
                       'forms.restCheck.blockTitle',
-                      'Sõidu- ja puhkeaja nõuete täitmine',
+                      'Sõidu- ja puhkeaja nõuete kontroll',
                     )}
                   </Heading>
                 }
@@ -922,6 +922,7 @@ export function DriveRestFormFields({
                     onChange={(val) =>
                       formik.setFieldValue('spApplicability', val as string)
                     }
+                    required
                     className="mb-1"
                     items={withDisabled([
                       {
@@ -949,7 +950,26 @@ export function DriveRestFormFields({
                         ),
                       },
                     ])}
+                    {...(formik.touched.spApplicability &&
+                    formik.errors.spApplicability
+                      ? {
+                          helper: {
+                            text: formik.errors.spApplicability,
+                            type: 'error' as const,
+                          },
+                        }
+                      : {})}
                   />
+                  <Text className="mb-1">
+                    <span className={styles['required-star']}>*</span>{' '}
+                    (
+                    {t(
+                      type === 'driver'
+                        ? 'forms.drive_rest.applicabilityRequiredExplanationDriver'
+                        : 'forms.drive_rest.applicabilityRequiredExplanationTeammate',
+                    )}
+                    )
+                  </Text>
                   {formik.values.spApplicability === 'RAKENDATAKSE' && (
                     <ChoiceGroup
                       id={fieldId('tachographTypeCode')}

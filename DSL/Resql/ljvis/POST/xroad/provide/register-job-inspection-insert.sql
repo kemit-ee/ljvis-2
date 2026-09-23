@@ -87,8 +87,8 @@ ins AS (
   )
   SELECT
     nextval('forms.seq_labour_inspection_form_key'),
-    -- Vormi number: 'ti-' + aasta + '-' + järjekord (5 numbrit, nullidega täidetud)
-    'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_labour_inspection_form_key')::TEXT, 5, '0'),
+    -- Vormi number: 'ti-' + aasta + '-' + järjekord (vähemalt 5 numbrit, nullidega täidetud)
+    'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_labour_inspection_form_key')::TEXT, GREATEST(5, LENGTH(currval('forms.seq_labour_inspection_form_key')::TEXT)), '0'),
     1,
     'saved',
     :inspectorName,

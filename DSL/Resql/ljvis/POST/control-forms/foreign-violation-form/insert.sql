@@ -238,7 +238,7 @@ INSERT INTO forms.foreign_violation_form (
 )
 VALUES (
   nextval('forms.seq_foreign_violation_form_key'),
-  'vr-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_foreign_violation_form_key')::text, 5, '0'),
+  'vr-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_foreign_violation_form_key')::text, GREATEST(5, LENGTH(currval('forms.seq_foreign_violation_form_key')::text)), '0'),
   1,
   1,
   :status,

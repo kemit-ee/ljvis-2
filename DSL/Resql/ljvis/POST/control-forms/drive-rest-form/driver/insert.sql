@@ -172,7 +172,7 @@ INSERT INTO forms.sp_driver_form (sp_driver_form_key,
 VALUES (nextval('forms.seq_sp_driver_form_key'),
         :compoundFormKey::BIGINT,
         'sp-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' ||
-        LPAD(currval('forms.seq_sp_driver_form_key')::text, 5, '0'),
+        LPAD(currval('forms.seq_sp_driver_form_key')::text, GREATEST(5, LENGTH(currval('forms.seq_sp_driver_form_key')::text)), '0'),
         1,
         1,
         :status,

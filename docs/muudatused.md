@@ -4,8 +4,68 @@
 
 ---
 
+## 2026-09-23
+
+### Välisriigi kontrollkaardi loomine NCR teate pealt ebaõnnestus
+
+- "Loo kontrollkaart" NCR teate vaates andis vea: kaart loodi, kuid NCR
+  teatega sidumine (`erru/ncr/append-vr-link.sql`) lükati tagasi, sest
+  kaardi võti saadeti arvuna, parameeter oli aga deklareeritud stringina.
+  Parameeter on nüüd `type: integer`, nagu teistel `::BIGINT` ID-del.
+
+### Välisriigi kontrollkaart: eraldi "Teavita tööinspektorit" linnuke eemaldatud
+
+- Teavituste plokis on taas kaks linnukest. Tööinspektori teavituse tellib
+  linnuke "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks.
+  Edasta teavitus tööinspektorile." — teavitus saadetakse salvestamisel.
+- Kui linnuke märgitakse juba uue kaardi esimesel salvestusel, jääb teavitus
+  ootele ja saadetakse järgmisel salvestusel või kinnitamisel (loomise hetkel
+  teavitusi ei saadeta).
+
+### RSI teade: rikete valik õiges järjekorras
+
+- Kontrollitud osa rikete valikus kuvati rikked vale (tagurpidise)
+  järjekorras, sest need tulid andmebaasi sisestusjärjekorras. Rikked on
+  nüüd sorteeritud koodi järgi (0.1, 0.2, …, 6.2.9, 6.2.10), nagu tehnilise
+  kontrolli vormil.
+
+### Dokumentatsioon: võrguühendused NetworkPolicy jaoks
+
+Lisatud dokument „Võrguühendused (NetworkPolicy)", mis loetleb kõigi
+komponentide sisse- ja väljaminevad ühendused (pordid, välised sihtkohad
+keskkonniti, AWS-i Security Group'ide reeglid) Kubernetes NetworkPolicy'de
+ehitamise alusena.
+
+### erru.ncr_message: append-only mustri rikkumise parandus
+
+`erru/ncr/update-vr-link.sql` tegi NCR-teate ja sellest loodud välisriigi
+kontrollkaardi sidumisel otse `UPDATE erru.ncr_message`-l, kuigi tabel on
+dokumenteeritud INSERT-only snapshot-tabelina (UPDATE/DELETE keelatud, vt
+`20260816100000-initial-erru-ncr.sql`). Asendatud `erru/ncr/append-vr-link.sql`-ga,
+mis lisab uue snapshoti, kandes kõik väljad muutumatult edasi peale
+`linked_foreign_violation_form_key`. Kasutajale nähtavat käitumist ei muuda.
+
+### Autojuhi ja meeskonna liikme sõidu- ja puhkeaja nõuete kontroll
+
+- Akordioni pealkiri "Sõidu- ja puhkeaja nõuete täitmine" nimetati ümber
+  "Sõidu- ja puhkeaja nõuete kontroll" (nii autojuhi kui meeskonna liikme
+  sõidu- ja puhkeaja vormil).
+- Andmeväli "Rakendatakse" / "Ei rakendata" / "Ei kontrollitud" on nüüd
+  kohustuslik täita. Välja juurde lisati selgitav tekst koos punase
+  tärniga.
+
+---
+
 ## 2026-09-22 (parandus)
 
+### Ajutine NCR->välisriigi kontrollkaart testandmestiku changelog eemaldatud
+
+Eemaldati liquibase migratsioonifail (`20261124100000-erru-ncr-foreign-transfer-test-fixtures`),
+mis lisas viis ajutist testrida (`TEST-NCR-TRANSFER-01`...`05`) ERRU NCR
+teadete loendisse. Juba rakendunud testkeskkondades **jäävad testread
+alles** — see pole tootmisandmestik, andmete eemaldamine polnud vajalik.
+Eemaldamise mõte on ainult see, et see changeset ei rakenduks enam
+liquibase kaudu ühelgi uuel/värskel andmebaasil (nt uus keskkond, CI).
 ### Liquibase: NU väljamineva teate migratsiooni checksum-viga
 
 PR #415 muutis otse juba rakendunud migratsiooni

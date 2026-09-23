@@ -37,6 +37,32 @@ test('autojuhi sõidu-/puhkeaja alamvorm — veo liik ja kontrolli tulemus on ko
   });
 });
 
+test('autojuhi sõidu-/puhkeaja alamvorm — sõidu- ja puhkeaja nõuete kontroll (rakendatakse/ei rakendata/ei kontrollitud) on kohustuslik', async ({
+  page,
+}) => {
+  await test.step('ava koondvorm autojuhi alamvormiga', async () => {
+    await page.goto('/control-forms/compound/new?types=driver');
+    await page.getByRole('tab', { name: /Autojuhi|sõidu- ja puhkeaja/i }).click();
+  });
+
+  await test.step('täida veo liik ja kontrolli tulemus, jäta rakendatavus valimata', async () => {
+    await checkChoiceById(page, 'transport_type_cargo');
+    await checkChoiceById(page, 'result_korras');
+  });
+
+  await test.step('vajuta Salvesta', async () => {
+    await page.getByRole('button', { name: 'Salvesta' }).click();
+  });
+
+  await test.step('sõidu- ja puhkeaja nõuete kontrolli viga on nähtav', async () => {
+    await expectFieldError(page, 'applicability');
+  });
+
+  await test.step('koondvormi ei salvestatud', async () => {
+    await expect(page).toHaveURL(/\/control-forms\/compound\/new/);
+  });
+});
+
 test('ADR alamvorm — koondvormi loomisvoos avaneb ja renderdab sisu', async ({
   page,
 }) => {

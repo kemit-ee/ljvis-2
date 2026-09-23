@@ -119,6 +119,11 @@ test.describe('Koondvorm — salvestamine', () => {
     await page.getByRole('tab', { name: /^Autojuhi/i }).click();
     await checkChoiceById(page, 'transport_type_cargo');
     await checkChoiceById(page, 'result_korras');
+    // "Sõidu- ja puhkeaja nõuete kontroll" akordion on vaikimisi kokku
+    // pandud (defaultExpanded=false) — tuleb avada enne applicability
+    // raadionupu klõpsamist, muidu jääb see kokkupandud sisu alla peidetuks.
+    await page.locator('#drive-rest-violations-header').click();
+    await checkChoiceById(page, 'applicability_not_checked');
     await page.getByRole('button', SAVE).click();
     await expectSaved(page, '/control-forms/compound');
     await page.getByRole('tab', { name: /^Autojuhi/i }).click();

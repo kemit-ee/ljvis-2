@@ -112,7 +112,13 @@ export function useRsiForm(
   const defectsByPartKey = useMemo(() => {
     const map = new Map<number, ClassifierEntry[]>();
     parts.forEach((part) => {
-      map.set(part.classifierValueKey, getChildren('TECHNICAL_CHECK', part.classifierValueKey));
+      // classifier_value_key order is not the regulation order (seed migrations
+      // insert via VALUES JOIN, row order not guaranteed) — sort naturally by
+      // code, same as useTechnicalCheckForm.
+      const children = [...getChildren('TECHNICAL_CHECK', part.classifierValueKey)].sort((a, b) =>
+        a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' }),
+      );
+      map.set(part.classifierValueKey, children);
     });
     return map;
   }, [parts, getChildren]);

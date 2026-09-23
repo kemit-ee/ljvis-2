@@ -1142,7 +1142,9 @@
       "selectAtLeastOne": "Select at least one violation.",
       "checkedDaysCount": "Number of days checked",
       "workDaysCount": "of which work days",
-      "otherActivityDaysCount": "of which days for driver activity other than driving"
+      "otherActivityDaysCount": "of which days for driver activity other than driving",
+      "applicabilityRequiredExplanationDriver": "At least one field must be filled in for the driver's driving and rest time requirements check",
+      "applicabilityRequiredExplanationTeammate": "At least one field must be filled in for the crew member's driving and rest time requirements check"
     },
     "massDimension": {
       "blockTitle": "Data on vehicle mass and dimensions and ATP agreement compliance",
@@ -1162,7 +1164,7 @@
       "remarkPlaceholder": "Enter remark..."
     },
     "restCheck": {
-      "blockTitle": "Compliance with driving and rest time requirements"
+      "blockTitle": "Driving and rest time requirements check"
     },
     "rooma1": {
       "blockTitle": "Rome I regulation violations"
