@@ -1,4 +1,4 @@
-# LJVIS2 source pipeline: standard-service-delivery@8.0.0.
+# LJVIS2 source pipeline: standard-service-delivery@8.0.1.
 # Twelve ARM64 images, twelve release components (config + eleven workloads),
 # automatic pin to dev on protected main. Liquibase is a build-only image;
 # resql-ljvis bakes the same RELEASE_VERSION into databaseMigration.
@@ -28,7 +28,7 @@ variables:
   SECRET_DETECTION_ENABLED: "true"
 
 include:
-  - component: gitlab.kemitaws.ee/platform-internal/ci-components/standard-service-delivery@8.0.0
+  - component: gitlab.kemitaws.ee/platform-internal/ci-components/standard-service-delivery@8.0.1
     inputs:
       service_code: ljvis2
       version_base: "0.1.0"
