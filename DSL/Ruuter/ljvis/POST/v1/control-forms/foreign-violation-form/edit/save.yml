@@ -211,10 +211,17 @@ checkIsCreate:
 # (updateForm haru), mil saatmine juba toimib. Kuna gate on siin alati
 # väär, ei ole vaja kutsuda notify-transition-and-send template'it (ei
 # tekiks ühtegi saatmiskatset) — piisab väärtuste käsitsi lähtestamisest.
+#
+# Erand: notifyLaborInspector'il pole enam oma checkbox'i — frontend seab
+# selle, kui menetleja märgib "Saabus välisriigi pädeva asutuse ettepanek"
+# (foreignAuthorityProposal). See fakt lukustub pärast märkimist, seega
+# kasutaja ei saaks seda uuesti märkida; lipp jäetakse siin OOTELE (DB-sse
+# 'true') ja updateForm/confirm haru saadab teavituse järgmisel
+# salvestusel/kinnitamisel ning lähtestab lipu false-ks.
 gateInsertNotifyFlags:
   assign:
     notify_carrier_persisted: "false"
-    notify_labor_inspector_persisted: "false"
+    notify_labor_inspector_persisted: "${String(notify_labor_inspector) === 'true' && String(foreign_authority_proposal) === 'true' ? 'true' : 'false'}"
   next: insertForm
 
 insertForm:

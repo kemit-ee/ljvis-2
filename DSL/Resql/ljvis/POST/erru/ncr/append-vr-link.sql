@@ -11,7 +11,7 @@ params:
     type: string
     required: true
   foreignViolationFormKey:
-    type: string
+    type: integer
     required: true
   created_by:
     type: string
