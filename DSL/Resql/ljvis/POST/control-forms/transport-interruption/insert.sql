@@ -75,7 +75,7 @@ WITH ins AS (
   VALUES (
     nextval('forms.seq_kv_form_key'),
     :compoundFormKey::BIGINT,
-    'ko-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_kv_form_key')::text, 5, '0'),
+    'ko-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_kv_form_key')::text, GREATEST(5, LENGTH(currval('forms.seq_kv_form_key')::text)), '0'),
     1,
     :status,
     UPPER(NULLIF(:headerText, '')),

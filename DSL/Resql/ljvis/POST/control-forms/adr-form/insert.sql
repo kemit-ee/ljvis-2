@@ -134,7 +134,7 @@ WITH ins AS (
   VALUES (
     nextval('forms.seq_adr_form_key'),
     :compoundFormKey::BIGINT,
-    'ov-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_adr_form_key')::text, 5, '0'),
+    'ov-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_adr_form_key')::text, GREATEST(5, LENGTH(currval('forms.seq_adr_form_key')::text)), '0'),
     1,
     :status,
     NULLIF(:driverAssistant, '')::jsonb,
