@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useEntityDetail } from '../../../../hooks/useEntityDetail';
 import { getRsiMessage, sendRsiMessage } from '../../api';
+import { ApiError } from '../../../../shared/api/client';
 import type { RsiMessage } from '../../types';
 
 /**
@@ -23,7 +24,12 @@ export function useRsiMessageDetail(id: string | undefined) {
     try {
       await sendRsiMessage(id);
     } catch (e) {
-      setSendError('send_failed');
+      // 422 invalid_checked_items: the draft is untouched (still 'initiated') and can be fixed.
+      const code =
+        e instanceof ApiError && e.status === 422
+          ? (e.body as { code?: string } | null)?.code
+          : undefined;
+      setSendError(code === 'invalid_checked_items' ? code : 'send_failed');
       console.error('[useRsiMessageDetail] send failed', e);
     } finally {
       setIsSending(false);

@@ -1,0 +1,126 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: http://rsi-send-test/resql
+  LJVIS_TIM: http://rsi-send-test/tim
+  ERRU_RSI_ENDPOINT: http://rsi-send-test/hub
+http_rewrite:
+  http://rsi-send-test: '{MOCK}'
+tests:
+- name: send converts RSI_FAILED_REASON items to rsiCheckedItemType
+  # checked_items hold RSI_FAILED_REASON codes (Liquibase 20261125100000); send.yml maps
+  # them to {itemType, itemFailed, failedChecks:[{failedReason, failedAssessment}]}.
+  # not_checked items and nationalDefects (technical-check card hint) are not sent.
+  setup:
+    mocks:
+    - &org
+      url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - &perm
+      url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - rsi.read
+        - rsi.send
+    - &userinfo
+      url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - &audit
+      url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/rsi/get
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        status: initiated
+        direction: outgoing
+        businessCaseId: EE-RSI-2026-00001
+        rsiTo: LV
+        originatingAuthority: KLIM
+        vehicleRegistrationNumber: ABC123
+        vehicleRegistrationCountry: LV
+        vehicleCategory: N3
+        inspectionLocation: Tallinn
+        inspectionDatetime: '2026-09-01T10:00:00'
+        inspectionAuthorityOrName: Politsei- ja Piirivalveamet
+        inspectionPassed: false
+        ptiRequested: false
+        vehicleProhibitionOrRestriction: false
+        checkedItems: '[{"partCode":"0","status":"checked","defects":[]},{"partCode":"1","status":"non_compliant","defects":[{"defectCode":"1.1.3.a","severity":"OV"},{"defectCode":"1.1.4","severity":"VO"}],"nationalDefects":[{"defectCode":"CAA_1.1.3","severity":"OV"}]},{"partCode":"2","status":"not_checked","defects":[]},{"partCode":"20","status":"non_compliant","defects":[{"defectCode":"30","severity":"EOV"}]}]'
+    - url_matches: /hub
+      method: POST
+      status: 200
+      body:
+        status: accepted
+    - url_matches: /xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/rsi/append-transition
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        status: sent
+        workflowId: WF-1
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/send
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /hub
+    count: 1
+    body_matches:
+      checkedItems: '[{"itemType":0,"itemFailed":false},{"itemType":1,"itemFailed":true,"failedChecks":[{"failedReason":"1.1.3.a","failedAssessment":"Major"},{"failedReason":"1.1.4","failedAssessment":"Minor"}]},{"itemType":20,"itemFailed":true,"failedChecks":[{"failedReason":"30","failedAssessment":"Dangerous"}]}]'
+- name: send rejects legacy TECHNICAL_CHECK codes and failed items without a reason
+  setup:
+    mocks:
+    - *org
+    - *perm
+    - *userinfo
+    - *audit
+    - url_matches: /erru/rsi/get
+      method: POST
+      status: 200
+      body:
+      - id: 2
+        status: initiated
+        direction: outgoing
+        businessCaseId: EE-RSI-2026-00002
+        rsiTo: LV
+        checkedItems: '[{"partCode":"CAA_1","status":"non_compliant","defects":[{"defectCode":"CAA_1.1.3","severity":"OV"}]},{"partCode":"4","status":"non_compliant","defects":[]}]'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/send
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '2'
+  expect:
+    status: 422
+  verify_mocks:
+  - url_matches: /hub
+    count: 0
+  - url_matches: /erru/rsi/append-transition
+    count: 0

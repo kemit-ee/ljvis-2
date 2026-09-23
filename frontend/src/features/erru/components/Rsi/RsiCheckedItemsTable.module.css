@@ -1,0 +1,93 @@
+/* RSI "Kontrollitud punkt" — reason table under a non-compliant item.
+   TEDI tokens only, same approach as shared/components/CheckedItemsTable.module.css. */
+
+.boxHeader,
+.boxCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center !important;
+}
+
+.reasonsCell {
+  padding: 0 0 12px 0 !important;
+  background: var(--color-bg-default, #fff);
+}
+
+.reasons {
+  padding: 8px 16px 0;
+}
+
+.reasonsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.reasonsTable th,
+.reasonsTable td {
+  border: 1px solid var(--color-border-default, #e1e2e5);
+  padding: 4px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.reasonsTable thead th {
+  background: var(--color-bg-muted, #f9f9f9);
+  color: var(--color-text-subtle, #52535f);
+  font-weight: 600;
+}
+
+.sevCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center !important;
+}
+
+.aspectCell {
+  width: 30%;
+}
+
+.headingRow td {
+  background: var(--color-bg-muted, #f9f9f9);
+  font-weight: 600;
+}
+
+.selectedRow td {
+  background: var(--color-danger-highlight, transparent);
+}
+
+.nationalHint {
+  margin-bottom: 8px;
+}
+
+.nationalHint ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+}
+
+.mobileItemBoxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.mobileGroup {
+  margin-top: 8px;
+}
+
+.mobileGroupTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.mobileReason {
+  padding: 6px 0;
+  border-top: 1px solid var(--color-border-default, #e1e2e5);
+}
+
+.mobileSeverities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 4px;
+}

@@ -1,6 +1,6 @@
 declaration:
   version: "1.0"
-  description: "Send an outgoing RSI (RoadSideInspection) notification to the ERRU hub and store the ACK (LJVIS2-148). RSI is asynchronous and single-country: only 'initiated' messages can be sent (no retry from error — a failed RSI notification is abandoned and a new one composed). Flow: get the draft, validate it is sendable, convert checked_items from the national TECHNICAL_CHECK format to the ERRU rsiCheckedItemType format (CAA_10 excluded — no ERRU equivalent; severity mapped VO→Minor/OV→Major/EOV→Dangerous), call the ERRU hub, receive only an ACK (no vehicle status — that arrives separately via inbound-response.yml), append exactly one 'sent' snapshot with a newly generated workflowId/technicalId (append-transition.sql), and return the workflowId to the caller so they can display 'Teade saadetud'. A transport failure transitions to 'error' (terminal — no retry). The ERRU hub endpoint is resolved from ERRU_RSI_ENDPOINT (mock in dev/CI, XTR in production). The mock response may be Ruuter-enveloped (dev/CI: {'response': '...'}) or direct (XTR): both shapes are handled."
+  description: "Send an outgoing RSI (RoadSideInspection) notification to the ERRU hub and store the ACK (LJVIS2-148). RSI is asynchronous and single-country: only 'initiated' messages can be sent (no retry from error — a failed RSI notification is abandoned and a new one composed). Flow: get the draft, validate it is sendable and that checked_items use RSI_FAILED_REASON codes (every 'Ei vasta nõuetele' item has at least one reason), convert checked_items to the ERRU rsiCheckedItemType shape {itemType, itemFailed, failedChecks:[{failedReason, failedAssessment}]} (severity mapped VO→Minor/OV→Major/EOV→Dangerous), call the ERRU hub, receive only an ACK (no vehicle status — that arrives separately via inbound-response.yml), append exactly one 'sent' snapshot with a newly generated workflowId/technicalId (append-transition.sql), and return the workflowId to the caller so they can display 'Teade saadetud'. A transport failure transitions to 'error' (terminal — no retry). The ERRU hub endpoint is resolved from ERRU_RSI_ENDPOINT (mock in dev/CI, XTR in production). The mock response may be Ruuter-enveloped (dev/CI: {'response': '...'}) or direct (XTR): both shapes are handled."
   namespace: erru
   allowlist:
     body:
@@ -70,13 +70,14 @@ checkSendable:
       next: returnNotSendable
   next: prepareOutbound
 
-# Convert checked_items from national TECHNICAL_CHECK format to ERRU rsiCheckedItemType.
-# Rule: CAA_10 is excluded (no ERRU equivalent, per LJVIS2-148 §4.1). ERRU itemType is only
-# defined for the integers 0-10 plus 20 (RoadSideInspection_Types.xsd) — CAA_1..CAA_9 map
-# directly to itemType 1..9, but CAA_11 is a SPECIAL CASE that maps to itemType 20 (not 11,
-# which is not even a valid ERRU value), per LJVIS2-148 §4.1: "CAA_11 ... teisendatakse
-# saatmisel itemType väärtuseks 20".
+# checked_items are stored with RSI_FAILED_REASON classifier codes (direktiiv 2014/47/EL
+# II/III lisa): partCode = ERRU rsiItemType ('0'..'10', '20'), defects[].defectCode = ERRU
+# rsiFailedReason (e.g. '1.1.3.a', '30'). Converted here to the rsiCheckedItemType shape:
+# {itemType, itemFailed, failedChecks:[{failedReason, failedAssessment}]}.
 # Severity: VO→Minor, OV→Major, EOV→Dangerous (ERRU rsiFailedAssessmentType XSD values).
+# Drafts saved in the old TECHNICAL_CHECK shape (partCode 'CAA_*') and "Ei vasta nõuetele"
+# items without a selected reason are rejected (422 invalid_checked_items) instead of
+# sending codes that are not valid ERRU values.
 #
 # NOTE: this conversion is deliberately split into several small assign steps, each with a
 # short expression. A single large IIFE combining the full parse+filter+map+ternary logic
@@ -89,11 +90,22 @@ prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
     checked_items_array: "${typeof checked_items_raw === 'string' ? JSON.parse(checked_items_raw) : (Array.isArray(checked_items_raw) ? checked_items_raw : [])}"
+  next: validateCheckedItems
+
+validateCheckedItems:
+  assign:
+    invalid_checked_items: "${checked_items_array.some(function(i){ var c = '' + (i.partCode || ''); var ds = i.defects || []; return !/^([0-9]|10|20)$/.test(c) || (i.status === 'non_compliant' && ds.length === 0) || ds.some(function(d){ return !/^[0-9]/.test('' + (d.defectCode || '')) || ['VO','OV','EOV'].indexOf(d.severity) < 0; }); })}"
+  next: checkCheckedItems
+
+checkCheckedItems:
+  switch:
+    - condition: ${invalid_checked_items === true || invalid_checked_items === 'true'}
+      next: returnInvalidCheckedItems
   next: convertCheckedItems
 
 convertCheckedItems:
   assign:
-    erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.status === 'checked' || i.status === 'non_compliant';}).map(function(i){ var n = i.partCode === 'CAA_11' ? 20 : parseInt((i.partCode||'').replace('CAA_',''),10); var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var defects = (i.defects||[]).map(function(d){return {defectCode:d.defectCode,severity:sevMap[d.severity]||d.severity};}); return {itemType:n,infringementStatus:i.status==='non_compliant'?'infringement':'none',defects:defects};}))}"
+    erru_checked_items: "${JSON.stringify(checked_items_array.filter(function(i){return i.status === 'checked' || i.status === 'non_compliant';}).map(function(i){ var sevMap = {'VO':'Minor','OV':'Major','EOV':'Dangerous'}; var failed = i.status === 'non_compliant'; var out = {itemType: parseInt(i.partCode, 10), itemFailed: failed}; if (failed) { out.failedChecks = (i.defects || []).map(function(d){ return {failedReason: d.defectCode, failedAssessment: sevMap[d.severity]}; }); } return out; }))}"
   next: mapAuthorities
 
 # RSI ettepanek 7: teate esitanud pädev asutus (org-kood) ja inspektor
@@ -275,6 +287,11 @@ returnIdRequired:
 returnNotFound:
   status: 404
   return: '{"valid":false,"code":"not_found","message":"RSI teade ei leitud"}'
+  next: end
+
+returnInvalidCheckedItems:
+  status: 422
+  return: '{"valid":false,"field":"checkedItems","code":"invalid_checked_items","message":"Kontrollitud punktid on vanas vormingus või punktil „Ei vasta nõuetele” puudub mitteläbimise põhjus"}'
   next: end
 
 returnNotSendable:

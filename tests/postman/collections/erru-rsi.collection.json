@@ -450,7 +450,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"M2\", \"vehicleRegistrationNumber\": \"CHECKED1\", \"vehicleRegistrationCountry\": \"PL\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Parnu\", \"inspectionDatetime\": \"2026-08-14T14:00:00Z\", \"inspectionAuthorityOrName\": \"PPA Parnu\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"true\", \"vehicleProhibitionOrRestriction\": \"true\", \"checkedItems\": \"[{\\\"partCode\\\":\\\"CAA_1\\\",\\\"status\\\":\\\"failed\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"Major\\\"}]},{\\\"partCode\\\":\\\"CAA_2\\\",\\\"status\\\":\\\"not_applicable\\\",\\\"defects\\\":[]}]\"}"
+          "raw": "{\"id\": \"\", \"originatingAuthority\": \"EE-PPA\", \"requestSource\": \"\", \"requestPurpose\": \"\", \"vehicleCategory\": \"M2\", \"vehicleRegistrationNumber\": \"CHECKED1\", \"vehicleRegistrationCountry\": \"PL\", \"vehicleIdentificationNumber\": \"\", \"odometerReading\": \"\", \"driverFirstName\": \"\", \"driverFamilyName\": \"\", \"driverLicenceNumber\": \"\", \"driverLicenceCountry\": \"\", \"identificationDetails\": \"\", \"inspectionIdentifier\": \"\", \"inspectionLocation\": \"Parnu\", \"inspectionDatetime\": \"2026-08-14T14:00:00Z\", \"inspectionAuthorityOrName\": \"PPA Parnu\", \"inspectionPassed\": \"false\", \"ptiRequested\": \"true\", \"vehicleProhibitionOrRestriction\": \"true\", \"checkedItems\": \"[{\\\"partCode\\\":\\\"1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"2\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"}"
         }
       },
       "event": [
@@ -506,9 +506,9 @@
               "var body = pm.response.json().response;",
               "pm.test('checkedItems is not null', () => pm.expect(body.checkedItems).to.not.be.null);",
               "pm.test('checkedItems has 2 items', () => pm.expect(body.checkedItems).to.have.lengthOf(2));",
-              "pm.test('first item partCode = CAA_1', () => pm.expect(body.checkedItems[0].partCode).to.eql('CAA_1'));",
+              "pm.test('first item partCode = 1 (RSI_FAILED_REASON item)', () => pm.expect(body.checkedItems[0].partCode).to.eql('1'));",
               "pm.test('first item has 1 defect', () => pm.expect(body.checkedItems[0].defects).to.have.lengthOf(1));",
-              "pm.test('defect severity = Major', () => pm.expect(body.checkedItems[0].defects[0].severity).to.eql('Major'));",
+              "pm.test('defect severity = OV', () => pm.expect(body.checkedItems[0].defects[0].severity).to.eql('OV'));",
               "pm.test('second item has no defects', () => pm.expect(body.checkedItems[1].defects).to.have.lengthOf(0));"
             ]
           }
@@ -1405,7 +1405,7 @@
       ]
     },
     {
-      "name": "[Send] Create draft for send test (LV, with CAA_10 to verify exclusion) → 200",
+      "name": "[Send] Create draft for send test (LV, RSI_FAILED_REASON codes) → 200",
       "request": {
         "method": "POST",
         "header": [
@@ -1434,7 +1434,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"LV-SEND-001\",\n  \"vehicleRegistrationCountry\": \"LV\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"CAA_1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"CAA_1.1\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"CAA_10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
+          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"LV-SEND-001\",\n  \"vehicleRegistrationCountry\": \"LV\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -1615,8 +1615,8 @@
               "    pm.expect(b.responseStatusCode).to.be.null;",
               "    pm.expect(b.version).to.eql(2);",
               "    var items = Array.isArray(b.checkedItems) ? b.checkedItems : JSON.parse(b.checkedItems || \"[]\");",
-              "    var hasCaa10 = items.some(function(i){ return i.partCode === \"CAA_10\"; });",
-              "    pm.expect(hasCaa10).to.be.true;",
+              "    var failed = items.filter(function(i){ return i.partCode === \"1\"; })[0];",
+              "    pm.expect(failed.defects[0].defectCode).to.eql(\"1.1.1.a\");",
               "});"
             ],
             "type": "text/javascript"
@@ -1817,7 +1817,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"FI-SEND-FAIL\",\n  \"vehicleRegistrationCountry\": \"FI\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"CAA_1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"CAA_1.1\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"CAA_10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
+          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"FI-SEND-FAIL\",\n  \"vehicleRegistrationCountry\": \"FI\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -1991,6 +1991,116 @@
               "    var raw = pm.response.json();",
               "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "    pm.expect(b.code).to.eql(\"not_sendable\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Create draft with legacy TECHNICAL_CHECK codes → 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"LV-LEGACY-001\",\n  \"vehicleRegistrationCountry\": \"LV\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"CAA_1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"CAA_1.1.1\\\",\\\"severity\\\":\\\"OV\\\"}]}]\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"200 initiated\", function() {",
+              "    pm.response.to.have.status(200);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.status).to.eql(\"initiated\");",
+              "    pm.environment.set(\"rsi_legacy_id\", String(b.id));",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Legacy TECHNICAL_CHECK codes → 422 invalid_checked_items, stays initiated",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/rsi/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "rsi",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{rsi_legacy_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"422 invalid_checked_items\", function() {",
+              "    pm.response.to.have.status(422);",
+              "    var raw = pm.response.json();",
+              "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "    pm.expect(b.code).to.eql(\"invalid_checked_items\");",
               "});"
             ],
             "type": "text/javascript"

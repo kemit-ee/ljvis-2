@@ -1,20 +1,20 @@
-import { useEffect, useState, type MouseEvent } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  ChoiceGroup,
-  Modal,
-  StatusBadge,
-  Text,
-} from '@tedi-design-system/react/tedi';
+import { Checkbox, StatusBadge, Text } from '@tedi-design-system/react/tedi';
 import type { StatusBadgeColor } from '@tedi-design-system/react/tedi';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
-import type { ClassifierEntry } from '../../../classifiers/types';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { RsiCheckedItem, RsiDefectSeverity } from '../../types';
-import styles from '../../../../shared/components/CheckedItemsTable.module.css';
-
-const SEVERITIES: RsiDefectSeverity[] = ['VO', 'OV', 'EOV'];
+import {
+  RSI_SEVERITIES,
+  leavesOf,
+  reasonLabel,
+  type RsiReasonNode,
+  type RsiReasonTree,
+} from '../../utils/rsiReasons';
+import shared from '../../../../shared/components/CheckedItemsTable.module.css';
+import styles from './RsiCheckedItemsTable.module.css';
 
 const severityColor = (sev: RsiDefectSeverity): StatusBadgeColor => {
   if (sev === 'EOV') return 'danger';
@@ -22,402 +22,376 @@ const severityColor = (sev: RsiDefectSeverity): StatusBadgeColor => {
   return 'warning'; // VO
 };
 
-/** Trailing number of a classifier code (e.g. "CAA_11" -> 11) — the part's
- *  official number, used for display. Not a list index: `parts` has a gap
- *  (CAA_10 excluded upstream, see useRsiForm.ts). */
-const partNumber = (code: string): number => {
-  const m = code.match(/(\d+)$/);
-  return m ? parseInt(m[1], 10) : 0;
-};
-
-/** RSI ettepanek 9: eemalda tehnilise ala/rikke nimest või koodist "CAA_" eesliide
- *  (nt "CAA_1 pidurisüsteem" -> "pidurisüsteem", "CAA_1.1.1" -> "1.1.1"). */
-const stripCaa = (s: string): string => s.replace(/^CAA_[\d.]*\s*/, '');
+type Selected = Map<string, RsiDefectSeverity>;
 
 /**
- * "Kontrollitud punkt" block (LJVIS2-147 §Plokk "Kontrollitud punkt"): one row per
- * TECHNICAL_CHECK level-1 part (CAA_10 excluded upstream, see useRsiForm.ts), a
- * three-way radio per row, and a defect-selection modal for "Ei vasta nõuetele".
- * Mirrors control-forms/technical-check-form's PartsSummaryTable + DefectSelectionModal
- * + DefectsResultsTable, adapted to RSI's nested checked_items shape. Uses only
- * native TEDI components (ChoiceGroup, StatusBadge, Modal) and TEDI colour tokens.
- * `parts` is already numerically sorted by the parent hook.
+ * "Kontrollitud punkt" + "Kontrollitud punkti andmed" (vana süsteemi RSI teate vormi
+ * plokid 10 ja 11): one row per RSI_FAILED_REASON level-1 item with two checkboxes
+ * ("Kontrollitud", "Ei vasta nõuetele"). Ticking "Ei vasta nõuetele" opens the item's
+ * full reason table right below the row — aspect | reason | Väheoluline | Oluline |
+ * Ohtlik, a checkbox only where the directive allows that severity, one severity per
+ * reason (clicking the ticked box again clears it).
+ *
+ * Without `onChange` the table is read-only and lists only the selected reasons.
  */
 export function RsiCheckedItemsTable({
-  parts,
-  defectsByPartKey,
+  tree,
   items,
-  onStatusChange,
-  onDefectsChange,
-  onRemoveDefect,
-  disabled,
+  onChange,
+  error,
 }: {
-  parts: ClassifierEntry[];
-  defectsByPartKey: Map<number, ClassifierEntry[]>;
+  tree: RsiReasonTree;
   items: RsiCheckedItem[];
-  onStatusChange: (partCode: string, status: RsiCheckedItem['status']) => void;
-  onDefectsChange: (
-    partCode: string,
-    selected: { defectCode: string; severity: RsiDefectSeverity }[],
-  ) => void;
-  onRemoveDefect: (partCode: string, defectCode: string) => void;
-  disabled?: boolean;
+  onChange?: (items: RsiCheckedItem[]) => void;
+  error?: string;
 }) {
   const { t } = useTranslation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const [modalPart, setModalPart] = useState<ClassifierEntry | null>(null);
+  const { getValue } = useClassifiers();
+  const readOnly = !onChange;
 
-  const itemOf = (partCode: string): RsiCheckedItem =>
-    items.find((i) => i.partCode === partCode) ?? {
-      partCode,
+  const itemOf = (code: string): RsiCheckedItem =>
+    items.find((i) => i.partCode === code) ?? {
+      partCode: code,
       status: 'not_checked',
       defects: [],
     };
 
-  const handleStatusChange = (
-    part: ClassifierEntry,
-    status: RsiCheckedItem['status'],
-  ) => {
-    if (status === 'non_compliant') {
-      setModalPart(part);
-      return;
-    }
-    onStatusChange(part.code, status);
-  };
+  const update = (
+    code: string,
+    patch: (item: RsiCheckedItem) => RsiCheckedItem,
+  ) =>
+    onChange?.(
+      tree.items.map((node) => {
+        const item = itemOf(node.entry.code);
+        return node.entry.code === code ? patch(item) : item;
+      }),
+    );
 
-  // Re-clicking an already-selected radio fires no onChange, so clicking
-  // "Ei vasta nõuetele" while it is already selected wouldn't reopen the defect
-  // modal. Catch that click on the wrapper and reopen.
-  const handleRadioClick = (part: ClassifierEntry, e: MouseEvent) => {
-    if (disabled) return;
-    const el = e.target as HTMLElement;
-    const input =
-      ((el.closest('label') as HTMLLabelElement | null)?.control as HTMLInputElement | null) ??
-      (el instanceof HTMLInputElement ? el : null);
-    if (
-      input?.id === `rsi-part-status-${part.code}-non-compliant` &&
-      itemOf(part.code).status === 'non_compliant'
-    ) {
-      setModalPart(part);
-    }
-  };
+  const setChecked = (code: string, on: boolean) =>
+    update(code, (it) =>
+      on
+        ? { ...it, status: it.status === 'not_checked' ? 'checked' : it.status }
+        : { ...it, status: 'not_checked', defects: [] },
+    );
 
-  const indexClass = (status: RsiCheckedItem['status']): string => {
-    if (status === 'checked') return styles.partIndexChecked;
-    if (status === 'non_compliant') return styles.partIndexNonCompliant;
-    return '';
-  };
+  const setNonCompliant = (code: string, on: boolean) =>
+    update(code, (it) =>
+      on
+        ? { ...it, status: 'non_compliant' }
+        : { ...it, status: 'checked', defects: [] },
+    );
 
-  const radioItems = (partCode: string) => [
-    {
-      id: `rsi-part-status-${partCode}-checked`,
-      value: 'checked',
-      label: t('erru.rsi.checkedItems.checked'),
-      disabled,
-    },
-    {
-      id: `rsi-part-status-${partCode}-non-compliant`,
-      value: 'non_compliant',
-      label: t('erru.rsi.checkedItems.nonCompliant'),
-      disabled,
-    },
-  ];
+  const toggleSeverity = (
+    itemCode: string,
+    reasonCode: string,
+    sev: RsiDefectSeverity,
+  ) =>
+    update(itemCode, (it) => {
+      const current = it.defects.find(
+        (d) => d.defectCode === reasonCode,
+      )?.severity;
+      const rest = it.defects.filter((d) => d.defectCode !== reasonCode);
+      return {
+        ...it,
+        defects:
+          current === sev
+            ? rest
+            : [...rest, { defectCode: reasonCode, severity: sev }],
+      };
+    });
 
-  const defectsBlock = (part: ClassifierEntry, item: RsiCheckedItem) => {
-    if (item.status !== 'non_compliant') return null;
+  const sevLabel = (sev: RsiDefectSeverity) =>
+    t(`erru.rsi.checkedItems.severity.${sev}`);
+
+  /* ─── Reason table of one non-compliant item ─── */
+
+  const severityBox = (
+    itemCode: string,
+    leaf: RsiReasonNode,
+    sev: RsiDefectSeverity,
+    selected: Selected,
+  ) =>
+    leaf.severities.includes(sev) ? (
+      <Checkbox
+        id={`rsi-reason-${leaf.entry.code}-${sev}`}
+        name={`rsi-reason-${leaf.entry.code}`}
+        value={sev}
+        label={`${leaf.number} ${sevLabel(sev)}`}
+        hideLabel={isDesktop}
+        checked={selected.get(leaf.entry.code) === sev}
+        disabled={readOnly}
+        onChange={() =>
+          !readOnly && toggleSeverity(itemCode, leaf.entry.code, sev)
+        }
+      />
+    ) : null;
+
+  const visible = (node: RsiReasonNode, selected: Selected) =>
+    !readOnly || leavesOf(node).some((l) => selected.has(l.entry.code));
+
+  const desktopRows = (
+    itemCode: string,
+    node: RsiReasonNode,
+    selected: Selected,
+  ): ReactNode[] =>
+    node.children
+      .filter((child) => visible(child, selected))
+      .map((child) => {
+        if (child.isLeaf) {
+          return (
+            <tr key={child.entry.code}>
+              <td colSpan={2}>{reasonLabel(child)}</td>
+              {RSI_SEVERITIES.map((sev) => (
+                <td key={sev} className={styles.sevCell}>
+                  {severityBox(itemCode, child, sev, selected)}
+                </td>
+              ))}
+            </tr>
+          );
+        }
+        if (child.children.every((c) => c.isLeaf)) {
+          const leaves = child.children.filter((l) => visible(l, selected));
+          return (
+            <Fragment key={child.entry.code}>
+              {leaves.map((leaf, i) => (
+                <tr
+                  key={leaf.entry.code}
+                  className={
+                    selected.has(leaf.entry.code)
+                      ? styles.selectedRow
+                      : undefined
+                  }
+                >
+                  {i === 0 && (
+                    <td rowSpan={leaves.length} className={styles.aspectCell}>
+                      {child.number} {child.entry.name}
+                    </td>
+                  )}
+                  <td>{reasonLabel(leaf, child)}</td>
+                  {RSI_SEVERITIES.map((sev) => (
+                    <td key={sev} className={styles.sevCell}>
+                      {severityBox(itemCode, leaf, sev, selected)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </Fragment>
+          );
+        }
+        return (
+          <Fragment key={child.entry.code}>
+            <tr className={styles.headingRow}>
+              <td colSpan={5}>
+                {child.number} {child.entry.name}
+              </td>
+            </tr>
+            {desktopRows(itemCode, child, selected)}
+          </Fragment>
+        );
+      });
+
+  const mobileBlocks = (
+    itemCode: string,
+    node: RsiReasonNode,
+    selected: Selected,
+  ): ReactNode[] =>
+    node.children
+      .filter((child) => visible(child, selected))
+      .map((child) =>
+        child.isLeaf ? (
+          <div key={child.entry.code} className={styles.mobileReason}>
+            <div>{reasonLabel(child, node)}</div>
+            <div className={styles.mobileSeverities}>
+              {RSI_SEVERITIES.map((sev) => (
+                <Fragment key={sev}>
+                  {severityBox(itemCode, child, sev, selected)}
+                </Fragment>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div key={child.entry.code} className={styles.mobileGroup}>
+            <div className={styles.mobileGroupTitle}>
+              {child.number} {child.entry.name}
+            </div>
+            {mobileBlocks(itemCode, child, selected)}
+          </div>
+        ),
+      );
+
+  const nationalHint = (item: RsiCheckedItem) =>
+    !readOnly && item.nationalDefects && item.nationalDefects.length > 0 ? (
+      <div className={styles.nationalHint}>
+        <Text modifiers="bold">{t('erru.rsi.checkedItems.nationalHint')}</Text>
+        <ul>
+          {item.nationalDefects.map((d) => (
+            <li key={d.defectCode}>
+              {getValue('TECHNICAL_CHECK', d.defectCode)?.name ?? d.defectCode}{' '}
+              <StatusBadge color={severityColor(d.severity)} variant="bordered">
+                {d.severity}
+              </StatusBadge>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : null;
+
+  const reasonsBlock = (node: RsiReasonNode, item: RsiCheckedItem) => {
+    const selected: Selected = new Map(
+      item.defects.map((d) => [d.defectCode, d.severity]),
+    );
+    const missing = !readOnly && item.defects.length === 0;
     return (
-      <>
-        {item.defects.length > 0 && (
-          <ul className={styles.defectsList}>
-            {item.defects.map((d) => (
-              <li key={d.defectCode} className={styles.defectItem}>
-                <span className={styles.defectName}>
-                  {defectsByPartKey
-                    .get(part.classifierValueKey)
-                    ?.find((c) => c.code === d.defectCode)?.name ?? stripCaa(d.defectCode)}
-                </span>
-                <StatusBadge color={severityColor(d.severity)} variant="bordered">
-                  {d.severity}
-                </StatusBadge>
-                {!disabled && (
-                  <Button
-                    icon="delete"
-                    visualType="neutral"
-                    color="danger"
-                    size="small"
-                    onClick={() => onRemoveDefect(part.code, d.defectCode)}
-                  >
-                    {t('common.delete')}
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
+      <div className={styles.reasons}>
+        {nationalHint(item)}
+        {isDesktop ? (
+          <table className={styles.reasonsTable}>
+            <thead>
+              <tr>
+                <th>{t('erru.rsi.checkedItems.aspect')}</th>
+                <th>{t('erru.rsi.checkedItems.reason')}</th>
+                {RSI_SEVERITIES.map((sev) => (
+                  <th key={sev} className={styles.sevCell}>
+                    {sevLabel(sev)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>{desktopRows(node.entry.code, node, selected)}</tbody>
+          </table>
+        ) : (
+          mobileBlocks(node.entry.code, node, selected)
         )}
-        {!disabled && (
-          <Button
-            visualType="link"
-            size="small"
-            onClick={() => setModalPart(part)}
-          >
-            {t('erru.rsi.checkedItems.editDefects')}
-          </Button>
+        {missing && error && (
+          <Text color="danger" className="mt-05">
+            {error}
+          </Text>
         )}
-      </>
+      </div>
     );
   };
 
-  const modal = (
-    <RsiDefectModal
-      open={!!modalPart}
-      part={modalPart}
-      defects={
-        modalPart
-          ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? [])
-          : []
-      }
-      existing={modalPart ? itemOf(modalPart.code).defects : []}
-      onClose={() => setModalPart(null)}
-      onConfirm={(selected) => {
-        if (modalPart) onDefectsChange(modalPart.code, selected);
-        setModalPart(null);
-      }}
-    />
+  /* ─── Item rows ─── */
+
+  const itemBoxes = (node: RsiReasonNode, item: RsiCheckedItem) => ({
+    checked: (
+      <Checkbox
+        id={`rsi-item-${node.entry.code}-checked`}
+        name={`rsi-item-${node.entry.code}-checked`}
+        value="checked"
+        label={t('erru.rsi.checkedItems.checked')}
+        hideLabel={isDesktop}
+        checked={item.status !== 'not_checked'}
+        disabled={readOnly}
+        onChange={(_, on) => !readOnly && setChecked(node.entry.code, on)}
+      />
+    ),
+    nonCompliant: (
+      <Checkbox
+        id={`rsi-item-${node.entry.code}-non-compliant`}
+        name={`rsi-item-${node.entry.code}-non-compliant`}
+        value="non_compliant"
+        label={t('erru.rsi.checkedItems.nonCompliant')}
+        hideLabel={isDesktop}
+        checked={item.status === 'non_compliant'}
+        disabled={readOnly}
+        onChange={(_, on) => !readOnly && setNonCompliant(node.entry.code, on)}
+      />
+    ),
+  });
+
+  const indexClass = (status: RsiCheckedItem['status']) =>
+    status === 'checked'
+      ? shared.partIndexChecked
+      : status === 'non_compliant'
+        ? shared.partIndexNonCompliant
+        : '';
+
+  const partName = (node: RsiReasonNode, item: RsiCheckedItem) => (
+    <span className={shared.partName}>
+      <span className={`${shared.partIndex} ${indexClass(item.status)}`}>
+        {node.number}
+      </span>
+      <span className={shared.partLabel}>{node.entry.name}</span>
+    </span>
   );
 
-  /* ─── Desktop: classic two-column table ─── */
+  const shown = tree.items.filter(
+    (node) => !readOnly || itemOf(node.entry.code).status !== 'not_checked',
+  );
+  if (readOnly && shown.length === 0)
+    return <Text>{t('erru.rsi.checkedItems.noneChecked')}</Text>;
+
   if (isDesktop) {
     return (
-      <>
-        <table className={styles.checkedItemsTable}>
-          <thead>
-            <tr>
-              <th>{t('erru.rsi.checkedItems.part')}</th>
-              <th>{t('erru.rsi.checkedItems.result')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {parts.map((part) => {
-              const item = itemOf(part.code);
-              const rowCls =
-                item.status === 'checked'
-                  ? styles.rowChecked
-                  : item.status === 'non_compliant'
-                    ? styles.rowNonCompliant
-                    : '';
-              return (
-                <tr key={part.classifierValueKey} className={rowCls}>
-                  <td>
-                    <span className={styles.partName}>
-                      <span
-                        className={`${styles.partIndex} ${indexClass(item.status)}`}
-                      >
-                        {partNumber(part.code)}
-                      </span>
-                      <span className={styles.partLabel}>{stripCaa(part.name)}</span>
-                    </span>
-                  </td>
-                  <td>
-                    <div onClick={(e) => handleRadioClick(part, e)}>
-                      <ChoiceGroup
-                        id={`rsi-part-status-${part.code}`}
-                        name={`rsi-part-status-${part.code}`}
-                        label={t('erru.rsi.checkedItems.result')}
-                        hideLabel
-                        inputType="radio"
-                        direction="row"
-                        value={item.status}
-                        onChange={(val) =>
-                          !disabled &&
-                          handleStatusChange(part, val as RsiCheckedItem['status'])
-                        }
-                        items={radioItems(part.code)}
-                      />
-                    </div>
-                    {defectsBlock(part, item)}
-                  </td>
+      <table className={shared.checkedItemsTable}>
+        <thead>
+          <tr>
+            <th>{t('erru.rsi.checkedItems.part')}</th>
+            <th className={styles.boxHeader}>
+              {t('erru.rsi.checkedItems.checked')}
+            </th>
+            <th className={styles.boxHeader}>
+              {t('erru.rsi.checkedItems.nonCompliant')}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {shown.map((node) => {
+            const item = itemOf(node.entry.code);
+            const boxes = itemBoxes(node, item);
+            const rowCls =
+              item.status === 'checked'
+                ? shared.rowChecked
+                : item.status === 'non_compliant'
+                  ? shared.rowNonCompliant
+                  : '';
+            return (
+              <Fragment key={node.entry.code}>
+                <tr className={rowCls}>
+                  <td>{partName(node, item)}</td>
+                  <td className={styles.boxCell}>{boxes.checked}</td>
+                  <td className={styles.boxCell}>{boxes.nonCompliant}</td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {modal}
-      </>
+                {item.status === 'non_compliant' && (
+                  <tr>
+                    <td colSpan={3} className={styles.reasonsCell}>
+                      {reasonsBlock(node, item)}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
     );
   }
 
-  /* ─── Tablet / Phone: card grid ─── */
   return (
-    <>
-      <div className={styles.cardList}>
-        {parts.map((part) => {
-          const item = itemOf(part.code);
-          const cardCls = [
-            styles.partCard,
-            item.status === 'checked' ? styles.cardChecked : '',
-            item.status === 'non_compliant' ? styles.cardNonCompliant : '',
-          ]
-            .filter(Boolean)
-            .join(' ');
-
-          return (
-            <div key={part.classifierValueKey} className={cardCls}>
-              <div className={styles.cardHeader}>
-                <span className={styles.partName}>
-                  <span
-                    className={`${styles.partIndex} ${indexClass(item.status)}`}
-                  >
-                    {partNumber(part.code)}
-                  </span>
-                  <span className={styles.partLabel}>{stripCaa(part.name)}</span>
-                </span>
-              </div>
-              <div
-                className={styles.cardRadios}
-                onClick={(e) => handleRadioClick(part, e)}
-              >
-                <ChoiceGroup
-                  id={`rsi-part-status-${part.code}`}
-                  name={`rsi-part-status-${part.code}`}
-                  label={t('erru.rsi.checkedItems.result')}
-                  hideLabel
-                  inputType="radio"
-                  direction="column"
-                  value={item.status}
-                  onChange={(val) =>
-                    !disabled &&
-                    handleStatusChange(part, val as RsiCheckedItem['status'])
-                  }
-                  items={radioItems(part.code)}
-                />
-              </div>
-              {defectsBlock(part, item)}
+    <div className={shared.cardList}>
+      {shown.map((node) => {
+        const item = itemOf(node.entry.code);
+        const boxes = itemBoxes(node, item);
+        const cardCls = [
+          shared.partCard,
+          item.status === 'checked' ? shared.cardChecked : '',
+          item.status === 'non_compliant' ? shared.cardNonCompliant : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        return (
+          <div key={node.entry.code} className={cardCls}>
+            <div className={shared.cardHeader}>{partName(node, item)}</div>
+            <div className={styles.mobileItemBoxes}>
+              {boxes.checked}
+              {boxes.nonCompliant}
             </div>
-          );
-        })}
-      </div>
-      {modal}
-    </>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════
-   Defect-selection modal — one TEDI radio group per defect, with
-   an explicit "Puudub" (none) option so a chosen severity can be
-   cleared. Same pattern as technical-check-form's DefectSelectionModal.
-   ═══════════════════════════════════════════════════════════ */
-
-function RsiDefectModal({
-  open,
-  part,
-  defects,
-  existing,
-  onClose,
-  onConfirm,
-}: {
-  open: boolean;
-  part: ClassifierEntry | null;
-  defects: ClassifierEntry[];
-  existing: { defectCode: string; severity: RsiDefectSeverity }[];
-  onClose: () => void;
-  onConfirm: (
-    selected: { defectCode: string; severity: RsiDefectSeverity }[],
-  ) => void;
-}) {
-  const { t } = useTranslation();
-  const [selections, setSelections] = useState<
-    Record<string, RsiDefectSeverity | ''>
-  >({});
-  const [showHint, setShowHint] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    const initial: Record<string, RsiDefectSeverity | ''> = {};
-    defects.forEach((d) => {
-      initial[d.code] =
-        existing.find((e) => e.defectCode === d.code)?.severity ?? '';
-    });
-    setSelections(initial);
-    setShowHint(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, part?.code]);
-
-  const applicableSeverities = (
-    defect: ClassifierEntry,
-  ): RsiDefectSeverity[] => {
-    const list = (defect.description ?? '').split(',').map((s) => s.trim());
-    return SEVERITIES.filter((s) => list.includes(s));
-  };
-
-  const handleConfirm = () => {
-    const selected = Object.entries(selections)
-      .filter(([, sev]) => !!sev)
-      .map(([defectCode, sev]) => ({
-        defectCode,
-        severity: sev as RsiDefectSeverity,
-      }));
-    if (selected.length === 0) {
-      setShowHint(true);
-      return;
-    }
-    onConfirm(selected);
-  };
-
-  const title = part
-    ? stripCaa(part.name).charAt(0).toUpperCase() + stripCaa(part.name).slice(1)
-    : '';
-
-  return (
-    <Modal open={open} onToggle={(next) => !next && onClose()}>
-      <Modal.Content aria-label={title}>
-        <Modal.Header title={title} />
-        <Modal.Body>
-          {defects.length === 0 && (
-            <Text>{t('erru.rsi.defectModal.noDefects')}</Text>
-          )}
-          {defects.map((defect) => {
-            const current = selections[defect.code] ?? '';
-            return (
-              <div key={defect.code} className="mb-1">
-                <ChoiceGroup
-                  id={`rsi-defect-${defect.code}`}
-                  name={`rsi-defect-${defect.code}`}
-                  label={defect.name}
-                  // Checkbox look, single-select: picking a severity replaces the
-                  // previous one, clicking the selected box again clears it — so
-                  // no separate "clear" option is needed.
-                  inputType="checkbox"
-                  direction="row"
-                  value={current ? [current] : []}
-                  onChange={(val) => {
-                    const arr = (Array.isArray(val) ? val : []) as RsiDefectSeverity[];
-                    const added = arr.find((v) => v !== current);
-                    setSelections((prev) => ({ ...prev, [defect.code]: added ?? '' }));
-                  }}
-                  items={applicableSeverities(defect).map((sev) => ({
-                    id: `rsi-defect-${defect.code}-${sev}`,
-                    value: sev,
-                    label: sev,
-                  }))}
-                />
-              </div>
-            );
-          })}
-          {showHint && (
-            <Text color="danger">
-              {t('erru.rsi.defectModal.selectAtLeastOne')}
-            </Text>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button visualType="secondary" onClick={onClose}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={handleConfirm}>
-            {t('erru.rsi.defectModal.select')}
-          </Button>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal>
+            {item.status === 'non_compliant' && reasonsBlock(node, item)}
+          </div>
+        );
+      })}
+    </div>
   );
 }

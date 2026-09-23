@@ -246,6 +246,28 @@ const shots = [
   { name: 'user-guide/erru-nu-otsing', run: (p) => gotoShot(p, '/erru/nu/new', 'user-guide/images/23-erru-nu/03-allika-otsing.png') },
   // Otse hea maine deklaratsioonist eeltäidetud vorm (sourceKey = good_repute_form_key).
   { name: 'user-guide/erru-nu-vorm', run: (p) => gotoShot(p, '/erru/nu/new?sourceKey=1', 'user-guide/images/23-erru-nu/04-vorm.png') },
+  // --- RSI tehnokontrolli teade: kontrollpunktid ja mitteläbimise põhjused (RSI_FAILED_REASON) ---
+  { name: 'user-guide/erru-rsi-loend', run: (p) => gotoShot(p, '/erru/rsi', 'user-guide/images/21-erru-rsi/01-loend.png') },
+  {
+    name: 'user-guide/erru-rsi-kontrollitud-punkt',
+    run: async (page) => {
+      await page.goto(BASE + '/erru/rsi/new', { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      const heading = page.getByRole('heading', { name: 'Kontrollitud punkt' });
+      await heading.scrollIntoViewIfNeeded();
+      await page.evaluate(() => window.scrollBy(0, -80));
+      await shoot(page, 'user-guide/images/21-erru-rsi/02-kontrollitud-punkt.png');
+      // "Ei vasta nõuetele" avab punkti põhjuste tabeli; vali kaks näidispõhjust.
+      await page.locator('label[for="rsi-item-1-non-compliant"]').click();
+      await sleep(400);
+      await page.locator('label[for="rsi-reason-1.1.3.a-OV"]').click();
+      await page.locator('label[for="rsi-reason-1.1.4-VO"]').click();
+      await sleep(300);
+      await page.locator('#rsi-item-1-non-compliant').scrollIntoViewIfNeeded();
+      await page.evaluate(() => window.scrollBy(0, -60));
+      await shoot(page, 'user-guide/images/21-erru-rsi/03-pohjuste-tabel.png');
+    },
+  },
   {
     name: 'user-guide/vorm-tram-kontrollkaart',
     run: async (page) => {
