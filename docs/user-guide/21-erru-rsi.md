@@ -24,6 +24,8 @@ nupp **„Loo RSI teade"** eeltäidab teate sõiduki, vedaja ja kontrolliandmete
 
 ## Teate ülesehitus
 
+![RSI teadete loend](images/21-erru-rsi/01-loend.png)
+
 RSI teade koosneb kaheksast plokist:
 
 | Plokk | Sisu |
@@ -44,6 +46,8 @@ Kontrollpunktid ja mitteläbimise põhjused tulevad klassifikaatorist
 direktiivi 2014/47/EL II lisa (punktid 0–9) ja III lisa (10 Sõiduki sobivus,
 20 Kinnitusmeetodid). Koodid on samad, mis ERRU teates.
 
+![Kontrollitud punkt](images/21-erru-rsi/02-kontrollitud-punkt.png)
+
 Iga kontrollpunkti real on kaks märkeruutu:
 - **Kontrollitud** — punkt kontrolliti;
 - **Ei vasta nõuetele** — märgib punkti ka kontrollituks ja avab rea all
@@ -54,6 +58,8 @@ Põhjuste tabelis on märkeruut ainult nende hinnangute juures, mida direktiiv
 selle põhjuse puhul lubab. Ühe põhjuse kohta saab valida ühe hinnangu; märgitud
 ruudu uuesti klõpsamine eemaldab valiku. Nõuetele mittevastaval punktil peab
 olema valitud vähemalt üks põhjus — muidu teadet salvestada ega saata ei saa.
+
+![Mitteläbimise põhjuste tabel](images/21-erru-rsi/03-pohjuste-tabel.png)
 
 **Kontrollitud** märke eemaldamine tühjendab ka punkti põhjused.
 
