@@ -51,10 +51,17 @@ async function fillDriveRestSubForm(
   const prefix = /meeskon/i.test(tabName.source) ? 'teammate-' : '';
   await checkChoiceById(page, `${prefix}transport_type_cargo`);  // Veosevedu
   await checkChoiceById(page, `${prefix}result_korras`);          // Korras
+  // "Sõidu- ja puhkeaja nõuete kontroll" akordion on vaikimisi kokku pandud
+  // (defaultExpanded=false) — tuleb avada enne applicability raadionupu klõpsamist.
+  await page.locator(`#${prefix}drive-rest-violations-header`).click();
+  await checkChoiceById(page, `${prefix}applicability_not_checked`); // Ei kontrollitud
   // Liigu Üldosa tabile tagasi — see ootab, kuni Formik async-valideerimine lõpeb
   await page.getByRole('tab', { name: /Üldosa/ }).click();
+  // Pealkirja (mitte suvalise teksti) järgi, et vältida vastet SP alamvormi
+  // "Sõidu- ja puhkeaja nõuete kontroll" selgitava teksti sees olevale
+  // alamstringile "kontrolli koht(a)".
   await expect(
-    page.getByText(/Kontrolli koht/i),
+    page.getByRole('heading', { name: /Kontrolli koht/i }),
   ).toBeVisible({ timeout: 5_000 });
 }
 

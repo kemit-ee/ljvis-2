@@ -1272,7 +1272,9 @@
       "selectAtLeastOne": "Valige vähemalt üks rikkumine.",
       "checkedDaysCount": "Kontrollitud päevade arv",
       "workDaysCount": "nendest tööpäevi",
-      "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta"
+      "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta",
+      "applicabilityRequiredExplanationDriver": "Autojuhi sõidu- ja puhkeaja nõuete kontrolli kohta peab olema vähemalt üks andmeväli täidetud",
+      "applicabilityRequiredExplanationTeammate": "Meeskonna liikme sõidu- ja puhkeaja nõuete kontrolli kohta peab olema vähemalt üks andmeväli täidetud"
     },
     "massDimension": {
       "blockTitle": "Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta",
@@ -1296,7 +1298,7 @@
       "remarkPlaceholder": "Sisestage märkus..."
     },
     "restCheck": {
-      "blockTitle": "Sõidu- ja puhkeaja nõuete täitmine"
+      "blockTitle": "Sõidu- ja puhkeaja nõuete kontroll"
     },
     "rooma1": {
       "blockTitle": "Rooma I lepingu rikkumised"
