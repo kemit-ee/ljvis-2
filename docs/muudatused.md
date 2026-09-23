@@ -6,6 +6,13 @@
 
 ## 2026-09-23
 
+### Dokumentatsioon: võrguühendused NetworkPolicy jaoks
+
+Lisatud dokument „Võrguühendused (NetworkPolicy)", mis loetleb kõigi
+komponentide sisse- ja väljaminevad ühendused (pordid, välised sihtkohad
+keskkonniti, AWS-i Security Group'ide reeglid) Kubernetes NetworkPolicy'de
+ehitamise alusena.
+
 ### erru.ncr_message: append-only mustri rikkumise parandus
 
 `erru/ncr/update-vr-link.sql` tegi NCR-teate ja sellest loodud välisriigi
