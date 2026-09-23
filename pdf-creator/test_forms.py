@@ -68,4 +68,30 @@ class FormTests(unittest.TestCase):
         self.assertIn('Kontrollitavate detailide loetelu',html)
         self.assertNotIn('technical-back',TEMPLATES)
 
+    def test_rsi_prints_every_failed_reason_with_allowed_boxes_only(self):
+        from forms import build_rsi_context
+        for blank in (True,False):
+            data=build_rsi_context(self.fixture('rsi'),blank)
+            reasons=[r for r in data['reason_rows'] if r['kind']=='reason']
+            self.assertEqual(476,len(reasons))
+            self.assertEqual(12,len(data['parts']))
+            self.assertTrue(all(any(b['allowed'] for b in r['boxes']) for r in reasons))
+        filled=build_rsi_context(self.fixture('rsi'),False)
+        ticked=[r['label'] for r in filled['reason_rows'] if r['kind']=='reason' and any(b['checked'] for b in r['boxes'])]
+        self.assertEqual(3,len(ticked))
+        vacuum=next(r for r in filled['reason_rows'] if r['kind']=='reason' and r['label'].startswith('a) Ebapiisav õhurõhk'))
+        self.assertEqual([False,True,False],[b['checked'] for b in vacuum['boxes']])
+        self.assertEqual([False,True,True],[b['allowed'] for b in vacuum['boxes']])
+        self.assertEqual({'0':'checked','1':'non_compliant','20':'non_compliant'},{p['name'].split('.')[0]:p['status'] for p in filled['parts'] if p['status']})
+    def test_rsi_incoming_erru_shape_and_legacy_codes(self):
+        from forms import build_rsi_context
+        p=self.fixture('rsi');p['rsiMessage']['checkedItems']=json.dumps([{'itemType':5,'itemFailed':True,'failedChecks':[{'failedReason':'5.2.3.a','failedAssessment':'Dangerous'}]}])
+        data=build_rsi_context(p,False)
+        tyre=next(r for r in data['reason_rows'] if r['kind']=='reason' and r['boxes'][2]['checked'])
+        self.assertTrue(tyre['label'].startswith('a) '))
+        p['rsiMessage']['checkedItems']=[{'partCode':'CAA_1','status':'non_compliant','defects':[{'defectCode':'CAA_1.1.1','severity':'OV'}]}]
+        html,_=render_html(p,False,'rsi')
+        self.assertIn('CAA_1.1.1 (OV)',html)
+        self.assertIn('Pidurisüsteem',html)
+
 if __name__=='__main__':unittest.main()

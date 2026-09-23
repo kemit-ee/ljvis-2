@@ -13,6 +13,9 @@ def save(path,data):
 tech='20261020110000-technical-check-defect-classifier.sql'
 rows=[{'part':p,'code':c,'name':n,'allowed':sev.split(',')} for p,c,n,sev in tuples(tech,4) if p.startswith('CAA_')]
 save('vehicle-technical/defects.json',rows)
+# RSI_FAILED_REASON (direktiiv 2014/47/EL II/III lisa): (code, parent, name, severities).
+rsi=[{'code':c,'parent':p or None,'name':n,'severities':sev.split(',') if sev else []} for c,p,n,sev in tuples('20261125100000-rsi-failed-reason-classifier.sql',4) if re.match(r'^(G:)?[0-9]',c)]
+save('rsi/failed-reasons.json',rsi)
 sp='20260828277000-initial-sp-form-classifiers.sql'
 four=tuples(sp,4);parents={c:(n,d,p) for c,n,d,p in four if d not in ['MI','SI','VSI','MSI']}
 violations=[]

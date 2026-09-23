@@ -3,26 +3,27 @@ import { checkChoiceById } from '../support/tedi';
 
 /** RSI kaart: UI struktuur, kontrollpunktide lubatud olekud ja printimise kutse. */
 test.describe('RSI teade', () => {
-  test('uus vorm avaneb ning „Ei kontrollitud” valikut ei kuvata', async ({ page }) => {
+  test('uus vorm kuvab 12 ERRU kontrollpunkti märkeruutudega', async ({ page }) => {
     await page.goto('/erru/rsi/new', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: /RSI/i }).first()).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/Kontrollitud punkt/i)).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/Ei kontrollitud/i)).toHaveCount(0);
-    // Veose kinnitamine (CAA_10) has no ERRU equivalent and must never appear
-    // in an RSI message (LJVIS2-148 §4.1) — excluded from this checklist too.
-    await expect(page.getByText(/Veose kinnitamine/i)).toHaveCount(0);
-    await expect(page.getByText(/^muu$/i)).toBeVisible();
+    // RSI_FAILED_REASON 1. tase = ERRU rsiItemType 0..10, 20 (direktiiv 2014/47/EL).
+    await expect(page.locator('input[id^="rsi-item-"][id$="-non-compliant"]')).toHaveCount(12);
+    await expect(page.getByText('Sõiduki sobivus', { exact: true })).toBeVisible();
+    await expect(page.getByText('Kinnitusmeetodid', { exact: true })).toBeVisible();
   });
 
-  test('mittevastava kontrollpunkt avab rikkemodaliga valiku', async ({ page }) => {
+  test('„Ei vasta nõuetele” avab põhjuste tabeli lubatud hinnangutega', async ({ page }) => {
     await page.goto('/erru/rsi/new', { waitUntil: 'domcontentloaded' });
     await expect(page.getByText(/Kontrollitud punkt/i)).toBeVisible({ timeout: 20_000 });
-    const nonCompliant = page.getByRole('radio', { name: /Ei vasta nõuetele/i }).first();
-    await expect(nonCompliant).toBeEnabled();
-    const inputId = await nonCompliant.getAttribute('id');
-    expect(inputId).toBeTruthy();
-    await checkChoiceById(page, inputId!);
-    await expect(page.getByRole('dialog')).toBeVisible();
+    await checkChoiceById(page, 'rsi-item-1-non-compliant');
+    await expect(page.locator('#rsi-item-1-checked')).toBeChecked();
+    // 1.1.2 a) lubab ainult olulise ja ohtliku hinnangu.
+    await expect(page.locator('#rsi-reason-1\\.1\\.2\\.a-OV')).toHaveCount(1);
+    await expect(page.locator('#rsi-reason-1\\.1\\.2\\.a-VO')).toHaveCount(0);
+    await checkChoiceById(page, 'rsi-reason-1.1.2.a-EOV');
+    await expect(page.locator('#rsi-reason-1\\.1\\.2\\.a-EOV')).toBeChecked();
   });
 
   test('RSI detailis kuvatakse printimise nupp ja print endpointi kasutatakse', async ({ page }) => {

@@ -1,6 +1,6 @@
 declaration:
   version: "1.0"
-  description: "Pre-fill a new outgoing RSI draft from a vehicle technical-check form (eeltäitmine, LJVIS2-148 §4.1). Reads the vehicle technical-check sub-form for the checked parts (parts_summary JSONB) and its parent compound_form (via compound_form_key) for the vehicle registration number and VIN — forms.vehicle_technical_form itself does NOT store the registration number/VIN: era_yv_mnt_regnr/era_yv_mnt_vintin are unrelated boolean checkboxes ('Erakorraline ülevaatus TA täpsustus: Registreerimisnumber/VIN-kood', shown only when result=extraordinary_inspection_ta) — an earlier version of this endpoint read those two booleans by mistake, which meant eeltäitmine could never produce a real vehicle registration number. Maps parts_summary to the RSI checked_items national format; CAA_10 is excluded (it has no ERRU equivalent and must never appear in an RSI message, per LJVIS2-148 §4.1). The vehicle registration country, category, inspection details, and other RSI envelope fields are provided by the caller when present (the frontend has this context from the compound form already loaded), falling back to the compound_form's own vehicle_country_code/vehicle_category_code when the caller omits them. inspection_passed is always false — RSI notifications are issued only for negative inspection results (spec §Plokk Kontrolltulemused). Delegates to the same append-draft.sql as save.yml — there is no separate build SQL query (see append-draft.sql §description comment). Covered by the POST/v1/erru/rsi/request/.guard (rsi.create permission)."
+  description: "Pre-fill a new outgoing RSI draft from a vehicle technical-check form (eeltäitmine, LJVIS2-148 §4.1). Reads the vehicle technical-check sub-form for the checked parts (parts_summary JSONB) and its parent compound_form (via compound_form_key) for the vehicle registration number and VIN — forms.vehicle_technical_form itself does NOT store the registration number/VIN: era_yv_mnt_regnr/era_yv_mnt_vintin are unrelated boolean checkboxes ('Erakorraline ülevaatus TA täpsustus: Registreerimisnumber/VIN-kood', shown only when result=extraordinary_inspection_ta) — an earlier version of this endpoint read those two booleans by mistake, which meant eeltäitmine could never produce a real vehicle registration number. Maps parts_summary to RSI checked_items at item level only (RSI_FAILED_REASON codes: CAA_0..9 → '0'..'9', CAA_10 → '10'/'20', CAA_11 dropped); national defects are carried as a nationalDefects hint and the ERRU reasons are chosen in the RSI form. The vehicle registration country, category, inspection details, and other RSI envelope fields are provided by the caller when present (the frontend has this context from the compound form already loaded), falling back to the compound_form's own vehicle_country_code/vehicle_category_code when the caller omits them. inspection_passed is always false — RSI notifications are issued only for negative inspection results (spec §Plokk Kontrolltulemused). Delegates to the same append-draft.sql as save.yml — there is no separate build SQL query (see append-draft.sql §description comment). Covered by the POST/v1/erru/rsi/request/.guard (rsi.create permission)."
   namespace: erru
   allowlist:
     body:
@@ -81,32 +81,47 @@ checkFormFound:
       next: returnFormNotFound
   next: extractFormData
 
-# Map parts_summary (TECHNICAL_CHECK national format) → RSI checked_items national format,
-# filtering out CAA_10 (no ERRU equivalent). parts_summary uses the same shape as
-# checked_items: [{partCode, status, defects:[{defectCode, severity}]}].
+# Map parts_summary (national TECHNICAL_CHECK) → RSI checked_items (RSI_FAILED_REASON codes,
+# direktiiv 2014/47/EL). Only the item level is pre-filled: the national level-2 defect
+# (e.g. CAA_1.1.3) does not say which ERRU reason (1.1.3.a/b/…) applies, so the inspector
+# picks the reasons in the RSI form. The national defects are kept on the item as
+# nationalDefects (display hint only — never sent, see send.yml convertCheckedItems).
+#   CAA_0..CAA_9 → itemType '0'..'9'
+#   CAA_10 (veose kinnitamine) → '10' (sõiduki sobivus, defects CAA_10.1.x…10.7.x) and
+#     '20' (kinnitusmeetodid, defects CAA_10.20.x, CAA_10.30, CAA_10.A–D); a cargo item is
+#     'non_compliant' only when it has national defects of its own, otherwise 'checked'.
+#   CAA_11 (muu) has no ERRU equivalent and is dropped.
+# shape: [{partCode, status, defects:[], nationalDefects:[{defectCode, severity}]}].
 # NOTE: era_yv_mnt_regnr/era_yv_mnt_vintin on vehicle_technical_form are unrelated boolean
 # checkboxes, NOT the registration number/VIN — those live on the parent compound_form,
 # fetched separately below via compound_form_key.
-# NOTE 2: the JSON-parse-then-filter conversion is deliberately split into two small assign
-# steps rather than one large IIFE — see POST/v1/erru/rsi/send.yml §prepareOutbound comment
-# for why: Ruuter-on-Rust's template evaluator silently fails on a single large `${...}`
-# expression once enough OTHER variables have already accumulated earlier in the same flow,
-# returning the literal unevaluated template text instead of raising an error.
+# NOTE 2: the conversion is deliberately split into small assign steps rather than one large
+# IIFE — see POST/v1/erru/rsi/send.yml §prepareOutbound comment for why: Ruuter-on-Rust's
+# template evaluator silently fails on a single large `${...}` expression once enough OTHER
+# variables have already accumulated earlier in the same flow, returning the literal
+# unevaluated template text instead of raising an error.
 extractFormData:
   assign:
     compound_form_key: "${('' + (form_res.response.body[0].compoundFormKey || '')).trim()}"
     parts_summary_array: "${(function(){ var ps = form_res.response.body[0].partsSummary; return typeof ps === 'string' ? JSON.parse(ps || '[]') : (Array.isArray(ps) ? ps : []); })()}"
     parts_defects_array: "${(function(){ var pd = form_res.response.body[0].partsDefects; return typeof pd === 'string' ? JSON.parse(pd || '[]') : (Array.isArray(pd) ? pd : []); })()}"
-  next: convertCheckedItems
+  next: convertVehicleItems
 
-convertCheckedItems:
+convertVehicleItems:
   assign:
-    # partCode stays in national TECHNICAL_CHECK form (e.g. 'CAA_11') here — the RSI record
-    # keeps the national shape until sent (see erru.rsi_message.checked_items column comment);
-    # the CAA_11 -> ERRU itemType 20 conversion happens only in send.yml's convertCheckedItems,
-    # so both this eeltäitmine path and manual entry (useRsiForm.ts, which also stores 'CAA_11')
-    # are converted identically and exactly once, at send time.
-    checked_items_raw: "${JSON.stringify(parts_summary_array.filter(function(i){return (i.status === 'checked' || i.status === 'non_compliant') && i.partCode !== 'CAA_10';}).map(function(i){return {partCode:i.partCode,status:i.status,defects:parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode:d.defectCode,severity:d.severity};})};}))}"
+    vehicle_items: "${parts_summary_array.filter(function(i){return (i.status === 'checked' || i.status === 'non_compliant') && /^CAA_[0-9]$/.test(i.partCode || '');}).map(function(i){return {partCode: i.partCode.replace('CAA_', ''), status: i.status, defects: [], nationalDefects: parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode: d.defectCode, severity: d.severity};})};})}"
+    cargo_status: "${(parts_summary_array.filter(function(i){return i.partCode === 'CAA_10';})[0] || {}).status || ''}"
+    cargo_defects: "${parts_defects_array.filter(function(d){return d.partCode === 'CAA_10';}).map(function(d){return {defectCode: d.defectCode, severity: d.severity, item: /^CAA_10[.][1-7][.]/.test(d.defectCode || '') ? '10' : '20'};})}"
+  next: convertCargoItems
+
+convertCargoItems:
+  assign:
+    cargo_items: "${(cargo_status === 'checked' || cargo_status === 'non_compliant') ? ['10', '20'].map(function(n){ var nd = cargo_defects.filter(function(d){return d.item === n;}).map(function(d){return {defectCode: d.defectCode, severity: d.severity};}); return {partCode: n, status: (cargo_status === 'non_compliant' && nd.length > 0) ? 'non_compliant' : 'checked', defects: [], nationalDefects: nd}; }) : []}"
+  next: joinCheckedItems
+
+joinCheckedItems:
+  assign:
+    checked_items_raw: "${JSON.stringify(vehicle_items.concat(cargo_items))}"
   next: checkCompoundFormKeyPresent
 
 checkCompoundFormKeyPresent:
