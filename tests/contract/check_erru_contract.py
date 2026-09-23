@@ -20,7 +20,13 @@ SCHEMAS = ROOT / 'contracts/erru/3.5'
 INITIAL = ROOT / 'DSL/Liquibase/changelog/20261116100000-initial-erru-nu.sql'
 VALIDATION = ROOT / 'DSL/Liquibase/changelog/20261117120000-erru-nu-validation.sql'
 EXCHANGE = ROOT / 'DSL/Liquibase/changelog/20261117121000-erru-nu-exchange.sql'
-MIGRATIONS = (INITIAL, VALIDATION, EXCHANGE)
+# Reviewed follow-up to EXCHANGE: fixes a checksum break caused by editing
+# an already-applied changeset in place (PR #415) by restoring EXCHANGE's
+# original content and re-applying its functional delta via a new,
+# separately-versioned CREATE OR REPLACE FUNCTION migration. Does not touch
+# any of the length/enum limits parsed out of EXCHANGE below.
+ALIGN_OUTGOING_FIELDS = ROOT / 'DSL/Liquibase/changelog/20261124140000-erru-nu-align-outgoing-fields.sql'
+MIGRATIONS = (INITIAL, VALIDATION, EXCHANGE, ALIGN_OUTGOING_FIELDS)
 
 
 @dataclass(frozen=True)

@@ -99,7 +99,7 @@ ins AS (
   )
   SELECT
     nextval('forms.seq_labour_inspection_form_key'),
-    'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_labour_inspection_form_key')::TEXT, 5, '0'),
+    'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_labour_inspection_form_key')::TEXT, GREATEST(5, LENGTH(currval('forms.seq_labour_inspection_form_key')::TEXT)), '0'),
     1,
     'saved',
     :inspectorName,
