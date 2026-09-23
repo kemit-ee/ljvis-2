@@ -103,4 +103,5 @@ tests:
       vehicleRegistrationNumber: ABC123
       vehicleIdentificationNumber: VIN1
       vehicleRegistrationCountry: EE
-      checkedItems: '[{"partCode":"1","status":"non_compliant","defects":[],"nationalDefects":[{"defectCode":"CAA_1.1.3","severity":"OV"}]},{"partCode":"10","status":"checked","defects":[],"nationalDefects":[]},{"partCode":"20","status":"non_compliant","defects":[],"nationalDefects":[{"defectCode":"CAA_10.20.3.1a","severity":"OV"}]}]'
+      # Ruuter's JSON.stringify emits keys in alphabetical order.
+      checkedItems: '[{"defects":[],"nationalDefects":[{"defectCode":"CAA_1.1.3","severity":"OV"}],"partCode":"1","status":"non_compliant"},{"defects":[],"nationalDefects":[],"partCode":"10","status":"checked"},{"defects":[],"nationalDefects":[{"defectCode":"CAA_10.20.3.1a","severity":"OV"}],"partCode":"20","status":"non_compliant"}]'
