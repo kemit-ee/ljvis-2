@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-09-23
+
+### Autojuhi ja meeskonna liikme sõidu- ja puhkeaja nõuete kontroll
+
+- Akordioni pealkiri "Sõidu- ja puhkeaja nõuete täitmine" nimetati ümber
+  "Sõidu- ja puhkeaja nõuete kontroll" (nii autojuhi kui meeskonna liikme
+  sõidu- ja puhkeaja vormil).
+- Andmeväli "Rakendatakse" / "Ei rakendata" / "Ei kontrollitud" on nüüd
+  kohustuslik täita. Välja juurde lisati selgitav tekst koos punase
+  tärniga.
+
+---
+
 ## 2026-09-22 (parandus)
 
 ### Liquibase: NU väljamineva teate migratsiooni checksum-viga

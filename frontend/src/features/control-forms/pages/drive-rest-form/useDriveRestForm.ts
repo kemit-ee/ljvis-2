@@ -33,6 +33,9 @@ export function createDriveRestValidationSchema(
     resultType: Yup.string().required(
       t('forms.sp_form.validation.required'),
     ),
+    spApplicability: Yup.string().required(
+      t('forms.sp_form.validation.required'),
+    ),
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
       // Üldmenetlusel (YLD) on väli "Väärteoasja number" ja see ei ole kohustuslik.
       is: (proceedingType: string) => !!proceedingType && proceedingType !== 'YLD',
