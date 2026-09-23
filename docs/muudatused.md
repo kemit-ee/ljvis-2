@@ -27,6 +27,29 @@
   (vana süsteemi vormi eeskujul); parandatud tekst „Keelamine või piiramine".
 - Saatmata RSI mustandid (vanas vormingus) kustutati.
 
+### Välisriigi kontrollkaardi loomine NCR teate pealt ebaõnnestus
+
+- "Loo kontrollkaart" NCR teate vaates andis vea: kaart loodi, kuid NCR
+  teatega sidumine (`erru/ncr/append-vr-link.sql`) lükati tagasi, sest
+  kaardi võti saadeti arvuna, parameeter oli aga deklareeritud stringina.
+  Parameeter on nüüd `type: integer`, nagu teistel `::BIGINT` ID-del.
+
+### Välisriigi kontrollkaart: eraldi "Teavita tööinspektorit" linnuke eemaldatud
+
+- Teavituste plokis on taas kaks linnukest. Tööinspektori teavituse tellib
+  linnuke "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks.
+  Edasta teavitus tööinspektorile." — teavitus saadetakse salvestamisel.
+- Kui linnuke märgitakse juba uue kaardi esimesel salvestusel, jääb teavitus
+  ootele ja saadetakse järgmisel salvestusel või kinnitamisel (loomise hetkel
+  teavitusi ei saadeta).
+
+### RSI teade: rikete valik õiges järjekorras
+
+- Kontrollitud osa rikete valikus kuvati rikked vale (tagurpidise)
+  järjekorras, sest need tulid andmebaasi sisestusjärjekorras. Rikked on
+  nüüd sorteeritud koodi järgi (0.1, 0.2, …, 6.2.9, 6.2.10), nagu tehnilise
+  kontrolli vormil.
+
 ### Dokumentatsioon: võrguühendused NetworkPolicy jaoks
 
 Lisatud dokument „Võrguühendused (NetworkPolicy)", mis loetleb kõigi
