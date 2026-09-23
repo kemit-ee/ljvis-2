@@ -6,6 +6,15 @@
 
 ## 2026-09-23
 
+### erru.ncr_message: append-only mustri rikkumise parandus
+
+`erru/ncr/update-vr-link.sql` tegi NCR-teate ja sellest loodud välisriigi
+kontrollkaardi sidumisel otse `UPDATE erru.ncr_message`-l, kuigi tabel on
+dokumenteeritud INSERT-only snapshot-tabelina (UPDATE/DELETE keelatud, vt
+`20260816100000-initial-erru-ncr.sql`). Asendatud `erru/ncr/append-vr-link.sql`-ga,
+mis lisab uue snapshoti, kandes kõik väljad muutumatult edasi peale
+`linked_foreign_violation_form_key`. Kasutajale nähtavat käitumist ei muuda.
+
 ### Autojuhi ja meeskonna liikme sõidu- ja puhkeaja nõuete kontroll
 
 - Akordioni pealkiri "Sõidu- ja puhkeaja nõuete täitmine" nimetati ümber

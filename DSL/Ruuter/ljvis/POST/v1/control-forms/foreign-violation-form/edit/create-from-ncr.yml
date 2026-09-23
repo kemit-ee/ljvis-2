@@ -145,12 +145,13 @@ extractVrFormKey:
 updateNcrLink:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/erru/ncr/update-vr-link"
+    url: "[#LJVIS_RESQL]/erru/ncr/append-vr-link"
     headers:
       type: json
     body:
       businessCaseId: ${business_case_id}
       foreignViolationFormKey: ${vr_form_key}
+      created_by: ${created_by}
   result: linkRes
   next: checkLinkResult
 
