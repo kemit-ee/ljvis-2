@@ -51,6 +51,9 @@ async function fillDriveRestSubForm(
   const prefix = /meeskon/i.test(tabName.source) ? 'teammate-' : '';
   await checkChoiceById(page, `${prefix}transport_type_cargo`);  // Veosevedu
   await checkChoiceById(page, `${prefix}result_korras`);          // Korras
+  // "Sõidu- ja puhkeaja nõuete kontroll" akordion on vaikimisi kokku pandud
+  // (defaultExpanded=false) — tuleb avada enne applicability raadionupu klõpsamist.
+  await page.locator(`#${prefix}drive-rest-violations-header`).click();
   await checkChoiceById(page, `${prefix}applicability_not_checked`); // Ei kontrollitud
   // Liigu Üldosa tabile tagasi — see ootab, kuni Formik async-valideerimine lõpeb
   await page.getByRole('tab', { name: /Üldosa/ }).click();
