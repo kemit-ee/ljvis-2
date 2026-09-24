@@ -13,6 +13,14 @@ PARTS = ['Identifitseerimine','Pidurisüsteem','Rooliseade','Nähtavus','Valgust
 CATEGORIES=[('A_2012','N2'),('B_2012','N3'),('C_2012','O3'),('D_2012','O4'),('E_2012','M2'),('F_2012','M3'),('G3_2012','T1b'),('H2_2012','T2b'),('I_2012','T3b'),('J_2012','T4.1b'),('K_2012','T4.2b'),('L_2012','T4.3b'),('OTHER_2012','Muu')]
 RESULTS={'ok':'Korras','warning':'Hoiatus','precept':'Ettekirjutus','misdemeanor_proceedings':'Väärteomenetlus','driving_ban':'Sõidukeeld / juhtimiselt kõrvaldamine','arrest':'Arest','transport_interruption':'Autovedu on katkestatud','extraordinary_inspection':'Erakorraline ülevaatus','extraordinary_inspection_ta':'Erakorraline ülevaatus ja liiklusregistri andmete täpsustamine'}
 PROCEEDINGS={'LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
+# CAA_10 (veose kinnitamine) is a cargo-loading/securing violation, not a vehicle
+# roadworthiness defect, so it no longer forces resultType away from 'ok'
+# (frontend useTechnicalCheckForm.ts AUTO_RESULT_EXCLUDED_PARTS) — keep in sync.
+AUTO_RESULT_EXCLUDED_PARTS = ('CAA_10',)
+
+
+def is_excluded_part(code):
+    return any(code == part or str(code or '').startswith(part + '.') for part in AUTO_RESULT_EXCLUDED_PARTS)
 
 STANDALONE_TITLES = {
  'compound-form': 'SÕIDUKI JA VEOETTEVÕTJA KONTROLLKAART',
@@ -288,14 +296,22 @@ def build_context(template, payload=None, blank=False):
     data=dict(layout=layout,title='KOMMERTSSÕIDUKI KONTROLLIAKT' if layout=='roadworthy-act' else TITLES[template],blank=blank,fields=fields,f=f,appendix=appendix,warnings=warnings,number=joined(f.get('subFormNumber'),'v'+str(f['version']) if f.get('version') else ''),categories=CATEGORIES)
     if is_technical:
         summary=structured(f.get('partsSummary'),list);defects=structured(f.get('partsDefects'),list)
-        if layout=='roadworthy-act' and (defects or any(r.get('status')=='non_compliant' for r in summary)):
+        scored_defects=[d for d in defects if not is_excluded_part(d.get('defectCode'))]
+        # partsSummary rows are {partCode, checked, hasDefect} since 2026-09-14 (frontend
+        # commit 1782322f); hasDefect=true always implies checked=true (one-way ratchet,
+        # enforced client-side) and is kept in sync with partsDefects by every mutation path.
+        # Old snapshots ({partCode, status}) are normalized to this shape by the frontend
+        # before save, so this is the only shape print needs to understand.
+        scored_non_compliant=any(r.get('hasDefect') and not is_excluded_part(r.get('partCode')) for r in summary)
+        if layout=='roadworthy-act' and (scored_defects or scored_non_compliant):
             raise ValueError('Roadworthy act requires no recorded defects or non-compliant parts')
         states={}
         for row in summary:
-            if row.get('status') not in ('checked','not_checked','non_compliant'):raise ValueError('Invalid partsSummary status')
+            checked=bool(row.get('checked')); has_defect=bool(row.get('hasDefect'))
+            if has_defect and not checked:raise ValueError('Invalid partsSummary: hasDefect without checked')
             if row.get('partCode') in states:raise ValueError('Duplicate partsSummary code')
-            states[row.get('partCode')]=row.get('status')
-        parts=[{'code':'CAA_'+str(11 if i==10 else i),'name':str(i)+'. '+n,'status':states.pop('CAA_'+str(11 if i==10 else i),'')} for i,n in enumerate(PARTS)]
+            states[row.get('partCode')]='non_compliant' if has_defect else ('checked' if checked else 'not_checked')
+        parts=[{'code':'CAA_'+str(i),'name':str(i)+'. '+n,'status':states.pop('CAA_'+str(i),'')} for i,n in enumerate(PARTS)]
         parts.extend({'code':code,'name':label('technicalParts',code),'status':status} for code,status in states.items())
         catalog=json.loads((ROOT/'templates/vehicle-technical/defects.json').read_text());selected={}
         for row in defects:
