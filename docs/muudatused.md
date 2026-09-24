@@ -6,6 +6,20 @@
 
 ## 2026-09-24
 
+### RSI teate eeltäitmine kontrollkaardilt: veoettevõtja andmed ja juhi nimi
+
+- Tehnoseisundi kontrollkaardilt loodud RSI teatel eeltäidetakse nüüd ka
+  **juhi eesnimi ja perekonnanimi** ning **veoettevõtja andmed** ("Veoettevõtja
+  või omaniku andmed" plokk) koondvormi ettevõtja andmetelt (nimi, ühenduse
+  tegevusloa number, aadress). Seni jäid need alati tühjaks, kahel põhjusel:
+  - `build.yml` luges koondvormi ettevõtja aadressi vale väljanime alt.
+  - Frontendis arvutati plokkide "avatud/suletud" olek ainult üks kord, enne
+    kui teate andmed jõudsid laadida, mistõttu plokid jäid alati kinni ka
+    siis, kui andmed olid tegelikult backend'is olemas.
+- Veoettevõtja plokk eeltäidetakse ainult siis, kui koondvormil on kõik
+  vajalikud väljad täidetud — poolik plokk jäetakse tühjaks, et hiljem
+  salvestamine ei nurjuks puuduva kohustusliku väljaga.
+
 ### Desktop-teavituse saajad valitavad kasutajate kaupa
 
 - Halduses „Postkasti mallide ja vastuvõtjate seaded" saab nüüd desktop-kanali

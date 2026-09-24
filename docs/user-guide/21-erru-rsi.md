@@ -65,12 +65,20 @@ olema valitud vähemalt üks põhjus — muidu teadet salvestada ega saata ei sa
 
 #### Eeltäitmine tehnoseisundi kontrollkaardilt
 
-Kontrollkaardilt loodud teatel täidetakse ainult kontrollpunktide olek
+Kontrollkaardilt loodud teatel täidetakse kontrollpunktide olek
 (punktid 0–9 vastavad kontrollkaardi punktidele; kontrollkaardi punkt 10
 „Veose kinnitamine" jaotub RSI punktideks 10 ja 20, punkt 11 „Muu" jääb
 välja). Kontrollkaardil märgitud rikked kuvatakse punkti juures vihjena —
 vastavad ERRU mitteläbimise põhjused tuleb tabelist ise valida, sest riikliku
 kontrollkaardi rikkekood ei määra ERRU põhjuse alapunkti (a, b, c …).
+
+Lisaks eeltäidetakse:
+- **Juhi eesnimi ja perekonnanimi** — koondvormi esimeselt juhilt;
+- **Veoettevõtja või omaniku andmed** — koondvormi ettevõtja andmetelt (nimi,
+  ühenduse tegevusloa number, aadress), kui kõik need väljad on koondvormil
+  täidetud. Kui mõni neist puudub, jäetakse plokk tühjaks — pooleliolevat
+  plokki ei saaks hiljem salvestada, sest kord avatud plokk nõuab kõiki oma
+  kohustuslikke välju korraga.
 
 ### Vaikeväärtused
 
