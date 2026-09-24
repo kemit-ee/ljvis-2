@@ -6,6 +6,10 @@ declaration:
     ncr/inbound-response.yml, vehicle-technical/publish.yml jne).
     Idempotentne: sama type+entity_type+entity_id loob ainult ühe teavituse
     (uq_notification_entity_type indeks + ON CONFLICT DO NOTHING).
+    Kui notification_template_mapping'is on `type` jaoks seadistatud
+    desktop_recipient_personal_codes, tardistatakse need loomise hetkel
+    notification.recipient_personal_codes veergu — teavitust näevad siis
+    required_permission omanike KÕRVAL ka need konkreetsed kasutajad.
     APPEND-ONLY: INSERT only.
     WebSocket push: POST /v1/ws-broadcast/send teeb broadcast_where perms-sildi
     järgi — notification_update signaal AINULT nendele ühendustele, kellel on
@@ -34,12 +38,39 @@ validateInput:
     notif_type: "${incoming.body.type ?? ''}"
     required_permission: "${incoming.body.required_permission ?? ''}"
     title_et: "${incoming.body.title_et ?? ''}"
+    recipient_personal_codes: ""
   next: checkRequired
 
 checkRequired:
   switch:
     - condition: ${notif_type === '' || required_permission === '' || title_et === ''}
       next: returnBadRequest
+  next: lookupTemplateMapping
+
+# Desktop-kanali liigid saavad lisaks required_permission'ile ka fikseeritud
+# saajate ringi (halduses valitud personal_code'id, vt notification-template-mapping).
+# Best-effort: kui mapping'ut ei leita või päring ebaõnnestub, jätkatakse ilma
+# konkreetsete saajateta — required_permission-põhine filtreerimine jääb kehtima.
+lookupTemplateMapping:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_template_mapping"
+    headers:
+      type: json
+    body:
+      notification_type: ${notif_type}
+  result: mappingRes
+  error: insertNotification
+  next: extractRecipients
+
+extractRecipients:
+  assign:
+    recipient_personal_codes: >-
+      ${(() => {
+        var row = (mappingRes.response.body || [])[0];
+        var codes = row && row.desktopRecipientPersonalCodes;
+        return Array.isArray(codes) ? codes.join(',') : '';
+      })()}
   next: insertNotification
 
 insertNotification:
@@ -55,6 +86,7 @@ insertNotification:
       related_entity_id: ${incoming.body.related_entity_id ?? ''}
       title_et: ${incoming.body.title_et}
       body_et: ${incoming.body.body_et ?? ''}
+      recipient_personal_codes: ${recipient_personal_codes ?? ''}
       created_by: ${incoming.body.created_by ?? 'system'}
   result: insertRes
   next: wsPush

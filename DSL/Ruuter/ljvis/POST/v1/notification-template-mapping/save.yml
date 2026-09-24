@@ -20,6 +20,8 @@ declaration:
         type: boolean
       - field: default_recipient_email
         type: string
+      - field: desktop_recipient_personal_codes
+        type: array
 
 get_user_context:
   assign:
@@ -34,6 +36,7 @@ extractRequestData:
     default_language: "${incoming.body.default_language || 'et'}"
     active: "${incoming.body.active ?? true}"
     default_recipient_email_raw: "${(incoming.body.default_recipient_email ?? '').trim()}"
+    desktop_recipient_personal_codes: "${(incoming.body.desktop_recipient_personal_codes ?? []).join(',')}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${(auth_user.firstname || '') + ' ' + (auth_user.lastname || '')}"
   next: checkRequired
@@ -61,6 +64,7 @@ insertMapping:
       default_language: ${default_language}
       active: ${active}
       default_recipient_email: ${default_recipient_email_raw}
+      desktop_recipient_personal_codes: ${desktop_recipient_personal_codes}
       created_by: ${actor_personal_code}
   result: insertRes
   next: buildAuditContent

@@ -451,6 +451,30 @@ const shots = [
       await page.getByRole('button', { name: 'Sulge' }).click().catch(() => {});
     },
   },
+  {
+    // ncr_violation on desktop-kanaliga (seemnest, ilma saajateta) — vt
+    // DSL/Liquibase/changelog/20261022100000-postkast2-xtee-alignment.sql.
+    // Kasutaja Mari Tamm (60002020202) tuleb olla otsitav — vt
+    // tests/bootstrap/seed_test_data.sql ("ametnik" testkasutaja).
+    name: 'admin-guide/notification-template-mapping',
+    run: async (page) => {
+      await gotoShot(
+        page,
+        '/notification-template-mapping/ncr_violation',
+        'admin-guide/images/09-teavitused/02-desktop-kanali-vaade.png',
+      );
+      await page.getByRole('button', { name: 'Muuda' }).click().catch(() => {});
+      await page.getByPlaceholder('Otsi kasutajat nime järgi').fill('Mari').catch(() => {});
+      await page.getByPlaceholder('Otsi kasutajat nime järgi').press('Enter').catch(() => {});
+      await page.getByText('Mari Tamm (60002020202)').waitFor({ timeout: 15000 }).catch(() => {});
+      await shoot(page, 'admin-guide/images/09-teavitused/03-desktop-saaja-otsing.png');
+      await page.getByRole('button', { name: 'Lisa' }).click().catch(() => {});
+      await sleep(300);
+      await shoot(page, 'admin-guide/images/09-teavitused/04-desktop-saaja-lisatud.png');
+      // Puhastus, et seemneandmestik jääks muutumatuks järgmise jooksu jaoks.
+      await page.getByRole('button', { name: 'Tühista' }).click().catch(() => {});
+    },
+  },
 ];
 
 (async () => {

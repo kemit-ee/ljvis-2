@@ -6,6 +6,17 @@
 
 ## 2026-09-24
 
+### Desktop-teavituse saajad valitavad kasutajate kaupa
+
+- Halduses „Postkasti mallide ja vastuvõtjate seaded" saab nüüd desktop-kanali
+  (in-app) teavituse liikidele (nt „ncr_violation") valida konkreetsed
+  kasutajad, kes seda teavitust näevad — lisaks senisele õiguspõhisele
+  (`required_permission`) filtreerimisele. Saajad otsitakse nime järgi ja
+  valik kehtib kohe uutele teavitustele.
+- Varem loodud teavituste saajate ring jääb muutumatuks ka siis, kui
+  haldusseadistust hiljem muudetakse — saajad tardistatakse teavituse
+  loomise hetkel.
+
 ### Vedaja teavituse e-posti aadress ei leitud äriregistri päringust
 
 - Parandatud viga, mille tõttu vedajale teavituse saatmisel jäi e-posti

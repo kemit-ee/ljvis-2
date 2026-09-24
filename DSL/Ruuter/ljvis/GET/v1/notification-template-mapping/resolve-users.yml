@@ -1,0 +1,28 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Lahendab personal_code'ide loendi kasutajate nimedeks — kasutab
+    NotificationTemplateMappingDetailPage desktop-kanali saajate kuvamiseks
+    (mapping salvestab ainult personal_code'id, vt insert_template_mapping.sql).
+    Nõuab notification_template_mapping.list õigust (kaitstud .guard.yml kaudu).
+  namespace: notification
+  allowlist:
+    params:
+      - field: personalCodes
+        type: string
+        description: "Comma-separated personal_code list"
+
+resolveUsers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_users_by_personal_codes"
+    headers:
+      type: json
+    body:
+      personal_codes: "${incoming.params.personalCodes ?? ''}"
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

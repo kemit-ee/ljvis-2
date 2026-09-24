@@ -146,3 +146,43 @@ curl -X POST "https://<base-url>/v1/notifications/outbound-log/resend/send?q=<lo
 
 Vastuseks tagastatakse uue saatmiskirje `logId`, `notificationKey` ja
 `status`.
+
+## Postkasti mallide ja vastuvõtjate seaded
+
+Menüüpunkt **Haldus > Postkasti mallide ja vastuvõtjate seaded**
+(`notification_template_mapping.list` õigus vaatamiseks, `.edit` muutmiseks)
+näitab kõiki teavituse liike ja nende kehtivat seadistust: **Postkast 2.0**
+väliskanali malli tunnust ja vaikimisi vastuvõtja e-posti, või
+**rakendusesisese (desktop)** kanali teavituse saajaid.
+
+![Desktop-kanali teavituse vaade](images/09-teavitused/02-desktop-kanali-vaade.png)
+
+Iga liigi kohta salvestatakse **uus versioon** (nagu kasutajate ja
+kasutajagruppide puhul) — olemasolevat rida ei muudeta, seega on iga
+haldustegevus jälgitav (`Loodud`, `Loonud`).
+
+### Desktop-kanali teavituse saajad
+
+`desktop`-kanaliga liikidel (nt `ncr_violation`, `driving_ban`) puudub
+vaikimisi vastuvõtja e-post — selle asemel saab valida **konkreetsed
+kasutajad**, kellele rakendusesisene (kella-ikooni) teavitus kuvatakse, lisaks
+senisele õiguspõhisele (`required_permission`) reeglile. See sobib juhuks,
+kui teavitust peab nägema kindel isik või väike ring inimesi, mitte kõik
+mingi õigusega kasutajad.
+
+Muutmisvormis on väli **„Teavituse saajad“** koos otsinguga:
+
+1. Sisesta otsinguväljale **kasutaja nimi** (vähemalt 3 tähemärki) ja vajuta
+   Enter või otsingu ikoonile.
+2. Vali tulemuste hulgast **„Lisa“** — kasutaja lisandub saajate loendisse.
+3. Vajadusel eemalda saaja loendist nupuga **„Eemalda“**.
+4. Vajuta **„Salvesta“**.
+
+![Desktop-kanali saaja otsing](images/09-teavitused/03-desktop-saaja-otsing.png)
+
+![Desktop-kanali saaja lisatud](images/09-teavitused/04-desktop-saaja-lisatud.png)
+
+Saajate ring **tardistatakse iga teavituse loomise hetkel** — kui haldusseadistust
+hiljem muudetakse (nt lisatakse või eemaldatakse saaja), ei muutu varem
+saadetud teavituste saajate ring tagasiulatuvalt. Uus seadistus rakendub
+alles järgmisele samat liiki teavitusele.

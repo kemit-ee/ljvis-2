@@ -1,0 +1,106 @@
+# POST /v1/notification-template-mapping/save — desktop-kanali teavituse saajate
+# (desktop_recipient_personal_codes) salvestamine, vt insert_template_mapping.sql.
+mode: mock-http
+constants:
+  LJVIS_RESQL: http://ntm-test/resql
+  LJVIS_TIM: http://ntm-test/tim
+http_rewrite:
+  http://ntm-test: '{MOCK}'
+tests:
+- name: desktop channel with recipients is saved as comma-joined personal_code list
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - notification_template_mapping.edit
+    - url_matches: /notification/insert_template_mapping
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        notificationType: ncr_violation
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/notification-template-mapping/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      notification_type: ncr_violation
+      original_template_id: ''
+      channel: desktop
+      default_language: et
+      active: true
+      default_recipient_email: ''
+      desktop_recipient_personal_codes:
+      - '38001010000'
+      - '38001010001'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/insert_template_mapping
+    count: 1
+    body_matches:
+      notification_type: ncr_violation
+      channel: desktop
+      desktop_recipient_personal_codes: '38001010000,38001010001'
+
+- name: invalid channel is rejected before insert
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - notification_template_mapping.edit
+  request:
+    method: POST
+    path: /ljvis/v1/notification-template-mapping/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      notification_type: ncr_violation
+      original_template_id: ''
+      channel: sms
+      default_language: et
+      active: true
+      default_recipient_email: ''
+      desktop_recipient_personal_codes: []
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /notification/insert_template_mapping
+    count: 0
