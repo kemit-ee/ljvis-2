@@ -136,7 +136,7 @@ extractEmail:
         if (sv && sv.item) sv = sv.item;
         var svList = Array.isArray(sv) ? sv : (sv ? [sv] : []);
         var match = svList.find(function(s) {
-          return s && typeof s.liik === 'string' && s.liik.toUpperCase().indexOf('POST') !== -1;
+          return s && typeof s.liik === 'string' && s.liik.toUpperCase().indexOf('EMAIL') !== -1;
         });
         return (match && (match.sisu || match.vaartus || match.value)) || '';
       })()}

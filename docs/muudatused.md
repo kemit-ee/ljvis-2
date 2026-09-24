@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-09-24
+
+### Vedaja teavituse e-posti aadress ei leitud äriregistri päringust
+
+- Parandatud viga, mille tõttu vedajale teavituse saatmisel jäi e-posti
+  aadress leidmata isegi siis, kui äriregistri (arireg.detailandmed_v1)
+  detailandmete päring selle sisaldas: sidevahendite hulgast otsiti kirjet
+  liigiga „POST" (postiaadress), mitte „EMAIL".
+
+---
+
 ## 2026-09-23
 
 ### RSI teade: ERRU mitteläbimise põhjused ja täielik väljatrükk
