@@ -1,0 +1,22 @@
+<RoadSideInspection_Request xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="8429c1f6-d284-49b8-933c-928c31c79063" workflowId="8429c1f6-d284-49b8-933c-928c31c79063" sentAt="2026-09-23T09:05:00Z" from="DE" to="EE"/>
+  <Body businessCaseId="DE-RSI-CI-0001" originatingAuthority="DE-BAG" requestSource="RSI" requestPurpose="Control">
+    <InspectionDetails inspectionIdentifier="INSP-CI-1" inspectionLocation="Autobahn A1" inspectionDateTime="2026-09-23T09:00:00Z" inspectionAuthorityOrName="DE-Polizei">
+      <InspectionResult inspectionPassed="false" vehicleProhibitionOrRestriction="true" ptiRequested="true"/>
+    </InspectionDetails>
+    <IdentificationDetails>
+      <VehicleDetails vehicleRegistrationNumber="123ABC" vehicleRegistrationCountry="EE" vehicleIdentificationNumber="WVW1234567890ABCD" vehicleCategory="N2" odometerReading="123456"/>
+      <DriverDetails firstName="HANS" familyName="MUELLER" drivingLicenceNumber="DL123" drivingLicenceCountry="DE"/>
+      <TransportUndertakingDetails transportUndertakingName="ACME OU" communityLicenceNumber="EE-CL-001">
+        <TransportUndertakingAddress address="Main St 1" postCode="10111" city="Tallinn" country="EE"/>
+      </TransportUndertakingDetails>
+    </IdentificationDetails>
+    <CheckedItems>
+      <CheckedItem itemType="1" itemFailed="1">
+        <FailedChecks>
+          <FailedCheck failedReason="1.1.1.a" failedAssessment="Major" isRectified="0"/>
+        </FailedChecks>
+      </CheckedItem>
+    </CheckedItems>
+  </Body>
+</RoadSideInspection_Request>

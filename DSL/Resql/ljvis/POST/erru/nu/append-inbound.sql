@@ -56,6 +56,9 @@ params:
   unfitStartDate:
     type: string
     required: false
+  receivedAt:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -79,7 +82,15 @@ returns:
   type: string
   nullable: true
 */
-WITH ins_received AS (
+WITH params AS (
+  -- receivedAt is the transport layer's immutable first-acceptance timestamp
+  -- (erru.xml_inbox.received_at when the message came through erru-xml-adapter; absent for the
+  -- synchronous JSON path, which falls back to now()). It is bound once here so received_at and
+  -- the unfitStartDate fallback share the same instant. With async processing now() is the
+  -- processing time, not the receive time: a backlog, a retry or a midnight crossing would
+  -- otherwise move the default unfit_start_date to the wrong day.
+  SELECT COALESCE(NULLIF(:receivedAt, '')::TIMESTAMPTZ, now()) AS received_at
+), ins_received AS (
   INSERT INTO erru.nu_message (
     nu_message_key,
     version,
@@ -107,7 +118,7 @@ WITH ins_received AS (
     unfit_start_date,
     created_by
   )
-  VALUES (
+  SELECT
     nextval('erru.seq_nu_message_key'),
     1,
     'incoming',
@@ -116,7 +127,7 @@ WITH ins_received AS (
     NULLIF(:technicalId, '')::UUID,
     NULLIF(:workflowId, '')::UUID,
     NULLIF(:sentAt, '')::TIMESTAMPTZ,
-    now(),
+    params.received_at,
     NULLIF(:nuFrom, ''),
     'EE',
     NULLIF(:originatingAuthority, ''),
@@ -131,9 +142,9 @@ WITH ins_received AS (
     NULLIF(:certificateNumber, ''),
     NULLIF(:certificateIssueDate, '')::DATE,
     NULLIF(:certificateIssueCountry, ''),
-    COALESCE(NULLIF(:unfitStartDate, '')::DATE, (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Tallinn')::DATE),
+    COALESCE(NULLIF(:unfitStartDate, '')::DATE, (params.received_at AT TIME ZONE 'Europe/Tallinn')::DATE),
     :created_by
-  )
+  FROM params
   ON CONFLICT (technical_id) WHERE (direction = 'incoming' AND status = 'received')
   DO NOTHING
   RETURNING
