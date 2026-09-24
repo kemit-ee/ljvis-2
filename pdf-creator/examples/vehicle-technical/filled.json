@@ -62,43 +62,53 @@
     "partsSummary": [
       {
         "partCode": "CAA_0",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_1",
-        "status": "non_compliant"
+        "checked": true,
+        "hasDefect": true
       },
       {
         "partCode": "CAA_2",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_3",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_4",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_5",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_6",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_7",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_8",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       },
       {
         "partCode": "CAA_9",
-        "status": "checked"
+        "checked": true,
+        "hasDefect": false
       }
     ],
     "partsDefects": [

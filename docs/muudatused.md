@@ -6,6 +6,26 @@
 
 ## 2026-09-24
 
+### Mootorsõiduki tehnonõuetele vastavuse kontrollvormi väljatrükk parandatud
+
+- Parandatud viga, mille tõttu täidetud mootorsõiduki (ja haagise)
+  tehnonõuetele vastavuse kontrollvormi ei saanud üldse printida
+  (väljatrükk ebaõnnestus veaga „render_failed"). Põhjus: kontrollitud
+  osade loetelu (`partsSummary`) kuju muudeti 2026-09-14 vahetuses
+  `{partCode, status}` → `{partCode, checked, hasDefect}`, kuid
+  väljatrükiteenus (pdf-creator) jäi endiselt ootama vana `status` välja —
+  see puudub tegelikus andmes täielikult, mistõttu väljatrükk lükkas
+  tagasi iga täidetud vormi, sõltumata tulemusest või rikete olemasolust.
+  Väljatrükk loeb nüüd õiget kuju.
+- Parandatud ka viga, mille korral tulemusega „Korras" vormi ei saanud
+  printida, kui sellel oli veose kinnitamise (CAA_10) puudus, kuigi see
+  märge ei mõjuta alates varasemast muudatusest enam automaatset
+  kontrolli tulemust — väljatrükk arvestab nüüd sama erandit.
+- Parandatud ka punkti 10 „Veose kinnitamine" rea kuvamine kontrollitud
+  osade loetelus väljatrükil — pärast CAA_10/CAA_11 klassifikaatorikoodide
+  nimede vahetuse parandust näitas väljatrükk seda rida endiselt valesti
+  koodi CAA_11 all ning lisas kontrollitud staatuse eraldi tundmatu reana.
+
 ### Desktop-teavituse saajad valitavad kasutajate kaupa
 
 - Halduses „Postkasti mallide ja vastuvõtjate seaded" saab nüüd desktop-kanali
