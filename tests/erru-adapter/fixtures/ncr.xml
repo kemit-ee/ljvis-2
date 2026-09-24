@@ -1,0 +1,14 @@
+<NotifyCheckResult_Request xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="9d689693-f1c2-4a0e-97b0-805a8841c4a9" workflowId="9d689693-f1c2-4a0e-97b0-805a8841c4a9" sentAt="2026-09-23T09:05:00Z" from="DE" to="EE"/>
+  <Body businessCaseId="DE-NCR-CI-0001" originatingAuthority="DE-BAG" requestSource="CA" requestPurpose="Control">
+    <TransportUndertaking transportUndertakingName="ACME OU" communityLicenceNumber="EE-CL-001">
+      <Vehicle vehicleRegistrationNumber="123ABC" vehicleRegistrationCountry="EE"/>
+      <CheckSummary checkResult="Fail" dateOfCheck="2026-09-23"/>
+      <SeriousInfringement dateOfInfringement="2026-09-23" category="MSI" infringementType="101" appealPossible="1">
+        <PenaltiesImposed>
+          <PenaltyImposed penaltyImposedIdentifier="1" finalDecisionDate="2026-09-23" penaltyTypeImposed="101" isExecuted="Yes"/>
+        </PenaltiesImposed>
+      </SeriousInfringement>
+    </TransportUndertaking>
+  </Body>
+</NotifyCheckResult_Request>

@@ -4,8 +4,8 @@ declaration:
     Loob uue in-app teavituse ja saadab WebSocket broadcast signaali kõigile
     ühendatud frontendidele. Kutsutakse teistest DSL-idest (ncr/inbound-request.yml,
     ncr/inbound-response.yml, vehicle-technical/publish.yml jne).
-    Idempotentne: sama type+entity_type+entity_id loob ainult ühe teavituse
-    (uq_notification_entity_type indeks + ON CONFLICT DO NOTHING).
+    Idempotentne: event_key / legacy-indeks + ON CONFLICT DO NOTHING
+    tagab ühe teavituse sama alliksündmuse kohta.
     Kui notification_template_mapping'is on `type` jaoks seadistatud
     desktop_recipient_personal_codes, tardistatakse need loomise hetkel
     notification.recipient_personal_codes veergu — teavitust näevad siis
@@ -92,6 +92,13 @@ insertNotification:
       recipient_personal_codes: ${recipient_personal_codes ?? ''}
       created_by: ${incoming.body.created_by ?? 'system'}
   result: insertRes
+  error: returnUnavailable
+  next: checkInsert
+
+checkInsert:
+  switch:
+    - condition: ${insertRes.response == null || insertRes.response.status >= 400 || !Array.isArray(insertRes.response.body)}
+      next: returnUnavailable
   next: wsPush
 
 # WsRegistry on protsessisisene — kliendid ühenduvad `ruuter` containerisse, mitte
@@ -119,4 +126,9 @@ returnResult:
 returnBadRequest:
   status: 400
   return: "type, required_permission ja title_et on kohustuslikud"
+  next: end
+
+returnUnavailable:
+  status: 502
+  return: "Notification could not be persisted"
   next: end

@@ -275,6 +275,70 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
+  # ERRU Hub mock — CI only. Stands in for the ERRU Hub so erru-xml-adapter's delivery role has
+  # somewhere to POST to (docs/architecture/erru-async-xml.md). See docker/erru-hub-mock.
+  erru-hub-mock:
+    build:
+      context: .
+      dockerfile: docker/erru-hub-mock/Dockerfile
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvis-ci
+    # localhost-only.
+    ports:
+      - "127.0.0.1:9092:8080"
+    cpus: "0.25"
+    mem_limit: "128M"
+
+  # Asynchronous ERRU 3.5 XML adapter (docs/architecture/erru-async-xml.md,
+  # docker/erru-xml-adapter/README.md). NotifyUnfitness is processed end-to-end; the other 4
+  # request types are rejected with 501 at ingress and not stored.
+  erru-xml-adapter:
+    build:
+      context: .
+      dockerfile: docker/erru-xml-adapter/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+      ruuter-internal:
+        condition: service_started
+      erru-hub-mock:
+        condition: service_healthy
+    environment:
+      - DB_URL=jdbc:postgresql://database:5432/ljvis_db
+      - DB_USER=ljvis
+      - DB_PASSWORD=01234
+      - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+      - CONTRACTS_DIR=/app/contracts/erru/3.5
+      - RESPONDING_AUTHORITY=EE-PPA
+      - RESPONDING_AUTHORITY_CTUD=EE-TRAM
+      - RESPONDING_AUTHORITY_NCR=EE-TRAM
+      - RESPONDING_AUTHORITY_RSI=EE-TRAM
+      - MEMBER_STATE_CODE=EE
+      - POLL_INTERVAL_MS=500
+      - WORKER_ID=erru-xml-adapter-ci-1
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvis-ci
+    # No auth/peer trust on the ingress yet — localhost-only exposure.
+    ports:
+      - "127.0.0.1:9091:8080"
+    cpus: "0.5"
+    mem_limit: "256M"
+
   # ── Auth stack (TARA-Mock + TIM) ──────────────────────────────────────────
   tara-mock:
     build:

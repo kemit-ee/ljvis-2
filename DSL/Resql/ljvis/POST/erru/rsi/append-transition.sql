@@ -172,6 +172,7 @@ WITH latest AS (
       AND a.to_status   = :newStatus
       AND a.direction   = l.direction
   )
+  ON CONFLICT (technical_id) WHERE direction = 'incoming' AND status = 'answered' DO NOTHING
   RETURNING rsi_message_key, business_case_id, version, status, workflow_id
 )
 SELECT rsi_message_key AS id, business_case_id, version, status, workflow_id FROM ins;
