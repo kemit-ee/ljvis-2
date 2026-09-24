@@ -2,48 +2,24 @@ declaration:
 
   version: "1.0"
   description: >-
-    Ühine teavituse saatmise otsustus- ja saatmisloogika (p.5/6/8 refaktor,
-    code review 2026-09-22 leidude 2/3/4/5 parandus). Kutsutakse KOLMEST
-    kirjutamisteest — edit/save.yml (nii insertForm kui updateForm haru) ja
-    edit/confirm.yml — et vältida loogika kolmekordset kopeerimist ja tagada
-    ühtne käitumine kõikjal.
+    Välisriigi kontrollkaardi teavituste (vedaja / tööinspektor) saatmine
+    Postkast 2.0 kaudu. Kutsub AINULT edit/publish.yml - salvestamine ja
+    kinnitamine teavitusi ei saada, linnukesed (notifyCarrier /
+    notifyLaborInspector) on kaardil püsiv olek ja jäävad pärast saatmist
+    alles, nii et kordusavalikustamine saadab teavituse uuesti.
 
-    Disainiotsus: notifyCarrier/notifyLaborInspector on MOMENDIVÄLJAD
-    ("saada nüüd"), mitte püsiv olek — see template ei tagasta kunagi
-    "persisted=true"; iga kutse lõpetab kaardi peale kirjutamiseks mõeldud
-    väärtusega 'false' ('{"notifyCarrierPersisted":"false","notifyLaborInspectorPersisted":"false"}'),
-    olenemata sellest, kas saatmine toimus. See kõrvaldab tervikliku
-    veaklassi (checkbox jääb DB-s "true" kinni, kui saatmist ei toimunud —
-    vt review leiud 2/3): kaardil ei tekigi olekut, mida false->true
-    üleminekuna hiljem enam kunagi ei tuvastataks. Kutsuja (save.yml/confirm.yml)
-    ei pea seega enne kutset "vana väärtust" DB-st võrdlema — piisab lugeda
-    kasutaja PRAEGUSEST päringust soovitud väärtus (newNotifyCarrier/
-    newNotifyLaborInspector) ja otsustada, kas saatmine on lubatud
-    (sendGateMet — kutsuja vastutusel, vt allpool).
+    sendGateMet: kutsuja kinnitus, et saatmine on lubatud (publish.yml
+    annab alati 'true' - avalikustamine ise on saatmise hetk).
 
-    sendGateMet: kutsuja otsustab, KAS praegu on lubatud reaalset teavitust
-    saata (review leid 3 — varem sai avalikustamisel saata ainult
-    confirmed staatuselt; nüüd, kui saatmine on kolitud save/confirm'i,
-    peab gate olema endiselt eksplitsiitne, mitte puuduv):
-      - edit/save.yml insertForm haru: sendGateMet ALATI 'false' (uus rida
-        on ALATI staatuses 'saved', mitte kunagi juba kinnitatud).
-      - edit/save.yml updateForm haru: sendGateMet = (praegune, EELMINE
-        staatus salvestamise eest !== 'saved') — st vorm on vähemalt korra
-        kinnitatud.
-      - edit/confirm.yml: sendGateMet ALATI 'true' — confirm.yml enda
-        tulemus ON staatuse üleminek 'confirmed'-ks, mis rahuldab sama
-        tingimust ("vähemalt kinnitatud").
-    Kui sendGateMet on 'false' ja kasutaja märkis linnukese, EI saadeta
-    teavitust — checkbox lähtestub siiski false-ks (momendiväli), kasutaja
-    saab selle uuesti märkida pärast kinnitamist, mil sendGateMet muutub
-    tõeseks.
-
-    Äriregistri e-posti otsingu VIGA (review leid 4): kui jagatud
+    Äriregistri e-posti otsingu VIGA: kui jagatud
     lookup-carrier-registry-email template ebaõnnestub (transpordi tase),
-    ei jäeta sendCarrierNotification'it vahele — kutsutakse ikka, tühja
+    ei jäeta sendCarrierNotification'it vahele - kutsutakse ikka, tühja
     recipient_email'iga, et send-postkast.yml (checkRecipientFormat /
     markInvalidRecipient) looks korrektse "error" rea notifications.outbound_log-i.
     Nii ei kao kasutaja saatmissoov jäljetult.
+
+    Tagastusväärtus ('{"notifyCarrierPersisted":"false",...}') on
+    ajalooline - publish.yml seda ei kasuta.
   namespace: service
   allowlist:
     body:

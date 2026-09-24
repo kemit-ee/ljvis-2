@@ -154,8 +154,11 @@ extractRequestData:
     commission_last_decision_date: "${incoming.body.commissionLastDecisionDate}"
     admin_procedure_decision: "${incoming.body.adminProcedureDecision}"
     foreign_authority_proposal: "${incoming.body.foreignAuthorityProposal}"
-    notify_carrier: "${incoming.body.notifyCarrier}"
-    notify_labor_inspector: "${incoming.body.notifyLaborInspector}"
+    # Teavituse linnukesed salvestatakse nii, nagu kasutaja need märkis —
+    # salvestamine ei saada midagi. Saatmine toimub avalikustamisel
+    # (edit/publish.yml).
+    notify_carrier: "${String(incoming.body.notifyCarrier) === 'true' ? 'true' : 'false'}"
+    notify_labor_inspector: "${String(incoming.body.notifyLaborInspector) === 'true' ? 'true' : 'false'}"
     violations: "${incoming.body.violations}"
     data_entry_date: "${incoming.body.dataEntryDate}"
     inspector_first_name: "${incoming.body.inspectorFirstName}"
@@ -197,32 +200,8 @@ checkValidationResult:
 checkIsCreate:
   switch:
     - condition: ${id == null || id === ''}
-      next: gateInsertNotifyFlags
+      next: insertForm
   next: getCurrentFormForStatus
-
-# Code review 2026-09-22 leiud 2/3: uue rea LOOMISE hetkel (insertForm) ei
-# saadeta MITTE KUNAGI teavitust (sendGateMet on siin, erinevalt updateForm
-# harust, alati 'false' — vt notify-transition-and-send.yml template'i
-# pikk kommentaar) — literaalne "esimene salvestus" on liiga vara, kaardi
-# andmed on veel läbi vaatamata. Kui kasutaja märkis linnukese juba
-# loomisel, LÄHTESTATAKSE see siin false-ks (mitte jäetakse DB-sse 'true'
-# kinni ilma kunagi saadetud teavituseta — see oli leid 2 põhiviga): edaspidi
-# saab menetleja checkbox'i uuesti märkida JÄRGMISEL salvestusel
-# (updateForm haru), mil saatmine juba toimib. Kuna gate on siin alati
-# väär, ei ole vaja kutsuda notify-transition-and-send template'it (ei
-# tekiks ühtegi saatmiskatset) — piisab väärtuste käsitsi lähtestamisest.
-#
-# Erand: notifyLaborInspector'il pole enam oma checkbox'i — frontend seab
-# selle, kui menetleja märgib "Saabus välisriigi pädeva asutuse ettepanek"
-# (foreignAuthorityProposal). See fakt lukustub pärast märkimist, seega
-# kasutaja ei saaks seda uuesti märkida; lipp jäetakse siin OOTELE (DB-sse
-# 'true') ja updateForm/confirm haru saadab teavituse järgmisel
-# salvestusel/kinnitamisel ning lähtestab lipu false-ks.
-gateInsertNotifyFlags:
-  assign:
-    notify_carrier_persisted: "false"
-    notify_labor_inspector_persisted: "${String(notify_labor_inspector) === 'true' && String(foreign_authority_proposal) === 'true' ? 'true' : 'false'}"
-  next: insertForm
 
 insertForm:
   call: http.post
@@ -274,8 +253,8 @@ insertForm:
       commissionLastDecisionDate: ${commission_last_decision_date}
       adminProcedureDecision: ${admin_procedure_decision}
       foreignAuthorityProposal: ${foreign_authority_proposal}
-      notifyCarrier: ${notify_carrier_persisted}
-      notifyLaborInspector: ${notify_labor_inspector_persisted}
+      notifyCarrier: ${notify_carrier}
+      notifyLaborInspector: ${notify_labor_inspector}
       violations: ${violations}
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}
@@ -389,45 +368,6 @@ extractResult:
 parseChangedFieldsResult:
   assign:
     changed_fields_result: ${parsed_result.changed_fields}
-  next: notifyTransitionAndSend
-
-# --- Teavituse saatmine salvestamisel (p.5, kolitud publish.yml-ist) ---
-# Koondloogika (gate + saatmine + äriregistri lookup + outbound_log) elab
-# ühises templates/form/foreign-violation/notify-transition-and-send.yml
-# template'is (code review 2026-09-22 leidude 2/3/4/5 parandus — vt selle
-# faili pikk kommentaar disainiotsuste kohta), mida kutsub ka insertForm
-# haru allpool ja edit/confirm.yml.
-#
-# sendGateMet SIIN (updateForm haru): ALATI 'true' — kord juba eksisteeriva
-# rea korduv salvestamine on menetleja teadlik tegevus (erinevalt insertForm
-# harust, mis on rea LOOMISE hetk — vt insertForm'i kommentaar, kus gate on
-# ALATI 'false'). Vorm ei pea olema 'confirmed', sest plaan (p.5) soovib
-# saatmist salvestamisel üldiselt, mitte alles pärast kinnitamist — aga
-# gate on siiski eksplitsiitne (mitte puuduv), vastandudes literaalselt
-# esimesele, äsja loodud reale.
-notifyTransitionAndSend:
-  template: "templates/form/foreign-violation/notify-transition-and-send"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  body:
-    formId: ${id}
-    companyRegCode: ${company_reg_code}
-    companyName: ${company_name}
-    formNumber: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].formNumber) || ''}"
-    violations: ${violations}
-    violationDescription: ${violation_description}
-    createdBy: ${created_by}
-    newNotifyCarrier: ${notify_carrier}
-    newNotifyLaborInspector: ${notify_labor_inspector}
-    sendGateMet: "true"
-  result: notifyResult
-  next: parseNotifyResult
-
-parseNotifyResult:
-  assign:
-    notify_carrier_persisted: "${(JSON.parse(notifyResult) || {}).notifyCarrierPersisted || 'false'}"
-    notify_labor_inspector_persisted: "${(JSON.parse(notifyResult) || {}).notifyLaborInspectorPersisted || 'false'}"
   next: updateForm
 
 updateForm:
@@ -480,8 +420,8 @@ updateForm:
       commissionLastDecisionDate: ${commission_last_decision_date}
       adminProcedureDecision: ${admin_procedure_decision}
       foreignAuthorityProposal: ${foreign_authority_proposal}
-      notifyCarrier: ${notify_carrier_persisted}
-      notifyLaborInspector: ${notify_labor_inspector_persisted}
+      notifyCarrier: ${notify_carrier}
+      notifyLaborInspector: ${notify_labor_inspector}
       violations: ${violations}
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}
@@ -499,11 +439,6 @@ checkUpdateSaved:
     - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
       next: returnResqlSaveError
   next: extractUpdateResponseData
-
-# Teavituste saatmine (notifyCarrier / notifyLaborInspector) toimub eespool
-# (notifyTransitionAndSend, kutsub jagatud notify-transition-and-send.yml
-# template'i) — LJVIS2 VR ettepanek 10, refaktoritud p.5 järgi
-# publish.yml-ist siia, korduva saatmise toega.
 
 extractUpdateResponseData:
   assign:

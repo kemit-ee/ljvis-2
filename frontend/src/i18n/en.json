@@ -894,7 +894,7 @@
       },
       "notifications": {
         "title": "Notifications",
-        "hint": "Tick a notification and save the form — the system sends the selected notification. A sent notification cannot be undone.",
+        "hint": "Tick a notification and save the form — the selected notification is sent when the card is published. The tick stays on the card, so publishing the card again sends the notification again.",
         "foreignProposal": "Proposal received from foreign authority for carrier inspection. Forward the notification to the labour inspector.",
         "notifyCarrier": "Notify carrier of violation"
       },
