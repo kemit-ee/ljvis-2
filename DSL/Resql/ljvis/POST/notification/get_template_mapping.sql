@@ -28,6 +28,9 @@ returns:
 - name: defaultRecipientEmail
   type: string
   nullable: true
+- name: desktopRecipientPersonalCodes
+  type: array
+  nullable: true
 */
 SELECT
     notification_type,
@@ -35,7 +38,8 @@ SELECT
     channel,
     default_language,
     active,
-    default_recipient_email
+    default_recipient_email,
+    desktop_recipient_personal_codes
 FROM notifications.notification_template_mapping
 WHERE notification_type = :notification_type
 ORDER BY created_at DESC, id DESC

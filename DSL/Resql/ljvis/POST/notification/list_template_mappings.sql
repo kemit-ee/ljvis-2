@@ -24,6 +24,9 @@ returns:
 - name: defaultRecipientEmail
   type: string
   nullable: true
+- name: desktopRecipientPersonalCodes
+  type: array
+  nullable: true
 - name: createdAt
   type: string
   nullable: true
@@ -38,6 +41,7 @@ SELECT DISTINCT ON (notification_type)
     default_language,
     active,
     default_recipient_email,
+    desktop_recipient_personal_codes,
     created_at,
     created_by
 FROM notifications.notification_template_mapping

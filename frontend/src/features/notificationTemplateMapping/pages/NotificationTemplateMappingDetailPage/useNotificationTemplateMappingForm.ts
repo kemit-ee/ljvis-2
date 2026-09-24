@@ -29,6 +29,7 @@ export function useNotificationTemplateMappingForm(
       defaultRecipientEmail: mapping?.defaultRecipientEmail ?? '',
       defaultLanguage: mapping?.defaultLanguage ?? 'et',
       active: mapping?.active ?? true,
+      desktopRecipientPersonalCodes: mapping?.desktopRecipientPersonalCodes ?? [],
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -41,6 +42,7 @@ export function useNotificationTemplateMappingForm(
           defaultRecipientEmail: sanitizeText(values.defaultRecipientEmail),
           defaultLanguage: values.defaultLanguage,
           active: values.active,
+          desktopRecipientPersonalCodes: values.desktopRecipientPersonalCodes,
         });
         onSaved();
       } catch (e) {
