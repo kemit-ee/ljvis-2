@@ -41,11 +41,17 @@ class FormTests(unittest.TestCase):
         self.assertEqual(d['fields']['vin'],'TRAILERTEST001')
         p['technicalForm']['trailerRegNr']='NO-SUCH-TRAILER'
         with self.assertRaises(ValueError):build_context('trailer-technical',p)
-    def test_cargo_summary_uses_real_caa11_code(self):
-        p=self.fixture('vehicle-technical');p['technicalForm']['partsSummary']=[{'partCode':'CAA_11','status':'non_compliant'}]
+    def test_cargo_summary_uses_real_caa10_code(self):
+        p=self.fixture('vehicle-technical');p['technicalForm']['partsSummary']=[{'partCode':'CAA_10','checked':True,'hasDefect':True}]
         rows=build_context('vehicle-technical',p)['parts']
-        row=next(r for r in rows if r['code']=='CAA_11')
+        row=next(r for r in rows if r['code']=='CAA_10')
         self.assertEqual(row['status'],'non_compliant');self.assertIn('Veose kinnitamine',row['name'])
+    def test_ok_result_with_cargo_securing_issue_still_prints_roadworthy_act(self):
+        p=self.fixture('vehicle-technical');p['technicalForm']['resultType']='ok'
+        p['technicalForm']['partsSummary']=[{'partCode':'CAA_10','checked':True,'hasDefect':True}]
+        p['technicalForm']['partsDefects']=[{'defectCode':'CAA_10.A','severity':'VO'}]
+        d=build_context('vehicle-technical',p)
+        self.assertEqual(d['layout'],'roadworthy-act')
     def test_unknown_defect_is_preserved_and_known_defect_marked(self):
         p=self.fixture('vehicle-technical');p['technicalForm']['partsDefects'].append({'partCode':'CAA_1','defectCode':'FUTURE_CODE','severity':'EOV'})
         rows=[r for page in build_context('vehicle-technical',p)['defect_pages'] for col in page for r in col]
@@ -93,5 +99,39 @@ class FormTests(unittest.TestCase):
         html,_=render_html(p,False,'rsi')
         self.assertIn('CAA_1.1.1 (OV)',html)
         self.assertIn('Pidurisüsteem',html)
+    def test_real_partssummary_shape_is_checked_hasdefect_not_status(self):
+        # Regression for a production print failure: partsSummary rows are
+        # {partCode, checked, hasDefect} (frontend commit 1782322f, 2026-09-14),
+        # not the old {partCode, status}. Payload below is a real published
+        # form's API response (driving_ban result, CAA_1/CAA_5 defects, no
+        # 'status' key anywhere in partsSummary).
+        p=self.fixture('vehicle-technical')
+        p['technicalForm'].update(
+            resultType='driving_ban',
+            violations=['MSI302'],
+            partsDefects=[{'defectCode':'CAA_1.1.21','partCode':'CAA_1','severity':'OV'},{'defectCode':'CAA_5.2.3','partCode':'CAA_5','severity':'EOV'}],
+            partsSummary=[
+                {'partCode':'CAA_0','checked':True,'hasDefect':False},
+                {'partCode':'CAA_1','checked':True,'hasDefect':True},
+                {'partCode':'CAA_2','checked':True,'hasDefect':False},
+                {'partCode':'CAA_3','checked':True,'hasDefect':False},
+                {'partCode':'CAA_4','checked':True,'hasDefect':False},
+                {'partCode':'CAA_5','checked':True,'hasDefect':True},
+                {'partCode':'CAA_6','checked':True,'hasDefect':False},
+                {'partCode':'CAA_7','checked':True,'hasDefect':False},
+                {'partCode':'CAA_8','checked':True,'hasDefect':False},
+                {'partCode':'CAA_9','checked':False,'hasDefect':False},
+                {'partCode':'CAA_10','checked':True,'hasDefect':False},
+                {'partCode':'CAA_11','checked':False,'hasDefect':False},
+            ],
+        )
+        html,_=render_html(p,False,'vehicle-technical')
+        self.assertIn('Rikkumised', html)
+        d=build_context('vehicle-technical',p)
+        statuses={row['code']:row['status'] for row in d['parts']}
+        self.assertEqual(statuses['CAA_1'],'non_compliant')
+        self.assertEqual(statuses['CAA_5'],'non_compliant')
+        self.assertEqual(statuses['CAA_9'],'not_checked')
+        self.assertEqual(statuses['CAA_10'],'checked')
 
 if __name__=='__main__':unittest.main()
