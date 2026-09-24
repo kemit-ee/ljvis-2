@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20260924100000 ignore:true splitStatements:false
+-- changeset ljvis:20261125110000 ignore:true splitStatements:false
 --
 -- Võimaldab desktop-kanali teavituse (notification_template_mapping.channel='desktop')
 -- suunata konkreetsetele kasutajatele, mitte ainult required_permission õiguse kaudu
