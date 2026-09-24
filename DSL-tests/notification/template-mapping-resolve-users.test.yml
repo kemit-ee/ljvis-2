@@ -1,0 +1,80 @@
+# GET /v1/notification-template-mapping/resolve-users — resolves the personal_code
+# list stored on a desktop-channel mapping back to display names.
+mode: mock-http
+constants:
+  LJVIS_RESQL: http://ntm-resolve-test/resql
+  LJVIS_TIM: http://ntm-resolve-test/tim
+http_rewrite:
+  http://ntm-resolve-test: '{MOCK}'
+tests:
+- name: resolves comma-separated personal codes to users
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - notification_template_mapping.list
+    - url_matches: /user/get_users_by_personal_codes
+      method: POST
+      status: 200
+      body:
+      - id: '1'
+        firstName: Mari
+        lastName: Maasikas
+        personalCode: '38001010000'
+  request:
+    method: GET
+    path: /ljvis/v1/notification-template-mapping/resolve-users?personalCodes=38001010000
+    headers:
+      cookie: test
+  expect:
+    status: 200
+    body_matches:
+      response:
+      - personalCode: '38001010000'
+  verify_mocks:
+  - url_matches: /user/get_users_by_personal_codes
+    count: 1
+    body_matches:
+      personal_codes: '38001010000'
+
+- name: missing permission is forbidden
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions: []
+  request:
+    method: GET
+    path: /ljvis/v1/notification-template-mapping/resolve-users?personalCodes=38001010000
+    headers:
+      cookie: test
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /user/get_users_by_personal_codes
+    count: 0

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,6 +15,8 @@ import { PERMISSIONS } from '../../../../constants/constants';
 import { AutoHideAlert } from '../../../../components/AutoHideAlert/AutoHideAlert';
 import { useNotificationTemplateMappingDetail } from './useNotificationTemplateMappingDetail';
 import { useNotificationTemplateMappingForm } from './useNotificationTemplateMappingForm';
+import { DesktopRecipientsField } from './DesktopRecipientsField';
+import { resolveDesktopRecipientUsers } from '../../api';
 
 const LANGUAGE_OPTIONS = [
   { value: 'et', label: 'Eesti' },
@@ -49,9 +51,22 @@ export function NotificationTemplateMappingDetailPage() {
 
   const [isEditActive, setIsEditActive] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [recipientNames, setRecipientNames] = useState<Record<string, string>>({});
 
   const { mapping, loading, refetch } =
     useNotificationTemplateMappingDetail(notificationType);
+
+  useEffect(() => {
+    const codes = mapping?.desktopRecipientPersonalCodes ?? [];
+    if (codes.length === 0) return;
+    resolveDesktopRecipientUsers(codes).then((users) => {
+      setRecipientNames(
+        Object.fromEntries(
+          users.map((u) => [u.personalCode, `${u.firstName} ${u.lastName}`]),
+        ),
+      );
+    });
+  }, [mapping?.desktopRecipientPersonalCodes]);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
@@ -110,9 +125,20 @@ export function NotificationTemplateMappingDetailPage() {
               <Field label={t('notificationTemplateMapping.originalTemplateId')}>
                 {mapping.originalTemplateId || '—'}
               </Field>
-              <Field label={t('notificationTemplateMapping.defaultRecipientEmail')}>
-                {mapping.defaultRecipientEmail || '—'}
-              </Field>
+              {mapping.channel === 'postkast' && (
+                <Field label={t('notificationTemplateMapping.defaultRecipientEmail')}>
+                  {mapping.defaultRecipientEmail || '—'}
+                </Field>
+              )}
+              {mapping.channel === 'desktop' && (
+                <Field label={t('notificationTemplateMapping.desktopRecipients')}>
+                  {mapping.desktopRecipientPersonalCodes?.length
+                    ? mapping.desktopRecipientPersonalCodes
+                        .map((code) => recipientNames[code] ?? code)
+                        .join(', ')
+                    : '—'}
+                </Field>
+              )}
               <Field label={t('notificationTemplateMapping.defaultLanguage')}>
                 {mapping.defaultLanguage}
               </Field>
@@ -136,24 +162,34 @@ export function NotificationTemplateMappingDetailPage() {
                 value={formik.values.originalTemplateId}
                 onChange={(v) => formik.setFieldValue('originalTemplateId', v)}
               />
-              <TextField
-                id="defaultRecipientEmail"
-                className="mb-1"
-                label={t('notificationTemplateMapping.defaultRecipientEmail')}
-                value={formik.values.defaultRecipientEmail}
-                onChange={(v) =>
-                  formik.setFieldValue('defaultRecipientEmail', v)
-                }
-                {...(formik.touched.defaultRecipientEmail &&
-                formik.errors.defaultRecipientEmail
-                  ? {
-                      helper: {
-                        text: formik.errors.defaultRecipientEmail,
-                        type: 'error' as const,
-                      },
-                    }
-                  : {})}
-              />
+              {mapping.channel === 'postkast' && (
+                <TextField
+                  id="defaultRecipientEmail"
+                  className="mb-1"
+                  label={t('notificationTemplateMapping.defaultRecipientEmail')}
+                  value={formik.values.defaultRecipientEmail}
+                  onChange={(v) =>
+                    formik.setFieldValue('defaultRecipientEmail', v)
+                  }
+                  {...(formik.touched.defaultRecipientEmail &&
+                  formik.errors.defaultRecipientEmail
+                    ? {
+                        helper: {
+                          text: formik.errors.defaultRecipientEmail,
+                          type: 'error' as const,
+                        },
+                      }
+                    : {})}
+                />
+              )}
+              {mapping.channel === 'desktop' && (
+                <DesktopRecipientsField
+                  personalCodes={formik.values.desktopRecipientPersonalCodes}
+                  onChange={(codes) =>
+                    formik.setFieldValue('desktopRecipientPersonalCodes', codes)
+                  }
+                />
+              )}
               <Select
                 id="defaultLanguage"
                 className="mb-1"

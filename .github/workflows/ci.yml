@@ -274,6 +274,11 @@ jobs:
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test '${{ steps.ruuter.outputs.img }}' \
             --dsl DSL/Ruuter --tests DSL-tests --constants constants.ini
 
+      - name: dsl-test — DSL-tests-internal/ scenario suite (internal router)
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter.internal --tests DSL-tests-internal --constants constants.ini
+
       - name: X-tee developer mock — contract and isolated runtime scenarios
         run: |
           pip3 install pyyaml -q
