@@ -155,13 +155,16 @@ autoveoalase rikkumise haldusmenetluse käik.
 Failide plokk („Laadi üles fail") on nähtav kogu aeg. Faile saab lisada alles
 pärast esimest salvestamist. Vt [Failide lisamine](14-failide-lisamine.md).
 
-### 15. Teavitused (pärast avalikustamist)
+### 15. Teavitused
 
-Kui vorm on **avalikustatud**, kuvatakse kaardi lõpus plokk **„Teavitused"** kahe
-märkeruuduga. Märgi ruut ja klõpsa **Salvesta** — süsteem saadab teavituse.
-**Saadetud teavitust ei saa tühistada** ja märkeruut lukustub.
+Kaardi lõpus on plokk **„Teavitused"** kahe märkeruuduga. Märgi soovitud ruut ja
+klõpsa **Salvesta** — märge salvestub kaardile, kuid teavitust veel **ei saadeta**.
+Teavitus saadetakse alles kaardi **avalikustamisel**. Märge jääb kaardile alles:
+kui kaarti hiljem muudetakse ja uuesti avalikustatakse, saadetakse teavitus
+uuesti. Saadetud teavitust ei saa tühistada; varasemad saatmised on näha ploki
+all („Varasemad saatmised").
 
-| Märge | Toiming salvestamisel |
+| Märge | Toiming avalikustamisel |
 |---|---|
 | Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks. Edasta teavitus tööinspektorile. (`foreignAuthorityProposal`) | Saadab e-kirja tööinspektorile |
 | Teavita vedajat rikkumisest (`notifyCarrier`) | Saadab veoettevõttele mallipõhise teate Postkast 2.0 kaudu |

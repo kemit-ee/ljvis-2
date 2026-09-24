@@ -163,13 +163,6 @@ publishForm:
   result: publishRes
   next: check_publishRes_persisted
 
-# --- Teavituste saatmine on p.5 refaktoriga kolitud edit/save.yml-i ---
-# Avalikustamine (publish.yml) enam teavitusi ei saada — see on nüüd "puhas"
-# lõpp-samm (p.7). Teavituse saatmine toimub salvestamisel, korduvalt, vt
-# edit/save.yml updateForm haru (notify_carrier/notify_labor_inspector
-# false->true üleminek) ja jagatud lookup-carrier-registry-email template
-# (p.8) äriregistri päringu jaoks.
-
 extractResponseData:
   assign:
     form_number: "${publishRes.response.body[0].formNumber + '/' + publishRes.response.body[0].version}"
@@ -189,6 +182,33 @@ logAuditEvent:
     actor_name: ${actor_name}
     actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: sendNotifications
+
+# Teavituste saatmine toimub avalikustamisel: kui kaardil on märgitud
+# „Teavita vedajat rikkumisest" (notifyCarrier) ja/või tööinspektori
+# teavitus (notifyLaborInspector), saadetakse need Postkast 2.0 kaudu.
+# Linnukesed jäävad kaardile alles, seega kordusavalikustamine (uus versioon)
+# saadab teavituse uuesti. Ajalugu: notifications.outbound_log.
+# Saatmise viga ei tühista avalikustamist — vorm on DB-s juba published ja
+# ebaõnnestunud saatmine logitakse outbound_log-i error-reana.
+sendNotifications:
+  template: "templates/form/foreign-violation/notify-transition-and-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    formId: ${id}
+    companyRegCode: ${company_reg_code}
+    companyName: ${company_name}
+    formNumber: "${publishRes.response.body[0].formNumber || ''}"
+    violations: ${violations}
+    violationDescription: ${violation_description}
+    createdBy: ${created_by}
+    newNotifyCarrier: ${notify_carrier}
+    newNotifyLaborInspector: ${notify_labor_inspector}
+    sendGateMet: "true"
+  result: notifyResult
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

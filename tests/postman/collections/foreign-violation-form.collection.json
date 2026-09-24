@@ -796,7 +796,7 @@
       ]
     },
     {
-      "name": "POST foreign-violation-form/edit/save — notifyLaborInspector=true triggers postkast notification",
+      "name": "POST foreign-violation-form/edit/save — notifyLaborInspector=true is persisted, nothing sent yet",
       "request": {
         "method": "POST",
         "header": [
@@ -825,7 +825,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": \"{{fv_notify_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"false\", \"notifyCarrier\": \"false\", \"notifyLaborInspector\": \"true\"}"
+          "raw": "{\"id\": \"{{fv_notify_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"true\", \"notifyCarrier\": \"false\", \"notifyLaborInspector\": \"true\"}"
         }
       },
       "event": [
@@ -834,6 +834,285 @@
           "script": {
             "exec": [
               "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Verify] resql foreign-violation-form/get — notify flag kept after save",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/control-forms/foreign-violation-form/get",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "foreign-violation-form",
+            "get"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fv_notify_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var rows = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "rows = Array.isArray(rows) ? rows : [rows];",
+              "var row = rows[0] || {};",
+              "pm.test('notifyLaborInspector stays true after save', () => pm.expect(String(row.notifyLaborInspector)).to.eql('true'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list — save did NOT send labor_foreign_proposal",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list?pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
+              "var fvId = pm.environment.get('fv_notify_id');",
+              "var r = list.find(x => x.relatedEntityType === 'foreign_violation_form' && String(x.relatedEntityId) === String(fvId) && x.notificationType === 'labor_foreign_proposal');",
+              "pm.test('no outbound_log row before publish', () => pm.expect(r).to.be.undefined);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/confirm — notify-flow form (flag kept, nothing sent yet)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "foreign-violation-form",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fv_notify_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"true\", \"notifyCarrier\": \"false\", \"notifyLaborInspector\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list — confirm did NOT send labor_foreign_proposal",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list?pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
+              "var fvId = pm.environment.get('fv_notify_id');",
+              "var r = list.find(x => x.relatedEntityType === 'foreign_violation_form' && String(x.relatedEntityId) === String(fvId) && x.notificationType === 'labor_foreign_proposal');",
+              "pm.test('no outbound_log row before publish', () => pm.expect(r).to.be.undefined);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/publish — notify-flow form (sends notifications)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "foreign-violation-form",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fv_notify_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Verify] resql foreign-violation-form/get — notify flag kept after publish",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/control-forms/foreign-violation-form/get",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "control-forms",
+            "foreign-violation-form",
+            "get"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fv_notify_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();",
+              "var rows = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "rows = Array.isArray(rows) ? rows : [rows];",
+              "var row = rows[0] || {};",
+              "pm.test('status published', () => pm.expect(row.status).to.eql('published'));",
+              "pm.test('notifyLaborInspector stays true after publish (resend on next publish)', () => pm.expect(String(row.notifyLaborInspector)).to.eql('true'));"
             ]
           }
         }
@@ -929,6 +1208,192 @@
               "var r = rows.find(x => x.serviceCode === 'pk.notification-management.v1' && x.sourceType === 'foreign_violation_form' && String(x.sourceRecordId) === String(fvId));",
               "pm.test('xroad_integration_log row for the postkast call exists', () => pm.expect(r).to.not.be.undefined);",
               "pm.test('logged call succeeded (dev PK mock)', () => pm.expect(r.success).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/save — admin edits published notify-flow form (no send)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "foreign-violation-form",
+            "edit",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fv_notify_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"true\", \"notifyCarrier\": \"false\", \"notifyLaborInspector\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/confirm — re-confirm published notify-flow form",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/confirm",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "foreign-violation-form",
+            "edit",
+            "confirm"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fv_notify_id}}\", \"reportingCountryCode\": \"EE\", \"reportingAuthority\": \"Test Authority Notify\", \"inspectionCountryCode\": \"LV\", \"inspectionDate\": \"2026-01-15\", \"inspectionTime\": \"\", \"inspectionAddressLine1\": \"\", \"inspectionAddressLine2\": \"\", \"inspectionRegion\": \"\", \"inspectionCity\": \"\", \"companyRegCode\": \"\", \"companyName\": \"\", \"companyCountryCode\": \"\", \"companyAddressLine1\": \"\", \"companyAddressLine2\": \"\", \"companyCity\": \"\", \"companyPostalCode\": \"\", \"driverFirstName\": \"\", \"driverLastName\": \"\", \"vehicleRegNr\": \"\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"licenceCopyNumber\": \"\", \"violationDescription\": \"\", \"minorViolationsCount\": \"\", \"sanctionCode\": \"KORRAS\", \"sanctionNotes\": \"\", \"recommendedMeasureCode\": \"PUUDUVAD\", \"recommendedMeasureNotes\": \"\", \"recommendedMeasureGeneralNotes\": \"\", \"violations\": \"[]\", \"dataEntryDate\": \"2026-01-15\", \"inspectorFirstName\": \"Jaan\", \"inspectorLastName\": \"Tamm\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"\", \"inspectorProfession\": \"Spetsialist\", \"additionalSanctionCodes\": \"[]\", \"klimClarificationDate\": \"\", \"carrierExplanationDate\": \"\", \"penaltyValidUntil\": \"\", \"penaltyExpiredOrProcessed\": \"false\", \"akvkNextMeetingDate\": \"\", \"commissionLastDecisionDate\": \"\", \"adminProcedureDecision\": \"\", \"foreignAuthorityProposal\": \"true\", \"notifyCarrier\": \"false\", \"notifyLaborInspector\": \"true\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST foreign-violation-form/edit/publish — re-publish notify-flow form (sends again)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/foreign-violation-form/edit/publish",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "foreign-violation-form",
+            "edit",
+            "publish"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"{{fv_notify_id}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/notifications/outbound-log/list — re-publish sent labor_foreign_proposal again",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/notifications/outbound-log/list?pageSize=50",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "notifications",
+            "outbound-log",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "pageSize",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = (raw && typeof raw === 'object' && !Array.isArray(raw) && 'response' in raw) ? raw.response : raw;",
+              "var list = Array.isArray(body) ? body : ((body && body.content) || []);",
+              "var fvId = pm.environment.get('fv_notify_id');",
+              "var rows = list.filter(x => x.relatedEntityType === 'foreign_violation_form' && String(x.relatedEntityId) === String(fvId) && x.notificationType === 'labor_foreign_proposal');",
+              "pm.test('two outbound_log rows after two publishes', () => pm.expect(rows.length).to.eql(2));"
             ]
           }
         }

@@ -1423,13 +1423,13 @@ export function ForeignViolationFormFields({
                 if (!values.foreignAuthorityProposal) {
                   // Eraldi "Teavita tööinspektorit" linnukest pole — ettepaneku
                   // märkimine ise tellib tööinspektori teavituse (backend
-                  // saadab selle salvestamisel ja lähtestab lipu).
+                  // saadab selle avalikustamisel).
                   const proposal = vals.includes('foreignAuthorityProposal');
                   setFieldValue('foreignAuthorityProposal', proposal);
                   setFieldValue('notifyLaborInspector', proposal);
                 }
-                // notifyCarrier jääb korduvalt märgitavaks (p.5) — backend
-                // (save.yml) lülitab lipu peale saatmise tagasi false-ks,
+                // notifyCarrier on püsiv valik — backend (publish.yml) saadab
+                // teavituse igal avalikustamisel, kui linnuke on märgitud;
                 // ajalugu säilib notifications.outbound_log-is (vt allpool).
                 setFieldValue('notifyCarrier', vals.includes('notifyCarrier'));
               }

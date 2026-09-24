@@ -6,6 +6,15 @@
 
 ## 2026-09-24
 
+### Välisriigi kontrollkaart: teavitused saadetakse avalikustamisel
+
+- „Teavita vedajat rikkumisest" ja tööinspektori teavitus („Saabus
+  välisriigi pädeva asutuse ettepanek…") saadetakse nüüd alles kaardi
+  **avalikustamisel**. Salvestamine ja kinnitamine ei saada enam midagi.
+- Linnuke jääb pärast salvestamist kaardile alles (varem kadus). Kuna märge
+  püsib, saadetakse teavitus uuesti ka siis, kui kaarti muudetakse ja see
+  uuesti avalikustatakse. Varasemad saatmised on näha ploki all.
+
 ### Mootorsõiduki tehnonõuetele vastavuse kontrollvormi väljatrükk parandatud
 
 - Parandatud viga, mille tõttu täidetud mootorsõiduki (ja haagise)
