@@ -114,6 +114,27 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: evaluateNotifications
+
+evaluateNotifications:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/evaluate-technical-publish"
+    headers:
+      type: json
+    body:
+      entityType: "trailer_technical"
+      entityId: ${id}
+      compoundFormKey: ${compound_form_key}
+      version: ${publishRes.response.body[0].version}
+      resultType: ${result_type}
+      resultTransportInterruption: ${result_transport_interruption}
+      partsSummary: ${parts_summary}
+      partsDefects: ${parts_defects}
+      violations: ${violations}
+      createdBy: ${actor_personal_code}
+  result: notificationEvaluationRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

@@ -26,6 +26,8 @@ declaration:
         type: string
       - field: related_entity_id
         type: string
+      - field: event_key
+        type: string
       - field: title_et
         type: string
       - field: body_et
@@ -84,6 +86,7 @@ insertNotification:
       required_permission: ${incoming.body.required_permission}
       related_entity_type: ${incoming.body.related_entity_type ?? ''}
       related_entity_id: ${incoming.body.related_entity_id ?? ''}
+      event_key: ${incoming.body.event_key ?? ''}
       title_et: ${incoming.body.title_et}
       body_et: ${incoming.body.body_et ?? ''}
       recipient_personal_codes: ${recipient_personal_codes ?? ''}
