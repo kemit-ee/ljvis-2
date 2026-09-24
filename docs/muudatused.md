@@ -16,6 +16,9 @@
 - Varem loodud teavituste saajate ring jääb muutumatuks ka siis, kui
   haldusseadistust hiljem muudetakse — saajad tardistatakse teavituse
   loomise hetkel.
+- Parandatud: „NU sobimatusteated" puudus halduse „Postkasti mallide ja
+  vastuvõtjate seaded" nimekirjast täiesti, seega ei saanud sellele
+  desktop-teavitusele varem konkreetseid saajaid määrata.
 
 ### Vedaja teavituse e-posti aadress ei leitud äriregistri päringust
 
