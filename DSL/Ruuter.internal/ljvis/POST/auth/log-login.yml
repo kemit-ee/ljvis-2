@@ -18,7 +18,7 @@ declaration:
 
 generateEventId:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     trace_id: "${(incoming.headers.traceparent || '').split('-')[1] || ''}"
     span_id: "${(incoming.headers.traceparent || '').split('-')[2] || ''}"
   next: logToResql
