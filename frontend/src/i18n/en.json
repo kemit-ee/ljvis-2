@@ -2246,8 +2246,13 @@
       "emptyResult": "No notifications matched the search."
     },
     "types": {
+      "ncr_ok": "ERRU NCR passed inspection notice",
       "ncr_violation": "NCR serious infringement notice",
       "ncr_response": "NCR response notice",
+      "rsi_received": "ERRU RSI notice",
+      "serious_infringement": "Serious infringement detected in Estonia",
+      "extraordinary_inspection": "Referral to extraordinary technical inspection",
+      "cargo_securing": "Cargo securing non-compliance",
       "driving_ban": "Driving ban",
       "weight_violation": "Weight/measurement infringement",
       "carrier_violation": "Serious infringement notification to carrier",

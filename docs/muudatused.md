@@ -1439,3 +1439,18 @@ Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 - Muudatus puudutab avalikku e-toimiku otsingut (`v1/xroad/etoimik/
   kvalifikatsioonid`) ja kõiki nelja e-toimiku öist sünkiga cron-voogu
   (autojuht, tehnoülevaatus, SP-juht, TRAM).
+# Teavituste täpsustamine
+
+- ERRU NCR-i saabumisel luuakse eraldi desktop-teavitus nii korras kui
+  rikkumisega kontrolli kohta; pealkiri sisaldab vedaja nime.
+- ERRU NCR vastussõnum ja RSI teade kasutavad nõuetes määratud pealkirju;
+  RSI pealkiri sisaldab sõiduki registreerimisnumbrit.
+- Tehnokontrollvormide avalikustamisel hinnatakse raske rikkumise,
+  erakorralise tehnoülevaatuse, veose kinnitamise mittevastavuse ja
+  sõidukeelu tingimusi.
+- Kabotaažveo kontrolli Postkasti teavitus kasutab halduses seadistatud
+  malli ja adressaati; e-posti aadressi töövoogu ei kodeerita.
+- Desktop-teavituste saajaid migratsioon ei määra. Need valitakse käsitsi
+  teavituste haldusvaates.
+- Teavituse sündmuse võti lubab sama vormi uue versiooni korduvavalikustamisel
+  uue teavituse, kuid väldib sama alliksündmuse tehnilist duplikaati.

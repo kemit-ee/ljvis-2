@@ -39,6 +39,7 @@ checkFormIsConfirmed:
     compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
     sub_form_number: "${currentFormRes.response.body[0].subFormNumber}"
     company_reg_code: "${currentFormRes.response.body[0].companyRegCode || ''}"
+    company_name: "${currentFormRes.response.body[0].companyName || ''}"
   next: checkStatusSwitch
 
 checkStatusSwitch:
@@ -152,6 +153,57 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: checkSeriousInfringement
+
+checkSeriousInfringement:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringement
+  next: checkCabotageNotification
+
+createSeriousInfringement:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${id}
+      event_key: "${'drive-rest-driver:' + id + ':' + publishRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Koondvormi võti: ' + compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifRes
+  error: checkCabotageNotification
+  next: checkCabotageNotification
+
+checkCabotageNotification:
+  switch:
+    - condition: ${('' + (transport_classes || '')).indexOf('CABOTAGE') !== -1}
+      next: sendCabotageNotification
+  next: checkWeightViolation
+
+sendCabotageNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_kabotage"
+      language: "et"
+      send_time: ""
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code, resultType: result_type } }"
+  result: cabotageNotifRes
+  error: checkWeightViolation
   next: checkWeightViolation
 
 # Kui mass_dimension_non_compliant = true, loo weight_violation teavitus rsi.read õigusega kasutajatele.
@@ -173,7 +225,8 @@ createWeightViolationNotification:
       required_permission: "rsi.read"
       related_entity_type: "drive_rest_driver_form"
       related_entity_id: ${id}
-      title_et: "Kaalumise/mõõtmise rikkumine — SP-kaart (sõidu- ja puhkeaeg) avalikustatud"
+      event_key: "${'drive-rest-driver:' + id + ':' + publishRes.response.body[0].version}"
+      title_et: "Sõiduki kaalumisel ja mõõtmisel on avastatud rikkumine"
       body_et: "${'Koondvormi võti: ' + compound_form_key}"
       created_by: ${actor_personal_code}
   result: notifRes
