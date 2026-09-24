@@ -1064,7 +1064,7 @@
       },
       "notifications": {
         "title": "Teavitused",
-        "hint": "Märkige teavitus ja salvestage vorm — süsteem saadab valitud teavituse. Teavitust saab hiljem andmete muutumisel uuesti saata, märkides linnukese ja salvestades vormi uuesti.",
+        "hint": "Märkige teavitus ja salvestage vorm — valitud teavitus saadetakse kaardi avalikustamisel. Linnuke jääb kaardile alles, nii et kaardi uuesti avalikustamisel saadetakse teavitus uuesti.",
         "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks. Edasta teavitus tööinspektorile.",
         "notifyCarrier": "Teavita vedajat rikkumisest",
         "notifyLaborInspector": "Teavita tööinspektorit",
