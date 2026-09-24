@@ -48,7 +48,7 @@ tests:
         compoundFormKey: 5
         subFormNumber: TA-1
         version: 1
-        partsSummary: '[{"partCode":"CAA_10","status":"non_compliant"},{"partCode":"CAA_1","status":"non_compliant"},{"partCode":"CAA_11","status":"checked"},{"partCode":"CAA_2","status":"not_checked"}]'
+        partsSummary: '[{"partCode":"CAA_10","checked":true,"hasDefect":true},{"partCode":"CAA_1","checked":true,"hasDefect":true},{"partCode":"CAA_11","checked":true,"hasDefect":false},{"partCode":"CAA_2","checked":false,"hasDefect":false}]'
         partsDefects: '[{"partCode":"CAA_1","defectCode":"CAA_1.1.3","severity":"OV"},{"partCode":"CAA_10","defectCode":"CAA_10.20.3.1a","severity":"OV"}]'
     - url_matches: /control-forms/compound-form/get
       method: POST
