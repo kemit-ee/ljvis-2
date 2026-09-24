@@ -193,7 +193,6 @@ createDraft:
     headers:
       type: json
     body:
-      id: ""
       originatingAuthority: ${originating_authority}
       requestSource: ""
       requestPurpose: ""
@@ -244,7 +243,7 @@ logAuditBuild:
   next: returnDraft
 
 returnDraft:
-  return: "${JSON.stringify({id: draft_res.response.body[0].id, status: draft_res.response.body[0].status, businessCaseId: draft_res.response.body[0].businessCaseId, version: draft_res.response.body[0].version})}"
+  return: ${draft_res.response.body[0]}
   next: end
 
 returnFormIdRequired:

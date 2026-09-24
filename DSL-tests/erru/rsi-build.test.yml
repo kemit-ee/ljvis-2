@@ -95,6 +95,12 @@ tests:
       vehicleProhibitionOrRestriction: 'false'
   expect:
     status: 200
+    body_matches:
+      response:
+        id: 1
+        businessCaseId: EE-RSI-2026-00001
+        version: 1
+        status: initiated
   verify_mocks:
   - url_matches: /erru/rsi/append-draft
     count: 1
