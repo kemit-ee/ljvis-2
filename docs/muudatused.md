@@ -26,6 +26,20 @@
   nimede vahetuse parandust näitas väljatrükk seda rida endiselt valesti
   koodi CAA_11 all ning lisas kontrollitud staatuse eraldi tundmatu reana.
 
+### RSI teate eeltäitmine kontrollkaardilt: veoettevõtja andmed ja juhi nimi
+
+- Tehnoseisundi kontrollkaardilt loodud RSI teatel eeltäidetakse nüüd ka
+  **juhi eesnimi ja perekonnanimi** ning **veoettevõtja andmed** ("Veoettevõtja
+  või omaniku andmed" plokk) koondvormi ettevõtja andmetelt (nimi, ühenduse
+  tegevusloa number, aadress). Seni jäid need alati tühjaks, kahel põhjusel:
+  - `build.yml` luges koondvormi ettevõtja aadressi vale väljanime alt.
+  - Frontendis arvutati plokkide "avatud/suletud" olek ainult üks kord, enne
+    kui teate andmed jõudsid laadida, mistõttu plokid jäid alati kinni ka
+    siis, kui andmed olid tegelikult backend'is olemas.
+- Veoettevõtja plokk eeltäidetakse ainult siis, kui koondvormil on kõik
+  vajalikud väljad täidetud — poolik plokk jäetakse tühjaks, et hiljem
+  salvestamine ei nurjuks puuduva kohustusliku väljaga.
+
 ### Desktop-teavituse saajad valitavad kasutajate kaupa
 
 - Halduses „Postkasti mallide ja vastuvõtjate seaded" saab nüüd desktop-kanali
@@ -1445,3 +1459,18 @@ Autojuhi (ja meeskonnaliikme) sõidu- ja puhkeaja kontrollvormil:
 - Muudatus puudutab avalikku e-toimiku otsingut (`v1/xroad/etoimik/
   kvalifikatsioonid`) ja kõiki nelja e-toimiku öist sünkiga cron-voogu
   (autojuht, tehnoülevaatus, SP-juht, TRAM).
+# Teavituste täpsustamine
+
+- ERRU NCR-i saabumisel luuakse eraldi desktop-teavitus nii korras kui
+  rikkumisega kontrolli kohta; pealkiri sisaldab vedaja nime.
+- ERRU NCR vastussõnum ja RSI teade kasutavad nõuetes määratud pealkirju;
+  RSI pealkiri sisaldab sõiduki registreerimisnumbrit.
+- Tehnokontrollvormide avalikustamisel hinnatakse raske rikkumise,
+  erakorralise tehnoülevaatuse, veose kinnitamise mittevastavuse ja
+  sõidukeelu tingimusi.
+- Kabotaažveo kontrolli Postkasti teavitus kasutab halduses seadistatud
+  malli ja adressaati; e-posti aadressi töövoogu ei kodeerita.
+- Desktop-teavituste saajaid migratsioon ei määra. Need valitakse käsitsi
+  teavituste haldusvaates.
+- Teavituse sündmuse võti lubab sama vormi uue versiooni korduvavalikustamisel
+  uue teavituse, kuid väldib sama alliksündmuse tehnilist duplikaati.

@@ -7,8 +7,8 @@
   "templateMessage": {
     "channel": "EMAIL",
     "language": "et",
-    "subject": "Raske rikkumine tuvastatud — teade veoettevõtjale ({{controlFormId}})",
-    "content": "<p>Lugupeetud {{carrierName}} ({{carrierCode}}),</p><p>Liiklusjärelevalve infosüsteemi (LJVIS-2) kaudu on tuvastatud Teie veoettevõttega seotud raske rikkumine, millest teavitatakse ERRU (European Registers of Road Transport Undertakings) süsteemi kaudu.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrolliakti võti</th><td>{{controlFormId}}</td></tr><tr><th>Rikkumise kuupäev</th><td>{{violationDate}}</td></tr><tr><th>Inspektori nimi</th><td>{{inspectorName}}</td></tr><tr><th>Sõiduki registreerimisnumber</th><td>{{vehicleRegNr}}</td></tr></table><p>Võimalike vaidluste korral pöörduge kontrolli teostanud asutuse poole.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "subject": "Raske rikkumine tuvastatud — teade veoettevõtjale ({{formNumber}})",
+    "content": "<p>Lugupeetud {{companyName}} ({{companyRegCode}}),</p><p>Liiklusjärelevalve infosüsteemis on registreeritud Teie veoettevõttega seotud rikkumine.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrollvorm</th><td>{{formNumber}}</td></tr><tr><th>Rikkumise raskusaste</th><td>{{severity}}</td></tr><tr><th>Rikkumise kirjeldus</th><td>{{violationDescription}}</td></tr></table><p>Võimalike vaidluste korral pöörduge kontrolli teostanud asutuse poole.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
     "contentType": "text/html"
   }
 }

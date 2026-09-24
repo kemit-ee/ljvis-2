@@ -39,6 +39,7 @@ checkFormIsConfirmed:
     compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
     sub_form_number: "${currentFormRes.response.body[0].subFormNumber}"
     company_reg_code: "${currentFormRes.response.body[0].companyRegCode || ''}"
+    company_name: "${currentFormRes.response.body[0].companyName || ''}"
   next: checkStatusSwitch
 
 checkStatusSwitch:
@@ -57,6 +58,7 @@ extractCurrentFormData:
     transport_nature: "${currentFormRes.response.body[0].transportNature || ''}"
     transport_nature_exempt: "${currentFormRes.response.body[0].transportNatureExempt || false}"
     transport_classes: "${currentFormRes.response.body[0].transportClasses || '[]'}"
+    cabotage_violations: "${currentFormRes.response.body[0].cabotageViolations || '[]'}"
     result_type: "${currentFormRes.response.body[0].resultType || 'ok'}"
     additional_measure: "${currentFormRes.response.body[0].additionalMeasure || ''}"
     proceeding_type: "${currentFormRes.response.body[0].proceedingType || ''}"
@@ -100,6 +102,7 @@ publishForm:
       transportNature: ${transport_nature}
       transportNatureExempt: ${transport_nature_exempt}
       transportClasses: ${transport_classes}
+      cabotageViolations: ${cabotage_violations}
       resultType: ${result_type}
       additionalMeasure: ${additional_measure}
       proceedingType: ${proceeding_type}
@@ -146,6 +149,57 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: checkSeriousInfringement
+
+checkSeriousInfringement:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringement
+  next: checkCabotageNotification
+
+createSeriousInfringement:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "drive_rest_teammate_form"
+      related_entity_id: ${id}
+      event_key: "${'drive-rest-teammate:' + id + ':' + publishRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Koondvormi võti: ' + compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifRes
+  error: checkCabotageNotification
+  next: checkCabotageNotification
+
+checkCabotageNotification:
+  switch:
+    - condition: ${('' + (transport_classes || '')).indexOf('CABOTAGE') !== -1}
+      next: sendCabotageNotification
+  next: triggerRiskRecalculate
+
+sendCabotageNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_kabotage"
+      language: "et"
+      send_time: ""
+      related_entity_type: "drive_rest_teammate_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code, resultType: result_type } }"
+  result: cabotageNotifRes
+  error: triggerRiskRecalculate
   next: triggerRiskRecalculate
 
 # calculate_risk_score.sql loeb otse forms.sp_teammate_form-i, seega

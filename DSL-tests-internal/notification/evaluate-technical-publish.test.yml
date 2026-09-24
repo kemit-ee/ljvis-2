@@ -1,0 +1,80 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: http://technical-notification-test/resql
+  LJVIS_RUUTER_INTERNAL: http://technical-notification-test/internal
+http_rewrite:
+  http://technical-notification-test: '{MOCK}'
+tests:
+- name: foreign EU vehicle creates all applicable technical notifications
+  setup:
+    mocks:
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body:
+      - vehicleCountryCode: LV
+        vehicleRegNr: 123ABC
+        companyName: Vedaja AS
+    - url_matches: /notification/create
+      method: POST
+      status: 200
+      body:
+        id: notification-id
+  request:
+    method: POST
+    path: /ljvis/notification/evaluate-technical-publish
+    headers:
+      content-type: application/json
+    body:
+      entityType: vehicle_technical
+      entityId: '42'
+      compoundFormKey: '7'
+      version: '3'
+      resultType: extraordinary_inspection
+      resultTransportInterruption: true
+      partsSummary: '[{"partCode":"CAA_10"}]'
+      partsDefects: '[]'
+      violations: '[{"code":"MSI302"}]'
+      createdBy: '38001010000'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/create
+    count: 4
+
+- name: Estonian compliant vehicle creates no notification
+  setup:
+    mocks:
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body:
+      - vehicleCountryCode: EE
+        vehicleRegNr: 123ABC
+        companyName: Vedaja AS
+    - url_matches: /notification/create
+      method: POST
+      status: 200
+      body:
+        id: notification-id
+  request:
+    method: POST
+    path: /ljvis/notification/evaluate-technical-publish
+    headers:
+      content-type: application/json
+    body:
+      entityType: trailer_technical
+      entityId: '43'
+      compoundFormKey: '8'
+      version: '1'
+      resultType: ok
+      resultTransportInterruption: false
+      partsSummary: '[]'
+      partsDefects: '[]'
+      violations: '[]'
+      createdBy: system
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/create
+    count: 0

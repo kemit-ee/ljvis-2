@@ -55,6 +55,10 @@ declaration:
         type: string
       - field: formNumber
         type: string
+      - field: violations
+        type: string
+      - field: violationDescription
+        type: string
       - field: createdBy
         type: string
       - field: newNotifyCarrier
@@ -70,6 +74,18 @@ extractInputs:
     company_reg_code: "${incoming.body.companyRegCode || ''}"
     company_name: "${incoming.body.companyName || ''}"
     notification_form_number: "${incoming.body.formNumber || ''}"
+    violation_description: "${incoming.body.violationDescription || ''}"
+    violation_severities: >-
+      ${(() => {
+        try {
+          var rows = JSON.parse(incoming.body.violations || '[]');
+          var values = rows.map(function(v) {
+            var match = String(v.code || '').match(/^(MSI|VSI|SI)/);
+            return match ? match[1] : '';
+          }).filter(Boolean);
+          return Array.from(new Set(values)).join(', ');
+        } catch (e) { return ''; }
+      })()}
     created_by: "${incoming.body.createdBy || 'system'}"
     send_carrier: "${incoming.body.newNotifyCarrier === 'true' && incoming.body.sendGateMet === 'true'}"
     send_labor_inspector: "${incoming.body.newNotifyLaborInspector === 'true' && incoming.body.sendGateMet === 'true'}"
@@ -126,7 +142,7 @@ sendCarrierNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, severity: violation_severities, violationDescription: violation_description } }"
   result: carrierNotifRes
   error: checkSendLaborInspector
   next: checkSendLaborInspector

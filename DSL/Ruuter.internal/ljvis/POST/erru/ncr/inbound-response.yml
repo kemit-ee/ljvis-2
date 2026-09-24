@@ -149,10 +149,12 @@ createNcrResponseNotification:
       required_permission: "ncr.respond"
       related_entity_type: "ncr"
       related_entity_id: ${business_case_id}
-      title_et: "NCR vastussõnumi teatis"
+      event_key: "${workflow_id + ':' + response_status_code}"
+      title_et: "Saabus vastussõnum Eestist saadetud ERRU NCR teatele"
       body_et: "${'Juhtum: ' + business_case_id + ' — tulemus: ' + response_status_code}"
       created_by: "system"
   result: notifRes
+  error: buildAudit
   next: buildAudit
 
 buildAudit:
