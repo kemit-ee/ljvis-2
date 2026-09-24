@@ -133,6 +133,9 @@ returns:
 - name: companyRegCode
   type: string
   nullable: true
+- name: companyName
+  type: string
+  nullable: true
 */
 SELECT
   sp_teammate_form_key AS id,
@@ -182,7 +185,14 @@ SELECT
     WHERE compound_form_key = spt.compound_form_key
     ORDER BY created_at DESC
     LIMIT 1
-  ) AS company_reg_code
+  ) AS company_reg_code,
+  (
+    SELECT company_name
+    FROM forms.compound_form
+    WHERE compound_form_key = spt.compound_form_key
+    ORDER BY created_at DESC
+    LIMIT 1
+  ) AS company_name
 FROM forms.sp_teammate_form spt
 WHERE sp_teammate_form_key = :id::BIGINT
 ORDER BY created_at DESC

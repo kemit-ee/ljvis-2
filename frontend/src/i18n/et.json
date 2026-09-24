@@ -2271,8 +2271,13 @@
       "emptyResult": "Otsingule vastavaid teavitusi ei leitud."
     },
     "types": {
+      "ncr_ok": "ERRU NCR korras kontrolli teade",
       "ncr_violation": "NCR raske rikkumise teade",
       "ncr_response": "NCR vastussõnumi teatis",
+      "rsi_received": "ERRU RSI teade",
+      "serious_infringement": "Eestis avastatud raske rikkumine",
+      "extraordinary_inspection": "Erakorralisele tehnoülevaatusele suunamine",
+      "cargo_securing": "Veose kinnitamise nõude mittevastavus",
       "driving_ban": "Sõidukeeld",
       "weight_violation": "Kaalumise/mõõtmise rikkumine",
       "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",

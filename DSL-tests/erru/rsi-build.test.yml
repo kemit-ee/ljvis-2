@@ -68,6 +68,13 @@ tests:
         address: ''
         roadOther: ''
         trailers: '[]'
+        companyName: AS Vedaja
+        companyActivityLicenceCopyNumber: EE-LIC-1
+        companyAddress: Parnu mnt 1
+        companyCity: Tallinn
+        companyCountryCode: EE
+        companyPostalCode: '10141'
+        drivers: '[{"firstName":"Jaan","lastName":"Tamm"}]'
     - url_matches: /erru/rsi/append-draft
       method: POST
       status: 200
@@ -109,5 +116,108 @@ tests:
       vehicleRegistrationNumber: ABC123
       vehicleIdentificationNumber: VIN1
       vehicleRegistrationCountry: EE
+      driverFirstName: Jaan
+      driverFamilyName: Tamm
+      identificationDetails: '{"isVehicleHolder":"transport_undertaking","transportUndertakingName":"AS Vedaja","communityLicenceNumber":"EE-LIC-1","address":{"address":"Parnu mnt 1","city":"Tallinn","country":"EE","postCode":"10141"}}'
       # Ruuter's JSON.stringify emits keys in alphabetical order.
       checkedItems: '[{"defects":[],"nationalDefects":[{"defectCode":"CAA_1.1.3","severity":"OV"}],"partCode":"1","status":"non_compliant"},{"defects":[],"nationalDefects":[],"partCode":"10","status":"checked"},{"defects":[],"nationalDefects":[{"defectCode":"CAA_10.20.3.1a","severity":"OV"}],"partCode":"20","status":"non_compliant"}]'
+
+- name: build leaves identificationDetails empty when the compound form's company block is only partially filled
+  # A half-filled "Veoettevõtja" block would later fail validate-rsi-message.yml's
+  # undertaking_block_incomplete / address_incomplete checks on the next save — build.yml
+  # must only pre-fill it when every required sub-field is present.
+  setup:
+    mocks:
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - rsi.create
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /control-forms/vehicle-technical/get
+      method: POST
+      status: 200
+      body:
+      - id: 2
+        compoundFormKey: 6
+        subFormNumber: TA-2
+        version: 1
+        partsSummary: '[]'
+        partsDefects: '[]'
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body:
+      - id: 6
+        vehicleRegNr: DEF456
+        vehicleVin: VIN2
+        vehicleCategoryCode: M1
+        vehicleCountryCode: EE
+        vehicleMileage: 12000
+        controlDate: '2026-09-01'
+        controlTime: '10:00:00'
+        inspectorFirstName: Mari
+        inspectorLastName: Maasikas
+        city: Tallinn
+        address: ''
+        roadOther: ''
+        trailers: '[]'
+        companyName: AS Vedaja
+        companyActivityLicenceCopyNumber: ''
+        companyAddress: ''
+        companyCity: ''
+        companyCountryCode: ''
+        companyPostalCode: ''
+        drivers: '[]'
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 2
+        businessCaseId: EE-RSI-2026-00002
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/build
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      vehicleTechnicalFormId: '2'
+      technicalFormType: vehicle
+      vehicleRegistrationCountry: ''
+      vehicleCategory: ''
+      originatingAuthority: ''
+      inspectionLocation: ''
+      inspectionDatetime: ''
+      inspectionAuthorityOrName: ''
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      identificationDetails: ''
+      driverFirstName: ''
+      driverFamilyName: ''

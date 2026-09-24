@@ -7,8 +7,8 @@
   "templateMessage": {
     "channel": "EMAIL",
     "language": "et",
-    "subject": "LJVIS-2: Välisriigi ettepanek saabunud ({{fromCountry}} — {{controlFormId}})",
-    "content": "<p>Tere,</p><p>Liiklusjärelevalve infosüsteemi (LJVIS-2) kaudu on saabunud välisriigi ettepanek, mille menetlemine kuulub Tööinspektsiooni pädevusse.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Ettepaneku viide</th><td>{{controlFormId}}</td></tr><tr><th>Saatev riik</th><td>{{fromCountry}}</td></tr><tr><th>Ettepaneku kuupäev</th><td>{{proposalDate}}</td></tr><tr><th>Ettepaneku tüüp</th><td>{{proposalType}}</td></tr><tr><th>Puudutatud ettevõtja</th><td>{{carrierName}} ({{carrierCode}})</td></tr></table><p>Palun menetlege ettepanek vastavalt siseriiklikele protseduuridele.<br/>Täpsemad andmed on kättesaadavad LJVIS-2 kasutajaliideses.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "subject": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks ({{formNumber}})",
+    "content": "<p>Tere,</p><p>Liiklusjärelevalve infosüsteemi kaudu on saabunud välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrollvorm</th><td>{{formNumber}}</td></tr><tr><th>Veoettevõtja</th><td>{{companyName}} ({{companyRegCode}})</td></tr></table><p>Täpsemad andmed on kättesaadavad LJVIS-2 kasutajaliideses.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
     "contentType": "text/html"
   }
 }

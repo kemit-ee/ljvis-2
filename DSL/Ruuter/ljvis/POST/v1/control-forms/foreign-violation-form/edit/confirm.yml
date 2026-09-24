@@ -225,6 +225,8 @@ notifyTransitionAndSend:
     companyRegCode: ${company_reg_code}
     companyName: ${company_name}
     formNumber: "${(oldFormRes.response.body && oldFormRes.response.body[0] && oldFormRes.response.body[0].formNumber) || ''}"
+    violations: ${violations}
+    violationDescription: ${violation_description}
     createdBy: ${created_by}
     newNotifyCarrier: ${notify_carrier}
     newNotifyLaborInspector: ${notify_labor_inspector}

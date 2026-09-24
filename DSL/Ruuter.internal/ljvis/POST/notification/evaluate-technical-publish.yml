@@ -1,0 +1,174 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Hindab mootorsõiduki või haagise tehnokontrollvormi avalikustamise
+    siseteavituste tingimusi. Best-effort: ühe teavituse viga ei katkesta teisi.
+  namespace: notification
+  allowlist:
+    body:
+      - field: entityType
+        type: string
+      - field: entityId
+        type: string
+      - field: compoundFormKey
+        type: string
+      - field: version
+        type: string
+      - field: resultType
+        type: string
+      - field: resultTransportInterruption
+        type: boolean
+      - field: partsSummary
+        type: string
+      - field: partsDefects
+        type: string
+      - field: violations
+        type: string
+      - field: createdBy
+        type: string
+
+extractInput:
+  assign:
+    entity_type: "${incoming.body.entityType || ''}"
+    entity_id: "${incoming.body.entityId || ''}"
+    compound_form_key: "${incoming.body.compoundFormKey || ''}"
+    publication_version: "${incoming.body.version || ''}"
+    result_type: "${incoming.body.resultType || ''}"
+    driving_ban: "${incoming.body.resultTransportInterruption || false}"
+    parts_summary: "${incoming.body.partsSummary || '[]'}"
+    parts_defects: "${incoming.body.partsDefects || '[]'}"
+    violations: "${incoming.body.violations || '[]'}"
+    created_by: "${incoming.body.createdBy || 'system'}"
+  next: getCompoundForm
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_form_key}
+  result: compoundRes
+  error: returnResult
+  next: checkCompound
+
+checkCompound:
+  switch:
+    - condition: ${compoundRes.response.body == null || compoundRes.response.body.length !== 1}
+      next: returnResult
+  next: extractCompound
+
+extractCompound:
+  assign:
+    vehicle_country: "${('' + (compoundRes.response.body[0].vehicleCountryCode || '')).trim().toUpperCase()}"
+    vehicle_reg_nr: "${('' + (compoundRes.response.body[0].vehicleRegNr || '')).trim()}"
+    company_name: "${('' + (compoundRes.response.body[0].companyName || '')).trim()}"
+    event_prefix: "${entity_type + ':' + entity_id + ':' + publication_version}"
+    eu_eea_vehicle: >-
+      ${['AT','BE','BG','HR','CY','CZ','DK','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO'].includes(('' + (compoundRes.response.body[0].vehicleCountryCode || '')).trim().toUpperCase())}
+  next: checkSeriousInfringement
+
+checkSeriousInfringement:
+  switch:
+    - condition: ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test('' + violations)}
+      next: createSeriousInfringement
+  next: checkExtraordinaryInspection
+
+createSeriousInfringement:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: ${entity_type}
+      related_entity_id: ${entity_id}
+      event_key: "${event_prefix + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      created_by: ${created_by}
+  result: seriousNotifRes
+  error: checkExtraordinaryInspection
+  next: checkExtraordinaryInspection
+
+checkExtraordinaryInspection:
+  switch:
+    - condition: ${eu_eea_vehicle && (result_type === 'extraordinary_inspection' || result_type === 'extraordinary_inspection_ta')}
+      next: createExtraordinaryInspection
+  next: checkCargoSecuring
+
+createExtraordinaryInspection:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "extraordinary_inspection"
+      required_permission: "rsi.read"
+      related_entity_type: ${entity_type}
+      related_entity_id: ${entity_id}
+      event_key: "${event_prefix + ':extraordinary'}"
+      title_et: "Saabus teade Eestis erakorralisele tehnoülevaatusele suunatud Euroopa Liidu liikmesriigi sõiduki kohta"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr + ' (' + vehicle_country + ')'}"
+      created_by: ${created_by}
+  result: extraordinaryNotifRes
+  error: checkCargoSecuring
+  next: checkCargoSecuring
+
+checkCargoSecuring:
+  switch:
+    - condition: ${eu_eea_vehicle && (('' + parts_summary).indexOf('CAA_10') !== -1 || ('' + parts_defects).indexOf('CAA_10') !== -1)}
+      next: createCargoSecuring
+  next: checkDrivingBan
+
+createCargoSecuring:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "cargo_securing"
+      required_permission: "rsi.read"
+      related_entity_type: ${entity_type}
+      related_entity_id: ${entity_id}
+      event_key: "${event_prefix + ':cargo-securing'}"
+      title_et: "Saabus teade Eestis avastatud veoseveo kinnitamise nõude mittevastavuse kohta Euroopa Liidu liikmesriigi vedaja sõiduki kontrollimisel"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr + ' (' + vehicle_country + ')'}"
+      created_by: ${created_by}
+  result: cargoNotifRes
+  error: checkDrivingBan
+  next: checkDrivingBan
+
+checkDrivingBan:
+  switch:
+    - condition: ${driving_ban === true || driving_ban === 'true' || result_type === 'driving_ban'}
+      next: createDrivingBan
+  next: returnResult
+
+createDrivingBan:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "driving_ban"
+      required_permission: "rsi.read"
+      related_entity_type: ${entity_type}
+      related_entity_id: ${entity_id}
+      event_key: "${event_prefix + ':driving-ban'}"
+      title_et: "Saabus teade Eestis sõidukeelu rakendamise kohta"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      created_by: ${created_by}
+  result: drivingBanNotifRes
+  error: returnResult
+  next: returnResult
+
+returnResult:
+  return: '{"ok":true}'
+  next: end

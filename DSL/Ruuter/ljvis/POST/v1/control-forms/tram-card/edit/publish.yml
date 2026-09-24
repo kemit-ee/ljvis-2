@@ -225,6 +225,57 @@ logAuditEvent:
     description: "TRAM kontrollkaart avalikustatud, number=${publishRes.response.body[0].formNumber}/${publishRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${publishRes.response.body[0].id},\"formNumber\":\"${publishRes.response.body[0].formNumber}\",\"oldStatus\":\"confirmed\",\"newStatus\":\"published\"}"
   result: audit_result
+  next: checkSeriousInfringement
+
+checkSeriousInfringement:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringement
+  next: checkCabotageNotification
+
+createSeriousInfringement:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "tram_control_card"
+      related_entity_id: ${id}
+      event_key: "${'tram-control-card:' + id + ':' + publishRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifRes
+  error: checkCabotageNotification
+  next: checkCabotageNotification
+
+checkCabotageNotification:
+  switch:
+    - condition: ${('' + (transport_classes || '')).indexOf('CABOTAGE') !== -1}
+      next: sendCabotageNotification
+  next: triggerRiskRecalculate
+
+sendCabotageNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_kabotage"
+      language: "et"
+      send_time: ""
+      related_entity_type: "tram_control_card"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: publishRes.response.body[0].formNumber, companyName: company_name, companyRegCode: company_reg_code, resultType: result_type } }"
+  result: cabotageNotifRes
+  error: triggerRiskRecalculate
   next: triggerRiskRecalculate
 
 triggerRiskRecalculate:

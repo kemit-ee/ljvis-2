@@ -150,7 +150,7 @@ checkViolation:
   switch:
     - condition: ${check_result === 'WITH_INFRINGEMENT'}
       next: createNcrViolationNotification
-  next: buildAudit
+  next: createNcrOkNotification
 
 createNcrViolationNotification:
   call: http.post
@@ -163,10 +163,31 @@ createNcrViolationNotification:
       required_permission: "ncr.read"
       related_entity_type: "ncr"
       related_entity_id: ${business_case_id}
-      title_et: "NCR raske rikkumise teade"
-      body_et: "${transport_undertaking_name + ' — kontrolli tulemus: rikkumisega (riik: ' + ncr_from + ')'}"
+      event_key: ${technical_id}
+      title_et: "${'Saabus ERRU NCR rikkumisega kontrolli teade vedaja „' + transport_undertaking_name + '“ kohta'}"
+      body_et: "${'Teate saatnud riik: ' + ncr_from}"
       created_by: "system"
   result: notifRes
+  error: buildAudit
+  next: buildAudit
+
+createNcrOkNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      type: json
+    body:
+      type: "ncr_ok"
+      required_permission: "ncr.read"
+      related_entity_type: "ncr"
+      related_entity_id: ${business_case_id}
+      event_key: ${technical_id}
+      title_et: "${'Saabus ERRU NCR „Korras“ kontrolli teade vedaja „' + transport_undertaking_name + '“ kohta'}"
+      body_et: "${'Teate saatnud riik: ' + ncr_from}"
+      created_by: "system"
+  result: notifOkRes
+  error: buildAudit
   next: buildAudit
 
 lookupExisting:

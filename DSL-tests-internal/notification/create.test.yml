@@ -41,6 +41,7 @@ tests:
       required_permission: ncr.read
       related_entity_type: ncr
       related_entity_id: '123'
+      event_key: 'ncr-technical-id-123'
       title_et: Uus rikkumine
       body_et: ''
       created_by: system
@@ -52,6 +53,7 @@ tests:
     body_matches:
       type: ncr_violation
       required_permission: ncr.read
+      event_key: 'ncr-technical-id-123'
       recipient_personal_codes: '38001010000,38001010001'
 
 - name: type without desktop mapping is stamped with no recipients
