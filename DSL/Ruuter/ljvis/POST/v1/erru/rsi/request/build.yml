@@ -105,12 +105,19 @@ extractFormData:
     compound_form_key: "${('' + (form_res.response.body[0].compoundFormKey || '')).trim()}"
     parts_summary_array: "${(function(){ var ps = form_res.response.body[0].partsSummary; return typeof ps === 'string' ? JSON.parse(ps || '[]') : (Array.isArray(ps) ? ps : []); })()}"
     parts_defects_array: "${(function(){ var pd = form_res.response.body[0].partsDefects; return typeof pd === 'string' ? JSON.parse(pd || '[]') : (Array.isArray(pd) ? pd : []); })()}"
+  next: normalizePartStatuses
+
+# Current technical-check cards store {checked, hasDefect}; older snapshots used status.
+# Keep both readable so RSI can be pre-filled from any saved card version.
+normalizePartStatuses:
+  assign:
+    normalized_parts_summary: "${parts_summary_array.map(function(i){return {partCode:i.partCode,status:i.status || (i.hasDefect ? 'non_compliant' : (i.checked ? 'checked' : 'not_checked'))};})}"
   next: convertVehicleItems
 
 convertVehicleItems:
   assign:
-    vehicle_items: "${parts_summary_array.filter(function(i){return (i.status === 'checked' || i.status === 'non_compliant') && /^CAA_[0-9]$/.test(i.partCode || '');}).map(function(i){return {partCode: i.partCode.replace('CAA_', ''), status: i.status, defects: [], nationalDefects: parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode: d.defectCode, severity: d.severity};})};})}"
-    cargo_status: "${(parts_summary_array.filter(function(i){return i.partCode === 'CAA_10';})[0] || {}).status || ''}"
+    vehicle_items: "${normalized_parts_summary.filter(function(i){return (i.status === 'checked' || i.status === 'non_compliant') && /^CAA_[0-9]$/.test(i.partCode || '');}).map(function(i){return {partCode: i.partCode.replace('CAA_', ''), status: i.status, defects: [], nationalDefects: parts_defects_array.filter(function(d){return d.partCode === i.partCode;}).map(function(d){return {defectCode: d.defectCode, severity: d.severity};})};})}"
+    cargo_status: "${(normalized_parts_summary.filter(function(i){return i.partCode === 'CAA_10';})[0] || {}).status || ''}"
     cargo_defects: "${parts_defects_array.filter(function(d){return d.partCode === 'CAA_10';}).map(function(d){return {defectCode: d.defectCode, severity: d.severity, item: /^CAA_10[.][1-7][.]/.test(d.defectCode || '') ? '10' : '20'};})}"
   next: convertCargoItems
 
