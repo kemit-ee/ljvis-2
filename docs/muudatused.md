@@ -267,6 +267,29 @@ muudatuse (vt allpool) koodiülevaatusel leitud parandused:
   kerinud lehe automaatselt üles. Salvestamisel ja avalikustamisel käitumine
   ei muutunud.
 
+### CronManageri ajastatud taustatööd (teavituste staatuse sync, YV kehtivuse sync jt) ei käivitunud alates 31. augustist
+
+- Kõik CronManageri ajastatud tööd (teavituste staatuse sync, YV kehtivuse
+  sync, riskiskoori ümberarvutus, e-toimiku otsuste sync'id, aegunud
+  kasutajate deaktiveerimine, ERRU NCR automaatne saatmine) kutsusid
+  Ruuter.internal'it `curl`-käsuga, mis eeldas käsurea `${VAR}`- ja
+  `||`-loogikat — ent CronManager täidab käsu ilma shell'ita, mistõttu
+  muutuja jäi asendamata ja `curl` üritas iga kord ühenduda vigase
+  aadressiga, ebaõnnestudes 100% käivitustest (nähtav ka logides kui
+  "exit 6"). Praktikas tähendas see, et ükski neist taustatöödest polnud
+  31. augustist saati reaalselt Ruuter.internal'it kutsunud. Tööd
+  kasutavad nüüd CronManageri sisseehitatud HTTP-tüüpi (nagu algselt
+  kavandatud) ja käivituvad taas korrektselt.
+
+### Riskitaseme arvutuse salvestusvead on nähtavad
+
+- Ettevõtte riskitaseme arvutus kontrollib nüüd nii arvutatavate ettevõtete
+  valiku kui ka tulemuse andmebaasi salvestamise vastust. Varem tagastas
+  sisemine teenus salvestusvea korral eksitavalt HTTP 200 ning nii
+  avalikustamine kui ka öine töö lugesid ebaõnnestunud arvutuse edukaks.
+- Kontrollkaardi avalikustamine ise jääb riskitaseme järeltegevuse ajutisest
+  ühendusveast sõltumatuks.
+
 ### X-tee OpenAPI kirjeldus on nüüd turvaserverile otse kättesaadav
 
 - Turvaserver saab nüüd LJVIS2 pakutavate X-tee teenuste OpenAPI 3.0

@@ -6,7 +6,9 @@
 # etoimik (01:00) and yvkehtivus (hourly :05) to avoid overlap.
 risk_score_recalc:
   trigger: "0 0 3 * * ?"
-  type: exec
-  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/risk-score-recalc-sync" || true
-  allowedEnvs:
-    - RUUTER_INTERNAL
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/risk-score-recalc-sync
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

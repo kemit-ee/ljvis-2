@@ -7,7 +7,9 @@
 # PPA sp-driver sync (01:30) to avoid XTR contention.
 etoimik_technical_check_decision_sync:
   trigger: "0 45 1 * * ?"
-  type: exec
-  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/etoimik-technical-check-decision-sync" || true
-  allowedEnvs:
-    - RUUTER_INTERNAL
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/etoimik-technical-check-decision-sync
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

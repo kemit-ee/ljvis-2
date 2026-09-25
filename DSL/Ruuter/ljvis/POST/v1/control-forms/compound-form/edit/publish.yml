@@ -167,6 +167,7 @@ callRiskRecalculate:
       company_reg_code: ${company_reg_code}
       calculation_trigger: "kontrollvorm"
   result: recalc_result
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:
