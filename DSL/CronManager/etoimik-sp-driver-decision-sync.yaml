@@ -2,7 +2,9 @@
 # labour-inspection e-toimik sync (01:00) to avoid XTR contention.
 etoimik_sp_driver_decision_sync:
   trigger: "0 30 1 * * ?"
-  type: exec
-  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/etoimik-sp-driver-decision-sync" || true
-  allowedEnvs:
-    - RUUTER_INTERNAL
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/etoimik-sp-driver-decision-sync
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

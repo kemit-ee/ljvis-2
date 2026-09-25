@@ -1,6 +1,8 @@
 /*
 description: 'Eeltäitmine (LJVIS2-64 §4.1): build a new OUTGOING NCR request draft from an SP control-form
-  sub-form (forms.sp_driver_form or forms.sp_teammate_form, selected by :spFormType) and its parent forms.compound_form.
+  sub-form (forms.sp_driver_form or forms.sp_teammate_form, selected by :spFormType) and its parent forms.compound_form,
+  OR — when :spFormType = ''tram'' — directly from a forms.tram_control_card row (ADR-002 standalone entity,
+  no compound_form parent; :spFormKey is then its tram_control_card_key).
   Appends the first snapshot of a new erru.ncr_message with status ''initiated'', same as append-request-draft.sql,
   but the field values are DERIVED from the SP sub-form instead of being passed by the caller. checkResult
   is Pass when the sub-form''s erru_points[] contains no MSI/VSI/SI entries, Fail otherwise — CleanCheck
@@ -22,7 +24,7 @@ params:
   spFormType:
     type: string
     required: false
-    description: '''driver'' or ''teammate'' — selects sp_driver_form vs sp_teammate_form'
+    description: '''driver'', ''teammate'' or ''tram'' — selects sp_driver_form / sp_teammate_form / tram_control_card'
   originatingAuthority:
     type: string
     required: false
@@ -83,41 +85,68 @@ returns:
 -- ─────────────────────────────────────────────────────────────────────────────
 WITH sp AS (
   (
-    SELECT compound_form_key, forms.derive_sp_erru_points(
-      violations_561_2006, violations_165_2014, violations_2002_15,
-      violations_593_2008, violations_2020_1057, cabotage_violations, erru_points
-    ) AS erru_points
-    FROM forms.sp_driver_form
-    WHERE sp_driver_form_key = :spFormKey::BIGINT
+    SELECT
+      cf.company_name,
+      cf.company_activity_licence_copy_number,
+      cf.vehicle_reg_nr,
+      cf.vehicle_country_code,
+      cf.vehicle_category_code,
+      cf.control_date,
+      cf.inspector_organisation_id,
+      forms.derive_sp_erru_points(
+        s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
+        s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points
+      ) AS erru_points
+    FROM forms.sp_driver_form s
+    JOIN forms.compound_form cf ON cf.compound_form_key = s.compound_form_key
+    WHERE s.sp_driver_form_key = :spFormKey::BIGINT
       AND :spFormType = 'driver'
-    ORDER BY created_at DESC
+    ORDER BY s.created_at DESC, cf.created_at DESC
     LIMIT 1
   )
   UNION ALL
   (
-    SELECT compound_form_key, forms.derive_sp_erru_points(
-      violations_561_2006, violations_165_2014, violations_2002_15,
-      violations_593_2008, violations_2020_1057, cabotage_violations, erru_points
-    ) AS erru_points
-    FROM forms.sp_teammate_form
-    WHERE sp_teammate_form_key = :spFormKey::BIGINT
+    SELECT
+      cf.company_name,
+      cf.company_activity_licence_copy_number,
+      cf.vehicle_reg_nr,
+      cf.vehicle_country_code,
+      cf.vehicle_category_code,
+      cf.control_date,
+      cf.inspector_organisation_id,
+      forms.derive_sp_erru_points(
+        s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
+        s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points
+      ) AS erru_points
+    FROM forms.sp_teammate_form s
+    JOIN forms.compound_form cf ON cf.compound_form_key = s.compound_form_key
+    WHERE s.sp_teammate_form_key = :spFormKey::BIGINT
       AND :spFormType = 'teammate'
-    ORDER BY created_at DESC
+    ORDER BY s.created_at DESC, cf.created_at DESC
     LIMIT 1
   )
-), cf AS (
-  SELECT
-    cf.company_name,
-    cf.company_activity_licence_copy_number,
-    cf.vehicle_reg_nr,
-    cf.vehicle_country_code,
-    cf.vehicle_category_code,
-    cf.control_date,
-    cf.inspector_organisation_id
-  FROM forms.compound_form cf, sp
-  WHERE cf.compound_form_key = sp.compound_form_key
-  ORDER BY cf.created_at DESC
-  LIMIT 1
+  UNION ALL
+  (
+    -- ADR-002: TRAM kontrollkaart on iseseisev olem, kõik väljad on samal
+    -- real (compound_form parenti pole).
+    SELECT
+      t.company_name,
+      t.company_activity_licence_copy_number,
+      t.vehicle_reg_nr,
+      t.vehicle_country_code,
+      t.vehicle_category_code,
+      t.control_date,
+      t.inspector_organisation_id,
+      forms.derive_sp_erru_points(
+        t.violations_561_2006, t.violations_165_2014, t.violations_2002_15,
+        t.violations_593_2008, t.violations_2020_1057, t.cabotage_violations, t.erru_points
+      ) AS erru_points
+    FROM forms.tram_control_card t
+    WHERE t.tram_control_card_key = :spFormKey::BIGINT
+      AND :spFormType = 'tram'
+    ORDER BY t.created_at DESC
+    LIMIT 1
+  )
 ), serious AS (
   -- One entry per MSI/VSI/SI erru_point; drop '302' when the vehicle is M1 (private car).
   SELECT COALESCE(
@@ -125,8 +154,8 @@ WITH sp AS (
       jsonb_build_object(
         'category', p->>'severity_category',
         'infringementType', p->>'erru_code',
-        'dateOfInfringement', cf.control_date,
-        'detectionCheckDate', cf.control_date,
+        'dateOfInfringement', sp.control_date,
+        'detectionCheckDate', sp.control_date,
         -- "Karistust saab edasi kaevata" vaikimisi false — NCR teade saadetakse
         -- valdavalt jõustunud otsuste kohta; ametnik muudab vajadusel (#328).
         'appealPossible', false,
@@ -135,13 +164,13 @@ WITH sp AS (
       )
     ) FILTER (
       WHERE p->>'severity_category' IN ('MSI', 'VSI', 'SI')
-        AND NOT (cf.vehicle_category_code = 'M1' AND p->>'erru_code' = '302')
+        AND NOT (sp.vehicle_category_code = 'M1' AND p->>'erru_code' = '302')
     ),
     '[]'::JSONB
   ) AS infringements,
   bool_or(p->>'severity_category' IN ('MSI', 'VSI', 'SI')
-          AND NOT (cf.vehicle_category_code = 'M1' AND p->>'erru_code' = '302')) AS has_serious
-  FROM sp, cf, jsonb_array_elements(sp.erru_points) AS p
+          AND NOT (sp.vehicle_category_code = 'M1' AND p->>'erru_code' = '302')) AS has_serious
+  FROM sp, jsonb_array_elements(sp.erru_points) AS p
 ), ins AS (
   INSERT INTO erru.ncr_message (
     ncr_message_key,
@@ -173,22 +202,22 @@ WITH sp AS (
     'NCR-EE-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(nextval('erru.seq_ncr_business_case_no')::text, 5, '0'),
     'EE',
     NULLIF(:ncrTo, ''),
-    -- Eeltäida kontrollkaardi inspektori asutusest (nt PPA); kutsuja modaal
-    -- võib selle üle kirjutada (#328 p3).
-    COALESCE(NULLIF(:originatingAuthority, ''), NULLIF(cf.inspector_organisation_id, '')),
+    -- Eeltäida kontrollkaardi inspektori asutusest (nt PPA/TRAM); kutsuja
+    -- modaal võib selle üle kirjutada (#328 p3).
+    COALESCE(NULLIF(:originatingAuthority, ''), NULLIF(sp.inspector_organisation_id, '')),
     NULLIF(:requestSource, ''),
     NULLIF(:requestPurpose, ''),
-    cf.company_name,
-    cf.company_activity_licence_copy_number,
-    cf.vehicle_reg_nr,
-    cf.vehicle_country_code,
+    sp.company_name,
+    sp.company_activity_licence_copy_number,
+    sp.vehicle_reg_nr,
+    sp.vehicle_country_code,
     CASE WHEN serious.has_serious THEN 'Fail' ELSE 'Pass' END,
-    cf.control_date,
+    sp.control_date,
     CASE WHEN serious.has_serious THEN serious.infringements ELSE '[]'::JSONB END,
     NULLIF(:handlerPersonalCode, ''),
     NULLIF(:handlerName, ''),
     :created_by
-  FROM cf, serious
+  FROM sp, serious
   RETURNING ncr_message_key, business_case_id, version, status
 )
 SELECT ncr_message_key AS id, business_case_id, version, status FROM ins;

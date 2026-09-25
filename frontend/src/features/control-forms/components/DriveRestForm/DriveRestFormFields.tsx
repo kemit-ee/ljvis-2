@@ -610,6 +610,18 @@ export function DriveRestFormFields({
                     value: 'warning',
                     label: t('forms.sp_form.controlResultHoiatus'),
                   },
+                  // Märgukiri (endine "Ettekirjutus" lisameede) kuulub ainult
+                  // Transpordiameti kontrollkaardile, tõstetud siia hoiatuse
+                  // järele.
+                  ...(authority === 'TRAM'
+                    ? [
+                        {
+                          id: 'result_margukiri',
+                          value: 'precept',
+                          label: t('forms.sp_form.controlResultMargukiri'),
+                        },
+                      ]
+                    : []),
                   {
                     id: 'result_alustati',
                     value: 'misdemeanor_proceedings',
@@ -626,51 +638,94 @@ export function DriveRestFormFields({
                   : {})}
               />
               {(formik.values.resultType === 'warning' ||
-                formik.values.resultType === 'misdemeanor_proceedings') && (
-                <ChoiceGroup
-                  id={fieldId('additionalMeasure')}
-                  label={
-                    <strong>{t('forms.sp_form.additionalMeasure')}</strong>
-                  }
-                  name={fieldId('additionalMeasure')}
-                  inputType="radio"
-                  direction="row"
-                  className="mb-1"
-                  value={formik.values.additionalMeasure ?? ''}
-                  onChange={(val) =>
-                    formik.setFieldValue('additionalMeasure', val as string)
-                  }
-                  items={withDisabled([
-                    {
-                      id: 'measure_none',
-                      value: '',
-                      label: t('forms.sp_form.additionalMeasureNone'),
-                    },
-                    {
-                      id: 'measure_ettekirjutus',
-                      value: 'precept',
-                      label: t('forms.sp_form.controlResultEttekirjutus'),
-                    },
-                    {
-                      id: 'measure_juhtimiselt',
-                      value: 'driving_ban',
-                      label: t('forms.sp_form.controlResultJuhtimiselt'),
-                    },
-                    {
-                      id: 'measure_arest',
-                      value: 'arrest',
-                      label: t('forms.sp_form.controlResultArest'),
-                    },
-                    {
-                      id: 'measure_autovedu',
-                      value: 'transport_interruption',
-                      label: t('forms.sp_form.controlResultAutovedu'),
-                    },
-                  ])}
-                />
-              )}
+                formik.values.resultType === 'misdemeanor_proceedings') &&
+                (authority === 'TRAM' ? (
+                  // TRAM: mitut lisameedet võib kohaldada üheaegselt, seega
+                  // kastikesed (mitmikvalik) ühte stringi kokku pakituna
+                  // ("driving_ban,arrest"), mitte raadionupud. "Ettekirjutus"
+                  // (nüüd "Märgukiri") tõsteti Kontrolli tulemuse blokki.
+                  <ChoiceGroup
+                    id={fieldId('additionalMeasure')}
+                    label={
+                      <strong>{t('forms.sp_form.additionalMeasure')}</strong>
+                    }
+                    name={fieldId('additionalMeasure')}
+                    inputType="checkbox"
+                    direction="row"
+                    className="mb-1"
+                    value={(formik.values.additionalMeasure ?? '')
+                      .split(',')
+                      .filter(Boolean)}
+                    onChange={(val) =>
+                      formik.setFieldValue(
+                        'additionalMeasure',
+                        (val as string[]).join(','),
+                      )
+                    }
+                    items={withDisabled([
+                      {
+                        id: 'measure_juhtimiselt',
+                        value: 'driving_ban',
+                        label: t('forms.sp_form.controlResultJuhtimiselt'),
+                      },
+                      {
+                        id: 'measure_arest',
+                        value: 'arrest',
+                        label: t('forms.sp_form.controlResultArest'),
+                      },
+                      {
+                        id: 'measure_autovedu',
+                        value: 'transport_interruption',
+                        label: t('forms.sp_form.controlResultAutovedu'),
+                      },
+                    ])}
+                  />
+                ) : (
+                  <ChoiceGroup
+                    id={fieldId('additionalMeasure')}
+                    label={
+                      <strong>{t('forms.sp_form.additionalMeasure')}</strong>
+                    }
+                    name={fieldId('additionalMeasure')}
+                    inputType="radio"
+                    direction="row"
+                    className="mb-1"
+                    value={formik.values.additionalMeasure ?? ''}
+                    onChange={(val) =>
+                      formik.setFieldValue('additionalMeasure', val as string)
+                    }
+                    items={withDisabled([
+                      {
+                        id: 'measure_none',
+                        value: '',
+                        label: t('forms.sp_form.additionalMeasureNone'),
+                      },
+                      {
+                        id: 'measure_ettekirjutus',
+                        value: 'precept',
+                        label: t('forms.sp_form.controlResultEttekirjutus'),
+                      },
+                      {
+                        id: 'measure_juhtimiselt',
+                        value: 'driving_ban',
+                        label: t('forms.sp_form.controlResultJuhtimiselt'),
+                      },
+                      {
+                        id: 'measure_arest',
+                        value: 'arrest',
+                        label: t('forms.sp_form.controlResultArest'),
+                      },
+                      {
+                        id: 'measure_autovedu',
+                        value: 'transport_interruption',
+                        label: t('forms.sp_form.controlResultAutovedu'),
+                      },
+                    ])}
+                  />
+                ))}
               {formik.values.resultType !== 'ok' &&
                 formik.values.resultType !== 'warning' &&
+                formik.values.resultType !== 'precept' &&
                 formik.values.resultType !== '' && (
                   <>
                     {(() => {
@@ -1317,8 +1372,11 @@ export function DriveRestFormFields({
           </Card>
         </Col>
       </Row>
-      {/* Plokk: Märkused */}
-      {formik.values.resultType !== '' && formik.values.resultType !== 'ok' && (
+      {/* Plokk: Märkused. TRAM kontrollkaardil näidatakse ka "Korras" tulemuse
+          korral, kuna kontrolli kohta võib ikkagi tekkida vajadus midagi üles
+          märkida; PPA kaardil jääb käitumine endiseks. */}
+      {formik.values.resultType !== '' &&
+        (authority === 'TRAM' || formik.values.resultType !== 'ok') && (
         <Card className="mb-1">
           <Card.Content>
             <Heading element="h3" className="mb-1">

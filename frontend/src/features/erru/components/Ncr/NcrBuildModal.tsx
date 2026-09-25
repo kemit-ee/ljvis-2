@@ -11,8 +11,12 @@ import { ApiError } from '../../../../shared/api/client';
 
 interface NcrBuildModalProps {
   spFormKey: string | number;
-  spFormType: 'driver' | 'teammate';
+  spFormType: 'driver' | 'teammate' | 'tram';
   compoundFormKey?: string | number;
+  /** TRAM control card has no compound_form parent (ADR-002) to prefill from —
+   *  the caller passes the card's own vehicleCountryCode/inspectorOrganisationId directly. */
+  initialNcrTo?: string;
+  initialOriginatingAuthority?: string;
   open: boolean;
   onClose: () => void;
 }
@@ -26,7 +30,15 @@ interface NcrBuildModalProps {
  * M1 302 exception) is NOT re-entered — the officer only supplies what the control card
  * cannot know. On success, navigates to the freshly created NCR draft in edit mode.
  */
-export function NcrBuildModal({ spFormKey, spFormType, compoundFormKey, open, onClose }: NcrBuildModalProps) {
+export function NcrBuildModal({
+  spFormKey,
+  spFormType,
+  compoundFormKey,
+  initialNcrTo,
+  initialOriginatingAuthority,
+  open,
+  onClose,
+}: NcrBuildModalProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { getByCode, getErruMemberCountries } = useClassifiers();
@@ -56,17 +68,23 @@ export function NcrBuildModal({ spFormKey, spFormType, compoundFormKey, open, on
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!open || compoundFormKey == null) return;
-    let cancelled = false;
-    getCompoundForm(Number(compoundFormKey)).then((compound) => {
-      if (cancelled) return;
-      setNcrTo(compound.vehicleCountryCode ?? '');
-      setOriginatingAuthority(compound.inspectorOrganisationId ?? '');
-    }).catch((e) => {
-      if (!cancelled) console.error('NCR prefill failed', e);
-    });
-    return () => { cancelled = true; };
-  }, [open, compoundFormKey]);
+    if (!open) return;
+    if (compoundFormKey != null) {
+      let cancelled = false;
+      getCompoundForm(Number(compoundFormKey)).then((compound) => {
+        if (cancelled) return;
+        setNcrTo(compound.vehicleCountryCode ?? '');
+        setOriginatingAuthority(compound.inspectorOrganisationId ?? '');
+      }).catch((e) => {
+        if (!cancelled) console.error('NCR prefill failed', e);
+      });
+      return () => { cancelled = true; };
+    }
+    // TRAM: no compound_form parent to query — caller supplies the card's
+    // own values directly.
+    setNcrTo(initialNcrTo ?? '');
+    setOriginatingAuthority(initialOriginatingAuthority ?? '');
+  }, [open, compoundFormKey, initialNcrTo, initialOriginatingAuthority]);
 
   const opts = classifierOptions;
   const selected = selectedClassifierOption;

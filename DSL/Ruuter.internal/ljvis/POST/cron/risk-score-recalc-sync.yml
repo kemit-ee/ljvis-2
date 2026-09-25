@@ -29,6 +29,12 @@ fetchCompanies:
       type: json
     body: {}
   result: companiesRes
+  next: checkCompaniesResponse
+
+checkCompaniesResponse:
+  switch:
+    - condition: "${companiesRes.response == null || companiesRes.response.status < 200 || companiesRes.response.status >= 300 || !Array.isArray(companiesRes.response.body)}"
+      next: returnCompanySelectionError
   next: assignCompanies
 
 assignCompanies:
@@ -62,11 +68,12 @@ processCompanies:
       - assign:
           outcome: >-
             ${(function(){
-              var httpOk = recalcRes.response.status >= 200 && recalcRes.response.status < 300;
+              var response = recalcRes && recalcRes.response;
+              var httpOk = response != null && response.status >= 200 && response.status < 300;
               if (!httpOk) {
                 return { success: false, riskBandCode: '' };
               }
-              return { success: true, riskBandCode: (recalcRes.response.body && recalcRes.response.body.riskBandCode) || '' };
+              return { success: true, riskBandCode: (response.body && response.body.riskBandCode) || '' };
             })()}
     collect: "${({ companyRegCode: company_reg_code, success: outcome.success })}"
     into: results
@@ -113,4 +120,9 @@ writeAuditEvent:
 returnSummary:
   status: 200
   return: "${({ companiesChecked: companies.length, recalculated: results.filter(r => r.success).length, failures: results.filter(r => !r.success).length })}"
+  next: end
+
+returnCompanySelectionError:
+  status: 500
+  return: "${({error: 'COMPANY_SELECTION_ERROR', message: 'Risk-score company selection failed'})}"
   next: end

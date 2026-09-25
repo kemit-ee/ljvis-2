@@ -82,6 +82,12 @@ saveRiskScore:
       calculation_trigger: ${calculation_trigger}
       created_by: "system"
   result: saveResult
+  next: checkSave
+
+checkSave:
+  switch:
+    - condition: "${saveResult.response == null || saveResult.response.status < 200 || saveResult.response.status >= 300 || !saveResult.response.body || saveResult.response.body.length !== 1}"
+      next: returnSaveError
   next: returnSuccess
 
 returnSuccess:
@@ -99,4 +105,9 @@ returnInvalidRegCode:
 returnCalculationError:
   status: 500
   return: "${({error: 'CALCULATION_ERROR', message: 'Risk score calculation failed'})}"
+  next: end
+
+returnSaveError:
+  status: 500
+  return: "${({error: 'SAVE_ERROR', message: 'Risk score persistence failed'})}"
   next: end
