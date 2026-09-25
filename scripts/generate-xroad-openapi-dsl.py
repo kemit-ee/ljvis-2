@@ -24,6 +24,8 @@ HEADER = '''declaration:
     (Teenused -> Lisa REST -> Kirjelduse URL), et automaatselt teenuste
     lepingut uuendada. Sisu on genereeritud failist docs/xtee/XroadOpenapi.yaml
     skriptiga scripts/generate-xroad-openapi-dsl.py — ÄRA MUUDA KÄSITSI.
+    wrapper: false — raw YAML body (mitte Ruuteri {"response":...} ümbris),
+    sest SS ootab puhast OpenAPI dokumenti.
   namespace: xroad-openapi
 
 returnOpenapi:
@@ -31,7 +33,10 @@ returnOpenapi:
   return: |
 '''
 
+# wrapper: false — security server "Kirjeldus URL-ilt" expects the OpenAPI
+# document as the HTTP body, not Ruuter's default {"response":"<yaml>"} envelope.
 FOOTER = '''
+  wrapper: false
   next: end
 '''
 

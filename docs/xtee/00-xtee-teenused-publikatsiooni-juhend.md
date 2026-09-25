@@ -658,6 +658,8 @@ http://ruuter-internal:8080/ljvis/xroad/provide/openapi
 5. Edaspidi saab lepingut värskendada nupuga **"Värskenda"** — käsitsi uuesti üleslaadimist pole vaja.
 
 **Oluline:**
+- Vastus peab olema **raw OpenAPI YAML** (HTTP keha = `XroadOpenapi.yaml` sisu), mitte
+  Ruuteri vaikimisi `{"response":"..."}` JSON-ümbris. DSL seab `wrapper: false`.
 - See endpoint ei nõua `X-Road-Client` päist ega muud autentimist — turvaserver ei toeta kirjelduse tõmbamisel autentimist. Seega peab tee jääma samasse Ruuter.internal komponenti, mis muidu polegi avalikult (nginx-i kaudu) ligipääsetav ([4.1](#41-ülevaade)) — ainult turvaserverile otse.
 - Ruuter DSL ei toeta faili lugemist kettalt, seega on kirjelduse sisu embed'itud otse DSL-faili sisse. Sisu hoiab failiga `XroadOpenapi.yaml` sünkroonis skript `scripts/generate-xroad-openapi-dsl.py` — kui leping muutub, jooksuta:
   ```bash
@@ -667,6 +669,6 @@ http://ruuter-internal:8080/ljvis/xroad/provide/openapi
 
 **Testimine:**
 ```bash
-curl -v "http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/openapi"
-# Oodatav: HTTP 200, kogu XroadOpenapi.yaml sisu tekstina
+curl -sS "https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/provide/openapi" | head
+# Oodatav: HTTP 200, esimene rida "openapi: 3.0.3" (mitte {"response":...)
 ```
