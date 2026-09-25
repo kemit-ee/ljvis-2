@@ -6,6 +6,21 @@
 
 ## 2026-09-25
 
+### Vormide parandused: haagise tehnoseisund, autojuhi vedu, NCR-VR loomine
+
+- Parandatud viga, mille tõttu haagise tehnoseisundi kontrollkaardil
+  valitud rikkumised (ja muud väljad) ei salvestunud uue koondvormi
+  loomisel — haagise registreerimisnumbri muutumine nullis kogu
+  alamvormi.
+- Autojuhi sõidu- ja puhkeaja vormil valitud „Vedu" (tasuline/oma kulul),
+  „Tegevusloa nõudest vabastatud vedu", „Tühisõit" ja kabotaaži
+  rikkumised kanduvad nüüd meeskonnaliikme vormile edasi, samamoodi nagu
+  veoliik ja veoklass juba varem kandusid.
+- NCR teate „Loo välisriigi toimunud rikkumise kontrollkaart" nupp on
+  nüüd nähtav juba pärast vastuse salvestamist (mitte alles pärast
+  saatmist) — vastuse saab salvestada, seejärel valida kas kontrollkaardi
+  loomise või vastuse saatmise, kummas järjekorras soovitakse.
+
 ### NCR-vastuse vaade: sissetulnud päring nähtav ka vastates
 
 - NCR teatele vastamisel on nüüd vastuse vormi kohal näha ka sissetulnud
