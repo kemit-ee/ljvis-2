@@ -1104,6 +1104,7 @@
       "controlResultLabel": "Inspection result",
       "controlResultKorras": "OK",
       "controlResultHoiatus": "Warning",
+      "controlResultMargukiri": "Notice letter",
       "controlResultEttekirjutus": "Prescription",
       "controlResultJuhtimiselt": "Removal from driving",
       "controlResultArest": "Arrest",
