@@ -6,6 +6,12 @@
 
 ## 2026-09-25
 
+### Välisriigi rikkumise vormi saatmise logi viga
+
+- Parandatud viga, mille tõttu saatmise logis näidati teavituse taga
+  teksti „(error)" vedaja e-posti aadressi asemel — logi kuvas
+  saatmisoleku, mitte adressaati.
+
 ### NCR-vastuse vaade: sissetulnud päring nähtav ka vastates
 
 - NCR teatele vastamisel on nüüd vastuse vormi kohal näha ka sissetulnud
