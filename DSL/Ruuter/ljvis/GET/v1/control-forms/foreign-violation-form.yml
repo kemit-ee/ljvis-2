@@ -104,7 +104,7 @@ mergeNotificationHistory:
   assign:
     notification_history: >-
       ${(historyRes.response.body || []).map(function(row) {
-        return { type: row.notificationType, sentAt: row.sendDate, status: row.status };
+        return { type: row.notificationType, sentAt: row.sendDate, status: row.status, recipientAddress: row.recipientAddress };
       })}
   next: returnSuccess
 

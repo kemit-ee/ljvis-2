@@ -6,6 +6,19 @@
 
 ## 2026-09-25
 
+### Välisriigi rikkumise vormi saatmise logi viga
+
+- Parandatud viga, mille tõttu saatmise logis näidati teavituse taga
+  teksti „(error)" vedaja e-posti aadressi asemel — logi kuvas
+  saatmisoleku, mitte adressaati.
+
+### NCR-ist loodud väliskontrolli kontrollkaardi täitmise viga
+
+- NCR teatest kontrollkaardi loomisel ei kandunud üle „Teate saatnud
+  pädeva asutuse nimetus" — väli jäi tühjaks, kuigi NCR teates oli see
+  olemas.
+- „Teate saatnud riik" on nüüd NCR-ist loodud kaardil lukus, sest
+  väärtus tuleb teatest ega ole kasutaja poolt muudetav.
 ### Vormide parandused: haagise tehnoseisund, autojuhi vedu, NCR-VR loomine
 
 - Parandatud viga, mille tõttu haagise tehnoseisundi kontrollkaardil

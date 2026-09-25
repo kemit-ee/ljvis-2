@@ -84,6 +84,7 @@ export interface NotificationHistoryEntry {
   type: string;
   sentAt: string;
   status: string;
+  recipientAddress?: string;
 }
 
 export interface ForeignViolationForm {
