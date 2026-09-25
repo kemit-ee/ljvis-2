@@ -26,6 +26,7 @@
   olemas.
 - „Teate saatnud riik" on nüüd NCR-ist loodud kaardil lukus, sest
   väärtus tuleb teatest ega ole kasutaja poolt muudetav.
+
 ### Vormide parandused: haagise tehnoseisund, autojuhi vedu, NCR-VR loomine
 
 - Parandatud viga, mille tõttu haagise tehnoseisundi kontrollkaardil
