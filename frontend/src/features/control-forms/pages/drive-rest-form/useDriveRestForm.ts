@@ -18,8 +18,10 @@ import {
   saveDriveRestForm,
   confirmDriveRestForm,
   publishDriveRestForm,
+  saveProceedingOutcome,
 } from '../../api';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
+import { hasProceeding } from '../../proceedingOutcome';
 
 export type FormAuthority = 'PPA' | 'TRAM';
 
@@ -353,6 +355,9 @@ export function useDriveRestForm(
         pendingConfirm.current = false;
         pendingPublish.current = false;
         if (isPublishing && form?.id) {
+          if (hasProceeding(values)) {
+            await saveProceedingOutcome(type === 'driver' ? 'sp_driver' : 'sp_teammate', form.id, values.enforcementDecision, values.proceedingClosureBasis);
+          }
           await api.publish(type, form.id);
           onPublished?.();
           return;

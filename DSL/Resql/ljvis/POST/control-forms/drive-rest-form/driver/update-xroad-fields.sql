@@ -1,6 +1,6 @@
 /*
-description: Kirjuta e-toimiku päringu tulemus (jõustunud otsus + menetluse lõpetamise alus) autojuhi
-  alamvormi UUSIMALE confirmed snapshot-reale KOHAPEAL — ei lisa uut snapshot-i, ei muuda template_version'i.
+description: Kirjuta e-toimiku päringu tulemus autojuhi alamvormi uusimale confirmed snapshot-reale ja
+  avalikusta see automaatselt. Ei lisa uut snapshot-i ega muuda template_version'i.
   found != true või juba täidetud enforcement_decision on no-op (0 rida) — cron/etoimik-sp-driver-decision-sync.yml
   kutsub seda iga kandidaadi kohta tingimusteta.
 namespace: control-forms
@@ -30,7 +30,8 @@ returns:
 UPDATE forms.sp_driver_form t
 SET
   enforcement_decision     = NULLIF(:enforcementDecision, ''),
-  proceeding_closure_basis = NULLIF(:proceedingClosureBasis, '')
+  proceeding_closure_basis = NULLIF(:proceedingClosureBasis, ''),
+  status                    = 'published'
 WHERE t.id = (
     SELECT id FROM forms.sp_driver_form
     WHERE sp_driver_form_key = :key::BIGINT

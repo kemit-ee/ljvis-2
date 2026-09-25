@@ -2,10 +2,8 @@
 # list stored on a desktop-channel mapping back to display names.
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://ntm-resolve-test/resql
-  LJVIS_TIM: http://ntm-resolve-test/tim
-http_rewrite:
-  http://ntm-resolve-test: '{MOCK}'
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
 tests:
 - name: resolves comma-separated personal codes to users
   setup:

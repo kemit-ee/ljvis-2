@@ -48,6 +48,14 @@ checkStatusSwitch:
       next: returnAlreadyPublishedError
     - condition: ${current_status !== 'confirmed'}
       next: returnNotConfirmedError
+  next: checkManualPublish
+
+checkManualPublish:
+  switch:
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && (u.permissions == null || !u.permissions.includes('control_form.punishment_register'))}
+      next: returnPunishmentRegisterPermissionError
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && !currentFormRes.response.body[0].enforcementDecision && !currentFormRes.response.body[0].proceedingClosureBasis}
+      next: returnProceedingOutcomeRequired
   next: extractCurrentFormData
 
 extractCurrentFormData:
@@ -238,6 +246,16 @@ returnNotFound:
 returnAlreadyPublishedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnPunishmentRegisterPermissionError:
+  status: 403
+  return: '{"type":"FORBIDDEN","field":null,"code":"punishment_register_permission_required"}'
+  next: end
+
+returnProceedingOutcomeRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"enforcementDecision","code":"proceeding_outcome_required"}'
   next: end
 
 returnNotConfirmedError:

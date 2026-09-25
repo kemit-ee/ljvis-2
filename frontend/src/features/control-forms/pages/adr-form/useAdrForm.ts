@@ -11,9 +11,10 @@ import type {
   AdrOtherInfringementEntry,
   AdrInfringementRecord,
 } from '../../types';
-import { confirmAdrForm, saveAdrForm, publishAdrForm } from '../../api';
+import { confirmAdrForm, saveAdrForm, publishAdrForm, saveProceedingOutcome } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
+import { hasProceeding } from '../../proceedingOutcome';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 import {
   EMPTY_ADR_RECORD,
@@ -208,6 +209,9 @@ export function useAdrForm(
         pendingConfirm.current = false;
         pendingPublish.current = false;
         if (isPublishing && form?.id) {
+          if (hasProceeding(values)) {
+            await saveProceedingOutcome('adr', form.id, values.enforcementDecision, values.proceedingClosureBasis);
+          }
           await publishAdrForm(form.id);
           onPublished?.();
           return;

@@ -1,9 +1,7 @@
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://technical-notification-test/resql
-  LJVIS_RUUTER_INTERNAL: http://technical-notification-test/internal
-http_rewrite:
-  http://technical-notification-test: '{MOCK}'
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
 tests:
 - name: foreign EU vehicle creates all applicable technical notifications
   setup:

@@ -1892,7 +1892,7 @@
    ]
   },
   {
-   "name": "[sp-driver e-toimik] Verify final state via get.sql (decision persisted, status unchanged)",
+   "name": "[sp-driver e-toimik] Verify final state via get.sql (decision persisted, cron publishes)",
    "request": {
     "method": "POST",
     "header": [
@@ -1925,7 +1925,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
-       "pm.test('status still confirmed — the cron never publishes or bumps the version', () => pm.expect(rows[0].status).to.eql('confirmed'));",
+       "pm.test('status is now published — the cron applies the decision and publishes, but does not bump the version', () => pm.expect(rows[0].status).to.eql('published'));",
        "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Rahatrahv 120 eurot (2026-08-15)'));",
        "pm.test('proceeding_closure_basis persisted (first value, not the no-op attempt)', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
       ]
@@ -2747,7 +2747,7 @@
    ]
   },
   {
-   "name": "[vehicle-technical e-toimik] Verify final state via get.sql (decision persisted, status unchanged)",
+   "name": "[vehicle-technical e-toimik] Verify final state via get.sql (decision persisted, cron publishes)",
    "request": {
     "method": "POST",
     "header": [
@@ -2779,7 +2779,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
-       "pm.test('status still confirmed — the cron never publishes or bumps the version', () => pm.expect(rows[0].status).to.eql('confirmed'));",
+       "pm.test('status is now published — the cron applies the decision and publishes, but does not bump the version', () => pm.expect(rows[0].status).to.eql('published'));",
        "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Rahatrahv 200 eurot (2026-08-20)'));",
        "pm.test('proceeding_closure_basis persisted (first value, not the no-op attempt)', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
       ]
@@ -3065,7 +3065,7 @@
    ]
   },
   {
-   "name": "[trailer-technical e-toimik] Verify final state via get.sql (decision persisted, status unchanged)",
+   "name": "[trailer-technical e-toimik] Verify final state via get.sql (decision persisted, cron publishes)",
    "request": {
     "method": "POST",
     "header": [
@@ -3097,7 +3097,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
-       "pm.test('status still confirmed — the cron never publishes or bumps the version', () => pm.expect(rows[0].status).to.eql('confirmed'));",
+       "pm.test('status is now published — the cron applies the decision and publishes, but does not bump the version', () => pm.expect(rows[0].status).to.eql('published'));",
        "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Rahatrahv 150 eurot (2026-08-21)'));",
        "pm.test('proceeding_closure_basis persisted (first value, not the no-op attempt)', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
       ]

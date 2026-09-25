@@ -9,6 +9,8 @@ import { AdrFormFields } from '../../pages/adr-form/AdrFormFields';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
+import { saveProceedingOutcome } from '../../api';
+import { canPublishWithProceedingOutcome, hasProceeding } from '../../proceedingOutcome';
 
 interface AdrFormViewCardProps {
   form: AdrForm;
@@ -98,12 +100,16 @@ export function AdrFormViewCard({ form, formType, canPublish, onPublish, snapsho
               id={form.id}
               snapshotId={snapshotId}
             />
-            {canPublish && onPublish && (
+            {canPublish && onPublish && canPublishWithProceedingOutcome(formik.values) && (
               <AsyncButton
                 type="button"
-                onClick={() =>
-                  onPublish().then(() => setVersionsRefreshKey((k) => k + 1))
-                }
+                onClick={async () => {
+                  if (hasProceeding(formik.values)) {
+                    await saveProceedingOutcome('adr', form.id!, formik.values.enforcementDecision, formik.values.proceedingClosureBasis);
+                  }
+                  await onPublish();
+                  setVersionsRefreshKey((k) => k + 1);
+                }}
               >
                 {t('common.publish')}
               </AsyncButton>

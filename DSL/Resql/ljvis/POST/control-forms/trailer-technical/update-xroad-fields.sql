@@ -1,6 +1,6 @@
 /*
-description: 'Kirjuta e-toimiku päringu tulemus (jõustunud otsus + menetluse lõpetamise alus) haagise
-  tehnokontrolli alamvormi UUSIMALE confirmed snapshot-reale KOHAPEAL — ei lisa uut snapshot-i, ei muuda
+description: 'Kirjuta e-toimiku päringu tulemus haagise tehnokontrolli alamvormi uusimale confirmed
+  snapshot-reale ja avalikusta see automaatselt — ei lisa uut snapshot-i, ei muuda
   version''it (LJVIS2-72 §4: X-tee väljad ei mõjuta /V suffiksit). found != true või juba täidetud
   enforcement_decision on no-op (0 rida) — cron/etoimik-technical-check-decision-sync.yml kutsub seda
   iga kandidaadi kohta tingimusteta. Ei ole enam avalikult käivitatav endpoint (varasem käsitsi-admin
@@ -36,7 +36,8 @@ returns:
 UPDATE forms.trailer_technical_form t
 SET
   enforcement_decision     = NULLIF(:enforcementDecision, ''),
-  proceeding_closure_basis = NULLIF(:proceedingClosureBasis, '')
+  proceeding_closure_basis = NULLIF(:proceedingClosureBasis, ''),
+  status                    = 'published'
 WHERE t.id = (
     SELECT id FROM forms.trailer_technical_form
     WHERE trailer_technical_form_key = :key::BIGINT

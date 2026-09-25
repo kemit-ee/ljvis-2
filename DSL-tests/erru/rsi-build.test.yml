@@ -1,9 +1,7 @@
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://rsi-build-test/resql
-  LJVIS_TIM: http://rsi-build-test/tim
-http_rewrite:
-  http://rsi-build-test: '{MOCK}'
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
 tests:
 - name: build sends odometer reading as a string and maps checked items to RSI_FAILED_REASON items
   # Regression test for the "RSI teate loomiseks eeltäitmine nurjus" bug

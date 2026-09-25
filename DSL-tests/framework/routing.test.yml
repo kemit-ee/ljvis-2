@@ -14,7 +14,7 @@ tests:
     expect:
       status: 404
 
-  - name: wrong method on a known path -> 404
+  - name: wrong method on a known path -> 405
     request: { method: DELETE, path: /ljvis/auth/session }
     expect:
-      status: 404
+      status: 405

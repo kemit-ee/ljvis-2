@@ -1,11 +1,9 @@
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://nu-test/resql
-  LJVIS_TIM: http://nu-test/tim
-  NYSIIS_ENDPOINT: http://nu-test/nysiis
-  ERRU_NU_ENDPOINT: http://nu-test/hub
-http_rewrite:
-  http://nu-test: '{MOCK}'
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  NYSIIS_ENDPOINT: '{MOCK}/nysiis'
+  ERRU_NU_ENDPOINT: '{MOCK}/hub'
 tests:
 - name: create persists preview
   setup:

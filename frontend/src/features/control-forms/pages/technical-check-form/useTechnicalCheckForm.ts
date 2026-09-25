@@ -12,9 +12,10 @@ import type {
   PartDefectEntry,
   PartSeverity,
 } from '../../types';
-import { confirmTechnicalCheckForm, saveTechnicalCheckForm, publishTechnicalCheckForm } from '../../api';
+import { confirmTechnicalCheckForm, saveTechnicalCheckForm, publishTechnicalCheckForm, saveProceedingOutcome } from '../../api';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { hasProceeding } from '../../proceedingOutcome';
 
 /** Parts excluded from the trailer variant (LJVIS2-72 §0/§4). */
 const TRAILER_EXCLUDED_PARTS = ['CAA_2', 'CAA_3', 'CAA_7', 'CAA_9'];
@@ -208,6 +209,9 @@ export function useTechnicalCheckForm(
         pendingConfirm.current = false;
         pendingPublish.current = false;
         if (isPublishing && form?.id) {
+          if (hasProceeding(values)) {
+            await saveProceedingOutcome(variant === 'vehicle' ? 'vehicle_technical' : 'trailer_technical', form.id, values.enforcementDecision, values.proceedingClosureBasis);
+          }
           await publishTechnicalCheckForm(variant, form.id);
           onPublished?.();
           return;

@@ -72,7 +72,9 @@ returns:
 -- edit_locked gate for confirmed data.
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         enforcement_decision,
+         proceeding_closure_basis
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -96,6 +98,8 @@ INSERT INTO forms.labour_inspection_form (
   punished_person_first_name,
   punished_person_last_name,
   proceeding_reference_number,
+  enforcement_decision,
+  proceeding_closure_basis,
   violations,
   created_by
 )
@@ -117,6 +121,8 @@ SELECT
   NULLIF(:punishedPersonFirstName, ''),
   NULLIF(:punishedPersonLastName, ''),
   NULLIF(:proceedingReferenceNumber, ''),
+  latest.enforcement_decision,
+  latest.proceeding_closure_basis,
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
   :created_by
 FROM latest

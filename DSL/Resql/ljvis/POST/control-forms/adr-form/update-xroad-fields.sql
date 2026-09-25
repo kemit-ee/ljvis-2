@@ -33,4 +33,5 @@ WHERE id = (
   ORDER BY created_at DESC
   LIMIT 1
 )
+AND status = 'confirmed'
 RETURNING adr_form_key AS id, sub_form_number, version;
