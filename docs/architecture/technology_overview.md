@@ -9,7 +9,7 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 | PostgreSQL | Põhiandmebaas | 17 | `postgres:17` | 2026-09-10 | DEV/CI | |
 | PostgreSQL | TIM andmebaas | 17 | `postgres:17` | 2026-09-10 | DEV/CI | |
 | Liquibase | Andmebaasi migratsioonid | 4.29.2 | `liquibase/liquibase:4.29.2` | 2026-09-01 | DEV/CI | |
-| Ruuter | Avalik API ja töövood | 0.9.15-rc | `turnerrainer/ruuter:0.9.15-rc` + digest | 2026-09-10 | DEV/CI | Avalik ja sisemine Ruuter on eraldi teenused. |
+| Ruuter | Avalik API ja töövood | 0.10.1-rc | `turnerrainer/ruuter:0.10.1-rc` + digest | 2026-09-25 | DEV/CI | Avalik ja sisemine Ruuter on eraldi teenused. |
 | Resql | SQL-päringute teenus | 0.3.0-alpha | `turnerrainer/resql:0.3.0-alpha` + digest | 2026-09-10 | DEV/CI | |
 | DataMapper | Andmete teisendamine | 0.2.1-alpha | `turnerrainer/datamapper:0.2.1-alpha` + digest | 2026-09-18 | DEV/CI | `APP_ENV=dev` lisatud env_safety gate'i tõttu (vt versiooniajalugu). |
 | XTR | X-tee väljumispunkt | määramata | `turnerrainer/xtr:rc` (lokaal); release Dockerfile digest | 2026-09-10 | DEV/CI/PROD | Täpset runtime-versiooni ei ole tagist usaldusväärselt tuvastatud. |

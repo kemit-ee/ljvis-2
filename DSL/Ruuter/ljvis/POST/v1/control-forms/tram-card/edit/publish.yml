@@ -317,6 +317,7 @@ returnResqlSaveError:
 returnAlreadyPublishedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
 
 returnPunishmentRegisterPermissionError:
   status: 403
@@ -326,7 +327,6 @@ returnPunishmentRegisterPermissionError:
 returnProceedingOutcomeRequired:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"enforcementDecision","code":"proceeding_outcome_required"}'
-  next: end
   next: end
 
 returnNotConfirmedError:

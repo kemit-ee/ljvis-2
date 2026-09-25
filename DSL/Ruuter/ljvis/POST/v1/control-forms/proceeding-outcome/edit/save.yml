@@ -37,10 +37,10 @@ routeByType:
 
 saveLabourInspection:
   call: http.post
-  args: &request
+  args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update-proceeding-outcome"
     headers: { type: json }
-    body: &body
+    body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
@@ -50,48 +50,72 @@ saveLabourInspection:
 saveTramCard:
   call: http.post
   args:
-    <<: *request
     url: "[#LJVIS_RESQL]/control-forms/tram-card/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
   result: saveRes
   next: checkSaved
 
 saveDriver:
   call: http.post
   args:
-    <<: *request
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
   result: saveRes
   next: checkSaved
 
 saveTeammate:
   call: http.post
   args:
-    <<: *request
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update-xroad-fields"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
   result: saveRes
   next: checkSaved
 
 saveVehicle:
   call: http.post
   args:
-    <<: *request
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
   result: saveRes
   next: checkSaved
 
 saveTrailer:
   call: http.post
   args:
-    <<: *request
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
   result: saveRes
   next: checkSaved
 
 saveAdr:
   call: http.post
   args:
-    <<: *request
     url: "[#LJVIS_RESQL]/control-forms/adr-form/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
   result: saveRes
   next: checkSaved
 
