@@ -5,6 +5,7 @@ import type { SubFormHandle } from './useSubForm';
 import { useAuth } from '../../auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { deleteDriveRestForm, deleteTechnicalCheckForm, deleteAdrForm, deleteTransportInterruptionForm, deleteCompoundForm } from '../api';
+import { hasProceeding, PUNISHMENT_REGISTER_PERMISSION, type ProceedingOutcomeForm } from '../proceedingOutcome';
 
 type StatusForm = { status?: string } | null | undefined;
 
@@ -201,7 +202,7 @@ export function addTab(tabId: SubFormTabId, { driver, teammate, vehicle, trailer
   if (activate) setActiveTab(tabId);
 }
 
-type SubFormWithStatus = Pick<SubFormHandle<{ id?: unknown; status?: string }>, 'form'>;
+type SubFormWithStatus = Pick<SubFormHandle<{ id?: unknown; status?: string } & ProceedingOutcomeForm>, 'form'>;
 
 interface CanConfirmActiveSubFormOptions {
   activeTab: string;
@@ -273,7 +274,10 @@ export function canPublishActiveSubForm({
   const isAdmin = isAdminUser(hasPermission);
   const entry = tabFormPermission[activeTab];
   if (!entry) return false;
-  return !!entry.form?.id && entry.form.status === 'confirmed' && (isAdmin || hasPermission(entry.perm));
+  return !!entry.form?.id &&
+    entry.form.status === 'confirmed' &&
+    (isAdmin || hasPermission(entry.perm)) &&
+    (!hasProceeding(entry.form) || hasPermission(PUNISHMENT_REGISTER_PERMISSION));
 }
 
 interface UseSubFormPermissionsOptions {

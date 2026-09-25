@@ -11,6 +11,7 @@ import {
   Text,
   Checkbox,
 } from '@tedi-design-system/react/tedi';
+import { ProceedingOutcomeFields } from '../ProceedingOutcomeFields/ProceedingOutcomeFields';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { formatDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../shared/MaskedDateField';
@@ -465,28 +466,13 @@ export function LabourInspectionFormFields({
         </Card.Content>
       </Card>
 
-      {formStatus && formStatus !== 'saved' && (
-        <Card className="mb-1">
-          <Card.Content>
-            <Heading element="h3" className="mb-1">
-              {t('forms.labour_inspection.xroadDecisionSection')}
-            </Heading>
-            {/* Read-only in both view and edit mode: these fields are populated
-                only by the nightly e-toimik cron (etoimik-decision-sync.yml),
-                never entered by the officer. */}
-            <div className={gridClass}>
-              <Text>
-                <b>{t('forms.labour_inspection.enforcementDecision')}:</b>{' '}
-                {formik.values.enforcementDecision}
-              </Text>
-              <Text>
-                <b>{t('forms.labour_inspection.proceedingClosureBasis')}:</b>{' '}
-                {formik.values.proceedingClosureBasis}
-              </Text>
-            </div>
-          </Card.Content>
-        </Card>
-      )}
+      <ProceedingOutcomeFields
+        status={formStatus}
+        enforcementDecision={formik.values.enforcementDecision}
+        proceedingClosureBasis={formik.values.proceedingClosureBasis}
+        onChange={(field, value) => formik.setFieldValue(field, value)}
+        titleKey="forms.labour_inspection.xroadDecisionSection"
+      />
 
       <Card className="mb-1">
         <Card.Content>

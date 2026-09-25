@@ -7,8 +7,9 @@ import type {
   ControlsMatrixRow,
   ViolationEntry,
 } from '../../types';
-import { saveLabourInspectionForm, confirmLabourInspectionForm, publishLabourInspectionForm } from '../../api';
+import { saveLabourInspectionForm, confirmLabourInspectionForm, publishLabourInspectionForm, saveProceedingOutcome } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { hasProceeding } from '../../proceedingOutcome';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { useCompanySearch } from '../../../xroad/hooks/useCompanySearch';
 
@@ -115,6 +116,9 @@ export function useLabourInspectionForm(
           violations: JSON.stringify(values.violations ?? []),
           prescriptionComposed: values.prescriptionComposed ? 'true' : 'false',
         } as unknown as LabourInspectionForm;
+        if (form?.id && isPublishing && hasProceeding(values)) {
+          await saveProceedingOutcome('labour_inspection', form.id, values.enforcementDecision, values.proceedingClosureBasis);
+        }
         const result = isConfirming
           ? await confirmLabourInspectionForm(payload)
           : form?.id && isPublishing

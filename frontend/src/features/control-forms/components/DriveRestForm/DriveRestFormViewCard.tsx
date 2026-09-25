@@ -11,6 +11,8 @@ import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
+import { saveProceedingOutcome } from '../../api';
+import { canPublishWithProceedingOutcome, hasProceeding } from '../../proceedingOutcome';
 
 interface DriveRestFormViewCardProps {
   scope: 'driver' | 'teammate';
@@ -116,12 +118,16 @@ export function DriveRestFormViewCard({
               id={form.id}
               snapshotId={snapshotId}
             />
-            {canPublish && onPublish && (
+            {canPublish && onPublish && canPublishWithProceedingOutcome(formik.values) && (
               <AsyncButton
                 type="button"
-                onClick={() =>
-                  onPublish().then(() => setVersionsRefreshKey((k) => k + 1))
-                }
+                onClick={async () => {
+                  if (hasProceeding(formik.values)) {
+                    await saveProceedingOutcome(scope === 'driver' ? 'sp_driver' : 'sp_teammate', form.id!, formik.values.enforcementDecision, formik.values.proceedingClosureBasis);
+                  }
+                  await onPublish();
+                  setVersionsRefreshKey((k) => k + 1);
+                }}
               >
                 {t('common.publish')}
               </AsyncButton>

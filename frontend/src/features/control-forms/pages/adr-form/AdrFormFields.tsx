@@ -24,6 +24,7 @@ import type { useAdrForm } from './useAdrForm';
 import styles from './AdrFormFields.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { ProceedingOutcomeFields } from '../../components/ProceedingOutcomeFields/ProceedingOutcomeFields';
 
 const RESULT_OPTIONS = ['ok', 'misdemeanor_proceedings', 'warning'] as const;
 
@@ -943,6 +944,13 @@ export function AdrFormFields({
           )}
         </Card.Content>
       </Card>
+
+      <ProceedingOutcomeFields
+        status={formik.values.status}
+        enforcementDecision={formik.values.enforcementDecision}
+        proceedingClosureBasis={formik.values.proceedingClosureBasis}
+        onChange={(field, value) => formik.setFieldValue(field, value)}
+      />
 
       {formNumber && (
         <Card className="mb-1">

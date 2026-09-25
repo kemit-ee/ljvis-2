@@ -25,6 +25,8 @@ import { DocRightOtherSection } from './DocRightOtherSection';
 import styles from '../../pages/drive-rest-form/DriveRestFormPage.module.css';
 import { FileUploadBlock } from '../shared/FileUploadBlock';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
+import { useAuth } from '../../../auth/AuthContext';
+import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 interface ChoiceItem {
   id: string;
@@ -124,6 +126,10 @@ export function DriveRestFormFields({
   filesFormNumber,
 }: Props) {
   const { t } = useTranslation();
+  const { hasPermission } = useAuth();
+  const canEditProceedingOutcome =
+    formik.values.status === 'confirmed' &&
+    hasPermission(PUNISHMENT_REGISTER_PERMISSION);
 
   const fieldId = (id: string) => type === 'teammate' ? `teammate-${id}` : id;
   const withDisabled = (items: ChoiceItem[]): ChoiceItem[] =>
@@ -1331,8 +1337,8 @@ export function DriveRestFormFields({
                     }
                     value={formik.values.enforcementDecision ?? ''}
                     maxHeight="8rem"
-                    onChange={() => {}}
-                    disabled
+                    onChange={(value) => formik.setFieldValue('enforcementDecision', value)}
+                    disabled={!canEditProceedingOutcome}
                   />
                 </div>
                 <div>
@@ -1345,8 +1351,8 @@ export function DriveRestFormFields({
                     }
                     value={formik.values.proceedingClosureBasis ?? ''}
                     maxHeight="8rem"
-                    onChange={() => {}}
-                    disabled
+                    onChange={(value) => formik.setFieldValue('proceedingClosureBasis', value)}
+                    disabled={!canEditProceedingOutcome}
                   />
                 </div>
               </Card.Content>

@@ -22,6 +22,8 @@ import { PartsSummaryTable } from './PartsSummaryTable';
 import { DefectsResultsTable } from './DefectsResultsTable';
 import { DefectSelectionModal } from './DefectSelectionModal';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
+import { useAuth } from '../../../auth/AuthContext';
+import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 interface TechnicalCheckFormFieldsProps {
   variant: TechnicalCheckVariant;
@@ -78,9 +80,12 @@ export function TechnicalCheckFormFields({
   validationTriggered,
 }: TechnicalCheckFormFieldsProps) {
   const { t } = useTranslation();
+  const { hasPermission } = useAuth();
   const [modalPartCode, setModalPartCode] = useState<string | null>(null);
 
   const values = formik.values as unknown as TechnicalCheckForm & Record<string, unknown>;
+  const canEditProceedingOutcome =
+    values.status === 'confirmed' && hasPermission(PUNISHMENT_REGISTER_PERMISSION);
 
   const modalPart = parts.find((p) => p.code === modalPartCode);
   const modalDefects = modalPart ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? []) : [];
@@ -568,15 +573,15 @@ export function TechnicalCheckFormFields({
               id="enforcementDecision"
               label={t('forms.technical_check.xroad.enforcementDecision')}
               value={values.enforcementDecision ?? ''}
-              onChange={() => {}}
-              disabled
+              onChange={(value) => formik.setFieldValue('enforcementDecision', value)}
+              disabled={!canEditProceedingOutcome}
             />
             <TextArea
               id="proceedingClosureBasis"
               label={t('forms.technical_check.xroad.proceedingClosureBasis')}
               value={values.proceedingClosureBasis ?? ''}
-              onChange={() => {}}
-              disabled
+              onChange={(value) => formik.setFieldValue('proceedingClosureBasis', value)}
+              disabled={!canEditProceedingOutcome}
             />
           </Card.Content>
         </Card>
