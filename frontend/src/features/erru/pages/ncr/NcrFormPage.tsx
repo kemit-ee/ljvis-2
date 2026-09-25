@@ -347,6 +347,36 @@ export function NcrFormPage() {
                     {t('erru.ncr.form.sendResponse')}
                   </Button>
                 )}
+                {current.status === 'answer_drafted' &&
+                  canCreateVr &&
+                  isInbound &&
+                  !current.linkedForeignViolationFormKey && (
+                    <Button
+                      type="button"
+                      visualType="secondary"
+                      iconLeft="add"
+                      onClick={doCreateVr}
+                      disabled={creatingVr}
+                    >
+                      {t('erru.ncr.form.createVr')}
+                    </Button>
+                  )}
+                {current.status === 'answer_drafted' &&
+                  canCreateVr &&
+                  isInbound &&
+                  current.linkedForeignViolationFormKey && (
+                    <Button
+                      type="button"
+                      visualType="secondary"
+                      onClick={() =>
+                        navigate(
+                          `/control-forms/foreign-violation/${current.linkedForeignViolationFormKey}`,
+                        )
+                      }
+                    >
+                      {t('erru.ncr.form.openVr')}
+                    </Button>
+                  )}
               </div>
             </div>
           </form>

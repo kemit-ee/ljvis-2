@@ -19,6 +19,20 @@
   olemas.
 - „Teate saatnud riik" on nüüd NCR-ist loodud kaardil lukus, sest
   väärtus tuleb teatest ega ole kasutaja poolt muudetav.
+### Vormide parandused: haagise tehnoseisund, autojuhi vedu, NCR-VR loomine
+
+- Parandatud viga, mille tõttu haagise tehnoseisundi kontrollkaardil
+  valitud rikkumised (ja muud väljad) ei salvestunud uue koondvormi
+  loomisel — haagise registreerimisnumbri muutumine nullis kogu
+  alamvormi.
+- Autojuhi sõidu- ja puhkeaja vormil valitud „Vedu" (tasuline/oma kulul),
+  „Tegevusloa nõudest vabastatud vedu", „Tühisõit" ja kabotaaži
+  rikkumised kanduvad nüüd meeskonnaliikme vormile edasi, samamoodi nagu
+  veoliik ja veoklass juba varem kandusid.
+- NCR teate „Loo välisriigi toimunud rikkumise kontrollkaart" nupp on
+  nüüd nähtav juba pärast vastuse salvestamist (mitte alles pärast
+  saatmist) — vastuse saab salvestada, seejärel valida kas kontrollkaardi
+  loomise või vastuse saatmise, kummas järjekorras soovitakse.
 
 ### NCR-vastuse vaade: sissetulnud päring nähtav ka vastates
 
