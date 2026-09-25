@@ -2490,7 +2490,6 @@ export function CompoundFormCreatePage() {
             const trailerIndex = Number(
               tabId.replace('tab-trailer-technical-', ''),
             );
-            const trailerRegNr = formik.values.trailers[trailerIndex]?.regNr;
             return (
               <div
                 key={tabId}
@@ -2525,13 +2524,6 @@ export function CompoundFormCreatePage() {
                   }}
                   compoundTrailers={formik.values.trailers}
                   trailerIndex={trailerIndex}
-                  initialData={
-                    trailerRegNr
-                      ? ({
-                          trailerRegNr,
-                        } as Partial<TechnicalCheckForm> as TechnicalCheckForm)
-                      : undefined
-                  }
                 />
               </div>
             );
