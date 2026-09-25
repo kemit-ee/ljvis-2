@@ -8,7 +8,7 @@ import { formatDateTime, toIsoDate } from '../../hooks/dateUtils';
 import { BREAKPOINTS, PERMISSIONS } from '../../constants/constants';
 import { useOutboundLog } from './useOutboundLog';
 import { OutboundReportModal } from './OutboundReportModal';
-import { resendNotification } from './api';
+import { checkNotificationStatus, resendNotification } from './api';
 import type { OutboundLogEntry } from './types';
 import { useMediaQuery } from '../../hooks/useMediaQuery.ts';
 
@@ -62,6 +62,7 @@ export function OutboundLogTable() {
 
   const [reportLogId, setReportLogId] = useState<string | null>(null);
   const [resendingId, setResendingId] = useState<string | null>(null);
+  const [checkingId, setCheckingId] = useState<string | null>(null);
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   // API toetab filtrina ainult üht status-väärtust korraga, seega jäävad 4 API-väärtust
@@ -94,6 +95,19 @@ export function OutboundLogTable() {
       }
     },
     [t, applyFilters],
+  );
+
+  const handleCheckStatus = useCallback(
+    async (logId: string) => {
+      setCheckingId(logId);
+      try {
+        await checkNotificationStatus(logId);
+        applyFilters();
+      } finally {
+        setCheckingId(null);
+      }
+    },
+    [applyFilters],
   );
 
   const columns = useMemo(
@@ -162,11 +176,21 @@ export function OutboundLogTable() {
                 {t('notifications.log.resend')}
               </Button>
             )}
+            {info.row.original.status !== 'sent' && canResend && (
+              <Button
+                visualType="secondary"
+                size="small"
+                disabled={checkingId === info.row.original.id}
+                onClick={() => void handleCheckStatus(info.row.original.id)}
+              >
+                {t('notifications.log.checkStatus')}
+              </Button>
+            )}
           </div>
         ),
       }),
     ],
-    [t, canResend, resendingId, handleResend],
+    [t, canResend, resendingId, handleResend, checkingId, handleCheckStatus],
   );
 
   return (

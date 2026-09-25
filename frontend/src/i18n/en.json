@@ -2237,6 +2237,7 @@
       "statusError": "Error",
       "resend": "Resend",
       "resendConfirm": "Resend this notification unchanged to the same recipient?",
+      "checkStatus": "Check status",
       "report": "Send report",
       "filterStatus": "Status",
       "filterType": "Message type",

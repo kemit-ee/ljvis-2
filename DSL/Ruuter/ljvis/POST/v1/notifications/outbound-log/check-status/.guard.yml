@@ -1,0 +1,20 @@
+# Nõutav õigus: notification.resend (taaskasutame — kes tohib teavitust uuesti
+# saata, tohib ka selle Postkast 2.0 saatmisoperatsiooni seisu käsitsi kontrollida).
+# EI kasuta override_ancestors: guard-id STACK'ivad vaikimisi (Guard mode: Stack) —
+# projektiülene guard (ljvis/.guard.yml) autendib ja seab auth_user, seejärel see
+# guard lisab omalt poolt notification.resend kontrolli.
+check:
+  switch:
+    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('notification.resend')}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

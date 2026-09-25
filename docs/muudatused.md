@@ -12,6 +12,13 @@
   teksti „(error)" vedaja e-posti aadressi asemel — logi kuvas
   saatmisoleku, mitte adressaati.
 
+### Saadetud kirjade tabelis nupp Postkast 2.0 staatuse kontrollimiseks
+
+- Teavitused -> Saadetud kirjad tabelisse lisati nupp „Kontrolli staatust",
+  mis küsib kohe Postkast 2.0-lt konkreetse teate saatmisoperatsiooni seisu
+  (sama päring, mida taustatöö muidu iga 5 min teeb) — nähtav ridadel, mis
+  pole veel „Saadetud" staatuses. Nõuab sama õigust mis uuesti saatmise nupp.
+
 ### NCR-ist loodud väliskontrolli kontrollkaardi täitmise viga
 
 - NCR teatest kontrollkaardi loomisel ei kandunud üle „Teate saatnud
@@ -25,6 +32,11 @@
   valitud rikkumised (ja muud väljad) ei salvestunud uue koondvormi
   loomisel — haagise registreerimisnumbri muutumine nullis kogu
   alamvormi.
+- Parandatud viga, mille tõttu haagisel (või teisel haagisel, kui
+  koondvormil on mitu haagist) valitud rikkumine/tulemus jne läks
+  tegelikult sõiduki tehnoseisundi kaardile — sõiduki ja haagis(t)e
+  vahekaardid on koondvormis kõik korraga DOM-is olemas ja jagasid
+  samu välja id/name väärtuseid.
 - Autojuhi sõidu- ja puhkeaja vormil valitud „Vedu" (tasuline/oma kulul),
   „Tegevusloa nõudest vabastatud vedu", „Tühisõit" ja kabotaaži
   rikkumised kanduvad nüüd meeskonnaliikme vormile edasi, samamoodi nagu

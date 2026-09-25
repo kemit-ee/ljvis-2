@@ -2262,6 +2262,7 @@
       "statusError": "Viga",
       "resend": "Saada uuesti",
       "resendConfirm": "Kas saata teavitus uuesti muutmata kujul samale adressaadile?",
+      "checkStatus": "Kontrolli staatust",
       "report": "Saatmise raport",
       "filterStatus": "Staatus",
       "filterType": "Sõnumi liik",

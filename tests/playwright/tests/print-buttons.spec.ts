@@ -210,7 +210,7 @@ test.describe('Printimise nupud — sõiduki tehniline kontroll', () => {
     await expect(
       page.getByText(/Kontrolli tulemus/i).first(),
     ).toBeVisible({ timeout: 10_000 });
-    await checkChoiceById(page, 'resultType-extraordinary_inspection');
+    await checkChoiceById(page, 'vehicle-resultType-extraordinary_inspection');
     // Liigu Üldosa tabile tagasi (async-valideerimine jõuab lõpule)
     await page.getByRole('tab', { name: /Üldosa/ }).click();
     await expect(page.getByText(/Kontrolli koht/i)).toBeVisible({ timeout: 5_000 });
