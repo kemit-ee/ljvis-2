@@ -46,8 +46,14 @@ if BATCH_SIZE <= 0:
 
 # Membership in scope is defined by ControlForm.CreatedDate >= CUTOFF, OR a
 # NULL CreatedDate (never silently dropped -- see module docstring).
+_BASE_CONTROL_FORM_IDS = "(SELECT Id FROM dbo.ControlForm WHERE CreatedDate >= %(cutoff)s OR CreatedDate IS NULL)"
+# Preserve the complete control context, including members outside the cutoff.
+# Eligibility still uses the fixed cutoff in preflight; context is not imported silently.
 _SCOPED_CONTROL_FORM_IDS = (
-    "(SELECT Id FROM dbo.ControlForm WHERE CreatedDate >= %(cutoff)s OR CreatedDate IS NULL)"
+    "(SELECT f.Id FROM dbo.ControlForm f WHERE f.Id IN " + _BASE_CONTROL_FORM_IDS +
+    " OR EXISTS (SELECT 1 FROM dbo.ControlToFormBinding peer "
+    " JOIN dbo.ControlToFormBinding seed ON seed.Control_id=peer.Control_id "
+    " WHERE peer.ControlForm_id=f.Id AND seed.ControlForm_id IN " + _BASE_CONTROL_FORM_IDS + "))"
 )
 
 
@@ -89,13 +95,13 @@ TABLES = [
         "SELECT Id, FormTypeName, ControlStage, FormCode, FormVersion, ControlledDate, "
         "       CreatedDate, UpdatedDate, CreatedBy_id, Establishment_id, MetaData, "
         "       UnitedFormPart, QualificationsReceived "
-        "FROM dbo.ControlForm WHERE CreatedDate >= %(cutoff)s OR CreatedDate IS NULL",
+        f"FROM dbo.ControlForm WHERE Id IN {_SCOPED_CONTROL_FORM_IDS}",
         _params(),
         "staging.raw_control_form",
         ["id", "form_type_name", "control_stage", "form_code", "form_version",
          "controlled_date", "created_date", "updated_date", "created_by_user_id",
          "establishment_code", "metadata_json", "united_form_part", "qualifications_received"],
-        "SELECT COUNT(*) FROM dbo.ControlForm WHERE CreatedDate >= %(cutoff)s OR CreatedDate IS NULL",
+        f"SELECT COUNT(*) FROM dbo.ControlForm WHERE Id IN {_SCOPED_CONTROL_FORM_IDS}",
     ),
     (
         f"SELECT Id, Control_id, ControlForm_id FROM dbo.ControlToFormBinding "

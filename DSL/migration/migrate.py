@@ -22,6 +22,7 @@ from psycopg2.extras import RealDictCursor, execute_values
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "extract"))
 from config import connect_target, required
+import enrich
 
 TARGETS = {
     "GoodRepute": "good_repute_form",
@@ -31,15 +32,23 @@ TARGETS = {
     "Roadworthiness2012": "sp_driver_form",
     "DangerousDelivery2012": "adr_form",
 }
-CHILDREN = {"kv_form", "vehicle_technical_form", "sp_driver_form", "adr_form"}
-ALL_TARGETS = ["compound_form", *TARGETS.values(), "labour_inspection_form"]
+SUBTYPES = {"RoadControlCard2012": ("RoadControlTrailer", "vehicle_technical_form", "trailer_technical_form"),
+            "Roadworthiness2012": ("RoadWorthinessTeamMember", "sp_driver_form", "sp_teammate_form")}
+CHILDREN = {"kv_form", "vehicle_technical_form", "sp_driver_form", "adr_form", "trailer_technical_form", "sp_teammate_form"}
+ALL_TARGETS = ["compound_form", *TARGETS.values(), "trailer_technical_form", "sp_teammate_form", "labour_inspection_form"]
 RAW_TABLES = ["raw_control_form", "raw_control_form_value", "raw_control", "raw_control_to_form_binding",
               "raw_control_decision", "raw_user", "raw_versions", "raw_job_inspection"]
 LOCK_ID = 784192631
 
 
-def execute_file(cur, path, run_id, cutoff):
+def execute_file(cur, path, run_id, cutoff, subtype=False):
     text = path.read_text()
+    for form_type,(marker,primary,secondary) in SUBTYPES.items():
+        if path.name.startswith('04-' if primary=='vehicle_technical_form' else '05-'):
+            predicate=f"migration.is_subtype(cf.id, '{marker}')"
+            text=text.replace(f"cf.form_type_name = '{form_type}'",f"cf.form_type_name = '{form_type}' AND "+('' if subtype else 'NOT ')+predicate)
+            if subtype:
+                text=text.replace(primary,secondary)
     # Only two psql literals are supported; SQL files are version-controlled.
     text = text.replace(":'run_id'", cur.mogrify("%s", (run_id,)).decode())
     text = text.replace(":'cutoff_from'", cur.mogrify("%s", (cutoff,)).decode())
@@ -103,6 +112,10 @@ def preflight(cur, run_id, cutoff):
              WHEN m.target_table IS NULL THEN 'unsupported_form_type'
              ELSE 'eligible' END, m.target_table
         FROM staging.raw_control_form cf LEFT JOIN type_mapping m ON m.form_type=cf.form_type_name""", (run_id,cutoff))
+    for form_type,(marker,primary,secondary) in SUBTYPES.items():
+        cur.execute("""UPDATE migration.disposition d SET target_table=%s
+            WHERE migration_run_id=%s AND legacy_source='ControlForm' AND form_type=%s
+              AND migration.is_subtype(d.legacy_id::bigint,%s)""",('forms.'+secondary,run_id,form_type,marker))
     cur.execute("""INSERT INTO migration.disposition
         SELECT %s,CASE schema_version WHEN 1 THEN 'RavenDB.JobInspection' ELSE 'RavenDB.JobInspectionV2' END,
         raven_id,CASE schema_version WHEN 1 THEN 'JobInspection' ELSE 'JobInspectionV2' END,
@@ -131,6 +144,19 @@ def preflight(cur, run_id, cutoff):
     finding("linked_scope_changed", "Previously migrated source is now excluded; insert-only migration cannot update its status",
         "SELECT DISTINCT fl.legacy_source source,fl.legacy_id FROM migration.form_link fl JOIN migration.disposition d ON d.legacy_source=fl.legacy_source AND d.legacy_id=fl.legacy_id WHERE d.migration_run_id=%s AND d.reason<>'eligible'", (run_id,))
 
+    finding("prior_rehearsal_requires_review", "Linked rows were written by a rehearsal; production requires a clean accepted target",
+        "SELECT DISTINCT f.legacy_source source,f.legacy_id FROM migration.form_link f JOIN migration.run r ON r.migration_run_id=f.migration_run_id WHERE r.status='needs_review'")
+    finding("masked_source_value", "Source contains a masking placeholder; original personal/business value cannot be reconstructed",
+        """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
+        FROM staging.raw_control_form_value v JOIN migration.disposition d ON d.legacy_source='ControlForm' AND d.legacy_id=v.control_form_id::text
+        WHERE d.migration_run_id=%s AND d.reason='eligible' AND btrim(v.value) ~ '^\\*{3,}$'""", (run_id,))
+    finding("invalid_required_date", "GoodRepute birth/certificate date is absent, masked or invalid; rehearsal substitute is not actual source data",
+        """SELECT DISTINCT 'ControlForm' source,d.legacy_id FROM migration.disposition d
+        CROSS JOIN (VALUES ('Driver.Birthdate'),('AmetialasePadevuseTunnistuseValjaandmiseKuupaev')) k(name)
+        WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type='GoodRepute'
+        AND NOT EXISTS (SELECT 1 FROM staging.raw_control_form_value v WHERE v.control_form_id::text=d.legacy_id
+          AND v.classifier_name=k.name AND coalesce(v.date_value,migration.safe_timestamp(v.value)) IS NOT NULL)""",(run_id,))
+
     # Business mappings are not inferred from sample counts. These known gaps
     # block production, even if every INSERT and row-count check succeeds.
     gaps = {
@@ -141,6 +167,8 @@ def preflight(cur, run_id, cutoff):
         "adr_form": "Goods, infringements, parties, decisions and grouping mapping incomplete",
         "labour_inspection_form": "Controls/violations and V1 inspection type require approved mappings",
     }
+    gaps["trailer_technical_form"]="Legacy defects and violation classifiers require complete mapping"
+    gaps["sp_teammate_form"]="Legacy second-driver violation classifiers require complete mapping"
     for target, detail in gaps.items():
         finding("mapping_incomplete", detail,
                 "SELECT legacy_source source,legacy_id FROM migration.disposition WHERE migration_run_id=%s AND reason='eligible' AND target_table=%s", (run_id,"forms."+target))
@@ -165,11 +193,12 @@ def preflight(cur, run_id, cutoff):
                 ON d.legacy_id=v.control_form_id::text AND d.legacy_source='ControlForm'
                 WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type=%s
                   AND (v.classifier_name IS NULL OR NOT (v.classifier_name=ANY(%s)))""", (run_id,form_type,keys))
-    finding("unsupported_subtype", "Legacy trailer/teammate discriminator is present; routing must be implemented before loading this source",
+    finding("unsupported_subtype", "Subtype marker is not an explicit true/1; ambiguous legacy presence semantics need review",
         """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
             FROM staging.raw_control_form_value v JOIN migration.disposition d
             ON d.legacy_id=v.control_form_id::text AND d.legacy_source='ControlForm'
             WHERE d.migration_run_id=%s AND d.reason='eligible'
+              AND lower(btrim(coalesce(v.value,''))) NOT IN ('true','1')
               AND ((d.form_type='RoadControlCard2012' AND v.classifier_name='RoadControlTrailer')
                 OR (d.form_type='Roadworthiness2012' AND v.classifier_name='RoadWorthinessTeamMember'))""", (run_id,))
     finding("invalid_time", "Invalid clock time becomes NULL/00:00 only in rehearsal; review source snapshot",
@@ -290,8 +319,21 @@ def check_integrity(cur, run_id, require_coverage=True):
                     .format(sql.Identifier(table),sql.Identifier(key)), (target,))
             n=cur.fetchone()[0]
             if n: problems.append({"check":"missing_parent","table":table,"count":n})
-    duplicates=rows(cur,"SELECT target_table,target_key,count(*) FROM migration.form_link GROUP BY 1,2 HAVING count(*)>1")
+    duplicates=rows(cur,"SELECT target_table,target_key,count(*) FROM migration.form_link WHERE target_table<>'forms.compound_form' GROUP BY 1,2 HAVING count(*)>1")
     if duplicates: problems.append({"check":"duplicate_target_link","examples":duplicates[:20]})
+    split = rows(cur,"""SELECT b.control_id,count(DISTINCT f.target_key) AS parents
+        FROM staging.raw_control_to_form_binding b JOIN staging.raw_control c ON c.id=b.control_id
+        JOIN migration.form_link f ON f.legacy_source='ControlForm' AND f.legacy_id=b.control_form_id::text
+          AND f.target_table='forms.compound_form'
+        GROUP BY b.control_id HAVING count(DISTINCT f.target_key)>1""")
+    if split: problems.append({"check":"split_compound_control","count":len(split)})
+    merged = rows(cur,"""SELECT f.target_key FROM migration.form_link f
+        LEFT JOIN LATERAL (SELECT min(b.control_id) AS control_id
+          FROM staging.raw_control_to_form_binding b JOIN staging.raw_control c ON c.id=b.control_id
+          WHERE b.control_form_id::text=f.legacy_id) p ON true
+        WHERE f.legacy_source='ControlForm' AND f.target_table='forms.compound_form'
+        GROUP BY f.target_key HAVING count(DISTINCT coalesce('control:'||p.control_id::text,'form:'||f.legacy_id))>1""")
+    if merged: problems.append({"check":"unrelated_controls_merged","count":len(merged)})
     return problems
 
 
@@ -308,6 +350,11 @@ def state_signature(cur):
 
 def report(cur, run_id, directory, problems=None):
     output={"run":rows(cur,"SELECT * FROM migration.run WHERE migration_run_id=%s",(run_id,)),
+        "linked_runs":rows(cur,"""SELECT DISTINCT r.migration_run_id,r.status,r.mode FROM migration.run r
+          JOIN migration.form_link f ON f.migration_run_id=r.migration_run_id ORDER BY r.migration_run_id"""),
+        "inherited_findings":rows(cur,"""SELECT severity,issue,count(*) FROM migration.finding
+          WHERE migration_run_id<>%s AND migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link)
+          GROUP BY 1,2 ORDER BY 1,2""",(run_id,)),
         "dispositions":rows(cur,"SELECT form_type,reason,count(*) FROM migration.disposition WHERE migration_run_id=%s GROUP BY 1,2 ORDER BY 1,2",(run_id,)),
         "findings":rows(cur,"SELECT severity,issue,count(*) FROM migration.finding WHERE migration_run_id=%s GROUP BY 1,2 ORDER BY 1,2",(run_id,)),
         "coverage":rows(cur,"""SELECT d.form_type,
@@ -318,7 +365,7 @@ def report(cur, run_id, directory, problems=None):
             FROM migration.disposition d WHERE d.migration_run_id=%s GROUP BY 1 ORDER BY 1""",(run_id,)),
         "snapshot_counts":rows(cur,"SELECT source_table,count(*) FROM migration.source_snapshot WHERE migration_run_id=%s GROUP BY 1 ORDER BY 1",(run_id,)),
         "links":rows(cur,"SELECT target_table,count(*) FROM migration.form_link GROUP BY 1 ORDER BY 1"),
-        "quality":rows(cur,"SELECT target_table,column_name,issue,approval_basis,count(DISTINCT (legacy_source,legacy_id)) AS affected_forms FROM migration.quality_report WHERE migration_run_id=%s GROUP BY 1,2,3,4 ORDER BY 1,2,3,4",(run_id,)),
+        "quality":rows(cur,"SELECT target_table,column_name,issue,approval_basis,count(DISTINCT (legacy_source,legacy_id)) AS affected_forms FROM migration.quality_report WHERE migration_run_id=%s OR migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link) GROUP BY 1,2,3,4 ORDER BY 1,2,3,4",(run_id,)),
         "integrity_problems":problems or []}
     (directory/"summary.json").write_text(json.dumps(output,ensure_ascii=False,indent=2,default=str)+"\n")
     for table in ("finding","disposition","quality_report"):
@@ -331,9 +378,12 @@ def report(cur, run_id, directory, problems=None):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rehearsal",action="store_true",help="Allow incomplete business mappings on a disposable target; returns 2")
+    parser.add_argument("--sql-only",action="store_true",help="Rehearsal of SQL Server only; RavenDB remains explicitly unverified")
     parser.add_argument("--verify",action="store_true",help="Read-only verification of RUN_ID (or latest run)")
     parser.add_argument("--no-recheck",action="store_true",help="Skip transaction-local idempotency test; recorded in run notes")
     args=parser.parse_args()
+    if args.sql_only and (not args.rehearsal or args.verify):
+        parser.error("--sql-only requires --rehearsal and cannot be used with --verify")
     if args.verify and (args.rehearsal or args.no_recheck): parser.error("--verify cannot be combined with execution flags")
     cutoff = required("CUTOFF") if not args.verify else os.getenv("CUTOFF","")
     if not args.verify:
@@ -374,9 +424,13 @@ def main():
                 if p.is_file() and (p.parent==HERE or p.parent.name in ('sql','extract')) and p.suffix in ('.py','.sql','.sh'))).hexdigest()
             cur.execute("INSERT INTO migration.run (migration_run_id,source_cutoff_from,form_types,status,mode,source_label,code_sha256,notes) VALUES (%s,%s,%s,'running',%s,%s,%s,%s)",
                 (run_id,cutoff,[*TARGETS,"JobInspection","JobInspectionV2"],"rehearsal" if args.rehearsal else "production",required("SOURCE_LABEL"),code_hash,
-                 json.dumps({"no_recheck":args.no_recheck,"raven_mode":os.getenv("RAVENDB_MODE","required"),"raven_absence_reason":os.getenv("RAVENDB_ABSENCE_REASON")})))
+                 json.dumps({"no_recheck":args.no_recheck,"raven_mode":"not-provided" if args.sql_only else os.getenv("RAVENDB_MODE","required"),"raven_absence_reason":os.getenv("RAVENDB_ABSENCE_REASON"),"sql_only":args.sql_only})))
             registered=True
             for name in ("extract_mssql_to_staging.py","extract_ravendb_to_staging.py"):
+                if args.sql_only and name=="extract_ravendb_to_staging.py":
+                    cur.execute("TRUNCATE staging.raw_job_inspection")
+                    cur.execute("INSERT INTO migration.finding VALUES (%s,'blocker','RavenDB','*','source_not_provided','SQL-only rehearsal: RavenDB was not provided; absence has NOT been confirmed')",(run_id,))
+                    continue
                 step=name
                 cur.execute("UPDATE migration.run SET current_step=%s WHERE migration_run_id=%s",(step,run_id))
                 print(f"[migration] run_id={run_id} step={step}",flush=True)
@@ -418,6 +472,9 @@ def main():
                 step=path.name
                 print(f"[migration] run_id={run_id} step={step}",flush=True)
                 execute_file(cur,path,run_id,cutoff)
+                if path.name.startswith(('04-','05-')): execute_file(cur,path,run_id,cutoff,subtype=True)
+            step="enrich_and_group"
+            enrich.apply(cur,run_id,CHILDREN)
             cur.execute("""UPDATE migration.form_link f SET source_fingerprint=s.fingerprint
                 FROM source_fingerprint s WHERE f.legacy_source=s.source AND f.legacy_id=s.legacy_id AND f.migration_run_id=%s""",(run_id,))
             cur.execute("""UPDATE migration.form_link f SET legacy_form_code=cf.form_code
@@ -425,7 +482,9 @@ def main():
             if not args.no_recheck:
                 step="idempotency"
                 before=state_signature(cur)
-                for path in transforms: execute_file(cur,path,run_id,cutoff)
+                for path in transforms:
+                    execute_file(cur,path,run_id,cutoff)
+                    if path.name.startswith(('04-','05-')): execute_file(cur,path,run_id,cutoff,subtype=True)
                 if before!=state_signature(cur): raise RuntimeError("Idempotency check changed target/link/quality rows")
             step="verification"
             problems=check_integrity(cur,run_id)
@@ -435,7 +494,9 @@ def main():
                 WHERE migration_run_id=%s AND migration.approved_text_default(
                     target_table,column_name,issue,applied_default,raw_value)""",(run_id,))
             cur.execute("SELECT count(*) FROM migration.quality_report WHERE migration_run_id=%s AND approval_basis IS NULL",(run_id,))
-            review=blocked or cur.fetchone()[0]>0 or args.rehearsal
+            unapproved_quality=cur.fetchone()[0]>0
+            cur.execute("SELECT EXISTS (SELECT 1 FROM migration.finding WHERE migration_run_id=%s AND severity='blocker')",(run_id,))
+            review=cur.fetchone()[0] or unapproved_quality or args.rehearsal
             if review and not args.rehearsal: raise RuntimeError("Unapproved quality substitutions; production transaction rolled back")
             cur.execute("UPDATE migration.run SET status=%s,current_step='complete',finished_at=now() WHERE migration_run_id=%s",("needs_review" if review else "succeeded",run_id))
             pg.commit()

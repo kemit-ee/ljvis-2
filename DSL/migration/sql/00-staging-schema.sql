@@ -349,3 +349,12 @@ RETURNS boolean LANGUAGE sql IMMUTABLE AS $$
       ))
     ),false);
 $$;
+
+-- A true marker is the confirmed encoding in the legacy United form templates.
+-- Other present encodings are blocked by preflight rather than guessed.
+CREATE OR REPLACE FUNCTION migration.is_subtype(form_id bigint, marker text)
+RETURNS boolean LANGUAGE sql STABLE AS $$
+    SELECT EXISTS (SELECT 1 FROM staging.raw_control_form_value
+        WHERE control_form_id=form_id AND classifier_name=marker
+          AND lower(btrim(value)) IN ('true','1'));
+$$;

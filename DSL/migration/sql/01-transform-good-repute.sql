@@ -52,6 +52,7 @@ SELECT
     max(v.value)      FILTER (WHERE v.classifier_name = 'Driver.Perekonnanimi')  AS last_name,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Driver.Synnikoht')      AS place_of_birth,
     max(v.value)      FILTER (WHERE v.classifier_name = 'AmetialasePadevuseTunnistuseNumber') AS certificate_number,
+    max(v.value)      FILTER (WHERE v.classifier_name = 'AmetialasePadevuseTunnistuseValjastanudRiik') AS certificate_country,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Sobivus')               AS sobivus_raw,
     -- Dates: prefer date_value (written by DateTimeControlFormBinder); the text
     -- value for the same key is a dd.MM.yyyy rendering and is only a fallback.
@@ -89,9 +90,8 @@ SELECT
     coalesce(nullif(btrim(s.first_name),         ''), '-')           AS first_name_out,
     coalesce(nullif(btrim(s.last_name),          ''), '-')           AS last_name_out,
     coalesce(nullif(btrim(s.certificate_number), ''), '-')           AS certificate_number_out,
-    -- No source key exists for the certificate country -- GoodRepute.ascx has no
-    -- such field at all. NOT NULL + not_blank CHECK, so '-' it is.
-    '-'                                                             AS certificate_country_code_out,
+    -- Present in the supplied backup although absent from the older view snapshot.
+    coalesce(nullif(upper(btrim(s.certificate_country)), ''), '-')     AS certificate_country_code_out,
     -- date_of_birth / certificate_issue_date are NOT NULL with a <= CURRENT_DATE
     -- check. Fall back to the form's own date, then clamp.
     least(coalesce(s.date_of_birth, s.created_at)::date,           CURRENT_DATE) AS date_of_birth_out,
@@ -137,12 +137,12 @@ CROSS JOIN LATERAL (VALUES
     ('first_name',               'missing_required',   '-', f.first_name),
     ('last_name',                'missing_required',   '-', f.last_name),
     ('certificate_number',       'missing_required',   '-', f.certificate_number),
-    ('certificate_country_code', 'no_source_field',    '-', NULL),
+    ('certificate_country_code', 'missing_required',   '-', f.certificate_country),
     ('date_of_birth',            'missing_required',   f.date_of_birth_out::text,          f.date_of_birth::text),
     ('certificate_issue_date',   'missing_required',   f.certificate_issue_date_out::text, f.certificate_issue_date::text),
     ('fitness_status',           'unmapped_classifier', NULL,                              f.sobivus_raw)
 ) AS c(col, issue, applied, raw)
-WHERE (c.col = 'certificate_country_code')
+WHERE (c.col = 'certificate_country_code' AND nullif(btrim(c.raw),'') IS NULL)
    OR (c.col = 'fitness_status' AND f.fitness_status IS NULL)
    OR (c.col IN ('date_of_birth', 'certificate_issue_date') AND c.raw IS NULL)
    OR (c.col NOT IN ('certificate_country_code', 'fitness_status',

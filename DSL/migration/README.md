@@ -1,12 +1,14 @@
 # LJVIS 1 → LJVIS 2: administraatori migratsioonijuhend
 
-**Seis 22.09.2026: tootmisse üleminek on blokeeritud.** Ekstraktimine ja proovilaadimine
+**Seis 25.09.2026: SQL backup’i proov on tehtud; tootmisse üleminek on blokeeritud.** Ekstraktimine ja proovilaadimine
 on testitavad, kuid osa äriväljade vastendusi on lõpetamata. Tavakäivitus peatub enne
 `forms.*` laadimist, kui leiab blokeeriva puuduse. `--rehearsal` lubab osalist tulemust
 **ainult ühekordses proovibaasis** ja tagastab koodi **2**, mitte eduteate.
 
-Puuduvad veel muu hulgas koondkontrollide kokkupanek, haagise/teise juhi suunamine,
-rikkumiste ja menetluste täielik vastendus, ADR-i detailandmed ja manuste ülekanne.
+Koondkontrollide ühendamine ning selge true/1 markeriga haagise/teise juhi suunamine
+on rakendatud. Lõpetada tuleb rikkumiste, puuduste ja kõigi menetlusvariantide vastendus,
+ADR-i detailandmed ning manuste ülekanne; segastaatusega/puuduva seosega kontrollid
+vajavad otsust. Saadud testbackup sisaldab ka maskeeritud andmeid.
 Lähteandmete säilitamine `migration.source_snapshot` tabelis ei tähenda, et kõik need
 andmed oleksid juba rakenduses kasutatavad. Vajalikud sisendid:
 [administraatori päringud](../../docs/migration/migration-guidelines.md).
@@ -14,7 +16,7 @@ andmed oleksid juba rakenduses kasutatavad. Vajalikud sisendid:
 ## Administraatorile antav komplekt
 
 See kaust sisaldab ainult migratsiooni käivitamiseks ja kontrollimiseks mõeldud faile:
-`run.sh`, `migrate.py`, `extract/`, `sql/`, `requirements.txt`, `.env.example` ja see juhend.
+`run.sh`, `migrate.py`, `enrich.py`, `extract/`, `sql/`, `requirements.txt`, `.env.example` ja see juhend.
 `.gitignore` välistab paroolid, lokaalse Pythoni keskkonna ja jooksude aruanded.
 **Docker Compose ei ole selle migratsiooniskripti eeltingimus.** Skript ühendub DBA
 ettevalmistatud allika- ja sihtbaasidega; sihtskeemi Liquibase changelog kuulub rakendusse.
@@ -111,9 +113,14 @@ käik peatub; seda ei tõlgendata vaikimisi tühja allikana.
 ```bash
 ./run.sh                  # kontrollitud käik; puudulik vastendus blokeerib forms.* laadimise
 ./run.sh --rehearsal      # ainult taastatav proovibaas; osaline tulemus vajab ülevaatust
+./run.sh --rehearsal --sql-only  # ainult SQL backup; RavenDB jääb kontrollimata
 ./run.sh --verify         # viimase käigu ainult-lugemine kontroll
 # Konkreetse käigu kontroll: sea RUN_ID selle käigu UUID-ks .env failis.
 ```
+
+`--sql-only` nõuab `--rehearsal` ja ühekordset sihtbaasi; tavakäik keeldub sellest.
+See ei kinnita RavenDB puudumist. `summary.json` sisaldab ka varasemate seotud
+käikude leide ja kvaliteediridu: korduskatse ei kustuta nende läbivaatamise vajadust.
 
 Ära käivita SQL-transforme eraldi: `migrate.py` korraldab ühise transaktsiooni,
 käivitusluku, eelkontrollid, numbrite kontrolli ja korduskatse. `--no-recheck` jätab
@@ -182,7 +189,7 @@ kontrollida otsingut, vaatamist, PDF-i ja õigusi. Kinnitada manuste ning V1 akt
 Kui teisendus vajab parandamist, taastada proovibaas ja korrata täielikku katset.
 
 Sünteetiline roheline test kinnitab mehhanismi; pärisandmete vastuvõttu see ei asenda.
-Arendaja korduv katse ja kaetus on eraldi [tests/README.md](tests/README.md).
+Arendaja korduv katse ja kaetus on eraldi [tests/migration/README.md](../../tests/migration/README.md).
 
 ## Kinnitatud tekstiasendused ja lahendamata andmed
 
@@ -191,7 +198,7 @@ väljade ja põhjuste loend on `migration.approved_text_default` funktsioonis
 `sql/00-staging-schema.sql`; kinnituse viide kirjutatakse `quality_report.approval_basis`
 väljale. Üldist „ignoreeri kõik kvaliteedivead” lülitit ei ole. Kuupäevad, tulemused,
 tundmatud klassifikaatorid, puuduvad rikkumised ja vormide marsruutimine ei kuulu
-selle kinnituse alla. GoodRepute puuduva tunnistuse riigi `'-'` ei ole enam iseseisev
+selle kinnituse alla. GoodRepute loeb olemasolevat `AmetialasePadevuseTunnistuseValjastanudRiik` välja. Puuduva tunnistuse riigi `'-'` ei ole enam iseseisev
 production-blokeerija; muud lahendamata probleemid jäävad blokeerima.
 
 Puuduv või mitmene `otsus` saab eraldi `unmapped_control_result` blokeerija sõltumata
@@ -200,7 +207,7 @@ Puuduv või mitmene `otsus` saab eraldi `unmapped_control_result` blokeerija sõ
 käsitleda tegeliku kontrollitulemusena ega production-andmetena**. Lubatud tekstiasendus
 ei kinnita seda. Mitme otsuse kokkuliitmine vajab eraldi andmemudeli lahendust.
 
-Rehearsal võib peatuda preflight'is, kui on trailer/teammate, scalar multi-value või
+Rehearsal võib peatuda preflight'is, kui on ebaselge trailer/teammate marker, scalar multi-value või
 tundmatu Sobivus. `finding.csv` ja `disposition.csv` väljastatakse ka siis. See on
 teadlik tervikliku ülekande kaitse; vaikimisi ei jäeta vigu sisaldavaid vorme kõrvale.
 `Sobivus` vea juures on allika ID ja algne väärtus. Liiga pika teksti viga nimetab
@@ -215,3 +222,22 @@ DBA peab piirama ligipääsu migratsiooni rollile, määrama enne live-andmetega
 säilitamise tähtaja ja vastutaja ning kooskõlastama puhastamise pärast vastuvõttu.
 Sama kehtib varukoopiatele ja jooksude failidele. ETL ei määra ise suvalist tähtaega
 ega kustuta tõendusmaterjali automaatselt; source_snapshot ei ole tähtajatu arhiiv.
+
+## SQL backup'i 25.09.2026 proovi parandused
+
+- Ühe legacy `Control` alavormid ühendatakse ühte koondvormi; seosed säilivad iga
+  lähtevormi kohta. Konfliktset ühist päist ei lahendata juhusliku MAX-väärtusega.
+- Haagis läheb `trailer_technical_form`, teine juht `sp_teammate_form` tabelisse.
+  Vana kood vahetas teise juhi vormis `Driver.*` ja `AdditionalDriver.*`; rollid taastatakse.
+- Ühised sõiduki/vedaja/juhi andmed kantakse koondvormile; SP päevade tegelikud võtmed
+  `days_count`, `workdays_count`, `sick_workdays_count` loetakse tekstist. Vana kood võib
+  jätta `IntValue=0`; lahknevus raporteeritakse. Vanema võtme puhul säilib typed fallback.
+- `soidumeerik`, `arukas-2`, menetluse liik/viide ning tehnilise kontrolli checkbox-võtmed
+  loetakse nende tegeliku kujuga. Ilma põlvkonnata `arukas` jääb lahendamata leiuks.
+- Seotud kontrolli ajapiirist välja jäävad vormid ekstraheeritakse kontekstina ja saavad
+  endiselt oma väljajätmise põhjuse. Need ei muutu automaatselt eligible-vormideks.
+- Maskitud/puuduv sünnikuupäev ei ole taastatav. Rehearsal'i tehniline kuupäevaasendus
+  jääb kvaliteediveaks ja blokeerib tootmisvastuvõtu.
+
+Backup'i taastamise ja korduskatsete üks käsk on arendaja juhendis; administraator ei
+pea Q0–Q19 SQL-päringuid käsitsi täitma. [Järgmised sisendid ja sammud](../../docs/migration/migration-guidelines.md).
