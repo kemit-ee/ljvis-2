@@ -2421,7 +2421,11 @@ export function CompoundFormCreatePage() {
                     const teammateTabId = ROUTE_TO_TAB['/sp-teammate'].tabId;
                     const sharedValues = {
                       transportType: values.transportType,
+                      transportEmptyRun: values.transportEmptyRun,
+                      transportNature: values.transportNature,
+                      transportNatureExempt: values.transportNatureExempt,
                       transportClasses: values.transportClasses,
+                      cabotageViolations: values.cabotageViolations,
                     };
                     savedFormData.current[teammateTabId] = {
                       ...savedFormData.current[teammateTabId],
