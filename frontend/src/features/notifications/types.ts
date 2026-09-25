@@ -68,3 +68,10 @@ export interface ResendResult {
   notificationKey: string;
   status: string;
 }
+
+export interface StatusCheckResult {
+  id: string;
+  status: string;
+  failureReason: string | null;
+  pkSendingOperationId: string | null;
+}

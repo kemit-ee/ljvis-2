@@ -8,6 +8,7 @@ import type {
   OutboundLogFilters,
   OutboundRecipient,
   ResendResult,
+  StatusCheckResult,
   UnreadCountResult,
 } from './types';
 
@@ -85,6 +86,22 @@ export function fetchOutboundRecipients(
 export function resendNotification(logId: string): Promise<ResendResult> {
   return post<ResendResult>(
     `/v1/notifications/outbound-log/resend/send?q=${encodeURIComponent(logId)}`,
+    {},
+  );
+}
+
+/**
+ * Käivitab kohe (kasutaja päringul) sama Postkast 2.0 saatmisoperatsiooni seisu
+ * kontrolli, mida cron/notification-status-sync.yml teeb muidu perioodiliselt —
+ * ühe outbound-log rea kohta. Lubatud ainult ridadele, mis pole veel 'sent'
+ * (backend tagastab 409, kui saatmine on juba õnnestunud). Id käib `?q=`
+ * (rest-api-disainijuhend §4.2), body puudub täielikult.
+ */
+export function checkNotificationStatus(
+  logId: string,
+): Promise<StatusCheckResult> {
+  return post<StatusCheckResult>(
+    `/v1/notifications/outbound-log/check-status/send?q=${encodeURIComponent(logId)}`,
     {},
   );
 }

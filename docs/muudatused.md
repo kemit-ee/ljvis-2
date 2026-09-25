@@ -12,6 +12,13 @@
   teksti „(error)" vedaja e-posti aadressi asemel — logi kuvas
   saatmisoleku, mitte adressaati.
 
+### Saadetud kirjade tabelis nupp Postkast 2.0 staatuse kontrollimiseks
+
+- Teavitused -> Saadetud kirjad tabelisse lisati nupp „Kontrolli staatust",
+  mis küsib kohe Postkast 2.0-lt konkreetse teate saatmisoperatsiooni seisu
+  (sama päring, mida taustatöö muidu iga 5 min teeb) — nähtav ridadel, mis
+  pole veel „Saadetud" staatuses. Nõuab sama õigust mis uuesti saatmise nupp.
+
 ### NCR-ist loodud väliskontrolli kontrollkaardi täitmise viga
 
 - NCR teatest kontrollkaardi loomisel ei kandunud üle „Teate saatnud

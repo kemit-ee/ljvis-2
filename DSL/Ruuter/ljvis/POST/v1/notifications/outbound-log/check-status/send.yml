@@ -1,0 +1,185 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Käsitsi käivitatav Postkast 2.0 saatmisoperatsiooni seisu kontroll ühe
+    outbound_log rea kohta — sama X-tee päring ja staatuse-mappimine, mis
+    cron/notification-status-sync.yml teeb perioodiliselt kõigi lõppstaatuseta
+    ridade jaoks (DSL/Ruuter.internal/ljvis/POST/cron/notification-status-sync.yml),
+    aga siin ühekordselt ja kohe, kasutaja päringul (nupp "Kontrolli staatust"
+    Teavitused -> Saadetud kirjad tabelis, nähtav kuni saatmine pole veel
+    õnnestunud). Lubatud ainult ridadele, mis pole juba 'sent' staatuses —
+    õnnestunud saatmist pole vaja/mõtet uuesti kontrollida.
+    Outbound-logi id käib ?q= query-paramina (rest-api-disainijuhend §4.2).
+    Nõuab notification.resend õigust (kaitstud check-status/.guard kaudu).
+  namespace: notification
+  allowlist:
+    params:
+      - field: q
+        type: string
+
+extractParams:
+  assign:
+    log_id: "${incoming.params.q ?? ''}"
+  next: checkLogId
+
+checkLogId:
+  switch:
+    - condition: ${log_id === ''}
+      next: returnBadRequest
+  next: loadLog
+
+loadLog:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_outbound_log"
+    headers:
+      type: json
+    body:
+      id: ${log_id}
+  result: logRes
+  next: checkFound
+
+checkFound:
+  assign:
+    original_log: "${(Array.isArray(logRes.response.body) && logRes.response.body[0]) ? logRes.response.body[0] : null}"
+  next: checkFound2
+
+checkFound2:
+  switch:
+    - condition: ${original_log == null}
+      next: returnNotFound
+  next: checkStatus
+
+# Õnnestunud saatmist pole mõtet uuesti PK 2.0-lt küsida.
+checkStatus:
+  switch:
+    - condition: ${original_log.status === 'sent'}
+      next: returnConflict
+  next: callPk
+
+# Toodangus läbi XTR-i REST passthrough lane'i (nagu sync-status.yml),
+# dev/CI-s Ruuteri mock — vt PK_SENDING_OPERATIONS_ENDPOINT kasutust
+# cron/notification-status-sync.yml-is.
+callPk:
+  call: http.post
+  args:
+    url: "[#PK_SENDING_OPERATIONS_ENDPOINT]"
+    headers:
+      type: json
+    body:
+      externalId: ${original_log.notificationKey}
+      page: 0
+      size: 1
+  result: opRes
+  next: unwrapOpBody
+
+# Sama kahekujuline lugemine mis send-postkast.yml/sync-status.yml-is —
+# dev/CI mock (Ruuteri DSL, response.default_wrapper: true) mähib vastuse,
+# päris X-tee/PK vastab mähkimata.
+unwrapOpBody:
+  assign:
+    op_body: >-
+      ${(opRes.response.body && opRes.response.body.response)
+        ? opRes.response.body.response
+        : opRes.response.body}
+  next: extractOp
+
+extractOp:
+  assign:
+    op: >-
+      ${(opRes.response.status >= 200 && opRes.response.status < 300
+         && op_body && op_body.content
+         && op_body.content[0]) || null}
+  next: logIntegration
+
+logIntegration:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "pk.notification-management.v1"
+      request_xml: "${'externalId=' + original_log.notificationKey}"
+      response_xml: "${JSON.stringify({ received: (opRes.response.body) != null })}"
+      duration_ms: 0
+      success: "${opRes.response.status >= 200 && opRes.response.status < 300}"
+      error_message: ""
+      person_identifier: ""
+      source_type: "notification_status_manual_check"
+      source_record_id: ${log_id}
+  result: xroadLogRes
+  next: mapStatus
+
+# Sama mappimine mis cron/notification-status-sync.yml-is, va katsete lagi
+# (24h/48 katset) — see on mõeldud ainult automaatsele taustatööle; käsitsi
+# nupuvajutus ei tohi ridu jõuga 'error'-iks sundida, kui PK lihtsalt veel
+# vastust ei andnud.
+mapStatus:
+  assign:
+    op_status: "${op ? op.status : ''}"
+    created_count: "${(op && op.createdRecipientCount != null) ? op.createdRecipientCount : -1}"
+  next: mapStatus2
+
+mapStatus2:
+  assign:
+    mapped_status: >-
+      ${op_status === 'IN_PROGRESS'
+        ? 'in_progress'
+        : (op_status === 'FINISHED' && created_count === 1)
+          ? 'sent'
+          : (op_status === 'ERROR' || (op_status === 'FINISHED' && created_count === 0))
+            ? 'error'
+            : original_log.status}
+    mapped_failure_reason: >-
+      ${(((op_status === 'ERROR' || (op_status === 'FINISHED' && created_count === 0))
+        ? ((op && op.resolution) || original_log.failureReason || '')
+        : '') + '').replace(/[\r\n\t\\]+/g, ' ').replace(/"/g, "'").substring(0, 500)}
+  next: updateStatus
+
+updateStatus:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
+    headers:
+      type: json
+    body:
+      id: ${log_id}
+      status: ${mapped_status}
+      failure_reason: ${mapped_failure_reason}
+      pk_sending_operation_id: "${(op && op.id) || original_log.pkSendingOperationId || ''}"
+      pk_operation_restart_allowed: "${op ? String(op.operationRestartAllowed === true) : ''}"
+      pk_completed_at: "${(op && op.completedAt) || ''}"
+      increment_check: true
+  result: updateRes
+  next: checkUpdateResult
+
+checkUpdateResult:
+  switch:
+    - condition: ${updateRes.response == null || updateRes.response.status < 200 || updateRes.response.status >= 300 || updateRes.response.body == null || updateRes.response.body.length == null || updateRes.response.body.length === 0}
+      next: returnUpdateError
+  next: returnResult
+
+returnResult:
+  return: ${updateRes.response.body[0]}
+  next: end
+
+returnBadRequest:
+  status: 400
+  return: "logId is required"
+  next: end
+
+returnNotFound:
+  status: 404
+  return: "outbound log entry not found"
+  next: end
+
+returnConflict:
+  status: 409
+  return: "notification already sent successfully"
+  next: end
+
+returnUpdateError:
+  status: 500
+  return: "status update failed"
+  next: end
