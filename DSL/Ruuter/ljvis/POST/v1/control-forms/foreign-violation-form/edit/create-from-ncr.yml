@@ -39,6 +39,7 @@ extractNcrFields:
   assign:
     ncr_id: "${String(ncrRes.response.body[ncrRes.response.body.length - 1].id || '')}"
     reporting_country_code: "${ncrRes.response.body[ncrRes.response.body.length - 1].ncrFrom || ''}"
+    reporting_authority: "${ncrRes.response.body[ncrRes.response.body.length - 1].originatingAuthority || ''}"
     company_name: "${ncrRes.response.body[ncrRes.response.body.length - 1].transportUndertakingName || ''}"
     vehicle_reg_nr: "${ncrRes.response.body[ncrRes.response.body.length - 1].vehicleRegistrationNumber || ''}"
     vehicle_country_code: "${ncrRes.response.body[ncrRes.response.body.length - 1].vehicleRegistrationCountry || ''}"
@@ -86,7 +87,7 @@ insertVrForm:
     body:
       status: "saved"
       reportingCountryCode: ${reporting_country_code}
-      reportingAuthority: ""
+      reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
       inspectionDate: ${inspection_date}
       inspectionTime: "00:00:00"

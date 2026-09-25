@@ -206,6 +206,8 @@ export function ForeignViolationFormFields({
             {t('forms.foreign_violation.reportingBasicInfo')}
           </Heading>
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
+            {/* NCR-ist loodud kaardil on teate saatnud riik lukus — vt
+                create-from-ncr.yml, mis täidab välja NCR ncrFrom järgi. */}
             <Select
               id="reportingCountry"
               label={t('forms.foreign_violation.reportingCountry')}
@@ -224,7 +226,7 @@ export function ForeignViolationFormFields({
                 )
               }
               required={!readOnly}
-              disabled={readOnly}
+              disabled={readOnly || !!values.erruNcrMessageKey}
               {...(!readOnly &&
               touched.reportingCountryCode &&
               errors.reportingCountryCode

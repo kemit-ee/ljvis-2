@@ -12,6 +12,14 @@
   teksti „(error)" vedaja e-posti aadressi asemel — logi kuvas
   saatmisoleku, mitte adressaati.
 
+### NCR-ist loodud väliskontrolli kontrollkaardi täitmise viga
+
+- NCR teatest kontrollkaardi loomisel ei kandunud üle „Teate saatnud
+  pädeva asutuse nimetus" — väli jäi tühjaks, kuigi NCR teates oli see
+  olemas.
+- „Teate saatnud riik" on nüüd NCR-ist loodud kaardil lukus, sest
+  väärtus tuleb teatest ega ole kasutaja poolt muudetav.
+
 ### NCR-vastuse vaade: sissetulnud päring nähtav ka vastates
 
 - NCR teatele vastamisel on nüüd vastuse vormi kohal näha ka sissetulnud
