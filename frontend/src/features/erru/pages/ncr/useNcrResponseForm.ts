@@ -23,7 +23,7 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
   const required = t(`${T}.required`);
 
   const requestedIds = (message?.seriousInfringements ?? []).flatMap((si) =>
-    si.penaltiesRequested.map((p) => p.penaltyRequestedIdentifier),
+    (si.penaltiesRequested ?? []).map((p) => p.penaltyRequestedIdentifier),
   );
 
   const existingByRequestedId = new Map(
