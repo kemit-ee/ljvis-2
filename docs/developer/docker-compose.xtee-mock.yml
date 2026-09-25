@@ -1,6 +1,6 @@
 services:
   ljvis_xtee_mock:
-    image: turnerrainer/ruuter:0.10.0-rc@sha256:620a4ed561603e23ce28770dbc1d01bfb4ec54d5553ed09388b8b94697c5ea7b
+    image: turnerrainer/ruuter:0.10.1-rc@sha256:98ed90914d30d2e131cc194076c7047aba93727461c05da9bddbcc783880cb37
     container_name: ljvis_xtee_mock
     volumes:
       - ../../DSL/Ruuter/xtee-mock:/app/DSL/xtee-mock:ro

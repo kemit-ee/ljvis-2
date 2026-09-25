@@ -34,6 +34,31 @@ export const searchForms = async (
 const technicalCheckPath = (variant: TechnicalCheckVariant) =>
   variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
 
+export type ProceedingOutcomeFormType =
+  | 'labour_inspection'
+  | 'tram_control_card'
+  | 'sp_driver'
+  | 'sp_teammate'
+  | 'vehicle_technical'
+  | 'trailer_technical'
+  | 'adr';
+
+export const saveProceedingOutcome = (
+  formType: ProceedingOutcomeFormType,
+  id: string | number,
+  enforcementDecision?: string,
+  proceedingClosureBasis?: string,
+) =>
+  post<{ id: number }[]>(
+    '/v1/control-forms/proceeding-outcome/edit/save',
+    {
+      formType,
+      id: String(id),
+      enforcementDecision: enforcementDecision?.trim() ?? '',
+      proceedingClosureBasis: proceedingClosureBasis?.trim() ?? '',
+    },
+  );
+
 /** DSL allowlist nõuab id välja stringina; konverteerime enne saatmist. */
 const withStringId = <T extends { id?: string | number | null }>(
   data: T,

@@ -453,6 +453,11 @@
       "open": "Ava link"
     },
     "shared": {
+      "proceedingOutcome": {
+        "title": "Menetluse tulemus",
+        "enforcementDecision": "Jõustunud otsus",
+        "proceedingClosureBasis": "Menetluse lõpetamise alus"
+      },
       "files": {
         "label": "Failid",
         "save_first": "Salvesta vorm enne failide lisamist",

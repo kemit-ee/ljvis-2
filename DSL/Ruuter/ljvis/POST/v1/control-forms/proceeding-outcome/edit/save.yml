@@ -1,0 +1,147 @@
+declaration:
+  version: "1.0"
+  description: "Karistusregistri kasutaja sisestab kinnitatud kontrollvormile menetluse tulemuse."
+  namespace: control-forms
+  allowlist:
+    body:
+      - { field: formType, type: string }
+      - { field: id, type: string }
+      - { field: enforcementDecision, type: string }
+      - { field: proceedingClosureBasis, type: string }
+
+extract:
+  assign:
+    form_type: "${incoming.body.formType}"
+    id: "${incoming.body.id}"
+    enforcement_decision: "${incoming.body.enforcementDecision || ''}"
+    proceeding_closure_basis: "${incoming.body.proceedingClosureBasis || ''}"
+  next: routeByType
+
+routeByType:
+  switch:
+    - condition: ${form_type === 'labour_inspection'}
+      next: saveLabourInspection
+    - condition: ${form_type === 'tram_control_card'}
+      next: saveTramCard
+    - condition: ${form_type === 'sp_driver'}
+      next: saveDriver
+    - condition: ${form_type === 'sp_teammate'}
+      next: saveTeammate
+    - condition: ${form_type === 'vehicle_technical'}
+      next: saveVehicle
+    - condition: ${form_type === 'trailer_technical'}
+      next: saveTrailer
+    - condition: ${form_type === 'adr'}
+      next: saveAdr
+  next: invalidType
+
+saveLabourInspection:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+  result: saveRes
+  next: checkSaved
+
+saveTramCard:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-card/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+  result: saveRes
+  next: checkSaved
+
+saveDriver:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+  result: saveRes
+  next: checkSaved
+
+saveTeammate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update-xroad-fields"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+  result: saveRes
+  next: checkSaved
+
+saveVehicle:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+  result: saveRes
+  next: checkSaved
+
+saveTrailer:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+  result: saveRes
+  next: checkSaved
+
+saveAdr:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/adr-form/update-proceeding-outcome"
+    headers: { type: json }
+    body:
+      key: ${id}
+      enforcementDecision: ${enforcement_decision}
+      proceedingClosureBasis: ${proceeding_closure_basis}
+  result: saveRes
+  next: checkSaved
+
+checkSaved:
+  switch:
+    - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300}
+      next: saveFailed
+    - condition: ${saveRes.response.body == null || saveRes.response.body.length === 0}
+      next: notConfirmed
+  next: success
+
+success:
+  return: ${saveRes.response.body}
+  next: end
+
+invalidType:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"formType","code":"invalid_form_type"}'
+  next: end
+
+notConfirmed:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_not_confirmed"}'
+  next: end
+
+saveFailed:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"save_failed"}'
+  next: end

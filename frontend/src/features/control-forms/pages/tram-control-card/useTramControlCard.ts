@@ -5,7 +5,7 @@ import * as Yup from 'yup';
 import type { Organisation } from '../../../organisations/types';
 import type { CompoundForm, TramControlCard, Trailer, Driver } from '../../types';
 import { listOrganisations } from '../../../organisations/api';
-import { saveTramForm, confirmTramForm, publishTramForm } from '../../api';
+import { saveTramForm, confirmTramForm, publishTramForm, saveProceedingOutcome } from '../../api';
 import { ApiError } from '../../../../shared/api/client';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useAuth } from '../../../auth/AuthContext';
@@ -20,6 +20,7 @@ import {
 } from '../../../xroad/api';
 import type { XRoadVehicle } from '../../../xroad/types';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
+import { hasProceeding } from '../../proceedingOutcome';
 
 // Separate maps for vehicle and trailer EU category codes (liiklusregister
 // `kateg` field) → internal VEHICLE_CATEGORY_2012 / TRAILER_CATEGORY_2012
@@ -571,6 +572,9 @@ export function useTramControlCard(
             await api.confirm(trimmedValues as unknown as CompoundForm);
             onConfirmed?.();
           } else if (isPublishing) {
+            if (hasProceeding(values)) {
+              await saveProceedingOutcome('tram_control_card', values.id, values.enforcementDecision, values.proceedingClosureBasis);
+            }
             await api.publish(values.id);
             onPublished?.();
           } else if (isRepublishedEdit) {

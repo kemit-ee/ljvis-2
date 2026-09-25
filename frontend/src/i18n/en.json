@@ -340,6 +340,11 @@
       "open": "Open link"
     },
     "shared": {
+      "proceedingOutcome": {
+        "title": "Proceeding outcome",
+        "enforcementDecision": "Decision entered into force",
+        "proceedingClosureBasis": "Basis for terminating proceedings"
+      },
       "files": {
         "label": "Files",
         "save_first": "Save the form before adding files",

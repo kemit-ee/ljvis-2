@@ -20,6 +20,7 @@ import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
+import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 const FORM_TYPE = 'tram-card';
 
@@ -188,7 +189,9 @@ export function TramControlCardPage() {
   const canConfirm =
     hasPermission('tram_driver_form.write') && status === 'saved';
   const canPublish =
-    hasPermission('tram_driver_form.write') && status === 'confirmed';
+    hasPermission('tram_driver_form.write') &&
+    status === 'confirmed' &&
+    canManuallyPublish(formik.values, hasPermission(PUNISHMENT_REGISTER_PERMISSION));
 
   const sharedProps = {
     isDesktop,

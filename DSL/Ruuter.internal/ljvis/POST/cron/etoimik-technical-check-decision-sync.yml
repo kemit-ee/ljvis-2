@@ -8,7 +8,7 @@ declaration:
     code, but no enforcement_decision yet, ask e-toimik
     (AnnaIsikuKvalifikatsioonid) whether a decision has entered into force,
     and write the result (jõustunud otsus + menetluse lõpetamise alus) onto
-    the sub-form IN PLACE — does not publish, does not bump version.
+    the sub-form IN PLACE and publishes it — does not bump version.
     Processes vehicle and trailer sub-forms as two independent candidate
     sets in one flow (same source data, same X-tee call — kept together
     per LJVIS2-72 §0 "Variandid"). Called by CronManager at 01:45

@@ -21,6 +21,7 @@ import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmM
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
+import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 export function LabourInspectionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -75,10 +76,6 @@ export function LabourInspectionFormPage() {
   const canConfirm =
     (isAdmin || hasPermission('labour_inspection_form.write')) &&
     form?.status === 'saved';
-  const canPublish =
-    (isAdmin || hasPermission('labour_inspection_form.write')) &&
-    form?.status === 'confirmed';
-
   const handleEditSaved = () => {
     window.scrollTo(0, 0);
     setIsEditActive(form?.status === 'saved');
@@ -129,6 +126,11 @@ export function LabourInspectionFormPage() {
     onCompanyPicked,
     closeCompanyPicker,
   } = useLabourInspectionForm(form ?? undefined, handleEditSaved, handleConfirmed, handlePublished);
+
+  const canPublish =
+    (isAdmin || hasPermission('labour_inspection_form.write')) &&
+    form?.status === 'confirmed' &&
+    canManuallyPublish(formik.values, hasPermission(PUNISHMENT_REGISTER_PERMISSION));
 
   const handleDelete = async () => {
     if (!id || !form) return;

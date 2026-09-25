@@ -12,6 +12,8 @@ import { BREAKPOINTS } from '../../../../constants/constants.ts';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../auth/AuthContext';
 import { buildRsiMessageFromTechnicalCard } from '../../../erru/api';
+import { saveProceedingOutcome } from '../../api';
+import { canPublishWithProceedingOutcome, hasProceeding } from '../../proceedingOutcome';
 
 interface TechnicalCheckFormViewCardProps {
   scope: 'vehicle' | 'trailer';
@@ -110,12 +112,16 @@ export function TechnicalCheckFormViewCard({
                 {t('erru.rsi.form.createFromTechnicalCard')}
               </AsyncButton>
             )}
-            {canPublish && onPublish && (
+            {canPublish && onPublish && canPublishWithProceedingOutcome(formik.values) && (
               <AsyncButton
                 type="button"
-                onClick={() =>
-                  onPublish().then(() => setVersionsRefreshKey((k) => k + 1))
-                }
+                onClick={async () => {
+                  if (hasProceeding(formik.values)) {
+                    await saveProceedingOutcome(scope === 'vehicle' ? 'vehicle_technical' : 'trailer_technical', form.id!, formik.values.enforcementDecision, formik.values.proceedingClosureBasis);
+                  }
+                  await onPublish();
+                  setVersionsRefreshKey((k) => k + 1);
+                }}
               >
                 {t('common.publish')}
               </AsyncButton>

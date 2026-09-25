@@ -2,10 +2,8 @@
 # (desktop_recipient_personal_codes) salvestamine, vt insert_template_mapping.sql.
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://ntm-test/resql
-  LJVIS_TIM: http://ntm-test/tim
-http_rewrite:
-  http://ntm-test: '{MOCK}'
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
 tests:
 - name: desktop channel with recipients is saved as comma-joined personal_code list
   setup:
