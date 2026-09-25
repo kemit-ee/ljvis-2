@@ -12,6 +12,11 @@
   valitud rikkumised (ja muud väljad) ei salvestunud uue koondvormi
   loomisel — haagise registreerimisnumbri muutumine nullis kogu
   alamvormi.
+- Parandatud viga, mille tõttu haagisel (või teisel haagisel, kui
+  koondvormil on mitu haagist) valitud rikkumine/tulemus jne läks
+  tegelikult sõiduki tehnoseisundi kaardile — sõiduki ja haagis(t)e
+  vahekaardid on koondvormis kõik korraga DOM-is olemas ja jagasid
+  samu välja id/name väärtuseid.
 - Autojuhi sõidu- ja puhkeaja vormil valitud „Vedu" (tasuline/oma kulul),
   „Tegevusloa nõudest vabastatud vedu", „Tühisõit" ja kabotaaži
   rikkumised kanduvad nüüd meeskonnaliikme vormile edasi, samamoodi nagu
