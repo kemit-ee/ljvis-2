@@ -2421,7 +2421,11 @@ export function CompoundFormCreatePage() {
                     const teammateTabId = ROUTE_TO_TAB['/sp-teammate'].tabId;
                     const sharedValues = {
                       transportType: values.transportType,
+                      transportEmptyRun: values.transportEmptyRun,
+                      transportNature: values.transportNature,
+                      transportNatureExempt: values.transportNatureExempt,
                       transportClasses: values.transportClasses,
+                      cabotageViolations: values.cabotageViolations,
                     };
                     savedFormData.current[teammateTabId] = {
                       ...savedFormData.current[teammateTabId],
@@ -2490,7 +2494,6 @@ export function CompoundFormCreatePage() {
             const trailerIndex = Number(
               tabId.replace('tab-trailer-technical-', ''),
             );
-            const trailerRegNr = formik.values.trailers[trailerIndex]?.regNr;
             return (
               <div
                 key={tabId}
@@ -2525,13 +2528,6 @@ export function CompoundFormCreatePage() {
                   }}
                   compoundTrailers={formik.values.trailers}
                   trailerIndex={trailerIndex}
-                  initialData={
-                    trailerRegNr
-                      ? ({
-                          trailerRegNr,
-                        } as Partial<TechnicalCheckForm> as TechnicalCheckForm)
-                      : undefined
-                  }
                 />
               </div>
             );
