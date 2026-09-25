@@ -1,10 +1,8 @@
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://rsi-send-test/resql
-  LJVIS_TIM: http://rsi-send-test/tim
-  ERRU_RSI_ENDPOINT: http://rsi-send-test/hub
-http_rewrite:
-  http://rsi-send-test: '{MOCK}'
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  ERRU_RSI_ENDPOINT: '{MOCK}/hub'
 tests:
 - name: send converts RSI_FAILED_REASON items to rsiCheckedItemType
   # checked_items hold RSI_FAILED_REASON codes (Liquibase 20261125100000); send.yml maps

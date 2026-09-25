@@ -222,8 +222,8 @@ function buildTabFormPermission(
   trailers: SubFormWithStatus[],
   adr?: SubFormWithStatus,
   transportInterruption?: SubFormWithStatus,
-): Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> {
-  const result: Record<string, { form: { id?: unknown; status?: string } | null; perm: string }> = {
+): Record<string, { form: ({ id?: unknown; status?: string } & ProceedingOutcomeForm) | null; perm: string }> {
+  const result: Record<string, { form: ({ id?: unknown; status?: string } & ProceedingOutcomeForm) | null; perm: string }> = {
     'tab-driver': { form: driver.form, perm: 'sp_driver_form.write' },
     'tab-teammate': { form: teammate.form, perm: 'sp_teammate_form.write' },
     'tab-vehicle-technical-check': { form: vehicle.form, perm: 'vehicle_technical_form.write' },

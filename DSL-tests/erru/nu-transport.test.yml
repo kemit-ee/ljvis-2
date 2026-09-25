@@ -1,11 +1,9 @@
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://nu-test/resql
-  LJVIS_TIM: http://nu-test/tim
-  NYSIIS_ENDPOINT: http://nu-test/nysiis
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  NYSIIS_ENDPOINT: '{MOCK}/nysiis'
   ERRU_NU_ENDPOINT: http://127.0.0.1:1/unreachable
-http_rewrite:
-  http://nu-test: '{MOCK}'
 tests:
 - name: connection refused persists terminal failure
   setup:

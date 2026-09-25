@@ -3,11 +3,9 @@
 # notification.recipient_personal_codes veergu loomise hetkel, vt create.yml.
 mode: mock-http
 constants:
-  LJVIS_RESQL: http://create-test/resql
-  LJVIS_RUUTER: http://create-test/ruuter
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_RUUTER: '{MOCK}/ruuter'
   INTERNAL_COMMUNICATION_KEY: test-secret
-http_rewrite:
-  http://create-test: '{MOCK}'
 tests:
 - name: desktop mapping with recipients is stamped onto the notification
   setup:
