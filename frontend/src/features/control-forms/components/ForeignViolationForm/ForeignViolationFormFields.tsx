@@ -28,7 +28,11 @@ import {
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
-import type { ForeignViolationForm, ForeignViolationFormViolation } from '../../types';
+import type {
+  ForeignViolationForm,
+  ForeignViolationFormViolation,
+  NotificationHistoryEntry,
+} from '../../types';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 
@@ -202,6 +206,8 @@ export function ForeignViolationFormFields({
             {t('forms.foreign_violation.reportingBasicInfo')}
           </Heading>
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
+            {/* NCR-ist loodud kaardil on teate saatnud riik lukus — vt
+                create-from-ncr.yml, mis täidab välja NCR ncrFrom järgi. */}
             <Select
               id="reportingCountry"
               label={t('forms.foreign_violation.reportingCountry')}
@@ -220,7 +226,7 @@ export function ForeignViolationFormFields({
                 )
               }
               required={!readOnly}
-              disabled={readOnly}
+              disabled={readOnly || !!values.erruNcrMessageKey}
               {...(!readOnly &&
               touched.reportingCountryCode &&
               errors.reportingCountryCode
@@ -1435,14 +1441,14 @@ export function ForeignViolationFormFields({
               }
             }}
           />
-          {((values.notificationHistory as { type: string; sentAt: string; status: string }[] | undefined)?.length ?? 0) > 0 && (
+          {((values.notificationHistory as NotificationHistoryEntry[] | undefined)?.length ?? 0) > 0 && (
             <div className="mt-1">
               <Text element="p" modifiers="bold">
                 {t('forms.foreign_violation.notifications.historyTitle')}
               </Text>
               {(
                 values.notificationHistory as
-                  | { type: string; sentAt: string; status: string }[]
+                  | NotificationHistoryEntry[]
                   | undefined
               )?.map((entry, i) => (
                 <Text element="p" key={i}>
@@ -1454,7 +1460,7 @@ export function ForeignViolationFormFields({
                   {' — '}
                   {entry.sentAt}
                   {' ('}
-                  {entry.status}
+                  {entry.recipientAddress || entry.status}
                   {')'}
                 </Text>
               ))}
