@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-09-25
+
+### NCR-vastuse vaade: sissetulnud päring nähtav ka vastates
+
+- NCR teatele vastamisel on nüüd vastuse vormi kohal näha ka sissetulnud
+  päringu sisu (teate päis, kontrolli kokkuvõte, rasked rikkumised) —
+  varem oli see nähtav alles pärast vastuse saatmist.
+- Parandatud ka viga, mis lõi NCR juhtumi lehe JS veaga, kui rikkumisel
+  polnud taotletud karistuste loetelu täidetud.
+
+### Transpordiameti kontrollkaardi mitmed parandused
+
+- Märkuste väli on nüüd nähtav ka „Korras" kontrolli tulemuse korral.
+- „Ettekirjutus" on ümber nimetatud „Märgukirjaks" ja tõstetud Kontrolli
+  tulemuse valikute hulka, vahetult Hoiatuse järele.
+- Lisameetmeid (juhtimiselt kõrvaldamine, arest, autoveo katkestamine)
+  saab nüüd valida mitu korraga (varem sai valida ainult ühe).
+- Autojuhi lähetamisega seotud dokumendikirjed on dokumentide/õiguste
+  loetelust eemaldatud — Transpordiamet lähetuse nõudeid ei kontrolli.
+  PPA sõidu- ja puhkeaja kontrollvormil on need kirjed endiselt olemas.
+- Parandatud viga, mille tõttu Transpordiameti kontrollkaardi
+  väljatrükk avas vale (hea maine vormi) faili.
+- Kontrollkaardile lisati „Lisa NCR vorm" nupp raske rikkumise (MSI/VSI/SI)
+  korral, samamoodi nagu PPA sõidu- ja puhkeaja kontrollkaardil.
+
 ## 2026-09-24
 
 ### Välisriigi kontrollkaart: teavitused saadetakse avalikustamisel
