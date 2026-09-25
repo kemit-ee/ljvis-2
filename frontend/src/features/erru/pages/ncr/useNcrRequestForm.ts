@@ -85,7 +85,11 @@ export function useNcrRequestForm(message: NcrMessage | undefined, onSaved: (bus
         message?.minorInfringement?.numberOfInfringements != null
           ? String(message.minorInfringement.numberOfInfringements)
           : '',
-      seriousInfringements: message?.seriousInfringements ?? [],
+      seriousInfringements: (message?.seriousInfringements ?? []).map((si) => ({
+        ...si,
+        penaltiesImposed: si.penaltiesImposed ?? [],
+        penaltiesRequested: si.penaltiesRequested ?? [],
+      })),
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {

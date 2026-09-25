@@ -722,7 +722,7 @@ export interface NcrSaveResult {
 /** Eeltäitmine input (LJVIS2-64 §4.1) — "Lisa NCR vorm" from an SP/TH control-form sub-form. */
 export interface NcrBuildRequest {
   spFormKey: string;
-  spFormType: 'driver' | 'teammate';
+  spFormType: 'driver' | 'teammate' | 'tram';
   originatingAuthority: string;
   requestSource: string;
   requestPurpose: string;

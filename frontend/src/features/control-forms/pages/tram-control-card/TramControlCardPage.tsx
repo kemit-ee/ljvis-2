@@ -19,6 +19,7 @@ import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
+import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 
 const FORM_TYPE = 'tram-card';
 
@@ -37,7 +38,7 @@ export function TramControlCardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasAnyPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const isAdmin = useIsAdmin();
 
@@ -52,6 +53,7 @@ export function TramControlCardPage() {
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [ncrModalOpen, setNcrModalOpen] = useState(false);
 
   const { form, loading, refetch } = useTramControlCardDetail(
     snapshotId ? undefined : id,
@@ -160,6 +162,11 @@ export function TramControlCardPage() {
     },
     handlePublished,
   );
+
+  // "Lisa NCR vorm" (LJVIS2-64 §4.1 eeltäitmine) — Euroopa Liidu vedaja
+  // kontrollimisel avastatud MSI/VSI/SI rikkumise korral saab kontrollkaardilt
+  // eeltäidetud NCR teate luua, samamoodi nagu PPA sõidu- ja puhkeaja kaardil.
+  const canBuildNcr = hasAnyPermission(['ncr.create']) && !!form?.id;
 
   const handleDelete = async () => {
     if (!id || !form) return;
@@ -447,9 +454,18 @@ export function TramControlCardPage() {
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
           <FormPrintButton
-            endpoint="/v1/control-forms/good-repute/read/print"
+            endpoint="/v1/control-forms/tram-card/read/print"
             id={id}
           />
+          {canBuildNcr && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => setNcrModalOpen(true)}
+            >
+              {t('erru.ncr.buildModal.button')}
+            </Button>
+          )}
           {showEdit ? (
             <>
               <Button
@@ -501,6 +517,16 @@ export function TramControlCardPage() {
           )}
         </div>
       </div>
+      {canBuildNcr && form?.id && (
+        <NcrBuildModal
+          spFormKey={form.id}
+          spFormType="tram"
+          initialNcrTo={form.vehicleCountryCode}
+          initialOriginatingAuthority={form.inspectorOrganisationId}
+          open={ncrModalOpen}
+          onClose={() => setNcrModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
