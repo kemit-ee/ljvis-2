@@ -6,9 +6,7 @@
 # Runs at 02:00 Tallinn time (TZ pinned in docker-compose.yml).
 deactivate_expired_users:
   trigger: "0 0 2 * * ?"
-  type: http
-  method: POST
-  url: http://ruuter-internal:8080/ljvis/users/deactivate-expired
-  retryCount: 2
-  retryDelay: 60000
-  ignoreFailures: true
+  type: exec
+  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/users/deactivate-expired" || true
+  allowedEnvs:
+    - RUUTER_INTERNAL
