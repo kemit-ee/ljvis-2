@@ -6,6 +6,12 @@
 
 ## 2026-09-28
 
+### Admini paigaldusjuhendisse lisatud superadmini loomise juhis
+
+- [`docs/workingdocs/admin-deployment-guide.md`](workingdocs/admin-deployment-guide.md)
+  sai uue peatüki "Esimese superadmini loomine": SQL-skript, millega admin
+  saab pärast esmast paigaldust luua esimese peakasutaja (koos näidispäringuga
+  asutuste koodide vaatamiseks, nt Kliimaministeeriumi leidmiseks).
 ### Välisriigi rikkumise kontrollkaardil kuvatakse äriregistri e-post ka värske päringu järel
 
 - Kui kasutaja otsis kontrollkaardil äriregistrist ettevõtte (nime või
