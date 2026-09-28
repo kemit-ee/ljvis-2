@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-09-28
+
+### X-tee OpenAPI kirjeldus on nüüd Swaggerile ja turvaserverile loetav
+
+- `/ljvis/xroad/provide/openapi` tagastas seni kirjelduse YAML-tekstina
+  Ruuteri `{"response": "…"}` ümbrise sees, mistõttu Swagger UI/Editor ega
+  turvaserver ei saanud seda OpenAPI dokumendina lugeda. Nüüd tagastatakse
+  kirjeldus ise JSON-objektina.
+- Parandatud ErakorralineYVconfirm 400-vastuse näide, kus teate tekstis
+  olnud koma lõhkus näiteobjekti.
+
 ## 2026-09-25
 
 ### Välisriigi rikkumise vormi saatmise logi viga
