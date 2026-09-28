@@ -1447,9 +1447,12 @@
   },
   "notificationTemplateMapping": {
     "title": "Postkast template and recipient settings",
-    "notificationType": "Notification type",
+    "notificationType": "Ljvis variable (internal)",
+    "notificationTypeName": "Notification type",
+    "triggeringForms": "Forms that trigger this notification",
+    "triggeredAutomatically": "Automatic (not tied to a specific form)",
     "channel": "Channel",
-    "originalTemplateId": "Template ID",
+    "originalTemplateId": "PK 2.0 ID",
     "defaultLanguage": "Default language",
     "defaultRecipientEmail": "Default recipient email",
     "desktopRecipients": "Notification recipients",
@@ -2268,7 +2271,8 @@
       "weight_violation": "Weight/measurement infringement",
       "carrier_violation": "Serious infringement notification to carrier",
       "labor_kabotage": "Cabotage inspection notification",
-      "labor_foreign_proposal": "Foreign country proposal notification"
+      "labor_foreign_proposal": "Foreign country proposal notification",
+      "nu_inbound_received": "ERRU NU non-compliance notice"
     }
   },
   "breadcrumbs": {
