@@ -1466,9 +1466,12 @@
   },
   "notificationTemplateMapping": {
     "title": "Postkasti mallide ja vastuvõtjate seaded",
-    "notificationType": "Teavituse liik",
+    "notificationType": "Ljvis muutuja (sisemine)",
+    "notificationTypeName": "Teavituse liik",
+    "triggeringForms": "Vormid, kus teavitus käivitub",
+    "triggeredAutomatically": "Automaatne (ei ole seotud konkreetse vormiga)",
     "channel": "Kanal",
-    "originalTemplateId": "Malli tunnus",
+    "originalTemplateId": "PK 2.0 id",
     "defaultLanguage": "Vaikimisi keel",
     "defaultRecipientEmail": "Vaikimisi vastuvõtja e-post",
     "desktopRecipients": "Teavituse saajad",
@@ -2291,7 +2294,8 @@
       "weight_violation": "Kaalumise/mõõtmise rikkumine",
       "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
-      "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
+      "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
+      "nu_inbound_received": "ERRU NU sobimatusteade"
     }
   },
   "breadcrumbs": {

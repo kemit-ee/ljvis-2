@@ -6,6 +6,19 @@
 
 ## 2026-09-28
 
+### Postkasti mallide ja vastuvõtjate seadetes selgemad väljanimed ja teavituse käivitajad
+
+- Halduse „Postkasti mallide ja vastuvõtjate seaded" nimekirjas ja
+  detailivaates olid väljad valesti nimetatud: „Teavituse liik" näitas
+  tegelikult LJVIS-i sisemist koodi (nt `ncr_violation`), mitte
+  eestikeelset nime, ja „Malli tunnus" oli tegelikult Postkast 2.0 malli
+  ID. Väljad on nüüd õigesti nimetatud (vastavalt „Ljvis muutuja
+  (sisemine)" ja „PK 2.0 id") ning lisandus uus väli „Teavituse liik", mis
+  näitab teavituse eestikeelset nime, ja väli „Vormid, kus teavitus
+  käivitub", mis loetleb vormid (või „Automaatne", kui teavitus tuleb
+  sisenevast ERRU sõnumist, mitte kasutaja avaldatud vormist), kus see
+  konkreetne teavituse liik käivitub.
+
 ### Äriregistri e-posti otsing tunneb ära ka X-tee reaalse vastuse kuju
 
 - Välisriigi rikkumise kontrollkaardil kuvati vedaja äriregistri e-post

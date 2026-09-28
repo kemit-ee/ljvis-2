@@ -17,6 +17,7 @@ import { useNotificationTemplateMappingDetail } from './useNotificationTemplateM
 import { useNotificationTemplateMappingForm } from './useNotificationTemplateMappingForm';
 import { DesktopRecipientsField } from './DesktopRecipientsField';
 import { resolveDesktopRecipientUsers } from '../../api';
+import { NOTIFICATION_TYPE_TRIGGER_FORM_KEYS } from '../../notificationTypeMeta';
 
 const LANGUAGE_OPTIONS = [
   { value: 'et', label: 'Eesti' },
@@ -87,6 +88,16 @@ export function NotificationTemplateMappingDetailPage() {
     LANGUAGE_OPTIONS.find((o) => o.value === formik.values.defaultLanguage) ??
     null;
 
+  const notificationTypeName = t(
+    `notifications.types.${mapping.notificationType}`,
+    mapping.notificationType,
+  );
+  const triggeringFormKeys =
+    NOTIFICATION_TYPE_TRIGGER_FORM_KEYS[mapping.notificationType];
+  const triggeringForms = triggeringFormKeys
+    ? triggeringFormKeys.map((key) => t(`search.formType.${key}`)).join(', ')
+    : t('notificationTemplateMapping.triggeredAutomatically');
+
   return (
     <div>
       {alertMessage && (
@@ -96,7 +107,7 @@ export function NotificationTemplateMappingDetailPage() {
         />
       )}
       <div className="page-header">
-        <Heading element="h1">{mapping.notificationType}</Heading>
+        <Heading element="h1">{notificationTypeName}</Heading>
       </div>
 
       <Card className="mb-1">
@@ -119,6 +130,12 @@ export function NotificationTemplateMappingDetailPage() {
 
           {!isEditActive && (
             <div>
+              <Field label={t('notificationTemplateMapping.notificationType')}>
+                {mapping.notificationType}
+              </Field>
+              <Field label={t('notificationTemplateMapping.triggeringForms')}>
+                {triggeringForms}
+              </Field>
               <Field label={t('notificationTemplateMapping.channel')}>
                 {mapping.channel}
               </Field>
@@ -152,6 +169,12 @@ export function NotificationTemplateMappingDetailPage() {
 
           {isEditActive && (
             <form onSubmit={formik.handleSubmit}>
+              <Field label={t('notificationTemplateMapping.notificationType')}>
+                {mapping.notificationType}
+              </Field>
+              <Field label={t('notificationTemplateMapping.triggeringForms')}>
+                {triggeringForms}
+              </Field>
               <Field label={t('notificationTemplateMapping.channel')}>
                 {mapping.channel}
               </Field>

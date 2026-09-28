@@ -152,8 +152,14 @@ Vastuseks tagastatakse uue saatmiskirje `logId`, `notificationKey` ja
 Menüüpunkt **Haldus > Postkasti mallide ja vastuvõtjate seaded**
 (`notification_template_mapping.list` õigus vaatamiseks, `.edit` muutmiseks)
 näitab kõiki teavituse liike ja nende kehtivat seadistust: **Postkast 2.0**
-väliskanali malli tunnust ja vaikimisi vastuvõtja e-posti, või
-**rakendusesisese (desktop)** kanali teavituse saajaid.
+väliskanali malli tunnust (väli **„PK 2.0 id“**) ja vaikimisi vastuvõtja
+e-posti, või **rakendusesisese (desktop)** kanali teavituse saajaid.
+Nimekirjas ja detailivaates on eraldi väljad teavituse eestikeelse nime
+(**„Teavituse liik“**) ja LJVIS-i sisemise koodi (**„Ljvis muutuja
+(sisemine)“**, nt `ncr_violation`) jaoks, samuti loetelu vormidest, kus
+teavitus käivitub (**„Vormid, kus teavitus käivitub“**) — teavitused, mis
+tulevad automaatselt sisenevast ERRU sõnumist, mitte kasutaja poolt
+avaldatud LJVIS-vormist, on märgitud kui „Automaatne“.
 
 ![Desktop-kanali teavituse vaade](images/09-teavitused/02-desktop-kanali-vaade.png)
 

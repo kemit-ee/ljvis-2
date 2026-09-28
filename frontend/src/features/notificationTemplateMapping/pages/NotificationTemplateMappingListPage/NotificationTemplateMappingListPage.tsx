@@ -49,6 +49,12 @@ export function NotificationTemplateMappingListPage() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('notificationType', {
+        id: 'notificationTypeName',
+        header: t('notificationTemplateMapping.notificationTypeName'),
+        cell: (info) =>
+          t(`notifications.types.${info.getValue()}`, info.getValue()),
+      }),
+      columnHelper.accessor('notificationType', {
         header: t('notificationTemplateMapping.notificationType'),
       }),
       columnHelper.accessor('channel', {
