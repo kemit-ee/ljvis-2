@@ -1344,6 +1344,8 @@
     "groupsNotCreated": "COMING",
     "basicInfo": "COMING",
     "access": "COMING",
+    "searchInvalid": "Enter a valid Estonian personal code",
+    "searchNotFound": "Person not found",
     "datePickerPlaceholder": "DD.MM.YYYY",
     "validation": {
       "required": "Required field",
