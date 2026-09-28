@@ -1,7 +1,8 @@
 # LJVIS2 source pipeline: standard-service-delivery@8.0.1.
-# Twelve ARM64 images, twelve release components (config + eleven workloads),
-# automatic pin to dev on protected main. Liquibase is a build-only image;
-# resql-ljvis bakes the same RELEASE_VERSION into databaseMigration.
+# Twelve ARM64 images, twelve release components (config + eleven workloads).
+# Pin: auto to dev on protected main; manual to test and prelive.
+# Liquibase is a build-only image; resql-ljvis bakes the same RELEASE_VERSION
+# into databaseMigration.
 #
 # Consumer-owned: DSL validation, secret detection, frontend checks.
 # Required subgroup variables: SERVICECODE, GITOPS_TOKEN, DTRACK_API_KEY.
@@ -92,6 +93,10 @@ include:
       deploy:
         - environment: dev
           mode: auto
+        - environment: test
+          mode: manual
+        - environment: prelive
+          mode: manual
   - template: Security/Secret-Detection.gitlab-ci.yml
 
 # ---------------------------------------------------------------------------- test
@@ -153,4 +158,14 @@ secret_detection:
 "release:pin:dev":
   environment:
     name: dev
-    url: https://ljvis2dev.kemitaws.ee
+    url: https://dev.liiklusvalve.ee
+
+"release:pin:test":
+  environment:
+    name: test
+    url: https://demo.liiklusvalve.ee
+
+"release:pin:prelive":
+  environment:
+    name: prelive
+    url: https://prelive.liiklusvalve.ee
