@@ -19,7 +19,9 @@
     "officialInfo": "COMING",
     "roleLabel": "View",
     "roleOfficer": "Officer",
-    "roleCitizen": "Citizen"
+    "roleCitizen": "Citizen",
+    "taraUnavailable": "Unable to connect to TARA. The authentication service is not responding or is not configured — please try again later or contact your system administrator.",
+    "backToLogin": "Back to login"
   },
   "countries": {
     "AD": "Andorra",
