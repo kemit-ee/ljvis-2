@@ -411,6 +411,14 @@ export function useForeignViolationForm(
         .then(setAssociatedPersons)
         .catch(console.error)
         .finally(() => setAssociatedPersonsLoading(false));
+      formik.setFieldValue('carrierRegistryEmail', '');
+      getCarrierRegistryEmail(company.registryCode, form?.id)
+        .then((res) => {
+          formik.setFieldValue('carrierRegistryEmail', res?.email ?? '');
+        })
+        .catch(() => {
+          formik.setFieldValue('carrierRegistryEmail', '');
+        });
     },
   });
 

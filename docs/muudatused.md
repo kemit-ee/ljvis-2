@@ -6,6 +6,16 @@
 
 ## 2026-09-28
 
+### Välisriigi rikkumise kontrollkaardil kuvatakse äriregistri e-post ka värske päringu järel
+
+- Kui kasutaja otsis kontrollkaardil äriregistrist ettevõtte (nime või
+  registrikoodi järgi), ei laetud vedaja e-posti äriregistrist enam kunagi
+  automaatselt — kuvati alati „e-post äriregistrist määramata", isegi kui
+  äriregistris email tegelikult olemas oli. Põhjus: e-posti päring käivitus
+  ainult varem salvestatud kaardi andmete põhjal, mitte kasutaja värskelt
+  valitud ettevõtte järgi. Nüüd laetakse e-post ka kohe pärast äriregistri
+  otsingu tulemuse valimist.
+
 ### Vedajale saadetava rikkumisteavituse mall uuendatud
 
 - Postkast 2.0 kaudu veoettevõtjale saadetava raske rikkumise teavituse
