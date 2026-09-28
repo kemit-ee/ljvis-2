@@ -126,11 +126,17 @@ logNetworkFailure:
 # jäi alati "määramata", kuigi äriregistris oli olemas.
 # 'g' loeb välja nii prefiksiga kui ilma, et see toimiks ka vanade
 # testide/mockide prefiksita näidisandmetega.
+# XTR ise tagastab oma HTTP vastuse kujul {"body": {...ns1 sisu...},
+# "headers": {...}} — carrierRegistryRes.response.body ON SEE ÜMBRIS, mitte
+# ns1 sisu ise, mistõttu tegelik sisu on üks tase sügavamal
+# (carrierRegistryRes.response.body.body). Ilma selle lahtipakkimiseta
+# kukub 'g' kett vaikimisi alati oma sisendile tagasi ja email jääb tühjaks,
+# kuigi äriregistris on kehtiv e-post olemas (nt Askend Estonia OÜ, reg 14133207).
 extractEmail:
   assign:
     carrier_email: >-
       ${(() => {
-        var body = carrierRegistryRes.response && carrierRegistryRes.response.body;
+        var body = carrierRegistryRes.response && carrierRegistryRes.response.body && carrierRegistryRes.response.body.body;
         if (!body) return '';
         var g = function(obj, name) {
           if (!obj) return undefined;
