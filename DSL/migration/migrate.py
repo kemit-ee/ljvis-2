@@ -23,6 +23,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE / "extract"))
 from config import connect_target, required
 import enrich
+import identifiers
 
 TARGETS = {
     "GoodRepute": "good_repute_form",
@@ -43,12 +44,19 @@ LOCK_ID = 784192631
 
 def execute_file(cur, path, run_id, cutoff, subtype=False):
     text = path.read_text()
-    for form_type,(marker,primary,secondary) in SUBTYPES.items():
-        if path.name.startswith('04-' if primary=='vehicle_technical_form' else '05-'):
-            predicate=f"migration.is_subtype(cf.id, '{marker}')"
-            text=text.replace(f"cf.form_type_name = '{form_type}'",f"cf.form_type_name = '{form_type}' AND "+('' if subtype else 'NOT ')+predicate)
-            if subtype:
-                text=text.replace(primary,secondary)
+    route = re.search(r"^-- migration-route: (\w+)$", text, re.M)
+    if route:
+        form_type = route[1]
+        marker, primary, secondary = SUBTYPES[form_type]
+        target = secondary if subtype else primary
+        # Explicit template tokens, independent of file names and ordinary SQL text.
+        text = text.replace("{{target}}", target)
+        text = text.replace("{{subtype_predicate}}", ("" if subtype else "NOT ") +
+                            cur.mogrify("migration.is_subtype(cf.id, %s)", (marker,)).decode())
+    elif subtype:
+        raise ValueError("Subtype requested for a SQL file without migration-route")
+    if "{{" in text or "}}" in text:
+        raise ValueError("Unresolved migration SQL template token")
     # Only two psql literals are supported; SQL files are version-controlled.
     text = text.replace(":'run_id'", cur.mogrify("%s", (run_id,)).decode())
     text = text.replace(":'cutoff_from'", cur.mogrify("%s", (cutoff,)).decode())
@@ -79,7 +87,7 @@ def fingerprint_sources(cur):
             FROM staging.raw_control_to_form_binding x LEFT JOIN staging.raw_control c ON c.id=x.control_id
             WHERE x.control_form_id=cf.id) b ON true
         LEFT JOIN LATERAL (SELECT jsonb_agg(to_jsonb(x) ORDER BY x.id) data
-            FROM staging.raw_versions x WHERE x.table_name='ControlForm' AND x.row_id=cf.id) a ON true
+            FROM staging.raw_versions x WHERE btrim(x.table_name,'[]')='ControlForm' AND x.row_id=cf.id) a ON true
         UNION ALL SELECT CASE schema_version WHEN 1 THEN 'RavenDB.JobInspection' ELSE 'RavenDB.JobInspectionV2' END,
           raven_id, md5(document_json::text) FROM staging.raw_job_inspection;
         CREATE UNIQUE INDEX ON source_fingerprint(source,legacy_id);
@@ -146,10 +154,10 @@ def preflight(cur, run_id, cutoff):
 
     finding("prior_rehearsal_requires_review", "Linked rows were written by a rehearsal; production requires a clean accepted target",
         "SELECT DISTINCT f.legacy_source source,f.legacy_id FROM migration.form_link f JOIN migration.run r ON r.migration_run_id=f.migration_run_id WHERE r.status='needs_review'")
-    finding("masked_source_value", "Source contains a masking placeholder; original personal/business value cannot be reconstructed",
+    finding("masked_source_value", "Source contains a possible full/partial masking placeholder; review original before acceptance",
         """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
         FROM staging.raw_control_form_value v JOIN migration.disposition d ON d.legacy_source='ControlForm' AND d.legacy_id=v.control_form_id::text
-        WHERE d.migration_run_id=%s AND d.reason='eligible' AND btrim(v.value) ~ '^\\*{3,}$'""", (run_id,))
+        WHERE d.migration_run_id=%s AND d.reason='eligible' AND v.value ~ '\\*{3,}'""", (run_id,))
     finding("invalid_required_date", "GoodRepute birth/certificate date is absent, masked or invalid; rehearsal substitute is not actual source data",
         """SELECT DISTINCT 'ControlForm' source,d.legacy_id FROM migration.disposition d
         CROSS JOIN (VALUES ('Driver.Birthdate'),('AmetialasePadevuseTunnistuseValjaandmiseKuupaev')) k(name)
@@ -160,11 +168,11 @@ def preflight(cur, run_id, cutoff):
     # Business mappings are not inferred from sample counts. These known gaps
     # block production, even if every INSERT and row-count check succeeds.
     gaps = {
-        "kv_form": "Options/legal_bases, identity fields and parent grouping mapping incomplete",
+        "kv_form": "Options/legal_bases and person-specific fields require complete mapping",
         "foreign_violation_form": "Violations and reporting authority mapping incomplete",
-        "vehicle_technical_form": "Trailer routing, defects, decisions and compound grouping mapping incomplete",
-        "sp_driver_form": "Driver/teammate routing, identities, violations, decisions and grouping mapping incomplete",
-        "adr_form": "Goods, infringements, parties, decisions and grouping mapping incomplete",
+        "vehicle_technical_form": "Detailed technical defects and remaining decisions require complete mapping",
+        "sp_driver_form": "Violations, document checks and remaining decisions require complete mapping",
+        "adr_form": "Goods, infringements, parties and remaining decisions require complete mapping",
         "labour_inspection_form": "Controls/violations and V1 inspection type require approved mappings",
     }
     gaps["trailer_technical_form"]="Legacy defects and violation classifiers require complete mapping"
@@ -187,11 +195,13 @@ def preflight(cur, run_id, cutoff):
                 WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type=%s
                   AND v.classifier_name=ANY(%s)
                 GROUP BY v.control_form_id,v.classifier_name HAVING count(*)>1""", (run_id,form_type,scalar_keys))
-        finding("unmapped_eav", "Unconsumed EAV fields retained in source_snapshot; inspect field coverage before cutover",
+        keys = sorted(set(keys) | enrich.consumed_keys(form_type))
+        finding("unmapped_eav", "Populated EAV inputs not declared by SQL/enrichment; retained in source_snapshot, not approved for omission",
             """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
                 FROM staging.raw_control_form_value v JOIN migration.disposition d
                 ON d.legacy_id=v.control_form_id::text AND d.legacy_source='ControlForm'
                 WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type=%s
+                  AND (nullif(btrim(v.value),'') IS NOT NULL OR v.date_value IS NOT NULL OR coalesce(v.int_value,0)<>0)
                   AND (v.classifier_name IS NULL OR NOT (v.classifier_name=ANY(%s)))""", (run_id,form_type,keys))
     finding("unsupported_subtype", "Subtype marker is not an explicit true/1; ambiguous legacy presence semantics need review",
         """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
@@ -285,7 +295,7 @@ def preflight(cur, run_id, cutoff):
 
 
 def check_integrity(cur, run_id, require_coverage=True):
-    problems = []
+    problems = identifiers.mismatches(cur)
     if require_coverage:
         missing = rows(cur, """SELECT d.legacy_source,d.legacy_id,d.target_table
             FROM migration.disposition d WHERE d.migration_run_id=%s AND d.reason='eligible'
@@ -337,13 +347,16 @@ def check_integrity(cur, run_id, require_coverage=True):
     return problems
 
 
-def state_signature(cur):
+def state_signature(cur, include_findings=False):
     # Compare complete rows (including quality findings), not just INSERT's count.
     result=[]
     for table in ["forms."+t for t in ALL_TARGETS]+["migration.form_link","migration.quality_report"]:
         cur.execute(sql.SQL("SELECT count(*), md5(coalesce(string_agg(md5(to_jsonb(t)::text),'' ORDER BY id),'') ) FROM {} t")
                     .format(sql.Identifier(*table.split('.'))) if table != "migration.form_link" else
                     "SELECT count(*),md5(coalesce(string_agg(md5(to_jsonb(t)::text),'' ORDER BY legacy_source,legacy_id,target_table),'')) FROM migration.form_link t")
+        result.append(cur.fetchone())
+    if include_findings:
+        cur.execute("SELECT count(*),md5(coalesce(string_agg(md5(to_jsonb(t)::text),'' ORDER BY to_jsonb(t)::text),'')) FROM migration.finding t")
         result.append(cur.fetchone())
     return result
 
@@ -356,7 +369,10 @@ def report(cur, run_id, directory, problems=None):
           WHERE migration_run_id<>%s AND migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link)
           GROUP BY 1,2 ORDER BY 1,2""",(run_id,)),
         "dispositions":rows(cur,"SELECT form_type,reason,count(*) FROM migration.disposition WHERE migration_run_id=%s GROUP BY 1,2 ORDER BY 1,2",(run_id,)),
-        "findings":rows(cur,"SELECT severity,issue,count(*) FROM migration.finding WHERE migration_run_id=%s GROUP BY 1,2 ORDER BY 1,2",(run_id,)),
+        "findings":rows(cur,"""SELECT severity,issue,count(*) FROM (
+          SELECT DISTINCT severity,legacy_source,legacy_id,issue,detail FROM migration.finding
+          WHERE migration_run_id=%s OR migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link)
+          ) effective GROUP BY 1,2 ORDER BY 1,2""",(run_id,)),
         "coverage":rows(cur,"""SELECT d.form_type,
             count(*) FILTER (WHERE d.reason='eligible') AS eligible,
             count(*) FILTER (WHERE d.reason='eligible' AND EXISTS (
@@ -370,13 +386,20 @@ def report(cur, run_id, directory, problems=None):
     (directory/"summary.json").write_text(json.dumps(output,ensure_ascii=False,indent=2,default=str)+"\n")
     for table in ("finding","disposition","quality_report"):
         with (directory/(table+".csv")).open("w") as f:
-            query=cur.mogrify("SELECT * FROM migration."+table+" WHERE migration_run_id=%s",(run_id,)).decode()
+            condition = "migration_run_id=%s"
+            if table in ("finding", "quality_report"):
+                condition += " OR migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link)"
+            query=cur.mogrify("SELECT * FROM migration."+table+" WHERE "+condition,(run_id,)).decode()
             cur.copy_expert("COPY ("+query+") TO STDOUT WITH CSV HEADER",f)
     print(json.dumps({"run_id":run_id,"report":str(directory/"summary.json"),"findings":output["findings"],"integrity_problems":problems or []},ensure_ascii=False),flush=True)
 
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__)
+    class Parser(argparse.ArgumentParser):
+        def error(self, message):
+            self.print_usage(sys.stderr)
+            self.exit(64, f"{self.prog}: error: {message}\n")
+    parser=Parser(description=__doc__)
     parser.add_argument("--rehearsal",action="store_true",help="Allow incomplete business mappings on a disposable target; returns 2")
     parser.add_argument("--sql-only",action="store_true",help="Rehearsal of SQL Server only; RavenDB remains explicitly unverified")
     parser.add_argument("--verify",action="store_true",help="Read-only verification of RUN_ID (or latest run)")
@@ -472,20 +495,23 @@ def main():
                 step=path.name
                 print(f"[migration] run_id={run_id} step={step}",flush=True)
                 execute_file(cur,path,run_id,cutoff)
-                if path.name.startswith(('04-','05-')): execute_file(cur,path,run_id,cutoff,subtype=True)
+                if '-- migration-route:' in path.read_text(): execute_file(cur,path,run_id,cutoff,subtype=True)
             step="enrich_and_group"
             enrich.apply(cur,run_id,CHILDREN)
+            identifiers.preserve(cur,run_id)
             cur.execute("""UPDATE migration.form_link f SET source_fingerprint=s.fingerprint
                 FROM source_fingerprint s WHERE f.legacy_source=s.source AND f.legacy_id=s.legacy_id AND f.migration_run_id=%s""",(run_id,))
             cur.execute("""UPDATE migration.form_link f SET legacy_form_code=cf.form_code
                 FROM staging.raw_control_form cf WHERE f.legacy_source='ControlForm' AND f.legacy_id=cf.id::text AND f.migration_run_id=%s""",(run_id,))
             if not args.no_recheck:
                 step="idempotency"
-                before=state_signature(cur)
+                before=state_signature(cur, include_findings=True)
                 for path in transforms:
                     execute_file(cur,path,run_id,cutoff)
-                    if path.name.startswith(('04-','05-')): execute_file(cur,path,run_id,cutoff,subtype=True)
-                if before!=state_signature(cur): raise RuntimeError("Idempotency check changed target/link/quality rows")
+                    if '-- migration-route:' in path.read_text(): execute_file(cur,path,run_id,cutoff,subtype=True)
+                enrich.apply(cur,run_id,CHILDREN)
+                identifiers.preserve(cur,run_id)
+                if before!=state_signature(cur, include_findings=True): raise RuntimeError("Idempotency check changed target/link/quality rows")
             step="verification"
             problems=check_integrity(cur,run_id)
             if problems: raise RuntimeError("Integrity verification failed: "+json.dumps(problems))
@@ -499,6 +525,7 @@ def main():
             review=cur.fetchone()[0] or unapproved_quality or args.rehearsal
             if review and not args.rehearsal: raise RuntimeError("Unapproved quality substitutions; production transaction rolled back")
             cur.execute("UPDATE migration.run SET status=%s,current_step='complete',finished_at=now() WHERE migration_run_id=%s",("needs_review" if review else "succeeded",run_id))
+            identifiers.reserve_numbers(cur)
             pg.commit()
             pg.autocommit=True
             report(cur,run_id,directory)
@@ -508,7 +535,18 @@ def main():
         pg.autocommit=True
         if registered:
             with pg.cursor() as cur:
+                if isinstance(exc, enrich.MappingConflict):
+                    cur.execute("INSERT INTO migration.finding VALUES (%s,'blocker','ControlForm',%s,%s,%s)",
+                                (run_id,str(exc.form_id),exc.issue,str(exc)))
                 cur.execute("UPDATE migration.run SET status='failed',current_step=%s,error_message=%s,finished_at=now() WHERE migration_run_id=%s",(step,str(exc),run_id))
+        if directory and registered:
+            try:
+                with pg.cursor() as cur:
+                    report(cur,run_id,directory)
+            except Exception as report_exc:
+                # An extraction/initialization failure may precede disposition
+                # creation. Never replace the original actionable failure.
+                (directory/"report_failure.txt").write_text(str(report_exc)+"\n")
         if directory:
             (directory/"failure.json").write_text(json.dumps({"run_id":run_id,"step":step,"error":str(exc)},ensure_ascii=False,indent=2)+"\n")
         print(f"[migration] FAILED run_id={run_id} step={step}: {exc}",file=sys.stderr,flush=True)

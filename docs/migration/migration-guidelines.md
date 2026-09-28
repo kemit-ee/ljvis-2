@@ -5,44 +5,36 @@ Varasemaid Q0–Q19 SQL-päringuid **ei ole vaja administraatoril käsitsi käiv
 arendus käivitas need taastatud baasil. Tulemused ja andmeid sisaldavad logid jäävad
 piiratud ligipääsuga proovikeskkonda.
 
-## Mis on kontrollitud
+## Migreeritavate vormide valik
 
-Katse ajapiir on **2023-09-25** (viimased kolm aastat 25.09.2026 seisuga).
-SQL Serverist valitakse `CreatedDate` järgi `Confirmed` ja `Published` vormid.
-Seotud kontrolli muud osad loetakse kontekstina, kuid neid ei lisata selle tõttu
-vaikimisi migreeritavate vormide hulka.
+Ajapiir on **viimased kolm aastat** kokkulepitud ülemineku kuupäevast; täpne
+kuupäev fikseeritakse `.env` failis (`CUTOFF`) ja seda ei muudeta jooksu ajal.
+SQL Serverist valitakse `ControlForm.CreatedDate` järgi vormid staatusega
+`Confirmed` ja `Published`. Sama kontrolli ülejäänud osad loetakse kontekstina,
+kuid need ei satu selle tõttu migreeritavate hulka.
 
-| Lähtevorm / siht | Valitud vorme |
-|---|---:|
-| SP juht | 60 |
-| SP teine juht | 2 |
-| Sõiduki tehniline kontroll | 8 |
-| Haagise tehniline kontroll | 1 |
-| Veo katkestamine | 2 |
-| Välisriigi rikkumine | 2 |
-| Hea maine | 1 |
-| ADR | 1 |
-| **Kokku** | **77** |
+Iga vormi kaasamise või väljajätmise põhjus on jooksu `disposition.csv` failis.
+Mahud sõltuvad andmebaasist: testkoopia arvud ei ennusta LIVE-i.
 
-74 alavormi kuuluvad pärast ühendamist **63 koondkontrolli** alla. Ülejäänud kolm
-vormi (hea maine ja kaks välisriigi rikkumist) on eraldiseisvad.
-Need on selle backup'i ja ajapiiri arvud, mitte eeldatavad LIVE-mahud.
+Jooks kontrollib ka korduskäivitust (sihtkirjed ei muutu ega dubleeru), eraldi
+puhast sihtbaasi ning lähte- ja sihtväljade vastavust. **Loodud sihtvormide arv ei
+tähenda, et kõik äriväljad, rikkumised või manused on kasutamiseks vastu võetud.**
+Ootuspärane tulemus on `needs_review` / exit **2**, mitte exit 0.
 
-Proov kontrollib ka korduskäivitust (sihtkirjed ei muutu ega dubleeru), eraldi puhast
-sihtbaasi ning lähte/sihtväljade vastavust. **77 loodud sihtvormi ei tähenda, et kõik
-äriväljad, rikkumised või manused on kasutamiseks vastu võetud.** Praegune proov
-lõpeb `needs_review` / exit **2**, mitte tootmisvalmidust kinnitava exit 0-ga.
+Rikkumiste ja puuduste vastenduste hetkeseis on eraldi arendusdokumendis
+[violation-mapping-status.md](violation-mapping-status.md). Administraatoril ei ole
+seda migratsiooni käivitamiseks vaja: puudulik vastendus kajastub jooksu aruandes.
 
 ## Mida haldurilt ja andmeomanikult veel vaja on
 
 | Vajalik sisend või otsus | Miks |
 |---|---|
-| Kinnitada, kas antud backup on anonümiseeritud testkoopia ja kas lõplikuks üleminekuks saab sama skeemiga täieliku koopia | Andmetes on `*********` maskid. Hea maine sünnikuupäeva ei saa neist taastada; kuupäevade asendamine ei ole heaks kiidetud |
+| Maskeerimata lähtekoopia lõplikuks üleminekuks | Andmetes on `*********` maskid. Hea maine sünnikuupäeva ei saa neist taastada; kuupäevade asendamine ei ole heaks kiidetud |
 | RavenDB backup/eksport või halduri selgesõnaline kinnitus, et tööinspektsiooni akte ei ole | SQL `.bak` ei sisalda eraldi RavenDB andmeid. Ligipääsu või faili puudumine ei tõenda aktide puudumist |
-| `Paths.FormDocuments` failikataloog koos säilitatud kaustastruktuuriga või kokkulepitud loetav arhiiv | Kõigil 77 vormil on failikausta viide; ilma kataloogita ei saa kontrollida tegelike failide olemasolu ega neid üle kanda |
-| Ühe puuduva `Control`-seosega SP-vormi käsitlus | Proovis säilib see eraldi koondkontrollina; lõplik seos vajab kinnitust/parandust |
-| Ühe eri staatustega kontrolli käsitlus | Sama kontrolli üks osa jääb staatusereegli tõttu välja. Kinnitada valitud osade ja parent-vormi lõppolek |
-| Kahe `soidumeerik=arukas` väärtuse põlvkond | `arukas-2` viiakse `smart_2` alla; ilma numbrita vana väärtuse põlvkonda ei oletata |
+| `Paths.FormDocuments` failikataloog koos säilitatud kaustastruktuuriga või kokkulepitud loetav arhiiv | Vormidel on viide failikaustale, kuid failide nimekirja andmebaasis ei ole; ilma kataloogita ei saa kontrollida failide olemasolu ega neid üle kanda |
+| Kehtiva `Control`-seoseta SP-vormide käsitlus | Sellised vormid säilivad eraldi koondkontrollina; lõplik seos vajab kinnitust või lähteandmete parandust. Leiud on `finding.csv` failis |
+| Eri staatustega osadest koosnevate kontrollide käsitlus | Osa sama kontrolli vorme jääb staatusereegli tõttu välja. Kinnitada valitud osade ja koondvormi lõppolek |
+| Põlvkonnata `soidumeerik=arukas` väärtuste käsitlus | `arukas-2` viiakse `smart_2` alla; ilma numbrita vana väärtuse põlvkonda ei oletata |
 | Vanade rikkumiste, tehniliste puuduste ja ADR-/katkestamisandmete lõplik vastendus | Osa lähteandmeid säilib praegu tõendusandmetes, kuid ei ole veel rakenduse vastavates äriväljades. Vastenduse koostab arendus, tähenduse kinnitab valdkonna omanik |
 
 Konkreetsete vormide tunnused on privaatsetes `finding.csv` / `quality_report.csv`

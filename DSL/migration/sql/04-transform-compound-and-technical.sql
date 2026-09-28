@@ -1,7 +1,8 @@
--- RoadControlCard2012 -> compound_form + vehicle_technical_form
+-- migration-route: RoadControlCard2012
+-- RoadControlCard2012 -> compound_form + {{target}}
 -- Coordinated by migrate.py in one transaction. Incomplete business mappings
 -- are permitted only on a disposable rehearsal target (see README.md).
--- Confirmed trailer/teammate discriminators BLOCK loading until routing is implemented.
+-- Explicit template route selects the primary or subtype target.
 -- Source EAV values, group membership and metadata remain in source_snapshot.
 
 CREATE TEMP TABLE tmp_rcc_src ON COMMIT DROP AS
@@ -9,12 +10,13 @@ WITH candidate AS (
     SELECT cf.id, cf.control_stage, cf.created_date, cf.controlled_date, cf.created_by_user_id, cf.united_form_part
     FROM staging.raw_control_form cf
     WHERE cf.form_type_name = 'RoadControlCard2012'
+      AND {{subtype_predicate}}
       AND cf.control_stage IN ('Confirmed', 'Published')
       AND cf.created_date >= :'cutoff_from'::timestamp
       AND NOT EXISTS (
           SELECT 1 FROM migration.form_link fl
           WHERE fl.legacy_source = 'ControlForm' AND fl.legacy_id = cf.id::text
-            AND fl.target_table = 'forms.vehicle_technical_form'
+            AND fl.target_table = 'forms.{{target}}'
       )
 )
 SELECT
@@ -63,7 +65,7 @@ CREATE TEMP TABLE tmp_rcc_mapped ON COMMIT DROP AS
 SELECT
     s.*,
     nextval('forms.seq_compound_form_key') AS compound_key,
-    nextval('forms.seq_vehicle_technical_form_key') AS vtf_key,
+    nextval('forms.seq_{{target}}_key') AS vtf_key,
     CASE s.control_stage WHEN 'Published' THEN 'published' ELSE 'confirmed' END AS status,
     coalesce(
         nullif(btrim(u.personal_code), ''),
@@ -91,7 +93,7 @@ FROM tmp_rcc_src s
 LEFT JOIN staging.raw_user u ON u.id = s.created_by_user_id
 LEFT JOIN LATERAL (
     SELECT rv.user_name FROM staging.raw_versions rv
-    WHERE rv.table_name = 'ControlForm' AND rv.row_id = s.legacy_id
+    WHERE btrim(rv.table_name,'[]') = 'ControlForm' AND rv.row_id = s.legacy_id
     AND nullif(btrim(rv.user_name), '') IS NOT NULL
     ORDER BY rv.updated_time ASC NULLS LAST, rv.id ASC LIMIT 1
 ) ver ON true;
@@ -117,14 +119,14 @@ WHERE coalesce(btrim(c.raw), '') = '';
 
 INSERT INTO migration.quality_report
     (migration_run_id, legacy_source, legacy_id, target_table, column_name, issue, applied_default, raw_value)
-SELECT :'run_id', 'ControlForm', f.legacy_id::text, 'forms.vehicle_technical_form',
+SELECT :'run_id', 'ControlForm', f.legacy_id::text, 'forms.{{target}}',
        'parts_defects', 'unmapped_classifier', '[]',
        'RoadControlCard has 3 overlapping code-version layers (pre/post-2012, 2017, 2020) -- see README.md'
 FROM tmp_rcc_final f;
 
 INSERT INTO migration.quality_report
     (migration_run_id, legacy_source, legacy_id, target_table, column_name, issue, applied_default, raw_value)
-SELECT :'run_id', 'ControlForm', f.legacy_id::text, 'forms.vehicle_technical_form',
+SELECT :'run_id', 'ControlForm', f.legacy_id::text, 'forms.{{target}}',
        'result_type', 'unmapped_result', 'ok', array_to_string(f.outcomes, ',')
 FROM tmp_rcc_final f
 WHERE migration.legacy_result('technical', f.outcomes) IS NULL;
@@ -195,22 +197,22 @@ WITH ins_compound AS (
     RETURNING compound_form_key
 ),
 ins_vtf AS (
-    INSERT INTO forms.vehicle_technical_form (
-        vehicle_technical_form_key, compound_form_key, sub_form_number, version, status,
+    INSERT INTO forms.{{target}} (
+        {{target}}_key, compound_form_key, sub_form_number, version, status,
         parts_summary, result_type, created_at, created_by
     )
     SELECT
         f.vtf_key,
         f.compound_key,
-        migration.target_text(f.vtf_form_number, 'forms.vehicle_technical_form', 'sub_form_number', 'ControlForm:' || f.legacy_id::text),
+        migration.target_text(f.vtf_form_number, 'forms.{{target}}', 'sub_form_number', 'ControlForm:' || f.legacy_id::text),
         1,
-        migration.target_text(f.status, 'forms.vehicle_technical_form', 'status', 'ControlForm:' || f.legacy_id::text),
+        migration.target_text(f.status, 'forms.{{target}}', 'status', 'ControlForm:' || f.legacy_id::text),
         f.parts_summary_out,
-        migration.target_text(f.result_type_out, 'forms.vehicle_technical_form', 'result_type', 'ControlForm:' || f.legacy_id::text),
+        migration.target_text(f.result_type_out, 'forms.{{target}}', 'result_type', 'ControlForm:' || f.legacy_id::text),
         f.created_at,
-        migration.target_text(f.created_by, 'forms.vehicle_technical_form', 'created_by', 'ControlForm:' || f.legacy_id::text)
+        migration.target_text(f.created_by, 'forms.{{target}}', 'created_by', 'ControlForm:' || f.legacy_id::text)
     FROM tmp_rcc_final f
-    RETURNING vehicle_technical_form_key, compound_form_key
+    RETURNING {{target}}_key, compound_form_key
 )
 INSERT INTO migration.form_link (
     legacy_source, legacy_id, legacy_form_type, legacy_created_date,
@@ -220,7 +222,7 @@ SELECT 'ControlForm', f.legacy_id::text, 'RoadControlCard2012', f.created_at,
 FROM tmp_rcc_final f
 CROSS JOIN LATERAL (VALUES
     ('forms.compound_form',         f.compound_key, f.compound_form_number),
-    ('forms.vehicle_technical_form', f.vtf_key,      f.vtf_form_number)
+    ('forms.{{target}}', f.vtf_key,      f.vtf_form_number)
 ) AS x(target_table, target_key, target_form_number)
 ;
 

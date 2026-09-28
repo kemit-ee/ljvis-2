@@ -13,6 +13,10 @@ Lähteandmete säilitamine `migration.source_snapshot` tabelis ei tähenda, et k
 andmed oleksid juba rakenduses kasutatavad. Vajalikud sisendid:
 [administraatori päringud](../../docs/migration/migration-guidelines.md).
 
+Sisukord: [komplekt](#administraatorile-antav-komplekt) · [eeltingimused](#1-eeltingimused) ·
+[seaded](#2-seaded-ja-ulatus) · [käivitamine](#3-käivitamine-ja-tulemuse-lugemine) ·
+[korduskäivitus](#4-korduskäivitus-ja-taastamine) · [vastuvõtt](#5-vastuvõtt-enne-kasutajatele-avamist).
+
 ## Administraatorile antav komplekt
 
 See kaust sisaldab ainult migratsiooni käivitamiseks ja kontrollimiseks mõeldud faile:
@@ -21,8 +25,8 @@ See kaust sisaldab ainult migratsiooni käivitamiseks ja kontrollimiseks mõeldu
 **Docker Compose ei ole selle migratsiooniskripti eeltingimus.** Skript ühendub DBA
 ettevalmistatud allika- ja sihtbaasidega; sihtskeemi Liquibase changelog kuulub rakendusse.
 
-Arendaja sünteetilised andmed, Docker-stend ja testid on eraldi `tests/migration/`
-kaustas. Seda kausta ei ole administraatorile vaja kopeerida ega käivitada.
+Arendaja sünteetilised andmed, Docker-stend ja testid hoitakse praegu väljaspool
+seda repositooriumi. Administraatoril ei ole neid vaja kopeerida ega käivitada.
 Administraatori jooks loob vaikimisi oma `runs/` aruanded siia; neid ei lisata Giti.
 
 ## 1. Eeltingimused
@@ -55,6 +59,9 @@ chmod 600 .env
 ```
 
 ## 2. Seaded ja ulatus
+
+`--rehearsal --sql-only` korral ei ole `RAVENDB_MODE`, `RAVENDB_ABSENCE_REASON` ega
+`SOURCE_RAVENDB_*` vajalikud; RavenDB jääb sel juhul selgesõnaliselt kontrollimata.
 
 Täida [.env.example](.env.example) järgi `.env`. Fail kasutab Bash-süntaksit;
 paroolid kirjuta ülakomadesse. Prooviseaded ei tohi osutada tööbaasile.
@@ -131,13 +138,14 @@ ainult automaatse teise transformipassi vahele; seda ei kasutata esimesel proovi
 | `0` / `succeeded` | Tehnilised kontrollid läbitud; enne avamist vajalik allpool kirjeldatud äriline vastuvõtt |
 | `2` / `blocked` | Blokeerijad salvestatud; vorme ei laaditud. Anna raport arendajale/andmeomanikule |
 | `2` / `needs_review` | Proovilaadimine tehtud, kuid tulemus **ei sobi tootmisse üleminekuks** |
+| `64` / käiku ei loodud | Vigane käsurida; paranda lipud. See ei ole andmete blocker |
 | `1` / `failed` | Viga ühenduses, SQL-is, idempotentsuses või tervikluses; vaata sammu ja vealogi |
 
 Iga käigu juures on:
 
 - `summary.json`: kuupäevapiir, koopia tunnus, koodi hash, staatus, lähte- ja sihtvormide
   katvus ilma koondvormidest tekkiva topeltloenduseta, leiud ja arhiveeritud ridade arvud;
-- `finding.csv`: blokeerija/hoiatus koos algse vormi ID-ga;
+- `finding.csv`: praeguse ja seotud varasemate käikude blokeerijad/hoiatused koos vormi ID ja käigu ID-ga;
 - `disposition.csv`: iga ekstraheeritud vormi kaasamise/väljajätmise põhjus;
 - `quality_report.csv`: rakendatud vaikeväärtused ja lahendamata vastendused;
 - ekstraktorite `.log` failid; vea korral `failure.json` ja andmebaasis `current_step/error_message`.
@@ -189,7 +197,8 @@ kontrollida otsingut, vaatamist, PDF-i ja õigusi. Kinnitada manuste ning V1 akt
 Kui teisendus vajab parandamist, taastada proovibaas ja korrata täielikku katset.
 
 Sünteetiline roheline test kinnitab mehhanismi; pärisandmete vastuvõttu see ei asenda.
-Arendaja korduv katse ja kaetus on eraldi [tests/migration/README.md](../../tests/migration/README.md).
+Arendaja korduv katse ja kaetus on eraldi arendaja teststendis, mida selles
+repositooriumis ei hoita.
 
 ## Kinnitatud tekstiasendused ja lahendamata andmed
 
@@ -223,21 +232,35 @@ säilitamise tähtaja ja vastutaja ning kooskõlastama puhastamise pärast vastu
 Sama kehtib varukoopiatele ja jooksude failidele. ETL ei määra ise suvalist tähtaega
 ega kustuta tõendusmaterjali automaatselt; source_snapshot ei ole tähtajatu arhiiv.
 
-## SQL backup'i 25.09.2026 proovi parandused
 
-- Ühe legacy `Control` alavormid ühendatakse ühte koondvormi; seosed säilivad iga
-  lähtevormi kohta. Konfliktset ühist päist ei lahendata juhusliku MAX-väärtusega.
-- Haagis läheb `trailer_technical_form`, teine juht `sp_teammate_form` tabelisse.
-  Vana kood vahetas teise juhi vormis `Driver.*` ja `AdditionalDriver.*`; rollid taastatakse.
-- Ühised sõiduki/vedaja/juhi andmed kantakse koondvormile; SP päevade tegelikud võtmed
-  `days_count`, `workdays_count`, `sick_workdays_count` loetakse tekstist. Vana kood võib
-  jätta `IntValue=0`; lahknevus raporteeritakse. Vanema võtme puhul säilib typed fallback.
-- `soidumeerik`, `arukas-2`, menetluse liik/viide ning tehnilise kontrolli checkbox-võtmed
-  loetakse nende tegeliku kujuga. Ilma põlvkonnata `arukas` jääb lahendamata leiuks.
-- Seotud kontrolli ajapiirist välja jäävad vormid ekstraheeritakse kontekstina ja saavad
-  endiselt oma väljajätmise põhjuse. Need ei muutu automaatselt eligible-vormideks.
-- Maskitud/puuduv sünnikuupäev ei ole taastatav. Rehearsal'i tehniline kuupäevaasendus
-  jääb kvaliteediveaks ja blokeerib tootmisvastuvõtu.
+`summary.json.findings` sisaldab praeguse käigu ja juba laaditud vormide varasemaid
+leide, identsed leiud loetakse üks kord. Sama kehtib `--verify` kohta.
+`inherited_findings` näitab lisaks päritolu; seda ei pea koguarvule juurde liitma.
+Konfliktse ühise päise korral vormide transaktsioon tühistatakse; vormi/grupi tunnused
+säilivad `finding.csv` ja `failure.json` failides.
 
-Backup'i taastamise ja korduskatsete üks käsk on arendaja juhendis; administraator ei
-pea Q0–Q19 SQL-päringuid käsitsi täitma. [Järgmised sisendid ja sammud](../../docs/migration/migration-guidelines.md).
+25.09.2026 backup'i 77 valitud vormis on **3093 mittetühja tekstilist EAV-väärtust**.
+Kõigi väärtuste äriline ülekanne ei ole veel tõendatud: SP rikkumiste massiivid ja
+tehniliste puuduste detailid on puudulikud. Koodist võtmenime leidmine ei tõenda
+väärtuse ülekannet; protsenti „68% üle kantud” ei kasutata vastuvõtukriteeriumina.
+Toorväärtuse säilimine snapshot'is ei asenda rakenduse välja ega kinnita väljajätmist.
+Ka tehniliseks peetud võtmeid ei loeta automaatselt lubatud kustutuseks.
+
+### Source document numbers and revisions
+
+SQL-source documents retain their exact LJVIS1 identity: `th-2026-00004/4`
+becomes `sub_form_number = 'th-2026-00004'`, `version = 4`. The UI joins these
+fields. New surrogate database keys must not replace historical document numbers.
+The coordinator enforces this for all imported `ControlForm` document types,
+checks the source revision against the suffix, and rejects unsupported/missing
+identifiers or duplicate target numbers instead of silently renumbering them.
+`template_version` is not the document revision. Generated `koond-*` numbers
+identify new aggregate containers, not replacements for the original documents.
+
+Before committing, logical-key sequences used by application number generation
+are advanced past existing numeric document suffixes (never rewound). Failed
+transactions can leave sequence gaps. Run in maintenance mode as required above.
+Existing rehearsals with renumbered documents fail identity verification; use a
+fresh target with the corrected coordinator. Do not patch production numbers by
+hand or treat the old rehearsal as accepted. RavenDB document identities require
+separate validation against the actual source, which has not been supplied.

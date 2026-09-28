@@ -105,14 +105,20 @@ COMMENT ON TABLE staging.raw_user IS 'Raw copy of LJVIS1 dbo.[User] (+ Classifie
 
 CREATE TABLE IF NOT EXISTS staging.raw_versions (
     id                  BIGINT          NOT NULL,
-    table_name           VARCHAR(255),
+    table_name           VARCHAR(255),   -- stored verbatim: LJVIS1 writes both
+                                         -- 'ControlForm' and '[ControlForm]'
     row_id                BIGINT,
     updated_time           TIMESTAMP,
     user_name              VARCHAR(255),
+    data                   TEXT,           -- serialized historical snapshot
+    version                INTEGER,        -- LJVIS1 edition ordinal of that snapshot
     PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS idx_rv_table_row ON staging.raw_versions (table_name, row_id);
-COMMENT ON TABLE staging.raw_versions IS 'Raw copy of LJVIS1 dbo.Versions, used only as author-resolution fallback level 3 (see README.md).';
+-- Additive for targets whose staging schema predates the audit-payload fix.
+ALTER TABLE staging.raw_versions ADD COLUMN IF NOT EXISTS data TEXT;
+ALTER TABLE staging.raw_versions ADD COLUMN IF NOT EXISTS version INTEGER;
+CREATE INDEX IF NOT EXISTS idx_rv_table_row ON staging.raw_versions (btrim(table_name,'[]'), row_id);
+COMMENT ON TABLE staging.raw_versions IS 'Raw copy of LJVIS1 dbo.Versions for in-scope ControlForm rows: author-resolution fallback level 3 plus the retained edition history (data, version). LJVIS1 writes table_name both bracketed and bare; readers must normalize with btrim(table_name,''[]'').';
 
 -- ── RavenDB export target (JobInspection / JobInspectionV2) ─────────────────
 -- Populated by extract/extract_ravendb_to_staging.py.

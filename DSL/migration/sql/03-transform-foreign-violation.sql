@@ -31,7 +31,10 @@ SELECT
     max(v.value)      FILTER (WHERE v.classifier_name = 'Inspector.LastName')       AS inspector_last_name,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Inspector.AmetiisikuAndmed') AS inspector_unit,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Inspector.Job')            AS inspector_profession,
-    max(v.value)      FILTER (WHERE v.classifier_name = 'InspectionAddress.Country') AS reporting_country_code,
+    max(v.value)      FILTER (WHERE v.classifier_name = 'Teate.Country') AS reporting_country_code,
+    max(v.value) FILTER (WHERE v.classifier_name = 'InspectionAddress.Country') AS inspection_country_code,
+    max(v.value) FILTER (WHERE v.classifier_name = 'Teate.Company') AS reporting_authority_name,
+    max(v.value) FILTER (WHERE v.classifier_name = 'Teate.Kirjeldus') AS violation_description,
     max(coalesce(v.date_value, migration.safe_timestamp(v.value))) FILTER (WHERE v.classifier_name = 'InspectionDate.Date')      AS inspection_date,
     max(v.value)      FILTER (WHERE v.classifier_name = 'InspectionDate.Time')      AS inspection_time_raw,
     max(v.value)      FILTER (WHERE v.classifier_name = 'InspectionAddress.Line1')  AS inspection_address_line1,
@@ -50,7 +53,7 @@ SELECT
     max(v.value)      FILTER (WHERE v.classifier_name = 'Company.CompanyAddress.Line1')   AS company_address_line1,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Company.CompanyAddress.City')    AS company_city,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Company.CompanyAddress.Region')  AS company_region,
-    max(v.value)      FILTER (WHERE v.classifier_name = 'Company.TegevusloaNumber') AS licence_copy_number,
+    max(v.value)      FILTER (WHERE v.classifier_name = 'Teate.LubaNo') AS licence_copy_number,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Driver.FirstName')         AS driver_first_name,
     max(v.value)      FILTER (WHERE v.classifier_name = 'Driver.LastName')          AS driver_last_name
 FROM candidate c
@@ -84,7 +87,7 @@ FROM tmp_fv_src s
 LEFT JOIN staging.raw_user u ON u.id = s.created_by_user_id
 LEFT JOIN LATERAL (
     SELECT rv.user_name FROM staging.raw_versions rv
-    WHERE rv.table_name = 'ControlForm' AND rv.row_id = s.legacy_id
+    WHERE btrim(rv.table_name,'[]') = 'ControlForm' AND rv.row_id = s.legacy_id
     AND nullif(btrim(rv.user_name), '') IS NOT NULL
     ORDER BY rv.updated_time ASC NULLS LAST, rv.id ASC LIMIT 1
 ) ver ON true;
@@ -100,10 +103,10 @@ CROSS JOIN LATERAL (VALUES
     ('inspector_profession',    'missing_required', '-',  f.inspector_profession),
     ('reporting_country_code',  'missing_required', '-', f.reporting_country_code),
     ('inspection_date',         'missing_required', f.inspection_date_out::text, f.inspection_date::text),
-    ('reporting_authority_name','no_source_field',  '-',  NULL),
+    ('reporting_authority_name','missing_required',  '-',  f.reporting_authority_name),
     ('data_entry_date',         'derived_from_created_at', f.created_at::date::text, NULL)
 ) AS c(col, issue, applied, raw)
-WHERE (c.col IN ('reporting_authority_name', 'data_entry_date'))
+WHERE c.col = 'data_entry_date'
    OR coalesce(btrim(c.raw), '') = '';
 
 INSERT INTO migration.quality_report
@@ -132,7 +135,7 @@ WITH ins AS (
         erru_message_id, source_police_form_key, data_entry_date,
         inspector_first_name, inspector_last_name, inspector_organisation_id,
         inspector_unit, inspector_profession,
-        reporting_country_code, reporting_authority_name,
+        reporting_country_code, reporting_authority_name, violation_description,
         inspection_date, inspection_time,
         inspection_address_line1, inspection_address_line2, inspection_city,
         inspection_region, inspection_country_code,
@@ -155,14 +158,15 @@ WITH ins AS (
         migration.target_text(f.inspector_unit_out, 'forms.foreign_violation_form', 'inspector_unit', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.inspector_profession_out, 'forms.foreign_violation_form', 'inspector_profession', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.reporting_country_code_out, 'forms.foreign_violation_form', 'reporting_country_code', 'ControlForm:' || f.legacy_id::text),
-        migration.target_text('-', 'forms.foreign_violation_form', 'reporting_authority_name', 'ControlForm:' || f.legacy_id::text),
+        migration.target_text(coalesce(nullif(btrim(f.reporting_authority_name),''),'-'), 'forms.foreign_violation_form', 'reporting_authority_name', 'ControlForm:' || f.legacy_id::text),
+        migration.target_text(f.violation_description, 'forms.foreign_violation_form', 'violation_description', 'ControlForm:' || f.legacy_id::text),
         f.inspection_date_out,
         f.inspection_time_out,
         migration.target_text(f.inspection_address_line1, 'forms.foreign_violation_form', 'inspection_address_line1', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.inspection_address_line2, 'forms.foreign_violation_form', 'inspection_address_line2', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.inspection_city, 'forms.foreign_violation_form', 'inspection_city', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.inspection_region, 'forms.foreign_violation_form', 'inspection_region', 'ControlForm:' || f.legacy_id::text),
-        migration.target_text(f.reporting_country_code_out, 'forms.foreign_violation_form', 'inspection_country_code', 'ControlForm:' || f.legacy_id::text),
+        migration.target_text(migration.safe_country_code(f.inspection_country_code), 'forms.foreign_violation_form', 'inspection_country_code', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.vehicle_reg_nr, 'forms.foreign_violation_form', 'vehicle_reg_nr', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.vehicle_country_code_out, 'forms.foreign_violation_form', 'vehicle_country_code', 'ControlForm:' || f.legacy_id::text),
         migration.target_text(f.vehicle_make, 'forms.foreign_violation_form', 'vehicle_make', 'ControlForm:' || f.legacy_id::text),

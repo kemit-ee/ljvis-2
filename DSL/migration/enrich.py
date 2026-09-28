@@ -12,6 +12,13 @@ from psycopg2 import sql
 from psycopg2.extras import Json
 
 
+class MappingConflict(ValueError):
+    """Context that survives rollback without exposing source field values."""
+    def __init__(self, form_id, issue, detail):
+        self.form_id, self.issue = form_id, issue
+        super().__init__(f"ControlForm:{form_id}: {detail}")
+
+
 def scalar(values, key, aliases=()):
     found = []
     for name in (key, *aliases):
@@ -78,8 +85,11 @@ def apply(cur, run_id, children):
         eav[form_id][key].append((value, typed_date, typed_int))
 
     def finding(form_id, issue, detail, severity="blocker"):
-        cur.execute("INSERT INTO migration.finding VALUES (%s,%s,'ControlForm',%s,%s,%s)",
-                    (run_id, severity, str(form_id), issue, detail))
+        cur.execute("""INSERT INTO migration.finding
+            SELECT %s,%s,'ControlForm',%s,%s,%s WHERE NOT EXISTS (
+              SELECT 1 FROM migration.finding WHERE migration_run_id=%s AND severity=%s
+              AND legacy_source='ControlForm' AND legacy_id=%s AND issue=%s AND detail=%s)""",
+                    (run_id, severity, str(form_id), issue, detail)*2)
 
     def update(table, target_key, data):
         if not data:
@@ -92,8 +102,16 @@ def apply(cur, run_id, children):
     for form_id, target, target_key in links:
         table = target.removeprefix('forms.')
         values = eav[form_id]
-        get = lambda key, aliases=(): scalar(values, key, aliases)
+        def get(key, aliases=()):
+            try:
+                return scalar(values,key,aliases)
+            except ValueError as exc:
+                raise MappingConflict(form_id,'conflicting_scalar',str(exc)) from exc
         if table in ('vehicle_technical_form', 'trailer_technical_form'):
+            for key, entries in values.items():
+                if re.fullmatch(r'caa_\d+_(kontroll_kontrollitud|kontroll|ei_vasta_nouetele)',key or ''):
+                    if any(v is not None and str(v).strip().lower() not in ('','kontrollitud','ei_kontrollitud','on','true','false','off') for v,_,_ in entries):
+                        finding(form_id,'unknown_technical_checkbox',f'{key}: unsupported checkbox value')
             data = {'parts_summary': technical_summary(values), 'notes': get('control_notes')}
             if table == 'trailer_technical_form':
                 data['trailer_reg_nr'] = get('Trailer.RegNo')
@@ -111,7 +129,7 @@ def apply(cur, run_id, children):
                 # The older representation may be present only in IntValue.
                 typed = {r[2] for name in (key,*aliases) for r in values.get(name,[]) if r[2] is not None}
                 if len(typed)>1:
-                    raise ValueError(f'Conflicting typed integer: ControlForm:{form_id} {key}')
+                    raise MappingConflict(form_id,'conflicting_typed_integer',key)
                 if typed:
                     typed_value = str(next(iter(typed)))
                     if raw is not None and integer(raw)!=integer(typed_value):
@@ -155,7 +173,7 @@ def apply(cur, run_id, children):
     groups = defaultdict(list)
     for form_id in parents:
         if len(controls[form_id])>1:
-            raise ValueError(f'Multiple legacy controls for ControlForm:{form_id}')
+            raise MappingConflict(form_id,'multiple_control_bindings','Multiple legacy controls')
         group = ('Control',next(iter(controls[form_id]))) if controls[form_id] else ('ControlForm',form_id)
         groups[group].append(form_id)
     for group, members in sorted(groups.items()):
@@ -165,7 +183,7 @@ def apply(cur, run_id, children):
             inspector_first_name,inspector_last_name,inspector_unit,inspector_profession
             FROM forms.compound_form WHERE compound_form_key=ANY(%s)""",(keys,))
         if len(cur.fetchall())>1:
-            raise ValueError(f'Conflicting shared header in {group[0]}:{group[1]}; no arbitrary parent chosen')
+            raise MappingConflict(members[0],'conflicting_shared_header',f'{group[0]}:{group[1]}, members={sorted(members)}; conflicting shared header; no arbitrary parent chosen')
         if group[0]=='Control':
             cur.execute("""SELECT count(*) FROM staging.raw_control_to_form_binding b
                 JOIN staging.raw_control_form f ON f.id=b.control_form_id
@@ -175,6 +193,9 @@ def apply(cur, run_id, children):
                 finding(members[0],'group_contains_excluded_parts','Some source control members are outside the agreed status/date selection')
         else:
             finding(members[0],'missing_control_binding','No valid Control binding; standalone parent retained for rehearsal')
+        cur.execute("SELECT count(DISTINCT control_stage) FROM staging.raw_control_form WHERE id=ANY(%s)",(members,))
+        if cur.fetchone()[0] > 1:
+            finding(members[0],'mixed_parent_status','Eligible parts have different statuses; parent status needs an approved rule')
         values = defaultdict(list)
         for form_id in members:
             # UnitedFormService.UpdateTeamMemberRoadWorthinessFormValues swaps
@@ -186,7 +207,11 @@ def apply(cur, run_id, children):
                 elif teammate and key and key.startswith('AdditionalDriver.'):
                     key='Driver.'+key.removeprefix('AdditionalDriver.')
                 values[key].extend(entries)
-        get = lambda key, aliases=(): scalar(values,key,aliases)
+        def get(key, aliases=()):
+            try:
+                return scalar(values,key,aliases)
+            except ValueError as exc:
+                raise MappingConflict(members[0],'conflicting_group_scalar',f'{group}: {exc}') from exc
         fields = {
             'vehicle_reg_nr':'Vehicle.RegNo','vehicle_country_code':'Vehicle.Country','vehicle_make':'Vehicle.Mark',
             'vehicle_model':'Vehicle.Model','vehicle_vin':'Vehicle.VinCode','vehicle_body_type':'Vehicle.CarBodyType',
@@ -197,6 +222,14 @@ def apply(cur, run_id, children):
             'road':'InspectionAddress.Line2','address':'InspectionAddress.Line1',
         }
         data = {column:get(key) for column,key in fields.items()}
+        for column,key,maximum in [('kilometer','InspectionAddress.HighwayKilometerNumber',999),
+                                   ('vehicle_mileage','OdometerReading',2147483647)]:
+            raw = get(key)
+            parsed = integer(raw)
+            if raw is not None and (parsed is None or parsed > maximum):
+                finding(members[0],'invalid_location_or_mileage',f'{key}: outside target integer domain')
+                parsed = None
+            data[column] = parsed
         for column in ('vehicle_country_code','company_country_code'):
             if data[column]:
                 cur.execute('SELECT migration.safe_country_code(%s,NULL)',(data[column],))
@@ -232,3 +265,25 @@ def apply(cur, run_id, children):
         if group[0]=='Control':
             cur.execute("""DELETE FROM migration.quality_report WHERE migration_run_id=%s AND issue='compound_grouping_skipped'
                 AND legacy_source='ControlForm' AND legacy_id=ANY(%s)""",(run_id,[str(x) for x in members]))
+
+
+def consumed_keys(form_type):
+    """Declared inputs for coverage diagnostics, not proof of value equivalence.
+
+    Unlisted dynamic keys remain visible. Empty aliases are not an exclusion
+    approval; preflight checks nonempty text or meaningful typed values.
+    """
+    children = {'RoadControlCard2012','Roadworthiness2012','TransportInterruption','DangerousDelivery2012'}
+    if form_type not in children:
+        return set()
+    keys = set('Vehicle.RegNo Vehicle.Country Vehicle.Mark Vehicle.Model Vehicle.VinCode Vehicle.CarBodyType Company.RegistryNumber Company.CompanyName Company.CompanyAddress.Country Company.CompanyAddress.City Company.CompanyAddress.Line1 Company.CompanyAddress.PostalCode Company.TegevusloaNumber InspectionAddress.Line2 InspectionAddress.Line1 InspectionAddress.HighwayKilometerNumber OdometerReading'.split())
+    keys.update(prefix+'.'+name for prefix in ('Driver','AdditionalDriver') for name in
+                ('IdentificationNo','ForeignIdentificationNo','FirstName','LastName','Citizenship','BirthDate'))
+    keys.update('Trailer.'+name for name in ('RegNo','Country','Mark','Model','VinCode'))
+    if form_type == 'Roadworthiness2012':
+        keys.update('RoadWorthinessTeamMember soidumeerik SoidumeerikType days_count kontrollitud_paevade_arv workdays_count sick_workdays_count puhkeaja_nouete_taitmine puhkeaja_nouete_taitmine_markused'.split())
+    if form_type == 'RoadControlCard2012':
+        keys.update(('RoadControlTrailer','control_notes'))
+    if form_type != 'TransportInterruption':
+        keys.update(('otsus_vaarteomenetlus','kiirmenetlus_viitenumber','lyhimenetlus_viitenumber','yldmenetlus_vaarteoasjanumber'))
+    return keys

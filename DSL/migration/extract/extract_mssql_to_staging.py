@@ -57,6 +57,14 @@ _SCOPED_CONTROL_FORM_IDS = (
 )
 
 
+# LJVIS1 writes dbo.Versions.TableName inconsistently: the generic NHibernate
+# audit listener and the background services store the quoted identifier
+# '[ControlForm]', while ControlFormToVersionDataConverter stores 'ControlForm'.
+# The legacy UI itself reads the bracketed form (FormController.cs:718), so an
+# exact match on either spelling alone silently returns nothing.
+_VERSIONS_IS_CONTROL_FORM = "REPLACE(REPLACE(TableName, '[', ''), ']', '') = 'ControlForm'"
+
+
 class ExtractError(RuntimeError):
     """Raised with a message specific enough to act on without re-reading this script."""
 
@@ -139,13 +147,13 @@ TABLES = [
         # without this filter it can dwarf every other table combined. Only
         # ControlForm rows in scope are ever read by the transforms' author
         # fallback (see sql/01-07-transform-*.sql), so that is the scope here.
-        f"SELECT Id, TableName, RowId, UpdatedTime, UserName FROM dbo.Versions "
-        f"WHERE TableName = 'ControlForm' AND RowId IN {_SCOPED_CONTROL_FORM_IDS}",
+        f"SELECT Id, TableName, RowId, UpdatedTime, UserName, Data, Version FROM dbo.Versions "
+        f"WHERE {_VERSIONS_IS_CONTROL_FORM} AND RowId IN {_SCOPED_CONTROL_FORM_IDS}",
         _params(),
         "staging.raw_versions",
-        ["id", "table_name", "row_id", "updated_time", "user_name"],
+        ["id", "table_name", "row_id", "updated_time", "user_name", "data", "version"],
         f"SELECT COUNT(*) FROM dbo.Versions "
-        f"WHERE TableName = 'ControlForm' AND RowId IN {_SCOPED_CONTROL_FORM_IDS}",
+        f"WHERE {_VERSIONS_IS_CONTROL_FORM} AND RowId IN {_SCOPED_CONTROL_FORM_IDS}",
     ),
 ]
 

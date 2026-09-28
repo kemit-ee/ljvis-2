@@ -105,7 +105,7 @@ FROM tmp_gr_src s
 LEFT JOIN staging.raw_user u ON u.id = s.created_by_user_id
 LEFT JOIN LATERAL (
     SELECT rv.user_name FROM staging.raw_versions rv
-    WHERE rv.table_name = 'ControlForm' AND rv.row_id = s.legacy_id
+    WHERE btrim(rv.table_name,'[]') = 'ControlForm' AND rv.row_id = s.legacy_id
     AND nullif(btrim(rv.user_name), '') IS NOT NULL
     ORDER BY rv.updated_time ASC NULLS LAST, rv.id ASC LIMIT 1
 ) ver ON true;
