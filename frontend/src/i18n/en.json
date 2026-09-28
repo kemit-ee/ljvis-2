@@ -1357,7 +1357,8 @@
       "api": {
         "required": "Required field",
         "invalid_estonian_personal_code": "Invalid Estonian personal code (isikukood)",
-        "invalid_email_format": "Invalid email format"
+        "invalid_email_format": "Invalid email format",
+        "personalCodeConflict": "A user with this personal code already exists"
       }
     },
     "viewDetails": "COMING",
