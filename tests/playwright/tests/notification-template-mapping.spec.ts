@@ -18,7 +18,9 @@ test.describe('Postkasti mallide ja vastuvõtjate seaded — desktop saajad', ()
     await page.goto('/notification-template-mapping/ncr_violation', {
       waitUntil: 'domcontentloaded',
     });
-    await expect(page.getByRole('heading', { name: 'ncr_violation' })).toBeVisible({
+    await expect(
+      page.getByRole('heading', { name: 'NCR raske rikkumise teade' }),
+    ).toBeVisible({
       timeout: 20_000,
     });
     await page.getByRole('button', { name: 'Muuda' }).click();
