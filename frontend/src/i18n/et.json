@@ -1366,6 +1366,8 @@
     "noGroups": "Kasutaja ei ole seotud ühegi kasutajagrupiga",
     "basicInfo": "Isikuandmed",
     "access": "Ligipääs",
+    "searchInvalid": "Sisestage kehtiv Eesti isikukood",
+    "searchNotFound": "Isikut ei leitud",
     "validation": {
       "required": "Kohustuslik väli",
       "email": "Vigane e-posti formaat",

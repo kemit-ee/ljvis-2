@@ -39,9 +39,14 @@ oauth2:
       client_id_env: "TIM_TARA_CLIENT_ID"
       client_secret_env: "TIM_TARA_CLIENT_SECRET"
       scopes: ["openid"]
+      # given_name/family_name on TARA ID-tokenis tipptaseme väljad — vt TIM
+      # repo tests/it_oauth2_tara.rs (tara_profile_attributes_are_not_flattened_into_top_level)
+      # ja tests/fixtures/tara-claims-canonical.json: profile_attributes.given_name/
+      # family_name on tahtlik decoy väärtusega "Ignored", et vale mapping testis
+      # kohe läbi kukuks. Sama viga oli ka ljvis2-devops dev/test/prelive tim.yaml-is.
       claim_mappings:
-        first_name: "profile_attributes.given_name"
-        last_name: "profile_attributes.family_name"
+        first_name: "given_name"
+        last_name: "family_name"
         email: ""
       token_validation:
         clock_skew_seconds: 60
