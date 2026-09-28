@@ -6,6 +6,12 @@
 
 ## 2026-09-28
 
+### Tarne kontroll ei peata enam X-tee teenusekirjelduse tõttu
+
+- Automaatne DSL-i kontroll ei käsitle enam X-tee OpenAPI teenusekirjelduse
+  näidisvastustes olevaid veakoode (nt „FORBIDDEN") vooviidetena, mistõttu
+  tarne ei katke enam valeveaga. Päris katkised vooviited leitakse endiselt.
+
 ### Sisselogimine ei jää enam vaikimisi rippuma, kui TARA ei vasta
 
 - Kui TARA autentimisteenus on seadistamata või ei vasta, kuvatakse nüüd
