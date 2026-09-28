@@ -6,6 +6,15 @@
 
 ## 2026-09-28
 
+### Vedajale saadetava rikkumisteavituse mall uuendatud
+
+- Postkast 2.0 kaudu veoettevõtjale saadetava raske rikkumise teavituse
+  ("vedajale-saadetav-teavitus") sisu on täpsustatud: teade sisaldab nüüd
+  kontrolli aega ja kohta, kontrollitud sõiduki registreerimisnumbrit ning
+  viidet LJVISi veebiaadressile ja ebatäpsuste teatamise kontaktile.
+
+## 2026-09-28
+
 ### Tarne kontroll ei peata enam X-tee teenusekirjelduse tõttu
 
 - Automaatne DSL-i kontroll ei käsitle enam X-tee OpenAPI teenusekirjelduse

@@ -70,16 +70,28 @@ eraldi DSL-i aktiveerimist ei ole vaja.
 
 ## Malli muutujaviited
 
+### `carrier_violation` ("vedajale-saadetav-teavitus")
+
 | Muutuja | Kirjeldus | Allikas DSL-is |
 |---|---|---|
-| `{{carrierName}}` | Veoettevõtja nimi | `related_entity_type` järgi RESQL-ist |
-| `{{carrierCode}}` | Registrikood | `person_code` recipients-is |
-| `{{violationDate}}` | Rikkumise kuupäev | `related_entity_id` vorm → `created_at` |
-| `{{controlFormId}}` | Kontrolliakti võti | `related_entity_id` |
-| `{{inspectorName}}` | Ametniku nimi | `created_by` → TIM lookup |
-| `{{fromCountry}}` | Välisriigi kood | CGR payload |
-| `{{vehicleRegNr}}` | Sõiduki registreerimisnumber | SP-kaardi väli |
-| `{{driverName}}` | Juhi nimi | SP-kaardi väli |
+| `{{formNumber}}` | Kontrollvormi number | `notify-transition-and-send.yml`, `publishRes.formNumber` |
+| `{{companyName}}` | Veoettevõtja nimi | välisriigi rikkumise vorm, `companyName` |
+| `{{companyRegCode}}` | Veoettevõtja registrikood | välisriigi rikkumise vorm, `companyRegCode` |
+| `{{inspectionDateTime}}` | Kontrolli aeg (kuupäev ja kellaaeg) | vorm, `inspectionDate` + `inspectionTime` |
+| `{{inspectionCountryCode}}` | Kontrolli koht | vorm, `inspectionCountryCode` (ISO riigikood, ei ole hetkel nimeks lahendatud — vt „Lahtised kohad" allpool) |
+| `{{vehicleRegNr}}` | Kontrollitud sõiduki registreerimisnumber | vorm, `vehicleRegNr` |
+| `{{violationSeverities}}` | Rikkumise raskusastmed (nt "MSI, VSI") | vorm, `violations[].code` unikaalsed `MSI`/`VSI`/`SI` prefiksid |
+| `{{violationDescription}}` | Rikkumise vaba tekstiga kirjeldus | vorm, `violationDescription` |
+
+**Lahtised kohad:** `{{inspectionCountryCode}}` saadetakse hetkel toore ISO koodina (nt „EE"), mitte riigi nimena — täisnime lahendamiseks puudub praegu taaskasutatav koodi→nimi otsingu DSL/Resql (vt uurimist, lisada tuleks uus klassifikaatoripäring `COUNTRY` klassifikaatori vastu). `{{violationSeverities}}` näitab ainult esinevaid raskusastmeid, mitte iga rikkumiskoodi täistekstilist kirjeldust — see nõuaks eraldi `EU_INFRINGEMENT` klassifikaatori päringut (teadlik lihtsustus).
+
+### `labor_kabotage`, `labor_foreign_proposal`
+
+| Muutuja | Kirjeldus | Allikas DSL-is |
+|---|---|---|
+| `{{formNumber}}` | Kontrollvormi number | `notify-transition-and-send.yml` |
+| `{{companyName}}` | Veoettevõtja nimi | vorm, `companyName` |
+| `{{companyRegCode}}` | Veoettevõtja registrikood | vorm, `companyRegCode` |
 
 ## Viited
 

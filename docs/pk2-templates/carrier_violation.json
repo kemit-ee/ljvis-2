@@ -1,14 +1,14 @@
 {
   "template": {
-    "name": "ljvis2-carrier-violation",
-    "description": "LJVIS-2: Raske rikkumise teavitus veoettevõtjale (ERRU/NCR/RSI alusel)",
+    "name": "vedajale-saadetav-teavitus",
+    "description": "LJVIS-2: Raske autoveoalase rikkumise teavitus veoettevõtjale",
     "enabled": true
   },
   "templateMessage": {
     "channel": "EMAIL",
     "language": "et",
-    "subject": "Raske rikkumine tuvastatud — teade veoettevõtjale ({{formNumber}})",
-    "content": "<p>Lugupeetud {{companyName}} ({{companyRegCode}}),</p><p>Liiklusjärelevalve infosüsteemis on registreeritud Teie veoettevõttega seotud rikkumine.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrollvorm</th><td>{{formNumber}}</td></tr><tr><th>Rikkumise raskusaste</th><td>{{severity}}</td></tr><tr><th>Rikkumise kirjeldus</th><td>{{violationDescription}}</td></tr></table><p>Võimalike vaidluste korral pöörduge kontrolli teostanud asutuse poole.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "subject": "Raske autoveoalane rikkumine — teavitus veoettevõtjale ({{formNumber}})",
+    "content": "<p>Lp autoveo-ettevõtja</p><p>Liiklusjärelevalve infosüsteem (LJVIS) teavitab „{{companyName}}“ ({{companyRegCode}}) autoveol avastatud raskest autoveoalasest rikkumisest, mis võib mõjutada Teie ettevõtte head mainet.</p><p><strong>Rikkumise üldandmed:</strong></p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrolli aeg</th><td>{{inspectionDateTime}}</td></tr><tr><th>Kontrolli koht</th><td>{{inspectionCountryCode}}</td></tr><tr><th>Kontrollitud sõiduki registreerimisnumber</th><td>{{vehicleRegNr}}</td></tr></table><p><strong>Rikkumise raskusaste ja kirjeldus:</strong></p><p>{{violationSeverities}}</p><p>{{violationDescription}}</p><p>Palume rakendada ettevõttes meetmeid rikkumiste ärahoidmiseks. Vastavalt õigusaktidele võib pädev asutus algatada haldusmenetluse kui ettevõtte korraldatud autovedudel on tuvastatud korduvaid raskeid rikkumisi.</p><p>Autoveoalaste rikkumiste kohta saab ettevõtte juhatuse liige täpsemaid andmeid LJVISist veebiaadressilt: <a href='https://www.liiklusvalve.ee/'>https://www.liiklusvalve.ee/</a></p><p>Käesolev teatis on automaatne, palume sellele mitte vastata!</p><p>Ebatäpsustest rikkumisandmetes palume teavitada e-posti aadressil <a href='mailto:eda.rembel@kliimaministeerium.ee'>eda.rembel@kliimaministeerium.ee</a></p>",
     "contentType": "text/html"
   }
 }
