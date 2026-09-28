@@ -203,6 +203,10 @@ sendNotifications:
     formNumber: "${publishRes.response.body[0].formNumber || ''}"
     violations: ${violations}
     violationDescription: ${violation_description}
+    inspectionDate: ${inspection_date}
+    inspectionTime: ${inspection_time}
+    inspectionCountryCode: ${inspection_country_code}
+    vehicleRegNr: ${vehicle_reg_nr}
     createdBy: ${created_by}
     newNotifyCarrier: ${notify_carrier}
     newNotifyLaborInspector: ${notify_labor_inspector}
