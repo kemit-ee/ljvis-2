@@ -11,39 +11,65 @@ import {
 import { Header, Footer } from '@tedi-design-system/react/community';
 import { DescriptionList } from '../DescriptionList';
 import { useFooterProps } from '../../../layout/useFooterProps';
+import { useErrorContext } from '../../../shared/errors/ErrorContext';
 import styles from './LoginPage.module.css';
 
 type LoginIntent = 'citizen' | 'officer';
 
-async function startLogin(intent: LoginIntent) {
+// If TIM can't build a TARA authorization URL — TARA isn't configured
+// (missing client id/secret, IdP unreachable) or the request itself is
+// rejected (e.g. redirect_uri not on TIM's allow-list) — this used to leave
+// the user stuck: startLogin threw on `undefined.replace(...)` inside an
+// un-awaited, uncaught async click handler, so clicking "Sisene süsteemi"
+// silently did nothing and clicking it again did the same, looking like an
+// infinite loop with no feedback. Now any failure surfaces a clear message
+// instead of failing silently.
+async function startLogin(
+  intent: LoginIntent,
+  onError: (messageKey: string) => void,
+) {
   // Persist intent so AuthCallback can pre-select the right role after
   // the TARA redirect round-trip (sessionStorage survives redirects within
   // the same tab).
   sessionStorage.setItem('loginIntent', intent);
 
-  // redirect_uri tells TIM (and TARA) where to send the authorization
-  // code after authentication. This is a frontend route — AuthCallback
-  // picks up code+state and forwards them to Ruuter.
-  const redirectUri = `${window.location.origin}/auth/callback`;
-  const res = await fetch(
-    `/tim/auth/login/tara?redirect_uri=${encodeURIComponent(redirectUri)}`,
-  );
-  const data = await res.json();
-  let authUrl: string = data.authorization_url;
-  // In dev, TIM returns a Docker-internal tara-mock URL that the browser
-  // can't reach directly. Rewrite it to go through the local dev proxy.
-  // In production the IdP URL is already public — the regex is a no-op.
-  authUrl = authUrl.replace(
-    /https?:\/\/tara-mock:\d+/,
-    `${window.location.origin}/tara`,
-  );
-  window.location.href = authUrl;
+  try {
+    // redirect_uri tells TIM (and TARA) where to send the authorization
+    // code after authentication. This is a frontend route — AuthCallback
+    // picks up code+state and forwards them to Ruuter.
+    const redirectUri = `${window.location.origin}/auth/callback`;
+    const res = await fetch(
+      `/tim/auth/login/tara?redirect_uri=${encodeURIComponent(redirectUri)}`,
+    );
+    const data = await res.json().catch(() => null);
+    const authorizationUrl = data?.authorization_url;
+    if (!res.ok || typeof authorizationUrl !== 'string' || !authorizationUrl) {
+      throw new Error(
+        `TARA login unavailable: HTTP ${res.status}, authorization_url=${authorizationUrl}`,
+      );
+    }
+    // In dev, TIM returns a Docker-internal tara-mock URL that the browser
+    // can't reach directly. Rewrite it to go through the local dev proxy.
+    // In production the IdP URL is already public — the regex is a no-op.
+    const authUrl = authorizationUrl.replace(
+      /https?:\/\/tara-mock:\d+/,
+      `${window.location.origin}/tara`,
+    );
+    window.location.href = authUrl;
+  } catch (err) {
+    sessionStorage.removeItem('loginIntent');
+    console.error('TARA login start failed', err);
+    onError('auth.taraUnavailable');
+  }
 }
 
 export function LoginPage() {
   const { t } = useTranslation();
+  const { showMessage } = useErrorContext();
   const [showFullDescription, setShowFullDescription] = useState(false);
   const footerProps = useFooterProps();
+  const handleLoginError = (messageKey: string) =>
+    showMessage(messageKey, 'error');
 
   return (
     <div className={styles['login-page-main']}>
@@ -129,7 +155,7 @@ export function LoginPage() {
                   <Button
                     id="Default"
                     visualType="secondary"
-                    onClick={() => startLogin('citizen')}
+                    onClick={() => startLogin('citizen', handleLoginError)}
                     className={styles['login-button']}
                   >
                     {t('auth.login')}
@@ -162,7 +188,7 @@ export function LoginPage() {
                   <Button
                     id="Default"
                     visualType="secondary"
-                    onClick={() => startLogin('officer')}
+                    onClick={() => startLogin('officer', handleLoginError)}
                     className={styles['login-button']}
                   >
                     {t('auth.login')}

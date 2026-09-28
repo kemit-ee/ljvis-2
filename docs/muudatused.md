@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-09-28
+
+### Sisselogimine ei jää enam vaikimisi rippuma, kui TARA ei vasta
+
+- Kui TARA autentimisteenus on seadistamata või ei vasta, kuvatakse nüüd
+  selge teade „Ei suuda ühenduda TARA'ga" — varem ei näinud kasutaja
+  sisselogimisel nuppu vajutades midagi juhtuvat (viga jäi konsooli) ja
+  TARA-lt vea tagasitulekul suunati vaikimisi tagasi sisselogimislehele
+  ilma põhjuseta, mis nägi välja nagu sisselogimine jääks lõputult ringi
+  käima.
+
 ## 2026-09-25
 
 ### Välisriigi rikkumise vormi saatmise logi viga
