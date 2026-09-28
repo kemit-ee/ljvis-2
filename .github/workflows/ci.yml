@@ -90,10 +90,16 @@ jobs:
           python3 - <<'EOF'
           import yaml, glob, sys
 
+          # Data-carrying step keys: a `next`/`error` inside them (e.g. `error: FORBIDDEN`
+          # in a `return:` payload) is not a step reference. Same rule as scripts/validate-dsl.py.
+          PAYLOAD_KEYS = {'return', 'args', 'body', 'headers', 'assign'}
+
           def collect_next_refs(obj):
               refs = set()
               if isinstance(obj, dict):
                   for k, v in obj.items():
+                      if k in PAYLOAD_KEYS:
+                          continue
                       if k in ('next', 'error') and isinstance(v, str):
                           refs.add(v)
                       else:
@@ -107,7 +113,7 @@ jobs:
               if isinstance(obj, dict):
                   if 'next' in obj:
                       return True
-                  return any(has_next_key(v) for v in obj.values())
+                  return any(has_next_key(v) for k, v in obj.items() if k not in PAYLOAD_KEYS)
               elif isinstance(obj, list):
                   return any(has_next_key(item) for item in obj)
               return False

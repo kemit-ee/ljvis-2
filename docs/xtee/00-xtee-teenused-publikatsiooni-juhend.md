@@ -637,7 +637,7 @@ curl -v -X POST "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/IsikuKontroll/v
 
 **DSL:** `DSL/Ruuter.internal/ljvis/GET/xroad/provide/openapi.yml`
 
-Sama Ruuter.internal komponent serveerib [XroadOpenapi.yaml](XroadOpenapi.yaml) sisu muutmata kujul GET-päringu peale. Turvaserver saab selle URL-i registreerida REST-teenuse **kirjeldusena** ja lepingut sealt automaatselt värskendada, selle asemel et OpenAPI faili käsitsi üles laadida.
+Sama Ruuter.internal komponent serveerib [XroadOpenapi.yaml](XroadOpenapi.yaml) sisu GET-päringu peale JSON-kujul (`Content-Type: application/json`, ilma Ruuteri `{"response": …}` ümbriseta) — sisuliselt sama dokument, mida Swagger UI/Editor ja turvaserver otse parsivad. Turvaserver saab selle URL-i registreerida REST-teenuse **kirjeldusena** ja lepingut sealt automaatselt värskendada, selle asemel et OpenAPI faili käsitsi üles laadida.
 
 **URL turvaserveri jaoks (DEV, hosti aadress):**
 ```
@@ -668,5 +668,5 @@ http://ruuter-internal:8080/ljvis/xroad/provide/openapi
 **Testimine:**
 ```bash
 curl -v "http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/openapi"
-# Oodatav: HTTP 200, kogu XroadOpenapi.yaml sisu tekstina
+# Oodatav: HTTP 200, XroadOpenapi.yaml sisu JSON-objektina, mis algab {"components":…,"info":…,"openapi":"3.0.3",…}
 ```

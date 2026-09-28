@@ -4,6 +4,31 @@
 
 ---
 
+## 2026-09-28
+
+### Tarne kontroll ei peata enam X-tee teenusekirjelduse tõttu
+
+- Automaatne DSL-i kontroll ei käsitle enam X-tee OpenAPI teenusekirjelduse
+  näidisvastustes olevaid veakoode (nt „FORBIDDEN") vooviidetena, mistõttu
+  tarne ei katke enam valeveaga. Päris katkised vooviited leitakse endiselt.
+
+### Sisselogimine ei jää enam vaikimisi rippuma, kui TARA ei vasta
+
+- Kui TARA autentimisteenus on seadistamata või ei vasta, kuvatakse nüüd
+  selge teade „Ei suuda ühenduda TARA'ga" — varem ei näinud kasutaja
+  sisselogimisel nuppu vajutades midagi juhtuvat (viga jäi konsooli) ja
+  TARA-lt vea tagasitulekul suunati vaikimisi tagasi sisselogimislehele
+  ilma põhjuseta, mis nägi välja nagu sisselogimine jääks lõputult ringi
+  käima.
+### X-tee OpenAPI kirjeldus on nüüd Swaggerile ja turvaserverile loetav
+
+- `/ljvis/xroad/provide/openapi` tagastas seni kirjelduse YAML-tekstina
+  Ruuteri `{"response": "…"}` ümbrise sees, mistõttu Swagger UI/Editor ega
+  turvaserver ei saanud seda OpenAPI dokumendina lugeda. Nüüd tagastatakse
+  kirjeldus ise JSON-objektina.
+- Parandatud ErakorralineYVconfirm 400-vastuse näide, kus teate tekstis
+  olnud koma lõhkus näiteobjekti.
+
 ## 2026-09-25
 
 ### Välisriigi rikkumise vormi saatmise logi viga

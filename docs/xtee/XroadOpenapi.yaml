@@ -372,7 +372,7 @@ paths:
                 emptyItems:
                   value: {error: MISSING_PARAMETER, message: confirmed.item must be a non-empty array}
                 missingFields:
-                  value: {error: INVALID_PARAMETER, message: Each item requires inspection_id, code and value}
+                  value: {error: INVALID_PARAMETER, message: 'Each item requires inspection_id, code and value'}
                 badCode:
                   value: {error: INVALID_PARAMETER, message: 'code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS'}
         '403':

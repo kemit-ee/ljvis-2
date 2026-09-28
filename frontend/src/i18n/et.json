@@ -19,7 +19,9 @@
     "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest.",
     "roleLabel": "Vaade",
     "roleOfficer": "Ametnik",
-    "roleCitizen": "Kodanik"
+    "roleCitizen": "Kodanik",
+    "taraUnavailable": "Ei suuda ühenduda TARA'ga. Autentimisteenus ei vasta või ei ole seadistatud — palun proovi mõne aja pärast uuesti või anna probleemist teada süsteemihaldurile.",
+    "backToLogin": "Tagasi sisselogimisse"
   },
   "countries": {
     "AD": "Andorra",

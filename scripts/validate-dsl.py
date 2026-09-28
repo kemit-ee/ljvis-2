@@ -43,11 +43,18 @@ def ruuter_files() -> list[str]:
     return sorted(found)
 
 
+# Step keys that carry data, not control flow. A `next`/`error` key inside them
+# (e.g. `error: FORBIDDEN` in a `return:` payload example) is not a step reference.
+PAYLOAD_KEYS = frozenset({"return", "args", "body", "headers", "assign"})
+
+
 def collect_next_refs(obj) -> set[str]:
-    """Every string value of a `next` or `error` key, at any depth."""
+    """Every string value of a `next` or `error` key, at any depth outside data payloads."""
     refs: set[str] = set()
     if isinstance(obj, dict):
         for key, value in obj.items():
+            if key in PAYLOAD_KEYS:
+                continue
             if key in ("next", "error") and isinstance(value, str):
                 refs.add(value)
             else:
@@ -62,7 +69,7 @@ def has_next_key(obj) -> bool:
     if isinstance(obj, dict):
         if "next" in obj:
             return True
-        return any(has_next_key(v) for v in obj.values())
+        return any(has_next_key(v) for k, v in obj.items() if k not in PAYLOAD_KEYS)
     if isinstance(obj, list):
         return any(has_next_key(item) for item in obj)
     return False

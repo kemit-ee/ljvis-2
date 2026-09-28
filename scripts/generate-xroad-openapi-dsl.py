@@ -2,10 +2,12 @@
 """Regenerate the X-Road provider OpenAPI DSL route from the source contract.
 
 Ruuter DSL has no "read file from disk" step, so the security-server-facing
-GET /ljvis/xroad/provide/openapi route embeds the OpenAPI 3.0 contract
-verbatim as a `return:` block scalar. This script keeps that copy in sync
-with the canonical docs/xtee/XroadOpenapi.yaml. Run --check in CI to detect
-drift between the two.
+GET /ljvis/xroad/provide/openapi route embeds the OpenAPI 3.0 contract as a
+YAML mapping under `return:` with `wrapper: false`, so Ruuter serves the
+contract itself as JSON. A block scalar (`return: |`) would be served as
+{"response": "<yaml text>"}, which Swagger and the security server cannot
+parse. This script keeps that copy in sync with the canonical
+docs/xtee/XroadOpenapi.yaml. Run --check in CI to detect drift between the two.
 """
 import sys
 from pathlib import Path
@@ -28,7 +30,8 @@ HEADER = '''declaration:
 
 returnOpenapi:
   status: 200
-  return: |
+  wrapper: false
+  return:
 '''
 
 FOOTER = '''
