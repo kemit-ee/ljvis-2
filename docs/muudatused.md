@@ -6,6 +6,13 @@
 
 ## 2026-09-28
 
+### Admini paigaldusjuhendisse lisatud superadmini loomise juhis
+
+- [`docs/workingdocs/admin-deployment-guide.md`](workingdocs/admin-deployment-guide.md)
+  sai uue peatüki "Esimese superadmini loomine": SQL-skript, millega admin
+  saab pärast esmast paigaldust luua esimese peakasutaja (koos näidispäringuga
+  asutuste koodide vaatamiseks, nt Kliimaministeeriumi leidmiseks).
+
 ### Vedajale saadetava rikkumisteavituse mall uuendatud
 
 - Postkast 2.0 kaudu veoettevõtjale saadetava raske rikkumise teavituse
