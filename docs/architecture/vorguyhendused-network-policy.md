@@ -36,7 +36,7 @@ Kõik komponendid on ClusterIP Service'id namespace'is `ljvis2-<env>`. Service n
 | `nysiis` | 8080 → 8080 | ERRU NYSIIS võtme arvutus (Java sidecar) | ei |
 | `pdf-creator` | 3020 → 3020 | PDF-i genereerimine (WeasyPrint, väliseid ressursse ei laadi — `url_fetcher=deny_resources`) | ei |
 | `cronmanager` | 8080 → 8080 | ajastatud tööd (curl → ruuter-internal) | ei |
-| `stesta-gateway` | 443 → 8443 (TLS), health 8081 | ERRU/MOVEHUB sissetulevate callback'ide TLS-värav | jah, AWS Target Group `ljvis2-nonlive-stesta-443` (hetkel **prelive**; üks env korraga) |
+| `stesta-gateway` | 443 → 8443 (TLS), health 8081 | ERRU/MOVEHUB sissetulevate callback'ide TLS-värav | jah, AWS Target Group `ljvis2-nonlive-stesta-443` (hetkel **test** / demo.liiklusvalve.ee stack; üks env korraga) |
 | Liquibase Job (resql-ljvis chart, Argo sync-wave −1) | — | skeemimigratsioon | ei |
 
 Lokaalses docker-compose'is olevad `database`, `tim-postgresql`, `tara-mock`,
@@ -301,5 +301,5 @@ Teised komponendid samal mustril tabelite 3 ja 4 järgi.
 | 4 | `xtr` → `ariregxmlv6.rik.ee` on otse-HTTPS, mitte X-tee. | Teadlik erand; lubada eraldi. |
 | 5 | ERRU väljaminev (`ruuter` → `webgate.acceptance.ec.testa.eu`) — `constants.ini` kommentaar ütleb, et toodangus peaks see käima XTR-i ERRU liidese kaudu, devops allowlist lubab aga Ruuterist otse. | Kinnitada tegelik tee (SSM `constants.ini` `ERRU_*_ENDPOINT` väärtused) ja kas webgate on avalikust internetist või ainult sTESTA kaudu ligipääsetav. |
 | 6 | `LJVIS_RESQL_ARHIIV` (ADR-010, `ljvis_arhiiv_db`) — resql-ljvis chartis on ainult datasource `ljvis`. | Kui arhiivibaas tuleb eraldi RDS-i/hosti, lisada ka see resql egressi. |
-| 7 | `stesta-gateway` on prelive'is (shared TG `ljvis2-nonlive-stesta-443`). | Teise nonlive env peale viimiseks: ApplicationSet `env`, `values-<env>.yaml`, SSM TLS copy; korraga ainult üks namespace. |
+| 7 | `stesta-gateway` on test-is / demo.liiklusvalve.ee stackis (shared TG `ljvis2-nonlive-stesta-443`). | Teise nonlive env peale viimiseks: ApplicationSet `env`, `values-<env>.yaml`, SSM TLS copy; korraga ainult üks namespace. |
 | 8 | Live-keskkonnas muutuvad: TARA → `tara.ria.ee`, X-tee instance `ee`, turvaserver, ERRU hub (acceptance → live). | Uuendada p 5 tabel enne live'i. |
