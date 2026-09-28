@@ -119,26 +119,42 @@ logNetworkFailure:
   error: returnNotFound
   next: returnNotFound
 
-# Sama sidevahendite-parsimise loogika mis varem publish.yml
-# extractCarrierEmail-is — vt sealne TÄHELEPANU-kommentaar: JSON-tee pärast
-# XTR SOAP->JSON teisendust ei ole päris X-tee vastuse vastu valideeritud.
+# Päris X-tee (arireg.detailandmed_v1) SOAP->JSON vastus mähib kõik väljad
+# ümber 'ns1:detailandmed_v1Response.ns1:keha...' ja iga võti on 'ns1:'
+# prefiksiga (nt 'ns1:sidevahendid', mitte 'sidevahendid') — algne loogika
+# eeldas prefiksita võtmeid ja mängis seetõttu alati tühja, mistõttu email
+# jäi alati "määramata", kuigi äriregistris oli olemas.
+# 'g' loeb välja nii prefiksiga kui ilma, et see toimiks ka vanade
+# testide/mockide prefiksita näidisandmetega.
 extractEmail:
   assign:
     carrier_email: >-
       ${(() => {
         var body = carrierRegistryRes.response && carrierRegistryRes.response.body;
         if (!body) return '';
-        var list = body.ettevotjad || (body.keha && body.keha.ettevotjad) || body.item || body;
-        var company = Array.isArray(list) ? list[0] : list;
+        var g = function(obj, name) {
+          if (!obj) return undefined;
+          return obj[name] !== undefined ? obj[name] : obj['ns1:' + name];
+        };
+        var resp = g(body, 'detailandmed_v1Response') || body;
+        var keha = g(resp, 'keha') || resp;
+        var ettevotjad = g(keha, 'ettevotjad') || keha;
+        var itemNode = g(ettevotjad, 'item') || ettevotjad;
+        var company = Array.isArray(itemNode) ? itemNode[0] : itemNode;
         if (!company) return '';
-        var yld = company.yldandmed || company;
-        var sv = (yld && yld.sidevahendid) || company.sidevahendid;
-        if (sv && sv.item) sv = sv.item;
-        var svList = Array.isArray(sv) ? sv : (sv ? [sv] : []);
-        var match = svList.find(function(s) {
-          return s && typeof s.liik === 'string' && s.liik.toUpperCase().indexOf('EMAIL') !== -1;
+        var yld = g(company, 'yldandmed') || company;
+        var sv = g(yld, 'sidevahendid') || g(company, 'sidevahendid');
+        var svItem = sv ? (g(sv, 'item') || sv) : null;
+        var svList = Array.isArray(svItem) ? svItem : (svItem ? [svItem] : []);
+        var matches = svList.filter(function(s) {
+          var liik = g(s, 'liik');
+          return s && typeof liik === 'string' && liik.toUpperCase().indexOf('EMAIL') !== -1;
         });
-        return (match && (match.sisu || match.vaartus || match.value)) || '';
+        // eelista kirjet, millel ei ole lõppkuupäeva (praegu kehtiv)
+        var active = matches.find(function(s) { return !g(s, 'lopp_kpv'); });
+        var match = active || matches[0];
+        if (!match) return '';
+        return g(match, 'sisu') || g(match, 'vaartus') || g(match, 'value') || '';
       })()}
   next: returnResult
 

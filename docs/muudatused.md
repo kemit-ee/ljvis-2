@@ -6,6 +6,18 @@
 
 ## 2026-09-28
 
+### Äriregistri e-posti otsing tunneb ära ka X-tee reaalse vastuse kuju
+
+- Välisriigi rikkumise kontrollkaardil kuvati vedaja äriregistri e-post
+  ikka „e-post äriregistrist määramata", kuigi äriregistris (Ariregister,
+  `arireg.detailandmed_v1`) oli email tegelikult olemas. Põhjus: e-posti
+  parsimisloogika eeldas prefiksita väljanimesid (nt `sidevahendid`), aga
+  X-tee SOAP->JSON teisendusel on kõik väljad `ns1:`-prefiksiga ja mässitud
+  `ns1:detailandmed_v1Response.ns1:keha...` ümber — nii ebaõnnestus
+  parsimine alati vaikimisi. Sama loogika toimib ka vedajale saadetavas
+  rikkumisteavituses (Postkast 2.0), nii et ka teavitus jõuab nüüd õigele
+  aadressile, kui äriregistris email olemas on.
+
 ### Admini paigaldusjuhendisse lisatud superadmini loomise juhis
 
 - [`docs/workingdocs/admin-deployment-guide.md`](workingdocs/admin-deployment-guide.md)
