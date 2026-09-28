@@ -6,6 +6,19 @@
 
 ## 2026-09-28
 
+### Kodanikuna sisselogimisel kuvatakse päises nüüd ees- ja perekonnanimi
+
+- Kui kasutaja logib TARA kaudu sisse ilma LJVIS-i ametniku kontota
+  (kodanikuna), kuvas päis seni ainult isikukoodi, kuigi tagasilangemis-
+  loogika TARA enda nimeväidetele oli juba varem olemas. Põhjus polnud
+  LJVIS2 koodis, vaid TIM-i (autentimisteenuse) seadistuses: nii kohalik
+  dev-seadistus kui ka päris-TARA keskkonnad (dev, test, prelive — vt
+  ljvis2-devops repo) lugesid nime valelt kohalt
+  (`profile_attributes.given_name`/`family_name`), aga TARA ID-tokenis on
+  need tipptaseme väljad. Vt ka
+  [`docker/tim/tim.yaml`](../docker/tim/tim.yaml) parandust; päris
+  keskkondade seadistus parandatakse eraldi ljvis2-devops repos.
+
 ### Kasutaja loomisel täidetakse ees- ja perekonnanimi isikukoodi järgi Rahvastikuregistrist
 
 - Kasutaja loomise vormil (Kasutajad → Lisa kasutaja) täidetakse eesnimi ja
