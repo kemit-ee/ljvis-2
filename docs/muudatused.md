@@ -19,6 +19,14 @@
   [`docker/tim/tim.yaml`](../docker/tim/tim.yaml) parandust; päris
   keskkondade seadistus parandatakse eraldi ljvis2-devops repos.
 
+### Kasutaja loomisel täidetakse ees- ja perekonnanimi isikukoodi järgi Rahvastikuregistrist
+
+- Kasutaja loomise vormil (Kasutajad → Lisa kasutaja) täidetakse eesnimi ja
+  perekonnanimi nüüd automaatselt Rahvastikuregistrist (RR), kui isikukoodi
+  väljale on sisestatud kehtiv 11-numbriline Eesti isikukood. Lisaks on
+  isikukoodi välja kõrval "Otsi" nupp otsingu käsitsi käivitamiseks, kui
+  automaatne täitmine mingil põhjusel ei käivitu. Kasutab sama X-tee RR
+  päringut, mida juba kasutab ADR-vormi autojuhi abilise otsing.
 ### Postkasti mallide ja vastuvõtjate seadetes selgemad väljanimed ja teavituse käivitajad
 
 - Halduse „Postkasti mallide ja vastuvõtjate seaded" nimekirjas ja

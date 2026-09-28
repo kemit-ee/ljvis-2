@@ -19,6 +19,9 @@ import { useClassifiers } from '../classifiers/ClassifierProvider';
 import { applyValidationError } from '../../shared/api/errors';
 import { hasStatus } from '../../hooks/statusUtils';
 import { toIsoDate } from '../../hooks/dateUtils';
+import { usePersonSearch } from '../xroad/hooks/usePersonSearch';
+
+const EE_PERSONAL_CODE_REGEX = /^[1-6][0-9]{10}$/;
 
 const LOCAL_ADMIN_GROUP = 'Local Admin Group';
 const SUPER_ADMIN_GROUP = 'Super Admin Group';
@@ -195,6 +198,28 @@ export function useUserForm(
     },
   });
 
+  const {
+    searchByPersonalCode,
+    loading: personSearchLoading,
+    error: personSearchError,
+    setError: setPersonSearchError,
+    notFound: personSearchNotFound,
+    setNotFound: setPersonSearchNotFound,
+  } = usePersonSearch({
+    onPersonFound: (person) => {
+      formik.setFieldValue('firstName', person.firstName);
+      formik.setFieldValue('lastName', person.lastName);
+    },
+  });
+
+  useEffect(() => {
+    if (isEdit || !enabled) return;
+    if (EE_PERSONAL_CODE_REGEX.test(formik.values.personalCode)) {
+      searchByPersonalCode(formik.values.personalCode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formik.values.personalCode, isEdit, enabled]);
+
   const orgOptions = organisations.map((o) => ({
     label: o.name,
     value: String(o.id),
@@ -247,5 +272,11 @@ export function useUserForm(
     handleOrgChange,
     handleStructuralUnitChange,
     isLocalAdmin,
+    searchByPersonalCode,
+    personSearchLoading,
+    personSearchError,
+    setPersonSearchError,
+    personSearchNotFound,
+    setPersonSearchNotFound,
   };
 }
