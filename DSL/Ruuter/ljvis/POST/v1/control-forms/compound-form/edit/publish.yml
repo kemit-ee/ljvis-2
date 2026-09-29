@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Publish (avalikusta) compound form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) compound form. Only allowed once every active sub-form is published (the general part is never published on its own). Form field values are taken from the current database record — client only provides the id."
   namespace: control-forms
   allowlist:
     body:
@@ -31,6 +31,27 @@ checkFound:
   switch:
     - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
       next: returnNotFound
+  next: getSubFormPublishState
+
+# Üldosa avalikustub ainult siis, kui viimane alamvorm on avalikustatud:
+# vähemalt üks aktiivne alamvorm ja ükski neist pole avalikustamata.
+getSubFormPublishState:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get-subform-publish-state"
+    headers:
+      type: json
+    body:
+      compoundFormKey: ${id}
+  result: subFormStateRes
+  next: checkSubFormsPublished
+
+checkSubFormsPublished:
+  switch:
+    - condition: ${subFormStateRes.response == null || subFormStateRes.response.status < 200 || subFormStateRes.response.status >= 300 || subFormStateRes.response.body == null || subFormStateRes.response.body.length !== 1}
+      next: returnResqlWriteError
+    - condition: ${Number(subFormStateRes.response.body[0].totalCount) === 0 || Number(subFormStateRes.response.body[0].unpublishedCount) > 0}
+      next: returnSubFormsNotPublished
   next: extractCurrentFormData
 
 extractCurrentFormData:
@@ -188,4 +209,9 @@ check_publishRes_persisted:
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
+  next: end
+
+returnSubFormsNotPublished:
+  status: 422
+  return: '{"type":"SUBFORMS_NOT_PUBLISHED","code":"subforms_not_published","message":"Koondvormi üldosa saab avalikustada alles siis, kui kõik alamvormid on avalikustatud"}'
   next: end

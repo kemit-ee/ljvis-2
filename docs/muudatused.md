@@ -4,6 +4,26 @@
 
 ## 2026-09-30
 
+### Koondvormi üldosa avalikustub ainult koos viimase alamvormiga
+
+- Koondvormi üldosa ei saa enam eraldi avalikustada: see õnnestub alles siis, kui
+  kõik alamvormid (v.a kustutatud) on avalikustatud. Muidu tagastab teenus
+  vea `subforms_not_published` (422). Kasutaja jaoks käitub üldosa nagu
+  varem — avalikustub automaatselt viimase alamvormi avalikustamisel.
+
+### Koondvorm: haagise tehnokaardi „Kontrollitud" ja tehnovead töötavad haagise enda kaardil
+
+- Haagise tehnokaardil ei saanud osa „Kontrollitud" märkida ning valitud tehnovea
+  märkimine mõjus sõiduki kaardile, mistõttu haagis jäi tulemuseks „Korras".
+  Nüüd salvestuvad osade märked ja tehnovead selle kaardi enda andmetesse, kus
+  neid tehti.
+
+### Sõidu- ja puhkeaja kontrollkaart: nõuete kontrolli plokk on vaikimisi avatud
+
+- „Sõidu- ja puhkeaja nõuete kontroll" akordion avaneb kaardil automaatselt, et
+  selles olevat kohustuslikku välja (rakendatakse / ei rakendata / ei kontrollitud)
+  ei jääks kogemata täitmata.
+
 ### Välisriigi rikkumise kontrollkaart: NCR andmete ülekanne ja teavituse linnuke
 
 - NCR teatest loodud kaardil kuvatakse iga MSI/VSI/SI rikkumise ees välisriigis

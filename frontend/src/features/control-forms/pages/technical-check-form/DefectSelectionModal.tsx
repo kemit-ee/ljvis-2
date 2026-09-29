@@ -9,6 +9,8 @@ interface DefectSelectionModalProps {
   open: boolean;
   onClose: () => void;
   partCode: string | null;
+  /** Unique per mounted form — see PartsSummaryTable.idPrefix. */
+  idPrefix?: string;
   partName: string;
   defects: ClassifierEntry[];
   existingDefects: PartDefectEntry[];
@@ -21,6 +23,7 @@ export function DefectSelectionModal({
   open,
   onClose,
   partCode,
+  idPrefix = '',
   partName,
   defects,
   existingDefects,
@@ -70,8 +73,8 @@ export function DefectSelectionModal({
             return (
               <div key={defect.code} className="mb-1">
                 <ChoiceGroup
-                  id={`defect-${defect.code}`}
-                  name={`defect-${defect.code}`}
+                  id={`${idPrefix ? `${idPrefix}-` : ''}defect-${defect.code}`}
+                  name={`${idPrefix ? `${idPrefix}-` : ''}defect-${defect.code}`}
                   label={defect.name}
                   // Checkbox look, single-select: picking a severity replaces the
                   // previous one, clicking the selected box again clears it — so
