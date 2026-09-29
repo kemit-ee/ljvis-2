@@ -107,10 +107,14 @@ export const STORAGE_STATE = {
   superadmin: resolve(__dirname, 'tulemus/.auth/superadmin.json'),
   officer: resolve(__dirname, 'tulemus/.auth/officer.json'),
   noperm: resolve(__dirname, 'tulemus/.auth/noperm.json'),
+  compoundonly: resolve(__dirname, 'tulemus/.auth/compoundonly.json'),
+  nocompound: resolve(__dirname, 'tulemus/.auth/nocompound.json'),
 };
 
 export const TEST_USERS = {
   superadmin: '60001019906',
   officer: '60002020202',
   noperm: '60001017869',
+  compoundonly: '60003030303',
+  nocompound: '60004040404',
 };
