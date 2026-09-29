@@ -302,8 +302,8 @@ Migratsioon: `20260828240000-initial-erru-ncr-classifiers.sql`
 ### NCR_RESPONSE_STATUS
 | Kood | Nimi |
 |---|---|
-| OK | Transport undertaking leitud |
-| NotFound | Transport undertakingut ei leitud |
+| OK | Leitud |
+| NotFound | Ei leitud |
 
 ### NCR_ACK_STATUS
 | Kood | Nimi |

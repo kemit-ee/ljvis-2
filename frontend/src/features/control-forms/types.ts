@@ -75,6 +75,8 @@ export interface ForeignViolationFormViolation {
   /** EU 1071/2009 violation code, e.g. "MSI101", "VSI819", "SI912". */
   code: string;
   sanctionCode?: string;
+  /** ERRU penaltyTypeRequested koodid (101, 301–307), mida välisriik taotles. */
+  requestedPenaltyCodes?: string[];
   sanctionNotes?: string;
   recommendedMeasureCode?: string;
   recommendedMeasureNotes?: string;

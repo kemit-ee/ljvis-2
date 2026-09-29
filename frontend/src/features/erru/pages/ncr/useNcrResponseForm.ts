@@ -8,6 +8,9 @@ import { applyValidationError } from '../../../../shared/api/errors';
 
 const T = 'erru.ncr.validation';
 
+/** Vaikimisi vastust esitav / karistuse määranud pädev asutus (Kliimaministeerium). */
+const DEFAULT_AUTHORITY = 'KLIM';
+
 /**
  * Editable Estonian response draft to an incoming NCR message (LJVIS2-63 §4). Only used
  * while the case is status='viewed' or 'answer_drafted'. One responsePenaltiesImposed row
@@ -34,7 +37,7 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
     (id) =>
       existingByRequestedId.get(id) ?? {
         penaltyRequestedIdentifier: id,
-        authorityImposingPenalty: '',
+        authorityImposingPenalty: DEFAULT_AUTHORITY,
         isImposed: false,
         penaltyTypeImposed: null,
       },
@@ -48,6 +51,7 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
     // Also validated server-side (imposed_penalty_type_missing).
     responsePenaltiesImposed: Yup.array().of(
       Yup.object({
+        reason: Yup.string().nullable().max(500),
         penaltyTypeImposed: Yup.string()
           .nullable()
           .when('isImposed', {
@@ -62,7 +66,7 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      respondingAuthority: message?.respondingAuthority ?? '',
+      respondingAuthority: message?.respondingAuthority ?? DEFAULT_AUTHORITY,
       responseStatusCode: message?.responseStatusCode ?? 'OK',
       responseStatusMessage: message?.responseStatusMessage ?? '',
       responseNumberOfVehicles:
@@ -99,9 +103,19 @@ export function useNcrResponseForm(message: NcrMessage | undefined, onSaved: (bu
   });
 
   const updatePenalty = (index: number, patch: Partial<NcrResponsePenaltyImposed>) => {
-    const items = formik.values.responsePenaltiesImposed.map((p, i) =>
-      i === index ? { ...p, ...patch, penaltyTypeImposed: patch.isImposed === false ? null : (patch.penaltyTypeImposed ?? p.penaltyTypeImposed) } : p,
-    );
+    const items = formik.values.responsePenaltiesImposed.map((p, i) => {
+      if (i !== index) return p;
+      const next = { ...p, ...patch };
+      // "Karistus määratud" Ei: tühjenda liik ja kuupäevad; Jah: tühjenda määramata jätmise põhjus.
+      if (patch.isImposed === false) {
+        next.penaltyTypeImposed = null;
+        next.startDate = null;
+        next.endDate = null;
+      } else if (patch.isImposed === true) {
+        next.reason = null;
+      }
+      return next;
+    });
     formik.setFieldValue('responsePenaltiesImposed', items);
   };
 

@@ -68,8 +68,8 @@ Kui sihtliikmesriik on vastanud, ilmub vaatamisvaates **vastuseplokk**:
 | Veoettevõtja aadress | Tänav, sihtnumber, linn, riik |
 | Ühenduse tegevusloa olek | Kehtiv / kehtetuks tunnistatud / peatatud |
 | Sõidukite arv | Vastuses märgitud sõidukite arv |
-| Vastuse olek | `NCR_RESPONSE_STATUS` klassifikaatorist |
-| **Kehtestatud karistused** | Iga karistuse kohta: määranud asutus, karistuse liik (`NCR_PENALTY_TYPE_IMPOSED_REQ`), kehtivuse algus, lõpp, määramata jätmise põhjus |
+| Vastuse olek | `NCR_RESPONSE_STATUS` klassifikaatorist: Leitud / Ei leitud |
+| **Määratud karistus** | Iga taotletud karistuse kohta: tunnus, karistuse määranud pädev asutus (vaikimisi Kliimaministeerium), karistus määratud (jah/ei), määratud karistuse liik (`NCR_PENALTY_TYPE_IMPOSED_RES`), alguse ja lõpu kuupäev; ei-vastuse korral määramata jätmise põhjus |
 
 ## Elutsükkel
 

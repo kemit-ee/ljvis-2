@@ -5,6 +5,10 @@ data/
 .idea/
 *.iml
 
+# Local Java compilation output
+*.class
+/docker/erru-xml-adapter/out/
+
 # macOS
 .DS_Store
 

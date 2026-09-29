@@ -1,0 +1,11 @@
+<NotifyUnfitness_Request xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="79081891-f8d6-4655-97ea-d0d9c288b13e" workflowId="93c53112-9033-44f5-b3bb-a29f83f95186" sentAt="2026-09-23T09:00:00Z" from="DE" to="EE"/>
+  <Body businessCaseId="REVIEW-nu-b3299f65" originatingAuthority="DE-BAG" requestSource="CA" requestPurpose="Control">
+    <TransportManager unfitStartDate="2026-09-23">
+      <TransportManagerNameDetails>
+        <TransportManager firstName="HANS" familyName="MUELLER" dateOfBirth="1975-04-12"/>
+        <CertificateOfProfessionalCompetence certificateNumber="DE-CPC-CI-000001" certificateIssueDate="2010-05-01" certificateIssueCountry="DE"/>
+      </TransportManagerNameDetails>
+    </TransportManager>
+  </Body>
+</NotifyUnfitness_Request>

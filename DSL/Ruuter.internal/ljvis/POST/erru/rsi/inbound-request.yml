@@ -10,10 +10,10 @@ declaration:
       2. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
          index uq_rsi_inbound_technical_id).
       3. A re-delivered message yields zero rows: look up the existing snapshot by
-         technical_id and replay the stored response_status_code.
+         technical_id. Resume received rows; replay only a stored answered result.
       4. Look up the inspected vehicle in the Estonian vehicle register (Liiklusregister,
          ERRU_RSI_LIIKLUSREGISTER_ENDPOINT — mock in dev/CI, real X-tee in production).
-         EE-registered vehicles → OK; others → NotFound.
+         Only an explicit registry NotFound becomes NotFound; registry failures are retried.
       5. Store an 'answered' snapshot with the response_status_code.
       6. Write audit (rsi.inbound_request.serve) directly to Resql — ruuter-internal
          cannot reach the main Ruuter instance's GET/templates/audit chain.
@@ -21,7 +21,7 @@ declaration:
     Unlike CGR inbound, RSI has no Heartbeat handling (per LJVIS2-146 §Testimine: RSI
     does not use the Heartbeat requestPurpose — the notification channel carries only
     real inspection events). Response shape matches the ERRU RSI response XSD: a single
-    statusCode (OK/NotFound) plus optional vehicleDetails.
+    statusCode (OK/NotFound). Vehicle details are internal lookup data, not RSI XML.
 
     Idempotency: uq_rsi_inbound_technical_id partial unique index ensures re-delivered
     messages do not create duplicate snapshots.
@@ -70,6 +70,20 @@ declaration:
         type: string
       - field: checkedItems
         type: string
+      - field: driverFirstName
+        type: string
+      - field: driverFamilyName
+        type: string
+      - field: driverLicenceNumber
+        type: string
+      - field: driverLicenceCountry
+        type: string
+      - field: odometerReading
+        type: string
+      - field: inspectionIdentifier
+        type: string
+      - field: identificationDetails
+        type: string
 
 validateEnvelope:
   switch:
@@ -110,6 +124,13 @@ extractRequestData:
     pti_requested: "${('' + (incoming.body.ptiRequested || '')).trim()}"
     vehicle_prohibition: "${('' + (incoming.body.vehicleProhibitionOrRestriction || '')).trim()}"
     checked_items: "${('' + (incoming.body.checkedItems || '[]')).trim()}"
+    driver_first_name: "${('' + (incoming.body.driverFirstName || '')).trim()}"
+    driver_family_name: "${('' + (incoming.body.driverFamilyName || '')).trim()}"
+    driver_licence_number: "${('' + (incoming.body.driverLicenceNumber || '')).trim()}"
+    driver_licence_country: "${('' + (incoming.body.driverLicenceCountry || '')).trim().toUpperCase()}"
+    odometer_reading: "${('' + (incoming.body.odometerReading || '')).trim()}"
+    inspection_identifier: "${('' + (incoming.body.inspectionIdentifier || '')).trim()}"
+    identification_details: "${('' + (incoming.body.identificationDetails || '')).trim()}"
   next: storeReceived
 
 storeReceived:
@@ -138,6 +159,13 @@ storeReceived:
       ptiRequested: ${pti_requested}
       vehicleProhibitionOrRestriction: ${vehicle_prohibition}
       checkedItems: ${checked_items}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      odometerReading: ${odometer_reading}
+      inspectionIdentifier: ${inspection_identifier}
+      identificationDetails: ${identification_details}
       created_by: "system"
   result: received_res
   next: checkStored
@@ -145,6 +173,8 @@ storeReceived:
 # Zero rows = redelivery (partial unique index uq_rsi_inbound_technical_id conflict).
 checkStored:
   switch:
+    - condition: ${received_res.response == null || received_res.response.status >= 400}
+      next: returnUnavailable
     - condition: ${received_res.response.body == null || received_res.response.body.length != 1}
       next: lookupExisting
   next: extractStored
@@ -170,7 +200,15 @@ createRsiNotification:
       body_et: "${'Teate saatnud riik: ' + rsi_from}"
       created_by: "system"
   result: notifRes
-  error: callLiiklusregister
+  error: returnUnavailable
+  next: checkNotification
+
+checkNotification:
+  switch:
+    - condition: ${notifRes.response == null || notifRes.response.status >= 400}
+      next: returnUnavailable
+    - condition: ${typeof saved_answer !== 'undefined' && saved_answer === true}
+      next: buildAudit
   next: callLiiklusregister
 
 lookupExisting:
@@ -186,12 +224,38 @@ lookupExisting:
 
 checkExisting:
   switch:
-    - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
-      next: returnInvalidData
-  next: returnReplayedAnswer
+    - condition: ${existing_res.response == null || existing_res.response.status >= 400 || existing_res.response.body == null || existing_res.response.body.length != 1}
+      next: returnUnavailable
+    - condition: ${existing_res.response.body[0].status === 'received'}
+      next: resumeLookup
+    - condition: ${existing_res.response.body[0].status !== 'answered' || !['OK', 'NotFound'].includes(existing_res.response.body[0].responseStatusCode)}
+      next: returnUnavailable
+  next: restoreSavedAnswer
+
+resumeLookup:
+  assign:
+    business_case_id: "${existing_res.response.body[0].businessCaseId}"
+    rsi_from: "${existing_res.response.body[0].rsiFrom}"
+    request_key: "${existing_res.response.body[0].id}"
+    vehicle_registration_number: "${existing_res.response.body[0].vehicleRegistrationNumber}"
+    vehicle_registration_country: "${existing_res.response.body[0].vehicleRegistrationCountry}"
+  next: createRsiNotification
+
+restoreSavedAnswer:
+  assign:
+    saved_answer: true
+    request_key: "${existing_res.response.body[0].id}"
+    business_case_id: "${existing_res.response.body[0].businessCaseId}"
+    rsi_from: "${existing_res.response.body[0].rsiFrom}"
+    vehicle_registration_number: "${existing_res.response.body[0].vehicleRegistrationNumber}"
+    vehicle_registration_country: "${existing_res.response.body[0].vehicleRegistrationCountry}"
+    resp_status_code: "${existing_res.response.body[0].responseStatusCode}"
+    resp_status_message: "${existing_res.response.body[0].responseStatusMessage || ''}"
+    resp_content: "${JSON.stringify({statusCode: existing_res.response.body[0].responseStatusCode, statusMessage: existing_res.response.body[0].responseStatusMessage || '', vehicleDetails: null})}"
+  next: createRsiNotification
 
 # Step 4: look up the vehicle in the Estonian vehicle register.
-# EE-registered vehicles → OK; others → NotFound.
+# Only an explicit registry NotFound becomes NotFound; registry failures are retried.
 callLiiklusregister:
   call: http.post
   args:
@@ -202,12 +266,13 @@ callLiiklusregister:
       vehicleRegistrationNumber: ${vehicle_registration_number}
       vehicleRegistrationCountry: ${vehicle_registration_country}
   result: lr_res
+  error: returnUnavailable
   next: checkLiiklusregisterStatus
 
 checkLiiklusregisterStatus:
   switch:
     - condition: ${lr_res.response == null || lr_res.response.status == null || lr_res.response.status >= 400}
-      next: buildErrorResponse
+      next: returnUnavailable
     - condition: ${lr_res.response.body != null && lr_res.response.body.response != null}
       next: extractLiiklusregisterEnveloped
   next: extractLiiklusregisterDirect
@@ -226,7 +291,9 @@ checkLiiklusregisterFound:
   switch:
     - condition: ${lr_body != null && lr_body.statusCode === 'OK'}
       next: buildOkResponse
-  next: buildNotFoundResponse
+    - condition: ${lr_body != null && lr_body.statusCode === 'NotFound'}
+      next: buildNotFoundResponse
+  next: returnUnavailable
 
 buildOkResponse:
   assign:
@@ -239,13 +306,6 @@ buildNotFoundResponse:
   assign:
     resp_status_code: "NotFound"
     resp_status_message: "Vehicle not found in Estonian register"
-    resp_vehicle_details: "null"
-  next: buildFullResponse
-
-buildErrorResponse:
-  assign:
-    resp_status_code: "NotFound"
-    resp_status_message: "Vehicle register lookup failed — treated as NotFound"
     resp_vehicle_details: "null"
   next: buildFullResponse
 
@@ -268,11 +328,17 @@ storeAnswered:
       errorMessage: ""
       created_by: "system"
   result: answered_res
-  next: buildAudit
+  error: returnUnavailable
+  next: checkAnswered
+
+checkAnswered:
+  switch:
+    - condition: ${answered_res.response == null || answered_res.response.status >= 400}
+      next: returnUnavailable
+  next: lookupExisting
 
 buildAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
     audit_description: "RSI sissetuleva teavituse teenindamine: juhtum ${business_case_id}, küsiv riik ${rsi_from}, sőiduk ${vehicle_registration_number}/${vehicle_registration_country}, tulemus ${resp_status_code}"
     audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, rsiFrom: rsi_from || null, vehicleRegistrationNumber: vehicle_registration_number || null, vehicleRegistrationCountry: vehicle_registration_country || null, resultStatus: resp_status_code || null})}"
   next: logAudit
@@ -280,33 +346,34 @@ buildAudit:
 logAudit:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    url: "[#LJVIS_RESQL]/erru/record-inbound-audit"
     headers:
       type: json
     body:
-      event_id: ${event_id}
       event_type: "rsi.inbound_request.serve"
-      event_category: "erru_message_exchange"
-      actor_name: "ERRU RSI inbound service"
-      actor_personal_code: ""
+      message_key: "${'' + request_key}"
       description: ${audit_description}
       log_content: ${audit_log_content}
-      organisation_id: ""
-      created_by: "system"
-      trace_id: ""
-      span_id: ""
   result: audit_result
+  error: returnUnavailable
+  next: checkAuditSaved
+
+checkAuditSaved:
+  switch:
+    - condition: ${audit_result.response == null || audit_result.response.status >= 400 || !audit_result.response.body || audit_result.response.body.length !== 1}
+      next: returnUnavailable
   next: returnAnswer
 
 returnAnswer:
   return: ${resp_content}
   next: end
 
-returnReplayedAnswer:
-  return: "${JSON.stringify({statusCode: existing_res.response.body[0].responseStatusCode || 'NotFound', statusMessage: existing_res.response.body[0].responseStatusMessage || '', vehicleDetails: null})}"
-  next: end
-
 returnInvalidData:
   status: 400
   return: '{"statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU RSI requirements"}'
+  next: end
+
+returnUnavailable:
+  status: 502
+  return: '{"statusCode":"ServerError","statusMessage":"Vehicle register lookup or notification processing is incomplete"}'
   next: end

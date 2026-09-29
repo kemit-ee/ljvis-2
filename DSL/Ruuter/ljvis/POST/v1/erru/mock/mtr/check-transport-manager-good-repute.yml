@@ -21,6 +21,8 @@ declaration:
 
 selectScenario:
   switch:
+    - condition: ${incoming.body.cpcDocumentNumber === 'EE-CPC-SLOW'}
+      next: simulateSlowRegister
     - condition: ${('' + (incoming.body.cpcDocumentNumber || '')).toUpperCase() === 'EE-CPC-2020-00111'}
       next: returnFound
     - condition: ${('' + (incoming.body.lastName || '')).toUpperCase() === 'TAMM'}
@@ -71,3 +73,11 @@ returnResult:
   status: 200
   return: "${result}"
   next: end
+
+simulateSlowRegister:
+  call: http.get
+  args:
+    url: "http://erru-hub-mock:8080/_test/wait/12000"
+  timeout: 15000
+  result: delayResult
+  next: returnFound

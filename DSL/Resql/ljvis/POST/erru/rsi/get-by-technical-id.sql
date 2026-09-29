@@ -25,15 +25,27 @@ returns:
 - name: response_status_message
   type: string
   nullable: true
+- name: vehicle_registration_number
+  type: string
+  nullable: true
+- name: vehicle_registration_country
+  type: string
+  nullable: true
+- name: business_case_id
+  type: string
+  nullable: true
+- name: rsi_from
+  type: string
+  nullable: true
 */
 SELECT
   rsi_message_key AS id,
   version,
   status,
   response_status_code,
-  response_status_message
+  response_status_message, vehicle_registration_number, vehicle_registration_country, business_case_id, rsi_from
 FROM erru.rsi_message
 WHERE technical_id = :technical_id::UUID
   AND direction = 'incoming'
-ORDER BY created_at DESC
+ORDER BY version DESC
 LIMIT 1;

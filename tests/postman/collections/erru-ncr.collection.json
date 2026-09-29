@@ -2819,7 +2819,7 @@
               "pm.test('400 InvalidData', () => pm.response.to.have.status(400));",
               "var b = pm.response.json().response;",
               "var parsed = typeof b === 'string' ? JSON.parse(b) : b;",
-              "pm.test('statusCode NotAvailable', () => pm.expect(parsed.statusCode).to.eql('NotAvailable'));"
+              "pm.test('statusCode InvalidData', () => pm.expect(parsed.statusCode).to.eql('InvalidData'));"
             ]
           }
         }
@@ -2866,6 +2866,45 @@
               "var b = pm.response.json().response;",
               "var parsed = typeof b === 'string' ? JSON.parse(b) : b;",
               "pm.test('statusCode OK', () => pm.expect(parsed.statusCode).to.eql('OK'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound] checkResult=Fail creates exactly one ncr_violation notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/list_notifications",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "list_notifications"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"user_code\":\"newman\",\"permissions\":\"ncr.read\",\"page\":1,\"page_size\":100}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var rows = pm.response.json() || [];",
+              "var matching = rows.filter(r => r.relatedEntityId === 'DE-NCR-2026-INBOUND1' && r.type === 'ncr_violation');",
+              "pm.test('exactly one ncr_violation notification for the Fail result (checkViolation fix, not the unreachable WITH_INFRINGEMENT condition)', () => pm.expect(matching.length).to.eql(1));"
             ]
           }
         }
