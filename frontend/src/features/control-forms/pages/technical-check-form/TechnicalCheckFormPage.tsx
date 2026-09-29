@@ -248,7 +248,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
-    window.scrollTo(0, 0);
   };
 
   const handleCompoundPublished = () => {
@@ -793,9 +792,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 refetchDriveRest(driver, 'driver', () => {
                   driver.draftRef.current = null;
@@ -842,9 +841,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 refetchDriveRest(teammate, 'teammate', () => {
                   teammate.draftRef.current = null;
@@ -891,9 +890,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTechCheck(vehicle, 'vehicle', undefined, () => {
                   vehicle.draftRef.current = null;
                   vehicle.setDraft(null);
@@ -951,9 +950,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                         ? JSON.parse(compoundForm.trailers)
                         : []
                 }
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   refetchTechCheck(trailerHandle, 'trailer', idx, () => {
                     trailerHandle.draftRef.current = null;
                     trailerHandle.setDraft(null);
@@ -995,9 +994,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchAdr(() => {
                   adr.draftRef.current = null;
                   adr.setDraft(null);
@@ -1040,13 +1039,13 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTransportInterruption(() => {
                   transportInterruption.draftRef.current = null;
                   transportInterruption.setDraft(null);

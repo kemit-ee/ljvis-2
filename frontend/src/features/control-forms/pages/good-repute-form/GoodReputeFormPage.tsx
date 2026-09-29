@@ -110,7 +110,6 @@ export function GoodReputeFormPage() {
   };
 
   const handleConfirmed = () => {
-    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);

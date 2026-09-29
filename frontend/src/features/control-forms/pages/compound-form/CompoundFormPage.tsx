@@ -973,11 +973,6 @@ export function CompoundFormPage() {
               />
             </Card.Content>
           </Card>
-          <SelectedFormsNavigation
-            tabIds={openTabs}
-            labels={tabLabels}
-            onSelect={setActiveTab}
-          />
         </Tabs.Content>
 
         <SubFormTab
@@ -1003,10 +998,10 @@ export function CompoundFormPage() {
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!driver.form) resetCompoundFormToSaved();
                 refetchDriveRest('driver', () => {
                   driver.resetDraft();
@@ -1068,10 +1063,10 @@ export function CompoundFormPage() {
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!teammate.form) resetCompoundFormToSaved();
                 refetchDriveRest('teammate', () => {
                   teammate.resetDraft();
@@ -1123,13 +1118,13 @@ export function CompoundFormPage() {
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-vehicle-technical-check': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!vehicle.form) resetCompoundFormToSaved();
                 refetchTechCheck('vehicle', undefined, () => {
                   vehicle.resetDraft();
@@ -1185,13 +1180,13 @@ export function CompoundFormPage() {
                 compoundFormKey={Number(id)}
                 compoundTrailers={formik.values.trailers}
                 trailerIndex={idx}
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setTabErrors((p) => ({
                     ...p,
                     [`tab-trailer-technical-check-${idx}`]: false,
                   }));
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   if (!trailerHandle.form) resetCompoundFormToSaved();
                   refetchTechCheck('trailer', idx, () => {
                     trailerHandle.resetDraft();
@@ -1242,10 +1237,10 @@ export function CompoundFormPage() {
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-adr': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!adr.form) resetCompoundFormToSaved();
                 refetchAdr(() => {
                   adr.resetDraft();
@@ -1295,13 +1290,13 @@ export function CompoundFormPage() {
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!transportInterruption.form) resetCompoundFormToSaved();
                 refetchTransportInterruption(() => {
                   transportInterruption.resetDraft();
@@ -1330,6 +1325,11 @@ export function CompoundFormPage() {
           )}
         />
       </Tabs>
+      <SelectedFormsNavigation
+        tabIds={openTabs}
+        labels={tabLabels}
+        onSelect={setActiveTab}
+      />
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
           {isAdmin && !anyEditActive && form?.status !== 'deleted' && (

@@ -288,3 +288,15 @@ test.describe('Koondvorm — loomise õigus', () => {
     });
   });
 });
+
+test.describe('Koondvorm — vormide navigatsioon', () => {
+  test('valitud vormide navigatsioon on nähtav ka alamvormi vahekaardil', async ({
+    page,
+  }) => {
+    await page.goto(NEW);
+    const nav = page.getByRole('navigation', { name: 'Valitud kontrollvormid' });
+    await expect(nav).toBeVisible();
+    await page.getByRole('tab', { name: /veo katkestamine|katkesta/i }).click();
+    await expect(nav).toBeVisible();
+  });
+});

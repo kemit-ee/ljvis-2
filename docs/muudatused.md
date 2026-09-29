@@ -24,6 +24,20 @@
 - Teavituste menüüpunkt ja päise kelluke on nähtavad ainult `notification.list`
   õigusega kasutajale.
 
+### Koondvormi alamvormide valikud on nähtavad kõigil vahekaartidel
+
+- Lehe all olev „Valitud vormid" nupuriba (valik avatud alamvormide vahel
+  liikumiseks) oli seni näha ainult koondvormi üldandmete vahekaardil. Nüüd
+  kuvatakse seda ka kõigi alamvormide vahekaartide all, nii koondvormi
+  loomisel kui ka täitmisel.
+
+### „Kinnita" nupu vajutamisel leht enam üles ei keri
+
+- Koondvormi ja alamvormide (autojuht, meeskonnaliige, tehnoseisund, ADR,
+  veokatkestus) ning ühe vormi lehtede „Kinnita" nupu vajutamisel jääb leht
+  samasse kohta, kus kasutaja oli. Salvestamisel ja avalikustamisel keritakse
+  leht endiselt üles, et teade oleks nähtav.
+
 ---
 
 ## 2026-09-28
