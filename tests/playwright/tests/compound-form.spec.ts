@@ -244,3 +244,50 @@ test.describe('Koondvorm — PPA kasutusvoo parendused', () => {
     await testInfo.attach('ppa-alumine-vorminavigatsioon', { body: await page.screenshot(), contentType: 'image/png' });
   });
 });
+
+test.describe('Koondvorm — loomisõigus ja vormide navigatsioon', () => {
+  const asUserWith = async (
+    page: import('@playwright/test').Page,
+    permissions: string[],
+  ) => {
+    await page.route('**/auth/session', async (route) => {
+      const res = await route.fetch();
+      const json = await res.json();
+      json.response = { ...json.response, permissions };
+      await route.fulfill({ response: res, json });
+    });
+  };
+
+  test('compound_form.write õigusega pääseb loomislehele ilma välisriigi vormi õiguseta', async ({
+    page,
+  }) => {
+    await asUserWith(page, ['compound_form.write', 'compound_form.read']);
+    await page.goto(NEW);
+    await expect(
+      page.getByRole('heading', { name: 'Kontrolli koht' }),
+    ).toBeVisible();
+    await expect(
+      page.getByText('Teil puudub ligipääs sellele lehele'),
+    ).toHaveCount(0);
+  });
+
+  test('ilma compound_form.write õiguseta kuvatakse ligipääsu puudumise teade', async ({
+    page,
+  }) => {
+    await asUserWith(page, ['compound_form.read']);
+    await page.goto(NEW);
+    await expect(
+      page.getByText('Teil puudub ligipääs sellele lehele'),
+    ).toBeVisible();
+  });
+
+  test('valitud vormide navigatsioon on nähtav ka alamvormi vahekaardil', async ({
+    page,
+  }) => {
+    await page.goto(NEW);
+    const nav = page.getByRole('navigation', { name: 'Valitud kontrollvormid' });
+    await expect(nav).toBeVisible();
+    await page.getByRole('tab', { name: /veo katkestamine|katkesta/i }).click();
+    await expect(nav).toBeVisible();
+  });
+});
