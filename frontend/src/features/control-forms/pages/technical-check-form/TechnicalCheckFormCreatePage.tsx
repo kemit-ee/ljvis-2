@@ -9,7 +9,7 @@ interface Props {
   type: TechnicalCheckVariant;
   initialData?: TechnicalCheckForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   onValuesChange?: (values: Partial<TechnicalCheckForm>) => void;
   initialValidate?: boolean;
   compoundTrailers?: Trailer[];
@@ -44,7 +44,7 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       compoundFormKeyOverride,
       formError,
       setFormError,
-    } = useTechnicalCheckForm(type, initialData, (id) => onSaved?.(id), compoundFormKey);
+    } = useTechnicalCheckForm(type, initialData, (id, confirmed) => onSaved?.(id, confirmed), compoundFormKey);
 
     useImperativeHandle(ref, () => ({
       handleSubmit: (overrideCompoundFormKey?: number) => {

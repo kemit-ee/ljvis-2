@@ -10,7 +10,7 @@ import { BREAKPOINTS } from '../../../../constants/constants.ts';
 interface Props {
   initialData?: AdrForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   onValuesChange?: (values: Partial<AdrForm>) => void;
   initialValidate?: boolean;
 }
@@ -52,7 +52,7 @@ export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
       addOtherRecord,
       updateOtherRecord,
       removeOtherRecord,
-    } = useAdrForm(initialData, (id) => onSaved?.(id), compoundFormKey);
+    } = useAdrForm(initialData, (id, confirmed) => onSaved?.(id, confirmed), compoundFormKey);
 
     const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 

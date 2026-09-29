@@ -108,7 +108,7 @@ export function createTechnicalCheckValidationSchema(
 export function useTechnicalCheckForm(
   variant: TechnicalCheckVariant,
   form: TechnicalCheckForm | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string, confirmed?: boolean) => void,
   compoundFormKey?: number,
   onPublished?: () => void,
 ) {
@@ -236,7 +236,7 @@ export function useTechnicalCheckForm(
         const result = isConfirming
           ? await confirmTechnicalCheckForm(variant, payload)
           : await saveTechnicalCheckForm(variant, payload);
-        onSaved((result[0] as { id?: string })?.id);
+        onSaved((result[0] as { id?: string })?.id, isConfirming);
       } catch (e) {
         const handled = applyValidationError(
           e,

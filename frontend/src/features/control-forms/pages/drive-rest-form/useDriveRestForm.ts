@@ -139,7 +139,7 @@ export function serializeDriveRestFormValues(
 
 export function useDriveRestForm(
   form: DriveRestForm | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string, confirmed?: boolean) => void,
   type: 'driver' | 'teammate',
   compoundFormKey?: number,
   onPublished?: () => void,
@@ -378,7 +378,7 @@ export function useDriveRestForm(
         const result = isConfirming
           ? await api.confirm(type, trimmedValues as unknown as DriveRestForm)
           : await api.save(type, trimmedValues as unknown as DriveRestForm);
-        onSaved(result[0]?.id);
+        onSaved(result[0]?.id, isConfirming);
       } catch (e) {
         console.error('Save failed', e);
       }

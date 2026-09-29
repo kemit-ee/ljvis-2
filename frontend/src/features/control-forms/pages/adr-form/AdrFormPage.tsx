@@ -353,7 +353,6 @@ export function AdrFormPage() {
     setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
-    window.scrollTo(0, 0);
   };
 
   const handleCompoundPublished = () => {
@@ -751,10 +750,10 @@ export function AdrFormPage() {
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!driver.form) resetCompoundFormToSaved();
                 refetchDriver(() => {
                   driver.draftRef.current = null;
@@ -801,10 +800,10 @@ export function AdrFormPage() {
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!teammate.form) resetCompoundFormToSaved();
                 refetchTeammate(() => {
                   teammate.draftRef.current = null;
@@ -851,9 +850,9 @@ export function AdrFormPage() {
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({
                   ...p,
                   'tab-vehicle-technical-check': false,
@@ -915,9 +914,9 @@ export function AdrFormPage() {
                         ? JSON.parse(compoundForm.trailers)
                         : []
                 }
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   setTabErrors((p) => ({ ...p, [`tab-trailer-technical-check-${idx}`]: false }));
                   refetchTechCheck(trailerHandle, 'trailer', idx, () => {
                     trailerHandle.draftRef.current = null;
@@ -960,10 +959,10 @@ export function AdrFormPage() {
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-adr': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchAdr(() => {
                   adr.draftRef.current = null;
                   adr.setDraft(null);
@@ -1006,13 +1005,13 @@ export function AdrFormPage() {
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTransportInterruption(() => {
                   transportInterruption.draftRef.current = null;
                   transportInterruption.setDraft(null);
