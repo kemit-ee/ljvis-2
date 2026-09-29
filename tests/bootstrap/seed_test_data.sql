@@ -147,7 +147,7 @@ SELECT
     'Compound Only Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation WHERE code = 'PPA'),
-    ARRAY['classifier.read','compound_form.write','compound_form.read','transport_interruption_form.write','transport_interruption_form.read']::TEXT[],
+    ARRAY['classifier.read','organisation.list','compound_form.write','compound_form.read','transport_interruption_form.write','transport_interruption_form.read']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Compound Only Group');
 

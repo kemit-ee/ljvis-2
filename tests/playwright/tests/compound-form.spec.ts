@@ -264,6 +264,7 @@ test.describe('Koondvorm — loomise õigus', () => {
         county: 'Harju maakond',
         vehicleRegNr: `CO${Date.now() % 100000}`,
         vehicleCategoryCode: 'A_2012',
+        fillInspector: true,
         driver: {
           ids: COMPOUND_DRIVER_IDS,
           firstName: 'Juht',
