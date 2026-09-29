@@ -1,0 +1,17 @@
+{
+  "sentAt": "2026-09-23T09:00:00Z",
+  "from": "DE",
+  "originatingAuthority": "DE-BAG",
+  "requestSource": "CA",
+  "requestPurpose": "Control",
+  "tmFirstName": "HANS",
+  "tmFamilyName": "MUELLER",
+  "tmDateOfBirth": "1975-04-12",
+  "tmPlaceOfBirth": "",
+  "tmFirstNameSearchKey": "",
+  "tmFamilyNameSearchKey": "",
+  "certificateNumber": "DE-CPC-CI-000001",
+  "certificateIssueDate": "2010-05-01",
+  "certificateIssueCountry": "DE",
+  "unfitStartDate": "2026-09-23"
+}

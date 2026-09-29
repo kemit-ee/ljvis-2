@@ -66,6 +66,27 @@ params:
   checkedItems:
     type: string
     required: false
+  driverFirstName:
+    type: string
+    required: false
+  driverFamilyName:
+    type: string
+    required: false
+  driverLicenceNumber:
+    type: string
+    required: false
+  driverLicenceCountry:
+    type: string
+    required: false
+  odometerReading:
+    type: string
+    required: false
+  inspectionIdentifier:
+    type: string
+    required: false
+  identificationDetails:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -109,6 +130,13 @@ WITH ins AS (
     pti_requested,
     vehicle_prohibition_or_restriction,
     checked_items,
+    driver_first_name,
+    driver_family_name,
+    driver_licence_number,
+    driver_licence_country,
+    odometer_reading,
+    inspection_identifier,
+    identification_details,
     created_by
   )
   VALUES (
@@ -136,6 +164,13 @@ WITH ins AS (
     NULLIF(:ptiRequested, '')::BOOLEAN,
     NULLIF(:vehicleProhibitionOrRestriction, '')::BOOLEAN,
     COALESCE(NULLIF(:checkedItems, ''), '[]')::JSONB,
+    NULLIF(:driverFirstName, ''),
+    NULLIF(:driverFamilyName, ''),
+    NULLIF(:driverLicenceNumber, ''),
+    NULLIF(:driverLicenceCountry, ''),
+    NULLIF(:odometerReading, '')::INTEGER,
+    NULLIF(:inspectionIdentifier, ''),
+    NULLIF(:identificationDetails, '')::JSONB,
     :created_by
   )
   ON CONFLICT (technical_id) WHERE (direction = 'incoming' AND status = 'received')

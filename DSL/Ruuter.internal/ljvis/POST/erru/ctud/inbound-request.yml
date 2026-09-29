@@ -17,8 +17,10 @@ declaration:
     POST/users/deactivate-expired.yml. Moving it to the specified path is then a routing change only.
 
     Idempotency: append-inbound.sql relies on the partial unique index uq_ctud_inbound_technical_id, so
-    a redelivered message inserts nothing. This handler detects the empty insert and replays the answer
-    it produced the first time instead of serving the request twice.
+    a redelivered message inserts nothing. This handler detects the empty insert, then looks at the
+    existing row's status: 'answered' is replayed as-is; 'received' means the previous attempt crashed
+    before the lookup completed, so processing resumes from that row instead of replaying an
+    incomplete/empty answer.
 
     Validation is deliberately split. Envelope fields that only ERRU knows about (technicalId,
     workflowId, from, businessCaseId, originatingAuthority, requestSource, requestPurpose) are checked
@@ -143,7 +145,16 @@ checkExisting:
   switch:
     - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
       next: returnInvalidData
+    - condition: ${existing_res.response.body[0].status === 'received'}
+      next: resumeFromExisting
   next: returnReplayedAnswer
+
+# Previous attempt stored 'received' but crashed before the lookup/answer completed.
+# Resume from that row instead of treating an incomplete record as a valid replay.
+resumeFromExisting:
+  assign:
+    request_key: "${existing_res.response.body[0].id}"
+  next: lookupUndertaking
 
 lookupUndertaking:
   call: http.post
@@ -245,7 +256,7 @@ storeAnswered:
 # generation below is therefore kept byte-identical to GET/templates/audit/log-audit-event.yml.
 buildAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "CTUD sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${ctud_from}, päringu allikas ${request_source}, päringu eesmärk ${request_purpose}, otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}, sõiduki number ${vehicle_number}, otsingu meetod CommunityLicence, tulemus ${resp_status_code}"
     audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['searchMethod', 'CommunityLicence'], ['resultStatus', resp_status_code || null]]))}"
   next: logAudit
@@ -289,7 +300,7 @@ returnInvalidData:
 # vastust — 502 annab küsivale riigile märku päringut korrata.
 mtrUnavailableAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "CTUD sissetuleva päringu teenindamine ebaõnnestus: juhtum ${business_case_id}, küsiv riik ${ctud_from}, MTR/X-tee ei vastanud (HTTP ${(mtr_res.response && mtr_res.response.status) || 'null'}), otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}"
     audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['mtrHttpStatus', (mtr_res.response && mtr_res.response.status) || null], ['mtrStatusCode', (mtr_body && mtr_body.statusCode) || null], ['resultStatus', 'Error']]))}"
   next: logMtrUnavailableAudit

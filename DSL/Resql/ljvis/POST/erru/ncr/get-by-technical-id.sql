@@ -21,14 +21,23 @@ returns:
 - name: business_case_id
   type: string
   nullable: true
+- name: ncr_from
+  type: string
+  nullable: true
+- name: transport_undertaking_name
+  type: string
+  nullable: true
+- name: check_result
+  type: string
+  nullable: true
 */
 SELECT
   ncr_message_key AS id,
   version,
   status,
-  business_case_id
+  business_case_id, ncr_from, transport_undertaking_name, check_result
 FROM erru.ncr_message
 WHERE technical_id = :technical_id::UUID
   AND direction = 'incoming'
-ORDER BY created_at DESC
+ORDER BY version DESC
 LIMIT 1;

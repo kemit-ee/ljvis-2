@@ -12,7 +12,10 @@ declaration:
       3. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
          index uq_cgr_inbound_technical_id).
       4. A re-delivered message yields zero rows: look up the existing snapshot by
-         technical_id and replay the stored member_states response.
+         technical_id. If it is already 'answered', replay the stored member_states
+         response. If it is still 'received' (the previous attempt crashed after storing
+         but before completing the lookup), resume processing from that existing row
+         instead of replaying an incomplete/empty answer.
       5. Search the local UNFIT register (forms.good_repute_form via search-good-repute.sql).
          If found with fitness_status='unfit' → respond Found + Unfit (searchMethod='Local').
       6. If not found in UNFIT register → call the MTR mock (ERRU_CGR_MTR_ENDPOINT, which
@@ -166,7 +169,16 @@ checkExisting:
   switch:
     - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
       next: returnInvalidData
+    - condition: ${existing_res.response.body[0].status === 'received'}
+      next: resumeFromExisting
   next: returnReplayedAnswer
+
+# Previous attempt stored 'received' but crashed before the lookup/answer completed.
+# Resume from that row instead of treating an incomplete record as a valid replay.
+resumeFromExisting:
+  assign:
+    request_key: "${existing_res.response.body[0].id}"
+  next: searchGoodRepute
 
 # Step 5: check local UNFIT register first.
 searchGoodRepute:
@@ -204,8 +216,8 @@ buildUnfitResponse:
 #
 # MTR requires all six identifying fields at once, but ERRU's CGR message
 # allows partial identification (7A: name+DOB, 7B: certificate only). If the
-# request lacks what MTR needs, short-circuit to NotFound instead of sending
-# MTR a request it will reject anyway.
+# request lacks what MTR needs, report ServerError for an ErrorNotification.
+# No negative search result is recorded when the search could not be performed.
 checkMtrDataComplete:
   switch:
     - condition: "${!tm_first_name || !tm_family_name || !tm_date_of_birth || !certificate_number || !certificate_issue_country || !certificate_issue_date}"
@@ -305,12 +317,9 @@ buildNotFoundResponse:
 # search_method jääb 'NYSIIS' (sama mis buildNotFoundResponse) — MTR ei anna
 # kunagi 'CPC' meetodit, seega vana tingimuslik väärtus oli eksitav.
 buildInsufficientDataResponse:
-  assign:
-    resp_status_code: "NotFound"
-    resp_status_message: "Insufficient data to query MTR (ERRU 7A/7B partial identification is not supported by MTR's checkTransportManagerGoodRepute, which requires full identification)"
-    search_method: "NYSIIS"
-    resp_details: "null"
-  next: buildFullResponse
+  status: 422
+  return: '{"statusCode":"ServerError","statusMessage":"The register cannot perform this valid partial-identification search"}'
+  next: end
 
 buildFullResponse:
   assign:
@@ -339,7 +348,7 @@ storeAnswered:
 # event_id generation is byte-identical to GET/templates/audit/log-audit-event.yml.
 buildAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "CGR sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${cgr_from}, päringu allikas ${request_source}, otsingumeetod ${search_method}, tulemus ${resp_status_code}, otsitud isik ${tm_first_name} ${tm_family_name}"
     audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['cgrFrom', cgr_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['tmFirstName', tm_first_name || null], ['tmFamilyName', tm_family_name || null], ['tmDateOfBirth', tm_date_of_birth || null], ['searchMethod', search_method || null], ['resultStatus', resp_status_code || null]]))}"
   next: logAudit
@@ -388,7 +397,7 @@ returnInvalidData:
 # tagasta ärilist vastust — 502 annab küsivale riigile märku korrata.
 mtrUnavailableAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "CGR sissetuleva päringu teenindamine ebaõnnestus: juhtum ${business_case_id}, küsiv riik ${cgr_from}, MTR/X-tee ei vastanud (HTTP ${(mtr_res.response && mtr_res.response.status) || 'null'}), otsitud isik ${tm_first_name} ${tm_family_name}"
     audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['cgrFrom', cgr_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['tmFirstName', tm_first_name || null], ['tmFamilyName', tm_family_name || null], ['mtrHttpStatus', (mtr_res.response && mtr_res.response.status) || null], ['resultStatus', 'Error']]))}"
   next: logMtrUnavailableAudit

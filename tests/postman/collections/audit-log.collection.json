@@ -681,7 +681,10 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('200', () => pm.response.to.have.status(200));"
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json(); var body = raw && 'response' in raw ? raw.response : raw; if (typeof body === 'string') body = JSON.parse(body); var row = Array.isArray(body) ? body[0] : body;",
+              "pm.test('Official audit chain is intact after ERRU and ordinary events', () => pm.expect(row.ok).to.eql(true));",
+              "pm.test('Verification checked actual events', () => pm.expect(row.checked).to.be.above(0));"
             ]
           }
         }

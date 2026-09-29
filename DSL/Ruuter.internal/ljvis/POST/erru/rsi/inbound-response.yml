@@ -108,7 +108,7 @@ checkStored:
 
 buildAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "RSI asünkroonse vastuse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}, tulemus ${response_status_code}"
     audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null, responseStatusCode: response_status_code || null, responseStatusMessage: response_status_message || null})}"
   next: logAudit
