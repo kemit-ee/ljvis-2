@@ -264,7 +264,6 @@ test.describe('Koondvorm — loomise õigus', () => {
         county: 'Harju maakond',
         vehicleRegNr: `CO${Date.now() % 100000}`,
         vehicleCategoryCode: 'A_2012',
-        fillInspector: true,
         driver: {
           ids: COMPOUND_DRIVER_IDS,
           firstName: 'Juht',
@@ -278,7 +277,7 @@ test.describe('Koondvorm — loomise õigus', () => {
   });
 
   test.describe('ilma compound_form.write-ita', () => {
-    test.use({ storageState: STORAGE_STATE.noperm });
+    test.use({ storageState: STORAGE_STATE.nocompound });
 
     test('näeb teadet „Teil puudub ligipääs sellele lehele"', async ({ page }) => {
       await page.goto(NEW, { waitUntil: 'domcontentloaded' });
