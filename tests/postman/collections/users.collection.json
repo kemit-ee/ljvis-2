@@ -212,7 +212,7 @@
         "    pm.test('Response contains user id', () => pm.expect(arr[0]).to.have.property('id'));",
         "    pm.environment.set('created_user_id', String(arr[0].id));",
         "} else {",
-        "    pm.test('Insert or already exists (re-run without DB reset)', () => pm.expect([200, 409]).to.include(sc));",
+        "    pm.test('Insert or already exists (re-run without DB reset)', () => pm.expect([200, 409, 422]).to.include(sc));",
         "    pm.sendRequest({url: pm.environment.get('api_url') + '/ljvis/v1/users/admin/search?q=51001011234&page=1&pageSize=200', method: 'GET', header: {Cookie: pm.environment.get('cookie_admin')}}, function(err, res) {",
         "        if (!err && res.code === 200) { const u = (res.json().response?.content || res.json().content || []).find(u => u.personalCode === '51001011234'); if (u) pm.environment.set('created_user_id', String(u.id)); }",
         "    });",
@@ -220,7 +220,7 @@
       ]}}]
     },
     {
-      "name": "POST /users/insert — duplicate personal code → 409",
+      "name": "POST /users/insert — duplicate personal code → 422",
       "request": {
         "method": "POST",
         "header": [{"key": "Cookie", "value": "{{cookie_admin}}"}, {"key": "Content-Type", "value": "application/json"}],
@@ -228,7 +228,13 @@
         "body": {"mode": "raw", "raw": "{\"firstName\": \"Test\", \"lastName\": \"User CI\", \"personalCode\": \"51001011234\", \"organisationId\": \"{{seeded_org_bootstrap_id}}\", \"structuralUnitName\": \"Unit A\", \"jobTitleName\": \"Test Job\", \"email\": \"test.user2@ci.test\", \"accessStart\": \"2026-01-01\", \"phone\": \"\", \"accessEnd\": \"\"}"}
       },
       "event": [{"listen": "test", "script": {"exec": [
-        "pm.test('Returns 409 for duplicate personal code', () => pm.response.to.have.status(409));"
+        "pm.test('Returns 422 for duplicate personal code', () => pm.response.to.have.status(422));",
+        "pm.test('Returns VALIDATION_ERROR for personalCode field', () => {",
+        "    const body = pm.response.json();",
+        "    pm.expect(body.response.type).to.eql('VALIDATION_ERROR');",
+        "    pm.expect(body.response.field).to.eql('personalCode');",
+        "    pm.expect(body.response.code).to.eql('personalCodeConflict');",
+        "});"
       ]}}]
     },
     {
@@ -350,7 +356,7 @@
         "    pm.test('Response contains user id', () => pm.expect(arr[0]).to.have.property('id'));",
         "    pm.environment.set('created_local_admin_id', String(arr[0].id));",
         "} else {",
-        "    pm.test('Insert or already exists (re-run without DB reset)', () => pm.expect([200, 409]).to.include(sc));",
+        "    pm.test('Insert or already exists (re-run without DB reset)', () => pm.expect([200, 409, 422]).to.include(sc));",
         "    pm.sendRequest({url: pm.environment.get('api_url') + '/ljvis/v1/users/admin/search?q=48001011236&page=1&pageSize=200', method: 'GET', header: {Cookie: pm.environment.get('cookie_admin')}}, function(err, res) {",
         "        if (!err && res.code === 200) { const u = (res.json().response?.content || res.json().content || []).find(u => u.personalCode === '48001011236'); if (u) pm.environment.set('created_local_admin_id', String(u.id)); }",
         "    });",
@@ -434,7 +440,7 @@
         "    pm.test('Response contains user id', () => pm.expect(arr[0]).to.have.property('id'));",
         "    pm.environment.set('created_local_user2_id', String(arr[0].id));",
         "} else {",
-        "    pm.test('Insert or already exists (re-run without DB reset)', () => pm.expect([200, 409]).to.include(sc));",
+        "    pm.test('Insert or already exists (re-run without DB reset)', () => pm.expect([200, 409, 422]).to.include(sc));",
         "    pm.sendRequest({url: pm.environment.get('api_url') + '/ljvis/v1/users/local/search?q=48001021232&page=1&pageSize=200', method: 'GET', header: {Cookie: pm.environment.get('cookie_local_ci')}}, function(err, res) {",
         "        if (!err && res.code === 200) { const u = (res.json().response?.content || res.json().content || []).find(u => u.personalCode === '48001021232'); if (u) pm.environment.set('created_local_user2_id', String(u.id)); }",
         "    });",

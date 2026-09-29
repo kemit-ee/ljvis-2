@@ -75,6 +75,11 @@
   isikukoodi välja kõrval "Otsi" nupp otsingu käsitsi käivitamiseks, kui
   automaatne täitmine mingil põhjusel ei käivitu. Kasutab sama X-tee RR
   päringut, mida juba kasutab ADR-vormi autojuhi abilise otsing.
+- Kui uue kasutaja loomisel sisestati isikukood, mis on juba mõne teise
+  kasutaja küljes, kuvati eksitav üldine „päring ebaõnnestus" veateade,
+  kuigi taustal tuli täpne põhjus („personal code already exists").
+  Nüüd kuvatakse isikukoodi välja all selge teade „Sellise isikukoodiga
+  kasutaja on juba olemas", samamoodi nagu teiste väljade valideerimisel.
 ### Postkasti mallide ja vastuvõtjate seadetes selgemad väljanimed ja teavituse käivitajad
 
 - Halduse „Postkasti mallide ja vastuvõtjate seaded" nimekirjas ja
