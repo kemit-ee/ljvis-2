@@ -50,10 +50,21 @@ for i in $(seq 1 60); do
   sleep 5
 done
 
+echo "==> Waiting for erru-xml-adapter…"
+for i in $(seq 1 60); do
+  if curl -sf http://localhost:9091/health > /dev/null 2>&1; then
+    echo "    erru-xml-adapter ready (${i}x5s)"; break
+  fi
+  [ "$i" = "60" ] && { echo "❌ erru-xml-adapter not ready after 300s"; $COMPOSE logs erru-xml-adapter --tail=30; exit 1; }
+  sleep 5
+done
+
 echo ""
 
 python3 -B "$REPO_ROOT/tests/contract/check_erru_contract.py" --emit-sql | $COMPOSE exec -T database psql -X -q -o /dev/null -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db
 
+
+python3 "$REPO_ROOT/tests/erru-adapter/test_migrations.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
 python3 "$REPO_ROOT/tests/sql/test_nu_concurrency.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
@@ -132,6 +143,13 @@ newman run "$COL/erru-nu.collection.json" -e "$ENV" \
   -r cli,htmlextra \
   --reporter-htmlextra-export "$REPORT_DIR/erru-nu.html"
 
+newman run "$COL/erru-xml-adapter.collection.json" -e "$ENV" \
+  --delay-request 300 \
+  -r cli,htmlextra \
+  --reporter-htmlextra-export "$REPORT_DIR/erru-xml-adapter.html"
+
+python3 "$REPO_ROOT/tests/erru-adapter/test_regression.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
+
 newman run "$COL/technical-check-forms.collection.json" -e "$ENV" \
   --delay-request 300 \
   -r cli,htmlextra \
@@ -191,6 +209,20 @@ newman run "$COL/dashboard.collection.json" -e "$ENV" \
   --reporter-htmlextra-export "$REPORT_DIR/dashboard.html"
 
 echo ""
+# Verify the complete chain after all producers (including ordinary UI flows) have run.
+python3 - <<'VERIFY_AUDIT'
+import json
+import urllib.request
+request = urllib.request.Request(
+    'http://localhost:9087/ljvis/log/get_logs_verify',
+    data=b'{"from_event_id":"","to_event_id":""}',
+    headers={'Content-Type': 'application/json'})
+with urllib.request.urlopen(request, timeout=20) as response:
+    result = json.load(response)[0]
+assert result['ok'], result
+print('Official audit verification passed:', result['checked'], 'events')
+VERIFY_AUDIT
+
 echo "All collections passed."
 echo "HTML reports:"
 find "$REPORT_DIR" -type f -name "*.html" -print

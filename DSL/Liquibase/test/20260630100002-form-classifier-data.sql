@@ -1121,16 +1121,16 @@ DO $$
                                ('VSI842', 'VSI',                                   'VSI', 'SALVESTUSED_02'),
 
                                -- 7.4 Rooma I (parent: ROOMA_I_01)
-                               ('MI',     'MI',                                    'MI',  'ROOMA_I_01'),
+                               ('VSI874', 'VSI',                                    'VSI', 'ROOMA_I_01'),
 
                                -- 7.5 Lähetamine (parent: LAHETAMINE_01 through _07)
-                               ('MI',     'MI',                                    'MI',  'LAHETAMINE_01'),
-                               ('MI',     'MI',                                    'MI',  'LAHETAMINE_02'),
-                               ('MI',     'MI',                                    'MI',  'LAHETAMINE_03'),
-                               ('MI',     'MI',                                    'MI',  'LAHETAMINE_04'),
-                               ('MI',     'MI',                                    'MI',  'LAHETAMINE_05'),
-                               ('MI',     'MI',                                    'MI',  'LAHETAMINE_06'),
-                               ('MI',     'MI',                                    'MI',  'LAHETAMINE_07')
+                               ('SI951', 'SI',                                    'SI', 'LAHETAMINE_01'),
+                               ('VSI875', 'VSI',                                    'VSI', 'LAHETAMINE_02'),
+                               ('VSI876', 'VSI',                                    'VSI', 'LAHETAMINE_03'),
+                               ('VSI877', 'VSI',                                    'VSI', 'LAHETAMINE_04'),
+                               ('VSI878', 'VSI',                                    'VSI', 'LAHETAMINE_05'),
+                               ('VSI879', 'VSI',                                    'VSI', 'LAHETAMINE_06'),
+                               ('SI952', 'SI',                                    'SI', 'LAHETAMINE_07')
                           ) AS t(code, name, severity, parent_code)
             LOOP
                 INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, parent_key, description, created_by)

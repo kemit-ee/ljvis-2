@@ -24,6 +24,15 @@
   selles olevat kohustuslikku välja (rakendatakse / ei rakendata / ei kontrollitud)
   ei jääks kogemata täitmata.
 
+### Rooma I ja lähetamise rikkumiste raskusaste
+
+- Rooma I rikkumise raskusaste on **VSI** (varem oli mõnes keskkonnas ekslikult
+  MI/MSI). Rooma I ja autojuhi lähetamise rikkumistel on nüüd kõigis keskkondades
+  ERRU rikkumise kood (nt `VSI874`, `SI951`) ning raskusaste tuletatakse koodist.
+- Rikkumise valikus näidatakse tehnilise koodi asemel raskusastet.
+- Varem salvestatud vormide vanad koodid (`ROOMA_I_01_MI`, `LAHETAMINE_0X_MI`)
+  asendatakse ERRU koodidega.
+
 ### Välisriigi rikkumise kontrollkaart: NCR andmete ülekanne ja teavituse linnuke
 
 - NCR teatest loodud kaardil kuvatakse iga MSI/VSI/SI rikkumise ees välisriigis

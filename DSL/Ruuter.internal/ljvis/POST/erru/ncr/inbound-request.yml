@@ -10,13 +10,10 @@ declaration:
          vehicleRegistrationCountry, checkResult, checkDate).
       2. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
          index uq_ncr_inbound_technical_id).
-      3. A re-delivered message (same technicalId) yields zero rows: look up the existing
-         snapshot by technical_id and replay the same ack rather than storing a duplicate
-         (LJVIS2-64 §Testimine: 'toimeta sama technicalId-ga päring uuesti kohale ... veendu,
-         et see kinnitatakse, kuid uut kirjet ei looda').
-      4. Return a synchronous NCRN_Ack acknowledgement.
-      5. Write audit (ncr.inbound_request.serve) directly to Resql — ruuter-internal cannot
-         reach the main Ruuter instance's GET/templates/audit chain.
+      3. Read the persisted snapshot, including on duplicate delivery.
+      4. Restore the idempotent notification for the stored check result and write one audit event through
+         erru.record_inbound_audit. A failed side effect returns HTTP 502 for retry.
+      5. Return NCRN_Ack only after both side effects have completed.
 
     minorInfringement/seriousInfringements arrive as JSON text, already split into
     category+infringementType (matching the request/save.yml convention).
@@ -137,20 +134,23 @@ storeReceived:
   result: received_res
   next: checkStored
 
-# Zero rows = redelivery (partial unique index uq_ncr_inbound_technical_id conflict).
 checkStored:
   switch:
-    - condition: ${received_res.response.body == null || received_res.response.body.length != 1}
-      next: lookupExisting
-  next: checkViolation
+    - condition: ${received_res.response == null || received_res.response.status >= 400}
+      next: returnUnavailable
+  next: lookupExisting
 
-# Kui checkResult on WITH_INFRINGEMENT, loo in-app teavitus ncr.read õigusega kasutajatele.
-# Teavituse loomine on fire-and-forget (viga ei peata peamist voogu).
+# checkResult on ERRU 3.5 XSD (NotifyCheckResult_Types) järgi 'Pass' | 'Fail' | 'CleanCheck'
+# (chk_ncr_check_result). 'Fail' tähendab XSD dokumentatsiooni järgi rikkumise avastamist —
+# sellele luuakse ncr_violation, Pass/CleanCheck korral ncr_ok.
+# Teavitus on kohustuslik: salvestusviga annab 502, kordus on event_key järgi ohutu.
 checkViolation:
   switch:
-    - condition: ${check_result === 'WITH_INFRINGEMENT'}
+    - condition: ${check_result === 'Fail'}
       next: createNcrViolationNotification
-  next: createNcrOkNotification
+    - condition: ${check_result === 'Pass' || check_result === 'CleanCheck'}
+      next: createNcrOkNotification
+  next: returnInvalidData
 
 createNcrViolationNotification:
   call: http.post
@@ -168,8 +168,8 @@ createNcrViolationNotification:
       body_et: "${'Teate saatnud riik: ' + ncr_from}"
       created_by: "system"
   result: notifRes
-  error: buildAudit
-  next: buildAudit
+  error: returnUnavailable
+  next: checkNotification
 
 createNcrOkNotification:
   call: http.post
@@ -186,8 +186,14 @@ createNcrOkNotification:
       title_et: "${'Saabus ERRU NCR „Korras“ kontrolli teade vedaja „' + transport_undertaking_name + '“ kohta'}"
       body_et: "${'Teate saatnud riik: ' + ncr_from}"
       created_by: "system"
-  result: notifOkRes
-  error: buildAudit
+  result: notifRes
+  error: returnUnavailable
+  next: checkNotification
+
+checkNotification:
+  switch:
+    - condition: ${notifRes.response == null || notifRes.response.status >= 400}
+      next: returnUnavailable
   next: buildAudit
 
 lookupExisting:
@@ -203,13 +209,21 @@ lookupExisting:
 
 checkExisting:
   switch:
-    - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
-      next: returnInvalidData
-  next: returnReplayedAck
+    - condition: ${existing_res.response == null || existing_res.response.status >= 400 || existing_res.response.body == null || existing_res.response.body.length != 1}
+      next: returnUnavailable
+  next: restoreStoredMessage
+
+restoreStoredMessage:
+  assign:
+    message_key: "${'' + existing_res.response.body[0].id}"
+    business_case_id: "${existing_res.response.body[0].businessCaseId}"
+    ncr_from: "${existing_res.response.body[0].ncrFrom}"
+    transport_undertaking_name: "${existing_res.response.body[0].transportUndertakingName}"
+    check_result: "${existing_res.response.body[0].checkResult}"
+  next: checkViolation
 
 buildAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
     audit_description: "NCR sissetuleva päringu teenindamine: juhtum ${business_case_id}, saatnud riik ${ncr_from}, veoettevõtja ${transport_undertaking_name}, kontrolli tulemus ${check_result}"
     audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, ncrFrom: ncr_from || null, transportUndertakingName: transport_undertaking_name || null, checkResult: check_result || null})}"
   next: logAudit
@@ -217,33 +231,34 @@ buildAudit:
 logAudit:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    url: "[#LJVIS_RESQL]/erru/record-inbound-audit"
     headers:
       type: json
     body:
-      event_id: ${event_id}
       event_type: "ncr.inbound_request.serve"
-      event_category: "erru_message_exchange"
-      actor_name: "ERRU NCR inbound service"
-      actor_personal_code: ""
+      message_key: ${message_key}
       description: ${audit_description}
       log_content: ${audit_log_content}
-      organisation_id: ""
-      created_by: "system"
-      trace_id: ""
-      span_id: ""
   result: audit_result
+  error: returnUnavailable
+  next: checkAuditSaved
+
+checkAuditSaved:
+  switch:
+    - condition: ${audit_result.response == null || audit_result.response.status >= 400 || !audit_result.response.body || audit_result.response.body.length !== 1}
+      next: returnUnavailable
   next: returnAck
 
 returnAck:
   return: '{"acknowledgementType":"NCRN_Ack","statusCode":"OK","statusMessage":""}'
   next: end
 
-returnReplayedAck:
-  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"OK","statusMessage":""}'
-  next: end
-
 returnInvalidData:
   status: 400
-  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"NotAvailable","statusMessage":"Request does not satisfy the ERRU NCR requirements"}'
+  return: '{"acknowledgementType":"NCRN_Ack","statusCode":"InvalidData","statusMessage":"Request does not satisfy the ERRU NCR requirements"}'
+  next: end
+
+returnUnavailable:
+  status: 502
+  return: '{"statusCode":"ServerError","statusMessage":"Inbound notification processing is incomplete"}'
   next: end

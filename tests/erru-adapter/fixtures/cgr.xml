@@ -1,0 +1,9 @@
+<CheckGoodRepute_Request xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="04f58147-c712-4e65-9a70-7384c8d94c3f" workflowId="eb197e69-c5a8-4ada-8e51-e889a7fc00fe" sentAt="2026-09-23T09:05:00Z" from="DE" to="ZZ"/>
+  <Body businessCaseId="DE-CGR-CI-0001" originatingAuthority="DE-BAG" requestSource="CA" requestPurpose="Issue">
+    <SearchedTransportManager>
+      <TransportManagerNameDetails firstName="MART" familyName="TAMM" dateOfBirth="1980-05-15" placeOfBirth="Tallinn"/>
+      <TransportManagerCertificateDetails certificateNumber="EE-CPC-2020-00111" certificateIssueDate="2020-06-01" certificateIssueCountry="EE"/>
+    </SearchedTransportManager>
+  </Body>
+</CheckGoodRepute_Request>

@@ -357,6 +357,18 @@
       "key": "cookie_citizen",
       "value": "",
       "enabled": true
+    },
+    {
+      "key": "erru_xml_adapter_url",
+      "value": "http://localhost:9091",
+      "enabled": true,
+      "description": "erru-xml-adapter — CI stack (port 9091). See docker/erru-xml-adapter/README.md."
+    },
+    {
+      "key": "erru_hub_mock_url",
+      "value": "http://localhost:9092",
+      "enabled": true,
+      "description": "ERRU Hub mock — CI stack (port 9092). See docker/erru-hub-mock."
     }
   ],
   "_postman_variable_scope": "environment"
