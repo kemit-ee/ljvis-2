@@ -120,8 +120,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const forbidden = !(
     ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
       (entryType === 'teammate' && hasPermission('sp_teammate_form.read')) ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+      hasPermission('control_form.view_unpublished'))
   );
 
   const [snapshot, setSnapshot] = useState<

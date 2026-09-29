@@ -2,6 +2,18 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-09-30
+
+### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
+
+- Asutuste kataloog (`GET /v1/organisations`) ei nõua enam `organisation.list`
+  õigust, piisab ametniku sessioonist. Varem jäi näiteks inspektori
+  organisatsiooni valik tühjaks, kui kasutaja grupil seda õigust polnud, ja
+  vormi ei saanud lõpuni täita.
+- Vormilehed ei nõua enam `classifier.read` õigust: vormid loevad
+  klassifikaatoreid juba õigusteta `/v1/classifier-values` päringust.
+  Klassifikaatori detailvaade ja haldus jäävad oma õiguste taha.
+
 ## 2026-09-29
 
 ### Koondvormi loomise leht kontrollib nüüd õiget õigust
