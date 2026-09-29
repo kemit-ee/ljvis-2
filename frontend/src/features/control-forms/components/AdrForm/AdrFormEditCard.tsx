@@ -4,6 +4,7 @@ import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { AdrForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { AdrFormCreatePage, type AdrFormCreatePageRef } from '../../pages/adr-form/AdrFormCreatePage';
+import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 
 export interface AdrFormEditCardRef {
@@ -19,6 +20,8 @@ interface AdrFormEditCardProps {
   onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
   onConfirm: () => void;
   formType: string;
   onValuesChange?: (values: Partial<AdrForm>) => void;
@@ -27,7 +30,7 @@ interface AdrFormEditCardProps {
 
 export const AdrFormEditCard = forwardRef<AdrFormEditCardRef, AdrFormEditCardProps>(
   function AdrFormEditCard(
-    { form, compoundFormKey, onSaved, canConfirm, formType, onValuesChange, initialValidate },
+    { form, compoundFormKey, onSaved, canConfirm, canPublish, onPublish, formType, onValuesChange, initialValidate },
     ref,
   ) {
     const { t } = useTranslation();
@@ -81,6 +84,12 @@ export const AdrFormEditCard = forwardRef<AdrFormEditCardRef, AdrFormEditCardPro
                   {t('common.confirm')}
                 </Button>
               )}
+              <SubFormEditPublishButton
+                form={form}
+                canPublish={canPublish}
+                onPublish={onPublish}
+                isDirty={() => formRef.current?.isDirty() ?? false}
+              />
             </div>
           </div>
         </Card.Content>

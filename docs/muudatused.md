@@ -4,6 +4,14 @@
 
 ## 2026-09-30
 
+### Koondvorm: alamvormi saab avalikustada sõltumata teistest alamvormidest
+
+- Kinnitatud alamvormil (ilma väärteomenetluseta) on „Avalikusta" nupp kohe olemas,
+  ka siis kui mõni teine sama koondvormi alamvorm on veel „Salvestatud". Varem tekkis
+  nupp alles siis, kui kõik alamvormid olid kinnitatud.
+- Kui alamvormil on salvestamata muudatusi, palutakse need enne avalikustamist salvestada.
+- Väärteomenetlusega alamvormi avalikustatakse endiselt menetluse tulemuse täitmise järel.
+
 ### Koondvormi üldosa avalikustub ainult koos viimase alamvormiga
 
 - Koondvormi üldosa ei saa enam eraldi avalikustada: see õnnestub alles siis, kui

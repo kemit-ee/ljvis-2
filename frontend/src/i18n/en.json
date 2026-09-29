@@ -331,6 +331,7 @@
   "forms": {
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
+    "publishUnsavedChanges": "Save your changes before publishing",
     "publishedNote": "Form has been published",
     "versions": {
       "title": "Versions",

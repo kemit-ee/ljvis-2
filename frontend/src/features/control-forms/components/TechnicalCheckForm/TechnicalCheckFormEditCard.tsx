@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { TechnicalCheckForm, Trailer } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../../pages/technical-check-form/TechnicalCheckFormCreatePage.tsx';
 
@@ -20,6 +21,8 @@ interface TechnicalCheckFormEditCardProps {
   onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
   onConfirm: () => void;
   formType: string;
   onValuesChange?: (values: Partial<TechnicalCheckForm>) => void;
@@ -38,6 +41,8 @@ export const TechnicalCheckFormEditCard = forwardRef<
     compoundFormKey,
     onSaved,
     canConfirm,
+    canPublish,
+    onPublish,
     formType,
     onValuesChange,
     initialValidate,
@@ -101,6 +106,12 @@ export const TechnicalCheckFormEditCard = forwardRef<
                 {t('common.confirm')}
               </Button>
             )}
+            <SubFormEditPublishButton
+              form={form}
+              canPublish={canPublish}
+              onPublish={onPublish}
+              isDirty={() => formRef.current?.isDirty() ?? false}
+            />
           </div>
         </div>
       </Card.Content>
