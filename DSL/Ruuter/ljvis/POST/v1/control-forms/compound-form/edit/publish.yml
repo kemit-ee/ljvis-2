@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Publish (avalikusta) compound form. Only allowed once every active sub-form is published (the general part is never published on its own). Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) compound form. Only allowed once no active sub-form is left unpublished (the general part is never published on its own). Form field values are taken from the current database record — client only provides the id."
   namespace: control-forms
   allowlist:
     body:
@@ -34,7 +34,8 @@ checkFound:
   next: getSubFormPublishState
 
 # Üldosa avalikustub ainult siis, kui viimane alamvorm on avalikustatud:
-# vähemalt üks aktiivne alamvorm ja ükski neist pole avalikustamata.
+# ükski aktiivne alamvorm pole avalikustamata (alamvormideta koondvormi
+# avalikustamist see ei piira).
 getSubFormPublishState:
   call: http.post
   args:
@@ -50,7 +51,7 @@ checkSubFormsPublished:
   switch:
     - condition: ${subFormStateRes.response == null || subFormStateRes.response.status < 200 || subFormStateRes.response.status >= 300 || subFormStateRes.response.body == null || subFormStateRes.response.body.length !== 1}
       next: returnResqlWriteError
-    - condition: ${Number(subFormStateRes.response.body[0].totalCount) === 0 || Number(subFormStateRes.response.body[0].unpublishedCount) > 0}
+    - condition: ${Number(subFormStateRes.response.body[0].unpublishedCount) > 0}
       next: returnSubFormsNotPublished
   next: extractCurrentFormData
 
