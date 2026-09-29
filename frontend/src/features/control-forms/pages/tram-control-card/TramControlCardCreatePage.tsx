@@ -19,7 +19,7 @@ export function TramControlCardCreatePage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const forbidden = !(
-    hasPermission('tram_driver_form.write') && hasPermission('classifier.read')
+    hasPermission('tram_driver_form.write')
   );
 
   const handleSaved = (savedId?: string) => {

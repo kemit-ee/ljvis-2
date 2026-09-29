@@ -73,8 +73,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       hasPermission('vehicle_technical_form.read')) ||
       (formType == FORM_TYPE.TRAILER_TECHNICAL_CHECK &&
         hasPermission('trailer_technical_form.read')) ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+      hasPermission('control_form.view_unpublished'))
   );
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(undefined);

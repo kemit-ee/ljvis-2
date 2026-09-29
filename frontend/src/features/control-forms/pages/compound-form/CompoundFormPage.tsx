@@ -97,8 +97,7 @@ export function CompoundFormPage() {
 
   const forbidden = !(
     (hasPermission('compound_form.read') ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+      hasPermission('control_form.view_unpublished'))
   );
 
   const [isEditActive, setIsEditActive] = useState(false);
