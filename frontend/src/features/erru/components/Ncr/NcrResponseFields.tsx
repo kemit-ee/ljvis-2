@@ -249,7 +249,7 @@ export function NcrResponseFields({ form, message, organisations }: Props) {
             <div className={`${gridClass} mb-1`}>
               <TextField
                 id={`ncr-resp-pi-${index}-req-id`}
-                label={t('erru.ncr.form.penaltyRequestedIdentifier')}
+                label={t('erru.ncr.form.responsePenaltyIdentifier')}
                 value={p.penaltyRequestedIdentifier}
                 disabled
                 onChange={() => undefined}
@@ -292,7 +292,7 @@ export function NcrResponseFields({ form, message, organisations }: Props) {
               <div className={`${gridClass} mb-1`}>
                 <Select
                   id={`ncr-resp-pi-${index}-type`}
-                  label={t('erru.ncr.form.penaltyTypeImposed')}
+                  label={t('erru.ncr.form.responsePenaltyType')}
                   required
                   options={opts(penaltyTypeImposedRes)}
                   value={selected(
@@ -306,36 +306,40 @@ export function NcrResponseFields({ form, message, organisations }: Props) {
                 />
               </div>
             )}
-            <div className={gridClass}>
-              <DateField
-                id={`ncr-resp-pi-${index}-start-date`}
-                label={t('erru.ncr.form.startDate')}
-                selected={dateValue(p.startDate ?? '')}
-                onSelect={(v) =>
-                  updatePenalty(index, {
-                    startDate: toIsoDate(v as Date | undefined) || null,
-                  })
-                }
-                monthYearSelectType="grid"
-              />
-              <DateField
-                id={`ncr-resp-pi-${index}-end-date`}
-                label={t('erru.ncr.form.endDate')}
-                selected={dateValue(p.endDate ?? '')}
-                onSelect={(v) =>
-                  updatePenalty(index, {
-                    endDate: toIsoDate(v as Date | undefined) || null,
-                  })
-                }
-                monthYearSelectType="grid"
-              />
+            {p.isImposed ? (
+              <div className={gridClass}>
+                <DateField
+                  id={`ncr-resp-pi-${index}-start-date`}
+                  label={t('erru.ncr.form.startDate')}
+                  selected={dateValue(p.startDate ?? '')}
+                  onSelect={(v) =>
+                    updatePenalty(index, {
+                      startDate: toIsoDate(v as Date | undefined) || null,
+                    })
+                  }
+                  monthYearSelectType="grid"
+                />
+                <DateField
+                  id={`ncr-resp-pi-${index}-end-date`}
+                  label={t('erru.ncr.form.endDate')}
+                  selected={dateValue(p.endDate ?? '')}
+                  onSelect={(v) =>
+                    updatePenalty(index, {
+                      endDate: toIsoDate(v as Date | undefined) || null,
+                    })
+                  }
+                  monthYearSelectType="grid"
+                />
+              </div>
+            ) : (
               <TextField
                 id={`ncr-resp-pi-${index}-reason`}
                 label={t('erru.ncr.form.penaltyReason')}
                 value={p.reason ?? ''}
                 onChange={(v) => updatePenalty(index, { reason: v })}
+                {...nestedErr(index, 'reason')}
               />
-            </div>
+            )}
           </div>
         ))}
       </Card.Content>

@@ -125,6 +125,35 @@ export function ForeignViolationFormFields({
     : [];
   const violationCodes = violationEntries.map((v) => v.code);
 
+  // NCR-ist üle tulnud karistused rikkumise sildi ees: rakendatud karistus
+  // (nt "Trahv") ja välisriigi taotletud karistus (ERRU penaltyTypeRequested).
+  const violationLabel = (
+    label: string | React.ReactNode,
+    entry?: ForeignViolationFormViolation,
+  ) => {
+    if (!entry) return label;
+    const sanction = sanctionOptions.find((o) => o.value === entry.sanctionCode);
+    const imposed =
+      sanction && sanction.value !== 'KORRAS' ? t(sanction.labelKey) : '';
+    const requested = (entry.requestedPenaltyCodes ?? [])
+      .map((c) => t(`forms.foreign_violation.requestedPenalty.${c}`))
+      .join(', ');
+    if (!imposed && !requested) return label;
+    return (
+      <>
+        {imposed && <strong>{imposed}</strong>}
+        {imposed && ' '}
+        {requested && (
+          <em>
+            ({t('forms.foreign_violation.requestedPenaltyPrefix')}: {requested})
+          </em>
+        )}
+        {requested && ' '}
+        {label}
+      </>
+    );
+  };
+
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
     ...group,
     label: t(group.labelKey),
@@ -1003,6 +1032,14 @@ export function ForeignViolationFormFields({
                   const selectedInGroup = violationEntries.filter((v) =>
                     groupCodes.has(v.code),
                   );
+                  // Vaatevaates (avalikustatud/kinnitatud) näidatakse ainult
+                  // välisriigis avastatud rikkumisi; muutmisel on kõik nähtaval.
+                  if (readOnly && selectedInGroup.length === 0) return null;
+                  const visibleItems = readOnly
+                    ? group.items.filter((item) =>
+                        selectedInGroup.some((v) => v.code === item.value),
+                      )
+                    : group.items;
                   return (
                     <div key={group.id} className="mb-1">
                       <Text element="p" modifiers="bold">
@@ -1014,9 +1051,12 @@ export function ForeignViolationFormFields({
                         inputType="checkbox"
                         label=""
                         value={selectedInGroup.map((v) => v.code)}
-                        items={group.items.map((item) => ({
+                        items={visibleItems.map((item) => ({
                           id: `euViolation_${item.value}`,
-                          label: item.label,
+                          label: violationLabel(
+                            item.label,
+                            violationEntries.find((v) => v.code === item.value),
+                          ),
                           value: item.value,
                           disabled: readOnly,
                           ...(readOnly
@@ -1434,9 +1474,9 @@ export function ForeignViolationFormFields({
                   setFieldValue('foreignAuthorityProposal', proposal);
                   setFieldValue('notifyLaborInspector', proposal);
                 }
-                // notifyCarrier on püsiv valik — backend (publish.yml) saadab
-                // teavituse igal avalikustamisel, kui linnuke on märgitud;
-                // ajalugu säilib notifications.outbound_log-is (vt allpool).
+                // Backend (publish.yml) saadab teavituse avalikustamisel ja
+                // võtab linnukese pärast saatmist maha; muudatuse korral
+                // märgitakse see uuesti. Ajalugu: notifications.outbound_log.
                 setFieldValue('notifyCarrier', vals.includes('notifyCarrier'));
               }
             }}
