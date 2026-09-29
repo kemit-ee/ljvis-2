@@ -180,6 +180,7 @@ export function TechnicalCheckFormFields({
             {t('forms.technical_check.parts.title')}
           </Heading>
           <PartsSummaryTable
+            idPrefix={idPrefix}
             parts={parts}
             partsSummary={values.partsSummary ?? []}
             onCheckedChange={setPartChecked}
@@ -201,6 +202,7 @@ export function TechnicalCheckFormFields({
       />
 
       <DefectSelectionModal
+        idPrefix={idPrefix}
         open={modalPartCode !== null}
         onClose={() => setModalPartCode(null)}
         partCode={modalPartCode}
