@@ -2,6 +2,28 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-09-29
+
+### Koondvormi loomise leht kontrollib nüüd õiget õigust
+
+- Kasutaja, kellel oli `compound_form.write`, kuid mitte
+  `foreign_violation_form.write`, nägi töölaual koondvormi alustamise valikut,
+  aga valikut vajutades kuvati „Teil puudub ligipääs sellele lehele". Loomisleht
+  kontrollis ekslikult välisriigi rikkumise vormi kirjutusõigust. Nüüd nõutakse
+  `compound_form.write`. Sama vea parandasime koondvormi „Kinnita" nupul.
+  Alamvormide lehed kontrollivad juba oma vormi õigust.
+
+### Töölaud ja menüü
+
+- Töölaua valikud on „Minu vormid" ja „Minu organisatsioonid".
+- „Töös olevad koondvormid" ei näita enam avalikustatud koondvorme (ka siis mitte,
+  kui mõni alamvorm on veel avaldamata).
+- Töölaua nimekirjad näitavad ainult vorme, mida kasutajal on õigus lugeda.
+  „Töös olevad vormid" (kõik peale koondvormide) peidetakse täielikult, kui
+  kasutajal pole õigust ühtegi sellist vormi lugeda.
+- Teavituste menüüpunkt ja päise kelluke on nähtavad ainult `notification.list`
+  õigusega kasutajale.
+
 ---
 
 ## 2026-09-28

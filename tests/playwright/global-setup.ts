@@ -83,3 +83,7 @@ setup('autendi ametnik', async () => {
 setup('autendi õigusteta kasutaja', async () => {
   await loginAs(TEST_USERS.noperm, STORAGE_STATE.noperm);
 });
+
+setup('autendi ainult koondvormi õigusega kasutaja', async () => {
+  await loginAs(TEST_USERS.compoundonly, STORAGE_STATE.compoundonly);
+});

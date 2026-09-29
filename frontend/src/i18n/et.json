@@ -393,8 +393,8 @@
   "dashboard": {
     "scope": {
       "label": "Vaade",
-      "own": "Mina",
-      "organisation": "Organisatsioon"
+      "own": "Minu vormid",
+      "organisation": "Minu organisatsioonid"
     },
     "sections": {
       "compoundBlock": "Koondvorm",

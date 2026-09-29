@@ -1,5 +1,5 @@
 /*
-description: 'LJVIS2-37 officer dashboard aggregate. Returns unfinished (not fully published) koondvorm
+description: 'LJVIS2-37 officer dashboard aggregate. Returns unfinished (compound status not published and not every sub-form published) koondvorm
   cases with their active sub-forms, unfinished standalone forms and a "needs attention" list (deadline
   / confirmed-not- published) — all scoped to either the caller''s own work (scope=own, created_by = :actor_code)
   or the caller''s whole organisation (scope=organisation, inspector_organisation_id / org-scoped standalone
@@ -177,7 +177,7 @@ active_compound AS (
     ) AS item,
     control_date AS sort_key
     FROM compound_progress
-    WHERE status <> 'published' OR all_published = false
+    WHERE status <> 'published' AND all_published = false
 ),
 -- ── section 2: unfinished standalone forms (saved/confirmed) ───────────────
 -- mainTime/vehicleRegNr: only foreign_violation_form actually captures an

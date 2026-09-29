@@ -56,24 +56,25 @@ export function useSideNavProps(): UseSideNavPropsResult {
       isActive: pathname === '/',
     });
 
-    items.push({
-      children: (
-        <>
-          {t('nav.notifications')}
-          {unreadCount > 0 && (
-            <span style={{ marginLeft: 8 }}>
-              <StatusBadge color="danger">
-                {unreadCount > 99 ? '99+' : String(unreadCount)}
-              </StatusBadge>
-            </span>
-          )}
-        </>
-      ),
-      icon: 'notifications',
-      to: '/notifications',
-      isActive: pathname.startsWith('/notifications'),
-    });
-
+    if (hasPermission(PERMISSIONS.NOTIFICATION_LIST)) {
+      items.push({
+        children: (
+          <>
+            {t('nav.notifications')}
+            {unreadCount > 0 && (
+              <span style={{ marginLeft: 8 }}>
+                <StatusBadge color="danger">
+                  {unreadCount > 99 ? '99+' : String(unreadCount)}
+                </StatusBadge>
+              </span>
+            )}
+          </>
+        ),
+        icon: 'notifications',
+        to: '/notifications',
+        isActive: pathname.startsWith('/notifications'),
+      });
+    }
 
     if (hasAnyPermission(FORM_READ_PERMISSIONS)) {
       items.push({
