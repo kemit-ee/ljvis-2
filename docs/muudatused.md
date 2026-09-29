@@ -13,6 +13,16 @@
 - Varem salvestatud vormide vanad koodid (`ROOMA_I_01_MI`, `LAHETAMINE_0X_MI`)
   asendatakse ERRU koodidega.
 
+### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
+
+- Asutuste kataloog (`GET /v1/organisations`) ei nõua enam `organisation.list`
+  õigust, piisab ametniku sessioonist. Varem jäi näiteks inspektori
+  organisatsiooni valik tühjaks, kui kasutaja grupil seda õigust polnud, ja
+  vormi ei saanud lõpuni täita.
+- Vormilehed ei nõua enam `classifier.read` õigust: vormid loevad
+  klassifikaatoreid juba õigusteta `/v1/classifier-values` päringust.
+  Klassifikaatori detailvaade ja haldus jäävad oma õiguste taha.
+
 ## 2026-09-29
 
 ### Koondvormi loomise leht kontrollib nüüd õiget õigust
@@ -34,6 +44,20 @@
   kasutajal pole õigust ühtegi sellist vormi lugeda.
 - Teavituste menüüpunkt ja päise kelluke on nähtavad ainult `notification.list`
   õigusega kasutajale.
+
+### Koondvormi alamvormide valikud on nähtavad kõigil vahekaartidel
+
+- Lehe all olev „Valitud vormid" nupuriba (valik avatud alamvormide vahel
+  liikumiseks) oli seni näha ainult koondvormi üldandmete vahekaardil. Nüüd
+  kuvatakse seda ka kõigi alamvormide vahekaartide all, nii koondvormi
+  loomisel kui ka täitmisel.
+
+### „Kinnita" nupu vajutamisel leht enam üles ei keri
+
+- Koondvormi ja alamvormide (autojuht, meeskonnaliige, tehnoseisund, ADR,
+  veokatkestus) ning ühe vormi lehtede „Kinnita" nupu vajutamisel jääb leht
+  samasse kohta, kus kasutaja oli. Salvestamisel ja avalikustamisel keritakse
+  leht endiselt üles, et teade oleks nähtav.
 
 ---
 
@@ -60,6 +84,11 @@
   isikukoodi välja kõrval "Otsi" nupp otsingu käsitsi käivitamiseks, kui
   automaatne täitmine mingil põhjusel ei käivitu. Kasutab sama X-tee RR
   päringut, mida juba kasutab ADR-vormi autojuhi abilise otsing.
+- Kui uue kasutaja loomisel sisestati isikukood, mis on juba mõne teise
+  kasutaja küljes, kuvati eksitav üldine „päring ebaõnnestus" veateade,
+  kuigi taustal tuli täpne põhjus („personal code already exists").
+  Nüüd kuvatakse isikukoodi välja all selge teade „Sellise isikukoodiga
+  kasutaja on juba olemas", samamoodi nagu teiste väljade valideerimisel.
 ### Postkasti mallide ja vastuvõtjate seadetes selgemad väljanimed ja teavituse käivitajad
 
 - Halduse „Postkasti mallide ja vastuvõtjate seaded" nimekirjas ja

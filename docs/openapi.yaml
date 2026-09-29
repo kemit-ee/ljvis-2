@@ -496,13 +496,15 @@ paths:
       tags: [organisations]
       operationId: getOrganisations
       x-permissions:
-        anyOf: [organisation.list]
+        authenticated: true
+        anyOf: []
       summary: List all organisations.
       description: |
         Returns the full organisation catalogue, sorted by name in Estonian
         alphabetical order, case-insensitive. Used to populate organisation
-        pickers in user and user-group create / edit flows. Requires
-        organisation.list.
+        pickers in user, user-group and form (inspector organisation)
+        flows. No specific permission required — only a valid authenticated
+        officer session (`/v1/.guard`), so forms never open half-empty.
         Exception to `application_general_rules.md` §3.2 R2 per §3.1:
         returns the whole small immutable catalogue in a single response
         without a `pagination` object; the UI renders a checkbox list,
