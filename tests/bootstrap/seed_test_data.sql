@@ -138,6 +138,32 @@ SELECT
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Officer Group');
 
+-- Compound-only officer: compound_form.write/read but NOT foreign_violation_form.write.
+-- Used by Playwright compound-form.spec.ts to verify that the compound create page
+-- checks compound_form.write (not another form's permission).
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
+SELECT
+    nextval('users.seq_user_group_key'),
+    'Compound Only Group',
+    (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
+     FROM users.organisation WHERE code = 'PPA'),
+    ARRAY['compound_form.write','compound_form.read','transport_interruption_form.write','transport_interruption_form.read']::TEXT[],
+    'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Compound Only Group');
+
+-- Officer without compound_form.write (has foreign_violation_form.write instead) — the
+-- inverse of 'Compound Only Group'; Playwright compound-form.spec.ts expects the
+-- compound create page to show "no access" for this user.
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
+SELECT
+    nextval('users.seq_user_group_key'),
+    'No Compound Group',
+    (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
+     FROM users.organisation WHERE code = 'PPA'),
+    ARRAY['foreign_violation_form.write','foreign_violation_form.read']::TEXT[],
+    'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'No Compound Group');
+
 -- ============================================================
 -- Users  (v2: single snapshot INSERT per user)
 -- Personal codes match docker/tara-mock/identities.json
@@ -204,6 +230,44 @@ SELECT
 FROM users.organisation o
 WHERE o.code = 'PPA'
   AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60002020202');
+
+-- Compound-only officer (see 'Compound Only Group' above).
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60003030303', 'Kaarel', 'Koond',
+    o.id, o.name, 'LÕUNA PREFEKTUUR', 'Kontrolliametnik',
+    'kaarel.koond@ljvis.test', '55500004', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'Compound Only Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'PPA'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60003030303');
+
+-- Officer without compound_form.write (see 'No Compound Group' above).
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60004040404', 'Vello', 'Vaatleja',
+    o.id, o.name, 'LÕUNA PREFEKTUUR', 'Kontrolliametnik',
+    'vello.vaatleja@ljvis.test', '55500005', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'No Compound Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'PPA'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60004040404');
 
 -- ============================================================
 -- Classifiers  (v2: single snapshot INSERT per classifier)

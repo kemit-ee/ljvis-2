@@ -2,6 +2,54 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-09-30
+
+### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
+
+- Asutuste kataloog (`GET /v1/organisations`) ei nõua enam `organisation.list`
+  õigust, piisab ametniku sessioonist. Varem jäi näiteks inspektori
+  organisatsiooni valik tühjaks, kui kasutaja grupil seda õigust polnud, ja
+  vormi ei saanud lõpuni täita.
+- Vormilehed ei nõua enam `classifier.read` õigust: vormid loevad
+  klassifikaatoreid juba õigusteta `/v1/classifier-values` päringust.
+  Klassifikaatori detailvaade ja haldus jäävad oma õiguste taha.
+
+## 2026-09-29
+
+### Koondvormi loomise leht kontrollib nüüd õiget õigust
+
+- Kasutaja, kellel oli `compound_form.write`, kuid mitte
+  `foreign_violation_form.write`, nägi töölaual koondvormi alustamise valikut,
+  aga valikut vajutades kuvati „Teil puudub ligipääs sellele lehele". Loomisleht
+  kontrollis ekslikult välisriigi rikkumise vormi kirjutusõigust. Nüüd nõutakse
+  `compound_form.write`. Sama vea parandasime koondvormi „Kinnita" nupul.
+  Alamvormide lehed kontrollivad juba oma vormi õigust.
+
+### Töölaud ja menüü
+
+- Töölaua valikud on „Minu vormid" ja „Minu organisatsioonid".
+- „Töös olevad koondvormid" ei näita enam avalikustatud koondvorme (ka siis mitte,
+  kui mõni alamvorm on veel avaldamata).
+- Töölaua nimekirjad näitavad ainult vorme, mida kasutajal on õigus lugeda.
+  „Töös olevad vormid" (kõik peale koondvormide) peidetakse täielikult, kui
+  kasutajal pole õigust ühtegi sellist vormi lugeda.
+- Teavituste menüüpunkt ja päise kelluke on nähtavad ainult `notification.list`
+  õigusega kasutajale.
+
+### Koondvormi alamvormide valikud on nähtavad kõigil vahekaartidel
+
+- Lehe all olev „Valitud vormid" nupuriba (valik avatud alamvormide vahel
+  liikumiseks) oli seni näha ainult koondvormi üldandmete vahekaardil. Nüüd
+  kuvatakse seda ka kõigi alamvormide vahekaartide all, nii koondvormi
+  loomisel kui ka täitmisel.
+
+### „Kinnita" nupu vajutamisel leht enam üles ei keri
+
+- Koondvormi ja alamvormide (autojuht, meeskonnaliige, tehnoseisund, ADR,
+  veokatkestus) ning ühe vormi lehtede „Kinnita" nupu vajutamisel jääb leht
+  samasse kohta, kus kasutaja oli. Salvestamisel ja avalikustamisel keritakse
+  leht endiselt üles, et teade oleks nähtav.
+
 ---
 
 ## 2026-09-28

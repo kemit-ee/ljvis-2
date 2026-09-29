@@ -281,8 +281,8 @@
   "dashboard": {
     "scope": {
       "label": "View",
-      "own": "Mine",
-      "organisation": "Organisation"
+      "own": "My forms",
+      "organisation": "My organisations"
     },
     "sections": {
       "compoundBlock": "Compound form",

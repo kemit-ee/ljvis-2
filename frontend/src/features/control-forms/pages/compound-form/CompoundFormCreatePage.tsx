@@ -201,7 +201,7 @@ export function CompoundFormCreatePage() {
   };
 
   const { hasPermission } = useAuth();
-  const forbidden = !hasPermission('foreign_violation_form.write');
+  const forbidden = !hasPermission('compound_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const containerWidth = useContainerWidth(isDesktop, openTabs);
@@ -2393,11 +2393,6 @@ export function CompoundFormCreatePage() {
                 />
               </Card.Content>
             </Card>
-            <SelectedFormsNavigation
-              tabIds={openTabs}
-              labels={tabLabels}
-              onSelect={handleTabChange}
-            />
           </div>
         </Tabs.Content>
         {DRIVE_REST_ROUTES.map((route) => {
@@ -2600,6 +2595,11 @@ export function CompoundFormCreatePage() {
           ) : null;
         })}
       </Tabs>
+      <SelectedFormsNavigation
+        tabIds={openTabs}
+        labels={tabLabels}
+        onSelect={handleTabChange}
+      />
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">

@@ -43,7 +43,7 @@ const formKindLabel = (
 export function DesktopPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const {
     loading,
     availableForms,
@@ -258,6 +258,15 @@ export function DesktopPage() {
       }),
     [summary.activeCompoundForms, overdueCompoundKeys],
   );
+
+  // Töös olevate vormide list (kõik peale koondvormide) näidatakse ainult siis,
+  // kui kasutajal on õigus vähemalt ühte sellist vormitüüpi lugeda.
+  const canReadStandalone =
+    hasPermission('control_form.view_unpublished') ||
+    hasPermission('foreign_violation_form.read') ||
+    hasPermission('labour_inspection_form.read') ||
+    hasPermission('good_repute_form.read') ||
+    hasPermission('tram_driver_form.read');
 
   if (loading) return <Text>{t('common.loading')}</Text>;
 
@@ -531,29 +540,35 @@ export function DesktopPage() {
         </Card.Content>
       </Card>
 
-      {/* Active standalone forms table */}
-      <div className={`${styles.sectionHeader} mt-1 mb-1`}>
-        <Heading element="h2">
-          {t('dashboard.sections.activeStandalone')}
-        </Heading>
-      </div>
-      <Card>
-        <Card.Content>
-          <Table
-            id="dashboard-active-standalone"
-            data={summary.activeStandaloneForms}
-            columns={standaloneColumns}
-            isLoading={summaryLoading}
-            getRowId={(row) => `${row.formType}-${row.formKey}`}
-            onRowClick={(row) =>
-              goTo(buildContinueRoute(row.formType, row.formKey))
-            }
-            placeholder={{ children: t('dashboard.empty.activeStandalone') }}
-            hidePagination
-            hideCardBorder
-          />
-        </Card.Content>
-      </Card>
+      {canReadStandalone && (
+        <>
+          {/* Active standalone forms table */}
+          <div className={`${styles.sectionHeader} mt-1 mb-1`}>
+            <Heading element="h2">
+              {t('dashboard.sections.activeStandalone')}
+            </Heading>
+          </div>
+          <Card>
+            <Card.Content>
+              <Table
+                id="dashboard-active-standalone"
+                data={summary.activeStandaloneForms}
+                columns={standaloneColumns}
+                isLoading={summaryLoading}
+                getRowId={(row) => `${row.formType}-${row.formKey}`}
+                onRowClick={(row) =>
+                  goTo(buildContinueRoute(row.formType, row.formKey))
+                }
+                placeholder={{
+                  children: t('dashboard.empty.activeStandalone'),
+                }}
+                hidePagination
+                hideCardBorder
+              />
+            </Card.Content>
+          </Card>
+        </>
+      )}
 
       {/* Link to full search */}
       <div className="mt-1">

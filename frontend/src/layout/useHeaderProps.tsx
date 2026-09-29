@@ -11,7 +11,7 @@ import {
 import { Row, StretchContent, Button } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../features/auth/useAuth';
 import type { TediLocale } from '../AppProviders';
-import { BREAKPOINTS } from '../constants/constants';
+import { BREAKPOINTS, PERMISSIONS } from '../constants/constants';
 import { NotificationBellButton } from '../features/notifications/NotificationBellButton';
 import './useHeaderProps.css';
 
@@ -90,7 +90,7 @@ function RepresentationMenu({
 }
 
 export function useHeaderProps(): HeaderProps<'a'> {
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language?.slice(0, 2);
@@ -116,7 +116,9 @@ export function useHeaderProps(): HeaderProps<'a'> {
         <HeaderContent>
           <StretchContent direction="horizontal">
             <Row alignItems="center" justifyContent="end" gap={3}>
-              <NotificationBellButton />
+              {hasPermission(PERMISSIONS.NOTIFICATION_LIST) && (
+                <NotificationBellButton />
+              )}
               <HeaderLanguage
                 languages={LANGUAGES.map(({ code, label }) => ({
                   label,

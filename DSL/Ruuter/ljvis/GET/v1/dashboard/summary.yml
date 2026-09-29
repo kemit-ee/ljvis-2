@@ -57,6 +57,25 @@ buildResponse:
         (sections || []).forEach(function(row) {
           try { out[row.section] = JSON.parse(row.payload); } catch (e) { /* leave default [] */ }
         });
+        // Näita ainult vorme, mida kasutajal on õigus lugeda (sama vastavus
+        // mis control-forms/search/list.yml-is; view_unpublished = kõik).
+        var perms = auth_user.permissions || [];
+        var all = perms.includes('control_form.view_unpublished');
+        var map = {
+          compound: 'compound_form.read', foreign_violation: 'foreign_violation_form.read',
+          labour_inspection: 'labour_inspection_form.read', good_repute: 'good_repute_form.read',
+          sp_driver: 'sp_driver_form.read', sp_teammate: 'sp_teammate_form.read',
+          vehicle_technical: 'vehicle_technical_form.read', trailer_technical: 'trailer_technical_form.read',
+          adr: 'adr_form.read', kv: 'transport_interruption_form.read',
+          tram_control_card: 'tram_driver_form.read'
+        };
+        var can = function(t) { return (all && t !== 'tram_control_card') || perms.includes(map[t]); };
+        out.activeCompoundForms = out.activeCompoundForms.filter(function(c) { return can('compound'); }).map(function(c) {
+          c.subForms = (c.subForms || []).filter(function(sf) { return can(sf.formType); });
+          return c;
+        });
+        out.activeStandaloneForms = out.activeStandaloneForms.filter(function(f) { return can(f.formType); });
+        out.needsAttention = out.needsAttention.filter(function(n) { return can('compound') && can(n.formType); });
         return out;
       })()}
   next: returnSuccess

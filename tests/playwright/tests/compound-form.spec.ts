@@ -1,4 +1,5 @@
 import { test, expect } from '../support/fixtures';
+import { STORAGE_STATE } from '../playwright.config';
 import {
   fillGeneralPart,
   expectSaved,
@@ -242,5 +243,60 @@ test.describe('Koondvorm — PPA kasutusvoo parendused', () => {
     await testInfo.attach('ppa-haagise-vahekaart', { body: await page.screenshot(), contentType: 'image/png' });
     await page.getByRole('navigation', { name: 'Valitud kontrollvormid' }).scrollIntoViewIfNeeded();
     await testInfo.attach('ppa-alumine-vorminavigatsioon', { body: await page.screenshot(), contentType: 'image/png' });
+  });
+});
+
+test.describe('Koondvorm — loomise õigus', () => {
+  test.describe('ainult compound_form.write (ilma foreign_violation_form.write-ita)', () => {
+    test.use({ storageState: STORAGE_STATE.compoundonly });
+
+    test('saab koondvormi luua ja salvestada', async ({ page }) => {
+      await page.goto(NEW);
+      await expect(page.getByText(/puudub ligipääs/i)).toHaveCount(0);
+      await expect(
+        page.getByRole('heading', { name: 'Kontrolli koht' }),
+      ).toBeVisible();
+
+      await fillGeneralPart(page, {
+        address: 'Testi tee 1',
+        controlDate: '01032026',
+        controlTime: '1200',
+        county: 'Harju maakond',
+        vehicleRegNr: `CO${Date.now() % 100000}`,
+        vehicleCategoryCode: 'A_2012',
+        fillInspector: true,
+        driver: {
+          ids: COMPOUND_DRIVER_IDS,
+          firstName: 'Juht',
+          lastName: 'Testija',
+          birthDate: '01011990',
+        },
+      });
+      await page.getByRole('button', SAVE).click();
+      await expectSaved(page, '/control-forms/compound');
+    });
+  });
+
+  test.describe('ilma compound_form.write-ita', () => {
+    test.use({ storageState: STORAGE_STATE.nocompound });
+
+    test('näeb teadet „Teil puudub ligipääs sellele lehele"', async ({ page }) => {
+      await page.goto(NEW, { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText(/puudub ligipääs/i)).toBeVisible({
+        timeout: 20_000,
+      });
+    });
+  });
+});
+
+test.describe('Koondvorm — vormide navigatsioon', () => {
+  test('valitud vormide navigatsioon on nähtav ka alamvormi vahekaardil', async ({
+    page,
+  }) => {
+    await page.goto(NEW);
+    const nav = page.getByRole('navigation', { name: 'Valitud kontrollvormid' });
+    await expect(nav).toBeVisible();
+    await page.getByRole('tab', { name: /veo katkestamine|katkesta/i }).click();
+    await expect(nav).toBeVisible();
   });
 });

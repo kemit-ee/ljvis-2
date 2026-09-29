@@ -17,7 +17,7 @@ interface TechnicalCheckFormEditCardProps {
   scope: 'vehicle' | 'trailer';
   form: TechnicalCheckForm;
   compoundFormKey: number;
-  onSaved: (id?: string) => void;
+  onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
   onConfirm: () => void;
@@ -68,9 +68,9 @@ export const TechnicalCheckFormEditCard = forwardRef<
           type={scope}
           initialData={form}
           compoundFormKey={compoundFormKey}
-          onSaved={(id) => {
+          onSaved={(id, confirmed) => {
             setVersionsRefreshKey((k) => k + 1);
-            onSaved(id);
+            onSaved(id, confirmed);
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}
