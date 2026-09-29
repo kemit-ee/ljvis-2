@@ -1,4 +1,5 @@
 import { test, expect } from '../support/fixtures';
+import { STORAGE_STATE } from '../playwright.config';
 import {
   fillGeneralPart,
   expectSaved,
@@ -245,42 +246,50 @@ test.describe('Koondvorm — PPA kasutusvoo parendused', () => {
   });
 });
 
-test.describe('Koondvorm — loomisõigus ja vormide navigatsioon', () => {
-  const asUserWith = async (
-    page: import('@playwright/test').Page,
-    permissions: string[],
-  ) => {
-    await page.route('**/auth/session', async (route) => {
-      const res = await route.fetch();
-      const json = await res.json();
-      json.response = { ...json.response, permissions };
-      await route.fulfill({ response: res, json });
+test.describe('Koondvorm — loomise õigus', () => {
+  test.describe('ainult compound_form.write (ilma foreign_violation_form.write-ita)', () => {
+    test.use({ storageState: STORAGE_STATE.compoundonly });
+
+    test('saab koondvormi luua ja salvestada', async ({ page }) => {
+      await page.goto(NEW);
+      await expect(page.getByText(/puudub ligipääs/i)).toHaveCount(0);
+      await expect(
+        page.getByRole('heading', { name: 'Kontrolli koht' }),
+      ).toBeVisible();
+
+      await fillGeneralPart(page, {
+        address: 'Testi tee 1',
+        controlDate: '01032026',
+        controlTime: '1200',
+        county: 'Harju maakond',
+        vehicleRegNr: `CO${Date.now() % 100000}`,
+        vehicleCategoryCode: 'A_2012',
+        fillInspector: true,
+        driver: {
+          ids: COMPOUND_DRIVER_IDS,
+          firstName: 'Juht',
+          lastName: 'Testija',
+          birthDate: '01011990',
+        },
+      });
+      await page.getByRole('button', SAVE).click();
+      await expectSaved(page, '/control-forms/compound');
     });
-  };
-
-  test('compound_form.write õigusega pääseb loomislehele ilma välisriigi vormi õiguseta', async ({
-    page,
-  }) => {
-    await asUserWith(page, ['compound_form.write', 'compound_form.read']);
-    await page.goto(NEW);
-    await expect(
-      page.getByRole('heading', { name: 'Kontrolli koht' }),
-    ).toBeVisible();
-    await expect(
-      page.getByText('Teil puudub ligipääs sellele lehele'),
-    ).toHaveCount(0);
   });
 
-  test('ilma compound_form.write õiguseta kuvatakse ligipääsu puudumise teade', async ({
-    page,
-  }) => {
-    await asUserWith(page, ['compound_form.read']);
-    await page.goto(NEW);
-    await expect(
-      page.getByText('Teil puudub ligipääs sellele lehele'),
-    ).toBeVisible();
-  });
+  test.describe('ilma compound_form.write-ita', () => {
+    test.use({ storageState: STORAGE_STATE.nocompound });
 
+    test('näeb teadet „Teil puudub ligipääs sellele lehele"', async ({ page }) => {
+      await page.goto(NEW, { waitUntil: 'domcontentloaded' });
+      await expect(page.getByText(/puudub ligipääs/i)).toBeVisible({
+        timeout: 20_000,
+      });
+    });
+  });
+});
+
+test.describe('Koondvorm — vormide navigatsioon', () => {
   test('valitud vormide navigatsioon on nähtav ka alamvormi vahekaardil', async ({
     page,
   }) => {
