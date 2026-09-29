@@ -345,7 +345,7 @@ export function CompoundFormPage() {
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
-    hasPermission('foreign_violation_form.write') &&
+    hasPermission('compound_form.write') &&
     hasPermission('control_form.view_unpublished') &&
     form?.status !== 'deleted' &&
     form?.status !== 'confirmed';
