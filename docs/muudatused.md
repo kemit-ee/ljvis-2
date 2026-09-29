@@ -12,6 +12,34 @@
 - Rikkumise valikus näidatakse tehnilise koodi asemel raskusastet.
 - Varem salvestatud vormide vanad koodid (`ROOMA_I_01_MI`, `LAHETAMINE_0X_MI`)
   asendatakse ERRU koodidega.
+### Välisriigi rikkumise kontrollkaart: NCR andmete ülekanne ja teavituse linnuke
+
+- NCR teatest loodud kaardil kuvatakse iga MSI/VSI/SI rikkumise ees välisriigis
+  rakendatud karistus (nt „Trahv", „Hoiatus") ning välisriigi taotletud
+  karistus (nt „Taotletud: Ühenduse tegevusloa ajutine äravõtmine").
+- Kergemate rikkumiste arv ja rikkumised loetakse sissetulnud NCR teatest ka
+  siis, kui juhtumil on hilisemaid kirjeid (nt vastuse mustand).
+- Pärast vedaja teavituse edukat väljasaatmist avalikustamisel võetakse
+  „Teavita vedajat rikkumisest" linnuke maha. Muudatuse korral tuleb see uuesti
+  märkida, et teavitus muudetud andmetega uuesti läheks.
+- Avalikustatud (kirjutuskaitstud) kaardil jäävad nähtavaks ainult välisriigis
+  avastatud MSI/VSI/SI rikkumised; muutmisel on kõik rikkumised taas nähtaval.
+
+### Sissetuleva NCR teate vaade ja vastusvorm täielikumaks
+
+- Teate päises kuvatakse nüüd teate kuupäev ja kellaaeg.
+- Kontrolli kokkuvõttes kuvatakse kergema rikkumise kuupäev ja kergemate
+  rikkumiste arv (puudumisel „—").
+- Iga raske rikkumise all kuvatakse eraldi kehtestatud karistused (tunnus,
+  liik, täide viidud, lõpliku otsuse kuupäev, alguse ja lõpu kuupäev) ning
+  taotletud karistused (tunnus, halduskaristuse liik, kestus). Kui karistust
+  pole, on väljad „—".
+- Vastusvormis on vaikimisi „Vastust esitav pädev asutus" ja „Karistuse
+  määranud pädev asutus" Kliimaministeerium.
+- Vastuse staatuse valikud on „Leitud" ja „Ei leitud".
+- „Määratud karistus" plokis on „Karistus määratud" Jah/Ei; Jah puhul
+  määratud karistuse liik ning alguse ja lõpu kuupäev, Ei puhul
+  „Karistuse määramata jätmise põhjus".
 
 ### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
 

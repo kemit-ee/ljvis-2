@@ -144,6 +144,10 @@ export function NcrFormPage() {
           value={authorityLabel(current.originatingAuthority)}
         />
         <DetailRow
+          label={t('erru.ncr.form.messageDateTime')}
+          value={new Date(current.sentAt ?? current.createdAt).toLocaleString('et-EE')}
+        />
+        <DetailRow
           label={t('erru.ncr.form.requestSource')}
           value={label('NCR_REQUEST_SOURCE', current.requestSource)}
         />
@@ -177,10 +181,22 @@ export function NcrFormPage() {
           label={t('erru.ncr.form.checkResult')}
           value={label('NCR_CHECK_RESULT', current.checkResult)}
         />
+        <DetailRow
+          label={t('erru.ncr.form.checkDate')}
+          value={current.checkDate}
+        />
+        <DetailRow
+          label={t('erru.ncr.form.minorInfringementDate')}
+          value={current.minorInfringement?.dateOfInfringement || '—'}
+        />
         <div className="mb-1">
           <DetailRow
-            label={t('erru.ncr.form.checkDate')}
-            value={current.checkDate}
+            label={t('erru.ncr.form.minorInfringementCount')}
+            value={
+              current.minorInfringement?.numberOfInfringements != null
+                ? String(current.minorInfringement.numberOfInfringements)
+                : '—'
+            }
           />
         </div>
 
@@ -212,6 +228,74 @@ export function NcrFormPage() {
                     label={t('erru.ncr.form.appealPossible')}
                     value={si.appealPossible ? t('common.yes') : t('common.no')}
                   />
+
+                  <Heading element="h3" className="mt-1 mb-05">
+                    {t('erru.ncr.form.penaltiesImposedBlock')}
+                  </Heading>
+                  {(si.penaltiesImposed?.length ? si.penaltiesImposed : [null]).map(
+                    (p, pIdx) => (
+                      <div key={pIdx} className={pIdx > 0 ? 'mt-1' : undefined}>
+                        <DetailRow
+                          label={t('erru.ncr.form.penaltyImposedIdentifier')}
+                          value={p?.penaltyImposedIdentifier || '—'}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.penaltyTypeImposed')}
+                          value={label('NCR_PENALTY_TYPE_IMPOSED_REQ', p?.penaltyTypeImposed)}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.isExecuted')}
+                          value={
+                            p?.isExecuted === 'Yes'
+                              ? t('common.yes')
+                              : p?.isExecuted === 'No'
+                                ? t('common.no')
+                                : label('NCR_IS_EXECUTED', p?.isExecuted)
+                          }
+                        />
+                        {p?.isExecuted === 'No' && (
+                          <DetailRow
+                            label={t('erru.ncr.form.notExecutedReason')}
+                            value={p.notExecutedReason || '—'}
+                          />
+                        )}
+                        <DetailRow
+                          label={t('erru.ncr.form.finalDecisionDate')}
+                          value={p?.finalDecisionDate || '—'}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.penaltyStartDate')}
+                          value={p?.startDate || '—'}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.penaltyEndDate')}
+                          value={p?.endDate || '—'}
+                        />
+                      </div>
+                    ),
+                  )}
+
+                  <Heading element="h3" className="mt-1 mb-05">
+                    {t('erru.ncr.form.penaltiesRequestedBlock')}
+                  </Heading>
+                  {(si.penaltiesRequested?.length ? si.penaltiesRequested : [null]).map(
+                    (p, pIdx) => (
+                      <div key={pIdx} className={pIdx > 0 ? 'mt-1' : undefined}>
+                        <DetailRow
+                          label={t('erru.ncr.form.penaltyRequestedIdentifier')}
+                          value={p?.penaltyRequestedIdentifier || '—'}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.penaltyTypeRequested')}
+                          value={label('NCR_PENALTY_TYPE_REQUESTED', p?.penaltyTypeRequested)}
+                        />
+                        <DetailRow
+                          label={t('erru.ncr.form.penaltyDuration')}
+                          value={p?.duration != null ? String(p.duration) : '—'}
+                        />
+                      </div>
+                    ),
+                  )}
                 </Card.Content>
               </Card>
             ))}
@@ -511,7 +595,7 @@ export function NcrFormPage() {
                           <Card.Content>
                             <DetailRow
                               label={t(
-                                'erru.ncr.form.penaltyRequestedIdentifier',
+                                'erru.ncr.form.responsePenaltyIdentifier',
                               )}
                               value={p.penaltyRequestedIdentifier}
                             />
@@ -528,7 +612,7 @@ export function NcrFormPage() {
                             {p.isImposed && (
                               <>
                                 <DetailRow
-                                  label={t('erru.ncr.form.penaltyTypeImposed')}
+                                  label={t('erru.ncr.form.responsePenaltyType')}
                                   value={
                                     p.penaltyTypeImposed
                                       ? label(
