@@ -1010,6 +1010,12 @@ export function CompoundFormPage() {
                 driver.setEditActive(false);
                 driver.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('driver', form.id!).then(() =>
+                  refetchDriveRest('driver'),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchDriveRest('driver', () => {
@@ -1075,6 +1081,12 @@ export function CompoundFormPage() {
                 teammate.setEditActive(false);
                 teammate.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('teammate', form.id!).then(() =>
+                  refetchDriveRest('teammate'),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchDriveRest('teammate', () => {
@@ -1133,6 +1145,12 @@ export function CompoundFormPage() {
                 vehicle.setEditActive(false);
                 vehicle.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('vehicle', form.id!).then(() =>
+                  refetchTechCheck('vehicle', undefined),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchTechCheck('vehicle', undefined, () => {
@@ -1195,6 +1213,12 @@ export function CompoundFormPage() {
                   trailerHandle.setEditActive(false);
                   trailerHandle.resetDraft();
                 }}
+                canPublish={canPublishSubforms()}
+                onPublish={() =>
+                  publishTechnicalCheckForm('trailer', form.id!).then(() =>
+                    refetchTechCheck('trailer', idx),
+                  )
+                }
                 canConfirm={canConfirmSubform()}
                 onConfirm={() => {
                   refetchTechCheck('trailer', idx, () => {
@@ -1249,6 +1273,10 @@ export function CompoundFormPage() {
                 adr.setEditActive(false);
                 adr.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishAdrForm(form.id!).then(() => refetchAdr())
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchAdr(() => {
@@ -1305,6 +1333,12 @@ export function CompoundFormPage() {
                 transportInterruption.setEditActive(false);
                 transportInterruption.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTransportInterruptionForm(form.id!).then(() =>
+                  refetchTransportInterruption(),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchTransportInterruption(() => {

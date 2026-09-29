@@ -443,6 +443,7 @@
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
+    "publishUnsavedChanges": "Salvesta muudatused enne avalikustamist",
     "publishedNote": "Vorm on avaldatud",
     "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",
     "versions": {

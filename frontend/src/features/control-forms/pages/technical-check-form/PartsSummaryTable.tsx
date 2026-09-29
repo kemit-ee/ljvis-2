@@ -37,6 +37,10 @@ interface PartsSummaryTableProps {
   partsDefects?: PartDefectEntry[];
   defectsByPartKey?: Map<number, ClassifierEntry[]>;
   onRemoveDefect?: (partCode: string, defectCode: string) => void;
+  /** Unique per mounted form (variant + trailer index). Every compound-form
+   *  tab mounts its own table at once, so bare ids/names would collide and
+   *  clicks on a trailer tab would toggle the vehicle tab's inputs. */
+  idPrefix?: string;
 }
 
 export function PartsSummaryTable({
@@ -48,6 +52,7 @@ export function PartsSummaryTable({
   partsDefects,
   defectsByPartKey,
   onRemoveDefect,
+  idPrefix = '',
 }: PartsSummaryTableProps) {
   const { t } = useTranslation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -107,16 +112,18 @@ export function PartsSummaryTable({
     );
   };
 
+  const pfx = idPrefix ? `${idPrefix}-` : '';
+
   const checkedItems = (partCode: string, entry: PartSummaryEntry) => [
     {
-      id: `part-status-${partCode}-not-checked`,
+      id: `${pfx}part-status-${partCode}-not-checked`,
       value: 'false',
       label: t('forms.technical_check.parts.notChecked'),
       // hasDefect always implies checked — can't uncheck while a defect exists.
       disabled: disabled || entry.hasDefect,
     },
     {
-      id: `part-status-${partCode}-checked`,
+      id: `${pfx}part-status-${partCode}-checked`,
       value: 'true',
       label: t('forms.technical_check.parts.checked'),
       disabled,
@@ -128,8 +135,8 @@ export function PartsSummaryTable({
     return (
       <>
         <ChoiceGroup
-          id={`part-status-${part.code}`}
-          name={`part-status-${part.code}`}
+          id={`${pfx}part-status-${part.code}`}
+          name={`${pfx}part-status-${part.code}`}
           label={t('forms.technical_check.parts.statusColumn')}
           hideLabel
           inputType="radio"
@@ -139,8 +146,8 @@ export function PartsSummaryTable({
           items={checkedItems(part.code, entry)}
         />
         <Checkbox
-          id={`part-defect-${part.code}`}
-          name={`part-defect-${part.code}`}
+          id={`${pfx}part-defect-${part.code}`}
+          name={`${pfx}part-defect-${part.code}`}
           value="hasDefect"
           label={t('forms.technical_check.parts.nonCompliant')}
           checked={entry.hasDefect}

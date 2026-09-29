@@ -38,6 +38,7 @@ checkFormIsConfirmed:
     current_status: "${currentFormRes.response.body[0].status}"
     compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
     sub_form_number: "${currentFormRes.response.body[0].subFormNumber}"
+    current_version: "${currentFormRes.response.body[0].version}"
     company_reg_code: "${currentFormRes.response.body[0].companyRegCode || ''}"
     company_name: "${currentFormRes.response.body[0].companyName || ''}"
   next: checkStatusSwitch
@@ -141,11 +142,14 @@ publishForm:
       notes: ${notes}
       created_by: ${created_by}
   result: publishRes
+  error: returnPublishError
   next: buildLogDescription
 
 buildLogDescription:
   assign:
-    description: "Sõidu- ja puhkeaja alamvorm (juht) avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${publishRes.response.body[0].subFormNumber}/${publishRes.response.body[0].version}"
+    published_sub_form_number: "${publishRes.response && publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].subFormNumber || sub_form_number}"
+    published_version: "${publishRes.response && publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].version != null ? publishRes.response.body[0].version : current_version}"
+    description: "Sõidu- ja puhkeaja alamvorm (juht) avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${published_sub_form_number}/${published_version}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -181,7 +185,7 @@ createSeriousInfringement:
       required_permission: "rsi.read"
       related_entity_type: "drive_rest_driver_form"
       related_entity_id: ${id}
-      event_key: "${'drive-rest-driver:' + id + ':' + publishRes.response.body[0].version + ':serious'}"
+      event_key: "${'drive-rest-driver:' + id + ':' + published_version + ':serious'}"
       title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
       body_et: "${'Koondvormi võti: ' + compound_form_key}"
       created_by: ${actor_personal_code}
@@ -233,7 +237,7 @@ createWeightViolationNotification:
       required_permission: "rsi.read"
       related_entity_type: "drive_rest_driver_form"
       related_entity_id: ${id}
-      event_key: "${'drive-rest-driver:' + id + ':' + publishRes.response.body[0].version}"
+      event_key: "${'drive-rest-driver:' + id + ':' + published_version}"
       title_et: "Sõiduki kaalumisel ja mõõtmisel on avastatud rikkumine"
       body_et: "${'Koondvormi võti: ' + compound_form_key}"
       created_by: ${actor_personal_code}
@@ -272,6 +276,11 @@ returnSuccess:
 returnNotFound:
   status: 404
   return: '{"error": "NOT_FOUND"}'
+  next: end
+
+returnPublishError:
+  status: 500
+  return: '{"error":"PUBLISH_FAILED"}'
   next: end
 
 returnAlreadyPublishedError:

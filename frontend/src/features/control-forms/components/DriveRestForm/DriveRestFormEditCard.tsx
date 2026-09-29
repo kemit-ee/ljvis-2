@@ -5,6 +5,7 @@ import type { DriveRestForm } from '../../types';
 import { DriveRestFormCreatePage } from '../../pages/drive-rest-form/DriveRestFormCreatePage';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 
 interface DriveRestFormRef {
@@ -32,6 +33,8 @@ interface DriveRestFormEditCardProps {
   onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
   onConfirm: () => void;
   formType: string;
   onValuesChange?: (values: Partial<DriveRestForm>) => void;
@@ -45,6 +48,8 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
   compoundFormKey,
   onSaved,
   canConfirm,
+  canPublish,
+  onPublish,
   formType,
   onValuesChange,
   initialValidate,
@@ -104,6 +109,12 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
                 {t('common.confirm')}
               </Button>
             )}
+            <SubFormEditPublishButton
+              form={form}
+              canPublish={canPublish}
+              onPublish={onPublish}
+              isDirty={() => formRef.current?.isDirty() ?? false}
+            />
           </div>
         </div>
       </Card.Content>

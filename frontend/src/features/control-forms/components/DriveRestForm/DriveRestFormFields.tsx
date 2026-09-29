@@ -952,7 +952,9 @@ export function DriveRestFormFields({
       {!hideDriveRestExtras && formik.values.resultType !== '' && (
         <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
-            <AccordionItem id={fieldId('drive-rest-violations')}>
+            {/* Vaikimisi avatud: plokis on kohustuslik väli, mida suletuna
+                on lihtne märkamata jätta. */}
+            <AccordionItem id={fieldId('drive-rest-violations')} defaultExpanded>
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
