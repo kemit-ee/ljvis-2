@@ -2,6 +2,17 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-09-30
+
+### Rooma I ja lähetamise rikkumiste raskusaste
+
+- Rooma I rikkumise raskusaste on **VSI** (varem oli mõnes keskkonnas ekslikult
+  MI/MSI). Rooma I ja autojuhi lähetamise rikkumistel on nüüd kõigis keskkondades
+  ERRU rikkumise kood (nt `VSI874`, `SI951`) ning raskusaste tuletatakse koodist.
+- Rikkumise valikus näidatakse tehnilise koodi asemel raskusastet.
+- Varem salvestatud vormide vanad koodid (`ROOMA_I_01_MI`, `LAHETAMINE_0X_MI`)
+  asendatakse ERRU koodidega.
+
 ## 2026-09-29
 
 ### Koondvormi loomise leht kontrollib nüüd õiget õigust

@@ -378,7 +378,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
         onChange={toggle}
         label={
           <Text>
-            <strong>{l3.code}</strong>
+            <strong>{l3.name}</strong>
             <Separator
               axis="vertical"
               color="secondary"
