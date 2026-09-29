@@ -17,6 +17,22 @@
 - Avalikustatud (kirjutuskaitstud) kaardil jäävad nähtavaks ainult välisriigis
   avastatud MSI/VSI/SI rikkumised; muutmisel on kõik rikkumised taas nähtaval.
 
+### Sissetuleva NCR teate vaade ja vastusvorm täielikumaks
+
+- Teate päises kuvatakse nüüd teate kuupäev ja kellaaeg.
+- Kontrolli kokkuvõttes kuvatakse kergema rikkumise kuupäev ja kergemate
+  rikkumiste arv (puudumisel „—").
+- Iga raske rikkumise all kuvatakse eraldi kehtestatud karistused (tunnus,
+  liik, täide viidud, lõpliku otsuse kuupäev, alguse ja lõpu kuupäev) ning
+  taotletud karistused (tunnus, halduskaristuse liik, kestus). Kui karistust
+  pole, on väljad „—".
+- Vastusvormis on vaikimisi „Vastust esitav pädev asutus" ja „Karistuse
+  määranud pädev asutus" Kliimaministeerium.
+- Vastuse staatuse valikud on „Leitud" ja „Ei leitud".
+- „Määratud karistus" plokis on „Karistus määratud" Jah/Ei; Jah puhul
+  määratud karistuse liik ning alguse ja lõpu kuupäev, Ei puhul
+  „Karistuse määramata jätmise põhjus".
+
 ### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
 
 - Asutuste kataloog (`GET /v1/organisations`) ei nõua enam `organisation.list`

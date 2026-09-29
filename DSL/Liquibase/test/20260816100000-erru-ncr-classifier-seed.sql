@@ -76,8 +76,8 @@ BEGIN
                 ('NCR_REQUEST_STATUS', 'error',           'Viga'),
 
                 -- ── NCR_RESPONSE_STATUS (ncrResponseStatusCodeType) ──────────────────────
-                ('NCR_RESPONSE_STATUS', 'OK',             'Transport undertaking leitud'),
-                ('NCR_RESPONSE_STATUS', 'NotFound',       'Transport undertakingut ei leitud'),
+                ('NCR_RESPONSE_STATUS', 'OK',             'Leitud'),
+                ('NCR_RESPONSE_STATUS', 'NotFound',       'Ei leitud'),
 
                 -- ── NCR_ACK_STATUS (ncrAcknowledgementStatusCodeType) ────────────────────
                 ('NCR_ACK_STATUS', 'OK',                  'Kinnitus saadud'),
