@@ -1055,6 +1055,18 @@
       "sanctionHoiatus": "Hoiatus",
       "sanctionKabotaaz": "Kabotaažveo ajutine keelamine",
       "sanctionTrahv": "Trahv",
+      "requestedPenaltyPrefix": "Taotletud",
+      "requestedPenalty": {
+        "101": "Hoiatus",
+        "301": "Ühenduse tegevusloa kinnitatud ärakirjade ajutine äravõtmine",
+        "302": "Ühenduse tegevusloa kinnitatud ärakirjade lõplik äravõtmine",
+        "303": "Ühenduse tegevusloa ajutine äravõtmine",
+        "304": "Ühenduse tegevusloa lõplik äravõtmine",
+        "305": "Autojuhi tõendi väljastamise peatamine",
+        "306": "Autojuhi tõendi äravõtmine",
+        "307": "Autojuhi tõendi väljastamine lisatingimustega",
+        "102": "Muu"
+      },
       "sanctionLiiklemiskeeld": "Liiklemiskeeld",
       "sanctionSoiduk": "Sõiduki kasutamise takistamine",
       "sanctionMuu": "Muu",

@@ -187,8 +187,9 @@ logAuditEvent:
 # Teavituste saatmine toimub avalikustamisel: kui kaardil on märgitud
 # „Teavita vedajat rikkumisest" (notifyCarrier) ja/või tööinspektori
 # teavitus (notifyLaborInspector), saadetakse need Postkast 2.0 kaudu.
-# Linnukesed jäävad kaardile alles, seega kordusavalikustamine (uus versioon)
-# saadab teavituse uuesti. Ajalugu: notifications.outbound_log.
+# Pärast edukat vedaja teavitamist võetakse notifyCarrier linnuke maha
+# (clearNotifyCarrier) — muudatuse korral märgib kasutaja selle uuesti ja
+# kordusavalikustamine saadab teavituse uuesti. Ajalugu: notifications.outbound_log.
 # Saatmise viga ei tühista avalikustamist — vorm on DB-s juba published ja
 # ebaõnnestunud saatmine logitakse outbound_log-i error-reana.
 sendNotifications:
@@ -212,6 +213,27 @@ sendNotifications:
     newNotifyLaborInspector: ${notify_labor_inspector}
     sendGateMet: "true"
   result: notifyResult
+  error: returnSuccess
+  next: checkCarrierSent
+
+checkCarrierSent:
+  switch:
+    - condition: ${notify_carrier === 'true' && notifyResult != null && String(notifyResult).indexOf('"carrierSent":"true"') !== -1}
+      next: clearNotifyCarrier
+  next: returnSuccess
+
+# Vedaja teavitus on välja saadetud — võta linnuke maha (püsib ainult
+# publitseeritud kirjel; vea korral jääb linnuke alles ja avalikustamine ei
+# tühistu).
+clearNotifyCarrier:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/clear-notify-carrier"
+    headers:
+      type: json
+    body:
+      key: ${id}
+  result: clearNotifyCarrierRes
   error: returnSuccess
   next: returnSuccess
 

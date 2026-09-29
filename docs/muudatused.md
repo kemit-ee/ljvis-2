@@ -4,6 +4,19 @@
 
 ## 2026-09-30
 
+### Välisriigi rikkumise kontrollkaart: NCR andmete ülekanne ja teavituse linnuke
+
+- NCR teatest loodud kaardil kuvatakse iga MSI/VSI/SI rikkumise ees välisriigis
+  rakendatud karistus (nt „Trahv", „Hoiatus") ning välisriigi taotletud
+  karistus (nt „Taotletud: Ühenduse tegevusloa ajutine äravõtmine").
+- Kergemate rikkumiste arv ja rikkumised loetakse sissetulnud NCR teatest ka
+  siis, kui juhtumil on hilisemaid kirjeid (nt vastuse mustand).
+- Pärast vedaja teavituse edukat väljasaatmist avalikustamisel võetakse
+  „Teavita vedajat rikkumisest" linnuke maha. Muudatuse korral tuleb see uuesti
+  märkida, et teavitus muudetud andmetega uuesti läheks.
+- Avalikustatud (kirjutuskaitstud) kaardil jäävad nähtavaks ainult välisriigis
+  avastatud MSI/VSI/SI rikkumised; muutmisel on kõik rikkumised taas nähtaval.
+
 ### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
 
 - Asutuste kataloog (`GET /v1/organisations`) ei nõua enam `organisation.list`

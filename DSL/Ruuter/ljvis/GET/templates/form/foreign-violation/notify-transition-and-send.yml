@@ -4,9 +4,10 @@ declaration:
   description: >-
     Välisriigi kontrollkaardi teavituste (vedaja / tööinspektor) saatmine
     Postkast 2.0 kaudu. Kutsub AINULT edit/publish.yml - salvestamine ja
-    kinnitamine teavitusi ei saada, linnukesed (notifyCarrier /
-    notifyLaborInspector) on kaardil püsiv olek ja jäävad pärast saatmist
-    alles, nii et kordusavalikustamine saadab teavituse uuesti.
+    kinnitamine teavitusi ei saada. Vedaja linnuke (notifyCarrier) võetakse
+    pärast edukat saatmist maha (kutsuja teeb seda tagastatud carrierSent
+    põhjal), nii et kordussaatmiseks tuleb see muudatuse korral uuesti
+    märkida. Tööinspektori linnuke (notifyLaborInspector) jääb püsivaks.
 
     sendGateMet: kutsuja kinnitus, et saatmine on lubatud (publish.yml
     annab alati 'true' - avalikustamine ise on saatmise hetk).
@@ -18,8 +19,8 @@ declaration:
     markInvalidRecipient) looks korrektse "error" rea notifications.outbound_log-i.
     Nii ei kao kasutaja saatmissoov jäljetult.
 
-    Tagastusväärtus ('{"notifyCarrierPersisted":"false",...}') on
-    ajalooline - publish.yml seda ei kasuta.
+    Tagastusväärtus: '{"carrierSent":"true|false"}' - "true" ainult siis, kui
+    send-postkast võttis vedaja teavituse vastu (staatus ei ole "error").
   namespace: service
   allowlist:
     body:
@@ -77,6 +78,7 @@ extractInputs:
     created_by: "${incoming.body.createdBy || 'system'}"
     send_carrier: "${incoming.body.newNotifyCarrier === 'true' && incoming.body.sendGateMet === 'true'}"
     send_labor_inspector: "${incoming.body.newNotifyLaborInspector === 'true' && incoming.body.sendGateMet === 'true'}"
+    carrier_sent: "false"
   next: checkSendCarrier
 
 checkSendCarrier:
@@ -133,6 +135,11 @@ sendCarrierNotification:
       template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: inspection_country_code, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description } }"
   result: carrierNotifRes
   error: checkSendLaborInspector
+  next: markCarrierSent
+
+markCarrierSent:
+  assign:
+    carrier_sent: "${(carrierNotifRes.response != null && carrierNotifRes.response.status >= 200 && carrierNotifRes.response.status < 300 && carrierNotifRes.response.body != null && carrierNotifRes.response.body.status !== 'error') ? 'true' : 'false'}"
   next: checkSendLaborInspector
 
 checkSendLaborInspector:
@@ -164,5 +171,5 @@ sendLaborInspectorNotification:
   next: returnResult
 
 returnResult:
-  return: '{"notifyCarrierPersisted":"false","notifyLaborInspectorPersisted":"false"}'
+  return: '${JSON.stringify({ carrierSent: carrier_sent })}'
   next: end

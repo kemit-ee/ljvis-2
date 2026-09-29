@@ -884,6 +884,18 @@
       "sanctionHoiatus": "Warning",
       "sanctionKabotaaz": "Temporary prohibition of cabotage",
       "sanctionTrahv": "Fine",
+      "requestedPenaltyPrefix": "Requested",
+      "requestedPenalty": {
+        "101": "Warning",
+        "301": "Temporary withdrawal of certified true copies of the Community licence",
+        "302": "Permanent withdrawal of certified true copies of the Community licence",
+        "303": "Temporary withdrawal of the Community licence",
+        "304": "Permanent withdrawal of the Community licence",
+        "305": "Suspension of the issue of driver attestations",
+        "306": "Withdrawal of driver attestations",
+        "307": "Issue of driver attestations subject to additional conditions",
+        "102": "Other"
+      },
       "sanctionLiiklemiskeeld": "Prohibition from driving",
       "sanctionSoiduk": "Immobilisation of vehicle",
       "sanctionMuu": "Other",
