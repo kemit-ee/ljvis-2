@@ -10,7 +10,7 @@ interface Props {
   type: string;
   initialData?: DriveRestForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   initialValidate?: boolean;
   onValuesChange?: (values: Partial<DriveRestForm>) => void;
   authority?: FormAuthority;
@@ -66,9 +66,9 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       confirm: triggerConfirm,
     }));
 
-    const handleSaved = (id?: string) => {
+    const handleSaved = (id?: string, confirmed?: boolean) => {
       if (onSaved) {
-        onSaved(id);
+        onSaved(id, confirmed);
       } else {
         navigate(`/`, { state: { justCreated: true } });
       }

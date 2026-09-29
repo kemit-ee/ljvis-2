@@ -1,7 +1,10 @@
-# Nõutav õigus: organisation.list. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+# GET /v1/organisations — piisab kehtivast ametniku sessioonist (baasõigus: vormide täitmiseks
+# vajalik otsinguandmestik peab olema kõigile ametnikele kohe kättesaadav,
+# et vorm ei avaneks poolikult grupi õiguste puudumise tõttu).
+# auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
 check:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('organisation.list')}
+    - condition: ${auth_user.personalcode != null}
       next: allow
   next: deny
 

@@ -29,7 +29,7 @@ interface DriveRestFormEditCardProps {
   scope: 'driver' | 'teammate';
   form: DriveRestForm;
   compoundFormKey: number;
-  onSaved: (id?: string) => void;
+  onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
   onConfirm: () => void;
@@ -73,9 +73,9 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
           authority={authority}
           initialData={form}
           compoundFormKey={compoundFormKey}
-          onSaved={(id) => {
+          onSaved={(id, confirmed) => {
             setVersionsRefreshKey((k) => k + 1);
-            onSaved(id);
+            onSaved(id, confirmed);
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}

@@ -8,7 +8,7 @@ import { BREAKPOINTS } from '../../../../constants/constants.ts';
 interface Props {
   initialData?: TransportInterruptionForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   onValuesChange?: (values: Partial<TransportInterruptionForm>) => void;
   initialValidate?: boolean;
 }
@@ -36,7 +36,7 @@ export const TransportInterruptionFormCreatePage = forwardRef<TransportInterrupt
       formError,
     } = useTransportInterruptionForm(
       initialData,
-      (id) => onSaved?.(id),
+      (id, confirmed) => onSaved?.(id, confirmed),
       compoundFormKey,
     );
 

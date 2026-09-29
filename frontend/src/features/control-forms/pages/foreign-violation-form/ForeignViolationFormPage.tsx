@@ -34,8 +34,7 @@ export function ForeignViolationFormPage() {
 
   const forbidden = !(
     (hasPermission('foreign_violation_form.read') ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+      hasPermission('control_form.view_unpublished'))
   );
 
   const [isEditActive, setIsEditActive] = useState(

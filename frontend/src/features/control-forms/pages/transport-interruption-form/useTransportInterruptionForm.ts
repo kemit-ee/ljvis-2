@@ -37,7 +37,7 @@ function toStringArray(value: unknown): string[] {
 
 export function useTransportInterruptionForm(
   form: TransportInterruptionForm | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string, confirmed?: boolean) => void,
   compoundFormKey?: number,
   onPublished?: () => void,
 ) {
@@ -132,7 +132,7 @@ export function useTransportInterruptionForm(
         const result = isConfirming
           ? await confirmTransportInterruptionForm(payload)
           : await saveTransportInterruptionForm(payload);
-        onSaved((result[0] as { id?: string })?.id);
+        onSaved((result[0] as { id?: string })?.id, isConfirming);
       } catch (e) {
         const handled = applyValidationError(
           e,

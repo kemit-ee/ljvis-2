@@ -2393,11 +2393,6 @@ export function CompoundFormCreatePage() {
                 />
               </Card.Content>
             </Card>
-            <SelectedFormsNavigation
-              tabIds={openTabs}
-              labels={tabLabels}
-              onSelect={handleTabChange}
-            />
           </div>
         </Tabs.Content>
         {DRIVE_REST_ROUTES.map((route) => {
@@ -2600,6 +2595,11 @@ export function CompoundFormCreatePage() {
           ) : null;
         })}
       </Tabs>
+      <SelectedFormsNavigation
+        tabIds={openTabs}
+        labels={tabLabels}
+        onSelect={handleTabChange}
+      />
 
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">

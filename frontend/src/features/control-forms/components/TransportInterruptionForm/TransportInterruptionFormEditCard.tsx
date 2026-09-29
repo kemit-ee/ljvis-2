@@ -19,7 +19,7 @@ export interface TransportInterruptionFormEditCardRef {
 interface TransportInterruptionFormEditCardProps {
   form: TransportInterruptionForm;
   compoundFormKey: number;
-  onSaved: (id?: string) => void;
+  onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
   onConfirm: () => void;
@@ -56,9 +56,9 @@ export const TransportInterruptionFormEditCard = forwardRef<
         <TransportInterruptionFormCreatePage
           initialData={form}
           compoundFormKey={compoundFormKey}
-          onSaved={(id) => {
+          onSaved={(id, confirmed) => {
             setVersionsRefreshKey((k) => k + 1);
-            onSaved(id);
+            onSaved(id, confirmed);
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}

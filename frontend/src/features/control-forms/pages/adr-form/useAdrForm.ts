@@ -113,7 +113,7 @@ function toArray<T>(value: unknown): T[] {
 
 export function useAdrForm(
   form: AdrForm | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string, confirmed?: boolean) => void,
   compoundFormKey?: number,
   onPublished?: () => void,
 ) {
@@ -260,7 +260,7 @@ export function useAdrForm(
         const result = isConfirming
           ? await confirmAdrForm(payload)
           : await saveAdrForm(payload);
-        onSaved((result[0] as { id?: string })?.id);
+        onSaved((result[0] as { id?: string })?.id, isConfirming);
       } catch (e) {
         const handled = applyValidationError(
           e,

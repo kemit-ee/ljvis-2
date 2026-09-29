@@ -141,6 +141,9 @@ propagate_error:
   next: end
 
 return_conflict:
-  status: 409
-  return: "personal code already exists"
+  status: 422
+  return:
+    type: VALIDATION_ERROR
+    field: personalCode
+    code: personalCodeConflict
   next: end
