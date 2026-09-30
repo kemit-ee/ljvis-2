@@ -4,6 +4,12 @@
 
 ## 2026-09-30
 
+### Kontrollvormid: kontrollija ametikoht ja struktuuriüksus täituvad kasutaja andmetest
+
+- „Sõidukit kontrollinud ametiisiku andmed" plokis eeltäidetakse nüüd lisaks nimele
+  ka asutus, ametikoht ja (olemasolul) struktuuriüksus kasutaja profiilist. Varem
+  ei jõudnud need väärtused sessiooni vastusesse ja väljad jäid tühjaks.
+
 ### Koondvorm: alamvormi saab avalikustada sõltumata teistest alamvormidest
 
 - Kinnitatud alamvormil (ilma väärteomenetluseta) on „Avalikusta" nupp kohe olemas,
