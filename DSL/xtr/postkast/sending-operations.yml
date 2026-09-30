@@ -6,7 +6,8 @@
 #
 # Endpoint: GET /postkast/sending-operations
 #   (called via [#PK_SENDING_OPERATIONS_ENDPOINT] from
-#    DSL/Ruuter.internal/ljvis/POST/cron/notification-status-sync.yml)
+#    DSL/Ruuter.internal/ljvis/POST/cron/notification-status-sync.yml and
+#    DSL/Ruuter/ljvis/POST/v1/notifications/outbound-log/check-status/send.yml)
 # URL built by XTR:
 #   {security_server.url}/r1/{xroad_instance}/GOV/70006317/postkast/kliimaministeerium-notification-management/v1/sending-operations
 kind: rest
