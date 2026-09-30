@@ -52,6 +52,7 @@ validateInput:
   assign:
     notification_type: "${incoming.body.notification_type ?? ''}"
     recipient_email_raw: "${incoming.body.recipient_email ?? ''}"
+    template_variables_obj: "${incoming.body.template_variables ?? {}}"
     # STRING kujul (JSON): Rust Resql `type: json` väli võtab JSON-stringi
     # (nagu vana dev-versioon `JSON.stringify(payload_obj)`), aga BARE tühja
     # objekti `{}` sidumine `::JSONB` konteksti kukub läbi
@@ -208,13 +209,13 @@ callPk:
     headers:
       type: json
       X-EXTERNAL-ID: ${notification_key}
+      X-User-Access-Type: "UNLIMITED"
       # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       originalTemplateId: ${original_template_id}
       sendTime: ${send_time}
       parameters:
-        - recipient: ${recipient_email}
-          notification_language: ${effective_language}
+        - "${Object.assign({}, template_variables_obj, { recipient: recipient_email })}"
   result: pkRes
   error: onPkError
   next: checkPkStatus

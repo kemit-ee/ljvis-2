@@ -315,7 +315,7 @@ services:
 
   xtr:
     container_name: xtr
-    image: turnerrainer/xtr:rc
+    image: turnerrainer/xtr:0.4.1-rc
     environment:
       - RUST_LOG=debug
       - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
