@@ -3,15 +3,14 @@
 | HTTP | Rakenduse veakood | Tähendus |
 |---|---|---|
 | 400 | `MISSING_PARAMETER` | Kohustuslik keha- või query parameeter puudub |
-| 400 | `INVALID_PARAMETER` | Vigane isikukood, enum, kuupäevade järjestus või kinnitus |
+| 400 | `INVALID_PARAMETER` | Vigane isikukood, enum, kuupäevade järjestus või kinnitus; AJ `findUsage` puhul vigane `offset`/`limit` või mitte-RFC 3339 `periodStart`/`periodEnd` |
 | 400 | `MISSING_HEADER` | AJ `X-Road-UserId` puudub |
-| 400 | `FORBIDDEN` | AJ `X-Road-UserId` ei vasta `userCode`-le; **praegune leping kasutab 400, mitte 403** |
 | 403 | `FORBIDDEN` | POST `X-Road-Client` puudub või on vigase kujuga; mockis ka keelatud tarbija |
 | 404 | `NOT_FOUND` | Kinnituse `inspection_id` puudub või vorm ei ole kinnitatud |
 | 500 | `SERVER_ERROR` | Taustateenuse viga; mockis sünteetiline `server-error` stsenaarium |
 
-Lahtiparsitud `response` välja kuju on `{"error":"...","message":"..."}`. HTTP-kehas on see JSON-tekst Ruuteri `response` ümbrises, nagu päris teenustel. Kõik iga operatsiooni rakenduse veateated on [näidisfailides](artifacts.md) ja [OpenAPI-s](xtee-openapi.yaml).
-Ruuteri enda süntaksi/tüübivead ning turvaserveri vead võivad anda teistsuguse keha. `heartbeat` ei paku sünteetilist veastsenaariumi.
+Lahtiparsitud `response` välja kuju on `{"error":"...","message":"..."}`. POST-teenuste HTTP-kehas on see JSON-tekst Ruuteri `response` ümbrises, nagu päris teenustel. AJ teenused (`findUsage`, `usagePeriod`, `heartbeat`) tagastavad protokolli järgi vea otse, ilma ümbriseta. Kõik iga operatsiooni rakenduse veateated on [näidisfailides](artifacts.md) ja [OpenAPI-s](xtee-openapi.yaml).
+Ruuteri enda süntaksi/tüübivead ning turvaserveri vead võivad anda teistsuguse keha. `heartbeat` annab `server-error` stsenaariumis HTTP 200 ja `{"status":"FAIL"}`.
 
 Näide puuduva päise kohta:
 
