@@ -4,6 +4,24 @@
 
 ## 2026-09-30
 
+### Tehnoseisundi kontrollkaart: „Muu meede“ säilib pärast salvestamist
+
+- Sõiduki ja haagise tehnoseisundi kontrollkaardil hüppas pärast salvestamist või kinnitamist
+  tulemus tagasi „Tehniliselt korras“, sest „Muu meede“ märget ei loetud andmebaasist tagasi.
+  Märge (ja „Sõidukeelu / autoVS 51 lg 3 p 1“ märge) kuvatakse nüüd õigesti.
+- „Muu meede“ korral on nähtaval ka rikkumiste valikud (MSI/VSI/SI); varem peideti need,
+  kui tulemus oli „Tehniliselt korras“.
+
+### Koondvormi üldosa avalikustub serveris, kui viimane alamvorm avalikustatakse
+
+- Kui viimane aktiivne alamvorm (tehnokaart, SP, ADR, KV) avalikustatakse ja koondvorm on
+  kinnitatud, avalikustub koondvormi üldosa automaatselt serveris. Varem tegi seda ainult brauser
+  ja üldosa jäi kinnitatuks, kui selle vormi valideerimine vaikselt ebaõnnestus või alamvorm
+  avalikustati mujalt kui koondvormi lehelt.
+- Alamvormi avalikustamine ei ebaõnnestu, kui üldosa automaatne avalikustamine ebaõnnestub.
+- Koondvormi avalikustamine on idempotentne: juba avalikustatud koondvormist ei teki uut versiooni.
+- Koondvormi avalikustamise auditikirjes on nüüd vormi number.
+
 ### Andmejälgija: eesti.ee kasutusteabe päring vastab RIA protokollile (v1.6.1)
 
 - `findUsage`, `usagePeriod` ja `heartbeat` tagastavad vastuse protokolli kujul — varem oli
