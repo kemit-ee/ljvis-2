@@ -62,13 +62,13 @@ queryUsages:
       response:
         status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
         body: '${(function(all) {var page = all.slice(offset_val, offset_val + limit_val).map(function(r) {return
-          Object.assign({}, r, {total_usages: all.length});}); return page.length > 0 ? page : [{total_usages: all.length,
+          Object.assign({}, r, {totalUsages: all.length});}); return page.length > 0 ? page : [{totalUsages: all.length,
           logtime: null}];})((incoming.headers[''x-mock-scenario''] === ''empty'' || user_code !== ''60001019906''
-          ? [] : [{"logtime": "2026-06-15T12:00:00Z", "action": "Mock kontrollip\u00e4ring", "receiver_code": "70001490",
-          "receiver_name": "Mock tarbija", "receiver_system": "liiklusregister"}, {"logtime": "2026-06-14T12:00:00Z",
-          "action": "Mock t\u00f6\u00f6kontroll", "receiver_code": "70001969", "receiver_name": "", "receiver_system":
-          ""}, {"logtime": "2026-06-13T12:00:00Z", "action": "Mock kordusp\u00e4ring", "receiver_code": "70001490",
-          "receiver_name": "Mock tarbija", "receiver_system": "liiklusregister"}]).filter(function(r) {return (!period_start
+          ? [] : [{"logtime": "2026-06-15T12:00:00Z", "action": "Mock kontrollip\u00e4ring", "receiverCode": "70001490",
+          "receiverName": "Mock tarbija", "receiverSystem": "liiklusregister"}, {"logtime": "2026-06-14T12:00:00Z",
+          "action": "Mock t\u00f6\u00f6kontroll", "receiverCode": "70001969", "receiverName": "", "receiverSystem":
+          ""}, {"logtime": "2026-06-13T12:00:00Z", "action": "Mock kordusp\u00e4ring", "receiverCode": "70001490",
+          "receiverName": "Mock tarbija", "receiverSystem": "liiklusregister"}]).filter(function(r) {return (!period_start
           || new Date(r.logtime) >= new Date(period_start)) && (!period_end || new Date(r.logtime) <= new Date(period_end));}))}'
   next: checkQueryStatus
 checkQueryStatus:
@@ -83,11 +83,10 @@ assignRows:
 buildResponse:
   assign:
     response_body:
-      totalUsages: '${rows.length > 0 ? Number(rows[0].total_usages) || 0 : 0}'
+      totalUsages: '${rows.length > 0 ? Number(rows[0].totalUsages) || 0 : 0}'
       usages: "${rows.filter(function(r) { return r.logtime != null; }).map(function(r) {\n  var u = { logtime:\
-        \ r.logtime, action: r.action, receiverCode: r.receiver_code };\n  if (r.receiver_name) { u.receiverName\
-        \ = r.receiver_name; }\n  if (r.receiver_system) { u.receiverSystem = r.receiver_system; }\n  return u;\n\
-        })}"
+        \ r.logtime, action: r.action, receiverCode: r.receiverCode };\n  if (r.receiverName) { u.receiverName =\
+        \ r.receiverName; }\n  if (r.receiverSystem) { u.receiverSystem = r.receiverSystem; }\n  return u;\n})}"
   next: returnOk
 returnOk:
   status: 200

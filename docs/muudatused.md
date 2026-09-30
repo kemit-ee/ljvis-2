@@ -10,6 +10,8 @@
   sisu Ruuteri `{"response": "…"}` ümbrises JSON-tekstina ja eesti.ee ei saanud seda lugeda.
   `findUsage` kukkus varem igal päringul 500-ga (query parameetrid loeti valest kohast).
 - Isikukoodi võib anda `EE` eesliitega või ilma; eesliide eemaldatakse enne otsingut.
+- Kasutusteabe vastuses on kirjete koguarv ning töötleja kood, nimi ja süsteem; `usagePeriod` ei
+  anna enam viga.
 - Esindusõigusega päring (nt vanem vaatab lapse andmeid) töötab: `X-Road-UserId` ei pea enam
   vastama `userCode`-ile.
 - `totalUsages` on õige ka viimasest lehest kaugemale küsides; küsitud `limit`-it ei kärbita
