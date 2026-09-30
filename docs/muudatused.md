@@ -4,6 +4,9 @@
 
 ## 2026-09-30
 
+### Tehnovormi PDF: rikete loetelu mahub alati ühele lehele
+
+- Sõiduki ja haagise tehnovormi (kontrollkaardi) trükise „Kontrollitavate detailide loetelu" on nüüd üks leht: kõik read kolmes veerus, font ja reakõrgus kohanduvad ridade arvuga. Varem jagunes loetelu mitmele lehele.
 ### Tehnoseisundi kontrollkaart: „Muu meede“ säilib pärast salvestamist
 
 - Sõiduki ja haagise tehnoseisundi kontrollkaardil hüppas pärast salvestamist või kinnitamist

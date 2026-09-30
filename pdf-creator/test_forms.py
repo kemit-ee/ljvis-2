@@ -57,6 +57,11 @@ class FormTests(unittest.TestCase):
         rows=[r for page in build_context('vehicle-technical',p)['defect_pages'] for col in page for r in col]
         self.assertEqual(next(r for r in rows if r['code']=='CAA_1.1.11')['selections'],['OV'])
         self.assertEqual(next(r for r in rows if r['code']=='FUTURE_CODE')['selections'],['EOV'])
+    def test_defect_list_is_one_sheet_with_every_row(self):
+        p=self.fixture('vehicle-technical')
+        d=build_context('vehicle-technical',p)
+        self.assertEqual(len(d['defect_pages']),1)
+        self.assertEqual(sum(len(c) for c in d['defect_pages'][0]),len(json.loads((ROOT/'templates/vehicle-technical/defects.json').read_text())))
     def test_interruption_dates_are_not_inferred_from_control_date(self):
         p=self.fixture('transport-interruption');p.pop('printOptions')
         d=build_context('transport-interruption',p)
