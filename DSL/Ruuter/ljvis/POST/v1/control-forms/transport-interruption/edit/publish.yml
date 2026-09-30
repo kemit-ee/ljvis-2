@@ -102,6 +102,24 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: autoPublishCompound
+
+# Viimase alamvormi avalikustamisel avalikustub kinnitatud koondvormi üldosa
+# serveris, mitte ainult brauseris (brauseri vormi esitus jääb vaikselt
+# tegemata, kui üldosa valideerimine ebaõnnestub). Viga ei tohi alamvormi
+# avalikustamist tagasi pöörata.
+autoPublishCompound:
+  template: "templates/form/compound-form/publish-compound-form"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: "${compound_form_key == null ? '' : String(compound_form_key)}"
+    only_if_confirmed: "true"
+    actor_personal_code: ${actor_personal_code}
+    actor_name: ${actor_name}
+  result: autoPublishCompoundRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:
