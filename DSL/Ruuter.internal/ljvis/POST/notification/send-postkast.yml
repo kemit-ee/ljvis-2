@@ -59,7 +59,10 @@ validateInput:
     # ("invalid input syntax for type json"). Siin normaliseerime kohe stringiks.
     template_variables: "${JSON.stringify(incoming.body.template_variables ?? {})}"
     language: "${incoming.body.language ?? ''}"
-    send_time: "${incoming.body.send_time || new Date().toISOString()}"
+    # Kohese saatmise korral peab sendTime puuduma. Kui panna väärtuseks
+    # new Date().toISOString(), on see Postkasti jõudes juba minevikus ning
+    # notification-management tagastab 400 sendTimeInPast.
+    send_time: "${incoming.body.send_time || ''}"
     related_entity_type: "${incoming.body.related_entity_type ?? ''}"
     related_entity_id: "${incoming.body.related_entity_id ?? ''}"
     original_log_id: "${incoming.body.original_log_id ?? ''}"
@@ -213,7 +216,6 @@ callPk:
       # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       originalTemplateId: ${original_template_id}
-      sendTime: ${send_time}
       parameters:
         - "${Object.assign({}, template_variables_obj, { recipient: recipient_email })}"
   result: pkRes
@@ -291,7 +293,13 @@ onPkError:
   assign:
     pk_error_message: >-
       ${(typeof pkRes !== 'undefined' && pkRes.response)
-        ? ('PK HTTP ' + pkRes.response.status)
+        ? (('PK HTTP ' + pkRes.response.status
+            + (pkRes.response.body != null
+              ? ': ' + JSON.stringify(pkRes.response.body)
+              : ''))
+            .replace(/[\r\n\t\\]+/g, ' ')
+            .replace(/"/g, "'")
+            .substring(0, 500))
         : 'Postkast 2.0 ei ole kättesaadav või päring aegus'}
   next: logXroadFailure
 
