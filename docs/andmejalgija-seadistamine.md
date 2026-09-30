@@ -65,9 +65,13 @@ Turvaserveri haldusliidesesse (`https://<turvaserver>:4000`) tuleb lisada **üks
 | Väli | Väärtus |
 |------|---------|
 | Teenuse tüüp | REST (OpenAPI 3 kirjeldus URL-ilt) |
-| Kirjelduse URL | `http://ruuter-internal:8080/ljvis/xroad/v2/openapi` (DEV hostist: `http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/v2/openapi`) |
+| Kirjelduse URL | DEV: `https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/v2/openapi` (TEST: `ljvis2test…`, PRELIVE: `ljvis2prelive…`; lokaalselt `http://ruuter-internal:8080/ljvis/xroad/v2/openapi`) |
 | Teenuse kood | `findUsage` |
-| Teenuse URL | `http://ruuter-internal:8080/ljvis/xroad` (DEV hostist: `http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad`) |
+| Teenuse URL | DEV: `https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad` (TEST: `https://ljvis2test.xtpnl.kemitaws.ee/ljvis/xroad`, PRELIVE: `https://ljvis2prelive.xtpnl.kemitaws.ee/ljvis/xroad`) |
+
+X-tee pakkuja host on keskkonniti `https://ljvis2<env>.xtpnl.kemitaws.ee` (HTTPS, port 443). Sellel on
+avatud ainult X-tee teed; juurtee `/` annab 404. Ülejäänud LJVIS2 X-tee teenuste leping on samal hostil
+aadressil `/ljvis/xroad/provide/openapi`.
 
 > **NB:** Teenuse URL on `/ljvis/xroad`, **mitte** `/ljvis/xroad/v2`. eesti.ee kutsub
 > `…/ljvis2/findUsage/v2/findUsage` ja turvaserver lisab teenusekoodi järel oleva tee
@@ -204,7 +208,11 @@ filtri ja järjestuse.
 docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test turnerrainer/ruuter:<versioon> \
   --dsl DSL/Ruuter.internal --tests DSL-tests-internal --constants constants.ini
 
-# Heartbeat
+# DEV hostil (ilma turvaserverita)
+curl https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/v2/openapi
+curl https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/v2/heartbeat
+
+# Heartbeat (lokaalne Docker-sisevõrk)
 curl http://ruuter-internal:8080/ljvis/xroad/v2/heartbeat
 
 # UsagePeriod

@@ -554,18 +554,20 @@ flowchart LR
 
 ### 4.2 Sihtaadress
 
-Turvaserver edastab X-tee päringud otse Ruuter.internal-ile. Turvaserver ei asu Docker-võrgus, seega kasutab hosti välist aadressi:
+Turvaserver edastab X-tee päringud Ruuter.internal-ile keskkonna X-tee pakkuja hosti kaudu (HTTPS, port 443). Sellel hostil on avatud ainult X-tee teed: `POST /ljvis/xroad/provide/*`, `GET /ljvis/xroad/provide/openapi` ja `GET /ljvis/xroad/v2/*`. Juurtee (`/`) annab 404.
 
-| Parameeter | Docker-sisevõrk | Turvaserveri vaade |
-|---|---|---|
-| **Protokoll** | HTTP | HTTP |
-| **Hostinimi** | `ruuter-internal` | `ljvis2dev.xtpnl.kemitaws.ee` |
-| **Port** | `8080` | `8089` |
-| **Tee prefiks** | `/ljvis` | `/ljvis` |
+| Keskkond | X-tee pakkuja host (turvaserveri vaade) |
+|---|---|
+| DEV | `https://ljvis2dev.xtpnl.kemitaws.ee` |
+| TEST | `https://ljvis2test.xtpnl.kemitaws.ee` |
+| PRELIVE | `https://ljvis2prelive.xtpnl.kemitaws.ee` |
+| Docker-sisevõrk (lokaalne) | `http://ruuter-internal:8080` |
+
+Tee prefiks on kõigis keskkondades `/ljvis`.
 
 **Täielik URL turvaserverile (DEV):**
 ```
-http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/isiku-kontroll
+https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/provide/isiku-kontroll
 ```
 
 **Täielik URL Docker-sisevõrgust:**
@@ -587,7 +589,7 @@ http://ruuter-internal:8080/ljvis/xroad/provide/isiku-kontroll
 | `findUsage` (AJ) — `/v2/usagePeriod` | GET | `/ljvis/xroad/v2/usagePeriod` |
 | `findUsage` (AJ) — `/v2/heartbeat` | GET | `/ljvis/xroad/v2/heartbeat` |
 
-**AJ teenus `findUsage`** registreeritakse ühe REST teenusena, mille teenuse URL on Ruuter.internal-i `/ljvis/xroad` (DEV: `http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad`). Tarbija kutsub `…/ljvis2/findUsage/v2/findUsage` ja turvaserver lisab teenusekoodi järel oleva tee (`/v2/findUsage`) teenuse URL-i lõppu → `/ljvis/xroad/v2/findUsage`. Kirjeldus URL-ilt: `…/ljvis/xroad/v2/openapi` ([FindUsageOpenapi.yaml](FindUsageOpenapi.yaml)); anda eesti.ee alamsüsteemile õigus kõigile kolmele otspunktile.
+**AJ teenus `findUsage`** registreeritakse ühe REST teenusena, mille teenuse URL on Ruuter.internal-i `/ljvis/xroad` (DEV: `https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad`). Tarbija kutsub `…/ljvis2/findUsage/v2/findUsage` ja turvaserver lisab teenusekoodi järel oleva tee (`/v2/findUsage`) teenuse URL-i lõppu → `/ljvis/xroad/v2/findUsage`. Kirjeldus URL-ilt: `…/ljvis/xroad/v2/openapi` ([FindUsageOpenapi.yaml](FindUsageOpenapi.yaml)); anda eesti.ee alamsüsteemile õigus kõigile kolmele otspunktile.
 
 ### 4.4 Kohustuslik X-Road-Client päis
 
@@ -651,10 +653,14 @@ curl -v -X POST "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/IsikuKontroll/v
 
 Sama Ruuter.internal komponent serveerib [XroadOpenapi.yaml](XroadOpenapi.yaml) sisu GET-päringu peale JSON-kujul (`Content-Type: application/json`, ilma Ruuteri `{"response": …}` ümbriseta) — sisuliselt sama dokument, mida Swagger UI/Editor ja turvaserver otse parsivad. Turvaserver saab selle URL-i registreerida REST-teenuse **kirjeldusena** ja lepingut sealt automaatselt värskendada, selle asemel et OpenAPI faili käsitsi üles laadida.
 
-**URL turvaserveri jaoks (DEV, hosti aadress):**
-```
-http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/openapi
-```
+**URL-id turvaserveri jaoks (DEV):**
+
+| Leping | Kirjelduse URL |
+|---|---|
+| Kuus LJVIS2 teenust ([XroadOpenapi.yaml](XroadOpenapi.yaml)) | `https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/provide/openapi` |
+| Andmejälgija teenus `findUsage` ([FindUsageOpenapi.yaml](FindUsageOpenapi.yaml)) | `https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/v2/openapi` |
+
+TEST-is ja PRELIVE-is on sama tee vastava keskkonna hostil ([4.2](#42-sihtaadress)).
 
 **URL Docker-sisevõrgust:**
 ```
@@ -679,6 +685,9 @@ http://ruuter-internal:8080/ljvis/xroad/provide/openapi
 
 **Testimine:**
 ```bash
-curl -v "http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad/provide/openapi"
+curl -v "https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/provide/openapi"
 # Oodatav: HTTP 200, XroadOpenapi.yaml sisu JSON-objektina, mis algab {"components":…,"info":…,"openapi":"3.0.3",…}
+
+curl -v "https://ljvis2dev.xtpnl.kemitaws.ee/ljvis/xroad/v2/openapi"
+# Oodatav: HTTP 200, FindUsageOpenapi.yaml sisu JSON-objektina ("title": "FindUsage")
 ```
