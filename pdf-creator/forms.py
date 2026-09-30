@@ -322,11 +322,11 @@ def build_context(template, payload=None, blank=False):
             full.append(dict(row,selections=sorted(selected.pop(row['code'],set()))))
         for code,sevs in selected.items():full.append({'code':code,'part':'','name':label('technicalDefects',code),'allowed':['VO','OV','EOV'],'selections':sorted(sevs)})
         defect_rows=[{'code':r.get('defectCode'),'name':label('technicalDefects',r.get('defectCode')),'severity':r['severity']} for r in defects]
-        # Chunked three-column print sheets; no row is discarded in blank or filled mode.
-        pages=[]
-        for start in range(0,len(full),90):
-            chunk=full[start:start+90];pages.append([chunk[i:i+30] for i in range(0,len(chunk),30)])
-        data.update(parts=parts,defects=defect_rows,defect_pages=pages)
+        # One three-column sheet holding every row (none discarded in blank or filled mode);
+        # the template shrinks font and row height so the list always fits a single page.
+        per_col=-(-len(full)//3) or 1
+        pages=[[full[i:i+per_col] for i in range(0,len(full),per_col)]] if full else []
+        data.update(parts=parts,defects=defect_rows,defect_pages=pages,defect_rows_per_col=per_col)
         extra=[]
         for key,title in [('eraYvMntRegnr','Registreerimisnumber'),('eraYvMntVintin','VIN-/TIN-kood'),('eraYvMntAxles','Telgede arv'),('eraYvMntPlaces','Istekohtade arv'),('eraYvMntRebuilt','Ümberehitus')]:
             if yes(f.get(key)):extra.append(title)

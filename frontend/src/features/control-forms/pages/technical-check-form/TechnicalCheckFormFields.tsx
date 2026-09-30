@@ -492,7 +492,7 @@ export function TechnicalCheckFormFields({
         </Card.Content>
       </Card>
 
-      {values.resultType !== 'ok' && (
+      {(values.resultType !== 'ok' || values.otherMeasure) && (
         <Card className="mb-1">
           <Card.Content>
             <Heading element="h3" className="mb-1">
