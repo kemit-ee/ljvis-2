@@ -2,7 +2,8 @@
   {
     "status": 500,
     "body": {
-      "response": "{\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}"
+      "error": "SERVER_ERROR",
+      "message": "Internal error"
     }
   }
 ]

@@ -2,7 +2,8 @@
 
 Dokument kirjeldab kõiki LJVIS2 alamsüsteemi poolt pakutavaid X-tee teenuseid: teenuse kood, sisendid, väljundid, näidispäringud ja turvaserveri admin juhend.
 
-Masinloetav OpenAPI 3.0.3 leping (kõik üheksa teenust, sh näidis sisendid/väljundid iga vastuskoodi kohta): [XroadOpenapi.yaml](XroadOpenapi.yaml).
+Masinloetav OpenAPI 3.0.3 leping (kuus LJVIS2 teenust, sh näidis sisendid/väljundid iga vastuskoodi kohta): [XroadOpenapi.yaml](XroadOpenapi.yaml).
+Andmejälgija (AJ) teenusel `findUsage` on eraldi leping: [FindUsageOpenapi.yaml](FindUsageOpenapi.yaml).
 Sama sisu on turvaserverile kättesaadav ka otse Ruuter.internal-i kaudu (vt [4.8](#48-openapi-kirjelduse-registreerimine-turvaserveris)) — turvaserver saab selle URL-i teenuse kirjeldusena registreerida ja lepingut automaatselt uuendada.
 Sünteetiliste testandmetega mocki leping on eraldi failis [../developer/xtee-openapi.yaml](../developer/xtee-openapi.yaml).
 
@@ -30,9 +31,11 @@ Sünteetiliste testandmetega mocki leping on eraldi failis [../developer/xtee-op
 | 4 | `ErakorralineYVconfirm` | POST | `/ljvis/xroad/provide/erakorraline-yv-confirm` | v1 | MNT / Transpordiamet |
 | 5 | `RegisterJobInspection` | POST | `/ljvis/xroad/provide/register-job-inspection` | v1 | Tööinspektsioon |
 | 6 | `RegisterJobInspection_v3` | POST | `/ljvis/xroad/provide/register-job-inspection-v3` | v3 | Tööinspektsioon |
-| 7 | `findUsage` (AJ) | GET | `/ljvis/xroad/v2/findUsage` | v2 | AJ / DUMonitor |
-| 8 | `usagePeriod` (AJ) | GET | `/ljvis/xroad/v2/usagePeriod` | v2 | AJ / DUMonitor |
-| 9 | `heartbeat` (AJ) | GET | `/ljvis/xroad/v2/heartbeat` | v2 | AJ / DUMonitor |
+| 7 | `findUsage` (AJ) — otspunkt `/v2/findUsage` | GET | `/ljvis/xroad/v2/findUsage` | v2 | eesti.ee Andmejälgija |
+| 8 | `findUsage` (AJ) — otspunkt `/v2/usagePeriod` | GET | `/ljvis/xroad/v2/usagePeriod` | v2 | eesti.ee Andmejälgija |
+| 9 | `findUsage` (AJ) — otspunkt `/v2/heartbeat` | GET | `/ljvis/xroad/v2/heartbeat` | v2 | eesti.ee Andmejälgija |
+
+Read 7–9 on **üks** X-tee REST teenus koodiga `findUsage` kolme otspunktiga (AJ protokoll §6), mitte kolm eraldi teenust.
 
 ---
 
@@ -421,55 +424,60 @@ curl -X POST https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/RegisterJobInspecti
 
 ---
 
-### 3.7 findUsage (Andmejälgija)
+### 3.7 findUsage (Andmejälgija) — `/v2/findUsage`
 
 **DSL:** `DSL/Ruuter.internal/ljvis/GET/xroad/v2/findUsage.yml`
 
-AJ (Andmejälgija) protokolli endpoint — tagastab isikukoodi järgi kõik kasutusteabe kirjed (DUMonitor OpenAPI v2 `/v2/findUsage`).
-**Turvalisus:** `X-Road-UserId` peab vastama `userCode` parameetrile (AJ protokoll §6.1.3).
+Andmejälgija kasutusteabe esitamise protokolli v1.6.1 §6.1 otspunkt — tagastab isikukoodi järgi kasutusteabe kirjed ajamomendi kahanemise järjekorras. Leping: [FindUsageOpenapi.yaml](FindUsageOpenapi.yaml).
+
+- `X-Road-UserId` on kohustuslik, kuid **võib erineda** `userCode`-ist — nt vanem vaatab eesti.ee-s lapse andmeid esindusõiguse alusel (§6.1.3).
+- Isikukoodi võib anda `EE` eesliitega või ilma (`EE39001010001` ja `39001010001` annavad sama tulemuse).
+- `totalUsages` on kirjete koguarv, mida `limit`/`offset` ei mõjuta. Küsitud `limit`-it ei kärbita.
 
 #### Sisendid
 
 | Väli | Tüüp | Kohustuslik | Kirjeldus |
 |---|---|---|---|
-| `X-Road-UserId` (header) | string | Jah | Peab vastama `userCode` parameetrile |
-| `userCode` (query) | string | Jah | Isikukood, kelle kohta kasutusteave päritakse |
-| `periodStart` (query) | string (ISO) | Ei | Ajavahemiku algus |
-| `periodEnd` (query) | string (ISO) | Ei | Ajavahemiku lõpp |
-| `offset` (query) | integer | Ei | Lehekülge algus (vaikimisi 0) |
-| `limit` (query) | integer | Ei | Kirjete arv (vaikimisi ja max 1000) |
+| `X-Road-UserId` (header) | string | Jah | Päringu algataja isikukood |
+| `userCode` (query) | string | Jah | Andmesubjekti isikukood (EE eesliitega või ilma) |
+| `periodStart` (query) | date-time (RFC 3339) | Ei | Kirjed alates, nt `2026-01-01T00:00:00Z` |
+| `periodEnd` (query) | date-time (RFC 3339) | Ei | Kirjed kuni |
+| `offset` (query) | integer ≥ 0 | Ei | Vahelejäetavate kirjete arv (vaikimisi 0) |
+| `limit` (query) | integer ≥ 1 | Ei | Kirjete arv lehel (vaikimisi 1000) |
 
 #### Väljundid
 
-| Väli | Tüüp | Kirjeldus |
-|---|---|---|
-| `totalUsages` | integer | Kirjete koguarv |
-| `usages[]` | array | Kasutusteabe kirjed |
-| `.logtime` | string | Kasutuse aeg |
-| `.action` | string | Toiming |
-| `.receiverCode` | string | Tarbija registrikood |
-| `.receiverName` | string\|null | Tarbija nimi |
-| `.receiverSystem` | string\|null | Tarbija alamsüsteem |
+| Väli | Tüüp | Kohustuslik | Kirjeldus |
+|---|---|---|---|
+| `totalUsages` | integer | Jah | Kirjete koguarv |
+| `usages[]` | array | Jah | Kasutusteabe kirjed, uusim eespool |
+| `.logtime` | date-time | Jah | Andmetöötluse aeg (UTC, `Z`) |
+| `.action` | string | Jah | Andmetöötluse põhjus |
+| `.receiverCode` | string | Jah | Asutuse registrikood |
+| `.receiverName` | string | Ei | Asutuse nimi — puudumisel väli välja jäetud |
+| `.receiverSystem` | string | Ei | Infosüsteem — puudumisel väli välja jäetud |
+
+Vead: 400 (`MISSING_HEADER`, `MISSING_PARAMETER`, `INVALID_PARAMETER`), 500 (`SERVER_ERROR`).
 
 #### Näidispäring
 
 ```bash
-curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/findUsage/v2?userCode=39001010001&limit=10" \
-  -H "X-Road-UserId: 39001010001" \
-  -H "X-Road-Client: EE/GOV/70001231/dumonitor"
+curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/findUsage/v2/findUsage?userCode=EE39001010001&offset=0&limit=10" \
+  -H "X-Road-UserId: EE39001010001" \
+  -H "X-Road-Client: EE/GOV/70009317/eesti-ee"
 ```
 
 **Vastus (HTTP 200):**
 ```json
 {
-  "totalUsages": 2,
+  "totalUsages": 1,
   "usages": [
     {
       "logtime": "2026-06-10T14:32:00Z",
-      "action": "LJVIS-i kontrollide küsimine X-tee kaudu",
-      "receiverCode": "70001490",
-      "receiverName": null,
-      "receiverSystem": "liiklusregister"
+      "action": "Järelevalve käigus isiku andmete päring rahvastikuregistrist",
+      "receiverCode": "70001231",
+      "receiverName": "Kliimaministeerium",
+      "receiverSystem": "Liiklusjärelevalve infosüsteem (LJVIS2)"
     }
   ]
 }
@@ -477,29 +485,25 @@ curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/findUsage/v2?userCode=3900
 
 ---
 
-### 3.8 usagePeriod (Andmejälgija)
+### 3.8 findUsage (Andmejälgija) — `/v2/usagePeriod`
 
 **DSL:** `DSL/Ruuter.internal/ljvis/GET/xroad/v2/usagePeriod.yml`
 
-AJ protokoll — tagastab ajavahemiku, mille kohta kasutusteave on saadaval (`MIN(logtime)` tabelis).
-
-#### Sisendid
-
-| Väli | Tüüp | Kohustuslik | Kirjeldus |
-|---|---|---|---|
-| `X-Road-Client` (header) | string | Jah | Tarbija identiteet |
+AJ protokoll §6.2 — ajavahemik, mille kohta saab kasutusteavet pärida. `periodStart` on varaseima kirje aeg; kui kirjeid veel pole, siis praegune aeg (väli on kohustuslik). `periodEnd` jäetakse välja — kirjeid saab küsida kuni praeguse ajani.
 
 #### Väljundid
 
-| Väli | Tüüp | Kirjeldus |
-|---|---|---|
-| `periodStart` | string\|null | Varaseim kasutusteabe aeg (null = tabel tühi) |
+| Väli | Tüüp | Kohustuslik | Kirjeldus |
+|---|---|---|---|
+| `periodStart` | date-time | Jah | Varaseim kasutusteabe aeg |
+
+Vead: 400, 500 (`SERVER_ERROR`).
 
 #### Näidispäring
 
 ```bash
-curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/usagePeriod/v2" \
-  -H "X-Road-Client: EE/GOV/70001231/dumonitor"
+curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/findUsage/v2/usagePeriod" \
+  -H "X-Road-Client: EE/GOV/70009317/eesti-ee"
 ```
 
 **Vastus (HTTP 200):**
@@ -509,22 +513,27 @@ curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/usagePeriod/v2" \
 
 ---
 
-### 3.9 heartbeat (Andmejälgija)
+### 3.9 findUsage (Andmejälgija) — `/v2/heartbeat`
 
 **DSL:** `DSL/Ruuter.internal/ljvis/GET/xroad/v2/heartbeat.yml`
 
-AJ protokoll — elutuukse endpoint. Alati `{"status": "OK"}` kui teenus töötab.
+AJ protokoll §6.3 — elutuks. Kontrollib, et kasutusteabe andmebaas vastab: `"status": "OK"` kui vastab, `"status": "FAIL"` kui ei vasta.
 
 #### Näidispäring
 
 ```bash
-curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/heartbeat/v2" \
-  -H "X-Road-Client: EE/GOV/70001231/dumonitor"
+curl "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/findUsage/v2/heartbeat" \
+  -H "X-Road-Client: EE/GOV/70009317/eesti-ee"
 ```
 
 **Vastus (HTTP 200):**
 ```json
 {"status": "OK", "message": "API is ready"}
+```
+
+Andmebaasi rikke korral:
+```json
+{"status": "FAIL", "message": "Usage log database is not available"}
 ```
 
 ---
@@ -574,9 +583,11 @@ http://ruuter-internal:8080/ljvis/xroad/provide/isiku-kontroll
 | `ErakorralineYVconfirm` | POST | `/ljvis/xroad/provide/erakorraline-yv-confirm` |
 | `RegisterJobInspection` | POST | `/ljvis/xroad/provide/register-job-inspection` |
 | `RegisterJobInspection_v3` | POST | `/ljvis/xroad/provide/register-job-inspection-v3` |
-| `findUsage` (AJ) | GET | `/ljvis/xroad/v2/findUsage` |
-| `usagePeriod` (AJ) | GET | `/ljvis/xroad/v2/usagePeriod` |
-| `heartbeat` (AJ) | GET | `/ljvis/xroad/v2/heartbeat` |
+| `findUsage` (AJ) — `/v2/findUsage` | GET | `/ljvis/xroad/v2/findUsage` |
+| `findUsage` (AJ) — `/v2/usagePeriod` | GET | `/ljvis/xroad/v2/usagePeriod` |
+| `findUsage` (AJ) — `/v2/heartbeat` | GET | `/ljvis/xroad/v2/heartbeat` |
+
+**AJ teenus `findUsage`** registreeritakse ühe REST teenusena, mille teenuse URL on Ruuter.internal-i `/ljvis/xroad` (DEV: `http://ljvis2dev.xtpnl.kemitaws.ee:8089/ljvis/xroad`). Tarbija kutsub `…/ljvis2/findUsage/v2/findUsage` ja turvaserver lisab teenusekoodi järel oleva tee (`/v2/findUsage`) teenuse URL-i lõppu → `/ljvis/xroad/v2/findUsage`. Kirjeldus URL-ilt: `…/ljvis/xroad/v2/openapi` ([FindUsageOpenapi.yaml](FindUsageOpenapi.yaml)); anda eesti.ee alamsüsteemile õigus kõigile kolmele otspunktile.
 
 ### 4.4 Kohustuslik X-Road-Client päis
 
@@ -611,7 +622,7 @@ Pärast turvaserveri seadistamist saab ühendust testida:
 
 ```bash
 # Heartbeat (lihtsaim test — ei nõua päris andmeid)
-curl -v "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/heartbeat/v2" \
+curl -v "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/findUsage/v2/heartbeat" \
   -H "X-Road-Client: EE/GOV/70001231/ljvis2"
 # Oodatav: HTTP 200, {"status":"OK","message":"API is ready"}
 
@@ -627,7 +638,8 @@ curl -v -X POST "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/IsikuKontroll/v
 
 | HTTP kood | Põhjus |
 |---|---|
-| 400 `MISSING_PARAMETER` | Kohustuslik keha-parameeter puudub |
+| 400 `MISSING_HEADER` | `X-Road-UserId` päis puudub (`findUsage`) |
+| 400 `MISSING_PARAMETER` | Kohustuslik parameeter puudub |
 | 400 `INVALID_PARAMETER` | Parameeter on vale formaadiga (nt isikukood, kuupäev) |
 | 403 `FORBIDDEN` | `X-Road-Client` päis puudub või vale formaat |
 | 404 `NOT_FOUND` | Otsitav kirje puudub andmebaasist (`ErakorralineYVconfirm`) |
@@ -635,7 +647,7 @@ curl -v -X POST "https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/IsikuKontroll/v
 
 ### 4.8 OpenAPI kirjelduse registreerimine turvaserveris
 
-**DSL:** `DSL/Ruuter.internal/ljvis/GET/xroad/provide/openapi.yml`
+**DSL:** `DSL/Ruuter.internal/ljvis/GET/xroad/provide/openapi.yml` (kuus LJVIS2 teenust) ja `DSL/Ruuter.internal/ljvis/GET/xroad/v2/openapi.yml` (AJ teenus `findUsage`, allikas [FindUsageOpenapi.yaml](FindUsageOpenapi.yaml), URL `…/ljvis/xroad/v2/openapi`)
 
 Sama Ruuter.internal komponent serveerib [XroadOpenapi.yaml](XroadOpenapi.yaml) sisu GET-päringu peale JSON-kujul (`Content-Type: application/json`, ilma Ruuteri `{"response": …}` ümbriseta) — sisuliselt sama dokument, mida Swagger UI/Editor ja turvaserver otse parsivad. Turvaserver saab selle URL-i registreerida REST-teenuse **kirjeldusena** ja lepingut sealt automaatselt värskendada, selle asemel et OpenAPI faili käsitsi üles laadida.
 

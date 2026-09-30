@@ -1,3 +1,4 @@
 {
-  "response": "{\"status\": \"OK\", \"message\": \"API is ready\"}"
+  "status": "OK",
+  "message": "API is ready"
 }

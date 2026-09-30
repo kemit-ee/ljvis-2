@@ -122,29 +122,32 @@ DSL asukoht: `DSL/Ruuter.internal/ljvis/`
 | POST | `/ljvis/xroad/provide/erakorraline-yv-query` | Erakorralise tehnoülevaatuse päring ajavahemiku järgi | `POST/xroad/provide/erakorraline-yv-query.yml` |
 | POST | `/ljvis/xroad/provide/erakorraline-yv-confirm` | Erakorralise tehnoülevaatuse kinnitamine | `POST/xroad/provide/erakorraline-yv-confirm.yml` |
 
-### Andmejälgija — DUMonitor OpenAPI v2
+### Andmejälgija — kasutusteabe esitamise protokoll v1.6.1
 
 Andmejälgija (AJ) liides eesti.ee-le: isik saab pärida, kes tema andmeid LJVIS-is on töödelnud (IKS § 19, § 25).  
-Spetsifikatsioon: [RIA AJ GitHub](https://github.com/e-gov/AJ/) · [DUMonitor OpenAPI v2.1.0](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/dumonitor-openapi.yaml)  
+Spetsifikatsioon: [Kasutusteabe esitamise protokoll](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/Kasutusteabe_esitamise_protokoll.md) · leping [`docs/xtee/FindUsageOpenapi.yaml`](../xtee/FindUsageOpenapi.yaml)  
 Seadistusjuhend: [`docs/andmejalgija-seadistamine.md`](../andmejalgija-seadistamine.md)
+
+Üks X-tee teenus `findUsage` kolme otspunktiga (tarbija: `…/ljvis2/findUsage/v2/<otspunkt>`). Vastused on protokolli kujul, ilma Ruuteri `{"response": …}` ümbriseta.
 
 | Meetod | Tee | Kirjeldus | DSL fail |
 |--------|-----|-----------|----------|
-| GET | `/ljvis/xroad/v2/heartbeat` | Elutuukse — tagastab `{"status": "OK"}` | `GET/xroad/v2/heartbeat.yml` |
-| GET | `/ljvis/xroad/v2/usagePeriod` | Ajavahemik — tagastab `{"periodStart": "..."}` | `GET/xroad/v2/usagePeriod.yml` |
+| GET | `/ljvis/xroad/v2/heartbeat` | Elutuks — `{"status": "OK"}` või `{"status": "FAIL"}` (andmebaas ei vasta) | `GET/xroad/v2/heartbeat.yml` |
+| GET | `/ljvis/xroad/v2/usagePeriod` | Ajavahemik — `{"periodStart": "..."}` (alati täidetud) | `GET/xroad/v2/usagePeriod.yml` |
 | GET | `/ljvis/xroad/v2/findUsage` | Kasutusteave isikukoodi järgi (paginated) | `GET/xroad/v2/findUsage.yml` |
+| GET | `/ljvis/xroad/v2/openapi` | `findUsage` teenuse OpenAPI kirjeldus turvaserverile | `GET/xroad/v2/openapi.yml` |
 
 **`findUsage` query parameetrid:**
 
 | Parameeter | Kohustuslik | Kirjeldus |
 |------------|-------------|-----------|
-| `userCode` | Jah | Isiku isikukood |
-| `periodStart` | Ei | ISO 8601 kuupäev alates |
-| `periodEnd` | Ei | ISO 8601 kuupäev kuni |
+| `userCode` | Jah | Andmesubjekti isikukood, EE eesliitega või ilma |
+| `periodStart` | Ei | RFC 3339 aeg alates (nt `2026-01-01T00:00:00Z`) |
+| `periodEnd` | Ei | RFC 3339 aeg kuni |
 | `offset` | Ei | Vahelejäetavad kirjed (vaikimisi 0) |
-| `limit` | Ei | Max kirjete arv (vaikimisi 1000, max 1000) |
+| `limit` | Ei | Kirjete arv lehel (vaikimisi 1000, ei kärbita) |
 
-**Turvalisus:** `X-Road-UserId` header peab vastama `userCode` query parameetrile.
+`X-Road-UserId` päis on kohustuslik, kuid võib `userCode`-ist erineda (esindusõigusega päring, protokoll §6.1.3). Vigane sisend → 400, sisemine viga → 500.
 
 ---
 

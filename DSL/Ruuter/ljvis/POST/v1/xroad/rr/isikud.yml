@@ -119,8 +119,8 @@ logAjUsage:
       user_code: "${personal_code}"
       action: "Järelevalve käigus isiku andmete päring rahvastikuregistrist"
       receiver_code: "70001231"
-      receiver_name: "Liiklusjärelevalve infosüsteem (LJVIS2)"
-      receiver_system: "ljvis2"
+      receiver_name: "Kliimaministeerium"
+      receiver_system: "Liiklusjärelevalve infosüsteem (LJVIS2)"
   result: ajLogResult
   next: mapResponse
 
@@ -199,8 +199,8 @@ logAjUsageOnFailure:
       user_code: "${personal_code}"
       action: "Järelevalve käigus isiku andmete päring rahvastikuregistrist"
       receiver_code: "70001231"
-      receiver_name: "Liiklusjärelevalve infosüsteem (LJVIS2)"
-      receiver_system: "ljvis2"
+      receiver_name: "Kliimaministeerium"
+      receiver_system: "Liiklusjärelevalve infosüsteem (LJVIS2)"
   result: ajLogResult
   next: returnRrError
 

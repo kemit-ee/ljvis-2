@@ -2,11 +2,45 @@ declaration:
 
   version: "1.0"
   description: >-
-    AJ heartbeat — elutuukse endpoint (DUMonitor OpenAPI v2 /v2/heartbeat).
-    Tagastab alati {"status": "OK"} kui teenus töötab.
+    AJ heartbeat - kasutusteabe elutuks (Andmejälgija kasutusteabe esitamise
+    protokoll v1.6.1 §6.3, X-tee teenus findUsage, otspunkt /v2/heartbeat).
+    Kontrollib, et kasutusteabe andmebaas vastab (sama päring mis usagePeriod):
+    "OK" kui vastab, "FAIL" kui mitte.
   namespace: xroad-aj
+  allowlist:
+    headers:
+      - field: x-road-client
+        required: false
+    params: []
+
+checkDatabase:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/usage_period"
+    headers:
+      type: json
+    body: {}
+  result: dbResult
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: "${dbResult.response.status >= 200 && dbResult.response.status < 300}"
+      next: returnOk
+  next: returnFail
 
 returnOk:
   status: 200
-  return: '{"status": "OK", "message": "API is ready"}'
+  wrapper: false
+  return:
+    status: OK
+    message: API is ready
+  next: end
+
+returnFail:
+  status: 200
+  wrapper: false
+  return:
+    status: FAIL
+    message: Usage log database is not available
   next: end

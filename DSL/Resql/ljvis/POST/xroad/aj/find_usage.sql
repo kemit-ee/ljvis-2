@@ -1,6 +1,9 @@
 /*
 description: 'AJ findUsage: pärib kasutusteabe kirjeid isikukoodi järgi koos pagination-i ja ajavahemiku
-  filtritega. Tagastab read logtime DESC järjekorras. total_usages on koguhulk (ilma offset/limit mõjuta).'
+  filtritega. Tagastab alati vähemalt ühe rea: total_usages on koguhulk (ilma offset/limit mõjuta,
+  AJ protokoll §6.1.4) ka siis, kui leht on tühi — sel juhul on logtime NULL. Kirjed logtime DESC
+  järjekorras (§6.1.4), id DESC lisajärjestusena stabiilse lehitsemise jaoks (§7). user_code tuleb
+  anda ilma EE eesliiteta; ajaloolised EE-eesliitega kirjed leitakse samuti.'
 namespace: xroad
 params:
   user_code:
@@ -38,17 +41,27 @@ returns:
   type: string
   nullable: true
 */
+WITH filtered AS (
+    SELECT id, logtime, action, receiver_code, receiver_name, receiver_system
+    FROM xroad.aj_usage_log
+    WHERE user_code IN (:user_code, 'EE' || :user_code)
+      AND logtime >= COALESCE(NULLIF(:period_start, '')::TIMESTAMPTZ, '-infinity')
+      AND logtime <= COALESCE(NULLIF(:period_end,   '')::TIMESTAMPTZ, 'infinity')
+),
+page AS (
+    SELECT *
+    FROM filtered
+    ORDER BY logtime DESC, id DESC
+    OFFSET COALESCE(:offset::INTEGER, 0)
+    LIMIT  COALESCE(:limit::INTEGER, 1000)
+)
 SELECT
-    COUNT(*) OVER ()                                                         AS total_usages,
-    to_char(logtime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')      AS logtime,
-    action,
-    receiver_code,
-    COALESCE(receiver_name,   '')                                            AS receiver_name,
-    COALESCE(receiver_system, '')                                            AS receiver_system
-FROM xroad.aj_usage_log
-WHERE user_code = :user_code
-  AND (:period_start IS NULL OR :period_start = '' OR logtime >= :period_start::TIMESTAMPTZ)
-  AND (:period_end   IS NULL OR :period_end   = '' OR logtime <= :period_end::TIMESTAMPTZ)
-ORDER BY logtime DESC
-OFFSET COALESCE(:offset::INTEGER, 0)
-LIMIT  LEAST(COALESCE(:limit::INTEGER, 1000), 1000);
+    (SELECT COUNT(*) FROM filtered)                                          AS total_usages,
+    to_char(page.logtime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')  AS logtime,
+    page.action,
+    page.receiver_code,
+    page.receiver_name,
+    page.receiver_system
+FROM (SELECT 1) AS always_one_row
+LEFT JOIN page ON TRUE
+ORDER BY page.logtime DESC NULLS LAST, page.id DESC;

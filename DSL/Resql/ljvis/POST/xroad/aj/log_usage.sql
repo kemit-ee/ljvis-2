@@ -6,7 +6,7 @@ params:
   user_code:
     type: string
     required: false
-    description: Isiku isikukood kelle andmeid töödeldi (EE formaat, 11 numbrit).
+    description: Isiku isikukood kelle andmeid töödeldi (11 numbrit; EE eesliide eemaldatakse).
   action:
     type: string
     required: false
@@ -29,5 +29,5 @@ returns:
   nullable: true
 */
 INSERT INTO xroad.aj_usage_log (user_code, action, receiver_code, receiver_name, receiver_system)
-VALUES (:user_code, :action, :receiver_code, NULLIF(:receiver_name, ''), NULLIF(:receiver_system, ''))
+VALUES (regexp_replace(trim(:user_code), '^EE', '', 'i'), :action, :receiver_code, NULLIF(:receiver_name, ''), NULLIF(:receiver_system, ''))
 RETURNING id;

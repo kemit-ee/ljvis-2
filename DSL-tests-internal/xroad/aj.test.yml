@@ -1,0 +1,327 @@
+# Andmejälgija (AJ) kasutusteabe esitamise protokoll v1.6.1 — findUsage,
+# usagePeriod, heartbeat (DSL/Ruuter.internal/ljvis/GET/xroad/v2/).
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+tests:
+- name: findUsage returns unwrapped protocol response, optional fields omitted
+  setup:
+    mocks:
+    - &usages
+      url_matches: /xroad/aj/find_usage
+      method: POST
+      status: 200
+      body:
+      - total_usages: 3
+        logtime: '2026-06-15T12:00:00Z'
+        action: Kontrollipäring
+        receiver_code: '70001490'
+        receiver_name: Transpordiamet
+        receiver_system: liiklusregister
+      - total_usages: 3
+        logtime: '2026-06-14T12:00:00Z'
+        action: Töökontroll
+        receiver_code: '70001969'
+        receiver_name: null
+        receiver_system: null
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: EE60001019906
+    query:
+      userCode: EE60001019906
+      offset: '0'
+      limit: '2'
+  expect:
+    status: 200
+    body:
+      totalUsages: 3
+      usages:
+      - logtime: '2026-06-15T12:00:00Z'
+        action: Kontrollipäring
+        receiverCode: '70001490'
+        receiverName: Transpordiamet
+        receiverSystem: liiklusregister
+      - logtime: '2026-06-14T12:00:00Z'
+        action: Töökontroll
+        receiverCode: '70001969'
+  verify_mocks:
+  - url_matches: /xroad/aj/find_usage
+    count: 1
+    body_matches:
+      user_code: '60001019906'
+      offset: 0
+      limit: 2
+
+- name: findUsage strips lowercase ee prefix and allows representation (userId differs)
+  setup:
+    mocks:
+    - *usages
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: EE38001010000
+    query:
+      userCode: ee60001019906
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /xroad/aj/find_usage
+    count: 1
+    body_matches:
+      user_code: '60001019906'
+      offset: 0
+      limit: 1000
+
+- name: findUsage bare code, large limit is not capped, timezone offset accepted
+  setup:
+    mocks:
+    - *usages
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      periodStart: '2026-06-01T00:00:00+03:00'
+      periodEnd: '2026-06-30T23:59:59Z'
+      limit: '5000'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /xroad/aj/find_usage
+    count: 1
+    body_matches:
+      user_code: '60001019906'
+      period_start: '2026-06-01T00:00:00+03:00'
+      period_end: '2026-06-30T23:59:59Z'
+      limit: 5000
+
+- name: findUsage page past the end keeps totalUsages
+  setup:
+    mocks:
+    - url_matches: /xroad/aj/find_usage
+      method: POST
+      status: 200
+      body:
+      - total_usages: 3
+        logtime: null
+        action: null
+        receiver_code: null
+        receiver_name: null
+        receiver_system: null
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: '10'
+  expect:
+    status: 200
+    body:
+      totalUsages: 3
+      usages: []
+
+- name: findUsage missing X-Road-UserId -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    query:
+      userCode: '60001019906'
+  expect:
+    status: 400
+    body:
+      error: MISSING_HEADER
+      message: X-Road-UserId header is required
+  verify_mocks:
+  - url_matches: /xroad/aj/find_usage
+    count: 0
+
+- name: findUsage missing userCode -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+  expect:
+    status: 400
+    body:
+      error: MISSING_PARAMETER
+      message: userCode query parameter is required
+
+- name: findUsage bare EE prefix only -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: EE
+  expect:
+    status: 400
+
+- name: findUsage non-numeric offset -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: abc
+  expect:
+    status: 400
+    body:
+      error: INVALID_PARAMETER
+      message: offset must be a non-negative integer
+  verify_mocks:
+  - url_matches: /xroad/aj/find_usage
+    count: 0
+
+- name: findUsage negative offset -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: '-1'
+  expect:
+    status: 400
+
+- name: findUsage zero limit -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      limit: '0'
+  expect:
+    status: 400
+    body:
+      error: INVALID_PARAMETER
+      message: limit must be a positive integer
+
+- name: findUsage date without time -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      periodStart: '2026-06-01'
+  expect:
+    status: 400
+    body:
+      error: INVALID_PARAMETER
+      message: periodStart must be an RFC 3339 date-time
+
+- name: findUsage impossible date -> 400
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      periodEnd: '2026-13-45T99:00:00Z'
+  expect:
+    status: 400
+    body:
+      error: INVALID_PARAMETER
+      message: periodEnd must be an RFC 3339 date-time
+
+- name: findUsage Resql failure -> 500
+  setup:
+    mocks:
+    - url_matches: /xroad/aj/find_usage
+      method: POST
+      status: 500
+      body: {}
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+  expect:
+    status: 500
+    body:
+      error: SERVER_ERROR
+      message: Internal error
+
+- name: usagePeriod returns unwrapped periodStart
+  setup:
+    mocks:
+    - &period
+      url_matches: /xroad/aj/usage_period
+      method: POST
+      status: 200
+      body:
+      - period_start: '2026-01-15T09:00:00Z'
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/usagePeriod
+  expect:
+    status: 200
+    body:
+      periodStart: '2026-01-15T09:00:00Z'
+
+- name: usagePeriod Resql failure -> 500
+  setup:
+    mocks:
+    - url_matches: /xroad/aj/usage_period
+      method: POST
+      status: 500
+      body: {}
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/usagePeriod
+  expect:
+    status: 500
+
+- name: heartbeat OK when database answers
+  setup:
+    mocks:
+    - *period
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/heartbeat
+  expect:
+    status: 200
+    body:
+      status: OK
+      message: API is ready
+
+- name: heartbeat FAIL when database does not answer
+  setup:
+    mocks:
+    - url_matches: /xroad/aj/usage_period
+      method: POST
+      status: 500
+      body: {}
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/heartbeat
+  expect:
+    status: 200
+    body:
+      status: FAIL
+      message: Usage log database is not available
+
+- name: findUsage OpenAPI description is served
+  request:
+    method: GET
+    path: /ljvis/xroad/v2/openapi
+  expect:
+    status: 200

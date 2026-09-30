@@ -391,13 +391,13 @@ Kõik X-tee päringud käivad läbi Ruuter Internal konteinerist. Ruuter Interna
 
 Andmejälgija on RIA koordineeritud infrastruktuur (IKS § 19, § 25), mis võimaldab isikul eesti.ee portaalis näha, kes tema andmeid LJVIS-is on töödelnud.
 
-**Viide:** [RIA Andmejälgija GitHub](https://github.com/e-gov/AJ/) · [DUMonitor OpenAPI v2.1.0](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/dumonitor-openapi.yaml)
+**Viide:** [RIA Andmejälgija GitHub](https://github.com/e-gov/AJ/) · [Kasutusteabe esitamise protokoll v1.6.1](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/Kasutusteabe_esitamise_protokoll.md)
 
-LJVIS implementeerib DUMonitor OpenAPI v2.1.0 kolme endpointiga:
+LJVIS pakub ühte X-tee teenust `findUsage` kolme otspunktiga (leping [`FindUsageOpenapi.yaml`](../xtee/FindUsageOpenapi.yaml)):
 
 | Endpoint | URL | Kirjeldus |
 |----------|-----|-----------|
-| `heartbeat` | `GET /ljvis/xroad/v2/heartbeat` | Elutuukse |
+| `heartbeat` | `GET /ljvis/xroad/v2/heartbeat` | Elutuks (`OK`/`FAIL` andmebaasi kontrolli järgi) |
 | `usagePeriod` | `GET /ljvis/xroad/v2/usagePeriod` | Ajavahemik mille kohta on kasutusteave |
 | `findUsage` | `GET /ljvis/xroad/v2/findUsage` | Isiku kasutusteabe kirjed (paginated) |
 
