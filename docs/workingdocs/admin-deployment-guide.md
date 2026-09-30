@@ -201,9 +201,36 @@ LJVIS_DMAPPER_HBS=http://data-mapper:3005/hbs/ljvis
 LJVIS_TIM=http://tim:8085
 LJVIS_PROJECT_LAYER=ljvis
 DOMAIN=<avalik domeen>
+
+# Postkast 2.0: Ruuter internal -> XTR sisemised endpoint'id
+PK_NOTIFICATIONS_ENDPOINT=http://xtr:8080/postkast/notifications
+PK_SENDING_OPERATIONS_ENDPOINT=http://xtr:8080/postkast/sending-operations
 ```
 
 See fail monteeritakse **ConfigMap**-ina mõlemasse Ruuter konteinerisse (`ruuter` ja `ruuter-internal`).
+Postkasti konstandid peavad kindlasti jõudma `ruuter-internal` konteineri
+`constants.ini` faili, sest teavituse loomise ja saatmisstaatuse töövood töötavad
+Ruuter Internalis. Kuberneteses tuleb väärtused määrata LJVIS-i keskkonnapõhises
+`constants.ini` ConfigMapis (DEV, TEST ja PROD eraldi) ning pärast ConfigMapi
+muutmist teha `ruuter-internal` Deploymentile restart/rollout; Ruuter loeb
+konstandid käivitumisel.
+
+`PK_NOTIFICATIONS_ENDPOINT` peab osutama XTR-i **teavituse loomise** rajale
+`/postkast/notifications`, mitte saatmisoperatsioonide rajale. XTR-i vastav DSL
+on `DSL/xtr/postkast/notifications.yml` ja see kutsub X-tee teenust
+`GOV/70006317/postkast/kliimaministeerium-notification-management/v1/notifications`
+HTTP `POST` meetodiga. Vale teenusenimi `notification-management` või väärtus
+`.../postkast/sending-operations` põhjustab saatmisel HTTP 405 vea.
+
+`PK_SENDING_OPERATIONS_ENDPOINT` on eraldi **staatuse päringu** rada. XTR-i DSL
+`DSL/xtr/postkast/sending-operations.yml` kutsub teenust
+`GOV/70006317/postkast/kliimaministeerium-notification-management/v1/sending-operations`
+HTTP `GET` meetodiga.
+
+Lokaalse ja CI mock-paigalduse `constants.ini` võib teadlikult kasutada Ruuteri
+mock-URL-e; päris DEV/TEST/PROD keskkonnas tuleb kasutada ülal toodud XTR-i
+sisemisi URL-e. Kontrolli töötavas `ruuter-internal` podis, et monteeritud
+`constants.ini` sisaldab täpselt keskkonnale mõeldud väärtusi.
 
 ### 2.6 Ruuter CORS ja turvaseadistus
 
