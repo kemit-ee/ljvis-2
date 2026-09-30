@@ -30,7 +30,6 @@ test.describe('Välisriigi rikkumine — validatsioon', () => {
         'reportingCountry',
         'reportingAuthority',
         'inspectionDate',
-        'inspectorOrganisation',
       ]) {
         await expectFieldError(page, id);
       }

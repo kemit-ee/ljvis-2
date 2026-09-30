@@ -23,6 +23,11 @@
 - LJVIS2 enda päringud (rahvastikuregister, äriregister, MTR) ja koondvormi kinnitamine
   kuvatakse kodanikule Kliimaministeeriumi (70001231) tehtuna, süsteemiks „Liiklusjärelevalve
   infosüsteem (LJVIS2)". Varem oli koondvormi kirjetes asutuse koodi asemel sisemine id ja nimi puudus.
+### Kontrollvormid: kontrollija ametikoht ja struktuuriüksus täituvad kasutaja andmetest
+
+- „Sõidukit kontrollinud ametiisiku andmed" plokis eeltäidetakse nüüd lisaks nimele
+  ka asutus, ametikoht ja (olemasolul) struktuuriüksus kasutaja profiilist. Varem
+  ei jõudnud need väärtused sessiooni vastusesse ja väljad jäid tühjaks.
 
 ### Koondvorm: alamvormi saab avalikustada sõltumata teistest alamvormidest
 
