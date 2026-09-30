@@ -32,7 +32,7 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
           description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
@@ -194,7 +194,7 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
           description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
@@ -359,7 +359,7 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
           description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
@@ -564,7 +564,7 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
           description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
@@ -728,7 +728,7 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
           description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
@@ -900,7 +900,7 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
           description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
@@ -1093,7 +1093,7 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       - in: header
         name: X-Road-UserId
         required: true
@@ -1127,22 +1127,54 @@ paths:
           type: integer
       responses:
         '200':
-          description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
+          description: Edukas vastus (AJ protokolli kuju, ümbriseta). Tühi loend on edukas.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  response:
-                    type: string
+                  totalUsages:
+                    type: integer
+                  usages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        logtime:
+                          type: string
+                        action:
+                          type: string
+                        receiverCode:
+                          type: string
+                        receiverName:
+                          type: string
+                        receiverSystem:
+                          type: string
+                      required:
+                      - logtime
+                      - action
+                      - receiverCode
+                      additionalProperties: false
                 required:
-                - response
+                - totalUsages
+                - usages
                 additionalProperties: false
               example:
-                response: '{"totalUsages":3,"usages":[{"action":"Mock kontrollipäring","logtime":"2026-06-15T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
-                  tarbija","receiverSystem":"liiklusregister"},{"action":"Mock töökontroll","logtime":"2026-06-14T12:00:00Z","receiverCode":"70001969","receiverName":null,"receiverSystem":null},{"action":"Mock
-                  korduspäring","logtime":"2026-06-13T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
-                  tarbija","receiverSystem":"liiklusregister"}]}'
+                totalUsages: 3
+                usages:
+                - logtime: '2026-06-15T12:00:00Z'
+                  action: Mock kontrollipäring
+                  receiverCode: '70001490'
+                  receiverName: Mock tarbija
+                  receiverSystem: liiklusregister
+                - logtime: '2026-06-14T12:00:00Z'
+                  action: Mock töökontroll
+                  receiverCode: '70001969'
+                - logtime: '2026-06-13T12:00:00Z'
+                  action: Mock korduspäring
+                  receiverCode: '70001490'
+                  receiverName: Mock tarbija
+                  receiverSystem: liiklusregister
               x-decoded-response-schema:
                 type: object
                 properties:
@@ -1161,43 +1193,57 @@ paths:
                           type: string
                         receiverName:
                           type: string
-                          nullable: true
                         receiverSystem:
                           type: string
-                          nullable: true
                       required:
                       - logtime
                       - action
                       - receiverCode
-                      - receiverName
-                      - receiverSystem
                       additionalProperties: false
                 required:
                 - totalUsages
                 - usages
                 additionalProperties: false
         '400':
-          description: MISSING_HEADER, MISSING_PARAMETER, FORBIDDEN
+          description: MISSING_HEADER, MISSING_PARAMETER, INVALID_PARAMETER
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  response:
+                  error:
+                    type: string
+                  message:
                     type: string
                 required:
-                - response
+                - error
+                - message
                 additionalProperties: false
               examples:
                 error0:
                   value:
-                    response: '{"error": "MISSING_HEADER", "message": "X-Road-UserId header is required"}'
+                    error: MISSING_HEADER
+                    message: X-Road-UserId header is required
                 error1:
                   value:
-                    response: '{"error": "MISSING_PARAMETER", "message": "userCode query parameter is required"}'
+                    error: MISSING_PARAMETER
+                    message: userCode query parameter is required
                 error2:
                   value:
-                    response: '{"error": "FORBIDDEN", "message": "X-Road-UserId must match userCode"}'
+                    error: INVALID_PARAMETER
+                    message: periodStart must be an RFC 3339 date-time
+                error3:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: periodEnd must be an RFC 3339 date-time
+                error4:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: offset must be a non-negative integer
+                error5:
+                  value:
+                    error: INVALID_PARAMETER
+                    message: limit must be a positive integer
         '500':
           description: SERVER_ERROR
           content:
@@ -1205,21 +1251,25 @@ paths:
               schema:
                 type: object
                 properties:
-                  response:
+                  error:
+                    type: string
+                  message:
                     type: string
                 required:
-                - response
+                - error
+                - message
                 additionalProperties: false
               examples:
                 error0:
                   value:
-                    response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+                    error: SERVER_ERROR
+                    message: Internal error
   /xroad/v2/usagePeriod:
     get:
       operationId: usagePeriod
       summary: usagePeriod
       x-xroad-service:
-        code: usagePeriod
+        code: findUsage
         version: v2
       x-provider-path: /ljvis/xroad/v2/usagePeriod
       parameters:
@@ -1231,22 +1281,22 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
-          description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
+          description: Edukas vastus (AJ protokolli kuju, ümbriseta). Tühi loend on edukas.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  response:
+                  periodStart:
                     type: string
                 required:
-                - response
+                - periodStart
                 additionalProperties: false
               example:
-                response: '{"periodStart":"2026-06-13T12:00:00Z"}'
+                periodStart: '2026-06-13T12:00:00Z'
               x-decoded-response-schema:
                 type: object
                 properties:
@@ -1262,21 +1312,25 @@ paths:
               schema:
                 type: object
                 properties:
-                  response:
+                  error:
+                    type: string
+                  message:
                     type: string
                 required:
-                - response
+                - error
+                - message
                 additionalProperties: false
               examples:
                 error0:
                   value:
-                    response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+                    error: SERVER_ERROR
+                    message: Internal error
   /xroad/v2/heartbeat:
     get:
       operationId: heartbeat
       summary: heartbeat
       x-xroad-service:
-        code: heartbeat
+        code: findUsage
         version: v2
       x-provider-path: /ljvis/xroad/v2/heartbeat
       parameters:
@@ -1288,22 +1342,26 @@ paths:
           enum:
           - empty
           - server-error
-        description: Ainult mockis; heartbeat ignoreerib.
+        description: Ainult mockis.
       responses:
         '200':
-          description: Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.
+          description: Edukas vastus (AJ protokolli kuju, ümbriseta). Tühi loend on edukas.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  response:
+                  status:
+                    type: string
+                  message:
                     type: string
                 required:
-                - response
+                - status
+                - message
                 additionalProperties: false
               example:
-                response: '{"status": "OK", "message": "API is ready"}'
+                status: OK
+                message: API is ready
               x-decoded-response-schema:
                 type: object
                 properties:

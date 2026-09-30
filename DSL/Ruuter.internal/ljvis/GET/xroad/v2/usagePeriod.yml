@@ -2,10 +2,17 @@ declaration:
 
   version: "1.0"
   description: >-
-    AJ usagePeriod — tagastab ajavahemiku mille kohta on kasutusteave saadaval
-    (DUMonitor OpenAPI v2 /v2/usagePeriod). periodStart on MIN(logtime) tabelis.
-    Tühi tabel tagastab {"periodStart": null}.
+    AJ usagePeriod - ajavahemik, mille kohta saab kasutusteavet pärida
+    (Andmejälgija kasutusteabe esitamise protokoll v1.6.1 §6.2, X-tee teenus
+    findUsage, otspunkt /v2/usagePeriod). periodStart on MIN(logtime) tabelis,
+    tühja tabeli korral praegune ajahetk (väli on kohustuslik). periodEnd jäetakse
+    välja - kirjeid saab küsida kuni praeguse ajani.
   namespace: xroad-aj
+  allowlist:
+    headers:
+      - field: x-road-client
+        required: false
+    params: []
 
 queryPeriod:
   call: http.post
@@ -21,19 +28,26 @@ checkStatus:
   switch:
     - condition: "${periodResult.response.status < 200 || periodResult.response.status >= 300}"
       next: returnServerError
+    - condition: "${!periodResult.response.body || !periodResult.response.body[0] || !periodResult.response.body[0].period_start}"
+      next: returnServerError
   next: buildResponse
 
 buildResponse:
   assign:
-    period_start: "${(periodResult.response.body && periodResult.response.body[0]) ? periodResult.response.body[0].period_start : null}"
+    response_body:
+      periodStart: "${periodResult.response.body[0].period_start}"
   next: returnOk
 
 returnOk:
   status: 200
-  return: "${JSON.stringify({periodStart: period_start})}"
+  wrapper: false
+  return: ${response_body}
   next: end
 
 returnServerError:
   status: 500
-  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  wrapper: false
+  return:
+    error: SERVER_ERROR
+    message: Internal error
   next: end

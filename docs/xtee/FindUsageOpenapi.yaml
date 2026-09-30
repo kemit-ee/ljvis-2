@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: FindUsage
+  version: 2.0.0
+  description: >
+    LJVIS2 Andmejälgija (AJ) kasutusteabe teenus — RIA "Andmejälgija kasutusteabe
+    esitamise protokoll" v1.6.1 (https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/Kasutusteabe_esitamise_protokoll.md).
+    Üks X-tee REST teenus koodiga findUsage, millel on kolm otspunkti:
+    /v2/findUsage, /v2/usagePeriod ja /v2/heartbeat. eesti.ee kutsub neid kujul
+    https://SECURITYSERVER/r1/INSTANCE/GOV/70001231/ljvis2/findUsage/v2/findUsage.
+    Pakkuja teenuse URL turvaserveris on Ruuter.internal-i /ljvis/xroad (turvaserver
+    lisab otspunkti tee, nt /v2/findUsage), vt 00-xtee-teenused-publikatsiooni-juhend.md.
+    Kõik ajad on RFC 3339 kujul UTC-s (YYYY-MM-DDTHH:MM:SSZ).
+    Ülejäänud LJVIS2 X-tee teenuste leping on eraldi failis XroadOpenapi.yaml.
+servers:
+  - url: https://{securityserver}/r1/EE/GOV/70001231/ljvis2/findUsage
+    description: LIVE (toodang), tarbija vaade
+    variables:
+      securityserver:
+        default: turvaserver.näide.ee
+  - url: https://{securityserver}/r1/ee-test/GOV/70001231/ljvis2/findUsage
+    description: TEST, tarbija vaade
+    variables:
+      securityserver:
+        default: turvaserver.näide.ee
+  - url: https://{securityserver}/r1/ee-dev/GOV/70001231/ljvis2/findUsage
+    description: DEV, tarbija vaade
+    variables:
+      securityserver:
+        default: turvaserver.näide.ee
+components:
+  parameters:
+    XRoadClient:
+      in: header
+      name: X-Road-Client
+      required: true
+      schema:
+        type: string
+      example: EE/GOV/70009317/eesti-ee
+      description: Tarbija identiteet (instance/memberClass/memberCode/subsystem). Lisab turvaserver automaatselt.
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required: [error, message]
+  responses:
+    BadRequest:
+      description: Päringu sisu ei vasta nõuetele
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: Päringu täitmisel tekkis viga
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: SERVER_ERROR
+            message: Internal error
+paths:
+  /v2/findUsage:
+    get:
+      operationId: findUsage
+      summary: findUsage — kasutusteabe küsimine (AJ protokoll §6.1)
+      description: >
+        Tagastab isikuandmete kasutuse kirjed ajamomendi kahanemise järjekorras.
+        X-Road-UserId on kohustuslik, kuid võib userCode'ist erineda (esindusõigusega
+        päring, §6.1.3). Isikukoodi võib anda EE eesliitega või ilma (nt EE39001010001
+        või 39001010001). totalUsages on kirjete koguarv, mida limit ja offset ei mõjuta.
+        Lehitsemine vastavalt §7: kui tagastati limit kirjet, küsi järgmine leht
+        offset = offset + limit.
+      x-provider-path: /ljvis/xroad/v2/findUsage
+      parameters:
+        - $ref: '#/components/parameters/XRoadClient'
+        - in: header
+          name: X-Road-UserId
+          required: true
+          description: Päringu algataja isikukood
+          schema: {type: string}
+          example: EE39001010001
+        - in: query
+          name: userCode
+          required: true
+          description: Andmesubjekti isikukood (EE eesliitega või ilma)
+          schema: {type: string}
+          example: EE39001010001
+        - in: query
+          name: periodStart
+          required: false
+          description: Tagasta kirjed alates sellest ajast (RFC 3339, ajavööndiga)
+          schema: {type: string, format: date-time}
+          example: '2026-01-01T00:00:00Z'
+        - in: query
+          name: periodEnd
+          required: false
+          description: Tagasta kirjed kuni selle ajani (RFC 3339, ajavööndiga)
+          schema: {type: string, format: date-time}
+          example: '2026-12-31T23:59:59Z'
+        - in: query
+          name: offset
+          required: false
+          schema: {type: integer, minimum: 0, default: 0}
+        - in: query
+          name: limit
+          required: false
+          schema: {type: integer, minimum: 1, default: 1000}
+      responses:
+        '200':
+          description: Kasutusteabe kirjed ajaliselt kahanevas järjekorras
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalUsages: {type: integer}
+                  usages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        logtime: {type: string, format: date-time}
+                        action: {type: string}
+                        receiverCode: {type: string}
+                        receiverName: {type: string}
+                        receiverSystem: {type: string}
+                      required: [logtime, action, receiverCode]
+                required: [totalUsages, usages]
+              example:
+                totalUsages: 2
+                usages:
+                  - logtime: '2026-06-10T14:32:00Z'
+                    action: Järelevalve käigus isiku andmete päring rahvastikuregistrist
+                    receiverCode: '70001231'
+                    receiverName: Kliimaministeerium
+                    receiverSystem: Liiklusjärelevalve infosüsteem (LJVIS2)
+                  - logtime: '2026-06-09T09:15:00Z'
+                    action: LJVIS-i kontrollide küsimine X-tee kaudu
+                    receiverCode: '70001490'
+                    receiverSystem: liiklusregister
+        '400':
+          description: MISSING_HEADER / MISSING_PARAMETER / INVALID_PARAMETER
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingHeader:
+                  value: {error: MISSING_HEADER, message: X-Road-UserId header is required}
+                missingParam:
+                  value: {error: MISSING_PARAMETER, message: userCode query parameter is required}
+                invalidPeriod:
+                  value: {error: INVALID_PARAMETER, message: periodStart must be an RFC 3339 date-time}
+                invalidOffset:
+                  value: {error: INVALID_PARAMETER, message: offset must be a non-negative integer}
+                invalidLimit:
+                  value: {error: INVALID_PARAMETER, message: limit must be a positive integer}
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /v2/usagePeriod:
+    get:
+      operationId: usagePeriod
+      summary: usagePeriod — kasutusteabe ajaperiood (AJ protokoll §6.2)
+      description: >
+        periodStart on varaseima kirje aeg; kui kirjeid veel pole, siis praegune aeg.
+        periodEnd jäetakse välja — kirjeid saab küsida kuni praeguse ajani.
+      x-provider-path: /ljvis/xroad/v2/usagePeriod
+      parameters:
+        - $ref: '#/components/parameters/XRoadClient'
+      responses:
+        '200':
+          description: Ajaperiood, mille kohta saab kasutusteavet pärida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  periodStart: {type: string, format: date-time}
+                  periodEnd: {type: string, format: date-time}
+                required: [periodStart]
+              example:
+                periodStart: '2026-01-15T09:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /v2/heartbeat:
+    get:
+      operationId: heartbeat
+      summary: heartbeat — kasutusteabe elutuks (AJ protokoll §6.3)
+      description: >
+        "OK", kui kasutusteabe andmebaas vastab; "FAIL", kui ei vasta.
+      x-provider-path: /ljvis/xroad/v2/heartbeat
+      parameters:
+        - $ref: '#/components/parameters/XRoadClient'
+      responses:
+        '200':
+          description: Elutukse staatus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string, enum: [OK, FAIL]}
+                  message: {type: string}
+                required: [status]
+              examples:
+                ok:
+                  value: {status: OK, message: API is ready}
+                fail:
+                  value: {status: FAIL, message: Usage log database is not available}
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
