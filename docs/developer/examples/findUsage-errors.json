@@ -2,25 +2,50 @@
   {
     "status": 400,
     "body": {
-      "response": "{\"error\": \"MISSING_HEADER\", \"message\": \"X-Road-UserId header is required\"}"
+      "error": "MISSING_HEADER",
+      "message": "X-Road-UserId header is required"
     }
   },
   {
     "status": 400,
     "body": {
-      "response": "{\"error\": \"MISSING_PARAMETER\", \"message\": \"userCode query parameter is required\"}"
+      "error": "MISSING_PARAMETER",
+      "message": "userCode query parameter is required"
     }
   },
   {
     "status": 400,
     "body": {
-      "response": "{\"error\": \"FORBIDDEN\", \"message\": \"X-Road-UserId must match userCode\"}"
+      "error": "INVALID_PARAMETER",
+      "message": "periodStart must be an RFC 3339 date-time"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "INVALID_PARAMETER",
+      "message": "periodEnd must be an RFC 3339 date-time"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "INVALID_PARAMETER",
+      "message": "offset must be a non-negative integer"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "error": "INVALID_PARAMETER",
+      "message": "limit must be a positive integer"
     }
   },
   {
     "status": 500,
     "body": {
-      "response": "{\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}"
+      "error": "SERVER_ERROR",
+      "message": "Internal error"
     }
   }
 ]

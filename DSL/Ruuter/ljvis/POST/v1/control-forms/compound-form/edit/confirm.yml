@@ -256,7 +256,8 @@ extractResponseData:
 
 # Andmejälgija (AJ) — logi Eesti isikukoodi alusel tuvastatud juhtide andmete
 # esmakordne registreerimine LJVIS2-sse. Välisriigi juhte (personalCodeForeign)
-# ei logita, kuna AJ nõuab Eesti isikukoodi formaati.
+# ei logita, kuna AJ nõuab Eesti isikukoodi formaati. Töötlejana näidatakse
+# LJVIS2 vastutavat töötlejat Kliimaministeeriumi (70001231).
 checkDriver1AjLog:
   switch:
     - condition: "${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}"
@@ -272,9 +273,9 @@ logAjDriver1:
     body:
       user_code: "${driver1_personal_code_ee}"
       action: "Juhi isikuandmete registreerimine liiklusjärelevalve teekontrolli protokollis (koondvorm kinnitatud)"
-      receiver_code: "${inspector_organisation_id}"
-      receiver_name: ""
-      receiver_system: "ljvis2"
+      receiver_code: "70001231"
+      receiver_name: "Kliimaministeerium"
+      receiver_system: "Liiklusjärelevalve infosüsteem (LJVIS2)"
   result: ajLog1Result
   next: checkDriver2AjLog
 
@@ -293,9 +294,9 @@ logAjDriver2:
     body:
       user_code: "${driver2_personal_code_ee}"
       action: "Juhi isikuandmete registreerimine liiklusjärelevalve teekontrolli protokollis (koondvorm kinnitatud)"
-      receiver_code: "${inspector_organisation_id}"
-      receiver_name: ""
-      receiver_system: "ljvis2"
+      receiver_code: "70001231"
+      receiver_name: "Kliimaministeerium"
+      receiver_system: "Liiklusjärelevalve infosüsteem (LJVIS2)"
   result: ajLog2Result
   next: buildLogDescription
 

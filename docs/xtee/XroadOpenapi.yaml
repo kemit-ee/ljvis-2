@@ -4,8 +4,9 @@ info:
   version: 1.0.0
   description: >
     LJVIS2 alamsüsteemi poolt pakutavate X-tee teenuste ametlik leping (production).
-    Vastab dokumendis 00-xtee-teenused-publikatsiooni-juhend.md kirjeldatud üheksale
-    teenusele. Iga tarbija pöördub oma turvaserveri kaudu — vt server-URL-id allpool
+    Vastab dokumendis 00-xtee-teenused-publikatsiooni-juhend.md kirjeldatud kuuele
+    LJVIS2 teenusele. Andmejälgija (AJ) teenus findUsage on eraldi lepingus
+    FindUsageOpenapi.yaml. Iga tarbija pöördub oma turvaserveri kaudu — vt server-URL-id allpool
     ja asenda {securityserver} enda turvaserveriga.
     Sünteetilise mocki leping (samad teed, testandmed) on eraldi failis:
     ../developer/xtee-openapi.yaml.
@@ -544,122 +545,3 @@ paths:
                 message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
         '500':
           $ref: '#/components/responses/ServerError'
-  /findUsage/v2:
-    get:
-      operationId: findUsage
-      summary: findUsage — Andmejälgija (AJ) kasutusteabe päring
-      description: >
-        DUMonitor OpenAPI v2 /v2/findUsage. X-Road-UserId peab vastama userCode
-        parameetrile (AJ protokoll §6.1.3), muidu 400 FORBIDDEN.
-      x-provider-path: /ljvis/xroad/v2/findUsage
-      parameters:
-        - $ref: '#/components/parameters/XRoadClient'
-        - in: header
-          name: X-Road-UserId
-          required: true
-          schema: {type: string}
-          example: '39001010001'
-        - in: query
-          name: userCode
-          required: true
-          schema: {type: string}
-          example: '39001010001'
-        - in: query
-          name: periodStart
-          required: false
-          schema: {type: string, format: date-time}
-        - in: query
-          name: periodEnd
-          required: false
-          schema: {type: string, format: date-time}
-        - in: query
-          name: offset
-          required: false
-          schema: {type: integer, default: 0}
-        - in: query
-          name: limit
-          required: false
-          schema: {type: integer, default: 1000, maximum: 1000}
-      responses:
-        '200':
-          description: Kasutusteabe kirjed ajaliselt kahanevas järjekorras
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  totalUsages: {type: integer}
-                  usages:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        logtime: {type: string}
-                        action: {type: string}
-                        receiverCode: {type: string}
-                        receiverName: {type: string, nullable: true}
-                        receiverSystem: {type: string, nullable: true}
-              example:
-                totalUsages: 2
-                usages:
-                  - logtime: '2026-06-10T14:32:00Z'
-                    action: LJVIS-i kontrollide küsimine X-tee kaudu
-                    receiverCode: '70001490'
-                    receiverName: null
-                    receiverSystem: liiklusregister
-        '400':
-          description: MISSING_HEADER / MISSING_PARAMETER / FORBIDDEN
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {error: {type: string}, message: {type: string}}
-              examples:
-                missingHeader:
-                  value: {error: MISSING_HEADER, message: X-Road-UserId header is required}
-                missingParam:
-                  value: {error: MISSING_PARAMETER, message: userCode query parameter is required}
-                mismatch:
-                  value: {error: FORBIDDEN, message: X-Road-UserId must match userCode}
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /usagePeriod/v2:
-    get:
-      operationId: usagePeriod
-      summary: usagePeriod — Andmejälgija (AJ) kasutusteabe saadaoleva perioodi päring
-      x-provider-path: /ljvis/xroad/v2/usagePeriod
-      parameters:
-        - $ref: '#/components/parameters/XRoadClient'
-      responses:
-        '200':
-          description: Varaseim kasutusteabe aeg (null kui tabel tühi)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  periodStart: {type: string, nullable: true}
-              example:
-                periodStart: '2026-01-15T09:00:00Z'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /heartbeat/v2:
-    get:
-      operationId: heartbeat
-      summary: heartbeat — Andmejälgija (AJ) elutuukse päring
-      x-provider-path: /ljvis/xroad/v2/heartbeat
-      parameters:
-        - $ref: '#/components/parameters/XRoadClient'
-      responses:
-        '200':
-          description: Teenus töötab
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status: {type: string}
-                  message: {type: string}
-              example:
-                status: OK
-                message: API is ready

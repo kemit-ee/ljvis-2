@@ -4,6 +4,26 @@
 
 ## 2026-09-30
 
+### Andmejälgija: eesti.ee kasutusteabe päring vastab RIA protokollile (v1.6.1)
+
+- `findUsage`, `usagePeriod` ja `heartbeat` tagastavad vastuse protokolli kujul — varem oli
+  sisu Ruuteri `{"response": "…"}` ümbrises JSON-tekstina ja eesti.ee ei saanud seda lugeda.
+  `findUsage` kukkus varem igal päringul 500-ga (query parameetrid loeti valest kohast).
+- Isikukoodi võib anda `EE` eesliitega või ilma; eesliide eemaldatakse enne otsingut.
+- Esindusõigusega päring (nt vanem vaatab lapse andmeid) töötab: `X-Road-UserId` ei pea enam
+  vastama `userCode`-ile.
+- `totalUsages` on õige ka viimasest lehest kaugemale küsides; küsitud `limit`-it ei kärbita
+  1000-ni; vigane `offset`/`limit`/kuupäev annab 400 (mitte 500); tühjad valikulised väljad
+  jäetakse vastusest välja.
+- `usagePeriod` tagastab alati `periodStart`-i (tühja logi korral praeguse aja);
+  `heartbeat` tagastab `FAIL`, kui kasutusteabe andmebaas ei vasta.
+- X-tee leping: AJ teenus on eraldi failis `docs/xtee/FindUsageOpenapi.yaml` (üks teenus
+  `findUsage`, otspunktid `/v2/findUsage`, `/v2/usagePeriod`, `/v2/heartbeat`), turvaserverile
+  URL-ilt `/ljvis/xroad/v2/openapi`. Turvaserveri teenuse URL on `/ljvis/xroad` (mitte `/ljvis/xroad/v2`).
+- LJVIS2 enda päringud (rahvastikuregister, äriregister, MTR) ja koondvormi kinnitamine
+  kuvatakse kodanikule Kliimaministeeriumi (70001231) tehtuna, süsteemiks „Liiklusjärelevalve
+  infosüsteem (LJVIS2)". Varem oli koondvormi kirjetes asutuse koodi asemel sisemine id ja nimi puudus.
+
 ### Koondvorm: alamvormi saab avalikustada sõltumata teistest alamvormidest
 
 - Kinnitatud alamvormil (ilma väärteomenetluseta) on „Avalikusta" nupp kohe olemas,

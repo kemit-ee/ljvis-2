@@ -1512,7 +1512,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"error\\\": \\\"SERVER_ERROR\\\", \\\"message\\\": \\\"Internal error\\\"}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
             ]
           }
         }
@@ -1537,7 +1537,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 500\", () => pm.response.to.have.status(500));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"error\\\": \\\"SERVER_ERROR\\\", \\\"message\\\": \\\"Internal error\\\"}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}));"
             ]
           }
         }
@@ -2066,7 +2066,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"error\\\": \\\"MISSING_HEADER\\\", \\\"message\\\": \\\"X-Road-UserId header is required\\\"}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"MISSING_HEADER\", \"message\": \"X-Road-UserId header is required\"}));"
             ]
           }
         }
@@ -2097,14 +2097,64 @@
       ]
     },
     {
-      "name": "AJ mismatched userid",
+      "name": "AJ representation: userid differs from userCode",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906",
         "header": [
           {
             "key": "x-road-userid",
-            "value": "60001019907"
+            "value": "EE60001019907"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-15T12:00:00Z\", \"action\": \"Mock kontrollipäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}, {\"logtime\": \"2026-06-14T12:00:00Z\", \"action\": \"Mock töökontroll\", \"receiverCode\": \"70001969\"}, {\"logtime\": \"2026-06-13T12:00:00Z\", \"action\": \"Mock korduspäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}]}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ EE prefix is stripped from userCode",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=EE60001019906",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "EE60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-15T12:00:00Z\", \"action\": \"Mock kontrollipäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}, {\"logtime\": \"2026-06-14T12:00:00Z\", \"action\": \"Mock töökontroll\", \"receiverCode\": \"70001969\"}, {\"logtime\": \"2026-06-13T12:00:00Z\", \"action\": \"Mock korduspäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}]}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ invalid offset",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&offset=-1",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
           }
         ]
       },
@@ -2115,7 +2165,32 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"error\\\": \\\"FORBIDDEN\\\", \\\"message\\\": \\\"X-Road-UserId must match userCode\\\"}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"INVALID_PARAMETER\", \"message\": \"offset must be a non-negative integer\"}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AJ invalid periodStart",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/findUsage?userCode=60001019906&periodStart=2026-06-14",
+        "header": [
+          {
+            "key": "x-road-userid",
+            "value": "60001019906"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"error\": \"INVALID_PARAMETER\", \"message\": \"periodStart must be an RFC 3339 date-time\"}));"
             ]
           }
         }
@@ -2140,7 +2215,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"totalUsages\\\":3,\\\"usages\\\":[{\\\"action\\\":\\\"Mock kontrollipäring\\\",\\\"logtime\\\":\\\"2026-06-15T12:00:00Z\\\",\\\"receiverCode\\\":\\\"70001490\\\",\\\"receiverName\\\":\\\"Mock tarbija\\\",\\\"receiverSystem\\\":\\\"liiklusregister\\\"}]}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-15T12:00:00Z\", \"action\": \"Mock kontrollipäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}]}));"
             ]
           }
         }
@@ -2165,7 +2240,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"totalUsages\\\":3,\\\"usages\\\":[{\\\"action\\\":\\\"Mock töökontroll\\\",\\\"logtime\\\":\\\"2026-06-14T12:00:00Z\\\",\\\"receiverCode\\\":\\\"70001969\\\",\\\"receiverName\\\":null,\\\"receiverSystem\\\":null}]}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-14T12:00:00Z\", \"action\": \"Mock töökontroll\", \"receiverCode\": \"70001969\"}]}));"
             ]
           }
         }
@@ -2190,7 +2265,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"totalUsages\\\":3,\\\"usages\\\":[{\\\"action\\\":\\\"Mock korduspäring\\\",\\\"logtime\\\":\\\"2026-06-13T12:00:00Z\\\",\\\"receiverCode\\\":\\\"70001490\\\",\\\"receiverName\\\":\\\"Mock tarbija\\\",\\\"receiverSystem\\\":\\\"liiklusregister\\\"}]}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": [{\"logtime\": \"2026-06-13T12:00:00Z\", \"action\": \"Mock korduspäring\", \"receiverCode\": \"70001490\", \"receiverName\": \"Mock tarbija\", \"receiverSystem\": \"liiklusregister\"}]}));"
             ]
           }
         }
@@ -2215,7 +2290,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"totalUsages\\\":0,\\\"usages\\\":[]}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 3, \"usages\": []}));"
             ]
           }
         }
@@ -2240,7 +2315,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"totalUsages\\\":0,\\\"usages\\\":[]}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 0, \"usages\": []}));"
             ]
           }
         }
@@ -2265,14 +2340,14 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"totalUsages\\\":1,\\\"usages\\\":[{\\\"action\\\":\\\"Mock töökontroll\\\",\\\"logtime\\\":\\\"2026-06-14T12:00:00Z\\\",\\\"receiverCode\\\":\\\"70001969\\\",\\\"receiverName\\\":null,\\\"receiverSystem\\\":null}]}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"totalUsages\": 1, \"usages\": [{\"logtime\": \"2026-06-14T12:00:00Z\", \"action\": \"Mock töökontroll\", \"receiverCode\": \"70001969\"}]}));"
             ]
           }
         }
       ]
     },
     {
-      "name": "usage period empty",
+      "name": "usage period empty log still reports periodStart",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/xroad/v2/usagePeriod",
@@ -2289,8 +2364,32 @@
           "script": {
             "type": "text/javascript",
             "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "heartbeat database failure",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/xroad/v2/heartbeat",
+        "header": [
+          {
+            "key": "x-mock-scenario",
+            "value": "server-error"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
               "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"response\": \"{\\\"periodStart\\\":null}\"}));"
+              "pm.test(\"Response fixture\", () => pm.expect(pm.response.json()).to.deep.equal({\"status\": \"FAIL\", \"message\": \"Usage log database is not available\"}));"
             ]
           }
         }
