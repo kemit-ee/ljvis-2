@@ -23,6 +23,8 @@
 - LJVIS2 enda päringud (rahvastikuregister, äriregister, MTR) ja koondvormi kinnitamine
   kuvatakse kodanikule Kliimaministeeriumi (70001231) tehtuna, süsteemiks „Liiklusjärelevalve
   infosüsteem (LJVIS2)". Varem oli koondvormi kirjetes asutuse koodi asemel sisemine id ja nimi puudus.
+- Andmejälgija ja X-tee juhendid on Confluence'is ajakohased; uus leht „LJVIS2 · Andmejälgija (AJ)
+  seadistamine" ning Lõpptarne lehelt on viited X-tee ja Andmejälgija juhendilehtedele.
 ### Kontrollvormid: kontrollija ametikoht ja struktuuriüksus täituvad kasutaja andmetest
 
 - „Sõidukit kontrollinud ametiisiku andmed" plokis eeltäidetakse nüüd lisaks nimele
