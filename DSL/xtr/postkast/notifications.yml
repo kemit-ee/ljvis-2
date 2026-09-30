@@ -8,7 +8,7 @@
 #   (called via [#PK_NOTIFICATIONS_ENDPOINT] from
 #    DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml)
 # URL built by XTR:
-#   {security_server.url}/r1/{xroad_instance}/GOV/70006317/postkast/notification-management/v1/notifications
+#   {security_server.url}/r1/{xroad_instance}/GOV/70006317/postkast/kliimaministeerium-notification-management/v1/notifications
 kind: rest
 method: POST
 
@@ -16,7 +16,7 @@ target:
   member_class: GOV
   member_code: "70006317"
   subsystem_code: postkast
-  service_code: notification-management
+  service_code: kliimaministeerium-notification-management
   path: /v1/notifications
 
 allowed_query_params: []

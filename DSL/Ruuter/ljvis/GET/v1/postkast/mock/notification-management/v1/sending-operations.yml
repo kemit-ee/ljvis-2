@@ -9,7 +9,7 @@ declaration:
     stringi "forceerror", tagastatakse ERROR + resolution.
   namespace: postkast
   allowlist:
-    body:
+    params:
       - field: externalId
         type: string
       - field: page
@@ -19,28 +19,27 @@ declaration:
 
 selectScenario:
   switch:
-    - condition: ${(incoming.body.externalId || '').indexOf('forceerror') !== -1}
+    - condition: ${(incoming.params.externalId || '').indexOf('forceerror') !== -1}
       next: returnError
   next: returnFinished
 
 returnFinished:
   return:
     content:
-      - id: "mock-op-${incoming.body.externalId}"
+      - id: "mock-op-${incoming.params.externalId}"
         status: "FINISHED"
         resolution: ""
         recipientCount: 1
         createdRecipientCount: 1
         operationRestartAllowed: false
         completedAt: "${new Date().toISOString()}"
-        createdNotifications: ["mock-notif-${incoming.body.externalId}"]
+        createdNotifications: ["mock-notif-${incoming.params.externalId}"]
   status: 200
   next: end
-
 returnError:
   return:
     content:
-      - id: "mock-op-${incoming.body.externalId}"
+      - id: "mock-op-${incoming.params.externalId}"
         status: "ERROR"
         resolution: "Mock: adressaadi vastuvõtt ebaõnnestus"
         recipientCount: 1

@@ -12,7 +12,7 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 | Ruuter | Avalik API ja töövood | 0.10.1-rc | `turnerrainer/ruuter:0.10.1-rc` + digest | 2026-09-25 | DEV/CI | Avalik ja sisemine Ruuter on eraldi teenused. |
 | Resql | SQL-päringute teenus | 0.3.0-alpha | `turnerrainer/resql:0.3.0-alpha` + digest | 2026-09-10 | DEV/CI | |
 | DataMapper | Andmete teisendamine | 0.2.1-alpha | `turnerrainer/datamapper:0.2.1-alpha` + digest | 2026-09-18 | DEV/CI | `APP_ENV=dev` lisatud env_safety gate'i tõttu (vt versiooniajalugu). |
-| XTR | X-tee väljumispunkt | määramata | `turnerrainer/xtr:rc` (lokaal); release Dockerfile digest | 2026-09-10 | DEV/CI/PROD | Täpset runtime-versiooni ei ole tagist usaldusväärselt tuvastatud. |
+| XTR | X-tee väljumispunkt | 0.4.1-rc | `turnerrainer/xtr:0.4.1-rc` (lokaal); release Dockerfile digest | 2026-09-30 | DEV/CI/PROD | Versioon on fikseeritud nii lokaalses Compose'is kui release-image'is. |
 | TIM | TARA identiteediteenus | 0.3.0-alpha | `turnerrainer/tim:0.3.0-alpha` + digest | 2026-09-07 | DEV/CI | |
 | Nysiis | ERRU sõnumite teenus | määramata | `eclipse-temurin:21-jdk-alpine` / `eclipse-temurin:21-jre-alpine` | 2026-08-19 | DEV/CI | Rakenduse versiooni projekt ei määra. |
 | TARA mock | Arenduse autentimise mock | määramata | `golang:latest`, `debian:bookworm-slim` | 2026-09-07 | DEV/CI | Ainult arendus- ja CI-keskkonnas. |

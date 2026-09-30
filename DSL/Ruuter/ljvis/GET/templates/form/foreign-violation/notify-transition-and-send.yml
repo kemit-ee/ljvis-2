@@ -132,7 +132,7 @@ sendCarrierNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: inspection_country_code, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description } }"
+      template_variables: "${ { controlFormId: notification_form_number, carrierName: company_name, carrierCode: company_reg_code, violationDate: inspection_date_time, fromCountry: inspection_country_code, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description } }"
   result: carrierNotifRes
   error: checkSendLaborInspector
   next: markCarrierSent
@@ -165,7 +165,7 @@ sendLaborInspectorNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+      template_variables: "${ { controlFormId: notification_form_number, carrierName: company_name, carrierCode: company_reg_code } }"
   result: laborInspectorNotifRes
   error: returnResult
   next: returnResult
