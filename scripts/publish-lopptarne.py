@@ -8,6 +8,7 @@ lingid GitHubi dokumentidele ja teadaolevad probleemid.
 Kasutus:
     CONFLUENCE_TOKEN=<token> python3 scripts/publish-lopptarne.py [--dry-run]
 """
+import html
 import os
 import re
 import sys
@@ -25,6 +26,10 @@ TOKEN  = os.environ.get("CONFLUENCE_TOKEN", "")
 DRY_RUN = "--dry-run" in sys.argv
 
 LOPPTARNE_ID = "346498787"
+# X-tee juhendite Confluence'i lehed (LIA ruum): 346489411, 346494941, 346503597
+XTEE_JUHEND = "LJVIS2 X-tee pakutavad teenused (REST)"
+XTEE_LIIDESTUMINE = "LJVIS2 · X-tee liidestumine"
+AJ_JUHEND = "LJVIS2 · Andmejälgija (AJ) seadistamine"
 GH_BASE = "https://github.com/kemit-ee/ljvis-2/blob/dev"
 
 REPO = Path(__file__).resolve().parent.parent
@@ -208,8 +213,10 @@ def gh_link(relpath, text=None):
     return f'<a href="{url}">{label}</a>'
 
 
-def confluence_link(page_id, text):
-    return (f'<ac:link><ri:page ri:content-id="{page_id}" />'
+def confluence_link(page_title, text):
+    # Confluence Server ei toeta ri:content-id viidet (salvestub tühja <ri:page />-na),
+    # seega viidatakse lehe pealkirja ja ruumi järgi.
+    return (f'<ac:link><ri:page ri:space-key="{SPACE}" ri:content-title="{html.escape(page_title)}" />'
             f'<ac:plain-text-link-body><![CDATA[{text}]]></ac:plain-text-link-body></ac:link>')
 
 
@@ -252,9 +259,9 @@ def build_page():
 """)
 
     # ── Dokumentatsioon ───────────────────────────────────────────────────────
-    conf_ug   = confluence_link("333210904", "LJVIS2 kasutusjuhend (lehepuu)")
-    conf_ugsp = confluence_link("346498942", "LJVIS2 kasutusjuhend ühel lehel")
-    conf_pm   = confluence_link("346489830", "LJVIS2 õiguste maatriks")  # permissions page if it exists
+    conf_ug   = confluence_link("LJVIS2 kasutusjuhend", "LJVIS2 kasutusjuhend (lehepuu)")
+    conf_ugsp = confluence_link("LJVIS2 kasutusjuhend ühel lehel", "LJVIS2 kasutusjuhend ühel lehel")
+    conf_pm   = confluence_link("LJVIS2 õiguste maatriks", "LJVIS2 õiguste maatriks")  # permissions page if it exists
     sections.append(f"""
 <h1>Dokumentatsioon</h1>
 <table>
@@ -290,13 +297,13 @@ def build_page():
     </tr>
     <tr>
       <td><strong>X-tee pakutavad teenused</strong></td>
-      <td>{gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md")}</td>
-      <td>Kõik 9 X-tee teenust (IsikuKontroll, ErakorralineYV, RegisterJobInspection, AJ), turvaserveri seadistus ja masinloetav {gh_link("docs/xtee/XroadOpenapi.yaml", "XroadOpenapi.yaml")}.</td>
+      <td>{confluence_link(XTEE_JUHEND, "LJVIS2 X-tee pakutavad teenused (REST)")}<br />{confluence_link(XTEE_LIIDESTUMINE, "LJVIS2 · X-tee liidestumine")}<br />{gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md")}</td>
+      <td>Kuus LJVIS2 X-tee teenust (IsikuKontroll, ErakorralineYV, RegisterJobInspection) ja Andmejälgija teenus findUsage, turvaserveri seadistus, masinloetavad lepingud {gh_link("docs/xtee/XroadOpenapi.yaml", "XroadOpenapi.yaml")} ja {gh_link("docs/xtee/FindUsageOpenapi.yaml", "FindUsageOpenapi.yaml")}. Arendaja juhendid, mock ja testikogumikud: X-tee liidestumise lehed.</td>
     </tr>
     <tr>
       <td><strong>Andmejälgija seadistamine</strong></td>
-      <td>{gh_link("docs/andmejalgija-seadistamine.md")}</td>
-      <td>AJ (DUMonitor) liidestuse seadistus — /v2/findUsage, /v2/usagePeriod, /v2/heartbeat.</td>
+      <td>{confluence_link(AJ_JUHEND, "LJVIS2 · Andmejälgija (AJ) seadistamine")}<br />{gh_link("docs/andmejalgija-seadistamine.md")}</td>
+      <td>Andmejälgija kasutusteabe teenus (RIA protokoll v1.6.1): üks X-tee teenus findUsage otspunktidega /v2/findUsage, /v2/usagePeriod, /v2/heartbeat; turvaserveri seadistus.</td>
     </tr>
     <tr>
       <td><strong>Infra ligipääsuvaade</strong></td>
@@ -345,8 +352,8 @@ def build_page():
   <li><strong>Kontrollivormid:</strong> Välisriigi rikkumine (VR), Koondvorm (SP/TH), Transpordiameti kontrollkaart (TRAM), Tööinspektsiooni kontrollakt, Tehniline kontroll, Autoveo katkestamine, ADR, Hea maine, Sõidu- ja puhkeaeg</li>
   <li><strong>ERRU andmevahetus:</strong> CTUD (tegevusloa kontroll), CGR (hea maine), RSI (teeäärne kontroll), NCR (kontrollitulemus), NU (vedaja teavitamine)</li>
   <li><strong>Riskihindamine:</strong> automaatne riskiskooride arvutamine (EU 2022/695), administraatori ja kodaniku vaated</li>
-  <li><strong>Andmejälgija:</strong> AJ (DUMonitor) liides eesti.ee-le isikuandmete töötluse jälgimiseks</li>
-  <li><strong>X-tee:</strong> IsikuKontroll, ErakorralineYV, RegisterJobInspection; andmejälgija /v2 teenused</li>
+  <li><strong>Andmejälgija:</strong> kasutusteabe teenus findUsage eesti.ee-le isikuandmete töötluse jälgimiseks (RIA kasutusteabe esitamise protokoll v1.6.1)</li>
+  <li><strong>X-tee:</strong> IsikuKontroll, ErakorralineYV, RegisterJobInspection; Andmejälgija teenus findUsage</li>
   <li><strong>Automaatne öine protsessing:</strong> e-toimikust jõustunud otsuste lugemine (TI, SP, TRAM); liiklusregistrist tehnoülevaatuse kontrollimine; NCR autodispatch</li>
 </ul>
 """)
@@ -384,7 +391,7 @@ def build_page():
     # ── X-tee teenused ────────────────────────────────────────────────────────
     sections.append(f"""
 <h1>X-tee pakutavad teenused</h1>
-<p>LJVIS2 pakub 9 X-tee teenust REST/JSON protokolliga. Täielik dokumentatsioon: {gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md", "xtee-teenused-publikatsiooni-juhend.md")}.</p>
+<p>LJVIS2 pakub REST/JSON protokolliga kuut X-tee teenust ja Andmejälgija teenust <code>findUsage</code> (kolm otspunkti). Juhendid Confluence'is: {confluence_link(XTEE_JUHEND, "LJVIS2 X-tee pakutavad teenused (REST)")}, {confluence_link(XTEE_LIIDESTUMINE, "LJVIS2 · X-tee liidestumine")} (arendajale: liidestumine, mock, OpenAPI ja testikogumikud) ja {confluence_link(AJ_JUHEND, "LJVIS2 · Andmejälgija (AJ) seadistamine")}. Täielik dokumentatsioon GitHubis: {gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md", "xtee-teenused-publikatsiooni-juhend.md")}.</p>
 <table>
   <colgroup><col /><col /><col /></colgroup>
   <thead><tr><th>#</th><th>Teenuse kood</th><th>Kirjeldus</th></tr></thead>
@@ -395,10 +402,10 @@ def build_page():
     <tr><td>4</td><td><code>ErakorralineYVconfirm</code></td><td>Erakorralise tehnoülevaatuse kinnitus ({gh_link("docs/xtee/04-erakorraline-yv-confirm.md", "spec")})</td></tr>
     <tr><td>5</td><td><code>RegisterJobInspection</code></td><td>Tööinspektsiooni kontrolli registreerimine v1 ({gh_link("docs/xtee/05-register-job-inspection.md", "spec")})</td></tr>
     <tr><td>6</td><td><code>RegisterJobInspection_v3</code></td><td>Tööinspektsiooni kontrolli registreerimine v3 ({gh_link("docs/xtee/07-register-job-inspection-v3.md", "spec")})</td></tr>
-    <tr><td>7–9</td><td><code>findUsage / usagePeriod / heartbeat</code></td><td>Andmejälgija (AJ / DUMonitor) teenused eesti.ee-le</td></tr>
+    <tr><td>7</td><td><code>findUsage</code></td><td>Andmejälgija kasutusteabe teenus eesti.ee-le, otspunktid <code>/v2/findUsage</code>, <code>/v2/usagePeriod</code>, <code>/v2/heartbeat</code> ({confluence_link(AJ_JUHEND, "juhend")})</td></tr>
   </tbody>
 </table>
-{info_box("<p>Masinloetav OpenAPI leping (kõik 9 teenust): " + gh_link("docs/xtee/XroadOpenapi.yaml") + "</p><p>Turvaserver saab seda URL-i kasutada lepingu automaatseks uuendamiseks (vt juhend §4.8).</p>")}
+{info_box("<p>Masinloetavad OpenAPI lepingud: " + gh_link("docs/xtee/XroadOpenapi.yaml") + " (kuus LJVIS2 teenust, <code>/ljvis/xroad/provide/openapi</code>) ja " + gh_link("docs/xtee/FindUsageOpenapi.yaml") + " (Andmejälgija teenus findUsage, <code>/ljvis/xroad/v2/openapi</code>).</p><p>Turvaserver saab neid URL-e kasutada lepingu automaatseks uuendamiseks (vt juhend §4.8).</p>")}
 """)
 
     # ── Teadaolevad probleemid ────────────────────────────────────────────────
@@ -414,14 +421,15 @@ def build_page():
     sections.append(f"""
 <h1>Andmejälgija (AJ) seadistamine</h1>
 <p>
-  LJVIS2 peab implementeerima DUMonitor OpenAPI v2.1.0 spetsifikatsiooni,
-  et isikud saaksid eesti.ee kaudu kontrollida, kes nende andmeid on töödelnud (IKS §19, §25).
-  Täielik juhend: {gh_link("docs/andmejalgija-seadistamine.md", "andmejalgija-seadistamine.md")}.
+  LJVIS2 realiseerib RIA Andmejälgija kasutusteabe esitamise protokolli v1.6.1, et isikud
+  saaksid eesti.ee kaudu kontrollida, kes nende andmeid on töödelnud (IKS §19, §25).
+  Juhend: {confluence_link(AJ_JUHEND, "LJVIS2 · Andmejälgija (AJ) seadistamine")}
+  (GitHubis {gh_link("docs/andmejalgija-seadistamine.md", "andmejalgija-seadistamine.md")}).
 </p>
 <ul>
-  <li><strong>Endpointid:</strong> <code>/v2/findUsage</code>, <code>/v2/usagePeriod</code>, <code>/v2/heartbeat</code></li>
-  <li><strong>Allikas:</strong> kolm inbound X-tee teenust + väljaminevad RR-päringud kirjutavad automaatselt <code>xroad.aj_usage_log</code> tabelisse</li>
-  <li><strong>Turvaserveri seadistus:</strong> REST teenus URL-iga <code>http://ruuter-internal:8080</code>, teenuse kood <code>DUMonitor</code></li>
+  <li><strong>X-tee teenus:</strong> üks REST teenus koodiga <code>findUsage</code> otspunktidega <code>/v2/findUsage</code>, <code>/v2/usagePeriod</code>, <code>/v2/heartbeat</code>; eesti.ee kutsub <code>…/ljvis2/findUsage/v2/findUsage</code></li>
+  <li><strong>Turvaserveri seadistus:</strong> teenuse URL Ruuter.internal-i <code>/ljvis/xroad</code> (mitte <code>/ljvis/xroad/v2</code>), kirjeldus URL-ilt <code>/ljvis/xroad/v2/openapi</code> ({gh_link("docs/xtee/FindUsageOpenapi.yaml", "FindUsageOpenapi.yaml")})</li>
+  <li><strong>Kirjete allikas:</strong> inbound X-tee teenused ning LJVIS2 väljaminevad päringud (rahvastikuregister, äriregister, MTR) ja koondvormi kinnitamine kirjutavad <code>xroad.aj_usage_log</code> tabelisse; LJVIS2 enda toimingute töötlejaks on vastutav töötleja Kliimaministeerium (70001231)</li>
 </ul>
 """)
 
