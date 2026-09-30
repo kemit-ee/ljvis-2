@@ -125,11 +125,11 @@ target_rows = [
 ]
 usage_rows = [
     {"logtime": "2026-06-15T12:00:00Z", "action": "Mock kontrollipäring",
-     "receiver_code": "70001490", "receiver_name": "Mock tarbija", "receiver_system": "liiklusregister"},
+     "receiverCode": "70001490", "receiverName": "Mock tarbija", "receiverSystem": "liiklusregister"},
     {"logtime": "2026-06-14T12:00:00Z", "action": "Mock töökontroll",
-     "receiver_code": "70001969", "receiver_name": "", "receiver_system": ""},
+     "receiverCode": "70001969", "receiverName": "", "receiverSystem": ""},
     {"logtime": "2026-06-13T12:00:00Z", "action": "Mock korduspäring",
-     "receiver_code": "70001490", "receiver_name": "Mock tarbija", "receiver_system": "liiklusregister"},
+     "receiverCode": "70001490", "receiverName": "Mock tarbija", "receiverSystem": "liiklusregister"},
 ]
 job = {"kontrollija": "Mock Kontrollija", "kontrolli_id": 900001, "kontrolli_kp": "2026-06-15",
        "tooandja_nimi": "Mockvedaja OÜ", "tooandja_reg_kood": "00000001", "soidukite_arv": 2,
@@ -147,9 +147,9 @@ for row in target_rows:
                     ("regnr", "REGNR"), ("vintin", "VINTIN"), ("axles", "AXLES"),
                     ("places", "PLACES"), ("rebuilt", "REBUILT")] if row.get("era_yv_mnt_" + flag)]})
     target_response.append(item)
-usage_response = [dict({"logtime": r["logtime"], "action": r["action"], "receiverCode": r["receiver_code"]},
-                        **({"receiverName": r["receiver_name"]} if r["receiver_name"] else {}),
-                        **({"receiverSystem": r["receiver_system"]} if r["receiver_system"] else {}))
+usage_response = [dict({"logtime": r["logtime"], "action": r["action"], "receiverCode": r["receiverCode"]},
+                        **({"receiverName": r["receiverName"]} if r["receiverName"] else {}),
+                        **({"receiverSystem": r["receiverSystem"]} if r["receiverSystem"] else {}))
                   for r in usage_rows]
 
 operations = [
@@ -231,12 +231,12 @@ for method, name, service, version, sample, success in operations:
         elif url.endswith("-insert"):
             rows = expression('[{"id":900001,"form_number":"MOCK-TI-001","skipped":false}]')
         elif url.endswith("/find_usage"):
-            # Like find_usage.sql: total over all matches; an empty page is one row with logtime NULL.
+            # Like find_usage.sql via Resql (camelCase columns): total over all matches; an empty page is one row with logtime NULL.
             matches = "(incoming.headers['x-mock-scenario'] === 'empty' || user_code !== '" + SUCCESS_PERSON + "' ? [] : " + json.dumps(usage_rows) + ").filter(function(r) {return (!period_start || new Date(r.logtime) >= new Date(period_start)) && (!period_end || new Date(r.logtime) <= new Date(period_end));})"
-            rows = expression("(function(all) {var page = all.slice(offset_val, offset_val + limit_val).map(function(r) {return Object.assign({}, r, {total_usages: all.length});}); return page.length > 0 ? page : [{total_usages: all.length, logtime: null}];})(" + matches + ")")
+            rows = expression("(function(all) {var page = all.slice(offset_val, offset_val + limit_val).map(function(r) {return Object.assign({}, r, {totalUsages: all.length});}); return page.length > 0 ? page : [{totalUsages: all.length, logtime: null}];})(" + matches + ")")
         elif url.endswith("/usage_period"):
             # Like usage_period.sql: an empty log reports the current time.
-            rows = expression("[{period_start: incoming.headers['x-mock-scenario'] === 'empty' ? new Date().toISOString().replace(/\\.\\d{3}Z$/, 'Z') : '2026-06-13T12:00:00Z'}]")
+            rows = expression("[{periodStart: incoming.headers['x-mock-scenario'] === 'empty' ? new Date().toISOString().replace(/\\.\\d{3}Z$/, 'Z') : '2026-06-13T12:00:00Z'}]")
         elif "/log_" in url:
             rows = expression("[]")
         else:

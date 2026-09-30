@@ -86,7 +86,7 @@ checkQueryStatus:
   next: assignRows
 
 # Samm 5: Resql tagastab alati vähemalt ühe rea (koguarvuga); tühja lehe korral
-# on logtime NULL. assign hinnatakse kaardina, seega rows eraldi sammus.
+# on logtime NULL. Resql tagastab veerunimed camelCase kujul (total_usages → totalUsages). assign hinnatakse kaardina, seega rows eraldi sammus.
 assignRows:
   assign:
     rows: "${usageResult.response.body || []}"
@@ -97,12 +97,12 @@ assignRows:
 buildResponse:
   assign:
     response_body:
-      totalUsages: "${rows.length > 0 ? Number(rows[0].total_usages) || 0 : 0}"
+      totalUsages: "${rows.length > 0 ? Number(rows[0].totalUsages) || 0 : 0}"
       usages: >-
         ${rows.filter(function(r) { return r.logtime != null; }).map(function(r) {
-          var u = { logtime: r.logtime, action: r.action, receiverCode: r.receiver_code };
-          if (r.receiver_name) { u.receiverName = r.receiver_name; }
-          if (r.receiver_system) { u.receiverSystem = r.receiver_system; }
+          var u = { logtime: r.logtime, action: r.action, receiverCode: r.receiverCode };
+          if (r.receiverName) { u.receiverName = r.receiverName; }
+          if (r.receiverSystem) { u.receiverSystem = r.receiverSystem; }
           return u;
         })}
   next: returnOk

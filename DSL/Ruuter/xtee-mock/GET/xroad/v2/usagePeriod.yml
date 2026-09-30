@@ -20,20 +20,20 @@ queryPeriod:
     periodResult:
       response:
         status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
-        body: '${[{period_start: incoming.headers[''x-mock-scenario''] === ''empty'' ? new Date().toISOString().replace(/\.\d{3}Z$/,
+        body: '${[{periodStart: incoming.headers[''x-mock-scenario''] === ''empty'' ? new Date().toISOString().replace(/\.\d{3}Z$/,
           ''Z'') : ''2026-06-13T12:00:00Z''}]}'
   next: checkStatus
 checkStatus:
   switch:
   - condition: ${periodResult.response.status < 200 || periodResult.response.status >= 300}
     next: returnServerError
-  - condition: ${!periodResult.response.body || !periodResult.response.body[0] || !periodResult.response.body[0].period_start}
+  - condition: ${!periodResult.response.body || !periodResult.response.body[0] || !periodResult.response.body[0].periodStart}
     next: returnServerError
   next: buildResponse
 buildResponse:
   assign:
     response_body:
-      periodStart: ${periodResult.response.body[0].period_start}
+      periodStart: ${periodResult.response.body[0].periodStart}
   next: returnOk
 returnOk:
   status: 200

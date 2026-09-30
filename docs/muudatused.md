@@ -10,6 +10,8 @@
   sisu Ruuteri `{"response": "…"}` ümbrises JSON-tekstina ja eesti.ee ei saanud seda lugeda.
   `findUsage` kukkus varem igal päringul 500-ga (query parameetrid loeti valest kohast).
 - Isikukoodi võib anda `EE` eesliitega või ilma; eesliide eemaldatakse enne otsingut.
+- Kasutusteabe vastuses on kirjete koguarv ning töötleja kood, nimi ja süsteem; `usagePeriod` ei
+  anna enam viga.
 - Esindusõigusega päring (nt vanem vaatab lapse andmeid) töötab: `X-Road-UserId` ei pea enam
   vastama `userCode`-ile.
 - `totalUsages` on õige ka viimasest lehest kaugemale küsides; küsitud `limit`-it ei kärbita
@@ -23,6 +25,8 @@
 - LJVIS2 enda päringud (rahvastikuregister, äriregister, MTR) ja koondvormi kinnitamine
   kuvatakse kodanikule Kliimaministeeriumi (70001231) tehtuna, süsteemiks „Liiklusjärelevalve
   infosüsteem (LJVIS2)". Varem oli koondvormi kirjetes asutuse koodi asemel sisemine id ja nimi puudus.
+- Andmejälgija ja X-tee juhendid on Confluence'is ajakohased; uus leht „LJVIS2 · Andmejälgija (AJ)
+  seadistamine" ning Lõpptarne lehelt on viited X-tee ja Andmejälgija juhendilehtedele.
 ### Kontrollvormid: kontrollija ametikoht ja struktuuriüksus täituvad kasutaja andmetest
 
 - „Sõidukit kontrollinud ametiisiku andmed" plokis eeltäidetakse nüüd lisaks nimele

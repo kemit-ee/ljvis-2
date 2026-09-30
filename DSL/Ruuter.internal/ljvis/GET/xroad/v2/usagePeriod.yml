@@ -5,7 +5,8 @@ declaration:
     AJ usagePeriod - ajavahemik, mille kohta saab kasutusteavet pärida
     (Andmejälgija kasutusteabe esitamise protokoll v1.6.1 §6.2, X-tee teenus
     findUsage, otspunkt /v2/usagePeriod). periodStart on MIN(logtime) tabelis,
-    tühja tabeli korral praegune ajahetk (väli on kohustuslik). periodEnd jäetakse
+    tühja tabeli korral praegune ajahetk (väli on kohustuslik). Resql tagastab
+    veeru period_start camelCase kujul periodStart. periodEnd jäetakse
     välja - kirjeid saab küsida kuni praeguse ajani.
   namespace: xroad-aj
   allowlist:
@@ -28,14 +29,14 @@ checkStatus:
   switch:
     - condition: "${periodResult.response.status < 200 || periodResult.response.status >= 300}"
       next: returnServerError
-    - condition: "${!periodResult.response.body || !periodResult.response.body[0] || !periodResult.response.body[0].period_start}"
+    - condition: "${!periodResult.response.body || !periodResult.response.body[0] || !periodResult.response.body[0].periodStart}"
       next: returnServerError
   next: buildResponse
 
 buildResponse:
   assign:
     response_body:
-      periodStart: "${periodResult.response.body[0].period_start}"
+      periodStart: "${periodResult.response.body[0].periodStart}"
   next: returnOk
 
 returnOk:

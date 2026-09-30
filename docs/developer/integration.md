@@ -59,7 +59,7 @@ Rakenduse POST-teenused kontrollivad neljaosalist `X-Road-Client` päist. Mocki 
 |---|---|
 | `Content-Type: application/json` | Kõik POST-teenused |
 | `X-Road-Client` | POST-teenustes kohustuslik `instance/memberClass/memberCode/subsystem`; puuduv või vigane kuju annab 403 |
-| `X-Road-UserId` | AJ `findUsage` puhul kohustuslik, väärtus peab täpselt võrduma `userCode` query parameetriga |
+| `X-Road-UserId` | AJ `findUsage` puhul kohustuslik; võib `userCode`-ist erineda (esindusõigusega päring, AJ protokoll §6.1.3). Isikukoodi võib anda `EE` eesliitega või ilma |
 | `X-Mock-Scenario` | **Ainult mockis**, `empty` või `server-error`; päris teenuse lepingusse ei kuulu |
 
 AJ `usagePeriod` ja `heartbeat` handler ei nõua `X-Road-UserId` ega rakenduse tasemel `X-Road-Client` päist.
@@ -68,8 +68,10 @@ Mock ei nõua ametniku sessiooni, TARA autentimist ega platvormi API võtit.
 
 ## HTTP-vastuse ümbris
 
-Pakutavad teenused kasutavad Ruuteri vaikeümbrist: HTTP JSON-kehas on `response` väli, mille väärtus on JSON-tekst. Mock säilitab sama kuju nii edu- kui ka rakenduse veavastustes. Loe esmalt HTTP-keha JSON-ina, seejärel tee `JSON.parse(body.response)`. Näiteks HTTP-keha `{"response":"{\"confirmed\":1}"}` annab lahtiparsimisel `{ "confirmed": 1 }`.
+POST-teenused kasutavad Ruuteri vaikeümbrist: HTTP JSON-kehas on `response` väli, mille väärtus on JSON-tekst. Mock säilitab sama kuju nii edu- kui ka rakenduse veavastustes. Loe esmalt HTTP-keha JSON-ina, seejärel tee `JSON.parse(body.response)`. Näiteks HTTP-keha `{"response":"{\"confirmed\":1}"}` annab lahtiparsimisel `{ "confirmed": 1 }`.
 
 Teenuste näidetes on näidatud nii HTTP-keha kui ka `response` välja lahtiparsitud sisu. `/developer/health/ready` tagastab otse JSON-objekti.
+
+AJ teenused (`findUsage`, `usagePeriod`, `heartbeat`) tagastavad Andmejälgija protokolli järgi JSON-objekti **otse**, ilma `response` ümbriseta, nt `{"status":"OK","message":"API is ready"}`.
 
 Ära saada avalikku mocki päris isikukoode, menetlusandmeid ega saladusi. Mock ei salvesta rakenduse tasemel andmeid, kuid ühine proxy või infrastruktuur võib logida URL-e.

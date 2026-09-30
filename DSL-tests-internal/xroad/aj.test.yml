@@ -12,18 +12,18 @@ tests:
       method: POST
       status: 200
       body:
-      - total_usages: 3
+      - totalUsages: 3
         logtime: '2026-06-15T12:00:00Z'
         action: Kontrollipäring
-        receiver_code: '70001490'
-        receiver_name: Transpordiamet
-        receiver_system: liiklusregister
-      - total_usages: 3
+        receiverCode: '70001490'
+        receiverName: Transpordiamet
+        receiverSystem: liiklusregister
+      - totalUsages: 3
         logtime: '2026-06-14T12:00:00Z'
         action: Töökontroll
-        receiver_code: '70001969'
-        receiver_name: null
-        receiver_system: null
+        receiverCode: '70001969'
+        receiverName: null
+        receiverSystem: null
   request:
     method: GET
     path: /ljvis/xroad/v2/findUsage
@@ -107,12 +107,12 @@ tests:
       method: POST
       status: 200
       body:
-      - total_usages: 3
+      - totalUsages: 3
         logtime: null
         action: null
-        receiver_code: null
-        receiver_name: null
-        receiver_system: null
+        receiverCode: null
+        receiverName: null
+        receiverSystem: null
   request:
     method: GET
     path: /ljvis/xroad/v2/findUsage
@@ -268,7 +268,7 @@ tests:
       method: POST
       status: 200
       body:
-      - period_start: '2026-01-15T09:00:00Z'
+      - periodStart: '2026-01-15T09:00:00Z'
   request:
     method: GET
     path: /ljvis/xroad/v2/usagePeriod
