@@ -27,6 +27,8 @@
   infosüsteem (LJVIS2)". Varem oli koondvormi kirjetes asutuse koodi asemel sisemine id ja nimi puudus.
 - Andmejälgija ja X-tee juhendid on Confluence'is ajakohased; uus leht „LJVIS2 · Andmejälgija (AJ)
   seadistamine" ning Lõpptarne lehelt on viited X-tee ja Andmejälgija juhendilehtedele.
+- X-tee juhendites on õiged keskkondade aadressid (`https://ljvis2dev.xtpnl.kemitaws.ee` jt, ilma
+  pordita) ning mõlema OpenAPI lepingu aadressid.
 ### Kontrollvormid: kontrollija ametikoht ja struktuuriüksus täituvad kasutaja andmetest
 
 - „Sõidukit kontrollinud ametiisiku andmed" plokis eeltäidetakse nüüd lisaks nimele
