@@ -59,14 +59,16 @@ checkStatus:
 
 # Toodangus läbi XTR-i REST passthrough lane'i (nagu sync-status.yml),
 # dev/CI-s Ruuteri mock — vt PK_SENDING_OPERATIONS_ENDPOINT kasutust
-# cron/notification-status-sync.yml-is.
+# cron/notification-status-sync.yml-is. Postkast 2.0 staatuse päring on GET;
+# parameetrid edastatakse query string'is, mitte POST-kehas.
 callPk:
-  call: http.post
+  call: http.get
   args:
     url: "[#PK_SENDING_OPERATIONS_ENDPOINT]"
     headers:
       type: json
-    body:
+      X-User-Access-Type: "UNLIMITED"
+    query:
       externalId: ${original_log.notificationKey}
       page: 0
       size: 1
