@@ -15,7 +15,7 @@ declaration:
         description: "Form type to export (required)"
       - field: formNumber
         type: string
-        description: "Exact form number"
+        description: "Form number, partial match"
       - field: vehicleRegNr
         type: string
         description: "Vehicle registration number"

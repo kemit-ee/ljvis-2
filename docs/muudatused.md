@@ -19,7 +19,7 @@
 - Isiku (juhi) otsing leiab nüüd isikukoodi või nime järgi ka koondvormid ja kõik alamvormid (SP, tehnokaart, ADR, KV). Varem jäid need tulemusest välja.
 - Avalikustatud vormid on otsingus nähtavad kõigile kasutajatele ja iga kasutaja näeb alati enda loodud vorme. Salvestatud ja kinnitatud vorme näeb lisaks õigusega `control_form.view_unpublished` kasutaja (administraator) kõigi asutuste kohta.
 - Uus filter „Vedaja riik“ (Kõik / Eesti / Välisriigi vedaja): Eesti hõlmab vedaja riigiga EE või määramata vormid, Välisriigi vedaja kõiki muid riigikoode.
-- Uus otsinguväli „Kontrollkaardi nr“: leiab täpse numbriga vormi (suur- ja väiketähte ei eristata).
+- Uus otsinguväli „Kontrollkaardi nr“: leiab vormi numbri täieliku või osalise sisestuse järgi (suur- ja väiketähte ei eristata).
 - „Maakond“ on nüüd rippmenüü (vaikimisi tühi); varem tekstiotsing nimega ei leidnud midagi, sest vormid hoiavad maakonna klassifikaatori väärtuse võtmena.
 
 ## 2026-09-30

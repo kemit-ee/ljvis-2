@@ -38,7 +38,7 @@ params:
   form_number:
     type: string
     required: false
-    description: Exact form number (case-insensitive)
+    description: Form number, partial match (ILIKE)
   vehicle_reg_nr:
     type: string
     required: false
@@ -158,7 +158,7 @@ WHERE
     AND (COALESCE(:form_type, '') = '' OR fs.form_type = :form_type)
     AND (COALESCE(:date_from, '') = '' OR fs.main_date >= :date_from::DATE)
     AND (COALESCE(:date_to, '') = '' OR fs.main_date <= :date_to::DATE)
-    AND (COALESCE(:form_number, '') = '' OR lower(fs.form_number) = lower(trim(:form_number)))
+    AND (COALESCE(:form_number, '') = '' OR fs.form_number ILIKE '%' || trim(:form_number) || '%')
     AND (COALESCE(:vehicle_reg_nr, '') = '' OR fs.vehicle_reg_nr ILIKE '%' || :vehicle_reg_nr || '%')
     AND (COALESCE(:company_reg_code, '') = '' OR fs.company_reg_code ILIKE '%' || :company_reg_code || '%')
     AND (COALESCE(:company_name, '') = '' OR fs.company_name ILIKE '%' || :company_name || '%')
