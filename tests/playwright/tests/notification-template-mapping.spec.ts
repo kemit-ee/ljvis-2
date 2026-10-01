@@ -74,7 +74,7 @@ test.describe('Postkasti mallide ja vastuvõtjate seaded — desktop saajad', ()
     await page.goto('/');
     await page.waitForLoadState('networkidle').catch(() => {});
     await expect(
-      page.getByRole('link', { name: /Postkasti mallide ja vastuvõtjate seaded/i }),
+      page.getByRole('menuitem', { name: /Postkasti mallide ja vastuvõtjate seaded/i }),
     ).toHaveCount(0);
 
     await page.goto('/notification-template-mapping/ncr_violation', {
