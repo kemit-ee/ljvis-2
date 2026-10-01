@@ -1466,7 +1466,7 @@
     "triggeringForms": "Forms that trigger this notification",
     "triggeredAutomatically": "Automatic (not tied to a specific form)",
     "channel": "Channel",
-    "originalTemplateId": "Active template version ID (templateId)",
+    "originalTemplateId": "Postkast template alias (templateId)",
     "defaultLanguage": "Default language",
     "defaultRecipientEmail": "Default recipient email",
     "desktopRecipients": "Notification recipients",
@@ -1500,7 +1500,7 @@
     "editedNote": "Settings have been updated",
     "validation": {
       "required": "Required field",
-      "templateIdInvalid": "Template version ID must be a valid UUID",
+      "templateIdInvalid": "Template alias may contain only letters, numbers, dots, underscores, and hyphens",
       "emailInvalid": "Email address is not in a valid format"
     }
   },

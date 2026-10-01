@@ -1487,7 +1487,7 @@
     "triggeringForms": "Vormid, kus teavitus käivitub",
     "triggeredAutomatically": "Automaatne (ei ole seotud konkreetse vormiga)",
     "channel": "Kanal",
-    "originalTemplateId": "Aktiivse malliversiooni ID (templateId)",
+    "originalTemplateId": "Postkasti malli alias (templateId)",
     "defaultLanguage": "Vaikimisi keel",
     "defaultRecipientEmail": "Vaikimisi vastuvõtja e-post",
     "desktopRecipients": "Teavituse saajad",
@@ -1521,7 +1521,7 @@
     "editedNote": "Seadistus on muudetud",
     "validation": {
       "required": "Kohustuslik väli",
-      "templateIdInvalid": "Malli versiooni ID peab olema UUID kujul",
+      "templateIdInvalid": "Malli alias võib sisaldada ainult tähti, numbreid, punkti, alakriipsu ja sidekriipsu",
       "emailInvalid": "E-posti aadress ei vasta lubatud kujule"
     }
   },
