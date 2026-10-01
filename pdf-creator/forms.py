@@ -267,8 +267,12 @@ def build_context(template, payload=None, blank=False):
     drivers=structured(c.get('drivers'),list);trailers=structured(c.get('trailers'),list)
     driver_index=opt.get('driverIndex',0)
     if type(driver_index) is not int or driver_index<0:raise ValueError('driverIndex must be a nonnegative integer')
-    if drivers and driver_index>=len(drivers):raise ValueError('driverIndex outside compound.drivers')
-    driver=drivers[driver_index] if drivers else {}
+    # Meeskonnaliikme vormil on isikuandmed vormi enda veergudes (person_*) — need on
+    # vormi versiooniga kooskõlas ega sõltu koondvormi hilisemast muutmisest.
+    form_person={k:f.get(p) for k,p in (('firstName','personFirstName'),('lastName','personLastName'),('personalCodeEe','personCodeEe'),('personalCodeForeign','personCodeForeign'),('citizenshipCode','personCitizenshipCode'),('birthDate','personBirthDate')) if f.get(p)}
+    use_form_person=bool(form_person) and driver_index>=1
+    if drivers and driver_index>=len(drivers) and not use_form_person:raise ValueError('driverIndex outside compound.drivers')
+    driver=form_person if use_form_person else (drivers[driver_index] if drivers else {})
     vehicle={'regNr':c.get('vehicleRegNr'),'countryCode':c.get('vehicleCountryCode'),'make':c.get('vehicleMake'),'model':c.get('vehicleModel'),'vin':c.get('vehicleVin'),'categoryCode':c.get('vehicleCategoryCode'),'categoryOther':c.get('vehicleCategoryOther'),'mileage':c.get('vehicleMileage')}
     vehicle_mode='trailer' if template=='trailer-technical' else opt.get('vehicle','vehicle')
     if is_technical and vehicle_mode=='trailer':

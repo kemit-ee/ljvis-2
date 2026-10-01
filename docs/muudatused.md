@@ -11,6 +11,7 @@
 - Meeskonnaliikme isikuandmed salvestatakse ka tema sõidu- ja puhkeaja kontrollvormi andmetabelisse. Vormil kuvatakse veoliigi ploki kohal ainult meeskonnaliikme ees- ja perenimi (andmeid vormil ei muudeta).
 - Avalikustatud meeskonnaliikme vormi saab otsida meeskonnaliikme isikukoodi ja nime järgi (varem leiti see ainult koondvormi juhi/meeskonnaliikme kaudu).
 - E-toimiku öine otsuste sünkroon (01:35) kontrollib meeskonnaliikme vormide menetlusi meeskonnaliikme isikukoodi järgi, mitte juhi omade järgi.
+- Meeskonnaliikme sõidu- ja puhkeaja vormi väljatrükk näitab meeskonnaliikme andmeid vormi enda andmetest (mitte koondvormi hilisemast versioonist).
 - X-tee isikukontroll tagastab ka meeskonnaliikme vormid (`MEESKONNALIIGE_SOIDU_PUHKEAEG`).
 - Olemasolevatele meeskonnaliikme vormidele kantakse andmed üle koondvormi teisest juhist.
 - Parandus: e-toimiku öine sünkroon (sõidu- ja puhkeaeg, mootorsõiduki ja haagise tehnokontroll) ei leidnud juhi isikukoodi (vale väljanimi) ja töölaua juhi nimi jäi tühjaks; nüüd loetakse õigeid välju.

@@ -41,6 +41,15 @@ class FormTests(unittest.TestCase):
         self.assertEqual(d['fields']['vin'],'TRAILERTEST001')
         p['technicalForm']['trailerRegNr']='NO-SUCH-TRAILER'
         with self.assertRaises(ValueError):build_context('trailer-technical',p)
+    def test_teammate_print_uses_person_stored_on_form(self):
+        p=self.fixture('drive-rest-form');p['printOptions']={'driverIndex':1}
+        p['driveRestForm'].update(personFirstName='Meeskond',personLastName='Liige',personCodeEe='39001010001')
+        d=build_context('drive-rest-form',p)
+        self.assertEqual(d['fields']['driverName'],'Meeskond Liige')
+        self.assertIn('39001010001',d['fields']['driver'])
+        # ilma koondvormi teise juhita (nt vana kirje) ei kuku väljatrükk
+        c=p['compoundForm'];c['drivers']=json.dumps([{'firstName':'Mari','lastName':'Juht'}]) if isinstance(c.get('drivers'),str) else [{'firstName':'Mari','lastName':'Juht'}]
+        self.assertEqual(build_context('drive-rest-form',p)['fields']['driverName'],'Meeskond Liige')
     def test_cargo_summary_uses_real_caa10_code(self):
         p=self.fixture('vehicle-technical');p['technicalForm']['partsSummary']=[{'partCode':'CAA_10','checked':True,'hasDefect':True}]
         rows=build_context('vehicle-technical',p)['parts']
