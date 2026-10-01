@@ -87,10 +87,10 @@ describe('buildExportTable sub-form parent', () => {
       },
     ]);
     const get = (h: string) => t.rows[0][t.headers.indexOf(h)];
-    expect(get('Olek')).toBe('published');
+    expect(get('Olek')).toBe('Avalikustatud');
     expect(get('Märkused')).toBe('own');
     expect(get('Koondvormi nr')).toBe('K-1');
-    expect(get('Koondvormi olek')).toBe('saved');
+    expect(get('Koondvormi olek')).toBe('Salvestatud');
     expect(get('Sõiduki reg-nr')).toBe('123ABC');
     expect(get('Sõiduki VIN-kood')).toBe('VIN1');
     expect(get('Haagise reg-nr')).toBe('T1');
