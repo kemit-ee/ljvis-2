@@ -44,6 +44,29 @@ logAuditEvent:
     actor_name: ${actor_name}
     actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: triggerRiskRecalculate
+
+# calculate_risk_score.sql jätab kustutatud vormi arvestusest välja, seega
+# kustutamine peab riskiskoori värskendama (muidu jääb kustutatud vormi
+# rikkumine skoori sisse kuni öise risk-score-recalc-sync cron'ini).
+# Fire-and-forget: viga ei tohi kustutamist tagasi pöörata.
+triggerRiskRecalculate:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test('' + (deleteRes.response.body[0].companyRegCode || ''))}"
+      next: returnSuccess
+  next: callRiskRecalculate
+
+callRiskRecalculate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${deleteRes.response.body[0].companyRegCode}
+      calculation_trigger: "kontrollvorm"
+  result: recalc_result
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:
