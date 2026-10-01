@@ -24,7 +24,7 @@ interface DriveRestFormRef {
   hasErrors: () => boolean;
   isDirty: () => boolean;
   validateForm?: () => void;
-  confirm?: () => void;
+  confirm?: (notifyCarrier?: boolean) => void;
 }
 
 export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(

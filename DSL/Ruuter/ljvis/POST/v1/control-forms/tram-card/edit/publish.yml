@@ -233,6 +233,23 @@ logAuditEvent:
     description: "TRAM kontrollkaart avalikustatud, number=${publishRes.response.body[0].formNumber}/${publishRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${publishRes.response.body[0].id},\"formNumber\":\"${publishRes.response.body[0].formNumber}\",\"oldStatus\":\"confirmed\",\"newStatus\":\"published\"}"
   result: audit_result
+  next: sendCarrierFromRequest
+
+# Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
+sendCarrierFromRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      type: json
+    body:
+      entity_type: "tram_control_card"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
+  result: carrierFromRequestRes
+  error: checkSeriousInfringement
   next: checkSeriousInfringement
 
 checkSeriousInfringement:

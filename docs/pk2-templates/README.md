@@ -3,12 +3,13 @@
 ## Eesmärk
 
 See kaust sisaldab LJVIS-2 väliste e-kirja teavituste malle, mis tuleb Postkast 2.0-s
-luua enne toodangus kasutuselevõttu. Mallid katavad kolm välist teavituse tüüpi:
+luua enne toodangus kasutuselevõttu. Mallid katavad neli välist teavituse tüüpi:
 
 | Mall | Fail | Saaja | Trigger |
 |---|---|---|---|
-| `carrier_violation` | `carrier_violation.json` | Veoettevõtja (äriregistrist, `ar/detailandmed_v1`) | `notifyCarrier` linnukese "flip" avalikustatud välisriigi rikkumise vormil |
+| `carrier_violation` | `carrier_violation.json` | Veoettevõtja (äriregistrist, `ar/detailandmed_v1`) | `notifyCarrier` linnukese "flip" avalikustatud välisriigi rikkumise vormil; PPA (sõidu-puhkeaeg, TRAM-kaart) ja Transpordiameti (tehnovormid) vormidel linnuke kinnitamisel, saatmine avalikustamisel (MSI/VSI/SI rikkumise korral), sh e-toimiku cron'ide automaatsel avalikustamisel (`/notification/send-carrier-from-request`) |
 | `labor_kabotage` | `labor_kabotage.json` | Tööinspektsioon (fikseeritud aadress) | TBD — trigger DSL puudub veel |
+| `labor_tachograph_not_downloaded` | `labor_tachograph_not_downloaded.json` | Tööinspektsioon (fikseeritud aadress, muudetav Haldus-vaates) | Avalikustatud autojuhi/meeskonnaliikme sõidu- ja puhkeaja kontrollkaart, millel on märge „andmed alla laadimata“ |
 | `labor_foreign_proposal` | `labor_foreign_proposal.json` | Tööinspektsioon (fikseeritud aadress, muudetav Haldus-vaates) | `foreignAuthorityProposal` linnukese "flip" avalikustatud välisriigi rikkumise vormil |
 
 ## Kanalid: X-tee (meie) vs haldusliides (malli haldus) — MITTE SAMA KANAL
@@ -78,12 +79,16 @@ eraldi DSL-i aktiveerimist ei ole vaja.
 | `{{companyName}}` | Veoettevõtja nimi | välisriigi rikkumise vorm, `companyName` |
 | `{{companyRegCode}}` | Veoettevõtja registrikood | välisriigi rikkumise vorm, `companyRegCode` |
 | `{{inspectionDateTime}}` | Kontrolli aeg (kuupäev ja kellaaeg) | vorm, `inspectionDate` + `inspectionTime` |
-| `{{inspectionCountryCode}}` | Kontrolli koht | vorm, `inspectionCountryCode` (ISO riigikood, ei ole hetkel nimeks lahendatud — vt „Lahtised kohad" allpool) |
-| `{{vehicleRegNr}}` | Kontrollitud sõiduki registreerimisnumber | vorm, `vehicleRegNr` |
+| `{{inspectionCountry}}` | Kontrolli koht (riigi nimetus) | vorm, `inspectionCountryCode` lahendatud `COUNTRY` klassifikaatorist (`classifier/get_country_name`); koodi ei leidmisel jääb väärtuseks kood |
+| `{{inspectionCountryCode}}` | Kontrolli koha ISO riigikood (alles tagasiühilduvuseks, mall seda ei kasuta) | vorm, `inspectionCountryCode` |
+| `{{vehicleRegNr}}` | Kontrollitud sõiduki registreerimisnumber; PPA/TA vormidel sõiduk ja haagised komaga eraldatult | vorm, `vehicleRegNr` (+ koondvormi `trailers[].regNr`) |
 | `{{violationSeverities}}` | Rikkumise raskusastmed (nt "MSI, VSI") | vorm, `violations[].code` unikaalsed `MSI`/`VSI`/`SI` prefiksid |
-| `{{violationDescription}}` | Rikkumise vaba tekstiga kirjeldus | vorm, `violationDescription` |
+| `{{violationDescription}}` | VR-vormil rikkumise vabatekst; PPA/TA vormidel kõik rikkumised (MSI, VSI, SI) korraga, üks rea kohta | VR: `violationDescription`; PPA/TA: rikkumiste kood + nimetus |
+| `{{MSIViolationsList}}` | MSI rikkumised, üks rida iga rikkumise kohta kujul „kood — nimetus", ridade vahel `<br>` (HTML). Tühi, kui sellist rikkumist ei ole | vorm, `violations[].code` + nimetus klassifikaatorist (`EU_INFRINGEMENT`, kabotaaži klassifikaatorid) |
+| `{{VSIViolationsList}}` | VSI rikkumised, sama vorming | sama |
+| `{{SIViolationsList}}` | SI rikkumised, sama vorming | sama |
 
-**Lahtised kohad:** `{{inspectionCountryCode}}` saadetakse hetkel toore ISO koodina (nt „EE"), mitte riigi nimena — täisnime lahendamiseks puudub praegu taaskasutatav koodi→nimi otsingu DSL/Resql (vt uurimist, lisada tuleks uus klassifikaatoripäring `COUNTRY` klassifikaatori vastu). `{{violationSeverities}}` näitab ainult esinevaid raskusastmeid, mitte iga rikkumiskoodi täistekstilist kirjeldust — see nõuaks eraldi `EU_INFRINGEMENT` klassifikaatori päringut (teadlik lihtsustus).
+**Lahtised kohad:** `{{violationSeverities}}` näitab ainult esinevaid raskusastmeid, mitte iga rikkumiskoodi täistekstilist kirjeldust — see nõuaks eraldi `EU_INFRINGEMENT` klassifikaatori päringut (teadlik lihtsustus).
 
 ### `labor_foreign_proposal` ("ljvis2-labor-foreign-proposal")
 
@@ -101,6 +106,14 @@ eraldi DSL-i aktiveerimist ei ole vaja.
 | `{{companyName}}` | Veoettevõtja nimi | vorm, `companyName` |
 | `{{companyRegCode}}` | Veoettevõtja registrikood | vorm, `companyRegCode` |
 | `{{resultType}}` | Kontrolli tulemus (klassifikaatori kood) | vorm, `resultType` |
+
+### `labor_tachograph_not_downloaded` ("ljvis2-labor-tachograph-not-downloaded")
+
+| Muutuja | Kirjeldus | Allikas DSL-is |
+|---|---|---|
+| `{{formNumber}}` | Kontrollvormi (alamvormi) number | `drive-rest-form/{driver,teammate}/edit/publish.yml` |
+| `{{companyName}}` | Veoettevõtja nimi | vorm, `companyName` |
+| `{{companyRegCode}}` | Veoettevõtja registrikood | vorm, `companyRegCode` |
 
 ### Reeglid muutujate kohta
 

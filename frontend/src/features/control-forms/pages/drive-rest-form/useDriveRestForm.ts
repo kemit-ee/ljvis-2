@@ -153,6 +153,7 @@ export function useDriveRestForm(
     publish: publishDriveRestForm,
   };
   const pendingConfirm = useRef(false);
+  const pendingNotifyCarrier = useRef(false);
   const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
 
@@ -376,7 +377,7 @@ export function useDriveRestForm(
         };
 
         const result = isConfirming
-          ? await api.confirm(type, trimmedValues as unknown as DriveRestForm)
+          ? await api.confirm(type, { ...trimmedValues, notifyCarrier: String(pendingNotifyCarrier.current) } as unknown as DriveRestForm)
           : await api.save(type, trimmedValues as unknown as DriveRestForm);
         onSaved(result[0]?.id, isConfirming);
       } catch (e) {
@@ -394,8 +395,9 @@ export function useDriveRestForm(
     }
   }, [compoundFormKey]);
 
-  const triggerConfirm = () => {
+  const triggerConfirm = (notifyCarrier = false) => {
     pendingConfirm.current = true;
+    pendingNotifyCarrier.current = notifyCarrier === true;
     formik.submitForm();
   };
 

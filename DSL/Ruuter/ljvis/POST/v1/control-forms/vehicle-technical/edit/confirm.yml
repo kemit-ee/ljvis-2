@@ -6,6 +6,8 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: notifyCarrier
+        type: string
       - field: partsSummary
         type: string
       - field: partsDefects
@@ -32,6 +34,7 @@ declaration:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    notify_carrier: "${String(incoming.body.notifyCarrier) === 'true' ? 'true' : 'false'}"
     parts_summary: "${incoming.body.partsSummary || '[]'}"
     parts_defects: "${incoming.body.partsDefects || '[]'}"
     result_type: "${incoming.body.resultType || 'ok'}"
@@ -114,6 +117,28 @@ confirmForm:
 buildLogDescription:
   assign:
     description: "Tehnovorm kinnitatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${confirmRes.response.body[0].subFormNumber}/${confirmRes.response.body[0].version}"
+  next: checkCarrierNotificationRequest
+
+# „Teavita vedajat" linnuke kinnitamisel: tellimus salvestatakse eraldi tabelisse ja
+# saadetakse avalikustamisel (võib olla automaatne). Viga ei tühista kinnitamist.
+checkCarrierNotificationRequest:
+  switch:
+    - condition: ${notify_carrier === 'true'}
+      next: registerCarrierNotificationRequest
+  next: logAuditEvent
+
+registerCarrierNotificationRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
+    headers:
+      type: json
+    body:
+      entity_type: "vehicle_technical"
+      entity_id: ${id}
+      requested_by: ${actor_personal_code}
+  result: carrierRequestRes
+  error: logAuditEvent
   next: logAuditEvent
 
 logAuditEvent:

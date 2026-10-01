@@ -4,6 +4,23 @@
 
 ## 2026-10-01
 
+### Vedaja teavitus PPA ja Transpordiameti vormidelt
+
+- Sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kontrollkaardi ning sõiduki ja haagise tehnovormi kinnitamisel on nupu „Kinnita“ kõrval linnuke „Teavita vedajat rikkumisest (saadetakse avalikustamisel)“.
+- Kui linnuke on märgitud, saadetakse vedajale (äriregistri e-posti aadressile) avalikustamisel raske rikkumise teavitus. Teavitus saadetakse ainult MSI, VSI või SI rikkumise korral. Linnuke võetakse arvesse ka siis, kui vormi avalikustamine toimub hiljem, sh e-toimiku öise otsuse järel automaatselt avalikustatavatel TRAM-kaardil ja tehnovormidel.
+- Teavituse reg-nr väljal on sõiduk ja haagised komaga eraldatult.
+- Postkasti malli uued muutujad `MSIViolationsList`, `VSIViolationsList` ja `SIViolationsList`: rikkumised raskusastme kaupa, iga rikkumine eraldi real kujul „kood — nimetus“ (ridade vahel `<br>`). Muutuja on tühi, kui sellist raskusastet ei ole. Saadetakse nii PPA/TA vormidelt kui välisriigi kontrollkaardilt; mallis tuleb need ise paigutada.
+- Skeemimuudatus: uus tabel `notifications.carrier_notification_request`.
+
+### Vedajale saadetava teavituse kontrolli koht on riigi nimetusega
+
+- Raske rikkumise teavituses vedajale on „Kontrolli koht“ nüüd riigi nimetus (nt „Läti“), mitte ISO kood. Postkasti malli muutuja on `inspectionCountry`; mall `docs/pk2-templates/carrier_violation.json` tuleb Postkastis uuendada (`{{inspectionCountryCode}}` → `{{inspectionCountry}}`). Sama nimetus on tööinspektsiooni välisriigi ettepaneku teavituses.
+
+### Tööinspektsiooni teavitus: sõidumeerikust või juhikaardilt andmed alla laadimata
+
+- Autojuhi või meeskonnaliikme sõidu- ja puhkeaja kontrollkaardi avalikustamisel, millel on märge „andmed alla laadimata“, saadetakse Postkasti kaudu teavitus Tööinspektsiooni esindajale.
+- Haldus → „Postkasti mallide ja vastuvõtjate seaded“ on uus teavituse liik „Sõidumeerikuandmete alla laadimata jätmise teavitus“ (vaikeadressaat juri.milov@ti.ee, muudetav). Postkastis tuleb luua mall `docs/pk2-templates/labor_tachograph_not_downloaded.json` põhjal.
+
 ### Kasutajaliidese terminid ühtlustatud
 
 - Olek „Avalikustatud“ on igal pool ühtemoodi: otsingu olekufiltris, vormi teadetes („Vorm on avalikustatud“), lukustatud vormi veateadetes ja NU sobimatusteate allikadeklaratsiooni teadetes oli varem „Avaldatud“.

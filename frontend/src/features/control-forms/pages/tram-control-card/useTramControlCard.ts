@@ -119,6 +119,7 @@ export function useTramControlCard(
     publish: publishTramForm,
   };
   const pendingConfirm = useRef(false);
+  const pendingNotifyCarrier = useRef(false);
   const pendingPublish = useRef(false);
   const pendingForceSaved = useRef(false);
   const pendingPreserveStatus = useRef(false);
@@ -569,7 +570,7 @@ export function useTramControlCard(
         };
         if (values.id) {
           if (isConfirming) {
-            await api.confirm(trimmedValues as unknown as CompoundForm);
+            await api.confirm({ ...trimmedValues, notifyCarrier: String(pendingNotifyCarrier.current) } as unknown as CompoundForm);
             onConfirmed?.();
           } else if (isPublishing) {
             if (hasProceeding(values)) {
@@ -631,8 +632,9 @@ export function useTramControlCard(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organisations, authUser?.organisationid]);
 
-  const triggerConfirm = () => {
+  const triggerConfirm = (notifyCarrier = false) => {
     pendingConfirm.current = true;
+    pendingNotifyCarrier.current = notifyCarrier === true;
     formik.submitForm();
   };
 
