@@ -18,6 +18,9 @@ returns:
 - name: subFormNumber
   type: string
   nullable: true
+- name: companyRegCode
+  type: string
+  nullable: true
 */
 WITH latest AS (
   SELECT DISTINCT ON (sp_teammate_form_key)
@@ -132,4 +135,7 @@ SELECT
   l.notes,
   :created_by
 FROM latest l
-RETURNING sp_teammate_form_key AS id, sub_form_number, version;
+RETURNING sp_teammate_form_key AS id, sub_form_number, version,
+  (SELECT cf.company_reg_code FROM forms.compound_form cf
+   WHERE cf.compound_form_key = forms.sp_teammate_form.compound_form_key
+   ORDER BY cf.created_at DESC LIMIT 1) AS company_reg_code;

@@ -18,6 +18,9 @@ returns:
 - name: formNumber
   type: string
   nullable: true
+- name: companyRegCode
+  type: string
+  nullable: true
 - name: version
   type: number
   nullable: true
@@ -168,4 +171,4 @@ SELECT
   l.drivers,
   :created_by
 FROM latest l
-RETURNING compound_form_key AS id, form_number, version;
+RETURNING compound_form_key AS id, form_number, version, company_reg_code;

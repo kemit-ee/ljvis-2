@@ -2,6 +2,14 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-02
+
+### Riskiskoor ei arvesta enam mustandeid ega kustutatud vorme
+
+- Riskiskoori arvutus loeb alamvormidest (SP juht / meeskonnaliige) ainult viimast avalikustatud versiooni. Avalikustatud juhtumi alamvormi hilisem mustand või kinnitatud, kuid avalikustamata muudatus ei mõjuta skoori enne avalikustamist.
+- Kustutatud alamvormi ja kustutatud koondvormi rikkumisi ei arvestata. Varem jäid need skoori sisse.
+- Alamvormi (juht, meeskonnaliige) või koondvormi kustutamine arvutab ettevõtte riskiskoori kohe ümber; varem uuenes see alles öise ümberarvutusega.
+
 ## 2026-10-01
 
 ### Kasutajaliidese terminid ühtlustatud
