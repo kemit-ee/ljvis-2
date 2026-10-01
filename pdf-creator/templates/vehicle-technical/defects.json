@@ -900,8 +900,8 @@
     "code": "CAA_6.1.4",
     "name": "6.1.4 Kaitserauad, allasõidutõkked, esikaitsesüsteemid",
     "allowed": [
-      "VO",
-      "OV"
+      "OV",
+      "EOV"
     ]
   },
   {
