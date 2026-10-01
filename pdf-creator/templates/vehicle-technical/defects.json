@@ -90,8 +90,7 @@
     "name": "1.1.7 Piduriklapid/ventiilid (sõidupidurikraanid, rõhualandajad, regulaatorid)",
     "allowed": [
       "VO",
-      "OV",
-      "EOV"
+      "OV"
     ]
   },
   {
@@ -99,6 +98,7 @@
     "code": "CAA_1.1.8",
     "name": "1.1.8 Haagisepidurite ühendused (elektrilised ja pneumaatilised)",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
