@@ -8,7 +8,7 @@ masinloetav leping failis [XroadOpenapi.yaml](XroadOpenapi.yaml).
 | | |
 |---|---|
 | Viimase testimise kuupäev | 01.10.2026 |
-| Testitud versioon | commit `caa78802` (haru `docs/testidokumentatsioon`, rakenduse kood = PR #497) |
+| Testitud versioon | rakenduse kood commit `3acdcd97` (PR #497); hiljem `dev`-i lisandunud muudatused on testitud oma CI jooksudes |
 | Keskkond | CI-pinu `docker-compose.ci.yml` (sisemine Ruuter :9089, XTR + X-tee mock), arendaja-mocki liivakast |
 | Täielik kontrollide loetelu | [API-testide nimekiri](../testimine/apitestid.md) §3.22–3.23, §5; UI/API testilood [TL-XTP, TL-XTL](../testimine/testilood-ui.md) |
 

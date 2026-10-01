@@ -6,7 +6,7 @@ nimekiri ja leitud vead. Meetod ja kriteeriumid on [testiplaanis](testiplaan.md)
 | | |
 |---|---|
 | Viimase testimise kuupäev | 01.10.2026 |
-| Testitud versioon | commit `caa78802` (haru `docs/testidokumentatsioon`; rakenduse kood = PR #497, frontend 1.7.4) |
+| Testitud versioon | rakenduse kood commit `3acdcd97` (PR #497, frontend 1.7.4); hiljem `dev`-i lisandunud muudatused (#490–#494) on testitud oma CI jooksudes |
 | Keskkond | CI-pinu `docker-compose.ci.yml`, iga testitase puhta andmebaasiga |
 | Koostaja | Täitja arendusmeeskond |
 

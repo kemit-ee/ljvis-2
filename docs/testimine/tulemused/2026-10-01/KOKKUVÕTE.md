@@ -1,6 +1,6 @@
 # Testijooksu kokkuvõte — 01.10.2026
 
-Versioon: commit `caa78802` (rakenduse kood = PR #497). Keskkond: CI-pinu
+Versioon: rakenduse kood commit `3acdcd97` (PR #497). Keskkond: CI-pinu
 `docker-compose.ci.yml`, iga tase puhta andmebaasiga. Selle jooksu põhjal on
 koostatud [testiraport](../../testiraport.md), [testilood-ui](../../testilood-ui.md)
 ja [apitestid](../../apitestid.md).

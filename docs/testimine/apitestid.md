@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | Viimase testimise kuupäev | 01.10.2026 |
-| Testitud versioon (commit) | `caa78802` |
+| Testitud versioon (commit) | `3acdcd97` |
 | Keskkond | CI-pinu `docker-compose.ci.yml` (puhas andmebaas, testseemned `tests/bootstrap/`) |
 | Newmani kollektsioone | 29 / 29 |
 | Päringuid | 1033 |

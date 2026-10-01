@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | Viimase testimise kuupäev | 01.10.2026 |
-| Testitud versioon (commit) | `caa78802` |
+| Testitud versioon (commit) | `3acdcd97` |
 | Keskkond | CI-pinu `docker-compose.ci.yml`, frontend staatilise buildina (`vite preview`), Chromium |
 | Teste | 133 — läbis 133, kukkus 0, korduskatsel läbis 0, vahele jäetud 0 |
 
