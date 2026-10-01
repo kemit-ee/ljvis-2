@@ -57,9 +57,9 @@
 - Kasutajate otsing leiab kasutaja nüüd ka isikukoodi järgi, nagu juhend
   lubab. Varem otsiti ainult ees- ja perekonnanime järgi. Sama kehtib
   kasutajagrupi liikmete ja gruppi lisatavate kasutajate otsingus.
-- Kui kasutaja ligipääsu lõppkuupäevaks pannakse tänane kuupäev, saab
-  kasutaja oleku „Deaktiveeritakse“ ja öine protsess deaktiveerib ta.
-  Varem jäi ta ajavööndi vea tõttu olekusse „Aktiivne“.
+- Kui kasutaja ligipääsu lõppkuupäevaks pannakse tänane kuupäev, näitab
+  kasutaja olek nüüd „Deaktiveeritakse“. Varem kuvati ajavööndi vea tõttu
+  „Aktiivne“; öine protsess deaktiveeris kasutaja sellest hoolimata õigel ajal.
 - Klassifikaatori väärtuse muutmisel ei saa kehtivuse lõpp olla sama
   kui algus. Varem näitas vorm „Klassifikaatori väärtus on muudetud“, kuigi
   andmebaas lükkas muudatuse tagasi ja midagi ei salvestunud.
