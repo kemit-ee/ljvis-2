@@ -411,7 +411,7 @@
   {
     "part": "CAA_2",
     "code": "CAA_2.6",
-    "name": "2.6 Elektrooniline roolivõimendi (EPS)",
+    "name": "2.6 Elektrooniline roolivõimendi (Electronic Power Steering, EPS)",
     "allowed": [
       "OV"
     ]

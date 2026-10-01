@@ -15,7 +15,7 @@ rows=[{'part':p,'code':c,'name':n,'allowed':sev.split(',')} for p,c,n,sev in tup
 # Hilisemad raskusastmete parandused (migratsioonid 20261203120000, 20261203130000).
 fix={'CAA_1.1.7':['VO','OV'],'CAA_1.1.8':['VO','OV','EOV'],'CAA_1.1.15':['OV','EOV'],'CAA_1.1.17':['VO','OV','EOV'],'CAA_1.1.20':['OV'],'CAA_1.4.1':['OV'],'CAA_1.4.2':['OV'],'CAA_2.1.1':['VO','OV','EOV'],'CAA_2.2.2':['OV','EOV']}
 # Grupp 2 numeratsiooni nihe (migratsioon 20261120100000): Lisa 2-s puudub 2.4.
-shift={'CAA_2.5':('CAA_2.6','2.6 Elektrooniline roolivõimendi (EPS)'),'CAA_2.4':('CAA_2.5','2.5 Haagise esitelje pöördering')}
+shift={'CAA_2.5':('CAA_2.6','2.6 Elektrooniline roolivõimendi (Electronic Power Steering, EPS)'),'CAA_2.4':('CAA_2.5','2.5 Haagise esitelje pöördering')}
 for r in rows:
  if r['code'] in shift:r['code'],r['name']=shift[r['code']]
 fix.update({'CAA_2.5':['OV','EOV'],'CAA_2.6':['OV']})
