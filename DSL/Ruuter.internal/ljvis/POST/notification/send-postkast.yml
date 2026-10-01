@@ -10,7 +10,7 @@ declaration:
 
     APPEND-ONLY: iga saatmiskatse (sh UC-04 uuesti saatmine) loob uue
     outbound_log rea oma notification_key'ga. Teenus ei kirjuta teavituse
-    teksti — ainult aktiivse malliversiooni tunnus (templateId) ja malli
+    teksti — ainult malli alias (API väli templateId) ja malli
     muutujate väärtused edastatakse Postkast 2.0-le, mis rakendab enda
     haldusliideses seadistatud malli.
 
@@ -131,7 +131,7 @@ markInvalidRecipient:
 # original_template_id tuleb ajaloolise nimega kataloogiveerust
 # (notification_template_mapping, haldusliidesest seadistatav — vt
 # notification-template-mapping/save.yml), kuid väärtus on Postkast 2.0
-# aktiivse malliversiooni templateId.
+# malli alias (nt "vrteade"), mille Postkast lahendab aktiivseks UUID-ks.
 # Konstandifallback ([#PK_TEMPLATE_*]) on eemaldatud; puuduva tunnuse korral
 # ei tohi X-tee kutset tühja templateId-ga saata — logi kohe veaga.
 resolveTemplateId:
@@ -148,7 +148,7 @@ checkTemplateIdResolved:
 
 markMissingTemplateId:
   assign:
-    pre_send_failure_reason: "Teavituse liigil '${notification_type}' puudub Postkast 2.0 aktiivse malliversiooni tunnus (templateId)"
+    pre_send_failure_reason: "Teavituse liigil '${notification_type}' puudub Postkast 2.0 malli alias (templateId)"
   next: insertAsError
 
 insertQueued:
