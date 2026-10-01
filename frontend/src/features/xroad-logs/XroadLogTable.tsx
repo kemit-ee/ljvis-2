@@ -42,6 +42,7 @@ export function XroadLogTable() {
     draftFilters,
     setFilter,
     applyFilters,
+    applyFiltersWith,
     resetKey,
   } = useXroadLogList();
 
@@ -54,8 +55,7 @@ export function XroadLogTable() {
   const allServices = draftFilters.allServices === 'true';
 
   const toggleScope = () => {
-    setFilter('allServices', String(!allServices));
-    applyFilters();
+    applyFiltersWith({ allServices: String(!allServices) });
   };
 
   const handleStatusChange = (next: {

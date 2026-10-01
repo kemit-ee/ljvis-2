@@ -4,6 +4,15 @@
 
 ## 2026-10-02
 
+### Klassifikaatori väärtuse piiramine vormidele
+
+- Haldus → Klassifikaatorid → väärtuse lisamisel ja muutmisel on uus mitmikvaliku väli „Piira vormidele“. Valitud vormidel kuvatakse väärtus valikus, teistel vormidel mitte. Kui ühtegi vormi pole valitud, on väärtus kasutusel kõigil vormidel (nii nagu seni).
+- Veondusjärelevalve (SP) vormid on valikus ühe rühmana: rühma päisega saab valida kõik alamvormid korraga, eraldi saab valida ka koondvormi üldandmed.
+- Klassifikaatori väärtuste tabelis on uus veerg „Vormid“.
+- Piirang kehtib ainult vormi muutmisel. Vormi vaatamisel kuvatakse ka varem salvestatud väärtus, mis on hiljem vormilt piiratud.
+- Parandus: klassifikaatori väärtuse muutmine ei kustuta enam väärtuse ülemat väärtust ega selgitust (nt vormitüübi töölaual kuvamise märge).
+- Skeemimuudatus: uus tabel `classifier.classifier_value_form_scope`.
+
 ### Meeskonnaliige koondvormi üldosas
 
 - Koondvormi üldosas on autojuhi andmete all nupp „Lisa meeskonnaliige“, mis avab meeskonnaliikme andmete ploki (samad väljad nagu juhil, sh isikukoodi otsing). Plokki saab eemaldada nupuga „Eemalda meeskonnaliige“, kuni tema kontrollvormi pole lisatud.
@@ -52,6 +61,34 @@
 
 ## 2026-10-01
 
+### Testidokumentatsioon
+
+- Dokumentatsiooni uus jaotis „Testimine“ sisaldab testiplaani, testilugusid
+  (sh kõik UI-testilood sammude ja tulemusega), testiraportit koos testitud
+  nõuete nimekirjaga ning kõigi API-testide nimekirja tulemustega.
+- X-tee juhendite juurde lisandus X-tee testprotokoll: pakutavate ja
+  kasutatavate teenuste testid ning arendaja-mocki kontrollid.
+- Testilood ja API-testide nimekiri genereeritakse päris testijooksu
+  tulemusest (`scripts/generate-ui-testlood.py`, `scripts/generate-api-test-report.py`).
+- Lõpptarne Confluence'i lehel on testidokumendid, testiraport ja X-tee
+  testprotokoll; lehe siselingid viivad nüüd GitHubi dokumentidele.
+
+### Haldusvaadete parandused (leitud uute UI-testidega)
+
+- Kasutajate otsing leiab kasutaja nüüd ka isikukoodi järgi, nagu juhend
+  lubab. Varem otsiti ainult ees- ja perekonnanime järgi. Sama kehtib
+  kasutajagrupi liikmete ja gruppi lisatavate kasutajate otsingus.
+- Kui kasutaja ligipääsu lõppkuupäevaks pannakse tänane kuupäev, näitab
+  kasutaja olek nüüd „Deaktiveeritakse“. Varem kuvati ajavööndi vea tõttu
+  „Aktiivne“; öine protsess deaktiveeris kasutaja sellest hoolimata õigel ajal.
+- Klassifikaatori väärtuse muutmisel ei saa kehtivuse lõpp olla sama
+  kui algus. Varem näitas vorm „Klassifikaatori väärtus on muudetud“, kuigi
+  andmebaas lükkas muudatuse tagasi ja midagi ei salvestunud.
+- Klassifikaatorisse ei saa lisada teist sama koodiga väärtust; vorm
+  näitab veateadet. Varem lisati duplikaat ja rippmenüüdes kuvati neist
+  vaid üks.
+- „E-toimiku X-tee logid“: lüliti „e-toimiku“ ↔ „kõiki“ uuendab nüüd ka
+  tabeli sisu. Varem muutus ainult silt ja veerud, kuni vajutati „Otsi“.
 ### Vedaja teavitus PPA ja Transpordiameti vormidelt
 
 - Sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kontrollkaardi ning sõiduki ja haagise tehnovormi kinnitamisel on nupu „Kinnita“ kõrval linnuke „Teavita vedajat rikkumisest (saadetakse avalikustamisel)“.

@@ -25,6 +25,7 @@ import styles from './ClassifierDetailPage.module.css';
 import type { ClassifierValue } from '../../types';
 import { createColumnHelper } from '@tanstack/react-table';
 import { formatDate } from '../../../../hooks/dateUtils';
+import { useClassifierLabel } from '../../useClassifierLabel';
 
 const classifierColumnHelper = createColumnHelper<ClassifierValue>();
 
@@ -54,6 +55,7 @@ export function ClassifierDetailPage() {
   const canEditClassifier = hasPermission('classifier.edit');
   const canEditClassifierValue = hasPermission('classifier_value.edit');
   const forbidden = !hasPermission('classifier.read');
+  const { label: classifierLabel } = useClassifierLabel();
 
   const {
     classifier,
@@ -147,6 +149,16 @@ export function ClassifierDetailPage() {
           );
         },
       }),
+      // ADR-011: vormid, millele väärtus on piiratud; tühi = kõik vormid
+      classifierColumnHelper.accessor('formTypes', {
+        header: t('classifiers.formScope.column'),
+        enableSorting: false,
+        cell: (info) => {
+          const codes = info.getValue() ?? [];
+          if (codes.length === 0) return t('classifiers.formScope.all');
+          return codes.map((c) => classifierLabel('FORM_TYPE', c)).join(', ');
+        },
+      }),
       classifierColumnHelper.display({
         id: 'changeValue',
         header: '',
@@ -169,7 +181,7 @@ export function ClassifierDetailPage() {
         },
       }),
     ],
-    [t, handleRowClick],
+    [t, handleRowClick, classifierLabel],
   );
 
   if (loading && !classifier) return <Text>{t('common.loading')}</Text>;

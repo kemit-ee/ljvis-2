@@ -19,19 +19,19 @@ export function useClassifierValueForm(
     code: Yup.string().required(t('classifiers.validation.required')),
     name: Yup.string().required(t('classifiers.validation.required')),
     validFrom: Yup.string().required(t('classifiers.validation.required')),
-    validUntil: isEdit
-      ? Yup.string().nullable()
-      : Yup.string()
-          .nullable()
-          .test(
-            'is-after-start',
-            t('users.validation.endBeforeStart'),
-            function (value) {
-              const { validFrom } = this.parent;
-              if (!value || value === null || !validFrom) return true;
-              return new Date(value) > new Date(validFrom);
-            },
-          ),
+    // Kehtib nii lisamisel kui muutmisel: andmebaasi piirang ck_cv_period
+    // nõuab, et kehtivuse lõpp oleks rangelt hilisem kui algus.
+    validUntil: Yup.string()
+      .nullable()
+      .test(
+        'is-after-start',
+        t('classifiers.validation.endBeforeStart'),
+        function (value) {
+          const { validFrom } = this.parent;
+          if (!value || !validFrom) return true;
+          return toIsoDate(value) > toIsoDate(validFrom);
+        },
+      ),
   });
 
   const formik = useFormik({
@@ -42,6 +42,7 @@ export function useClassifierValueForm(
       name: existingValue?.name ?? '',
       validFrom: existingValue?.validFrom ?? '',
       validUntil: existingValue?.validUntil ?? '',
+      formTypes: [...(existingValue?.formTypes ?? [])].sort(),
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -60,6 +61,7 @@ export function useClassifierValueForm(
             name: trimmedValues.name,
             validFrom: trimmedValues.validFrom,
             validUntil: trimmedValues.validUntil,
+            formTypes: trimmedValues.formTypes,
           });
         } else {
           await insertClassifierValue({
@@ -68,6 +70,7 @@ export function useClassifierValueForm(
             name: sanitizeText(trimmedValues.name),
             validFrom: trimmedValues.validFrom,
             validUntil: trimmedValues.validUntil,
+            formTypes: trimmedValues.formTypes,
           });
         }
         await onSaved();

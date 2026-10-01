@@ -22,6 +22,7 @@ import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 export function LabourInspectionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -40,6 +41,8 @@ export function LabourInspectionFormPage() {
   const [isEditActive, setIsEditActive] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );

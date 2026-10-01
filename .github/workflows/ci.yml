@@ -347,6 +347,10 @@ jobs:
       - name: ZAP — baseline scan (stack already running)
         run: |
           mkdir -p zap-reports
+          # ZAP-i konteiner jookseb kasutajana zap (uid 1000), runneri kaust
+          # kuulub teisele kasutajale — ilma kirjutusõiguseta jääb raport
+          # salvestamata (AccessDeniedException) ja artefakt tühjaks.
+          chmod 777 zap-reports
           docker run --rm \
             --network host \
             -v "$(pwd)/zap-reports:/zap/wrk/:rw" \

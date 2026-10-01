@@ -41,7 +41,7 @@ type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifiers, useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../components/shared/MaskedDateField';
 import { MaskedTimeField } from '../../components/shared/MaskedTimeField';
@@ -112,6 +112,7 @@ const ROUTE_TO_TAB: Record<
 };
 
 export function CompoundFormCreatePage() {
+  useClassifierScopeActive(true); // ADR-011
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

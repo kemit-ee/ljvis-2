@@ -30,6 +30,9 @@ returns:
 - name: is_valid
   type: string
   nullable: true
+- name: form_types
+  type: array
+  nullable: true
 */
 -- classifier and classifier_value are INSERT-only snapshot tables: every edit
 -- appends a new row sharing the same *_key. The classifier_code subquery must
@@ -62,6 +65,13 @@ SELECT
     v.description,
     v.valid_from,
     v.valid_until,
-    v.is_valid
+    v.is_valid,
+    -- ADR-011: tühi massiiv = väärtus on lubatud kõigil vormidel
+    COALESCE((SELECT array_agg(s.form_type_code ORDER BY s.form_type_code)
+              FROM (SELECT DISTINCT ON (fs.form_type_code) fs.form_type_code, fs.is_active
+                      FROM classifier.classifier_value_form_scope fs
+                     WHERE fs.classifier_value_key = v.classifier_value_key
+                     ORDER BY fs.form_type_code, fs.created_at DESC, fs.id DESC) s
+             WHERE s.is_active), ARRAY[]::TEXT[]) AS form_types
 FROM latest_value v
 ORDER BY v.classifier_value_key;

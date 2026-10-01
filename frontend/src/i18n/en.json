@@ -1452,11 +1452,23 @@
     "valueAddedNote": "Classifier value has been added",
     "editedNote": "Classifier has been edited",
     "valueEditedNote": "Classifier value has been edited",
+    "formScope": {
+      "label": "Restrict to forms",
+      "help": "If no form is selected, the value is available on all forms.",
+      "placeholder": "All forms",
+      "column": "Forms",
+      "all": "All",
+      "parentOwn": "{{name}} — general data",
+      "orphan": "{{code}} (form type no longer exists)"
+    },
     "validation": {
       "required": "Required field",
       "valueConflict": "COMING",
+      "endBeforeStart": "End date must be after start date",
       "api": {
-        "required": "Required field"
+        "required": "Required field",
+        "duplicate_code": "A value with this code already exists in the classifier",
+        "invalid_period": "Valid until must be later than valid from"
       }
     }
   },

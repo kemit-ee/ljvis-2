@@ -22,6 +22,7 @@ import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButto
 import { NotifyCarrierCheckbox } from '../../components/shared/NotifyCarrierCheckbox';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 const FORM_TYPE = 'tram-card';
 
@@ -49,6 +50,8 @@ export function TramControlCardPage() {
   );
 
   const [isEditActive, setIsEditActive] = useState(false);
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );

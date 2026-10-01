@@ -5,6 +5,7 @@
     "code": "{{this.code}}",
     "name": "{{this.name}}",
     "validFrom": "{{this.validFrom}}",
-    "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}}
+    "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}},
+    "formTypes": [{{#each this.formTypes}}"{{this}}"{{#unless @last}},{{/unless}}{{/each}}]
 }
 {{/with}}

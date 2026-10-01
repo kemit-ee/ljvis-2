@@ -49,6 +49,18 @@
 
 ---
 
+# Testimine
+
+- [Testiplaan](testimine/testiplaan.md)
+- [Testilood](testimine/testilood.md)
+  - [UI-testilood (Playwright)](testimine/testilood-ui.md)
+- [Testiraport](testimine/testiraport.md)
+  - [Testijooks 01.10.2026](testimine/tulemused/2026-10-01/KOKKUVÕTE.md)
+- [API-testide nimekiri ja tulemused](testimine/apitestid.md)
+- [X-tee testprotokoll](xtee/08-testprotokoll.md)
+
+---
+
 # Andmehaldus
 
 - [Ülevaade](andmehaldus/README.md)

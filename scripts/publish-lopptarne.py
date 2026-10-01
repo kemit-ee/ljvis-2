@@ -195,13 +195,23 @@ def md_to_html(md_path):
     html = re.sub(r'<img src="(?P<src>[^"]+)"(?:\s+alt="(?P<alt>[^"]*)")?\s*/?>', img_sub, html)
     html = re.sub(r"<p>\s*(<ac:image\b.*?</ac:image>)\s*</p>", r"\1", html, flags=re.DOTALL)
 
-    # Välised lingid jäävad; siselingid → plain tekst
-    html = re.sub(
-        r'<a href="(?P<href>[^"]+)"[^>]*>(?P<text>.*?)</a>',
-        lambda m: m.group(0) if m.group("href").startswith(("http://", "https://", "#", "mailto:"))
-                  else re.sub(r"<[^>]+>", "", m.group("text")).strip() or m.group("href"),
-        html, flags=re.DOTALL,
-    )
+    # Välised lingid jäävad; repo-sisesed suhtelised lingid → GitHubi fail
+    # (sama haru kui gh_link), et Lõpptarne lehelt saaks iga viidatud
+    # dokumendi avada. Repost väljapoole viitavad lingid → lihttekst.
+    def link_sub(m):
+        href, text = m.group("href"), m.group("text")
+        if href.startswith(("http://", "https://", "#", "mailto:")):
+            return m.group(0)
+        path, _, anchor = href.partition("#")
+        target = (md_dir / path).resolve()
+        try:
+            rel = target.relative_to(REPO).as_posix()
+        except ValueError:
+            return re.sub(r"<[^>]+>", "", text).strip() or href
+        url = f"{GH_BASE}/{rel}" + (f"#{anchor}" if anchor else "")
+        return f'<a href="{url}">{text}</a>'
+
+    html = re.sub(r'<a href="(?P<href>[^"]+)"[^>]*>(?P<text>.*?)</a>', link_sub, html, flags=re.DOTALL)
     # Eemalda esimene <h1>
     html = re.sub(r"^\s*<h1[^>]*>.*?</h1>\s*", "", html, count=1, flags=re.DOTALL)
     return html, attachments
@@ -298,7 +308,7 @@ def build_page():
     <tr>
       <td><strong>X-tee pakutavad teenused</strong></td>
       <td>{confluence_link(XTEE_JUHEND, "LJVIS2 X-tee pakutavad teenused (REST)")}<br />{confluence_link(XTEE_LIIDESTUMINE, "LJVIS2 · X-tee liidestumine")}<br />{gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md")}</td>
-      <td>Kuus LJVIS2 X-tee teenust (IsikuKontroll, ErakorralineYV, RegisterJobInspection) ja Andmejälgija teenus findUsage, turvaserveri seadistus, masinloetavad lepingud {gh_link("docs/xtee/XroadOpenapi.yaml", "XroadOpenapi.yaml")} ja {gh_link("docs/xtee/FindUsageOpenapi.yaml", "FindUsageOpenapi.yaml")}. Arendaja juhendid, mock ja testikogumikud: X-tee liidestumise lehed.</td>
+      <td>Kuus LJVIS2 X-tee teenust (IsikuKontroll, ErakorralineYV, RegisterJobInspection) ja Andmejälgija teenus findUsage, turvaserveri seadistus, masinloetavad lepingud {gh_link("docs/xtee/XroadOpenapi.yaml", "XroadOpenapi.yaml")} ja {gh_link("docs/xtee/FindUsageOpenapi.yaml", "FindUsageOpenapi.yaml")}. Arendaja juhendid, mock ja testikogumikud: X-tee liidestumise lehed ja {gh_link("docs/developer/README.md", "docs/developer")}.</td>
     </tr>
     <tr>
       <td><strong>Andmejälgija seadistamine</strong></td>
@@ -314,6 +324,31 @@ def build_page():
       <td><strong>Arhitektuuriotsused (ADR-d)</strong></td>
       <td>{gh_link("docs/workingdocs/architecture-decisions.md")}</td>
       <td>10+ arhitektuuriotsust põhjendustega: andmemudel, X-tee, PDF, auditi sool, arhiivibaas jt.</td>
+    </tr>
+    <tr>
+      <td><strong>Testiplaan</strong></td>
+      <td>{gh_link("docs/testimine/testiplaan.md")}</td>
+      <td>Testimise eesmärgid, ulatus, testitasemed ja tööriistad, keskkonnad, testkasutajad, sisenemis- ja väljumiskriteeriumid, defektihaldus.</td>
+    </tr>
+    <tr>
+      <td><strong>Testilood</strong></td>
+      <td>{gh_link("docs/testimine/testilood.md")}<br />{gh_link("docs/testimine/testilood-ui.md")}</td>
+      <td>Testilugude ülesehitus ja moodulite koond; kõik UI-testilood (Playwright) sammude ja viimase tulemusega.</td>
+    </tr>
+    <tr>
+      <td><strong>Testiraport</strong></td>
+      <td>Allpool (§ Testimine)<br />{gh_link("docs/testimine/testiraport.md")}</td>
+      <td>Eesmärgid, tegevused, tulemused, testitud nõuete nimekiri, leitud ja parandatud vead, avatud kohad.</td>
+    </tr>
+    <tr>
+      <td><strong>API-testide nimekiri ja tulemused</strong></td>
+      <td>{gh_link("docs/testimine/apitestid.md")}</td>
+      <td>Kõik API-testid (Newman, Ruuteri DSL-stsenaariumid, X-tee arendaja-mock, lepingutestid) iga kontrolli tulemusega.</td>
+    </tr>
+    <tr>
+      <td><strong>X-tee testprotokoll</strong></td>
+      <td>Allpool (§ X-tee pakutavad teenused)<br />{gh_link("docs/xtee/08-testprotokoll.md")}</td>
+      <td>Pakutavate (9 otspunkti) ja kasutatavate X-tee teenuste testid ja tulemused, arendaja-mocki kontrollid.</td>
     </tr>
     <tr>
       <td><strong>Teadaolevad probleemid</strong></td>
@@ -406,6 +441,34 @@ def build_page():
   </tbody>
 </table>
 {info_box("<p>Masinloetavad OpenAPI lepingud: " + gh_link("docs/xtee/XroadOpenapi.yaml") + " (kuus LJVIS2 teenust, <code>/ljvis/xroad/provide/openapi</code>) ja " + gh_link("docs/xtee/FindUsageOpenapi.yaml") + " (Andmejälgija teenus findUsage, <code>/ljvis/xroad/v2/openapi</code>).</p><p>Turvaserver saab neid URL-e kasutada lepingu automaatseks uuendamiseks (vt juhend §4.8).</p>")}
+<h2>Arendaja-mock</h2>
+<p>Liidestujatele on sünteetiliste andmetega mock aadressil <code>https://dev.liiklusvalve.ee/developer</code> (tervisekontroll <code>/developer/health/ready</code>); ligipääs ainult whitelistitud IP-aadressidelt (taotlus KeMIT-i teenuseomanikule). Juhendid: {confluence_link(XTEE_LIIDESTUMINE, "LJVIS2 · X-tee liidestumine")} ja {gh_link("docs/developer/README.md", "docs/developer")} (liidestumine ja turve, teenused ja näited, mock, lokaalne mock, vead, OpenAPI ja Postmani kogumik).</p>
+""")
+
+    # ── X-tee testprotokoll ───────────────────────────────────────────────────
+    xt_path = DOCS / "xtee" / "08-testprotokoll.md"
+    xt_html, xt_atts = md_to_html(xt_path)
+    all_atts.extend(xt_atts)
+    sections.append(f"""
+<h2>X-tee testprotokoll</h2>
+{xt_html}
+""")
+
+    # ── Testimine ─────────────────────────────────────────────────────────────
+    tr_path = DOCS / "testimine" / "testiraport.md"
+    tr_html, tr_atts = md_to_html(tr_path)
+    all_atts.extend(tr_atts)
+    sections.append(f"""
+<h1>Testimine</h1>
+{info_box("<p>Testidokumentatsioon: " + gh_link("docs/testimine/testiplaan.md", "testiplaan") + ", "
+          + gh_link("docs/testimine/testilood.md", "testilood") + " ("
+          + gh_link("docs/testimine/testilood-ui.md", "UI-testilood") + "), "
+          + gh_link("docs/testimine/apitestid.md", "API-testide nimekiri ja tulemused") + ", "
+          + gh_link("docs/xtee/08-testprotokoll.md", "X-tee testprotokoll") + ". "
+          + "Newmani kollektsioonide detailtulemused: " + confluence_link("E2E testitulemused", "E2E testitulemused")
+          + ". Allpool on testiraport.</p>")}
+<h2>Testiraport</h2>
+{tr_html}
 """)
 
     # ── Teadaolevad probleemid ────────────────────────────────────────────────

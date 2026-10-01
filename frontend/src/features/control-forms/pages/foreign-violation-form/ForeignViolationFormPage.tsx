@@ -23,6 +23,7 @@ import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmM
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 export function ForeignViolationFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -40,6 +41,8 @@ export function ForeignViolationFormPage() {
   const [isEditActive, setIsEditActive] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );

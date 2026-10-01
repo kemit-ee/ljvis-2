@@ -1479,12 +1479,23 @@
     "valueAddedNote": "Klassifikaatori väärtus on lisatud",
     "editedNote": "Klassifikaator on muudetud",
     "valueEditedNote": "Klassifikaatori väärtus on muudetud",
+    "formScope": {
+      "label": "Piira vormidele",
+      "help": "Kui ühtegi vormi pole valitud, on väärtus kasutusel kõigil vormidel.",
+      "placeholder": "Kõik vormid",
+      "column": "Vormid",
+      "all": "Kõik",
+      "parentOwn": "{{name}} — üldandmed",
+      "orphan": "{{code}} (vormitüüpi enam pole)"
+    },
     "validation": {
       "required": "Kohustuslik väli",
       "valueConflict": "Sellise nimetusega klassifikaatori väärtus on juba olemas",
       "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
       "api": {
-        "required": "Kohustuslik väli"
+        "required": "Kohustuslik väli",
+        "duplicate_code": "Selle koodiga väärtus on klassifikaatoris juba olemas",
+        "invalid_period": "Kehtivuse lõpp peab olema hilisem kui kehtivuse algus"
       }
     }
   },

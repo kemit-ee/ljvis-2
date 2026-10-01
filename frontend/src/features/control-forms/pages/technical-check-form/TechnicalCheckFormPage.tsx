@@ -50,6 +50,7 @@ import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/useAdrForm';
 import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -86,6 +87,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   const [activeTab, setActiveTab] = useState(variant === 'vehicle' ? tabId : '');
   const [compoundEditActive, setCompoundEditActive] = useState(false);
+  // ADR-011: koondvormi (SP_COMPOUND) väljade vormipiirang muutmisrežiimis;
+  // alamvormid rakendavad oma skoobi ise (…CreatePage)
+  useClassifierScopeActive(compoundEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
