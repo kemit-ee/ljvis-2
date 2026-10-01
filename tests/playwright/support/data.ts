@@ -1,3 +1,5 @@
+import { randomInt } from 'node:crypto';
+
 /**
  * Testandmete generaatorid. Haldusmoodulite specid loovad ainult unikaalseid
  * kirjeid (seemnega loodud gruppe/kasutajaid ei muudeta), et kordusjooksud ja
@@ -6,7 +8,7 @@
 
 /** Jooksu-unikaalne lühike tunnus nimede ja koodide jaoks, nt "PW-k3x9a". */
 export function uniqueTag(prefix = 'PW'): string {
-  return `${prefix}-${Date.now().toString(36).slice(-5)}${Math.floor(Math.random() * 36).toString(36)}`;
+  return `${prefix}-${Date.now().toString(36).slice(-5)}${randomInt(36).toString(36)}`;
 }
 
 /** Eesti isikukoodi kontrollnumber (I ja II astme kaalud). */
@@ -27,11 +29,11 @@ function personalCodeChecksum(first10: string): number {
  * Ajatempel + juhuslik järjekorranumber hoiab kokkupõrked ebatõenäolisena.
  */
 export function uniquePersonalCode(): string {
-  const gender = Math.random() < 0.5 ? '3' : '4';
-  const year = 70 + Math.floor(Math.random() * 30);
-  const month = 1 + Math.floor(Math.random() * 12);
-  const day = 1 + Math.floor(Math.random() * 28);
-  const seq = (Date.now() + Math.floor(Math.random() * 1000)) % 1000;
+  const gender = randomInt(2) === 0 ? '3' : '4';
+  const year = 70 + randomInt(30);
+  const month = 1 + randomInt(12);
+  const day = 1 + randomInt(28);
+  const seq = randomInt(1000);
   const first10 =
     gender +
     String(year).padStart(2, '0') +
