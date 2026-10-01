@@ -289,8 +289,7 @@
     "code": "CAA_1.4.2",
     "name": "1.4.2 Seisupiduri tõhusus",
     "allowed": [
-      "OV",
-      "EOV"
+      "OV"
     ]
   },
   {

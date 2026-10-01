@@ -5,7 +5,8 @@
 --   1.1.17 Pidurdusjõu regulaator                 -> VO,OV,EOV
 --   1.1.20 Haagisepidurite automaatne rakendumine -> OV
 --   1.4.1  Seisupiduri toimimine                  -> OV
--- Seeme 20261020110000 oli need valesti (VO,OV,EOV; OV,EOV; EOV; OV,EOV).
+--   1.4.2  Seisupiduri tõhusus                    -> OV
+-- Seeme 20261020110000 oli need valesti (VO,OV,EOV; OV,EOV; EOV; OV,EOV; OV,EOV).
 -- Idempotentne: UPDATE seab sama väärtuse uuesti.
 
 UPDATE classifier.classifier_value
@@ -26,4 +27,9 @@ WHERE code = 'CAA_1.1.20'
 UPDATE classifier.classifier_value
 SET description = 'OV'
 WHERE code = 'CAA_1.4.1'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'OV'
+WHERE code = 'CAA_1.4.2'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');

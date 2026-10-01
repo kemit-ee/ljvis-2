@@ -12,6 +12,7 @@
 - Punkt 1.1.17 „Pidurdusjõu regulaator“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
 - Punkt 1.1.20 „Haagisepidurite automaatne rakendumine“: valitav raskusaste on ainult OV (varem EOV).
 - Punkt 1.4.1 „Seisupiduri toimimine“: valitav raskusaste on ainult OV (varem OV ja EOV).
+- Punkt 1.4.2 „Seisupiduri tõhusus“: valitav raskusaste on ainult OV (varem OV ja EOV).
 - Sama kehtib väljatrükil.
 
 ## 2026-10-02
