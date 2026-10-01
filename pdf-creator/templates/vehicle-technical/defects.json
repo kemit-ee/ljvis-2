@@ -1185,7 +1185,6 @@
     "code": "CAA_7.9",
     "name": "7.9 Sõidumeerik",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -1202,7 +1201,7 @@
     "code": "CAA_7.11",
     "name": "7.11 Läbisõidumõõdik",
     "allowed": [
-      "VO"
+      "OV"
     ]
   },
   {
@@ -1218,8 +1217,8 @@
     "code": "CAA_8.1.1",
     "name": "8.1.1 Müravähendussüsteem",
     "allowed": [
-      "VO",
-      "OV"
+      "OV",
+      "EOV"
     ]
   },
   {
@@ -1235,7 +1234,6 @@
     "code": "CAA_8.2.1.2",
     "name": "8.2.1.2 Ottomootori heitgaasid",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -1244,7 +1242,6 @@
     "code": "CAA_8.2.2.1",
     "name": "8.2.2.1 Diiselmootori heitgaaside toksilisuse vähendamise seadmed",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -1253,7 +1250,6 @@
     "code": "CAA_8.2.2.2",
     "name": "8.2.2.2 Diiselmootori suitsusus",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -1270,8 +1266,8 @@
     "code": "CAA_8.4.1",
     "name": "8.4.1 Nähtav suits",
     "allowed": [
-      "VO",
-      "OV"
+      "OV",
+      "EOV"
     ]
   },
   {
@@ -1279,7 +1275,8 @@
     "code": "CAA_8.4.2",
     "name": "8.4.2 Vedelikulekked",
     "allowed": [
-      "OV"
+      "OV",
+      "EOV"
     ]
   },
   {
@@ -1305,7 +1302,6 @@
     "code": "CAA_9.2",
     "name": "9.2 Niiskuse ja jäite eemaldamise süsteem",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
@@ -1315,7 +1311,6 @@
     "code": "CAA_9.3",
     "name": "9.3 Ventileerimis- ja küttesüsteem",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
