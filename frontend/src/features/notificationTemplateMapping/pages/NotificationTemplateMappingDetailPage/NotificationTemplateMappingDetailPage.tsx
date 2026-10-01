@@ -17,7 +17,10 @@ import { useNotificationTemplateMappingDetail } from './useNotificationTemplateM
 import { useNotificationTemplateMappingForm } from './useNotificationTemplateMappingForm';
 import { DesktopRecipientsField } from './DesktopRecipientsField';
 import { resolveDesktopRecipientUsers } from '../../api';
-import { NOTIFICATION_TYPE_TRIGGER_FORM_KEYS } from '../../notificationTypeMeta';
+import {
+  NOTIFICATION_TYPE_TEMPLATE_VARIABLES,
+  NOTIFICATION_TYPE_TRIGGER_FORM_KEYS,
+} from '../../notificationTypeMeta';
 
 const LANGUAGE_OPTIONS = [
   { value: 'et', label: 'Eesti' },
@@ -97,6 +100,11 @@ export function NotificationTemplateMappingDetailPage() {
   const triggeringForms = triggeringFormKeys
     ? triggeringFormKeys.map((key) => t(`search.formType.${key}`)).join(', ')
     : t('notificationTemplateMapping.triggeredAutomatically');
+
+  const templateVariables =
+    mapping.channel === 'postkast'
+      ? NOTIFICATION_TYPE_TEMPLATE_VARIABLES[mapping.notificationType]
+      : undefined;
 
   return (
     <div>
@@ -263,6 +271,41 @@ export function NotificationTemplateMappingDetailPage() {
           )}
         </Card.Content>
       </Card>
+
+      {templateVariables && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3">
+              {t('notificationTemplateMapping.variables.title')}
+            </Heading>
+            <Text color="secondary" className="mb-1">
+              {t('notificationTemplateMapping.variables.intro')}
+            </Text>
+            <table className="mb-1" data-testid="template-variables">
+              <thead>
+                <tr>
+                  <th align="left">
+                    {t('notificationTemplateMapping.variables.name')}
+                  </th>
+                  <th align="left">
+                    {t('notificationTemplateMapping.variables.description')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {templateVariables.map((name) => (
+                  <tr key={name}>
+                    <td>
+                      <code>{`{{${name}}}`}</code>
+                    </td>
+                    <td>{t(`notificationTemplateMapping.variables.${name}`)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card.Content>
+        </Card>
+      )}
     </div>
   );
 }

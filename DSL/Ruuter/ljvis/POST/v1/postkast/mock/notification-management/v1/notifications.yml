@@ -13,6 +13,8 @@ declaration:
     body:
       - field: originalTemplateId
         type: string
+      - field: language
+        type: string
       - field: sendTime
         type: string
       - field: parameters

@@ -1503,6 +1503,21 @@
     "edit": "Muuda",
     "save": "Salvesta",
     "cancel": "Tühista",
+    "variables": {
+      "title": "Malli muutujad",
+      "intro": "Postkast 2.0 malli tekstis kasutatavad muutujad. LJVIS saadab need iga teavitusega; mall tuleb Postkastis koostada täpselt nende nimedega. Adressaadi e-post lisatakse alati muutujana „recipient“.",
+      "name": "Muutuja",
+      "description": "Sisu",
+      "formNumber": "Kontrollvormi number",
+      "companyName": "Veoettevõtja nimi",
+      "companyRegCode": "Veoettevõtja registrikood",
+      "inspectionDateTime": "Kontrolli aeg (kuupäev ja kellaaeg)",
+      "inspectionCountryCode": "Kontrolli koht (ISO riigikood)",
+      "vehicleRegNr": "Kontrollitud sõiduki registreerimisnumber",
+      "violationSeverities": "Rikkumise raskusastmed (nt MSI, VSI)",
+      "violationDescription": "Rikkumise vabatekstiline kirjeldus",
+      "resultType": "Kontrolli tulemus"
+    },
     "editedNote": "Seadistus on muudetud",
     "validation": {
       "required": "Kohustuslik väli",

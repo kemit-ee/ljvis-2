@@ -167,6 +167,25 @@ Iga liigi kohta salvestatakse **uus versioon** (nagu kasutajate ja
 kasutajagruppide puhul) — olemasolevat rida ei muudeta, seega on iga
 haldustegevus jälgitav (`Loodud`, `Loonud`).
 
+### Postkast 2.0 malli muutujad
+
+`postkast`-kanaliga liikide detailivaates on kaart **„Malli muutujad“**. See
+loetleb muutujad, mida LJVIS saadab Postkast 2.0-le koos teavitusega ja mida
+saab Postkastis mallipõhises tekstis ja teemas kasutada kujul `{{muutuja}}`.
+Malli tekst ja teema ei tule LJVIS-ist — need luuakse Postkastis ja peavad
+kasutama **täpselt samu muutujate nimesid** (tõstutundlik), vastasel korral
+jääb muutuja kirjas tühjaks.
+
+| Teavituse liik | Muutujad |
+|----------------|----------|
+| `carrier_violation` (raske rikkumise teavitus veoettevõtjale) | `formNumber` (kontrollvormi number), `companyName` (veoettevõtja nimi), `companyRegCode` (registrikood), `inspectionDateTime` (kontrolli aeg), `inspectionCountryCode` (kontrolli koht, ISO riigikood), `vehicleRegNr` (sõiduki reg-nr), `violationSeverities` (raskusastmed, nt „MSI, VSI“), `violationDescription` (rikkumise kirjeldus) |
+| `labor_foreign_proposal` (välisriigi ettepanek tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode` |
+| `labor_kabotage` (kabotaaži kontrolli teavitus tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode`, `resultType` (kontrolli tulemus) |
+
+Lisaks saadetakse alati muutuja `recipient` (adressaadi e-post). Valmis
+mallifailid ja malli loomise samm-sammuline juhend on repos kaustas
+`docs/pk2-templates/`.
+
 ### Desktop-kanali teavituse saajad
 
 `desktop`-kanaliga liikidel (nt `ncr_violation`, `driving_ban`) puudub

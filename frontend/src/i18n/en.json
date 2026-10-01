@@ -1482,6 +1482,21 @@
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
+    "variables": {
+      "title": "Template variables",
+      "intro": "Variables available in the Postkast 2.0 template text. LJVIS sends them with every notification; the template must be authored in Postkast using exactly these names. The recipient email is always added as the variable “recipient”.",
+      "name": "Variable",
+      "description": "Content",
+      "formNumber": "Control form number",
+      "companyName": "Carrier name",
+      "companyRegCode": "Carrier registry code",
+      "inspectionDateTime": "Inspection date and time",
+      "inspectionCountryCode": "Inspection location (ISO country code)",
+      "vehicleRegNr": "Inspected vehicle registration number",
+      "violationSeverities": "Violation severities (e.g. MSI, VSI)",
+      "violationDescription": "Free-text violation description",
+      "resultType": "Inspection result"
+    },
     "editedNote": "Settings have been updated",
     "validation": {
       "required": "Required field",
