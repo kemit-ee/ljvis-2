@@ -63,6 +63,16 @@ export function FormSearchFilters({
     [t],
   );
 
+  // Vormid hoiavad maakonda EHAK klassifikaatori väärtuse võtmena, mitte nimena
+  const countyOptions = useMemo<Option[]>(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null)
+        .map((e) => ({ value: String(e.classifierValueKey), label: e.name }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'et')),
+    [getByCode],
+  );
+
   const statusOptions = useMemo<Option[]>(
     () => [
       { value: 'saved', label: t('search.status.saved') },
@@ -151,11 +161,13 @@ export function FormSearchFilters({
           value={draft.driver}
           onChange={(v) => setField('driver', v)}
         />
-        <TextField
+        <Select
+          key={`search-county-${resetKey}`}
           id="search-county"
           label={t('search.filters.county')}
-          value={draft.county}
-          onChange={(v) => setField('county', v)}
+          options={[{ value: '', label: '\u00a0' }, ...countyOptions]}
+          value={pick(countyOptions, draft.county)}
+          onChange={(val) => setField('county', selected(val))}
         />
         <Select
           id="search-has-violation"

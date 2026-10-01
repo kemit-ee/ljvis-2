@@ -6,6 +6,10 @@ params:
     type: string
     required: false
     description: Comma-separated form_type codes the caller may see (row-level)
+  actor_code:
+    type: string
+    required: false
+    description: Caller personal code; own forms are always visible
   max_rows:
     type: number
     required: true
@@ -41,7 +45,7 @@ params:
   county:
     type: string
     required: false
-    description: Control location county / maakond (ILIKE)
+    description: Control location county / maakond, EHAK classifier value key (exact match)
   inspector_org_id:
     type: string
     required: false
@@ -77,7 +81,9 @@ WITH f AS (
     SELECT fs.form_type, fs.form_key, fs.main_date, fs.created_at
     FROM forms.form_search fs
     WHERE
-    fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))
+    (fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))
+     OR fs.status = 'published'
+     OR (COALESCE(:actor_code, '') <> '' AND fs.created_by = :actor_code))
     AND (COALESCE(:form_type, '') = '' OR fs.form_type = :form_type)
     AND (COALESCE(:date_from, '') = '' OR fs.main_date >= :date_from::DATE)
     AND (COALESCE(:date_to, '') = '' OR fs.main_date <= :date_to::DATE)
@@ -85,7 +91,7 @@ WITH f AS (
     AND (COALESCE(:company_reg_code, '') = '' OR fs.company_reg_code ILIKE '%' || :company_reg_code || '%')
     AND (COALESCE(:company_name, '') = '' OR fs.company_name ILIKE '%' || :company_name || '%')
     AND (COALESCE(:driver, '') = '' OR fs.driver_search ILIKE '%' || lower(:driver) || '%')
-    AND (COALESCE(:county, '') = '' OR fs.county ILIKE '%' || :county || '%')
+    AND (COALESCE(:county, '') = '' OR fs.county = :county)
     AND (COALESCE(:inspector_org_id, '') = '' OR fs.inspector_org_id = :inspector_org_id)
     AND (COALESCE(:has_violation, '') = '' OR fs.has_violation = :has_violation::BOOLEAN)
     AND (COALESCE(:status, '') = '' OR fs.status = :status)

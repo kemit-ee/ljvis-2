@@ -36,7 +36,7 @@ declaration:
         description: "Driver personal code or name"
       - field: county
         type: string
-        description: "Control location county / maakond"
+        description: "Control location county / maakond, EHAK classifier value key"
       - field: inspectorOrgId
         type: string
         description: "Performing authority organisation id"
@@ -72,6 +72,7 @@ search:
       type: json
     body:
       allowed_types: "${allowed_types}"
+      actor_code: "${u.personalcode || ''}"
       page: "${incoming.params.page ?? '1'}"
       page_size: "${incoming.params.pageSize ?? '20'}"
       sorting: "${incoming.params.sorting ?? 'main_date desc'}"
