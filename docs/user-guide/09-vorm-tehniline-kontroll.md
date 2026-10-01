@@ -130,5 +130,5 @@ Sõiduki ja haagise kontrollkaardi esi- ja tagakülg on alati samas PDF-is.
 - Kui valite raskusastmega `OV` või `EOV` rikked, lukustab süsteem madalamad tulemused ja pakub automaatselt kõrgemat kontrolli tulemuse taset.
 - Sõidukeelu tulemusel märgib süsteem automaatselt rikkumise `MSI302`.
 - `MSI302` eemaldamine on tavakasutajale sõidukeelu korral keelatud; administraator saab seda üle kirjutada.
-- Avaldatud vormi ei saa enam muuta. Paranduste tegemiseks tuleb luua uus vorm või pöörduda administraatori poole.
+- Avalikustatud vormi ei saa enam muuta. Paranduste tegemiseks tuleb luua uus vorm või pöörduda administraatori poole.
 - X-tee andmeid saab täita ja salvestada alles pärast vormi kinnitamist.

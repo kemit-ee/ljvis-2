@@ -1,8 +1,8 @@
-# eToimiku X-tee logid
+# E-toimiku X-tee logid
 
 ## Ülevaade
 
-**eToimiku X-tee logid** kuvab administraatorile eToimiku
+**E-toimiku X-tee logid** kuvab administraatorile eToimiku
 `AnnaIsikuKvalifikatsioonid` teenuse kaudu tehtud X-tee päringute
 täieliku ajaloo — nii käsitsi vormilt tehtud otsingud (vt E-toimiku
 kvalifikatsiooni kontroll) kui ka öised automaatsed taustatöö
@@ -20,13 +20,13 @@ vastuse täissisu), on iga avamine logitud auditisse.
 
 | Tegevus | Õigus | Selgitus |
 |---------|-------|----------|
-| Logide nimekiri (`GET /v1/xroad/etoimik/logs/list`) | `xroad.log.read` | Loetleb ja filtreerib eToimiku X-tee integratsioonilogi. Ilma selle õiguseta menüüpunkt «eToimiku X-tee logid» ei ole nähtav ja otsenavigeerimine annab «Teil puudub ligipääs sellele lehele». |
+| Logide nimekiri (`GET /v1/xroad/etoimik/logs/list`) | `xroad.log.read` | Loetleb ja filtreerib eToimiku X-tee integratsioonilogi. Ilma selle õiguseta menüüpunkt «E-toimiku X-tee logid» ei ole nähtav ja otsenavigeerimine annab «Teil puudub ligipääs sellele lehele». |
 
 `xroad.log.read` on antud **ainult Super Admin Groupile** — logi sisaldab
 isikuandmeid üle asutuste piiride, samamoodi kui `audit.read` (mitte
 `audit.read.local`) on piiratud Super Adminiga.
 
-Vaade avaneb vasakmenüüst **Haldus > eToimiku X-tee logid**.
+Vaade avaneb vasakmenüüst **Haldus > E-toimiku X-tee logid**.
 
 ![eToimiku X-tee logide nimekiri](images/10-etoimiku-xtee-logid/01-loend.png)
 

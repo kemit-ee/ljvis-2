@@ -2,7 +2,7 @@ import { test, expect } from '../support/fixtures';
 import { STORAGE_STATE } from '../playwright.config';
 
 /**
- * Haldus > eToimiku X-tee logid. Testandmed:
+ * Haldus > E-toimiku X-tee logid. Testandmed:
  * tests/bootstrap/seed_xroad_etoimik_logs.sql — 6 kirjet sorditult created_at
  * DESC (vaikefiltri eile-täna piires 5, vanem 1 väljas):
  *   0: VT-005 error     compound_form   /95002003
@@ -27,10 +27,10 @@ function formatEtDate(date: Date): string {
   return `${dd}.${mm}.${date.getFullYear()}`;
 }
 
-test.describe('eToimiku X-tee logid', () => {
+test.describe('E-toimiku X-tee logid', () => {
   test('vaikefilter näitab eile-täna kirjeid, vanem kirje ei ole nähtav', async ({ page }) => {
     await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: /eToimiku X-tee logid/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /E-toimiku X-tee logid/i })).toBeVisible({
       timeout: 20_000,
     });
 
@@ -112,7 +112,7 @@ test.describe('eToimiku X-tee logid', () => {
 
     await page.goto('/');
     await page.waitForLoadState('networkidle').catch(() => {});
-    await expect(page.getByRole('link', { name: /eToimiku X-tee logid/i })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /E-toimiku X-tee logid/i })).toHaveCount(0);
 
     await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
     await expect(page.getByText(/puudub ligipääs/i)).toBeVisible({ timeout: 20_000 });

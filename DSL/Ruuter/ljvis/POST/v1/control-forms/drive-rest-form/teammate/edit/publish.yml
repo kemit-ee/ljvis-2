@@ -145,7 +145,7 @@ buildLogDescription:
   assign:
     published_sub_form_number: "${publishRes.response && publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].subFormNumber || sub_form_number}"
     published_version: "${publishRes.response && publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].version != null ? publishRes.response.body[0].version : current_version}"
-    description: "Sõidu- ja puhkeaja alamvorm (kaasreisija) avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${published_sub_form_number}/${published_version}"
+    description: "Sõidu- ja puhkeaja alamvorm (meeskonnaliige) avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${published_sub_form_number}/${published_version}"
   next: logAuditEvent
 
 logAuditEvent:

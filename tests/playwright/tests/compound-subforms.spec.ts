@@ -122,7 +122,7 @@ test('sõidu- ja puhkeaja vormi faile saab lisada alles pärast esimest salvesta
   await page.getByRole('tab', { name: /^Autojuhi/i }).click();
   const panel = page.locator('#tab-sp-driver-panel');
   await expect(panel.locator('input[type="file"]')).toBeDisabled();
-  const saveFirst = panel.getByText('Salvesta vorm enne failide lisamist');
+  const saveFirst = panel.getByText('Salvestage vorm enne failide lisamist');
   await expect(saveFirst).toBeVisible();
   await saveFirst.scrollIntoViewIfNeeded();
   await testInfo.attach('ppa-failid-enne-salvestamist', { body: await page.screenshot(), contentType: 'image/png' });

@@ -67,5 +67,5 @@ Mõned vormid võimaldavad võrrelda kahte snapshoti. Süsteem kuvab:
 | Staatus | Selgitus |
 |---|---|
 | Mustand | Salvestatud, kuid mitte kinnitatud. Saab muuta. |
-| Avaldatud | Kinnitatud. Ei saa enam muuta. |
+| Avalikustatud | Kinnitatud. Ei saa enam muuta. |
 | Aegunud | Vormi kehtivusaeg on möödas (kui rakendatakse aegumist). |

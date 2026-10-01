@@ -17,7 +17,7 @@ const columnHelper = createColumnHelper<CompanyControlRow>();
 
 /**
  * Column header with an explanatory tooltip — used for the severity
- * columns (Huligaansõit/Väga tõsine/Tõsine/Vähemtõsine), since the raw
+ * columns (Kõige raskem/Väga raske/Raske/Kergem), since the raw
  * EU classifier abbreviations (MSI/VSI/SI/MI) mean nothing to a citizen
  * without transport-sector background.
  */

@@ -108,7 +108,7 @@ export function LoginPage() {
               <Text color="secondary">
                 {t(
                   'auth.descriptionFooter',
-                  'Liiklusjärelvalve infosüsteemi jalus',
+                  'Liiklusjärelevalve infosüsteemi jalus',
                 )}{' '}
                 <a
                   href="#"

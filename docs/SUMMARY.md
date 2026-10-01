@@ -43,7 +43,7 @@
 - [API info](admin-guide/07-api-info.md)
 - [Manused](admin-guide/08-manused.md)
 - [Teavitused](admin-guide/09-teavitused.md)
-- [eToimiku X-tee logid](admin-guide/10-etoimiku-xtee-logid.md)
+- [E-toimiku X-tee logid](admin-guide/10-etoimiku-xtee-logid.md)
 - [Esimese superadmini loomine](admin-guide/11-esimene-superadmin.md)
 - [Paigaldus ja keskkonnad (devops)](admin-guide/12-paigaldus-devops.md)
 
