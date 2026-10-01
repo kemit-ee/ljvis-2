@@ -153,7 +153,7 @@ Näiteks `tram-2026-00001/1`. Varasemat eraldi `sp-` alamvormi numbrit enam ei o
 
 ## Elutsükkel
 
-**Salvestatud → Kinnitatud → Avaldatud**
+**Salvestatud → Kinnitatud → Avalikustatud**
 
 - **Salvesta** — korduv salvestamine ei muuda versiooni.
 - **Kinnita** — lukustab kaardi (versioon ei muutu).

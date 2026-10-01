@@ -4,6 +4,18 @@
 
 ## 2026-10-01
 
+### Kasutajaliidese terminid ühtlustatud
+
+- Olek „Avalikustatud“ on igal pool ühtemoodi: otsingu olekufiltris, vormi teadetes („Vorm on avalikustatud“), lukustatud vormi veateadetes ja NU sobimatusteate allikadeklaratsiooni teadetes oli varem „Avaldatud“.
+- Meeskonnaliikme sõidu- ja puhkeaja alamvormi lühinimi on „Sõidu- ja puhkeaeg (meeskonnaliige)“ (varem „kaassõitja“ või „kaasreisija“, sh auditilogis).
+- Rikkumiste raskusastmed on läbivalt: kõige raskem rikkumine (MSI), väga raske rikkumine (VSI), raske rikkumine (SI), kergem rikkumine (MI). Varem oli kodanikuvaates „Eriti tõsine“, „Ülitõsine“, „Väga tõsine“, „Tõsine“ ja „Vähetõsine“; samuti said NCR rikkumise kategooria ja ADR rikkumiste rühmade klassifikaatorid „väga tõsine“/„tõsine“ asemel „väga raske“/„raske“.
+- Vormide lühinimed on otsingus, murupurus ja kodanikuvaates samad (nt „Välisriigi kontrollkaart“, „Sõiduki tehnonõuetele vastavus“, „Tööinspektsiooni kontrollkaart“). Kodanikuvaate kontrolli tulemused on samas sõnastuses kui vormil.
+- Hea maine vormi pealkiri on „Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuhi andmevorm“.
+- ERRU: menüüpunktid on kujul „nimi + kood“ (nt „Mainepäringud CGR“). CGR- ja NU-vormidel on „kutsetunnistuse“ ja „kutseoskuse tunnistuse“ asemel „ametialase pädevuse tunnistus“, nagu väljade siltidel.
+- Väiksemad ühtlustused: „Sihtnumber“ (varem osal vormidel „Postiindeks“), „Sõiduki reg-nr“ loendite veergudes, „E-toimiku X-tee logid“, „Laadi fail üles“, „Muuda rikkeid“. Otsingutulemuste veerg „Vedaja“ on nüüd „Ettevõte“, nagu filtris.
+- Töölaua vaate valik „Minu organisatsioonid“ on nüüd „Minu asutuse“.
+- Pöördumine on läbivalt „teie“ vormis (nt „Kas soovite jätkata?“, „Salvestage vorm enne failide lisamist“).
+- Parandatud kirjavead: „Liiklusjärelevalve“ (jalus), „Struktuuriüksus“, „siduda“, „nimetusega“, „vaheaja“, „Mittetäitmise põhjus“.
 ### Otsingu tulemuse allalaadimine (xlsx / csv)
 
 - Vormiotsingu lehel on õigusega `form.export` kasutajal nupud „Laadi tulemus alla (xlsx)“ ja „(csv)“.

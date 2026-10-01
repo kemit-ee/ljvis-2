@@ -178,7 +178,7 @@ confirmForm:
 
 buildLogDescription:
   assign:
-    description: "Sõidu- ja puhkeaja alamvorm (kaasreisija) kinnitatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${confirmRes.response.body[0].subFormNumber}/${confirmRes.response.body[0].version}"
+    description: "Sõidu- ja puhkeaja alamvorm (meeskonnaliige) kinnitatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${confirmRes.response.body[0].subFormNumber}/${confirmRes.response.body[0].version}"
   next: logAuditEvent
 
 logAuditEvent:
