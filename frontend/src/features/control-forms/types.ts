@@ -587,15 +587,25 @@ export interface FormSearchRow {
   total?: number;
 }
 
+/** Eksporditud vormi viimane versioon: `data` on kõigi veergudega JSON-tekst. */
+export interface FormSearchExportRow {
+  formType: string;
+  formKey: number;
+  data: string;
+}
+
 export interface FormSearchFilters {
   dateFrom: string;
   dateTo: string;
   formType: string;
+  formNumber: string;
   vehicleRegNr: string;
   companyRegCode: string;
   companyName: string;
   driver: string;
   county: string;
+  /** '' = all, 'ee' = Estonian carrier, 'foreign' = foreign carrier */
+  carrierOrigin: string;
   /** '' = any, 'true' = has violation, 'false' = no violation */
   hasViolation: string;
   status: string;

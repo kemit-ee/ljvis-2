@@ -2211,7 +2211,17 @@
   "search": {
     "title": "Search",
     "clear": "Clear",
+    "carrierOrigin": {"all": "All", "ee": "Estonia", "foreign": "Foreign carrier"},
+    "export": {
+      "xlsx": "Download results (xlsx)",
+      "csv": "Download results (csv)",
+      "pickType": "To download, choose a form type in the filter and press Search.",
+      "tooMany": "Result is too large (over {{max}} forms). Narrow the search.",
+      "failed": "Download failed."
+    },
     "filters": {
+      "formNumber": "Control card no.",
+      "carrierOrigin": "Carrier country",
       "dateFrom": "Control date from",
       "dateTo": "Control date to",
       "formType": "Form type",

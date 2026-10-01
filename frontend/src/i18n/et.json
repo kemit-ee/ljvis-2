@@ -2236,7 +2236,17 @@
   "search": {
     "title": "Otsing",
     "clear": "Tühjenda",
+    "carrierOrigin": {"all": "Kõik", "ee": "Eesti", "foreign": "Välisriigi vedaja"},
+    "export": {
+      "xlsx": "Laadi tulemus alla (xlsx)",
+      "csv": "Laadi tulemus alla (csv)",
+      "pickType": "Allalaadimiseks valige filtris vormi tüüp ja vajutage „Otsi“.",
+      "tooMany": "Tulemus on liiga suur (üle {{max}} vormi). Piirake otsingut.",
+      "failed": "Allalaadimine ebaõnnestus."
+    },
     "filters": {
+      "formNumber": "Kontrollkaardi nr",
+      "carrierOrigin": "Vedaja riik",
       "dateFrom": "Kontrolli kuupäev alates",
       "dateTo": "Kontrolli kuupäev kuni",
       "formType": "Vormi tüüp",
