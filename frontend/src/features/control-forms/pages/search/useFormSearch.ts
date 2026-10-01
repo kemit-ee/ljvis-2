@@ -8,6 +8,7 @@ const EMPTY_FILTERS: FormSearchFilters = {
   dateFrom: '',
   dateTo: '',
   formType: '',
+  formNumber: '',
   vehicleRegNr: '',
   companyRegCode: '',
   companyName: '',

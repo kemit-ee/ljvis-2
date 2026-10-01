@@ -2230,6 +2230,7 @@
       "failed": "Allalaadimine ebaõnnestus."
     },
     "filters": {
+      "formNumber": "Kontrollkaardi nr",
       "carrierOrigin": "Vedaja riik",
       "dateFrom": "Kontrolli kuupäev alates",
       "dateTo": "Kontrolli kuupäev kuni",

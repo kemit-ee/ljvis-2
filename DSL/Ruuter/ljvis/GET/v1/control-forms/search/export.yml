@@ -13,6 +13,9 @@ declaration:
       - field: formType
         type: string
         description: "Form type to export (required)"
+      - field: formNumber
+        type: string
+        description: "Exact form number"
       - field: vehicleRegNr
         type: string
         description: "Vehicle registration number"
@@ -92,6 +95,7 @@ export:
       date_from: "${incoming.params.dateFrom ?? ''}"
       date_to: "${incoming.params.dateTo ?? ''}"
       form_type: "${form_type}"
+      form_number: "${incoming.params.formNumber ?? ''}"
       vehicle_reg_nr: "${incoming.params.vehicleRegNr ?? ''}"
       company_reg_code: "${incoming.params.companyRegCode ?? ''}"
       company_name: "${incoming.params.companyName ?? ''}"

@@ -598,6 +598,7 @@ export interface FormSearchFilters {
   dateFrom: string;
   dateTo: string;
   formType: string;
+  formNumber: string;
   vehicleRegNr: string;
   companyRegCode: string;
   companyName: string;

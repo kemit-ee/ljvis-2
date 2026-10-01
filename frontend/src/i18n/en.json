@@ -2205,6 +2205,7 @@
       "failed": "Download failed."
     },
     "filters": {
+      "formNumber": "Control card no.",
       "carrierOrigin": "Carrier country",
       "dateFrom": "Control date from",
       "dateTo": "Control date to",

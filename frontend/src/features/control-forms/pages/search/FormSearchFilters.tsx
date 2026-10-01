@@ -146,6 +146,12 @@ export function FormSearchFilters({
           onChange={(val) => setField('formType', selected(val))}
         />
         <TextField
+          id="search-form-number"
+          label={t('search.filters.formNumber')}
+          value={draft.formNumber}
+          onChange={(v) => setField('formNumber', v)}
+        />
+        <TextField
           id="search-vehicle-reg-nr"
           label={t('search.filters.vehicleRegNr')}
           value={draft.vehicleRegNr}
