@@ -14,6 +14,12 @@
 - Iga allalaadimine kirjutatakse auditilogisse (`form.export`).
 - Uus õigus `form.export` lisatakse kataloogi; gruppidele omistab selle haldur grupihalduse vaates.
 
+### Vormiotsingu parandused
+
+- Isiku (juhi) otsing leiab nüüd isikukoodi või nime järgi ka koondvormid ja kõik alamvormid (SP, tehnokaart, ADR, KV). Varem jäid need tulemusest välja.
+- Avalikustatud vormid on otsingus nähtavad kõigile kasutajatele ja iga kasutaja näeb alati enda loodud vorme. Salvestatud ja kinnitatud vorme näeb lisaks õigusega `control_form.view_unpublished` kasutaja (administraator) kõigi asutuste kohta.
+- „Maakond“ on nüüd rippmenüü (vaikimisi tühi); varem tekstiotsing nimega ei leidnud midagi, sest vormid hoiavad maakonna klassifikaatori väärtuse võtmena.
+
 ## 2026-09-30
 
 ### Tehnovormi PDF: rikete loetelu mahub alati ühele lehele
