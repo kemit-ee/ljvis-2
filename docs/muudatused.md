@@ -61,6 +61,18 @@
 
 ## 2026-10-01
 
+### Testidokumentatsioon
+
+- Dokumentatsiooni uus jaotis „Testimine“ sisaldab testiplaani, testilugusid
+  (sh kõik UI-testilood sammude ja tulemusega), testiraportit koos testitud
+  nõuete nimekirjaga ning kõigi API-testide nimekirja tulemustega.
+- X-tee juhendite juurde lisandus X-tee testprotokoll: pakutavate ja
+  kasutatavate teenuste testid ning arendaja-mocki kontrollid.
+- Testilood ja API-testide nimekiri genereeritakse päris testijooksu
+  tulemusest (`scripts/generate-ui-testlood.py`, `scripts/generate-api-test-report.py`).
+- Lõpptarne Confluence'i lehel on testidokumendid, testiraport ja X-tee
+  testprotokoll; lehe siselingid viivad nüüd GitHubi dokumentidele.
+
 ### Haldusvaadete parandused (leitud uute UI-testidega)
 
 - Kasutajate otsing leiab kasutaja nüüd ka isikukoodi järgi, nagu juhend

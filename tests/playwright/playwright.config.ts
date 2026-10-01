@@ -38,6 +38,9 @@ export default defineConfig({
   reporter: [
     ['./reporter/tulemus-reporter.ts'],
     ['html', { outputFolder: 'tulemus/html-raport', open: 'never' }],
+    // Masinloetav tulemus — sisend scripts/generate-ui-testlood.py-le
+    // (docs/testimine/testilood.md UI-osa).
+    ['json', { outputFile: 'tulemus/playwright-tulemus.json' }],
     ['list'],
   ],
 
