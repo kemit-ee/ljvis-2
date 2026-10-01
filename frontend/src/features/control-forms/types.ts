@@ -587,6 +587,13 @@ export interface FormSearchRow {
   total?: number;
 }
 
+/** Eksporditud vormi viimane versioon: `data` on kõigi veergudega JSON-tekst. */
+export interface FormSearchExportRow {
+  formType: string;
+  formKey: number;
+  data: string;
+}
+
 export interface FormSearchFilters {
   dateFrom: string;
   dateTo: string;

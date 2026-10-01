@@ -88,6 +88,7 @@ export function useFormSearch() {
   }, []);
 
   return {
+    applied,
     draft,
     setField,
     applyFilters,

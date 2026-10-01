@@ -2,6 +2,18 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-01
+
+### Otsingu tulemuse allalaadimine (xlsx / csv)
+
+- Vormiotsingu lehel on õigusega `form.export` kasutajal nupud „Laadi tulemus alla (xlsx)“ ja „(csv)“.
+  Fail sisaldab kõiki otsingutingimustele vastavate vormide viimase versiooni andmevälju (üks rida vormi kohta).
+- Allalaadimiseks tuleb filtris valida vormitüüp ja vajutada „Otsi“; eksport hõlmab ainult seda tüüpi.
+  Kasutaja peab lisaks `form.export`-ile omama selle vormitüübi lugemisõigust.
+- Korduvad plokid (rikkumised, juhid jms) on lahtris JSON-tekstina. Ülempiir on 5000 vormi.
+- Iga allalaadimine kirjutatakse auditilogisse (`form.export`).
+- Uus õigus `form.export` lisatakse kataloogi; gruppidele omistab selle haldur grupihalduse vaates.
+
 ## 2026-09-30
 
 ### Tehnovormi PDF: rikete loetelu mahub alati ühele lehele

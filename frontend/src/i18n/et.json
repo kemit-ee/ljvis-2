@@ -2221,6 +2221,13 @@
   "search": {
     "title": "Otsing",
     "clear": "Tühjenda",
+    "export": {
+      "xlsx": "Laadi tulemus alla (xlsx)",
+      "csv": "Laadi tulemus alla (csv)",
+      "pickType": "Allalaadimiseks valige filtris vormi tüüp ja vajutage „Otsi“.",
+      "tooMany": "Tulemus on liiga suur (üle {{max}} vormi). Piirake otsingut.",
+      "failed": "Allalaadimine ebaõnnestus."
+    },
     "filters": {
       "dateFrom": "Kontrolli kuupäev alates",
       "dateTo": "Kontrolli kuupäev kuni",

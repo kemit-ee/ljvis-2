@@ -16,6 +16,7 @@ import type {
   AdrFormListItem,
   GoodReputeForm,
   FormSearchRow,
+  FormSearchExportRow,
 } from './types';
 
 export const searchForms = async (
@@ -30,6 +31,9 @@ export const searchForms = async (
     total: rows.length > 0 ? Number(rows[0].total ?? 0) : 0,
   };
 };
+
+export const exportSearchForms = (params: Record<string, string>) =>
+  get<FormSearchExportRow[]>('/v1/control-forms/search/export', params);
 
 const technicalCheckPath = (variant: TechnicalCheckVariant) =>
   variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';

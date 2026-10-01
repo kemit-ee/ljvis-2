@@ -2196,6 +2196,13 @@
   "search": {
     "title": "Search",
     "clear": "Clear",
+    "export": {
+      "xlsx": "Download results (xlsx)",
+      "csv": "Download results (csv)",
+      "pickType": "To download, choose a form type in the filter and press Search.",
+      "tooMany": "Result is too large (over {{max}} forms). Narrow the search.",
+      "failed": "Download failed."
+    },
     "filters": {
       "dateFrom": "Control date from",
       "dateTo": "Control date to",
