@@ -105,7 +105,9 @@ test.describe('Klassifikaatorite haldus — peakasutaja', () => {
       await fillField(page, 'name', `${name} (duplikaat)`);
       await fillMaskedDate(page, 'validFrom', todayDigits(-2));
       await page.getByRole('button', { name: 'Salvesta' }).click();
-      // Oodatav: salvestus lükatakse tagasi ja koodiga ridu jääb täpselt üks.
+      await expect(page.getByText('Selle koodiga väärtus on klassifikaatoris juba olemas')).toBeVisible();
+      await expect(page.getByText('Klassifikaatori väärtus on lisatud')).toHaveCount(0);
+      // Koodiga ridu jääb täpselt üks.
       await page.goto(classifierUrl, { waitUntil: 'domcontentloaded' });
       await expect(
         page.locator('#classifiers-values-table').getByRole('cell', { name: code, exact: true }),

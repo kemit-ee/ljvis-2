@@ -13,7 +13,7 @@ params:
   search:
     type: string
     required: false
-    description: Search by first or last name
+    description: Search by first name, last name or personal code
   page:
     type: number
     required: false
@@ -90,6 +90,7 @@ WHERE
         COALESCE(:search, '') = ''
         OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'
         OR l.last_name  ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.personal_code ILIKE '%' || COALESCE(:search, '') || '%'
     )
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'first_name asc') = 'status asc'           THEN l.status          END ASC,

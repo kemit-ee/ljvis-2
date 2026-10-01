@@ -4,6 +4,23 @@
 
 ## 2026-10-01
 
+### Haldusvaadete parandused (leitud uute UI-testidega)
+
+- Kasutajate otsing leiab kasutaja nüüd ka isikukoodi järgi, nagu juhend
+  lubab. Varem otsiti ainult ees- ja perekonnanime järgi. Sama kehtib
+  kasutajagrupi liikmete ja gruppi lisatavate kasutajate otsingus.
+- Kui kasutaja ligipääsu lõppkuupäevaks pannakse tänane kuupäev, saab
+  kasutaja oleku „Deaktiveeritakse“ ja öine protsess deaktiveerib ta.
+  Varem jäi ta ajavööndi vea tõttu olekusse „Aktiivne“.
+- Klassifikaatori väärtuse muutmisel ei saa kehtivuse lõpp olla sama
+  kui algus. Varem näitas vorm „Klassifikaatori väärtus on muudetud“, kuigi
+  andmebaas lükkas muudatuse tagasi ja midagi ei salvestunud.
+- Klassifikaatorisse ei saa lisada teist sama koodiga väärtust; vorm
+  näitab veateadet. Varem lisati duplikaat ja rippmenüüdes kuvati neist
+  vaid üks.
+- „E-toimiku X-tee logid“: lüliti „e-toimiku“ ↔ „kõiki“ uuendab nüüd ka
+  tabeli sisu. Varem muutus ainult silt ja veerud, kuni vajutati „Otsi“.
+
 ### Kasutajaliidese terminid ühtlustatud
 
 - Olek „Avalikustatud“ on igal pool ühtemoodi: otsingu olekufiltris, vormi teadetes („Vorm on avalikustatud“), lukustatud vormi veateadetes ja NU sobimatusteate allikadeklaratsiooni teadetes oli varem „Avaldatud“.

@@ -64,7 +64,19 @@ insertClassifierValue:
       valid_until: ${valid_until}
       created_by: ${created_by}
   result: insertRes
-  next: buildAuditData
+  next: checkInsertResult
+
+checkInsertResult:
+  switch:
+    - condition: ${insertRes.response.status >= 200 && insertRes.response.status < 300 && insertRes.response.body != null && insertRes.response.body.length > 0}
+      next: buildAuditData
+    # Tühi vastus = sama koodiga väärtus on klassifikaatoris juba olemas.
+    - condition: ${insertRes.response.status >= 200 && insertRes.response.status < 300}
+      next: returnDuplicateCode
+    # Andmebaasi piirang ck_cv_period (valid_until > valid_from).
+    - condition: ${insertRes.response.status == 400}
+      next: returnInvalidPeriod
+  next: returnSaveFailed
 
 buildAuditData:
   assign:
@@ -94,4 +106,27 @@ logAuditEvent:
 
 returnSuccess:
   return: ${insertRes.response.body}
+  next: end
+
+returnDuplicateCode:
+  status: 422
+  return:
+    type: VALIDATION_ERROR
+    field: code
+    code: duplicate_code
+  next: end
+
+returnInvalidPeriod:
+  status: 422
+  return:
+    type: VALIDATION_ERROR
+    field: validUntil
+    code: invalid_period
+  next: end
+
+returnSaveFailed:
+  status: 500
+  return:
+    type: SERVER_ERROR
+    code: save_failed
   next: end

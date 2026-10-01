@@ -121,6 +121,7 @@ WHERE
         COALESCE(:search, '') = ''
         OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'
         OR l.last_name  ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.personal_code ILIKE '%' || COALESCE(:search, '') || '%'
     )
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc'            THEN l.status           END ASC,
