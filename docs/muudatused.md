@@ -8,6 +8,9 @@
 
 - Punkt 1.1.7 „Piduriklapid/ventiilid“: valitavad raskusastmed on VO ja OV (varem ka EOV).
 - Punkt 1.1.8 „Haagisepidurite ühendused“: valitavad raskusastmed on VO, OV ja EOV (varem ainult OV ja EOV).
+- Punkt 1.1.15 „Piduritrossid, -vardad, -hoovastik“: valitavad raskusastmed on OV ja EOV (VO eemaldatud).
+- Punkt 1.1.17 „Pidurdusjõu regulaator“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
+- Punkt 1.1.20 „Haagisepidurite automaatne rakendumine“: valitav raskusaste on ainult OV (varem EOV).
 - Sama kehtib väljatrükil.
 
 ## 2026-10-02

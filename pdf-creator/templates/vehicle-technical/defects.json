@@ -165,7 +165,6 @@
     "code": "CAA_1.1.15",
     "name": "1.1.15 Piduritrossid, -vardad, -hoovastik",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
@@ -185,6 +184,7 @@
     "code": "CAA_1.1.17",
     "name": "1.1.17 Pidurdusjõu regulaator",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -211,7 +211,7 @@
     "code": "CAA_1.1.20",
     "name": "1.1.20 Haagisepidurite automaatne rakendumine",
     "allowed": [
-      "EOV"
+      "OV"
     ]
   },
   {

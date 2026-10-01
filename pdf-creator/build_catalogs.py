@@ -12,8 +12,8 @@ def save(path,data):
  p=ROOT/'templates'/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
 tech='20261020110000-technical-check-defect-classifier.sql'
 rows=[{'part':p,'code':c,'name':n,'allowed':sev.split(',')} for p,c,n,sev in tuples(tech,4) if p.startswith('CAA_')]
-# Hilisemad raskusastmete parandused (migratsioon 20261203120000).
-fix={'CAA_1.1.7':['VO','OV'],'CAA_1.1.8':['VO','OV','EOV']}
+# Hilisemad raskusastmete parandused (migratsioonid 20261203120000, 20261203130000).
+fix={'CAA_1.1.7':['VO','OV'],'CAA_1.1.8':['VO','OV','EOV'],'CAA_1.1.15':['OV','EOV'],'CAA_1.1.17':['VO','OV','EOV'],'CAA_1.1.20':['OV']}
 for r in rows:r['allowed']=fix.get(r['code'],r['allowed'])
 save('vehicle-technical/defects.json',rows)
 # RSI_FAILED_REASON (direktiiv 2014/47/EL II/III lisa): (code, parent, name, severities).
