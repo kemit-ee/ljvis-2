@@ -82,6 +82,14 @@ export function FormSearchFilters({
     [t],
   );
 
+  const carrierOriginOptions = useMemo<Option[]>(
+    () => [
+      { value: 'ee', label: t('search.carrierOrigin.ee') },
+      { value: 'foreign', label: t('search.carrierOrigin.foreign') },
+    ],
+    [t],
+  );
+
   const violationOptions = useMemo<Option[]>(
     () => [
       { value: 'true', label: t('common.yes') },
@@ -168,6 +176,19 @@ export function FormSearchFilters({
           options={[{ value: '', label: '\u00a0' }, ...countyOptions]}
           value={pick(countyOptions, draft.county)}
           onChange={(val) => setField('county', selected(val))}
+        />
+        <Select
+          key={`search-carrier-origin-${resetKey}`}
+          id="search-carrier-origin"
+          label={t('search.filters.carrierOrigin')}
+          options={[{ value: '', label: t('search.carrierOrigin.all') }, ...carrierOriginOptions]}
+          value={
+            pick(carrierOriginOptions, draft.carrierOrigin) ?? {
+              value: '',
+              label: t('search.carrierOrigin.all'),
+            }
+          }
+          onChange={(val) => setField('carrierOrigin', selected(val))}
         />
         <Select
           id="search-has-violation"

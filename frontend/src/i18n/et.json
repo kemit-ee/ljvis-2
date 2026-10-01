@@ -2221,6 +2221,7 @@
   "search": {
     "title": "Otsing",
     "clear": "Tühjenda",
+    "carrierOrigin": {"all": "Kõik", "ee": "Eesti", "foreign": "Välisriigi vedaja"},
     "export": {
       "xlsx": "Laadi tulemus alla (xlsx)",
       "csv": "Laadi tulemus alla (csv)",
@@ -2229,6 +2230,7 @@
       "failed": "Allalaadimine ebaõnnestus."
     },
     "filters": {
+      "carrierOrigin": "Vedaja riik",
       "dateFrom": "Kontrolli kuupäev alates",
       "dateTo": "Kontrolli kuupäev kuni",
       "formType": "Vormi tüüp",

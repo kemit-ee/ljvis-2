@@ -603,6 +603,8 @@ export interface FormSearchFilters {
   companyName: string;
   driver: string;
   county: string;
+  /** '' = all, 'ee' = Estonian carrier, 'foreign' = foreign carrier */
+  carrierOrigin: string;
   /** '' = any, 'true' = has violation, 'false' = no violation */
   hasViolation: string;
   status: string;

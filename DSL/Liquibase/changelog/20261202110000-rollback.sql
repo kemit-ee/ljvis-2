@@ -2,7 +2,9 @@
 -- changeset ljvis:20261202110000-rollback ignore:true
 -- Taastab 20261112110000 vaate.
 
-CREATE OR REPLACE VIEW forms.form_search AS
+DROP VIEW IF EXISTS forms.form_search;
+
+CREATE VIEW forms.form_search AS
 WITH lc AS (
     SELECT DISTINCT ON (compound_form_key) *
     FROM forms.compound_form

@@ -7,6 +7,7 @@
 -- nendel vormitüüpidel alati NULL ja juhi isikukoodi/nime järgi vorme ei leitud.
 -- Paranduse 20260829100000 kustutasid hilisemad vaate-migratsioonid kogemata.
 -- Nüüd loetakse mõlemat võtmekirjaviisi (COALESCE).
+-- Lisaks uus veerg company_country_code (filter „Vedaja riik“: EE / välismaa).
 -- Muus osas identne 20261112110000 vaatega.
 --
 
@@ -73,7 +74,8 @@ SELECT
     cf.created_at                                               AS created_at,
     cf.created_by                                               AS created_by,
     NULL::text                                                  AS vr_reporting_country_code,
-    NULL::text                                                  AS vr_sanction_code
+    NULL::text                                                  AS vr_sanction_code,
+    cf.company_country_code  AS company_country_code
 FROM compound_valid cf
 
 UNION ALL
@@ -96,7 +98,8 @@ SELECT
     fv.created_at,
     fv.created_by,
     fv.reporting_country_code,
-    fv.sanction_code
+    fv.sanction_code,
+    fv.company_country_code
 FROM (
     SELECT DISTINCT ON (foreign_violation_form_key) *
     FROM forms.foreign_violation_form
@@ -126,7 +129,8 @@ SELECT
     li.created_at,
     li.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    NULL::varchar
 FROM (
     SELECT DISTINCT ON (labour_inspection_form_key) *
     FROM forms.labour_inspection_form
@@ -154,7 +158,8 @@ SELECT
     gr.created_at,
     gr.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    NULL::varchar
 FROM (
     SELECT DISTINCT ON (good_repute_form_key) *
     FROM forms.good_repute_form
@@ -185,7 +190,8 @@ SELECT
     tc.created_at,
     tc.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    tc.company_country_code
 FROM (
     SELECT DISTINCT ON (tram_control_card_key) *
     FROM forms.tram_control_card
@@ -218,7 +224,8 @@ SELECT
     sd.created_at,
     sd.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    cf.company_country_code
 FROM lsd sd
 JOIN compound_valid cf ON cf.compound_form_key = sd.compound_form_key
 WHERE sd.status <> 'deleted'
@@ -248,7 +255,8 @@ SELECT
     st.created_at,
     st.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    cf.company_country_code
 FROM lst st
 JOIN compound_valid cf ON cf.compound_form_key = st.compound_form_key
 WHERE st.status <> 'deleted'
@@ -278,7 +286,8 @@ SELECT
     vt.created_at,
     vt.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    cf.company_country_code
 FROM lvt vt
 JOIN compound_valid cf ON cf.compound_form_key = vt.compound_form_key
 WHERE vt.status <> 'deleted'
@@ -308,7 +317,8 @@ SELECT
     tt.created_at,
     tt.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    cf.company_country_code
 FROM ltt tt
 JOIN compound_valid cf ON cf.compound_form_key = tt.compound_form_key
 WHERE tt.status <> 'deleted'
@@ -338,7 +348,8 @@ SELECT
     ad.created_at,
     ad.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    cf.company_country_code
 FROM ladr ad
 JOIN compound_valid cf ON cf.compound_form_key = ad.compound_form_key
 WHERE ad.status <> 'deleted'
@@ -368,7 +379,8 @@ SELECT
     kv.created_at,
     kv.created_by,
     NULL::text,
-    NULL::text
+    NULL::text,
+    cf.company_country_code
 FROM lkv kv
 JOIN compound_valid cf ON cf.compound_form_key = kv.compound_form_key
 WHERE kv.status <> 'deleted';

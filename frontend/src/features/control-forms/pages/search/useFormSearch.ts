@@ -13,6 +13,7 @@ const EMPTY_FILTERS: FormSearchFilters = {
   companyName: '',
   driver: '',
   county: '',
+  carrierOrigin: '',
   hasViolation: '',
   status: '',
   vrReportingCountryCode: '',

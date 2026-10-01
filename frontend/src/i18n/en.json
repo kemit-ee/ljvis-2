@@ -2196,6 +2196,7 @@
   "search": {
     "title": "Search",
     "clear": "Clear",
+    "carrierOrigin": {"all": "All", "ee": "Estonia", "foreign": "Foreign carrier"},
     "export": {
       "xlsx": "Download results (xlsx)",
       "csv": "Download results (csv)",
@@ -2204,6 +2205,7 @@
       "failed": "Download failed."
     },
     "filters": {
+      "carrierOrigin": "Carrier country",
       "dateFrom": "Control date from",
       "dateTo": "Control date to",
       "formType": "Form type",

@@ -34,6 +34,9 @@ declaration:
       - field: hasViolation
         type: string
         description: "'true' / 'false'"
+      - field: carrierOrigin
+        type: string
+        description: "'ee' / 'foreign'; empty = all"
       - field: status
         type: string
         description: "Form lifecycle status"
@@ -96,6 +99,7 @@ export:
       county: "${incoming.params.county ?? ''}"
       inspector_org_id: "${incoming.params.inspectorOrgId ?? ''}"
       has_violation: "${incoming.params.hasViolation ?? ''}"
+      carrier_origin: "${incoming.params.carrierOrigin ?? ''}"
       status: "${incoming.params.status ?? ''}"
       vr_reporting_country_code: "${incoming.params.vrReportingCountryCode ?? ''}"
       vr_sanction_code: "${incoming.params.vrSanctionCode ?? ''}"

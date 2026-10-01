@@ -58,6 +58,10 @@ params:
     type: string
     required: false
     description: Form lifecycle status
+  carrier_origin:
+    type: string
+    required: false
+    description: "'ee' = Estonian carrier (country EE or unset), 'foreign' = foreign carrier; empty = all"
   vr_reporting_country_code:
     type: string
     required: false
@@ -94,6 +98,9 @@ WITH f AS (
     AND (COALESCE(:county, '') = '' OR fs.county = :county)
     AND (COALESCE(:inspector_org_id, '') = '' OR fs.inspector_org_id = :inspector_org_id)
     AND (COALESCE(:has_violation, '') = '' OR fs.has_violation = :has_violation::BOOLEAN)
+    AND (COALESCE(:carrier_origin, '') = ''
+         OR (:carrier_origin = 'ee' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') = 'EE')
+         OR (:carrier_origin = 'foreign' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') <> 'EE'))
     AND (COALESCE(:status, '') = '' OR fs.status = :status)
     AND (COALESCE(:vr_reporting_country_code, '') = '' OR fs.vr_reporting_country_code = :vr_reporting_country_code)
     AND (COALESCE(:vr_sanction_code, '') = '' OR fs.vr_sanction_code = :vr_sanction_code)
