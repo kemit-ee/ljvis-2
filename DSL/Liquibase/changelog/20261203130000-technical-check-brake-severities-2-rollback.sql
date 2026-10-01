@@ -45,3 +45,8 @@ UPDATE classifier.classifier_value
 SET name = '2.5 Elektrooniline roolivõimendi (EPS)', description = 'OV'
 WHERE code = 'CAA_2.6'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO'
+WHERE code = 'CAA_3.6'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
