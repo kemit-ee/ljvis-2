@@ -618,6 +618,7 @@
     "code": "CAA_4.5.3",
     "name": "4.5.3 Udutulelaternad — lülitamine",
     "allowed": [
+      "VO",
       "OV"
     ]
   },
@@ -626,7 +627,6 @@
     "code": "CAA_4.5.4",
     "name": "4.5.4 Udutulelaternad — vastavus nõuetele",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -671,6 +671,7 @@
     "code": "CAA_4.7.2",
     "name": "4.7.2 Tagumise registreerimismärgi tule latern — vastavus nõuetele",
     "allowed": [
+      "VO",
       "OV"
     ]
   },

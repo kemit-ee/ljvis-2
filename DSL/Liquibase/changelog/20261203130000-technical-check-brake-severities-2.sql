@@ -15,6 +15,9 @@
 --   4.1.2  Lähitulelaternate reguleeritus        -> OV
 --   4.2.2  Ääretulelaternad — lülitamine         -> VO,OV
 --   4.4.2  Suuna- ja ohutulelaternad — lülitamine -> VO,OV
+--   4.5.3  Udutulelaternad — lülitamine          -> VO,OV
+--   4.5.4  Udutulelaternad — vastavus nõuetele    -> OV
+--   4.7.2  Tagumise reg. märgi tule latern        -> VO,OV
 -- Lisa 2-s punkti 2.4 pole. Migratsioon 20261120100000 nihutas koodid (CAA_2.4 -> CAA_2.5,
 -- CAA_2.5 -> CAA_2.6), kuid jättis nimedesse vanad numbrid ("2.4 Haagise...", "2.5 Elektrooniline...");
 -- siin parandatakse ka nimed.
@@ -89,4 +92,19 @@ WHERE code = 'CAA_4.2.2'
 UPDATE classifier.classifier_value
 SET description = 'VO,OV'
 WHERE code = 'CAA_4.4.2'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO,OV'
+WHERE code = 'CAA_4.5.3'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'OV'
+WHERE code = 'CAA_4.5.4'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO,OV'
+WHERE code = 'CAA_4.7.2'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');

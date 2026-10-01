@@ -65,3 +65,18 @@ UPDATE classifier.classifier_value
 SET description = 'OV'
 WHERE code = 'CAA_4.4.2'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'OV'
+WHERE code = 'CAA_4.5.3'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO,OV'
+WHERE code = 'CAA_4.5.4'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'OV'
+WHERE code = 'CAA_4.7.2'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
