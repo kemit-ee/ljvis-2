@@ -587,11 +587,15 @@ export interface FormSearchRow {
   total?: number;
 }
 
-/** Eksporditud vormi viimane versioon: `data` on kõigi veergudega JSON-tekst. */
+/**
+ * Eksporditud vormi viimane versioon: `data` on kõigi veergudega JSON-tekst.
+ * Alamvormi puhul on `parent` selle koondvormi viimane versioon (sõiduk, haagis, juhid, ettevõte).
+ */
 export interface FormSearchExportRow {
   formType: string;
   formKey: number;
   data: string;
+  parent?: string | null;
 }
 
 export interface FormSearchFilters {

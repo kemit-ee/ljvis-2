@@ -67,6 +67,36 @@ describe('buildExportTable trailers', () => {
   });
 });
 
+describe('buildExportTable sub-form parent', () => {
+  it('adds compound form fields to a sub-form row; own fields win', () => {
+    const t = buildExportTable([
+      {
+        formType: 'vehicle_technical',
+        formKey: 1,
+        data: JSON.stringify({ sub_form_number: 'T-1', status: 'published', notes: 'own' }),
+        parent: JSON.stringify({
+          id: 9,
+          form_number: 'K-1',
+          status: 'saved',
+          notes: 'parent',
+          vehicle_reg_nr: '123ABC',
+          vehicle_vin: 'VIN1',
+          trailers: [{ regNr: 'T1' }],
+        }),
+      },
+    ]);
+    const get = (h: string) => t.rows[0][t.headers.indexOf(h)];
+    expect(get('status')).toBe('published');
+    expect(get('notes')).toBe('own');
+    expect(get('compound_form_number')).toBe('K-1');
+    expect(get('compound_status')).toBe('saved');
+    expect(get('vehicle_reg_nr')).toBe('123ABC');
+    expect(get('vehicle_vin')).toBe('VIN1');
+    expect(get('trailer_reg_nr')).toBe('T1');
+    expect(t.headers).not.toContain('id');
+  });
+});
+
 describe('toCsv', () => {
   it('quotes separators, quotes and newlines', () => {
     const csv = toCsv({ headers: ['h'], rows: [['a;b'], ['say "hi"'], ['l1\nl2']] });
