@@ -1487,7 +1487,7 @@
     "triggeringForms": "Vormid, kus teavitus käivitub",
     "triggeredAutomatically": "Automaatne (ei ole seotud konkreetse vormiga)",
     "channel": "Kanal",
-    "originalTemplateId": "PK 2.0 id",
+    "originalTemplateId": "Aktiivse malliversiooni ID (templateId)",
     "defaultLanguage": "Vaikimisi keel",
     "defaultRecipientEmail": "Vaikimisi vastuvõtja e-post",
     "desktopRecipients": "Teavituse saajad",
@@ -1521,6 +1521,7 @@
     "editedNote": "Seadistus on muudetud",
     "validation": {
       "required": "Kohustuslik väli",
+      "templateIdInvalid": "Malli versiooni ID peab olema UUID kujul",
       "emailInvalid": "E-posti aadress ei vasta lubatud kujule"
     }
   },
