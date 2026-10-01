@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261204100000 ignore:true
+-- changeset ljvis:20261205100000 ignore:true
 -- ADR-011: klassifikaatori väärtuste piiramine vormidele.
 --
 -- INSERT-only (append-only), sama muster nagu classifier.classifier_value ja
