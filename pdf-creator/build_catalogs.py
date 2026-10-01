@@ -78,6 +78,6 @@ for r in other:names[r['code']]=r['name']
 # Tehnokaardi rikete nimed vastavad DB seisule pärast parandusi (vanad seemnenimed ja kustutatud koodid välja).
 for c in dropped|{'CAA_8.4.1'}:names.pop(c,None)
 for r in rows:names[r['code']]=r['name']
-for c,n,sev in tuples('20261120100001-technical-check-cargo-securing-defects.sql',3):
+for c,n,sev in tuples('20261120100001-technical-check-cargo-securing-defects.sql',3)+tuples('20261206110000-technical-check-cargo-securing-directive.sql',3):
  if c.startswith('CAA_10.'):names[c]=n
 save('labels.json',names)

@@ -10,6 +10,12 @@
 - Punktid 8.1.1, 8.4.1 „Nähtav suits“, 8.4.2 „Vedelikulekked“, 9.2 ja 9.3: valitavad raskusastmed on OV ja EOV.
 - Punkt 8.4.2 on nimekirjas ühe korra.
 
+### Veose kinnitamine (punktid 10, 20, 30)
+
+- Rikete raskusastmed vastavad direktiivi 2014/47/EL III lisa tabelile: punktides 10.x ja 20.x on esimene põhjus (tähis „a“) OV ja teine, raskem põhjus („b“) EOV. Erandid: 20.1.2.1, 20.1.2.2, 20.1.3.1 ja 20.4.1 „a“ on VO ja OV, 20.3.2 „a“ on VO ja „b“ OV, 20.6.1 ja 30 on EOV.
+- Üldhinnangu read A–D: raskusastet otsustab inspektor, seega on valitavad VO, OV ja EOV.
+- Parandatud mõne rikke nimi direktiivi sõnastuse järgi (20.1.2.2, 20.1.2.3, 20.1.3.1, 20.4.1, 10.1.1).
+
 ## 2026-10-02
 
 ### Klassifikaatori väärtuse piiramine vormidele
