@@ -56,7 +56,13 @@ WITH latest AS (
     erru_points,
     enforcement_decision,
     proceeding_closure_basis,
-    notes
+    notes,
+    person_code_ee,
+    person_first_name,
+    person_last_name,
+    person_citizenship_code,
+    person_code_foreign,
+    person_birth_date
   FROM forms.sp_teammate_form
   WHERE sp_teammate_form_key = :id::BIGINT
   ORDER BY sp_teammate_form_key, created_at DESC
@@ -96,6 +102,12 @@ INSERT INTO forms.sp_teammate_form (
   enforcement_decision,
   proceeding_closure_basis,
   notes,
+  person_code_ee,
+  person_first_name,
+  person_last_name,
+  person_citizenship_code,
+  person_code_foreign,
+  person_birth_date,
   created_by
 )
 SELECT
@@ -133,6 +145,12 @@ SELECT
   l.enforcement_decision,
   l.proceeding_closure_basis,
   l.notes,
+  l.person_code_ee,
+  l.person_first_name,
+  l.person_last_name,
+  l.person_citizenship_code,
+  l.person_code_foreign,
+  l.person_birth_date,
   :created_by
 FROM latest l
 RETURNING sp_teammate_form_key AS id, sub_form_number, version,

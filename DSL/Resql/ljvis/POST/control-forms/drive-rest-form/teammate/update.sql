@@ -124,12 +124,22 @@ returns:
   type: number
   nullable: true
 */
+-- Meeskonnaliikme isikuandmed võetakse koondvormi viimasest versioonist (drivers[1]); vormil endal need ei muutu.
 WITH latest AS (
   SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
   FROM forms.sp_teammate_form
   WHERE sp_teammate_form_key = :key::BIGINT
   ORDER BY created_at DESC
   LIMIT 1
+),
+tm AS (
+  SELECT drivers -> 1 AS d FROM forms.compound_form
+   WHERE compound_form_key = COALESCE(NULLIF(:compoundFormKey::text, ''), (SELECT compound_form_key::text FROM latest))::BIGINT
+   ORDER BY created_at DESC LIMIT 1
+),
+prev AS (
+  SELECT person_code_ee, person_first_name, person_last_name, person_citizenship_code, person_code_foreign, person_birth_date FROM forms.sp_teammate_form
+   WHERE sp_teammate_form_key = :key::BIGINT ORDER BY created_at DESC LIMIT 1
 )
 INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   compound_form_key,
@@ -169,6 +179,12 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   notes,
                                   liini_number,
                                   liini_nimetus,
+                                  person_code_ee,
+                                  person_first_name,
+                                  person_last_name,
+                                  person_citizenship_code,
+                                  person_code_foreign,
+                                  person_birth_date,
                                   created_by)
 SELECT
         :key::BIGINT,
@@ -242,6 +258,12 @@ SELECT
         NULLIF(:notes, ''),
         NULLIF(:liiniNumber, ''),
         NULLIF(:liiniNimetus, ''),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'personalCodeEe', d->>'personal_code_ee'), '') FROM tm), (SELECT person_code_ee FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'firstName', d->>'first_name'), '') FROM tm), (SELECT person_first_name FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'lastName', d->>'last_name'), '') FROM tm), (SELECT person_last_name FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'citizenshipCode', d->>'citizenship_code'), '') FROM tm), (SELECT person_citizenship_code FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'personalCodeForeign', d->>'personal_code_foreign'), '') FROM tm), (SELECT person_code_foreign FROM prev)),
+        COALESCE((SELECT CASE WHEN NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), '') ~ '^\d{4}-\d{2}-\d{2}' THEN LEFT(NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), ''), 10)::DATE END FROM tm), (SELECT person_birth_date FROM prev)),
         :created_by
 FROM latest l
 RETURNING sp_teammate_form_key AS id, sub_form_number, version;
