@@ -31,6 +31,17 @@ export const NOTIFICATION_TYPE_TEMPLATE_VARIABLES: Record<string, string[]> = {
     'violationSeverities',
     'violationDescription',
   ],
-  labor_foreign_proposal: ['formNumber', 'companyName', 'companyRegCode'],
+  labor_foreign_proposal: [
+    'formNumber',
+    'companyName',
+    'companyRegCode',
+    'vehicleRegNr',
+    'vehicleMake',
+    'vehicleModel',
+    'vehicleVin',
+    'inspectionCountry',
+    'inspectionDate',
+    'inspectionTime',
+  ],
   labor_kabotage: ['formNumber', 'companyName', 'companyRegCode', 'resultType'],
 };
