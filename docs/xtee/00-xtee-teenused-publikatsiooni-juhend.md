@@ -7,6 +7,9 @@ Andmejälgija (AJ) teenusel `findUsage` on eraldi leping: [FindUsageOpenapi.yaml
 Sama sisu on turvaserverile kättesaadav ka otse Ruuter.internal-i kaudu (vt [4.8](#48-openapi-kirjelduse-registreerimine-turvaserveris)) — turvaserver saab selle URL-i teenuse kirjeldusena registreerida ja lepingut automaatselt uuendada.
 Sünteetiliste testandmetega mocki leping on eraldi failis [../developer/xtee-openapi.yaml](../developer/xtee-openapi.yaml).
 
+Liidestujate arendaja-mock ja juhendid: [docs/developer](../developer/README.md).
+Teenuste testid ja nende tulemused: [X-tee testprotokoll](08-testprotokoll.md).
+
 ---
 
 ## 1. LJVIS2 X-tee identiteet
