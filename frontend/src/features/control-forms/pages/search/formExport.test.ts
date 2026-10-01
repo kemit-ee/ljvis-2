@@ -108,6 +108,24 @@ describe('labelHeaders', () => {
   });
 });
 
+describe('buildExportTable status', () => {
+  it('shows status and compound status in Estonian', () => {
+    const t = buildExportTable([
+      {
+        formType: 'adr',
+        formKey: 1,
+        data: JSON.stringify({ status: 'published' }),
+        parent: JSON.stringify({ status: 'confirmed' }),
+      },
+      row({ status: 'weird' }),
+    ]);
+    const col = (h: string) => t.headers.indexOf(h);
+    expect(t.rows[0][col('Olek')]).toBe('Avalikustatud');
+    expect(t.rows[0][col('Koondvormi olek')]).toBe('Kinnitatud');
+    expect(t.rows[1][col('Olek')]).toBe('weird');
+  });
+});
+
 describe('toCsv', () => {
   it('quotes separators, quotes and newlines', () => {
     const csv = toCsv({ headers: ['h'], rows: [['a;b'], ['say "hi"'], ['l1\nl2']] });
