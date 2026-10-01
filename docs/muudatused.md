@@ -8,7 +8,7 @@
 
 - Olek „Avalikustatud“ on igal pool ühtemoodi: otsingu olekufiltris, vormi teadetes („Vorm on avalikustatud“), lukustatud vormi veateadetes ja NU sobimatusteate allikadeklaratsiooni teadetes oli varem „Avaldatud“.
 - Meeskonnaliikme sõidu- ja puhkeaja alamvormi lühinimi on „Sõidu- ja puhkeaeg (meeskonnaliige)“ (varem „kaassõitja“ või „kaasreisija“, sh auditilogis).
-- Rikkumiste raskusastmed klassifikaatori sõnastuses: kõige raskem (MSI), väga tõsine (VSI), tõsine (SI), kergem (MI). Kodanikuvaates oli varem „Eriti tõsine“, „Ülitõsine“ ja „Vähetõsine“, välisriigi kontrollkaardil „Väga rasked“ ja „Rasked“.
+- Rikkumiste raskusastmed on läbivalt: kõige raskem rikkumine (MSI), väga raske rikkumine (VSI), raske rikkumine (SI), kergem rikkumine (MI). Varem oli kodanikuvaates „Eriti tõsine“, „Ülitõsine“, „Väga tõsine“, „Tõsine“ ja „Vähetõsine“; samuti said NCR rikkumise kategooria ja ADR rikkumiste rühmade klassifikaatorid „väga tõsine“/„tõsine“ asemel „väga raske“/„raske“.
 - Vormide lühinimed on otsingus, murupurus ja kodanikuvaates samad (nt „Välisriigi kontrollkaart“, „Sõiduki tehnonõuetele vastavus“, „Tööinspektsiooni kontrollkaart“). Kodanikuvaate kontrolli tulemused on samas sõnastuses kui vormil.
 - Hea maine vormi pealkiri on „Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuhi andmevorm“.
 - ERRU: menüüpunktid on kujul „nimi + kood“ (nt „Mainepäringud CGR“). CGR- ja NU-vormidel on „kutsetunnistuse“ ja „kutseoskuse tunnistuse“ asemel „ametialase pädevuse tunnistus“, nagu väljade siltidel.
