@@ -1039,6 +1039,7 @@
     "code": "CAA_6.2.9",
     "name": "6.2.9 Muud sõiduki sise- ja välisseadmed või varustus (tõstuk, kraana vms)",
     "allowed": [
+      "VO",
       "OV"
     ]
   },
