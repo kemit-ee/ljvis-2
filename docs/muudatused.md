@@ -4,6 +4,14 @@
 
 ## 2026-10-02
 
+### Tehnokaardi pidurisüsteemi raskusastmed
+
+- Punkt 1.1.7 „Piduriklapid/ventiilid“: valitavad raskusastmed on VO ja OV (varem ka EOV).
+- Punkt 1.1.8 „Haagisepidurite ühendused“: valitavad raskusastmed on VO, OV ja EOV (varem ainult OV ja EOV).
+- Sama kehtib väljatrükil.
+
+## 2026-10-02
+
 ### Riskiskoor ei arvesta enam mustandeid ega kustutatud vorme
 
 - Riskiskoori arvutus loeb alamvormidest (SP juht / meeskonnaliige) ainult viimast avalikustatud versiooni. Avalikustatud juhtumi alamvormi hilisem mustand või kinnitatud, kuid avalikustamata muudatus ei mõjuta skoori enne avalikustamist.
