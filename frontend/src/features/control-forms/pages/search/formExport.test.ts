@@ -54,6 +54,19 @@ describe('buildExportTable drivers', () => {
   });
 });
 
+describe('buildExportTable trailers', () => {
+  it('adds trailer_reg_nr before the trailers JSON column', () => {
+    const t = buildExportTable([
+      row({ a: 1, trailers: [{ regNr: '123ABC' }, { reg_nr: '456DEF' }, { regNr: '' }] }),
+      row({ a: 2, trailers: [] }),
+    ]);
+    expect(t.headers).toEqual(['a', 'trailer_reg_nr', 'trailers']);
+    expect(t.rows[0][1]).toBe('123ABC, 456DEF');
+    expect(t.rows[1][1]).toBe('');
+    expect(t.rows[0][2]).toContain('"regNr":"123ABC"');
+  });
+});
+
 describe('toCsv', () => {
   it('quotes separators, quotes and newlines', () => {
     const csv = toCsv({ headers: ['h'], rows: [['a;b'], ['say "hi"'], ['l1\nl2']] });

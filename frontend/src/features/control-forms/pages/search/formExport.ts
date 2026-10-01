@@ -31,6 +31,21 @@ const DRIVER_PREFIXES = ['driver', 'teammate'];
 const toSnake = (key: string) => key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 
 /** Juhid-massiiv lahtri JSON-teksti asemel eraldi veergudeks (juht, meeskonnaliige). */
+/** Haagiste registreerimismärgid ühes veerus (komaga eraldatud); täis-JSON jääb veergu `trailers`. */
+function addTrailerRegNr(rec: Record<string, unknown>): Record<string, unknown> {
+  if (!('trailers' in rec)) return rec;
+  const list = Array.isArray(rec.trailers) ? (rec.trailers as Record<string, unknown>[]) : [];
+  const regNrs = list
+    .map((t) => t.regNr ?? t.reg_nr)
+    .filter((v): v is string => typeof v === 'string' && v !== '');
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rec)) {
+    if (key === 'trailers') out.trailer_reg_nr = regNrs.join(', ');
+    out[key] = value;
+  }
+  return out;
+}
+
 function expandDrivers(rec: Record<string, unknown>): Record<string, unknown> {
   if (!('drivers' in rec)) return rec;
   const raw = rec.drivers;
@@ -63,7 +78,7 @@ function expandDrivers(rec: Record<string, unknown>): Record<string, unknown> {
  */
 export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
   const records = rows.map((r) =>
-    expandDrivers(JSON.parse(r.data) as Record<string, unknown>),
+    expandDrivers(addTrailerRegNr(JSON.parse(r.data) as Record<string, unknown>)),
   );
   const headers: string[] = [];
   const seen = new Set<string>();
