@@ -17,13 +17,54 @@ const cellOf = (value: unknown): ExportCell => {
   return text.length > MAX_CELL_LENGTH ? text.slice(0, MAX_CELL_LENGTH) : text;
 };
 
+const DRIVER_FIELDS = [
+  'last_name',
+  'first_name',
+  'birth_date',
+  'personal_code_ee',
+  'citizenship_code',
+  'personal_code_foreign',
+];
+/** drivers[0] on juht, drivers[1] meeskonnaliige. */
+const DRIVER_PREFIXES = ['driver', 'teammate'];
+
+const toSnake = (key: string) => key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+
+/** Juhid-massiiv lahtri JSON-teksti asemel eraldi veergudeks (juht, meeskonnaliige). */
+function expandDrivers(rec: Record<string, unknown>): Record<string, unknown> {
+  if (!('drivers' in rec)) return rec;
+  const raw = rec.drivers;
+  const list: Record<string, unknown>[] = Array.isArray(raw) ? raw : [];
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rec)) {
+    if (key !== 'drivers') {
+      out[key] = value;
+      continue;
+    }
+    DRIVER_PREFIXES.forEach((prefix, i) => {
+      const person = Object.fromEntries(
+        Object.entries(list[i] ?? {}).map(([k, v]) => [toSnake(k), v]),
+      );
+      DRIVER_FIELDS.forEach((f) => {
+        out[`${prefix}_${f}`] = person[f];
+      });
+    });
+    if (list.length > DRIVER_PREFIXES.length) {
+      out.drivers_extra = list.slice(DRIVER_PREFIXES.length);
+    }
+  }
+  return out;
+}
+
 /**
  * Üks rida vormi kohta, üks veerg andmevälja kohta. Veergude järjekord on
  * esmakordse esinemise järgi, nii et vana ja uus versioon sama tabeli ridu ei sega.
  * Pesastatud väärtused (rikkumised, juhid jms) pannakse lahtrisse JSON-tekstina.
  */
 export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
-  const records = rows.map((r) => JSON.parse(r.data) as Record<string, unknown>);
+  const records = rows.map((r) =>
+    expandDrivers(JSON.parse(r.data) as Record<string, unknown>),
+  );
   const headers: string[] = [];
   const seen = new Set<string>();
   for (const rec of records) {
