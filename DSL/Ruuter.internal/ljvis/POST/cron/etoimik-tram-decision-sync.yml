@@ -152,6 +152,20 @@ processCandidates:
             form_number: ${published_form_number}
             driver_personal_code: ${driver_personal_code}
         result: auditRes
+
+      # Automaatne avalikustamine ei käi läbi edit/publish.yml-i: saada vedajale raske rikkumise
+      # teavitus, kui kasutaja märkis kinnitamisel „Teavita vedajat". Teenus ei tee midagi, kui
+      # tellimust ei ole või vorm ei ole avalikustatud (tingimusteta kutse, vt ülaltoodud muster).
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+          headers:
+            type: json
+          body:
+            entity_type: "tram_control_card"
+            entity_id: ${candidate_key}
+            created_by: "e-toimik"
+        result: carrierNotifRes
     collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success })}"
     into: results
   next: returnSummary

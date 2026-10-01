@@ -182,19 +182,18 @@ autoPublishCompound:
   next: sendCarrierFromRequest
 
 # Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
-# vedajat" (notifications.carrier_notification_request). Best-effort.
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
 sendCarrierFromRequest:
-  template: "templates/form/notify-carrier/send-from-request"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  body:
-    entityType: "drive_rest_teammate_form"
-    entityId: ${id}
-    compoundFormKey: "${compound_form_key == null ? '' : String(compound_form_key)}"
-    formNumber: "${sub_form_number}"
-    violations: "${'[' + [violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations].filter(Boolean).join(',') + ']'}"
-    createdBy: ${actor_personal_code}
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      type: json
+    body:
+      entity_type: "drive_rest_teammate_form"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
   result: carrierFromRequestRes
   error: checkSeriousInfringement
   next: checkSeriousInfringement

@@ -236,25 +236,18 @@ logAuditEvent:
   next: sendCarrierFromRequest
 
 # Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
-# vedajat" (notifications.carrier_notification_request). Best-effort.
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
 sendCarrierFromRequest:
-  template: "templates/form/notify-carrier/send-from-request"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  body:
-    entityType: "tram_control_card"
-    entityId: ${id}
-    formNumber: "${publishRes.response.body[0].formNumber}"
-    violations: "${'[' + [violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations].filter(Boolean).join(',') + ']'}"
-    createdBy: ${actor_personal_code}
-    companyRegCode: ${company_reg_code}
-    companyName: ${company_name}
-    controlDate: ${control_date}
-    controlTime: ${control_time}
-    controlCountryCode: ${control_country_code}
-    vehicleRegNr: ${vehicle_reg_nr}
-    trailers: ${trailers}
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      type: json
+    body:
+      entity_type: "tram_control_card"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
   result: carrierFromRequestRes
   error: checkSeriousInfringement
   next: checkSeriousInfringement

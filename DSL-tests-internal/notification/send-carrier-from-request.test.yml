@@ -1,0 +1,154 @@
+# POST /notification/send-carrier-from-request (Ruuter.internal) — vedaja teavitus PPA/TA vormidelt:
+# kinnitamisel märgitud tellimus (carrier_notification_request) saadetakse avalikustatud vormilt.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
+  LJVIS_XTR: '{MOCK}/xtr'
+tests:
+- name: no open request means nothing is sent
+  setup:
+    mocks:
+    - url_matches: /notification/get_open_carrier_request
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/notification/send-carrier-from-request
+    headers:
+      content-type: application/json
+    body:
+      entity_type: tram_control_card
+      entity_id: '7'
+      created_by: e-toimik
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/send-postkast
+    count: 0
+
+- name: form that is not published yet is skipped and request stays open
+  setup:
+    mocks:
+    - url_matches: /notification/get_open_carrier_request
+      method: POST
+      status: 200
+      body:
+      - id: 3
+        requestedBy: '38001010000'
+    - url_matches: /control-forms/tram-card/get
+      method: POST
+      status: 200
+      body:
+      - id: 7
+        status: confirmed
+        formNumber: TRAM-7
+        violations5612006: '[{"violationCode":"VSI869","isDetected":"true"}]'
+  request:
+    method: POST
+    path: /ljvis/notification/send-carrier-from-request
+    headers:
+      content-type: application/json
+    body:
+      entity_type: tram_control_card
+      entity_id: '7'
+      created_by: e-toimik
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/send-postkast
+    count: 0
+  - url_matches: /notification/mark_carrier_request_sent
+    count: 0
+
+- name: published form with a serious violation sends the carrier notification and consumes the request
+  setup:
+    mocks:
+    - url_matches: /notification/get_open_carrier_request
+      method: POST
+      status: 200
+      body:
+      - id: 3
+        requestedBy: '38001010000'
+    - url_matches: /control-forms/tram-card/get
+      method: POST
+      status: 200
+      body:
+      - id: 7
+        status: published
+        formNumber: TRAM-7
+        companyRegCode: '12345678'
+        companyName: Test AS
+        controlDate: '2026-09-30'
+        controlTime: '10:15'
+        controlCountryCode: LV
+        vehicleRegNr: 123ABC
+        trailers: '[{"regNr":"456DEF"}]'
+        violations5612006: '[{"violationCode":"VSI869","isDetected":"true"},{"violationCode":"SI905","isDetected":"false"}]'
+    - url_matches: /classifier/get_country_name
+      method: POST
+      status: 200
+      body:
+      - name: Läti
+    - url_matches: /classifier/get_violation_names
+      method: POST
+      status: 200
+      body:
+      - code: VSI869
+        name: Kabotaaž
+    - url_matches: /xtr/ar/detailandmed_v1
+      method: POST
+      status: 200
+      body:
+        body:
+          detailandmed_v1Response:
+            keha:
+              ettevotjad:
+                item:
+                  yldandmed:
+                    sidevahendid:
+                      item:
+                      - liik: EMAIL
+                        sisu: carrier@example.ee
+    - url_matches: /xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /notification/send-postkast
+      method: POST
+      status: 200
+      body:
+        status: sent
+    - url_matches: /notification/mark_carrier_request_sent
+      method: POST
+      status: 200
+      body:
+      - id: 3
+  request:
+    method: POST
+    path: /ljvis/notification/send-carrier-from-request
+    headers:
+      content-type: application/json
+    body:
+      entity_type: tram_control_card
+      entity_id: '7'
+      created_by: e-toimik
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/send-postkast
+    count: 1
+    body_matches:
+      notification_type: carrier_violation
+      recipient_email: carrier@example.ee
+      template_variables:
+        formNumber: TRAM-7
+        inspectionCountry: Läti
+        vehicleRegNr: '123ABC, 456DEF'
+        violationSeverities: VSI
+        VSIViolationsList: 'VSI869 — Kabotaaž'
+        MSIViolationsList: ''
+        SIViolationsList: ''
+  - url_matches: /notification/mark_carrier_request_sent
+    count: 1

@@ -1,0 +1,470 @@
+declaration:
+  version: "1.0"
+  description: >-
+    Vedajale raske rikkumise teavituse saatmine PPA (sõidu-puhkeaeg, TRAM-kaart)
+    ja Transpordiameti (tehnovormid) kontrollvormidelt. Kasutaja märgib linnukese
+    vormi KINNITAMISEL (notifications.carrier_notification_request), saatmine
+    toimub avalikustamisel. Kutsub iga avalikustamise järel nii käsitsi
+    avalikustamise voog (edit/publish.yml) kui e-toimiku cron'id, mis avalikustavad
+    vormi SQL-is (cron/etoimik-tram-decision-sync.yml,
+    cron/etoimik-technical-check-decision-sync.yml).
+
+    Kutsuja annab ainult vormi tüübi ja võtme; vormi, koondvormi ja klassifikaatorite
+    andmed loeb teenus ise. Ei tee midagi (ja on odav), kui vormil ei ole avatud
+    tellimust, vorm ei ole veel avalikustatud või rikkumistes ei ole MSI/VSI/SI koodi —
+    tellimus jääb sel juhul avatuks kuni sobiva avalikustamiseni. Saatmise viga
+    logitakse outbound_log-i error-reana ja tellimus jääb avatuks. Tellimus
+    märgitakse saadetuks ainult edukal saatmisel.
+
+    Vedaja e-post tuleb äriregistrist (XTR arireg.detailandmed_v1), mall on
+    'carrier_violation'. Best-effort: tagastab alati {"sent":"true|false"}.
+  namespace: notification
+  allowlist:
+    body:
+      - field: entity_type
+        type: string
+      - field: entity_id
+        type: string
+      - field: created_by
+        type: string
+
+extractInputs:
+  assign:
+    entity_type: "${incoming.body.entity_type || ''}"
+    entity_id: "${incoming.body.entity_id || ''}"
+    created_by: "${incoming.body.created_by || 'system'}"
+    compound_form_key: ""
+    form_number: ""
+    form_status: ""
+    company_reg_code: ""
+    company_name: ""
+    control_date: ""
+    control_time: ""
+    control_country_code: ""
+    vehicle_reg_nr: ""
+    trailers: "[]"
+    violations: "[]"
+    sent: "false"
+  next: checkEntity
+
+checkEntity:
+  switch:
+    - condition: ${entity_id === ''}
+      next: returnResult
+  next: getOpenRequest
+
+getOpenRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_open_carrier_request"
+    headers:
+      type: json
+    body:
+      entity_type: ${entity_type}
+      entity_id: ${entity_id}
+  result: openRequestRes
+  error: returnResult
+  next: checkOpenRequest
+
+checkOpenRequest:
+  switch:
+    - condition: ${openRequestRes.response.body == null || openRequestRes.response.body.length === 0}
+      next: returnResult
+  next: routeEntityType
+
+routeEntityType:
+  switch:
+    - condition: ${entity_type === 'tram_control_card'}
+      next: getTramCard
+    - condition: ${entity_type === 'drive_rest_driver_form'}
+      next: getDriverForm
+    - condition: ${entity_type === 'drive_rest_teammate_form'}
+      next: getTeammateForm
+    - condition: ${entity_type === 'vehicle_technical'}
+      next: getVehicleTechnicalForm
+    - condition: ${entity_type === 'trailer_technical'}
+      next: getTrailerTechnicalForm
+  next: returnResult
+
+getTramCard:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
+    headers:
+      type: json
+    body:
+      id: ${entity_id}
+  result: formRes
+  error: returnResult
+  next: applyTramCard
+
+applyTramCard:
+  assign:
+    form_status: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].status) || ''}"
+    form_number: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].formNumber) || ''}"
+    company_reg_code: "${(formRes.response.body && formRes.response.body[0] && ('' + (formRes.response.body[0].companyRegCode || '')).trim()) || ''}"
+    company_name: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].companyName) || ''}"
+    control_date: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].controlDate) || ''}"
+    control_time: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].controlTime) || ''}"
+    control_country_code: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].controlCountryCode) || ''}"
+    vehicle_reg_nr: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].vehicleRegNr) || ''}"
+    trailers: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].trailers) || '[]'}"
+    violations: "${(formRes.response.body && formRes.response.body[0]) ? [formRes.response.body[0].violations5612006, formRes.response.body[0].violations1652014, formRes.response.body[0].violations200215, formRes.response.body[0].violations5932008, formRes.response.body[0].violations20201057, formRes.response.body[0].cabotageViolations].filter(function(x) { return x != null; }) : []}"
+  next: checkPublished
+
+getDriverForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
+    headers:
+      type: json
+    body:
+      id: ${entity_id}
+  result: formRes
+  error: returnResult
+  next: applySubForm
+
+getTeammateForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
+    headers:
+      type: json
+    body:
+      id: ${entity_id}
+  result: formRes
+  error: returnResult
+  next: applySubForm
+
+getVehicleTechnicalForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${entity_id}
+  result: formRes
+  error: returnResult
+  next: applySubForm
+
+getTrailerTechnicalForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
+    headers:
+      type: json
+    body:
+      id: ${entity_id}
+  result: formRes
+  error: returnResult
+  next: applySubForm
+
+# Alamvormid: sõidu-puhkeaeg (juht, meeskonnaliige) ja tehnovormid. Rikkumised
+# on alamvormil, ettevõtte/sõiduki/kontrolli andmed koondvormil.
+applySubForm:
+  assign:
+    form_status: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].status) || ''}"
+    form_number: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].subFormNumber) || ''}"
+    compound_form_key: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].compoundFormKey != null) ? String(formRes.response.body[0].compoundFormKey) : ''}"
+    company_reg_code: "${(formRes.response.body && formRes.response.body[0] && ('' + (formRes.response.body[0].companyRegCode || '')).trim()) || ''}"
+    company_name: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].companyName) || ''}"
+    violations: "${(formRes.response.body && formRes.response.body[0]) ? [formRes.response.body[0].violations, formRes.response.body[0].violations5612006, formRes.response.body[0].violations1652014, formRes.response.body[0].violations200215, formRes.response.body[0].violations5932008, formRes.response.body[0].violations20201057, formRes.response.body[0].cabotageViolations].filter(function(x) { return x != null; }) : []}"
+  next: checkPublished
+
+# Saadetakse alles avalikustatud vormilt; cron kutsub seda tingimusteta iga kandidaadi kohta.
+checkPublished:
+  switch:
+    - condition: ${form_status !== 'published'}
+      next: returnResult
+  next: extractSeverities
+
+# Teavitatakse ainult raskete rikkumiste (MSI, VSI, SI) korral; MI ei kuulu siia.
+# violations on JSON (rikkumiste massiivid, sh sisemised massiivid) — arvesse
+# lähevad ainult tuvastatud read (isDetected != false). Kui JSON-it ei saa
+# lugeda, otsitakse koode tekstist.
+extractSeverities:
+  assign:
+    request_id: "${openRequestRes.response.body[0].id}"
+    violation_codes: >-
+      ${(() => {
+        var out = [];
+        function walk(x) {
+          if (x == null) return;
+          if (Array.isArray(x)) { x.forEach(walk); return; }
+          if (typeof x === 'string') {
+            var p;
+            try { p = JSON.parse(x); } catch (e) { out.push(x); return; }
+            if (p !== x) { walk(p); } else { out.push(x); }
+            return;
+          }
+          if (typeof x === 'object') {
+            if (x.isDetected === false || x.isDetected === 'false') return;
+            var c = x.violationCode || x.code;
+            if (c) out.push(String(c));
+          }
+        }
+        walk(violations);
+        var codes = out.map(function(c) { return String(c).toUpperCase().replace(/[ _-]/g, ''); })
+          .filter(function(c) { return /^(MSI|VSI|SI)[0-9]+$/.test(c); });
+        if (codes.length === 0) {
+          codes = ((typeof violations === 'string' ? violations : JSON.stringify(violations)).toUpperCase().match(/(?:^|[^A-Z])(?:MSI|VSI|SI)[ _-]*[0-9]+/g) || [])
+            .map(function(c) { return c.replace(/^[^A-Z]/, '').replace(/[ _-]/g, ''); });
+        }
+        return Array.from(new Set(codes)).join(',');
+      })()}
+  next: extractSeverityList
+
+# Eraldi samm: assign-ploki sees ei näe väljend sama ploki muutujaid.
+extractSeverityList:
+  assign:
+    violation_severities: >-
+      ${(() => {
+        var sev = String(violation_codes).split(',').filter(Boolean)
+          .map(function(c) { return c.match(/^(MSI|VSI|SI)/)[1]; });
+        return Array.from(new Set(sev)).join(', ');
+      })()}
+  next: checkSeriousViolation
+
+checkSeriousViolation:
+  switch:
+    - condition: ${violation_severities === ''}
+      next: returnResult
+  next: checkLoadCompound
+
+checkLoadCompound:
+  switch:
+    - condition: ${compound_form_key !== ''}
+      next: getCompoundForm
+  next: buildMessageData
+
+getCompoundForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${compound_form_key}
+  result: compoundRes
+  error: buildMessageData
+  next: applyCompound
+
+applyCompound:
+  assign:
+    company_reg_code: "${company_reg_code || (compoundRes.response.body && compoundRes.response.body[0] && ('' + (compoundRes.response.body[0].companyRegCode || '')).trim()) || ''}"
+    company_name: "${company_name || (compoundRes.response.body && compoundRes.response.body[0] && compoundRes.response.body[0].companyName) || ''}"
+    control_date: "${(compoundRes.response.body && compoundRes.response.body[0] && compoundRes.response.body[0].controlDate) || ''}"
+    control_time: "${(compoundRes.response.body && compoundRes.response.body[0] && compoundRes.response.body[0].controlTime) || ''}"
+    control_country_code: "${(compoundRes.response.body && compoundRes.response.body[0] && compoundRes.response.body[0].controlCountryCode) || ''}"
+    vehicle_reg_nr: "${(compoundRes.response.body && compoundRes.response.body[0] && compoundRes.response.body[0].vehicleRegNr) || ''}"
+    trailers: "${(compoundRes.response.body && compoundRes.response.body[0] && compoundRes.response.body[0].trailers) || '[]'}"
+  next: buildMessageData
+
+# Sõiduki ja haagiste registreerimisnumbrid ühes loetelus (komaga eraldatud).
+buildMessageData:
+  assign:
+    vehicle_and_trailers: >-
+      ${(() => {
+        var list = [String(vehicle_reg_nr || '').trim()];
+        try {
+          (typeof trailers === 'string' ? JSON.parse(trailers || '[]') : (trailers || [])).forEach(function(t) { list.push(String((t && t.regNr) || '').trim()); });
+        } catch (e) {}
+        return list.filter(Boolean).join(', ');
+      })()}
+    inspection_date_time: "${(String(control_date || '') + ' ' + String(control_time || '')).trim()}"
+    inspection_country: "${control_country_code}"
+  next: checkCountry
+
+checkCountry:
+  switch:
+    - condition: ${inspection_country === ''}
+      next: callGetViolationNames
+  next: callGetCountryName
+
+callGetCountryName:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_country_name"
+    headers:
+      type: json
+    body:
+      code: ${inspection_country}
+  result: countryNameRes
+  error: callGetViolationNames
+  next: applyCountryName
+
+applyCountryName:
+  assign:
+    inspection_country: "${(countryNameRes.response.body && countryNameRes.response.body[0] && countryNameRes.response.body[0].name) || inspection_country}"
+  next: callGetViolationNames
+
+# Rikkumiskoodide nimetused klassifikaatoritest; leidmata koodi puhul näidatakse ainult koodi.
+callGetViolationNames:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_violation_names"
+    headers:
+      type: json
+    body:
+      codes: ${violation_codes}
+  result: violationNamesRes
+  error: buildViolationList
+  next: buildViolationList
+
+# Rikkumised raskusastme kaupa: MSIViolationsList / VSIViolationsList / SIViolationsList.
+# Üks rikkumine rea kohta („VSI869 — nimetus"), ridade vahel <br> (Postkasti mall on HTML).
+# Raskusastmel rikkumisi ei ole -> tühi string.
+buildViolationList:
+  assign:
+    MSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^MSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    VSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^VSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    SIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^SI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+  next: lookupCarrierEmail
+
+lookupCarrierEmail:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/ar/detailandmed_v1"
+    headers:
+      type: json
+    body:
+      reg_code: ${company_reg_code}
+  result: carrierRegistryRes
+  error: markCarrierEmailLookupFailed
+  next: logCarrierLookup
+
+# Äriregistri päring logitakse samale service_code'ile mis
+# templates/xroad/lookup-carrier-registry-email.
+logCarrierLookup:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "arireg.detailandmed_v1.v1"
+      request_xml: "${'regCode=' + company_reg_code}"
+      response_xml: "${JSON.stringify(carrierRegistryRes.response.body)}"
+      duration_ms: 0
+      success: "${carrierRegistryRes.response != null && carrierRegistryRes.response.status >= 200 && carrierRegistryRes.response.status < 300}"
+      error_message: ""
+      person_identifier: ""
+      source_type: ${entity_type}
+      source_record_id: ${entity_id}
+  result: logRes
+  error: extractCarrierEmail
+  next: extractCarrierEmail
+
+# XTR tagastab {"body": {...ns1 sisu...}}; võtmed võivad olla 'ns1:' prefiksiga.
+extractCarrierEmail:
+  assign:
+    carrier_email: >-
+      ${(() => {
+        var body = carrierRegistryRes.response && carrierRegistryRes.response.status >= 200 && carrierRegistryRes.response.status < 300 && carrierRegistryRes.response.body && carrierRegistryRes.response.body.body;
+        if (!body) return '';
+        var g = function(obj, name) {
+          if (!obj) return undefined;
+          return obj[name] !== undefined ? obj[name] : obj['ns1:' + name];
+        };
+        var resp = g(body, 'detailandmed_v1Response') || body;
+        var keha = g(resp, 'keha') || resp;
+        var ettevotjad = g(keha, 'ettevotjad') || keha;
+        var itemNode = g(ettevotjad, 'item') || ettevotjad;
+        var company = Array.isArray(itemNode) ? itemNode[0] : itemNode;
+        if (!company) return '';
+        var yld = g(company, 'yldandmed') || company;
+        var sv = g(yld, 'sidevahendid') || g(company, 'sidevahendid');
+        var svItem = sv ? (g(sv, 'item') || sv) : null;
+        var svList = Array.isArray(svItem) ? svItem : (svItem ? [svItem] : []);
+        var matches = svList.filter(function(s) {
+          var liik = g(s, 'liik');
+          return s && typeof liik === 'string' && liik.toUpperCase().indexOf('EMAIL') !== -1;
+        });
+        var active = matches.find(function(s) { return !g(s, 'lopp_kpv'); });
+        var match = active || matches[0];
+        if (!match) return '';
+        return g(match, 'sisu') || g(match, 'vaartus') || g(match, 'value') || '';
+      })()}
+  next: sendCarrierNotification
+
+# Otsingu viga: kutsutakse ikka tühja aadressiga, et send-postkast.yml logiks
+# korrektse "error" rea outbound_log-i (sama muster mis VR-kaardil).
+markCarrierEmailLookupFailed:
+  assign:
+    carrier_email: ""
+  next: sendCarrierNotification
+
+sendCarrierNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "carrier_violation"
+      recipient_email: ${carrier_email}
+      language: "et"
+      send_time: ""
+      related_entity_type: ${entity_type}
+      related_entity_id: ${entity_id}
+      original_log_id: ""
+      created_by: ${created_by}
+      template_variables: "${ { formNumber: form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: control_country_code, inspectionCountry: inspection_country, vehicleRegNr: vehicle_and_trailers, violationSeverities: violation_severities, violationDescription: (MSIViolationsList + (MSIViolationsList && (VSIViolationsList || SIViolationsList) ? '<br>' : '') + VSIViolationsList + (VSIViolationsList && SIViolationsList ? '<br>' : '') + SIViolationsList), MSIViolationsList: MSIViolationsList, VSIViolationsList: VSIViolationsList, SIViolationsList: SIViolationsList } }"
+  result: carrierNotifRes
+  error: returnResult
+  next: checkCarrierSent
+
+checkCarrierSent:
+  switch:
+    - condition: ${carrierNotifRes.response != null && carrierNotifRes.response.status >= 200 && carrierNotifRes.response.status < 300 && carrierNotifRes.response.body != null && carrierNotifRes.response.body.status !== 'error'}
+      next: markRequestSent
+  next: returnResult
+
+markRequestSent:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/mark_carrier_request_sent"
+    headers:
+      type: json
+    body:
+      id: ${request_id}
+  result: markSentRes
+  error: returnResult
+  next: setSent
+
+setSent:
+  assign:
+    sent: "true"
+  next: returnResult
+
+returnResult:
+  return: '${JSON.stringify({ sent: sent })}'
+  next: end

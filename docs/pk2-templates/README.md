@@ -7,7 +7,7 @@ luua enne toodangus kasutuselevõttu. Mallid katavad neli välist teavituse tü�
 
 | Mall | Fail | Saaja | Trigger |
 |---|---|---|---|
-| `carrier_violation` | `carrier_violation.json` | Veoettevõtja (äriregistrist, `ar/detailandmed_v1`) | `notifyCarrier` linnukese "flip" avalikustatud välisriigi rikkumise vormil; PPA (sõidu-puhkeaeg, TRAM-kaart) ja Transpordiameti (tehnovormid) vormidel linnuke kinnitamisel, saatmine avalikustamisel (MSI/VSI/SI rikkumise korral) |
+| `carrier_violation` | `carrier_violation.json` | Veoettevõtja (äriregistrist, `ar/detailandmed_v1`) | `notifyCarrier` linnukese "flip" avalikustatud välisriigi rikkumise vormil; PPA (sõidu-puhkeaeg, TRAM-kaart) ja Transpordiameti (tehnovormid) vormidel linnuke kinnitamisel, saatmine avalikustamisel (MSI/VSI/SI rikkumise korral), sh e-toimiku cron'ide automaatsel avalikustamisel (`/notification/send-carrier-from-request`) |
 | `labor_kabotage` | `labor_kabotage.json` | Tööinspektsioon (fikseeritud aadress) | TBD — trigger DSL puudub veel |
 | `labor_tachograph_not_downloaded` | `labor_tachograph_not_downloaded.json` | Tööinspektsioon (fikseeritud aadress, muudetav Haldus-vaates) | Avalikustatud autojuhi/meeskonnaliikme sõidu- ja puhkeaja kontrollkaart, millel on märge „andmed alla laadimata“ |
 | `labor_foreign_proposal` | `labor_foreign_proposal.json` | Tööinspektsioon (fikseeritud aadress, muudetav Haldus-vaates) | `foreignAuthorityProposal` linnukese "flip" avalikustatud välisriigi rikkumise vormil |
