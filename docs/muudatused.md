@@ -4,6 +4,11 @@
 
 ## 2026-09-30
 
+### Administraatori juhend: esimese superadmini loomine ja paigaldus (devops)
+
+- „Esimese superadmini loomine“ on nüüd administraatori juhendi eraldi peatükk (varem ainult töödokumentides), nii et see avaldub Confluence'is püsivalt.
+- Uus peatükk „Paigaldus ja keskkonnad (devops)“: teekond koodist keskkonda, `ljvis2-devops` repo ja Helm chart'ide ülevaade, tabel „mida kus muuta“, keskkonnad, `constants.ini` muutujad, SSM-i parameetrid, uue keskkonna lisamine ning teadaolevad lüngad.
+
 ### Postkasti teavituse malli muutujad ühtlustatud mallifailidega
 
 - Välisriigi rikkumise vormi teavitused (vedajale ja tööinspektsioonile) saadavad Postkasti muutujad samade nimedega, mida kasutavad mallifailid (`formNumber`, `companyName`, `companyRegCode`, `inspectionDateTime`, `inspectionCountryCode` jne). Varem saadeti teised nimed (`controlFormId`, `carrierName`, ...), mistõttu jäid mallis muutujate kohad tühjaks.
