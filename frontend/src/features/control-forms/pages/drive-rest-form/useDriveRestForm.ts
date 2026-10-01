@@ -134,6 +134,13 @@ export function serializeDriveRestFormValues(
     liiniNumber: sanitizeText(values.liiniNumber as string),
     liiniNimetus: sanitizeText(values.liiniNimetus as string),
     proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber as string),
+    // Meeskonnaliikme andmed on vormil kirjutuskaitstud — server võtab need koondvormi plokist
+    personCodeEe: undefined,
+    personFirstName: undefined,
+    personLastName: undefined,
+    personCitizenshipCode: undefined,
+    personCodeForeign: undefined,
+    personBirthDate: undefined,
   };
 }
 
@@ -347,6 +354,12 @@ export function useDriveRestForm(
       notes: form?.notes ?? '',
       liiniNumber: form?.liiniNumber ?? '',
       liiniNimetus: form?.liiniNimetus ?? '',
+      personCodeEe: form?.personCodeEe ?? '',
+      personFirstName: form?.personFirstName ?? '',
+      personLastName: form?.personLastName ?? '',
+      personCitizenshipCode: form?.personCitizenshipCode ?? '',
+      personCodeForeign: form?.personCodeForeign ?? '',
+      personBirthDate: form?.personBirthDate ?? '',
     },
     validationSchema,
     onSubmit: async (values) => {

@@ -447,7 +447,8 @@ export function CompoundFormPage() {
     triggerSaveAsSaved();
   };
 
-  const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
+  // Meeskonnaliikme kontrollvormi saab lisada ainult üldosa meeskonnaliikme plokist
+  const addableTabs = ALL_FORM_TABS.filter((tab) => tab.tabId !== 'tab-teammate' && !openTabs.includes(tab.tabId));
 
   const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | `tab-trailer-technical-check-${number}` | 'tab-adr' | 'tab-transport-interruption', activate = true) =>
     addTab(tabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab, activate });
@@ -669,6 +670,9 @@ export function CompoundFormPage() {
     trailerFormRegNrs: trailers.map((t, i) => openTabs.includes(`tab-trailer-technical-check-${i}`) ? (t.form?.trailerRegNr ?? formik.values.trailers[i]?.regNr ?? '') : null),
     onAddTrailerControlForm: (index: number) => { handleAddTab(`tab-trailer-technical-check-${index}`, false); },
     onEditTrailerControlForm: (index: number) => { setActiveTab(`tab-trailer-technical-check-${index}`); window.scrollTo(0, 0); },
+    teammateFormExists: openTabs.includes('tab-teammate'),
+    onAddTeammateControlForm: () => { handleAddTab('tab-teammate', false); },
+    onEditTeammateControlForm: () => { setActiveTab('tab-teammate'); window.scrollTo(0, 0); },
     onRemoveTrailer: (index: number) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0]),
   };
 

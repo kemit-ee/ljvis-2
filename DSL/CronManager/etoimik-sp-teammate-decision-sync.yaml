@@ -1,0 +1,10 @@
+# Runs at 01:35 Tallinn time (TZ pinned in docker-compose.yml) — right after the
+# PPA sp-driver sync (01:30) and before the technical-check sync (01:45).
+etoimik_sp_teammate_decision_sync:
+  trigger: "0 35 1 * * ?"
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/etoimik-sp-teammate-decision-sync
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

@@ -585,8 +585,8 @@ export function CompoundFormViewCard({
             <Card key={index} className="mb-1">
               <Card.Content>
                 <Heading element="h3" className="mb-1">
-                  {drivers.length > 1
-                    ? `${t('forms.compound.driver')} ${index + 1}`
+                  {index >= 1
+                    ? t('forms.compound.teammate')
                     : t('forms.compound.driver')}
                 </Heading>
                 <div className={gridClass} style={{ alignItems: 'start' }}>

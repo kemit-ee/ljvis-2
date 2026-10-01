@@ -950,6 +950,12 @@
       "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
       "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",
+      "addTeammate": "Lisa meeskonnaliige",
+      "teammate": "Meeskonnaliikme andmed",
+      "removeTeammate": "Eemalda meeskonnaliige",
+      "removeTeammateBlocked": "Meeskonnaliiget ei saa eemaldada, kuni tema sõidu- ja puhkeaja kontrollvorm on olemas. Kustuta vorm enne.",
+      "addTeammateControlForm": "Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
+      "editTeammateControlForm": "Muuda meeskonnaliikme sõidu- ja puhkeaja kontrollvormi",
       "trailerRegNr": "Registreerimismärk",
       "trailerCountry": "Riigi tunnusmärk",
       "trailerMake": "Mark",
@@ -1287,6 +1293,7 @@
       }
     },
     "drive_rest": {
+      "teammatePerson": "Meeskonnaliige",
       "atpTitle": "ATP kokkuleppe nõuete kontroll",
       "sectionTitle": "Dokumendi või õiguse kontroll",
       "violationSectionTitle": "Sõidu- ja puhkeaja nõuete rikkumised",

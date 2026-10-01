@@ -135,5 +135,7 @@ export const getAvailableFormKeys = (
   return formTypeValues
     .filter((v) => v.description === DASHBOARD_VISIBLE && v.isValid !== false)
     .map((v) => keyByClassifierCode[v.code])
-    .filter((key): key is string => !!key && permissions.includes(`${key}.write`));
+    // Meeskonnaliikme kontrollvormi lisatakse ainult koondvormi meeskonnaliikme plokist
+    // (nagu haagise tehnovorm) — mitte töölaualt ega ülemisest „Lisa" nupust.
+    .filter((key): key is string => !!key && key !== 'sp_teammate_form' && permissions.includes(`${key}.write`));
 };
