@@ -1,18 +1,9 @@
 declaration:
   version: "1.0"
-  description: "LJVIS2-9 cross-entity form search. Returns a paged, filtered list of forms the caller is allowed to see (row-level by read permission)."
+  description: "Form search export. Same filters as search/list but unpaged; returns the latest snapshot (all data fields) of every matching form of ONE form type. Requires form.export plus read permission for the chosen form type. Capped at 5000 rows."
   namespace: control-forms
   allowlist:
     params:
-      - field: page
-        type: string
-        description: "Page number (1-based)"
-      - field: pageSize
-        type: string
-        description: "Rows per page"
-      - field: sorting
-        type: string
-        description: "Sort column and direction, e.g. 'main_date desc'"
       - field: dateFrom
         type: string
         description: "Control date lower bound (inclusive)"
@@ -21,7 +12,7 @@ declaration:
         description: "Control date upper bound (inclusive)"
       - field: formType
         type: string
-        description: "Filter by a single form type"
+        description: "Form type to export (required)"
       - field: formNumber
         type: string
         description: "Form number, partial match"
@@ -60,31 +51,50 @@ declaration:
         description: "VR only - applied sanction code (exact match)"
 
 getAuthority:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml); search/.guard.yml nõuab vähemalt ühte lugemisõigust
   assign:
     u: ${auth_user}
+    form_type: "${incoming.params.formType ?? ''}"
+    max_rows: "5000"
+  next: checkExportPermission
+
+checkExportPermission:
+  switch:
+    - condition: ${u.permissions != null && u.permissions.includes('form.export')}
+      next: checkFormType
+  next: returnForbidden
+
+checkFormType:
+  switch:
+    - condition: ${form_type === ''}
+      next: returnFormTypeRequired
   next: buildAllowedTypes
 
+# Sama reataseme reegel mis search/list.yml-is, aga
 buildAllowedTypes:
   assign:
     allowed_types: "${(u.permissions.includes('control_form.view_unpublished') ? 'compound,foreign_violation,labour_inspection,good_repute,sp_driver,sp_teammate,vehicle_technical,trailer_technical,adr,kv,' : ((u.permissions.includes('compound_form.read') ? 'compound,' : '') + (u.permissions.includes('foreign_violation_form.read') ? 'foreign_violation,' : '') + (u.permissions.includes('labour_inspection_form.read') ? 'labour_inspection,' : '') + (u.permissions.includes('good_repute_form.read') ? 'good_repute,' : '') + (u.permissions.includes('sp_driver_form.read') ? 'sp_driver,' : '') + (u.permissions.includes('sp_teammate_form.read') ? 'sp_teammate,' : '') + (u.permissions.includes('vehicle_technical_form.read') ? 'vehicle_technical,' : '') + (u.permissions.includes('trailer_technical_form.read') ? 'trailer_technical,' : '') + (u.permissions.includes('adr_form.read') ? 'adr,' : '') + (u.permissions.includes('transport_interruption_form.read') ? 'kv,' : ''))) + (u.permissions.includes('tram_driver_form.read') ? 'tram_control_card' : '')}"
-  next: search
+  next: checkTypeAllowed
 
-search:
+checkTypeAllowed:
+  switch:
+    - condition: ${allowed_types.split(',').includes(form_type)}
+      next: export
+  next: returnForbidden
+
+export:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/control-forms/search/search"
+    url: "[#LJVIS_RESQL]/control-forms/search/export"
     headers:
       type: json
     body:
       allowed_types: "${allowed_types}"
       actor_code: "${u.personalcode || ''}"
-      page: "${incoming.params.page ?? '1'}"
-      page_size: "${incoming.params.pageSize ?? '20'}"
-      sorting: "${incoming.params.sorting ?? 'main_date desc'}"
+      max_rows: "${max_rows}"
       date_from: "${incoming.params.dateFrom ?? ''}"
       date_to: "${incoming.params.dateTo ?? ''}"
-      form_type: "${incoming.params.formType ?? ''}"
+      form_type: "${form_type}"
       form_number: "${incoming.params.formNumber ?? ''}"
       vehicle_reg_nr: "${incoming.params.vehicleRegNr ?? ''}"
       company_reg_code: "${incoming.params.companyRegCode ?? ''}"
@@ -98,8 +108,44 @@ search:
       vr_reporting_country_code: "${incoming.params.vrReportingCountryCode ?? ''}"
       vr_sanction_code: "${incoming.params.vrSanctionCode ?? ''}"
   result: res
+  next: checkExportResult
+
+checkExportResult:
+  switch:
+    - condition: ${res.response == null || res.response.status < 200 || res.response.status >= 300 || res.response.body == null}
+      next: returnResqlError
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "form.export"
+    event_category: "control_form"
+    description: "Laaditi alla vormiotsingu tulemus: vormitüüp ${form_type}, ${res.response.body.length > 5000 ? 'üle 5000' : res.response.body.length} vormi"
+    log_content: "{\"formType\":\"${form_type}\",\"rowCount\":${res.response.body.length}}"
+    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+    actor_personal_code: "${u.personalcode || ''}"
+  result: audit_result
   next: returnSuccess
 
 returnSuccess:
   return: ${res.response.body}
+  next: end
+
+returnFormTypeRequired:
+  status: 400
+  return: '{"error": "FORM_TYPE_REQUIRED"}'
+  next: end
+
+returnForbidden:
+  status: 403
+  return: '{"error": "FORBIDDEN"}'
+  next: end
+
+returnResqlError:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"export_failed","message":"Andmebaasi lugemine ebaõnnestus"}'
   next: end

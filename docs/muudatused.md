@@ -16,6 +16,23 @@
 - Töölaua vaate valik „Minu organisatsioonid“ on nüüd „Minu asutuse“.
 - Pöördumine on läbivalt „teie“ vormis (nt „Kas soovite jätkata?“, „Salvestage vorm enne failide lisamist“).
 - Parandatud kirjavead: „Liiklusjärelevalve“ (jalus), „Struktuuriüksus“, „siduda“, „nimetusega“, „vaheaja“, „Mittetäitmise põhjus“.
+### Otsingu tulemuse allalaadimine (xlsx / csv)
+
+- Vormiotsingu lehel on õigusega `form.export` kasutajal nupud „Laadi tulemus alla (xlsx)“ ja „(csv)“.
+  Fail sisaldab kõiki otsingutingimustele vastavate vormide viimase versiooni andmevälju (üks rida vormi kohta).
+- Allalaadimiseks tuleb filtris valida vormitüüp ja vajutada „Otsi“; eksport hõlmab ainult seda tüüpi.
+  Kasutaja peab lisaks `form.export`-ile omama selle vormitüübi lugemisõigust.
+- Korduvad plokid (rikkumised, juhid jms) on lahtris JSON-tekstina. Ülempiir on 5000 vormi.
+- Iga allalaadimine kirjutatakse auditilogisse (`form.export`).
+- Uus õigus `form.export` lisatakse kataloogi; gruppidele omistab selle haldur grupihalduse vaates.
+
+### Vormiotsingu parandused
+
+- Isiku (juhi) otsing leiab nüüd isikukoodi või nime järgi ka koondvormid ja kõik alamvormid (SP, tehnokaart, ADR, KV). Varem jäid need tulemusest välja.
+- Avalikustatud vormid on otsingus nähtavad kõigile kasutajatele ja iga kasutaja näeb alati enda loodud vorme. Salvestatud ja kinnitatud vorme näeb lisaks õigusega `control_form.view_unpublished` kasutaja (administraator) kõigi asutuste kohta.
+- Uus filter „Vedaja riik“ (Kõik / Eesti / Välisriigi vedaja): Eesti hõlmab vedaja riigiga EE või määramata vormid, Välisriigi vedaja kõiki muid riigikoode.
+- Uus otsinguväli „Kontrollkaardi nr“: leiab vormi numbri täieliku või osalise sisestuse järgi (suur- ja väiketähte ei eristata).
+- „Maakond“ on nüüd rippmenüü (vaikimisi tühi); varem tekstiotsing nimega ei leidnud midagi, sest vormid hoiavad maakonna klassifikaatori väärtuse võtmena.
 
 ## 2026-09-30
 
