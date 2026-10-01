@@ -17,22 +17,6 @@
     ]
   },
   {
-    "part": "CAA_0",
-    "code": "CAA_0.3",
-    "name": "0.3 Vastavus liiklusregistri andmetele",
-    "allowed": [
-      "OV"
-    ]
-  },
-  {
-    "part": "CAA_0",
-    "code": "CAA_0.4",
-    "name": "0.4 Parandusmeede",
-    "allowed": [
-      "OV"
-    ]
-  },
-  {
     "part": "CAA_1",
     "code": "CAA_1.1.1",
     "name": "1.1.1 Sõidupiduri pedaali või hoova liikumine",
@@ -90,8 +74,7 @@
     "name": "1.1.7 Piduriklapid/ventiilid (sõidupidurikraanid, rõhualandajad, regulaatorid)",
     "allowed": [
       "VO",
-      "OV",
-      "EOV"
+      "OV"
     ]
   },
   {
@@ -99,6 +82,7 @@
     "code": "CAA_1.1.8",
     "name": "1.1.8 Haagisepidurite ühendused (elektrilised ja pneumaatilised)",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -165,7 +149,6 @@
     "code": "CAA_1.1.15",
     "name": "1.1.15 Piduritrossid, -vardad, -hoovastik",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
@@ -185,6 +168,7 @@
     "code": "CAA_1.1.17",
     "name": "1.1.17 Pidurdusjõu regulaator",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -211,7 +195,7 @@
     "code": "CAA_1.1.20",
     "name": "1.1.20 Haagisepidurite automaatne rakendumine",
     "allowed": [
-      "EOV"
+      "OV"
     ]
   },
   {
@@ -281,8 +265,7 @@
     "code": "CAA_1.4.1",
     "name": "1.4.1 Seisupiduri toimimine",
     "allowed": [
-      "OV",
-      "EOV"
+      "OV"
     ]
   },
   {
@@ -290,8 +273,7 @@
     "code": "CAA_1.4.2",
     "name": "1.4.2 Seisupiduri tõhusus",
     "allowed": [
-      "OV",
-      "EOV"
+      "OV"
     ]
   },
   {
@@ -332,6 +314,7 @@
     "code": "CAA_2.1.1",
     "name": "2.1.1 Roolimehhanismi (roolikarp, roolireduktor, roolilatt) seisund",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -387,7 +370,8 @@
     "code": "CAA_2.2.2",
     "name": "2.2.2 Roolisammas/roolikann ja roolisamba külge kinnitatavad hoovad/kangid",
     "allowed": [
-      "OV"
+      "OV",
+      "EOV"
     ]
   },
   {
@@ -401,8 +385,8 @@
   },
   {
     "part": "CAA_2",
-    "code": "CAA_2.4",
-    "name": "2.4 Haagise esitelje pöördering",
+    "code": "CAA_2.5",
+    "name": "2.5 Haagise esitelje pöördering",
     "allowed": [
       "OV",
       "EOV"
@@ -410,8 +394,8 @@
   },
   {
     "part": "CAA_2",
-    "code": "CAA_2.5",
-    "name": "2.5 Elektrooniline roolivõimendi (EPS)",
+    "code": "CAA_2.6",
+    "name": "2.6 Elektrooniline roolivõimendi (Electronic Power Steering, EPS)",
     "allowed": [
       "OV"
     ]
@@ -467,14 +451,7 @@
     "code": "CAA_3.6",
     "name": "3.6 Tuuleklaasi soojendi",
     "allowed": [
-      "VO"
-    ]
-  },
-  {
-    "part": "CAA_3",
-    "code": "CAA_3.7",
-    "name": "3.7 Aknaklaasi tõstukid",
-    "allowed": [
+      "VO",
       "OV"
     ]
   },
@@ -492,7 +469,6 @@
     "code": "CAA_4.1.2",
     "name": "4.1.2 Lähitulelaternate reguleeritus",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -533,7 +509,7 @@
   {
     "part": "CAA_4",
     "code": "CAA_4.2.1",
-    "name": "4.2.1 Ääre- ja päevatulelaternad — seisund ja toimimine",
+    "name": "4.2.1 Ääretulelaternad — seisund ja toimimine",
     "allowed": [
       "VO",
       "OV"
@@ -542,15 +518,16 @@
   {
     "part": "CAA_4",
     "code": "CAA_4.2.2",
-    "name": "4.2.2 Ääre- ja päevatulelaternad — lülitamine",
+    "name": "4.2.2 Ääretulelaternad — lülitamine",
     "allowed": [
+      "VO",
       "OV"
     ]
   },
   {
     "part": "CAA_4",
     "code": "CAA_4.2.3",
-    "name": "4.2.3 Ääre- ja päevatulelaternad — vastavus nõuetele",
+    "name": "4.2.3 Ääretulelaternad — vastavus nõuetele",
     "allowed": [
       "VO",
       "OV"
@@ -597,6 +574,7 @@
     "code": "CAA_4.4.2",
     "name": "4.4.2 Suuna- ja ohutulelaternad — lülitamine",
     "allowed": [
+      "VO",
       "OV"
     ]
   },
@@ -640,6 +618,7 @@
     "code": "CAA_4.5.3",
     "name": "4.5.3 Udutulelaternad — lülitamine",
     "allowed": [
+      "VO",
       "OV"
     ]
   },
@@ -648,7 +627,6 @@
     "code": "CAA_4.5.4",
     "name": "4.5.4 Udutulelaternad — vastavus nõuetele",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -693,6 +671,7 @@
     "code": "CAA_4.7.2",
     "name": "4.7.2 Tagumise registreerimismärgi tule latern — vastavus nõuetele",
     "allowed": [
+      "VO",
       "OV"
     ]
   },
@@ -737,8 +716,7 @@
     "name": "4.10 Veduki ja haagise ühendusjuhtmed",
     "allowed": [
       "VO",
-      "OV",
-      "EOV"
+      "OV"
     ]
   },
   {
@@ -754,7 +732,7 @@
   {
     "part": "CAA_4",
     "code": "CAA_4.12",
-    "name": "4.12 Muud valgustus- ja valgussignalisatsiooniseadmed",
+    "name": "4.12 Mittekohustuslikud laternad, valgustusseadmed ja helkurid",
     "allowed": [
       "VO",
       "OV"
@@ -766,6 +744,23 @@
     "name": "4.13 Aku",
     "allowed": [
       "VO",
+      "OV"
+    ]
+  },
+  {
+    "part": "CAA_4",
+    "code": "CAA_4.14.1",
+    "name": "4.14.1 Päevatulelaternad — seisund ja toimimine",
+    "allowed": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "part": "CAA_4",
+    "code": "CAA_4.14.2",
+    "name": "4.14.2 Päevatulelaternad — vastavus nõuetele",
+    "allowed": [
       "OV"
     ]
   },
@@ -829,6 +824,7 @@
     "code": "CAA_5.3.1",
     "name": "5.3.1 Vedrud ja stabilisaator",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -904,8 +900,8 @@
     "code": "CAA_6.1.4",
     "name": "6.1.4 Kaitserauad, allasõidutõkked, esikaitsesüsteemid",
     "allowed": [
-      "VO",
-      "OV"
+      "OV",
+      "EOV"
     ]
   },
   {
@@ -942,7 +938,6 @@
     "code": "CAA_6.1.8",
     "name": "6.1.8 Mootori kinnitused",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
@@ -952,7 +947,6 @@
     "code": "CAA_6.1.9",
     "name": "6.1.9 Mootor",
     "allowed": [
-      "VO",
       "OV"
     ]
   },
@@ -970,7 +964,6 @@
     "code": "CAA_6.2.1",
     "name": "6.2.1 Kabiin, kere ja pealisehitus — seisund",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
@@ -1008,6 +1001,7 @@
     "code": "CAA_6.2.5",
     "name": "6.2.5 Juhiiste",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -1017,6 +1011,7 @@
     "code": "CAA_6.2.6",
     "name": "6.2.6 Muud istmed",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -1044,6 +1039,7 @@
     "code": "CAA_6.2.9",
     "name": "6.2.9 Muud sõiduki sise- ja välisseadmed või varustus (tõstuk, kraana vms)",
     "allowed": [
+      "VO",
       "OV"
     ]
   },
@@ -1218,32 +1214,6 @@
     ]
   },
   {
-    "part": "CAA_7",
-    "code": "CAA_7.13.1",
-    "name": "7.13.1 eCall — paigaldus ja konfiguratsioon",
-    "allowed": [
-      "VO",
-      "OV"
-    ]
-  },
-  {
-    "part": "CAA_7",
-    "code": "CAA_7.13.2",
-    "name": "7.13.2 eCall — seisund",
-    "allowed": [
-      "VO",
-      "OV"
-    ]
-  },
-  {
-    "part": "CAA_7",
-    "code": "CAA_7.13.3",
-    "name": "7.13.3 eCall — toimimine",
-    "allowed": [
-      "VO"
-    ]
-  },
-  {
     "part": "CAA_8",
     "code": "CAA_8.1.1",
     "name": "8.1.1 Müravähendussüsteem",
@@ -1298,7 +1268,16 @@
   {
     "part": "CAA_8",
     "code": "CAA_8.4.1",
-    "name": "8.4.1 Vedelikulekked",
+    "name": "8.4.1 Nähtav suits",
+    "allowed": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "part": "CAA_8",
+    "code": "CAA_8.4.2",
+    "name": "8.4.2 Vedelikulekked",
     "allowed": [
       "OV"
     ]
@@ -1402,6 +1381,16 @@
     "allowed": [
       "VO",
       "OV"
+    ]
+  },
+  {
+    "part": "CAA_11",
+    "code": "CAA_11.1",
+    "name": "11.1 Muu tehniline viga",
+    "allowed": [
+      "VO",
+      "OV",
+      "EOV"
     ]
   }
 ]

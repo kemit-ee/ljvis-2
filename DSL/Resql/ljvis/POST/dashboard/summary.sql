@@ -139,7 +139,7 @@ compound_progress AS (
         cf.vehicle_reg_nr,
         cf.company_name,
         concat_ws(' ', cf.inspector_first_name, cf.inspector_last_name) AS inspector_name,
-        (SELECT string_agg(concat_ws(' ', d->>'first_name', d->>'last_name'), ', ')
+        (SELECT string_agg(concat_ws(' ', COALESCE(d->>'firstName', d->>'first_name'), COALESCE(d->>'lastName', d->>'last_name')), ', ')
          FROM jsonb_array_elements(cf.drivers) AS d) AS driver_name,
         cf.created_by,
         COALESCE(

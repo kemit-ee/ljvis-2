@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Risk Scores",
     "_postman_id": "ljvis-risk-scores-v1",
-    "description": "Functional tests for the risk-score module (EU regulation 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation, and the per-control MSI/VSI/SI/MI breakdown endpoint (includes the 'no SP sub-form at all -> fully excluded' rule). Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001-90000006 = Punane/Nullpunkt/Valistatud/Nimemuutus/Kontrollimata/Kollane). See docs/risk-score/formula.md for the scoring rules.",
+    "description": "Functional tests for the risk-score module (EU regulation 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation, and the per-control MSI/VSI/SI/MI breakdown endpoint (includes the 'no SP sub-form at all -> fully excluded' rule). Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001-90000006 = Punane/Nullpunkt/Valistatud/Nimemuutus/Kontrollimata/Kollane). See docs/risk-score/formula.md for the scoring rules. Fixtures 90000071-73 (20261203100000-risk-score-draft-deleted-fixture.sql): draft/deleted sub-forms and deleted compound_forms are ignored; deleting a published sub-form triggers a recalculation.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -1304,6 +1304,295 @@
               "var raw = pm.response.json();",
               "var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('error UNAUTHENTICATED', () => pm.expect(b.error).to.eql('UNAUTHENTICATED'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Draft/deleted sub-forms ignored (90000071) -> Roheline, R=90, r=1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000071\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('later DRAFT snapshot and DELETED sub-form do not count: R=90', () => pm.expect(Number(b.riskScore)).to.eql(90));",
+              "pm.test('riskBandCode Roheline (NOT Punane)', () => pm.expect(b.riskBandCode).to.eql('Roheline'));",
+              "pm.test('totalControls 1', () => pm.expect(b.totalControls).to.eql(1));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Draft/deleted sub-forms ignored (90000071) -> weighted_points=90",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000071\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var controls = pm.response.json().response.controls;",
+              "pm.test('1 control', () => pm.expect(controls).to.have.lengthOf(1));",
+              "pm.test('weightedPoints=90, msi=1, vsi=0', () => {",
+              "  pm.expect(Number(controls[0].weightedPoints)).to.eql(90);",
+              "  pm.expect(Number(controls[0].msi)).to.eql(1);",
+              "  pm.expect(Number(controls[0].vsi)).to.eql(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Recalculate] Deleted compound_form ignored (90000072) -> Hall, r=0",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000072\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('riskBandCode Hall', () => pm.expect(b.riskBandCode).to.eql('Hall'));",
+              "pm.test('totalControls 0', () => pm.expect(b.totalControls).to.eql(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Controls Breakdown] Deleted compound_form ignored (90000072) -> empty list",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/controls",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "controls"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000072\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "pm.test('no controls', () => pm.expect(pm.response.json().response.controls).to.have.lengthOf(0));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Delete trigger] Baseline (90000073) -> Punane, R=450",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/recalculate",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "recalculate"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000073\", \"calculation_trigger\": \"admin\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('R=450 Punane', () => { pm.expect(Number(b.riskScore)).to.eql(450); pm.expect(b.riskBandCode).to.eql('Punane'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Delete trigger] Delete published SP driver form (95100732) -> 200",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/control-forms/drive-rest-form/driver/edit/delete",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "control-forms",
+            "drive-rest-form",
+            "driver",
+            "edit",
+            "delete"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"id\": \"95100732\", \"old_status\": \"published\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Delete trigger] Delete recalculated the score on its own (90000073) -> Roheline",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{internal_api_url}}/ljvis/risk-scores/current",
+          "host": [
+            "{{internal_api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "risk-scores",
+            "current"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"company_reg_code\": \"90000073\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('persisted score is now Roheline (R=90) without a manual recalculate', () => {",
+              "  pm.expect(b.riskBandCode).to.eql('Roheline');",
+              "  pm.expect(Number(b.riskScore)).to.eql(90);",
+              "});"
             ]
           }
         }

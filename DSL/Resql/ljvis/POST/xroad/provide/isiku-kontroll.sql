@@ -1,7 +1,7 @@
 /*
 description: 'X-tee IsikuKontroll (v1): tagastab kõik LJVIS kontrollid ja rikkumised ühe isikukoodi kohta.
   Allikad: (1) compound_form kus isik on juht (drivers JSONB), (2) labour_inspection_form kus isik on
-  karistatu. Tühjad tulemused on edukad. Kustutatud staatuses vormid välistatakse.'
+  karistatu, (3) sp_teammate_form kus isik on meeskonnaliige (person_code_ee). Tühjad tulemused on edukad. Kustutatud staatuses vormid välistatakse.'
 namespace: xroad
 params:
   isikukood:
@@ -106,6 +106,43 @@ latest_labour AS (
   WHERE punished_person_id_code = :isikukood   -- karistatu isikukood
     AND status <> 'deleted'
   ORDER BY labour_inspection_form_key, created_at DESC
+),
+
+-- 3. Meeskonnaliikme sõidu- ja puhkeaja alamvormid (isik on vormil person_code_ee)
+latest_teammate AS (
+  SELECT DISTINCT ON (sp_teammate_form_key)
+    compound_form_key,
+    sub_form_number,
+    result_type,
+    proceeding_closure_basis,
+    person_first_name,
+    person_last_name,
+    status
+  FROM forms.sp_teammate_form
+  WHERE person_code_ee = :isikukood
+  ORDER BY sp_teammate_form_key, created_at DESC
+),
+teammate_hits AS (
+  SELECT
+    cf.control_date                     AS kuupaev,
+    lt.sub_form_number                  AS nimetus,
+    cf.company_name                     AS asutus,
+    cf.vehicle_reg_nr                   AS soiduki_reg_nr,
+    lt.result_type                      AS rikkumise_liik,
+    'MEESKONNALIIGE_SOIDU_PUHKEAEG'     AS kontrolli_nimetus,
+    lt.person_first_name                AS juhi_nimi,
+    lt.person_last_name                 AS juhi_perekonnanimi,
+    NULL::TEXT                          AS rikkumised,
+    lt.proceeding_closure_basis         AS rikkumised_lopetatud
+  FROM latest_teammate lt
+  JOIN LATERAL (
+    SELECT control_date, company_name, vehicle_reg_nr, status
+    FROM forms.compound_form
+    WHERE compound_form_key = lt.compound_form_key
+    ORDER BY created_at DESC
+    LIMIT 1
+  ) cf ON cf.status <> 'deleted'
+  WHERE lt.status <> 'deleted'
 )
 
 -- Koonda mõlema allika tulemused ühtseks loendiks, sorteeri kuupäeva järgi
@@ -130,5 +167,14 @@ SELECT
   NULL                                   AS rikkumised,
   proceeding_closure_basis               AS rikkumised_lopetatud
 FROM latest_labour
+
+UNION ALL
+
+SELECT
+  kuupaev, nimetus, asutus, soiduki_reg_nr,
+  rikkumise_liik, kontrolli_nimetus,
+  juhi_nimi, juhi_perekonnanimi,
+  rikkumised, rikkumised_lopetatud
+FROM teammate_hits
 
 ORDER BY kuupaev DESC NULLS LAST;   -- uuemad kontrollid eespool

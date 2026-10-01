@@ -443,6 +443,7 @@
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
+    "notifyCarrierOnConfirm": "Teavita vedajat rikkumisest (saadetakse avalikustamisel)",
     "publishUnsavedChanges": "Salvestage muudatused enne avalikustamist",
     "publishedNote": "Vorm on avalikustatud",
     "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",
@@ -949,6 +950,12 @@
       "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
       "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
       "removeTrailer": "Eemalda haagis",
+      "addTeammate": "Lisa meeskonnaliige",
+      "teammate": "Meeskonnaliikme andmed",
+      "removeTeammate": "Eemalda meeskonnaliige",
+      "removeTeammateBlocked": "Meeskonnaliiget ei saa eemaldada, kuni tema sõidu- ja puhkeaja kontrollvorm on olemas. Kustuta vorm enne.",
+      "addTeammateControlForm": "Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
+      "editTeammateControlForm": "Muuda meeskonnaliikme sõidu- ja puhkeaja kontrollvormi",
       "trailerRegNr": "Registreerimismärk",
       "trailerCountry": "Riigi tunnusmärk",
       "trailerMake": "Mark",
@@ -1286,6 +1293,7 @@
       }
     },
     "drive_rest": {
+      "teammatePerson": "Meeskonnaliige",
       "atpTitle": "ATP kokkuleppe nõuete kontroll",
       "sectionTitle": "Dokumendi või õiguse kontroll",
       "violationSectionTitle": "Sõidu- ja puhkeaja nõuete rikkumised",
@@ -1515,9 +1523,13 @@
       "companyRegCode": "Veoettevõtja registrikood",
       "inspectionDateTime": "Kontrolli aeg (kuupäev ja kellaaeg)",
       "inspectionCountryCode": "Kontrolli koht (ISO riigikood)",
+      "inspectionCountry": "Kontrolli koha riigi nimetus",
       "vehicleRegNr": "Kontrollitud sõiduki registreerimisnumber",
       "violationSeverities": "Rikkumise raskusastmed (nt MSI, VSI)",
       "violationDescription": "Rikkumise vabatekstiline kirjeldus",
+      "MSIViolationsList": "MSI rikkumised (kood — nimetus, üks rea kohta)",
+      "VSIViolationsList": "VSI rikkumised (kood — nimetus, üks rea kohta)",
+      "SIViolationsList": "SI rikkumised (kood — nimetus, üks rea kohta)",
       "resultType": "Kontrolli tulemus"
     },
     "editedNote": "Seadistus on muudetud",
@@ -2341,6 +2353,7 @@
       "weight_violation": "Kaalumise/mõõtmise rikkumine",
       "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
+      "labor_tachograph_not_downloaded": "Sõidumeerikuandmete alla laadimata jätmise teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
       "nu_inbound_received": "ERRU NU sobimatusteade"
     }

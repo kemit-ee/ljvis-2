@@ -2,6 +2,54 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-02
+
+### Meeskonnaliige koondvormi üldosas
+
+- Koondvormi üldosas on autojuhi andmete all nupp „Lisa meeskonnaliige“, mis avab meeskonnaliikme andmete ploki (samad väljad nagu juhil, sh isikukoodi otsing). Plokki saab eemaldada nupuga „Eemalda meeskonnaliige“, kuni tema kontrollvormi pole lisatud.
+- Ploki all on nupp „Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm“ (nagu haagisel). Ülemisest „Lisa“ nupust ja töölaualt meeskonnaliikme vormi enam lisada ei saa.
+- Meeskonnaliikme isikuandmed salvestatakse ka tema sõidu- ja puhkeaja kontrollvormi andmetabelisse. Vormil kuvatakse veoliigi ploki kohal ainult meeskonnaliikme ees- ja perenimi (andmeid vormil ei muudeta).
+- Avalikustatud meeskonnaliikme vormi saab otsida meeskonnaliikme isikukoodi ja nime järgi (varem leiti see ainult koondvormi juhi/meeskonnaliikme kaudu).
+- E-toimiku öine otsuste sünkroon (01:35) kontrollib meeskonnaliikme vormide menetlusi meeskonnaliikme isikukoodi järgi, mitte juhi omade järgi.
+- Meeskonnaliikme sõidu- ja puhkeaja vormi väljatrükk näitab meeskonnaliikme andmeid vormi enda andmetest (mitte koondvormi hilisemast versioonist).
+- X-tee isikukontroll tagastab ka meeskonnaliikme vormid (`MEESKONNALIIGE_SOIDU_PUHKEAEG`).
+- Olemasolevatele meeskonnaliikme vormidele kantakse andmed üle koondvormi teisest juhist.
+- Parandus: e-toimiku öine sünkroon (sõidu- ja puhkeaeg, mootorsõiduki ja haagise tehnokontroll) ei leidnud juhi isikukoodi (vale väljanimi) ja töölaua juhi nimi jäi tühjaks; nüüd loetakse õigeid välju.
+
+### Tehnokaardi pidurisüsteemi ja rooliseadme raskusastmed
+
+- Punkt 1.1.7 „Piduriklapid/ventiilid“: valitavad raskusastmed on VO ja OV (varem ka EOV).
+- Punkt 1.1.8 „Haagisepidurite ühendused“: valitavad raskusastmed on VO, OV ja EOV (varem ainult OV ja EOV).
+- Punkt 1.1.15 „Piduritrossid, -vardad, -hoovastik“: valitavad raskusastmed on OV ja EOV (VO eemaldatud).
+- Punkt 1.1.17 „Pidurdusjõu regulaator“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
+- Punkt 1.1.20 „Haagisepidurite automaatne rakendumine“: valitav raskusaste on ainult OV (varem EOV).
+- Punkt 1.4.1 „Seisupiduri toimimine“: valitav raskusaste on ainult OV (varem OV ja EOV).
+- Punkt 1.4.2 „Seisupiduri tõhusus“: valitav raskusaste on ainult OV (varem OV ja EOV).
+- Punkt 2.1.1 „Roolimehhanismi seisund“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
+- Punkt 2.2.2 „Roolisammas/roolikann ja hoovad“: valitavad raskusastmed on OV ja EOV (varem ainult OV).
+- Punktid 2.3 ja 2.5 „Haagise esitelje pöördering“: valitavad raskusastmed on OV ja EOV. Punkt 2.6 „Elektrooniline roolivõimendi (Electronic Power Steering, EPS)“: ainult OV. Punkti 2.4 ei ole; punktide 2.5 ja 2.6 nimedes oli varem vale number (2.4 ja 2.5), nii vormil kui väljatrükil.
+- Punkt 3.6 „Tuuleklaasi soojendi“: valitavad raskusastmed on VO ja OV (varem ainult VO).
+- Punkt 4.1.2 „Lähitulelaternate reguleeritus“: valitav raskusaste on ainult OV (varem VO ja OV).
+- Punkt 4.2.2 „Ääretulelaternad — lülitamine“: valitavad raskusastmed on VO ja OV (varem ainult OV).
+- Punkt 4.4.2 „Suuna- ja ohutulelaternad — lülitamine“: valitavad raskusastmed on VO ja OV (varem ainult OV).
+- Punkt 4.5.3 „Udutulelaternad — lülitamine“: VO ja OV (varem ainult OV). Punkt 4.5.4 „Udutulelaternad — vastavus nõuetele“: ainult OV (varem VO ja OV). Punkt 4.7.2 „Tagumise registreerimismärgi tule latern — vastavus nõuetele“: VO ja OV (varem ainult OV).
+- Punkt 4.10 „Veduki ja haagise ühendusjuhtmed“: VO ja OV (EOV kustutatud). Punkt 4.14.2 „Päevatulelaternad — vastavus nõuetele“: ainult OV (varem VO ja OV). Punkt 5.3.1 „Vedrud ja stabilisaator“: VO, OV ja EOV (varem VO puudus).
+- Punkt 6.1.4 „Kaitserauad, allasõidutõkked, esikaitsesüsteemid“: OV ja EOV (varem VO ja OV).
+- Punkt 6.1.8 „Mootori kinnitused“: OV ja EOV (varem VO, OV ja EOV). Punkt 6.1.9 „Mootor“: ainult OV (varem VO ja OV).
+- Punkt 6.2.1 „Kabiin, kere ja pealisehitus — seisund“: OV ja EOV (varem VO, OV ja EOV).
+- Punktid 6.2.5 „Juhiiste“ ja 6.2.6 „Muud istmed“: VO, OV ja EOV (varem VO puudus).
+- Punkt 6.2.9 „Muud sõiduki sise- ja välisseadmed või varustus“: VO ja OV (varem ainult OV).
+- Väljatrüki rikete loetelu vastab nüüd vormi klassifikaatorile: kustutatud punktid (0.3, 0.4, 3.7, 7.13.x) on välja jäetud, punktid 4.2.x, 4.12 ja 8.4.2 on õigete nimedega ning lisatud on 4.14.1, 4.14.2, 8.4.1 ja 11.1. Veose kinnitamise (punkt 10) rikete nimed prinditakse nime, mitte koodina.
+- Sama kehtib väljatrükil.
+
+## 2026-10-02
+
+### Riskiskoor ei arvesta enam mustandeid ega kustutatud vorme
+
+- Riskiskoori arvutus loeb alamvormidest (SP juht / meeskonnaliige) ainult viimast avalikustatud versiooni. Avalikustatud juhtumi alamvormi hilisem mustand või kinnitatud, kuid avalikustamata muudatus ei mõjuta skoori enne avalikustamist.
+- Kustutatud alamvormi ja kustutatud koondvormi rikkumisi ei arvestata. Varem jäid need skoori sisse.
+- Alamvormi (juht, meeskonnaliige) või koondvormi kustutamine arvutab ettevõtte riskiskoori kohe ümber; varem uuenes see alles öise ümberarvutusega.
+
 ## 2026-10-01
 
 ### Haldusvaadete parandused (leitud uute UI-testidega)
@@ -20,6 +68,22 @@
   vaid üks.
 - „E-toimiku X-tee logid“: lüliti „e-toimiku“ ↔ „kõiki“ uuendab nüüd ka
   tabeli sisu. Varem muutus ainult silt ja veerud, kuni vajutati „Otsi“.
+### Vedaja teavitus PPA ja Transpordiameti vormidelt
+
+- Sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kontrollkaardi ning sõiduki ja haagise tehnovormi kinnitamisel on nupu „Kinnita“ kõrval linnuke „Teavita vedajat rikkumisest (saadetakse avalikustamisel)“.
+- Kui linnuke on märgitud, saadetakse vedajale (äriregistri e-posti aadressile) avalikustamisel raske rikkumise teavitus. Teavitus saadetakse ainult MSI, VSI või SI rikkumise korral. Linnuke võetakse arvesse ka siis, kui vormi avalikustamine toimub hiljem, sh e-toimiku öise otsuse järel automaatselt avalikustatavatel TRAM-kaardil ja tehnovormidel.
+- Teavituse reg-nr väljal on sõiduk ja haagised komaga eraldatult.
+- Postkasti malli uued muutujad `MSIViolationsList`, `VSIViolationsList` ja `SIViolationsList`: rikkumised raskusastme kaupa, iga rikkumine eraldi real kujul „kood — nimetus“ (ridade vahel `<br>`). Muutuja on tühi, kui sellist raskusastet ei ole. Saadetakse nii PPA/TA vormidelt kui välisriigi kontrollkaardilt; mallis tuleb need ise paigutada.
+- Skeemimuudatus: uus tabel `notifications.carrier_notification_request`.
+
+### Vedajale saadetava teavituse kontrolli koht on riigi nimetusega
+
+- Raske rikkumise teavituses vedajale on „Kontrolli koht“ nüüd riigi nimetus (nt „Läti“), mitte ISO kood. Postkasti malli muutuja on `inspectionCountry`; mall `docs/pk2-templates/carrier_violation.json` tuleb Postkastis uuendada (`{{inspectionCountryCode}}` → `{{inspectionCountry}}`). Sama nimetus on tööinspektsiooni välisriigi ettepaneku teavituses.
+
+### Tööinspektsiooni teavitus: sõidumeerikust või juhikaardilt andmed alla laadimata
+
+- Autojuhi või meeskonnaliikme sõidu- ja puhkeaja kontrollkaardi avalikustamisel, millel on märge „andmed alla laadimata“, saadetakse Postkasti kaudu teavitus Tööinspektsiooni esindajale.
+- Haldus → „Postkasti mallide ja vastuvõtjate seaded“ on uus teavituse liik „Sõidumeerikuandmete alla laadimata jätmise teavitus“ (vaikeadressaat juri.milov@ti.ee, muudetav). Postkastis tuleb luua mall `docs/pk2-templates/labor_tachograph_not_downloaded.json` põhjal.
 
 ### Kasutajaliidese terminid ühtlustatud
 
@@ -39,7 +103,7 @@
   Fail sisaldab kõiki otsingutingimustele vastavate vormide viimase versiooni andmevälju (üks rida vormi kohta).
 - Allalaadimiseks tuleb filtris valida vormitüüp ja vajutada „Otsi“; eksport hõlmab ainult seda tüüpi.
   Kasutaja peab lisaks `form.export`-ile omama selle vormitüübi lugemisõigust.
-- Allalaaditava faili veergude pealkirjad on eesti keeles (nt „Sõiduki reg-nr“, „Juhi eesnimi“, „Haagise reg-nr“). Lahtrite väärtused (olek, klassifikaatorite koodid) on endiselt andmebaasi kujul.
+- Allalaaditava faili veergude pealkirjad on eesti keeles (nt „Sõiduki reg-nr“, „Juhi eesnimi“, „Haagise reg-nr“). Olek (`Olek`, `Koondvormi olek`) on eesti keeles (Salvestatud / Kinnitatud / Avalikustatud / Kustutatud); muud lahtrite väärtused (klassifikaatorite koodid) on endiselt andmebaasi kujul.
 - Alamvormide (SP, tehnokaart, ADR, KV) real on lisaks nende endi väljadele ka koondvormi väljad: sõiduk (sh `vehicle_reg_nr`, `vehicle_vin`), haagised, juhid, ettevõte ja kontrolli andmed; koondvormi number ja olek on veergudes `compound_form_number` ja `compound_status`. Veerud on andmebaasi tabeli järjekorras.
 - Juht ja meeskonnaliige on eraldi veergudes (`driver_*`, `teammate_*`: perekonnanimi, eesnimi, sünniaeg, Eesti isikukood, kodakondsus, välisriigi isikukood). Haagiste registreerimismärgid on eraldi veerus `trailer_reg_nr` (komaga eraldatud), täielik haagiste JSON jääb veergu `trailers`. Teised korduvad plokid (rikkumised jms) on lahtris JSON-tekstina. Ülempiir on 5000 vormi.
 - Iga allalaadimine kirjutatakse auditilogisse (`form.export`).

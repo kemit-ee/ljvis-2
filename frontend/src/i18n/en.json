@@ -331,6 +331,7 @@
   "forms": {
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
+    "notifyCarrierOnConfirm": "Notify the carrier of the infringement (sent on publication)",
     "publishUnsavedChanges": "Save your changes before publishing",
     "publishedNote": "Form has been published",
     "versions": {
@@ -1494,9 +1495,13 @@
       "companyRegCode": "Carrier registry code",
       "inspectionDateTime": "Inspection date and time",
       "inspectionCountryCode": "Inspection location (ISO country code)",
+      "inspectionCountry": "Inspection location (country name)",
       "vehicleRegNr": "Inspected vehicle registration number",
       "violationSeverities": "Violation severities (e.g. MSI, VSI)",
       "violationDescription": "Free-text violation description",
+      "MSIViolationsList": "MSI violations (code — name, one per line)",
+      "VSIViolationsList": "VSI violations (code — name, one per line)",
+      "SIViolationsList": "SI violations (code — name, one per line)",
       "resultType": "Inspection result"
     },
     "editedNote": "Settings have been updated",
@@ -2316,6 +2321,7 @@
       "weight_violation": "Weight/measurement infringement",
       "carrier_violation": "Serious infringement notification to carrier",
       "labor_kabotage": "Cabotage inspection notification",
+      "labor_tachograph_not_downloaded": "Tachograph data not downloaded notification",
       "labor_foreign_proposal": "Foreign country proposal notification",
       "nu_inbound_received": "ERRU NU non-compliance notice"
     }

@@ -14,7 +14,7 @@ Koondvorm on peamine tee kontrolli akt. Iga koondvorm võib sisaldada mitut alam
 
 1. Kaardi „Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart" all on
    loend **„Vali kontrollvorm(id)"** — märkige, millised alamvormid soovite kohe
-   koondvormi juurde luua (autojuhi/meeskonnaliikme sõidu- ja puhkeaeg,
+   koondvormi juurde luua (autojuhi sõidu- ja puhkeaeg,
    mootorsõiduki/haagise tehnokontroll, ohtliku veose kontroll, autoveo
    katkestamine). Kuvatakse ainult need, mille loomiseks on Teil õigus.
 2. Klõpsake **„Täida →"**. Enne tuleb valida vähemalt üks alamvorm.

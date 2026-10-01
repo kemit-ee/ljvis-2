@@ -134,6 +134,13 @@ export function serializeDriveRestFormValues(
     liiniNumber: sanitizeText(values.liiniNumber as string),
     liiniNimetus: sanitizeText(values.liiniNimetus as string),
     proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber as string),
+    // Meeskonnaliikme andmed on vormil kirjutuskaitstud — server võtab need koondvormi plokist
+    personCodeEe: undefined,
+    personFirstName: undefined,
+    personLastName: undefined,
+    personCitizenshipCode: undefined,
+    personCodeForeign: undefined,
+    personBirthDate: undefined,
   };
 }
 
@@ -153,6 +160,7 @@ export function useDriveRestForm(
     publish: publishDriveRestForm,
   };
   const pendingConfirm = useRef(false);
+  const pendingNotifyCarrier = useRef(false);
   const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
 
@@ -346,6 +354,12 @@ export function useDriveRestForm(
       notes: form?.notes ?? '',
       liiniNumber: form?.liiniNumber ?? '',
       liiniNimetus: form?.liiniNimetus ?? '',
+      personCodeEe: form?.personCodeEe ?? '',
+      personFirstName: form?.personFirstName ?? '',
+      personLastName: form?.personLastName ?? '',
+      personCitizenshipCode: form?.personCitizenshipCode ?? '',
+      personCodeForeign: form?.personCodeForeign ?? '',
+      personBirthDate: form?.personBirthDate ?? '',
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -376,7 +390,7 @@ export function useDriveRestForm(
         };
 
         const result = isConfirming
-          ? await api.confirm(type, trimmedValues as unknown as DriveRestForm)
+          ? await api.confirm(type, { ...trimmedValues, notifyCarrier: String(pendingNotifyCarrier.current) } as unknown as DriveRestForm)
           : await api.save(type, trimmedValues as unknown as DriveRestForm);
         onSaved(result[0]?.id, isConfirming);
       } catch (e) {
@@ -394,8 +408,9 @@ export function useDriveRestForm(
     }
   }, [compoundFormKey]);
 
-  const triggerConfirm = () => {
+  const triggerConfirm = (notifyCarrier = false) => {
     pendingConfirm.current = true;
+    pendingNotifyCarrier.current = notifyCarrier === true;
     formik.submitForm();
   };
 

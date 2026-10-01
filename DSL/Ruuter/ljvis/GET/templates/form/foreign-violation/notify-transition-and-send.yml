@@ -77,6 +77,15 @@ extractInputs:
           return Array.from(new Set(values)).join(', ');
         } catch (e) { return ''; }
       })()}
+    violation_codes: >-
+      ${(() => {
+        try {
+          var rows = JSON.parse(incoming.body.violations || '[]');
+          var codes = rows.map(function(v) { return String(v.code || '').toUpperCase().replace(/[ _-]/g, ''); })
+            .filter(function(c) { return /^(MSI|VSI|SI)[0-9]+$/.test(c); });
+          return Array.from(new Set(codes)).join(',');
+        } catch (e) { return ''; }
+      })()}
     inspection_date_time: >-
       ${((incoming.body.inspectionDate || '') + ' ' + (incoming.body.inspectionTime || '')).trim()}
     inspection_country_code: "${incoming.body.inspectionCountryCode || ''}"
@@ -88,6 +97,81 @@ extractInputs:
     send_carrier: "${incoming.body.newNotifyCarrier === 'true' && incoming.body.sendGateMet === 'true'}"
     send_labor_inspector: "${incoming.body.newNotifyLaborInspector === 'true' && incoming.body.sendGateMet === 'true'}"
     carrier_sent: "false"
+    inspection_country: "${incoming.body.inspectionCountryCode || ''}"
+  next: lookupInspectionCountry
+
+# Kontrolli koha riigi nimetus COUNTRY klassifikaatorist (kood -> nimi). Kui
+# otsing ebaõnnestub või koodi ei leita, jäetakse väärtuseks kood ise.
+lookupInspectionCountry:
+  switch:
+    - condition: ${inspection_country === ''}
+      next: callGetViolationNames
+  next: callGetCountryName
+
+callGetCountryName:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_country_name"
+    headers:
+      type: json
+    body:
+      code: ${inspection_country}
+  result: countryNameRes
+  error: callGetViolationNames
+  next: applyCountryName
+
+applyCountryName:
+  assign:
+    inspection_country: "${(countryNameRes.response.body && countryNameRes.response.body[0] && countryNameRes.response.body[0].name) || inspection_country}"
+  next: callGetViolationNames
+
+# Rikkumiskoodide nimetused klassifikaatoritest; leidmata koodi puhul näidatakse ainult koodi.
+callGetViolationNames:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_violation_names"
+    headers:
+      type: json
+    body:
+      codes: ${violation_codes}
+  result: violationNamesRes
+  error: buildViolationList
+  next: buildViolationList
+
+# Rikkumised raskusastme kaupa (MSIViolationsList / VSIViolationsList / SIViolationsList),
+# üks rikkumine rea kohta „kood — nimetus", ridade vahel <br>.
+buildViolationList:
+  assign:
+    MSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^MSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    VSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^VSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    SIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^SI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
   next: checkSendCarrier
 
 checkSendCarrier:
@@ -141,7 +225,7 @@ sendCarrierNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: inspection_country_code, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: inspection_country_code, inspectionCountry: inspection_country, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description, MSIViolationsList: MSIViolationsList, VSIViolationsList: VSIViolationsList, SIViolationsList: SIViolationsList } }"
   result: carrierNotifRes
   error: checkSendLaborInspector
   next: markCarrierSent
@@ -174,7 +258,7 @@ sendLaborInspectorNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, vehicleRegNr: vehicle_reg_nr, vehicleMake: vehicle_make, vehicleModel: vehicle_model, vehicleVin: vehicle_vin, inspectionCountry: inspection_country_code, inspectionDate: incoming.body.inspectionDate || '', inspectionTime: incoming.body.inspectionTime || '' } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, vehicleRegNr: vehicle_reg_nr, vehicleMake: vehicle_make, vehicleModel: vehicle_model, vehicleVin: vehicle_vin, inspectionCountry: inspection_country, inspectionDate: incoming.body.inspectionDate || '', inspectionTime: incoming.body.inspectionTime || '' } }"
   result: laborInspectorNotifRes
   error: returnResult
   next: returnResult
