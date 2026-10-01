@@ -938,7 +938,6 @@
     "code": "CAA_6.1.8",
     "name": "6.1.8 Mootori kinnitused",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
@@ -948,7 +947,6 @@
     "code": "CAA_6.1.9",
     "name": "6.1.9 Mootor",
     "allowed": [
-      "VO",
       "OV"
     ]
   },

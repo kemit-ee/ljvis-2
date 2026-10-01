@@ -26,7 +26,7 @@ have={r['code'] for r in rows}
 rows+=[{'part':p,'code':c,'name':n,'allowed':sev.split(',')} for p,c,n,sev in tuples(corr,4) if p.startswith('CAA_') and c.startswith(p+'.') and c not in have]
 rows.append({'part':'CAA_11','code':'CAA_11.1','name':'11.1 Muu tehniline viga','allowed':['VO','OV','EOV']})
 # Hilisemad raskusastmete parandused (migratsioonid 20261203120000, 20261203130000).
-fix={'CAA_1.1.7':['VO','OV'],'CAA_3.6':['VO','OV'],'CAA_4.1.2':['OV'],'CAA_4.2.2':['VO','OV'],'CAA_4.4.2':['VO','OV'],'CAA_4.5.3':['VO','OV'],'CAA_4.5.4':['OV'],'CAA_4.7.2':['VO','OV'],'CAA_4.10':['VO','OV'],'CAA_4.14.2':['OV'],'CAA_5.3.1':['VO','OV','EOV'],'CAA_6.1.4':['OV','EOV'],'CAA_1.1.8':['VO','OV','EOV'],'CAA_1.1.15':['OV','EOV'],'CAA_1.1.17':['VO','OV','EOV'],'CAA_1.1.20':['OV'],'CAA_1.4.1':['OV'],'CAA_1.4.2':['OV'],'CAA_2.1.1':['VO','OV','EOV'],'CAA_2.2.2':['OV','EOV']}
+fix={'CAA_1.1.7':['VO','OV'],'CAA_3.6':['VO','OV'],'CAA_4.1.2':['OV'],'CAA_4.2.2':['VO','OV'],'CAA_4.4.2':['VO','OV'],'CAA_4.5.3':['VO','OV'],'CAA_4.5.4':['OV'],'CAA_4.7.2':['VO','OV'],'CAA_4.10':['VO','OV'],'CAA_4.14.2':['OV'],'CAA_5.3.1':['VO','OV','EOV'],'CAA_6.1.4':['OV','EOV'],'CAA_6.1.8':['OV','EOV'],'CAA_6.1.9':['OV'],'CAA_1.1.8':['VO','OV','EOV'],'CAA_1.1.15':['OV','EOV'],'CAA_1.1.17':['VO','OV','EOV'],'CAA_1.1.20':['OV'],'CAA_1.4.1':['OV'],'CAA_1.4.2':['OV'],'CAA_2.1.1':['VO','OV','EOV'],'CAA_2.2.2':['OV','EOV']}
 # Grupp 2 numeratsiooni nihe (migratsioon 20261120100000): Lisa 2-s puudub 2.4.
 shift={'CAA_2.5':('CAA_2.6','2.6 Elektrooniline roolivõimendi (Electronic Power Steering, EPS)'),'CAA_2.4':('CAA_2.5','2.5 Haagise esitelje pöördering')}
 for r in rows:
