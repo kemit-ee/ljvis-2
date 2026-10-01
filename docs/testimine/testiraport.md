@@ -127,7 +127,7 @@ esindusõiguse vahetus).
 | `npm audit --audit-level=high` | mitteblokeeriv, tulemus CI logis |
 | Grawlr DAST | GitHub CI-s ei käivitu (sihtmärgi aadress muutub igal jooksul; vt §6.2) |
 
-Viimane CI jooks `dev` harus (01.10.2026): kõik jobid rohelised —
+Viimane CI jooks `dev` harus (01.10.2026): kõik tööd rohelised —
 <https://github.com/kemit-ee/ljvis-2/actions/runs/36886452388>.
 
 ## 4. Tulemuste asukohad
