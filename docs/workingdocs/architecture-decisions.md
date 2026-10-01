@@ -75,15 +75,25 @@ muudetakse.
   Ajalugu hoitakse auditilogis: `buildAuditContent` lisab muudetud väljadesse vana ja
   uue vormide nimekirja. Tabelit ennast INSERT-only snapshot'iks ei tehta, sest
   nimekirja „hetkeseisu" rekonstrueerimine poleks vajalik ühegi kasutusjuhu jaoks.
-- **Frontend filtreerib ainult valikuid, mitte silte.**
-  - Vormileht määrab konteksti `ClassifierScopeProvider formType="…"` ja selle sees
-    tagastavad `getByCode()` ja `getChildren()` ainult selle vormi jaoks lubatud
-    väärtused.
-  - `getValue()` / `label()` jäävad filtreerimata, et varem salvestatud ja hiljem
-    piiratud väärtuse nimi kuvatakse ikka. See on sama põhimõte, mis kehtib aegunud
-    (`valid_until`) väärtustele.
-  - Valikutes näidatakse alati ka parajasti valitud väärtust, isegi kui see on vormile
-    piiratud. Nii ei muutu vana vormi avamine ja salvestamine katki.
+- **Frontend filtreerib ainult muutmisrežiimis ja ainult valikuid, mitte silte.**
+  - `ClassifierScopeProvider formType="…"` piirab sees olevate komponentide
+    `getByCode()`, `getChildren()` ja `values` vormile lubatud väärtustega.
+    `getValue()` / `label()` jäävad filtreerimata.
+  - Filter kehtib **ainult muutmisrežiimis**. Vaaterežiimis ehitavad vormid silte
+    samadest nimekirjadest, seega varem salvestatud ja hiljem piiratud väärtus
+    kuvatakse vaates edasi. See on sama põhimõte nagu aegunud väärtuste
+    `isValid !== false` filtril (`!canEdit || …`). Muutmisrežiimis on piiratud väärtus
+    valikutest kadunud, aga juba salvestatud väärtus jääb vormi andmetesse alles.
+  - **Üksikvormid** (VR, TI, hea maine, TRAM, koondvormi üldandmed): provider on
+    marsruudi tasemel (`App.tsx`). Leht teatab oma muutmisrežiimist
+    `useClassifierScopeActive(isEditActive)`-ga, loomislehed `true`-ga. Vaikimisi
+    filtrit pole: kui kutse puudub, ei kao ühtegi silti, ainult piirang ei rakendu.
+  - **Koondvormi alamvormid** (autojuht, meeskonnaliige, tehnokaardid, ADR,
+    autoveo katkestamine): igal muutmiskomponendil (`…CreatePage`) on oma skoop,
+    mis on alati sees (`active`). Pesastatud skoop arvutatakse alati
+    filtreerimata nimekirjast, mitte koondvormi skoobist. TRAM kaardi sees olev
+    autojuhi alamvorm kasutab koodi `TRAM_KONTROLLKAART`. Alamvormide
+    vaatekaardid (`…ViewCard`) on alati kirjutuskaitstud ja jäävad skoobita.
 - **Serveripoolset valideerimist esimeses etapis ei tehta.** Piirang on kasutusmugavuse
   meede, mitte turvapiir: klassifikaatorid on niikuinii avalikud loendid. Vajaduse
   korral lisatakse see hiljem `save.yml` voogudesse.

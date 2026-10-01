@@ -66,6 +66,7 @@ import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/
 import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -94,6 +95,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     entryType === 'driver' ? ['tab-driver'] : ['tab-teammate'],
   );
   const [compoundEditActive, setCompoundEditActive] = useState(false);
+  // ADR-011: koondvormi (SP_COMPOUND) väljade vormipiirang muutmisrežiimis;
+  // alamvormid rakendavad oma skoobi ise (…CreatePage)
+  useClassifierScopeActive(compoundEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);

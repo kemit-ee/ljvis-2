@@ -43,6 +43,9 @@ SELECT
     cvl.valid_from,
     cvl.valid_until,
     cvl.is_valid,
+    COALESCE((SELECT array_agg(s.form_type_code ORDER BY s.form_type_code)
+              FROM classifier.classifier_value_form_scope s
+             WHERE s.classifier_value_key = cvl.classifier_value_key), ARRAY[]::TEXT[]) AS form_types,
     COUNT(*) OVER ()          AS total
 FROM latest cvl
 WHERE (COALESCE(:search, '') = ''

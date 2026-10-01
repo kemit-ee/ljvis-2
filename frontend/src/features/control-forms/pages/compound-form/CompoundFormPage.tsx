@@ -84,6 +84,7 @@ import { SelectedFormsNavigation } from '../../components/CompoundForm/SelectedF
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import {useIsAdmin} from "../../../../hooks/useIsAdmin.ts";
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -101,6 +102,8 @@ export function CompoundFormPage() {
   );
 
   const [isEditActive, setIsEditActive] = useState(false);
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );

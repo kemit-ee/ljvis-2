@@ -15,6 +15,8 @@ export interface ClassifierValue {
   validFrom: string;
   validUntil: string;
   isValid?: string;
+  /** ADR-011: FORM_TYPE koodid, millele väärtus on piiratud; [] = kõik vormid. */
+  formTypes?: string[];
 }
 
 /**
@@ -35,4 +37,6 @@ export interface ClassifierEntry {
   validFrom?: string;
   validUntil?: string | null;
   isValid?: boolean;
+  /** ADR-011: FORM_TYPE koodid, millele väärtus on piiratud; [] = kõik vormid. */
+  formTypes: string[];
 }

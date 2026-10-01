@@ -1,0 +1,419 @@
+# PUT/POST /v1/classifiers/value — ADR-011 klassifikaatori väärtuse vormipiirang
+# (formTypes → set_classifier_value_form_scope). Tühi nimekiri = kõik vormid;
+# formTypes puudumisel PUT piirangut ei muuda.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+tests:
+- name: PUT with formTypes replaces the form scope (comma-joined codes)
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - classifier.edit
+        - classifier_value.edit
+    - url_matches: /classifier/get_classifier_value
+      method: POST
+      status: 200
+      body:
+      - classifierId: 7
+        classifierValueId: 1027
+        code: ANALOGUE
+        validFrom: '2026-01-01'
+        validUntil: null
+        formTypes:
+        - SP_DRIVER_FORM
+    - url_matches: /classifier/get_classifier
+      method: POST
+      status: 200
+      body:
+      - code: TACHOGRAPH_TYPES
+    - url_matches: /classifier/update_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 1027
+    - url_matches: /classifier/insert_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 2001
+    - url_matches: /classifier/set_classifier_value_form_scope
+      method: POST
+      status: 200
+      body:
+      - removed: 1
+        added: 2
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: PUT
+    path: /ljvis/v1/classifiers/value
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      classifierId: '7'
+      classifierValueId: '1027'
+      code: ANALOGUE
+      name: Analoog
+      validFrom: '2026-01-01'
+      validUntil: ''
+      formTypes:
+      - SP_DRIVER_FORM
+      - TRAM_KONTROLLKAART
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /classifier/set_classifier_value_form_scope
+    count: 1
+    body_matches:
+      classifier_value_id: '1027'
+      form_type_codes: SP_DRIVER_FORM,TRAM_KONTROLLKAART
+
+- name: PUT with empty formTypes clears the restriction (all forms)
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - classifier.edit
+        - classifier_value.edit
+    - url_matches: /classifier/get_classifier_value
+      method: POST
+      status: 200
+      body:
+      - classifierId: 7
+        classifierValueId: 1027
+        code: ANALOGUE
+        validFrom: '2026-01-01'
+        validUntil: null
+        formTypes:
+        - SP_DRIVER_FORM
+    - url_matches: /classifier/get_classifier
+      method: POST
+      status: 200
+      body:
+      - code: TACHOGRAPH_TYPES
+    - url_matches: /classifier/update_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 1027
+    - url_matches: /classifier/insert_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 2001
+    - url_matches: /classifier/set_classifier_value_form_scope
+      method: POST
+      status: 200
+      body:
+      - removed: 1
+        added: 2
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: PUT
+    path: /ljvis/v1/classifiers/value
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      classifierId: '7'
+      classifierValueId: '1027'
+      code: ANALOGUE
+      name: Analoog
+      validFrom: '2026-01-01'
+      validUntil: ''
+      formTypes: []
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /classifier/set_classifier_value_form_scope
+    count: 1
+    body_matches:
+      form_type_codes: ''
+
+- name: PUT without formTypes leaves the form scope untouched
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - classifier.edit
+        - classifier_value.edit
+    - url_matches: /classifier/get_classifier_value
+      method: POST
+      status: 200
+      body:
+      - classifierId: 7
+        classifierValueId: 1027
+        code: ANALOGUE
+        validFrom: '2026-01-01'
+        validUntil: null
+        formTypes:
+        - SP_DRIVER_FORM
+    - url_matches: /classifier/get_classifier
+      method: POST
+      status: 200
+      body:
+      - code: TACHOGRAPH_TYPES
+    - url_matches: /classifier/update_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 1027
+    - url_matches: /classifier/insert_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 2001
+    - url_matches: /classifier/set_classifier_value_form_scope
+      method: POST
+      status: 200
+      body:
+      - removed: 1
+        added: 2
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: PUT
+    path: /ljvis/v1/classifiers/value
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      classifierId: '7'
+      classifierValueId: '1027'
+      code: ANALOGUE
+      name: Analoog
+      validFrom: '2026-01-01'
+      validUntil: ''
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /classifier/set_classifier_value_form_scope
+    count: 0
+  - url_matches: /classifier/update_classifier_value
+    count: 1
+
+- name: POST with formTypes sets the scope for the new value
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - classifier.edit
+        - classifier_value.edit
+    - url_matches: /classifier/get_classifier_value
+      method: POST
+      status: 200
+      body:
+      - classifierId: 7
+        classifierValueId: 1027
+        code: ANALOGUE
+        validFrom: '2026-01-01'
+        validUntil: null
+        formTypes:
+        - SP_DRIVER_FORM
+    - url_matches: /classifier/get_classifier
+      method: POST
+      status: 200
+      body:
+      - code: TACHOGRAPH_TYPES
+    - url_matches: /classifier/update_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 1027
+    - url_matches: /classifier/insert_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 2001
+    - url_matches: /classifier/set_classifier_value_form_scope
+      method: POST
+      status: 200
+      body:
+      - removed: 1
+        added: 2
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/classifiers/value
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      classifierId: '7'
+      code: NEW
+      name: Uus
+      validFrom: '2026-01-01'
+      validUntil: ''
+      formTypes:
+      - TI_KONTROLLKAART
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /classifier/set_classifier_value_form_scope
+    count: 1
+    body_matches:
+      classifier_value_id: 2001
+      form_type_codes: TI_KONTROLLKAART
+
+- name: POST with empty formTypes does not touch the scope table
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - classifier.edit
+        - classifier_value.edit
+    - url_matches: /classifier/get_classifier_value
+      method: POST
+      status: 200
+      body:
+      - classifierId: 7
+        classifierValueId: 1027
+        code: ANALOGUE
+        validFrom: '2026-01-01'
+        validUntil: null
+        formTypes:
+        - SP_DRIVER_FORM
+    - url_matches: /classifier/get_classifier
+      method: POST
+      status: 200
+      body:
+      - code: TACHOGRAPH_TYPES
+    - url_matches: /classifier/update_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 1027
+    - url_matches: /classifier/insert_classifier_value
+      method: POST
+      status: 200
+      body:
+      - id: 2001
+    - url_matches: /classifier/set_classifier_value_form_scope
+      method: POST
+      status: 200
+      body:
+      - removed: 1
+        added: 2
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/classifiers/value
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      classifierId: '7'
+      code: NEW
+      name: Uus
+      validFrom: '2026-01-01'
+      validUntil: ''
+      formTypes: []
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /classifier/set_classifier_value_form_scope
+    count: 0
+  - url_matches: /classifier/insert_classifier_value
+    count: 1

@@ -9,7 +9,8 @@
             "name": "{{this.name}}",
             "validFrom": "{{this.validFrom}}",
             "validUntil": {{#if this.validUntil}}"{{this.validUntil}}"{{else}}null{{/if}},
-            "isValid": "{{this.isValid}}"
+            "isValid": "{{this.isValid}}",
+            "formTypes": [{{#each this.formTypes}}"{{this}}"{{#unless @last}},{{/unless}}{{/each}}]
         }{{#unless @last}},{{/unless}}
         {{/each}}
     ],
