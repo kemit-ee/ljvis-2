@@ -32,7 +32,8 @@ extractRequestData:
   assign:
     notification_type: "${incoming.body.notification_type ?? ''}"
     # Andmebaasiveeru nimi on tagasiühilduvuse tõttu ajalooline; väärtus on
-    # Postkast 2.0 aktiivse malliversiooni templateId.
+    # Postkast 2.0 malli alias, mis saadetakse API templateId väljal
+    # (nt "vrteade"). Postkast lahendab aliase ise aktiivse malliversiooni UUID-ks.
     original_template_id: "${(incoming.body.original_template_id ?? '').trim()}"
     channel: "${incoming.body.channel ?? ''}"
     default_language: "${incoming.body.default_language || 'et'}"
@@ -52,7 +53,7 @@ checkRequired:
         ${default_recipient_email_raw !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(default_recipient_email_raw)}
       next: returnBadRequest
     - condition: >-
-        ${original_template_id !== '' && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(original_template_id)}
+        ${original_template_id !== '' && !/^[A-Za-z0-9._-]+$/.test(original_template_id)}
       next: returnBadRequest
   next: insertMapping
 
@@ -102,5 +103,5 @@ returnSuccess:
 
 returnBadRequest:
   status: 400
-  return: "notification_type ja channel (postkast|desktop) on kohustuslikud; templateId peab olema tühi või UUID kujul; default_recipient_email peab olema tühi või korrektne e-posti aadress"
+  return: "notification_type ja channel (postkast|desktop) on kohustuslikud; malli alias peab sisaldama ainult tähti, numbreid, punkti, alakriipsu või sidekriipsu; default_recipient_email peab olema tühi või korrektne e-posti aadress"
   next: end

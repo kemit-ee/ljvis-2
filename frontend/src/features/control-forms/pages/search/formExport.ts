@@ -1,4 +1,5 @@
 import type { FormSearchExportRow } from '../../types';
+import { labelHeaders } from './formExportLabels';
 
 export type ExportCell = string | number | boolean;
 
@@ -17,13 +18,105 @@ const cellOf = (value: unknown): ExportCell => {
   return text.length > MAX_CELL_LENGTH ? text.slice(0, MAX_CELL_LENGTH) : text;
 };
 
+const DRIVER_FIELDS = [
+  'last_name',
+  'first_name',
+  'birth_date',
+  'personal_code_ee',
+  'citizenship_code',
+  'personal_code_foreign',
+];
+/** drivers[0] on juht, drivers[1] meeskonnaliige. */
+const DRIVER_PREFIXES = ['driver', 'teammate'];
+
+const toSnake = (key: string) => key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+
+/** Juhid-massiiv lahtri JSON-teksti asemel eraldi veergudeks (juht, meeskonnaliige). */
+/** Koondvormi väljad, mis alamvormil endal juba olemas on või mida eraldi ei vajata. */
+const PARENT_SKIP = new Set([
+  'id',
+  'version',
+  'created_at',
+  'created_by',
+  'notes',
+  'files',
+  'compound_form_key',
+]);
+const PARENT_RENAME: Record<string, string> = {
+  form_number: 'compound_form_number',
+  status: 'compound_status',
+};
+
+/** Alamvormi andmetele lisatakse koondvormi väljad (sõiduk, haagised, juhid, ettevõte, kontrolli andmed). */
+function mergeParent(
+  own: Record<string, unknown>,
+  parent: Record<string, unknown>,
+): Record<string, unknown> {
+  const out = { ...own };
+  for (const [key, value] of Object.entries(parent)) {
+    if (PARENT_SKIP.has(key)) continue;
+    const name = PARENT_RENAME[key] ?? key;
+    if (!(name in out)) out[name] = value;
+  }
+  return out;
+}
+
+/** Haagiste registreerimismärgid ühes veerus (komaga eraldatud); täis-JSON jääb veergu `trailers`. */
+function addTrailerRegNr(rec: Record<string, unknown>): Record<string, unknown> {
+  if (!('trailers' in rec)) return rec;
+  const list = Array.isArray(rec.trailers) ? (rec.trailers as Record<string, unknown>[]) : [];
+  const regNrs = list
+    .map((t) => t.regNr ?? t.reg_nr)
+    .filter((v): v is string => typeof v === 'string' && v !== '');
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rec)) {
+    if (key === 'trailers') out.trailer_reg_nr = regNrs.join(', ');
+    out[key] = value;
+  }
+  return out;
+}
+
+function expandDrivers(rec: Record<string, unknown>): Record<string, unknown> {
+  if (!('drivers' in rec)) return rec;
+  const raw = rec.drivers;
+  const list: Record<string, unknown>[] = Array.isArray(raw) ? raw : [];
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rec)) {
+    if (key !== 'drivers') {
+      out[key] = value;
+      continue;
+    }
+    DRIVER_PREFIXES.forEach((prefix, i) => {
+      const person = Object.fromEntries(
+        Object.entries(list[i] ?? {}).map(([k, v]) => [toSnake(k), v]),
+      );
+      DRIVER_FIELDS.forEach((f) => {
+        out[`${prefix}_${f}`] = person[f];
+      });
+    });
+    if (list.length > DRIVER_PREFIXES.length) {
+      out.drivers_extra = list.slice(DRIVER_PREFIXES.length);
+    }
+  }
+  return out;
+}
+
 /**
  * Üks rida vormi kohta, üks veerg andmevälja kohta. Veergude järjekord on
  * esmakordse esinemise järgi, nii et vana ja uus versioon sama tabeli ridu ei sega.
  * Pesastatud väärtused (rikkumised, juhid jms) pannakse lahtrisse JSON-tekstina.
  */
 export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
-  const records = rows.map((r) => JSON.parse(r.data) as Record<string, unknown>);
+  const records = rows.map((r) =>
+    expandDrivers(
+      addTrailerRegNr(
+        mergeParent(
+          JSON.parse(r.data) as Record<string, unknown>,
+          r.parent ? (JSON.parse(r.parent) as Record<string, unknown>) : {},
+        ),
+      ),
+    ),
+  );
   const headers: string[] = [];
   const seen = new Set<string>();
   for (const rec of records) {
@@ -35,7 +128,7 @@ export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
     }
   }
   return {
-    headers,
+    headers: labelHeaders(headers),
     rows: records.map((rec) => headers.map((h) => cellOf(rec[h]))),
   };
 }

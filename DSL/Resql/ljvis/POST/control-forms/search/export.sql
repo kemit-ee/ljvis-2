@@ -1,5 +1,5 @@
 /*
-description: Form search export. Same filters as search, but no paging; returns the latest snapshot of every matching form as a JSON document in text form (all columns). Capped at :max_rows + 1 so the caller can detect truncation.
+description: Form search export. Same filters as search, but no paging; returns the latest snapshot of every matching form as a JSON document in text form (all columns, in table order); sub-forms also carry the latest compound form row in `parent`. Capped at :max_rows + 1 so the caller can detect truncation.
 namespace: control-forms
 params:
   allowed_types:
@@ -84,6 +84,9 @@ returns:
 - name: data
   type: string
   nullable: true
+- name: parent
+  type: string
+  nullable: true
 */
 WITH f AS (
     SELECT fs.form_type, fs.form_key, fs.main_date, fs.created_at
@@ -113,7 +116,7 @@ WITH f AS (
     LIMIT :max_rows::INTEGER + 1
 ),
 snap AS (
-    SELECT 'compound'::text AS form_type, t.compound_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'compound'::text AS form_type, t.compound_form_key AS form_key, row_to_json(t)::text AS data, NULL::text AS parent
     FROM (
         SELECT DISTINCT ON (compound_form_key) *
         FROM forms.compound_form
@@ -121,7 +124,7 @@ snap AS (
         ORDER BY compound_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'foreign_violation'::text AS form_type, t.foreign_violation_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'foreign_violation'::text AS form_type, t.foreign_violation_form_key AS form_key, row_to_json(t)::text AS data, NULL::text AS parent
     FROM (
         SELECT DISTINCT ON (foreign_violation_form_key) *
         FROM forms.foreign_violation_form
@@ -129,7 +132,7 @@ snap AS (
         ORDER BY foreign_violation_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'labour_inspection'::text AS form_type, t.labour_inspection_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'labour_inspection'::text AS form_type, t.labour_inspection_form_key AS form_key, row_to_json(t)::text AS data, NULL::text AS parent
     FROM (
         SELECT DISTINCT ON (labour_inspection_form_key) *
         FROM forms.labour_inspection_form
@@ -137,7 +140,7 @@ snap AS (
         ORDER BY labour_inspection_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'good_repute'::text AS form_type, t.good_repute_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'good_repute'::text AS form_type, t.good_repute_form_key AS form_key, row_to_json(t)::text AS data, NULL::text AS parent
     FROM (
         SELECT DISTINCT ON (good_repute_form_key) *
         FROM forms.good_repute_form
@@ -145,7 +148,7 @@ snap AS (
         ORDER BY good_repute_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'tram_control_card'::text AS form_type, t.tram_control_card_key AS form_key, to_jsonb(t) AS data
+    SELECT 'tram_control_card'::text AS form_type, t.tram_control_card_key AS form_key, row_to_json(t)::text AS data, NULL::text AS parent
     FROM (
         SELECT DISTINCT ON (tram_control_card_key) *
         FROM forms.tram_control_card
@@ -153,7 +156,7 @@ snap AS (
         ORDER BY tram_control_card_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'sp_driver'::text AS form_type, t.sp_driver_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'sp_driver'::text AS form_type, t.sp_driver_form_key AS form_key, row_to_json(t)::text AS data, (SELECT row_to_json(c)::text FROM (SELECT * FROM forms.compound_form cf WHERE cf.compound_form_key = t.compound_form_key ORDER BY cf.created_at DESC LIMIT 1) c) AS parent
     FROM (
         SELECT DISTINCT ON (sp_driver_form_key) *
         FROM forms.sp_driver_form
@@ -161,7 +164,7 @@ snap AS (
         ORDER BY sp_driver_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'sp_teammate'::text AS form_type, t.sp_teammate_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'sp_teammate'::text AS form_type, t.sp_teammate_form_key AS form_key, row_to_json(t)::text AS data, (SELECT row_to_json(c)::text FROM (SELECT * FROM forms.compound_form cf WHERE cf.compound_form_key = t.compound_form_key ORDER BY cf.created_at DESC LIMIT 1) c) AS parent
     FROM (
         SELECT DISTINCT ON (sp_teammate_form_key) *
         FROM forms.sp_teammate_form
@@ -169,7 +172,7 @@ snap AS (
         ORDER BY sp_teammate_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'vehicle_technical'::text AS form_type, t.vehicle_technical_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'vehicle_technical'::text AS form_type, t.vehicle_technical_form_key AS form_key, row_to_json(t)::text AS data, (SELECT row_to_json(c)::text FROM (SELECT * FROM forms.compound_form cf WHERE cf.compound_form_key = t.compound_form_key ORDER BY cf.created_at DESC LIMIT 1) c) AS parent
     FROM (
         SELECT DISTINCT ON (vehicle_technical_form_key) *
         FROM forms.vehicle_technical_form
@@ -177,7 +180,7 @@ snap AS (
         ORDER BY vehicle_technical_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'trailer_technical'::text AS form_type, t.trailer_technical_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'trailer_technical'::text AS form_type, t.trailer_technical_form_key AS form_key, row_to_json(t)::text AS data, (SELECT row_to_json(c)::text FROM (SELECT * FROM forms.compound_form cf WHERE cf.compound_form_key = t.compound_form_key ORDER BY cf.created_at DESC LIMIT 1) c) AS parent
     FROM (
         SELECT DISTINCT ON (trailer_technical_form_key) *
         FROM forms.trailer_technical_form
@@ -185,7 +188,7 @@ snap AS (
         ORDER BY trailer_technical_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'adr'::text AS form_type, t.adr_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'adr'::text AS form_type, t.adr_form_key AS form_key, row_to_json(t)::text AS data, (SELECT row_to_json(c)::text FROM (SELECT * FROM forms.compound_form cf WHERE cf.compound_form_key = t.compound_form_key ORDER BY cf.created_at DESC LIMIT 1) c) AS parent
     FROM (
         SELECT DISTINCT ON (adr_form_key) *
         FROM forms.adr_form
@@ -193,7 +196,7 @@ snap AS (
         ORDER BY adr_form_key, created_at DESC
     ) t
     UNION ALL
-    SELECT 'kv'::text AS form_type, t.kv_form_key AS form_key, to_jsonb(t) AS data
+    SELECT 'kv'::text AS form_type, t.kv_form_key AS form_key, row_to_json(t)::text AS data, (SELECT row_to_json(c)::text FROM (SELECT * FROM forms.compound_form cf WHERE cf.compound_form_key = t.compound_form_key ORDER BY cf.created_at DESC LIMIT 1) c) AS parent
     FROM (
         SELECT DISTINCT ON (kv_form_key) *
         FROM forms.kv_form
@@ -201,7 +204,7 @@ snap AS (
         ORDER BY kv_form_key, created_at DESC
     ) t
 )
-SELECT f.form_type, f.form_key, snap.data::text AS data
+SELECT f.form_type, f.form_key, snap.data, snap.parent
 FROM f
 JOIN snap ON snap.form_type = f.form_type AND snap.form_key = f.form_key
 ORDER BY f.main_date DESC, f.created_at DESC;
