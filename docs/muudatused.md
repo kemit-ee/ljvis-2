@@ -4,6 +4,34 @@
 
 ## 2026-10-02
 
+### Tehnokaardi pidurisüsteemi ja rooliseadme raskusastmed
+
+- Punkt 1.1.7 „Piduriklapid/ventiilid“: valitavad raskusastmed on VO ja OV (varem ka EOV).
+- Punkt 1.1.8 „Haagisepidurite ühendused“: valitavad raskusastmed on VO, OV ja EOV (varem ainult OV ja EOV).
+- Punkt 1.1.15 „Piduritrossid, -vardad, -hoovastik“: valitavad raskusastmed on OV ja EOV (VO eemaldatud).
+- Punkt 1.1.17 „Pidurdusjõu regulaator“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
+- Punkt 1.1.20 „Haagisepidurite automaatne rakendumine“: valitav raskusaste on ainult OV (varem EOV).
+- Punkt 1.4.1 „Seisupiduri toimimine“: valitav raskusaste on ainult OV (varem OV ja EOV).
+- Punkt 1.4.2 „Seisupiduri tõhusus“: valitav raskusaste on ainult OV (varem OV ja EOV).
+- Punkt 2.1.1 „Roolimehhanismi seisund“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
+- Punkt 2.2.2 „Roolisammas/roolikann ja hoovad“: valitavad raskusastmed on OV ja EOV (varem ainult OV).
+- Punktid 2.3 ja 2.5 „Haagise esitelje pöördering“: valitavad raskusastmed on OV ja EOV. Punkt 2.6 „Elektrooniline roolivõimendi (Electronic Power Steering, EPS)“: ainult OV. Punkti 2.4 ei ole; punktide 2.5 ja 2.6 nimedes oli varem vale number (2.4 ja 2.5), nii vormil kui väljatrükil.
+- Punkt 3.6 „Tuuleklaasi soojendi“: valitavad raskusastmed on VO ja OV (varem ainult VO).
+- Punkt 4.1.2 „Lähitulelaternate reguleeritus“: valitav raskusaste on ainult OV (varem VO ja OV).
+- Punkt 4.2.2 „Ääretulelaternad — lülitamine“: valitavad raskusastmed on VO ja OV (varem ainult OV).
+- Punkt 4.4.2 „Suuna- ja ohutulelaternad — lülitamine“: valitavad raskusastmed on VO ja OV (varem ainult OV).
+- Punkt 4.5.3 „Udutulelaternad — lülitamine“: VO ja OV (varem ainult OV). Punkt 4.5.4 „Udutulelaternad — vastavus nõuetele“: ainult OV (varem VO ja OV). Punkt 4.7.2 „Tagumise registreerimismärgi tule latern — vastavus nõuetele“: VO ja OV (varem ainult OV).
+- Punkt 4.10 „Veduki ja haagise ühendusjuhtmed“: VO ja OV (EOV kustutatud). Punkt 4.14.2 „Päevatulelaternad — vastavus nõuetele“: ainult OV (varem VO ja OV). Punkt 5.3.1 „Vedrud ja stabilisaator“: VO, OV ja EOV (varem VO puudus).
+- Punkt 6.1.4 „Kaitserauad, allasõidutõkked, esikaitsesüsteemid“: OV ja EOV (varem VO ja OV).
+- Punkt 6.1.8 „Mootori kinnitused“: OV ja EOV (varem VO, OV ja EOV). Punkt 6.1.9 „Mootor“: ainult OV (varem VO ja OV).
+- Punkt 6.2.1 „Kabiin, kere ja pealisehitus — seisund“: OV ja EOV (varem VO, OV ja EOV).
+- Punktid 6.2.5 „Juhiiste“ ja 6.2.6 „Muud istmed“: VO, OV ja EOV (varem VO puudus).
+- Punkt 6.2.9 „Muud sõiduki sise- ja välisseadmed või varustus“: VO ja OV (varem ainult OV).
+- Väljatrüki rikete loetelu vastab nüüd vormi klassifikaatorile: kustutatud punktid (0.3, 0.4, 3.7, 7.13.x) on välja jäetud, punktid 4.2.x, 4.12 ja 8.4.2 on õigete nimedega ning lisatud on 4.14.1, 4.14.2, 8.4.1 ja 11.1. Veose kinnitamise (punkt 10) rikete nimed prinditakse nime, mitte koodina.
+- Sama kehtib väljatrükil.
+
+## 2026-10-02
+
 ### Riskiskoor ei arvesta enam mustandeid ega kustutatud vorme
 
 - Riskiskoori arvutus loeb alamvormidest (SP juht / meeskonnaliige) ainult viimast avalikustatud versiooni. Avalikustatud juhtumi alamvormi hilisem mustand või kinnitatud, kuid avalikustamata muudatus ei mõjuta skoori enne avalikustamist.
