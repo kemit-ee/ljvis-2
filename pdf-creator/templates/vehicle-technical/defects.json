@@ -964,7 +964,6 @@
     "code": "CAA_6.2.1",
     "name": "6.2.1 Kabiin, kere ja pealisehitus — seisund",
     "allowed": [
-      "VO",
       "OV",
       "EOV"
     ]
