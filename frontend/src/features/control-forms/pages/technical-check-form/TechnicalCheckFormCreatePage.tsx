@@ -23,7 +23,7 @@ export interface TechnicalCheckFormCreatePageRef {
   hasErrors: () => boolean;
   isDirty: () => boolean;
   validateForm: () => void;
-  confirm?: () => void;
+  confirm?: (notifyCarrier?: boolean) => void;
 }
 
 export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreatePageRef, Props>(
@@ -63,7 +63,7 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       },
       hasErrors: () => Object.keys(formik.errors).length > 0,
       isDirty: () => formik.dirty,
-      confirm: () => { void triggerConfirm(); },
+      confirm: (notifyCarrier) => { void triggerConfirm(notifyCarrier); },
       validateForm: () => {
         setValidationTriggered(true);
         setCheckErrorDismissed(false);

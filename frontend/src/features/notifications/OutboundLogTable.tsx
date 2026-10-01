@@ -21,6 +21,7 @@ const MESSAGE_TYPES = [
   'weight_violation',
   'carrier_violation',
   'labor_kabotage',
+  'labor_tachograph_not_downloaded',
   'labor_foreign_proposal',
 ] as const;
 

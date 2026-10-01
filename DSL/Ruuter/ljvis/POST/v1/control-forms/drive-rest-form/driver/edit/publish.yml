@@ -182,6 +182,24 @@ autoPublishCompound:
     actor_personal_code: ${actor_personal_code}
     actor_name: ${actor_name}
   result: autoPublishCompoundRes
+  error: sendCarrierFromRequest
+  next: sendCarrierFromRequest
+
+# Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
+# vedajat" (notifications.carrier_notification_request). Best-effort.
+sendCarrierFromRequest:
+  template: "templates/form/notify-carrier/send-from-request"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    entityType: "drive_rest_driver_form"
+    entityId: ${id}
+    compoundFormKey: "${compound_form_key == null ? '' : String(compound_form_key)}"
+    formNumber: "${sub_form_number}"
+    violations: "${[violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations].join(' ')}"
+    createdBy: ${actor_personal_code}
+  result: carrierFromRequestRes
   error: checkSeriousInfringement
   next: checkSeriousInfringement
 
@@ -215,7 +233,7 @@ checkCabotageNotification:
   switch:
     - condition: ${('' + (transport_classes || '')).indexOf('CABOTAGE') !== -1}
       next: sendCabotageNotification
-  next: checkWeightViolation
+  next: checkTachographNotDownloaded
 
 sendCabotageNotification:
   call: http.post
@@ -233,6 +251,33 @@ sendCabotageNotification:
       created_by: ${actor_personal_code}
       template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code, resultType: result_type } }"
   result: cabotageNotifRes
+  error: checkTachographNotDownloaded
+  next: checkTachographNotDownloaded
+
+checkTachographNotDownloaded:
+  switch:
+    - condition: ${tachograph_data_not_downloaded === true || tachograph_data_not_downloaded === 'true'}
+      next: sendTachographNotification
+  next: checkWeightViolation
+
+# Sõidumeerikust/juhikaardilt andmed alla laadimata -> teavitus Tööinspektsioonile.
+# Fire-and-forget — saatmise viga ei peata avalikustamise voogu.
+sendTachographNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_tachograph_not_downloaded"
+      language: "et"
+      send_time: ""
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: tachographNotifRes
   error: checkWeightViolation
   next: checkWeightViolation
 

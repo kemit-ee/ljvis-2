@@ -88,6 +88,32 @@ extractInputs:
     send_carrier: "${incoming.body.newNotifyCarrier === 'true' && incoming.body.sendGateMet === 'true'}"
     send_labor_inspector: "${incoming.body.newNotifyLaborInspector === 'true' && incoming.body.sendGateMet === 'true'}"
     carrier_sent: "false"
+    inspection_country: "${incoming.body.inspectionCountryCode || ''}"
+  next: lookupInspectionCountry
+
+# Kontrolli koha riigi nimetus COUNTRY klassifikaatorist (kood -> nimi). Kui
+# otsing ebaõnnestub või koodi ei leita, jäetakse väärtuseks kood ise.
+lookupInspectionCountry:
+  switch:
+    - condition: ${inspection_country === ''}
+      next: checkSendCarrier
+  next: callGetCountryName
+
+callGetCountryName:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_country_name"
+    headers:
+      type: json
+    body:
+      code: ${inspection_country}
+  result: countryNameRes
+  error: checkSendCarrier
+  next: applyCountryName
+
+applyCountryName:
+  assign:
+    inspection_country: "${(countryNameRes.response.body && countryNameRes.response.body[0] && countryNameRes.response.body[0].name) || inspection_country}"
   next: checkSendCarrier
 
 checkSendCarrier:
@@ -141,7 +167,7 @@ sendCarrierNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: inspection_country_code, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: inspection_country_code, inspectionCountry: inspection_country, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description } }"
   result: carrierNotifRes
   error: checkSendLaborInspector
   next: markCarrierSent
@@ -174,7 +200,7 @@ sendLaborInspectorNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, vehicleRegNr: vehicle_reg_nr, vehicleMake: vehicle_make, vehicleModel: vehicle_model, vehicleVin: vehicle_vin, inspectionCountry: inspection_country_code, inspectionDate: incoming.body.inspectionDate || '', inspectionTime: incoming.body.inspectionTime || '' } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, vehicleRegNr: vehicle_reg_nr, vehicleMake: vehicle_make, vehicleModel: vehicle_model, vehicleVin: vehicle_vin, inspectionCountry: inspection_country, inspectionDate: incoming.body.inspectionDate || '', inspectionTime: incoming.body.inspectionTime || '' } }"
   result: laborInspectorNotifRes
   error: returnResult
   next: returnResult

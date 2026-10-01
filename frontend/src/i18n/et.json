@@ -443,6 +443,7 @@
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
+    "notifyCarrierOnConfirm": "Teavita vedajat rikkumisest (saadetakse avalikustamisel)",
     "publishUnsavedChanges": "Salvestage muudatused enne avalikustamist",
     "publishedNote": "Vorm on avalikustatud",
     "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",
@@ -1513,6 +1514,7 @@
       "companyRegCode": "Veoettevõtja registrikood",
       "inspectionDateTime": "Kontrolli aeg (kuupäev ja kellaaeg)",
       "inspectionCountryCode": "Kontrolli koht (ISO riigikood)",
+      "inspectionCountry": "Kontrolli koha riigi nimetus",
       "vehicleRegNr": "Kontrollitud sõiduki registreerimisnumber",
       "violationSeverities": "Rikkumise raskusastmed (nt MSI, VSI)",
       "violationDescription": "Rikkumise vabatekstiline kirjeldus",
@@ -2339,6 +2341,7 @@
       "weight_violation": "Kaalumise/mõõtmise rikkumine",
       "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
+      "labor_tachograph_not_downloaded": "Sõidumeerikuandmete alla laadimata jätmise teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
       "nu_inbound_received": "ERRU NU sobimatusteade"
     }

@@ -5,9 +5,17 @@
 // DSL/Ruuter.internal/ljvis/POST/erru/**/inbound-*.yml). Võtmed vastavad
 // 'search.formType' i18n-nimestiku võtmetele.
 export const NOTIFICATION_TYPE_TRIGGER_FORM_KEYS: Record<string, string[]> = {
-  carrier_violation: ['foreignViolation'],
+  carrier_violation: [
+    'foreignViolation',
+    'tramControlCard',
+    'spDriver',
+    'spTeammate',
+    'vehicleTechnical',
+    'trailerTechnical',
+  ],
   labor_foreign_proposal: ['foreignViolation'],
   labor_kabotage: ['tramControlCard', 'spDriver', 'spTeammate'],
+  labor_tachograph_not_downloaded: ['spDriver', 'spTeammate'],
   driving_ban: ['vehicleTechnical', 'trailerTechnical'],
   weight_violation: ['spDriver'],
   // ncr_violation, ncr_response ja nu_inbound_received tulevad automaatselt
@@ -27,6 +35,7 @@ export const NOTIFICATION_TYPE_TEMPLATE_VARIABLES: Record<string, string[]> = {
     'companyRegCode',
     'inspectionDateTime',
     'inspectionCountryCode',
+    'inspectionCountry',
     'vehicleRegNr',
     'violationSeverities',
     'violationDescription',
@@ -44,4 +53,5 @@ export const NOTIFICATION_TYPE_TEMPLATE_VARIABLES: Record<string, string[]> = {
     'inspectionTime',
   ],
   labor_kabotage: ['formNumber', 'companyName', 'companyRegCode', 'resultType'],
+  labor_tachograph_not_downloaded: ['formNumber', 'companyName', 'companyRegCode'],
 };
