@@ -12,9 +12,31 @@ def save(path,data):
  p=ROOT/'templates'/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n')
 tech='20261020110000-technical-check-defect-classifier.sql'
 rows=[{'part':p,'code':c,'name':n,'allowed':sev.split(',')} for p,c,n,sev in tuples(tech,4) if p.startswith('CAA_')]
-# Hilisemad raskusastmete parandused (migratsioon 20261203120000).
-fix={'CAA_1.1.7':['VO','OV'],'CAA_1.1.8':['VO','OV','EOV']}
+# Migratsioonide 20261120100000 / 20261120120000 parandused (seeme 20261020110000 on juba dev-is avaldatud,
+# seetõttu parandas DB neid UPDATE/DELETE/INSERT-iga; väljatrüki kataloog peab sama seisu kuvama).
+corr='20261120100000-technical-check-classifier-corrections.sql'
+dropped={'CAA_0.3','CAA_0.4','CAA_3.7','CAA_7.13.1','CAA_7.13.2','CAA_7.13.3'}
+rows=[r for r in rows if r['code'] not in dropped]
+corr_text=(SQL/corr).read_text()
+renamed={m.group(2):m.group(1).replace("''","'") for m in re.finditer(r"SET name = '((?:[^']|'')*)'\s*WHERE code = '(CAA_[0-9.]+)'",corr_text)}
+for r in rows:
+ if r['code']=='CAA_8.4.1':r['code'],r['name']='CAA_8.4.2','8.4.2 Vedelikulekked'
+ elif r['code'] in renamed:r['name']=renamed[r['code']]
+have={r['code'] for r in rows}
+rows+=[{'part':p,'code':c,'name':n,'allowed':sev.split(',')} for p,c,n,sev in tuples(corr,4) if p.startswith('CAA_') and c.startswith(p+'.') and c not in have]
+rows.append({'part':'CAA_11','code':'CAA_11.1','name':'11.1 Muu tehniline viga','allowed':['VO','OV','EOV']})
+# Hilisemad raskusastmete parandused (migratsioonid 20261203120000, 20261203130000).
+fix={'CAA_1.1.7':['VO','OV'],'CAA_3.6':['VO','OV'],'CAA_4.1.2':['OV'],'CAA_4.2.2':['VO','OV'],'CAA_4.4.2':['VO','OV'],'CAA_4.5.3':['VO','OV'],'CAA_4.5.4':['OV'],'CAA_4.7.2':['VO','OV'],'CAA_4.10':['VO','OV'],'CAA_4.14.2':['OV'],'CAA_5.3.1':['VO','OV','EOV'],'CAA_6.1.4':['OV','EOV'],'CAA_6.1.8':['OV','EOV'],'CAA_6.1.9':['OV'],'CAA_6.2.1':['OV','EOV'],'CAA_6.2.5':['VO','OV','EOV'],'CAA_6.2.6':['VO','OV','EOV'],'CAA_6.2.9':['VO','OV'],'CAA_1.1.8':['VO','OV','EOV'],'CAA_1.1.15':['OV','EOV'],'CAA_1.1.17':['VO','OV','EOV'],'CAA_1.1.20':['OV'],'CAA_1.4.1':['OV'],'CAA_1.4.2':['OV'],'CAA_2.1.1':['VO','OV','EOV'],'CAA_2.2.2':['OV','EOV']}
+# Grupp 2 numeratsiooni nihe (migratsioon 20261120100000): Lisa 2-s puudub 2.4.
+shift={'CAA_2.5':('CAA_2.6','2.6 Elektrooniline roolivõimendi (Electronic Power Steering, EPS)'),'CAA_2.4':('CAA_2.5','2.5 Haagise esitelje pöördering')}
+for r in rows:
+ if r['code'] in shift:r['code'],r['name']=shift[r['code']]
+fix.update({'CAA_2.5':['OV','EOV'],'CAA_2.6':['OV']})
 for r in rows:r['allowed']=fix.get(r['code'],r['allowed'])
+def natural(r):
+ n=[int(x) for x in re.findall(r'[0-9]+',r['code'])]
+ return (int(re.search(r'[0-9]+',r['part']).group()),n)
+rows.sort(key=natural)
 save('vehicle-technical/defects.json',rows)
 # RSI_FAILED_REASON (direktiiv 2014/47/EL II/III lisa): (code, parent, name, severities).
 rsi=[{'code':c,'parent':p or None,'name':n,'severities':sev.split(',') if sev else []} for c,p,n,sev in tuples('20261125100000-rsi-failed-reason-classifier.sql',4) if re.match(r'^(G:)?[0-9]',c)]
@@ -53,4 +75,9 @@ save('drive-rest-form/other-documents.json',other)
 for n in [2,3,4]:
  for row in tuples(labour,n):names[row[0]]=row[1]
 for r in other:names[r['code']]=r['name']
+# Tehnokaardi rikete nimed vastavad DB seisule pärast parandusi (vanad seemnenimed ja kustutatud koodid välja).
+for c in dropped|{'CAA_8.4.1'}:names.pop(c,None)
+for r in rows:names[r['code']]=r['name']
+for c,n,sev in tuples('20261120100001-technical-check-cargo-securing-defects.sql',3):
+ if c.startswith('CAA_10.'):names[c]=n
 save('labels.json',names)
