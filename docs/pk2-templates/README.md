@@ -85,13 +85,42 @@ eraldi DSL-i aktiveerimist ei ole vaja.
 
 **Lahtised kohad:** `{{inspectionCountryCode}}` saadetakse hetkel toore ISO koodina (nt „EE"), mitte riigi nimena — täisnime lahendamiseks puudub praegu taaskasutatav koodi→nimi otsingu DSL/Resql (vt uurimist, lisada tuleks uus klassifikaatoripäring `COUNTRY` klassifikaatori vastu). `{{violationSeverities}}` näitab ainult esinevaid raskusastmeid, mitte iga rikkumiskoodi täistekstilist kirjeldust — see nõuaks eraldi `EU_INFRINGEMENT` klassifikaatori päringut (teadlik lihtsustus).
 
-### `labor_kabotage`, `labor_foreign_proposal`
+### `labor_foreign_proposal` ("ljvis2-labor-foreign-proposal")
 
 | Muutuja | Kirjeldus | Allikas DSL-is |
 |---|---|---|
 | `{{formNumber}}` | Kontrollvormi number | `notify-transition-and-send.yml` |
 | `{{companyName}}` | Veoettevõtja nimi | vorm, `companyName` |
 | `{{companyRegCode}}` | Veoettevõtja registrikood | vorm, `companyRegCode` |
+
+### `labor_kabotage` ("ljvis2-labor-kabotage")
+
+| Muutuja | Kirjeldus | Allikas DSL-is |
+|---|---|---|
+| `{{formNumber}}` | Kontrollvormi (alamvormi) number | `tram-card/edit/publish.yml`, `drive-rest-form/{driver,teammate}/edit/publish.yml` |
+| `{{companyName}}` | Veoettevõtja nimi | vorm, `companyName` |
+| `{{companyRegCode}}` | Veoettevõtja registrikood | vorm, `companyRegCode` |
+| `{{resultType}}` | Kontrolli tulemus (klassifikaatori kood) | vorm, `resultType` |
+
+### Reeglid muutujate kohta
+
+- Muutujate nimed **peavad täpselt ühtima** DSL-i `template_variables` võtmetega
+  (tõstutundlik). Mall, mis viitab tundmatule nimele, saadetakse Postkastist
+  välja tühja väärtusega. Nimekiri on kolmes kohas, mida tuleb muuta koos:
+  1. DSL-i `template_variables` omistus (`notify-transition-and-send.yml`,
+     `*/edit/publish.yml`);
+  2. mallifail selles kaustas (`{{...}}` viited);
+  3. `frontend/src/features/notificationTemplateMapping/notificationTypeMeta.ts`
+     (`NOTIFICATION_TYPE_TEMPLATE_VARIABLES`) + i18n kirjeldused —
+     nimekiri kuvatakse Haldus → „Postkasti mallide ja vastuvõtjate seaded" →
+     teavituse liigi vaates kaardil „Malli muutujad".
+- Lisaks saadetakse alati muutuja `recipient` (adressaadi e-post), mille
+  `send-postkast.yml` lisab ise. Malli tekst ega teema ei tule LJVIS-ist —
+  need peavad olema Postkastis olemas (Samm 2).
+- LJVIS-i varasemad, mallidest erinevad nimed (`controlFormId`, `carrierName`,
+  `carrierCode`, `violationDate`, `fromCountry`) on eemaldatud. Varem saadetud
+  ridade `template_variables` (`notifications.outbound_log`) võivad neid veel
+  sisaldada — „uuesti saatmine" edastab need muutmata kujul.
 
 ## Viited
 

@@ -216,6 +216,7 @@ callPk:
       # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       originalTemplateId: ${original_template_id}
+      language: ${effective_language}
       parameters:
         - "${Object.assign({}, template_variables_obj, { recipient: recipient_email })}"
   result: pkRes

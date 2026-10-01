@@ -4,6 +4,12 @@
 
 ## 2026-09-30
 
+### Postkasti teavituse malli muutujad ühtlustatud mallifailidega
+
+- Välisriigi rikkumise vormi teavitused (vedajale ja tööinspektsioonile) saadavad Postkasti muutujad samade nimedega, mida kasutavad mallifailid (`formNumber`, `companyName`, `companyRegCode`, `inspectionDateTime`, `inspectionCountryCode` jne). Varem saadeti teised nimed (`controlFormId`, `carrierName`, ...), mistõttu jäid mallis muutujate kohad tühjaks.
+- Postkast 2.0 päringusse lisati `language` (teavituse keel: kutsuja väärtus, muidu liigi vaikimisi keel), et Postkast valiks õige keele mallisõnumi.
+- Haldus → „Postkasti mallide ja vastuvõtjate seaded" → teavituse liigi vaates on uus kaart „Malli muutujad", mis näitab, milliseid muutujaid saab mallis kasutada.
+
 ### Tehnovormi PDF: rikete loetelu mahub alati ühele lehele
 
 - Sõiduki ja haagise tehnovormi (kontrollkaardi) trükise „Kontrollitavate detailide loetelu" on nüüd üks leht: kõik read kolmes veerus, font ja reakõrgus kohanduvad ridade arvuga. Varem jagunes loetelu mitmele lehele.
