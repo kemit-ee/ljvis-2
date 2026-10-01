@@ -18,6 +18,7 @@
 - Punktid 2.3 ja 2.5 „Haagise esitelje pöördering“: valitavad raskusastmed on OV ja EOV. Punkt 2.6 „Elektrooniline roolivõimendi (Electronic Power Steering, EPS)“: ainult OV. Punkti 2.4 ei ole; punktide 2.5 ja 2.6 nimedes oli varem vale number (2.4 ja 2.5), nii vormil kui väljatrükil.
 - Punkt 3.6 „Tuuleklaasi soojendi“: valitavad raskusastmed on VO ja OV (varem ainult VO).
 - Punkt 4.1.2 „Lähitulelaternate reguleeritus“: valitav raskusaste on ainult OV (varem VO ja OV).
+- Punkt 4.2.2 „Ääretulelaternad — lülitamine“: valitavad raskusastmed on VO ja OV (varem ainult OV).
 - Väljatrüki rikete loetelu vastab nüüd vormi klassifikaatorile: kustutatud punktid (0.3, 0.4, 3.7, 7.13.x) on välja jäetud, punktid 4.2.x, 4.12 ja 8.4.2 on õigete nimedega ning lisatud on 4.14.1, 4.14.2, 8.4.1 ja 11.1. Veose kinnitamise (punkt 10) rikete nimed prinditakse nime, mitte koodina.
 - Sama kehtib väljatrükil.
 

@@ -520,6 +520,7 @@
     "code": "CAA_4.2.2",
     "name": "4.2.2 Ääretulelaternad — lülitamine",
     "allowed": [
+      "VO",
       "OV"
     ]
   },

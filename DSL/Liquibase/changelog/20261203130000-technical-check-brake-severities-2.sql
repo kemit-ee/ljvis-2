@@ -13,6 +13,7 @@
 --   2.6    Elektrooniline roolivõimendi (EPS)     -> OV
 --   3.6    Tuuleklaasi soojendi                   -> VO,OV
 --   4.1.2  Lähitulelaternate reguleeritus        -> OV
+--   4.2.2  Ääretulelaternad — lülitamine         -> VO,OV
 -- Lisa 2-s punkti 2.4 pole. Migratsioon 20261120100000 nihutas koodid (CAA_2.4 -> CAA_2.5,
 -- CAA_2.5 -> CAA_2.6), kuid jättis nimedesse vanad numbrid ("2.4 Haagise...", "2.5 Elektrooniline...");
 -- siin parandatakse ka nimed.
@@ -77,4 +78,9 @@ WHERE code = 'CAA_3.6'
 UPDATE classifier.classifier_value
 SET description = 'OV'
 WHERE code = 'CAA_4.1.2'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO,OV'
+WHERE code = 'CAA_4.2.2'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
