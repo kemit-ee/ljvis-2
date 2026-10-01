@@ -437,6 +437,24 @@ const shots = [
         await gotoShot(page, href.replace(BASE, ''), 'admin-guide/images/04-klassifikaatorid/02-klassifikaatori-detail.png');
         await gotoShot(page, href.replace(BASE, '') + '/add-value', 'admin-guide/images/04-klassifikaatorid/03-vaartuse-lisamine.png');
       }
+      // ADR-011: „Piira vormidele" — PPA ja TRAM-i jagatud klassifikaatori väärtuse
+      // muutmisvaade, valikumenüü avatud (SP rühm nähtav). Midagi ei salvestata.
+      await page.goto(BASE + '/classifiers', { waitUntil: 'domcontentloaded' });
+      await settle(page);
+      await page.locator('#classifier-search').fill('TACHOGRAPH_TYPES');
+      await page.locator('#classifier-search').press('Enter');
+      await settle(page);
+      const tachoHref = await page.locator('tr', { hasText: 'TACHOGRAPH_TYPES' })
+        .locator('a[href*="/classifiers/"]').first().getAttribute('href').catch(() => null);
+      if (tachoHref) {
+        await page.goto(BASE + tachoHref.replace(BASE, ''), { waitUntil: 'domcontentloaded' });
+        await settle(page);
+        await page.locator('a.table-link').first().click();
+        await settle(page);
+        await page.locator('#formTypes').click();
+        await sleep(500);
+        await shoot(page, 'admin-guide/images/04-klassifikaatorid/04-vaartuse-vormipiirang.png');
+      }
     },
   },
   { name: 'admin-guide/auditilogi', run: (p) => gotoShot(p, '/logs', 'admin-guide/images/05-auditilogi/01-auditilogi.png') },

@@ -9,6 +9,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'COUNTRY') THEN
+            RAISE NOTICE 'COUNTRY already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -283,5 +288,6 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;

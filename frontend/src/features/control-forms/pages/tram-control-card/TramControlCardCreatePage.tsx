@@ -9,10 +9,12 @@ import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundForm
 import { DriveRestFormFields } from '../../components/DriveRestForm/DriveRestFormFields';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 const FORM_TYPE = 'tram-card';
 
 export function TramControlCardCreatePage() {
+  useClassifierScopeActive(true); // ADR-011
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();

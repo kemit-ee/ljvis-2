@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { listClassifierValues } from '../classifier-values/api';
 import { fromClassifierValueData } from './adapters';
+import { filterForForm } from './formScope';
 import type { ClassifierEntry } from './types';
 
 interface ClassifierContextValue {
@@ -32,7 +33,7 @@ interface ClassifierContextValue {
   refetch: () => Promise<void>;
 }
 
-const ClassifierContext = createContext<ClassifierContextValue>({
+const EMPTY_CONTEXT: ClassifierContextValue = {
   values: [],
   loading: true,
   getByCode: () => [],
@@ -40,7 +41,35 @@ const ClassifierContext = createContext<ClassifierContextValue>({
   getChildren: () => [],
   getErruMemberCountries: () => [],
   refetch: async () => {},
-});
+};
+
+const ClassifierContext = createContext<ClassifierContextValue>(EMPTY_CONTEXT);
+
+/**
+ * Filtreerimata kontekst. ClassifierScopeProvider arvutab oma vaate alati sellest,
+ * et pesastatud skoop (nt koondvormi sees alamvorm) ei filtreeriks juba
+ * filtreeritud nimekirja.
+ */
+const RootClassifierContext = createContext<ClassifierContextValue>(EMPTY_CONTEXT);
+
+const getByCodeFrom = (values: ClassifierEntry[], classifierCode: string) => {
+  const seen = new Set<string>();
+  return values.filter((v) => {
+    if (v.classifierCode !== classifierCode) return false;
+    if (seen.has(v.code)) return false;
+    seen.add(v.code);
+    return true;
+  });
+};
+
+const getChildrenFrom = (
+  values: ClassifierEntry[],
+  classifierCode: string,
+  parentKey: number | null,
+) =>
+  values.filter(
+    (v) => v.classifierCode === classifierCode && v.parentKey === parentKey,
+  );
 
 export function ClassifierProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -72,15 +101,7 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
   }, [user, fetchValues]);
 
   const getByCode = useCallback(
-    (classifierCode: string) => {
-      const seen = new Set<string>();
-      return values.filter((v) => {
-        if (v.classifierCode !== classifierCode) return false;
-        if (seen.has(v.code)) return false;
-        seen.add(v.code);
-        return true;
-      });
-    },
+    (classifierCode: string) => getByCodeFrom(values, classifierCode),
     [values],
   );
 
@@ -94,9 +115,7 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
 
   const getChildren = useCallback(
     (classifierCode: string, parentKey: number | null) =>
-      values.filter(
-        (v) => v.classifierCode === classifierCode && v.parentKey === parentKey,
-      ),
+      getChildrenFrom(values, classifierCode, parentKey),
     [values],
   );
 
@@ -126,12 +145,72 @@ export function ClassifierProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ClassifierContext.Provider value={contextValue}>
-      {children}
-    </ClassifierContext.Provider>
+    <RootClassifierContext.Provider value={contextValue}>
+      <ClassifierContext.Provider value={contextValue}>
+        {children}
+      </ClassifierContext.Provider>
+    </RootClassifierContext.Provider>
   );
 }
 
 export function useClassifiers(): ClassifierContextValue {
   return useContext(ClassifierContext);
+}
+
+const ScopeActivationContext = createContext<(active: boolean) => void>(() => {});
+
+/**
+ * ADR-011: piirab sees olevate komponentide `getByCode()` / `getChildren()` / `values`
+ * vastu FORM_TYPE koodile `formType` (väärtused, millel `formTypes` on tühi, jäävad alati
+ * alles). `getValue()` (sildid) jääb filtreerimata, et varem salvestatud väärtuse nimi
+ * kuvatakse ka siis, kui väärtus on hiljem vormilt piiratud.
+ *
+ * Filter kehtib ainult muutmisrežiimis — vaaterežiimis ehitavad vormid silte samadest
+ * nimekirjadest (sama loogika nagu aegunud väärtuste `isValid !== false` filtril):
+ *  - `active` antud → fikseeritud (nt alamvormi muutmiskomponent: alati `true`);
+ *  - `active` puudub → leht lülitab ise `useClassifierScopeActive(isEditActive)`-ga;
+ *    vaikimisi filtrit pole.
+ */
+export function ClassifierScopeProvider({
+  formType,
+  active,
+  children,
+}: {
+  formType: string;
+  active?: boolean;
+  children: ReactNode;
+}) {
+  const root = useContext(RootClassifierContext);
+  const [registeredActive, setRegisteredActive] = useState(false);
+  const effectiveActive = active ?? registeredActive;
+
+  const scoped = useMemo<ClassifierContextValue>(() => {
+    if (!effectiveActive) return root;
+    const scopedValues = filterForForm(root.values, formType);
+    return {
+      ...root,
+      values: scopedValues,
+      getByCode: (classifierCode) => getByCodeFrom(scopedValues, classifierCode),
+      getChildren: (classifierCode, parentKey) =>
+        getChildrenFrom(scopedValues, classifierCode, parentKey),
+    };
+  }, [root, formType, effectiveActive]);
+
+  return (
+    <ScopeActivationContext.Provider value={setRegisteredActive}>
+      <ClassifierContext.Provider value={scoped}>{children}</ClassifierContext.Provider>
+    </ScopeActivationContext.Provider>
+  );
+}
+
+/**
+ * Lülitab lähima ClassifierScopeProvider'i filtri sisse/välja (vt ADR-011).
+ * Kutsuda lehekomponendis, mis teab oma muutmisrežiimi.
+ */
+export function useClassifierScopeActive(active: boolean): void {
+  const setActive = useContext(ScopeActivationContext);
+  useEffect(() => {
+    setActive(active);
+    return () => setActive(false);
+  }, [active, setActive]);
 }

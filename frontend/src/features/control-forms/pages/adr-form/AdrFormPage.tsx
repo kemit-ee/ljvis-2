@@ -75,6 +75,7 @@ import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 export function AdrFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -93,6 +94,9 @@ export function AdrFormPage() {
   const [activeTab, setActiveTab] = useState('tab-adr');
   const [openTabs, setOpenTabs] = useState<string[]>(['tab-adr']);
   const [compoundEditActive, setCompoundEditActive] = useState(false);
+  // ADR-011: koondvormi (SP_COMPOUND) väljade vormipiirang muutmisrežiimis;
+  // alamvormid rakendavad oma skoobi ise (…CreatePage)
+  useClassifierScopeActive(compoundEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);

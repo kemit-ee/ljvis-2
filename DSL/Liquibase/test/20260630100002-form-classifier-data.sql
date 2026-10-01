@@ -9,6 +9,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'FORM_TYPE') THEN
+            RAISE NOTICE 'FORM_TYPE already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -56,6 +61,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -70,6 +76,11 @@ DO $$
         -- 1. Classifier header (ljvis2.classifier)
         -- ============================================================
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'STRUCTURE_UNIT') THEN
+            RAISE NOTICE 'STRUCTURE_UNIT already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -102,6 +113,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -112,6 +124,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'EU_INFRINGEMENT') THEN
+            RAISE NOTICE 'EU_INFRINGEMENT already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -306,6 +323,7 @@ DO $$
                 INSERT INTO classifier.classifier_value (classifier_value_key, classifier_key, code, name, valid_from, valid_until, description, created_by)
                 VALUES (nextval('classifier.seq_classifier_value_key'), v_clf_key, v_rec.code, v_rec.name, CURRENT_DATE, NULL, v_rec.description, v_created_by);
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -316,6 +334,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'EHAK') THEN
+            RAISE NOTICE 'EHAK already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (nextval('classifier.seq_classifier_key'), 'EHAK', 'EHAK', 'Eesti haldus- ja asustusjaotuse klassifikaator (2024v1) — maakonnad, linnad ja vallad', v_created_by)
         RETURNING classifier_key INTO v_clf_key;
@@ -446,6 +469,7 @@ DO $$
                     (SELECT classifier_value_key FROM classifier.classifier_value WHERE classifier_key = v_clf_key AND code = v_rec.parent_code ORDER BY created_at DESC LIMIT 1),
                     v_created_by);
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -456,6 +480,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'ROAD_NAME') THEN
+            RAISE NOTICE 'ROAD_NAME already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -494,6 +523,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -504,6 +534,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TRAILER_CATEGORY') THEN
+            RAISE NOTICE 'TRAILER_CATEGORY already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -532,6 +567,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -542,6 +578,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'VEHICLE_CATEGORY') THEN
+            RAISE NOTICE 'VEHICLE_CATEGORY already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -578,6 +619,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -588,6 +630,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'CARGO_CABOTAGE_VIOLATION') THEN
+            RAISE NOTICE 'CARGO_CABOTAGE_VIOLATION already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -623,7 +670,13 @@ DO $$
             RAISE EXCEPTION 'CARGO_CABOTAGE_VIOLATION value count mismatch: expected 3, got %',
                 (SELECT count(*) FROM classifier.classifier_value WHERE classifier_key = v_clf_key);
         END IF;
+        END IF;
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'PASSENGER_CABOTAGE_VIOLATION') THEN
+            RAISE NOTICE 'PASSENGER_CABOTAGE_VIOLATION already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -658,6 +711,7 @@ DO $$
             RAISE EXCEPTION 'PASSENGER_CABOTAGE_VIOLATION value count mismatch: expected 2, got %',
                 (SELECT count(*) FROM classifier.classifier_value WHERE classifier_key = v_clf_key);
         END IF;
+        END IF;
 
     END $$;
 
@@ -668,6 +722,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TRANSPORT_CLASS') THEN
+            RAISE NOTICE 'TRANSPORT_CLASS already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -707,6 +766,7 @@ DO $$
             RAISE EXCEPTION 'TRANSPORT_CLASS value count mismatch: expected 8, got %',
                 (SELECT count(*) FROM classifier.classifier_value WHERE classifier_key = v_clf_key);
         END IF;
+        END IF;
 
     END $$;
 
@@ -717,6 +777,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'DOC_RIGHT_CHECK') THEN
+            RAISE NOTICE 'DOC_RIGHT_CHECK already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -836,6 +901,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -846,6 +912,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'DRIVING_VIOLATION') THEN
+            RAISE NOTICE 'DRIVING_VIOLATION already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -1146,6 +1217,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -1156,6 +1228,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'TACHOGRAPH_TYPES') THEN
+            RAISE NOTICE 'TACHOGRAPH_TYPES already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -1186,6 +1263,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -1196,6 +1274,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'OTHER_DOCUMENTS') THEN
+            RAISE NOTICE 'OTHER_DOCUMENTS already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -1228,6 +1311,7 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;
 
@@ -1238,6 +1322,11 @@ DO $$
         v_rec           RECORD;
     BEGIN
 
+        -- Idempotentne: Liquibase'i changelog loob selle klassifikaatori juba ise;
+        -- ilma kontrollita tekiks teine sama koodiga klassifikaator (topelt loendis).
+        IF EXISTS (SELECT 1 FROM classifier.classifier WHERE code = 'MASS_DIMENSION') THEN
+            RAISE NOTICE 'MASS_DIMENSION already exists, skipping';
+        ELSE
         INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
         VALUES (
                    nextval('classifier.seq_classifier_key'),
@@ -1297,5 +1386,6 @@ DO $$
                            v_created_by
                        );
             END LOOP;
+        END IF;
 
     END $$;

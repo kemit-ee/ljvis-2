@@ -4,6 +4,15 @@
 
 ## 2026-10-02
 
+### Klassifikaatori väärtuse piiramine vormidele
+
+- Haldus → Klassifikaatorid → väärtuse lisamisel ja muutmisel on uus mitmikvaliku väli „Piira vormidele“. Valitud vormidel kuvatakse väärtus valikus, teistel vormidel mitte. Kui ühtegi vormi pole valitud, on väärtus kasutusel kõigil vormidel (nii nagu seni).
+- Veondusjärelevalve (SP) vormid on valikus ühe rühmana: rühma päisega saab valida kõik alamvormid korraga, eraldi saab valida ka koondvormi üldandmed.
+- Klassifikaatori väärtuste tabelis on uus veerg „Vormid“.
+- Piirang kehtib ainult vormi muutmisel. Vormi vaatamisel kuvatakse ka varem salvestatud väärtus, mis on hiljem vormilt piiratud.
+- Parandus: klassifikaatori väärtuse muutmine ei kustuta enam väärtuse ülemat väärtust ega selgitust (nt vormitüübi töölaual kuvamise märge).
+- Skeemimuudatus: uus tabel `classifier.classifier_value_form_scope`.
+
 ### Meeskonnaliige koondvormi üldosas
 
 - Koondvormi üldosas on autojuhi andmete all nupp „Lisa meeskonnaliige“, mis avab meeskonnaliikme andmete ploki (samad väljad nagu juhil, sh isikukoodi otsing). Plokki saab eemaldada nupuga „Eemalda meeskonnaliige“, kuni tema kontrollvormi pole lisatud.

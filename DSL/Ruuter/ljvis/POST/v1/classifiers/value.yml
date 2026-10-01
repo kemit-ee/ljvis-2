@@ -15,6 +15,9 @@ declaration:
         type: string
       - field: validUntil
         type: string
+      - field: formTypes
+        type: array
+        description: "ADR-011: FORM_TYPE koodid, millele väärtus piiratakse; [] = kõik vormid; puudumisel piirangut ei muudeta"
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -29,6 +32,8 @@ extractRequestData:
     name: "${incoming.body.name}"
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
+    form_types_provided: ${incoming.body.formTypes != null}
+    form_type_codes: "${(incoming.body.formTypes ?? []).join(',')}"
     created_by: "${auth_user.personalcode || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
@@ -81,12 +86,31 @@ checkInsertResult:
 buildAuditData:
   assign:
     classifier_value_id: "${insertRes.response.body[0].id}"
+  next: checkFormScopeProvided
+
+checkFormScopeProvided:
+  switch:
+    - condition: ${form_types_provided && form_type_codes != ''}
+      next: setFormScope
+  next: buildAuditContent
+
+setFormScope:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/set_classifier_value_form_scope"
+    headers:
+      type: json
+    body:
+      classifier_value_id: ${classifier_value_id}
+      form_type_codes: ${form_type_codes}
+      created_by: ${created_by}
+  result: formScopeRes
   next: buildAuditContent
 
 buildAuditContent:
   assign:
-    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}"
-    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
+    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}, vormipiirang: '${form_type_codes}'"
+    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\",\"formTypes\":\"${form_type_codes}\"}"
   next: logAuditEvent
 
 logAuditEvent:
