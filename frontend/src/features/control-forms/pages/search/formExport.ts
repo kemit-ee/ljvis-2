@@ -1,4 +1,5 @@
 import type { FormSearchExportRow } from '../../types';
+import { labelHeaders } from './formExportLabels';
 
 export type ExportCell = string | number | boolean;
 
@@ -127,7 +128,7 @@ export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
     }
   }
   return {
-    headers,
+    headers: labelHeaders(headers),
     rows: records.map((rec) => headers.map((h) => cellOf(rec[h]))),
   };
 }
