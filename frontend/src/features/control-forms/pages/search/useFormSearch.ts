@@ -8,11 +8,13 @@ const EMPTY_FILTERS: FormSearchFilters = {
   dateFrom: '',
   dateTo: '',
   formType: '',
+  formNumber: '',
   vehicleRegNr: '',
   companyRegCode: '',
   companyName: '',
   driver: '',
   county: '',
+  carrierOrigin: '',
   hasViolation: '',
   status: '',
   vrReportingCountryCode: '',
@@ -88,6 +90,7 @@ export function useFormSearch() {
   }, []);
 
   return {
+    applied,
     draft,
     setField,
     applyFilters,

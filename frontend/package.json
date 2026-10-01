@@ -17,6 +17,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tedi-design-system/react": "^18.0.0",
     "dayjs": "^1.11.20",
+    "exceljs": "^4.4.0",
     "formik": "^2.4.9",
     "i18next": "^26.0.2",
     "i18next-browser-languagedetector": "^8.2.1",

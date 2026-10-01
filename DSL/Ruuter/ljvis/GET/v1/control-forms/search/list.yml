@@ -22,6 +22,9 @@ declaration:
       - field: formType
         type: string
         description: "Filter by a single form type"
+      - field: formNumber
+        type: string
+        description: "Form number, partial match"
       - field: vehicleRegNr
         type: string
         description: "Vehicle registration number"
@@ -36,13 +39,16 @@ declaration:
         description: "Driver personal code or name"
       - field: county
         type: string
-        description: "Control location county / maakond"
+        description: "Control location county / maakond, EHAK classifier value key"
       - field: inspectorOrgId
         type: string
         description: "Performing authority organisation id"
       - field: hasViolation
         type: string
         description: "'true' / 'false'"
+      - field: carrierOrigin
+        type: string
+        description: "'ee' / 'foreign'; empty = all"
       - field: status
         type: string
         description: "Form lifecycle status"
@@ -72,12 +78,14 @@ search:
       type: json
     body:
       allowed_types: "${allowed_types}"
+      actor_code: "${u.personalcode || ''}"
       page: "${incoming.params.page ?? '1'}"
       page_size: "${incoming.params.pageSize ?? '20'}"
       sorting: "${incoming.params.sorting ?? 'main_date desc'}"
       date_from: "${incoming.params.dateFrom ?? ''}"
       date_to: "${incoming.params.dateTo ?? ''}"
       form_type: "${incoming.params.formType ?? ''}"
+      form_number: "${incoming.params.formNumber ?? ''}"
       vehicle_reg_nr: "${incoming.params.vehicleRegNr ?? ''}"
       company_reg_code: "${incoming.params.companyRegCode ?? ''}"
       company_name: "${incoming.params.companyName ?? ''}"
@@ -85,6 +93,7 @@ search:
       county: "${incoming.params.county ?? ''}"
       inspector_org_id: "${incoming.params.inspectorOrgId ?? ''}"
       has_violation: "${incoming.params.hasViolation ?? ''}"
+      carrier_origin: "${incoming.params.carrierOrigin ?? ''}"
       status: "${incoming.params.status ?? ''}"
       vr_reporting_country_code: "${incoming.params.vrReportingCountryCode ?? ''}"
       vr_sanction_code: "${incoming.params.vrSanctionCode ?? ''}"

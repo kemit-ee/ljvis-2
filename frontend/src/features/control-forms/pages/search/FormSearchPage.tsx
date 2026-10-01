@@ -1,9 +1,10 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Table } from '@tedi-design-system/react/community';
 import {
+  Button,
   Heading,
   StatusBadge,
   Card,
@@ -13,13 +14,24 @@ import { useAuth } from '../../../auth/AuthContext';
 import { formatDate } from '../../../../hooks/dateUtils';
 import {
   FORM_READ_PERMISSIONS,
+  PERMISSIONS,
   FORM_STATUS_KEY,
 } from '../../../../constants/constants';
 import type { FormSearchRow } from '../../types';
+import { exportSearchForms } from '../../api';
+import {
+  buildExportTable,
+  downloadCsv,
+  downloadXlsx,
+  exportFilename,
+} from './formExport';
 import { useFormSearch } from './useFormSearch';
 import { FormSearchFilters } from './FormSearchFilters';
 import { FORM_TYPE_META, resolveFormRoute } from './formSearchMeta';
 import './FormSearch.module.css';
+
+/** Peab klappima DSL/Ruuter/ljvis/GET/v1/control-forms/search/export.yml max_rows väärtusega. */
+const EXPORT_MAX_ROWS = 5000;
 
 const columnHelper = createColumnHelper<FormSearchRow>();
 
@@ -32,10 +44,11 @@ const statusColor = (status: string): 'success' | 'warning' | 'neutral' => {
 export function FormSearchPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { hasAnyPermission } = useAuth();
+  const { hasAnyPermission, hasPermission } = useAuth();
   const forbidden = !hasAnyPermission(FORM_READ_PERMISSIONS);
 
   const {
+    applied,
     draft,
     setField,
     applyFilters,
@@ -49,6 +62,40 @@ export function FormSearchPage() {
     sorting,
     setSorting,
   } = useFormSearch();
+
+  const canExport = hasPermission(PERMISSIONS.FORM_EXPORT);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const exportDisabled =
+    exporting || !applied.formType || totalRows === 0 || isLoading;
+
+  const exportAll = useCallback(
+    async (format: 'xlsx' | 'csv') => {
+      setExporting(true);
+      setExportError(null);
+      try {
+        const rows = await exportSearchForms(
+          applied as unknown as Record<string, string>,
+        );
+        if (rows.length > EXPORT_MAX_ROWS) {
+          setExportError(
+            t('search.export.tooMany', { max: EXPORT_MAX_ROWS }),
+          );
+          return;
+        }
+        const table = buildExportTable(rows);
+        const filename = exportFilename(applied.formType, format);
+        if (format === 'xlsx') await downloadXlsx(table, filename);
+        else downloadCsv(table, filename);
+      } catch (e) {
+        console.error('[FormSearchPage] export failed', e);
+        setExportError(t('search.export.failed'));
+      } finally {
+        setExporting(false);
+      }
+    },
+    [applied, t],
+  );
 
   const openRow = useCallback(
     (row: FormSearchRow) => {
@@ -156,6 +203,28 @@ export function FormSearchPage() {
             onClear={clearFilters}
             resetKey={resetKey}
           />
+          {canExport && (
+            <div className="mb-1">
+              <Button
+                visualType="secondary"
+                disabled={exportDisabled}
+                onClick={() => exportAll('xlsx')}
+              >
+                {t('search.export.xlsx')}
+              </Button>{' '}
+              <Button
+                visualType="secondary"
+                disabled={exportDisabled}
+                onClick={() => exportAll('csv')}
+              >
+                {t('search.export.csv')}
+              </Button>
+              {!applied.formType && (
+                <Text color="secondary">{t('search.export.pickType')}</Text>
+              )}
+              {exportError && <Text color="danger">{exportError}</Text>}
+            </div>
+          )}
           <Table
             id="form-search-table"
             className="ljvis-table"
