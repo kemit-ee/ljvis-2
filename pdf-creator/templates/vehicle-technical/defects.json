@@ -281,8 +281,7 @@
     "code": "CAA_1.4.1",
     "name": "1.4.1 Seisupiduri toimimine",
     "allowed": [
-      "OV",
-      "EOV"
+      "OV"
     ]
   },
   {
