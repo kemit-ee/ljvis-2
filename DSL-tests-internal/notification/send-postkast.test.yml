@@ -1,0 +1,67 @@
+# POST /notification/send-postkast — Postkast expects the configured template
+# alias in the API templateId field and resolves it to the active UUID itself.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  PK_NOTIFICATIONS_ENDPOINT: '{MOCK}/postkast/notifications'
+tests:
+- name: configured template alias is sent unchanged as templateId
+  setup:
+    mocks:
+    - url_matches: /notification/get_template_mapping
+      method: POST
+      status: 200
+      body:
+      - notificationType: foreign_proposal
+        originalTemplateId: vrteade
+        channel: postkast
+        defaultLanguage: et
+        defaultRecipientEmail: 60001019906@eesti.ee
+        active: true
+    - url_matches: /notification/insert_outbound_log
+      method: POST
+      status: 200
+      body:
+      - id: 11111111-1111-1111-1111-111111111111
+        notificationKey: ljvis-foreign-violation-test
+    - url_matches: /notification/insert_outbound_recipient
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /postkast/notifications
+      method: POST
+      status: 202
+      body:
+        sendingOperationId: 22222222-2222-2222-2222-222222222222
+    - url_matches: /xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /notification/update_outbound_log_status
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/notification/send-postkast
+    headers:
+      content-type: application/json
+    body:
+      notification_type: foreign_proposal
+      recipient_email: 60001019906@eesti.ee
+      template_variables:
+        vehicleRegNr: 123ABC
+      language: et
+      send_time: ''
+      related_entity_type: foreign_violation_form
+      related_entity_id: '30'
+      original_log_id: ''
+      created_by: TEST
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /postkast/notifications
+    count: 1
+    body_matches:
+      templateId: vrteade
+      language: et
