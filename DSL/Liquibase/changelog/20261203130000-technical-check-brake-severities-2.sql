@@ -8,7 +8,13 @@
 --   1.4.2  Seisupiduri tõhusus                    -> OV
 --   2.1.1  Roolimehhanismi seisund                -> VO,OV,EOV
 --   2.2.2  Roolisammas/roolikann ja hoovad        -> OV,EOV
--- Seeme 20261020110000 oli need valesti (VO,OV,EOV; OV,EOV; EOV; OV,EOV; OV,EOV; OV,EOV; OV).
+--   2.3    Rooliratta vabakäik                    -> OV,EOV
+--   2.5    Haagise esitelje pöördering            -> OV,EOV
+--   2.6    Elektrooniline roolivõimendi (EPS)     -> OV
+-- Lisa 2-s punkti 2.4 pole. Migratsioon 20261120100000 nihutas koodid (CAA_2.4 -> CAA_2.5,
+-- CAA_2.5 -> CAA_2.6), kuid jättis nimedesse vanad numbrid ("2.4 Haagise...", "2.5 Elektrooniline...");
+-- siin parandatakse ka nimed.
+-- Seeme 20261020110000 oli need valesti (VO,OV,EOV; OV,EOV; EOV; OV,EOV; OV,EOV; OV,EOV; OV; OV,EOV; OV,EOV; OV).
 -- Idempotentne: UPDATE seab sama väärtuse uuesti.
 
 UPDATE classifier.classifier_value
@@ -44,4 +50,19 @@ WHERE code = 'CAA_2.1.1'
 UPDATE classifier.classifier_value
 SET description = 'OV,EOV'
 WHERE code = 'CAA_2.2.2'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'OV,EOV'
+WHERE code = 'CAA_2.3'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET name = '2.5 Haagise esitelje pöördering', description = 'OV,EOV'
+WHERE code = 'CAA_2.5'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET name = '2.6 Elektrooniline roolivõimendi (EPS)', description = 'OV'
+WHERE code = 'CAA_2.6'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');

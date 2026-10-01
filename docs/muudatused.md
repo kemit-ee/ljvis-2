@@ -15,6 +15,7 @@
 - Punkt 1.4.2 „Seisupiduri tõhusus“: valitav raskusaste on ainult OV (varem OV ja EOV).
 - Punkt 2.1.1 „Roolimehhanismi seisund“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
 - Punkt 2.2.2 „Roolisammas/roolikann ja hoovad“: valitavad raskusastmed on OV ja EOV (varem ainult OV).
+- Punktid 2.3 ja 2.5 „Haagise esitelje pöördering“: valitavad raskusastmed on OV ja EOV. Punkt 2.6 „Elektrooniline roolivõimendi (EPS)“: ainult OV. Punkti 2.4 ei ole; punktide 2.5 ja 2.6 nimedes oli varem vale number (2.4 ja 2.5), nii vormil kui väljatrükil.
 - Sama kehtib väljatrükil.
 
 ## 2026-10-02
