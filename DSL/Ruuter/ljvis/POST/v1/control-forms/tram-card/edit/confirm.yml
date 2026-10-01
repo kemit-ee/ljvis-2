@@ -6,6 +6,8 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: notifyCarrier
+        type: string
       - field: controlDate
         type: string
       - field: controlTime
@@ -147,6 +149,7 @@ declaration:
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    notify_carrier: "${String(incoming.body.notifyCarrier) === 'true' ? 'true' : 'false'}"
     status: "confirmed"
     control_date: "${incoming.body.controlDate || ''}"
     control_time: "${incoming.body.controlTime || ''}"
@@ -359,6 +362,28 @@ checkSaved:
   switch:
     - condition: ${confirmRes.response == null || confirmRes.response.status < 200 || confirmRes.response.status >= 300 || confirmRes.response.body == null || confirmRes.response.body.length == null || confirmRes.response.body.length === 0}
       next: returnResqlSaveError
+  next: checkCarrierNotificationRequest
+
+# „Teavita vedajat" linnuke kinnitamisel: tellimus salvestatakse eraldi tabelisse ja
+# saadetakse avalikustamisel (võib olla automaatne). Viga ei tühista kinnitamist.
+checkCarrierNotificationRequest:
+  switch:
+    - condition: ${notify_carrier === 'true'}
+      next: registerCarrierNotificationRequest
+  next: logAuditEvent
+
+registerCarrierNotificationRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
+    headers:
+      type: json
+    body:
+      entity_type: "tram_control_card"
+      entity_id: ${id}
+      requested_by: ${actor_personal_code}
+  result: carrierRequestRes
+  error: logAuditEvent
   next: logAuditEvent
 
 logAuditEvent:

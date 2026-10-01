@@ -19,6 +19,7 @@ import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
+import { NotifyCarrierCheckbox } from '../../components/shared/NotifyCarrierCheckbox';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
@@ -54,6 +55,7 @@ export function TramControlCardPage() {
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [notifyCarrier, setNotifyCarrier] = useState(false);
   const [ncrModalOpen, setNcrModalOpen] = useState(false);
 
   const { form, loading, refetch } = useTramControlCardDetail(
@@ -491,9 +493,18 @@ export function TramControlCardPage() {
                 {t('common.save')}
               </AsyncButton>
               {canConfirm && (
-                <AsyncButton type="button" onClick={() => triggerConfirm()}>
-                  {t('common.confirm')}
-                </AsyncButton>
+                <>
+                  <NotifyCarrierCheckbox
+                    checked={notifyCarrier}
+                    onChange={setNotifyCarrier}
+                  />
+                  <AsyncButton
+                    type="button"
+                    onClick={() => triggerConfirm(notifyCarrier)}
+                  >
+                    {t('common.confirm')}
+                  </AsyncButton>
+                </>
               )}
             </>
           ) : (

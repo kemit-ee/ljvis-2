@@ -139,6 +139,23 @@ autoPublishCompound:
     actor_personal_code: ${actor_personal_code}
     actor_name: ${actor_name}
   result: autoPublishCompoundRes
+  error: sendCarrierFromRequest
+  next: sendCarrierFromRequest
+
+# Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
+sendCarrierFromRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      type: json
+    body:
+      entity_type: "trailer_technical"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
+  result: carrierFromRequestRes
   error: evaluateNotifications
   next: evaluateNotifications
 

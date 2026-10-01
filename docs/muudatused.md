@@ -2,7 +2,32 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-02
+
+### Riskiskoor ei arvesta enam mustandeid ega kustutatud vorme
+
+- Riskiskoori arvutus loeb alamvormidest (SP juht / meeskonnaliige) ainult viimast avalikustatud versiooni. Avalikustatud juhtumi alamvormi hilisem mustand või kinnitatud, kuid avalikustamata muudatus ei mõjuta skoori enne avalikustamist.
+- Kustutatud alamvormi ja kustutatud koondvormi rikkumisi ei arvestata. Varem jäid need skoori sisse.
+- Alamvormi (juht, meeskonnaliige) või koondvormi kustutamine arvutab ettevõtte riskiskoori kohe ümber; varem uuenes see alles öise ümberarvutusega.
+
 ## 2026-10-01
+
+### Vedaja teavitus PPA ja Transpordiameti vormidelt
+
+- Sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kontrollkaardi ning sõiduki ja haagise tehnovormi kinnitamisel on nupu „Kinnita“ kõrval linnuke „Teavita vedajat rikkumisest (saadetakse avalikustamisel)“.
+- Kui linnuke on märgitud, saadetakse vedajale (äriregistri e-posti aadressile) avalikustamisel raske rikkumise teavitus. Teavitus saadetakse ainult MSI, VSI või SI rikkumise korral. Linnuke võetakse arvesse ka siis, kui vormi avalikustamine toimub hiljem, sh e-toimiku öise otsuse järel automaatselt avalikustatavatel TRAM-kaardil ja tehnovormidel.
+- Teavituse reg-nr väljal on sõiduk ja haagised komaga eraldatult.
+- Postkasti malli uued muutujad `MSIViolationsList`, `VSIViolationsList` ja `SIViolationsList`: rikkumised raskusastme kaupa, iga rikkumine eraldi real kujul „kood — nimetus“ (ridade vahel `<br>`). Muutuja on tühi, kui sellist raskusastet ei ole. Saadetakse nii PPA/TA vormidelt kui välisriigi kontrollkaardilt; mallis tuleb need ise paigutada.
+- Skeemimuudatus: uus tabel `notifications.carrier_notification_request`.
+
+### Vedajale saadetava teavituse kontrolli koht on riigi nimetusega
+
+- Raske rikkumise teavituses vedajale on „Kontrolli koht“ nüüd riigi nimetus (nt „Läti“), mitte ISO kood. Postkasti malli muutuja on `inspectionCountry`; mall `docs/pk2-templates/carrier_violation.json` tuleb Postkastis uuendada (`{{inspectionCountryCode}}` → `{{inspectionCountry}}`). Sama nimetus on tööinspektsiooni välisriigi ettepaneku teavituses.
+
+### Tööinspektsiooni teavitus: sõidumeerikust või juhikaardilt andmed alla laadimata
+
+- Autojuhi või meeskonnaliikme sõidu- ja puhkeaja kontrollkaardi avalikustamisel, millel on märge „andmed alla laadimata“, saadetakse Postkasti kaudu teavitus Tööinspektsiooni esindajale.
+- Haldus → „Postkasti mallide ja vastuvõtjate seaded“ on uus teavituse liik „Sõidumeerikuandmete alla laadimata jätmise teavitus“ (vaikeadressaat juri.milov@ti.ee, muudetav). Postkastis tuleb luua mall `docs/pk2-templates/labor_tachograph_not_downloaded.json` põhjal.
 
 ### Kasutajaliidese terminid ühtlustatud
 
@@ -22,7 +47,7 @@
   Fail sisaldab kõiki otsingutingimustele vastavate vormide viimase versiooni andmevälju (üks rida vormi kohta).
 - Allalaadimiseks tuleb filtris valida vormitüüp ja vajutada „Otsi“; eksport hõlmab ainult seda tüüpi.
   Kasutaja peab lisaks `form.export`-ile omama selle vormitüübi lugemisõigust.
-- Allalaaditava faili veergude pealkirjad on eesti keeles (nt „Sõiduki reg-nr“, „Juhi eesnimi“, „Haagise reg-nr“). Lahtrite väärtused (olek, klassifikaatorite koodid) on endiselt andmebaasi kujul.
+- Allalaaditava faili veergude pealkirjad on eesti keeles (nt „Sõiduki reg-nr“, „Juhi eesnimi“, „Haagise reg-nr“). Olek (`Olek`, `Koondvormi olek`) on eesti keeles (Salvestatud / Kinnitatud / Avalikustatud / Kustutatud); muud lahtrite väärtused (klassifikaatorite koodid) on endiselt andmebaasi kujul.
 - Alamvormide (SP, tehnokaart, ADR, KV) real on lisaks nende endi väljadele ka koondvormi väljad: sõiduk (sh `vehicle_reg_nr`, `vehicle_vin`), haagised, juhid, ettevõte ja kontrolli andmed; koondvormi number ja olek on veergudes `compound_form_number` ja `compound_status`. Veerud on andmebaasi tabeli järjekorras.
 - Juht ja meeskonnaliige on eraldi veergudes (`driver_*`, `teammate_*`: perekonnanimi, eesnimi, sünniaeg, Eesti isikukood, kodakondsus, välisriigi isikukood). Haagiste registreerimismärgid on eraldi veerus `trailer_reg_nr` (komaga eraldatud), täielik haagiste JSON jääb veergu `trailers`. Teised korduvad plokid (rikkumised jms) on lahtris JSON-tekstina. Ülempiir on 5000 vormi.
 - Iga allalaadimine kirjutatakse auditilogisse (`form.export`).

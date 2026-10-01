@@ -178,6 +178,23 @@ autoPublishCompound:
     actor_personal_code: ${actor_personal_code}
     actor_name: ${actor_name}
   result: autoPublishCompoundRes
+  error: sendCarrierFromRequest
+  next: sendCarrierFromRequest
+
+# Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
+sendCarrierFromRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      type: json
+    body:
+      entity_type: "drive_rest_teammate_form"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
+  result: carrierFromRequestRes
   error: checkSeriousInfringement
   next: checkSeriousInfringement
 
@@ -211,7 +228,7 @@ checkCabotageNotification:
   switch:
     - condition: ${('' + (transport_classes || '')).indexOf('CABOTAGE') !== -1}
       next: sendCabotageNotification
-  next: triggerRiskRecalculate
+  next: checkTachographNotDownloaded
 
 sendCabotageNotification:
   call: http.post
@@ -229,6 +246,33 @@ sendCabotageNotification:
       created_by: ${actor_personal_code}
       template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code, resultType: result_type } }"
   result: cabotageNotifRes
+  error: checkTachographNotDownloaded
+  next: checkTachographNotDownloaded
+
+checkTachographNotDownloaded:
+  switch:
+    - condition: ${tachograph_data_not_downloaded === true || tachograph_data_not_downloaded === 'true'}
+      next: sendTachographNotification
+  next: triggerRiskRecalculate
+
+# Sõidumeerikust/juhikaardilt andmed alla laadimata -> teavitus Tööinspektsioonile.
+# Fire-and-forget — saatmise viga ei peata avalikustamise voogu.
+sendTachographNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      type: json
+    body:
+      notification_type: "labor_tachograph_not_downloaded"
+      language: "et"
+      send_time: ""
+      related_entity_type: "drive_rest_teammate_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: tachographNotifRes
   error: triggerRiskRecalculate
   next: triggerRiskRecalculate
 

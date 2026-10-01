@@ -114,6 +114,7 @@ export function useTechnicalCheckForm(
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingNotifyCarrier = useRef(false);
   const pendingPublish = useRef(false);
   const compoundFormKeyOverride = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
@@ -234,7 +235,7 @@ export function useTechnicalCheckForm(
         } as unknown as TechnicalCheckForm;
         compoundFormKeyOverride.current = undefined;
         const result = isConfirming
-          ? await confirmTechnicalCheckForm(variant, payload)
+          ? await confirmTechnicalCheckForm(variant, { ...payload, notifyCarrier: String(pendingNotifyCarrier.current) } as unknown as TechnicalCheckForm)
           : await saveTechnicalCheckForm(variant, payload);
         onSaved((result[0] as { id?: string })?.id, isConfirming);
       } catch (e) {
@@ -251,8 +252,9 @@ export function useTechnicalCheckForm(
     },
   });
 
-  const triggerConfirm = () => {
+  const triggerConfirm = (notifyCarrier = false) => {
     pendingConfirm.current = true;
+    pendingNotifyCarrier.current = notifyCarrier === true;
     return formik.submitForm();
   };
 

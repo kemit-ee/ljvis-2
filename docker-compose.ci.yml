@@ -119,6 +119,7 @@ services:
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100000-risk-score-permission-seed.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100001-risk-score-test-fixtures.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100002-risk-score-kollane-fixture.sql
+        psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20261203100000-risk-score-draft-deleted-fixture.sql
     networks:
       - ljvis-ci
 

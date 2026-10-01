@@ -38,6 +38,17 @@ WITH enforcement_dates AS (
   FROM forms.compound_form
   WHERE company_reg_code = :company_reg_code
     AND status = 'published'
+    -- Kustutatud koondvorm (viimane versioon status='deleted') ei loe.
+    AND compound_form_key NOT IN (
+      SELECT l.compound_form_key
+      FROM (
+        SELECT DISTINCT ON (compound_form_key) compound_form_key, status
+        FROM forms.compound_form
+        WHERE company_reg_code = :company_reg_code
+        ORDER BY compound_form_key, created_at DESC
+      ) l
+      WHERE l.status = 'deleted'
+    )
   GROUP BY compound_form_key
 ),
 qualifying_forms AS (
@@ -52,28 +63,44 @@ sp_driver_latest AS (
   -- Latest snapshot per sp_driver_form_key (append-only table, same pattern
   -- as DSL/Resql/.../drive-rest-form/driver/get-by-compound-form-key.sql).
   SELECT DISTINCT ON (sp_driver_form_key)
-    sp_driver_form_key AS sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
+    sp_driver_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
     document_checks, cabotage_violations
   FROM forms.sp_driver_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
-    AND (selection_status IS NULL OR selection_status = 'active')
+    AND status IN ('published', 'deleted')
   ORDER BY sp_driver_form_key, created_at DESC
+),
+sp_driver_active AS (
+  SELECT * FROM sp_driver_latest
+  WHERE latest_status = 'published'
+    AND (selection_status IS NULL OR selection_status = 'active')
 ),
 sp_teammate_latest AS (
   SELECT DISTINCT ON (sp_teammate_form_key)
-    sp_teammate_form_key AS sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
+    sp_teammate_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
     document_checks, cabotage_violations
   FROM forms.sp_teammate_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
-    AND (selection_status IS NULL OR selection_status = 'active')
+    AND status IN ('published', 'deleted')
   ORDER BY sp_teammate_form_key, created_at DESC
 ),
-all_sp_forms AS (
-  SELECT * FROM sp_driver_latest
-  UNION ALL
+sp_teammate_active AS (
   SELECT * FROM sp_teammate_latest
+  WHERE latest_status = 'published'
+    AND (selection_status IS NULL OR selection_status = 'active')
+),
+all_sp_forms AS (
+  SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
+    violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
+    document_checks, cabotage_violations
+  FROM sp_driver_active
+  UNION ALL
+  SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
+    violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
+    document_checks, cabotage_violations
+  FROM sp_teammate_active
 ),
 -- Count MSI/VSI/SI/MI occurrences across all 7 JSONB violation-carrying
 -- fields of each SP form. violations_* entries require isDetected='true'

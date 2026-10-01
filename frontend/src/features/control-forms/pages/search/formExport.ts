@@ -11,7 +11,18 @@ export interface ExportTable {
 /** Excel'i lahtri tähemärgipiir. */
 const MAX_CELL_LENGTH = 32767;
 
-const cellOf = (value: unknown): ExportCell => {
+const STATUS_LABELS: Record<string, string> = {
+  saved: 'Salvestatud',
+  confirmed: 'Kinnitatud',
+  published: 'Avalikustatud',
+  deleted: 'Kustutatud',
+};
+const STATUS_KEYS = new Set(['status', 'compound_status']);
+
+const cellOf = (value: unknown, key?: string): ExportCell => {
+  if (key && STATUS_KEYS.has(key) && typeof value === 'string') {
+    return STATUS_LABELS[value] ?? value;
+  }
   if (value === null || value === undefined) return '';
   if (typeof value === 'number' || typeof value === 'boolean') return value;
   const text = typeof value === 'string' ? value : JSON.stringify(value);
@@ -129,7 +140,7 @@ export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
   }
   return {
     headers: labelHeaders(headers),
-    rows: records.map((rec) => headers.map((h) => cellOf(rec[h]))),
+    rows: records.map((rec) => headers.map((h) => cellOf(rec[h], h))),
   };
 }
 

@@ -7,6 +7,7 @@ import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
 import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
+import { NotifyCarrierCheckbox } from '../shared/NotifyCarrierCheckbox';
 
 interface DriveRestFormRef {
   formElement: HTMLFormElement;
@@ -16,7 +17,7 @@ interface DriveRestFormRef {
   hasErrors: () => boolean;
   isDirty: () => boolean;
   validateForm?: () => void;
-  confirm?: () => void;
+  confirm?: (notifyCarrier?: boolean) => void;
 }
 
 export interface DriveRestFormEditCardRef {
@@ -58,6 +59,7 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
   const { t } = useTranslation();
   const formRef = useRef<DriveRestFormRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [notifyCarrier, setNotifyCarrier] = useState(false);
 
 
   useImperativeHandle(ref, () => ({
@@ -102,12 +104,18 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
               id={form.id}
             />
             {canConfirm && (
-              <Button
-                type="button"
-                onClick={() => formRef.current?.confirm?.()}
-              >
-                {t('common.confirm')}
-              </Button>
+              <>
+                <NotifyCarrierCheckbox
+                  checked={notifyCarrier}
+                  onChange={setNotifyCarrier}
+                />
+                <Button
+                  type="button"
+                  onClick={() => formRef.current?.confirm?.(notifyCarrier)}
+                >
+                  {t('common.confirm')}
+                </Button>
+              </>
             )}
             <SubFormEditPublishButton
               form={form}
