@@ -2,6 +2,21 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-01
+
+### Kasutajaliidese terminid ühtlustatud
+
+- Olek „Avalikustatud“ on igal pool ühtemoodi: otsingu olekufiltris, vormi teadetes („Vorm on avalikustatud“), lukustatud vormi veateadetes ja NU sobimatusteate allikadeklaratsiooni teadetes oli varem „Avaldatud“.
+- Meeskonnaliikme sõidu- ja puhkeaja alamvormi lühinimi on „Sõidu- ja puhkeaeg (meeskonnaliige)“ (varem „kaassõitja“ või „kaasreisija“, sh auditilogis).
+- Rikkumiste raskusastmed klassifikaatori sõnastuses: kõige raskem (MSI), väga tõsine (VSI), tõsine (SI), kergem (MI). Kodanikuvaates oli varem „Eriti tõsine“, „Ülitõsine“ ja „Vähetõsine“, välisriigi kontrollkaardil „Väga rasked“ ja „Rasked“.
+- Vormide lühinimed on otsingus, murupurus ja kodanikuvaates samad (nt „Välisriigi kontrollkaart“, „Sõiduki tehnonõuetele vastavus“, „Tööinspektsiooni kontrollkaart“). Kodanikuvaate kontrolli tulemused on samas sõnastuses kui vormil.
+- Hea maine vormi pealkiri on „Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuhi andmevorm“.
+- ERRU: menüüpunktid on kujul „nimi + kood“ (nt „Mainepäringud CGR“). CGR- ja NU-vormidel on „kutsetunnistuse“ ja „kutseoskuse tunnistuse“ asemel „ametialase pädevuse tunnistus“, nagu väljade siltidel.
+- Väiksemad ühtlustused: „Sihtnumber“ (varem osal vormidel „Postiindeks“), „Sõiduki reg-nr“ loendite veergudes, „E-toimiku X-tee logid“, „Laadi fail üles“, „Muuda rikkeid“. Otsingutulemuste veerg „Vedaja“ on nüüd „Ettevõte“, nagu filtris.
+- Töölaua vaate valik „Minu organisatsioonid“ on nüüd „Minu asutuse“.
+- Pöördumine on läbivalt „teie“ vormis (nt „Kas soovite jätkata?“, „Salvestage vorm enne failide lisamist“).
+- Parandatud kirjavead: „Liiklusjärelevalve“ (jalus), „Struktuuriüksus“, „siduda“, „nimetusega“, „vaheaja“, „Mittetäitmise põhjus“.
+
 ## 2026-09-30
 
 ### Administraatori juhend: esimese superadmini loomine ja paigaldus (devops)

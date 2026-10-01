@@ -407,7 +407,7 @@ returnNotSendable:
 
 returnSourceNotEligible:
   status: 409
-  return: '{"valid":false,"code":"source_not_eligible","message":"Allikdeklaratsioon ei ole avaldatud/sobimatu või sobimatuse lõppkuupäev puudub või on möödunud"}'
+  return: '{"valid":false,"code":"source_not_eligible","message":"Allikdeklaratsioon ei ole avalikustatud/sobimatu või sobimatuse lõppkuupäev puudub või on möödunud"}'
   next: end
 
 returnNysiisError:

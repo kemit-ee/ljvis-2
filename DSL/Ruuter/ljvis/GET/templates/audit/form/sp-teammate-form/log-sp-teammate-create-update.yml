@@ -60,7 +60,7 @@ buildProceedingTypePart:
 
 buildAudit:
   assign:
-    description: "Sõidu- ja puhkeaja alamvorm (kaassõitja) salvestatud, alamvormi number: ${incoming.body.sub_form_number}, koondvormi võti: ${incoming.body.compound_form_key}, alamvormi võti: ${incoming.body.sp_teammate_form_key}, kontrolli tulemus: ${incoming.body.result_type}${proceeding_type_part}, juhi isikukood: ${driver1_code}${driver2_part}"
+    description: "Sõidu- ja puhkeaja alamvorm (meeskonnaliige) salvestatud, alamvormi number: ${incoming.body.sub_form_number}, koondvormi võti: ${incoming.body.compound_form_key}, alamvormi võti: ${incoming.body.sp_teammate_form_key}, kontrolli tulemus: ${incoming.body.result_type}${proceeding_type_part}, juhi isikukood: ${driver1_code}${driver2_part}"
     log_content: "{\"spTeammateFormKey\":\"${incoming.body.sp_teammate_form_key}\",\"compoundFormKey\":\"${incoming.body.compound_form_key}\",\"subFormNumber\":\"${incoming.body.sub_form_number}\",\"resultType\":\"${incoming.body.result_type}\",\"driver1PersonalCodeEe\":\"${driver1_ee}\",\"driver1PersonalCodeForeign\":\"${driver1_foreign}\"${log_content_driver2_part}${log_content_proceeding_type_part}}"
   next: logAuditEvent
 
