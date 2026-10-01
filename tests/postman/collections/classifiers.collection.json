@@ -1556,6 +1556,276 @@
           }
         }
       ]
+    },
+    {
+      "name": "PUT /v1/classifiers/value — restrict TEST_CI to TI + SP driver forms (ADR-011) → 200",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "value"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_value_id}}\", \"code\": \"TEST_CI\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"2099-12-31\", \"formTypes\": [\"SP_DRIVER_FORM\", \"TI_KONTROLLKAART\", \"UNKNOWN_FORM\"]}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/classifiers/value — formTypes saved, unknown code ignored",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{created_value_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "value"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{seeded_classifier_id}}"
+            },
+            {
+              "key": "valueId",
+              "value": "{{created_value_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var v = (body && body.response) ? body.response : body;",
+              "pm.test('formTypes = [\"SP_DRIVER_FORM\", \"TI_KONTROLLKAART\"]', () => pm.expect(v.formTypes).to.eql([\"SP_DRIVER_FORM\", \"TI_KONTROLLKAART\"]));",
+              "pm.test('name carried forward', () => pm.expect(v.name).to.eql('CI Test Value'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PUT /v1/classifiers/value — without formTypes keeps the restriction → 200",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "value"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_value_id}}\", \"code\": \"TEST_CI\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"2099-12-31\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/classifiers/value — formTypes unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{created_value_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "value"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{seeded_classifier_id}}"
+            },
+            {
+              "key": "valueId",
+              "value": "{{created_value_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var v = (body && body.response) ? body.response : body;",
+              "pm.test('formTypes = [\"SP_DRIVER_FORM\", \"TI_KONTROLLKAART\"]', () => pm.expect(v.formTypes).to.eql([\"SP_DRIVER_FORM\", \"TI_KONTROLLKAART\"]));",
+              "pm.test('name carried forward', () => pm.expect(v.name).to.eql('CI Test Value'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PUT /v1/classifiers/value — empty formTypes clears the restriction → 200",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "value"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"classifierId\": \"{{seeded_classifier_id}}\", \"classifierValueId\": \"{{created_value_id}}\", \"code\": \"TEST_CI\", \"name\": \"CI Test Value\", \"validFrom\": \"2024-01-01\", \"validUntil\": \"2099-12-31\", \"formTypes\": []}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/classifiers/value — formTypes empty (all forms)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/classifiers/value?q={{seeded_classifier_id}}&valueId={{created_value_id}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "classifiers",
+            "value"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{seeded_classifier_id}}"
+            },
+            {
+              "key": "valueId",
+              "value": "{{created_value_id}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json();",
+              "var v = (body && body.response) ? body.response : body;",
+              "pm.test('formTypes = []', () => pm.expect(v.formTypes).to.eql([]));",
+              "pm.test('name carried forward', () => pm.expect(v.name).to.eql('CI Test Value'));"
+            ]
+          }
+        }
+      ]
     }
   ],
   "variable": []

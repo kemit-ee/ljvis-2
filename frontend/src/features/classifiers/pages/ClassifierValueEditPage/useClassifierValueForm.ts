@@ -42,6 +42,7 @@ export function useClassifierValueForm(
       name: existingValue?.name ?? '',
       validFrom: existingValue?.validFrom ?? '',
       validUntil: existingValue?.validUntil ?? '',
+      formTypes: [...(existingValue?.formTypes ?? [])].sort(),
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -60,6 +61,7 @@ export function useClassifierValueForm(
             name: trimmedValues.name,
             validFrom: trimmedValues.validFrom,
             validUntil: trimmedValues.validUntil,
+            formTypes: trimmedValues.formTypes,
           });
         } else {
           await insertClassifierValue({
@@ -68,6 +70,7 @@ export function useClassifierValueForm(
             name: sanitizeText(trimmedValues.name),
             validFrom: trimmedValues.validFrom,
             validUntil: trimmedValues.validUntil,
+            formTypes: trimmedValues.formTypes,
           });
         }
         await onSaved();

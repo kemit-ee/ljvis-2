@@ -17,6 +17,7 @@ import { NotificationTemplateMappingListPage } from './features/notificationTemp
 import { NotificationTemplateMappingDetailPage } from './features/notificationTemplateMapping/pages/NotificationTemplateMappingDetailPage/NotificationTemplateMappingDetailPage';
 import { ClassifierValueCreatePage } from './features/classifiers/pages/ClassifierValueCreatePage/ClassifierValueCreatePage';
 import { ClassifierValueEditPage } from './features/classifiers/pages/ClassifierValueEditPage/ClassifierValueEditPage';
+import { FORM_TYPE_CODE } from './features/classifiers/formScope';
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
 import { RiskScoresListPage } from './features/risk-scores/pages/RiskScoresListPage/RiskScoresListPage';
 import { XroadLogListPage } from './features/xroad-logs/pages/XroadLogListPage/XroadLogListPage';
@@ -61,7 +62,7 @@ import { CitizenCompoundDetailPage } from './features/citizen/pages/CitizenCompo
 import { CitizenForeignViolationDetailPage } from './features/citizen/pages/CitizenForeignViolationDetailPage/CitizenForeignViolationDetailPage';
 import { CitizenGoodReputeDetailPage } from './features/citizen/pages/CitizenGoodReputeDetailPage/CitizenGoodReputeDetailPage';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
-import { ClassifierProvider } from './features/classifiers/ClassifierProvider';
+import { ClassifierProvider, ClassifierScopeProvider } from './features/classifiers/ClassifierProvider';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -156,47 +157,47 @@ function AppRoutes() {
           <Route path="/logs/:id" element={<LogDetailPage />} />
           <Route
             path="/control-forms/foreign-violation/new"
-            element={<ForeignViolationFormCreatePage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.FOREIGN_VIOLATION}><ForeignViolationFormCreatePage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/foreign-violation/:id"
-            element={<ForeignViolationFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.FOREIGN_VIOLATION}><ForeignViolationFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/foreign-violation/:id/:snapshotId"
-            element={<ForeignViolationFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.FOREIGN_VIOLATION}><ForeignViolationFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/compound/new"
-            element={<CompoundFormCreatePage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><CompoundFormCreatePage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/compound/:id"
-            element={<CompoundFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><CompoundFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/compound/:id/:snapshotId"
-            element={<CompoundFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><CompoundFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/sp-driver/:id"
-            element={<DriveRestFormPage entryType="driver" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><DriveRestFormPage entryType="driver" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/sp-driver/:id/:snapshotId"
-            element={<DriveRestFormPage entryType="driver" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><DriveRestFormPage entryType="driver" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/tram-control-card/new"
-            element={<TramControlCardCreatePage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.TRAM_CONTROL_CARD}><TramControlCardCreatePage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/tram-control-card/:id"
-            element={<TramControlCardPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.TRAM_CONTROL_CARD}><TramControlCardPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/tram-control-card/:id/:snapshotId"
-            element={<TramControlCardPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.TRAM_CONTROL_CARD}><TramControlCardPage /></ClassifierScopeProvider>}
           />
           {/* ADR-002: vana marsruut → suuna uuele */}
           <Route
@@ -205,23 +206,23 @@ function AppRoutes() {
           />
           <Route
             path="/control-forms/sp-teammate/:id"
-            element={<DriveRestFormPage entryType="teammate" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><DriveRestFormPage entryType="teammate" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/sp-teammate/:id/:snapshotId"
-            element={<DriveRestFormPage entryType="teammate" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><DriveRestFormPage entryType="teammate" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/labour-inspection/new"
-            element={<LabourInspectionFormCreatePage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.LABOUR_INSPECTION}><LabourInspectionFormCreatePage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/labour-inspection/:id"
-            element={<LabourInspectionFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.LABOUR_INSPECTION}><LabourInspectionFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/labour-inspection/:id/:snapshotId"
-            element={<LabourInspectionFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.LABOUR_INSPECTION}><LabourInspectionFormPage /></ClassifierScopeProvider>}
           />
           {/* ERRU — CTUD (tegevusloa kontroll) */}
           <Route path="/erru/ctud" element={<CtudListPage />} />
@@ -244,60 +245,60 @@ function AppRoutes() {
           <Route path="/erru/nu/:id" element={<NuFormPage />} />
           <Route
             path="/control-forms/vehicle-technical/new/:compoundFormKey"
-            element={<TechnicalCheckFormPage variant="vehicle" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TechnicalCheckFormPage variant="vehicle" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/vehicle-technical/:id"
-            element={<TechnicalCheckFormPage variant="vehicle" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TechnicalCheckFormPage variant="vehicle" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/vehicle-technical/:id/:snapshotId"
-            element={<TechnicalCheckFormPage variant="vehicle" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TechnicalCheckFormPage variant="vehicle" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/trailer-technical/new/:compoundFormKey"
-            element={<TechnicalCheckFormPage variant="trailer" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TechnicalCheckFormPage variant="trailer" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/trailer-technical/:id"
-            element={<TechnicalCheckFormPage variant="trailer" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TechnicalCheckFormPage variant="trailer" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/trailer-technical/:id/:snapshotId"
-            element={<TechnicalCheckFormPage variant="trailer" />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TechnicalCheckFormPage variant="trailer" /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/transport-interruption/new/:compoundFormKey"
-            element={<TransportInterruptionFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TransportInterruptionFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/transport-interruption/:id"
-            element={<TransportInterruptionFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TransportInterruptionFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/transport-interruption/:id/:snapshotId"
-            element={<TransportInterruptionFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><TransportInterruptionFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/adr/new/:compoundFormKey"
-            element={<AdrFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><AdrFormPage /></ClassifierScopeProvider>}
           />
-          <Route path="/control-forms/adr/:id" element={<AdrFormPage />} />
+          <Route path="/control-forms/adr/:id" element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><AdrFormPage /></ClassifierScopeProvider>} />
           <Route
             path="/control-forms/adr/:id/:snapshotId"
-            element={<AdrFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.COMPOUND}><AdrFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/good-repute/new"
-            element={<GoodReputeFormCreatePage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.GOOD_REPUTE}><GoodReputeFormCreatePage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/good-repute/:id"
-            element={<GoodReputeFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.GOOD_REPUTE}><GoodReputeFormPage /></ClassifierScopeProvider>}
           />
           <Route
             path="/control-forms/good-repute/:id/:snapshotId"
-            element={<GoodReputeFormPage />}
+            element={<ClassifierScopeProvider formType={FORM_TYPE_CODE.GOOD_REPUTE}><GoodReputeFormPage /></ClassifierScopeProvider>}
           />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
