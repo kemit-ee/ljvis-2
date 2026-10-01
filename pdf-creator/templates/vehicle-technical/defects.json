@@ -330,6 +330,7 @@
     "code": "CAA_2.1.1",
     "name": "2.1.1 Roolimehhanismi (roolikarp, roolireduktor, roolilatt) seisund",
     "allowed": [
+      "VO",
       "OV",
       "EOV"
     ]
@@ -385,7 +386,8 @@
     "code": "CAA_2.2.2",
     "name": "2.2.2 Roolisammas/roolikann ja roolisamba külge kinnitatavad hoovad/kangid",
     "allowed": [
-      "OV"
+      "OV",
+      "EOV"
     ]
   },
   {

@@ -4,7 +4,7 @@
 
 ## 2026-10-02
 
-### Tehnokaardi pidurisüsteemi raskusastmed
+### Tehnokaardi pidurisüsteemi ja rooliseadme raskusastmed
 
 - Punkt 1.1.7 „Piduriklapid/ventiilid“: valitavad raskusastmed on VO ja OV (varem ka EOV).
 - Punkt 1.1.8 „Haagisepidurite ühendused“: valitavad raskusastmed on VO, OV ja EOV (varem ainult OV ja EOV).
@@ -13,6 +13,8 @@
 - Punkt 1.1.20 „Haagisepidurite automaatne rakendumine“: valitav raskusaste on ainult OV (varem EOV).
 - Punkt 1.4.1 „Seisupiduri toimimine“: valitav raskusaste on ainult OV (varem OV ja EOV).
 - Punkt 1.4.2 „Seisupiduri tõhusus“: valitav raskusaste on ainult OV (varem OV ja EOV).
+- Punkt 2.1.1 „Roolimehhanismi seisund“: valitavad raskusastmed on VO, OV ja EOV (varem VO puudus).
+- Punkt 2.2.2 „Roolisammas/roolikann ja hoovad“: valitavad raskusastmed on OV ja EOV (varem ainult OV).
 - Sama kehtib väljatrükil.
 
 ## 2026-10-02

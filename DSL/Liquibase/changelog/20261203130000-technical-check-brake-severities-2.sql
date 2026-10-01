@@ -1,12 +1,14 @@
 -- liquibase formatted sql
 -- changeset ljvis:20261203130000 ignore:true
--- Tehnokaardi pidurisüsteemi punktide lubatud raskusastmed (description) parandus:
+-- Tehnokaardi pidurisüsteemi ja rooliseadme punktide lubatud raskusastmed (description) parandus:
 --   1.1.15 Piduritrossid, -vardad, -hoovastik     -> OV,EOV (VO eemaldatud)
 --   1.1.17 Pidurdusjõu regulaator                 -> VO,OV,EOV
 --   1.1.20 Haagisepidurite automaatne rakendumine -> OV
 --   1.4.1  Seisupiduri toimimine                  -> OV
 --   1.4.2  Seisupiduri tõhusus                    -> OV
--- Seeme 20261020110000 oli need valesti (VO,OV,EOV; OV,EOV; EOV; OV,EOV; OV,EOV).
+--   2.1.1  Roolimehhanismi seisund                -> VO,OV,EOV
+--   2.2.2  Roolisammas/roolikann ja hoovad        -> OV,EOV
+-- Seeme 20261020110000 oli need valesti (VO,OV,EOV; OV,EOV; EOV; OV,EOV; OV,EOV; OV,EOV; OV).
 -- Idempotentne: UPDATE seab sama väärtuse uuesti.
 
 UPDATE classifier.classifier_value
@@ -32,4 +34,14 @@ WHERE code = 'CAA_1.4.1'
 UPDATE classifier.classifier_value
 SET description = 'OV'
 WHERE code = 'CAA_1.4.2'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO,OV,EOV'
+WHERE code = 'CAA_2.1.1'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'OV,EOV'
+WHERE code = 'CAA_2.2.2'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
