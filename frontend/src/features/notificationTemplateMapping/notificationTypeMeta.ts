@@ -39,6 +39,9 @@ export const NOTIFICATION_TYPE_TEMPLATE_VARIABLES: Record<string, string[]> = {
     'vehicleRegNr',
     'violationSeverities',
     'violationDescription',
+    'MSIViolationsList',
+    'VSIViolationsList',
+    'SIViolationsList',
   ],
   labor_foreign_proposal: [
     'formNumber',

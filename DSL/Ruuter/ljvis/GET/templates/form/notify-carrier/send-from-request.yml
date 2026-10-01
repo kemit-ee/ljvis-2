@@ -93,19 +93,43 @@ checkOpenRequest:
   next: extractSeverities
 
 # Teavitatakse ainult raskete rikkumiste (MSI, VSI, SI) korral; MI ei kuulu siia.
+# violations on JSON (rikkumiste massiivid, sh sisemised massiivid) — arvesse
+# lähevad ainult tuvastatud read (isDetected != false). Kui JSON-it ei saa
+# lugeda, otsitakse koode tekstist.
 extractSeverities:
   assign:
     request_id: "${openRequestRes.response.body[0].id}"
     violation_codes: >-
       ${(() => {
-        var m = String(violations).match(/(?:^|[^A-Za-z])(?:MSI|VSI|SI)[ _-]*[0-9]+/g) || [];
-        var codes = m.map(function(x) { return x.replace(/^[^A-Za-z]/, '').replace(/[ _-]/g, ''); });
-        return Array.from(new Set(codes)).join(', ');
+        var out = [];
+        function walk(x) {
+          if (x == null) return;
+          if (Array.isArray(x)) { x.forEach(walk); return; }
+          if (typeof x === 'string') {
+            var p;
+            try { p = JSON.parse(x); } catch (e) { out.push(x); return; }
+            if (p !== x) { walk(p); } else { out.push(x); }
+            return;
+          }
+          if (typeof x === 'object') {
+            if (x.isDetected === false || x.isDetected === 'false') return;
+            var c = x.violationCode || x.code;
+            if (c) out.push(String(c));
+          }
+        }
+        walk(String(violations));
+        var codes = out.map(function(c) { return String(c).toUpperCase().replace(/[ _-]/g, ''); })
+          .filter(function(c) { return /^(MSI|VSI|SI)[0-9]+$/.test(c); });
+        if (codes.length === 0) {
+          codes = (String(violations).toUpperCase().match(/(?:^|[^A-Z])(?:MSI|VSI|SI)[ _-]*[0-9]+/g) || [])
+            .map(function(c) { return c.replace(/^[^A-Z]/, '').replace(/[ _-]/g, ''); });
+        }
+        return Array.from(new Set(codes)).join(',');
       })()}
     violation_severities: >-
       ${(() => {
-        var m = String(violations).match(/(?:^|[^A-Za-z])(MSI|VSI|SI)[ _-]*[0-9]+/g) || [];
-        var sev = m.map(function(x) { return x.replace(/^[^A-Za-z]/, '').match(/^(MSI|VSI|SI)/)[1]; });
+        var sev = String(violation_codes).split(',').filter(Boolean)
+          .map(function(c) { return c.match(/^(MSI|VSI|SI)/)[1]; });
         return Array.from(new Set(sev)).join(', ');
       })()}
   next: checkSeriousViolation
@@ -163,7 +187,7 @@ buildMessageData:
 checkCountry:
   switch:
     - condition: ${inspection_country === ''}
-      next: lookupCarrierEmail
+      next: callGetViolationNames
   next: callGetCountryName
 
 callGetCountryName:
@@ -175,12 +199,62 @@ callGetCountryName:
     body:
       code: ${inspection_country}
   result: countryNameRes
-  error: lookupCarrierEmail
+  error: callGetViolationNames
   next: applyCountryName
 
 applyCountryName:
   assign:
     inspection_country: "${(countryNameRes.response.body && countryNameRes.response.body[0] && countryNameRes.response.body[0].name) || inspection_country}"
+  next: callGetViolationNames
+
+# Rikkumiskoodide nimetused klassifikaatoritest; leidmata koodi puhul näidatakse ainult koodi.
+callGetViolationNames:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_violation_names"
+    headers:
+      type: json
+    body:
+      codes: ${violation_codes}
+  result: violationNamesRes
+  error: buildViolationList
+  next: buildViolationList
+
+# Rikkumised raskusastme kaupa: MSIViolationsList / VSIViolationsList / SIViolationsList.
+# Üks rikkumine rea kohta („VSI869 — nimetus"), ridade vahel <br> (Postkasti mall on HTML).
+# Raskusastmel rikkumisi ei ole -> tühi string.
+buildViolationList:
+  assign:
+    MSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^MSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    VSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^VSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    SIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^SI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
   next: lookupCarrierEmail
 
 lookupCarrierEmail:
@@ -227,7 +301,7 @@ sendCarrierNotification:
       related_entity_id: ${entity_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: control_country_code, inspectionCountry: inspection_country, vehicleRegNr: vehicle_and_trailers, violationSeverities: violation_severities, violationDescription: violation_codes } }"
+      template_variables: "${ { formNumber: form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: control_country_code, inspectionCountry: inspection_country, vehicleRegNr: vehicle_and_trailers, violationSeverities: violation_severities, violationDescription: (MSIViolationsList + (MSIViolationsList && (VSIViolationsList || SIViolationsList) ? '<br>' : '') + VSIViolationsList + (VSIViolationsList && SIViolationsList ? '<br>' : '') + SIViolationsList), MSIViolationsList: MSIViolationsList, VSIViolationsList: VSIViolationsList, SIViolationsList: SIViolationsList } }"
   result: carrierNotifRes
   error: returnResult
   next: checkCarrierSent

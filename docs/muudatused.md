@@ -9,6 +9,7 @@
 - Sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kontrollkaardi ning sõiduki ja haagise tehnovormi kinnitamisel on nupu „Kinnita“ kõrval linnuke „Teavita vedajat rikkumisest (saadetakse avalikustamisel)“.
 - Kui linnuke on märgitud, saadetakse vedajale (äriregistri e-posti aadressile) avalikustamisel raske rikkumise teavitus. Teavitus saadetakse ainult MSI, VSI või SI rikkumise korral. Linnuke võetakse arvesse ka siis, kui vormi avalikustamine toimub hiljem.
 - Teavituse reg-nr väljal on sõiduk ja haagised komaga eraldatult.
+- Postkasti malli uued muutujad `MSIViolationsList`, `VSIViolationsList` ja `SIViolationsList`: rikkumised raskusastme kaupa, iga rikkumine eraldi real kujul „kood — nimetus“ (ridade vahel `<br>`). Muutuja on tühi, kui sellist raskusastet ei ole. Saadetakse nii PPA/TA vormidelt kui välisriigi kontrollkaardilt; mallis tuleb need ise paigutada.
 - Skeemimuudatus: uus tabel `notifications.carrier_notification_request`.
 
 ### Vedajale saadetava teavituse kontrolli koht on riigi nimetusega

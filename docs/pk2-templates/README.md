@@ -83,7 +83,10 @@ eraldi DSL-i aktiveerimist ei ole vaja.
 | `{{inspectionCountryCode}}` | Kontrolli koha ISO riigikood (alles tagasiühilduvuseks, mall seda ei kasuta) | vorm, `inspectionCountryCode` |
 | `{{vehicleRegNr}}` | Kontrollitud sõiduki registreerimisnumber; PPA/TA vormidel sõiduk ja haagised komaga eraldatult | vorm, `vehicleRegNr` (+ koondvormi `trailers[].regNr`) |
 | `{{violationSeverities}}` | Rikkumise raskusastmed (nt "MSI, VSI") | vorm, `violations[].code` unikaalsed `MSI`/`VSI`/`SI` prefiksid |
-| `{{violationDescription}}` | Rikkumise vaba tekstiga kirjeldus | vorm, `violationDescription` |
+| `{{violationDescription}}` | VR-vormil rikkumise vabatekst; PPA/TA vormidel kõik rikkumised (MSI, VSI, SI) korraga, üks rea kohta | VR: `violationDescription`; PPA/TA: rikkumiste kood + nimetus |
+| `{{MSIViolationsList}}` | MSI rikkumised, üks rida iga rikkumise kohta kujul „kood — nimetus", ridade vahel `<br>` (HTML). Tühi, kui sellist rikkumist ei ole | vorm, `violations[].code` + nimetus klassifikaatorist (`EU_INFRINGEMENT`, kabotaaži klassifikaatorid) |
+| `{{VSIViolationsList}}` | VSI rikkumised, sama vorming | sama |
+| `{{SIViolationsList}}` | SI rikkumised, sama vorming | sama |
 
 **Lahtised kohad:** `{{violationSeverities}}` näitab ainult esinevaid raskusastmeid, mitte iga rikkumiskoodi täistekstilist kirjeldust — see nõuaks eraldi `EU_INFRINGEMENT` klassifikaatori päringut (teadlik lihtsustus).
 

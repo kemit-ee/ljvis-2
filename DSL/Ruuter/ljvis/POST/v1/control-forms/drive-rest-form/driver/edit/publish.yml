@@ -197,7 +197,7 @@ sendCarrierFromRequest:
     entityId: ${id}
     compoundFormKey: "${compound_form_key == null ? '' : String(compound_form_key)}"
     formNumber: "${sub_form_number}"
-    violations: "${[violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations].join(' ')}"
+    violations: "${'[' + [violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations].filter(Boolean).join(',') + ']'}"
     createdBy: ${actor_personal_code}
   result: carrierFromRequestRes
   error: checkSeriousInfringement

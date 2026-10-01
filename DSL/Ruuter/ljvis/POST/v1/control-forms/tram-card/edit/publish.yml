@@ -246,7 +246,7 @@ sendCarrierFromRequest:
     entityType: "tram_control_card"
     entityId: ${id}
     formNumber: "${publishRes.response.body[0].formNumber}"
-    violations: "${[violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations].join(' ')}"
+    violations: "${'[' + [violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations].filter(Boolean).join(',') + ']'}"
     createdBy: ${actor_personal_code}
     companyRegCode: ${company_reg_code}
     companyName: ${company_name}
