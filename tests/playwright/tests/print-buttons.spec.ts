@@ -4,7 +4,7 @@ import {
   expectSaved,
   COMPOUND_DRIVER_IDS,
 } from '../pages/CompoundGeneralPart';
-import { checkChoiceById } from '../support/tedi';
+import { checkChoiceById, fillMaskedDate } from '../support/tedi';
 
 /**
  * Printimise nuppude olemasolu kontroll koondvormi alamvormidel (PR #310).
@@ -135,10 +135,7 @@ test.describe('Printimise nupud — meeskonnaliikme SP vorm', () => {
     const reg = `PBT${Date.now() % 100000}`;
     let formId = '';
 
-    await page.goto('/control-forms/compound/new?types=teammate');
-    await expect(
-      page.getByRole('tab', { name: /Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm/ }),
-    ).toBeVisible({ timeout: 15_000 });
+    await page.goto('/control-forms/compound/new');
 
     await fillGeneralPart(page, {
       address: 'Prindi tee 2',
@@ -155,6 +152,18 @@ test.describe('Printimise nupud — meeskonnaliikme SP vorm', () => {
         birthDate: '15061990',
       },
     });
+
+    // Meeskonnaliikme kontrollvorm lisatakse üldosa meeskonnaliikme plokist
+    await page.getByRole('button', { name: 'Lisa meeskonnaliige' }).click();
+    await page.locator('#teammateFirstName').fill('Meeskond');
+    await page.locator('#teammateLastName').fill('Liige');
+    await fillMaskedDate(page, 'teammateBirthDate', '15061991');
+    await page
+      .getByRole('button', { name: 'Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm' })
+      .click();
+    await expect(
+      page.getByRole('tab', { name: /Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm/ }),
+    ).toBeVisible({ timeout: 15_000 });
 
     await fillDriveRestSubForm(page, /Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm/);
 

@@ -300,6 +300,28 @@ export function DriveRestFormFields({
 
   return (
     <div>
+      {/* Plokk: Meeskonnaliige (ainult loetav, võetakse koondvormi plokist) */}
+      {type === 'teammate' &&
+        (formik.values.personFirstName || formik.values.personLastName) && (
+          <Row className="m-0">
+            <Col className="p-0">
+              <Card className="mb-1">
+                <Card.Content>
+                  <p id="teammate-person-name" className="m-0">
+                    <strong>{t('forms.drive_rest.teammatePerson')}:</strong>{' '}
+                    {[
+                      formik.values.personFirstName,
+                      formik.values.personLastName,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  </p>
+                </Card.Content>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
       {/* Plokk: Veoliik ja veoklass */}
       <Row className="m-0">
         <Col className="p-0">

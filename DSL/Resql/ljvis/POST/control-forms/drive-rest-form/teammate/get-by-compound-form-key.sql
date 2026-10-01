@@ -126,6 +126,24 @@ returns:
 - name: liiniNimetus
   type: string
   nullable: true
+- name: personCodeEe
+  type: string
+  nullable: true
+- name: personFirstName
+  type: string
+  nullable: true
+- name: personLastName
+  type: string
+  nullable: true
+- name: personCitizenshipCode
+  type: string
+  nullable: true
+- name: personCodeForeign
+  type: string
+  nullable: true
+- name: personBirthDate
+  type: string
+  nullable: true
 - name: createdBy
   type: string
   nullable: true
@@ -171,6 +189,12 @@ SELECT
   notes,
   liini_number AS "liiniNumber",
   liini_nimetus AS "liiniNimetus",
+  person_code_ee AS "personCodeEe",
+  person_first_name AS "personFirstName",
+  person_last_name AS "personLastName",
+  person_citizenship_code AS "personCitizenshipCode",
+  person_code_foreign AS "personCodeForeign",
+  TO_CHAR(person_birth_date, 'YYYY-MM-DD') AS "personBirthDate",
   created_by
 FROM forms.sp_teammate_form
 WHERE compound_form_key = :compoundFormKey::BIGINT

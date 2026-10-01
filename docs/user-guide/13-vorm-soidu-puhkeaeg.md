@@ -17,9 +17,14 @@ Seda vormit täidetakse **koondvormi alamvormina**. Vorm avaneb koondvormi
 vahekaardil:
 
 - **uue koondvormi** loomisel: märkige töölaua ploki „Koondvorm" loendis „Autojuhi
-  sõidu- ja puhkeaja kontrollvorm" ja/või „Meeskonnaliikme sõidu- ja puhkeaja
-  kontrollvorm";
-- **olemasoleva koondvormi** vaates: lisage alamvorm vahekaartide ribalt.
+  sõidu- ja puhkeaja kontrollvorm";
+- **olemasoleva koondvormi** vaates: lisage alamvorm vahekaartide ribalt;
+- **meeskonnaliikme vorm**: koondvormi **Üldosas** klõpsake autojuhi andmete all
+  **„Lisa meeskonnaliige"**, täitke meeskonnaliikme andmed ja klõpsake ploki all
+  **„Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm"**. Meeskonnaliikme vormi
+  ei saa lisada töölaualt ega ülemisest „Lisa" nupust. Meeskonnaliiget ei saa
+  eemaldada, kuni tema kontrollvorm on olemas. Vormil kuvatakse meeskonnaliikme
+  ees- ja perenimi (muutmiseks muutke Üldosa plokki).
 
 Olemasolevat vormi saab avada otse URL-ilt:
 

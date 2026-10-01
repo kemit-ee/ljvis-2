@@ -275,6 +275,13 @@ export interface DriveRestForm {
   notes?: string;
   liiniNumber?: string;
   liiniNimetus?: string;
+  /** Meeskonnaliikme andmed (ainult teammate-vormil, kirjutuskaitstud — võetakse koondvormi plokist) */
+  personCodeEe?: string;
+  personFirstName?: string;
+  personLastName?: string;
+  personCitizenshipCode?: string;
+  personCodeForeign?: string;
+  personBirthDate?: string;
 }
 
 export type TransportClass = {

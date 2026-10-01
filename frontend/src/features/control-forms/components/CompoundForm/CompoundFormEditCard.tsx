@@ -22,7 +22,7 @@ import { vehicleCategoryColWidth } from './vehicleCategoryLayout';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
-import { emptyTrailer } from '../../pages/compound-form/useCompoundForm';
+import { emptyTrailer, emptyDriver } from '../../pages/compound-form/useCompoundForm';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import type { XRoadCompany } from '../../../xroad/types';
 import { CompanyPickerModal } from '../CompanyPickerModal';
@@ -171,6 +171,10 @@ interface CompoundFormEditCardProps {
   onAddTrailerControlForm?: (index: number) => void;
   onEditTrailerControlForm?: (index: number) => void;
   onRemoveTrailer?: (index: number) => void;
+  /** Meeskonnaliikme kontrollvorm on olemas (avatud vahekaart) — blokeerib meeskonnaliikme eemaldamise. */
+  teammateFormExists?: boolean;
+  onAddTeammateControlForm?: () => void;
+  onEditTeammateControlForm?: () => void;
 }
 
 export function CompoundFormEditCard({
@@ -219,6 +223,9 @@ export function CompoundFormEditCard({
   onAddTrailerControlForm,
   onEditTrailerControlForm,
   onRemoveTrailer,
+  teammateFormExists = false,
+  onAddTeammateControlForm,
+  onEditTeammateControlForm,
 }: CompoundFormEditCardProps) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
@@ -1460,8 +1467,8 @@ export function CompoundFormEditCard({
               <Card key={index} className="mb-1">
                 <Card.Content>
                   <Heading element="h3" className="mb-1">
-                    {formik.values.drivers.length > 1
-                      ? `${t('forms.compound.driver')} ${index + 1}`
+                    {index >= 1
+                      ? t('forms.compound.teammate')
                       : t('forms.compound.driver')}
                   </Heading>
                   {authority === 'TRAM' && index === 0 && (
@@ -1513,7 +1520,7 @@ export function CompoundFormEditCard({
                         formik.setFieldValue('drivers', u);
                       }}
                       required={
-                        index === 0 && !formik.values.driverNotApplicable
+                        index >= 1 || !formik.values.driverNotApplicable
                       }
                       {...((formik.touched.drivers as DriverTouched[])?.[index]
                         ?.firstName &&
@@ -1540,7 +1547,7 @@ export function CompoundFormEditCard({
                         formik.setFieldValue('drivers', u);
                       }}
                       required={
-                        index === 0 && !formik.values.driverNotApplicable
+                        index >= 1 || !formik.values.driverNotApplicable
                       }
                       {...((formik.touched.drivers as DriverTouched[])?.[index]
                         ?.lastName &&
@@ -1677,7 +1684,7 @@ export function CompoundFormEditCard({
                         }}
                         placeholder={t('common.dateFieldPlaceholder')}
                         required={
-                          index === 0 && !formik.values.driverNotApplicable
+                          index >= 1 || !formik.values.driverNotApplicable
                         }
                         inputProps={
                           (formik.touched.drivers as DriverTouched[])?.[index]
@@ -1697,9 +1704,72 @@ export function CompoundFormEditCard({
                       />
                     </div>
                   </div>
+                  {index >= 1 && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        gap: '0.5rem',
+                        marginTop: '1rem',
+                      }}
+                    >
+                      {teammateFormExists ? (
+                        <Button
+                          type="button"
+                          visualType="secondary"
+                          onClick={() => onEditTeammateControlForm?.()}
+                        >
+                          {t('forms.compound.editTeammateControlForm')}
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          visualType="secondary"
+                          onClick={() => onAddTeammateControlForm?.()}
+                        >
+                          {t('forms.compound.addTeammateControlForm')}
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        visualType="secondary"
+                        disabled={teammateFormExists}
+                        title={
+                          teammateFormExists
+                            ? t('forms.compound.removeTeammateBlocked')
+                            : undefined
+                        }
+                        onClick={() =>
+                          formik.setFieldValue(
+                            'drivers',
+                            formik.values.drivers.slice(0, 1),
+                          )
+                        }
+                      >
+                        {t('forms.compound.removeTeammate')}
+                      </Button>
+                    </div>
+                  )}
                 </Card.Content>
               </Card>
             ))}
+
+            {formik.values.drivers.length < 2 && (
+              <div className="mb-1">
+                <Button
+                  type="button"
+                  visualType="secondary"
+                  onClick={() =>
+                    formik.setFieldValue('drivers', [
+                      ...formik.values.drivers,
+                      emptyDriver(),
+                    ])
+                  }
+                >
+                  {t('forms.compound.addTeammate')}
+                </Button>
+              </div>
+            )}
 
             {/* Inspektor */}
             <Card className="mb-1">

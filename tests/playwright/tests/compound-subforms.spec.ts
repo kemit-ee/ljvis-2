@@ -92,7 +92,14 @@ test('PPA autojuhi vormil ei kuvata Transpordiameti liiniandmeid', async ({ page
 });
 
 test('autojuhi veo liik ja veoklass kanduvad meeskonna liikme vormile', async ({ page }) => {
-  await page.goto('/control-forms/compound/new?types=driver,teammate');
+  await page.goto('/control-forms/compound/new?types=driver');
+  // Meeskonnaliikme kontrollvormi saab lisada ainult üldosa meeskonnaliikme plokist
+  await page.getByRole('button', { name: 'Lisa meeskonnaliige' }).click();
+  await page.locator('#teammateFirstName').fill('Mari');
+  await page.locator('#teammateLastName').fill('Maasikas');
+  await page
+    .getByRole('button', { name: 'Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm' })
+    .click();
   await page.getByRole('tab', { name: /^Autojuhi/i }).click();
   const driverPanel = page.locator('#tab-sp-driver-panel');
   await driverPanel.locator('#transport_type_cargo').check({ force: true });
@@ -106,6 +113,7 @@ test('autojuhi veo liik ja veoklass kanduvad meeskonna liikme vormile', async ({
 
   await page.getByRole('tab', { name: /Meeskonnaliikme/i }).click();
   const teammatePanel = page.locator('#tab-sp-teammate-panel');
+  await expect(teammatePanel.locator('#teammate-person-name')).toContainText('Mari Maasikas');
   await expect(teammatePanel.locator('#teammate-transport_type_cargo')).toBeChecked();
   await expect(
     teammatePanel.locator(
@@ -152,4 +160,11 @@ test.describe('Kontrollvormi failide lugemisõigused', () => {
       expect(response.status(), path).toBe(403);
     }
   });
+});
+
+test('meeskonnaliikme vormi ei saa lisada ülemisest nupust ega töölaua valikust', async ({ page }) => {
+  await page.goto('/control-forms/compound/new?types=driver,teammate');
+  await expect(page.getByRole('tab', { name: /Meeskonnaliikme/i })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Lisa vorm' }).click().catch(() => undefined);
+  await expect(page.getByRole('menuitem', { name: /Meeskonnaliikme/i })).toHaveCount(0);
 });

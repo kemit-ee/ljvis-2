@@ -42,7 +42,7 @@ latest_cf AS (
 SELECT
   t.id,
   t.proceeding_reference_number,
-  (c.drivers -> 0 ->> 'personal_code_ee') AS driver_personal_code
+  (COALESCE(c.drivers -> 0 ->> 'personalCodeEe', c.drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
 FROM latest_ttf t
 JOIN latest_cf c ON c.compound_form_key = t.compound_form_key
 WHERE t.status = 'confirmed'
@@ -50,5 +50,5 @@ WHERE t.status = 'confirmed'
   AND t.proceeding_type IS NOT NULL AND t.proceeding_type <> 'none'
   AND btrim(coalesce(t.proceeding_reference_number, '')) <> ''
   AND t.enforcement_decision IS NULL
-  AND btrim(coalesce(c.drivers -> 0 ->> 'personal_code_ee', '')) <> ''
+  AND btrim(coalesce(COALESCE(c.drivers -> 0 ->> 'personalCodeEe', c.drivers -> 0 ->> 'personal_code_ee'), '')) <> ''
   AND t.created_at >= now() - INTERVAL '365 days';

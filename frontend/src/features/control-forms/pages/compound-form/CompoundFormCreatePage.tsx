@@ -24,7 +24,7 @@ import {
   Dropdown,
   StatusIndicator,
 } from '@tedi-design-system/react/tedi';
-import { useCompoundForm, emptyTrailer } from './useCompoundForm';
+import { useCompoundForm, emptyTrailer, emptyDriver } from './useCompoundForm';
 import { vehicleCategoryColWidth } from '../../components/CompoundForm/vehicleCategoryLayout';
 import type {
   Trailer,
@@ -124,9 +124,9 @@ export function CompoundFormCreatePage() {
     ROUTE_TO_TAB[`/sp-${t}`] ? `/sp-${t}` : ROUTE_TO_TAB[`/${t}`] ? `/${t}` : null;
 
   const initialTabRoutes = types
-    ? types.split(',').map((t) => t.trim()).filter(Boolean).map(routeForType).filter((r): r is string => r !== null)
+    ? types.split(',').map((t) => t.trim()).filter(Boolean).map(routeForType).filter((r): r is string => r !== null && r !== '/sp-teammate')
     : type
-      ? [routeForType(type)].filter((r): r is string => r !== null)
+      ? [routeForType(type)].filter((r): r is string => r !== null && r !== '/sp-teammate')
       : [];
   const initialTabs = Array.from(new Set(initialTabRoutes.map((r) => ROUTE_TO_TAB[r].tabId)));
 
@@ -162,6 +162,26 @@ export function CompoundFormCreatePage() {
       });
     }
     setActiveTab('tab-1');
+  };
+
+  const teammateTabId = ROUTE_TO_TAB['/sp-teammate'].tabId;
+  const teammateTabOpen = openTabs.includes(teammateTabId);
+
+  // Meeskonnaliikme kontrollvorm lisatakse menüüsse (nagu haagise oma), ametnik jätkab üldosa täitmist.
+  const addTeammateControlForm = () => {
+    if (!formRefs.current[teammateTabId]) {
+      formRefs.current[teammateTabId] = { current: null };
+    }
+    if (!openTabs.includes(teammateTabId)) {
+      setOpenTabs((prev) => [...prev, teammateTabId]);
+      setTabErrors((prev) => ({ ...prev, [teammateTabId]: false }));
+    }
+  };
+
+  const editTeammateControlForm = () => {
+    if (!openTabs.includes(teammateTabId)) return;
+    handleTabChange(teammateTabId);
+    window.scrollTo(0, 0);
   };
 
   const addTrailerControlForm = (index: number, regNr: string) => {
@@ -446,6 +466,21 @@ export function CompoundFormCreatePage() {
       }
     });
   }, [formik.values.trailers]);
+
+  // Sync team member name from the general part into the team member sub-form tab (read-only there)
+  useEffect(() => {
+    const person = formik.values.drivers[1];
+    if (!person || !openTabs.includes(teammateTabId)) return;
+    const personValues = {
+      personCodeEe: person.personalCodeEe ?? '',
+      personFirstName: person.firstName ?? '',
+      personLastName: person.lastName ?? '',
+      personCitizenshipCode: person.citizenshipCode ?? '',
+      personCodeForeign: person.personalCodeForeign ?? '',
+      personBirthDate: person.birthDate ?? '',
+    };
+    formRefs.current[teammateTabId]?.current?.setFormData?.(personValues);
+  }, [formik.values.drivers, openTabs]);
 
   // Trigger validation for compound form on mount and value changes
   useEffect(() => {
@@ -2091,48 +2126,154 @@ export function CompoundFormCreatePage() {
                 </Col>
               </Row>
 
-              {/* Plokk: Teise juhi / meeskonna liikme andmed */}
-              {/*
-              {false && (
+
+              {formik.values.drivers.length < 2 && (
                 <Row className="m-0">
                   <Col className="p-0">
-                    <Card className="mb-1">
-                      <Card.Content>
-                        <Heading element="h3" className="mb-1">
-                          {t('forms.compound.driver2')}
-                        </Heading>
-                        <div
-                          className={gridClass}
-                          style={{ alignItems: 'start' }}
+                    <div className="mb-1">
+                      <Button
+                        type="button"
+                        visualType="secondary"
+                        onClick={() =>
+                          formik.setFieldValue('drivers', [
+                            ...formik.values.drivers,
+                            emptyDriver(),
+                          ])
+                        }
+                      >
+                        {t('forms.compound.addTeammate')}
+                      </Button>
+                    </div>
+                  </Col>
+                </Row>
+              )}
+
+              {formik.values.drivers.length > 1 && (
+                <>
+              {/* Plokk: Meeskonnaliikme andmed */}
+              <Row className="m-0">
+                <Col className="p-0">
+                  <Card className="mb-1">
+                    <Card.Content>
+                      <Heading element="h3" className="mb-1">
+                        {t('forms.compound.teammate')}
+                      </Heading>
+                      {driverSearchError === 1 && (
+                        <Alert
+                          type="danger"
+                          size="small"
+                          className="mb-1"
+                          onClose={() => setDriverSearchError(null)}
                         >
+                          {t('forms.compound.driverPersonSearchError')}
+                        </Alert>
+                      )}
+                      {driverSearchNotFound === 1 && (
+                        <Alert
+                          type="warning"
+                          size="small"
+                          className="mb-1"
+                          onClose={() => setDriverSearchNotFound(null)}
+                        >
+                          {t('common.noResults')}
+                        </Alert>
+                      )}
+                      <div
+                        className={gridClass}
+                        style={{ alignItems: 'start' }}
+                      >
+                        <TextField
+                          id="teammateFirstName"
+                          label={t('forms.compound.driverFirstName')}
+                          value={formik.values.drivers[1]?.firstName ?? ''}
+                          input={{ maxLength: 100 }}
+                          onChange={(v) => {
+                            const u = [...formik.values.drivers];
+                            u[1] = { ...u[1], firstName: v };
+                            formik.setFieldValue('drivers', u);
+                          }}
+                          required
+                          {...((formik.touched.drivers as DriverTouched)?.[1]
+                            ?.firstName &&
+                          (formik.errors.drivers as DriverErrors)?.[1]
+                            ?.firstName
+                            ? {
+                                helper: {
+                                  text: (
+                                    formik.errors.drivers as DriverErrors
+                                  )[1]?.firstName,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : {})}
+                        />
+                        <TextField
+                          id="teammateLastName"
+                          label={t('forms.compound.driverLastName')}
+                          value={formik.values.drivers[1]?.lastName ?? ''}
+                          input={{ maxLength: 100 }}
+                          onChange={(v) => {
+                            const u = [...formik.values.drivers];
+                            u[1] = { ...u[1], lastName: v };
+                            formik.setFieldValue('drivers', u);
+                          }}
+                          required
+                          {...((formik.touched.drivers as DriverTouched)?.[1]
+                            ?.lastName &&
+                          (formik.errors.drivers as DriverErrors)?.[1]?.lastName
+                            ? {
+                                helper: {
+                                  text: (
+                                    formik.errors.drivers as DriverErrors
+                                  )[1]?.lastName,
+                                  type: 'error' as const,
+                                },
+                              }
+                            : {})}
+                        />
+
+                        <div className="select-row">
+                          <div className="select-wrapper">
+                            <TextField
+                              id="teammatePersonalCodeEe"
+                              label={t('forms.compound.driverPersonalCodeEe')}
+                              value={
+                                formik.values.drivers[1]?.personalCodeEe ?? ''
+                              }
+                              input={{ maxLength: 11 }}
+                              onChange={(v) => {
+                                const u = [...formik.values.drivers];
+                                u[1] = {
+                                  ...u[1],
+                                  personalCodeEe: v,
+                                };
+                                formik.setFieldValue('drivers', u);
+                              }}
+                              {...((formik.errors.drivers as DriverErrors)?.[1]
+                                ?.personalCodeEe
+                                ? {
+                                    helper: {
+                                      text: (
+                                        formik.errors.drivers as DriverErrors
+                                      )[1]?.personalCodeEe,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : {})}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            disabled={driverSearchLoading === 1}
+                            onClick={() => handleDriverPersonSearch(1)}
+                          >
+                            {t('forms.compound.driverPersonSearchButton')}
+                          </Button>
+                        </div>
+                        {isDesktop && <div></div>}
+                        <div className={styles['select-wrapper']}>
                           <TextField
-                            id="driver2FirstName"
-                            label={t('forms.compound.driverFirstName')}
-                            value={formik.values.drivers[1]?.firstName ?? ''}
-                            input={{ maxLength: 100 }}
-                            onChange={(v) => {
-                              const u = [...formik.values.drivers];
-                              u[1] = {
-                                ...emptyDriver(),
-                                ...u[1],
-                                firstName: v,
-                              };
-                              formik.setFieldValue('drivers', u);
-                            }}
-                          />
-                          <TextField
-                            id="driver2LastName"
-                            label={t('forms.compound.driverLastName')}
-                            value={formik.values.drivers[1]?.lastName ?? ''}
-                            input={{ maxLength: 100 }}
-                            onChange={(v) => {
-                              const u = [...formik.values.drivers];
-                              u[1] = { ...emptyDriver(), ...u[1], lastName: v };
-                              formik.setFieldValue('drivers', u);
-                            }}
-                          />
-                          <TextField
-                            id="driver2PersonalCodeForeign"
+                            id="teammatePersonalCodeForeign"
                             label={t(
                               'forms.compound.driverPersonalCodeForeign',
                             )}
@@ -2143,119 +2284,142 @@ export function CompoundFormCreatePage() {
                             input={{ maxLength: 50 }}
                             onChange={(v) => {
                               const u = [...formik.values.drivers];
-                              u[1] = {
-                                ...emptyDriver(),
-                                ...u[1],
-                                personalCodeForeign: v,
-                              };
+                              u[1] = { ...u[1], personalCodeForeign: v };
                               formik.setFieldValue('drivers', u);
                             }}
-                          />
-                          <TextField
-                            id="personalCodeEe"
-                            label={t('forms.compound.driverPersonalCodeEe')}
-                            value={
-                              formik.values.drivers[1]?.personalCodeEe ?? ''
-                            }
-                            input={{ maxLength: 11 }}
-                            onChange={(v) => {
-                              const u = [...formik.values.drivers];
-                              u[1] = {
-                                ...emptyDriver(),
-                                ...u[1],
-                                personalCodeEe: v,
-                              };
-                              formik.setFieldValue('drivers', u);
-                            }}
-                            {...((formik.errors.drivers as DriverErrors)?.[1]
-                              ?.personalCodeEe
+                            {...((formik.touched.drivers as DriverTouched)?.[1]
+                              ?.personalCodeForeign &&
+                            (formik.errors.drivers as DriverErrors)?.[1]
+                              ?.personalCodeForeign
                               ? {
                                   helper: {
-                                    text: (formik.errors.drivers as DriverErrors)[1]
-                                      .personalCodeEe,
+                                    text: (
+                                      formik.errors.drivers as DriverErrors
+                                    )?.[1]?.personalCodeForeign,
                                     type: 'error' as const,
                                   },
                                 }
                               : {})}
                           />
-                          <Select
-                            id="driver2CitizenshipCode"
-                            label={t('forms.compound.driverCitizenshipCode')}
-                            options={countries}
-                            value={
-                              countries.find(
-                                (o) =>
-                                  o.value ===
-                                  formik.values.drivers[1]?.citizenshipCode,
-                              ) ?? null
+                        </div>
+                        <Select
+                          id="teammateCitizenshipCode"
+                          label={t('forms.compound.driverCitizenshipCode')}
+                          options={countries}
+                          value={
+                            countries.find(
+                              (o) =>
+                                o.value ===
+                                formik.values.drivers[1]?.citizenshipCode,
+                            ) ?? null
+                          }
+                          onChange={(val) => {
+                            const u = [...formik.values.drivers];
+                            u[1] = {
+                              ...u[1],
+                              citizenshipCode:
+                                val && !Array.isArray(val)
+                                  ? (val as { value: string }).value
+                                  : '',
+                            };
+                            formik.setFieldValue('drivers', u);
+                          }}
+                        />
+                        <div
+                          className={
+                            styles[
+                              isDesktop
+                                ? 'date-row-desktop-50'
+                                : 'date-row-mobile'
+                            ]
+                          }
+                        >
+                          <MaskedDateField
+                            id="teammateBirthDate"
+                            label={t('forms.compound.driverBirthDate')}
+                            monthYearSelectType="grid"
+                            disableFuture
+                            selected={
+                              formik.values.drivers[1]?.birthDate
+                                ? new Date(formik.values.drivers[1].birthDate)
+                                : undefined
                             }
-                            onChange={(val) => {
+                            onSelect={(v) => {
                               const u = [...formik.values.drivers];
-                              u[1] = {
-                                ...emptyDriver(),
-                                ...u[1],
-                                citizenshipCode:
-                                  val && !Array.isArray(val)
-                                    ? (val as { value: string }).value
-                                    : '',
-                              };
+                              u[1] = { ...u[1], birthDate: toIsoDate(v) };
                               formik.setFieldValue('drivers', u);
                             }}
-                          />
-                          <div
-                            className={
-                              styles[
-                                isDesktop
-                                  ? 'date-row-desktop-50'
-                                  : 'date-row-mobile'
-                              ]
+                            placeholder={t('common.dateFieldPlaceholder')}
+                            required
+                            inputProps={
+                              (formik.touched.drivers as DriverTouched)?.[1]
+                                ?.birthDate &&
+                              (formik.errors.drivers as DriverErrors)?.[1]
+                                ?.birthDate
+                                ? {
+                                    helper: {
+                                      text: (
+                                        formik.errors.drivers as DriverErrors
+                                      )?.[1]?.birthDate,
+                                      type: 'error' as const,
+                                    },
+                                  }
+                                : undefined
                             }
-                          >
-                            <MaskedDateField
-                              id="driver2BirthDate"
-                              label={t('forms.compound.driverBirthDate')}
-                              monthYearSelectType="grid"
-                              disableFuture
-                              selected={
-                                formik.values.drivers[1]?.birthDate
-                                  ? new Date(formik.values.drivers[1].birthDate)
-                                  : undefined
-                              }
-                              onSelect={(v) => {
-                                const u = [...formik.values.drivers];
-                                u[1] = {
-                                  ...emptyDriver(),
-                                  ...u[1],
-                                  birthDate: toIsoDate(v),
-                                };
-                                formik.setFieldValue('drivers', u);
-                              }}
-                              placeholder={t('common.dateFieldPlaceholder')}
-                              required
-                              inputProps={
-                                (formik.touched.drivers as DriverTouched)?.[1]
-                                  ?.birthDate &&
-                                (formik.errors.drivers as DriverErrors)?.[1]
-                                  ?.birthDate
-                                  ? {
-                                      helper: {
-                                        text: (
-                                          formik.errors.drivers as DriverErrors
-                                        )?.[1]?.birthDate,
-                                        type: 'error' as const,
-                                      },
-                                    }
-                                  : undefined
-                              }
-                            />
-                          </div>
+                          />
                         </div>
-                      </Card.Content>
-                    </Card>
-                  </Col>
-                </Row>
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          gap: '0.5rem',
+                          marginTop: '1rem',
+                        }}
+                      >
+                        {teammateTabOpen ? (
+                          <Button
+                            type="button"
+                            visualType="secondary"
+                            onClick={editTeammateControlForm}
+                          >
+                            {t('forms.compound.editTeammateControlForm')}
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            visualType="secondary"
+                            onClick={addTeammateControlForm}
+                          >
+                            {t('forms.compound.addTeammateControlForm')}
+                          </Button>
+                        )}
+                        <Button
+                          type="button"
+                          visualType="secondary"
+                          disabled={teammateTabOpen}
+                          title={
+                            teammateTabOpen
+                              ? t('forms.compound.removeTeammateBlocked')
+                              : undefined
+                          }
+                          onClick={() => {
+                            formik.setFieldValue(
+                              'drivers',
+                              formik.values.drivers.slice(0, 1),
+                            );
+                          }}
+                        >
+                          {t('forms.compound.removeTeammate')}
+                        </Button>
+                      </div>
+                    </Card.Content>
+                  </Card>
+                </Col>
+              </Row>
+                </>
               )}
-              */}
 
               {/* Plokk: Sõidukit kontrollinud ametiisiku andmed */}
               <Row className="m-0">
@@ -2413,7 +2577,6 @@ export function CompoundFormCreatePage() {
                 onValuesChange={(values) => {
                   savedFormData.current[tabId] = values;
                   if (tabType === 'driver' && values.transportType) {
-                    const teammateTabId = ROUTE_TO_TAB['/sp-teammate'].tabId;
                     const sharedValues = {
                       transportType: values.transportType,
                       transportEmptyRun: values.transportEmptyRun,
