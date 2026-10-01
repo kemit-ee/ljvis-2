@@ -25,6 +25,8 @@
 --   6.1.8  Mootori kinnitused                     -> OV,EOV
 --   6.1.9  Mootor                                 -> OV
 --   6.2.1  Kabiin, kere ja pealisehitus — seisund -> OV,EOV
+--   6.2.5  Juhiiste                               -> VO,OV,EOV
+--   6.2.6  Muud istmed                            -> VO,OV,EOV
 -- Lisa 2-s punkti 2.4 pole. Migratsioon 20261120100000 nihutas koodid (CAA_2.4 -> CAA_2.5,
 -- CAA_2.5 -> CAA_2.6), kuid jättis nimedesse vanad numbrid ("2.4 Haagise...", "2.5 Elektrooniline...");
 -- siin parandatakse ka nimed.
@@ -149,4 +151,14 @@ WHERE code = 'CAA_6.1.9'
 UPDATE classifier.classifier_value
 SET description = 'OV,EOV'
 WHERE code = 'CAA_6.2.1'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO,OV,EOV'
+WHERE code = 'CAA_6.2.5'
+  AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
+
+UPDATE classifier.classifier_value
+SET description = 'VO,OV,EOV'
+WHERE code = 'CAA_6.2.6'
   AND classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'TECHNICAL_CHECK');
