@@ -169,3 +169,60 @@ function cssEscape(id: string): string {
   // id-d nagu "driverFirstName_0" on ohutud; kaitse igaks juhuks.
   return id.replace(/([^\w-])/g, '\\$1');
 }
+
+/**
+ * TEDI `Search` + serveripoolne tabel: ootab, kuni tabeli esmane laadimine on
+ * lõppenud ("Tabel laeb" kadunud), sisestab päringu, vajutab Enter ja ootab
+ * otsingupäringu vastuse ära. Ilma esmast laadimist ootamata võib hilinev
+ * algvastus filtreeritud tulemuse üle kirjutada.
+ */
+export async function searchTable(
+  page: Page,
+  searchId: string,
+  tableId: string,
+  query: string,
+): Promise<void> {
+  await expect(page.locator(`#${cssEscape(tableId)}`).getByText('Tabel laeb')).toHaveCount(0, {
+    timeout: 20_000,
+  });
+  const input = page.locator(`#${cssEscape(searchId)}`);
+  await input.fill(query);
+  const decoded = (url: string) => {
+    try {
+      return decodeURIComponent(url.replace(/\+/g, ' '));
+    } catch {
+      return url;
+    }
+  };
+  const response = page.waitForResponse(
+    (r) => decoded(r.url()).includes(`=${query}`) || (r.request().postData() ?? '').includes(query),
+    { timeout: 20_000 },
+  );
+  await input.press('Enter');
+  await response;
+  await expect(page.locator(`#${cssEscape(tableId)}`).getByText('Tabel laeb')).toHaveCount(0);
+}
+
+/**
+ * Filtriga loendilehed (riskitasemed, saadetud kirjad, vormiotsing): ootab
+ * tabeli esmase laadimise ära, teeb tegevuse (nt "Otsi"/"Tühjenda" klõps) ja
+ * ootab vastava loendipäringu vastuse (`urlPart`), et kontrollid ei jookseks
+ * vana tulemuse peal.
+ */
+export async function applyAndWait(
+  page: Page,
+  tableId: string,
+  urlPart: string,
+  action: () => Promise<void>,
+): Promise<void> {
+  await expect(page.locator(`#${cssEscape(tableId)}`).getByText('Tabel laeb')).toHaveCount(0, {
+    timeout: 20_000,
+  });
+  const response = page.waitForResponse(
+    (r) => r.request().method() === 'GET' && r.url().includes(urlPart),
+    { timeout: 20_000 },
+  );
+  await action();
+  await response;
+  await expect(page.locator(`#${cssEscape(tableId)}`).getByText('Tabel laeb')).toHaveCount(0);
+}

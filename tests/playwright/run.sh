@@ -37,6 +37,22 @@ wait_for tim        http://localhost:9085/health
 
 echo "==> Lisan klassifikaatorite seemned…"
 export PGPASSWORD=01234
+# Kui hostis psql-i pole, käivita see andmebaasikonteineris — muidu jääksid
+# seemned vaikselt rakendamata ja seemnest sõltuvad testid kukuksid.
+if ! command -v psql >/dev/null 2>&1; then
+  psql() {
+    local file=""
+    local args=()
+    while [ $# -gt 0 ]; do
+      case "$1" in
+        -f) file="$2"; shift 2 ;;
+        -h|-p) shift 2 ;;
+        *) args+=("$1"); shift ;;
+      esac
+    done
+    $COMPOSE exec -T database psql "${args[@]}" < "$file"
+  }
+fi
 # NB: seed_extra.sql SIHILIKULT välja jäetud — see teeb Super Admin grupile
 # uue permissions-snapshot'i, kus PUUDUVAD tram_driver_form.* ja ERRU õigused,
 # ning tõstab kasutaja KLIM-i alla → TRAM/ERRU lehed muutuksid keelatuks.

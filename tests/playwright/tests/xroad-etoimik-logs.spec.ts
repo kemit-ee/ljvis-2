@@ -106,13 +106,72 @@ test.describe('E-toimiku X-tee logid', () => {
     );
   });
 
+  test('kuupäevafilter: 10 päeva tagune vahemik näitab ainult vanemat kirjet', async ({ page }) => {
+    await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('5 tulemust')).toBeVisible({ timeout: 20_000 });
+
+    const elevenDaysAgo = new Date();
+    elevenDaysAgo.setDate(elevenDaysAgo.getDate() - 11);
+    const nineDaysAgo = new Date();
+    nineDaysAgo.setDate(nineDaysAgo.getDate() - 9);
+
+    await test.step('sea vahemik 11…9 päeva tagasi ja otsi', async () => {
+      for (const [id, date] of [
+        ['xroad-log-filter-date-from', elevenDaysAgo],
+        ['xroad-log-filter-date-to', nineDaysAgo],
+      ] as const) {
+        const input = page.locator(`#${id}`);
+        await input.click();
+        await input.fill('');
+        await input.pressSequentially(formatEtDate(date), { delay: 15 });
+        await input.press('Tab');
+      }
+      await page.getByRole('button', { name: 'Otsi' }).click();
+    });
+    await test.step('tulemuseks on ainult VT-006', async () => {
+      await expect(page.getByText('1 tulemus', { exact: false })).toBeVisible();
+      await page.getByRole('button', { name: 'Vaata päringut' }).first().click();
+      await expect(page.getByText('2026-VT-006')).toBeVisible();
+      await page.getByRole('button', { name: 'Sulge' }).first().click();
+    });
+  });
+
+  test('vaate lüliti "kõiki" näitab ka teiste X-tee teenuste päringuid (RR)', async ({ page }) => {
+    await test.step('tee rahvastikuregistri päring (kirjutab X-tee integratsioonilogi)', async () => {
+      const res = await page.request.post('/api/v1/xroad/rr/isikud', {
+        data: { personalCode: '39001010001' },
+      });
+      // Tulemus sõltub X-tee keskkonnast (CI-s mock/viga); logikirje tekib mõlemal juhul.
+      expect(res.status()).toBeLessThan(500);
+    });
+
+    await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('5 tulemust')).toBeVisible({ timeout: 20_000 });
+
+    await test.step('vaikimisi e-toimiku vaade: "Teenus" veergu pole', async () => {
+      await expect(page.getByText(/Näidatakse/)).toBeVisible();
+      await expect(page.getByRole('columnheader', { name: 'Teenus' })).toHaveCount(0);
+    });
+    await test.step('lülita "kõiki" — lisandub "Teenus" veerg ja RR päring', async () => {
+      await page.getByRole('button', { name: 'e-toimiku' }).click();
+      await expect(page.getByRole('button', { name: 'kõiki' })).toBeVisible();
+      await expect(page.getByRole('columnheader', { name: 'Teenus' })).toBeVisible();
+      await expect(page.locator('#xroad-log-table').getByText('rr.dde.v1').first()).toBeVisible();
+    });
+    await test.step('tagasi e-toimiku vaatesse', async () => {
+      await page.getByRole('button', { name: 'kõiki' }).click();
+      await expect(page.getByText('5 tulemust')).toBeVisible();
+      await expect(page.getByRole('columnheader', { name: 'Teenus' })).toHaveCount(0);
+    });
+  });
+
   test('õigusteta kasutaja ei näe menüükirjet ega pääse otse lehele', async ({ browser }) => {
     const ctx = await browser.newContext({ storageState: STORAGE_STATE.officer });
     const page = await ctx.newPage();
 
     await page.goto('/');
     await page.waitForLoadState('networkidle').catch(() => {});
-    await expect(page.getByRole('link', { name: /E-toimiku X-tee logid/i })).toHaveCount(0);
+    await expect(page.getByRole('menuitem', { name: /E-toimiku X-tee logid/i })).toHaveCount(0);
 
     await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
     await expect(page.getByText(/puudub ligipääs/i)).toBeVisible({ timeout: 20_000 });

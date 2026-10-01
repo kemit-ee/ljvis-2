@@ -91,3 +91,7 @@ setup('autendi ainult koondvormi õigusega kasutaja', async () => {
 setup('autendi ilma koondvormi õiguseta ametnik', async () => {
   await loginAs(TEST_USERS.nocompound, STORAGE_STATE.nocompound);
 });
+
+setup('autendi lokaalne kontohaldur (Org Admin, JUM)', async () => {
+  await loginAs(TEST_USERS.orgadmin, STORAGE_STATE.orgadmin);
+});
