@@ -15,6 +15,7 @@ export const fromClassifierValueData = (
   validFrom: data.validFrom,
   validUntil: data.validUntil,
   isValid: data.isValid ?? true,
+  formTypes: data.formTypes ?? [],
 });
 
 export const fromClassifierBundleValue = (
@@ -29,4 +30,5 @@ export const fromClassifierBundleValue = (
   validFrom: data.validFrom,
   validUntil: data.validUntil,
   isValid: data.isValid,
+  formTypes: [],
 });

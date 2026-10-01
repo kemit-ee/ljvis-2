@@ -5,6 +5,131 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-011 — Klassifikaatori väärtuste nähtavus vormide kaupa: valikuline piirangunimekiri
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 01.10.2026
+**Seotud:** `classifier.classifier_value` (INSERT-only snapshot), `FORM_TYPE` klassifikaator,
+`ClassifierProvider.tsx`, teostusplaan
+[`klassifikaatori-vormipiirang-teostusplaan.md`](klassifikaatori-vormipiirang-teostusplaan.md)
+
+### Kontekst
+
+Mitut klassifikaatorit kasutab mitu vormi korraga. Näiteks CARGO_CABOTAGE_VIOLATION,
+MASS_DIMENSION ja TACHOGRAPH_TYPES on kasutusel nii PPA sõidu- ja puhkeaja vormil kui
+ka TRAM kontrollkaardil, STRUCTURE_UNIT on kasutusel koondvormil, TRAM-il ja VR-vormil.
+Osa väärtustest peab olema nähtav ainult ühel vormil (näiteks TI vormil, aga mitte PPA
+vormil) ja osa vastupidi.
+
+Praegu ei ole klassifikaatori väärtusel seost vormi ega asutusega. `ClassifierProvider`
+laeb kõik väärtused korraga ja `getByCode()` filtreerib neid ainult klassifikaatori koodi
+järgi. Kaks kohta kasutavad ajutist lahendust, kus vabatekstiline `description` toimib
+sildina:
+
+- STRUCTURE_UNIT: `description = <organisatsiooni kood>`;
+- FORM_TYPE: `description = DASHBOARD_MANUAL_ADD | DASHBOARD_EXCLUDED`.
+
+`update_classifier_value.sql` ei kanna uude snapshot'i üle `description`-it ega
+`parent_key`-d. Seetõttu kaob silt (ja hierarhia) iga kord, kui väärtust admin-UI-s
+muudetakse.
+
+### Valikud
+
+1. **Silt `description` väljal (laiendada praegust lahendust).** Skeemi pole vaja muuta,
+   aga väli on üks string, see on vabatekst, seda ei saa admin-UI-s muuta ja see kaob
+   muutmisel (vt viga eespool). Mitut vormi ei saa usaldusväärselt kodeerida.
+2. **`form_types TEXT[]` veerg `classifier_value` tabelis.** Andmed on ühes kohas, aga
+   igas snapshot'i kirjutavas päringus tuleb massiiv uude ritta kopeerida. Just selline
+   kopeerimine on `update_classifier_value.sql`-is praegu katki.
+3. **Eraldi klassifikaatorid vormi kaupa** (näiteks `TI_X` ja `PPA_X`). Andmed
+   dubleeruvad, ühise väärtuse muutmine tuleb teha mitmes kohas ning aruandlus ja
+   Tableau peavad need uuesti kokku viima.
+4. **Eraldi seosetabel `classifier.classifier_value_form_scope`** (väärtuse püsiv võti ja
+   `FORM_TYPE` kood). Mitu vormi väärtuse kohta, ei sõltu snapshot'ist, admin-UI-s saab
+   muuta.
+5. **Piiramine asutuse järgi** (`users.organisation`). Üks asutus täidab mitut vormi ja
+   PPA ning TRAM kasutavad samu SP-vorme, seega asutus on liiga jäme ühik.
+
+### Otsus
+
+**Valik 4: valikuline piirangunimekiri vormitüübi järgi.**
+
+- **Uus INSERT-only tabel** `classifier.classifier_value_form_scope (id, classifier_value_key,
+  form_type_code, is_active, created_at, created_by)`. See järgib sama mustrit nagu
+  `classifier_value` ja `users.user_group`: ridu ei uuendata ega kustutata. Iga
+  (väärtus, vorm) paari kehtiv seis on viimane rida (`DISTINCT ON (classifier_value_key,
+  form_type_code) ORDER BY created_at DESC, id DESC`). Linnukese eemaldamine lisab rea
+  `is_active = FALSE` ja Resql käsitleb seda paari nagu rida puuduks. Seos tehakse
+  **püsiva võtmega** `classifier_value_key`, mitte snapshot'i `id`-ga. Nii ei mõjuta
+  väärtuse nime või kehtivuse muutmine piirangut.
+- **Vormi tunnus on `FORM_TYPE` klassifikaatori kood** (`TI_KONTROLLKAART`,
+  `SP_DRIVER_FORM`, `TRAM_KONTROLLKAART` jne), sama mis `formRoutes.ts` →
+  `classifierCode`. Uut enum'it ega loendit ei looda.
+- **Semantika on: ridu pole, järelikult lubatud kõigile.**
+  - Kui väärtusel ridu pole, on see nähtav igal vormil. Kõik olemasolevad andmed
+    käituvad edasi täpselt nagu praegu ja migratsioon andmeid ei muuda.
+  - Kui väärtusel on vähemalt üks rida, on see nähtav ainult loetletud vormidel.
+  - Pärilust ei ole: `SP_COMPOUND` valimine ei hõlma automaatselt alamvorme. Seda
+    leevendab admin-UI grupivalik (vt allpool).
+- **Admin-UI-s on mitmikvalik „Piira vormidele"** (TEDI `Select multiple`, valikud on
+  rühmitatud FORM_TYPE hierarhia järgi ja rühma saab valida korraga). Tühi valik
+  tähendab „kõik vormid". Seda näitab abitekst, et tühja välja ei tõlgendataks kui
+  „mitte ükski".
+- **Muutmisel lisatakse ainult erinevused** (Resql `set_classifier_value_form_scope`,
+  üks CTE). Uus vorm saab rea `is_active = TRUE`, eemaldatud vorm rea `is_active = FALSE`.
+  Muutmata vormidele ridu ei lisata, seega sama nimekirja korduv salvestamine ei kirjuta
+  midagi. Tabel ise on täielik ajalugu (kes, millal, mis vormi lisas või eemaldas).
+  Auditilogi kirjes on lisaks vana ja uus nimekiri. `UPDATE`/`DELETE` on keelatud
+  kokkuleppe korras, nagu `xroad.aj_usage_log` puhul (ADR-005). Triggerit andmebaasis ei
+  ole.
+- **Frontend filtreerib ainult muutmisrežiimis ja ainult valikuid, mitte silte.**
+  - `ClassifierScopeProvider formType="…"` piirab sees olevate komponentide
+    `getByCode()`, `getChildren()` ja `values` vormile lubatud väärtustega.
+    `getValue()` / `label()` jäävad filtreerimata.
+  - Filter kehtib **ainult muutmisrežiimis**. Vaaterežiimis ehitavad vormid silte
+    samadest nimekirjadest, seega varem salvestatud ja hiljem piiratud väärtus
+    kuvatakse vaates edasi. See on sama põhimõte nagu aegunud väärtuste
+    `isValid !== false` filtril (`!canEdit || …`). Muutmisrežiimis on piiratud väärtus
+    valikutest kadunud, aga juba salvestatud väärtus jääb vormi andmetesse alles.
+  - **Üksikvormid** (VR, TI, hea maine, TRAM, koondvormi üldandmed): provider on
+    marsruudi tasemel (`App.tsx`). Leht teatab oma muutmisrežiimist
+    `useClassifierScopeActive(isEditActive)`-ga, loomislehed `true`-ga. Vaikimisi
+    filtrit pole: kui kutse puudub, ei kao ühtegi silti, ainult piirang ei rakendu.
+  - **Koondvormi alamvormid** (autojuht, meeskonnaliige, tehnokaardid, ADR,
+    autoveo katkestamine): igal muutmiskomponendil (`…CreatePage`) on oma skoop,
+    mis on alati sees (`active`). Pesastatud skoop arvutatakse alati
+    filtreerimata nimekirjast, mitte koondvormi skoobist. TRAM kaardi sees olev
+    autojuhi alamvorm kasutab koodi `TRAM_KONTROLLKAART`. Alamvormide
+    vaatekaardid (`…ViewCard`) on alati kirjutuskaitstud ja jäävad skoobita.
+- **Serveripoolset valideerimist esimeses etapis ei tehta.** Piirang on kasutusmugavuse
+  meede, mitte turvapiir: klassifikaatorid on niikuinii avalikud loendid. Vajaduse
+  korral lisatakse see hiljem `save.yml` voogudesse.
+- **Kaasparandus:** `update_classifier_value.sql` kannab edaspidi uude snapshot'i üle ka
+  `parent_key` ja `description`.
+
+### Põhjendus
+
+Valge nimekirja ja tühja vaikeväärtuse kombinatsioon on loogiliselt lihtsaim. See ei
+nõua olemasolevate andmete migreerimist ja admin-kasutajale on mõistetav: „kui midagi
+pole piiratud, on kõik lubatud". Eraldi seosetabel hoiab piirangu klassifikaatori
+snapshot-mudelist lahus, nii et tulevased väärtuse muutmise päringud ei saa seda
+kogemata kustutada. FORM_TYPE koodide kasutamine seob piirangu samade koodidega, mida
+töölaud ja `formRoutes.ts` juba kasutavad.
+
+### Tagajärjed
+
+- Vormil, millel puudub FORM_TYPE kood (ERRU vormid: CTUD, CGR, RSI, NCR, NU), ei saa
+  esialgu piiranguid kasutada. Need vormid näevad edasi kõiki väärtusi. Kui vajadus
+  tekib, lisatakse neile FORM_TYPE väärtused.
+- Kui FORM_TYPE väärtus kustutatakse või aegub, jäävad seosetabelisse orvuks jäänud
+  read. Need ei tee midagi halba (sellist vormi pole), kuid admin-UI näitab neid
+  hoiatusega.
+- STRUCTURE_UNIT-i `description` silt (organisatsioonipõhine filter) jääb esialgu alles.
+  Selle üleviimine eraldi organisatsioonipiirangule on eraldi otsus.
+
+---
+
+
 ## ADR-010 — Kustutatud kontrollvormide arhiiv: eraldi andmebaas, suhtlus ainult Ruuteri + resql kaudu
 
 **Otsustaja:** Sten Viljus

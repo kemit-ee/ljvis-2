@@ -17,6 +17,9 @@ declaration:
         type: string
       - field: validUntil
         type: string
+      - field: formTypes
+        type: array
+        description: "ADR-011: FORM_TYPE koodid, millele väärtus piiratakse; [] = kõik vormid; puudumisel piirangut ei muudeta"
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -32,6 +35,8 @@ extractRequestData:
     name: "${incoming.body.name}"
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
+    form_types_provided: ${incoming.body.formTypes != null}
+    form_type_codes: "${(incoming.body.formTypes ?? []).join(',')}"
     created_by: "${auth_user.personalcode || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
@@ -63,6 +68,23 @@ calculateChangedFields:
     valid_from: ${valid_from}
     valid_until: ${valid_until}
   result: changedFieldsResult
+  next: getOldFormScope
+
+# ADR-011: vana vormipiirang auditikirje jaoks (get_classifier_value tagastab formTypes sorteeritult)
+getOldFormScope:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
+    headers:
+      type: json
+    body:
+      classifier_value_id: ${classifier_value_id}
+  result: oldValueRes
+  next: setOldFormScope
+
+setOldFormScope:
+  assign:
+    old_form_type_codes: "${(oldValueRes.response.body[0].formTypes ?? []).join(',')}"
   next: updateClassifierValue
 
 updateClassifierValue:
@@ -78,6 +100,30 @@ updateClassifierValue:
       valid_until: ${valid_until}
       created_by: ${created_by}
   result: updatedRes
+  next: checkFormScopeProvided
+
+checkFormScopeProvided:
+  switch:
+    - condition: ${form_types_provided}
+      next: setFormScope
+  next: keepFormScope
+
+keepFormScope:
+  assign:
+    form_type_codes: ${old_form_type_codes}
+  next: buildAuditEvent
+
+setFormScope:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/set_classifier_value_form_scope"
+    headers:
+      type: json
+    body:
+      classifier_value_id: ${classifier_value_id}
+      form_type_codes: ${form_type_codes}
+      created_by: ${created_by}
+  result: formScopeRes
   next: buildAuditEvent
 
 buildAuditEvent:
@@ -87,8 +133,8 @@ buildAuditEvent:
 
 buildAuditContent:
   assign:
-    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), väärtus '${code}' (ID ${classifier_value_id}), muudetud väljad: ${changed_fields}"
-    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"changedFields\":${changed_fields},\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
+    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), väärtus '${code}' (ID ${classifier_value_id}), muudetud väljad: ${changed_fields}, vormipiirang: '${old_form_type_codes}' → '${form_type_codes}'"
+    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"changedFields\":${changed_fields},\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\",\"formTypesOld\":\"${old_form_type_codes}\",\"formTypes\":\"${form_type_codes}\"}"
   next: logAuditEvent
 
 logAuditEvent:

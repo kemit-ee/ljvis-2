@@ -1,14 +1,18 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
   Card,
   Heading,
+  Select,
   TextField,
 } from '@tedi-design-system/react/tedi';
 import type { FormikProps } from 'formik';
 import styles from './ClassifierValueInfoCard.module.css';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
+import { useClassifiers } from '../../ClassifierProvider';
+import { buildFormScopeOptions, type FormScopeOption } from '../../formScope';
 
 interface ClassifierValueFormValues {
   id: string;
@@ -16,6 +20,7 @@ interface ClassifierValueFormValues {
   name: string;
   validFrom: string;
   validUntil: string;
+  formTypes: string[];
 }
 
 interface ClassifierValueInfoCardProps {
@@ -34,6 +39,23 @@ export function ClassifierValueInfoCard({
   onCancel,
 }: ClassifierValueInfoCardProps) {
   const { t } = useTranslation();
+  const { getByCode } = useClassifiers();
+
+  // ADR-011: tühi valik = väärtus on kasutusel kõigil vormidel
+  const formScopeOptions = useMemo(
+    () =>
+      buildFormScopeOptions(getByCode('FORM_TYPE'), formik.values.formTypes, {
+        parentOwn: (name) => t('classifiers.formScope.parentOwn', { name }),
+        orphan: (code) => t('classifiers.formScope.orphan', { code }),
+      }),
+    [getByCode, formik.values.formTypes, t],
+  );
+  const selectedFormScope = useMemo(() => {
+    const flat = formScopeOptions.flatMap((o): FormScopeOption[] =>
+      'options' in o ? o.options : [o],
+    );
+    return flat.filter((o) => formik.values.formTypes.includes(o.value));
+  }, [formScopeOptions, formik.values.formTypes]);
 
   return (
     <form onSubmit={formik.handleSubmit}>
@@ -144,6 +166,32 @@ export function ClassifierValueInfoCard({
                 }
               />
             </div>
+          </div>
+
+          <div
+            className={
+              styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'] +
+              ' mt-1'
+            }
+          >
+            <Select
+              id="formTypes"
+              label={t('classifiers.formScope.label')}
+              placeholder={t('classifiers.formScope.placeholder')}
+              options={formScopeOptions}
+              value={selectedFormScope}
+              multiple
+              selectableGroups
+              onChange={(val) =>
+                formik.setFieldValue(
+                  'formTypes',
+                  (Array.isArray(val) ? (val as FormScopeOption[]) : [])
+                    .map((o) => o.value)
+                    .sort(),
+                )
+              }
+              helper={{ text: t('classifiers.formScope.help'), type: 'hint' }}
+            />
           </div>
 
           <div

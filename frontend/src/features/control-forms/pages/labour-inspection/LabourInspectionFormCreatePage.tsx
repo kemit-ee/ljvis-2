@@ -10,8 +10,10 @@ import { useLabourInspectionForm } from './useLabourInspectionForm';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import styles from './LabourInspectionFormPage.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 export function LabourInspectionFormCreatePage() {
+  useClassifierScopeActive(true); // ADR-011
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();

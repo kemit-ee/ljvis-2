@@ -8,8 +8,10 @@ import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { ForeignViolationFormFields } from '../../components/ForeignViolationForm/ForeignViolationFormFields';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 export function ForeignViolationFormCreatePage() {
+  useClassifierScopeActive(true); // ADR-011
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
