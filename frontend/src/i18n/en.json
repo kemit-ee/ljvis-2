@@ -1464,6 +1464,7 @@
     "validation": {
       "required": "Required field",
       "valueConflict": "COMING",
+      "endBeforeStart": "End date must be after start date",
       "api": {
         "required": "Required field",
         "duplicate_code": "A value with this code already exists in the classifier",
