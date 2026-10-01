@@ -1,5 +1,5 @@
 /*
-description: ADR-011 — asenda klassifikaatori väärtuse vormipiirang tervikuna. Tühi form_type_codes = piirang eemaldatakse (väärtus lubatud kõigil vormidel). Tundmatud (FORM_TYPE-is puuduvad) koodid ignoreeritakse.
+description: ADR-011 — sea klassifikaatori väärtuse vormipiirang soovitud nimekirjaks. INSERT-only - lisatud vormidele rida is_active=TRUE, eemaldatud vormidele rida is_active=FALSE; DELETE/UPDATE ei toimu. Tühi form_type_codes = kõik vormid. Tundmatud (FORM_TYPE-is puuduvad) koodid ignoreeritakse.
 namespace: classifier
 params:
   classifier_value_id:
@@ -37,19 +37,32 @@ valid AS (
           AND cv.code = w.code
     )
 ),
-del AS (
-    DELETE FROM classifier.classifier_value_form_scope s
-    WHERE s.classifier_value_key = :classifier_value_id::BIGINT
-      AND s.form_type_code NOT IN (SELECT code FROM valid)
-    RETURNING s.form_type_code
+-- kehtiv seis: viimane rida iga vormi kohta
+current_active AS (
+    SELECT s.form_type_code AS code
+    FROM (
+        SELECT DISTINCT ON (fs.form_type_code) fs.form_type_code, fs.is_active
+        FROM classifier.classifier_value_form_scope fs
+        WHERE fs.classifier_value_key = :classifier_value_id::BIGINT
+        ORDER BY fs.form_type_code, fs.created_at DESC, fs.id DESC
+    ) s
+    WHERE s.is_active
+),
+changes AS (
+    SELECT v.code, TRUE AS is_active
+    FROM valid v
+    WHERE v.code NOT IN (SELECT code FROM current_active)
+    UNION ALL
+    SELECT a.code, FALSE AS is_active
+    FROM current_active a
+    WHERE a.code NOT IN (SELECT code FROM valid)
 ),
 ins AS (
-    INSERT INTO classifier.classifier_value_form_scope (classifier_value_key, form_type_code, created_by)
-    SELECT :classifier_value_id::BIGINT, v.code, COALESCE(NULLIF(:created_by, ''), 'system')
-    FROM valid v
-    ON CONFLICT (classifier_value_key, form_type_code) DO NOTHING
-    RETURNING form_type_code
+    INSERT INTO classifier.classifier_value_form_scope (classifier_value_key, form_type_code, is_active, created_by)
+    SELECT :classifier_value_id::BIGINT, ch.code, ch.is_active, COALESCE(NULLIF(:created_by, ''), 'system')
+    FROM changes ch
+    RETURNING is_active
 )
 SELECT
-    (SELECT count(*) FROM del) AS removed,
-    (SELECT count(*) FROM ins) AS added;
+    (SELECT count(*) FROM ins WHERE NOT is_active) AS removed,
+    (SELECT count(*) FROM ins WHERE is_active) AS added;

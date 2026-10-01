@@ -33,15 +33,18 @@ kasutusel kõigil vormidel (nii nagu praegu).
 **Sisu (idempotentne):**
 
 ```sql
+-- INSERT-only: kehtiv seis = viimane rida (classifier_value_key, form_type_code) kohta
 CREATE TABLE IF NOT EXISTS classifier.classifier_value_form_scope (
-    classifier_value_key BIGINT       NOT NULL,
-    form_type_code       VARCHAR(50)  NOT NULL,
-    created_at           TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    created_by           VARCHAR(100),
-    PRIMARY KEY (classifier_value_key, form_type_code)
+    id                    BIGSERIAL    NOT NULL,
+    classifier_value_key  BIGINT       NOT NULL,
+    form_type_code        VARCHAR(100) NOT NULL,
+    is_active             BOOLEAN      NOT NULL,   -- FALSE = vorm eemaldati
+    created_at            TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    created_by            VARCHAR(100) NOT NULL DEFAULT 'system',
+    CONSTRAINT pk_classifier_value_form_scope PRIMARY KEY (id)
 );
-CREATE INDEX IF NOT EXISTS idx_cvfs_form_type_code
-    ON classifier.classifier_value_form_scope (form_type_code);
+CREATE INDEX IF NOT EXISTS idx_cvfs_key_code_ts
+    ON classifier.classifier_value_form_scope (classifier_value_key, form_type_code, created_at DESC, id DESC);
 ```
 
 - FK-d ei ole: `classifier_value_key` ei ole snapshot-tabelis unikaalne ja FORM_TYPE on
@@ -65,37 +68,19 @@ CREATE INDEX IF NOT EXISTS idx_cvfs_form_type_code
 
 `set_classifier_value_form_scope.sql`. Parameetrid antakse samamoodi nagu
 `user_group/set_user_group_organisations.sql`-is: komadega eraldatud string ja
-`string_to_array`.
+`string_to_array`. **Ainult INSERT:**
 
-```sql
-WITH wanted AS (
-    SELECT DISTINCT unnest(string_to_array(NULLIF(:form_type_codes, ''), ',')) AS code
-),
-valid AS (  -- ainult olemasolevad FORM_TYPE koodid
-    SELECT w.code FROM wanted w
-    WHERE EXISTS (
-        SELECT 1 FROM classifier.classifier_value cv
-        JOIN classifier.classifier c ON c.classifier_key = cv.classifier_key
-        WHERE c.code = 'FORM_TYPE' AND cv.code = w.code)
-),
-del AS (
-    DELETE FROM classifier.classifier_value_form_scope s
-    WHERE s.classifier_value_key = :classifier_value_id::BIGINT
-      AND s.form_type_code NOT IN (SELECT code FROM valid)
-    RETURNING s.form_type_code
-),
-ins AS (
-    INSERT INTO classifier.classifier_value_form_scope (classifier_value_key, form_type_code, created_by)
-    SELECT :classifier_value_id::BIGINT, code, :created_by FROM valid
-    ON CONFLICT DO NOTHING
-    RETURNING form_type_code
-)
-SELECT (SELECT count(*) FROM del) AS removed, (SELECT count(*) FROM ins) AS added;
-```
+1. `wanted`: soovitud koodid. `valid`: neist need, mis on FORM_TYPE-is olemas.
+2. `current_active`: iga vormi viimane rida, kus `is_active`.
+3. `changes`: `valid − current_active` saab rea `is_active = TRUE`,
+   `current_active − valid` saab rea `is_active = FALSE`.
+4. Tagastab `added` / `removed`. Muutmata vormidele ridu ei lisata.
 
 - `classifier_value_id` antakse `type: integer` (resql 0.2.0 reegel, vt PR #251).
-- Tühi `form_type_codes` kustutab kõik read, mis tähendab, et väärtus on taas kõigile
-  lubatud.
+- Tühi `form_type_codes` lisab kõigile kehtivatele vormidele rea `is_active = FALSE`,
+  st väärtus on taas kõigile lubatud.
+- Lugemine (`form_types`): `array_agg` üle `DISTINCT ON (form_type_code) … ORDER BY
+  created_at DESC, id DESC`, kus `is_active`.
 
 ## F3 — Ruuter
 

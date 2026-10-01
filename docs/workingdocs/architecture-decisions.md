@@ -54,10 +54,14 @@ muudetakse.
 
 **Valik 4: valikuline piirangunimekiri vormitüübi järgi.**
 
-- **Uus tabel** `classifier.classifier_value_form_scope (classifier_value_key,
-  form_type_code, created_at, created_by)`, PK on `(classifier_value_key, form_type_code)`.
-  Seos tehakse **püsiva võtmega** `classifier_value_key`, mitte snapshot'i `id`-ga. Nii
-  ei mõjuta väärtuse nime või kehtivuse muutmine piirangut.
+- **Uus INSERT-only tabel** `classifier.classifier_value_form_scope (id, classifier_value_key,
+  form_type_code, is_active, created_at, created_by)`. See järgib sama mustrit nagu
+  `classifier_value` ja `users.user_group`: ridu ei uuendata ega kustutata. Iga
+  (väärtus, vorm) paari kehtiv seis on viimane rida (`DISTINCT ON (classifier_value_key,
+  form_type_code) ORDER BY created_at DESC, id DESC`). Linnukese eemaldamine lisab rea
+  `is_active = FALSE` ja Resql käsitleb seda paari nagu rida puuduks. Seos tehakse
+  **püsiva võtmega** `classifier_value_key`, mitte snapshot'i `id`-ga. Nii ei mõjuta
+  väärtuse nime või kehtivuse muutmine piirangut.
 - **Vormi tunnus on `FORM_TYPE` klassifikaatori kood** (`TI_KONTROLLKAART`,
   `SP_DRIVER_FORM`, `TRAM_KONTROLLKAART` jne), sama mis `formRoutes.ts` →
   `classifierCode`. Uut enum'it ega loendit ei looda.
@@ -71,10 +75,13 @@ muudetakse.
   rühmitatud FORM_TYPE hierarhia järgi ja rühma saab valida korraga). Tühi valik
   tähendab „kõik vormid". Seda näitab abitekst, et tühja välja ei tõlgendataks kui
   „mitte ükski".
-- **Muutmisel asendatakse nimekiri tervikuna** (DELETE + INSERT ühes Resql CTE-s).
-  Ajalugu hoitakse auditilogis: `buildAuditContent` lisab muudetud väljadesse vana ja
-  uue vormide nimekirja. Tabelit ennast INSERT-only snapshot'iks ei tehta, sest
-  nimekirja „hetkeseisu" rekonstrueerimine poleks vajalik ühegi kasutusjuhu jaoks.
+- **Muutmisel lisatakse ainult erinevused** (Resql `set_classifier_value_form_scope`,
+  üks CTE). Uus vorm saab rea `is_active = TRUE`, eemaldatud vorm rea `is_active = FALSE`.
+  Muutmata vormidele ridu ei lisata, seega sama nimekirja korduv salvestamine ei kirjuta
+  midagi. Tabel ise on täielik ajalugu (kes, millal, mis vormi lisas või eemaldas).
+  Auditilogi kirjes on lisaks vana ja uus nimekiri. `UPDATE`/`DELETE` on keelatud
+  kokkuleppe korras, nagu `xroad.aj_usage_log` puhul (ADR-005). Triggerit andmebaasis ei
+  ole.
 - **Frontend filtreerib ainult muutmisrežiimis ja ainult valikuid, mitte silte.**
   - `ClassifierScopeProvider formType="…"` piirab sees olevate komponentide
     `getByCode()`, `getChildren()` ja `values` vormile lubatud väärtustega.
