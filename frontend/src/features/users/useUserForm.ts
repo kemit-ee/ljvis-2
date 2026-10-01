@@ -29,10 +29,9 @@ const SUPER_ADMIN_GROUP = 'Super Admin Group';
 function createStatus(accessEnd: string): string {
   const endStr = toIsoDate(accessEnd);
   if (!endStr) return 'active';
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const end = new Date(endStr);
-  return end <= today ? 'pending_deactivation' : 'active';
+  // Võrdleme kalendripäevi (YYYY-MM-DD) — `new Date('YYYY-MM-DD')` on UTC
+  // kesköö ja Eesti ajavööndis jääks tänane lõppkuupäev "tulevikku".
+  return endStr <= toIsoDate(new Date()) ? 'pending_deactivation' : 'active';
 }
 
 export function useUserForm(

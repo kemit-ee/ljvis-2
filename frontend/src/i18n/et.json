@@ -1493,7 +1493,9 @@
       "valueConflict": "Sellise nimetusega klassifikaatori väärtus on juba olemas",
       "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
       "api": {
-        "required": "Kohustuslik väli"
+        "required": "Kohustuslik väli",
+        "duplicate_code": "Selle koodiga väärtus on klassifikaatoris juba olemas",
+        "invalid_period": "Kehtivuse lõpp peab olema hilisem kui kehtivuse algus"
       }
     }
   },

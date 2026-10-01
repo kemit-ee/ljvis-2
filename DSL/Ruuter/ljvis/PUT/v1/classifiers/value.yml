@@ -100,7 +100,15 @@ updateClassifierValue:
       valid_until: ${valid_until}
       created_by: ${created_by}
   result: updatedRes
-  next: checkFormScopeProvided
+  next: checkUpdateResult
+
+checkUpdateResult:
+  switch:
+    - condition: ${updatedRes.response.status >= 200 && updatedRes.response.status < 300 && updatedRes.response.body != null && updatedRes.response.body.length > 0}
+      next: checkFormScopeProvided
+    - condition: ${updatedRes.response.status == 400}
+      next: returnInvalidPeriod
+  next: returnSaveFailed
 
 checkFormScopeProvided:
   switch:
@@ -154,4 +162,21 @@ logAuditEvent:
 
 returnSuccess:
   return: ${updatedRes.response.body}
+  next: end
+
+# Andmebaasi piirang ck_cv_period (valid_until > valid_from) lükkas muudatuse
+# tagasi — varem tagastati siin 200 ja UI teatas õnnestumisest.
+returnInvalidPeriod:
+  status: 422
+  return:
+    type: VALIDATION_ERROR
+    field: validUntil
+    code: invalid_period
+  next: end
+
+returnSaveFailed:
+  status: 500
+  return:
+    type: SERVER_ERROR
+    code: save_failed
   next: end

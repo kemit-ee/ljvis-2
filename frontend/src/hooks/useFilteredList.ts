@@ -44,6 +44,20 @@ export function useFilteredList<TItem, TFilters extends object>(
     list.setPagination((p) => ({ ...p, pageIndex: 0 }));
   }, [draftFilters, list]);
 
+  /**
+   * Seab ühe või mitu filtrit ja rakendab need kohe — `setFilter` + `applyFilters`
+   * järjest kutsudes rakenduks veel eelmine (vana) mustand.
+   */
+  const applyFiltersWith = useCallback(
+    (overrides: Partial<TFilters>) => {
+      const next = { ...draftFilters, ...overrides };
+      setDraftFilters(next);
+      setAppliedFilters(next);
+      list.setPagination((p) => ({ ...p, pageIndex: 0 }));
+    },
+    [draftFilters, list],
+  );
+
   const resetFilters = useCallback(() => {
     setDraftFilters(initialFilters);
     setAppliedFilters(initialFilters);
@@ -51,5 +65,5 @@ export function useFilteredList<TItem, TFilters extends object>(
     setResetKey((k) => k + 1);
   }, [list, initialFilters]);
 
-  return { ...list, draftFilters, setFilter, applyFilters, resetFilters, resetKey };
+  return { ...list, draftFilters, setFilter, applyFilters, applyFiltersWith, resetFilters, resetKey };
 }

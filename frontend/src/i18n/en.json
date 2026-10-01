@@ -1464,8 +1464,11 @@
     "validation": {
       "required": "Required field",
       "valueConflict": "COMING",
+      "endBeforeStart": "End date must be after start date",
       "api": {
-        "required": "Required field"
+        "required": "Required field",
+        "duplicate_code": "A value with this code already exists in the classifier",
+        "invalid_period": "Valid until must be later than valid from"
       }
     }
   },
