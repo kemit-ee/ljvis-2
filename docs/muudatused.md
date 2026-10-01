@@ -22,7 +22,7 @@
   Fail sisaldab kõiki otsingutingimustele vastavate vormide viimase versiooni andmevälju (üks rida vormi kohta).
 - Allalaadimiseks tuleb filtris valida vormitüüp ja vajutada „Otsi“; eksport hõlmab ainult seda tüüpi.
   Kasutaja peab lisaks `form.export`-ile omama selle vormitüübi lugemisõigust.
-- Juht ja meeskonnaliige on eraldi veergudes (`driver_*`, `teammate_*`: perekonnanimi, eesnimi, sünniaeg, Eesti isikukood, kodakondsus, välisriigi isikukood). Teised korduvad plokid (rikkumised jms) on lahtris JSON-tekstina. Ülempiir on 5000 vormi.
+- Juht ja meeskonnaliige on eraldi veergudes (`driver_*`, `teammate_*`: perekonnanimi, eesnimi, sünniaeg, Eesti isikukood, kodakondsus, välisriigi isikukood). Haagiste registreerimismärgid on eraldi veerus `trailer_reg_nr` (komaga eraldatud), täielik haagiste JSON jääb veergu `trailers`. Teised korduvad plokid (rikkumised jms) on lahtris JSON-tekstina. Ülempiir on 5000 vormi.
 - Iga allalaadimine kirjutatakse auditilogisse (`form.export`).
 - Uus õigus `form.export` lisatakse kataloogi; gruppidele omistab selle haldur grupihalduse vaates.
 
