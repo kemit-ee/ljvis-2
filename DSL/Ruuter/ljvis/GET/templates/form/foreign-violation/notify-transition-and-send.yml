@@ -44,6 +44,12 @@ declaration:
         type: string
       - field: vehicleRegNr
         type: string
+      - field: vehicleMake
+        type: string
+      - field: vehicleModel
+        type: string
+      - field: vehicleVin
+        type: string
       - field: createdBy
         type: string
       - field: newNotifyCarrier
@@ -75,6 +81,9 @@ extractInputs:
       ${((incoming.body.inspectionDate || '') + ' ' + (incoming.body.inspectionTime || '')).trim()}
     inspection_country_code: "${incoming.body.inspectionCountryCode || ''}"
     vehicle_reg_nr: "${incoming.body.vehicleRegNr || ''}"
+    vehicle_make: "${incoming.body.vehicleMake || ''}"
+    vehicle_model: "${incoming.body.vehicleModel || ''}"
+    vehicle_vin: "${incoming.body.vehicleVin || ''}"
     created_by: "${incoming.body.createdBy || 'system'}"
     send_carrier: "${incoming.body.newNotifyCarrier === 'true' && incoming.body.sendGateMet === 'true'}"
     send_labor_inspector: "${incoming.body.newNotifyLaborInspector === 'true' && incoming.body.sendGateMet === 'true'}"
@@ -165,7 +174,7 @@ sendLaborInspectorNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, vehicleRegNr: vehicle_reg_nr, vehicleMake: vehicle_make, vehicleModel: vehicle_model, vehicleVin: vehicle_vin, inspectionCountry: inspection_country_code, inspectionDate: incoming.body.inspectionDate || '', inspectionTime: incoming.body.inspectionTime || '' } }"
   result: laborInspectorNotifRes
   error: returnResult
   next: returnResult

@@ -11,7 +11,7 @@ declaration:
   namespace: postkast
   allowlist:
     body:
-      - field: originalTemplateId
+      - field: templateId
         type: string
       - field: language
         type: string

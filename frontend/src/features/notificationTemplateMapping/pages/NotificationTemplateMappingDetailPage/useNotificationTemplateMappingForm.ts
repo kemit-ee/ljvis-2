@@ -13,6 +13,17 @@ export function useNotificationTemplateMappingForm(
   const { t } = useTranslation();
 
   const validationSchema = Yup.object({
+    originalTemplateId: Yup.string()
+      .trim()
+      .test(
+        'uuid-or-empty',
+        t('notificationTemplateMapping.validation.templateIdInvalid'),
+        (value) =>
+          !value ||
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            value,
+          ),
+      ),
     defaultRecipientEmail: Yup.string()
       .trim()
       .test(

@@ -10,7 +10,7 @@ declaration:
 
     APPEND-ONLY: iga saatmiskatse (sh UC-04 uuesti saatmine) loob uue
     outbound_log rea oma notification_key'ga. Teenus ei kirjuta teavituse
-    teksti — ainult malli algne tunnus (originalTemplateId) ja malli
+    teksti — ainult aktiivse malliversiooni tunnus (templateId) ja malli
     muutujate väärtused edastatakse Postkast 2.0-le, mis rakendab enda
     haldusliideses seadistatud malli.
 
@@ -128,10 +128,12 @@ markInvalidRecipient:
     pre_send_failure_reason: "Adressaadi e-posti aadress puudub või ei vasta lubatud kujule"
   next: insertAsError
 
-# original_template_id tuleb kataloogist (notification_template_mapping,
-# haldusliidesest seadistatav — vt notification-template-mapping/save.yml).
+# original_template_id tuleb ajaloolise nimega kataloogiveerust
+# (notification_template_mapping, haldusliidesest seadistatav — vt
+# notification-template-mapping/save.yml), kuid väärtus on Postkast 2.0
+# aktiivse malliversiooni templateId.
 # Konstandifallback ([#PK_TEMPLATE_*]) on eemaldatud; puuduva tunnuse korral
-# ei tohi X-tee kutset tühja originalTemplateId'ga saata — logi kohe veaga.
+# ei tohi X-tee kutset tühja templateId-ga saata — logi kohe veaga.
 resolveTemplateId:
   assign:
     original_template_id: "${mapping.originalTemplateId || ''}"
@@ -146,7 +148,7 @@ checkTemplateIdResolved:
 
 markMissingTemplateId:
   assign:
-    pre_send_failure_reason: "Teavituse liigil '${notification_type}' puudub Postkast 2.0 malli tunnus (originalTemplateId)"
+    pre_send_failure_reason: "Teavituse liigil '${notification_type}' puudub Postkast 2.0 aktiivse malliversiooni tunnus (templateId)"
   next: insertAsError
 
 insertQueued:
@@ -215,7 +217,7 @@ callPk:
       X-User-Access-Type: "UNLIMITED"
       # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
-      originalTemplateId: ${original_template_id}
+      templateId: ${original_template_id}
       language: ${effective_language}
       parameters:
         - "${Object.assign({}, template_variables_obj, { recipient: recipient_email })}"

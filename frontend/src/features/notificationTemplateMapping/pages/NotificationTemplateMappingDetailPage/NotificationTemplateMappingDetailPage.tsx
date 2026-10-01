@@ -192,6 +192,15 @@ export function NotificationTemplateMappingDetailPage() {
                 label={t('notificationTemplateMapping.originalTemplateId')}
                 value={formik.values.originalTemplateId}
                 onChange={(v) => formik.setFieldValue('originalTemplateId', v)}
+                {...(formik.touched.originalTemplateId &&
+                formik.errors.originalTemplateId
+                  ? {
+                      helper: {
+                        text: formik.errors.originalTemplateId,
+                        type: 'error' as const,
+                      },
+                    }
+                  : {})}
               />
               {mapping.channel === 'postkast' && (
                 <TextField
