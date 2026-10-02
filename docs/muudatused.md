@@ -6,7 +6,7 @@
 
 ### Postkasti päringu keeleväli
 
-- Postkast 2.0 päringus saadetakse teavituse keel väljana `notification_language` ja suurtähtedega (`ET`, varem `language: "et"`). LJVIS-i enda logis jääb keel endiselt väiketähtedega.
+- Postkast 2.0 päringus saadetakse alati `notification_language: "ET"` (varem `language` kutsuja või liigi vaikekeelega). LJVIS-i enda logis jääb keel endiselt väiketähtedega.
 
 ### Tehnokaardi raskusastmed (punktid 7–9)
 
