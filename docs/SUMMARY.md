@@ -46,6 +46,7 @@
 - [E-toimiku X-tee logid](admin-guide/10-etoimiku-xtee-logid.md)
 - [Esimese superadmini loomine](admin-guide/11-esimene-superadmin.md)
 - [Paigaldus ja keskkonnad (devops)](admin-guide/12-paigaldus-devops.md)
+- [Arhiveerimine](admin-guide/13-arhiveerimine.md)
 
 ---
 
@@ -57,7 +58,32 @@
 - [Testiraport](testimine/testiraport.md)
   - [Testijooks 01.10.2026](testimine/tulemused/2026-10-01/KOKKUVÕTE.md)
 - [API-testide nimekiri ja tulemused](testimine/apitestid.md)
+- [Jõudlus- ja koormustestid](testimine/joudlustestid.md)
+- [Turvaparanduste raport ja kordustõend](testimine/turvaparandused.md)
 - [X-tee testprotokoll](xtee/08-testprotokoll.md)
+
+---
+
+# Migratsioon (LJVIS 1 → LJVIS 2)
+
+- [Sisukord](migration/README.md)
+- [Migratsioonistrateegia (cutover/rollback)](migration/01-migratsioonistrateegia.md)
+- [Andmekaardistus ja transformatsioonireeglid](migration/02-andmekaardistus.md)
+- [Andmekvaliteedi kriteeriumid](migration/03-andmekvaliteet.md)
+- [Migratsioonitesti raport](migration/04-migratsioonitesti-raport.md)
+- [Lõpliku migratsiooni raporti mall](migration/05-lopliku-migratsiooni-raport.md)
+- [Sisendid ja päringud DBA-le](migration/migration-guidelines.md)
+
+---
+
+# Integratsioonid ja spetsifikatsioonid
+
+- [Integratsioonide ülevaade](integrations/integratsioonid.md)
+- [Integratsiooni kirjelduse mall](integrations/mall.md)
+- [Versioonimise põhimõtted](integrations/versioonimine.md)
+- [Teavituste ja Postkast 2.0 spetsifikatsioon](specs/teavitused-spetsifikatsioon.md)
+- [Andmemudel: ER-skeem ja seosed](architecture/andmemudel-erd.md)
+- [Andmebaasi skeem (genereeritud)](architecture/andmemudel-skeem.md)
 
 ---
 
