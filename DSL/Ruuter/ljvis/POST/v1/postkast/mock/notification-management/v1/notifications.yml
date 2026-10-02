@@ -13,7 +13,7 @@ declaration:
     body:
       - field: templateId
         type: string
-      - field: language
+      - field: notification_language
         type: string
       - field: sendTime
         type: string
