@@ -12,8 +12,12 @@ tests:
   expect:
     status: 200
     body:
-      enabled: false
-      purged: 0
+      response:
+        copied: 0
+        enabled: false
+        mode: disabled
+        purged: 0
+        verified: 0
   verify_mocks:
   - url_matches: /archive/select_aged_snapshots
     count: 0
@@ -71,9 +75,12 @@ tests:
   expect:
     status: 200
     body:
-      mode: archive-only
-      copied: 1
-      purged: 0
+      response:
+        copied: 1
+        enabled: true
+        mode: archive-only
+        purged: 0
+        verified: 1
   verify_mocks:
   - url_matches: /archive/select_aged_snapshots
     count: 1
@@ -122,8 +129,12 @@ tests:
   expect:
     status: 200
     body:
-      mode: archive+purge
-      purged: 1
+      response:
+        copied: 1
+        enabled: true
+        mode: archive+purge
+        purged: 1
+        verified: 1
   verify_mocks:
   - url_matches: /archive/purge_confirmed
     count: 1
@@ -171,8 +182,12 @@ tests:
   expect:
     status: 200
     body:
-      mode: verify-failed
-      purged: 0
+      response:
+        copied: 2
+        enabled: true
+        mode: verify-failed
+        purged: 0
+        verified: 1
   verify_mocks:
   - url_matches: /archive/purge_confirmed
     count: 0
@@ -202,8 +217,12 @@ tests:
   expect:
     status: 200
     body:
-      mode: dry-run
-      wouldCopy: 1
+      response:
+        copied: 0
+        enabled: true
+        mode: dry-run
+        purged: 0
+        wouldCopy: 1
   verify_mocks:
   - url_matches: /deleted-forms/insert_snapshots
     count: 0
