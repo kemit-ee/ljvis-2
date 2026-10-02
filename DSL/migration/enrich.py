@@ -154,10 +154,10 @@ def apply(cur, run_id, children):
             if proceeding in choices:
                 kind,key = choices[proceeding]
                 reference = get(key)
-                if reference:
-                    update(table,target_key,{'proceeding_type':kind,'proceeding_reference_number':reference})
-                else:
-                    finding(form_id,'missing_proceeding_reference','Known proceeding has no reference; not guessed')
+                target_kind = {'expedited':'KIIR','summary':'LYHI','general':'YLD'}[kind] if table in ('sp_driver_form','sp_teammate_form') else kind
+                update(table,target_key,{'proceeding_type':target_kind,'proceeding_reference_number':reference})
+                if not reference and kind != 'general':
+                    finding(form_id,'missing_proceeding_reference','Known proceeding has no required reference; not guessed')
             elif proceeding:
                 finding(form_id,'unmapped_proceeding','Legacy proceeding requires a target mapping')
 
@@ -188,7 +188,8 @@ def apply(cur, run_id, children):
             cur.execute("""SELECT count(*) FROM staging.raw_control_to_form_binding b
                 JOIN staging.raw_control_form f ON f.id=b.control_form_id
                 LEFT JOIN migration.disposition d ON d.legacy_source='ControlForm' AND d.legacy_id=f.id::text AND d.migration_run_id=%s
-                WHERE b.control_id=%s AND coalesce(d.reason,'missing')<>'eligible'""",(run_id,group[1]))
+                WHERE b.control_id=%s AND coalesce(d.reason,'missing')<>'eligible'
+                  AND f.control_stage IS DISTINCT FROM 'Saved'""",(run_id,group[1]))
             if cur.fetchone()[0]:
                 finding(members[0],'group_contains_excluded_parts','Some source control members are outside the agreed status/date selection')
         else:

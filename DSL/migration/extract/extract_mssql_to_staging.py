@@ -18,7 +18,7 @@ against the deliberately-realistic local test schema.
 CUTOFF pushdown: every query below is scoped to CUTOFF (env var, same value
 passed to the SQL transforms) so a real run does not pull LJVIS1's entire
 history over the network just to discard most of it in the transform step.
-ControlForm rows with a NULL CreatedDate are still extracted (never silently
+ControlForm rows with a NULL ControlledDate are still extracted (never silently
 dropped) -- the transforms decide what to do with them and log it.
 
 Usage
@@ -44,11 +44,12 @@ BATCH_SIZE = int(os.getenv("EXTRACT_BATCH_SIZE", "2000"))
 if BATCH_SIZE <= 0:
     raise ValueError("EXTRACT_BATCH_SIZE must be positive")
 
-# Membership in scope is defined by ControlForm.CreatedDate >= CUTOFF, OR a
-# NULL CreatedDate (never silently dropped -- see module docstring).
-_BASE_CONTROL_FORM_IDS = "(SELECT Id FROM dbo.ControlForm WHERE CreatedDate >= %(cutoff)s OR CreatedDate IS NULL)"
+# Membership in scope is defined by ControlForm.ControlledDate >= CUTOFF, OR a
+# NULL ControlledDate (never silently dropped -- see module docstring).
+_BASE_CONTROL_FORM_IDS = "(SELECT Id FROM dbo.ControlForm WHERE ControlledDate >= %(cutoff)s OR ControlledDate IS NULL)"
 # Preserve the complete control context, including members outside the cutoff.
-# Eligibility still uses the fixed cutoff in preflight; context is not imported silently.
+# Preflight includes older confirmed/published peers of recent confirmed/published forms.
+# Drafts are context only and never become eligible.
 _SCOPED_CONTROL_FORM_IDS = (
     "(SELECT f.Id FROM dbo.ControlForm f WHERE f.Id IN " + _BASE_CONTROL_FORM_IDS +
     " OR EXISTS (SELECT 1 FROM dbo.ControlToFormBinding peer "
@@ -143,11 +144,12 @@ TABLES = [
         "SELECT COUNT(*) FROM dbo.ControlDecision WHERE CreatedDate >= %(cutoff)s OR CreatedDate IS NULL",
     ),
     (
+        # Audit payloads are outside migration scope; retain metadata for author fallback only.
         # Versions is a system-wide audit trail (every entity, every change) --
         # without this filter it can dwarf every other table combined. Only
         # ControlForm rows in scope are ever read by the transforms' author
         # fallback (see sql/01-07-transform-*.sql), so that is the scope here.
-        f"SELECT Id, TableName, RowId, UpdatedTime, UserName, Data, Version FROM dbo.Versions "
+        f"SELECT Id, TableName, RowId, UpdatedTime, UserName, CAST(NULL AS nvarchar(max)) AS Data, Version FROM dbo.Versions "
         f"WHERE {_VERSIONS_IS_CONTROL_FORM} AND RowId IN {_SCOPED_CONTROL_FORM_IDS}",
         _params(),
         "staging.raw_versions",

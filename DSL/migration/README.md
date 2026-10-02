@@ -88,18 +88,13 @@ paroolid kirjuta ülakomadesse. Prooviseaded ei tohi osutada tööbaasile.
 | `MIGRATION_LOG_DIR` | Vaikimisi selle kausta `runs`; iga käivitus oma UUID-alamkaustas |
 | `PYTHON` / `MIGRATION_ENV_FILE` | Valikuline Pythoni binaar ja alternatiivne env-fail |
 
-SQL Serveri piir on **`ControlForm.CreatedDate >= CUTOFF`**, mitte `ControlledDate`.
-`CreatedDate` ei ole usaldusväärne loomisaeg: vana FormController kirjutab sinna
-õnnestunud kuupäevaparssimisel kontrolli kuupäeva koos `ControlledDate`-ga. Teatud
-`InspectionDate.DateValue` NULL-harus kasutatakse salvestamise hetke; muus vigase
-teksti harus võivad senised kuupäevad jääda muutmata. Seetõttu tähendab piir
-**salvestatud CreatedDate väärtust**, mitte garanteeritud loomise aega. Hilisem
-muutmine võib muuta ka ajapiiri kuulumist. EAV kontrollkuupäeva puudumisel kasutatakse
-esmalt `ControlledDate`, alles siis `CreatedDate`; asendused ja vastuolud raporteeritakse.
-
-NULL-kuupäevaga read säilitatakse ja märgitakse lahendamata ulatusena. Migreeritavad
-staatused on `Confirmed` ja `Published`. Muude staatuste, tundmatute vormitüüpide,
-FuelSample'i ja NULL-kuupäevade saatus on näha `migration.disposition` tabelis.
+SQL Serveri algvalik on **`ControlForm.ControlledDate >= CUTOFF`**.
+`CreatedDate` ei kasutata ajapiiri varuvariandina. Sama kehtiva `Control` vanemad
+`Confirmed`/`Published` osad kaasatakse; `Saved` ei kaasata ka seotud osana.
+`migration.disposition.inclusion_basis` eristab `within_window` ja
+`included_control_peer`. NULL-kuupäev jääb lahendamata (`missing_scope_date`),
+mitte väljamõeldud kuupäevaks. Muud välistused jäävad disposition-aruandesse.
+EAV kuupäeva vastuolud raporteeritakse eraldi.
 
 RavenDB-s puudub usaldusväärne loomise kuupäev. Piiriks kasutatakse V1 `kontrolli_kp` /
 V2 `InspectionDate` kuupäeva. `@last-modified` säilib toorandmetes, kuid **ei ole loomise
@@ -217,11 +212,22 @@ käsitleda tegeliku kontrollitulemusena ega production-andmetena**. Lubatud teks
 ei kinnita seda. Mitme otsuse kokkuliitmine vajab eraldi andmemudeli lahendust.
 
 Rehearsal võib peatuda preflight'is, kui on ebaselge trailer/teammate marker, scalar multi-value või
-tundmatu Sobivus. `finding.csv` ja `disposition.csv` väljastatakse ka siis. See on
+tundmatu Sobivus. Samuti peatavad ülekande vigane vorminumber või puuduv/vigane FormVersion, korduv baasnumber samas sihttüübis, vastuoluline ühine päis ja tuvastatud
+liiga pikad tekstiväljad. Numbreid ei muudeta ega probleemseid vorme vaikselt välja jäeta.
+`finding.csv` ja `disposition.csv` väljastatakse ka siis. See on
 teadlik tervikliku ülekande kaitse; vaikimisi ei jäeta vigu sisaldavaid vorme kõrvale.
 `Sobivus` vea juures on allika ID ja algne väärtus. Liiga pika teksti viga nimetab
 allika ID, sihttabeli/veeru ning lubatud/tegeliku pikkuse; kogu transformatsioon tühistub.
 Raven kuupäeva aastaga <1000 käsitletakse puuduva ajapiirina, mitte vana aktina.
+
+`--verify` kontrollib lisaks vormide numbritele/seostele ka säilitatud lähteandmeid:
+`source_manifest` hoiab staging'u ridade arvu ja sisu kontrollsummat iga lähtetabeli
+kohta; `source_snapshot` peab nendega kattuma. Ka sama reaarvuga muudetud EAV või
+kustutatud lähterida annab vea. See on terviklikkuse kontroll, mitte digiallkiri ega
+kinnitus, et ajaloolised redaktsioonid on LJVIS2 kasutajaliideses nähtavad.
+Kehtiva tekstilise päevade arvu asendumine aegunud IntValue-ga tuvastatakse eraldi.
+Vanadel käikudel, millel manifest puudub, ei saa uut kontrolli tagantjärele kinnitada:
+tee uus proov algsest külmutatud allikast; ära arvuta tõendit kontrollitavast snapshot'ist.
 
 ## Toorandmete säilitamine
 
@@ -252,7 +258,7 @@ SQL-source documents retain their exact LJVIS1 identity: `th-2026-00004/4`
 becomes `sub_form_number = 'th-2026-00004'`, `version = 4`. The UI joins these
 fields. New surrogate database keys must not replace historical document numbers.
 The coordinator enforces this for all imported `ControlForm` document types,
-checks the source revision against the suffix, and rejects unsupported/missing
+preserves the display suffix independently of source FormVersion, and rejects unsupported/missing
 identifiers or duplicate target numbers instead of silently renumbering them.
 `template_version` is not the document revision. Generated `koond-*` numbers
 identify new aggregate containers, not replacements for the original documents.
@@ -264,3 +270,19 @@ Existing rehearsals with renumbered documents fail identity verification; use a
 fresh target with the corrected coordinator. Do not patch production numbers by
 hand or treat the old rehearsal as accepted. RavenDB document identities require
 separate validation against the actual source, which has not been supplied.
+
+### Migratsiooni ulatus: andmed, mitte vana auditi koopia
+
+LJVIS1 Versions.Data sisu ega eraldi ajaloo UI-d ei migreerita. `forms.legacy_record`
+changelog on enne kasutuselevõttu eemaldatud. Versions metaandmeid kasutatakse
+staging-us ainult autori varuallikana; vana versiooni sisu ei kopeerita.
+
+Alles jäävad lähte-sihtkirjete seosed, algsed numbrid, valiku põhjused,
+lähteandmete kontrolljälg ja `--verify`. Need on migratsiooni tööandmed, mitte
+rakenduse ajalooarhiiv. Puudulik äriväljade/rikkumiste vastendus jääb blokeerivaks;
+staging-us säilitamine ei tähenda edukat ülekannet LJVIS2 äriväljadesse.
+
+Ajaloolised mitteaktiivsed klassifikaatorid jäävad vajalikuks. Nende sidumine
+vormide rikkumisväljadega vajab lõpetamist; klassifikaatori olemasolu üksi ei piisa.
+Vana proovibaasi ei kustutata automaatselt. Uue koodiga kasutada puhast proovisihti
+ja uut väljavõtet; varasema proovijooksu täielikkuse tulemused pole uus vastuvõtt.

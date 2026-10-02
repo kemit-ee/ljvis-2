@@ -30,9 +30,10 @@ WITH candidate AS (
     FROM staging.raw_control_form cf
     WHERE cf.form_type_name = 'GoodRepute'
       AND cf.control_stage IN ('Confirmed', 'Published')
-      -- Range is on CreatedDate. NULL created_date is excluded by this predicate;
-      -- those rows are reported separately below rather than vanishing silently.
-      AND cf.created_date >= :'cutoff_from'::timestamp
+      -- Use the centrally reviewed ControlledDate/peer selection.
+      -- Missing scope dates are reported rather than silently imported.
+      AND EXISTS (SELECT 1 FROM migration.disposition d WHERE d.migration_run_id=:'run_id'::uuid
+          AND d.legacy_source='ControlForm' AND d.legacy_id=cf.id::text AND d.reason='eligible')
       AND NOT EXISTS (
           SELECT 1 FROM migration.form_link fl
           WHERE fl.legacy_source = 'ControlForm'
@@ -157,8 +158,8 @@ SELECT :'run_id', 'ControlForm', f.legacy_id::text, 'forms.good_repute_form',
 FROM tmp_gr_final f
 WHERE f.author_fallback_used;
 
--- Rows dropped by the range predicate because CreatedDate is NULL. These rows
--- never enter tmp_gr_src (no created_date to filter on) and never reach
+-- Rows dropped by the range predicate because ControlledDate is NULL. These rows
+-- never enter tmp_gr_src (no controlled_date to filter on) and never reach
 -- migration.form_link, so unlike everything else in this file they cannot be
 -- de-duplicated via the usual "already linked" check -- guard directly against
 -- quality_report instead, or a re-run logs the same exclusion every time.
@@ -166,16 +167,16 @@ INSERT INTO migration.quality_report
     (migration_run_id, legacy_source, legacy_id, target_table, column_name,
      issue, applied_default, raw_value)
 SELECT :'run_id', 'ControlForm', cf.id::text, 'forms.good_repute_form',
-       'created_date', 'excluded_null_created_date', NULL, NULL
+       'controlled_date', 'excluded_null_controlled_date', NULL, NULL
 FROM staging.raw_control_form cf
 WHERE cf.form_type_name = 'GoodRepute'
   AND cf.control_stage IN ('Confirmed', 'Published')
-  AND cf.created_date IS NULL
+  AND cf.controlled_date IS NULL
   AND NOT EXISTS (
       SELECT 1 FROM migration.quality_report qr
       WHERE qr.legacy_source = 'ControlForm' AND qr.legacy_id = cf.id::text
         AND qr.target_table = 'forms.good_repute_form'
-        AND qr.column_name = 'created_date' AND qr.issue = 'excluded_null_created_date'
+        AND qr.column_name = 'controlled_date' AND qr.issue = 'excluded_null_controlled_date'
   );
 
 -- Report every adjusted date, including legal unfitness periods. Retain the

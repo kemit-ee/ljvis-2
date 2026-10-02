@@ -12,7 +12,8 @@ WITH candidate AS (
     WHERE cf.form_type_name = 'RoadControlCard2012'
       AND {{subtype_predicate}}
       AND cf.control_stage IN ('Confirmed', 'Published')
-      AND cf.created_date >= :'cutoff_from'::timestamp
+      AND EXISTS (SELECT 1 FROM migration.disposition d WHERE d.migration_run_id=:'run_id'::uuid
+          AND d.legacy_source='ControlForm' AND d.legacy_id=cf.id::text AND d.reason='eligible')
       AND NOT EXISTS (
           SELECT 1 FROM migration.form_link fl
           WHERE fl.legacy_source = 'ControlForm' AND fl.legacy_id = cf.id::text

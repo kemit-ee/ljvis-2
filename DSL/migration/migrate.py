@@ -24,6 +24,7 @@ sys.path.insert(0, str(HERE / "extract"))
 from config import connect_target, required
 import enrich
 import identifiers
+import evidence
 
 TARGETS = {
     "GoodRepute": "good_repute_form",
@@ -99,6 +100,7 @@ def snapshot(cur, run_id):
         key = "raven_id" if table == "raw_job_inspection" else "id"
         cur.execute(sql.SQL("INSERT INTO migration.source_snapshot SELECT %s,%s,{}::text,to_jsonb(t) FROM staging.{} t")
                     .format(sql.Identifier(key), sql.Identifier(table)), (run_id, table))
+        evidence.record(cur, run_id, table, key)
     fingerprint_sources(cur)
 
 
@@ -110,21 +112,24 @@ def preflight(cur, run_id, cutoff):
         PRIMARY KEY(migration_run_id,legacy_source,legacy_id))""")
     cur.execute("CREATE TEMP TABLE type_mapping (form_type text PRIMARY KEY, target_table text)")
     execute_values(cur, "INSERT INTO type_mapping VALUES %s", [(k, "forms."+v) for k,v in TARGETS.items()])
-    cur.execute("""INSERT INTO migration.disposition
+    cur.execute("""INSERT INTO migration.disposition (migration_run_id,legacy_source,legacy_id,form_type,reason,target_table)
         SELECT %s,'ControlForm',cf.id::text,cf.form_type_name,
         CASE WHEN cf.control_stage IS NULL OR cf.control_stage NOT IN ('Confirmed','Published','Saved','Deleted','ERROR') THEN 'unknown_status'
              WHEN cf.control_stage NOT IN ('Confirmed','Published') THEN 'excluded_status'
-             WHEN cf.created_date IS NULL THEN 'missing_scope_date'
-             WHEN cf.created_date < %s::date THEN 'excluded_before_cutoff'
+             WHEN migration.control_form_scope(cf.id,%s::date) NOT IN ('within_window','included_control_peer')
+               THEN migration.control_form_scope(cf.id,%s::date)
              WHEN cf.form_type_name='FuelSample' THEN 'excluded_fuel_sample'
              WHEN m.target_table IS NULL THEN 'unsupported_form_type'
              ELSE 'eligible' END, m.target_table
-        FROM staging.raw_control_form cf LEFT JOIN type_mapping m ON m.form_type=cf.form_type_name""", (run_id,cutoff))
+        FROM staging.raw_control_form cf LEFT JOIN type_mapping m ON m.form_type=cf.form_type_name""", (run_id,cutoff,cutoff))
+    cur.execute("ALTER TABLE migration.disposition ADD COLUMN IF NOT EXISTS inclusion_basis text")
+    cur.execute("""UPDATE migration.disposition SET inclusion_basis=migration.control_form_scope(legacy_id::bigint,%s::date)
+        WHERE migration_run_id=%s AND legacy_source='ControlForm'""",(cutoff,run_id))
     for form_type,(marker,primary,secondary) in SUBTYPES.items():
         cur.execute("""UPDATE migration.disposition d SET target_table=%s
             WHERE migration_run_id=%s AND legacy_source='ControlForm' AND form_type=%s
               AND migration.is_subtype(d.legacy_id::bigint,%s)""",('forms.'+secondary,run_id,form_type,marker))
-    cur.execute("""INSERT INTO migration.disposition
+    cur.execute("""INSERT INTO migration.disposition (migration_run_id,legacy_source,legacy_id,form_type,reason,target_table)
         SELECT %s,CASE schema_version WHEN 1 THEN 'RavenDB.JobInspection' ELSE 'RavenDB.JobInspectionV2' END,
         raven_id,CASE schema_version WHEN 1 THEN 'JobInspection' ELSE 'JobInspectionV2' END,
         CASE WHEN schema_version=2 AND document_json->>'Stage' IN ('Saved','Deleted','ERROR') THEN 'excluded_status'
@@ -138,8 +143,34 @@ def preflight(cur, run_id, cutoff):
         cur.execute("INSERT INTO migration.finding SELECT %s,%s,q.source,q.legacy_id,%s,%s FROM ("+query+") q",
                     (run_id,severity,issue,detail,*params))
 
+    identifiers.preflight(cur, run_id)
+
     finding("scope_unresolved", "Cannot determine eligibility/target; resolve before cutover",
         "SELECT legacy_source source,legacy_id FROM migration.disposition WHERE migration_run_id=%s AND reason IN ('missing_scope_date','unknown_status','unsupported_form_type')", (run_id,))
+    # A shared header may not silently select one nonempty value from several.
+    # Normalize dates/times like the transforms; spelling alone is not a conflict.
+    finding("conflicting_shared_source_header", "Parts of one Control disagree on a shared header; review each source part", """
+        WITH headers AS (
+          SELECT b.control_id,f.id,v.classifier_name,
+            CASE v.classifier_name
+              WHEN 'InspectionDate.Date' THEN coalesce(v.date_value,migration.safe_timestamp(v.value))::date::text
+              WHEN 'InspectionDate.Time' THEN migration.safe_time(v.value)::text
+              WHEN 'InspectionAddress.Country' THEN migration.safe_country_code(v.value)
+              ELSE nullif(btrim(v.value),'') END AS value
+          FROM staging.raw_control_to_form_binding b
+          JOIN staging.raw_control_form f ON f.id=b.control_form_id
+          JOIN migration.disposition d ON d.legacy_source='ControlForm' AND d.legacy_id=f.id::text
+          JOIN staging.raw_control_form_value v ON v.control_form_id=f.id
+          WHERE d.migration_run_id=%s AND d.reason='eligible'
+            AND d.target_table NOT IN ('forms.good_repute_form','forms.foreign_violation_form')
+            AND v.classifier_name IN ('InspectionDate.Date','InspectionDate.Time','InspectionAddress.Country',
+              'Inspector.FirstName','Inspector.LastName','Inspector.AmetiisikuAndmed','Inspector.Job')
+        ), conflicts AS (
+          SELECT control_id,classifier_name FROM headers GROUP BY 1,2 HAVING count(DISTINCT value)>1
+        )
+        SELECT DISTINCT 'ControlForm' source,h.id::text legacy_id FROM headers h
+        JOIN conflicts c USING (control_id,classifier_name)
+        """, (run_id,))
     finding("source_configuration_changed", "Source label/cutoff differs from previously linked data; use the same frozen source and fixed cutoff",
         "SELECT 'all' source,'*' legacy_id WHERE EXISTS (SELECT 1 FROM migration.run r JOIN migration.form_link f ON f.migration_run_id=r.migration_run_id WHERE r.source_label IS DISTINCT FROM %s OR r.source_cutoff_from<>%s::date)",
         (required("SOURCE_LABEL"),cutoff))
@@ -296,6 +327,18 @@ def preflight(cur, run_id, cutoff):
 
 def check_integrity(cur, run_id, require_coverage=True):
     problems = identifiers.mismatches(cur)
+    problems.extend(evidence.mismatches(cur, run_id, RAW_TABLES))
+    problems.extend(evidence.day_count_mismatches(cur))
+    cur.execute("""SELECT count(*) FROM migration.disposition d
+        JOIN migration.run r USING(migration_run_id)
+        JOIN staging.raw_control_form f ON f.id::text=d.legacy_id
+        WHERE d.migration_run_id=%s AND d.legacy_source='ControlForm'
+          AND f.form_type_name=ANY(%s)
+          AND ((migration.control_form_scope(f.id,r.source_cutoff_from::date) IN ('within_window','included_control_peer'))
+               IS DISTINCT FROM (d.reason='eligible'))""",(run_id,list(TARGETS)))
+    invalid_scope=cur.fetchone()[0]
+    if invalid_scope:
+        problems.append({'check':'source_scope_disposition_changed','count':invalid_scope})
     if require_coverage:
         missing = rows(cur, """SELECT d.legacy_source,d.legacy_id,d.target_table
             FROM migration.disposition d WHERE d.migration_run_id=%s AND d.reason='eligible'
@@ -368,6 +411,7 @@ def report(cur, run_id, directory, problems=None):
         "inherited_findings":rows(cur,"""SELECT severity,issue,count(*) FROM migration.finding
           WHERE migration_run_id<>%s AND migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link)
           GROUP BY 1,2 ORDER BY 1,2""",(run_id,)),
+        "selection_basis":rows(cur,"SELECT inclusion_basis,count(*) FROM migration.disposition WHERE migration_run_id=%s AND legacy_source='ControlForm' GROUP BY 1 ORDER BY 1",(run_id,)),
         "dispositions":rows(cur,"SELECT form_type,reason,count(*) FROM migration.disposition WHERE migration_run_id=%s GROUP BY 1,2 ORDER BY 1,2",(run_id,)),
         "findings":rows(cur,"""SELECT severity,issue,count(*) FROM (
           SELECT DISTINCT severity,legacy_source,legacy_id,issue,detail FROM migration.finding
@@ -468,7 +512,7 @@ def main():
             pg.commit()
             pg.autocommit=True
             blocked=any(f["severity"]=="blocker" for f in findings)
-            fatal=any(f["issue"] in {"multivalue_scalar","source_changed","linked_source_missing","linked_scope_changed","source_configuration_changed","unsupported_subtype","mapping_code_changed","unmapped_fitness"} for f in findings)
+            fatal=any(f["issue"] in {"multivalue_scalar","source_changed","linked_source_missing","linked_scope_changed","source_configuration_changed","unsupported_subtype","mapping_code_changed","unmapped_fitness","invalid_source_document_number","invalid_source_form_version","source_document_number_collision","conflicting_shared_source_header","oversized_source_text"} for f in findings)
             existing_problems=check_integrity(cur,run_id,require_coverage=False)
             if fatal or existing_problems or (blocked and not args.rehearsal):
                 cur.execute("UPDATE migration.run SET status='blocked',current_step=%s,finished_at=now() WHERE migration_run_id=%s",(step,run_id))

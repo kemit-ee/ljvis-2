@@ -16,7 +16,8 @@ WITH candidate AS (
     FROM staging.raw_control_form cf
     WHERE cf.form_type_name = 'TransportInterruption'
       AND cf.control_stage IN ('Confirmed', 'Published')
-      AND cf.created_date >= :'cutoff_from'::timestamp
+      AND EXISTS (SELECT 1 FROM migration.disposition d WHERE d.migration_run_id=:'run_id'::uuid
+          AND d.legacy_source='ControlForm' AND d.legacy_id=cf.id::text AND d.reason='eligible')
       AND NOT EXISTS (
           SELECT 1 FROM migration.form_link fl
           WHERE fl.legacy_source = 'ControlForm' AND fl.legacy_id = cf.id::text

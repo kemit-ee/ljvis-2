@@ -244,6 +244,15 @@ CREATE TABLE IF NOT EXISTS migration.source_snapshot (
     payload jsonb NOT NULL,
     PRIMARY KEY (migration_run_id, source_table, source_key)
 );
+-- Expected count/checksum is calculated from staging at extraction time.
+-- Never backfill from snapshots: that would bless missing or changed evidence.
+CREATE TABLE IF NOT EXISTS migration.source_manifest (
+    migration_run_id uuid NOT NULL REFERENCES migration.run,
+    source_table text NOT NULL,
+    row_count bigint NOT NULL,
+    content_md5 text NOT NULL,
+    PRIMARY KEY (migration_run_id, source_table)
+);
 CREATE TABLE IF NOT EXISTS migration.finding (
     migration_run_id uuid NOT NULL REFERENCES migration.run,
     severity text NOT NULL CHECK (severity IN ('blocker','warning','info')),
@@ -363,4 +372,26 @@ RETURNS boolean LANGUAGE sql STABLE AS $$
     SELECT EXISTS (SELECT 1 FROM staging.raw_control_form_value
         WHERE control_form_id=form_id AND classifier_name=marker
           AND lower(btrim(value)) IN ('true','1'));
+$$;
+
+-- Owner decision 2026-10-01: older published/confirmed parts of a selected
+-- Control are included; Saved/Deleted/ERROR never become eligible through a peer.
+-- ControlledDate is the inspection date. Do not fall back to CreatedDate.
+CREATE OR REPLACE FUNCTION migration.control_form_scope(form_id bigint, cutoff date)
+RETURNS text LANGUAGE sql STABLE AS $$
+ SELECT CASE
+   WHEN f.control_stage IS NULL OR f.control_stage NOT IN ('Confirmed','Published','Saved','Deleted','ERROR') THEN 'unknown_status'
+   WHEN f.control_stage NOT IN ('Confirmed','Published') THEN 'excluded_status'
+   WHEN f.controlled_date IS NULL THEN 'missing_scope_date'
+   WHEN f.controlled_date >= cutoff THEN 'within_window'
+   WHEN EXISTS (
+     SELECT 1 FROM staging.raw_control_to_form_binding b
+     JOIN staging.raw_control c ON c.id=b.control_id
+     JOIN staging.raw_control_to_form_binding peer ON peer.control_id=c.id
+     JOIN staging.raw_control_form seed ON seed.id=peer.control_form_id
+     WHERE b.control_form_id=f.id AND seed.control_stage IN ('Confirmed','Published')
+       AND seed.controlled_date >= cutoff
+   ) THEN 'included_control_peer'
+   ELSE 'excluded_before_cutoff' END
+ FROM staging.raw_control_form f WHERE f.id=form_id;
 $$;

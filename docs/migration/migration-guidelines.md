@@ -1,6 +1,6 @@
 # LJVIS 1 → LJVIS 2: administraatori järgmised sammud
 
-**Seis: 25.09.2026.** SQL Serveri backup on saadud ja taastatud eraldi proovikeskkonnas.
+**Seis: 02.10.2026.** SQL Serveri backup on saadud ja taastatud eraldi proovikeskkonnas.
 Varasemaid Q0–Q19 SQL-päringuid **ei ole vaja administraatoril käsitsi käivitada**:
 arendus käivitas need taastatud baasil. Tulemused ja andmeid sisaldavad logid jäävad
 piiratud ligipääsuga proovikeskkonda.
@@ -9,9 +9,13 @@ piiratud ligipääsuga proovikeskkonda.
 
 Ajapiir on **viimased kolm aastat** kokkulepitud ülemineku kuupäevast; täpne
 kuupäev fikseeritakse `.env` failis (`CUTOFF`) ja seda ei muudeta jooksu ajal.
-SQL Serverist valitakse `ControlForm.CreatedDate` järgi vormid staatusega
-`Confirmed` ja `Published`. Sama kontrolli ülejäänud osad loetakse kontekstina,
-kuid need ei satu selle tõttu migreeritavate hulka.
+Kinnitatud valikureegel: viimase kolme aasta kontrollide juurde kaasatakse ka
+sama kontrolli vanemad `Confirmed` ja `Published` osad. `Saved` mustandeid
+**ei migreerita**, ka siis, kui need sisaldavad andmeid või kuuluvad kaasatud kontrolli.
+
+Algvalik kasutab nüüd `ControlledDate` välja. Sama kontrolli vanemad
+kinnitatud/avaldatud osad kaasatakse; põhjus on `disposition.inclusion_basis` väljas.
+Puuduvat kontrollkuupäeva ei asendata loomiskuupäevaga.
 
 Iga vormi kaasamise või väljajätmise põhjus on jooksu `disposition.csv` failis.
 Mahud sõltuvad andmebaasist: testkoopia arvud ei ennusta LIVE-i.
@@ -25,17 +29,38 @@ Rikkumiste ja puuduste vastenduste hetkeseis on eraldi arendusdokumendis
 [violation-mapping-status.md](violation-mapping-status.md). Administraatoril ei ole
 seda migratsiooni käivitamiseks vaja: puudulik vastendus kajastub jooksu aruandes.
 
+## Kinnitatud otsused ja teostamata tööd
+
+- Mustandid jäetakse välja; seotud kontrolli vanemad kinnitatud/avaldatud osad kaasatakse.
+- Vana auditi sisu ja eraldi ajaloo vaade on ulatusest eemaldatud (02.10.2026). Migreeritakse vormide vajalikud äriandmed.
+- Puuduva täpse vastega vanad rikkumised lisatakse ajalooliste klassifikaatoriväärtustena
+  (`old-classifiers` migratsioonikomplekt). Need peavad vanal vormil nähtavad olema,
+  kuid uue vormi valikus mitteaktiivsed. Säilitada algne kood, nimetus ja eristatav tähendus;
+  määrata `valid_from`/`valid_until`. Teadmata ajaloolist kehtivust ei esitata tõendatud
+  õigusliku kehtivusajana. Klassifikaatorikomplekt on lisatud Liquibase’i: [old-classifiers.md](old-classifiers.md). Vormide rikkumisväljade seosed ja kuvamine vajavad veel teostust; eraldi algandmete arhiivi ei looda.
+- Algset vorminumbrit ei muudeta taustateenuse suurendatud `FormVersion` järgi.
+
+### Konkreetsete probleemvormide ülevaatus
+
+Käivitada [01-problem-forms.sql](client-review/01-problem-forms.sql) tervikuna LJVIS1 SQL Serveris. Määrata `@AsOf` kokkulepitud ülemineku kuupäevaks; arvutatud ajapiir peab kattuma ETL-i `CUTOFF` väärtusega.
+
+[Lihtne juhend](client-review/README.md) selgitab nelja tulemusetabelit ja kliendi otsuseid. Iga juhtumi kohta saab arvu ning vormi numbri, tüübi, staatuse, kontrollkuupäeva ja tehnilise ID. Sama kontrolli osad väljastatakse eraldi kontekstina.
+
+Klient märgib iga vajaliku vormi kohta **MIGREERI / EI_MIGREERI / SELGITADA**, põhjuse, otsustaja ja kuupäeva. Probleemi leidmine ei tähenda luba andmeid välja jätta. Otsused ei rakendu ETL-is automaatselt.
+
+Päring on kontrollitud taastatud testkoopial ja sünteetilises baasis. LIVE-i probleemvormide arv selgub selle päringu käivitamisel; testkoopia arvud ei kirjelda LIVE-i.
+
 ## Mida haldurilt ja andmeomanikult veel vaja on
 
 | Vajalik sisend või otsus | Miks |
 |---|---|
-| Maskeerimata lähtekoopia lõplikuks üleminekuks | Andmetes on `*********` maskid. Hea maine sünnikuupäeva ei saa neist taastada; kuupäevade asendamine ei ole heaks kiidetud |
+| RavenDB ja failide olemasolu ning ligipääs | SQL-koopia on olemas; allpool nimetatud lisallikad pole veel üle antud. LJVIS1 tahtlikult maskeeritud andmeid ei taastata automaatselt |
 | RavenDB backup/eksport või halduri selgesõnaline kinnitus, et tööinspektsiooni akte ei ole | SQL `.bak` ei sisalda eraldi RavenDB andmeid. Ligipääsu või faili puudumine ei tõenda aktide puudumist |
 | `Paths.FormDocuments` failikataloog koos säilitatud kaustastruktuuriga või kokkulepitud loetav arhiiv | Vormidel on viide failikaustale, kuid failide nimekirja andmebaasis ei ole; ilma kataloogita ei saa kontrollida failide olemasolu ega neid üle kanda |
 | Kehtiva `Control`-seoseta SP-vormide käsitlus | Sellised vormid säilivad eraldi koondkontrollina; lõplik seos vajab kinnitust või lähteandmete parandust. Leiud on `finding.csv` failis |
-| Eri staatustega osadest koosnevate kontrollide käsitlus | Osa sama kontrolli vorme jääb staatusereegli tõttu välja. Kinnitada valitud osade ja koondvormi lõppolek |
+| Korduvate vorminumbrite ja puuduvate seoste kontroll | Käivitada [ülevaatuse SQL](client-review/01-problem-forms.sql) ning täita otsused [juhendi järgi](client-review/README.md) |
 | Põlvkonnata `soidumeerik=arukas` väärtuste käsitlus | `arukas-2` viiakse `smart_2` alla; ilma numbrita vana väärtuse põlvkonda ei oletata |
-| Vanade rikkumiste, tehniliste puuduste ja ADR-/katkestamisandmete lõplik vastendus | Osa lähteandmeid säilib praegu tõendusandmetes, kuid ei ole veel rakenduse vastavates äriväljades. Vastenduse koostab arendus, tähenduse kinnitab valdkonna omanik |
+| Vanade rikkumiste, tehniliste puuduste ja ADR-/katkestamisandmete lõplik vastendus | Osa lähteandmeid säilib praegu tõendusandmetes, kuid ei ole veel rakenduse vastavates äriväljades. Vastenduse koostab arendus. Puuduva sobiva klassifikaatori korral lisatakse mitteaktiivne ajalooline väärtus; puuduv kirjeldus täpsustatakse hiljem ega vaja enne migratsiooni kliendi kinnitust |
 
 Konkreetsete vormide tunnused on privaatsetes `finding.csv` / `quality_report.csv`
 aruannetes. Isikuandmeid ega tervet backup'i ei lisata Git'i, piletisse või avalikku kirja.
@@ -94,3 +119,9 @@ rikkumiste ja manuste vastuvõtt. Leppida kokku allikate ühine ajahetk, ajavö�
 hooldusaken, sihtbaasi varundus/taastamine, välisteadete peatamine ning staging'u,
 logide ja backup'ide säilitamise tähtaeg. Lõplik käik tehakse puhtale kinnitatud sihile
 README tavakäsuga `./run.sh`, ilma `--rehearsal` ja `--sql-only` lippudeta.
+
+## Enne lõplikku üleminekut
+
+Enne üleminekut tuleb lahendada ülal loetletud sisendid ja otsused ning lõpetada
+rikkumiste ja teiste äriväljade vastendus. Proovijooksu terviklikkuse kontroll
+ei tähenda täielikku kasutajaliidese ega äriandmete vastuvõttu.

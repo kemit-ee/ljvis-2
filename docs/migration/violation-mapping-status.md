@@ -64,3 +64,10 @@ Kaks avatud vastenduste faili ei tähenda „kõik tuleb administraatoril ära a
 põhjus näitavad, kas vaja on arenduse sihtmudeli parandust, uuema LJVIS1 versiooni
 lähtekoodi või andmeomaniku otsust. **Ühtegi avatud rida ei ole lubatud vaikimisi
 välja jätta.** Allikaviited `Ljvis/...` viitavad üle antud vana rakenduse lähtepuule.
+
+## Ajalooliste väärtuste Liquibase-komplekt
+
+[old-classifiers.md](old-classifiers.md): 42 avatud algvõtit on lisatud eraldi
+mitteaktiivse klassifikaatorina `LJVIS1_OLD_VIOLATION`. See ei kinnita nende
+standardvastendust. Eraldi algandmete arhiivi ei looda;
+vormide kuvamine ja standardsete rikkumisväljade ETL ei ole veel valmis.
