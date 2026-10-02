@@ -47,8 +47,8 @@ testitüüp ja tõend:
 
 ### 2.2 Väljaspool ulatust
 
-- **Koormus- ja jõudlustestimine** — eraldi koormusteste ei ole tehtud; jõudlust
-  on hinnatud arenduse käigus päringute ja indeksite tasemel.
+- **Koormus- ja jõudlustestimine** — ei kuulu funktsionaalse testikomplekti (Playwright/Newman) alla;
+  see on eraldi komplekt: [jõudlustestid](joudlustestid.md) (k6, `tests/performance/`).
 - **Väliste süsteemide endi testimine** (RR, äriregister, liiklusregister, MTR,
   eToimik, ERRU Hub, Postkast) — testitakse LJVIS2 liidestust nende mockide või
   testkeskkondade vastu, mitte väliste süsteemide käitumist.
@@ -236,4 +236,4 @@ testilood ja testkeskkond.
 | Grawlr DAST ei käivitu GitHub CI-s | dünaamiline turvaskann jääb CI-s tegemata | sihtmärk on Grawlris registreeritud, kuid teenus vajab avalikult ligipääsetavat, võtmega kaitstud ja **püsiva aadressiga** sihtmärki; CI-pinu aadress muutub igal jooksul. Lahendus: skann suunata püsivale testkeskkonnale |
 | ZAP baseline ei salvestanud HTML-raportit (konteineri kasutajal puudus kausta kirjutusõigus) | **pseudoprobleem**: skann ise jookseb ja annab tulemuse (CI logis FAIL/WARN/PASS koond), puudus ainult artefakt `zap-report` | parandatud: CI annab enne skanni kaustale kirjutusõiguse (`chmod 777 zap-reports`) |
 | Väliste süsteemide testkeskkondade kättesaadavus | integratsioonitestid jooksevad CI-s mockide vastu | päris testteenuste vastu on X-tee päringud käsitsi kontrollitud dev keskkonnas (UI kaudu ja KeMIT-i dev turvaserveri kaudu, §5.4) |
-| Koormustestid puuduvad | jõudlus suurte andmemahtude korral kinnitamata | vt §2.2 |
+| Koormustestid on kirjutatud, kuid jooksutamata | jõudlus suurte andmemahtude korral kinnitamata | [joudlustestid.md](joudlustestid.md) |

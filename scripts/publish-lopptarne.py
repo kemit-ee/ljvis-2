@@ -359,6 +359,77 @@ def build_page():
 </table>
 """)
 
+    # ── Hanke nõuete täitmine (lisadokumendid, alamlehed) ─────────────────────
+    from lopptarne_lehed import title as _t
+    def cl(path, text):
+        return confluence_link(_t(path), text)
+    sections.append(f"""
+<h1>Hanke nõuete täitmine: lisadokumendid</h1>
+<p>
+  Allolev tabel seob hanke nõuded (HD4) selle lehe alamlehtedega. Iga alamleht on koostatud repositooriumi
+  dokumendist; viimane tõene versioon on GitHubis. <strong>Seis</strong> näitab ausalt, mis on valmis ja mis
+  tegemata.
+</p>
+<table>
+  <colgroup><col /><col /><col /><col /></colgroup>
+  <thead>
+    <tr><th>Nõue</th><th>Dokument</th><th>Seis</th><th>Repositoorium</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Migratsioon</strong> (HD4 Lisa 6 p.10): strateegia, kaardistus, ETL, kvaliteet, raportid</td>
+      <td>{cl("docs/migration/README.md", "Migratsiooni sisukord")}<br />
+          {cl("docs/migration/01-migratsioonistrateegia.md", "Strateegia (cutover/rollback)")}<br />
+          {cl("docs/migration/02-andmekaardistus.md", "Andmekaardistus ja transformatsioonireeglid")}<br />
+          {cl("docs/migration/03-andmekvaliteet.md", "Kvaliteedikriteeriumid ja raportid")}<br />
+          {cl("docs/migration/04-migratsioonitesti-raport.md", "Migratsioonitesti raport")}<br />
+          {cl("docs/migration/05-lopliku-migratsiooni-raport.md", "Lõpliku migratsiooni raporti mall")}</td>
+      <td>Dokumendid valmis; ETL olemas, tootmisjooks blokeeritud avatud vastenduste tõttu. <strong>Avatud: ajapiir 3 vs 5 aastat.</strong> Testi- ja lõppraport täidetakse jooksude järel.</td>
+      <td>{gh_link("docs/migration/README.md", "docs/migration")}, {gh_link("DSL/migration/README.md", "DSL/migration")}</td>
+    </tr>
+    <tr>
+      <td><strong>Arhiveerimine</strong>: protsessid, reeglid, juhend</td>
+      <td>{cl("docs/admin-guide/13-arhiveerimine.md", "Arhiveerimine (juhend)")}</td>
+      <td>Ajapõhine arhiveerimine valmis, vaikimisi välja lülitatud; aastad, kustutamise valik (jah/ei) ja kuivjooks seadistatavad CronManageri failis. Kustutatud vormide arhiveerimine (ADR-010) on inertne kuni aktiveerimiseni.</td>
+      <td>{gh_link("docs/admin-guide/13-arhiveerimine.md")}</td>
+    </tr>
+    <tr>
+      <td><strong>Jõudlus / koormus</strong> (HD4 Lisa 6 p.7)</td>
+      <td>{cl("docs/testimine/joudlustestid.md", "Jõudlus- ja koormustestid")}</td>
+      <td>Stsenaariumid, skriptid (k6) ja raporti genereerija valmis; <strong>testid jooksutamata</strong>, sihid Tellijaga kinnitamata.</td>
+      <td>{gh_link("tests/performance/run.sh", "tests/performance")}</td>
+    </tr>
+    <tr>
+      <td><strong>Turve</strong> (HD4 Lisa 6 p.8): parandusraport + kordustõend</td>
+      <td>{cl("docs/testimine/turvaparandused.md", "Turvaparanduste raport ja kordustõend")}</td>
+      <td>Sisemised turvakontrollid ja parandused dokumenteeritud; välist turvatesti pole veel tehtud, leidude ja kordustõendi osad on mall.</td>
+      <td>{gh_link("docs/testimine/turvaparandused.md")}</td>
+    </tr>
+    <tr>
+      <td><strong>Integratsioonid</strong> (HD4 Lisa 6 p.9): liides, testid ja veahaldus, versioonimine</td>
+      <td>{cl("docs/integrations/integratsioonid.md", "Integratsioonide ülevaade")}<br />
+          {cl("docs/integrations/mall.md", "Kirjelduse mall")}<br />
+          {cl("docs/integrations/versioonimine.md", "Versioonimise põhimõtted")}</td>
+      <td>Seitse integratsioonikaarti ja mall valmis; versioonimise väljasuremistähtaeg on ettepanek Tellijale.</td>
+      <td>{gh_link("docs/integrations/integratsioonid.md", "docs/integrations")}</td>
+    </tr>
+    <tr>
+      <td><strong>Teavitused ja Postkast 2.0</strong>: spetsifikatsioon ja administraatori juhend</td>
+      <td>{cl("docs/specs/teavitused-spetsifikatsioon.md", "Teavituste spetsifikatsioon")}<br />{gh_link("docs/admin-guide/09-teavitused.md", "Administraatori juhend")}</td>
+      <td>Valmis. Lahtine: <code>labor_kabotage</code> päästik puudub.</td>
+      <td>{gh_link("docs/specs/teavitused-spetsifikatsioon.md")}</td>
+    </tr>
+    <tr>
+      <td><strong>DB skeemid, ER</strong></td>
+      <td>{cl("docs/architecture/andmemudel-erd.md", "Andmemudel (ER-skeem ja seosed)")}<br />
+          {cl("docs/architecture/andmemudel-skeem.md", "Andmebaasi skeem (genereeritud)")}</td>
+      <td>Valmis; skeemidokument genereeritakse Liquibase'ist ja CI kontrollib aktuaalsust.</td>
+      <td>{gh_link("docs/architecture/andmemudel-erd.md", "docs/architecture")}</td>
+    </tr>
+  </tbody>
+</table>
+""")
+
     # ── Süsteemi ülevaade ─────────────────────────────────────────────────────
     sections.append(f"""
 <h1>Süsteemi ülevaade</h1>
@@ -557,7 +628,8 @@ def build_page():
     plaan on üle minna Rust Ruuterile. Vt {gh_link("docs/workingdocs/rust-services-upgrade-plan.md", "rust-services-upgrade-plan.md")}.
   </li>
   <li>
-    <strong>Arhiiviandmebaas (ADR-010)</strong> — kustutatud kontrollvormide arhiveerimise eraldi andmebaas on arhitektuuris kavandatud aga veel täielikult implementeerimata.
+    <strong>Arhiveerimine (ADR-010, ADR-012)</strong> — kustutatud vormide arhiivi cron on inertne kuni aktiveerimiseni;
+    ajapõhine arhiveerimine on vaikimisi väljas. Sisselülitamine: <a href="{GH_BASE}/docs/admin-guide/13-arhiveerimine.md">arhiveerimise juhend</a>.
   </li>
 </ul>
 """)

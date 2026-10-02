@@ -4,6 +4,21 @@
 
 ## 2026-10-03
 
+### Ajapõhine arhiveerimine (lihtsalt sisse-/väljalülitatav)
+
+- Uus funktsioon: vormid, mille viimasest tegevusest on möödas seadistatav arv aastaid (vähemalt 3), kopeeritakse eraldi arhiivibaasi.
+- Funktsioon on **vaikimisi välja lülitatud**. Seaded (`enabled`, `retentionYears`, `purge`, `batch`, `dryRun`) on ühes kohas:
+  `DSL/CronManager/archive-aged-forms.yaml`.
+- Valik, kas pärast arhiveerimist kustutatakse kirje töö-baasist (`purge`, vaikimisi ei kustutata). Kustutatakse ainult siis, kui arhiivibaas on iga rea olemasolu eraldi kinnitanud.
+- Koondvorm ja selle alamvormid arhiveeritakse koos; vormi ajalugu jääb loetavaks ka pärast arhiveerimist.
+- Juhend: `docs/admin-guide/13-arhiveerimine.md`; otsus ADR-012.
+
+### Dokumentatsioon
+
+- Migratsioon: strateegia (cutover/rollback), andmekaardistus, kvaliteedikriteeriumid, testi- ja lõppraporti mall.
+- Jõudlus- ja koormustestid (k6) ning nende kirjeldus; turvaparanduste raport.
+- Integratsioonide ülevaade, mall ja versioonimise põhimõtted; teavituste spetsifikatsioon; andmemudeli ER-skeem.
+
 ### Tehnokaardi raskusastmed (punktid 7–9)
 
 - Punktid 7.9 „Sõidumeerik“, 7.11 „Läbisõidumõõdik“, 8.2.1.2, 8.2.2.1 ja 8.2.2.2: valitav raskusaste on ainult OV.
