@@ -4,6 +4,10 @@
 
 ## 2026-10-03
 
+### Postkasti päringu keeleväli
+
+- Postkast 2.0 päringus saadetakse alati `notification_language: "ET"` (varem `language` kutsuja või liigi vaikekeelega). LJVIS-i enda logis jääb keel endiselt väiketähtedega.
+
 ### Tehnokaardi raskusastmed (punktid 7–9)
 
 - Punktid 7.9 „Sõidumeerik“, 7.11 „Läbisõidumõõdik“, 8.2.1.2, 8.2.2.1 ja 8.2.2.2: valitav raskusaste on ainult OV.
