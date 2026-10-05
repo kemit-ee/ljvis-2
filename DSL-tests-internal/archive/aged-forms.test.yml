@@ -9,6 +9,8 @@ tests:
   request:
     method: POST
     path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
   expect:
     status: 200
     body:
@@ -26,6 +28,8 @@ tests:
   request:
     method: POST
     path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
     query:
       enabled: 'true'
       retentionYears: '1'
@@ -68,6 +72,8 @@ tests:
   request:
     method: POST
     path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
     query:
       enabled: 'true'
       retentionYears: '7'
@@ -122,6 +128,8 @@ tests:
   request:
     method: POST
     path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
     query:
       enabled: 'true'
       retentionYears: '7'
@@ -176,6 +184,8 @@ tests:
   request:
     method: POST
     path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
     query:
       enabled: 'true'
       purge: 'true'
@@ -210,6 +220,8 @@ tests:
   request:
     method: POST
     path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
     query:
       enabled: 'true'
       purge: 'true'

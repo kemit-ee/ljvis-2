@@ -65,6 +65,7 @@ callSendPostkast:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: ${original_log.notificationType}
