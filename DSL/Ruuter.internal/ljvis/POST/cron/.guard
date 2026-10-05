@@ -1,0 +1,13 @@
+# CronManager'i ajastatud tööd (`type: http`) ei oska päiseid saata, seega `/cron/*` ei nõua
+# projektijuure `x-internal-service-token` päist.
+#
+# override_ancestors: true — kaitse on võrgutasemel: ruuter-internal'i NetworkPolicy lubab sissetuleva
+# liikluse ainult teadaolevatelt podidelt ja host-porti ei publitseerita. Kui CronManager hakkab
+# http-töödele päiseid toetama (turnerrainer/CronManager), võta see erand ära.
+declaration:
+  override_ancestors: true
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
