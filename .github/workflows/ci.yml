@@ -78,7 +78,7 @@ jobs:
         run: |
           pip3 install pyyaml -q
           python3 tests/contract/check_resql_append_only.py
-          python3 -B -m unittest tests/contract/test_resql_append_only.py
+          python3 -B -m unittest discover -s tests/contract -p 'test_resql_append_only.py'
 
       - name: Validate Ruuter YAML files
         run: |

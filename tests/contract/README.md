@@ -40,7 +40,7 @@ Guards (`*.guard.yml`) are exempt from the allowlist rule: they are allow-all or
 
 ```sh
 python3 tests/contract/check_resql_append_only.py
-python3 -B -m unittest tests/contract/test_resql_append_only.py
+python3 -B -m unittest discover -s tests/contract -p test_resql_append_only.py
 ```
 
 The only exemption is the retention-purge `DELETE` (`DSL/Resql/ljvis/POST/archive/purge_confirmed.sql`), listed with a rationale in `.sql-rule-exemption`. An entry must sit under an `archive/` directory, may contain nothing but that `DELETE`, and fails CI when it no longer matches a violation. The 3-step contract (select and copy, verify in the archive, delete) is in ADR-013.
