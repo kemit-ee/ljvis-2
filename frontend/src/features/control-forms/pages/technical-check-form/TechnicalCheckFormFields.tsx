@@ -23,7 +23,7 @@ import { DefectsResultsTable } from './DefectsResultsTable';
 import { DefectSelectionModal } from './DefectSelectionModal';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { useAuth } from '../../../auth/AuthContext';
-import { canViewProceedingOutcome, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 interface TechnicalCheckFormFieldsProps {
   variant: TechnicalCheckVariant;
@@ -580,8 +580,6 @@ export function TechnicalCheckFormFields({
               onSelect={() => {}}
               readOnly
             />
-            {canViewProceedingOutcome(values.status, hasPermission(PUNISHMENT_REGISTER_PERMISSION)) && (
-            <>
             <TextArea
               id={`${idPrefix}-enforcementDecision`}
               label={t('forms.technical_check.xroad.enforcementDecision')}
@@ -596,8 +594,6 @@ export function TechnicalCheckFormFields({
               onChange={(value) => formik.setFieldValue('proceedingClosureBasis', value)}
               disabled={!canEditProceedingOutcome}
             />
-            </>
-            )}
           </Card.Content>
         </Card>
       )}
