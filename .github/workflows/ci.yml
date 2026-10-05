@@ -65,6 +65,11 @@ jobs:
       - name: Database schema document and ERD are in sync with Liquibase
         run: python3 scripts/generate-erd.py --check
 
+      - name: Template calls only send body keys and headers the target declares
+        run: |
+          pip3 install pyyaml -q
+          python3 scripts/check-template-call-contract.py
+
       - name: Validate Ruuter YAML files
         run: |
           pip3 install pyyaml -q

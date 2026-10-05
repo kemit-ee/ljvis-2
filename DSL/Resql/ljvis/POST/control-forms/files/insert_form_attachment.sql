@@ -10,6 +10,10 @@ params:
     type: string
     required: false
     description: Original file name
+  form_number_prefix:
+    type: string
+    required: false
+    description: Server-known form number prefix of the form type (e.g. vr-). The insert is refused unless form_number starts with it.
   s3_key:
     type: string
     required: false
@@ -42,5 +46,7 @@ returns:
   nullable: true
 */
 INSERT INTO forms.form_attachment (form_number, file_name, s3_key, status, created_by)
-VALUES (:form_number, :file_name, :s3_key, 'active', :created_by)
+SELECT :form_number, :file_name, :s3_key, 'active', :created_by
+WHERE btrim(COALESCE(:form_number_prefix, '')) <> ''
+  AND :form_number LIKE :form_number_prefix || '%'
 RETURNING id, form_number, file_name, s3_key, status, created_at, created_by;

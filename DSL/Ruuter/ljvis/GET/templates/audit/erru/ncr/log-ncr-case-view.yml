@@ -4,6 +4,7 @@ declaration:
     shows transport undertaking and handler personal data. Description carries the case
     identifier, the number of snapshots shown and the acting handler's personal code."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -12,10 +13,6 @@ declaration:
       - field: business_case_id
         type: string
       - field: message_count
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

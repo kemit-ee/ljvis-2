@@ -394,8 +394,6 @@ logAuditEvent:
   body:
     event_type: "control_form.tram_control_card.confirm"
     event_category: "control_form_management"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: "TRAM kontrollkaart kinnitatud, number=${confirmRes.response.body[0].formNumber}/${confirmRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${confirmRes.response.body[0].id},\"formNumber\":\"${confirmRes.response.body[0].formNumber}\",\"oldStatus\":\"${current_status}\",\"newStatus\":\"confirmed\"}"
   result: audit_result

@@ -3,16 +3,13 @@ declaration:
   version: "1.0"
   description: "Audit: foreign violation form view event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
         type: string
     body:
       - field: form_number
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

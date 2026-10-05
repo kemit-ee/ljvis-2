@@ -82,8 +82,6 @@ logAuditEvent:
   body:
     event_type: "user_group.view"
     event_category: "user_group_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${view_description}
     log_content: ${log_content}
   result: audit_result

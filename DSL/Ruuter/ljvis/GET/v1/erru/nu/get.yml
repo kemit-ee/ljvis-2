@@ -75,8 +75,6 @@ logAuditEvent:
     status: ${status}
     snapshot_id: "${'' + res.response.body[0].snapshotId}"
     snapshot_version: "${'' + res.response.body[0].version}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: getHistory
 
