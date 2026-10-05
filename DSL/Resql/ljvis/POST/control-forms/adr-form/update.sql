@@ -102,7 +102,7 @@ returns:
 */
 WITH latest AS (
   SELECT compound_form_key, sub_form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          enforcement_decision, proceeding_closure_basis
   FROM forms.adr_form
   WHERE adr_form_key = :key::BIGINT
@@ -114,6 +114,7 @@ INSERT INTO forms.adr_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   driver_assistant,
   driver_adr_certificate_number,
@@ -149,6 +150,7 @@ SELECT
   latest.compound_form_key,
   latest.sub_form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   NULLIF(:driverAssistant, '')::jsonb,
   NULLIF(:driverAdrCertificateNumber, ''),

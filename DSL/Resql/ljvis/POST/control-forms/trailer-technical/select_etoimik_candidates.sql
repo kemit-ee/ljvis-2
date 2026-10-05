@@ -31,24 +31,24 @@ WITH latest_ttf AS (
   FROM forms.trailer_technical_form
   ORDER BY trailer_technical_form_key, created_at DESC
 ),
-latest_cf AS (
-  SELECT DISTINCT ON (compound_form_key)
-      compound_form_key,
-      drivers,
-      authority
-  FROM forms.compound_form
-  ORDER BY compound_form_key, created_at DESC
+cand AS (
+  SELECT t.id, t.compound_form_key, t.proceeding_reference_number
+  FROM latest_ttf t
+  WHERE t.status = 'confirmed'
+    AND t.proceeding_type IS NOT NULL AND t.proceeding_type <> 'none'
+    AND btrim(coalesce(t.proceeding_reference_number, '')) <> ''
+    AND t.enforcement_decision IS NULL
+    AND t.created_at >= now() - INTERVAL '365 days'
+),
+resolved AS (
+  SELECT cand.id, cand.proceeding_reference_number,
+         (SELECT c FROM forms.compound_form c WHERE c.compound_form_key = cand.compound_form_key ORDER BY c.created_at DESC LIMIT 1) AS cf
+  FROM cand
 )
 SELECT
-  t.id,
-  t.proceeding_reference_number,
-  (COALESCE(c.drivers -> 0 ->> 'personalCodeEe', c.drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
-FROM latest_ttf t
-JOIN latest_cf c ON c.compound_form_key = t.compound_form_key
-WHERE t.status = 'confirmed'
-  AND c.authority = 'PPA'
-  AND t.proceeding_type IS NOT NULL AND t.proceeding_type <> 'none'
-  AND btrim(coalesce(t.proceeding_reference_number, '')) <> ''
-  AND t.enforcement_decision IS NULL
-  AND btrim(coalesce(COALESCE(c.drivers -> 0 ->> 'personalCodeEe', c.drivers -> 0 ->> 'personal_code_ee'), '')) <> ''
-  AND t.created_at >= now() - INTERVAL '365 days';
+  id,
+  proceeding_reference_number,
+  (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
+FROM resolved
+WHERE (cf).authority = 'PPA'
+  AND btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee'), '')) <> '';

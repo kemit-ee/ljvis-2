@@ -2,6 +2,12 @@
 -- Käsitsi käivitatav — jooksuta PÄRAST seed_test_data.sql-i.
 -- Idempotentne: fikseeritud UUID-d + WHERE NOT EXISTS.
 --
+-- Ajad on ankurdatud KALENDRIPÄEVALE, mitte `now()`-le: leht filtreerib vaikimisi päevade "eile–täna"
+-- järgi (kuupäevad brauseri Europe/Tallinn ajavööndis, serveris tõlgendatud UTC kesköö piiridena).
+-- `now() - INTERVAL '1 day 4 hours'` kukkus kella 21–04 UTC vahel jooksvas CI-s vaikeaknast välja.
+-- Siin on read Tallinna "täna"/"eile" kuupäeva keskpäeva ümber (UTC 07:00–12:00), nii et nad jäävad
+-- aknasse igal kellaajal; 10 päeva tagune rida (12:00 UTC) jääb alati väljapoole.
+--
 -- Lisab xroad.xroad_integration_log tabelisse 6 kirjet:
 --   2x result_status='found'     (created_at täna/eile — vaikefiltri sisse)
 --   2x result_status='not_found' (created_at täna/eile — vaikefiltri sisse)
@@ -32,7 +38,7 @@ BEGIN
     '{"reference_number":"2026-VT-001","personal_code":"39001010001"}',
     '{"case_number":"2026-VT-001","decisions":["Rahatrahv (100 EUR)"]}',
     842, true, NULL, 'found', '39001010001',
-    'compound_form', '95002001', now() - INTERVAL '3 hours'
+    'compound_form', '95002001', (((now() AT TIME ZONE 'Europe/Tallinn')::date) + TIME '09:00') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000001'::UUID
@@ -49,7 +55,7 @@ BEGIN
     '{"reference_number":"2026-VT-002","personal_code":"38505050002"}',
     '{"case_number":"2026-VT-002","decisions":["Sõidukeeld (30 päeva)"]}',
     655, true, NULL, 'found', '38505050002',
-    'sp_driver_form', '95002101', now() - INTERVAL '1 day' - INTERVAL '2 hours'
+    'sp_driver_form', '95002101', (((now() AT TIME ZONE 'Europe/Tallinn')::date - 1) + TIME '10:00') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000002'::UUID
@@ -66,7 +72,7 @@ BEGIN
     '{"reference_number":"2026-VT-003","personal_code":"39002020003"}',
     'null',
     412, true, NULL, 'not_found', '39002020003',
-    'compound_form', '95002002', now() - INTERVAL '5 hours'
+    'compound_form', '95002002', (((now() AT TIME ZONE 'Europe/Tallinn')::date) + TIME '07:00') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000003'::UUID
@@ -83,7 +89,7 @@ BEGIN
     '{"reference_number":"2026-VT-004","personal_code":"38007070004"}',
     'null',
     398, true, NULL, 'not_found', '38007070004',
-    'tram_control_card', '95002201', now() - INTERVAL '1 day' - INTERVAL '4 hours'
+    'tram_control_card', '95002201', (((now() AT TIME ZONE 'Europe/Tallinn')::date - 1) + TIME '08:00') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000004'::UUID
@@ -100,7 +106,7 @@ BEGIN
     '{"reference_number":"2026-VT-005","personal_code":"39003030005"}',
     '{"faultCode":"Server.ServerProxy.ServiceFailed"}',
     120, false, 'XTR HTTP 500', 'error', '39003030005',
-    'compound_form', '95002003', now() - INTERVAL '1 hour'
+    'compound_form', '95002003', (((now() AT TIME ZONE 'Europe/Tallinn')::date) + TIME '11:00') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000005'::UUID
@@ -118,7 +124,7 @@ BEGIN
     '{"reference_number":"2026-VT-006","personal_code":"39004040006"}',
     '{"case_number":"2026-VT-006","decisions":["Hoiatus"]}',
     701, true, NULL, 'found', '39004040006',
-    'compound_form', '95002004', now() - INTERVAL '10 days'
+    'compound_form', '95002004', (((now() AT TIME ZONE 'Europe/Tallinn')::date - 10) + TIME '12:00') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000006'::UUID

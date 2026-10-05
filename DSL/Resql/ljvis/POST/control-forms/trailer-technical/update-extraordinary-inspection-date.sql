@@ -1,12 +1,12 @@
 /*
-description: 'Write the extraordinary inspection date found via the hourly yvkehtivus sync (LJVIS2-135/58/23,
-  15 ettepanekut p15) onto the latest trailer_technical_form snapshot, in place — mirrors
-  vehicle-technical/update-extraordinary-inspection-date.sql. Scoped to only this one column so this
-  job can never clobber enforcement_decision/proceeding_closure_basis, which come from a separate cron
-  (cron/etoimik-technical-check-decision-sync.yml). Self-guarded (status=''confirmed'' AND
-  extraordinary_inspection_date IS NULL AND the incoming date is non-empty) — makes repeat calls
-  idempotent, and the caller invokes this unconditionally once per candidate even when yvkehtivus found
-  nothing (Ruuter''s iterate step can''t branch on `next:` inside `do:`).'
+description: 'Kirjuta tunniloleva yvkehtivus sünkroonimisega (LJVIS2-135/58/23) leitud erakorralise ülevaatuse
+  kuupäev trailer_technical_form uusimale confirmed snapshot-reale. INSERT-only: lisab uue snapshot-rea (revision
+  + 1, version ja kõik muud väljad kantakse edasi), vana rida jääb ajalukku. Mõjutab ainult extraordinary_inspection_date''i,
+  seega ei saa see kunagi üle kirjutada enforcement_decision/proceeding_closure_basis''it (need tulevad eraldi
+  cron''ist). Isekaitstud (status=''confirmed'' JA extraordinary_inspection_date IS NULL JA sissetulev kuupäev
+  ei ole tühi) — korduvkutse on idempotentne, kutsuja kutsub seda iga kandidaadi kohta tingimusteta (Ruuteri
+  iterate ei saa `do:` sees `next:`-iga hargneda). Peegeldab vehicle-technical/update-extraordinary-inspection-date.sql.
+  created_by = ''system''.'
 namespace: control-forms
 params:
   key:
@@ -28,15 +28,26 @@ returns:
   type: number
   nullable: true
 */
-UPDATE forms.trailer_technical_form t
-SET extraordinary_inspection_date = NULLIF(:extraordinaryInspectionDate, '')::DATE
-WHERE t.id = (
-    SELECT id FROM forms.trailer_technical_form
-    WHERE trailer_technical_form_key = :key::BIGINT
-    ORDER BY created_at DESC
-    LIMIT 1
+WITH latest AS (
+  SELECT *
+  FROM forms.trailer_technical_form
+  WHERE trailer_technical_form_key = :key::BIGINT
+  ORDER BY created_at DESC
+  LIMIT 1
 )
-  AND t.status = 'confirmed'
-  AND t.extraordinary_inspection_date IS NULL
+INSERT INTO forms.trailer_technical_form
+SELECT (jsonb_populate_record(
+    NULL::forms.trailer_technical_form,
+    to_jsonb(l) || jsonb_build_object(
+      'id', nextval('forms.trailer_technical_form_id_seq'),
+      'revision', l.revision + 1,
+      'created_at', now(),
+      'created_by', 'system',
+      'extraordinary_inspection_date', NULLIF(:extraordinaryInspectionDate, '')::DATE
+    )
+)).*
+FROM latest l
+WHERE l.status = 'confirmed'
+  AND l.extraordinary_inspection_date IS NULL
   AND NULLIF(:extraordinaryInspectionDate, '') IS NOT NULL
-RETURNING t.trailer_technical_form_key AS id, t.sub_form_number, t.version;
+RETURNING trailer_technical_form_key AS id, sub_form_number, version;

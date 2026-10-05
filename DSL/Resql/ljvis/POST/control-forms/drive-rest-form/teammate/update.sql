@@ -126,7 +126,7 @@ returns:
 */
 -- Meeskonnaliikme isikuandmed võetakse koondvormi viimasest versioonist (drivers[1]); vormil endal need ei muutu.
 WITH latest AS (
-  SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
+  SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
   FROM forms.sp_teammate_form
   WHERE sp_teammate_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -145,6 +145,7 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   compound_form_key,
                                   sub_form_number,
                                   version,
+                                  revision,
                                   template_version,
                                   status,
                                   selection_status,
@@ -191,6 +192,7 @@ SELECT
         COALESCE(NULLIF(:compoundFormKey::text, ''), l.compound_form_key::text)::BIGINT,
         COALESCE(NULLIF(:subFormNumber, ''), l.sub_form_number),
         l.version,
+        l.revision + 1,
         l.template_version,
         :status,
         NULLIF(:selectionStatus, ''),

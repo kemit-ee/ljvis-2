@@ -10,6 +10,21 @@
 - Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
 - Fail-closed: sidecar ei käivitu, kui võti on seadmata. Varem lasi pdf-creator tühja `PDF_CREATOR_API_KEY` korral kõik kutsed läbi.
 
+### E-toimiku päringu kaart ("Päri e-toimikust") ainult karistusregistri õigusega kasutajale
+
+- Koondvormi (PPA) lehe ülaosas olev kaart „E-toimiku kvalifikatsiooni kontroll“ koos nupuga „Päri e-toimikust“ on nähtav ainult kasutajale, kellel on õigus `control_form.punishment_register`. Varem nägi seda igaüks, kellel oli koondvormi lugemisõigus.
+- Sama kehtib Transpordiameti kontrollkaardi lehel.
+
+### SQL on nüüd ainult INSERT ja SELECT (epic #522)
+
+- Kõik andmebaasi kirjutamised on append-only: ükski Resql-mall ei tee `UPDATE`, `DELETE`, `TRUNCATE` ega `JOIN`-i. Erand on ainult säilitustähtaja järgne kustutamine pärast kontrollitud arhiveerimist (`archive/purge_confirmed.sql`). CI kontrollib seda igal PR-il (`tests/contract/check_resql_append_only.py`, erandite loend `.sql-rule-exemption`).
+- Menetluse tulemuse, X-tee väljade, erakorralise ülevaatuse kuupäeva ja vedaja teavituse lipu salvestamine lisab vormile uue versioonirea; varasem rida jääb ajalukku ja vormi versiooninumber (/V) ei muutu. Versiooniajaloo vaates võib seetõttu ilmuda lisarida (sama versioon, sama staatus).
+- Manuse kustutamine jätab algse rea alles ja lisab kustutusmärke; kustutatud manust ei näidata ega saa alla laadida.
+- Samaaegne salvestamine ei kirjuta enam vaikselt üle: kõigil vormitabelitel on `revision` ja samaaegse topeltkirjutuse korral ebaõnnestub teine päring.
+- Arhiveerimine kustutab töö-baasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
+- ErakorralineYVconfirm uuendab nii kinnitatud kui avalikustatud vormi (uus rida, staatus jääb samaks). Varem muutis see avalikustatud vormi puhul vana kinnitatud rida, mistõttu muudatus ei olnud vormil nähtav.
+- Teavituste logi: Postkast 2.0 staatuse muutused salvestatakse eraldi sündmusena (`notifications.outbound_log_status_event`), `outbound_log` rida ei muutu. Vaates muutust pole.
+
 ### Sisemise ruuteri (ruuter-internal) kaitse teenusetokeniga (#515)
 
 - `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.
@@ -17,6 +32,10 @@
 - CronManager'i ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManager'i konteinerisse tuleb seega mountida sama `constants.ini`.
 - `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
 - Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
+
+### Kasutajaliides ei saada serveripoolselt tuletatavaid välju
+
+Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise sessioonist. Seda hoiab nii CI reegel R8.
 
 ### Selge teade, kui vormi ei saa vaadata
 

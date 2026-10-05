@@ -60,9 +60,8 @@ bounds AS (
 SELECT
     (NOT EXISTS (SELECT 1 FROM breach))                     AS ok,
     bounds.total_checked::INTEGER                           AS checked,
-    breach.event_id                                         AS first_breach_event_id,
-    breach.reason,
+    (SELECT breach.event_id FROM breach)                    AS first_breach_event_id,
+    (SELECT breach.reason FROM breach)                      AS reason,
     bounds.first_event_id                                   AS from_event_id,
     bounds.last_event_id                                    AS to_event_id
-FROM bounds
-LEFT JOIN breach ON true;
+FROM bounds;

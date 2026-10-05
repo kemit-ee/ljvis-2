@@ -72,7 +72,7 @@ returns:
 -- edit_locked gate for confirmed data.
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          enforcement_decision,
          proceeding_closure_basis
   FROM forms.labour_inspection_form
@@ -84,6 +84,7 @@ INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
   version,
+  revision,
   status,
   inspector_name,
   inspection_date,
@@ -107,6 +108,7 @@ SELECT
   :key::BIGINT,
   latest.form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   :inspectorName,
   :inspectionDate::DATE,
