@@ -170,11 +170,13 @@ if (!API_KEY) {
   console.error('[s3-proxy] S3_PROXY_API_KEY must be set');
   process.exit(1);
 }
-const sha256 = (v) => crypto.createHash('sha256').update(v).digest();
-const EXPECTED_AUTH = sha256(`Bearer ${API_KEY}`);
+// HMAC with a per-process random key: equal-length digests for timingSafeEqual (this is not password storage).
+const HMAC_KEY = crypto.randomBytes(32);
+const digest = (v) => crypto.createHmac('sha256', HMAC_KEY).update(v).digest();
+const EXPECTED_AUTH = digest(`Bearer ${API_KEY}`);
 app.use((req, res, next) => {
   if (req.path === '/health') return next();
-  if (!crypto.timingSafeEqual(sha256(req.get('authorization') || ''), EXPECTED_AUTH)) {
+  if (!crypto.timingSafeEqual(digest(req.get('authorization') || ''), EXPECTED_AUTH)) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   next();
