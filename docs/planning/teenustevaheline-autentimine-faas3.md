@@ -36,7 +36,7 @@ mTLS (service mesh), mille valik on devopsi otsus.
    enne XTR-ile edastamist.
 3. **3b:** `docker/authgate/` image, compose/CI (teenused värava taga), TIM-i avalike teede allowlist,
    otsepäringud Resql-ile (Postman/Playwright seemned, port 9087) saavad päise. Mõõta lisahopi jõudlust.
-4. **3c (devops):** sidecar'id Helmis, teenused loopback'ile, NetworkPolicy.
+4. **3c (devops, dokument: `authgate-devops-3c.md`; devops-repo muudatused alustamata)** (devops):** sidecar'id Helmis, teenused loopback'ile, NetworkPolicy.
 5. **3d:** ADR (värav vs mesh), upstream-soovid.
 
 Värav tohib sisse lülitada alles pärast 3a levikut kõigis keskkondades, muidu saavad kõik päringud 401.
