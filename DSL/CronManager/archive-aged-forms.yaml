@@ -18,6 +18,8 @@ archive_aged_forms:
   type: http
   method: POST
   url: "http://ruuter-internal:8080/ljvis/cron/archive-aged-forms?enabled=false&retentionYears=7&purge=false&batch=500&dryRun=false"
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 1
   retryDelay: 60000
   ignoreFailures: true

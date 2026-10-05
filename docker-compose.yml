@@ -351,6 +351,8 @@ services:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
       # Required by CronManager 0.1.4-alpha when binding outside loopback.
       - CRONMANAGER_ADMIN_TOKEN=${CRONMANAGER_ADMIN_TOKEN:-dev-admin-token}
+      # Sent by every http job as x-internal-service-token (headerEnvs in DSL/CronManager/*.yaml).
+      - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
       # No-op on 0.1.4-alpha (no env_safety gate yet), but a future bump to
       # 0.2.1-alpha would otherwise fall back to Production and refuse to
       # boot with the dev-admin-token default above — set ahead of time,

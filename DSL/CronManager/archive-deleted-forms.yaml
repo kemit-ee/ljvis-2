@@ -10,6 +10,8 @@ archive_deleted_forms:
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/archive-deleted-forms
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

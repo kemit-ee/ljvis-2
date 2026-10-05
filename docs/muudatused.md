@@ -4,10 +4,11 @@
 
 ## 2026-10-05
 
-### CronManager'i ajastatud tööd on taas `type: http` (korrigeerib #515)
+### CronManager'i ajastatud tööd saadavad teenusetokeni päisega (korrigeerib #515)
 
-- `/cron/*` route'id ei nõua `x-internal-service-token` päist (`POST/cron/.guard`, `override_ancestors`). Kõik CronManager'i tööd on taas lihtsad `type: http` POST-id; `exec`-skript `call-ruuter-internal.sh` ja CronManager'i `constants.ini` mount on eemaldatud.
-- Kaitse `/cron/*` ees on võrgutasemel (NetworkPolicy lubab `ruuter-internal`'ile ainult teadaolevad podid, host-porti ei publitseerita). Token jääb kõigile teistele `ruuter-internal` route'idele.
+- Kõik CronManager'i tööd on taas lihtsad `type: http` POST-id (varasem `exec`-skript `call-ruuter-internal.sh` ja CronManager'i `constants.ini` mount on eemaldatud). Token läheb päisena `x-internal-service-token` CronManager'i uue `headerEnvs` võimalusega: väärtus loetakse CronManager'i keskkonnamuutujast `INTERNAL_COMMUNICATION_KEY` iga käivituse ajal.
+- **Eeldab CronManager'i versiooni, mis toetab `headerEnvs`-i** (turnerrainer/CronManager#40). Vana versiooni peal jäetakse tööfailid tundmatu välja tõttu vahele (0 tööd), seega pildi versiooni tõstmine peab minema koos selle muudatusega.
+- CronManager'i konteinerile tuleb anda keskkonnamuutuja `INTERNAL_COMMUNICATION_KEY` (devops: ExternalSecret `cronmanager-secret`, SSM `internal/communication-key`); väärtus peab ühtima `constants.ini` omaga.
 
 ### Sisemise ruuteri (ruuter-internal) kaitse teenusetokeniga (#515)
 
