@@ -55,13 +55,23 @@ page AS (
     OFFSET COALESCE(:offset::INTEGER, 0)
     LIMIT  COALESCE(:limit::INTEGER, 1000)
 )
-SELECT
-    (SELECT COUNT(*) FROM filtered)                                          AS total_usages,
-    to_char(page.logtime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')  AS logtime,
-    page.action,
-    page.receiver_code,
-    page.receiver_name,
-    page.receiver_system
-FROM (SELECT 1) AS always_one_row
-LEFT JOIN page ON TRUE
-ORDER BY page.logtime DESC NULLS LAST, page.id DESC;
+-- Alati vähemalt üks rida: tühja lehe korral tagastatakse ainult total_usages (UNION ALL, mitte LEFT JOIN)
+SELECT total_usages, logtime, action, receiver_code, receiver_name, receiver_system
+FROM (
+    SELECT
+        (SELECT COUNT(*) FROM filtered)                                          AS total_usages,
+        to_char(page.logtime AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')  AS logtime,
+        page.action,
+        page.receiver_code,
+        page.receiver_name,
+        page.receiver_system,
+        page.logtime AS sort_logtime,
+        page.id      AS sort_id
+    FROM page
+    UNION ALL
+    SELECT
+        (SELECT COUNT(*) FROM filtered),
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    WHERE NOT EXISTS (SELECT 1 FROM page)
+) result
+ORDER BY sort_logtime DESC NULLS LAST, sort_id DESC;
