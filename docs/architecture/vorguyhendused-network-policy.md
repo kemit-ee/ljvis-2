@@ -172,7 +172,7 @@ Kõigil podidel lisaks: **DNS → `kube-system/kube-dns` UDP+TCP 53** (`stesta-g
 | `s3-proxy` | S3 `s3.eu-north-1.amazonaws.com` | 443 | soovitavalt S3 Gateway VPC endpoint (prefix list `com.amazonaws.eu-north-1.s3`) |
 | `ruuter` | `webgate.acceptance.ec.testa.eu` | 443 | ERRU/RSI väljaminev MOVEHUB (`additionalAllowedUrls` kõigis kolmes keskkonnas). sTESTA võrk — kontrollida, kas marsruut käib üle avaliku interneti või sTESTA ühenduse |
 | `ruuter-internal` | `webgate.acceptance.ec.testa.eu` | 443 | **tingimuslik**: NCR autodispatch cron (`cron/erru-ncr-autodispatch.yml`) kasutab `ERRU_NCR_ENDPOINT`-i. Kui SSM-i `constants.ini` suunab selle webgate'i (mitte XTR-i/mock'i), vajab ka `ruuter-internal` seda egressi **ja** `additionalAllowedUrls` kirjet — praegu seal pole |
-| `ruuter` | `urien.ml.ee` | 443 | **ainult allowlistis, tegelikult ei kasutata** — `XROAD_SECURITY_SERVER` on deprecated, RR/Postkast käivad XTR-i kaudu. Vt p 7 |
+| `ruuter` | `urien.ml.ee` | 443 | **eemaldatud** allowlistist — X-tee ainult `xtr` kaudu |
 | `frontend`, `data-mapper`, `nysiis`, `pdf-creator`, `cronmanager`, `stesta-gateway` | — | — | välist egressi ei vaja |
 
 ---
@@ -189,7 +189,8 @@ Kõigil podidel lisaks: **DNS → `kube-system/kube-dns` UDP+TCP 53** (`stesta-g
 | TARA | `tara-test.ria.ee` | `tara-test.ria.ee` | `tara-test.ria.ee` |
 | X-tee turvaserver (instance) | `urien.ml.ee:443` (ee-test) | `urien.ml.ee:443` (ee-test) | `urien.ml.ee:443` (ee-test) |
 | ERRU hub | `webgate.acceptance.ec.testa.eu` | sama | sama |
-| sTESTA sissetulev | `stesta-gateway` (TG `ljvis2-nonlive-stesta-443`) | puudub | puudub |
+| sTESTA sissetulev | puudub | `stesta-gateway` (TG `ljvis2-nonlive-stesta-443`; shared, üks env korraga) | puudub |
+| RDS private subnetid (AFT) | `10.16.65.192/28`, `10.16.65.208/28` | `10.17.65.192/28`, `10.17.65.208/28` | `10.18.65.192/28`, `10.18.65.208/28` |
 
 ---
 
@@ -293,13 +294,16 @@ Teised komponendid samal mustril tabelite 3 ja 4 järgi.
 
 ## 8. Tähelepanekud ja lahtised küsimused
 
-| # | Tähelepanek | Ettepanek |
-|---|---|---|
-| 1 | `ruuter-internal` NetworkPolicy (devops `d9e64a6`) lubab egressi **80/443 kõikjale**, kuid tema `allowed_urls` ei sisalda ühtegi välist URL-i (`additionalAllowedUrls: []`). Ainus võimalik väline sihtkoht on `ERRU_NCR_ENDPOINT` (vt 4.2). | Kui NCR käib XTR-i kaudu: eemaldada 80/443 väljaminev, jätta namespace'i peerid (resql, xtr, nysiis, ruuter, ise) + DNS. Kui otse webgate'i: ainult 443 ja ainult see sihtkoht. |
-| 2 | `ruuter-internal` `allowFromNamespace: true` lubab kõik namespace'i podid. | Kitsendada: `ruuter`, `cronmanager`, `stesta-gateway`, ise + Traefik. |
-| 3 | `ruuter` allowlistis on `xroad.securityServer: https://urien.ml.ee`, aga `XROAD_SECURITY_SERVER` on deprecated ja ükski DSL ei kutsu turvaserverit otse. Charti kommentaar („RR otse turvaserverisse") on aegunud. | Eemaldada `ruuter` → urien.ml.ee; X-tee egress ainult `xtr`-ilt. |
-| 4 | `xtr` → `ariregxmlv6.rik.ee` on otse-HTTPS, mitte X-tee. | Teadlik erand; lubada eraldi. |
-| 5 | ERRU väljaminev (`ruuter` → `webgate.acceptance.ec.testa.eu`) — `constants.ini` kommentaar ütleb, et toodangus peaks see käima XTR-i ERRU liidese kaudu, devops allowlist lubab aga Ruuterist otse. | Kinnitada tegelik tee (SSM `constants.ini` `ERRU_*_ENDPOINT` väärtused) ja kas webgate on avalikust internetist või ainult sTESTA kaudu ligipääsetav. |
-| 6 | `LJVIS_RESQL_ARHIIV` (ADR-010, `ljvis_arhiiv_db`) — resql-ljvis chartis on ainult datasource `ljvis`. | Kui arhiivibaas tuleb eraldi RDS-i/hosti, lisada ka see resql egressi. |
-| 7 | `stesta-gateway` on ainult dev-is. | test/prelive jaoks sama poliitika, kui MOVEHUB sinna tuleb. |
-| 8 | Live-keskkonnas muutuvad: TARA → `tara.ria.ee`, X-tee instance `ee`, turvaserver, ERRU hub (acceptance → live). | Uuendada p 5 tabel enne live'i. |
+| # | Tähelepanek | Ettepanek | Seis |
+|---|---|---|---|
+| 1 | `ruuter-internal` NP lubas egressi **80/443 kõikjale**, kuigi `additionalAllowedUrls: []`. | Kui NCR käib XTR-i/mock'i kaudu: eemaldada 80/443; jätta NS peerid + DNS. | **tehtud** — peer egress + DNS; avatud 80/443 eemaldatud |
+| 2 | `ruuter-internal` `allowFromNamespace: true` lubas kõik NS podid. | Kitsendada: `ruuter`, `cronmanager`, `stesta-gateway`, ise + Traefik. | **tehtud** — `advanced.ingressRules` peeridega |
+| 3 | `ruuter` allowlistis oli `xroad.securityServer: https://urien.ml.ee` (deprecated). | Eemaldada; X-tee egress ainult `xtr`-ilt. | **tehtud** — eemaldatud kõigist env values'itest; chart default `""` |
+| 4 | `xtr` → `ariregxmlv6.rik.ee` on otse-HTTPS, mitte X-tee. | Teadlik erand; lubada eraldi. | teadlik — `xtr` NP lubab 443 välja (FQDN hiljem) |
+| 5 | ERRU väljaminev (`ruuter` → `webgate.acceptance.ec.testa.eu`) — `constants.ini` kommentaar ütleb, et toodangus peaks see käima XTR-i ERRU liidese kaudu, devops allowlist lubab aga Ruuterist otse. | Kinnitada tegelik tee (SSM `constants.ini` `ERRU_*_ENDPOINT` väärtused) ja kas webgate on avalikust internetist või ainult sTESTA kaudu ligipääsetav. | avatud — NP lubab `ruuter` 443 välja |
+| 6 | `LJVIS_RESQL_ARHIIV` (ADR-010, `ljvis_arhiiv_db`) — resql-ljvis chartis on ainult datasource `ljvis`. | Kui arhiivibaas tuleb eraldi RDS-i/hosti, lisada ka see resql egressi. | avatud |
+| 7 | `stesta-gateway` on test-is / demo.liiklusvalve.ee stackis (shared TG `ljvis2-nonlive-stesta-443`). | Teise nonlive env peale viimiseks: ApplicationSet `env`, `values-<env>.yaml`, SSM TLS copy; korraga ainult üks namespace. | teadaolev (hetkel test) |
+| 8 | Live-keskkonnas muutuvad: TARA → `tara.ria.ee`, X-tee instance `ee`, turvaserver, ERRU hub (acceptance → live). | Uuendada p 5 tabel enne live'i. | avatud |
+| 9 | Ülejäänud workloadidel NetworkPolicy puudus. | Peer ingress/egress kõigil chartidel (+ Traefik kus vaja). | **tehtud** — vt chart `networkPolicy` plokid; lahtiseks jäävad FQDN/LB CIDR ja Liquibase Job eraldi NP |
+| 10 | `stesta-gateway` ingress 8443/8081 on avatud kõigile (TGB `ip` target). | Kitsendada LB/VPC CIDR-iga kui stabiilsed aadressid teada. | avatud |
+| 11 | `resql`/`tim` RDS egress. | Per-env AFT private subnet CIDR-id. | **tehtud** — `environments/{dev,test,prelive}/values/{resql-ljvis,tim}.yaml` (allikas `aft-account-request` `ljvis2-*.tf`) |
