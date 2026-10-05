@@ -4,6 +4,11 @@
 
 ## 2026-10-05
 
+### E-toimiku päringu kaart ("Päri e-toimikust") ainult karistusregistri õigusega kasutajale
+
+- Koondvormi (PPA) lehe ülaosas olev kaart „E-toimiku kvalifikatsiooni kontroll“ koos nupuga „Päri e-toimikust“ on nähtav ainult kasutajale, kellel on õigus `control_form.punishment_register`. Varem nägi seda igaüks, kellel oli koondvormi lugemisõigus.
+- Transpordiameti kontrollkaardi lehte see ei muuda.
+
 ### SQL on nüüd ainult INSERT ja SELECT (epic #522)
 
 - Kõik andmebaasi kirjutamised on append-only: ükski Resql-mall ei tee `UPDATE`, `DELETE`, `TRUNCATE` ega `JOIN`-i. Erand on ainult säilitustähtaja järgne kustutamine pärast kontrollitud arhiveerimist (`archive/purge_confirmed.sql`). CI kontrollib seda igal PR-il (`tests/contract/check_resql_append_only.py`, erandite loend `.sql-rule-exemption`).
