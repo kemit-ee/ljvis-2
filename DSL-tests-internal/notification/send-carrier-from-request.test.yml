@@ -17,6 +17,7 @@ tests:
     method: POST
     path: /ljvis/notification/send-carrier-from-request
     headers:
+      x-internal-service-token: dev-internal-service-token
       content-type: application/json
     body:
       entity_type: tram_control_card
@@ -49,6 +50,7 @@ tests:
     method: POST
     path: /ljvis/notification/send-carrier-from-request
     headers:
+      x-internal-service-token: dev-internal-service-token
       content-type: application/json
     body:
       entity_type: tram_control_card
@@ -129,6 +131,7 @@ tests:
     method: POST
     path: /ljvis/notification/send-carrier-from-request
     headers:
+      x-internal-service-token: dev-internal-service-token
       content-type: application/json
     body:
       entity_type: tram_control_card

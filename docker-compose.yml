@@ -150,8 +150,7 @@ services:
       - ./DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro
       - ${CONSTANTS_FILE:-./constants.ini}:/app/constants.ini:ro
       - ./ruuter-internal.yaml:/app/ruuter.yaml:ro
-    ports:
-      - 8089:8080
+    # Porti hostile EI publitseerita (#515) — dev-ligipääs (8089) on docker-compose.override.yml-is.
     networks:
       - ljvisnetwork
     cpus: "0.5"
@@ -294,6 +293,7 @@ services:
       - DB_USER=ljvis
       - DB_PASSWORD=01234
       - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
       - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
       - CONTRACTS_DIR=/app/contracts/erru/3.5
       - RESPONDING_AUTHORITY=EE-PPA
@@ -318,7 +318,7 @@ services:
 
   xtr:
     container_name: xtr
-    image: turnerrainer/xtr:0.4.1-rc
+    image: turnerrainer/xtr:0.5.0-rc
     environment:
       - RUST_LOG=debug
       - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
@@ -364,6 +364,9 @@ services:
     volumes:
       - ./cronmanager.yaml:/app/cronmanager.yaml:ro
       - ./DSL/CronManager:/app/DSL/jobs:ro
+      # exec-tööd kutsuvad ruuter-internal'i skriptiga, mis loeb URL-i ja teenusetokeni constants.ini-st (#515).
+      - ./docker/cronmanager/scripts:/app/scripts/ljvis:ro
+      - ${CONSTANTS_FILE:-./constants.ini}:/app/constants.ini:ro
     depends_on:
       - ruuter-internal
     healthcheck:

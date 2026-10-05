@@ -124,6 +124,7 @@ log_login_success:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/auth/log-login"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       actor_name: "${callback_result.response.body.user_profile.first_name} ${callback_result.response.body.user_profile.last_name}"
