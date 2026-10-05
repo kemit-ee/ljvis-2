@@ -63,9 +63,10 @@ kadudeta.
 
 * **Ajalugu.** Versiooniajaloo vaates (`get-snapshots`) ilmub lisarida (sama `version`, sama staatus, autor
   `system` cron-i korral). Mõju on kosmeetiline.
-* **`erakorraline-yv-confirm-update`** valib nüüd *uusima* rea ja nõuab selle staatuseks `confirmed`. Varem
-  muutis see uusimat `confirmed` rida, ka siis, kui vorm oli vahepeal avalikustatud — sel juhul oli muudatus
-  nähtamatu, aga X-tee vastus oli edukas. Nüüd vastab see `NOT_FOUND`.
+* **`erakorraline-yv-confirm-update`** valib nüüd *uusima* rea ja nõuab selle staatuseks `confirmed` või `published`;
+  uus rida kannab staatuse edasi. Varem muutis see uusimat `confirmed` rida, ka siis, kui vorm oli vahepeal
+  avalikustatud — sel juhul oli muudatus nähtamatu. Vana rea kopeerimine oleks avalikustatud vormi tagasi
+  `confirmed` olekusse lükanud, seepärast tuleb alus võtta uusimast reast.
 * **Teavitused.** `carrier_notification_request` muutub snapshot-tabeliks (`revision`; avatud tellimus = viimane
   rida, mille `sent_at` on NULL; saatmine lisab rea). Vana osaline `UNIQUE … WHERE sent_at IS NULL` asendub
   `UNIQUE (entity_type, entity_id, revision)`-iga. `outbound_log` rida ei muutu; PK 2.0 väljad ja

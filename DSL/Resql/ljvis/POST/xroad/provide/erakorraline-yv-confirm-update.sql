@@ -2,7 +2,7 @@
 description: 'X-tee ErakorralineYVconfirm (v1): lisab vehicle_technical_form-ile uue snapshot-rea, kus X-tee bloki
   väli on uuendatud. Kood INSPECTION_DATE -> extraordinary_inspection_date, ENFORCEMENT_DECISION ->
   enforcement_decision, CLOSURE_BASIS -> proceeding_closure_basis. Aluseks on vormi uusim snapshot ja see peab
-  olema ''confirmed'' (muidu 0 rida = NOT_FOUND). INSERT-only: revision + 1, version ja kõik muud väljad
+  olema ''confirmed'' või ''published'' (muidu 0 rida = NOT_FOUND); staatus kantakse edasi muutmata. INSERT-only: revision + 1, version ja kõik muud väljad
   kantakse edasi (versiooni number ei muutu), vana rida jääb ajalukku. created_by = ''system''. Tagastab tühja
   array kui inspection_id ei leitud (YAML käsitleb kui NOT_FOUND).'
 namespace: xroad
@@ -60,6 +60,6 @@ SELECT (jsonb_populate_record(
     )
 )).*
 FROM latest l
-WHERE l.status = 'confirmed'    -- ainult kinnitatud vorm saab X-tee välju
+WHERE l.status IN ('confirmed', 'published')    -- kinnitatud ja avalikustatud vorm saab X-tee välju
   AND :code IN ('INSPECTION_DATE', 'ENFORCEMENT_DECISION', 'CLOSURE_BASIS')
 RETURNING vehicle_technical_form_key AS id, sub_form_number, version;

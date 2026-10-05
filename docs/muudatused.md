@@ -16,7 +16,7 @@
 - Manuse kustutamine jätab algse rea alles ja lisab kustutusmärke; kustutatud manust ei näidata ega saa alla laadida.
 - Samaaegne salvestamine ei kirjuta enam vaikselt üle: kõigil vormitabelitel on `revision` ja samaaegse topeltkirjutuse korral ebaõnnestub teine päring.
 - Arhiveerimine kustutab töö-baasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
-- ErakorralineYVconfirm vastab avalikustatud vormi kohta nüüd `NOT_FOUND` (varem kinnitas edukalt, aga muudatus ei olnud vormil nähtav).
+- ErakorralineYVconfirm uuendab nii kinnitatud kui avalikustatud vormi (uus rida, staatus jääb samaks). Varem muutis see avalikustatud vormi puhul vana kinnitatud rida, mistõttu muudatus ei olnud vormil nähtav.
 - Teavituste logi: Postkast 2.0 staatuse muutused salvestatakse eraldi sündmusena (`notifications.outbound_log_status_event`), `outbound_log` rida ei muutu. Vaates muutust pole.
 
 ### Sisemise ruuteri (ruuter-internal) kaitse teenusetokeniga (#515)
