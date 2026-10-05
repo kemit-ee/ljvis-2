@@ -11,6 +11,7 @@ getClassifiersBundle:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifiers_bundle"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: res
@@ -21,6 +22,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_classifiers_bundle"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       values: ${res.response.body}

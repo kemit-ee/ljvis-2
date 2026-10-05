@@ -19,6 +19,7 @@ queryCount:
   args:
     url: "[#LJVIS_RESQL]/notification/get_unread_count"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: ${user_code}

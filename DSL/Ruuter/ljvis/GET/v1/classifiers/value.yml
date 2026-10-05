@@ -22,6 +22,7 @@ getClassifierValue:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       classifier_value_id: ${classifier_value_id}
@@ -44,6 +45,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_classifier_value"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       classifierValues: ${res.response.body}

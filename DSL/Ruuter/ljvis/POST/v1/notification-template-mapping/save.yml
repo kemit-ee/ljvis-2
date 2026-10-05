@@ -62,6 +62,7 @@ insertMapping:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_template_mapping"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: ${notification_type}

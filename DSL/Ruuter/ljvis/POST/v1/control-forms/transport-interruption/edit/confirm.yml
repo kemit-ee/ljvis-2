@@ -50,6 +50,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -81,6 +82,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

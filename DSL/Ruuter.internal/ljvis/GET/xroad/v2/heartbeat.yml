@@ -18,6 +18,7 @@ checkDatabase:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/usage_period"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: dbResult

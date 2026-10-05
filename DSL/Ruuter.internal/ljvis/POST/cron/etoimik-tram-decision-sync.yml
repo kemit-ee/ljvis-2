@@ -18,6 +18,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/select_etoimik_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: candidatesRes
@@ -106,6 +107,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.tram"
@@ -124,6 +126,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/tram-card/apply_etoimik_decision"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
@@ -145,6 +148,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/tram-card/log_etoimik_publish_audit"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             found: "${published_now ? 'true' : 'false'}"

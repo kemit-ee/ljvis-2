@@ -31,6 +31,7 @@ fetchCascadePersonalCodes:
   args:
     url: "[#LJVIS_RESQL]/user/get_users_by_ids"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_ids: ${incoming.body.cascade_user_ids}

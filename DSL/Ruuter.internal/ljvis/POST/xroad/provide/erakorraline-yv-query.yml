@@ -43,6 +43,7 @@ queryTargeted:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/erakorraline-yv-query"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       alates: ${alates}
@@ -95,6 +96,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-query"
@@ -121,6 +123,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-query"

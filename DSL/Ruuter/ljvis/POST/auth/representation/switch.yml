@@ -71,6 +71,7 @@ checkOfficerEligible:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}
@@ -150,6 +151,7 @@ applySwitch:
   args:
     url: "[#LJVIS_TIM]/jwt/custom/generate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
       X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
     body:

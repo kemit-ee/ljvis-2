@@ -39,7 +39,7 @@ saveLabourInspection:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update-proceeding-outcome"
-    headers: { type: json }
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
@@ -51,7 +51,7 @@ saveTramCard:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/update-proceeding-outcome"
-    headers: { type: json }
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
@@ -63,7 +63,7 @@ saveDriver:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-proceeding-outcome"
-    headers: { type: json }
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
@@ -75,7 +75,7 @@ saveTeammate:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update-xroad-fields"
-    headers: { type: json }
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
@@ -87,7 +87,7 @@ saveVehicle:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update-proceeding-outcome"
-    headers: { type: json }
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
@@ -99,7 +99,7 @@ saveTrailer:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-proceeding-outcome"
-    headers: { type: json }
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
@@ -111,7 +111,7 @@ saveAdr:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/update-proceeding-outcome"
-    headers: { type: json }
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       enforcementDecision: ${enforcement_decision}

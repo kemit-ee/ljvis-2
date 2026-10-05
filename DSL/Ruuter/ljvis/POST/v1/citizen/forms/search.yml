@@ -155,6 +155,7 @@ callResqlExplicitCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${requested_registry_code}
@@ -184,6 +185,7 @@ callResqlCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${active_registry_code}
@@ -217,6 +219,7 @@ callResqlSelf:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ""

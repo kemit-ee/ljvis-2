@@ -37,6 +37,7 @@ fetchVehicleCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/select_yvkehtivus_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: vehicleCandidatesRes
@@ -106,6 +107,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "liiklusregister.yvkehtivus.v1.cron"
@@ -123,6 +125,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update-extraordinary-inspection-date"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
@@ -138,6 +141,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/log_yvkehtivus_audit"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             applied: "${applied_now ? 'true' : 'false'}"
@@ -155,6 +159,7 @@ fetchTrailerCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/select_yvkehtivus_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: trailerCandidatesRes
@@ -215,6 +220,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "liiklusregister.yvkehtivus.v1.cron.trailer"
@@ -232,6 +238,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-extraordinary-inspection-date"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
@@ -247,6 +254,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/trailer-technical/log_yvkehtivus_audit"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             applied: "${applied_now ? 'true' : 'false'}"

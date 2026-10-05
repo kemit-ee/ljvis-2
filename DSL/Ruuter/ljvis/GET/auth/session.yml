@@ -31,6 +31,7 @@ get_userinfo:
   args:
     url: "[#LJVIS_TIM]/jwt/userinfo"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       cookie: ${incoming.headers.cookie}
   result: userinfo_res
   next: check_userinfo
@@ -62,6 +63,7 @@ lookup_officer_profile:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}

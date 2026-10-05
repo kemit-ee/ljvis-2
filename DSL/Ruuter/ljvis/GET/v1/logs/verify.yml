@@ -35,6 +35,7 @@ verifyChain:
   args:
     url: "[#LJVIS_RESQL]/log/get_logs_verify"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       from_event_id: ${from_event_id}

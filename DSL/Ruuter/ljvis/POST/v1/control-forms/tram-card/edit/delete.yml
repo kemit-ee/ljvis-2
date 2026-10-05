@@ -31,6 +31,7 @@ deleteForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/delete"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}

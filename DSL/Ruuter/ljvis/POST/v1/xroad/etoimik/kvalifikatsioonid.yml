@@ -258,6 +258,7 @@ logSuccessFound:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
@@ -283,6 +284,7 @@ logSuccessNotFound:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"
@@ -314,6 +316,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6"

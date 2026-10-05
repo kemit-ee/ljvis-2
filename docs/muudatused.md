@@ -4,6 +4,13 @@
 
 ## 2026-10-05
 
+### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
+
+- Kõik kutsed Resql-ile (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`), TIM-ile ja DataMapper'ile saadavad päise `x-internal-service-token` (sama väärtus `INTERNAL_COMMUNICATION_KEY`, mis ruuter-internal'i kaitseks). Teenused ignoreerivad päist: kasutajale ja deploy'le muutust pole, uusi konstante lisada ei ole vaja.
+- See on ettevalmistus: päise nõudmine (autentimisvärav teenuste ees) tuleb eraldi PR-iga pärast seda, kui see PR on kõigis keskkondades.
+- XTR-ile suunatud kutsed (`LJVIS_XTR`, `PK_*`, `ERRU_*_ENDPOINT`) ei saada päist, kuni on kontrollitud, et XTR ei edasta päiseid välistesse süsteemidesse.
+- Plaan: `docs/planning/teenustevaheline-autentimine-faas3.md`.
+
 ### Sisemise ruuteri (ruuter-internal) kaitse teenusetokeniga (#515)
 
 - `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.

@@ -18,6 +18,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/select_etoimik_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: candidatesRes
@@ -104,6 +105,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.sp_driver"
@@ -122,6 +124,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-xroad-fields"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
@@ -140,6 +143,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/log_etoimik_sp_driver_audit"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             found: "${applied_now ? 'true' : 'false'}"

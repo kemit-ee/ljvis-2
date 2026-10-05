@@ -20,6 +20,7 @@ getAttachmentRecord:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachment_by_id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.body.id}
@@ -44,6 +45,7 @@ deleteFileInDB:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/delete_form_attachment"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.body.id}
