@@ -455,8 +455,6 @@ logAuditEvent:
   body:
     event_type: "control_form.tram_control_card.save"
     event_category: "control_form_management"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: "TRAM kontrollkaart salvestatud, number=${saveRes.response.body[0].formNumber}/${saveRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${saveRes.response.body[0].id},\"formNumber\":\"${saveRes.response.body[0].formNumber}\",\"version\":${saveRes.response.body[0].version}}"
   result: audit_result

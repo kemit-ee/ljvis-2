@@ -68,8 +68,6 @@ logAuditEvent:
     event_type: "risk_score.list.view"
     event_category: "risk_score"
     description: "${'Riskitasemete loend vaadatud, filtrid: name=' + company_name + '; regCode=' + reg_code + '; riskBand=' + risk_band}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     log_content: "{}"
   result: audit_result
   next: mapResponse

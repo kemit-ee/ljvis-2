@@ -114,8 +114,6 @@ logAuditEvent:
     isikukood: ${punished_person_id_code}
     old_status: ${old_status}
     new_status: ${new_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

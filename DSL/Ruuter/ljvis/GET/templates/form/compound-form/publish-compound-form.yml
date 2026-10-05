@@ -3,15 +3,12 @@ declaration:
   version: "1.0"
   description: "Publish (avalikusta) the compound form and return the outcome as JSON (`{outcome, body}`). Shared by compound-form/edit/publish and by the sub-form publish handlers, which auto-publish the general part server-side once the last active sub-form is published (only_if_confirmed=true limits that to a confirmed compound form). Form field values are taken from the current database record."
   namespace: service
+  strict: true
   allowlist:
     body:
       - field: id
         type: string
       - field: only_if_confirmed
-        type: string
-      - field: actor_personal_code
-        type: string
-      - field: actor_name
         type: string
 
 extractRequestData:
@@ -19,8 +16,6 @@ extractRequestData:
     id: "${incoming.body.id}"
     only_if_confirmed: "${incoming.body.only_if_confirmed === 'true'}"
     created_by: "${session_personal_code || ''}"
-    actor_personal_code: "${incoming.body.actor_personal_code || ''}"
-    actor_name: "${incoming.body.actor_name || ''}"
   next: checkId
 
 checkId:
@@ -194,8 +189,6 @@ logAuditEvent:
   body:
     event_type: "control_form.compound_form.publish"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"compoundFormKey\":${compound_form_key},\"formNumber\":\"${form_number}\"}"
   result: audit_result

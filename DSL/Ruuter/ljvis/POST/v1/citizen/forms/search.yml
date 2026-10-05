@@ -176,8 +176,6 @@ logExplicitCompanyListAudit:
     event_category: "control_form"
     description: "Esindaja vaatas ettevõtte ${requested_registry_code} vormide loetelu"
     log_content: "${JSON.stringify({companyRegCode: requested_registry_code, page: incoming.body.page || 1, formType: incoming.body.form_type || null})}"
-    actor_name: ${session_personal_code}
-    actor_personal_code: ${session_personal_code}
   result: audit_result
   next: returnResults
 
@@ -211,8 +209,6 @@ logCompanyListAudit:
     event_category: "control_form"
     description: "Esindaja vaatas ettevõtte ${active_registry_code} vormide loetelu"
     log_content: "${JSON.stringify({companyRegCode: active_registry_code, page: incoming.body.page || 1, formType: incoming.body.form_type || null})}"
-    actor_name: ${session_personal_code}
-    actor_personal_code: ${session_personal_code}
   result: audit_result
   next: returnResults
 

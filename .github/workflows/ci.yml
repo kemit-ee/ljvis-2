@@ -65,6 +65,13 @@ jobs:
       - name: Database schema document and ERD are in sync with Liquibase
         run: python3 scripts/generate-erd.py --check
 
+      # Epic #502 guard rails (identity from session, allowlists, strict templates,
+      # upload prefix, read ownership, template call contract, frontend).
+      - name: DSL security rules (identity and ownership)
+        run: |
+          pip3 install pyyaml -q
+          python3 tests/contract/check_dsl_security.py
+
       - name: Validate Ruuter YAML files
         run: |
           pip3 install pyyaml -q

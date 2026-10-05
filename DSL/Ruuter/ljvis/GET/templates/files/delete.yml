@@ -3,6 +3,17 @@ declaration:
   version: "1.0"
   description: "Soft-delete a file attachment record in the DB. Expects: id, form_type. The actor is the TARA session (guard variable session_personal_code), never the request body"
   namespace: templates
+  strict: true
+  allowlist:
+    body:
+      - field: id
+        type: string
+      - field: form_type
+        type: string
+      - field: form_number_prefix
+        type: string
+      - field: attachment_form_type
+        type: string
 
 getAttachmentRecord:
   call: http.post

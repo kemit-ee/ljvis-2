@@ -3,6 +3,7 @@ declaration:
   description: "Audit: NCR response send attempt to an incoming message (LJVIS2-64 §4.5).
     Logged on every send attempt, whether it results in answered or error."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -13,10 +14,6 @@ declaration:
       - field: result_status
         type: string
       - field: ack_status_code
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

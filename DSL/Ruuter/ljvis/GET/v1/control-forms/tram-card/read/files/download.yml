@@ -23,10 +23,20 @@ downloadFile:
     form_number_prefix: "tram-"
     id: ${incoming.body.id}
     form_type: "tram-control-card-form"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
+    access_form_type: "tram-card"
   result: downloadResult
+  next: checkDownloadResult
+
+checkDownloadResult:
+  switch:
+    - condition: ${downloadResult === "FORBIDDEN"}
+      next: returnReadAccessDenied
   next: returnSuccess
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 returnSuccess:
   return: ${downloadResult}

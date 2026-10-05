@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: form delete event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -11,10 +12,6 @@ declaration:
       - field: form_number
         type: string
       - field: old_status
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 checkStatus:
