@@ -2,6 +2,7 @@
         {{#each forms}}
         {
                 "id": "{{this.id}}",
+                "revision": {{#if this.revision}}{{this.revision}}{{else}}null{{/if}},
                 "subFormNumber": "{{this.subFormNumber}}",
                 "version": {{#if this.version}}{{this.version}}{{else}}null{{/if}},
                 "status": "{{this.status}}"

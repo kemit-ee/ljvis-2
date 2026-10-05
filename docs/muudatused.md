@@ -4,6 +4,11 @@
 
 ## 2026-10-05
 
+### Samaaegne muutmine: teade, kui keegi teine vormi vahepeal muutis
+
+- Kui sama vormi on pärast sinu avamist salvestanud keegi teine (teine kasutaja, teine aken või e-toimiku sünkroonimine), siis sinu salvestus, kinnitamine või avalikustamine **ei kirjuta tema muudatusi enam vaikselt üle**. Ekraanile ilmub hoiatus „Seda vormi muutis vahepeal keegi teine …“, mis jääb nähtavale kuni sulgemiseni; laadi leht uuesti, vaata uusi andmeid ja salvesta oma muudatused uuesti.
+- Kontroll on vormi tasemel (kõik 11 vormitüüpi). Uue vormi esmasalvestust, kustutamist ja menetluse tulemuse salvestust see ei mõjuta.
+
 ### E-toimiku päringu kaart ("Päri e-toimikust") ainult karistusregistri õigusega kasutajale
 
 - Koondvormi (PPA) lehe ülaosas olev kaart „E-toimiku kvalifikatsiooni kontroll“ koos nupuga „Päri e-toimikust“ on nähtav ainult kasutajale, kellel on õigus `control_form.punishment_register`. Varem nägi seda igaüks, kellel oli koondvormi lugemisõigus.
