@@ -126,8 +126,6 @@ logAuditEvent:
     event_category: "control_form"
     description: "Laaditi alla vormiotsingu tulemus: vormitüüp ${form_type}, ${res.response.body.length > 5000 ? 'üle 5000' : res.response.body.length} vormi"
     log_content: "{\"formType\":\"${form_type}\",\"rowCount\":${res.response.body.length}}"
-    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
-    actor_personal_code: "${u.personalcode || ''}"
   result: audit_result
   next: returnSuccess
 

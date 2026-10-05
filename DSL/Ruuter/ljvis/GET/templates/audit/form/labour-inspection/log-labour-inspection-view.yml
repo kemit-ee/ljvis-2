@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: labour inspection form (labour_inspection_form) view event. Thin adapter — delegates rendering/serialisation to audit/log-form-event."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie

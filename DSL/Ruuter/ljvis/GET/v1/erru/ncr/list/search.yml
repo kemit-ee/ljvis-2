@@ -89,8 +89,6 @@ logAuditEvent:
     filters: ${filter_summary}
     result_count: ${result_count}
     page: ${page}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

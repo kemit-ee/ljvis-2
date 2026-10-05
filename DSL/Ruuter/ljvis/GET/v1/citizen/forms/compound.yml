@@ -201,8 +201,6 @@ logAuditEvent:
     event_category: "control_form"
     description: "Esindaja vaatas koondvormi ${row.formNumber}"
     log_content: "${JSON.stringify({formKey: row.id, companyRegCode: row.companyRegCode})}"
-    actor_name: ${personal_code}
-    actor_personal_code: ${personal_code}
   result: audit_result
   next: returnSuccess
 

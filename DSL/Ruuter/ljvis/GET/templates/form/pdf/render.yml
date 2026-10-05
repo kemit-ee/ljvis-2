@@ -2,6 +2,7 @@ declaration:
   version: "1.0"
   description: "Render an allow-listed control-form PDF and record the print audit event."
   namespace: service
+  strict: true
   allowlist:
     body:
       - field: templateCode
@@ -15,10 +16,6 @@ declaration:
       - field: description
         type: string
       - field: logContent
-        type: string
-      - field: actorPersonalCode
-        type: string
-      - field: actorName
         type: string
 
 renderPdf:

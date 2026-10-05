@@ -53,8 +53,6 @@ logAuditEvent:
   body:
     event_type: "classifier.view"
     event_category: "classifier_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: audit_result

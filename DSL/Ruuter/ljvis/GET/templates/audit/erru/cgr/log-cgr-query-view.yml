@@ -2,6 +2,7 @@ declaration:
   version: "1.0"
   description: "Audit: single CGR request viewed (LJVIS2-138). Logged on EVERY open of the request, because the view shows the searched transport manager's personal data (name, date of birth). The description carries the request identifier, the searched person and the viewer's personal code, which is what makes it traceable who saw whose data."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -14,10 +15,6 @@ declaration:
       - field: tm_family_name
         type: string
       - field: tm_date_of_birth
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:
