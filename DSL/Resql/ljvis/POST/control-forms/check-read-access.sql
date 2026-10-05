@@ -30,6 +30,10 @@ params:
     type: string
     required: false
     description: "Literal true when the caller has control_form.view_unpublished"
+  caller_view_organisation:
+    type: string
+    required: false
+    description: "Literal true when the caller has control_form.view_organisation"
 returns:
 - name: allowed
   type: boolean
@@ -39,8 +43,9 @@ returns:
   nullable: true
 */
 -- Reegel: avalikustatud vorm on nähtav igaühele, kellel on vormitüübi `.read` õigus; avalikustamata
--- (saved/confirmed/deleted) vormi näeb looja, looja asutuse kolleeg (viimane users.user_account
--- kirje) või `control_form.view_unpublished` omaja.
+-- (saved/confirmed/deleted) vormi näeb looja, `control_form.view_organisation` omaja looja asutuse
+-- kolleegina (looja viimane users.user_account kirje) või `control_form.view_unpublished` omaja.
+-- Sama reegel kehtib vormiotsingus (search.sql / export.sql).
 WITH target AS (
   (SELECT status, created_by
    FROM forms.adr_form
@@ -125,7 +130,8 @@ SELECT
     OR :caller_view_unpublished = 'true'
     OR (COALESCE(:caller_personal_code, '') <> '' AND t.created_by = :caller_personal_code)
     OR (
-      COALESCE(:caller_organisation_id, '') <> ''
+      :caller_view_organisation = 'true'
+      AND COALESCE(:caller_organisation_id, '') <> ''
       AND (
         SELECT ua.organisation_id::text
         FROM users.user_account ua

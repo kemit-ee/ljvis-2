@@ -46,6 +46,7 @@ tests:
       caller_personal_code: SESSION1
       caller_organisation_id: '5'
       caller_view_unpublished: 'false'
+      caller_view_organisation: 'false'
   - url_matches: /control-forms/foreign-violation-form/get
     count: 0
 
@@ -64,7 +65,7 @@ tests:
         firstname: Real
         lastname: Person
         organisationid: 5
-        permissions: [foreign_violation_form.read, control_form.view_unpublished]
+        permissions: [foreign_violation_form.read, control_form.view_unpublished, control_form.view_organisation]
     - url_matches: /control-forms/check-read-access
       method: POST
       status: 200
@@ -84,6 +85,7 @@ tests:
     count: 1
     body_matches:
       caller_view_unpublished: 'true'
+      caller_view_organisation: 'true'
 
 - name: a form that does not exist falls through to the handler (404), not 403
   setup:
@@ -261,3 +263,38 @@ tests:
       form_number: vr-2026-00001
   - url_matches: /s3/presign
     count: 0
+
+- name: search passes the caller's organisation and visibility permissions from the server session
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [good_repute_form.read, control_form.view_organisation]
+    - url_matches: /control-forms/search/search
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/search/list
+    headers: {cookie: test}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/search/search
+    count: 1
+    body_matches:
+      actor_code: SESSION1
+      caller_organisation_id: '5'
+      caller_view_unpublished: 'false'
+      caller_view_organisation: 'true'
