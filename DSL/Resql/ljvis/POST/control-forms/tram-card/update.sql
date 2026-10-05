@@ -246,7 +246,7 @@ WITH latest AS (
            WHEN :status = 'published' AND status <> 'published' THEN version + 1
            WHEN status = 'saved' OR :status <> status THEN version
            ELSE version + 1
-         END AS version
+         END AS version, revision
   FROM forms.tram_control_card
   WHERE tram_control_card_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -257,6 +257,7 @@ INSERT INTO forms.tram_control_card (
   form_number,
   control_year,
   version,
+  revision,
   status,
   control_date,
   control_time,
@@ -336,6 +337,7 @@ SELECT
   latest.form_number,
   latest.control_year,
   latest.version,
+  latest.revision + 1,
   :status,
   :controlDate::DATE,
   NULLIF(:controlTime, '')::TIME,

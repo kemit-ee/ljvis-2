@@ -72,6 +72,14 @@ jobs:
           pip3 install pyyaml -q
           python3 tests/contract/check_dsl_security.py
 
+      # Epic #522: Resql is INSERT + SELECT only (no UPDATE/DELETE/TRUNCATE/MERGE, no JOIN/LATERAL,
+      # no ON CONFLICT DO UPDATE); the retention purge is the one exemption (.sql-rule-exemption).
+      - name: SQL append-only invariant (Resql)
+        run: |
+          pip3 install pyyaml -q
+          python3 tests/contract/check_resql_append_only.py
+          python3 -B -m unittest discover -s tests/contract -p 'test_resql_append_only.py'
+
       - name: Validate Ruuter YAML files
         run: |
           pip3 install pyyaml -q

@@ -1,6 +1,10 @@
 # Control-forms moodulite üleviimine append-only mustrile — teostusplaan (KAVAND)
 
 **Staatus:** kavand, ootab valdkonna/arhitektuuri ülevaatust — pole veel ADR-iks kinnitatud.
+**Uuendus 2026-10-05:** osaliselt aegunud. `*/update.sql` mallid lisavad juba uue snapshot-rea, ja epic #522 (ADR-013) kaotas
+selle plaani "teadlikult väljas" loetelu: X-tee väljade, erakorralise ülevaatuse kuupäeva, `erakorraline-yv-confirm-update`, manuse
+kustutamise ja `purge_confirmed` kirjutajad on nüüd INSERT-only (viimane on ainus lubatud DELETE-erand). Allolev kirjeldab
+algset kavandit.
 **Taust:** `erru.ncr_message` append-only reegli rikkumise parandus (PR #420,
 `update-vr-link.sql` → `append-vr-link.sql`) tõi esile, et sama reegel
 (`.skills/generate-resql-files/SKILL.md`: "INSERT and SELECT only — UPDATE, DELETE,

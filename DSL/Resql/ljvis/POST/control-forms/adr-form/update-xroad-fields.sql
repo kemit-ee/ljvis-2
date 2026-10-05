@@ -1,6 +1,8 @@
 /*
-description: Update X-tee fields on the latest confirmed ADR sub-form snapshot row in place — does NOT
-  bump version.
+description: 'Kirjuta X-tee väljad (enforcement_decision, proceeding_closure_basis) ADR alamvormi uusimale
+  confirmed snapshot-reale (edit/xroad/save-xroad-fields.yml, õigus control_form.edit_locked). INSERT-only:
+  lisab uue snapshot-rea (revision + 1, version ja kõik muud väljad kantakse edasi), vana rida jääb ajalukku.
+  version ei muutu. Staatus jääb ''confirmed''; created_by on tegutsev kasutaja (tühi → ''system'').'
 namespace: control-forms
 params:
   key:
@@ -10,6 +12,9 @@ params:
     type: string
     required: false
   proceedingClosureBasis:
+    type: string
+    required: false
+  created_by:
     type: string
     required: false
 returns:
@@ -23,15 +28,25 @@ returns:
   type: number
   nullable: true
 */
-UPDATE forms.adr_form
-SET
-  enforcement_decision    = NULLIF(:enforcementDecision, ''),
-  proceeding_closure_basis = NULLIF(:proceedingClosureBasis, '')
-WHERE id = (
-  SELECT id FROM forms.adr_form
+WITH latest AS (
+  SELECT *
+  FROM forms.adr_form
   WHERE adr_form_key = :key::BIGINT
   ORDER BY created_at DESC
   LIMIT 1
 )
-AND status = 'confirmed'
+INSERT INTO forms.adr_form
+SELECT (jsonb_populate_record(
+    NULL::forms.adr_form,
+    to_jsonb(l) || jsonb_build_object(
+      'id', nextval('forms.adr_form_id_seq'),
+      'revision', l.revision + 1,
+      'created_at', now(),
+      'created_by', COALESCE(NULLIF(:created_by, ''), 'system'),
+      'enforcement_decision', NULLIF(:enforcementDecision, ''),
+      'proceeding_closure_basis', NULLIF(:proceedingClosureBasis, '')
+    )
+)).*
+FROM latest l
+WHERE l.status = 'confirmed'
 RETURNING adr_form_key AS id, sub_form_number, version;

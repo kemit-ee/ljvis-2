@@ -141,7 +141,7 @@ returns:
 */
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          template_version, control_year
   FROM forms.compound_form
   WHERE compound_form_key = :key::BIGINT
@@ -153,6 +153,7 @@ INSERT INTO forms.compound_form (
   form_number,
   control_year,
   version,
+  revision,
   template_version,
   status,
   control_date,
@@ -201,6 +202,7 @@ SELECT
   l.form_number,
   l.control_year,
   l.version,
+  l.revision + 1,
   l.template_version,
   :status,
   :controlDate::DATE,

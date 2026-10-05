@@ -5,6 +5,113 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-013 — SQL append-only invariant: ainult INSERT ja SELECT, `revision` lugeja-kirjutaja võidujooksu vastu
+
+**Otsustaja:** ootab kinnitust (epic #522 kavand)
+**Kuupäev:** 05.10.2026
+**Seotud:** epic [#522](https://github.com/kemit-ee/ljvis-2/issues/522) ja T1–T5 (#523–#527); ADR-010, ADR-012;
+`DSL/Liquibase/changelog/20261208100000-form-snapshot-revision.sql`;
+`tests/contract/check_resql_append_only.py`; `tests/sql/form-snapshot-revision.sql`
+
+### Kontekst
+
+Kõik SQL kulgeb läbi Resql-i ja peab olema **append-only**: ainult `INSERT` ja `SELECT`, ilma `UPDATE`,
+`DELETE` ja `JOIN`-ita. Epic #522 auditis oli rikkumisi ~36 faili; praegu (`dev` 9bdb2ee4) on 20
+`UPDATE`, 1 `DELETE` ja 27 `JOIN`-i faili, kuna koodibaas on audit-hetkest edasi arenenud. Viis alamülesannet:
+T1 UPDATE → tombstone, T2 DELETE, T3 JOIN, T4 CI-lint, T5 versioon + võidujooksukaitse.
+
+### Valikud T5 jaoks (kaks kirjutajat loevad sama `latest` rea)
+
+Mustris `WITH latest AS (SELECT DISTINCT ON (võti) ...) INSERT ... SELECT ... FROM latest` loevad kaks
+samaaegset kirjutajat sama `latest` rea ja kumbki lisab uue; hilisem rida varjab varasema ja üks muudatus
+kaob vaikselt.
+
+1. **`pg_advisory_xact_lock` CTE-s** (epicu pakkumine). **Ei tööta ühe Resql-lause sees:** PostgreSQL
+   READ COMMITTED fikseerib lause snapshot'i lause alguses, seega ootamise järel loeb kirjutaja sama
+   aegunud `latest` rida. Kontrollitud PostgreSQL 17-ga: lukk ootas, aga mõlemad kirjutajad said
+   `revision = 1`. Resql ei toeta mitmelauselist tehingut, kus lukk ja lugemine oleksid eraldi lausetes.
+2. **`SELECT ... FOR UPDATE`.** Lukustab ainult olemasolevad read; lisatud rida ei ole nähtav.
+3. **Monotoonne `revision` + `UNIQUE (võti, revision)`.** Kirjutaja arvutab `latest.revision + 1`; kaks
+   samaaegset kirjutajat saavad sama numbri ja teine INSERT kukub unikaalsusrikkumisega. Töötab ühe
+   lause sees, ei vaja lukku.
+
+### Otsus
+
+**Valik 3.** Uus veerg `revision BIGINT NOT NULL` kõigil 11 versioneeritud `forms.*` tabelil, `UNIQUE
+(võti, revision)`. `BEFORE INSERT` trigger (tabelipõhine `forms.set_<tabel>_revision`, ainult staatiline SQL) täidab `max+1`, kui kirjutaja
+`revision`-it ei anna, nii et vanad `insert.sql`/`update.sql`/`apply_etoimik_decision.sql` ja fikstuurid
+töötavad muutmata. Kirjutaja, mis annab `revision`-i ise (`latest.revision + 1`), saab võidujooksukaitse.
+Tombstone'id ja X-tee väljade kirjutajad (T1/T2) annavad selle alati.
+
+**`version` jääb muutmata.** Epic soovis `version`-i tõsta, aga `version` on kasutajale nähtav /V
+järelliide ja LJVIS2-72 §4 nõuab, et X-tee väljad, tombstone ja korduvsalvestus seda ei tõsta.
+Optimistlik konkurentsikontroll vajab eraldi loendurit, seega `revision`.
+
+`forms.form_attachment`-il versiooni ei ole (võti = `s3_key`); samaaegset topeltkustutust tõrjub osaline
+`UNIQUE (s3_key) WHERE status = 'deleted'`.
+
+### T1 — UPDATE → INSERT-tombstone-forward
+
+Varem muutsid X-tee väljade, menetluse tulemuse, erakorralise ülevaatuse kuupäeva ja `notify_carrier` lipu
+kirjutajad vormi uusimat rida kohapeal. Nüüd lisab iga kirjutaja uue snapshot-rea (`revision + 1`), kus
+`version` ja kõik muud väljad on kantud edasi; vana rida jääb ajalukku. Tabelid on laiad (kuni ~80 veergu),
+seega kopeerib mall rea kujul `to_jsonb(latest) || jsonb_build_object(muudetavad väljad)` →
+`jsonb_populate_record(NULL::forms.<t>, …)`, mitte veergude loendina: uus veerg ei kao vaikselt, kui
+malli ei uuendata. `id`, `revision`, `created_at` ja `created_by` seatakse alati selgelt. Kontrollitud on, et
+kõik veerutüübid (varchar, text, jsonb, boolean, int, bigint, date, time, timestamptz) teevad JSON-ringi
+kadudeta.
+
+* **Ajalugu.** Versiooniajaloo vaates (`get-snapshots`) ilmub lisarida (sama `version`, sama staatus, autor
+  `system` cron-i korral). Mõju on kosmeetiline.
+* **`erakorraline-yv-confirm-update`** valib nüüd *uusima* rea ja nõuab selle staatuseks `confirmed` või `published`;
+  uus rida kannab staatuse edasi. Varem muutis see uusimat `confirmed` rida, ka siis, kui vorm oli vahepeal
+  avalikustatud — sel juhul oli muudatus nähtamatu. Vana rea kopeerimine oleks avalikustatud vormi tagasi
+  `confirmed` olekusse lükanud, seepärast tuleb alus võtta uusimast reast.
+* **Teavitused.** `carrier_notification_request` muutub snapshot-tabeliks (`revision`; avatud tellimus = viimane
+  rida, mille `sent_at` on NULL; saatmine lisab rea). Vana osaline `UNIQUE … WHERE sent_at IS NULL` asendub
+  `UNIQUE (entity_type, entity_id, revision)`-iga. `outbound_log` rida ei muutu; PK 2.0 väljad ja
+  `status_check_count` kirjutatakse tabelisse `outbound_log_status_event` (iga rida täisseis), lugejad võtavad
+  viimase eventi või — ilma eventita — `outbound_log` rea väärtused.
+
+### T2 — kustutamine
+
+* **Manuse kustutamine** (`files/delete_form_attachment`) lisab sama faili kohta rea `status='deleted'`; algne
+  `active` rida jääb. Lugejad peidavad aktiivse rea, kui sama `s3_key`-ga `deleted` rida on olemas. `s3_key` sobib
+  identiteediks, sest S3 proxy lisab igale üleslaadimisele ajatempli ja UUID. Osaline `UNIQUE (s3_key) WHERE
+  status = 'deleted'` tõrjub samaaegse topeltkustutuse.
+* **Retention-purge** (`archive/purge_confirmed.sql`) on ainus lubatud `DELETE`, ja see on erand, mitte parandus: töö-baasi
+  kirjete eemaldamiseks arhiveerimise järel ei ole `INSERT`-only alternatiivi. Erand järgib 3-sammulist kontrakti
+  (valik ja kopeerimine → arhiivi kinnitus → kustutus) ja on kirjas `.sql-rule-exemption` failis. Kontrakti tugevdati:
+  (a) `count_present` loeb kordumatuid paare ja nõuab korraliku payload'i (topeltpaar ei saa puuduvat rida varjata);
+  (b) `purge_confirmed` kustutab vormivõtme read ainult tervikuna, nii et partii piir ei jaga ajalugu töö- ja
+  arhiivibaasi vahel; (c) kustutatakse ainult `id` järgi, `USING`-liide ja `NULL` id on välistatud. Hõlmatud ei ole
+  arhiivikoopia sisu võrdlus (räsi): `jsonb`-arvud muutuvad JSON-transpordis (`12.50` → `12.5`), mis blokeeriks
+  purge'i vaikselt; ridade muutumatus on append-only invariandi enda tagajärg.
+
+### T3 — JOIN-id
+
+`JOIN` asendati `= ANY(SELECT ...)`, `EXISTS`-i, `UNION ALL` + `NOT EXISTS`-i ja korrelleeritud skalaarsete alampäringutega. Koondvormi
+uusim snapshot võetakse alampäringuga `idx_cf_key_ts` kaudu, *pärast* odavaid filtreid; CTE-le viitav korrelleeritud alampäring oleks
+O(N·M). Iga mall on võrreldud vana versiooniga sama sisendiga (A/B, identne tulemus).
+
+### T4 — CI-lint
+
+`tests/contract/check_resql_append_only.py` (CI: `validate-dsl`) keelab `UPDATE`/`DELETE`/`TRUNCATE`/`MERGE`, `JOIN`/`LATERAL` ja
+`ON CONFLICT … DO UPDATE` kõigis `DSL/Resql/` mallides, ning nõuab, et YAML-päis parsiks. `.sql-rule-exemption` lubab ainult
+retention-purge'i `DELETE`-i `archive/` all; kirje, mis enam rikkumisele ei vasta, ebaõnnestub. Piirang: komadega ühendust
+(`FROM a, b`) lint ei tunne.
+
+### Tagajärjed
+
+* Kõik snapshot-kirjutajad (`update.sql`, `delete.sql`, `apply_etoimik_decision.sql`, T1/T2 mallid) annavad
+  `latest.revision + 1` ise ja on võidujooksu vastu kaitstud. Trigger jääb varukaitseks kirjutajatele, kes
+  `revision`-it ei anna (`insert.sql` uue võtmega, fikstuurid): ta annab `max+1`, mis ei sõltu loetud `latest`
+  reast ega kaitse seega lost-update'i eest. `insert.sql` ei vaja kaitset, sest võti tuleb `nextval`-ist.
+* Arhiiv (`select_*_snapshots`) kannab `revision`-i `payload`-i JSON-is edasi; arhiiviskeem ei muutu.
+* `ORDER BY created_at DESC` jääb lugemisjärjestuseks; `revision` on võidujooksu ja auditi tarbeks.
+
+---
+
 ## ADR-012 — Ajapõhine arhiveerimine: X aastat vanad vormid arhiivibaasi, kustutamine eraldi lülitiga
 
 **Otsustaja:** Sten Viljus

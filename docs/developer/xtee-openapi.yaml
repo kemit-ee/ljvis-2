@@ -645,7 +645,7 @@ paths:
                 error0:
                   value:
                     response: '{"error": "NOT_FOUND", "message": "inspection_id not found or form is not in confirmed
-                      status"}'
+                      or published status"}'
         '500':
           description: SERVER_ERROR
           content:
