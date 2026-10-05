@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Create or update the vehicle technical-check sub-form (mootorsõiduki tehnovorm, LJVIS2-72) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update the vehicle technical-check sub-form (mootorsõiduki tehnovorm, LJVIS2-72) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
@@ -111,11 +111,31 @@ extractCurrentStatus:
   assign:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
     current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+    current_created_by: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].createdBy) || ''}"
+  next: getCompoundForInspector
+
+# Kinnitatud alamvormi võib muuta selle looja või koondvormile märgitud
+# kontrolli läbiviija (inspektor); avalikustatud vormi ainult control_form.edit_locked õigusega.
+getCompoundForInspector:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${current_compound_form_key}
+  result: inspectorCompoundRes
+  next: extractInspector
+
+extractInspector:
+  assign:
+    is_creator: "${current_created_by !== '' && current_created_by === (u.personalcode || '')}"
+    is_inspector: "${inspectorCompoundRes.response != null && inspectorCompoundRes.response.body != null && inspectorCompoundRes.response.body[0] != null && String(inspectorCompoundRes.response.body[0].inspectorFirstName || '').trim().toUpperCase() === String(u.firstname || '').trim().toUpperCase() && String(inspectorCompoundRes.response.body[0].inspectorLastName || '').trim().toUpperCase() === String(u.lastname || '').trim().toUpperCase() && String(inspectorCompoundRes.response.body[0].inspectorOrganisationId || '') === String(u.organisationid || '') && String(u.firstname || '').trim() !== ''}"
   next: checkFormNotLocked
 
 checkFormNotLocked:
   switch:
-    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && u.permissions.includes('control_form.edit_locked')) && !(current_status === 'confirmed' && (is_creator || is_inspector))}
       next: returnFormLockedError
   next: updateForm
 

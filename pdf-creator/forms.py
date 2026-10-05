@@ -363,7 +363,11 @@ def build_context(template, payload=None, blank=False):
                 matches=[x for x in catalog if x['code']==r.get('violationCode')]
                 name=joined(matches[0]['name'],matches[0]['threshold']) if len(matches)==1 else label('violations',r.get('violationCode'))
                 if len(matches)>1:warnings.append('Mitmetähenduslik rikkumiskood '+str(r.get('violationCode'))+'; trükitud koodina, vastet ei oletata.')
-                rows.append({'code':r.get('violationCode',''),'name':name,'severity':r.get('severityCode',''),'detected':yes(r.get('isDetected'))})
+                sev_source=r.get('severityCode') or (matches[0]['severity'] if len(matches)==1 else '')
+                sev_abbr=(re.match(r'[A-Za-z]+',str(sev_source)) or [''])[0].upper()
+                article=matches[0].get('article','') if len(matches)==1 else ''
+                line=' '.join(x for x in [article,name,'('+sev_abbr+')' if sev_abbr else ''] if x)
+                rows.append({'code':r.get('violationCode',''),'name':name,'severity':r.get('severityCode',''),'detected':yes(r.get('isDetected')),'line':line})
             groups.append({'title':title,'rows':rows})
         data['violation_groups']=groups;data['violation_catalog']=catalog
         data['measurements']=structured(f.get('massDimensionMeasurements'),list)
