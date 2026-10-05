@@ -155,6 +155,7 @@ Koodirepo DSL-id viitavad järgmistele muutujatele, mida `scripts/constants.ini.
 | `PK_SENDING_OPERATIONS_ENDPOINT` | Postkasti saatmisstaatuse kontroll (`check-status`, `notification-status-sync` cron) | `http://xtr:8080/postkast/sending-operations` |
 | `LJVIS_RESQL_ARHIIV` | Kustutatud vormide arhiiv (ADR-010) | `http://resql-ljvis:8090/arhiiv` (kui arhiiv on samas resql-is) |
 | `NYSIIS_ENDPOINT` | ERRU NYSIIS otsinguvõtmed | `http://nysiis:8080/nysiis` |
+| `NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY` | Bearer-võtmed sidecar'ite (nysiis, s3-proxy, pdf-creator) sissetulevatele kutsetele (`Authorization: Bearer ...`). Ruuter loeb need `constants.ini`-st; sama väärtus peab olema ka sidecar'i enda env-muutujas **sama nimega**. Sidecar ei käivitu ilma võtmeta (fail-closed) | Juhuslik, `openssl rand -hex 32`, iga sidecar'i jaoks eri väärtus; **saladus** |
 | `INTERNAL_COMMUNICATION_KEY` | Jagatud saladus `ruuter-internal` → `ruuter` sisemistele kutsetele (WS-broadcast) | Juhuslik, `openssl rand -hex 32`; **saladus** |
 | `ETOIMIK_SUBSYSTEM_CODE`, `ETOIMIK_SERVICE_VERSION` | eToimiku X-tee päringud | `etoimik-arendus` (ee-dev) või `etoimik` (ee-test/prod); versioon `v6` |
 | `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev/CI-s mock |

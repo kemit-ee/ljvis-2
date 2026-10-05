@@ -4,6 +4,12 @@
 
 ## 2026-10-05
 
+### Sidecar-teenuste (nysiis, s3-proxy, pdf-creator) sissetulev autentimine (#520)
+
+- Kõik kolm teenust nõuavad nüüd päist `Authorization: Bearer <võti>` (`/health` jääb avatuks); puuduv või vale võti → 401. Ruuter saadab võtme kõigil kutsetel (8 DSL-i).
+- Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
+- Fail-closed: sidecar ei käivitu, kui võti on seadmata. Varem lasi pdf-creator tühja `PDF_CREATOR_API_KEY` korral kõik kutsed läbi.
+
 ### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
 
 - Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.

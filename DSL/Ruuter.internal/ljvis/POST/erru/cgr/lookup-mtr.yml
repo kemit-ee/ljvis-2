@@ -61,6 +61,7 @@ computeNysiisFirst:
   args:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
       type: json
     body:
       name: ${first_name}
@@ -84,6 +85,7 @@ computeNysiisLast:
   args:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
       type: json
     body:
       name: ${last_name}

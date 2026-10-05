@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,7 +27,22 @@ public class NysiisService {
     private static final Pattern USE_FULL_NAME_FIELD =
         Pattern.compile("\"useFullName\"\\s*:\\s*(true|false)");
 
+    // Inbound auth (#520): /nysiis needs `Authorization: Bearer <NYSIIS_API_KEY>`. Fail closed:
+    // the service refuses to start without a key. /health stays open for the container probe.
+    private static final String API_KEY = System.getenv().getOrDefault("NYSIIS_API_KEY", "");
+
+    private static boolean authorized(HttpExchange exchange) {
+        String header = exchange.getRequestHeaders().getFirst("Authorization");
+        return header != null && MessageDigest.isEqual(
+            header.getBytes(StandardCharsets.UTF_8),
+            ("Bearer " + API_KEY).getBytes(StandardCharsets.UTF_8));
+    }
+
     public static void main(String[] args) throws IOException {
+        if (API_KEY.isEmpty()) {
+            System.err.println("NYSIIS_API_KEY must be set");
+            System.exit(1);
+        }
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.createContext("/health", new HealthHandler());
@@ -48,6 +64,10 @@ public class NysiisService {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (!authorized(exchange)) {
+                writeResponse(exchange, 401, "{\"error\":\"unauthorized\"}");
+                return;
+            }
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
                 writeResponse(exchange, 405, "{\"error\":\"method_not_allowed\"}");
                 return;
