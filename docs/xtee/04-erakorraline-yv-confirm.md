@@ -6,7 +6,7 @@ Võtab vastu kinnituse erakorralise tehnoülevaatuse tulemuste kohta ja salvesta
 
 ## 1. Eesmärk
 
-Transpordiamet teatab LJVIS-ile erakorralise tehnoülevaatuse tulemuse. Andmed salvestatakse viimase snapshot'i X-tee blokkidesse in-place — uut snapshot'i ei looda.
+Transpordiamet teatab LJVIS-ile erakorralise tehnoülevaatuse tulemuse. Andmed salvestatakse uue snapshot-reana (INSERT-only, `revision + 1`): vormi uusim snapshot kopeeritakse edasi uuendatud X-tee väljaga, vana rida jääb ajalukku ja versiooni number (/V) ei muutu.
 
 ---
 
@@ -86,7 +86,7 @@ sequenceDiagram
 | **Atomaarne** | Ühe elemendi ebaõnnestumisel batch katkeb — eelnevad muudatused jäävad (ei ole DB-taseme transaktsiooni) |
 | **Idempotentne** | Sama `inspection_id + code + value` kordamine annab sama tulemuse |
 | **Ainult confirmed** | SQL kontrollib `status = 'confirmed'` — teise staatusega vorm → 404 |
-| **In-place** | Uut snapshot'i ei looda, versiooni number ei muutu |
+| **INSERT-only** | Lisatakse uus snapshot-rida (`revision + 1`), olemasolevat rida ei muudeta; versiooni number (/V) ei muutu |
 
 ---
 

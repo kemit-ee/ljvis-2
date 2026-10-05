@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 41.
+Skeemid: 8, tabeleid: 42.
 
 ## Skeem `audit`
 
@@ -939,7 +939,7 @@ Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 27 · PK: `
 
 ### `notifications.carrier_notification_request`
 
-Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 6 · PK: `id`
+Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 7 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -949,6 +949,7 @@ Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 6 · PK: `i
 | `requested_by` | VARCHAR(100) | jah |
 | `requested_at` | TIMESTAMPTZ | jah |
 | `sent_at` | TIMESTAMPTZ |  |
+| `revision` | BIGINT | jah |
 
 ### `notifications.notification`
 
@@ -1038,6 +1039,25 @@ Võõrvõtmed: `log_id` → `notifications.outbound_log`
 | `person_name` | TEXT |  |
 | `person_code` | TEXT |  |
 | `sending_report` | TEXT | jah |
+
+### `notifications.outbound_log_status_event`
+
+Loodud: `20261208110000-notifications-append-only.sql` · veerge: 10 · PK: `id`
+
+Võõrvõtmed: `log_id` → `notifications.outbound_log`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `id` | BIGSERIAL | jah |
+| `log_id` | UUID | jah |
+| `revision` | BIGINT | jah |
+| `status` | TEXT | jah |
+| `failure_reason` | TEXT |  |
+| `pk_sending_operation_id` | TEXT |  |
+| `pk_operation_restart_allowed` | BOOLEAN |  |
+| `pk_completed_at` | TIMESTAMPTZ |  |
+| `status_check_count` | INTEGER | jah |
+| `created_at` | TIMESTAMPTZ | jah |
 
 ## Skeem `risk`
 

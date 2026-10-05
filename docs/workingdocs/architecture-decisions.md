@@ -50,6 +50,28 @@ Optimistlik konkurentsikontroll vajab eraldi loendurit, seega `revision`.
 `forms.form_attachment`-il versiooni ei ole (võti = `s3_key`); samaaegset topeltkustutust tõrjub osaline
 `UNIQUE (s3_key) WHERE status = 'deleted'`.
 
+### T1 — UPDATE → INSERT-tombstone-forward
+
+Varem muutsid X-tee väljade, menetluse tulemuse, erakorralise ülevaatuse kuupäeva ja `notify_carrier` lipu
+kirjutajad vormi uusimat rida kohapeal. Nüüd lisab iga kirjutaja uue snapshot-rea (`revision + 1`), kus
+`version` ja kõik muud väljad on kantud edasi; vana rida jääb ajalukku. Tabelid on laiad (kuni ~80 veergu),
+seega kopeerib mall rea kujul `to_jsonb(latest) || jsonb_build_object(muudetavad väljad)` →
+`jsonb_populate_record(NULL::forms.<t>, …)`, mitte veergude loendina: uus veerg ei kao vaikselt, kui
+malli ei uuendata. `id`, `revision`, `created_at` ja `created_by` seatakse alati selgelt. Kontrollitud on, et
+kõik veerutüübid (varchar, text, jsonb, boolean, int, bigint, date, time, timestamptz) teevad JSON-ringi
+kadudeta.
+
+* **Ajalugu.** Versiooniajaloo vaates (`get-snapshots`) ilmub lisarida (sama `version`, sama staatus, autor
+  `system` cron-i korral). Mõju on kosmeetiline.
+* **`erakorraline-yv-confirm-update`** valib nüüd *uusima* rea ja nõuab selle staatuseks `confirmed`. Varem
+  muutis see uusimat `confirmed` rida, ka siis, kui vorm oli vahepeal avalikustatud — sel juhul oli muudatus
+  nähtamatu, aga X-tee vastus oli edukas. Nüüd vastab see `NOT_FOUND`.
+* **Teavitused.** `carrier_notification_request` muutub snapshot-tabeliks (`revision`; avatud tellimus = viimane
+  rida, mille `sent_at` on NULL; saatmine lisab rea). Vana osaline `UNIQUE … WHERE sent_at IS NULL` asendub
+  `UNIQUE (entity_type, entity_id, revision)`-iga. `outbound_log` rida ei muutu; PK 2.0 väljad ja
+  `status_check_count` kirjutatakse tabelisse `outbound_log_status_event` (iga rida täisseis), lugejad võtavad
+  viimase eventi või — ilma eventita — `outbound_log` rea väärtused.
+
 ### Tagajärjed
 
 * Kirjutaja, mis ei anna `revision`-it, ei ole võidujooksu vastu kaitstud (trigger annab numbri, mis ei
