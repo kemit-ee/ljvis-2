@@ -46,6 +46,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -56,10 +60,13 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision
   FROM forms.good_repute_form
   WHERE good_repute_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -69,6 +76,7 @@ INSERT INTO forms.good_repute_form (
   good_repute_form_key,
   form_number,
   version,
+  revision,
   status,
   personal_code,
   first_name,
@@ -87,6 +95,7 @@ SELECT
   :key::BIGINT,
   latest.form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   UPPER(:personalCode),
   UPPER(:firstName),
@@ -101,4 +110,5 @@ SELECT
   NULLIF(:unfitUntilDate, '')::DATE,
   :created_by
 FROM latest
-RETURNING good_repute_form_key AS id, form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING good_repute_form_key AS id, form_number, version, revision;

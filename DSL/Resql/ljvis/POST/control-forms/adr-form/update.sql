@@ -89,6 +89,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -99,10 +103,13 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 WITH latest AS (
   SELECT compound_form_key, sub_form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          enforcement_decision, proceeding_closure_basis
   FROM forms.adr_form
   WHERE adr_form_key = :key::BIGINT
@@ -114,6 +121,7 @@ INSERT INTO forms.adr_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   driver_assistant,
   driver_adr_certificate_number,
@@ -149,6 +157,7 @@ SELECT
   latest.compound_form_key,
   latest.sub_form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   NULLIF(:driverAssistant, '')::jsonb,
   NULLIF(:driverAdrCertificateNumber, ''),
@@ -179,4 +188,5 @@ SELECT
   latest.proceeding_closure_basis,
   :created_by
 FROM latest
-RETURNING adr_form_key AS id, sub_form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING adr_form_key AS id, sub_form_number, version, revision;

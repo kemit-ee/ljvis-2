@@ -15,6 +15,7 @@ extract:
     id: "${incoming.body.id}"
     enforcement_decision: "${incoming.body.enforcementDecision || ''}"
     proceeding_closure_basis: "${incoming.body.proceedingClosureBasis || ''}"
+    created_by: "${u.personalcode || ''}"
   next: routeByType
 
 routeByType:
@@ -44,6 +45,7 @@ saveLabourInspection:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
+      created_by: ${created_by}
   result: saveRes
   next: checkSaved
 
@@ -56,6 +58,7 @@ saveTramCard:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
+      created_by: ${created_by}
   result: saveRes
   next: checkSaved
 
@@ -68,6 +71,7 @@ saveDriver:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
+      created_by: ${created_by}
   result: saveRes
   next: checkSaved
 
@@ -80,6 +84,7 @@ saveTeammate:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
+      created_by: ${created_by}
   result: saveRes
   next: checkSaved
 
@@ -92,6 +97,7 @@ saveVehicle:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
+      created_by: ${created_by}
   result: saveRes
   next: checkSaved
 
@@ -104,6 +110,7 @@ saveTrailer:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
+      created_by: ${created_by}
   result: saveRes
   next: checkSaved
 
@@ -116,6 +123,7 @@ saveAdr:
       key: ${id}
       enforcementDecision: ${enforcement_decision}
       proceedingClosureBasis: ${proceeding_closure_basis}
+      created_by: ${created_by}
   result: saveRes
   next: checkSaved
 

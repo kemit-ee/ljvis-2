@@ -4,6 +4,7 @@
         "compoundFormKey": "{{this.compoundFormKey}}",
         "subFormNumber": "{{this.subFormNumber}}",
         "status": "{{this.status}}",
+        "revision": {{#if this.revision}}{{this.revision}}{{else}}null{{/if}},
         "selectionStatus": "{{this.selectionStatus}}",
         "transportType": "{{this.transportType}}",
         "transportEmptyRun": {{#if this.transportEmptyRun}}true{{else}}false{{/if}},
