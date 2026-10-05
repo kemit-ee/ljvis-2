@@ -19,6 +19,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -142,6 +145,7 @@ SELECT
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   selection_status,
   transport_type,

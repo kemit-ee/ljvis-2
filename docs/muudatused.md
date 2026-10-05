@@ -10,6 +10,11 @@
 - Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
 - Fail-closed: sidecar ei käivitu, kui võti on seadmata. Varem lasi pdf-creator tühja `PDF_CREATOR_API_KEY` korral kõik kutsed läbi.
 
+### Samaaegne muutmine: teade, kui keegi teine vormi vahepeal muutis
+
+- Kui sama vormi on pärast sinu avamist salvestanud keegi teine (teine kasutaja, teine aken või e-toimiku sünkroonimine), siis sinu salvestus, kinnitamine või avalikustamine **ei kirjuta tema muudatusi enam vaikselt üle**. Ekraanile ilmub hoiatus „Seda vormi muutis vahepeal keegi teine …“, mis jääb nähtavale kuni sulgemiseni; laadi leht uuesti, vaata uusi andmeid ja salvesta oma muudatused uuesti.
+- Kontroll on vormi tasemel (kõik 11 vormitüüpi). Uue vormi esmasalvestust, kustutamist ja menetluse tulemuse salvestust see ei mõjuta.
+
 ### E-toimiku päringu kaart ("Päri e-toimikust") ainult karistusregistri õigusega kasutajale
 
 - Koondvormi (PPA) lehe ülaosas olev kaart „E-toimiku kvalifikatsiooni kontroll“ koos nupuga „Päri e-toimikust“ on nähtav ainult kasutajale, kellel on õigus `control_form.punishment_register`. Varem nägi seda igaüks, kellel oli koondvormi lugemisõigus.

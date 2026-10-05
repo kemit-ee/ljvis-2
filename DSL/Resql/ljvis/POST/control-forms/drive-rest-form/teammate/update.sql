@@ -113,6 +113,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -121,6 +125,9 @@ returns:
   type: string
   nullable: true
 - name: version
+  type: number
+  nullable: true
+- name: revision
   type: number
   nullable: true
 */
@@ -268,4 +275,5 @@ SELECT
         COALESCE((SELECT CASE WHEN NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), '') ~ '^\d{4}-\d{2}-\d{2}' THEN LEFT(NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), ''), 10)::DATE END FROM tm), (SELECT person_birth_date FROM prev)),
         :created_by
 FROM latest l
-RETURNING sp_teammate_form_key AS id, sub_form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR l.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING sp_teammate_form_key AS id, sub_form_number, version, revision;

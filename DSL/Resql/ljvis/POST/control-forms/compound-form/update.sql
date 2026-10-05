@@ -128,6 +128,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -136,6 +140,9 @@ returns:
   type: string
   nullable: true
 - name: version
+  type: number
+  nullable: true
+- name: revision
   type: number
   nullable: true
 */
@@ -246,4 +253,5 @@ SELECT
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
   :created_by
 FROM latest l
-RETURNING compound_form_key AS id, form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR l.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING compound_form_key AS id, form_number, version, revision;
