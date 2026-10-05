@@ -35,8 +35,6 @@ logAuditEvent:
   body:
     event_type: "control_form.file.upload"
     event_category: "control_form_management"
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

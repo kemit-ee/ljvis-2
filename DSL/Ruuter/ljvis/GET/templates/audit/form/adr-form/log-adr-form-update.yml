@@ -66,8 +66,6 @@ logAuditEvent:
   body:
     event_type: "control_form.adr.update"
     event_category: "control_form"
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

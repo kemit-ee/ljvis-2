@@ -34,8 +34,6 @@ writeAudit:
   body:
     event_type: "nu.message.save"
     event_category: "erru_management"
-    actor_name: ${incoming.body.actor_name || ''}
-    actor_personal_code: ${incoming.body.actor_personal_code || ''}
     description: ${description}
     log_content: ${log_content}
   result: res
