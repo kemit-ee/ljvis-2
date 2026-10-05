@@ -166,7 +166,7 @@ logAuditEvent:
 # lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
-    - condition: ${audit_result.response != null && audit_result.response.status >= 200 && audit_result.response.status < 300 && Array.isArray(audit_result.response.body) && audit_result.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
       next: returnFormModifiedError
   next: autoPublishCompound
 
