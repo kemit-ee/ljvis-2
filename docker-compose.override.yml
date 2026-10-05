@@ -8,3 +8,18 @@ services:
   ruuter-internal:
     ports:
       - "127.0.0.1:8089:8080"
+
+  # Core-teenuste (#520, 3b) on privaatvõrgus autentimisvärava taga; arendaja pääseb otse
+  # tagateenuse külge ainult loopback'i kaudu (värava möödaminek, ainult kohalik dev).
+  resql-ljvis:
+    ports:
+      - "127.0.0.1:8090:8090"
+  data-mapper:
+    ports:
+      - "127.0.0.1:3005:3005"
+  tim:
+    ports:
+      - "127.0.0.1:8085:8085"
+  xtr:
+    ports:
+      - "127.0.0.1:9010:8080"

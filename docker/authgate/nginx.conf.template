@@ -1,0 +1,64 @@
+# Autentimisvärav (#520, 3b): kontrollib päist x-internal-service-token ja proxyb teenusele.
+# Mall renderdatakse käivitusel (entrypoint.sh, envsubst); muutujad vt README.md.
+pid /tmp/nginx.pid;
+error_log /dev/stderr warn;
+worker_processes auto;
+
+events { worker_connections 1024; }
+
+http {
+    # Päised (sh token) ei satu kunagi logisse: logime ainult meetodi, tee ja staatuse.
+    log_format gate '$remote_addr "$request_method $uri" $status $request_time token_ok=$gate_token_ok';
+    access_log /dev/stdout gate;
+
+    client_body_temp_path /tmp/client_temp;
+    proxy_temp_path       /tmp/proxy_temp;
+    fastcgi_temp_path     /tmp/fastcgi_temp;
+    uwsgi_temp_path       /tmp/uwsgi_temp;
+    scgi_temp_path        /tmp/scgi_temp;
+
+    client_max_body_size ${GATE_MAX_BODY};
+    server_tokens off;
+
+    upstream gate_backend {
+        server ${GATE_UPSTREAM};
+        keepalive 32;
+    }
+
+    map $http_x_internal_service_token $gate_token_ok {
+        default 0;
+        "${GATE_TOKEN}" 1;
+    }
+    # GATE_DEFAULT_AUTH=1 (GATE_ENFORCE=false) on ainult sisseviimise "pehme režiim": puuduv/vale token
+    # läbib, aga token_ok=0 jääb logisse. Token eemaldatakse alati.
+    map $gate_token_ok $gate_authorized {
+        1 1;
+        default ${GATE_DEFAULT_AUTH};
+    }
+
+    server {
+        listen ${GATE_PORT};
+
+        error_page 401 @unauthorized;
+        location @unauthorized {
+            internal;
+            default_type application/json;
+            return 401 '{"error":"unauthorized"}';
+        }
+
+        # Värava enda tervisekontroll (ei puuduta teenust).
+        location = /__gate/health { default_type text/plain; return 200 "ok"; }
+
+        # Avalikud teed (token pole vaja), nt TIM-i brauserivoog. Tühi => ükski tee pole avalik.
+        location ~ ${GATE_PUBLIC_PATHS} {
+            include /tmp/gate-proxy.conf;
+        }
+
+        location / {
+            if ($gate_authorized = 0) {
+                return 401;
+            }
+            include /tmp/gate-proxy.conf;
+        }
+    }
+}

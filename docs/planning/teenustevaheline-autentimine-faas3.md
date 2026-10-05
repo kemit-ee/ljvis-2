@@ -45,3 +45,14 @@ Värav tohib sisse lülitada alles pärast 3a levikut kõigis keskkondades, muid
 
 - TIM-i täpne avalike teede nimekiri.
 - Kas XTR-i või Resql-i kutsub veel keegi peale Ruuteri (`erru-xml-adapter` kasutab andmebaasi otse).
+
+## 3b tulemus
+
+- Resql-, DataMapper- ja TIM-värav on CI-stackis ja dev-compose'is jõustatud. Täielik Newman (kõik kollektsioonid, 3270 kontrolli)
+  läbis väravate taga 0 tõrkega; kõik väravatesse jõudnud päringud kandsid kehtivat tokenit (0 x 401).
+- TIM-i avalikud teed kontrollitud: `health`, `auth/login/*`, `auth/providers` avatud; `jwt/*`, `auth/callback`, `auth/session/*`
+  vajavad tokenit.
+- Leid: `tests/dsl/dev-login.yml` (TIM-kutse väljaspool `DSL/` puud) vajas tokenit; CI-stack leidis selle.
+- XTR-värav (dev) on pehmes režiimis, kuni REST-lane kutsed (`rr`, `PK_*`, ERRU) tokenit saadavad. Neile token alles siis, kui
+  XTR-värav on kõigis keskkondades paigas (muidu läheks võti turvaserverisse).
+- Playwright'i UI-teste lokaalselt ei jooksutatud (CI teeb), aga TIM-i brauserivoog (`/auth/login/tara` läbi värava) on käsitsi kontrollitud.

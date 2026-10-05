@@ -4,6 +4,15 @@
 
 ## 2026-10-05
 
+### Autentimisvärav Resql-i, TIM-i, DataMapper'i ja XTR-i ees (#520, 3b)
+
+- Uus `docker/authgate/` (nginx) seisab nende teenuste ees ja nõuab päist `x-internal-service-token` (sama `INTERNAL_COMMUNICATION_KEY`); puuduv või vale token → 401. Teenused on dev- ja CI-stackis privaatvõrgus ainult värava taga.
+- TIM-i brauserivoog (`/tim/auth/login/*`, `/auth/providers`, health) jääb ilma tokenita; kõik muu TIM-i tee (`jwt/*`, `auth/session/*`, admin) nõuab tokenit.
+- Värav eemaldab tokeni enne edastamist, seega XTR REST-lane ei saa seda turvaserverisse edasi anda. XTR-värav on dev'is veel pehmes režiimis, sest REST-lane kutsed (`rr`, `PK_*`, ERRU) ei saada veel tokenit.
+- Sisseviimiseks on pehme režiim (`GATE_ENFORCE=false`: logib, ei blokeeri). Järjekord: kutsujad saadavad tokenit (#550), väravad pehmes režiimis, siis `GATE_ENFORCE=true`.
+- Dev: tagateenuste host-pordid (8090, 3005, 8085, 9010) on enam ainult `docker-compose.override.yml`-is ja 127.0.0.1 peal; CI seemned (9087 jne) käivad otse tagateenuse külge.
+- Kirjeldus: `docker/authgate/README.md`.
+
 ### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
 
 - Kõik kutsed Resql-ile (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`), TIM-ile ja DataMapper'ile saadavad päise `x-internal-service-token` (sama väärtus `INTERNAL_COMMUNICATION_KEY`, mis ruuter-internal'i kaitseks). Teenused ignoreerivad päist: kasutajale ja deploy'le muutust pole, uusi konstante lisada ei ole vaja.

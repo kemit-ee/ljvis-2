@@ -53,6 +53,7 @@ services:
       retries: 12
     networks:
       - ljvis-ci
+      - ljvis-ci-core
     ports:
       - "5433:5432"
 
@@ -159,8 +160,11 @@ services:
       timeout: 5s
       retries: 18
       start_period: 15s
+    # Tagateenus on ainult privaatvõrgus; Ruuter räägib värava (resql-gate) kaudu.
+    # Host-port 9087 jääb testide seemneteks (CI-only, otse Resql, vt tests/postman).
     networks:
-      - ljvis-ci
+      ljvis-ci-core:
+        aliases: [resql-backend]
     ports:
       - "9087:8090"
 
@@ -183,7 +187,8 @@ services:
       retries: 18
       start_period: 15s
     networks:
-      - ljvis-ci
+      ljvis-ci-core:
+        aliases: [data-mapper-backend]
     ports:
       - "9005:3005"
 
@@ -214,7 +219,11 @@ services:
       dockerfile: docker/ruuter/Dockerfile
     restart: unless-stopped
     depends_on:
-      resql-ljvis:
+      resql-gate:
+        condition: service_healthy
+      data-mapper-gate:
+        condition: service_healthy
+      tim-gate:
         condition: service_healthy
       nysiis:
         condition: service_healthy
@@ -354,6 +363,7 @@ services:
       - ./docker/tara-mock/config.json:/service/config.json:ro
     networks:
       - ljvis-ci
+      - ljvis-ci-core
     ports:
       - "9888:8080"
 
@@ -367,7 +377,7 @@ services:
     volumes:
       - ci-tim-db:/var/lib/postgresql/data
     networks:
-      - ljvis-ci
+      - ljvis-ci-core
 
   tim:
     build:
@@ -393,11 +403,86 @@ services:
       - ci-tara-vault:/tara-mock-vault:ro
       - ci-tim-jwt-key:/opt/tim/keys
     networks:
-      - ljvis-ci
-    ports:
-      - "9085:8085"
+      ljvis-ci-core:
+        aliases: [tim-backend]
     cpus: "0.5"
     mem_limit: "512M"
+
+  # ── Autentimisvärav core-teenuste ees (#520, 3b) ─────────────────────────────
+  # Värav võtab teenuse DNS-aliase (ljvis-ci võrgus) ja nõuab päist x-internal-service-token
+  # (INTERNAL_COMMUNICATION_KEY). Vt docker/authgate/README.md.
+  resql-gate:
+    build:
+      context: .
+      dockerfile: docker/authgate/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      resql-ljvis:
+        condition: service_healthy
+    environment:
+      - GATE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - GATE_UPSTREAM=resql-backend:8090
+      - GATE_PORT=8090
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8090/__gate/health > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      ljvis-ci:
+        aliases: [resql-ljvis]
+      ljvis-ci-core: {}
+
+  data-mapper-gate:
+    build:
+      context: .
+      dockerfile: docker/authgate/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      data-mapper:
+        condition: service_healthy
+    environment:
+      - GATE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - GATE_UPSTREAM=data-mapper-backend:3005
+      - GATE_PORT=3005
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3005/__gate/health > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      ljvis-ci:
+        aliases: [data-mapper]
+      ljvis-ci-core: {}
+
+  # TIM: brauser kasutab ainult /auth/login/* ja /auth/providers (frontend nginx /tim/),
+  # need on avalikud; kõik muu (jwt/*, auth/session/*, admin) nõuab tokenit.
+  tim-gate:
+    build:
+      context: .
+      dockerfile: docker/authgate/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      tim:
+        condition: service_healthy
+    environment:
+      - GATE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - GATE_UPSTREAM=tim-backend:8085
+      - GATE_PORT=8085
+      - GATE_PUBLIC_PATHS=^/(auth/(login|providers)(/|$$)|health$$|healthz$$|auth/health$$)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8085/__gate/health > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      ljvis-ci:
+        aliases: [tim]
+      ljvis-ci-core: {}
+    # Brauser (Playwright vite-proxy) ja Newman käivad TIM-i külge värava kaudu: nii kontrollitakse ka
+    # avalike teede allowlisti.
+    ports:
+      - "9085:8085"
 
 volumes:
   ci-db-data:
@@ -407,6 +492,11 @@ volumes:
 
 networks:
   ljvis-ci:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
+  # Core-teenuste (resql, data-mapper, tim) privaatvõrk: ligipääs ainult autentimisvärava kaudu (#520, 3b).
+  ljvis-ci-core:
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1400

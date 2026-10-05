@@ -19,6 +19,7 @@ services:
       start_period: 10s
     networks:
       - ljvisnetwork
+      - ljvis-core
 
   liquibase:
     container_name: liquibase
@@ -67,12 +68,12 @@ services:
         condition: service_completed_successfully
     environment:
       - RESQL_DB_PASSWORD=01234
-    ports:
-      - 8090:8090
+    # Host-porti pole (dev-ligipääs: docker-compose.override.yml). Ruuter räägib värava (resql-gate) kaudu.
     volumes:
       - ./DSL/Resql:/DSL
     networks:
-      - ljvisnetwork
+      ljvis-core:
+        aliases: [resql-backend]
 
   pdf-creator:
     container_name: pdf-creator
@@ -104,6 +105,14 @@ services:
     depends_on:
       nysiis:
         condition: service_healthy
+      resql-gate:
+        condition: service_healthy
+      data-mapper-gate:
+        condition: service_healthy
+      tim-gate:
+        condition: service_healthy
+      xtr-gate:
+        condition: service_started
     environment:
       - RUST_LOG=ruuter_on_rust::steps::http=debug,info
     volumes:
@@ -128,8 +137,6 @@ services:
       # back to Production). Local dev has no secrets in the DSL tree, so dev
       # is the correct posture here.
       - APP_ENV=dev
-    ports:
-      - 3005:3005
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:3005/healthz > /dev/null 2>&1"]
       interval: 10s
@@ -137,7 +144,8 @@ services:
       retries: 18
       start_period: 15s
     networks:
-      - ljvisnetwork
+      ljvis-core:
+        aliases: [data-mapper-backend]
 
   ruuter-internal:
     container_name: ruuter-internal
@@ -170,6 +178,7 @@ services:
       - ./docker/tara-mock/config.json:/service/config.json:ro
     networks:
       - ljvisnetwork
+      - ljvis-core
     ports:
       - 8888:8080
   # ─────────────────────────────────────────────────────────────────────────────
@@ -187,7 +196,7 @@ services:
     ports:
       - 9876:5432
     networks:
-      - ljvisnetwork
+      - ljvis-core
 
   tim:
     container_name: tim
@@ -206,10 +215,9 @@ services:
     volumes:
       - tara-mock-vault:/tara-mock-vault:ro
       - tim-jwt-key:/opt/tim/keys
-    ports:
-      - 8085:8085
     networks:
-      - ljvisnetwork
+      ljvis-core:
+        aliases: [tim-backend]
     cpus: "0.5"
     mem_limit: "512M"
 
@@ -325,10 +333,9 @@ services:
       - ./DSL/xtr:/app/DSL:ro
       - ./.ssl:/app/ssl:ro
       - ./docker/xtr:/app/xtr-config:ro
-    ports:
-      - 9010:8080
     networks:
-      - ljvisnetwork
+      ljvis-core:
+        aliases: [xtr-backend]
     cpus: "0.5"
     mem_limit: "512M"
 
@@ -379,6 +386,103 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
+  # ── Autentimisvärav core-teenuste ees (#520, 3b) ─────────────────────────────
+  # Värav võtab teenuse DNS-aliase (ljvisnetwork) ja nõuab päist x-internal-service-token
+  # (INTERNAL_COMMUNICATION_KEY, sama mis constants.ini-s). Vt docker/authgate/README.md.
+  resql-gate:
+    container_name: resql-gate
+    build:
+      context: .
+      dockerfile: docker/authgate/Dockerfile
+    depends_on:
+      resql-ljvis:
+        condition: service_started
+    environment:
+      - GATE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - GATE_UPSTREAM=resql-backend:8090
+      - GATE_PORT=8090
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8090/__gate/health > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      ljvisnetwork:
+        aliases: [resql-ljvis]
+      ljvis-core: {}
+
+  data-mapper-gate:
+    container_name: data-mapper-gate
+    build:
+      context: .
+      dockerfile: docker/authgate/Dockerfile
+    depends_on:
+      data-mapper:
+        condition: service_healthy
+    environment:
+      - GATE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - GATE_UPSTREAM=data-mapper-backend:3005
+      - GATE_PORT=3005
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3005/__gate/health > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      ljvisnetwork:
+        aliases: [data-mapper]
+      ljvis-core: {}
+
+  # TIM: brauser kasutab ainult /auth/login/* ja /auth/providers (frontend nginx /tim/),
+  # need on avalikud; kõik muu (jwt/*, auth/session/*, admin) nõuab tokenit.
+  tim-gate:
+    container_name: tim-gate
+    build:
+      context: .
+      dockerfile: docker/authgate/Dockerfile
+    depends_on:
+      - tim
+    environment:
+      - GATE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - GATE_UPSTREAM=tim-backend:8085
+      - GATE_PORT=8085
+      - GATE_PUBLIC_PATHS=^/(auth/(login|providers)(/|$$)|health$$|healthz$$|auth/health$$)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8085/__gate/health > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      ljvisnetwork:
+        aliases: [tim]
+      ljvis-core: {}
+
+  # XTR: REST-lane (rr, postkast, ERRU-endpointid) kutsed EI kanna veel tokenit, sest REST-lane edastaks
+  # selle turvaserverisse. Värav eemaldab tokeni alati enne edastamist, kuid kuni REST-kutsed seda
+  # saadavad, on see värav PEHMES režiimis (GATE_ENFORCE=false: logib, ei blokeeri). Järgmine samm:
+  # kõigis keskkondades XTR-värav paigas -> REST-kutsetele token -> GATE_ENFORCE=true.
+  xtr-gate:
+    container_name: xtr-gate
+    build:
+      context: .
+      dockerfile: docker/authgate/Dockerfile
+    depends_on:
+      - xtr
+    environment:
+      - GATE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - GATE_UPSTREAM=xtr-backend:8080
+      - GATE_PORT=8080
+      - GATE_ENFORCE=false
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/__gate/health > /dev/null 2>&1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      ljvisnetwork:
+        aliases: [xtr]
+      ljvis-core: {}
+
 volumes:
   tara-mock-vault:
   tim-jwt-key:
@@ -386,6 +490,12 @@ volumes:
 networks:
   ljvisnetwork:
     name: ljvisnetwork
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
+  # Core-teenuste (resql, data-mapper, tim, xtr) privaatvõrk: ligipääs ainult autentimisvärava kaudu (#520, 3b).
+  ljvis-core:
+    name: ljvis-core
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1400
