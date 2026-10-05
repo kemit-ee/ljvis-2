@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: file upload event. Generic — works for any form type."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -15,10 +16,6 @@ declaration:
       - field: file_name
         type: string
       - field: s3_key
-        type: string
-      - field: actor_personal_code
-        type: string
-      - field: actor_name
         type: string
 
 buildAudit:

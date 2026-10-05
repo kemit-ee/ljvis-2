@@ -85,8 +85,6 @@ renderBlank:
     blank: true
     fields: {}
     eventType: "control_form.tram_control_card.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "tram-card tühi vorm trükitud"
     logContent: '{"formKey":"","snapshotId":"","blank":true}'
   result: pdfResult
@@ -103,8 +101,6 @@ renderFilled:
     fields:
         tramCard: ${selected_form}
     eventType: "control_form.tram_control_card.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "tram-card vorm trükitud, võti=${id}, snapshot=${snapshot_id}"
     logContent: '{"formKey":"${id}","snapshotId":"${snapshot_id}","blank":false}'
   result: pdfResult

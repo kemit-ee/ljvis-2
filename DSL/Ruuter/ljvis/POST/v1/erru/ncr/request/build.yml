@@ -74,8 +74,6 @@ logAuditEvent:
     business_case_id: "${res.response.body[0].businessCaseId}"
     sp_form_key: ${sp_form_key}
     sp_form_type: ${sp_form_type}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

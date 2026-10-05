@@ -250,8 +250,6 @@ logAuditSend:
     rsi_to: ${rsi_to}
     result_status: "sent"
     vehicle_registration_number: ${vehicle_registration_number}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_ok
   next: returnSent
 
@@ -265,8 +263,6 @@ logAuditError:
     rsi_to: ${rsi_to}
     result_status: "error"
     vehicle_registration_number: ${vehicle_registration_number}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_err
   next: returnError
 

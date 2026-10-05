@@ -102,8 +102,6 @@ renderBlank:
     blank: true
     fields: {}
     eventType: "control_form.vehicle_technical.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "vehicle-technical tühi vorm trükitud"
     logContent: '{"formKey":"","snapshotId":"","blank":true}'
   result: pdfResult
@@ -121,8 +119,6 @@ renderFilled:
         compoundForm: ${compoundFormRes.response.body[0]}
         technicalForm: ${selected_form}
     eventType: "control_form.vehicle_technical.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "vehicle-technical vorm trükitud, võti=${id}, snapshot=${snapshot_id}"
     logContent: '{"formKey":"${id}","snapshotId":"${snapshot_id}","blank":false}'
   result: pdfResult

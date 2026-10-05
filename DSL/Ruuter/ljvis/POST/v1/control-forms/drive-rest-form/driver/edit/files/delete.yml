@@ -24,8 +24,6 @@ deleteFile:
     attachment_form_type: "sp-driver-form"
     id: ${incoming.body.id}
     form_type: "sp-driver-form"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
   result: deleteResult
   next: returnSuccess
 

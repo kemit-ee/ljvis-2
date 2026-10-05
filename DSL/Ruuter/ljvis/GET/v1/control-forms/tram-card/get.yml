@@ -53,8 +53,6 @@ logAuditEvent:
   body:
     event_type: "control_form.tram_control_card.view"
     event_category: "control_form_management"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: "TRAM kontrollkaart vaadatud, number=${res.response.body[0].formNumber}/${res.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${id},\"formNumber\":\"${res.response.body[0].formNumber}\"}"
   result: audit_result

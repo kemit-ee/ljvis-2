@@ -24,8 +24,6 @@ downloadFile:
     form_number_prefix: "mv-"
     id: ${incoming.params.q}
     form_type: "good-repute-form"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
   result: downloadResult
 
 returnSuccess:

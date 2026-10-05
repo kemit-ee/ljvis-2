@@ -85,8 +85,6 @@ renderBlank:
     blank: true
     fields: {}
     eventType: "control_form.compound.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "compound-form tühi vorm trükitud"
     logContent: '{"formKey":"","snapshotId":"","blank":true}'
   result: pdfResult
@@ -103,8 +101,6 @@ renderFilled:
     fields:
         compoundForm: ${selected_form}
     eventType: "control_form.compound.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "compound-form vorm trükitud, võti=${id}, snapshot=${snapshot_id}"
     logContent: '{"formKey":"${id}","snapshotId":"${snapshot_id}","blank":false}'
   result: pdfResult

@@ -2,6 +2,7 @@ declaration:
   version: "1.0"
   description: "NU log nu message save."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -14,10 +15,6 @@ declaration:
       - field: status
         type: string
       - field: is_new
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

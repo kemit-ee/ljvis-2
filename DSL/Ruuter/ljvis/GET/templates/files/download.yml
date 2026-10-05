@@ -3,6 +3,20 @@ declaration:
   version: "1.0"
   description: "Get presigned download URL for a file attachment. Expects: id"
   namespace: templates
+  strict: true
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - field: id
+        type: string
+      - field: form_type
+        type: string
+      - field: form_number_prefix
+        type: string
+      - field: attachment_form_type
+        type: string
 
 getAttachmentRecord:
   call: http.post

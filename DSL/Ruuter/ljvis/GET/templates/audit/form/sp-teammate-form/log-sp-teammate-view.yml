@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: sp teammate form view event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -19,10 +20,6 @@ declaration:
       - field: driver2PersonalCodeEe
         type: string
       - field: driver2PersonalCodeForeign
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildDriver1Code:
