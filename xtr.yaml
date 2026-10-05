@@ -13,7 +13,9 @@ security_server:
   url: "https://cammy.ml.ee/"
   keystore_path: /app/ssl/keystore.p12
   keystore_password_env: XTR_KEYSTORE_PASSWORD
-  trust_ca_path: /app/xtr-config/ca-bundle-with-cammy.pem
+  # Exactly ONE certificate: the Security Server's own (self-signed) cert or its issuing CA.
+  # XTR reads only the first certificate of this file — a CA bundle silently fails TLS.
+  trust_ca_path: /app/xtr-config/cammy-server.crt
 
 limits:
   max_request_bytes: 1048576

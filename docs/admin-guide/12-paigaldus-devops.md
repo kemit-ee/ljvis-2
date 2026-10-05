@@ -185,7 +185,7 @@ SSM asub **andmekontos** (mitte klastri kontos); klastri External Secrets Operat
 | `tim/session-encryption-key` | `seed-ssm.sh` | TIM; täpselt 64 hex-märki; vahetamine logib kõik välja |
 | `audit/salt` | `seed-ssm.sh` | Liquibase auditiahela räsid. **Püsiv — ära vaheta kunagi** (kõik varasemad isikukoodi räsid muutuvad võrreldamatuks) |
 | `cronmanager/admin-token` | `seed-ssm.sh` | CronManager admin API |
-| `xtr/keystore`, `xtr/keystore-password`, `xtr/server-ca` | kopeeritud (jagatud X-tee klient) | XTR mTLS |
+| `xtr/keystore`, `xtr/keystore-password`, `xtr/server-ca` | kopeeritud (jagatud X-tee klient) | XTR mTLS. `xtr/server-ca` → `xtr.yaml` `security_server.trust_ca_path`: **täpselt üks sertifikaat** (turvaserveri oma või selle CA); XTR loeb ainult esimese, bundle'iga TLS ebaõnnestub |
 | `stesta-gateway/tls.{crt,key}` | `seed-ssm.sh` | sTESTA lüüs |
 | `constants.ini` | `seed-ssm.sh` | `ljvis2-constants` Secret |
 

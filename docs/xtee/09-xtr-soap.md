@@ -174,10 +174,12 @@ security_server:              # kohustuslik: ilma selleta XTR ei käivitu (WSDL-
   url: https://<turvaserver>/
   keystore_path: …
   keystore_password_env: XTR_KEYSTORE_PASSWORD
-  trust_ca_path: …
+  trust_ca_path: …             # TÄPSELT üks sertifikaat: turvaserveri oma või selle CA (XTR loeb ainult esimese)
 xroad_instance: ee-dev | ee-test | ee
 client_data: { member_class: GOV, member_code: "70001231", subsystem_code: ljvis2 }
 ```
+
+`trust_ca_path` failis peab olema üks sertifikaat. XTR (`reqwest::Certificate::from_pem`) loeb ainult faili esimese sertifikaadi: 143 sertifikaadiga `ca-bundle-with-cammy.pem` (turvaserver viimasena) andis 05.10.2026 dev-is ja test-is TLS-vea kõigil radadel, `cammy-server.crt` / `urien-server.crt` töötasid (vana DSL, REST, `/soap-out`). Varasem `SSL_CERT_FILE` keskkonnamuutuja eemaldati — see asendas kogu protsessi usaldusloendi.
 
 Tootmise `xtr.yaml`-is **ei tohi** olla `wsdl.allow_http_upstream: true` ega `wsdl.upstream_host_allowlist` kirjet `localhost` — need on ainult CI loopback'i jaoks (`docker/xtr-inbound/xtr.yaml`). Väljuv SOAP läheb ainult turvaserverisse (`https`, mTLS).
 
@@ -208,4 +210,4 @@ Parandatud lepinguerinevused: Resql-i camelCase → vana WSDL-i väljad, `soiduk
 - Liquibase changeset `20261207100000` (tabel + funktsioon): rakendamine puhtale baasile, rollback ja uuesti rakendamine. Olemasolevate ridade seostamist ei tehta — enne seda muudatust ei olnud ühtegi X-tee kaudu saabunud akti.
 - `docker/xtr/Dockerfile`-ist ehitatud image (sama digest Docker Hubist; Harbor ei olnud testmasinast kättesaadav) käivitus ilma checkout'i mount'ideta: 6 operatsiooni, `?wsdl` avalik aadress, portide eraldus, päris `IsikuKontroll` ja `RegisterJobInspection_v2` Ruuter.internal-i kaudu.
 
-Kontrollimata: päris turvaserver (mTLS, registreerimine, õigused; kas dev-i `docker-compose.yml` `SSL_CERT_FILE` on `xtr.yaml` `security_server.trust_ca_path` kõrval veel vajalik — cammy ei olnud testmasinast kättesaadav), GitLab/Harbor ehitus, tootmise `xtr.yaml`/Kubernetes ressursid (väline devops-repo), päris LJVIS1 RavenDB andmed (test kasutas sünteetilisi dokumente).
+Kontrollimata: päris turvaserveris meie SOAP-teenuse registreerimine ja õigused (TLS/mTLS cammy ja urien vastu kontrollitud 05.10.2026), GitLab/Harbor ehitus, tootmise `xtr.yaml`/Kubernetes ressursid (väline devops-repo), päris LJVIS1 RavenDB andmed (test kasutas sünteetilisi dokumente).

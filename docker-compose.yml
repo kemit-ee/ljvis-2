@@ -319,7 +319,6 @@ services:
     environment:
       - RUST_LOG=debug
       - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
-      - SSL_CERT_FILE=/app/xtr-config/ca-bundle-with-cammy.pem
     volumes:
       - ./xtr.yaml:/app/xtr.yaml:ro
       - ./DSL/xtr:/app/DSL:ro
