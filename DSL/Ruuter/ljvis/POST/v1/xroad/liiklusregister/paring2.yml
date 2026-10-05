@@ -41,6 +41,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/liiklusregister/paring2"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       regmrk: ${reg_mrk}

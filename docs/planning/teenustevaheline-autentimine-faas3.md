@@ -28,8 +28,12 @@ mTLS (service mesh), mille valik on devopsi otsus.
 
 1. **3a (see PR):** väljuvad kutsed Resql/TIM/DataMapper'ile saadavad päise. Teenused ignoreerivad seda,
    seega deploy on ohutu.
-2. **3a-XTR:** kontrollida, et XTR ei edasta sissetulevaid päiseid X-tee turvaserverisse ega ERRU/Postkasti
-   lõppsüsteemidesse (REST passthrough lane); alles siis lisada päis XTR-i kutsetele.
+2. **3a-XTR (tehtud):** XTR-i käitumine kontrollitud päris konteineriga (xtr 0.4.1-rc, "turvaserver" = kaja-server).
+   **REST-lane (`kind: rest`: `rr/isikud`, `postkast/*`) edastab kõik sissetulevad päised turvaserverisse**, SOAP-lane
+   (`ar`, `etoimik`, `mtr`, `liiklusregister`) ei edasta. Seega saadavad päise 27 SOAP-kutset, REST-lane'i kutsed
+   (`/rr`, `PK_*`, ERRU-endpointid, mis tootmises osutavad XTR-ile) **mitte**. `scripts/check-internal-token-targets.py`
+   (CI) hoiab seda. REST-lane'i kutsed saavad päise alles 3b-s, kus värav eemaldab tokeni (`proxy_set_header ... ""`)
+   enne XTR-ile edastamist.
 3. **3b:** `docker/authgate/` image, compose/CI (teenused värava taga), TIM-i avalike teede allowlist,
    otsepäringud Resql-ile (Postman/Playwright seemned, port 9087) saavad päise. Mõõta lisahopi jõudlust.
 4. **3c (devops):** sidecar'id Helmis, teenused loopback'ile, NetworkPolicy.

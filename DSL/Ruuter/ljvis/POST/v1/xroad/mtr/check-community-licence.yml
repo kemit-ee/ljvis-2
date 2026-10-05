@@ -76,6 +76,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/mtr/checkCommunityLicence"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}

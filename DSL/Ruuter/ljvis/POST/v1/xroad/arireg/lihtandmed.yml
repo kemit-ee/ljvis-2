@@ -47,6 +47,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/ar/lihtandmed_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: "${reg_code}"

@@ -59,6 +59,7 @@ processCandidates:
         args:
           url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body: ${xtr_request_body}
         result: xtrResponse
