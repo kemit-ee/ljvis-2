@@ -1613,6 +1613,9 @@
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",
       "forbidden": "Puuduvad õigused selle toimingu tegemiseks.",
+      "formForbiddenTitle": "Teil puudub õigus seda vormi vaadata",
+      "formForbidden": "Avalikustamata vormi näeb selle looja, sama asutuse kolleeg (õigusega „Minu asutuse vormid“) ja kasutaja, kellel on õigus vaadata avalikustamata vorme. Avalikustatud vormid on nähtavad kõigile vastava vormi lugemise õigusega kasutajatele. Ligipääsu vajaduse korral pöörduge oma asutuse kasutajahalduse poole.",
+      "formNotFound": "Soovitud vormi ei leitud. Vorm võib olla kustutatud või viidatud aadress on vigane.",
       "notFound": "Soovitud ressurssi ei leitud.",
       "requestFailed": "Päring ebaõnnestus. Palun proovige uuesti.",
       "unexpected": "Ilmnes ootamatu viga."

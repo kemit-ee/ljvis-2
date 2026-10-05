@@ -10,6 +10,10 @@
 - Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
 - Fail-closed: sidecar ei käivitu, kui võti on seadmata. Varem lasi pdf-creator tühja `PDF_CREATOR_API_KEY` korral kõik kutsed läbi.
 
+### Selge teade, kui vormi ei saa vaadata
+
+- Kui vormi avamine ebaõnnestub, näeb kasutaja põhjust: „Teil puudub õigus seda vormi vaadata“ koos selgitusega, kes avalikustamata vormi näeb (looja, sama asutuse kolleeg õigusega „Minu asutuse vormid“, avalikustamata vormide vaatamise õigusega kasutaja), või „Soovitud vormi ei leitud“. Varem näidati kõigil juhtudel üldist „Tekkis viga“.
+
 ### Vormiotsing ja eksport järgivad sama nähtavusreeglit mis vormi avamine
 
 - Otsingus ja otsingutulemuse eksportis (xlsx/csv) on nähtavad: kõik **avalikustatud** vormid; **enda** vormid mis tahes olekus; `control_form.view_organisation` õigusega kasutajale lisaks **oma asutuse kolleegide** vormid mis tahes olekus (nende vormitüüpide osas, mille lugemise õigus on olemas); `control_form.view_unpublished` õigusega kasutajale **kõigi** vormid mis tahes olekus.
