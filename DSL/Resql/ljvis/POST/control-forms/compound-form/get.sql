@@ -139,11 +139,15 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 SELECT
   compound_form_key AS id,
   form_number,
   version,
+  revision,
   status,
   control_date,
   control_time::TEXT AS control_time,

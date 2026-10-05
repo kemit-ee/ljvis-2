@@ -101,6 +101,24 @@ O(N·M). Iga mall on võrreldud vana versiooniga sama sisendiga (A/B, identne tu
 retention-purge'i `DELETE`-i `archive/` all; kirje, mis enam rikkumisele ei vasta, ebaõnnestub. Piirang: komadega ühendust
 (`FROM a, b`) lint ei tunne.
 
+### Kasutajapoolne lost-update: optimistlik lukk (`expected_revision`)
+
+`UNIQUE (võti, revision)` kaitseb ainult samaaegsete päringute eest ühe lause aknas. Tegelik oht on teine: kasutaja A avab vormi
+(`revision` 3), B (või teine aken, `edit_locked` admin, e-toimiku cron) salvestab, ja A salvestab oma vana vaate põhjal — B muudatused kaovad
+vaikselt. Õigustesüsteem seda ei välista: õigused piiravad, *kes* tohib kirjutada, mitte seda, mitu kirjutajat korraga on.
+
+* `get`-päringud ja DataMapper-mallid tagastavad `revision`-i. Frontend (`formRevisions.ts`, kasutusel `api.ts`-is) jätab vormi
+  revision-i meelde igal lugemisel ja salvestusvastusel ning saadab selle `save`/`confirm` päringus kaasa.
+* Ruuteri `save`/`confirm` annab selle `update.sql`-ile (`expected_revision`); `update.sql` lisab rea ainult siis, kui uusim rida on
+  endiselt see revision. 0 rida + antud revision = **409 `form_modified`**; frontendi globaalne teavitus ütleb, et salvestus jäi tegemata
+  ja leht tuleb uuesti laadida. `publish` lukustab revision'i vastu, mille ta ise `get`-iga luges (kopeeritav sisu on selle rea oma).
+* **Fail-open:** tundmatu revision (uus vorm, vormid mille revision-i klient ei näinud) saadetakse `null`-ina ja kontrolli ei tehta.
+  Väärkonflikt, mis blokeerib kasutaja salvestamise, on hullem kui kontrolli puudumine. Avalikustamine, kustutamine ja menetluse tulemuse
+  salvestus unustavad meelde jäetud revision-i, sest lisavad vormile rea, mida klient ei näe.
+* Vanad kutsujad, mis `revision`-it ei saada (Postman, Playwright), töötavad muutmata (Ruuteri allowlist ei nõua välja olemasolu).
+* Piirang: kontroll on vormi tasemel, mitte välja tasemel — kaks inimest, kes muudavad *erinevaid* välju, saavad ikkagi konflikti.
+  Väljapõhine liitmine on väljaspool epicut.
+
 ### Tagajärjed
 
 * Kõik snapshot-kirjutajad (`update.sql`, `delete.sql`, `apply_etoimik_decision.sql`, T1/T2 mallid) annavad

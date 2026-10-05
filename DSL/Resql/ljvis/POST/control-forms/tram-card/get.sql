@@ -16,6 +16,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -243,6 +246,7 @@ SELECT
   tram_control_card_key AS id,
   form_number,
   version,
+  revision,
   status,
   control_year,
   control_date,

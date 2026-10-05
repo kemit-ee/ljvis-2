@@ -220,6 +220,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -228,6 +232,9 @@ returns:
   type: string
   nullable: true
 - name: version
+  type: number
+  nullable: true
+- name: revision
   type: number
   nullable: true
 - name: status
@@ -412,4 +419,5 @@ SELECT
   latest.proceeding_closure_basis,
   :created_by
 FROM latest
-RETURNING tram_control_card_key AS id, form_number, version, status;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING tram_control_card_key AS id, form_number, version, status, revision;

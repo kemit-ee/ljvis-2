@@ -2089,7 +2089,7 @@
     },
     "body": {
      "mode": "raw",
-     "raw": "{\"status\": \"confirmed\", \"controlDate\": \"2026-08-01\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"city\": \"Tallinn\", \"address\": \"Cron tee 1\", \"vehicleRegNr\": \"TRAMCRON1\", \"vehicleCountryCode\": \"EE\", \"trailers\": \"[]\", \"drivers\": \"[{\\\"firstName\\\":\\\"Test\\\",\\\"lastName\\\":\\\"Juht\\\",\\\"personalCodeEe\\\":\\\"60001019906\\\",\\\"citizenship\\\":\\\"EE\\\"}]\", \"driverNotApplicable\": \"false\", \"transportType\": \"Veosevedu\", \"resultType\": \"misdemeanor_proceedings\", \"proceedingType\": \"YLD\", \"proceedingReferenceNumber\": \"1-20/26/TRAM-CRON\", \"inspectorFirstName\": \"Newman\", \"inspectorLastName\": \"Cron\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"notes\": \"\", \"created_by\": \"newman\", \"key\": \"{{cron_tram_id}}\"}"
+     "raw": "{\"status\": \"confirmed\", \"controlDate\": \"2026-08-01\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"city\": \"Tallinn\", \"address\": \"Cron tee 1\", \"vehicleRegNr\": \"TRAMCRON1\", \"vehicleCountryCode\": \"EE\", \"trailers\": \"[]\", \"drivers\": \"[{\\\"firstName\\\":\\\"Test\\\",\\\"lastName\\\":\\\"Juht\\\",\\\"personalCodeEe\\\":\\\"60001019906\\\",\\\"citizenship\\\":\\\"EE\\\"}]\", \"driverNotApplicable\": \"false\", \"transportType\": \"Veosevedu\", \"resultType\": \"misdemeanor_proceedings\", \"proceedingType\": \"YLD\", \"proceedingReferenceNumber\": \"1-20/26/TRAM-CRON\", \"inspectorFirstName\": \"Newman\", \"inspectorLastName\": \"Cron\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"notes\": \"\", \"created_by\": \"newman\", \"key\": \"{{cron_tram_id}}\", \"expected_revision\": \"\"}"
     }
    },
    "event": [
@@ -4439,6 +4439,168 @@
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
        "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] get returns the form's revision",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"revision is a number\", () => pm.expect(rows[0].revision).to.be.a('number'));",
+       "pm.environment.set('ol_rev', String(rows[0].revision));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] update with the revision the user saw adds a row and returns the new revision",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"{{ao_vtf_id}}\", \"status\": \"confirmed\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"resultTransportInterruption\": false, \"transportInterruptionAutovs5131\": false, \"otherMeasure\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"violations\": \"[]\", \"notes\": \"\", \"created_by\": \"newman\", \"expected_revision\": \"{{ol_rev}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));",
+       "pm.test(\"revision advanced by one\", () => pm.expect(String(rows[0].revision)).to.eql(String(Number(pm.environment.get('ol_rev')) + 1)));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] update with the now-stale revision adds nothing (conflict)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"{{ao_vtf_id}}\", \"status\": \"confirmed\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"resultTransportInterruption\": false, \"transportInterruptionAutovs5131\": false, \"otherMeasure\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"violations\": \"[]\", \"notes\": \"\", \"created_by\": \"newman\", \"expected_revision\": \"{{ol_rev}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] update without expected revision is not checked",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"{{ao_vtf_id}}\", \"status\": \"confirmed\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"resultTransportInterruption\": false, \"transportInterruptionAutovs5131\": false, \"otherMeasure\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"violations\": \"[]\", \"notes\": \"\", \"created_by\": \"newman\", \"expected_revision\": \"\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));"
       ],
       "type": "text/javascript"
      }
