@@ -158,6 +158,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             entity_type: "vehicle_technical"
@@ -304,6 +305,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             entity_type: "trailer_technical"

@@ -1,0 +1,28 @@
+# Projektiülene guard (#515) — rakendub KÕIGILE ruuter-internal route'idele, igal meetodil.
+# ruuter-internal ei ole kasutajapoolne: kutsujad on CronManager, ruuter, erru-xml-adapter
+# ja ruuter-internal ise. Kõik nad saadavad jagatud teenusetokeni päises
+# `x-internal-service-token` (constants.ini: INTERNAL_COMMUNICATION_KEY). Puuduv või vale → 403.
+#
+# Erandid (bypass'ivad selle guardi `declaration.override_ancestors: true` kaudu):
+#   - POST /xroad/provide/**   — X-tee teenuse pakkumine; kaitse = X-Road-Client guard + Gateway
+#   - GET  /xroad/provide/**   — X-tee OpenAPI kirjelduse fetch (turvaserver)
+#   - GET  /xroad/v2/**        — Andmejälgija protokoll (findUsage/heartbeat/usagePeriod)
+#
+# Ruuteri mootor ei oska DSL-i "ainult sisemiseks" märkida (upstream task 071), seega on
+# see guard ainus tõke. Lisaks ei tohi `ruuter-internal` porti hostile publitseerida.
+
+check_token:
+  switch:
+    - condition: ${incoming.headers != null && incoming.headers['x-internal-service-token'] === '[#INTERNAL_COMMUNICATION_KEY]'}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end
