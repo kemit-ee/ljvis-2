@@ -4,8 +4,9 @@
 # published, KORRAS sõidu- ja puhkeaja checks of foreign-registered vehicles.
 erru_ncr_autodispatch:
   trigger: "0 0 2 * * ?"
-  type: exec
-  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/erru-ncr-autodispatch
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/erru-ncr-autodispatch
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

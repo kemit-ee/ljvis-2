@@ -361,9 +361,6 @@ services:
     volumes:
       - ./cronmanager.yaml:/app/cronmanager.yaml:ro
       - ./DSL/CronManager:/app/DSL/jobs:ro
-      # exec-tööd kutsuvad ruuter-internal'i skriptiga, mis loeb URL-i ja teenusetokeni constants.ini-st (#515).
-      - ./docker/cronmanager/scripts:/app/scripts/ljvis:ro
-      - ${CONSTANTS_FILE:-./constants.ini}:/app/constants.ini:ro
     depends_on:
       - ruuter-internal
     healthcheck:
