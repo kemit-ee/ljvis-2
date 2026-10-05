@@ -5,6 +5,60 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-013 — SQL append-only invariant: ainult INSERT ja SELECT, `revision` lugeja-kirjutaja võidujooksu vastu
+
+**Otsustaja:** ootab kinnitust (epic #522 kavand)
+**Kuupäev:** 05.10.2026
+**Seotud:** epic [#522](https://github.com/kemit-ee/ljvis-2/issues/522) ja T1–T5 (#523–#527); ADR-010, ADR-012;
+`DSL/Liquibase/changelog/20261208100000-form-snapshot-revision.sql`;
+`tests/contract/check_resql_append_only.py`; `tests/sql/form-snapshot-revision.sql`
+
+### Kontekst
+
+Kõik SQL kulgeb läbi Resql-i ja peab olema **append-only**: ainult `INSERT` ja `SELECT`, ilma `UPDATE`,
+`DELETE` ja `JOIN`-ita. Epic #522 auditis oli rikkumisi ~36 faili; praegu (`dev` 9bdb2ee4) on 20
+`UPDATE`, 1 `DELETE` ja 27 `JOIN`-i faili, kuna koodibaas on audit-hetkest edasi arenenud. Viis alamülesannet:
+T1 UPDATE → tombstone, T2 DELETE, T3 JOIN, T4 CI-lint, T5 versioon + võidujooksukaitse.
+
+### Valikud T5 jaoks (kaks kirjutajat loevad sama `latest` rea)
+
+Mustris `WITH latest AS (SELECT DISTINCT ON (võti) ...) INSERT ... SELECT ... FROM latest` loevad kaks
+samaaegset kirjutajat sama `latest` rea ja kumbki lisab uue; hilisem rida varjab varasema ja üks muudatus
+kaob vaikselt.
+
+1. **`pg_advisory_xact_lock` CTE-s** (epicu pakkumine). **Ei tööta ühe Resql-lause sees:** PostgreSQL
+   READ COMMITTED fikseerib lause snapshot'i lause alguses, seega ootamise järel loeb kirjutaja sama
+   aegunud `latest` rida. Kontrollitud PostgreSQL 17-ga: lukk ootas, aga mõlemad kirjutajad said
+   `revision = 1`. Resql ei toeta mitmelauselist tehingut, kus lukk ja lugemine oleksid eraldi lausetes.
+2. **`SELECT ... FOR UPDATE`.** Lukustab ainult olemasolevad read; lisatud rida ei ole nähtav.
+3. **Monotoonne `revision` + `UNIQUE (võti, revision)`.** Kirjutaja arvutab `latest.revision + 1`; kaks
+   samaaegset kirjutajat saavad sama numbri ja teine INSERT kukub unikaalsusrikkumisega. Töötab ühe
+   lause sees, ei vaja lukku.
+
+### Otsus
+
+**Valik 3.** Uus veerg `revision BIGINT NOT NULL` kõigil 11 versioneeritud `forms.*` tabelil, `UNIQUE
+(võti, revision)`. `BEFORE INSERT` trigger (tabelipõhine `forms.set_<tabel>_revision`, ainult staatiline SQL) täidab `max+1`, kui kirjutaja
+`revision`-it ei anna, nii et vanad `insert.sql`/`update.sql`/`apply_etoimik_decision.sql` ja fikstuurid
+töötavad muutmata. Kirjutaja, mis annab `revision`-i ise (`latest.revision + 1`), saab võidujooksukaitse.
+Tombstone'id ja X-tee väljade kirjutajad (T1/T2) annavad selle alati.
+
+**`version` jääb muutmata.** Epic soovis `version`-i tõsta, aga `version` on kasutajale nähtav /V
+järelliide ja LJVIS2-72 §4 nõuab, et X-tee väljad, tombstone ja korduvsalvestus seda ei tõsta.
+Optimistlik konkurentsikontroll vajab eraldi loendurit, seega `revision`.
+
+`forms.form_attachment`-il versiooni ei ole (võti = `s3_key`); samaaegset topeltkustutust tõrjub osaline
+`UNIQUE (s3_key) WHERE status = 'deleted'`.
+
+### Tagajärjed
+
+* Kirjutaja, mis ei anna `revision`-it, ei ole võidujooksu vastu kaitstud (trigger annab numbri, mis ei
+  sõltu loetud `latest` reast). Järeltöö: `insert.sql`/`update.sql` hakkavad `revision`-it ise andma.
+* Arhiiv (`select_*_snapshots`) kannab `revision`-i `payload`-i JSON-is edasi; arhiiviskeem ei muutu.
+* `ORDER BY created_at DESC` jääb lugemisjärjestuseks; `revision` on võidujooksu ja auditi tarbeks.
+
+---
+
 ## ADR-012 — Ajapõhine arhiveerimine: X aastat vanad vormid arhiivibaasi, kustutamine eraldi lülitiga
 
 **Otsustaja:** Sten Viljus
