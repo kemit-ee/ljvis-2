@@ -5,6 +5,8 @@ declaration:
     vastuvõtja seadistus (halduse loendivaade). Nõuab notification_template_mapping.list
     õigust (kaitstud .guard.yml kaudu).
   namespace: notification
+  allowlist:
+    params: []
 
 get_user_context:
   assign:

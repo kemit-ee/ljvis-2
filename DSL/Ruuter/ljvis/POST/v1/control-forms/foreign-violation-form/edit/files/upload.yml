@@ -31,8 +31,6 @@ uploadFile:
     file_name: ${incoming.body.fileName}
     file_base64: ${incoming.body.fileBase64}
     mimetype: ${incoming.body.mimetype}
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
   result: uploadResult
   next: returnSuccess
 

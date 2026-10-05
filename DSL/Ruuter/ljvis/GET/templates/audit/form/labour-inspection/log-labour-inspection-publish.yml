@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: labour inspection form (labour_inspection_form) publish event."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -19,10 +20,6 @@ declaration:
       - field: old_status
         type: string
       - field: new_status
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

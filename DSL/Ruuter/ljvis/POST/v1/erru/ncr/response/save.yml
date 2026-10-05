@@ -154,8 +154,6 @@ logAuditEvent:
     changed_fields: "vastuse väljad"
     status: ${new_status}
     version: "${'' + new_version}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

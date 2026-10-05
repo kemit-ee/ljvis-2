@@ -102,8 +102,6 @@ renderBlank:
     blank: true
     fields: {}
     eventType: "control_form.trailer_technical.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "trailer-technical tühi vorm trükitud"
     logContent: '{"formKey":"","snapshotId":"","blank":true}'
   result: pdfResult
@@ -123,8 +121,6 @@ renderFilled:
         printOptions:
           vehicle: "trailer"
     eventType: "control_form.trailer_technical.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "trailer-technical vorm trükitud, võti=${id}, snapshot=${snapshot_id}"
     logContent: '{"formKey":"${id}","snapshotId":"${snapshot_id}","blank":false}'
   result: pdfResult

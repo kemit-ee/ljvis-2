@@ -221,8 +221,6 @@ logAuditSave:
     direction: "outgoing"
     status: "${saved_row.status}"
     is_new: ${is_new}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

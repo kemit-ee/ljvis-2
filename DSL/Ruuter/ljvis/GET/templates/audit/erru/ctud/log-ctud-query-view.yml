@@ -2,6 +2,7 @@ declaration:
   version: "1.0"
   description: "Audit: single CTUD request viewed (LJVIS2-143). Logged on EVERY open of the request, because the view shows transport undertaking data. The description carries the request identifier, the searched undertaking details, the target country and the viewer's personal code, which is what makes it traceable who saw whose data."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -16,10 +17,6 @@ declaration:
       - field: vehicle_registration_number
         type: string
       - field: ctud_to
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

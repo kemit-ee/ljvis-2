@@ -66,8 +66,6 @@ logAuditEvent:
     event_category: "control_form"
     description: ${description}
     log_content: "{\"subFormKey\":${res.response.body[0].id}}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

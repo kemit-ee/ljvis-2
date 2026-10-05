@@ -117,8 +117,6 @@ logAuditEvent:
   body:
     event_type: "control_form.trailer_technical.publish"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
@@ -136,8 +134,6 @@ autoPublishCompound:
   body:
     id: "${compound_form_key == null ? '' : String(compound_form_key)}"
     only_if_confirmed: "true"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
   result: autoPublishCompoundRes
   error: sendCarrierFromRequest
   next: sendCarrierFromRequest

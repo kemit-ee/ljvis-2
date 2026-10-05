@@ -2,6 +2,7 @@ declaration:
   version: "1.0"
   description: "Audit: CTUD request list viewed (LJVIS2-145). Logged on EVERY list load, because the list exposes person-related data (transport undertaking and handler names) and the log must make it traceable who saw whose data. The description carries the applied filters (including the handler personal code filter), the number of rows shown and the page number. Actor is supplied by the caller, which has already resolved it via check-user-authority."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -12,10 +13,6 @@ declaration:
       - field: result_count
         type: string
       - field: page
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

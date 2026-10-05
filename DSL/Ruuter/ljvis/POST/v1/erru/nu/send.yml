@@ -358,8 +358,6 @@ logAuditSend:
     ok_count: "${'' + ok_count}"
     timeout_count: "${'' + timeout_count}"
     not_available_count: "${'' + not_available_count}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_ok
   next: returnSent
 
@@ -376,8 +374,6 @@ logAuditError:
     ok_count: "0"
     timeout_count: "0"
     not_available_count: "0"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_err
   next: returnError
 

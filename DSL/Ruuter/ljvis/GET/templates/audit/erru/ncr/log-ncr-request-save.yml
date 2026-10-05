@@ -4,6 +4,7 @@ declaration:
     — initial create and revision. Description carries the case identifier, changed fields and
     the resulting status."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -16,10 +17,6 @@ declaration:
       - field: status
         type: string
       - field: version
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:

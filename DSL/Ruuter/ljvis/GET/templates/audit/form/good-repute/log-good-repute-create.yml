@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: good repute form create event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -10,10 +11,6 @@ declaration:
     body:
       - field: good_repute_form_key
       - field: personal_code
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:
