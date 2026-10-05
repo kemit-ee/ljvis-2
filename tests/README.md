@@ -67,7 +67,9 @@ skipped contract checks. `tests/xtr/repeat_test.py` covers exact/changed/locked
 repeats, concurrent first writes, REST v3, v1 `inspection_type` and RavenDB V2 ETL → SOAP;
 `tests/xtr/bridge_test.py` runs the `xroad/soap/*` adapters
 against JSON/empty/text/WSDL-violating backend answers in a temporary ruuter-internal
-container. See [XTR SOAP guide](../docs/xtee/09-xtr-soap.md) for targeted runs.
+container. `tests/xtr/race_test.py` holds one writer's transaction open (UI `update.sql`/`delete.sql`,
+e-toimik, X-tee repeat) and checks that history never forks (`prev_snapshot_id`); the UI 422
+`concurrent_modification` answers are covered by `DSL-tests/control-forms/`. See [XTR SOAP guide](../docs/xtee/09-xtr-soap.md) for targeted runs.
 
 ---
 

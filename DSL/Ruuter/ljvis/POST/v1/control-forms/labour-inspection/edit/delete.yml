@@ -63,6 +63,8 @@ returnForbidden:
 
 check_deleteRes_persisted:
   switch:
+    - condition: ${deleteRes.response != null && deleteRes.response.status >= 200 && deleteRes.response.status < 300 && Array.isArray(deleteRes.response.body) && deleteRes.response.body.length === 0}
+      next: returnConcurrentModification
     - condition: ${deleteRes.response == null || deleteRes.response.status < 200 || deleteRes.response.status >= 300 || deleteRes.response.body == null || deleteRes.response.body.length == null || deleteRes.response.body.length === 0}
       next: returnResqlWriteError
   next: logAuditEvent
@@ -70,4 +72,11 @@ check_deleteRes_persisted:
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
+  next: end
+
+# Resql answered 2xx with no row: another writer (X-tee repeat, e-toimik, another user) appended a snapshot
+# on top of the same state first (uq_lif_prev_snapshot). Nothing was written; the user must reload.
+returnConcurrentModification:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"concurrent_modification"}'
   next: end

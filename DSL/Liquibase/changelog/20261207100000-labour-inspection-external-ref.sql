@@ -3,6 +3,15 @@
 -- X-tee RegisterJobInspection (v1/v2/v3): saatja välise ID atomaarne seos tööinspektsiooni akti
 -- stabiilse võtmega. labour_inspection_form on INSERT-only snapshot-tabel (mitu rida sama võtme ja
 -- external_inspection_id-ga), seega unikaalsust ei saa sinna panna. Seos hoitakse eraldi tabelis.
+--
+-- Snapshot'ide ahel: iga uus snapshot viitab sellele snapshot'ile, mille pealt see koostati (prev_snapshot_id).
+-- Unikaalne indeks keelab ajaloo hargnemise: kui kaks kirjutajat (UI salvestus/kinnitus, e-toimik, X-tee
+-- kordus) loevad sama viimast seisu, saab lisada ainult ühe; teine ootab esimese commit'i ja ei lisa midagi
+-- (INSERT … ON CONFLICT (prev_snapshot_id) DO NOTHING) ning peab otsustama värske seisu pealt uuesti.
+
+ALTER TABLE forms.labour_inspection_form ADD COLUMN prev_snapshot_id BIGINT;
+CREATE UNIQUE INDEX uq_lif_prev_snapshot ON forms.labour_inspection_form (prev_snapshot_id);
+COMMENT ON COLUMN forms.labour_inspection_form.prev_snapshot_id IS 'id of the snapshot this row was built from (NULL for the first snapshot of an act and for rows written before 20261207100000). Unique: two writers cannot both append on top of the same snapshot; the loser inserts nothing and must re-read.';
 
 CREATE TABLE IF NOT EXISTS forms.labour_inspection_external_ref (
     source                      VARCHAR(30)  NOT NULL,
@@ -81,6 +90,10 @@ DECLARE
     v_key       BIGINT;
     v_ref       forms.labour_inspection_external_ref%ROWTYPE;
     v_latest    forms.labour_inspection_form%ROWTYPE;
+    v_new_key     BIGINT;
+    v_new_number  TEXT;
+    v_new_version INTEGER;
+    v_new_status  TEXT;
 BEGIN
     IF p_source NOT IN ('xroad-v1', 'xroad-v2', 'xroad-v3') THEN
         RAISE EXCEPTION 'unknown external source %', p_source;
@@ -136,55 +149,64 @@ BEGIN
         END IF;
     END LOOP;
 
-    SELECT * INTO v_latest
-    FROM forms.labour_inspection_form f
-    WHERE f.labour_inspection_form_key = v_ref.labour_inspection_form_key
-    ORDER BY f.created_at DESC, f.id DESC
-    LIMIT 1;
-    IF NOT FOUND THEN
-        RETURN QUERY SELECT v_ref.labour_inspection_form_key, NULL::TEXT, NULL::INTEGER, NULL::TEXT,
-            CASE WHEN v_ref.payload_hash IS NOT DISTINCT FROM v_hash THEN 'unchanged'
-                 WHEN p_on_change = 'keep_first' THEN 'existing'
-                 ELSE 'archived' END;
-        RETURN;
-    END IF;
+    -- Otsus tehakse viimase seisu pealt; INSERT viitab sellele (prev_snapshot_id). Kui samal ajal lisas keegi
+    -- teine (UI kinnitus, e-toimik) sama seisu peale snapshot'i, ei lisata midagi ja otsustatakse uuesti.
+    LOOP
+        SELECT * INTO v_latest
+        FROM forms.labour_inspection_form f
+        WHERE f.labour_inspection_form_key = v_ref.labour_inspection_form_key
+        ORDER BY f.created_at DESC, f.id DESC
+        LIMIT 1;
+        IF NOT FOUND THEN
+            RETURN QUERY SELECT v_ref.labour_inspection_form_key, NULL::TEXT, NULL::INTEGER, NULL::TEXT,
+                CASE WHEN v_ref.payload_hash IS NOT DISTINCT FROM v_hash THEN 'unchanged'
+                     WHEN p_on_change = 'keep_first' THEN 'existing'
+                     ELSE 'archived' END;
+            RETURN;
+        END IF;
 
-    IF v_ref.payload_hash IS NOT DISTINCT FROM v_hash THEN
-        RETURN QUERY SELECT v_latest.labour_inspection_form_key, v_latest.form_number::TEXT, v_latest.version, v_latest.status::TEXT, 'unchanged'::TEXT;
-        RETURN;
-    END IF;
-    IF p_on_change = 'keep_first' THEN
-        RETURN QUERY SELECT v_latest.labour_inspection_form_key, v_latest.form_number::TEXT, v_latest.version, v_latest.status::TEXT, 'existing'::TEXT;
-        RETURN;
-    END IF;
-    IF v_latest.status <> 'saved' THEN
-        RETURN QUERY SELECT v_latest.labour_inspection_form_key, v_latest.form_number::TEXT, v_latest.version, v_latest.status::TEXT, 'conflict'::TEXT;
-        RETURN;
-    END IF;
+        IF v_ref.payload_hash IS NOT DISTINCT FROM v_hash THEN
+            RETURN QUERY SELECT v_latest.labour_inspection_form_key, v_latest.form_number::TEXT, v_latest.version, v_latest.status::TEXT, 'unchanged'::TEXT;
+            RETURN;
+        END IF;
+        IF p_on_change = 'keep_first' THEN
+            RETURN QUERY SELECT v_latest.labour_inspection_form_key, v_latest.form_number::TEXT, v_latest.version, v_latest.status::TEXT, 'existing'::TEXT;
+            RETURN;
+        END IF;
+        IF v_latest.status <> 'saved' THEN
+            RETURN QUERY SELECT v_latest.labour_inspection_form_key, v_latest.form_number::TEXT, v_latest.version, v_latest.status::TEXT, 'conflict'::TEXT;
+            RETURN;
+        END IF;
 
-    -- Muudetud kordus kinnitamata aktile: uus snapshot (update.sql mudel — saved-staatuses versioon ei muutu).
-    -- total_drivers_count ja e-toimiku väljad pole X-tee sisus, need jäävad eelmisest snapshot'ist.
-    RETURN QUERY
-    INSERT INTO forms.labour_inspection_form AS f (
-        labour_inspection_form_key, form_number, version, status,
-        inspector_name, inspection_date, external_inspection_id, inspection_type,
-        company_name, company_reg_code, vehicle_count, total_drivers_count, controls_matrix,
-        prescription_composed, violations, punished_person_id_code,
-        punished_person_first_name, punished_person_last_name,
-        proceeding_reference_number, enforcement_decision, proceeding_closure_basis,
-        created_at, created_by
-    ) VALUES (
-        v_latest.labour_inspection_form_key, v_latest.form_number, v_latest.version, 'saved',
-        p_inspector_name, v_date, COALESCE(v_latest.external_inspection_id, v_ext_col), p_inspection_type,
-        p_company_name, p_company_reg_code, v_vehicles, v_latest.total_drivers_count, v_controls,
-        v_presc, v_viol, v_pid, v_pfirst, v_plast, v_proc,
-        v_latest.enforcement_decision, v_latest.proceeding_closure_basis,
-        GREATEST(clock_timestamp(), v_latest.created_at + INTERVAL '1 microsecond'), p_created_by
-    )
-    RETURNING f.labour_inspection_form_key, f.form_number::TEXT, f.version, f.status::TEXT, 'updated'::TEXT;
+        -- Muudetud kordus kinnitamata aktile: uus snapshot (update.sql mudel — saved-staatuses versioon ei muutu).
+        -- total_drivers_count ja e-toimiku väljad pole X-tee sisus, need jäävad eelmisest snapshot'ist.
+        INSERT INTO forms.labour_inspection_form AS f (
+            labour_inspection_form_key, form_number, version, status,
+            inspector_name, inspection_date, external_inspection_id, inspection_type,
+            company_name, company_reg_code, vehicle_count, total_drivers_count, controls_matrix,
+            prescription_composed, violations, punished_person_id_code,
+            punished_person_first_name, punished_person_last_name,
+            proceeding_reference_number, enforcement_decision, proceeding_closure_basis,
+            prev_snapshot_id, created_at, created_by
+        ) VALUES (
+            v_latest.labour_inspection_form_key, v_latest.form_number, v_latest.version, 'saved',
+            p_inspector_name, v_date, COALESCE(v_latest.external_inspection_id, v_ext_col), p_inspection_type,
+            p_company_name, p_company_reg_code, v_vehicles, v_latest.total_drivers_count, v_controls,
+            v_presc, v_viol, v_pid, v_pfirst, v_plast, v_proc,
+            v_latest.enforcement_decision, v_latest.proceeding_closure_basis,
+            v_latest.id, GREATEST(clock_timestamp(), v_latest.created_at + INTERVAL '1 microsecond'), p_created_by
+        )
+        ON CONFLICT (prev_snapshot_id) DO NOTHING
+        RETURNING f.labour_inspection_form_key, f.form_number::TEXT, f.version, f.status::TEXT
+        INTO v_new_key, v_new_number, v_new_version, v_new_status;
 
-    UPDATE forms.labour_inspection_external_ref r
-    SET payload_hash = v_hash, updated_at = now()
-    WHERE r.source = p_source AND r.external_id = p_external_id;
+        IF FOUND THEN
+            UPDATE forms.labour_inspection_external_ref r
+            SET payload_hash = v_hash, updated_at = now()
+            WHERE r.source = p_source AND r.external_id = p_external_id;
+            RETURN QUERY SELECT v_new_key, v_new_number, v_new_version, v_new_status, 'updated'::TEXT;
+            RETURN;
+        END IF;
+    END LOOP;
 END;
 $$;

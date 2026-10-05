@@ -227,6 +227,7 @@ export function useLabourInspectionForm(
     addViolation,
     removeViolation,
     formError,
+    setFormError,
     handleCompanyRegSearch,
     handleCompanyNameSearch,
     companySearchError,

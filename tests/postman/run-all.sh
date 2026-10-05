@@ -230,6 +230,9 @@ python3 "$REPO_ROOT/tests/xtr/verify.py" --report "$REPORT_DIR/xroad-soap-inboun
 python3 "$REPO_ROOT/tests/xtr/repeat_test.py" --soap-url http://localhost:9095 --rest-url http://localhost:9089 \
   --resql-url http://localhost:9087/ljvis -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db \
   || FAILED+=("xroad-soap-repeat-concurrency")
+# Concurrent UI / e-toimik / X-tee writers on one act: no forked history (prev_snapshot_id).
+python3 "$REPO_ROOT/tests/xtr/race_test.py" -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db \
+  || FAILED+=("labour-inspection-concurrent-writers")
 python3 "$REPO_ROOT/tests/xtr/bridge_test.py" --image ljvis-ci-ruuter-internal --network ljvis-ci_ljvis-ci \
   -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db || FAILED+=("xroad-soap-bridge")
 

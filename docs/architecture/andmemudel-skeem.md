@@ -650,7 +650,7 @@ Loodud: `20261207100000-labour-inspection-external-ref.sql` · veerge: 6 · PK: 
 
 ### `forms.labour_inspection_form`
 
-Loodud: `20260728130000-initial-labour-inspection-form.sql` · veerge: 24 · PK: `id`
+Loodud: `20260728130000-initial-labour-inspection-form.sql` · veerge: 25 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -678,6 +678,7 @@ Loodud: `20260728130000-initial-labour-inspection-form.sql` · veerge: 24 · PK:
 | `violations` | JSONB | jah |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+| `prev_snapshot_id` | BIGINT |  |
 
 ### `forms.sp_driver_form`
 

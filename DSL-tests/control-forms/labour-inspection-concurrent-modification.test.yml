@@ -1,0 +1,210 @@
+# UI writers on labour inspection acts: a Resql 2xx answer without a row means another writer appended a
+# snapshot on the same state first (uq_lif_prev_snapshot) -> 422 concurrent_modification, not 500.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+tests:
+- name: 'confirm: concurrent writer won (update returned no row) -> 422 concurrent_modification'
+  setup:
+    mocks:
+    - &id001
+      url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - &id002
+      url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - labour_inspection_form.write
+        - labour_inspection_form.read
+        - control_form.delete
+        - control_form.edit_locked
+        - control_form.punishment_register
+    - &id003
+      url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - &id004
+      url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /control-forms/labour-inspection/get
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        formNumber: ti-2026-00005
+        version: 1
+        status: saved
+        inspectorName: Inspektor
+        inspectionDate: '2026-06-15'
+        externalInspectionId: RACE-1
+        inspectionType: cargo
+        companyName: OÜ Test
+        companyRegCode: '12345678'
+        vehicleCount: 1
+        totalDriversCount: null
+        controlsMatrix: '[]'
+        prescriptionComposed: false
+        punishedPersonIdCode: null
+        punishedPersonFirstName: null
+        punishedPersonLastName: null
+        proceedingReferenceNumber: null
+        enforcementDecision: null
+        proceedingClosureBasis: null
+        violations: '[]'
+        createdBy: TEST
+    - url_matches: /control-forms/labour-inspection/update
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/labour-inspection/edit/confirm
+    headers:
+      cookie: test
+      content-type: application/json
+    body: &id005
+      id: '5'
+      inspectorName: Inspektor
+      inspectionDate: '2026-06-15'
+      inspectionType: cargo
+      companyName: OÜ Test
+      companyRegCode: '12345678'
+      vehicleCount: '1'
+      totalDriversCount: ''
+      controlsMatrix: '[]'
+      prescriptionComposed: 'false'
+      punishedPersonIdCode: ''
+      punishedPersonFirstName: ''
+      punishedPersonLastName: ''
+      proceedingReferenceNumber: ''
+      violations: '[]'
+  expect: &id006
+    status: 422
+    body:
+      response: '{"type":"VALIDATION_ERROR","field":null,"code":"concurrent_modification"}'
+- name: 'save of an existing act: no row -> 422 concurrent_modification'
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /control-forms/labour-inspection/get
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        formNumber: ti-2026-00005
+        version: 1
+        status: saved
+        inspectorName: Inspektor
+        inspectionDate: '2026-06-15'
+        externalInspectionId: RACE-1
+        inspectionType: cargo
+        companyName: OÜ Test
+        companyRegCode: '12345678'
+        vehicleCount: 1
+        totalDriversCount: null
+        controlsMatrix: '[]'
+        prescriptionComposed: false
+        punishedPersonIdCode: null
+        punishedPersonFirstName: null
+        punishedPersonLastName: null
+        proceedingReferenceNumber: null
+        enforcementDecision: null
+        proceedingClosureBasis: null
+        violations: '[]'
+        createdBy: TEST
+    - url_matches: /control-forms/labour-inspection/update
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/labour-inspection/edit/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body: *id005
+  expect: *id006
+- name: 'publish: no row -> 422 concurrent_modification'
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /control-forms/labour-inspection/get
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        formNumber: ti-2026-00005
+        version: 1
+        status: confirmed
+        inspectorName: Inspektor
+        inspectionDate: '2026-06-15'
+        externalInspectionId: RACE-1
+        inspectionType: cargo
+        companyName: OÜ Test
+        companyRegCode: '12345678'
+        vehicleCount: 1
+        totalDriversCount: null
+        controlsMatrix: '[]'
+        prescriptionComposed: false
+        punishedPersonIdCode: null
+        punishedPersonFirstName: null
+        punishedPersonLastName: null
+        proceedingReferenceNumber: null
+        enforcementDecision: null
+        proceedingClosureBasis: null
+        violations: '[]'
+        createdBy: TEST
+    - url_matches: /control-forms/labour-inspection/update
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/labour-inspection/edit/publish
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '5'
+  expect: *id006
+- name: 'delete: no row -> 422 concurrent_modification'
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /control-forms/labour-inspection/delete
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/labour-inspection/edit/delete
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '5'
+      old_status: saved
+  expect: *id006

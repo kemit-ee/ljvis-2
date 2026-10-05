@@ -536,7 +536,8 @@
           "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
           "max_length_exceeded": "Väärtus on liiga pikk",
           "form_locked_after_confirm": "See vorm on kinnitatud ja seda ei saa enam muuta",
-          "already_confirmed": "See vorm on juba kinnitatud"
+          "already_confirmed": "See vorm on juba kinnitatud",
+          "concurrent_modification": "Vormi muutis samal ajal keegi teine (nt X-tee kaudu saabunud parandus). Laadi vorm uuesti ja korda toimingut."
         }
       }
     },

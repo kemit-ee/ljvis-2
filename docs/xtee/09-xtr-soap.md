@@ -27,6 +27,8 @@ Kui WSDL kasutab kohalikke XSD-sid, tuleb need samuti kaasa panna. XTR ei laadi 
 
 Akti identiteet on **leping + saatja ID**: tabel `forms.labour_inspection_external_ref` (`xroad-v1`, `xroad-v2`, `xroad-v3` + `kontrolli_id`). Sama numbriline ID eri lepingutes on eri akt. `forms.labour_inspection_form` on snapshot-tabel (mitu rida ühe akti kohta), seega unikaalsust seal ei kontrollita. Kirjutamine käib ühe atomaarse funktsiooniga `forms.register_external_labour_inspection`: kaotanud samaaegne päring ootab võitja commit'i ja leiab seejärel sama akti.
 
+**Samaaegsed kirjutajad ühel aktil (UI, e-toimik, X-tee).** Iga uus snapshot viitab sellele, mille pealt see koostati (`prev_snapshot_id`, unikaalne indeks `uq_lif_prev_snapshot`). Kui kaks kirjutajat lähtuvad samast seisust, salvestub ainult esimene: X-tee kordus otsustab värske seisu pealt uuesti (nt vahepeal kinnitatud akt → 409), UI saab `422 concurrent_modification` („laadi vorm uuesti“) ja e-toimik proovib järgmisel sünkroonimisel. Nii ei saa kinnitatud akt X-tee korduse tõttu tagasi `saved`-iks minna ega X-tee muudatus vaikselt vanade andmetega üle kirjutada.
+
 | Olukord | v1 / v2 (SOAP ja REST v1) | REST v3 |
 |---|---|---|
 | Esimene päring | Uus akt, `saved`, versioon 1 | sama |
@@ -35,6 +37,7 @@ Akti identiteet on **leping + saatja ID**: tabel `forms.labour_inspection_extern
 | Muudetud sisu, akt `confirmed` / `published` / `deleted` | HTTP 409 → SOAP `Client` Fault, midagi ei salvestata | olemasolev akt |
 | Akt on arhiveerimisel töö-baasist eemaldatud (`purge`) | täpne kordus `Success`; muudetud → 409 (`archived`), uut akti ei looda | olemasolev (arhiveeritud) akt |
 | Samaaegsed päringud | üks akt; muudetud päringud rakendatakse järjest | üks akt |
+| Samal ajal kinnitab/kustutab kasutaja UI-s | 409, kui UI jõudis enne; muidu salvestub X-tee muudatus ja UI saab `concurrent_modification` | olemasolev akt |
 
 **Erinevus LJVIS1-st:** LJVIS1 `RavenDbManager.StoreOrUpdateJobInspection(JobInspectionV2)` uuendas sama `InspectionId`-ga dokumenti igas staatuses ja määras staatuse (`Saved`, ilma menetluse viitenumbrita `Published`). LJVIS2 lubab automaatset muutmist ainult kinnitamata aktil ning loob sissetulevad aktid alati `saved`-staatuses. See on ohutu vaikimisi käitumine, **mitte täielik ühilduvus**: lukustatud akti muutmine ja sissetuleva akti staatusereegel (vt `apply_etoimik_decision.sql`, mis töötleb ainult `confirmed` akte) vajavad äriotsust.
 
@@ -120,6 +123,9 @@ python3 tests/xtr/repeat_test.py --soap-url http://localhost:9095 --rest-url htt
 # xroad/soap/* adapterid vigaste taustvastuste vastu (JSON 4xx/5xx, tühi ja tekstikeha, WSDL-ile mittevastav 200).
 # Käivitab ajutise ruuter-internal konteineri, mille LJVIS_RUUTER_INTERNAL osutab kohalikule mockile.
 python3 tests/xtr/bridge_test.py --image ljvis-ci-ruuter-internal --network ljvis-ci_ljvis-ci -- $C
+
+# Samaaegsed kirjutajad ühel aktil (UI update.sql/delete.sql, e-toimik, X-tee kordus).
+python3 tests/xtr/race_test.py -- $C
 ```
 
 ## Järgmise WSDL-i lisamine
@@ -197,6 +203,7 @@ Parandatud lepinguerinevused: Resql-i camelCase → vana WSDL-i väljad, `soiduk
 
 - SOAP-kollektsioon 118/118 ja `verify.py` (10 XSD-paari, 5 salvestatud akti registri kaudu); REST-pakkujad 42 + 41; `labour-inspection` UI-kollektsioon 51/51 (`update.sql` hoiab nüüd `external_inspection_id`-d alles).
 - `repeat_test.py` 55 kontrolli: täpne, muudetud ja lukustatud kordus v1/v2 (409 → `Client` Fault, midagi ei salvestata); 16 samaaegset identset esmast päringut → üks akt (v1, v2); 8 samaaegset erineva sisuga päringut → kõik 8 rakendatud ühe akti snapshot'idena; REST v3 12 samaaegset → üks akt, leping muutmata; v1 `inspection_type` 8 loendurikombinatsiooni; arhiveerimisel eemaldatud akti muudetud kordus → 409 (`archived`), uut akti ei teki; sünteetiline RavenDB V2 → `07-transform-labour-inspection.sql` → SOAP kordus leiab migreeritud akti; sama numbriline ID v1/v2 lepingus jääb kaheks aktiks.
+- `race_test.py` 14 kontrolli: samaaegne UI kinnitus/kustutamine vs X-tee muudetud kordus (mõlemas järjekorras), kaks UI salvestust, e-toimik vs UI — ajalugu ei hargne, kinnitus ei kao, X-tee muudatust ei kirjutata vanade andmetega üle; UI vastused 422 `concurrent_modification` (`DSL-tests/control-forms/`, 4 stsenaariumi).
 - `bridge_test.py` 16 kontrolli (`xroad/soap/*` adapterid, sh oma `X-Road-Client` guard); päris XTR-i kaudu käsitsi: Ruuteri 500 ja 502 → `SOAP-ENV:Server` Fault (`backend returned HTTP 5xx`, ilma sisemise teateta).
 - Liquibase changeset `20261207100000` (tabel + funktsioon): rakendamine puhtale baasile, rollback ja uuesti rakendamine. Olemasolevate ridade seostamist ei tehta — enne seda muudatust ei olnud ühtegi X-tee kaudu saabunud akti.
 - `docker/xtr/Dockerfile`-ist ehitatud image (sama digest Docker Hubist; Harbor ei olnud testmasinast kättesaadav) käivitus ilma checkout'i mount'ideta: 6 operatsiooni, `?wsdl` avalik aadress, portide eraldus, päris `IsikuKontroll` ja `RegisterJobInspection_v2` Ruuter.internal-i kaudu.

@@ -70,15 +70,19 @@ returns:
 -- snapshot of this act. version only increments when the snapshot being
 -- re-saved is already locked (status <> 'saved') — see edit/save.yml's
 -- edit_locked gate for confirmed data.
+-- prev_snapshot_id = the snapshot read here; uq_lif_prev_snapshot lets only one concurrent writer append
+-- on top of it. A losing writer (X-tee repeat, e-toimik, another UI save) gets no row back -> the
+-- edit/save|confirm|publish handlers answer concurrent_modification and the user reloads.
 WITH latest AS (
-  SELECT form_number,
+  SELECT id,
+         form_number,
          CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
          enforcement_decision,
          proceeding_closure_basis,
          external_inspection_id
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
-  ORDER BY created_at DESC
+  ORDER BY created_at DESC, id DESC
   LIMIT 1
 )
 INSERT INTO forms.labour_inspection_form (
@@ -103,6 +107,7 @@ INSERT INTO forms.labour_inspection_form (
   enforcement_decision,
   proceeding_closure_basis,
   violations,
+  prev_snapshot_id,
   created_by
 )
 SELECT
@@ -127,6 +132,8 @@ SELECT
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
+  latest.id,
   :created_by
 FROM latest
+ON CONFLICT (prev_snapshot_id) DO NOTHING
 RETURNING labour_inspection_form_key AS id, form_number, version;

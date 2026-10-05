@@ -423,7 +423,8 @@
           "future_date_not_allowed": "Date cannot be in the future",
           "max_length_exceeded": "Value is too long",
           "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
-          "already_confirmed": "This form has already been confirmed"
+          "already_confirmed": "This form has already been confirmed",
+          "concurrent_modification": "The form was changed by someone else at the same time (e.g. a correction received over X-tee). Reload the form and try again."
         }
       }
     },

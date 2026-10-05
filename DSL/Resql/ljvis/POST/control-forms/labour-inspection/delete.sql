@@ -24,6 +24,7 @@ returns:
 */
 WITH latest AS (
   SELECT DISTINCT ON (labour_inspection_form_key)
+    id,
     labour_inspection_form_key,
     form_number,
     version,
@@ -46,7 +47,7 @@ WITH latest AS (
     violations
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :id::BIGINT
-  ORDER BY labour_inspection_form_key, created_at DESC
+  ORDER BY labour_inspection_form_key, created_at DESC, id DESC
 )
 INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
@@ -70,6 +71,7 @@ INSERT INTO forms.labour_inspection_form (
   enforcement_decision,
   proceeding_closure_basis,
   violations,
+  prev_snapshot_id,
   created_by
 )
 SELECT
@@ -94,6 +96,9 @@ SELECT
   l.enforcement_decision,
   l.proceeding_closure_basis,
   l.violations,
+  l.id,
   :created_by
 FROM latest l
+-- Only one writer may append on top of a snapshot (uq_lif_prev_snapshot); a concurrent loser gets no row.
+ON CONFLICT (prev_snapshot_id) DO NOTHING
 RETURNING labour_inspection_form_key AS id, form_number, version;

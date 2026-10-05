@@ -44,7 +44,7 @@ WITH latest AS (
   SELECT *
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
-  ORDER BY created_at DESC
+  ORDER BY created_at DESC, id DESC
   LIMIT 1
 )
 INSERT INTO forms.labour_inspection_form (
@@ -69,6 +69,7 @@ INSERT INTO forms.labour_inspection_form (
   enforcement_decision,
   proceeding_closure_basis,
   violations,
+  prev_snapshot_id,
   created_by
 )
 SELECT
@@ -93,10 +94,14 @@ SELECT
   :enforcementDecision,
   :proceedingClosureBasis,
   violations,
+  id,
   :created_by
 FROM latest
 WHERE :found IN ('true', '1', 'yes')
   -- Defensive re-check: only ever publish out of 'confirmed' (same rule as
   -- publish.yml), in case the act changed between selection and this call.
   AND status = 'confirmed'
+-- Only one writer may append on top of a snapshot (uq_lif_prev_snapshot); if the act changed meanwhile,
+-- nothing is published now and the next sync run decides on the fresh state.
+ON CONFLICT (prev_snapshot_id) DO NOTHING
 RETURNING labour_inspection_form_key AS id, form_number, version, status;

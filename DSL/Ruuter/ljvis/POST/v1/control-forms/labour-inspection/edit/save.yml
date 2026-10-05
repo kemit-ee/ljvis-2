@@ -219,6 +219,8 @@ updateForm:
 
 checkUpdateSaved:
   switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0}
+      next: returnConcurrentModification
     - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
       next: returnResqlSaveError
   next: logUpdate
@@ -256,4 +258,11 @@ returnValidationError:
 returnFormLockedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
+  next: end
+
+# Resql answered 2xx with no row: another writer (X-tee repeat, e-toimik, another user) appended a snapshot
+# on top of the same state first (uq_lif_prev_snapshot). Nothing was written; the user must reload.
+returnConcurrentModification:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"concurrent_modification"}'
   next: end
