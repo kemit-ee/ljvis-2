@@ -26,7 +26,7 @@ import styles from '../../pages/drive-rest-form/DriveRestFormPage.module.css';
 import { FileUploadBlock } from '../shared/FileUploadBlock';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import { useAuth } from '../../../auth/AuthContext';
-import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { canViewProceedingOutcome, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 interface ChoiceItem {
   id: string;
@@ -1342,8 +1342,10 @@ export function DriveRestFormFields({
           </div>
         )}
       {/* Plokk: Andmevahetuskihi (X-tee) päringuga sisestatavad andmed.
-          Täidetakse automaatselt e-toimiku päringuga (cron), kuvatakse loetavalt. */}
-      {(formik.values.enforcementDecision ||
+          Täidetakse automaatselt e-toimiku päringuga (cron). Kinnitatud vormil näeb seda ainult
+          karistusregistri õigusega kasutaja, avalikustatud vormil kõik. */}
+      {canViewProceedingOutcome(formik.values.status, hasPermission(PUNISHMENT_REGISTER_PERMISSION)) &&
+        (formik.values.enforcementDecision ||
         formik.values.proceedingClosureBasis ||
         formik.values.resultType === 'misdemeanor_proceedings') && (
         <Row className="m-0">

@@ -4,6 +4,11 @@
 
 ## 2026-10-05
 
+### E-toimiku päringuväljad kinnitatud vormil ainult karistusregistri õigusega kasutajale
+
+- Menetluse otsus ja lõpetamise alus (e-toimiku päringu väljad) on kinnitatud (`confirmed`) PPA vormidel (sõidu- ja puhkeaeg, sõiduki- ja haagise tehnokontroll, ADR, tööinspektsioon) nähtavad ainult kasutajale, kellel on õigus `control_form.punishment_register`. Avalikustatud vormil näevad neid kõik. Varem nägid kinnitatud vormil väljasid kõik (muuta said ainult registri kasutajad).
+- Piirang: peidetud on vormi kuva; päringu vastus sisaldab välju endiselt.
+
 ### SQL on nüüd ainult INSERT ja SELECT (epic #522)
 
 - Kõik andmebaasi kirjutamised on append-only: ükski Resql-mall ei tee `UPDATE`, `DELETE`, `TRUNCATE` ega `JOIN`-i. Erand on ainult säilitustähtaja järgne kustutamine pärast kontrollitud arhiveerimist (`archive/purge_confirmed.sql`). CI kontrollib seda igal PR-il (`tests/contract/check_resql_append_only.py`, erandite loend `.sql-rule-exemption`).

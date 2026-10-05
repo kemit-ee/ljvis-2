@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canViewProceedingOutcome,
   canPublishWithProceedingOutcome,
   canManuallyPublish,
   hasProceeding,
@@ -35,5 +36,18 @@ describe('proceeding outcome publication gate', () => {
     const form = { proceedingType: 'general', enforcementDecision: 'Jõustunud' };
     expect(canManuallyPublish(form, false)).toBe(false);
     expect(canManuallyPublish(form, true)).toBe(true);
+  });
+});
+
+describe('proceeding outcome visibility', () => {
+  it('hides the e-toimik fields on a confirmed form without the punishment register permission', () => {
+    expect(canViewProceedingOutcome('confirmed', false)).toBe(false);
+    expect(canViewProceedingOutcome('confirmed', true)).toBe(true);
+  });
+
+  it('shows them to everyone once the form is published or still unlocked', () => {
+    expect(canViewProceedingOutcome('published', false)).toBe(true);
+    expect(canViewProceedingOutcome('saved', false)).toBe(true);
+    expect(canViewProceedingOutcome(undefined, false)).toBe(true);
   });
 });

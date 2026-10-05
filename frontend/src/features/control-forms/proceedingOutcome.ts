@@ -24,6 +24,13 @@ export const canPublishWithProceedingOutcome = (
   form: ProceedingOutcomeForm,
 ): boolean => !hasProceeding(form) || hasProceedingOutcome(form);
 
+// E-toimiku päringuväljad (otsus, lõpetamise alus) on kinnitatud vormil nähtavad ainult
+// karistusregistri õigusega kasutajale; avalikustatud vormil kõigile.
+export const canViewProceedingOutcome = (
+  status: string | undefined,
+  hasPunishmentRegisterPermission: boolean,
+): boolean => status !== 'confirmed' || hasPunishmentRegisterPermission;
+
 export const canManuallyPublish = (
   form: ProceedingOutcomeForm,
   hasPunishmentRegisterPermission: boolean,

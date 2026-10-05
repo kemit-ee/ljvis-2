@@ -1,7 +1,7 @@
 import { Card, Heading, TextArea } from '@tedi-design-system/react/tedi';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/AuthContext';
-import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { canViewProceedingOutcome, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 interface Props {
   status?: string;
@@ -23,6 +23,7 @@ export function ProceedingOutcomeFields({
   const editable = status === 'confirmed' && hasPermission(PUNISHMENT_REGISTER_PERMISSION);
 
   if (status !== 'confirmed' && status !== 'published') return null;
+  if (!canViewProceedingOutcome(status, hasPermission(PUNISHMENT_REGISTER_PERMISSION))) return null;
 
   return (
     <Card className="mb-1">
