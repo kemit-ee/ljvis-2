@@ -4,6 +4,12 @@
 
 ## 2026-10-05
 
+### Vormiotsing ja eksport järgivad sama nähtavusreeglit mis vormi avamine
+
+- Otsingus ja otsingutulemuse eksportis (xlsx/csv) on nähtavad: kõik **avalikustatud** vormid; **enda** vormid mis tahes olekus; `control_form.view_organisation` õigusega kasutajale lisaks **oma asutuse kolleegide** vormid mis tahes olekus (nende vormitüüpide osas, mille lugemise õigus on olemas); `control_form.view_unpublished` õigusega kasutajale **kõigi** vormid mis tahes olekus.
+- Varem näitas otsing vormitüübi lugemisõigusega kasutajale kõigi asutuste mustandeid; neid ei saanud avada (403). Nüüd ei ilmu otsingutulemustesse vorme, mida kasutaja avada ei saa.
+- Vormi avamise reegel on sama: kolleegi avalikustamata vormi avamiseks on vaja `control_form.view_organisation` õigust (varem piisas samast asutusest olemisest).
+
 ### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
 
 - Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
