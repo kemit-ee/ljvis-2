@@ -86,44 +86,62 @@ returns:
 WITH sp AS (
   (
     SELECT
-      cf.company_name,
-      cf.company_activity_licence_copy_number,
-      cf.vehicle_reg_nr,
-      cf.vehicle_country_code,
-      cf.vehicle_category_code,
-      cf.control_date,
-      cf.inspector_organisation_id,
+      (x.cf).company_name,
+      (x.cf).company_activity_licence_copy_number,
+      (x.cf).vehicle_reg_nr,
+      (x.cf).vehicle_country_code,
+      (x.cf).vehicle_category_code,
+      (x.cf).control_date,
+      (x.cf).inspector_organisation_id,
       forms.derive_sp_erru_points(
-        s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
-        s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points
+        x.violations_561_2006, x.violations_165_2014, x.violations_2002_15,
+        x.violations_593_2008, x.violations_2020_1057, x.cabotage_violations, x.erru_points
       ) AS erru_points
-    FROM forms.sp_driver_form s
-    JOIN forms.compound_form cf ON cf.compound_form_key = s.compound_form_key
-    WHERE s.sp_driver_form_key = :spFormKey::BIGINT
-      AND :spFormType = 'driver'
-    ORDER BY s.created_at DESC, cf.created_at DESC
-    LIMIT 1
+    FROM (
+      -- uusim alamvormi snapshot + selle koondvormi uusim snapshot (alampäringuga, mitte JOIN-iga)
+      SELECT
+        s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
+        s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points,
+        (SELECT c FROM forms.compound_form c
+          WHERE c.compound_form_key = s.compound_form_key
+          ORDER BY c.created_at DESC LIMIT 1) AS cf
+      FROM forms.sp_driver_form s
+      WHERE s.sp_driver_form_key = :spFormKey::BIGINT
+        AND :spFormType = 'driver'
+      ORDER BY s.created_at DESC
+      LIMIT 1
+    ) x
+    WHERE (x.cf).compound_form_key IS NOT NULL
   )
   UNION ALL
   (
     SELECT
-      cf.company_name,
-      cf.company_activity_licence_copy_number,
-      cf.vehicle_reg_nr,
-      cf.vehicle_country_code,
-      cf.vehicle_category_code,
-      cf.control_date,
-      cf.inspector_organisation_id,
+      (x.cf).company_name,
+      (x.cf).company_activity_licence_copy_number,
+      (x.cf).vehicle_reg_nr,
+      (x.cf).vehicle_country_code,
+      (x.cf).vehicle_category_code,
+      (x.cf).control_date,
+      (x.cf).inspector_organisation_id,
       forms.derive_sp_erru_points(
-        s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
-        s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points
+        x.violations_561_2006, x.violations_165_2014, x.violations_2002_15,
+        x.violations_593_2008, x.violations_2020_1057, x.cabotage_violations, x.erru_points
       ) AS erru_points
-    FROM forms.sp_teammate_form s
-    JOIN forms.compound_form cf ON cf.compound_form_key = s.compound_form_key
-    WHERE s.sp_teammate_form_key = :spFormKey::BIGINT
-      AND :spFormType = 'teammate'
-    ORDER BY s.created_at DESC, cf.created_at DESC
-    LIMIT 1
+    FROM (
+      -- uusim alamvormi snapshot + selle koondvormi uusim snapshot (alampäringuga, mitte JOIN-iga)
+      SELECT
+        s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
+        s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points,
+        (SELECT c FROM forms.compound_form c
+          WHERE c.compound_form_key = s.compound_form_key
+          ORDER BY c.created_at DESC LIMIT 1) AS cf
+      FROM forms.sp_teammate_form s
+      WHERE s.sp_teammate_form_key = :spFormKey::BIGINT
+        AND :spFormType = 'teammate'
+      ORDER BY s.created_at DESC
+      LIMIT 1
+    ) x
+    WHERE (x.cf).compound_form_key IS NOT NULL
   )
   UNION ALL
   (

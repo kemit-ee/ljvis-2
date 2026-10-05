@@ -372,7 +372,8 @@ export function TramControlCardPage() {
     <div>
       {alerts}
 
-      {form && id && drivers.length > 0 && (
+      {/* E-toimiku päringu kaart on ainult karistusregistri õigusega kasutajale. */}
+      {form && id && drivers.length > 0 && hasPermission(PUNISHMENT_REGISTER_PERMISSION) && (
         <EtoimikQueryCard
           drivers={drivers}
           referenceNumberOptions={etoimikReferenceOptions}

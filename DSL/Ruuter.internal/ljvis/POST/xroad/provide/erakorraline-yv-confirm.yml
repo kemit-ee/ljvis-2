@@ -79,7 +79,7 @@ checkUpdateResult:
   switch:
     - condition: "${updateResult.response.status < 200 || updateResult.response.status >= 300}"
       next: logFailure
-    # Tühi RETURNING = inspection_id ei leitud vm status != confirmed
+    # Tühi RETURNING = inspection_id ei leitud vm status ei ole confirmed/published
     - condition: "${updateResult.response.body == null || updateResult.response.body.length === 0}"
       next: returnNotFound
   next: advanceProcessing
@@ -154,10 +154,10 @@ returnInvalidCode:
   return: '{"error": "INVALID_PARAMETER", "message": "code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS"}'
   next: end
 
-# inspection_id ei leitud vm vorm ei ole 'confirmed' staatuses
+# inspection_id ei leitud vm vorm ei ole 'confirmed' ega 'published' staatuses
 returnNotFound:
   status: 404
-  return: '{"error": "NOT_FOUND", "message": "inspection_id not found or form is not in confirmed status"}'
+  return: '{"error": "NOT_FOUND", "message": "inspection_id not found or form is not in confirmed or published status"}'
   next: end
 
 returnServerError:

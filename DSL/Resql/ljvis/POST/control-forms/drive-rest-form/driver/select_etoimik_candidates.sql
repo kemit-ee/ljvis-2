@@ -31,26 +31,27 @@ WITH latest_sd AS (
   FROM forms.sp_driver_form
   ORDER BY sp_driver_form_key, created_at DESC
 ),
-latest_cf AS (
-  SELECT DISTINCT ON (compound_form_key)
-      compound_form_key,
-      drivers,
-      authority
-  FROM forms.compound_form
-  ORDER BY compound_form_key, created_at DESC
+cand AS (
+  SELECT s.id, s.compound_form_key, s.proceeding_reference_number
+  FROM latest_sd s
+  WHERE s.status = 'confirmed'
+    AND s.proceeding_type IS NOT NULL AND s.proceeding_type <> 'none'
+    AND btrim(coalesce(s.proceeding_reference_number, '')) <> ''
+    AND s.enforcement_decision IS NULL
+    AND s.created_at >= now() - INTERVAL '365 days'
+),
+-- koondvormi UUSIM snapshot (üks rida võtme kohta) alampäringuga, mitte JOIN-iga
+resolved AS (
+  SELECT cand.id, cand.proceeding_reference_number,
+         (SELECT c FROM forms.compound_form c WHERE c.compound_form_key = cand.compound_form_key ORDER BY c.created_at DESC LIMIT 1) AS cf
+  FROM cand
 )
 SELECT
-  s.id,
-  s.proceeding_reference_number,
-  (COALESCE(c.drivers -> 0 ->> 'personalCodeEe', c.drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
-FROM latest_sd s
-JOIN latest_cf c ON c.compound_form_key = s.compound_form_key
-WHERE s.status = 'confirmed'
-  -- ADR-002: TRAM kaardid on nüüd forms.tram_control_card ja neil on oma cron
-  -- (etoimik-tram-decision-sync). Siin ainult PPA sp_driver alamvormid.
-  AND c.authority = 'PPA'
-  AND s.proceeding_type IS NOT NULL AND s.proceeding_type <> 'none'
-  AND btrim(coalesce(s.proceeding_reference_number, '')) <> ''
-  AND s.enforcement_decision IS NULL
-  AND btrim(coalesce(COALESCE(c.drivers -> 0 ->> 'personalCodeEe', c.drivers -> 0 ->> 'personal_code_ee'), '')) <> ''
-  AND s.created_at >= now() - INTERVAL '365 days';
+  id,
+  proceeding_reference_number,
+  (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
+FROM resolved
+-- ADR-002: TRAM kaardid on nüüd forms.tram_control_card ja neil on oma cron
+-- (etoimik-tram-decision-sync). Siin ainult PPA sp_driver alamvormid.
+WHERE (cf).authority = 'PPA'
+  AND btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee'), '')) <> '';

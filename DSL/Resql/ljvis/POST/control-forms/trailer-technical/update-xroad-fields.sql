@@ -1,11 +1,9 @@
 /*
-description: 'Kirjuta e-toimiku päringu tulemus haagise tehnokontrolli alamvormi uusimale confirmed
-  snapshot-reale ja avalikusta see automaatselt — ei lisa uut snapshot-i, ei muuda
-  version''it (LJVIS2-72 §4: X-tee väljad ei mõjuta /V suffiksit). found != true või juba täidetud
-  enforcement_decision on no-op (0 rida) — cron/etoimik-technical-check-decision-sync.yml kutsub seda
-  iga kandidaadi kohta tingimusteta. Ei ole enam avalikult käivitatav endpoint (varasem käsitsi-admin
-  edit/xroad/save-xroad-fields.yml on eemaldatud, 15 ettepanekut p9) — ainult see cron kirjutab neid
-  välju. extraordinary_inspection_date on eraldi (update-extraordinary-inspection-date.sql, yvkehtivus-sync.yml).'
+description: 'Kirjuta e-toimiku päringu tulemus haagise tehnokontrolli alamvormi uusimale confirmed snapshot-reale
+  ja avalikusta see automaatselt. INSERT-only: lisab uue snapshot-rea (revision + 1, version ja kõik muud
+  väljad kantakse edasi), vana rida jääb ajalukku. version ei muutu (LJVIS2-72 §4: X-tee väljad ei mõjuta
+  /V järelliidet). found != true või juba täidetud enforcement_decision on no-op (0 rida) — cron kutsub seda
+  iga kandidaadi kohta tingimusteta. created_by = ''system''.'
 namespace: control-forms
 params:
   key:
@@ -33,19 +31,29 @@ returns:
   type: number
   nullable: true
 */
-UPDATE forms.trailer_technical_form t
-SET
-  enforcement_decision     = NULLIF(:enforcementDecision, ''),
-  proceeding_closure_basis = NULLIF(:proceedingClosureBasis, ''),
-  status                    = 'published'
-WHERE t.id = (
-    SELECT id FROM forms.trailer_technical_form
-    WHERE trailer_technical_form_key = :key::BIGINT
-    ORDER BY created_at DESC
-    LIMIT 1
-  )
-  AND t.status = 'confirmed'
-  AND t.enforcement_decision IS NULL
+WITH latest AS (
+  SELECT *
+  FROM forms.trailer_technical_form
+  WHERE trailer_technical_form_key = :key::BIGINT
+  ORDER BY created_at DESC
+  LIMIT 1
+)
+INSERT INTO forms.trailer_technical_form
+SELECT (jsonb_populate_record(
+    NULL::forms.trailer_technical_form,
+    to_jsonb(l) || jsonb_build_object(
+      'id', nextval('forms.trailer_technical_form_id_seq'),
+      'revision', l.revision + 1,
+      'created_at', now(),
+      'created_by', 'system',
+      'enforcement_decision', NULLIF(:enforcementDecision, ''),
+      'proceeding_closure_basis', NULLIF(:proceedingClosureBasis, ''),
+      'status', 'published'
+    )
+)).*
+FROM latest l
+WHERE l.status = 'confirmed'
+  AND l.enforcement_decision IS NULL
   AND :found IN ('true', '1', 'yes')
   AND NULLIF(:enforcementDecision, '') IS NOT NULL
-RETURNING t.trailer_technical_form_key AS id, t.sub_form_number, t.version;
+RETURNING trailer_technical_form_key AS id, sub_form_number, version;

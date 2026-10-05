@@ -55,6 +55,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -65,6 +69,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 -- `latest` reads form_number and current version from the most recent
 -- snapshot of this act. version only increments when the snapshot being
@@ -72,7 +79,7 @@ returns:
 -- edit_locked gate for confirmed data.
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          enforcement_decision,
          proceeding_closure_basis
   FROM forms.labour_inspection_form
@@ -84,6 +91,7 @@ INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
   version,
+  revision,
   status,
   inspector_name,
   inspection_date,
@@ -107,6 +115,7 @@ SELECT
   :key::BIGINT,
   latest.form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   :inspectorName,
   :inspectionDate::DATE,
@@ -126,4 +135,5 @@ SELECT
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
   :created_by
 FROM latest
-RETURNING labour_inspection_form_key AS id, form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING labour_inspection_form_key AS id, form_number, version, revision;
