@@ -419,7 +419,7 @@ export function DesktopPage() {
         </div>
       )}
 
-      {/* Scope toggle — only for roles with control_form.view_unpublished
+      {/* Scope toggle — only for roles with control_form.view_organisation
           (LJVIS2-69 "Lokaalne kasutaja"/administraator), per LJVIS2-69's
           documented role model. Plain officers never see this. */}
       {canSeeOrganisation && (
