@@ -84,8 +84,6 @@ logSearchEvent:
   body:
     event_type: "user.list.search"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: "Otsing '${search}'"
     log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"allOrganisations\",\"organisationId\":null}"
   result: audit_result
@@ -127,8 +125,6 @@ logViewEvent:
   body:
     event_type: "user.list.view"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${view_description}
     log_content: ${view_log_content}
   result: audit_result

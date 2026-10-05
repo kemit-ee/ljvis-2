@@ -40,6 +40,11 @@ check_tim_response:
 extract_personal_code:
   assign:
     personal_code: ${tim_res.response.body.userinfo?.claims?.personalCode ?? tim_res.response.body.userinfo?.subject ?? ''}
+    # Tegutseja identiteet tuleb AINULT TARA-sessioonist (TIM userinfo). Mallid loevad seda
+    # muutujat (`session_personal_code`), mitte `incoming.body.actor_*`: body on kliendi
+    # kontrolli all (mallid on otse HTTP-ga kutsutavad) ja auditiahel (`audit.chain()`)
+    # räsib võltsitud rea ära — see tõestab järjekorda, mitte identiteeti.
+    session_personal_code: ${tim_res.response.body.userinfo?.claims?.personalCode ?? tim_res.response.body.userinfo?.subject ?? ''}
   next: check_personal_code
 
 check_personal_code:

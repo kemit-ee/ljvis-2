@@ -171,10 +171,7 @@ logAuditEvent:
     akti_voti: ${id}
     form_number: ${confirmRes.response.body[0].formNumber}
     version: ${confirmRes.response.body[0].version}
-    changed_fields: ${changed_fields_result}
     isikukood: ${punished_person_id_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

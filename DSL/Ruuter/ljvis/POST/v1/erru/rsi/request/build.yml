@@ -274,8 +274,6 @@ logAuditBuild:
     changed_fields: "eeltäitmine kontrollkaardist"
     status: "${draft_res.response.body[0].status || 'initiated'}"
     version: "${String(draft_res.response.body[0].version || 1)}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_ok
   next: returnDraft
 

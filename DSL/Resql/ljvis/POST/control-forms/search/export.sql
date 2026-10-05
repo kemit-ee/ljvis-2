@@ -6,6 +6,18 @@ params:
     type: string
     required: false
     description: Comma-separated form_type codes the caller may see (row-level)
+  caller_organisation_id:
+    type: string
+    required: false
+    description: Caller organisation id (auth_user.organisationid); empty when unknown
+  caller_view_unpublished:
+    type: string
+    required: false
+    description: Literal true when the caller has control_form.view_unpublished (all rows, any status)
+  caller_view_organisation:
+    type: string
+    required: false
+    description: Literal true when the caller has control_form.view_organisation (colleagues' rows of readable types, any status)
   actor_code:
     type: string
     required: false
@@ -92,9 +104,18 @@ WITH f AS (
     SELECT fs.form_type, fs.form_key, fs.main_date, fs.created_at
     FROM forms.form_search fs
     WHERE
-    (fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))
-     OR fs.status = 'published'
-     OR (COALESCE(:actor_code, '') <> '' AND fs.created_by = :actor_code))
+    (fs.status = 'published'
+     OR (COALESCE(:actor_code, '') <> '' AND fs.created_by = :actor_code)
+     OR (:caller_view_unpublished = 'true'
+         AND (fs.form_type <> 'tram_control_card' OR fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))))
+     OR (:caller_view_organisation = 'true'
+         AND COALESCE(:caller_organisation_id, '') <> ''
+         AND fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))
+         AND (SELECT ua.organisation_id::text
+              FROM users.user_account ua
+              WHERE ua.personal_code = fs.created_by
+              ORDER BY ua.created_at DESC
+              LIMIT 1) = :caller_organisation_id))
     AND (COALESCE(:form_type, '') = '' OR fs.form_type = :form_type)
     AND (COALESCE(:date_from, '') = '' OR fs.main_date >= :date_from::DATE)
     AND (COALESCE(:date_to, '') = '' OR fs.main_date <= :date_to::DATE)

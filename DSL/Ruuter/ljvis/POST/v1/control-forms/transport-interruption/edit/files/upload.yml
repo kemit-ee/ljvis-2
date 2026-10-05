@@ -18,7 +18,21 @@ get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
+  next: checkFormNumber
+
+# Omand (epic #502 A2): vormi number peab algama selle vormitüübi prefiksiga — klient ei saa lisada
+# manust teise tüübi vormile ega (`..`, `/`) kirjutada S3-s teise kausta. Sama kontroll on
+# mallis `templates/files/upload` ja Resql'is `insert_form_attachment` (kaitse sügavuti).
+checkFormNumber:
+  switch:
+    - condition: ${incoming.body.formNumber == null || !String(incoming.body.formNumber).startsWith("ko-") || !/^[A-Za-z0-9-]+$/.test(String(incoming.body.formNumber))}
+      next: returnInvalidFormNumber
   next: uploadFile
+
+returnInvalidFormNumber:
+  status: 400
+  return: '{"error":"INVALID_FORM_NUMBER"}'
+  next: end
 
 uploadFile:
   template: "templates/files/upload"
@@ -27,12 +41,11 @@ uploadFile:
     cookie: ${incoming.headers.cookie}
   body:
     form_type: "transport-interruption"
+    form_number_prefix: "ko-"
     form_number: ${incoming.body.formNumber}
     file_name: ${incoming.body.fileName}
     file_base64: ${incoming.body.fileBase64}
     mimetype: ${incoming.body.mimetype}
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
   result: uploadResult
   next: returnSuccess
 

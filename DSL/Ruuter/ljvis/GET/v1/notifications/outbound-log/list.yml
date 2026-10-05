@@ -111,8 +111,6 @@ logAuditEvent:
   body:
     event_type: "notification.list.view"
     event_category: "notification_management"
-    actor_personal_code: "${u.personalcode || ''}"
-    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
     description: "${('Teavituste logi vaadatud, filter ' + filter_summary + ', lehekülg ' + page + ', kuvatud ' + shown_count + ' kirjet, ulatus: kõik asutused').substring(0, 480)}"
     log_content: "${JSON.stringify({ page: page, pageSize: page_size, sortBy: sort_by, sortDir: sort_dir, filters: { status: status, notificationType: notification_type, dateFrom: date_from, dateTo: date_to, recipient: recipient, notificationKey: notification_key }, shownNotificationKeys: JSON.parse(shown_keys_json), shownRecipients: JSON.parse(shown_recipients_json) })}"
   result: audit_result

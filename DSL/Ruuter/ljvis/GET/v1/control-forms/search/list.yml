@@ -79,6 +79,9 @@ search:
     body:
       allowed_types: "${allowed_types}"
       actor_code: "${u.personalcode || ''}"
+      caller_organisation_id: "${u.organisationid == null ? '' : String(u.organisationid)}"
+      caller_view_unpublished: "${u.permissions.includes('control_form.view_unpublished') ? 'true' : 'false'}"
+      caller_view_organisation: "${u.permissions.includes('control_form.view_organisation') ? 'true' : 'false'}"
       page: "${incoming.params.page ?? '1'}"
       page_size: "${incoming.params.pageSize ?? '20'}"
       sorting: "${incoming.params.sorting ?? 'main_date desc'}"

@@ -24,9 +24,19 @@ downloadFile:
     form_number_prefix: "vr-"
     id: ${incoming.params.q}
     form_type: "foreign-violation-form"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
+    access_form_type: "foreign-violation-form"
   result: downloadResult
+
+checkDownloadResult:
+  switch:
+    - condition: ${downloadResult === "FORBIDDEN"}
+      next: returnReadAccessDenied
+  next: returnSuccess
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 returnSuccess:
   return: ${downloadResult}

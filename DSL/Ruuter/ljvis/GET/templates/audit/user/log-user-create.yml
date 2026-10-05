@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: user create event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie

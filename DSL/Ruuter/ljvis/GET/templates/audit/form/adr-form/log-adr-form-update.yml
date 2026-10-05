@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: ADR sub-form update event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -23,10 +24,6 @@ declaration:
       - field: driver2PersonalCodeEe
         type: string
       - field: driver2PersonalCodeForeign
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildDriver1Code:
@@ -66,8 +63,6 @@ logAuditEvent:
   body:
     event_type: "control_form.adr.update"
     event_category: "control_form"
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

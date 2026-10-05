@@ -7,6 +7,31 @@ declaration:
     params:
       - field: compoundFormKey
 
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "compound-form"
+    form_key: "${incoming.params.compoundFormKey}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getForm
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
+
 getForm:
   call: http.post
   args:

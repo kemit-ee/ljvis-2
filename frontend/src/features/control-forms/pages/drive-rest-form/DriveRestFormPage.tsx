@@ -67,6 +67,7 @@ import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish,
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -607,7 +608,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    if (!snapshot) return <FormLoadError />;
     return (
       <div>
         {entryType === 'driver' ? (
@@ -635,7 +636,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   if (loadingEntry) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
+  if (loadError || !compoundFormKey) return <FormLoadError />;
 
   const sharedCompoundProps = {
     isDesktop,

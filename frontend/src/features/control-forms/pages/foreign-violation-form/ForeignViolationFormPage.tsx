@@ -24,6 +24,7 @@ import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
 
 export function ForeignViolationFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -164,7 +165,7 @@ export function ForeignViolationFormPage() {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    if (!snapshot) return <FormLoadError />;
     return (
       <div>
         <Card>
@@ -216,7 +217,7 @@ export function ForeignViolationFormPage() {
 
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!form) return <Text>{t('common.error')}</Text>;
+  if (!form) return <FormLoadError />;
 
   return (
     <div>

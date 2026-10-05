@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: user set-groups event — fetches user info internally, builds description with branch logic"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie

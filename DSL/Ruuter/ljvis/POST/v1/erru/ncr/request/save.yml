@@ -171,8 +171,6 @@ logAuditEvent:
     changed_fields: "${business_case_id === '' ? 'kõik (uus päring)' : 'päringu väljad'}"
     status: ${new_status}
     version: "${'' + new_version}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

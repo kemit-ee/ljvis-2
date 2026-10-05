@@ -228,8 +228,6 @@ logAuditEvent:
   body:
     event_type: "control_form.tram_control_card.publish"
     event_category: "control_form_management"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: "TRAM kontrollkaart avalikustatud, number=${publishRes.response.body[0].formNumber}/${publishRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${publishRes.response.body[0].id},\"formNumber\":\"${publishRes.response.body[0].formNumber}\",\"oldStatus\":\"confirmed\",\"newStatus\":\"published\"}"
   result: audit_result

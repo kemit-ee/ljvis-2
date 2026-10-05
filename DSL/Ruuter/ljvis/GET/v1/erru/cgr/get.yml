@@ -56,8 +56,6 @@ logAuditEvent:
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}
     tm_date_of_birth: ${tm_date_of_birth}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

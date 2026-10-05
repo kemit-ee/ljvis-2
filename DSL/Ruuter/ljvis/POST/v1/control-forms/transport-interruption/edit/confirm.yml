@@ -112,8 +112,6 @@ logAuditEvent:
   body:
     event_type: "control_form.transport_interruption.confirm"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result

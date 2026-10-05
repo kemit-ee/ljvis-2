@@ -1,0 +1,309 @@
+# Epic #502 / A1 — tegutseja identiteet tuleb TARA-sessioonist, mitte request body'st.
+# `templates/**` on otse HTTP-ga kutsutavad, seega võltsitud `actor_*` body-s ei tohi
+# jõuda auditiritta ega manuse `created_by` välja.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  S3_PROXY: '{MOCK}/s3'
+  LJVIS_DMAPPER_HBS: '{MOCK}/dmapper'
+tests:
+- name: log-audit-event stamps the session actor and DB display name
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - organisation_id: '5'
+        user_account_id: '7'
+        actor_name: Real Person
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/templates/audit/log-audit-event
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      event_type: test.event
+      event_category: test
+      description: d
+      log_content: '{}'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /user/get_user_organisation_by_personal_code
+    count: 1
+    body_matches:
+      personal_code: SESSION1
+  - url_matches: /log/insert_audit_event
+    count: 1
+    body_matches:
+      actor_personal_code: SESSION1
+      actor_name: Real Person
+      created_by: Real Person
+      organisation_id: '5'
+
+- name: nested audit template (guard variable reaches the log-audit-event call)
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - organisation_id: '5'
+        user_account_id: '7'
+        actor_name: Real Person
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/templates/audit/form/log-form-delete
+    headers:
+      cookie: test
+    body:
+      form_number: vr-1
+      old_status: saved
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /log/insert_audit_event
+    count: 1
+    body_matches:
+      actor_personal_code: SESSION1
+      actor_name: Real Person
+
+- name: files/upload stamps created_by from the session
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions:
+        - adr_form.read
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - organisation_id: '5'
+        user_account_id: '7'
+        actor_name: Real Person
+    - url_matches: /s3/upload
+      method: POST
+      status: 200
+      body:
+        key: adr-form/ov-2026-00001/a.txt
+    - url_matches: /control-forms/files/insert_form_attachment
+      method: POST
+      status: 200
+      body:
+      - id: 1
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/templates/files/upload
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      form_type: adr-form
+      form_number_prefix: ov-
+      form_number: ov-2026-00001
+      file_name: a.txt
+      file_base64: YQ==
+      mimetype: text/plain
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 1
+    body_matches:
+      created_by: SESSION1
+  - url_matches: /log/insert_audit_event
+    count: 1
+    body_matches:
+      actor_personal_code: SESSION1
+
+- name: strict template rejects a forged actor_personal_code key with 400
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/templates/audit/log-audit-event
+    headers:
+      cookie: test
+      content-type: application/json
+      user-agent: curl
+      accept: '*/*'
+    body:
+      event_type: test.event
+      event_category: test
+      description: d
+      log_content: '{}'
+      actor_personal_code: FORGED99
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /log/insert_audit_event
+    count: 0
+
+- name: wrapper -> strict audit template chain works end to end (no extra keys sent)
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions:
+        - foreign_violation_form.read
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body:
+      - formNumber: vr-1
+        createdBy: OTHER
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - organisation_id: '5'
+        user_account_id: '7'
+        actor_name: Real Person
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /dmapper/map_foreign_violation_form
+      method: POST
+      status: 200
+      body:
+        formNumber: vr-1
+    - url_matches: /notification/list_outbound_log
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/foreign-violation-form?q=1
+    headers:
+      cookie: test
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /log/insert_audit_event
+    count: 1
+    body_matches:
+      actor_personal_code: SESSION1
+      actor_name: Real Person
+      event_type: control_form.foreign_violation.view
+
+- name: files/upload rejects forged actor_personal_code with 400 and writes nothing
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions:
+        - adr_form.read
+    - url_matches: /s3/upload
+      method: POST
+      status: 200
+      body:
+        key: adr-form/ov-2026-00001/a.txt
+    - url_matches: /control-forms/files/insert_form_attachment
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/templates/files/upload
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      form_type: adr-form
+      form_number_prefix: ov-
+      form_number: ov-2026-00001
+      file_name: a.txt
+      file_base64: YQ==
+      mimetype: text/plain
+      actor_personal_code: FORGED99
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 0

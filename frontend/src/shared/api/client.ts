@@ -14,6 +14,27 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The most recent failed GET. A page that cannot render its form uses it to tell the user WHY
+ * (no permission vs. not found) instead of a bare "Tekkis viga" — the hooks that load the form
+ * swallow the ApiError, so the status would otherwise be lost.
+ */
+export interface LoadFailure {
+  status: number;
+  path: string;
+  at: number;
+}
+
+let lastLoadFailure: LoadFailure | null = null;
+
+export function getLastLoadFailure(): LoadFailure | null {
+  return lastLoadFailure;
+}
+
+export function clearLastLoadFailure(): void {
+  lastLoadFailure = null;
+}
+
 type ErrorListener = (err: ApiError) => void;
 type VoidCallback = () => void;
 
@@ -49,6 +70,7 @@ export async function get<T>(
   const res = await fetch(url.toString(), { credentials: 'include' });
   const json = (await res.json().catch(() => null)) as RuuterResponse<T> | null;
   if (!res.ok) {
+    lastLoadFailure = { status: res.status, path, at: Date.now() };
     const err = new ApiError(
       `GET ${path} failed: ${res.status}`,
       res.status,

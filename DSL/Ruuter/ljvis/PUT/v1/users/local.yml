@@ -185,8 +185,6 @@ logAuditEvent:
   body:
     event_type: "user.update"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${view_log_content}
   result: audit_result

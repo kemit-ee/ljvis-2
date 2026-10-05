@@ -58,8 +58,6 @@ logAuditEvent:
     community_licence_number: ${community_licence_number}
     vehicle_registration_number: ${vehicle_registration_number}
     ctud_to: ${ctud_to}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

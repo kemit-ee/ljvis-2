@@ -3,6 +3,15 @@ declaration:
   version: "1.0"
   description: "List active file attachments for a form. Expects: form_number"
   namespace: templates
+  strict: true
+  allowlist:
+    body:
+      - field: form_number
+        type: string
+      - field: form_number_prefix
+        type: string
+      - field: attachment_form_type
+        type: string
 
 getFilesFromDB:
   call: http.post

@@ -208,8 +208,6 @@ logAuditEvent:
     event_type: "control_form.trailer_technical.save"
     event_category: "control_form"
     description: ${description}
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
   result: audit_result
   next: returnSuccess

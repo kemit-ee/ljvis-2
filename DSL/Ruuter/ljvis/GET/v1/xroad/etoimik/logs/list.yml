@@ -86,8 +86,6 @@ logAuditEvent:
   body:
     event_type: "xroad.log.view"
     event_category: "xroad_integration_log"
-    actor_personal_code: "${u.personalcode || ''}"
-    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
     description: "${('eToimiku X-tee logi vaadatud, filter ' + filter_summary + ', lehekülg ' + page + ', kuvatud ' + shown_count + ' kirjet').substring(0, 480)}"
     log_content: "${JSON.stringify({ page: page, pageSize: page_size, filters: { dateFrom: date_from, dateTo: date_to, includeFound: include_found, includeNotFound: include_not_found, includeError: include_error, allServices: all_services }, shownLogIds: JSON.parse(shown_ids_json) })}"
   result: audit_result

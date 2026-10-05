@@ -56,8 +56,6 @@ logAuditEvent:
     vehicle_registration_number: ${vehicle_registration_number}
     driver_first_name: ${driver_first_name}
     driver_family_name: ${driver_family_name}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

@@ -193,8 +193,6 @@ logAuditEvent:
   body:
     event_type: "control_form.vehicle_technical.save"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
   result: audit_result

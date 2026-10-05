@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: labour inspection form (labour_inspection_form) publish event."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -20,10 +21,6 @@ declaration:
         type: string
       - field: new_status
         type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
-        type: string
 
 buildAudit:
   assign:
@@ -40,8 +37,6 @@ logAuditEvent:
   body:
     event_type: "control_form.labour_inspection.publish"
     event_category: "control_form_management"
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

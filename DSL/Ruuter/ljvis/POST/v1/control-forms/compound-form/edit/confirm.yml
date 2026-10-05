@@ -313,8 +313,6 @@ logAuditEvent:
   body:
     event_type: "control_form.compound_form.confirm"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"compoundFormKey\":${compound_form_key}}"
   result: audit_result

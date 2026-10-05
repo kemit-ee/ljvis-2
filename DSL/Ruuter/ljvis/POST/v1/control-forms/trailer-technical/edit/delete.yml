@@ -49,8 +49,6 @@ logAuditEvent:
   body:
     form_number: ${form_number}
     old_status: ${old_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

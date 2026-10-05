@@ -1,3 +1,7 @@
+declaration:
+  allowlist:
+    params: []
+
 mock_step:
   call: reflect.mock
   args:

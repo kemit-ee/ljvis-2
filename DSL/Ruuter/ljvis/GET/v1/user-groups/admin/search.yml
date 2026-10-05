@@ -80,8 +80,6 @@ logSearchEvent:
   body:
     event_type: "user_group.list.search"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: "Otsing '${search}', tulemusi ${result_count}"
     log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"allOrganisations\",\"organisationId\":null}"
   result: audit_result

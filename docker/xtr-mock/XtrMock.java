@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Minimal stand-in for XTR (X-tee Translator) — CI ONLY.
  *
- * The real XTR (turnerrainer/xtr:0.4.1-rc, see docker-compose.yml) needs an X-tee
+ * The real XTR (turnerrainer/xtr:0.5.0-rc, see docker-compose.yml) needs an X-tee
  * security server and a registered subsystem, neither of which exists in the
  * isolated CI stack. Without something answering on http://xtr:8080 the citizen
  * representation DSLs' `http.post [#LJVIS_XTR]/ar/esindus_v{1,2}` call fails at

@@ -296,8 +296,6 @@ logAuditSend:
     member_state_count: "${member_states_raw ? member_states_raw.length : 0}"
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_ok
   next: returnSent
 
@@ -313,8 +311,6 @@ logAuditError:
     member_state_count: "0"
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_err
   next: returnError
 

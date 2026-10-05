@@ -1,5 +1,7 @@
 declaration:
   description: Avalik sünteetilise mocki tervisekontroll.
+  allowlist:
+    params: []
 ready:
   status: 200
   return:

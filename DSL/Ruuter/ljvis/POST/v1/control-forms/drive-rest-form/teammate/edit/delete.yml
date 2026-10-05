@@ -41,8 +41,6 @@ logAuditEvent:
   body:
     form_number: "${deleteRes.response.body[0].subFormNumber + '/' + deleteRes.response.body[0].version}"
     old_status: ${old_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: triggerRiskRecalculate
 

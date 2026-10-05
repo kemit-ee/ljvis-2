@@ -92,8 +92,6 @@ logAuditEvent:
   body:
     business_case_id: ${business_case_id}
     message_count: "${'' + res.response.body.length}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 

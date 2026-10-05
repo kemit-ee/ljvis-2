@@ -169,7 +169,7 @@ guard = yaml.safe_load((SOURCE / "POST/xroad/provide/.guard").read_text())
 guard = {"declaration": {"description": "X-Road-Client peab olema neljaosaline. Ainult mockis 70000000 tähistab keelatud tarbijat."}, **guard}
 guard["checkXRoadClient"]["switch"].append({"condition": expression("(incoming.headers['x-road-client'] || '').split('/')[2] === '70000000'"), "next": "deny"})
 emit(DEST / "POST/xroad/v1/.guard.yml", adapt_runtime(guard))
-emit(DEST / "GET/health/ready.yml", {"declaration": {"description": "Avalik sünteetilise mocki tervisekontroll."},
+emit(DEST / "GET/health/ready.yml", {"declaration": {"description": "Avalik sünteetilise mocki tervisekontroll.", "allowlist": {"params": []}},
                                     "ready": {"status": 200, "return": {"status": "OK", "mock": True}, "wrapper": False, "next": "end"}})
 
 tests = []

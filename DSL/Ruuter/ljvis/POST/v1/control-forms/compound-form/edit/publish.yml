@@ -23,8 +23,6 @@ publishCompound:
   body:
     id: ${id}
     only_if_confirmed: "false"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
   result: publishResult
   next: parseResult
 

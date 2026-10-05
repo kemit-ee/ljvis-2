@@ -132,8 +132,6 @@ logAuditEventInsert:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -253,8 +251,6 @@ logAuditEventUpdate:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
