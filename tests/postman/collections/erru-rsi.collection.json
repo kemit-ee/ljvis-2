@@ -5,6 +5,20 @@
     "description": "Functional tests for the ERRU RSI module, Stage 6 (LJVIS2-147): create/revise draft, GET, permission boundaries (rsi.read / rsi.create), optional block semantics (driver block closed by default, identificationDetails choice: transport_undertaking and owner sub-types), checkedItems round-trip, and all field-level validation codes.\n\nRuuter-on-Rust allowlist contract: every field listed in the endpoint allowlist MUST be present as a key in the request body — the key may be absent causes 500 'Field missing: <field>'. The value may be either \"\" (empty string) or null — both are treated identically by the extractRequestData DSL step (via `incoming.body.field || ''`) and produce NULL in the database via NULLIF(:field, ''). Newman tests use \"\" for optional fields; the frontend may send null — both are correct.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// #515: ruuter-internal nõuab teenusetokenit päises (constants.ini: INTERNAL_COMMUNICATION_KEY).",
+          "if (pm.request.url.toString().startsWith(pm.variables.get('internal_api_url'))) {",
+          "  pm.request.headers.upsert({ key: 'x-internal-service-token', value: pm.variables.get('internal_service_token') });",
+          "}"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "[Auth] Login — Super Admin (rsi.read+create+send)",

@@ -243,6 +243,7 @@ sendCarrierFromRequest:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entity_type: "tram_control_card"
@@ -264,6 +265,7 @@ createSeriousInfringement:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: "serious_infringement"
@@ -289,6 +291,7 @@ sendCabotageNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: "labor_kabotage"
@@ -314,6 +317,7 @@ callRiskRecalculate:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}

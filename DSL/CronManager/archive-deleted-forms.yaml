@@ -7,9 +7,8 @@
 # (iga 2h täistunnil, Europe/Tallinn).
 archive_deleted_forms:
   trigger: "0 0 0 1 1 ? 2099"
-  type: http
-  method: POST
-  url: http://ruuter-internal:8080/ljvis/cron/archive-deleted-forms
+  type: exec
+  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/archive-deleted-forms
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

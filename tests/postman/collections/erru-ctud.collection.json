@@ -5,6 +5,20 @@
     "description": "Functional tests for the ERRU CTUD module (LJVIS2-142 lifecycle, -143 form, -144 actions/sending, -145 list). Covers permission boundaries (ctud.read / ctud.create / ctud.send), the validation matrix, append-only snapshot behaviour, the full send flow against the in-repo mock ERRU hub (Found / NotFound / Timeout / NotAvailable / transport failure), retry-from-error, and the inbound machine endpoint on ruuter-internal including replay idempotency.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// #515: ruuter-internal nõuab teenusetokenit päises (constants.ini: INTERNAL_COMMUNICATION_KEY).",
+          "if (pm.request.url.toString().startsWith(pm.variables.get('internal_api_url'))) {",
+          "  pm.request.headers.upsert({ key: 'x-internal-service-token', value: pm.variables.get('internal_service_token') });",
+          "}"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "[Auth] Login — Super Admin (ctud.read+create+send)",

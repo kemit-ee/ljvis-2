@@ -154,6 +154,7 @@ sendCarrierFromRequest:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entity_type: "vehicle_technical"
@@ -168,6 +169,7 @@ evaluateNotifications:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/evaluate-technical-publish"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entityType: "vehicle_technical"

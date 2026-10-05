@@ -22,6 +22,7 @@ tests:
     method: POST
     path: /ljvis/notification/evaluate-technical-publish
     headers:
+      x-internal-service-token: dev-internal-service-token
       content-type: application/json
     body:
       entityType: vehicle_technical
@@ -59,6 +60,7 @@ tests:
     method: POST
     path: /ljvis/notification/evaluate-technical-publish
     headers:
+      x-internal-service-token: dev-internal-service-token
       content-type: application/json
     body:
       entityType: trailer_technical
