@@ -27,6 +27,10 @@
 - `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
 - Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
 
+### Kasutajaliides ei saada serveripoolselt tuletatavaid välju
+
+Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise sessioonist. Seda hoiab nii CI reegel R8.
+
 ### Selge teade, kui vormi ei saa vaadata
 
 - Kui vormi avamine ebaõnnestub, näeb kasutaja põhjust: „Teil puudub õigus seda vormi vaadata“ koos selgitusega, kes avalikustamata vormi näeb (looja, sama asutuse kolleeg õigusega „Minu asutuse vormid“, avalikustamata vormide vaatamise õigusega kasutaja), või „Soovitud vormi ei leitud“. Varem näidati kõigil juhtudel üldist „Tekkis viga“.
