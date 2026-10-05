@@ -18,6 +18,7 @@ final class Config {
     final String dbUser;
     final String dbPassword;
     final String ruuterInternalBaseUrl;
+    final String internalServiceToken;
     final String hubResponseUrl;
     final String contractsDir;
     final long pollIntervalMs;
@@ -38,6 +39,8 @@ final class Config {
         dbUser = required("DB_USER", problems);
         dbPassword = required("DB_PASSWORD", problems);
         ruuterInternalBaseUrl = required("RUUTER_INTERNAL_BASE_URL", problems);
+        // Shared service token ruuter-internal requires on every non-X-Road call (constants.ini: INTERNAL_COMMUNICATION_KEY).
+        internalServiceToken = required("INTERNAL_COMMUNICATION_KEY", problems);
         // One full, directly configurable URL for every answer
         // (business answer or ErrorNotification alike) — ERRU XML Message Reference 2.06 §5.3.1
         // p.12 defines exactly ONE Hub endpoint for all answers

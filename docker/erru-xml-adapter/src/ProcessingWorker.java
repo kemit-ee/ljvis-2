@@ -148,6 +148,7 @@ final class ProcessingWorker implements Runnable {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(config.ruuterInternalBaseUrl + mapper.ruuterPath()))
                     .header("Content-Type", "application/json")
+                    .header("x-internal-service-token", config.internalServiceToken)
                     .timeout(timeout)
                     .POST(HttpRequest.BodyPublishers.ofString(MiniJson.write(requestJson)))
                     .build();

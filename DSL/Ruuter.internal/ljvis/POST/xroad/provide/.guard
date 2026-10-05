@@ -1,6 +1,11 @@
 # X-Road-Client header guard — rakendub kõigile xroad/provide/ teenustele.
 # Valideerib et päis on olemas ja 4-osalises formaadis (instance/memberClass/memberCode/subsystem).
 # Puuduv või vale formaat → 403 FORBIDDEN.
+#
+# override_ancestors: true — X-tee kutsuja (turvaserver) ei saada LJVIS-i teenusetokenit, seega
+# projektijuure `x-internal-service-token` guard siia ei kehti.
+declaration:
+  override_ancestors: true
 
 checkXRoadClient:
   switch:

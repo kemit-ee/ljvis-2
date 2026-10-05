@@ -35,8 +35,8 @@ Kõik komponendid on ClusterIP Service'id namespace'is `ljvis2-<env>`. Service n
 | `s3-proxy` | 3010 → 3010 | manuste üles-/allalaadimine S3-sse | ei |
 | `nysiis` | 8080 → 8080 | ERRU NYSIIS võtme arvutus (Java sidecar) | ei |
 | `pdf-creator` | 3020 → 3020 | PDF-i genereerimine (WeasyPrint, väliseid ressursse ei laadi — `url_fetcher=deny_resources`) | ei |
-| `cronmanager` | 8080 → 8080 | ajastatud tööd (curl → ruuter-internal) | ei |
-| `stesta-gateway` | 443 → 8443 (TLS), health 8081 | ERRU/MOVEHUB sissetulevate callback'ide TLS-värav | jah, AWS Target Group `ljvis2-nonlive-stesta-443` (hetkel **test** / demo.liiklusvalve.ee stack; üks env korraga) |
+| `cronmanager` | 8080 → 8080 | ajastatud tööd (curl + `x-internal-service-token` → ruuter-internal) | ei |
+| `stesta-gateway` | 443 → 8443 (TLS), health 8081 | ERRU/MOVEHUB sissetulevate callback'ide TLS-värav | jah, AWS Target Group `ljvis2-nonlive-stesta-443` (hetkel ainult **dev**) |
 | Liquibase Job (resql-ljvis chart, Argo sync-wave −1) | — | skeemimigratsioon | ei |
 
 Lokaalses docker-compose'is olevad `database`, `tim-postgresql`, `tara-mock`,

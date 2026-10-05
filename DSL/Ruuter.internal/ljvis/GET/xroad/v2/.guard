@@ -1,0 +1,10 @@
+# GET /xroad/v2/* — Andmejälgija (X-tee) protokolli päringud (findUsage, heartbeat, usagePeriod,
+# openapi). Kutsuja on X-tee/Andmejälgija, kellel pole LJVIS-i teenusetokenit; ligipääsu piirab
+# Gateway HTTPRoute. override_ancestors: true — ülimuslik projektijuure token-guardi suhtes.
+declaration:
+  override_ancestors: true
+
+allow:
+  return: "success"
+  status: 200
+  next: end

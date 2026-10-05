@@ -1,0 +1,49 @@
+# #515: ruuter-internal projektijuure guard — x-internal-service-token on kohustuslik,
+# välja arvatud X-tee teenuste (xroad/provide, xroad/v2) route'id.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+tests:
+- name: cron endpoint without token is forbidden
+  request:
+    method: POST
+    path: /ljvis/cron/yvkehtivus-sync
+  expect:
+    status: 403
+
+- name: cron endpoint with wrong token is forbidden
+  request:
+    method: POST
+    path: /ljvis/cron/yvkehtivus-sync
+    headers:
+      x-internal-service-token: not-the-token
+  expect:
+    status: 403
+
+- name: ERRU inbound without token is forbidden
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-request
+    headers:
+      content-type: application/json
+    body: {}
+  expect:
+    status: 403
+
+- name: X-Road OpenAPI description stays reachable without token
+  request:
+    method: GET
+    path: /ljvis/xroad/provide/openapi
+  expect:
+    status: 200
+
+- name: X-Road provide service is guarded by X-Road-Client, not by the service token
+  request:
+    method: POST
+    path: /ljvis/xroad/provide/isiku-kontroll
+    headers:
+      content-type: application/json
+    body: {}
+  expect:
+    status: 403
+    body_contains: X-Road-Client

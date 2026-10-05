@@ -3,9 +3,8 @@
 # avoid XTR contention.
 etoimik_tram_decision_sync:
   trigger: "0 15 1 * * ?"
-  type: http
-  method: POST
-  url: http://ruuter-internal:8080/ljvis/cron/etoimik-tram-decision-sync
+  type: exec
+  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/etoimik-tram-decision-sync
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

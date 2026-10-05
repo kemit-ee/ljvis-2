@@ -89,6 +89,7 @@ inspection fields are persisted, although the detail UI does not display all of 
 |---|---|
 | DB_URL / DB_USER / DB_PASSWORD | Required JDBC connection |
 | RUUTER_INTERNAL_BASE_URL | Required internal business service URL |
+| INTERNAL_COMMUNICATION_KEY | Required shared service token, sent as `x-internal-service-token` on every ruuter-internal call (same value as `INTERNAL_COMMUNICATION_KEY` in constants.ini) |
 | HUB_RESPONSE_URL | Required full URL for every answer and EN |
 | CONTRACTS_DIR | Required directory containing ERRU 3.5 XSDs |
 | MEMBER_STATE_CODE | Required local member state, EE in local compose |

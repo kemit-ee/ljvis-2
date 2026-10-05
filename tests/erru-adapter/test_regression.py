@@ -5,6 +5,7 @@ python3 tests/erru-adapter/test_regression.py -- docker compose -f docker-compos
 Creates only uniquely named ERRU-TEST business records. No table truncation.
 """
 import json
+import os
 import re
 import subprocess
 import sys
@@ -24,6 +25,7 @@ FIXTURES = Path(__file__).parent / 'fixtures'
 ADAPTER = 'http://localhost:9091'
 HUB = 'http://localhost:9092'
 INTERNAL = 'http://localhost:9089/ljvis'
+INTERNAL_COMMUNICATION_KEY = os.environ.get('LJVIS_INTERNAL_COMMUNICATION_KEY', 'dev-internal-service-token')
 RESQL = 'http://localhost:9087/ljvis'
 NS = {'e': 'https://webgate.ec.testa.eu/move-hub/erru/3.5'}
 RESPONSE_PATH = '/erru/http/response/btshttpreceive.dll'
@@ -39,7 +41,10 @@ def quoted(value):
 
 def http(url, body=None, xml=False):
     data = None if body is None else (body.encode() if xml else json.dumps(body).encode())
-    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/xml' if xml else 'application/json'})
+    headers = {'Content-Type': 'application/xml' if xml else 'application/json'}
+    if url.startswith(INTERNAL):
+        headers['x-internal-service-token'] = INTERNAL_COMMUNICATION_KEY
+    req = urllib.request.Request(url, data=data, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=20) as response:
             return response.status, response.read().decode()

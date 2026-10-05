@@ -1,0 +1,10 @@
+# LOCAL DEV ONLY — docker compose loads this file automatically next to docker-compose.yml.
+# Never deployed (Helm charts); CI uses docker-compose.ci.yml with -f and ignores it.
+#
+# ruuter-internal ei ole avalikult kättesaadav (#515): host-port on ainult arendajale
+# (Postman, käsitsi curl). Kõik päringud peavad saatma päise
+# `x-internal-service-token: <INTERNAL_COMMUNICATION_KEY constants.ini-st>`, v.a. xroad/provide/* ja xroad/v2/*.
+services:
+  ruuter-internal:
+    ports:
+      - "127.0.0.1:8089:8080"

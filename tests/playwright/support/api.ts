@@ -135,10 +135,14 @@ export async function endpointExists(path: string): Promise<boolean> {
 
 export const RESQL_URL = process.env.LJVIS_RESQL_URL || 'http://localhost:9087';
 export const INTERNAL_API_URL = process.env.LJVIS_INTERNAL_API_URL || 'http://localhost:9089';
+// Sisemise Ruuteri teenusetoken (constants.ini: INTERNAL_COMMUNICATION_KEY); xroad/* teed seda ei vaja.
+export const INTERNAL_COMMUNICATION_KEY = process.env.LJVIS_INTERNAL_COMMUNICATION_KEY || 'dev-internal-service-token';
 
 async function postJson<T>(baseURL: string, path: string, data: unknown): Promise<T> {
   const api = await request.newContext({ baseURL });
-  const res = await api.post(path, { data, headers: { 'Content-Type': 'application/json' } });
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (baseURL === INTERNAL_API_URL) headers['x-internal-service-token'] = INTERNAL_COMMUNICATION_KEY;
+  const res = await api.post(path, { data, headers });
   const text = await res.text();
   await api.dispose();
   if (!res.ok()) throw new Error(`POST ${baseURL}${path} → ${res.status()} ${text}`);

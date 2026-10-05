@@ -5,6 +5,20 @@
     "description": "Functional tests for the risk-score module (EU regulation 2022/695): calculate/save/read via Ruuter.internal (recalculate/current, incl. ERRU riskBand mapping Kollane->Amber), admin list (auth/permission guard, filters, sorting, NULLS LAST), citizen endpoint auth-path validation, and the per-control MSI/VSI/SI/MI breakdown endpoint (includes the 'no SP sub-form at all -> fully excluded' rule). Fixtures seeded via DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql (company_reg_code 90000001-90000006 = Punane/Nullpunkt/Valistatud/Nimemuutus/Kontrollimata/Kollane). See docs/risk-score/formula.md for the scoring rules. Fixtures 90000071-73 (20261203100000-risk-score-draft-deleted-fixture.sql): draft/deleted sub-forms and deleted compound_forms are ignored; deleting a published sub-form triggers a recalculation.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// #515: ruuter-internal nõuab teenusetokenit päises (constants.ini: INTERNAL_COMMUNICATION_KEY).",
+          "if (pm.variables.replaceIn(pm.request.url.toString()).startsWith(pm.variables.get('internal_api_url'))) {",
+          "  pm.request.headers.upsert({ key: 'x-internal-service-token', value: pm.variables.get('internal_service_token') });",
+          "}"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "[Auth] Login — Super Admin (risk_report.list)",

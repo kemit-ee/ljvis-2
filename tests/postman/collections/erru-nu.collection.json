@@ -3513,6 +3513,9 @@
       "script": {
         "type": "text/javascript",
         "exec": [
+          "if (pm.variables.replaceIn(pm.request.url.toString()).startsWith(pm.variables.get('internal_api_url'))) {",
+          "  pm.request.headers.upsert({ key: 'x-internal-service-token', value: pm.variables.get('internal_service_token') });",
+          "}",
           "const url = pm.request.url.toString();",
           "if (url.endsWith('/v1/erru/nu/request/save') || url.endsWith('/v1/erru/nu/send')) {",
           "  const body = JSON.parse(pm.variables.replaceIn(pm.request.body.raw));",

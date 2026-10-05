@@ -111,7 +111,7 @@ wsPush:
     url: "[#LJVIS_RUUTER]/v1/ws-broadcast/send"
     headers:
       type: json
-      x-viljus-knows-a-secret: "[#INTERNAL_COMMUNICATION_KEY]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       type: "notification_update"
       required_permission: ${required_permission}

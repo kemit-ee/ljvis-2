@@ -164,6 +164,12 @@
       "enabled": true
     },
     {
+      "key": "internal_service_token",
+      "value": "dev-internal-service-token",
+      "type": "secret",
+      "enabled": true
+    },
+    {
       "key": "cookie_ctud_nosend",
       "value": "",
       "type": "default",

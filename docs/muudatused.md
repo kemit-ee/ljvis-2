@@ -4,6 +4,14 @@
 
 ## 2026-10-05
 
+### Sisemise ruuteri (ruuter-internal) kaitse teenusetokeniga (#515)
+
+- `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.
+- Varasem ws-broadcast jagatud saladus (`INTERNAL_COMMUNICATION_KEY`) on sama token: konstant jääb samaks, päis `x-viljus-knows-a-secret` on nimetatud ümber `x-internal-service-token`-iks. Keskkondades uusi konstante lisada ei ole vaja.
+- CronManager'i ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManager'i konteinerisse tuleb seega mountida sama `constants.ini`.
+- `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
+- Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
+
 ### Selge teade, kui vormi ei saa vaadata
 
 - Kui vormi avamine ebaõnnestub, näeb kasutaja põhjust: „Teil puudub õigus seda vormi vaadata“ koos selgitusega, kes avalikustamata vormi näeb (looja, sama asutuse kolleeg õigusega „Minu asutuse vormid“, avalikustamata vormide vaatamise õigusega kasutaja), või „Soovitud vormi ei leitud“. Varem näidati kõigil juhtudel üldist „Tekkis viga“.

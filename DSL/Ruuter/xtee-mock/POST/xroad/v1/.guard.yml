@@ -1,5 +1,5 @@
 declaration:
-  description: X-Road-Client peab olema neljaosaline. Ainult mockis 70000000 tähistab keelatud tarbijat.
+  override_ancestors: true
 checkXRoadClient:
   switch:
   - condition: ${incoming.headers['x-road-client'] == null || incoming.headers['x-road-client'] == ''}

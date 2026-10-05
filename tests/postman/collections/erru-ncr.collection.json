@@ -5,6 +5,20 @@
     "description": "Functional tests for the ERRU NCR module, Stage 9-10 (LJVIS2-62/-63): outgoing request draft create/revise, case read (GET, full snapshot history), permission boundaries (ncr.read / ncr.create / ncr.respond), Pass/CleanCheck infringement-clearing rule, automatic received->viewed transition on first open, and the response-coverage validation (every requested penalty must be covered exactly once, isImposed=false strips penaltyTypeImposed).\n\nThe incoming fixture (business_case_id LV-NCR-2026-TEST0001, status=received, two requested penalties ids 1 and 2) is seeded directly via DSL/Liquibase/test/20260818100001-erru-ncr-inbound-fixture-seed.sql since Stage 11 (inbound endpoints) does not exist yet.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// #515: ruuter-internal nõuab teenusetokenit päises (constants.ini: INTERNAL_COMMUNICATION_KEY).",
+          "if (pm.variables.replaceIn(pm.request.url.toString()).startsWith(pm.variables.get('internal_api_url'))) {",
+          "  pm.request.headers.upsert({ key: 'x-internal-service-token', value: pm.variables.get('internal_service_token') });",
+          "}"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "[Auth] Login — Super Admin (ncr.read+create+respond+send)",
