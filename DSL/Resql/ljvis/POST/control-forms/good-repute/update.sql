@@ -59,7 +59,7 @@ returns:
 */
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision
   FROM forms.good_repute_form
   WHERE good_repute_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -69,6 +69,7 @@ INSERT INTO forms.good_repute_form (
   good_repute_form_key,
   form_number,
   version,
+  revision,
   status,
   personal_code,
   first_name,
@@ -87,6 +88,7 @@ SELECT
   :key::BIGINT,
   latest.form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   UPPER(:personalCode),
   UPPER(:firstName),

@@ -75,7 +75,7 @@ returns:
 */
 WITH latest AS (
   SELECT sub_form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis
   FROM forms.trailer_technical_form
   WHERE trailer_technical_form_key = :key::BIGINT
@@ -87,6 +87,7 @@ INSERT INTO forms.trailer_technical_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   parts_summary,
   parts_defects,
@@ -114,6 +115,7 @@ SELECT
   (SELECT compound_form_key FROM forms.trailer_technical_form WHERE trailer_technical_form_key = :key::BIGINT ORDER BY created_at DESC LIMIT 1),
   latest.sub_form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   COALESCE(NULLIF(:partsSummary, '')::jsonb, '[]'::jsonb),
   COALESCE(NULLIF(:partsDefects, '')::jsonb, '[]'::jsonb),

@@ -56,7 +56,7 @@ returns:
 */
 WITH latest AS (
   SELECT sub_form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision
   FROM forms.kv_form
   WHERE kv_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -67,6 +67,7 @@ INSERT INTO forms.kv_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   header_text,
   residence_country,
@@ -85,6 +86,7 @@ SELECT
   (SELECT compound_form_key FROM forms.kv_form WHERE kv_form_key = :key::BIGINT ORDER BY created_at DESC LIMIT 1),
   latest.sub_form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   UPPER(NULLIF(:headerText, '')),
   COALESCE(NULLIF(:residenceCountry, ''), 'EE'),

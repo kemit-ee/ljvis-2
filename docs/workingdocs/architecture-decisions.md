@@ -103,8 +103,10 @@ retention-purge'i `DELETE`-i `archive/` all; kirje, mis enam rikkumisele ei vast
 
 ### Tagajärjed
 
-* Kirjutaja, mis ei anna `revision`-it, ei ole võidujooksu vastu kaitstud (trigger annab numbri, mis ei
-  sõltu loetud `latest` reast). Järeltöö: `insert.sql`/`update.sql` hakkavad `revision`-it ise andma.
+* Kõik snapshot-kirjutajad (`update.sql`, `delete.sql`, `apply_etoimik_decision.sql`, T1/T2 mallid) annavad
+  `latest.revision + 1` ise ja on võidujooksu vastu kaitstud. Trigger jääb varukaitseks kirjutajatele, kes
+  `revision`-it ei anna (`insert.sql` uue võtmega, fikstuurid): ta annab `max+1`, mis ei sõltu loetud `latest`
+  reast ega kaitse seega lost-update'i eest. `insert.sql` ei vaja kaitset, sest võti tuleb `nextval`-ist.
 * Arhiiv (`select_*_snapshots`) kannab `revision`-i `payload`-i JSON-is edasi; arhiiviskeem ei muutu.
 * `ORDER BY created_at DESC` jääb lugemisjärjestuseks; `revision` on võidujooksu ja auditi tarbeks.
 
