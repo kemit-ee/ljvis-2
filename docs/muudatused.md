@@ -7,7 +7,7 @@
 ### E-toimiku päringu kaart ("Päri e-toimikust") ainult karistusregistri õigusega kasutajale
 
 - Koondvormi (PPA) lehe ülaosas olev kaart „E-toimiku kvalifikatsiooni kontroll“ koos nupuga „Päri e-toimikust“ on nähtav ainult kasutajale, kellel on õigus `control_form.punishment_register`. Varem nägi seda igaüks, kellel oli koondvormi lugemisõigus.
-- Transpordiameti kontrollkaardi lehte see ei muuda.
+- Sama kehtib Transpordiameti kontrollkaardi lehel.
 
 ### SQL on nüüd ainult INSERT ja SELECT (epic #522)
 
