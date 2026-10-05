@@ -1,0 +1,118 @@
+# Epic #502 / A2 write — manuse vormi number peab kuuluma wrapperi vormitüübi prefiksi alla.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  S3_PROXY: '{MOCK}/s3'
+tests:
+- name: vr upload with an ADR form number is refused before any S3 write
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /s3/upload
+      method: POST
+      status: 200
+      body: {key: x}
+    - url_matches: /control-forms/files/insert_form_attachment
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: ov-2026-00001, fileName: a.txt, fileBase64: YQ==, mimetype: text/plain}
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /s3/upload
+    count: 0
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 0
+
+- name: path traversal in the form number is refused
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /s3/upload
+      method: POST
+      status: 200
+      body: {key: x}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: 'vr-../../adr-form/x', fileName: a.txt, fileBase64: YQ==, mimetype: text/plain}
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /s3/upload
+    count: 0
+
+- name: vr upload with a vr form number passes the prefix check and inserts with the prefix
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /s3/upload
+      method: POST
+      status: 200
+      body: {key: foreign-violation-form/vr-2026-00001/a.txt}
+    - url_matches: /control-forms/files/insert_form_attachment
+      method: POST
+      status: 200
+      body: [{id: 1}]
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: vr-2026-00001, fileName: a.txt, fileBase64: YQ==, mimetype: text/plain}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 1
+    body_matches:
+      form_number: vr-2026-00001
+      form_number_prefix: vr-
+      created_by: SESSION1
