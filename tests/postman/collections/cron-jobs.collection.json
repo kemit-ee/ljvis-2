@@ -12,7 +12,7 @@
     "type": "text/javascript",
     "exec": [
      "// #515: ruuter-internal nõuab teenusetokenit päises (constants.ini: INTERNAL_COMMUNICATION_KEY).",
-     "if (pm.request.url.toString().startsWith(pm.variables.get('internal_api_url'))) {",
+     "if (pm.variables.replaceIn(pm.request.url.toString()).startsWith(pm.variables.get('internal_api_url'))) {",
      "  pm.request.headers.upsert({ key: 'x-internal-service-token', value: pm.variables.get('internal_service_token') });",
      "}"
     ]

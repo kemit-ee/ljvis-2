@@ -3513,7 +3513,7 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "if (pm.request.url.toString().startsWith(pm.variables.get('internal_api_url'))) {",
+          "if (pm.variables.replaceIn(pm.request.url.toString()).startsWith(pm.variables.get('internal_api_url'))) {",
           "  pm.request.headers.upsert({ key: 'x-internal-service-token', value: pm.variables.get('internal_service_token') });",
           "}",
           "const url = pm.request.url.toString();",
