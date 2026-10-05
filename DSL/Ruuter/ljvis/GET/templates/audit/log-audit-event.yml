@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Write one audit event to the database. Actor data is passed in by the caller (already sourced from JWT). Uses the database ULID generator in the INSERT transaction. Extracts trace_id and span_id from the incoming traceparent header. Derives the actor's organisation_id from actor_personal_code (for the audit.read.local scope) — NULL for system actors."
+  description: "Write one audit event to the database. The actor is ALWAYS the authenticated TARA session (guard variable session_personal_code); the personal code and display name are never read from the request body. Uses the database ULID generator in the INSERT transaction. Extracts trace_id and span_id from the incoming traceparent header. Derives the actor's organisation_id and display name from the session personal code (for the audit.read.local scope) — NULL for system actors."
   namespace: service
   allowlist:
     body:
@@ -25,11 +25,12 @@ generateEventId:
     trace_id: "${(incoming.headers.traceparent || '').split('-')[1] || ''}"
     span_id: "${(incoming.headers.traceparent || '').split('-')[2] || ''}"
     organisation_id: ""
+    actor_name: ""
   next: resolveOrganisation
 
 resolveOrganisation:
   switch:
-    - condition: ${(incoming.body.actor_personal_code || '') === ''}
+    - condition: ${(session_personal_code || '') === ''}
       next: logToResql
   next: lookupOrganisation
 
@@ -40,13 +41,14 @@ lookupOrganisation:
     headers:
       type: json
     body:
-      personal_code: ${incoming.body.actor_personal_code}
+      personal_code: ${session_personal_code}
   result: orgRes
   next: assignOrganisation
 
 assignOrganisation:
   assign:
     organisation_id: "${(Array.isArray(orgRes.response.body) && orgRes.response.body[0] && orgRes.response.body[0].organisation_id != null) ? String(orgRes.response.body[0].organisation_id) : ''}"
+    actor_name: "${(Array.isArray(orgRes.response.body) && orgRes.response.body[0] && orgRes.response.body[0].actor_name != null) ? String(orgRes.response.body[0].actor_name) : ''}"
   next: logToResql
 
 logToResql:
@@ -59,12 +61,12 @@ logToResql:
       event_id: ${event_id}
       event_type: ${incoming.body.event_type}
       event_category: ${incoming.body.event_category}
-      actor_name: "${incoming.body.actor_name || ''}"
-      actor_personal_code: "${incoming.body.actor_personal_code || ''}"
+      actor_name: "${actor_name}"
+      actor_personal_code: "${session_personal_code || ''}"
       description: ${incoming.body.description}
       log_content: ${incoming.body.log_content}
       organisation_id: ${organisation_id}
-      created_by: "${incoming.body.actor_name || ''}"
+      created_by: "${actor_name}"
       trace_id: ${trace_id}
       span_id: ${span_id}
   result: res

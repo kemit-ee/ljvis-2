@@ -22,7 +22,7 @@ declaration:
 
 buildAudit:
   assign:
-    description: "CGR mainepäringu vaatamine: päring ${incoming.body.business_case_id || '-'}, veokorraldusjuht ${((incoming.body.tm_first_name || '') + ' ' + (incoming.body.tm_family_name || '')).trim() || '-'}, sünnikuupäev ${incoming.body.tm_date_of_birth || '-'}, isikukood ${incoming.body.actor_personal_code || '-'}"
+    description: "CGR mainepäringu vaatamine: päring ${incoming.body.business_case_id || '-'}, veokorraldusjuht ${((incoming.body.tm_first_name || '') + ' ' + (incoming.body.tm_family_name || '')).trim() || '-'}, sünnikuupäev ${incoming.body.tm_date_of_birth || '-'}, isikukood ${session_personal_code || '-'}"
     log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', incoming.body.business_case_id || null], ['tmFirstName', incoming.body.tm_first_name || null], ['tmFamilyName', incoming.body.tm_family_name || null], ['tmDateOfBirth', incoming.body.tm_date_of_birth || null]]))}"
   next: writeAudit
 
@@ -34,8 +34,6 @@ writeAudit:
   body:
     event_type: "cgr.query.view"
     event_category: "erru_message_exchange"
-    actor_name: ${incoming.body.actor_name || ''}
-    actor_personal_code: ${incoming.body.actor_personal_code || ''}
     description: ${description}
     log_content: ${log_content}
   result: res

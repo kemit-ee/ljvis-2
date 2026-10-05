@@ -23,8 +23,6 @@ buildAudit:
   assign:
     description: "Kinnitati välisriigi rikkumise vorm ${incoming.body.form_number}, olek: ${incoming.body.old_status} → ${incoming.body.new_status}"
     log_content: "{\"formNumber\":\"${incoming.body.form_number}\",\"oldStatus\":\"${incoming.body.old_status}\",\"newStatus\":\"${incoming.body.new_status}\"}"
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
   next: logAuditEvent
 
 logAuditEvent:
@@ -35,8 +33,6 @@ logAuditEvent:
   body:
     event_type: "control_form.foreign_violation.confirm"
     event_category: "control_form_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

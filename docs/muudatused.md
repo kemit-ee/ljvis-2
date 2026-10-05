@@ -12,6 +12,12 @@
 - `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
 - Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
 
+### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
+
+- Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
+- Kasutajale nähtavat muutust pole: ametniku töövoogudes oli tegutseja varemgi sama.
+- Epic #502, osa A1.
+
 ### PPA kontrollvormide parandused
 
 - Vormiotsing: „Vedaja riik" filtris on lisaks Eesti / Välisriigi segmentidele kõik riigid, mille vedaja kohta on kontroll tehtud.
