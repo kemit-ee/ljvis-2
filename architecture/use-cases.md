@@ -375,9 +375,9 @@ sequenceDiagram
     participant BR as Äriregister<br/>GOV/70000310/arireg
 
     Inspektor->>UI: POST /XTee/FindPerson (isikukood)
-    Note over UI,Tunnel: Klient: ee-test/GOV/70003158/ljvis
-    UI->>Tunnel: SOAP – RR404_isik/v3<br/>(ee-test/GOV/70008440/rr/RR404_isik/v3)
-    Tunnel->>RR: RR404_isik päring
+    Note over UI,Tunnel: Klient: ee-test/GOV/70001231/ljvis2
+    UI->>Tunnel: SOAP – domesticDataExchange/isikud<br/>(EE/GOV/70008440/rr/domesticDataExchange/isikud)
+    Tunnel->>RR: domesticDataExchange/isikud päring
     RR-->>Tunnel: Isiku põhiandmed (nimi, aadress jms)
     Tunnel-->>UI: SOAP vastus
     UI-->>Inspektor: Eeltäidetud isiku andmed vormis
@@ -876,20 +876,20 @@ sequenceDiagram
 
 > LJVIS toimib siin X-tee **teenuseosutajana**.  
 > WSDL: `Ljvis.XTeeService/ljvis.wsdl` · Protokoll: Message Protocol 4.0 (SOAP)  
-> Teenuse identifikaator: `{Instance}/GOV/70003158/ljvis/<teenus>`
+> Teenuse identifikaator: `{Instance}/GOV/70001231/ljvis2/<teenus>`
 
 ```mermaid
 sequenceDiagram
     actor Välis as Välissüsteem<br/>(X-tee liige)
     participant XTee as X-tee turvaserver
-    participant Dispatcher as ServiceDispatcher<br/>Ljvis.XTeeService<br/>GOV/70003158/ljvis
+    participant Dispatcher as ServiceDispatcher<br/>Ljvis.XTeeService<br/>GOV/70001231/ljvis2
     participant DB as SQL Server
     participant Raven as RavenDB
 
     Note over Välis,Dispatcher: Kõik päringud: SOAP MP4 + X-tee turvaserver päis (UserId, Service, Client)
 
     Välis->>XTee: IsikuKontroll(isikukood) (X-01)
-    Note right of Välis: {Instance}/GOV/70003158/ljvis/IsikuKontroll
+    Note right of Välis: {Instance}/GOV/70001231/ljvis2/IsikuKontroll
     XTee->>Dispatcher: Edastab valideeritud päringu
     Dispatcher->>DB: SELECT ControlForm + ControlFormValue<br/>WHERE juhi isikukood = päring.isikukood
     DB-->>Dispatcher: Kontrolliandmed
@@ -897,7 +897,7 @@ sequenceDiagram
     XTee-->>Välis: Isiku kontrollide loend
 
     Välis->>XTee: IsikuEttevõteKontrollid(isikukood) (X-02)
-    Note right of Välis: {Instance}/GOV/70003158/ljvis/IsikuEttevoteKontrollid
+    Note right of Välis: {Instance}/GOV/70001231/ljvis2/IsikuEttevoteKontrollid
     XTee->>Dispatcher: Edastab päringu
     Dispatcher->>DB: SELECT rikkumised ettevõtte reg-numbri<br/>ja isikukoodi järgi
     DB-->>Dispatcher: Rikkumiste loend (sõiduk, juht, otsus, kuupäev)
@@ -905,7 +905,7 @@ sequenceDiagram
     XTee-->>Välis: Ettevõtte rikkumised
 
     Välis->>XTee: ErakorralineYlevaatus (X-03)
-    Note right of Välis: {Instance}/GOV/70003158/ljvis/ErakorralineYlevaatus
+    Note right of Välis: {Instance}/GOV/70001231/ljvis2/ErakorralineYlevaatus
     XTee->>Dispatcher: Edastab päringu
     Dispatcher->>DB: INSERT ControlForm<br/>(tüüp=erakorraline ülevaatus, stage=Draft)
     DB-->>Dispatcher: Uue vormi ID
@@ -913,7 +913,7 @@ sequenceDiagram
     XTee-->>Välis: Ülevaatuse registreerimine õnnestus
 
     Välis->>XTee: ErakorralineYlevaatusTehtud (X-04)
-    Note right of Välis: {Instance}/GOV/70003158/ljvis/ErakorralineYlevaatusTehtud
+    Note right of Välis: {Instance}/GOV/70001231/ljvis2/ErakorralineYlevaatusTehtud
     XTee->>Dispatcher: Edastab kinnituspäringu (vormId)
     Dispatcher->>DB: UPDATE ControlForm stage=Confirmed
     DB-->>Dispatcher: OK
@@ -921,7 +921,7 @@ sequenceDiagram
     XTee-->>Välis: Ülevaatus kinnitatud
 
     Välis->>XTee: RegisterJobInspection (X-05)
-    Note right of Välis: {Instance}/GOV/70003158/ljvis/RegisterJobInspection
+    Note right of Välis: {Instance}/GOV/70001231/ljvis2/RegisterJobInspection
     XTee->>Dispatcher: Edastab töökontrolli andmed (v1)
     Dispatcher->>Raven: INSERT JobInspection (v1)
     Raven-->>Dispatcher: InspectionId
@@ -929,7 +929,7 @@ sequenceDiagram
     XTee-->>Välis: Töökontroll registreeritud (v1)
 
     Välis->>XTee: RegisterJobInspectionV2 (X-06)
-    Note right of Välis: {Instance}/GOV/70003158/ljvis/RegisterJobInspectionV2
+    Note right of Välis: {Instance}/GOV/70001231/ljvis2/RegisterJobInspectionV2
     XTee->>Dispatcher: Edastab töökontrolli andmed
     Dispatcher->>Raven: INSERT JobInspectionV2<br/>(stage=Confirmed, InfringementProceedings=[...])
     Raven-->>Dispatcher: InspectionId
@@ -956,7 +956,7 @@ sequenceDiagram
 
     Timer->>EtoimikSvc: Run() [igapäevane / igatunniline]
 
-    Note over EtoimikSvc,Etoimik: X-tee klient: ee-test/GOV/70003158/ljvis<br/>Tunnel: test.liiklusvalve.ee/xtee/tunnel
+    Note over EtoimikSvc,Etoimik: X-tee klient: ee-test/GOV/70001231/ljvis2<br/>Tunnel: test.liiklusvalve.ee/xtee/tunnel
 
     EtoimikSvc->>DB: SELECT ControlForm<br/>stage=Confirmed, UnitedFormPart=true,<br/>QualificationsReceived=false (B-01)
     DB-->>EtoimikSvc: Kinnitatud vormide loend

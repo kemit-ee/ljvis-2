@@ -18,6 +18,11 @@
 - Kinnitatud alamvormi (mootorsõiduk, haagis, ADR, veo katkestamine) saab muuta selle looja või koondvormile märgitud kontrolli läbiviija; „Muuda" nupp on neile nähtav. Avalikustatud vormi muudab ainult administraator.
 - Töölaua „Minu asutuse vormid" valik nõuab uut õigust `control_form.view_organisation` (omista grupihalduses).
 
+### X-tee dokumentatsiooni parandus
+
+- LJVIS 2 X-tee alamsüsteem on KLIM registrikoodiga: `ee-dev/GOV/70001231/ljvis2`, `ee-test/GOV/70001231/ljvis2`, `EE/GOV/70001231/ljvis2` (varem oli dokumentides vana MKM kood 70003158 ja `ljvis`).
+- Rahvastikuregistri teenus on `EE/GOV/70008440/rr/domesticDataExchange/isikud` (varem `RR404_isik/v3`).
+
 ## 2026-10-03
 
 ### Ajapõhine arhiveerimine (lihtsalt sisse-/väljalülitatav)
