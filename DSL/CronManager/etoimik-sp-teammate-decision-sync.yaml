@@ -5,6 +5,8 @@ etoimik_sp_teammate_decision_sync:
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/etoimik-sp-teammate-decision-sync
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

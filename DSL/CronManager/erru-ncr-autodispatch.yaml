@@ -7,6 +7,8 @@ erru_ncr_autodispatch:
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/erru-ncr-autodispatch
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true
