@@ -4,6 +4,12 @@
 
 ## 2026-10-05
 
+### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
+
+- Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
+- Kasutajale nähtavat muutust pole: ametniku töövoogudes oli tegutseja varemgi sama.
+- Epic #502, osa A1.
+
 ### X-tee dokumentatsiooni parandus
 
 - LJVIS 2 X-tee alamsüsteem on KLIM registrikoodiga: `ee-dev/GOV/70001231/ljvis2`, `ee-test/GOV/70001231/ljvis2`, `EE/GOV/70001231/ljvis2` (varem oli dokumentides vana MKM kood 70003158 ja `ljvis`).

@@ -49,8 +49,6 @@ logAuditEvent:
   body:
     event_type: ${incoming.body.eventType}
     event_category: "control_form"
-    actor_personal_code: ${incoming.body.actorPersonalCode}
-    actor_name: ${incoming.body.actorName}
     description: ${incoming.body.description}
     log_content: ${incoming.body.logContent}
   result: auditResult

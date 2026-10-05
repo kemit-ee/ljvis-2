@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Soft-delete a file attachment record in the DB. Expects: id, form_type, actor_personal_code, actor_name"
+  description: "Soft-delete a file attachment record in the DB. Expects: id, form_type. The actor is the TARA session (guard variable session_personal_code), never the request body"
   namespace: templates
 
 getAttachmentRecord:
@@ -51,8 +51,6 @@ logAuditEvent:
     form_number: ${attachmentRecord.response.body[0].formNumber || attachmentRecord.response.body[0].form_number}
     file_id: ${incoming.body.id}
     file_name: ${attachmentRecord.response.body[0].fileName || attachmentRecord.response.body[0].file_name}
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
   result: auditResult
   next: returnSuccess
 

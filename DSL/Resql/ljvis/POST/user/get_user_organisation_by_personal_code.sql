@@ -1,6 +1,6 @@
 /*
 description: Lean lookup of a user's current organisation id by personal code. Used on the audit-write
-  hot path (log-audit-event.yml) to stamp audit_event.organisation_id. Returns no rows for system actors
+  hot path (log-audit-event.yml) to stamp audit_event.organisation_id and the actor's display name. Returns no rows for system actors
   / unknown personal codes.
 namespace: user
 params:
@@ -15,10 +15,14 @@ returns:
 - name: user_account_id
   type: string
   nullable: true
+- name: actor_name
+  type: string
+  nullable: true
 */
 SELECT DISTINCT ON (user_account_key)
     organisation_id::TEXT  AS organisation_id,
-    user_account_key::TEXT AS user_account_id
+    user_account_key::TEXT AS user_account_id,
+    btrim(COALESCE(first_name, '') || ' ' || COALESCE(last_name, '')) AS actor_name
 FROM users.user_account
 WHERE personal_code = :personal_code
 ORDER BY user_account_key, created_at DESC

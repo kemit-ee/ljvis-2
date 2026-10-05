@@ -60,8 +60,6 @@ logAuditEvent:
     form_number: ${dbResult.response.body[0].formNumber || dbResult.response.body[0].form_number}
     file_id: ${incoming.body.id}
     file_name: ${dbResult.response.body[0].fileName || dbResult.response.body[0].file_name}
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
   result: auditResult
   next: returnSuccess
 

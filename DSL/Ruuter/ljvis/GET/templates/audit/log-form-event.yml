@@ -25,12 +25,6 @@ declaration:
       - field: actor_personal_code
         type: string
 
-extractRequestData:
-  assign:
-    actor_name: ${incoming.body.actor_name || ''}
-    actor_personal_code: ${incoming.body.actor_personal_code || ''}
-  next: selectDescription
-
 selectDescription:
   switch:
     - condition: ${incoming.body.event_type === 'control_form.labour_inspection.create'}
@@ -85,8 +79,6 @@ writeAudit:
   body:
     event_type: ${incoming.body.event_type}
     event_category: ${incoming.body.event_category}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res
