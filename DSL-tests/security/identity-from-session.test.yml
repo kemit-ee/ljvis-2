@@ -123,7 +123,7 @@ tests:
       method: POST
       status: 200
       body:
-        key: adr-form/adr-1/a.txt
+        key: adr-form/ov-2026-00001/a.txt
     - url_matches: /control-forms/files/insert_form_attachment
       method: POST
       status: 200
@@ -138,9 +138,11 @@ tests:
     path: /ljvis/templates/files/upload
     headers:
       cookie: test
+      content-type: application/json
     body:
       form_type: adr-form
-      form_number: adr-1
+      form_number_prefix: ov-
+      form_number: ov-2026-00001
       file_name: a.txt
       file_base64: YQ==
       mimetype: text/plain
@@ -277,7 +279,7 @@ tests:
       method: POST
       status: 200
       body:
-        key: adr-form/adr-1/a.txt
+        key: adr-form/ov-2026-00001/a.txt
     - url_matches: /control-forms/files/insert_form_attachment
       method: POST
       status: 200
@@ -290,7 +292,8 @@ tests:
       content-type: application/json
     body:
       form_type: adr-form
-      form_number: adr-1
+      form_number_prefix: ov-
+      form_number: ov-2026-00001
       file_name: a.txt
       file_base64: YQ==
       mimetype: text/plain
