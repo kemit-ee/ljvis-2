@@ -21,3 +21,14 @@ The mapping connects DTO fields, XSD types and database columns. Limits and enum
 On XSD upgrade, replace the tested bundle or update `SCHEMAS` to the new directory. CI rejects covered NU contract mismatches and unexpected namespace/version changes. See [schema provenance](../../contracts/erru/3.5/README.md).
 
 Coverage is limited to NU Request, ACK and related EN. Empty optional DTO strings represent omitted XML attributes. Application policy may be stricter than XSD. The future SOAP adapter still needs tests of its actual XML serialization against the schemas.
+
+# DSL security rules (epic #502)
+
+`check_dsl_security.py` keeps the identity and ownership fixes from regressing (R1–R8: no identity or guard-injected fields in allowlists, identity never from the request body, allowlist on every handler, strict identity-bearing templates, upload prefix, read-ownership check before every form read, template call contract, no identity fields in the frontend). `test_dsl_security.py` mutates a temp copy of the tree and proves each rule fails when its fix is reverted.
+
+```sh
+python3 tests/contract/check_dsl_security.py
+python3 -B -m unittest tests/contract/test_dsl_security.py
+```
+
+Guards (`*.guard.yml`) are exempt from the allowlist rule: they are allow-all or read only headers, and an allowlist there could filter the handler's input.
