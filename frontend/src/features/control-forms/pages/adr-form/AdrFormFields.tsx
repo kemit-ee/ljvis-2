@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -9,6 +9,7 @@ import {
   TextArea,
   Select,
   Alert,
+  Button,
 } from '@tedi-design-system/react/tedi';
 import { DangerousGoodsTable } from './DangerousGoodsTable';
 import { AdrInfringementsSection } from './AdrInfringementsSection';
@@ -149,6 +150,15 @@ export function AdrFormFields({
   })).sort((a, b) => a.label.localeCompare(b.label));
 
   const idPrefix = canEdit ? '' : 'view-';
+  const da = values.driverAssistant;
+  const hasAssistantData = !!(
+    da?.personalCodeEe ||
+    da?.firstName ||
+    da?.lastName ||
+    da?.citizenshipCode ||
+    da?.birthDate
+  );
+  const [assistantOpen, setAssistantOpen] = useState(hasAssistantData);
 
   return (
     <>
@@ -160,9 +170,32 @@ export function AdrFormFields({
 
       <Card className="mb-1">
         <Card.Content>
-          <Heading element="h3" className="mb-1">
-            {t('forms.adr.driverAssistant.title')}
-          </Heading>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+            className="mb-1"
+          >
+            <Heading element="h3">
+              {t('forms.adr.driverAssistant.title')}
+            </Heading>
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => setAssistantOpen((o) => !o)}
+              aria-expanded={assistantOpen}
+            >
+              {assistantOpen
+                ? t('forms.adr.driverAssistant.close')
+                : t('forms.adr.driverAssistant.open')}
+            </Button>
+          </div>
+          <Text className="mb-1">{t('forms.adr.hintOnlyOnViolation')}</Text>
+          {assistantOpen && (
+            <>
           {searchError && (
             <Alert
               type="danger"
@@ -184,7 +217,6 @@ export function AdrFormFields({
             </Alert>
           )}
 
-          <Text className="mb-1">{t('forms.adr.hintOnlyOnViolation')}</Text>
           <div
             className={
               styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
@@ -296,6 +328,8 @@ export function AdrFormFields({
               />
             </div>
           </div>
+            </>
+          )}
         </Card.Content>
       </Card>
 

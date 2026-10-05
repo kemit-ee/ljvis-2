@@ -920,7 +920,7 @@ export function DriveRestFormFields({
         </Col>
       </Row>
       {/* Plokk: Dokumendi või õiguse kontroll */}
-      {formik.values.resultType !== '' && formik.values.resultType !== 'ok' && (
+      {formik.values.resultType !== '' && (
         <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
             <AccordionItem id={fieldId('doc-right-check')}>

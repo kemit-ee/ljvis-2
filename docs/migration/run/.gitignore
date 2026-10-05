@@ -1,0 +1,5 @@
+.env
+runs/
+private/
+ljvis-migratsioon-*.log
+__pycache__/

@@ -1,0 +1,20 @@
+declaration:
+  version: "1.0"
+  description: "Vormiotsingu filtri 'Vedaja riik' valikud: riigikoodid, mille vedaja kohta on mõni kontroll tehtud."
+  namespace: control-forms
+  allowlist:
+    params: []
+
+getCarrierCountries:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/search/carrier-countries"
+    headers:
+      type: json
+    body: {}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end

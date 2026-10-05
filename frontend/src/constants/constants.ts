@@ -56,6 +56,7 @@ export const PERMISSIONS = {
   NOTIFICATION_TEMPLATE_MAPPING_EDIT: 'notification_template_mapping.edit',
   XROAD_LOG_READ: 'xroad.log.read',
   FORM_EXPORT: 'form.export',
+  CONTROL_FORM_VIEW_ORGANISATION: 'control_form.view_organisation',
 } as const;
 
 export const FORM_READ_PERMISSIONS: string[] = [

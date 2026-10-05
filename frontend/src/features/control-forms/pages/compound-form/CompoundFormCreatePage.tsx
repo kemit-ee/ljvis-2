@@ -41,6 +41,7 @@ type DriverTouched = (Partial<Record<keyof Driver, boolean>> | undefined)[];
 import { useAuth } from '../../../auth/AuthContext';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
+import { RoadOtherFields } from '../../components/CompoundForm/RoadOtherFields';
 import { useClassifiers, useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../components/shared/MaskedDateField';
@@ -687,15 +688,11 @@ export function CompoundFormCreatePage() {
                             : {})}
                         />
                         {formik.values.road === OTHER.ROAD ? (
-                          <TextField
-                            id="roadOther"
-                            label={t('forms.compound.road_other')}
+                          <RoadOtherFields
                             value={formik.values.roadOther}
-                            input={{ maxLength: 200 }}
                             onChange={(v) =>
                               formik.setFieldValue('roadOther', v)
                             }
-                            required
                           />
                         ) : (
                           <div></div>
@@ -1169,18 +1166,6 @@ export function CompoundFormCreatePage() {
                       <Heading element="h3" className="mb-1">
                         {t('forms.compound.trailer')}
                       </Heading>
-                      <Button
-                        onClick={() =>
-                          formik.values.trailers.length < 3 &&
-                          formik.setFieldValue('trailers', [
-                            ...formik.values.trailers,
-                            emptyTrailer(),
-                          ])
-                        }
-                        disabled={formik.values.trailers.length >= 3}
-                      >
-                        {t('forms.compound.addTrailer')}
-                      </Button>
                       {formik.values.trailers.map(
                         (trailer: Trailer, index: number) => (
                           <Row className="m-0" key={index}>
@@ -1534,6 +1519,19 @@ export function CompoundFormCreatePage() {
                           </Row>
                         ),
                       )}
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          formik.values.trailers.length < 3 &&
+                          formik.setFieldValue('trailers', [
+                            ...formik.values.trailers,
+                            emptyTrailer(),
+                          ])
+                        }
+                        disabled={formik.values.trailers.length >= 3}
+                      >
+                        {t('forms.compound.addTrailer')}
+                      </Button>
                     </Card.Content>
                   </Card>
                 </Col>
@@ -2399,13 +2397,8 @@ export function CompoundFormCreatePage() {
                         <Button
                           type="button"
                           visualType="secondary"
-                          disabled={teammateTabOpen}
-                          title={
-                            teammateTabOpen
-                              ? t('forms.compound.removeTeammateBlocked')
-                              : undefined
-                          }
                           onClick={() => {
+                            if (teammateTabOpen) removeTab(teammateTabId);
                             formik.setFieldValue(
                               'drivers',
                               formik.values.drivers.slice(0, 1),

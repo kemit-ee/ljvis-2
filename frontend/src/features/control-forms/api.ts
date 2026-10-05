@@ -32,6 +32,9 @@ export const searchForms = async (
   };
 };
 
+export const getSearchCarrierCountries = () =>
+  get<{ countryCode: string }[]>('/v1/control-forms/search/carrier-countries');
+
 export const exportSearchForms = (params: Record<string, string>) =>
   get<FormSearchExportRow[]>('/v1/control-forms/search/export', params);
 

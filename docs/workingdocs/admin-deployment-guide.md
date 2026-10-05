@@ -341,11 +341,14 @@ X-tee on kahetasandiline:
 ### 4.1 LJVIS X-tee kliendi identifikaator
 
 ```
-{instance}/GOV/70003158/ljvis
+{instance}/GOV/70001231/ljvis2
 ```
 
-Dev/test: `ee-test/GOV/70003158/ljvis`  
-Prod: `EE/GOV/70003158/ljvis`
+Dev: `ee-dev/GOV/70001231/ljvis2`  
+Test: `ee-test/GOV/70001231/ljvis2`  
+Prod: `EE/GOV/70001231/ljvis2`
+
+(70001231 on Kliimaministeeriumi (KLIM) registrikood.)
 
 ### 4.2 Tunneli URL
 
@@ -360,7 +363,7 @@ Tunnel URL seadistatakse Ruuteri DSL failides, kus X-tee päringuid tehakse. Ots
 
 | Teenus | X-tee identifikaator | Kasutusjuht |
 |--------|---------------------|-------------|
-| Rahvastikuregister | `ee-test/GOV/70008440/rr/RR404_isik/v3` | Isiku andmete eeltäitmine vormil |
+| Rahvastikuregister | `EE/GOV/70008440/rr/domesticDataExchange/isikud` | Isiku andmete eeltäitmine vormil |
 | Äriregister | `ee-test/GOV/70000310/arireg/lihtandmed_v1/v1` | Ettevõtte andmete eeltäitmine vormil |
 | Liiklusregister | `liiklusregister/paring2/v2` | Sõiduki andmete eeltäitmine vormil |
 

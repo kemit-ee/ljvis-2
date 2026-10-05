@@ -1,0 +1,23 @@
+# ADR-012: AJAPÕHINE ARHIVEERIMINE - kopeerib X aastat vanad kontrollvormid
+# arhiivibaasi ja soovi korral kustutab need pärast kinnitatud kopeerimist
+# töö-baasist. Loogika: DSL/Ruuter.internal/ljvis/POST/cron/archive-aged-forms.yml.
+# Selgitus ja kasutusjuhend: docs/admin-guide/13-arhiveerimine.md.
+#
+# KÕIK SEADED ON URL-I PÄRINGUPARAMETRID ALLPOOL (muuda ainult siin):
+#   enabled=false        ← FUNKTSIOONI PEALÜLITI. true = arhiveerib; false = jooks ei tee midagi.
+#   retentionYears=7     ← mitu täisaastat peab viimasest tegevusest möödas olema (min 3).
+#   purge=false          ← KUSTUTUSLÜLITI. true = pärast kinnitatud arhiveerimist kustutatakse
+#                          kirje töö-baasist; false = töö-baasi jääb koopia alles.
+#   batch=500            ← max üksusi (juhtumit/vormi) ühes jooksus.
+#   dryRun=false         ← true = ainult loendab, mitte midagi ei kopeerita ega kustutata.
+#
+# Vaikimisi on funktsioon VÄLJA LÜLITATUD (enabled=false): töö jookseb, aga ei tee midagi.
+# Aeg: pühapäeviti 04:00 Tallinna aja järgi (TZ docker-compose.yml-is), pärast öiseid töid.
+archive_aged_forms:
+  trigger: "0 0 4 ? * SUN"
+  type: http
+  method: POST
+  url: "http://ruuter-internal:8080/ljvis/cron/archive-aged-forms?enabled=false&retentionYears=7&purge=false&batch=500&dryRun=false"
+  retryCount: 1
+  retryDelay: 60000
+  ignoreFailures: true

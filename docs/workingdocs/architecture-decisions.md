@@ -5,6 +5,59 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-012 — Ajapõhine arhiveerimine: X aastat vanad vormid arhiivibaasi, kustutamine eraldi lülitiga
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 02.10.2026
+**Seotud:** ADR-010 (kustutatud vormide arhiiv); `DSL/CronManager/archive-aged-forms.yaml`,
+`DSL/Ruuter.internal/ljvis/POST/cron/archive-aged-forms.yml`,
+`DSL/Resql/ljvis/POST/archive/select_aged_snapshots.sql`; juhend
+[`13-arhiveerimine.md`](../admin-guide/13-arhiveerimine.md)
+
+### Kontekst
+
+HD4 (arhiveerimine) eeldab vanade andmete eraldamist töökoormusest. ADR-010 arhiveerib
+ainult kustutatud vormid. Vaja on ajapõhist arhiveerimist, kus aastate arv on
+seadistatav ja töö-baasist kustutamine on **valikuline ja selgelt eraldi lülitatav**.
+
+### Valikud
+
+1. **Seaded `constants.ini`-s.** Muutmine nõuab ConfigMap'i uuendust ja Ruuteri taaskäivitust; seaded
+   on mitmes failis.
+2. **Seaded andmebaasi tabelis / halduse vaates.** Paindlik, kuid vajab uut skeemi, õigusi ja UI-d
+   ning muudab arhiveerimise riski kasutaja klikiks.
+3. **Seaded CronManager'i töö URL-i päringuparameetrites.** Üks fail, versioonihalduses,
+   muutmine ei vaja uut väljalaset.
+
+### Otsus
+
+**Valik 3.** Uus cron `archive_aged_forms` kutsub `ruuter-internal` voogu parameetritega
+`enabled`, `retentionYears`, `purge`, `batch`, `dryRun`. Vaikimisi `enabled=false`
+ja `purge=false`: funktsioon tarnitakse väljalülitatuna.
+
+- **Üksus = kogu ajalugu.** Valitakse terve olem (kõik snapshot'id), et ADR-010 invariant
+  „ajalugu on alati täielikult kas töö- või arhiivibaasis" kehtiks.
+- **Juhtum vananeb koos.** Koondvorm ja alamvormid arhiveeritakse alles siis, kui kõigi
+  liikmete viimasest tegevusest on möödas `retentionYears`; nii ei jää alamvorme ilma koondvormita.
+- **Vanus = viimane tegevus**, mitte esmaloomine.
+- **Taaskasutus.** Kopeerimine ja kontroll kasutavad ADR-010 resql-päringuid
+  (`insert_snapshots`, `count_present`, `purge_confirmed`); uus on ainult valik
+  (`select_aged_snapshots`).
+- **`purge` on eraldi lüliti.** `purge=false` jätab originaali töö-baasi; `purge=true`
+  kustutab ainult 100% kinnitatud read.
+- **Alampiir 3 aastat**, sest riskiskoor kasutab 2-aastast akent.
+- **Üks audit-rida jooksu kohta** (`xroad.integration_log`, `archive.aged_forms.cron`).
+
+### Tagajärjed
+
+- Arhiveeritud ja kustutatud vormid ei ole otsingus ega nimekirjades; ajaloovaade ja
+  otselink toimivad arhiivi fallback'i kaudu (ADR-010).
+- Arhiivibaas muutub kustutamisel ainsaks koopiaks; vajab oma varundust.
+- Parameetrite muutmine toimub CronManager'i konfiguratsiooni kaudu, mitte rakenduses.
+- Säilitustähtajad ja õiguslik alus on andmeomaniku otsus; funktsioon annab tehnilise võimaluse.
+
+---
+
 ## ADR-011 — Klassifikaatori väärtuste nähtavus vormide kaupa: valikuline piirangunimekiri
 
 **Otsustaja:** Sten Viljus

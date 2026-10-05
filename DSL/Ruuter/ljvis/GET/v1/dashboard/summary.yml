@@ -5,7 +5,7 @@ declaration:
     project-wide guard (ljvis/.guard.yml) already requires an authenticated
     officer session and exposes auth_user, same as other routes with no
     permission gate of their own. scope=organisation is only honoured when
-    the caller has control_form.view_unpublished (per the role model in
+    the caller has control_form.view_organisation (kontrollide koordinaator; role model in
     ljvis2-69-kontrollvormi-publish.md: "Lokaalne kasutaja"/administrator);
     otherwise it silently falls back to scope=own rather than erroring.
   namespace: dashboard
@@ -18,7 +18,7 @@ declaration:
 resolveScope:
   assign:
     requested_scope: "${incoming.params.scope ?? 'own'}"
-    can_see_org: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_unpublished')}"
+    can_see_org: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_organisation')}"
   next: applyScopeGuard
 
 applyScopeGuard:

@@ -1,0 +1,303 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    ADR-012: ajapõhine arhiveerimine. Kopeerib kontrollvormid, mille viimasest
+    tegevusest on möödas vähemalt retentionYears aastat, ERALDI arhiivibaasi
+    (sama arhiiv ja sama kopeeri-kontrolli-kustuta muster nagu ADR-010).
+    Kõik seaded tulevad CronManageri töö URL-i päringuparameetritest
+    (DSL/CronManager/archive-aged-forms.yaml) - Ruuterit ega baasi uuesti
+    ehitada ei ole vaja. Parameetrid: enabled (true/false, vaikimisi false -
+    jooks on tühi), retentionYears (täisarv, min 3, vaikimisi 7), purge
+    (true/false, vaikimisi false - kas pärast kinnitatud arhiveerimist
+    kustutada kirje töö-baasist), batch (max üksusi jooksu kohta, 1-5000,
+    vaikimisi 500), dryRun (true = ainult loendab, ei kopeeri ega kustuta).
+    Töö-baasist kustutatakse AINULT siis, kui purge=true JA arhiivibaas on
+    count_present kaudu kinnitanud 100% vaste. Üks audit-rida jooksu kohta
+    (xroad.integration_log, service_code archive.aged_forms.cron).
+    Vt docs/admin-guide/13-arhiveerimine.md.
+  namespace: cron
+  allowlist:
+    params:
+      - field: enabled
+        required: false
+      - field: retentionYears
+        required: false
+      - field: purge
+        required: false
+      - field: batch
+        required: false
+      - field: dryRun
+        required: false
+
+parseParams:
+  assign:
+    enabled: "${String(incoming.params.enabled ?? 'false').trim().toLowerCase() === 'true'}"
+    purge_flag: "${String(incoming.params.purge ?? 'false').trim().toLowerCase() === 'true'}"
+    dry_run: "${String(incoming.params.dryRun ?? 'false').trim().toLowerCase() === 'true'}"
+    years: "${Number(String(incoming.params.retentionYears ?? '7').trim())}"
+    batch_size: "${Number(String(incoming.params.batch ?? '500').trim())}"
+    cfg: "${JSON.stringify({ retentionYears: String(incoming.params.retentionYears ?? '7'), purge: String(incoming.params.purge ?? 'false'), batch: String(incoming.params.batch ?? '500'), dryRun: String(incoming.params.dryRun ?? 'false') })}"
+  next: checkEnabled
+
+checkEnabled:
+  switch:
+    - condition: "${enabled !== true}"
+      next: returnDisabled
+  next: validateParams
+
+validateParams:
+  switch:
+    - condition: "${!Number.isInteger(years) || years < 3 || years > 100}"
+      next: returnBadYears
+    - condition: "${!Number.isInteger(batch_size) || batch_size < 1 || batch_size > 5000}"
+      next: returnBadBatch
+  next: selectStep
+
+selectStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/archive/select_aged_snapshots"
+    headers:
+      type: json
+    body:
+      retention_years: "${years}"
+      entity_limit: "${batch_size}"
+  result: selRes
+  next: checkSelect
+
+checkSelect:
+  switch:
+    - condition: "${selRes.response == null || selRes.response.status < 200 || selRes.response.status >= 300 || !Array.isArray(selRes.response.body)}"
+      next: logSelectError
+  next: assignRows
+
+assignRows:
+  assign:
+    rows: "${selRes.response.body || []}"
+    rowCount: "${(selRes.response.body || []).length}"
+    pairsJson: "${JSON.stringify((selRes.response.body || []).map(function(r){ return { form_type: r.formType, id: r.id }; }))}"
+  next: checkEmpty
+
+checkEmpty:
+  switch:
+    - condition: "${Number(rowCount) === 0}"
+      next: logNothing
+    - condition: "${dry_run === true}"
+      next: logDryRun
+  next: insertStep
+
+insertStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/insert_snapshots"
+    headers:
+      type: json
+    body:
+      rows: "${JSON.stringify(rows)}"
+  result: insRes
+  next: assignInserted
+
+assignInserted:
+  assign:
+    inserted: "${(insRes.response && insRes.response.body && insRes.response.body[0] && insRes.response.body[0].inserted) || 0}"
+  next: verifyStep
+
+verifyStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/count_present"
+    headers:
+      type: json
+    body:
+      pairs: "${pairsJson}"
+  result: verRes
+  next: assignPresent
+
+assignPresent:
+  assign:
+    present: "${(verRes.response && verRes.response.body && verRes.response.body[0] && verRes.response.body[0].present) || 0}"
+  next: decidePurge
+
+decidePurge:
+  switch:
+    - condition: "${Number(present) !== Number(rowCount)}"
+      next: logNotVerified
+    - condition: "${purge_flag !== true}"
+      next: logArchivedOnly
+  next: purgeStep
+
+purgeStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/archive/purge_confirmed"
+    headers:
+      type: json
+    body:
+      ids: "${pairsJson}"
+  result: purgeRes
+  next: assignPurged
+
+assignPurged:
+  assign:
+    purged: "${(purgeRes.response && purgeRes.response.body && purgeRes.response.body[0] && purgeRes.response.body[0].purged) || 0}"
+  next: logDone
+
+logDone:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.aged_forms.cron"
+      request_xml: "${cfg}"
+      response_xml: "${JSON.stringify({ copied: Number(rowCount), inserted: Number(inserted), verified: Number(present), purged: Number(purged) })}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnDone
+
+returnDone:
+  status: 200
+  return: "${({ enabled: true, mode: 'archive+purge', copied: Number(rowCount), verified: Number(present), purged: Number(purged) })}"
+  next: end
+
+logArchivedOnly:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.aged_forms.cron"
+      request_xml: "${cfg}"
+      response_xml: "${JSON.stringify({ copied: Number(rowCount), inserted: Number(inserted), verified: Number(present), purged: 0, note: 'purge disabled - live copy kept' })}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnArchivedOnly
+
+returnArchivedOnly:
+  status: 200
+  return: "${({ enabled: true, mode: 'archive-only', copied: Number(rowCount), verified: Number(present), purged: 0 })}"
+  next: end
+
+logDryRun:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.aged_forms.cron"
+      request_xml: "${cfg}"
+      response_xml: "${JSON.stringify({ wouldCopy: Number(rowCount), dryRun: true })}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnDryRun
+
+returnDryRun:
+  status: 200
+  return: "${({ enabled: true, mode: 'dry-run', wouldCopy: Number(rowCount), copied: 0, purged: 0 })}"
+  next: end
+
+logNothing:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.aged_forms.cron"
+      request_xml: "${cfg}"
+      response_xml: "${JSON.stringify({ copied: 0, verified: 0, purged: 0 })}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnNothing
+
+returnNothing:
+  status: 200
+  return: "${({ enabled: true, mode: 'nothing-to-do', copied: 0, verified: 0, purged: 0 })}"
+  next: end
+
+logNotVerified:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.aged_forms.cron"
+      request_xml: "${cfg}"
+      response_xml: "${JSON.stringify({ copied: Number(rowCount), verified: Number(present), purged: 0, note: 'purge skipped - archive not complete' })}"
+      duration_ms: 0
+      success: false
+      error_message: "${'archive incomplete: present ' + present + ' of ' + rowCount}"
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnNotVerified
+
+returnNotVerified:
+  status: 200
+  return: "${({ enabled: true, mode: 'verify-failed', copied: Number(rowCount), verified: Number(present), purged: 0 })}"
+  next: end
+
+logSelectError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "archive.aged_forms.cron"
+      request_xml: "${cfg}"
+      response_xml: "{}"
+      duration_ms: 0
+      success: false
+      error_message: "select_aged_snapshots failed"
+      person_identifier: ""
+      source_type: "archive"
+      source_record_id: "0"
+  result: logRes
+  next: returnSelectError
+
+returnSelectError:
+  status: 500
+  return: "${({ enabled: true, mode: 'select-failed', copied: 0, purged: 0 })}"
+  next: end
+
+returnDisabled:
+  status: 200
+  return: "${({ enabled: false, mode: 'disabled', copied: 0, verified: 0, purged: 0 })}"
+  next: end
+
+returnBadYears:
+  status: 400
+  return: "${({ error: 'retentionYears must be an integer between 3 and 100 (risk scoring uses a 2-year window)' })}"
+  next: end
+
+returnBadBatch:
+  status: 400
+  return: "${({ error: 'batch must be an integer between 1 and 5000' })}"
+  next: end

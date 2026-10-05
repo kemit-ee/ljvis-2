@@ -371,6 +371,7 @@ interface UseRemoveSubFormTabOptions {
   ) => void;
   navigateAfterRemove: (tab: SubFormTabId) => void;
   onEditActiveChange?: (anySaved: boolean, allPublished: boolean) => void;
+  onTeammateRemoved?: () => void;
   onTrailerRemoved?: (index: number) => void;
   onTrailerRemovedSave?: (index: number) => void;
   onTrailerDeletionDeferred?: (index: number, subFormId: string, subFormNumber: string, status: string) => void;
@@ -388,6 +389,7 @@ export function useRemoveSubFormTab({
   checkAndAutoConfirm,
   navigateAfterRemove,
   onEditActiveChange,
+  onTeammateRemoved,
   onTrailerRemoved,
   onTrailerRemovedSave,
   onTrailerDeletionDeferred,
@@ -412,6 +414,7 @@ export function useRemoveSubFormTab({
       subForm.setEditActive(false);
       subForm.resetDraft();
       setActiveTab('tab-compound');
+      if (tabId === 'tab-teammate') onTeammateRemoved?.();
       return;
     }
     setRemoveConfirmTab(tabId);
@@ -447,6 +450,7 @@ export function useRemoveSubFormTab({
       }
       subForm.setForm(null);
       subForm.setEditActive(false);
+      if (tab === 'tab-teammate') onTeammateRemoved?.();
     } else if (tab === 'tab-adr') {
       if (adr?.form?.id) {
         try {

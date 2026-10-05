@@ -72,3 +72,6 @@ scripts/.resql-audit.json
 # (CI laeb need artefaktina). Ainult .gitkeep hoiab kausta olemas.
 /tests/playwright/tulemus/*
 !/tests/playwright/tulemus/.gitkeep
+
+# Jõudlustestide väljund
+/tests/performance/tulemus/
