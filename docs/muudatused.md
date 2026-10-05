@@ -8,6 +8,12 @@
 
 - Kui vormi avamine ebaõnnestub, näeb kasutaja põhjust: „Teil puudub õigus seda vormi vaadata“ koos selgitusega, kes avalikustamata vormi näeb (looja, sama asutuse kolleeg õigusega „Minu asutuse vormid“, avalikustamata vormide vaatamise õigusega kasutaja), või „Soovitud vormi ei leitud“. Varem näidati kõigil juhtudel üldist „Tekkis viga“.
 
+### Vormiotsing ja eksport järgivad sama nähtavusreeglit mis vormi avamine
+
+- Otsingus ja otsingutulemuse eksportis (xlsx/csv) on nähtavad: kõik **avalikustatud** vormid; **enda** vormid mis tahes olekus; `control_form.view_organisation` õigusega kasutajale lisaks **oma asutuse kolleegide** vormid mis tahes olekus (nende vormitüüpide osas, mille lugemise õigus on olemas); `control_form.view_unpublished` õigusega kasutajale **kõigi** vormid mis tahes olekus.
+- Varem näitas otsing vormitüübi lugemisõigusega kasutajale kõigi asutuste mustandeid; neid ei saanud avada (403). Nüüd ei ilmu otsingutulemustesse vorme, mida kasutaja avada ei saa.
+- Vormi avamise reegel on sama: kolleegi avalikustamata vormi avamiseks on vaja `control_form.view_organisation` õigust (varem piisas samast asutusest olemisest).
+
 ### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
 
 - Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
@@ -15,6 +21,7 @@
 - Epic #502, osa A1.
 - Osa A2 (kirjutamine): manuse üleslaadimisel peab vormi number algama selle vormitüübi prefiksiga (nt `vr-`); muidu 400 `INVALID_FORM_NUMBER` ja S3-sse ei kirjutata. Ametniku töövoogudes muutust pole.
 - Osa A2 (lugemine): vormi lugemine ID järgi (vorm, versioonid, alamvormid, väljatrükk, manuste loend ja allalaadimine) järgib omandireeglit: avalikustatud vormi näeb iga vormitüübi `.read` õigusega ametnik; avalikustamata (salvestatud/kinnitatud) vormi näeb ainult looja, looja asutuse kolleeg või `control_form.view_unpublished` omaja, muidu 403. Vormiotsing jääb samaks.
+- Osa D: CI kontrollib nüüd turvareegleid (identiteet ainult sessioonist, `allowlist` igal DSL-il, `strict` mallid, manuse prefiks, lugemise omandikontroll, `template:` kutsete leping, frontend ei saada identiteedivälju); regressioon ebaõnnestub CI-s.
 - Osa B: audit-, faili- ja PDF-mallid on `strict: true` (tundmatu võti päringus → 400) ja `actor_*` väljad on nende deklaratsioonidest eemaldatud; kõigil Ruuteri DSL-idel (v.a `*.guard.yml`) on `allowlist`.
 
 ### PPA kontrollvormide parandused

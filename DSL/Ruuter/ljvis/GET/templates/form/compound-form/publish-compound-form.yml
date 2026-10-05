@@ -16,8 +16,6 @@ extractRequestData:
     id: "${incoming.body.id}"
     only_if_confirmed: "${incoming.body.only_if_confirmed === 'true'}"
     created_by: "${session_personal_code || ''}"
-    actor_personal_code: "${incoming.body.actor_personal_code || ''}"
-    actor_name: "${incoming.body.actor_name || ''}"
   next: checkId
 
 checkId:
