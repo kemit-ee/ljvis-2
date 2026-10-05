@@ -4,6 +4,11 @@
 
 ## 2026-10-05
 
+### Siseteenuste (nysiis, s3-proxy, pdf-creator) päringud nõuavad API-võtit
+
+- Teenused nysiis, s3-proxy ja pdf-creator nõuavad nüüd päringus `Authorization: Bearer <võti>` (`NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY`); Ruuter lisab selle ise. Võtmeta päring annab 401. `/health` jääb avatuks.
+- Kasutajale muutust pole. Administraatorile: võtmed tuleb enne väljalaset SSM-i kirjutada, vt admin juhendi peatükk „Siseteenuste API-võtmed“.
+
 ### Selge teade, kui vormi ei saa vaadata
 
 - Kui vormi avamine ebaõnnestub, näeb kasutaja põhjust: „Teil puudub õigus seda vormi vaadata“ koos selgitusega, kes avalikustamata vormi näeb (looja, sama asutuse kolleeg õigusega „Minu asutuse vormid“, avalikustamata vormide vaatamise õigusega kasutaja), või „Soovitud vormi ei leitud“. Varem näidati kõigil juhtudel üldist „Tekkis viga“.

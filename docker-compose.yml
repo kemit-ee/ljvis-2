@@ -81,7 +81,7 @@ services:
       dockerfile: docker/pdf-creator/Dockerfile
     image: ljvis-pdf-creator:local
     environment:
-      - PDF_CREATOR_API_KEY=${PDF_CREATOR_API_KEY:-}
+      - PDF_CREATOR_API_KEY=${PDF_CREATOR_API_KEY:-dev-pdf-creator-api-key}
     ports:
       - "127.0.0.1:3020:3020"
     read_only: true
@@ -230,6 +230,7 @@ services:
       - S3_MAX_FILENAME_LENGTH=${S3_MAX_FILENAME_LENGTH:-200}
       - S3_ALLOWED_MIME_TYPES=${S3_ALLOWED_MIME_TYPES:-application/pdf,image/jpeg,image/png,application/vnd.etsi.asic-e+zip,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document}
       - PORT=3010
+      - S3_PROXY_API_KEY=${S3_PROXY_API_KEY:-dev-s3-proxy-api-key}
     networks:
       - ljvisnetwork
     cpus: "0.25"
@@ -241,6 +242,8 @@ services:
     build:
       context: .
       dockerfile: docker/nysiis/Dockerfile
+    environment:
+      - NYSIIS_API_KEY=${NYSIIS_API_KEY:-dev-nysiis-api-key}
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
       interval: 10s

@@ -6,6 +6,7 @@ constants:
   LJVIS_TIM: '{MOCK}/tim'
   LJVIS_DMAPPER_HBS: '{MOCK}/dmapper'
   S3_PROXY: '{MOCK}/s3'
+  S3_PROXY_API_KEY: test-key
 tests:
 - name: reading another organisation's unpublished form is refused with 403
   setup:
