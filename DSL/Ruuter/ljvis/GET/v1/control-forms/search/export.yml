@@ -91,6 +91,9 @@ export:
     body:
       allowed_types: "${allowed_types}"
       actor_code: "${u.personalcode || ''}"
+      caller_organisation_id: "${u.organisationid == null ? '' : String(u.organisationid)}"
+      caller_view_unpublished: "${u.permissions.includes('control_form.view_unpublished') ? 'true' : 'false'}"
+      caller_view_organisation: "${u.permissions.includes('control_form.view_organisation') ? 'true' : 'false'}"
       max_rows: "${max_rows}"
       date_from: "${incoming.params.dateFrom ?? ''}"
       date_to: "${incoming.params.dateTo ?? ''}"
