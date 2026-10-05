@@ -85,6 +85,7 @@ import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import {useIsAdmin} from "../../../../hooks/useIsAdmin.ts";
 import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -615,7 +616,7 @@ export function CompoundFormPage() {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    if (!snapshot) return <FormLoadError />;
     return (
       <div>
         <CompoundFormViewCard
@@ -641,7 +642,7 @@ export function CompoundFormPage() {
 
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!form) return <Text>{t('common.error')}</Text>;
+  if (!form) return <FormLoadError />;
 
   const sharedProps = {
     isDesktop,
