@@ -17,6 +17,10 @@
 - Teenused nysiis, s3-proxy ja pdf-creator nõuavad nüüd päringus `Authorization: Bearer <võti>` (`NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY`); Ruuter lisab selle ise. Võtmeta päring annab 401. `/health` jääb avatuks.
 - Kasutajale muutust pole. Administraatorile: võtmed tuleb enne väljalaset SSM-i kirjutada, vt admin juhendi peatükk „Siseteenuste API-võtmed“.
 
+### Kasutajaliides ei saada serveripoolselt tuletatavaid välju
+
+Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise sessioonist. Seda hoiab nii CI reegel R8.
+
 ### Selge teade, kui vormi ei saa vaadata
 
 - Kui vormi avamine ebaõnnestub, näeb kasutaja põhjust: „Teil puudub õigus seda vormi vaadata“ koos selgitusega, kes avalikustamata vormi näeb (looja, sama asutuse kolleeg õigusega „Minu asutuse vormid“, avalikustamata vormide vaatamise õigusega kasutaja), või „Soovitud vormi ei leitud“. Varem näidati kõigil juhtudel üldist „Tekkis viga“.
