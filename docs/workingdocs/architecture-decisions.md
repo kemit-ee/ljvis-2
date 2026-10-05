@@ -72,6 +72,21 @@ kadudeta.
   `status_check_count` kirjutatakse tabelisse `outbound_log_status_event` (iga rida täisseis), lugejad võtavad
   viimase eventi või — ilma eventita — `outbound_log` rea väärtused.
 
+### T2 — kustutamine
+
+* **Manuse kustutamine** (`files/delete_form_attachment`) lisab sama faili kohta rea `status='deleted'`; algne
+  `active` rida jääb. Lugejad peidavad aktiivse rea, kui sama `s3_key`-ga `deleted` rida on olemas. `s3_key` sobib
+  identiteediks, sest S3 proxy lisab igale üleslaadimisele ajatempli ja UUID. Osaline `UNIQUE (s3_key) WHERE
+  status = 'deleted'` tõrjub samaaegse topeltkustutuse.
+* **Retention-purge** (`archive/purge_confirmed.sql`) on ainus lubatud `DELETE`, ja see on erand, mitte parandus: töö-baasi
+  kirjete eemaldamiseks arhiveerimise järel ei ole `INSERT`-only alternatiivi. Erand järgib 3-sammulist kontrakti
+  (valik ja kopeerimine → arhiivi kinnitus → kustutus) ja on kirjas `.sql-rule-exemption` failis. Kontrakti tugevdati:
+  (a) `count_present` loeb kordumatuid paare ja nõuab korraliku payload'i (topeltpaar ei saa puuduvat rida varjata);
+  (b) `purge_confirmed` kustutab vormivõtme read ainult tervikuna, nii et partii piir ei jaga ajalugu töö- ja
+  arhiivibaasi vahel; (c) kustutatakse ainult `id` järgi, `USING`-liide ja `NULL` id on välistatud. Hõlmatud ei ole
+  arhiivikoopia sisu võrdlus (räsi): `jsonb`-arvud muutuvad JSON-transpordis (`12.50` → `12.5`), mis blokeeriks
+  purge'i vaikselt; ridade muutumatus on append-only invariandi enda tagajärg.
+
 ### Tagajärjed
 
 * Kirjutaja, mis ei anna `revision`-it, ei ole võidujooksu vastu kaitstud (trigger annab numbri, mis ei

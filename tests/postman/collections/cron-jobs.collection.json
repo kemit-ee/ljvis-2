@@ -3737,8 +3737,88 @@
        "pm.test('200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
        "pm.test('>=1 snapshot before archival', () => pm.expect((rows||[]).length).to.be.at.least(1));",
-       "if (rows && rows.length) pm.environment.set('arch_snapshot_id', String(rows[rows.length-1].snapshot_id || rows[rows.length-1].snapshotId));"
+       "if (rows && rows.length) pm.environment.set('arch_snapshot_id', String(rows[rows.length-1].snapshot_id || rows[rows.length-1].snapshotId));",
+       "if (rows && rows.length) pm.environment.set('arch_first_snapshot_id', String(rows[0].snapshot_id || rows[0].snapshotId));"
       ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] purge_confirmed with only PART of an entity's history deletes nothing (history is never split)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/archive/purge_confirmed",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "archive",
+      "purge_confirmed"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"ids\": \"[{\\\"form_type\\\":\\\"labour-inspection\\\",\\\"id\\\":{{arch_first_snapshot_id}}}]\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"purged 0\", () => pm.expect(Number(rows[0].purged)).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] history still complete in the work DB after the rejected partial purge",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/get-snapshots",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "labour-inspection",
+      "get-snapshots"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{arch_li_key}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\">=2 snapshots\", () => pm.expect((rows||[]).length).to.be.at.least(2));"
+      ],
+      "type": "text/javascript"
      }
     }
    ]
@@ -4871,6 +4951,210 @@
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
        "pm.test(\"sent row is not pending\", () => pm.expect(rows.map(r => r.id)).to.not.include(pm.environment.get('ao_log_id')));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone Setup] insert_form_attachment",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/insert_form_attachment",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "insert_form_attachment"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"form_number\": \"mv-2026-att-{{$timestamp}}\", \"file_name\": \"ao.pdf\", \"s3_key\": \"newman/ao-{{$timestamp}}.pdf\", \"created_by\": \"newman\", \"form_number_prefix\": \"mv-\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('att_id', String(rows[0].id));",
+       "pm.environment.set('att_form_number', rows[0].formNumber);",
+       "pm.environment.set('att_s3_key', rows[0].s3Key);"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] delete_form_attachment appends a deleted row, returns the original id",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/delete_form_attachment",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "delete_form_attachment"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{att_id}}\", \"form_number_prefix\": \"mv-\", \"created_by\": \"38001010001\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));",
+       "pm.test(\"original attachment id\", () => pm.expect(String(rows[0].id)).to.eql(pm.environment.get('att_id')));",
+       "pm.test(\"status deleted\", () => pm.expect(rows[0].status).to.eql('deleted'));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] delete again — no second tombstone",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/delete_form_attachment",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "delete_form_attachment"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{att_id}}\", \"form_number_prefix\": \"mv-\", \"created_by\": \"someone\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] get_form_attachment_by_id hides the deleted attachment",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/get_form_attachment_by_id",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "get_form_attachment_by_id"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{att_id}}\", \"form_number_prefix\": \"mv-\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] get_form_attachments hides the deleted attachment",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/get_form_attachments",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "get_form_attachments"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"form_number\": \"{{att_form_number}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
       ],
       "type": "text/javascript"
      }
