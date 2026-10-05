@@ -208,6 +208,34 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
+  # Real XTR (published image) as the X-tee SOAP provider in front of ruuter-internal.
+  # The `xtr` service above is a mock and cannot do SOAP. Inbound SOAP 9095 → 8081,
+  # internal outbound JSON 9094 → 8080 (CI sidecar loops outbound SOAP back to 8081).
+  # See docs/xtee/09-xtr-soap.md.
+  xtr-inbound:
+    image: turnerrainer/xtr:0.5.0-rc
+    restart: unless-stopped
+    depends_on:
+      - ruuter-internal
+    environment:
+      - RUST_LOG=xtr_on_rust=debug,info
+    volumes:
+      - ./docker/xtr-inbound/xtr.yaml:/app/xtr.yaml:ro
+      - ./docker/xtr-inbound/wsdl:/app/wsdl:ro
+      - ./docker/xtr-inbound/ci/ljvis.soap.yaml:/app/wsdl/ljvis/ljvis.soap.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      - ljvis-ci
+    ports:
+      - "127.0.0.1:9095:8081"
+      - "127.0.0.1:9094:8080"
+    cpus: "0.25"
+    mem_limit: "128M"
+
   ruuter:
     build:
       context: .

@@ -2,6 +2,19 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-05
+
+### LJVIS1 SOAP-lepingu pakkumine XTR-i kaudu
+
+- LJVIS1 X-tee SOAP-leping (`ljvis.wsdl`, kuus operatsiooni, sh `RegisterJobInspection_v2`) on pakutav XTR 0.5.0-rc kaudu; äriloogika jääb olemasolevatesse Ruuter.internal-i JSON-töötlejatesse. REST v1/v3 ja AJ liidesed jäävad alles. Juhend: `docs/xtee/09-xtr-soap.md`.
+
+### Tööinspektsiooni aktide kordussaatmine
+
+- Sama kontrolli ID täpne kordus ei loo uut kirjet. Muudetud andmetega kordus kinnitamata aktile salvestatakse akti uue seisuna (sama number ja versioon); kinnitatud, avaldatud, kustutatud või arhiveeritud akti korral tagastatakse viga (HTTP 409 / SOAP Fault) ja andmeid ei muudeta — varem jäeti muudatus vaikselt kõrvale ja vastati „Success“.
+- Samaaegsed sama ID-ga päringud loovad ühe akti. REST v3 senine käitumine (kordus tagastab olemasoleva akti) ei muutu.
+- `RegisterJobInspection` v1: liik „Sõitjate vedu“ määratakse ainult siis, kui sõitjateveo juhtide loendurid on nullist suuremad (varem piisas loendurite objekti olemasolust). Kehtib nii SOAP-i kui REST v1 kaudu.
+- Kasutajaliideses salvestamine säilitab akti X-tee allika ID (`external_inspection_id`).
+
 ## 2026-10-03
 
 ### Ajapõhine arhiveerimine (lihtsalt sisse-/väljalülitatav)

@@ -344,6 +344,12 @@ jobs:
       - name: Install Newman
         run: npm install -g newman newman-reporter-htmlextra
 
+      # tests/xtr/verify.py: WSDL XSD validation (xmllint) and sidecar comparison (PyYAML)
+      - name: Install XTR SOAP test tools
+        run: |
+          sudo apt-get install -y -q libxml2-utils
+          pip3 install pyyaml -q
+
       - name: Run E2E tests
         run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
 

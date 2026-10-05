@@ -1,9 +1,9 @@
 /*
-description: 'X-tee RegisterJobInspection v1: kirjutab forms.labour_inspection_form tabelisse funktsiooni
-  forms.register_external_labour_inspection kaudu (allikas xroad-v1, saatja kontrolli_id ilma prefiksita).
-  Täpne kordus ei loo rida (outcome=unchanged); muudetud kordus saved-aktile lisab snapshot''i (updated);
-  muudetud kordus kinnitatud/avaldatud/kustutatud aktile ei muuda midagi (conflict). Samaaegsed esmased
-  päringud loovad ühe akti. inspection_type tuletab YAML (passenger/cargo).'
+description: 'X-tee RegisterJobInspection_v2 (LJVIS1 SOAP leping): kirjutab forms.labour_inspection_form
+  tabelisse funktsiooni forms.register_external_labour_inspection kaudu (allikas xroad-v2, saatja
+  kontrolli_id ilma prefiksita — sama mis LJVIS1 RavenDB V2 migratsioonis). Täpne kordus: unchanged;
+  muudetud kordus saved-aktile: uus snapshot (updated); muudetud kordus lukustatud aktile: conflict.
+  REST v3 kasutab eraldi päringut register-job-inspection-v3-insert.'
 namespace: xroad
 params:
   externalInspectionId:
@@ -36,6 +36,15 @@ params:
   violations:
     type: string
     required: false
+  punishedPersonIdCode:
+    type: string
+    required: false
+  punishedPersonFirstName:
+    type: string
+    required: false
+  punishedPersonLastName:
+    type: string
+    required: false
   proceedingReferenceNumber:
     type: string
     required: false
@@ -65,10 +74,10 @@ returns:
 
 SELECT r.id, r.form_number, r.version, r.status, r.outcome, r.outcome <> 'created' AS skipped
 FROM forms.register_external_labour_inspection(
-  'xroad-v1', :externalInspectionId, 'new_snapshot',
+  'xroad-v2', :externalInspectionId, 'new_snapshot',
   :inspectorName, :inspectionDate, :inspectionType,
   :companyName, :companyRegCode, :vehicleCount,
   :prescriptionComposed, :controlsMatrix, :violations,
-  '', '', '',
+  :punishedPersonIdCode, :punishedPersonFirstName, :punishedPersonLastName,
   :proceedingReferenceNumber, :created_by
 ) r;

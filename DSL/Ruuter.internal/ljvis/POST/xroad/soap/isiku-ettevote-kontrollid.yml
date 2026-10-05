@@ -1,0 +1,148 @@
+declaration:
+  version: "1.0"
+  description: >-
+    LJVIS1 SOAP IsikuEttevoteKontrollid: calls the REST handler xroad/provide/isiku-ettevote-kontrollid and maps its answer to the WSDL IsikuEttevoteKontrollidResponseType.
+    Called by XTR (docker/xtr-inbound/wsdl/ljvis/ljvis.soap.yaml); not routed to the X-tee REST
+    HTTPRoute (only /ljvis/xroad/provide/* is). Backend data that violates the WSDL is refused
+    with 502, never patched.
+  namespace: xroad
+
+callBackend:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/xroad/provide/isiku-ettevote-kontrollid"
+    headers:
+      type: json
+      X-Road-Client: "${incoming.headers['x-road-client']}"
+      X-Road-Id: "${incoming.headers['x-road-id'] || ''}"
+      X-Road-UserId: "${incoming.headers['x-road-userid'] || ''}"
+    body: ${incoming.body}
+  result: backend
+  next: unwrap
+
+# Body may be missing, text or a Ruuter {"response": ...} wrapper; never assume JSON before the status check.
+unwrap:
+  assign:
+    answer: >-
+      ${(() => {
+        var body = backend.response.body;
+        if (body != null && typeof body === 'object' && !Array.isArray(body) && Object.prototype.hasOwnProperty.call(body, 'response')) body = body.response;
+        if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { return null; } }
+        return body != null && typeof body === 'object' ? body : null;
+      })()}
+  next: checkStatus
+
+checkStatus:
+  switch:
+    - condition: ${backend.response.status < 200 || backend.response.status >= 300}
+      next: checkBackendErrorBody
+  next: convertResponse
+
+# WSDL root element is Kontrollid (capital K); fields may arrive in camelCase.
+convertResponse:
+  assign:
+    soap_answer: >-
+      ${(() => {
+        function fail(reason) { throw new Error(reason); }
+        function text(value) { return value == null ? '' : String(value); }
+        function list(container, field) {
+          if (container == null || typeof container !== 'object') fail(field + ' is missing');
+          var items = container.item == null ? [] : container.item;
+          if (!Array.isArray(items)) fail(field + '.item is not a list');
+          return items;
+        }
+        function dateTime(value, field) {
+          var s = text(value);
+          if (!s) fail(field + ' is missing');
+          return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T00:00:00' : s;
+        }
+        try {
+          if (answer == null) fail('backend body is not JSON');
+          var keys = ['kuupaev','nimetus','asutus','soiduki_reg_nr','rikkumise_liik','kontrolli_nimetus','rikkumised','rikkumised_lopetatud','ettevote_reg_nr','juhi_nimi','juhi_perekonnanimi'];
+          var rows = list(answer.kontrollid, 'kontrollid').map(row => {
+            var result = {};
+            keys.forEach(key => {
+              var source = key === 'soiduki_nimi' ? 'juhi_nimi' : key === 'soiduki_perekonnanimi' ? 'juhi_perekonnanimi' : key;
+              var camel = source.replace(/_([a-z])/g, (_, ch) => ch.toUpperCase());
+              result[key] = text(row[source] == null ? row[camel] : row[source]);
+            });
+            result.kuupaev = dateTime(row.kuupaev, 'kuupaev');
+            return result;
+          });
+          return {Kontrollid: {item: rows}};
+        } catch (e) {
+          return {contract_error: String(e && e.message ? e.message : e)};
+        }
+      })()}
+  next: checkConversion
+
+checkConversion:
+  switch:
+    - condition: ${soap_answer.contract_error != null}
+      next: logContractError
+  next: success
+
+success:
+  return: ${JSON.stringify(soap_answer)}
+  next: end
+
+# Backend 4xx/5xx with a JSON error body is passed through (XTR turns it into a SOAP Fault).
+checkBackendErrorBody:
+  switch:
+    - condition: ${answer != null}
+      next: backendError
+  next: logBackendError
+
+backendError:
+  status: ${backend.response.status}
+  return: ${JSON.stringify(answer)}
+  next: end
+
+# Technical log: operation, HTTP status and X-Road message id only; no request/response payload.
+logBackendError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.soap.isiku-ettevote-kontrollid"
+      request_xml: "${'operation=IsikuEttevoteKontrollid&x-road-id=' + (incoming.headers['x-road-id'] || '')}"
+      response_xml: ""
+      duration_ms: "0"
+      success: false
+      error_message: "${'Backend HTTP ' + backend.response.status + ' without JSON error body'}"
+      person_identifier: ""
+      source_type: "soap_bridge"
+      source_record_id: "${incoming.headers['x-road-id'] || ''}"
+  result: logResult
+  next: returnBackendError
+
+returnBackendError:
+  status: 502
+  return: '{"error":"BACKEND_ERROR","message":"Backend returned an error without a JSON body"}'
+  next: end
+
+logContractError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.soap.isiku-ettevote-kontrollid"
+      request_xml: "${'operation=IsikuEttevoteKontrollid&x-road-id=' + (incoming.headers['x-road-id'] || '')}"
+      response_xml: ""
+      duration_ms: "0"
+      success: false
+      error_message: "${'SOAP contract violation: ' + soap_answer.contract_error}"
+      person_identifier: ""
+      source_type: "soap_bridge"
+      source_record_id: "${incoming.headers['x-road-id'] || ''}"
+  result: logResult
+  next: returnContractError
+
+returnContractError:
+  status: 502
+  return: "${JSON.stringify({error: 'INVALID_BACKEND_RESPONSE', message: 'Backend data does not satisfy the SOAP contract - ' + soap_answer.contract_error})}"
+  next: end

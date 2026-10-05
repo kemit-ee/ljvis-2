@@ -2,28 +2,25 @@ declaration:
 
   version: "1.0"
   description: >-
-    X-tee pakutav teenus RegisterJobInspection (v1): võtab vastu Tööinspektsiooni
-    töökontrolli andmed (vana WSDL RegisterJobInspectionRequestType) ja salvestab
-    forms.labour_inspection_form tabelisse. Sama kontrolli_id täpne kordus ei tekita uut rida; muudetud kordus
-    saved-aktile lisab snapshot'i, lukustatud aktile tagastab 409 CONFLICT.
-    Vt docs/xtee/05-register-job-inspection.md.
+    LJVIS1 RegisterJobInspection_v2 SOAP contract: nested counters, S/V type,
+    koostatud_ettekirjutus and optional punished-person/proceeding details.
+    External identity: source xroad-v2 + kontrolli_id (same as the LJVIS1 RavenDB V2 migration).
+    Exact repeat: no new row; changed repeat of a saved act: new snapshot; of a locked act: 409.
   namespace: xroad
 
-# Samm 1: Valideeri kontrollija — WSDL väli 'kontrollija'
+# Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
 validateKontrollija:
   switch:
     - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
       next: returnMissingKontrollija
   next: validateKontrolliId
 
-# Samm 3: Valideeri kontrolli ID — WSDL väli 'kontrolli_id' (idempotentsuse võti)
 validateKontrolliId:
   switch:
-    - condition: "${incoming.body.kontrolli_id == null}"
+    - condition: "${incoming.body.kontrolli_id == null || String(incoming.body.kontrolli_id).trim() == ''}"
       next: returnMissingKontrolliId
   next: validateKontrolliKp
 
-# Samm 4: Valideeri kuupäev — peab olema parsitav
 validateKontrolliKp:
   switch:
     - condition: "${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}"
@@ -32,7 +29,6 @@ validateKontrolliKp:
       next: returnInvalidKontrolliKp
   next: validateTooandja
 
-# Samm 5: Valideeri tööandja andmed
 validateTooandja:
   switch:
     - condition: "${incoming.body.tooandja_nimi == null || incoming.body.tooandja_nimi == ''}"
@@ -41,41 +37,59 @@ validateTooandja:
       next: returnMissingTooandjaRegKood
   next: validateKontrollimised
 
-# Samm 6: Valideeri kohustuslikud JSONB struktureeritud väljad
 validateKontrollimised:
   switch:
     - condition: "${incoming.body.kontrollimised == null}"
       next: returnMissingKontrollimised
     - condition: "${incoming.body.rikkumised == null}"
       next: returnMissingRikkumised
-    - condition: "${incoming.body.koostatatud_ettekirjutus == null}"
+    - condition: "${incoming.body.koostatud_ettekirjutus == null}"
       next: returnMissingEttekirjutus
+  next: validateControlType
+
+validateControlType:
+  switch:
+    - condition: ${!(['S', 'V'].includes(incoming.body.kontrolli_tyyp))}
+      next: invalidControlType
   next: assignParams
 
-# Samm 7: Kogu parameetrid ja tuleta inspection_type
-# passenger: soitjate veol on täidetud; cargo: kõik muud juhud
+invalidControlType:
+  status: 400
+  return: '{"error":"INVALID_PARAMETER","message":"kontrolli_tyyp must be S or V"}'
+  next: end
+
+# Map the old v2 fields to the existing database columns.
 assignParams:
   assign:
     kontrollija: "${incoming.body.kontrollija.trim()}"
-    kontrolli_id: "${String(incoming.body.kontrolli_id)}"
+    kontrolli_id: "${String(incoming.body.kontrolli_id).trim()}"
     kontrolli_kp: "${incoming.body.kontrolli_kp}"
     tooandja_nimi: "${incoming.body.tooandja_nimi.trim()}"
     tooandja_reg_kood: "${incoming.body.tooandja_reg_kood.trim()}"
     soidukite_arv: "${incoming.body.soidukite_arv != null ? String(incoming.body.soidukite_arv) : ''}"
-    koostatatud_ettekirjutus: "${String(incoming.body.koostatatud_ettekirjutus)}"
-    kontrollimised_json: "${JSON.stringify(incoming.body.kontrollimised)}"
+    koostatud_ettekirjutus: "${String(incoming.body.koostatud_ettekirjutus)}"
+    juhi_isikukood: "${((incoming.body.vaarteomenetlus || {}).karistatud_isiku_kood || '').trim()}"
+    juhi_eesnimi: "${(incoming.body.vaarteomenetlus || {}).karistatud_isiku_eesnimi || ''}"
+    juhi_perekonnanimi: "${(incoming.body.vaarteomenetlus || {}).karistatud_isiku_nimi || ''}"
+    menetluse_number: "${(incoming.body.vaarteomenetlus || {}).viitenumber || ''}"
+    inspection_type: "${incoming.body.kontrolli_tyyp === 'S' ? 'passenger' : 'cargo'}"
+    # Keep legacy counters, type and optional proceeding together; no v3 vehicle fields are invented.
+    controls_matrix_with_vehicle: >-
+      ${JSON.stringify(Object.assign({}, incoming.body.kontrollimised, {
+        kontrolli_tyyp: incoming.body.kontrolli_tyyp,
+        vaarteomenetlus: incoming.body.vaarteomenetlus || null
+      }))}
     rikkumised_json: "${JSON.stringify(incoming.body.rikkumised)}"
-    vaarteomenetlus: "${incoming.body.vaarteomenetlus || ''}"
-    # Kontrolli liigi tuletus: kas soitjate veol on täidetud?
-    inspection_type: "${(() => { var counts = (incoming.body.kontrollimised || {}).kontrollitud_soitjate_veol; return (typeof counts === 'object' && counts != null ? Number(counts.arv_analoogmeerik || 0) + Number(counts.arv_digitaalmeerik || 0) : Number(counts || 0)) > 0 ? 'passenger' : 'cargo'; })()}"
     start_time: "${new Date().getTime()}"
+    xroad_member_code: "${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}"
+    xroad_subsystem: "${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}"
   next: insertInspection
 
-# Samm 8: Salvesta Resql-i kaudu (idempotentsus SQL-tasemel)
+# Samm 9: Salvesta Resql-i kaudu
 insertInspection:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-insert"
+    url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-v2-insert"
     headers:
       type: json
     body:
@@ -86,15 +100,17 @@ insertInspection:
       companyName: ${tooandja_nimi}
       companyRegCode: ${tooandja_reg_kood}
       vehicleCount: ${soidukite_arv}
-      prescriptionComposed: ${koostatatud_ettekirjutus}
-      controlsMatrix: ${kontrollimised_json}
+      prescriptionComposed: ${koostatud_ettekirjutus}
+      controlsMatrix: ${controls_matrix_with_vehicle}
       violations: ${rikkumised_json}
-      proceedingReferenceNumber: ${vaarteomenetlus}
+      punishedPersonIdCode: ${juhi_isikukood}
+      punishedPersonFirstName: ${juhi_eesnimi}
+      punishedPersonLastName: ${juhi_perekonnanimi}
+      proceedingReferenceNumber: ${menetluse_number}
       created_by: "xroad"
   result: insertResult
   next: checkInsertStatus
 
-# Samm 9: Kontrolli HTTP staatust
 checkInsertStatus:
   switch:
     - condition: "${insertResult.response.status < 200 || insertResult.response.status >= 300}"
@@ -103,7 +119,7 @@ checkInsertStatus:
       next: logConflict
   next: logSuccess
 
-# Samm 10a: Logi edukas salvestamine
+# Log success without personal identifiers.
 logSuccess:
   call: http.post
   args:
@@ -111,7 +127,7 @@ logSuccess:
     headers:
       type: json
     body:
-      service_code: "xroad.provide.register-job-inspection"
+      service_code: "xroad.provide.register-job-inspection-v2"
       request_xml: "${'kontrolli_id=' + kontrolli_id + '&reg_kood=' + tooandja_reg_kood}"
       response_xml: "${JSON.stringify({ received: (insertResult.response.body || {}) != null, count: (Array.isArray(insertResult.response.body || {}) ? (insertResult.response.body || {}).length : null) })}"
       duration_ms: "${new Date().getTime() - start_time}"
@@ -121,6 +137,28 @@ logSuccess:
       source_type: "job_inspection"
       source_record_id: "${'' + kontrolli_id}"
   result: logResult
+  next: checkAjUsageLog
+
+# Log AJ usage when a punished-person identifier is present.
+checkAjUsageLog:
+  switch:
+    - condition: "${juhi_isikukood == null || juhi_isikukood == ''}"
+      next: returnSuccess
+  next: logAjUsage
+
+logAjUsage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${juhi_isikukood}"
+      action: "Töökontrolli andmete sisestamine X-tee kaudu"
+      receiver_code: "${xroad_member_code}"
+      receiver_name: ""
+      receiver_system: "${xroad_subsystem}"
+  result: ajLogResult
   next: returnSuccess
 
 # Muudetud kordus aktile, mis ei ole enam saved-staatuses või on arhiveeritud: midagi ei salvestatud, Success-i ei tagastata.
@@ -131,7 +169,7 @@ logConflict:
     headers:
       type: json
     body:
-      service_code: "xroad.provide.register-job-inspection"
+      service_code: "xroad.provide.register-job-inspection-v2"
       request_xml: "${'kontrolli_id=' + kontrolli_id}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
@@ -153,7 +191,6 @@ returnSuccess:
   return: '{"message": "Success"}'
   next: end
 
-# Samm 10b: Logi ebaõnnestumine
 logFailure:
   call: http.post
   args:
@@ -161,7 +198,7 @@ logFailure:
     headers:
       type: json
     body:
-      service_code: "xroad.provide.register-job-inspection"
+      service_code: "xroad.provide.register-job-inspection-v2"
       request_xml: "${'kontrolli_id=' + kontrolli_id}"
       response_xml: ""
       duration_ms: "${new Date().getTime() - start_time}"
@@ -221,5 +258,5 @@ returnMissingRikkumised:
 
 returnMissingEttekirjutus:
   status: 400
-  return: '{"error": "MISSING_PARAMETER", "message": "koostatatud_ettekirjutus is required"}'
+  return: '{"error": "MISSING_PARAMETER", "message": "koostatud_ettekirjutus is required"}'
   next: end
