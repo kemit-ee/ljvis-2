@@ -32,3 +32,17 @@ python3 -B -m unittest tests/contract/test_dsl_security.py
 ```
 
 Guards (`*.guard.yml`) are exempt from the allowlist rule: they are allow-all or read only headers, and an allowlist there could filter the handler's input.
+
+
+# SQL append-only invariant (epic #522)
+
+`check_resql_append_only.py` keeps every Resql template under `DSL/Resql/` to `INSERT` + `SELECT`: no `UPDATE` / `DELETE` / `TRUNCATE` / `MERGE` (A1, this also catches `ON CONFLICT ... DO UPDATE`), no `JOIN` / `LATERAL` (A2) and a YAML header that parses (A4). Comments, string literals and quoted identifiers are stripped first. `SELECT ... FOR UPDATE` is a lock, not a write, and is allowed. `test_resql_append_only.py` proves each construct is flagged.
+
+```sh
+python3 tests/contract/check_resql_append_only.py
+python3 -B -m unittest tests/contract/test_resql_append_only.py
+```
+
+The only exemption is the retention-purge `DELETE` (`DSL/Resql/ljvis/POST/archive/purge_confirmed.sql`), listed with a rationale in `.sql-rule-exemption`. An entry must sit under an `archive/` directory, may contain nothing but that `DELETE`, and fails CI when it no longer matches a violation. The 3-step contract (select and copy, verify in the archive, delete) is in ADR-013.
+
+Known limits: an implicit comma join (`FROM a, b WHERE ...`) is not detected; review it by hand. Rewrite a `JOIN` as `WHERE x = ANY (SELECT ...)`, `EXISTS` or a correlated scalar subquery (`(SELECT c FROM t c WHERE ... ORDER BY created_at DESC LIMIT 1)` for the latest snapshot).

@@ -87,6 +87,19 @@ kadudeta.
   arhiivikoopia sisu võrdlus (räsi): `jsonb`-arvud muutuvad JSON-transpordis (`12.50` → `12.5`), mis blokeeriks
   purge'i vaikselt; ridade muutumatus on append-only invariandi enda tagajärg.
 
+### T3 — JOIN-id
+
+`JOIN` asendati `= ANY(SELECT ...)`, `EXISTS`-i, `UNION ALL` + `NOT EXISTS`-i ja korrelleeritud skalaarsete alampäringutega. Koondvormi
+uusim snapshot võetakse alampäringuga `idx_cf_key_ts` kaudu, *pärast* odavaid filtreid; CTE-le viitav korrelleeritud alampäring oleks
+O(N·M). Iga mall on võrreldud vana versiooniga sama sisendiga (A/B, identne tulemus).
+
+### T4 — CI-lint
+
+`tests/contract/check_resql_append_only.py` (CI: `validate-dsl`) keelab `UPDATE`/`DELETE`/`TRUNCATE`/`MERGE`, `JOIN`/`LATERAL` ja
+`ON CONFLICT … DO UPDATE` kõigis `DSL/Resql/` mallides, ning nõuab, et YAML-päis parsiks. `.sql-rule-exemption` lubab ainult
+retention-purge'i `DELETE`-i `archive/` all; kirje, mis enam rikkumisele ei vasta, ebaõnnestub. Piirang: komadega ühendust
+(`FROM a, b`) lint ei tunne.
+
 ### Tagajärjed
 
 * Kirjutaja, mis ei anna `revision`-it, ei ole võidujooksu vastu kaitstud (trigger annab numbri, mis ei
