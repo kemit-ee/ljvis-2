@@ -14,7 +14,7 @@ function findFirstError(): HTMLElement | null {
 }
 
 /**
- * Pärast "Salvesta" nupu vajutust kerib lehe esimese valideerimisveaga
+ * Kontrollvormidel (/control-forms) kerib pärast "Salvesta" nupu vajutust lehe esimese valideerimisveaga
  * välja juurde. Valideerimine on asünkroonne, seetõttu proovime mitu korda,
  * kuni vead on DOM-i ilmunud.
  */
@@ -41,6 +41,7 @@ export function useScrollToFirstError() {
 
     const onClick = (e: MouseEvent) => {
       const button = (e.target as HTMLElement | null)?.closest('button');
+      if (!window.location.pathname.includes('/control-forms')) return;
       if (!button || button.textContent?.trim() !== saveLabel) return;
       timers.forEach((id) => window.clearTimeout(id));
       timers = [];
