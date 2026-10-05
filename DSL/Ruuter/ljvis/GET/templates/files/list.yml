@@ -5,9 +5,6 @@ declaration:
   namespace: templates
   strict: true
   allowlist:
-    headers:
-      - field: cookie
-        type: string
     body:
       - field: form_number
         type: string

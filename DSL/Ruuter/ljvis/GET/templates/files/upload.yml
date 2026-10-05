@@ -1,15 +1,14 @@
 declaration:
 
   version: "1.0"
-  description: "Upload a file to S3 and record it in the DB. Expects: form_type, form_number, file_name, file_base64, mimetype. The actor is the TARA session (guard variable session_personal_code), never the request body"
+  description: "Upload a file to S3 and record it in the DB. Expects: form_type, form_number_prefix, form_number, file_name, file_base64, mimetype. The actor is the TARA session (guard variable session_personal_code), never the request body"
   namespace: templates
   strict: true
   allowlist:
-    headers:
-      - field: cookie
-        type: string
     body:
       - field: form_type
+        type: string
+      - field: form_number_prefix
         type: string
       - field: form_number
         type: string
@@ -19,6 +18,20 @@ declaration:
         type: string
       - field: mimetype
         type: string
+
+# Omand: vormi tüüp (ja seega prefiks) on serveri teada konstant (wrapper), `form_number` on kliendi
+# sisend. Ilma kontrollita saaks kasutaja lisada manuse teise vormitüübi numbri alla või (`..`, `/`)
+# kirjutada S3-s teise kaustapuusse. Kontroll enne S3 kirjutamist; Resql kordab sama kontrolli.
+checkFormNumber:
+  switch:
+    - condition: ${incoming.body.form_number_prefix == null || incoming.body.form_number_prefix === '' || incoming.body.form_number == null || !String(incoming.body.form_number).startsWith(incoming.body.form_number_prefix) || !/^[A-Za-z0-9-]+$/.test(String(incoming.body.form_number))}
+      next: returnInvalidFormNumber
+  next: buildS3Folder
+
+returnInvalidFormNumber:
+  status: 400
+  return: '{"error": "INVALID_FORM_NUMBER"}'
+  next: end
 
 buildS3Folder:
   assign:
@@ -58,10 +71,17 @@ insertFileToDB:
       type: json
     body:
       form_number: ${incoming.body.form_number}
+      form_number_prefix: ${incoming.body.form_number_prefix}
       file_name: ${incoming.body.file_name}
       s3_key: ${s3Result.response.body.key}
       created_by: ${session_personal_code}
   result: dbResult
+  next: checkInsert
+
+checkInsert:
+  switch:
+    - condition: ${dbResult.response.body == null || dbResult.response.body.length === 0}
+      next: returnInvalidFormNumber
   next: logAuditEvent
 
 logAuditEvent:
