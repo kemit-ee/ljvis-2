@@ -74,7 +74,7 @@ params:
   carrier_origin:
     type: string
     required: false
-    description: "'ee' = Estonian carrier (country EE or unset), 'foreign' = foreign carrier; empty = all"
+    description: "'ee' = Estonian carrier (country EE or unset), 'foreign' = foreign carrier, 'country:XX' = carrier of exactly that country code; empty = all"
   vr_reporting_country_code:
     type: string
     required: false
@@ -168,7 +168,8 @@ WHERE
     AND (COALESCE(:has_violation, '') = '' OR fs.has_violation = :has_violation::BOOLEAN)
     AND (COALESCE(:carrier_origin, '') = ''
          OR (:carrier_origin = 'ee' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') = 'EE')
-         OR (:carrier_origin = 'foreign' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') <> 'EE'))
+         OR (:carrier_origin = 'foreign' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') <> 'EE')
+         OR (:carrier_origin LIKE 'country:%' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') = upper(substr(:carrier_origin, 9))))
     AND (COALESCE(:status, '') = '' OR fs.status = :status)
     AND (COALESCE(:vr_reporting_country_code, '') = '' OR fs.vr_reporting_country_code = :vr_reporting_country_code)
     AND (COALESCE(:vr_sanction_code, '') = '' OR fs.vr_sanction_code = :vr_sanction_code)

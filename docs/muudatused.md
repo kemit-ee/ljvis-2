@@ -4,6 +4,20 @@
 
 ## 2026-10-05
 
+### PPA kontrollvormide parandused
+
+- Vormiotsing: „Vedaja riik" filtris on lisaks Eesti / Välisriigi segmentidele kõik riigid, mille vedaja kohta on kontroll tehtud.
+- Riskitasemete leht: pealkiri „Eesti veoettevõtjate riskitasemed", otsinguväli „Eesti veoettevõtja nimi".
+- Kontrolli koht: „Muu tee" valimisel saab sisestada tee numbri; nimetus täidetakse muude teede loetelust (klassifikaator ROAD_OTHER, täidetakse haldusvaates).
+- Üldosa: „Lisa haagis" nupp on viimase haagise andmete all. Nupud „Ava haagise tehnokontrollvorm" ja „Ava meeskonnaliikme sõidu- ja puhkeaja kontrollvorm"; „Eemalda meeskonnaliige" on alati aktiivne (eemaldab ka alamvormi).
+- Salvestamisel kerib leht esimese täitmata/vigase välja juurde.
+- ADR vorm: „Autojuhi abi andmed" on vaikimisi suletud (nupp „Ava"); väljatrükil trükitakse mitme rikkumiskirjega punkti iga kirje oma reana.
+- Väljatrükid: tehnokaart mahub 2 lehele (selgitused ja vaidlustamise tekst teise lehe lõppu); sõidu- ja puhkeaja väljatrükil ainult kontrollitud osad, rikkumised artikli, kirjelduse ja raskusastmega (ilma koodita).
+- Sõidu- ja puhkeaja vorm: „Dokumendi või õiguse kontroll" on nähtav ka tulemuse „Korras" korral; „Nõuetekohane" → „Kontrollitud".
+- Koondvormile saab lisada kontrollvorme ka siis, kui olemasolevad alamvormid on kinnitatud (kuni koondvorm pole avalikustatud).
+- Kinnitatud alamvormi (mootorsõiduk, haagis, ADR, veo katkestamine) saab muuta selle looja või koondvormile märgitud kontrolli läbiviija; „Muuda" nupp on neile nähtav. Avalikustatud vormi muudab ainult administraator.
+- Töölaua „Minu asutuse vormid" valik nõuab uut õigust `control_form.view_organisation` (omista grupihalduses).
+
 ### X-tee dokumentatsiooni parandus
 
 - LJVIS 2 X-tee alamsüsteem on KLIM registrikoodiga: `ee-dev/GOV/70001231/ljvis2`, `ee-test/GOV/70001231/ljvis2`, `EE/GOV/70001231/ljvis2` (varem oli dokumentides vana MKM kood 70003158 ja `ljvis`).

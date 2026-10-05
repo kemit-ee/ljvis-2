@@ -91,7 +91,7 @@ export function CompoundFormPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const isAdmin = useIsAdmin();
@@ -337,7 +337,31 @@ export function CompoundFormPage() {
     }
   };
 
-  const canEdit = isAdmin && form?.status !== 'deleted';
+  // Kinnitatud vormi võib muuta administraator (edit_locked), vormi looja või
+  // koondvormile märgitud kontrolli läbiviija. Avalikustatud vormi ainult administraator.
+  const normName = (v?: string | null) => (v ?? '').trim().toUpperCase();
+  const isNamedInspector =
+    !!form &&
+    !!user?.firstname &&
+    normName(form.inspectorFirstName) === normName(user.firstname) &&
+    normName(form.inspectorLastName) === normName(user.lastname) &&
+    String(form.inspectorOrganisationId ?? '') === String(user.organisationid ?? '');
+  const canReopenOwn = (f: { status?: string; createdBy?: string } | null | undefined, perm: string) =>
+    !!f &&
+    f.status === 'confirmed' &&
+    hasPermission(perm) &&
+    ((!!f.createdBy && f.createdBy === user?.personalcode) || isNamedInspector);
+  const canReopenCompound = canReopenOwn(form, 'compound_form.write');
+  const canReopenDriver = canReopenOwn(driver.form, 'sp_driver_form.write');
+  const canReopenTeammate = canReopenOwn(teammate.form, 'sp_teammate_form.write');
+  const canReopenVehicle = canReopenOwn(vehicle.form, 'vehicle_technical_form.write');
+  const canReopenAdr = canReopenOwn(adr.form, 'adr_form.write');
+  const canReopenTransportInterruption = canReopenOwn(transportInterruption.form, 'transport_interruption_form.write');
+  const canReopenTrailers = trailers.map((tr) => canReopenOwn(tr.form, 'trailer_technical_form.write'));
+  const canReopenAny =
+    canReopenCompound || canReopenDriver || canReopenTeammate || canReopenVehicle ||
+    canReopenAdr || canReopenTransportInterruption || canReopenTrailers.some(Boolean);
+  const canEdit = (isAdmin || canReopenCompound) && form?.status !== 'deleted';
 
   const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
   const getSubFormsStatusRef = useRef({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
@@ -473,6 +497,7 @@ export function CompoundFormPage() {
         triggerSaveAfterSubFormDelete(allPublished);
       }
     },
+    onTeammateRemoved: () => formik.setFieldValue('drivers', formik.values.drivers.slice(0, 1)),
     onTrailerRemoved: (index: number) => formik.setFieldValue('trailers', formik.values.trailers.filter((_: Trailer, i: number) => i !== index)),
     onTrailerRemovedSave: undefined,
     onTrailerDeletionDeferred: (idx, subFormId, subFormNumber, status) => {
@@ -676,6 +701,7 @@ export function CompoundFormPage() {
     teammateFormExists: openTabs.includes('tab-teammate'),
     onAddTeammateControlForm: () => { handleAddTab('tab-teammate', false); },
     onEditTeammateControlForm: () => { setActiveTab('tab-teammate'); window.scrollTo(0, 0); },
+    onRemoveTeammate: () => handleRemove('tab-teammate'),
     onRemoveTrailer: (index: number) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0]),
   };
 
@@ -690,8 +716,14 @@ export function CompoundFormPage() {
       form?.status !== 'deleted');
   const hasSubForms = openTabs.length > 0;
 
+  // Avalikustamata koondvormile saab lisada kontrollvorme ka siis, kui kõik olemasolevad
+  // alamvormid on juba kinnitatud (muutmisrežiim pole aktiivne).
+  const canAddForms =
+    hasPermission('compound_form.write') &&
+    form?.status !== 'published' &&
+    form?.status !== 'deleted';
   const addFormDropdown =
-    canEdit && anyEditActive ? (
+    (canAddForms || (canEdit && anyEditActive)) ? (
       <Dropdown width="max-content">
         <Dropdown.Trigger>
           <Button
@@ -1372,21 +1404,21 @@ export function CompoundFormPage() {
       />
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {isAdmin && !anyEditActive && form?.status !== 'deleted' && (
+          {(isAdmin || canReopenAny) && !anyEditActive && form?.status !== 'deleted' && (
             <Button
               iconLeft="edit"
               type="button"
               visualType="secondary"
               onClick={() => {
-                setIsEditActive(true);
-                if (driver.form) driver.setEditActive(true);
-                if (teammate.form) teammate.setEditActive(true);
-                if (vehicle.form) vehicle.setEditActive(true);
-                trailers.forEach((tr) => {
-                  if (tr.form) tr.setEditActive(true);
+                if (isAdmin || canReopenCompound) setIsEditActive(true);
+                if (driver.form && (isAdmin || canReopenDriver)) driver.setEditActive(true);
+                if (teammate.form && (isAdmin || canReopenTeammate)) teammate.setEditActive(true);
+                if (vehicle.form && (isAdmin || canReopenVehicle)) vehicle.setEditActive(true);
+                trailers.forEach((tr, idx) => {
+                  if (tr.form && (isAdmin || canReopenTrailers[idx])) tr.setEditActive(true);
                 });
-                if (adr.form) adr.setEditActive(true);
-                if (transportInterruption.form)
+                if (adr.form && (isAdmin || canReopenAdr)) adr.setEditActive(true);
+                if (transportInterruption.form && (isAdmin || canReopenTransportInterruption))
                   transportInterruption.setEditActive(true);
               }}
             >

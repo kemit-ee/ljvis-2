@@ -67,7 +67,7 @@ SELECT
         'foreign_violation_form.write','foreign_violation_form.read',
         'sp_driver_form.write','sp_driver_form.read',
         'sp_teammate_form.write','sp_teammate_form.read',
-        'control_form.view_unpublished','control_form.delete','control_form.edit_locked',
+        'control_form.view_unpublished','control_form.delete','control_form.edit_locked','control_form.view_organisation',
         'xtee.query.rahvastikuregister','xtee.query'
     ]::TEXT[],
     'bootstrap-extra'

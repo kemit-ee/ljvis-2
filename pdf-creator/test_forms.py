@@ -83,6 +83,16 @@ class FormTests(unittest.TestCase):
         p['driveRestForm']['violations5612006'].append({'violationCode':'UNKNOWN_CODE','severityCode':'VSI','isDetected':'true'})
         html,_=render_html(p,False,'drive-rest-form');self.assertIn('UNKNOWN_CODE',html)
 
+    def test_drive_rest_print_omits_unchecked_parts_and_severity_codes(self):
+        p=self.fixture('drive-rest-form');f=p['driveRestForm']
+        f['massDimensionMeasurements']=[];f['massDimensionNonCompliant']=False
+        f['violations5612006']=[{'violationCode':'SI901','severityCode':'SI','isDetected':'true'},{'violationCode':'MI','severityCode':'MI','isDetected':'false'}]
+        html,_=render_html(p,False,'drive-rest-form')
+        self.assertNotIn('Auto või autorongi massi',html)
+        self.assertIn('Artikli 6 lõige 1',html);self.assertIn('(SI)',html)
+        self.assertNotIn('SI901',html);self.assertNotIn('(MI)',html)
+        self.assertNotIn('Nõuetekohane',html)
+
     def test_technical_back_is_always_part_of_control_card(self):
         html,_=render_html(self.fixture('vehicle-technical'),False,'vehicle-technical')
         self.assertIn('Kontrollitavate detailide loetelu',html)

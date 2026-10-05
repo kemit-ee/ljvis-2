@@ -17,6 +17,7 @@ import {
 import type { FormikProps } from 'formik';
 import type { Trailer, Driver } from '../../types';
 import { BREAKPOINTS, OTHER, ROAD } from '../../../../constants/constants';
+import { RoadOtherFields } from './RoadOtherFields';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { vehicleCategoryColWidth } from './vehicleCategoryLayout';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
@@ -175,6 +176,7 @@ interface CompoundFormEditCardProps {
   teammateFormExists?: boolean;
   onAddTeammateControlForm?: () => void;
   onEditTeammateControlForm?: () => void;
+  onRemoveTeammate?: () => void;
 }
 
 export function CompoundFormEditCard({
@@ -226,6 +228,7 @@ export function CompoundFormEditCard({
   teammateFormExists = false,
   onAddTeammateControlForm,
   onEditTeammateControlForm,
+  onRemoveTeammate,
 }: CompoundFormEditCardProps) {
   const { t } = useTranslation();
   const { getByCode } = useClassifiers();
@@ -374,13 +377,9 @@ export function CompoundFormEditCard({
                       : {})}
                   />
                   {formik.values.road === OTHER.ROAD ? (
-                    <TextField
-                      id="roadOther"
-                      label={t('forms.compound.road_other')}
+                    <RoadOtherFields
                       value={formik.values.roadOther}
-                      input={{ maxLength: 200 }}
                       onChange={(v) => formik.setFieldValue('roadOther', v)}
-                      required
                     />
                   ) : (
                     <div />
@@ -785,19 +784,6 @@ export function CompoundFormEditCard({
                 <Heading element="h3" className="mb-1">
                   {t('forms.compound.trailer')}
                 </Heading>
-                <Button
-                  type="button"
-                  onClick={() =>
-                    formik.values.trailers.length < 3 &&
-                    formik.setFieldValue('trailers', [
-                      ...formik.values.trailers,
-                      emptyTrailer(),
-                    ])
-                  }
-                  disabled={formik.values.trailers.length >= 3}
-                >
-                  {t('forms.compound.addTrailer')}
-                </Button>
                 {formik.values.trailers.map(
                   (trailer: Trailer, index: number) => (
                     <Card key={index} className="mt-1 mb-1">
@@ -1110,6 +1096,19 @@ export function CompoundFormEditCard({
                     </Card>
                   ),
                 )}
+                <Button
+                  type="button"
+                  onClick={() =>
+                    formik.values.trailers.length < 3 &&
+                    formik.setFieldValue('trailers', [
+                      ...formik.values.trailers,
+                      emptyTrailer(),
+                    ])
+                  }
+                  disabled={formik.values.trailers.length >= 3}
+                >
+                  {t('forms.compound.addTrailer')}
+                </Button>
               </Card.Content>
             </Card>
 
@@ -1733,18 +1732,16 @@ export function CompoundFormEditCard({
                       <Button
                         type="button"
                         visualType="secondary"
-                        disabled={teammateFormExists}
-                        title={
-                          teammateFormExists
-                            ? t('forms.compound.removeTeammateBlocked')
-                            : undefined
-                        }
-                        onClick={() =>
+                        onClick={() => {
+                          if (teammateFormExists && onRemoveTeammate) {
+                            onRemoveTeammate();
+                            return;
+                          }
                           formik.setFieldValue(
                             'drivers',
                             formik.values.drivers.slice(0, 1),
-                          )
-                        }
+                          );
+                        }}
                       >
                         {t('forms.compound.removeTeammate')}
                       </Button>

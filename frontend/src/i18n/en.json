@@ -588,6 +588,8 @@
       "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Driver's assistant data",
+        "open": "Open",
+        "close": "Close",
         "personalCode": "Personal code",
         "firstName": "First name",
         "lastName": "Last name",
@@ -770,7 +772,7 @@
       "selectedForms": "Selected control forms",
       "trailerTechnicalTab": "technical condition inspection card",
       "addTrailerControlForm": "Add trailer control form",
-      "editTrailerControlForm": "Edit trailer control form",
+      "editTrailerControlForm": "Open trailer technical control form",
       "removeTrailer": "Remove trailer",
       "trailerRegNr": "Registration mark",
       "trailerCountry": "Country code",
@@ -1179,7 +1181,7 @@
     },
     "otherDocs": {
       "notChecked": "Not checked",
-      "compliant": "Compliant",
+      "compliant": "Checked",
       "nonCompliant": "Does not comply",
       "missing": "Missing",
       "addRemark": "Add remark",
