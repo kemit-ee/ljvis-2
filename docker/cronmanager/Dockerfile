@@ -5,3 +5,4 @@ FROM ${CRONMANAGER_IMAGE}
 
 COPY --chown=cronmanager:cronmanager cronmanager.yaml /app/cronmanager.yaml
 COPY --chown=cronmanager:cronmanager DSL/CronManager /app/DSL/jobs
+COPY --chown=cronmanager:cronmanager docker/cronmanager/scripts /app/scripts/ljvis

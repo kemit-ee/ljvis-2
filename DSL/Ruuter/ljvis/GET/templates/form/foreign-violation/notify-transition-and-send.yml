@@ -215,6 +215,7 @@ sendCarrierNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: "carrier_violation"
@@ -249,6 +250,7 @@ sendLaborInspectorNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: "labor_foreign_proposal"

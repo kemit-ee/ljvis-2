@@ -4,6 +4,14 @@
 
 ## 2026-10-05
 
+### Sisemise ruuteri (ruuter-internal) kaitse teenusetokeniga (#515)
+
+- `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.
+- Varasem ws-broadcast jagatud saladus (`INTERNAL_COMMUNICATION_KEY`) on sama token: konstant jääb samaks, päis `x-viljus-knows-a-secret` on nimetatud ümber `x-internal-service-token`-iks. Keskkondades uusi konstante lisada ei ole vaja.
+- CronManager'i ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManager'i konteinerisse tuleb seega mountida sama `constants.ini`.
+- `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
+- Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
+
 ### Siseteenuste (nysiis, s3-proxy, pdf-creator) päringud nõuavad API-võtit
 
 - Teenused nysiis, s3-proxy ja pdf-creator nõuavad nüüd päringus `Authorization: Bearer <võti>` (`NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY`); Ruuter lisab selle ise. Võtmeta päring annab 401. `/health` jääb avatuks.

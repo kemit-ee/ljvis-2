@@ -33,6 +33,7 @@ tests:
     method: POST
     path: /ljvis/notification/create
     headers:
+      x-internal-service-token: test-secret
       content-type: application/json
     body:
       type: ncr_violation
@@ -74,6 +75,7 @@ tests:
     method: POST
     path: /ljvis/notification/create
     headers:
+      x-internal-service-token: test-secret
       content-type: application/json
     body:
       type: nu_violation
@@ -98,6 +100,7 @@ tests:
     method: POST
     path: /ljvis/notification/create
     headers:
+      x-internal-service-token: test-secret
       content-type: application/json
     body:
       type: ncr_violation
@@ -130,6 +133,7 @@ tests:
     method: POST
     path: /ljvis/notification/create
     headers:
+      x-internal-service-token: test-secret
       content-type: application/json
     body:
       type: ncr_ok
@@ -157,6 +161,7 @@ tests:
     method: POST
     path: /ljvis/notification/create
     headers:
+      x-internal-service-token: test-secret
       content-type: application/json
     body:
       type: rsi_received
@@ -189,6 +194,7 @@ tests:
     method: POST
     path: /ljvis/notification/create
     headers:
+      x-internal-service-token: test-secret
       content-type: application/json
     body:
       type: nu_inbound_received
