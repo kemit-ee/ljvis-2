@@ -215,6 +215,10 @@ tests:
         lastname: Person
         permissions:
         - foreign_violation_form.read
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: []
     - url_matches: /control-forms/foreign-violation-form/get
       method: POST
       status: 200

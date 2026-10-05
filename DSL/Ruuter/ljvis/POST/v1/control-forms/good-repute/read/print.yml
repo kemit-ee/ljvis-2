@@ -26,7 +26,32 @@ chooseMode:
       next: renderBlank
     - condition: ${id === ''}
       next: returnBadRequest
-  next: getCurrentForm
+  next: checkReadAccess
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "good-repute"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getCurrentForm
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getCurrentForm:
   call: http.post

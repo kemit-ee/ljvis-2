@@ -24,7 +24,19 @@ downloadFile:
     form_number_prefix: "th-"
     id: ${incoming.params.q}
     form_type: "trailer-technical-form"
+    access_form_type: "trailer-technical"
   result: downloadResult
+
+checkDownloadResult:
+  switch:
+    - condition: ${downloadResult === "FORBIDDEN"}
+      next: returnReadAccessDenied
+  next: returnSuccess
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 returnSuccess:
   return: ${downloadResult}

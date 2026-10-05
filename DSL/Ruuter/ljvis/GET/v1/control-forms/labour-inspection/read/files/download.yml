@@ -24,7 +24,19 @@ downloadFile:
     form_number_prefix: "ti-"
     id: ${incoming.params.q}
     form_type: "labour-inspection"
+    access_form_type: "labour-inspection"
   result: downloadResult
+
+checkDownloadResult:
+  switch:
+    - condition: ${downloadResult === "FORBIDDEN"}
+      next: returnReadAccessDenied
+  next: returnSuccess
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 returnSuccess:
   return: ${downloadResult}

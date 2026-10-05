@@ -14,6 +14,8 @@ declaration:
         type: string
       - field: attachment_form_type
         type: string
+      - field: access_form_type
+        type: string
 
 getAttachmentRecord:
   call: http.post
@@ -32,11 +34,37 @@ checkRecordExists:
   switch:
     - condition: ${dbResult.response.body.length === 0}
       next: returnNotFound
-  next: getPresignedUrl
+  next: checkReadAccess
 
 returnNotFound:
   status: 404
   return: '{"error": "File not found or has been deleted"}'
+  next: end
+
+# Omand (epic #502 A2 read): manuse allalaadimine järgib vormi lugemisreeglit. `access_form_type` on
+# wrapperi konstant; vormi number tuleb manuse kirjest (mitte kliendilt). Keeld = tekst `FORBIDDEN`,
+# mille wrapper teeb 403-ks (staatus ei ületa `template:` kutset).
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: ${incoming.body.access_form_type || ""}
+    form_key: ""
+    form_number: ${dbResult.response.body[0].formNumber || dbResult.response.body[0].form_number}
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getPresignedUrl
+  next: returnForbidden
+
+returnForbidden:
+  return: "FORBIDDEN"
+  status: 403
   next: end
 
 getPresignedUrl:

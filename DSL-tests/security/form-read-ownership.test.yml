@@ -1,0 +1,263 @@
+# Epic #502 / A2 read — vormi lugemine ID järgi järgib omandireeglit (check-read-access).
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_RESQL_ARHIIV: '{MOCK}/arhiiv'
+  LJVIS_TIM: '{MOCK}/tim'
+  LJVIS_DMAPPER_HBS: '{MOCK}/dmapper'
+  S3_PROXY: '{MOCK}/s3'
+tests:
+- name: reading another organisation's unpublished form is refused with 403
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [foreign_violation_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: false, status: saved}]
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body: [{formNumber: vr-1, createdBy: OTHER}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/foreign-violation-form?q=7
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/check-read-access
+    count: 1
+    body_matches:
+      form_type: foreign-violation-form
+      form_key: '7'
+      caller_personal_code: SESSION1
+      caller_organisation_id: '5'
+      caller_view_unpublished: 'false'
+  - url_matches: /control-forms/foreign-violation-form/get
+    count: 0
+
+- name: view_unpublished is read from the server-side permissions, never from the request
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [foreign_violation_form.read, control_form.view_unpublished]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: saved}]
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/foreign-violation-form?q=7
+    headers: {cookie: test}
+  expect:
+    status: 404
+  verify_mocks:
+  - url_matches: /control-forms/check-read-access
+    count: 1
+    body_matches:
+      caller_view_unpublished: 'true'
+
+- name: a form that does not exist falls through to the handler (404), not 403
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [foreign_violation_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/foreign-violation-form?q=999
+    headers: {cookie: test}
+  expect:
+    status: 404
+
+- name: check-read-access template rejects a client-supplied caller_organisation_id (strict)
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [foreign_violation_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true}]
+  request:
+    method: GET
+    path: /ljvis/templates/form/check-read-access
+    headers: {cookie: test, content-type: application/json}
+    body: {form_type: foreign-violation-form, form_key: '7', form_number: '', caller_organisation_id: '999'}
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /control-forms/check-read-access
+    count: 0
+
+- name: snapshot history of another organisation's draft is refused
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [adr_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: false, status: confirmed}]
+    - url_matches: /control-forms/adr-form/get-snapshots
+      method: POST
+      status: 200
+      body: [{snapshotId: 1}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/get-snapshots?id=3&formType=adr-form
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/adr-form/get-snapshots
+    count: 0
+
+- name: file list of a refused form is 403 and does not query attachments
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [foreign_violation_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: false, status: saved}]
+    - url_matches: /control-forms/files/get_form_attachments
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/foreign-violation-form/read/files/list?form_number=vr-2026-00001
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/check-read-access
+    count: 1
+    body_matches:
+      form_number: vr-2026-00001
+  - url_matches: /control-forms/files/get_form_attachments
+    count: 0
+
+- name: file download of a refused form is 403 and presigns nothing
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        permissions: [foreign_violation_form.read]
+    - url_matches: /control-forms/files/get_form_attachment_by_id
+      method: POST
+      status: 200
+      body: [{id: 1, formNumber: vr-2026-00001, fileName: a.txt, s3Key: foreign-violation-form/vr-2026-00001/a.txt}]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: false, status: saved}]
+    - url_matches: /s3/presign
+      method: GET
+      status: 200
+      body: {url: x}
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/foreign-violation-form/read/files/download?q=1
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/check-read-access
+    count: 1
+    body_matches:
+      form_type: foreign-violation-form
+      form_number: vr-2026-00001
+  - url_matches: /s3/presign
+    count: 0

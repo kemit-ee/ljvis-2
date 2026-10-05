@@ -25,7 +25,19 @@ downloadFile:
     attachment_form_type: "sp-driver-form"
     id: ${incoming.params.q}
     form_type: "sp-driver-form"
+    access_form_type: "drive-rest-form/driver"
   result: downloadResult
+
+checkDownloadResult:
+  switch:
+    - condition: ${downloadResult === "FORBIDDEN"}
+      next: returnReadAccessDenied
+  next: returnSuccess
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 returnSuccess:
   return: ${downloadResult}
