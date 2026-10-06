@@ -52,9 +52,9 @@ LANGUAGE sql IMMUTABLE AS $$
 $$;
 
 -- Tulemus (outcome):
---   created   — uus akt (versioon 1, staatus saved)
+--   created   — uus akt (versioon 1, staatus confirmed — X-tee kaudu saabunud akt on algusest kinnitatud)
 --   unchanged — täpne kordus, uut rida ei lisata
---   updated   — muudetud kordus saved-aktile: uus snapshot sama võtme, numbri ja versiooniga
+--   updated   — muudetud kordus saved-aktile: uus snapshot sama võtme, numbri ja versiooniga (uued X-tee aktid on confirmed, seega praktikas ainult varem saved-staatuses loodud aktid)
 --   existing  — p_on_change = 'keep_first' (REST v3 senine leping): olemasolev akt, muutust ei rakendata
 --   conflict  — muudetud kordus aktile, mille staatus ei ole saved; midagi ei muudeta
 --   archived  — muudetud kordus aktile, mis on töö-baasist arhiveerimisel eemaldatud (archive purge);
@@ -133,7 +133,7 @@ BEGIN
             ) VALUES (
                 v_key,
                 'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(v_key::TEXT, GREATEST(5, LENGTH(v_key::TEXT)), '0'),
-                1, 1, 'saved',
+                1, 1, 'confirmed',
                 p_inspector_name, v_date, v_ext_col, p_inspection_type,
                 p_company_name, p_company_reg_code, v_vehicles, v_controls,
                 v_presc, v_viol, v_pid, v_pfirst, v_plast, v_proc,

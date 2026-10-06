@@ -10,9 +10,9 @@ python3 tests/xtr/repeat_test.py --soap-url http://localhost:9095 --rest-url htt
 
 Checks (see docs/xtee/09-xtr-soap.md):
 - exact repeat: Success, no new snapshot;
-- changed repeat of a saved act: Success, new snapshot with the same key/number/version, old snapshot kept;
-- changed repeat of a confirmed act: SOAP Fault, nothing written; exact repeat still Success;
-- concurrent identical first requests create one act; concurrent changed requests are all applied, none lost;
+- new act is created confirmed (version 1);
+- changed repeat of a confirmed act: SOAP Fault (409), nothing written; exact repeat still Success;
+- concurrent identical first requests create one act; concurrent changed requests: one act, the first wins, the rest get 409;
 - REST v3 keeps its first-write-wins contract but is atomic;
 - REST/SOAP v1 inspection_type: passenger only for non-zero passenger-carriage counters (zero, single, mixed, legacy);
 - a changed repeat of an act purged by archiving is a 409 Fault, not a 500 or a new act;
@@ -171,25 +171,6 @@ class Client:
         return int(self.db.value(f"""SELECT count(DISTINCT labour_inspection_form_key) FROM forms.labour_inspection_form
             WHERE external_inspection_id = {lit(value)}"""))
 
-    def confirm(self, key):
-        """Confirm the act through the real Resql update query (same as the UI save with status confirmed)."""
-        latest = self.db.json(f"""SELECT * FROM forms.labour_inspection_form WHERE labour_inspection_form_key = {int(key)}
-            ORDER BY created_at DESC, id DESC LIMIT 1""")[0]
-        status, text = self.resql('/control-forms/labour-inspection/update', {
-            'key': str(key), 'status': 'confirmed', 'inspectorName': latest['inspector_name'],
-            'inspectionDate': latest['inspection_date'], 'inspectionType': latest['inspection_type'],
-            'companyName': latest['company_name'], 'companyRegCode': latest['company_reg_code'],
-            'vehicleCount': '' if latest['vehicle_count'] is None else str(latest['vehicle_count']),
-            'totalDriversCount': '' if latest['total_drivers_count'] is None else str(latest['total_drivers_count']),
-            'controlsMatrix': json.dumps(latest['controls_matrix']),
-            'prescriptionComposed': 'true' if latest['prescription_composed'] else 'false',
-            'punishedPersonIdCode': latest['punished_person_id_code'] or '',
-            'punishedPersonFirstName': latest['punished_person_first_name'] or '',
-            'punishedPersonLastName': latest['punished_person_last_name'] or '',
-            'proceedingReferenceNumber': latest['proceeding_reference_number'] or '',
-            'violations': json.dumps(latest['violations']), 'created_by': 'repeat-test'})
-        check(status == 200, f'confirm form {key} through Resql update ({status} {text[:200]})')
-
 
 def lifecycle(client, operation, source, external_id, first, changed, other):
     status, ok, _, text = client.soap(operation, first)
@@ -198,31 +179,20 @@ def lifecycle(client, operation, source, external_id, first, changed, other):
     check(act and act['snapshots'] == 1, f'{operation}: first request created one act with one snapshot')
     key = act['key']
     created = client.snapshots(key)[0]
-    check(created['status'] == 'saved' and created['version'] == 1, f'{operation}: new act is saved, version 1')
+    check(created['status'] == 'confirmed' and created['version'] == 1, f'{operation}: new act is confirmed, version 1')
     check(created['external_inspection_id'] == external_id, f'{operation}: external_inspection_id is the sender ID without prefix')
 
     _, ok, _, _ = client.soap(operation, first)
     check(ok and client.act(source, external_id)['snapshots'] == 1, f'{operation}: exact repeat is Success without a new snapshot')
 
-    _, ok, _, _ = client.soap(operation, changed)
-    rows = client.snapshots(key)
-    check(ok and len(rows) == 2, f'{operation}: changed repeat of a saved act is Success and adds a snapshot')
-    check(rows[1]['form_number'] == rows[0]['form_number'] and rows[1]['version'] == rows[0]['version'] == 1,
-          f'{operation}: changed repeat keeps key, form number and version')
-    check(rows[0]['violations'] != rows[1]['violations'], f'{operation}: previous snapshot is kept, new one holds the changed data')
+    for label, body in (('changed', changed), ('other', other)):
+        status, ok, fault, text = client.soap(operation, body)
+        check(not ok and fault and '<faultcode>SOAP-ENV:Client</faultcode>' in text and 'HTTP 409' in text,
+              f'{operation}: {label} repeat of a confirmed act is a Client SOAP Fault (HTTP 409), not Success')
+        check(len(client.snapshots(key)) == 1, f'{operation}: rejected {label} repeat wrote nothing')
     check(client.act(source, external_id)['key'] == key, f'{operation}: registry still points to the same act')
-
-    client.confirm(key)
-    rows = client.snapshots(key)
-    check(rows[-1]['status'] == 'confirmed' and rows[-1]['external_inspection_id'] == external_id,
-          'UI update.sql keeps external_inspection_id in the confirmed snapshot')
-    before = len(rows)
-    status, ok, fault, text = client.soap(operation, other)
-    check(not ok and fault and '<faultcode>SOAP-ENV:Client</faultcode>' in text and 'HTTP 409' in text,
-          f'{operation}: changed repeat of a confirmed act is a Client SOAP Fault (HTTP 409), not Success')
-    check(len(client.snapshots(key)) == before, f'{operation}: rejected repeat wrote nothing')
-    _, ok, _, _ = client.soap(operation, changed)
-    check(ok and len(client.snapshots(key)) == before, f'{operation}: exact repeat of the last applied data is still Success after confirmation')
+    _, ok, _, _ = client.soap(operation, first)
+    check(ok and len(client.snapshots(key)) == 1, f'{operation}: exact repeat of the first data is still Success after a rejected change')
     return key
 
 
@@ -246,19 +216,17 @@ def concurrency(client):
     external_id = f'PAR-CHG-{RUN}'
     payloads = [v2_request(external_id, code=f'CODE_{n}', count=n + 1) for n in range(8)]
     results = parallel(lambda body: client.soap('RegisterJobInspection_v2', body), payloads, workers=8)
-    check(all(r[1] for r in results), 'v2: 8 concurrent different first requests all Success')
+    successes = [r for r in results if r[1]]
+    check(len(successes) == 1 and all('HTTP 409' in r[3] for r in results if not r[1]),
+          'v2: of 8 concurrent different first requests exactly one is Success, the others get 409 (act is confirmed)')
     act = client.act('xroad-v2', external_id)
-    rows = client.snapshots(act['key'])
-    # A single <rikkumiste_arv> arrives from XTR as an object, several as a list.
-    applied = {(r['violations']['rikkumiste_arv'] if isinstance(r['violations']['rikkumiste_arv'], dict)
-                else r['violations']['rikkumiste_arv'][0])['rikkumise_kood'] for r in rows}
-    check(len(rows) == 8 and applied == {f'CODE_{n}' for n in range(8)} and client.forms_with_external_id(external_id) == 1,
-          'v2: every concurrent changed request is applied as a snapshot of one act, none lost')
+    check(act['snapshots'] == 1 and client.forms_with_external_id(external_id) == 1,
+          'v2: concurrent different first requests created one act with one snapshot')
     latest_hash = client.db.value(f"""SELECT forms.lif_external_payload_hash(inspector_name, inspection_date, inspection_type,
         company_name, company_reg_code, vehicle_count, prescription_composed, controls_matrix, violations,
         punished_person_id_code, punished_person_first_name, punished_person_last_name, proceeding_reference_number)
         FROM forms.labour_inspection_form WHERE labour_inspection_form_key = {act['key']} ORDER BY created_at DESC, id DESC LIMIT 1""")
-    check(latest_hash == act['payload_hash'], 'v2: registry hash matches the latest snapshot after concurrent writes')
+    check(latest_hash == act['payload_hash'], 'v2: registry hash matches the stored snapshot after concurrent writes')
 
 
 def rest_v3(client):

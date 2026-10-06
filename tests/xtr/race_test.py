@@ -126,21 +126,18 @@ def main():
         command = command + ['-qAt']
     db = Db(command)
 
-    # A: UI confirmation is in flight, X-tee sends changed data.
+    # A: a UI re-save of the confirmed act is in flight, X-tee sends changed data.
     external_id, key = new_act(db, 'A')
     ui_out, soap_out = concurrently(db, ui_update(key, 'confirmed'), soap(external_id, 2))
     check(ui_out != '' and soap_out == 'conflict',
-          'A: UI confirm wins; the concurrent changed X-tee repeat re-reads and answers conflict (409), not updated')
-    check(history(db, key) == ['saved/xroad/1', 'confirmed/ui/1'], 'A: confirmation is kept; status does not fall back to saved')
+          'A: UI save wins; the concurrent changed X-tee repeat answers conflict (409), not updated')
+    check(history(db, key) == ['confirmed/xroad/1', 'confirmed/ui/1'], 'A: the UI snapshot is kept; X-tee wrote nothing')
 
-    # B: X-tee changed repeat is in flight, the user confirms the state they saw.
+    # B: X-tee changed repeat is in flight (it is refused, nothing written), the user saves the act.
     external_id, key = new_act(db, 'B')
-    soap_out, ui_out = concurrently(db, soap(external_id, 2), ui_update(key, 'confirmed'))
-    check(soap_out == 'updated' and ui_out.startswith('REJECTED'),
-          'B: X-tee update wins; the concurrent UI confirm of the old state is rejected (duplicate revision), writes nothing')
-    check(history(db, key) == ['saved/xroad/1', 'saved/xroad/2'], 'B: X-tee change is not overwritten by stale data')
-    db.run(ui_update(key, 'confirmed', value=2) + ';')
-    check(history(db, key)[-1] == 'confirmed/ui/2', 'B: after reload the user confirms the current data')
+    soap_out, ui_out = concurrently(db, soap(external_id, 2), ui_update(key, 'confirmed', value=2))
+    check(soap_out == 'conflict' and ui_out != '', 'B: X-tee changed repeat is refused (conflict); the concurrent UI save is stored')
+    check(history(db, key) == ['confirmed/xroad/1', 'confirmed/ui/2'], 'B: history holds the X-tee snapshot and the UI save only')
 
     # C: UI delete is in flight, X-tee sends changed data.
     external_id, key = new_act(db, 'C')
@@ -151,7 +148,7 @@ def main():
 
     # D: two UI saves on top of the same state.
     _, key = new_act(db, 'D')
-    first_out, second_out = concurrently(db, ui_update(key, 'saved'), ui_update(key, 'confirmed'))
+    first_out, second_out = concurrently(db, ui_update(key, 'confirmed'), ui_update(key, 'confirmed', value=2))
     check(first_out != '' and second_out.startswith('REJECTED'), 'D: of two concurrent UI writes only the first is stored, the second is rejected')
 
     # E: e-toimik publishes while the user re-saves the confirmed act (edit_locked).
@@ -163,13 +160,13 @@ def main():
     check(ui_out != '' and etoimik_out.startswith('REJECTED'), 'E: e-toimik does not publish on top of a concurrently changed act; next sync decides')
     history(db, key)
 
-    # F: the user opened the act at revision 1, an X-tee correction was stored meanwhile (revision 2), then the
-    # user confirms with expected_revision=1: optimistic lock -> no row (the UI answers 409 form_modified).
+    # F: the user opened the act at revision 1, a UI save was stored meanwhile (revision 2), then the
+    # user saves with expected_revision=1: optimistic lock -> no row (the UI answers 409 form_modified).
     external_id, key = new_act(db, 'F')
-    db.run(soap(external_id, 2) + ';')
+    db.run(ui_update(key, 'confirmed', value=2) + ';')
     stale = db.run(ui_update(key, 'confirmed', expected_revision='1') + ';')
-    check(stale == '' and history(db, key) == ['saved/xroad/1', 'saved/xroad/2'],
-          'F: confirm of a stale revision after an X-tee correction writes nothing (form_modified)')
+    check(stale == '' and history(db, key) == ['confirmed/xroad/1', 'confirmed/ui/2'],
+          'F: save of a stale revision writes nothing (form_modified)')
 
     print(f'PASS: {len(CHECKS)} checks')
     for message in CHECKS:

@@ -10,7 +10,8 @@
 
 ### Tööinspektsiooni aktide kordussaatmine
 
-- Sama kontrolli ID täpne kordus ei loo uut kirjet. Muudetud andmetega kordus kinnitamata aktile salvestatakse akti uue seisuna (sama number ja versioon); kinnitatud, avaldatud, kustutatud või arhiveeritud akti korral tagastatakse viga (HTTP 409 / SOAP Fault) ja andmeid ei muudeta — varem jäeti muudatus vaikselt kõrvale ja vastati „Success“.
+- X-tee (RegisterJobInspection v1/v2, REST v3) kaudu saabuv tööinspektsiooni akt tekib kohe staatusega „Kinnitatud“ (varem „Salvestatud“); e-toimiku sünkroonimine võtab selle seetõttu kohe käsile.
+- Sama kontrolli ID täpne kordus ei loo uut kirjet. Muudetud andmetega kordus tagastab vea (HTTP 409 / SOAP Fault) ja andmeid ei muudeta — varem jäeti muudatus vaikselt kõrvale ja vastati „Success“. Sama kehtib kinnitatud, avaldatud, kustutatud ja arhiveeritud akti kohta.
 - Samaaegsed sama ID-ga päringud loovad ühe akti. REST v3 senine käitumine (kordus tagastab olemasoleva akti) ei muutu.
 - X-tee kaudu saabunud parandus kasutab sama samaaegse muutmise kaitset (`revision`) nagu kasutajaliides: kui kasutaja kinnitas akti samal ajal, saab X-tee tarbija vea (409) ja kinnitus jääb kehtima; kui parandus jõudis enne, näeb kasutaja teadet, et vormi muudeti vahepeal.
 - `RegisterJobInspection` v1: liik „Sõitjate vedu“ määratakse ainult siis, kui sõitjateveo juhtide loendurid on nullist suuremad (varem piisas loendurite objekti olemasolust). Kehtib nii SOAP-i kui REST v1 kaudu.

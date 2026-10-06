@@ -31,15 +31,14 @@ Akti identiteet on **leping + saatja ID**: tabel `forms.labour_inspection_extern
 
 | Olukord | v1 / v2 (SOAP ja REST v1) | REST v3 |
 |---|---|---|
-| Esimene päring | Uus akt, `saved`, versioon 1 | sama |
+| Esimene päring | Uus akt, `confirmed`, versioon 1 | sama |
 | Täpne kordus | `Success`, uut rida ei lisata | olemasolev akt |
-| Muudetud sisu, akt `saved` | `Success`, uus snapshot sama võtme, numbri ja versiooniga; eelmine jääb alles | olemasolev akt, muudatust ei rakendata (senine leping) |
-| Muudetud sisu, akt `confirmed` / `published` / `deleted` | HTTP 409 → SOAP `Client` Fault, midagi ei salvestata | olemasolev akt |
+| Muudetud sisu (akt on `confirmed` / `published` / `deleted`) | HTTP 409 → SOAP `Client` Fault, midagi ei salvestata | olemasolev akt |
 | Akt on arhiveerimisel töö-baasist eemaldatud (`purge`) | täpne kordus `Success`; muudetud → 409 (`archived`), uut akti ei looda | olemasolev (arhiveeritud) akt |
 | Samaaegsed päringud | üks akt; muudetud päringud rakendatakse järjest | üks akt |
 | Samal ajal kinnitab/kustutab kasutaja UI-s | 409, kui UI jõudis enne; muidu salvestub X-tee muudatus ja UI saab `form_modified` | olemasolev akt |
 
-**Erinevus LJVIS1-st:** LJVIS1 `RavenDbManager.StoreOrUpdateJobInspection(JobInspectionV2)` uuendas sama `InspectionId`-ga dokumenti igas staatuses ja määras staatuse (`Saved`, ilma menetluse viitenumbrita `Published`). LJVIS2 lubab automaatset muutmist ainult kinnitamata aktil ning loob sissetulevad aktid alati `saved`-staatuses. See on ohutu vaikimisi käitumine, **mitte täielik ühilduvus**: lukustatud akti muutmine ja sissetuleva akti staatusereegel (vt `apply_etoimik_decision.sql`, mis töötleb ainult `confirmed` akte) vajavad äriotsust.
+**Erinevus LJVIS1-st:** LJVIS1 `RavenDbManager.StoreOrUpdateJobInspection(JobInspectionV2)` uuendas sama `InspectionId`-ga dokumenti igas staatuses ja määras staatuse (`Saved`, ilma menetluse viitenumbrita `Published`). LJVIS2 loob sissetulevad aktid alati `confirmed`-staatuses (nii saab e-toimiku sünkroonimine neid kohe töödelda, vt `apply_etoimik_decision.sql`) ja lukustatud akti X-tee kaudu ei muudeta: muudetud kordus tagastab 409. See on **mitte täielik ühilduvus** LJVIS1-ga, kus sama `InspectionId` uuendas dokumenti igas staatuses.
 
 **Migratsioon:** LJVIS1 RavenDB V2 aktid seotakse `xroad-v2` + `InspectionId`-ga (`DSL/migration/sql/07-transform-labour-inspection.sql`), seega hilisem `RegisterJobInspection_v2` sama ID-ga leiab migreeritud akti (kinnitatud → 409, duplikaati ei teki). V1 Raven dokumendi ID on LJVIS1 sisemine järjenumber, mitte saatja `kontrolli_id`; V1 aktidele seost ei looda. Kui sama `InspectionId` on enne migratsiooni juba X-tee kaudu LJVIS2-sse saabunud, peatab eelkontroll jooksu leiuga `external_id_already_received`.
 

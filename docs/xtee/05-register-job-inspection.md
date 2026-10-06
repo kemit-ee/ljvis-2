@@ -70,9 +70,8 @@ Kordussaatmise reeglid (identiteet: leping + saatja `kontrolli_id`, tabel `forms
 
 | Olukord | Tulemus |
 |---|---|
-| Esimene päring | Uus akt, staatus `saved`, versioon 1 |
+| Esimene päring | Uus akt, staatus `confirmed`, versioon 1 |
 | Täpne kordus (sama sisu kui viimati rakendatud) | HTTP 200 `Success`, uut rida ei lisata |
-| Muudetud sisu, akt on `saved` | HTTP 200 `Success`; lisatakse uus snapshot sama võtme, aktinumbri ja versiooniga, eelmine jääb alles |
 | Muudetud sisu, akt on `confirmed` / `published` / `deleted` | HTTP 409 `CONFLICT`, midagi ei salvestata (SOAP-is `Client` Fault) |
 | Muudetud sisu, akt on arhiveerimisel töö-baasist eemaldatud | HTTP 409 `CONFLICT` (arhiveeritud), uut akti ei looda; täpne kordus `Success` |
 | Samaaegsed päringud sama ID-ga | Luuakse üks akt; muudetud samaaegsed päringud rakendatakse järjest, ükski ei kao |
@@ -101,7 +100,6 @@ LJVIS1 (RavenDB) uuendas sama ID-ga dokumenti igas staatuses. LJVIS2-s on muutmi
 |---|--------|-----------------|
 | T1 | Kõik kohustuslikud väljad | HTTP 200, `{"message": "Success"}` |
 | T2 | Korduspäring sama `kontrolli_id` | HTTP 200, duplikaati ei looda |
-| T2a | Muudetud korduspäring, akt `saved` | HTTP 200, uus snapshot sama numbri ja versiooniga |
 | T2b | Muudetud korduspäring, akt `confirmed` | HTTP 409 `CONFLICT`, midagi ei salvestata |
 | T2c | Samaaegsed sama `kontrolli_id` päringud | Üks akt |
 | T3 | `kontrollija` puudub | HTTP 400 |

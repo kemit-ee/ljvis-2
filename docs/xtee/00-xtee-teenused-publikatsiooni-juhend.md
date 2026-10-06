@@ -316,7 +316,7 @@ sequenceDiagram
 **DSL:** `DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection.yml`
 
 Võtab vastu Tööinspektsiooni töökontrolli andmed (vana WSDL `RegisterJobInspectionRequestType`, teisendatud REST/JSON-iks) ja salvestab `forms.labour_inspection_form` tabelisse.
-**Idempotentne** — sama `kontrolli_id` täpne kordus ei tekita uut rida. Muudetud kordus kinnitamata (`saved`) aktile lisab uue snapshot'i; lukustatud aktile tagastab **409 `CONFLICT`** ja midagi ei salvestata. Samaaegsed päringud loovad ühe akti. Vt [05-register-job-inspection.md](05-register-job-inspection.md#5-idempotentsus).
+**Idempotentne** — sama `kontrolli_id` täpne kordus ei tekita uut rida. Uus akt tekib staatusega `confirmed`; muudetud kordus tagastab **409 `CONFLICT`** ja midagi ei salvestata. Samaaegsed päringud loovad ühe akti. Vt [05-register-job-inspection.md](05-register-job-inspection.md#5-idempotentsus).
 
 #### Sisendid
 
