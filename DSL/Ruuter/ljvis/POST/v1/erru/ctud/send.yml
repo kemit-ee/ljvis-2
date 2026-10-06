@@ -263,8 +263,6 @@ logAuditSend:
     response_code: ${resp_status_code}
     transport_undertaking_name: ${undertaking_name}
     community_licence_number: ${licence_number}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnResponded
 
@@ -280,8 +278,6 @@ logAuditError:
     response_code: ""
     transport_undertaking_name: ${undertaking_name}
     community_licence_number: ${licence_number}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSendFailed
 

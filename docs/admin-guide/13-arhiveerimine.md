@@ -82,6 +82,11 @@ töölaual, otsingus ega riskiarvutuses (vt piirangud peatükis 4).
   päringuga kinnitanud. Kui kinnitatud ridu on vähem kui kopeeritud ridu, kustutamist
   **ei tehta** (logis `purge skipped - archive not complete`) ja järgmine jooks proovib
   uuesti. Kopeerimine on korduskäivituse suhtes turvaline (`ON CONFLICT DO NOTHING`).
+- **Vormi ajalugu kustutatakse ainult tervikuna.** Kustutamise SQL (`archive/purge_confirmed.sql`)
+  kustutab vormivõtme read ainult siis, kui kõik selle vormi snapshot-read on kinnitatud hulgas.
+  Kui partii piir lõikab vormi ajaloo pooleks, jääb vorm tervikuna järgmisse jooksu — ajalugu ei jää
+  kunagi osaliselt töö- ja osaliselt arhiivibaasi. See fail on **ainus** SQL-mall, kus `DELETE` on
+  lubatud (`.sql-rule-exemption`, ADR-013); kõik muu SQL on ainult `INSERT`/`SELECT`.
 - **Vormi ajalugu jääb loetavaks.** Vormi versiooniajaloo päringud (`get-snapshots`,
   `get-snapshot`) vaatavad esmalt töö-baasi ja, kui seal ei ole midagi, arhiivibaasi.
   Arhiveeritud vorm avaneb seega ajaloovaatest ja otselingilt endiselt.

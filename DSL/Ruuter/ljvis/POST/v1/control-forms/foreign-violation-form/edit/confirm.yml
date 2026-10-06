@@ -6,6 +6,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -216,6 +217,7 @@ confirmForm:
       type: json
     body:
       key: ${key}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -270,7 +272,20 @@ confirmForm:
       status: ${status}
       created_by: ${created_by}
   result: insertRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${insertRes.response != null && insertRes.response.status >= 200 && insertRes.response.status < 300 && Array.isArray(insertRes.response.body) && insertRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_insertRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractResponseData:
   assign:
@@ -288,8 +303,6 @@ logAuditEvent:
     form_number: ${form_number}
     old_status: ${old_status}
     new_status: ${new_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

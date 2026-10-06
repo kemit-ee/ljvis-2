@@ -1,11 +1,12 @@
 declaration:
 
   version: "1.0"
-  description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey. Confirmed/published sub-forms can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: compoundFormKey
       - field: driverAssistant
         type: string
@@ -199,8 +200,6 @@ logAuditEventInsert:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -219,11 +218,31 @@ extractCurrentStatus:
   assign:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
     current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+    current_created_by: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].createdBy) || ''}"
+  next: getCompoundForInspector
+
+# Kinnitatud alamvormi võib muuta selle looja või koondvormile märgitud
+# kontrolli läbiviija (inspektor); avalikustatud vormi ainult control_form.edit_locked õigusega.
+getCompoundForInspector:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
+    headers:
+      type: json
+    body:
+      id: ${current_compound_form_key}
+  result: inspectorCompoundRes
+  next: extractInspector
+
+extractInspector:
+  assign:
+    is_creator: "${current_created_by !== '' && current_created_by === (u.personalcode || '')}"
+    is_inspector: "${inspectorCompoundRes.response != null && inspectorCompoundRes.response.body != null && inspectorCompoundRes.response.body[0] != null && String(inspectorCompoundRes.response.body[0].inspectorFirstName || '').trim().toUpperCase() === String(u.firstname || '').trim().toUpperCase() && String(inspectorCompoundRes.response.body[0].inspectorLastName || '').trim().toUpperCase() === String(u.lastname || '').trim().toUpperCase() && String(inspectorCompoundRes.response.body[0].inspectorOrganisationId || '') === String(u.organisationid || '') && String(u.firstname || '').trim() !== ''}"
   next: checkFormNotLocked
 
 checkFormNotLocked:
   switch:
-    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && u.permissions.includes('control_form.edit_locked')) && !(current_status === 'confirmed' && (is_creator || is_inspector))}
       next: returnFormLockedError
   next: updateForm
 
@@ -235,6 +254,7 @@ updateForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${current_status}
       driverAssistant: ${driver_assistant}
       driverAdrCertificateNumber: ${driver_adr_certificate_number}
@@ -263,7 +283,20 @@ updateForm:
       infringementNotesSummary: ${infringement_notes_summary}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkUpdateSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkUpdateSaved:
   switch:
@@ -317,8 +350,6 @@ logAuditEventUpdate:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

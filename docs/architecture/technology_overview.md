@@ -27,10 +27,10 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 |---|---|---|---|---|
 | Frontend | 1.2.2 | määramata | 2026-09-11 | `frontend/package.json` |
 | Frontend | 1.3.0 | 2026-09-11 |  | NCR ja Tööinspektsiooni salvestuse parendused |
+| XTR | 0.4.1-rc | 2026-09-30 | 2026-10-05 | `turnerrainer/xtr:0.4.1-rc` |
+| XTR | 0.5.0-rc | 2026-10-05 |  | SOAPAction tugi `service:`-DSL-idele (0.4.2), valikuline `XTR_INTER_SERVICE_TOKEN` ja graceful shutdown (0.4.3), valikulised SOAP-lane'id (`.soap.yaml`, 0.5.0). Meie `DSL/xtr` päringud muutumatud. LJVIS1 WSDL-i pakkumine (`/soap-in/`, port 8081) ja JSON → SOAP väljuv (`/soap-out/`); release-image sisaldab `/wsdl`; `xtr.yaml` `security_server.trust_ca_path` (üks sertifikaat) asendab `SSL_CERT_FILE`-i. |
 | DataMapper | 0.1.3-alpha | 2026-09-07 | 2026-09-18 | `turnerrainer/datamapper:0.1.3-alpha` |
 | DataMapper | 0.2.1-alpha | 2026-09-18 |  | Turvakõvendus (v0.2.0-alpha) + 405/graceful shutdown patch (v0.2.1-alpha); `APP_ENV=dev` lisatud, kuna env_safety langeb muidu Production-režiimi tagasi. Väljundmallid muutumatud. |
-| XTR | 0.4.1-rc | 2026-09-30 | 2026-10-05 | `turnerrainer/xtr:0.4.1-rc`, ainult väljuvad päringud |
-| XTR | 0.5.0-rc | 2026-10-05 |  | Skeemipõhised SOAP-rajad: LJVIS1 WSDL-i pakkumine (`/soap-in/`, port 8081) ja JSON → SOAP väljuv (`/soap-out/`); olemasolevad `DSL/xtr` päringud muutmata |
 
 ## Täiendav info
 

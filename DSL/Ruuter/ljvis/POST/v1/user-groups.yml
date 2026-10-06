@@ -103,8 +103,6 @@ logAuditEvent:
   body:
     event_type: "user_group.create"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: "Kasutajagrupi '${name}' loomine"
     log_content: "{\"targetGroupId\":${user_group_id},\"groupName\":\"${name}\",\"organisationIds\":[${organisation_ids}],\"permissionCodes\":${permission_codes},\"coversAllOrganisations\":${covers_all_organisations}}"
   result: audit_result

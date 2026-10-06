@@ -4,6 +4,7 @@ import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator, Heading } from '@tedi-design-system/react/tedi';
+import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 import { useAuth } from '../../../auth/AuthContext';
 import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Driver, Trailer } from '../../types';
 import {
@@ -51,6 +52,7 @@ import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/
 import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -590,7 +592,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
+  if (loadError || !compoundFormKey) return <FormLoadError />;
   const currentForm = variant === 'vehicle' ? vehicle.form : trailers[0].form;
   if (id && !currentForm) return <FormNotFoundView title={t(titleKey)} />;
 
@@ -649,7 +651,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         {addFormDropdown}
       </div>
 
-      {compoundForm && compoundFormKey && (
+      {/* E-toimiku päringu kaart ("Päri e-toimikust") on ainult karistusregistri õigusega kasutajale. */}
+      {compoundForm && compoundFormKey && hasPermission(PUNISHMENT_REGISTER_PERMISSION) && (
         <EtoimikQueryCard
           drivers={compoundFormDrivers}
           referenceNumberOptions={etoimikReferenceOptions}

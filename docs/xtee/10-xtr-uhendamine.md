@@ -15,7 +15,7 @@ Samas XTR-is töötavad edasi ka senised väljuvad päringud (rahvastikuregister
 
 ## Mida paigaldada
 
-1. Sama väljalaske **Liquibase, Resql, Ruuter, Ruuter.internal, frontend ja XTR**. Liquibase käib enne teisi (changeset `20261207100000` lisab tabeli ja funktsiooni).
+1. Sama väljalaske **Liquibase, Resql, Ruuter, Ruuter.internal, frontend ja XTR**. Liquibase käib enne teisi (changeset `20261209100000` lisab tabeli ja funktsiooni).
 2. XTR-i pilt ehitatakse projekti failist `docker/xtr/Dockerfile`. Selles on meie leping (WSDL) juba sees. Upstream'i tühi XTR-i pilt ei sobi.
 
 ## XTR seadistus (`xtr.yaml`, igas keskkonnas)

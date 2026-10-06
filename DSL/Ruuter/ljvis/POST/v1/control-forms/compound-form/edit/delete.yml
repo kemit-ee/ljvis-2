@@ -41,8 +41,6 @@ logAuditEvent:
   body:
     form_number: "${deleteRes.response.body[0].formNumber + '/' + deleteRes.response.body[0].version}"
     old_status: ${old_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: triggerRiskRecalculate
 
@@ -61,6 +59,7 @@ callRiskRecalculate:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${deleteRes.response.body[0].companyRegCode}

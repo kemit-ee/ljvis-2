@@ -80,6 +80,7 @@ createSeriousInfringement:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: "serious_infringement"
@@ -105,6 +106,7 @@ createExtraordinaryInspection:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: "extraordinary_inspection"
@@ -130,6 +132,7 @@ createCargoSecuring:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: "cargo_securing"
@@ -155,6 +158,7 @@ createDrivingBan:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: "driving_ban"

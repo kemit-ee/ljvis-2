@@ -144,6 +144,12 @@ The skill also reads:
    - Read models must rely on fat snapshot `*_latest` tables.
    - Query logic must not require SQL `JOIN`.
    - Write flows must follow append-only (`INSERT` only, no `UPDATE`, no `DELETE`).
+   - Reads use no `JOIN` / `LATERAL` either: write `WHERE x = ANY (SELECT ...)`, `EXISTS`, or a correlated scalar subquery
+     (`(SELECT c FROM forms.t c WHERE c.key = x.key ORDER BY c.created_at DESC LIMIT 1)` for the latest snapshot).
+   - To change a versioned `forms.*` row, copy the latest snapshot forward with `revision + 1` (see
+     `control-forms/tram-card/delete.sql`, `control-forms/vehicle-technical/update-proceeding-outcome.sql`);
+     never mutate it. CI (`tests/contract/check_resql_append_only.py`) enforces all of this; the one exemption is
+     the retention purge listed in `.sql-rule-exemption`.
    - Failure handling must follow `docs/db_errorhandling_rules.md`.
    - Verify-after-write must be present for all write flows.
    - Partial-success scenarios must be explicitly described.

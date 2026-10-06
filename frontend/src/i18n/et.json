@@ -536,8 +536,7 @@
           "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
           "max_length_exceeded": "Väärtus on liiga pikk",
           "form_locked_after_confirm": "See vorm on kinnitatud ja seda ei saa enam muuta",
-          "already_confirmed": "See vorm on juba kinnitatud",
-          "concurrent_modification": "Vormi muutis samal ajal keegi teine (nt X-tee kaudu saabunud parandus). Laadi vorm uuesti ja korda toimingut."
+          "already_confirmed": "See vorm on juba kinnitatud"
         }
       }
     },
@@ -702,6 +701,8 @@
       "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Autojuhi abi andmed",
+        "open": "Ava",
+        "close": "Sulge",
         "personalCode": "Isikukood",
         "firstName": "Eesnimi",
         "lastName": "Perekonnanimi",
@@ -935,6 +936,8 @@
       "address": "Aadress",
       "road": "Maantee",
       "road_other": "Muu tee",
+      "road_other_number": "Tee number",
+      "road_other_number_not_found": "Sellist tee numbrit muude teede loetelus ei leitud, sisestage tee nimetus käsitsi",
       "kilometer": "Kilomeeter (km)",
       "road_type": "Tee liik",
       "roadTaxStatus": "Veoauto teekasutustasu",
@@ -949,14 +952,14 @@
       "selectedForms": "Valitud kontrollvormid",
       "trailerTechnicalTab": "tehnoseisundi kontrollkaart",
       "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
-      "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
+      "editTrailerControlForm": "Ava haagise tehnokontrollvorm",
       "removeTrailer": "Eemalda haagis",
       "addTeammate": "Lisa meeskonnaliige",
       "teammate": "Meeskonnaliikme andmed",
       "removeTeammate": "Eemalda meeskonnaliige",
       "removeTeammateBlocked": "Meeskonnaliiget ei saa eemaldada, kuni tema sõidu- ja puhkeaja kontrollvorm on olemas. Kustuta vorm enne.",
       "addTeammateControlForm": "Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
-      "editTeammateControlForm": "Muuda meeskonnaliikme sõidu- ja puhkeaja kontrollvormi",
+      "editTeammateControlForm": "Ava meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
       "trailerRegNr": "Registreerimismärk",
       "trailerCountry": "Riigi tunnusmärk",
       "trailerMake": "Mark",
@@ -1321,7 +1324,7 @@
     },
     "otherDocs": {
       "notChecked": "Ei kontrollitud",
-      "compliant": "Nõuetekohane",
+      "compliant": "Kontrollitud",
       "nonCompliant": "Ei vasta nõuetele",
       "missing": "Puudub",
       "addRemark": "Lisa märkus",
@@ -1607,9 +1610,13 @@
     "numberPlaceholder": "Nr",
     "select": "Vali",
     "errors": {
+      "formModified": "Seda vormi muutis vahepeal keegi teine (või teine aken või e-toimiku sünkroonimine), seega sinu salvestus jäi tegemata. Laadi leht uuesti, kontrolli uusi andmeid ja salvesta oma muudatused uuesti.",
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",
       "forbidden": "Puuduvad õigused selle toimingu tegemiseks.",
+      "formForbiddenTitle": "Teil puudub õigus seda vormi vaadata",
+      "formForbidden": "Avalikustamata vormi näeb selle looja, sama asutuse kolleeg (õigusega „Minu asutuse vormid“) ja kasutaja, kellel on õigus vaadata avalikustamata vorme. Avalikustatud vormid on nähtavad kõigile vastava vormi lugemise õigusega kasutajatele. Ligipääsu vajaduse korral pöörduge oma asutuse kasutajahalduse poole.",
+      "formNotFound": "Soovitud vormi ei leitud. Vorm võib olla kustutatud või viidatud aadress on vigane.",
       "notFound": "Soovitud ressurssi ei leitud.",
       "requestFailed": "Päring ebaõnnestus. Palun proovige uuesti.",
       "unexpected": "Ilmnes ootamatu viga."
@@ -1659,13 +1666,13 @@
     "logoAlt": "Euroopa Sotsiaalfond"
   },
   "riskScores": {
-    "title": "Riskitasemed",
+    "title": "Eesti veoettevõtjate riskitasemed",
     "companyName": "Veoettevõtja",
     "companyRegCode": "Registrikood",
     "riskScore": "Riskitase",
     "riskBand": "Riskitase",
     "totalControls": "Kontrolle kokku",
-    "filterCompany": "Veoettevõtja",
+    "filterCompany": "Eesti veoettevõtja nimi",
     "filterRegCode": "Registrikood",
     "filterRiskBand": "Riskitase",
     "search": "Otsi",

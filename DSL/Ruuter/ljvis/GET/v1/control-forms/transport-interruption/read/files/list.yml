@@ -9,6 +9,31 @@ declaration:
         type: string
         description: "Logical form number to list files for"
 
+# Omand (epic #502 A2 read): manuste loend järgib vormi lugemisreeglit (avalikustamata vorm: looja,
+# looja asutus või `control_form.view_unpublished`).
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "transport-interruption"
+    form_key: ""
+    form_number: "${incoming.params.form_number}"
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getFiles
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
+
 getFiles:
   template: "templates/files/list"
   requestType: GET

@@ -102,6 +102,7 @@ publishForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       compoundFormKey: ${compound_form_key}
       subFormNumber: ${sub_form_number}
       status: published
@@ -156,12 +157,23 @@ logAuditEvent:
   body:
     event_type: "control_form.sp_teammate_form.publish"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: autoPublishCompound
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 # Viimase alamvormi avalikustamisel avalikustub kinnitatud koondvormi üldosa
 # serveris, mitte ainult brauseris (brauseri vormi esitus jääb vaikselt
@@ -175,8 +187,6 @@ autoPublishCompound:
   body:
     id: "${compound_form_key == null ? '' : String(compound_form_key)}"
     only_if_confirmed: "true"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
   result: autoPublishCompoundRes
   error: sendCarrierFromRequest
   next: sendCarrierFromRequest
@@ -189,6 +199,7 @@ sendCarrierFromRequest:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entity_type: "drive_rest_teammate_form"
@@ -210,6 +221,7 @@ createSeriousInfringement:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: "serious_infringement"
@@ -235,6 +247,7 @@ sendCabotageNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: "labor_kabotage"
@@ -262,6 +275,7 @@ sendTachographNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: "labor_tachograph_not_downloaded"
@@ -292,6 +306,7 @@ callRiskRecalculate:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}

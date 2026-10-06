@@ -6,6 +6,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: personalCode
         type: string
       - field: firstName
@@ -105,6 +106,7 @@ confirmForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       personalCode: ${personal_code}
       firstName: ${first_name}
@@ -119,7 +121,20 @@ confirmForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractConfirmResponseData:
   assign:
@@ -140,8 +155,6 @@ logAuditEvent:
     personal_code: ${personal_code}
     old_status: ${old_status}
     new_status: ${new_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

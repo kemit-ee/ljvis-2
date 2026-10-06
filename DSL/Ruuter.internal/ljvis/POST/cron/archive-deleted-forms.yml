@@ -8,7 +8,9 @@ declaration:
     viimane seis on 'deleted', koos copy-time looja/org resolutsiooniga;
     (2) insert_snapshots [arhiiv-baas] — ON CONFLICT DO NOTHING;
     (3) count_present [arhiiv-baas] — verifitseerib, et IGA rida on arhiivis kohal;
-    (4) purge_confirmed [töö-baas] — REAALNE DELETE, ainult kui samm 3 = 100% vaste.
+    (4) purge_confirmed [töö-baas] — REAALNE DELETE, ainult kui samm 3 = 100% vaste;
+    see on ainus append-only erand (.sql-rule-exemption, ADR-013) ja SQL kustutab olemi
+    ridu ainult tervikuna (osaline ajalugu jääb järgmisse jooksu).
     Kui vaste pole täielik, purge JÄETAKSE VAHELE (logi hoiatus), järgmine jooks
     proovib uuesti (ON CONFLICT tõttu idempotentne). Kutsub CronManager
     (DSL/CronManager/archive-deleted-forms.yaml).

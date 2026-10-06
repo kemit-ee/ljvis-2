@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: good repute form confirm event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -16,10 +17,6 @@ declaration:
       - field: old_status
         type: string
       - field: new_status
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:
@@ -36,8 +33,6 @@ logAuditEvent:
   body:
     event_type: "control_form.good_repute_form.confirm"
     event_category: "control_form"
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

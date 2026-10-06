@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Audit: user group view event — fetches group users internally to build description"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie

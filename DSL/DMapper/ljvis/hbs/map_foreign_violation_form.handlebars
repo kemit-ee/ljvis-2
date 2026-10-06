@@ -1,6 +1,7 @@
 {{#with forms.[0]}}
 {
         "id": "{{this.id}}",
+        "revision": {{#if this.revision}}{{this.revision}}{{else}}null{{/if}},
         "formNumber": "{{this.formNumber}}",
         "reportingCountryCode": "{{this.reportingCountryCode}}",
         "reportingAuthority": "{{this.reportingAuthorityName}}",

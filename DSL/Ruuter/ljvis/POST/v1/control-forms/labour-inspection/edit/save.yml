@@ -6,6 +6,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: inspectorName
         type: string
       - field: inspectionDate
@@ -129,8 +130,6 @@ logCreate:
     form_number: ${saveRes.response.body[0].formNumber}
     version: ${saveRes.response.body[0].version}
     isikukood: ${punished_person_id_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -198,6 +197,7 @@ updateForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${current_status}
       inspectorName: ${inspector_name}
       inspectionDate: ${inspection_date}
@@ -215,12 +215,23 @@ updateForm:
       violations: ${violations}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkUpdateSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkUpdateSaved:
   switch:
-    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0}
-      next: returnConcurrentModification
     - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300 || saveRes.response.body == null || saveRes.response.body.length == null || saveRes.response.body.length === 0}
       next: returnResqlSaveError
   next: logUpdate
@@ -236,8 +247,6 @@ logUpdate:
     version: ${saveRes.response.body[0].version}
     changed_fields: ${changed_fields_result}
     isikukood: ${punished_person_id_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -258,11 +267,4 @@ returnValidationError:
 returnFormLockedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
-  next: end
-
-# Resql answered 2xx with no row: another writer (X-tee repeat, e-toimik, another user) appended a snapshot
-# on top of the same state first (uq_lif_prev_snapshot). Nothing was written; the user must reload.
-returnConcurrentModification:
-  status: 422
-  return: '{"type":"VALIDATION_ERROR","field":null,"code":"concurrent_modification"}'
   next: end

@@ -65,6 +65,21 @@ jobs:
       - name: Database schema document and ERD are in sync with Liquibase
         run: python3 scripts/generate-erd.py --check
 
+      # Epic #502 guard rails (identity from session, allowlists, strict templates,
+      # upload prefix, read ownership, template call contract, frontend).
+      - name: DSL security rules (identity and ownership)
+        run: |
+          pip3 install pyyaml -q
+          python3 tests/contract/check_dsl_security.py
+
+      # Epic #522: Resql is INSERT + SELECT only (no UPDATE/DELETE/TRUNCATE/MERGE, no JOIN/LATERAL,
+      # no ON CONFLICT DO UPDATE); the retention purge is the one exemption (.sql-rule-exemption).
+      - name: SQL append-only invariant (Resql)
+        run: |
+          pip3 install pyyaml -q
+          python3 tests/contract/check_resql_append_only.py
+          python3 -B -m unittest discover -s tests/contract -p 'test_resql_append_only.py'
+
       - name: Validate Ruuter YAML files
         run: |
           pip3 install pyyaml -q
@@ -195,9 +210,9 @@ jobs:
           IMG='${{ steps.img.outputs.ref }}'
           docker pull -q "$IMG"
           # require_guards=1 → also assert 0 unguarded routes (public gateway).
-          # Ruuter.internal is IP-restricted, not guard-restricted → boot check only.
+          # Ruuter.internal is guarded by the project-root service-token guard (#515) → also 0 unguarded.
           fail=0
-          for tree in "DSL/Ruuter/ljvis:ruuter.yaml:1" "DSL/Ruuter.internal/ljvis:ruuter-internal.yaml:0"; do
+          for tree in "DSL/Ruuter/ljvis:ruuter.yaml:1" "DSL/Ruuter.internal/ljvis:ruuter-internal.yaml:1"; do
             dir=$(echo "$tree" | cut -d: -f1); cfg=$(echo "$tree" | cut -d: -f2); require_guards=$(echo "$tree" | cut -d: -f3)
             echo "── $dir ──"
             cid=$(docker run -d --rm -p 8080 \
@@ -228,7 +243,7 @@ jobs:
               fi
             else
               docker rm -f "$cid" >/dev/null 2>&1 || true
-              echo "✅ $dir — boots clean (guard check skipped: IP-restricted)"
+              echo "✅ $dir — boots clean"
             fi
           done
           exit $fail
@@ -273,7 +288,7 @@ jobs:
       - name: dsl-lint — internal router
         run: |
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
-            --dsl DSL/Ruuter.internal --constants constants.ini
+            --dsl DSL/Ruuter.internal --constants constants.ini --require-guard
 
       - name: X-Road OpenAPI DSL route — in sync with docs/xtee/XroadOpenapi.yaml
         run: python3 scripts/generate-xroad-openapi-dsl.py --check

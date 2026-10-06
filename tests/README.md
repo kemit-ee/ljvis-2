@@ -68,8 +68,7 @@ repeats, concurrent first writes, REST v3, v1 `inspection_type` and RavenDB V2 E
 `tests/xtr/bridge_test.py` runs the `xroad/soap/*` adapters
 against JSON/empty/text/WSDL-violating backend answers in a temporary ruuter-internal
 container. `tests/xtr/race_test.py` holds one writer's transaction open (UI `update.sql`/`delete.sql`,
-e-toimik, X-tee repeat) and checks that history never forks (`prev_snapshot_id`); the UI 422
-`concurrent_modification` answers are covered by `DSL-tests/control-forms/`. See [XTR SOAP guide](../docs/xtee/09-xtr-soap.md) for targeted runs.
+e-toimik, X-tee repeat) and checks that history never forks (`revision`, changeset 20261208100000). See [XTR SOAP guide](../docs/xtee/09-xtr-soap.md) for targeted runs.
 
 ---
 

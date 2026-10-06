@@ -3,6 +3,7 @@ declaration:
   version: "1.0"
   description: "Generic control-form audit logger (currently used only by labour-inspection create/update/view). See .ai/coding_guidelines_and_lessons_learned.md § Ruuter DSL for why this file avoids literal '{'/'}' inside ${...} expressions and uses TIM /jwt/userinfo directly instead of check-user-authority."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -20,16 +21,6 @@ declaration:
         type: string
       - field: muudetud_valjad
         type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
-        type: string
-
-extractRequestData:
-  assign:
-    actor_name: ${incoming.body.actor_name || ''}
-    actor_personal_code: ${incoming.body.actor_personal_code || ''}
-  next: selectDescription
 
 selectDescription:
   switch:
@@ -85,8 +76,6 @@ writeAudit:
   body:
     event_type: ${incoming.body.event_type}
     event_category: ${incoming.body.event_category}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

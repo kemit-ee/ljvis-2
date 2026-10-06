@@ -13,7 +13,8 @@ declaration:
     kustutada kirje töö-baasist), batch (max üksusi jooksu kohta, 1-5000,
     vaikimisi 500), dryRun (true = ainult loendab, ei kopeeri ega kustuta).
     Töö-baasist kustutatakse AINULT siis, kui purge=true JA arhiivibaas on
-    count_present kaudu kinnitanud 100% vaste. Üks audit-rida jooksu kohta
+    count_present kaudu kinnitanud 100% vaste; purge_confirmed on
+    ainus append-only erand (.sql-rule-exemption, ADR-013) ja kustutab olemi ridu ainult tervikuna. Üks audit-rida jooksu kohta
     (xroad.integration_log, service_code archive.aged_forms.cron).
     Vt docs/admin-guide/13-arhiveerimine.md.
   namespace: cron

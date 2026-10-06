@@ -55,6 +55,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -65,30 +69,30 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 -- `latest` reads form_number and current version from the most recent
 -- snapshot of this act. version only increments when the snapshot being
 -- re-saved is already locked (status <> 'saved') — see edit/save.yml's
 -- edit_locked gate for confirmed data.
--- prev_snapshot_id = the snapshot read here; uq_lif_prev_snapshot lets only one concurrent writer append
--- on top of it. A losing writer (X-tee repeat, e-toimik, another UI save) gets no row back -> the
--- edit/save|confirm|publish handlers answer concurrent_modification and the user reloads.
 WITH latest AS (
-  SELECT id,
-         form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+  SELECT form_number,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          enforcement_decision,
          proceeding_closure_basis,
          external_inspection_id
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
-  ORDER BY created_at DESC, id DESC
+  ORDER BY created_at DESC
   LIMIT 1
 )
 INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
   version,
+  revision,
   status,
   inspector_name,
   inspection_date,
@@ -107,13 +111,13 @@ INSERT INTO forms.labour_inspection_form (
   enforcement_decision,
   proceeding_closure_basis,
   violations,
-  prev_snapshot_id,
   created_by
 )
 SELECT
   :key::BIGINT,
   latest.form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   :inspectorName,
   :inspectionDate::DATE,
@@ -132,8 +136,7 @@ SELECT
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
-  latest.id,
   :created_by
 FROM latest
-ON CONFLICT (prev_snapshot_id) DO NOTHING
-RETURNING labour_inspection_form_key AS id, form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING labour_inspection_form_key AS id, form_number, version, revision;

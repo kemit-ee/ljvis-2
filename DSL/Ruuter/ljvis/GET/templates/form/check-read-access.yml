@@ -1,0 +1,93 @@
+declaration:
+
+  version: "1.0"
+  description: "Read-ownership decision for one form (epic #502, A2 read). Returns the plain string `allow` or `deny`. The caller is the authenticated TARA session (guard variable session_personal_code); the caller's organisation and `control_form.view_unpublished` are looked up server-side and are NEVER accepted from the request. The caller already holds the form type's `.read` permission (checked by the calling handler). Rule: a published form is readable by everyone with the type's read permission; an unpublished form only by its creator, a colleague of the creator's organisation who holds control_form.view_organisation, or a holder of control_form.view_unpublished. A form that does not exist yet answers `allow` so the calling handler can return 404 or fall back to the archive."
+  namespace: service
+  strict: true
+  allowlist:
+    body:
+      - field: form_type
+        type: string
+      - field: form_key
+        type: string
+      - field: form_number
+        type: string
+
+validateInput:
+  assign:
+    form_key: "${incoming.body.form_key == null ? '' : String(incoming.body.form_key)}"
+    form_number: "${incoming.body.form_number == null ? '' : String(incoming.body.form_number)}"
+  next: checkInput
+
+checkInput:
+  switch:
+    - condition: ${['adr-form','compound-form','drive-rest-form/driver','drive-rest-form/teammate','foreign-violation-form','good-repute','labour-inspection','trailer-technical','tram-card','transport-interruption','vehicle-technical'].indexOf(incoming.body.form_type) === -1}
+      next: deny
+    - condition: ${form_key === '' && form_number === ''}
+      next: deny
+    - condition: ${form_key !== '' && !/^[0-9]+$/.test(form_key)}
+      next: deny
+    - condition: ${form_number !== '' && !/^[A-Za-z0-9-]+$/.test(form_number)}
+      next: deny
+    - condition: ${session_personal_code == null || session_personal_code === ''}
+      next: deny
+  next: lookupCaller
+
+lookupCaller:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
+    headers:
+      type: json
+    body:
+      personal_code: ${session_personal_code}
+  result: caller_res
+  next: checkCaller
+
+checkCaller:
+  switch:
+    - condition: ${caller_res.response.body == null || caller_res.response.body.length === 0}
+      next: deny
+  next: assignCaller
+
+assignCaller:
+  assign:
+    caller_org: "${caller_res.response.body[0].organisationid == null ? '' : String(caller_res.response.body[0].organisationid)}"
+    caller_view_unpublished: "${(caller_res.response.body[0].permissions || []).includes('control_form.view_unpublished') ? 'true' : 'false'}"
+    caller_view_organisation: "${(caller_res.response.body[0].permissions || []).includes('control_form.view_organisation') ? 'true' : 'false'}"
+  next: checkAccess
+
+checkAccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/check-read-access"
+    headers:
+      type: json
+    body:
+      form_type: ${incoming.body.form_type}
+      form_key: ${form_key}
+      form_number: ${form_number}
+      caller_personal_code: ${session_personal_code}
+      caller_organisation_id: ${caller_org}
+      caller_view_unpublished: ${caller_view_unpublished}
+      caller_view_organisation: ${caller_view_organisation}
+  result: access_res
+  next: evaluate
+
+evaluate:
+  switch:
+    - condition: ${access_res?.response?.body != null && access_res.response.body.length === 0}
+      next: allow
+    - condition: ${String(access_res?.response?.body?.[0]?.allowed) === 'true'}
+      next: allow
+  next: deny
+
+allow:
+  return: "allow"
+  status: 200
+  next: end
+
+deny:
+  return: "deny"
+  status: 200
+  next: end

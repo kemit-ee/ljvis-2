@@ -90,8 +90,6 @@ logAuditEvent:
   body:
     event_type: "notification_template_mapping.edit"
     event_category: "notification_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: audit_result

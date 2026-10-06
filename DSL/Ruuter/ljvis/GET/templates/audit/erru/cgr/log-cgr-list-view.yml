@@ -2,6 +2,7 @@ declaration:
   version: "1.0"
   description: "Audit: CGR request list viewed (LJVIS2-140). Logged on EVERY list load, because the list exposes person-related data (transport manager and handler names) and the log must make it traceable who saw whose data. The description carries the applied filters (including the handler personal code filter), the number of rows shown and the page number. Actor is supplied by the caller, which has already resolved it via TIM userinfo."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -12,10 +13,6 @@ declaration:
       - field: result_count
         type: string
       - field: page
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:
@@ -32,8 +29,6 @@ writeAudit:
   body:
     event_type: "cgr.list.view"
     event_category: "erru_message_exchange"
-    actor_name: ${incoming.body.actor_name || ''}
-    actor_personal_code: ${incoming.body.actor_personal_code || ''}
     description: ${description}
     log_content: ${log_content}
   result: res

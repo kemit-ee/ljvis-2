@@ -345,6 +345,7 @@ services:
       - DB_USER=ljvis
       - DB_PASSWORD=01234
       - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - INTERNAL_COMMUNICATION_KEY=dev-internal-service-token
       - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
       - CONTRACTS_DIR=/app/contracts/erru/3.5
       - RESPONDING_AUTHORITY=EE-PPA

@@ -26,7 +26,32 @@ chooseMode:
       next: renderBlank
     - condition: ${id === ''}
       next: returnBadRequest
-  next: getCurrentForm
+  next: checkReadAccess
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "foreign-violation-form"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getCurrentForm
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getCurrentForm:
   call: http.post
@@ -85,8 +110,6 @@ renderBlank:
     blank: true
     fields: {}
     eventType: "control_form.foreign_violation.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "foreign-violation-form tühi vorm trükitud"
     logContent: '{"formKey":"","snapshotId":"","blank":true}'
   result: pdfResult
@@ -103,8 +126,6 @@ renderFilled:
     fields:
         foreignViolationForm: ${selected_form}
     eventType: "control_form.foreign_violation.print"
-    actorPersonalCode: ${actor_personal_code}
-    actorName: ${actor_name}
     description: "foreign-violation-form vorm trükitud, võti=${id}, snapshot=${snapshot_id}"
     logContent: '{"formKey":"${id}","snapshotId":"${snapshot_id}","blank":false}'
   result: pdfResult

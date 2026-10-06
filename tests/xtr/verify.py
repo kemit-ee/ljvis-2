@@ -142,7 +142,7 @@ def main():
             counts = expected['kontrollimised']['kontrollitud_soitjate_veol']
             passenger = int(counts['arv_analoogmeerik']) + int(counts['arv_digitaalmeerik']) > 0
             assert row['inspection_type'] == ('passenger' if passenger else 'cargo')
-    result = subprocess.check_output(command, input="SELECT json_build_object('decision',enforcement_decision,'closure',proceeding_closure_basis) FROM forms.vehicle_technical_form WHERE vehicle_technical_form_key=900000001;", text=True)
+    result = subprocess.check_output(command, input="SELECT json_build_object('decision',enforcement_decision,'closure',proceeding_closure_basis) FROM forms.vehicle_technical_form WHERE vehicle_technical_form_key=900000001 ORDER BY revision DESC LIMIT 1;", text=True)
     assert json.loads(result) == {'decision': 'CI decision', 'closure': 'CI closure'}
     print(f'PASS: {stats["total"]} assertions; {valid} request/response pairs match XSD; {len(rows)} persisted inspections checked, no lost counters/violations/proceeding fields or repeated-write duplicates')
 

@@ -13,7 +13,6 @@ import {
   getLabourInspectionFormSnapshot,
 } from '../../api';
 import type { LabourInspectionForm } from '../../types';
-import { applyValidationError } from '../../../../shared/api/errors';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
@@ -121,7 +120,6 @@ export function LabourInspectionFormPage() {
     triggerConfirm,
     triggerPublish,
     formError,
-    setFormError,
     handleCompanyRegSearch,
     handleCompanyNameSearch,
     companySearchError,
@@ -142,16 +140,7 @@ export function LabourInspectionFormPage() {
       await deleteLabourInspectionForm(id, form.status ?? '');
       navigate('/', { state: { justCreated: true } });
     } catch (e) {
-      // e.g. concurrent_modification: the act changed meanwhile (X-tee correction), nothing was deleted
-      const handled = applyValidationError(
-        e,
-        () => undefined,
-        (code) => t(`forms.labour_inspection.validation.api.${code}`),
-        setFormError,
-      );
-      if (!handled) {
-        console.error('Delete failed', e);
-      }
+      console.error('Delete failed', e);
     }
   };
 

@@ -25,9 +25,19 @@ downloadFile:
     attachment_form_type: "sp-teammate-form"
     id: ${incoming.params.q}
     form_type: "sp-teammate-form"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
+    access_form_type: "drive-rest-form/teammate"
   result: downloadResult
+
+checkDownloadResult:
+  switch:
+    - condition: ${downloadResult === "FORBIDDEN"}
+      next: returnReadAccessDenied
+  next: returnSuccess
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 returnSuccess:
   return: ${downloadResult}

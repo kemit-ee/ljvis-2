@@ -101,23 +101,24 @@ def context(payload=None, blank=False):
         if status not in ('', 'C', 'NC', 'NA'):
             raise ValueError('Unknown inspection status')
         records = entry.get('records') or []
-        risk, reference = '', ''
-        if len(records) == 1:
-            risk = records[0].get('riskCategory', '')
-            reference = joined(records[0].get('adrReference'), ', '.join(records[0].get('responsibleParticipants') or []))
-        if records:
-            # Complete records are kept together in the appendix, with exact row association.
-            details = []
-            for i, r in enumerate(records, 1):
-                details.append(joined(str(i) + '.', 'Risk: ' + str(r.get('riskCategory') or '—'), 'ADR: ' + str(r.get('adrReference') or '—'), 'Osalejad: ' + ', '.join(r.get('responsibleParticipants') or []), r.get('reg2016403Code'), r.get('reg2016403Severity'), r.get('notes')))
+        risk, reference, extra = '', '', []
+        # Iga rikkumiskirje trükitakse oma reana: esimene kirje punkti reale,
+        # teine ja kolmas samasuguse lisareana sama punkti alla.
+        record_cells = [(r.get('riskCategory', ''), joined(r.get('adrReference'), ', '.join(r.get('responsibleParticipants') or []))) for r in records]
+        if record_cells:
+            risk, reference = record_cells[0]
+            extra = [dict(risk=r, reference=ref) for r, ref in record_cells[1:]]
+        # Lisasse jäävad ainult need andmed, mida tabelis ei ole (määruse 2016/403 kood, raskusaste, märkused).
+        details = []
+        for i, r in enumerate(records, 1):
+            more = joined(r.get('reg2016403Code'), r.get('reg2016403Severity'), r.get('notes'))
+            if more:
+                details.append(joined(str(i) + '.', more))
+        if details:
             appendix.append({'title': definition['title'], 'text': '\n'.join(details)})
-            if len(records) > 1:
-                risk, reference = 'Vt lisa', 'Vt lisa: ' + definition['code']
-            elif len(reference) > 60:
-                reference = 'Vt lisa: ' + definition['code']
         if entry.get('notCheckedReason'):
             appendix.append({'title': definition['code'] + ' — kontrollimata jätmise põhjus', 'text': entry['notCheckedReason']})
-        rows.append(dict(definition, status=status, risk=risk, reference=reference))
+        rows.append(dict(definition, status=status, risk=risk, reference=reference, extra=extra))
     others = structured(a.get('otherInfringements'), list)
     for item in others:
         details = [joined('Kontrolli staatus: ' + str(item.get('inspectionStatus') or '—'), item.get('notCheckedReason'))]

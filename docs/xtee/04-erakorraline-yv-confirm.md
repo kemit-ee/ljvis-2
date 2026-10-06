@@ -6,7 +6,7 @@ Võtab vastu kinnituse erakorralise tehnoülevaatuse tulemuste kohta ja salvesta
 
 ## 1. Eesmärk
 
-Transpordiamet teatab LJVIS-ile erakorralise tehnoülevaatuse tulemuse. Andmed salvestatakse viimase snapshot'i X-tee blokkidesse in-place — uut snapshot'i ei looda.
+Transpordiamet teatab LJVIS-ile erakorralise tehnoülevaatuse tulemuse. Andmed salvestatakse uue snapshot-reana (INSERT-only, `revision + 1`): vormi uusim snapshot kopeeritakse edasi uuendatud X-tee väljaga, vana rida jääb ajalukku ja versiooni number (/V) ei muutu.
 
 ---
 
@@ -67,7 +67,7 @@ sequenceDiagram
     RI->>RI: Valideeri KÕIK elemendid (fail-fast, atomaarsuse tagamiseks)
     loop Iga element
         RI->>RS: POST /xroad/provide/erakorraline-yv-confirm-update
-        RS->>DB: UPDATE vehicle_technical_form SET xroad_väli WHERE key=? AND status='confirmed'
+        RS->>DB: UPDATE vehicle_technical_form SET xroad_väli WHERE key=? AND status IN ('confirmed','published')
         DB-->>RS: RETURNING (tühi = NOT_FOUND)
         alt Tühi RETURNING
             RI-->>VS: 404 NOT_FOUND (terve batch katkeb)
@@ -85,8 +85,8 @@ sequenceDiagram
 |------|-----------|
 | **Atomaarne** | Ühe elemendi ebaõnnestumisel batch katkeb — eelnevad muudatused jäävad (ei ole DB-taseme transaktsiooni) |
 | **Idempotentne** | Sama `inspection_id + code + value` kordamine annab sama tulemuse |
-| **Ainult confirmed** | SQL kontrollib `status = 'confirmed'` — teise staatusega vorm → 404 |
-| **In-place** | Uut snapshot'i ei looda, versiooni number ei muutu |
+| **Ainult confirmed/published** | SQL kontrollib, et vormi uusima snapshoti staatus on `confirmed` või `published` — teise staatusega vorm → 404; staatus kantakse uude ritta muutmata |
+| **INSERT-only** | Lisatakse uus snapshot-rida (`revision + 1`), olemasolevat rida ei muudeta; versiooni number (/V) ei muutu |
 
 ---
 

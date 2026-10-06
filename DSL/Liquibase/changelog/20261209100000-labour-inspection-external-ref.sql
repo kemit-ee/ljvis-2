@@ -1,17 +1,12 @@
 -- liquibase formatted sql
--- changeset ljvis:20261207100000 ignore:true splitStatements:false
+-- changeset ljvis:20261209100000 ignore:true splitStatements:false
 -- X-tee RegisterJobInspection (v1/v2/v3): saatja välise ID atomaarne seos tööinspektsiooni akti
 -- stabiilse võtmega. labour_inspection_form on INSERT-only snapshot-tabel (mitu rida sama võtme ja
 -- external_inspection_id-ga), seega unikaalsust ei saa sinna panna. Seos hoitakse eraldi tabelis.
 --
--- Snapshot'ide ahel: iga uus snapshot viitab sellele snapshot'ile, mille pealt see koostati (prev_snapshot_id).
--- Unikaalne indeks keelab ajaloo hargnemise: kui kaks kirjutajat (UI salvestus/kinnitus, e-toimik, X-tee
--- kordus) loevad sama viimast seisu, saab lisada ainult ühe; teine ootab esimese commit'i ja ei lisa midagi
--- (INSERT … ON CONFLICT (prev_snapshot_id) DO NOTHING) ning peab otsustama värske seisu pealt uuesti.
-
-ALTER TABLE forms.labour_inspection_form ADD COLUMN prev_snapshot_id BIGINT;
-CREATE UNIQUE INDEX uq_lif_prev_snapshot ON forms.labour_inspection_form (prev_snapshot_id);
-COMMENT ON COLUMN forms.labour_inspection_form.prev_snapshot_id IS 'id of the snapshot this row was built from (NULL for the first snapshot of an act and for rows written before 20261207100000). Unique: two writers cannot both append on top of the same snapshot; the loser inserts nothing and must re-read.';
+-- Samaaegsus akti sees: 20261208100000 `revision` (UNIQUE võti + revision). X-tee kirjutaja annab
+-- latest.revision + 1; kui samal ajal lisas keegi teine (UI, e-toimik) sama numbriga rea, kukub INSERT
+-- unikaalsusrikkumisega ja funktsioon otsustab värske seisu pealt uuesti.
 
 CREATE TABLE IF NOT EXISTS forms.labour_inspection_external_ref (
     source                      VARCHAR(30)  NOT NULL,
@@ -129,7 +124,7 @@ BEGIN
         IF v_key IS NOT NULL THEN
             RETURN QUERY
             INSERT INTO forms.labour_inspection_form AS f (
-                labour_inspection_form_key, form_number, version, status,
+                labour_inspection_form_key, form_number, version, revision, status,
                 inspector_name, inspection_date, external_inspection_id, inspection_type,
                 company_name, company_reg_code, vehicle_count, controls_matrix,
                 prescription_composed, violations, punished_person_id_code,
@@ -138,7 +133,7 @@ BEGIN
             ) VALUES (
                 v_key,
                 'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(v_key::TEXT, GREATEST(5, LENGTH(v_key::TEXT)), '0'),
-                1, 'saved',
+                1, 1, 'saved',
                 p_inspector_name, v_date, v_ext_col, p_inspection_type,
                 p_company_name, p_company_reg_code, v_vehicles, v_controls,
                 v_presc, v_viol, v_pid, v_pfirst, v_plast, v_proc,
@@ -149,13 +144,13 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- Otsus tehakse viimase seisu pealt; INSERT viitab sellele (prev_snapshot_id). Kui samal ajal lisas keegi
-    -- teine (UI kinnitus, e-toimik) sama seisu peale snapshot'i, ei lisata midagi ja otsustatakse uuesti.
+    -- Otsus tehakse viimase seisu pealt; uus rida saab latest.revision + 1. Kui samal ajal lisas keegi teine
+    -- (UI kinnitus, e-toimik) sama revision'iga rea, tekib unikaalsusrikkumine ja otsustatakse värske seisu pealt uuesti.
     LOOP
         SELECT * INTO v_latest
         FROM forms.labour_inspection_form f
         WHERE f.labour_inspection_form_key = v_ref.labour_inspection_form_key
-        ORDER BY f.created_at DESC, f.id DESC
+        ORDER BY f.revision DESC
         LIMIT 1;
         IF NOT FOUND THEN
             RETURN QUERY SELECT v_ref.labour_inspection_form_key, NULL::TEXT, NULL::INTEGER, NULL::TEXT,
@@ -180,27 +175,32 @@ BEGIN
 
         -- Muudetud kordus kinnitamata aktile: uus snapshot (update.sql mudel — saved-staatuses versioon ei muutu).
         -- total_drivers_count ja e-toimiku väljad pole X-tee sisus, need jäävad eelmisest snapshot'ist.
-        INSERT INTO forms.labour_inspection_form AS f (
-            labour_inspection_form_key, form_number, version, status,
-            inspector_name, inspection_date, external_inspection_id, inspection_type,
-            company_name, company_reg_code, vehicle_count, total_drivers_count, controls_matrix,
-            prescription_composed, violations, punished_person_id_code,
-            punished_person_first_name, punished_person_last_name,
-            proceeding_reference_number, enforcement_decision, proceeding_closure_basis,
-            prev_snapshot_id, created_at, created_by
-        ) VALUES (
-            v_latest.labour_inspection_form_key, v_latest.form_number, v_latest.version, 'saved',
-            p_inspector_name, v_date, COALESCE(v_latest.external_inspection_id, v_ext_col), p_inspection_type,
-            p_company_name, p_company_reg_code, v_vehicles, v_latest.total_drivers_count, v_controls,
-            v_presc, v_viol, v_pid, v_pfirst, v_plast, v_proc,
-            v_latest.enforcement_decision, v_latest.proceeding_closure_basis,
-            v_latest.id, GREATEST(clock_timestamp(), v_latest.created_at + INTERVAL '1 microsecond'), p_created_by
-        )
-        ON CONFLICT (prev_snapshot_id) DO NOTHING
-        RETURNING f.labour_inspection_form_key, f.form_number::TEXT, f.version, f.status::TEXT
-        INTO v_new_key, v_new_number, v_new_version, v_new_status;
+        v_new_key := NULL;
+        BEGIN
+            INSERT INTO forms.labour_inspection_form AS f (
+                labour_inspection_form_key, form_number, version, revision, status,
+                inspector_name, inspection_date, external_inspection_id, inspection_type,
+                company_name, company_reg_code, vehicle_count, total_drivers_count, controls_matrix,
+                prescription_composed, violations, punished_person_id_code,
+                punished_person_first_name, punished_person_last_name,
+                proceeding_reference_number, enforcement_decision, proceeding_closure_basis,
+                created_at, created_by
+            ) VALUES (
+                v_latest.labour_inspection_form_key, v_latest.form_number, v_latest.version, v_latest.revision + 1, 'saved',
+                p_inspector_name, v_date, COALESCE(v_latest.external_inspection_id, v_ext_col), p_inspection_type,
+                p_company_name, p_company_reg_code, v_vehicles, v_latest.total_drivers_count, v_controls,
+                v_presc, v_viol, v_pid, v_pfirst, v_plast, v_proc,
+                v_latest.enforcement_decision, v_latest.proceeding_closure_basis,
+                GREATEST(clock_timestamp(), v_latest.created_at + INTERVAL '1 microsecond'), p_created_by
+            )
+            RETURNING f.labour_inspection_form_key, f.form_number::TEXT, f.version, f.status::TEXT
+            INTO v_new_key, v_new_number, v_new_version, v_new_status;
+        EXCEPTION WHEN unique_violation THEN
+            -- Sama revision'iga rea lisas samal ajal keegi teine: loe värske seis ja otsusta uuesti.
+            CONTINUE;
+        END;
 
-        IF FOUND THEN
+        IF v_new_key IS NOT NULL THEN
             UPDATE forms.labour_inspection_external_ref r
             SET payload_hash = v_hash, updated_at = now()
             WHERE r.source = p_source AND r.external_id = p_external_id;

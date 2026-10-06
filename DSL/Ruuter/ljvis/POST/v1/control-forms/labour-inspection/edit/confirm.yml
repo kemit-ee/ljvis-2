@@ -6,6 +6,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: inspectorName
         type: string
       - field: inspectionDate
@@ -143,6 +144,7 @@ confirmForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       inspectorName: ${inspector_name}
       inspectionDate: ${inspection_date}
@@ -160,7 +162,20 @@ confirmForm:
       violations: ${violations}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 logAuditEvent:
   template: "templates/audit/form/labour-inspection/log-labour-inspection-confirm"
@@ -171,10 +186,7 @@ logAuditEvent:
     akti_voti: ${id}
     form_number: ${confirmRes.response.body[0].formNumber}
     version: ${confirmRes.response.body[0].version}
-    changed_fields: ${changed_fields_result}
     isikukood: ${punished_person_id_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -194,8 +206,6 @@ returnAlreadyConfirmedError:
 
 check_confirmRes_persisted:
   switch:
-    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0}
-      next: returnConcurrentModification
     - condition: ${confirmRes.response == null || confirmRes.response.status < 200 || confirmRes.response.status >= 300 || confirmRes.response.body == null || confirmRes.response.body.length == null || confirmRes.response.body.length === 0}
       next: returnResqlWriteError
   next: logAuditEvent
@@ -203,11 +213,4 @@ check_confirmRes_persisted:
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
-  next: end
-
-# Resql answered 2xx with no row: another writer (X-tee repeat, e-toimik, another user) appended a snapshot
-# on top of the same state first (uq_lif_prev_snapshot). Nothing was written; the user must reload.
-returnConcurrentModification:
-  status: 422
-  return: '{"type":"VALIDATION_ERROR","field":null,"code":"concurrent_modification"}'
   next: end

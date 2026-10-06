@@ -65,6 +65,7 @@ callSendPostkast:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: ${original_log.notificationType}
@@ -119,8 +120,6 @@ logAuditEvent:
   body:
     event_type: "notification.resend.manual"
     event_category: "notification_management"
-    actor_personal_code: ${actor_code}
-    actor_name: ${actor_name}
     description: ${audit_description}
     log_content: "{\"originalLogId\":\"${log_id}\",\"originalNotificationKey\":\"${original_log.notificationKey}\",\"newNotificationKey\":\"${new_key}\"}"
   result: audit_result

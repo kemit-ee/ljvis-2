@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -7,6 +7,7 @@ import {
   DateField,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { getSearchCarrierCountries } from '../../api';
 import type { FormSearchFilters as Filters } from '../../types';
 import { FORM_TYPE_META, FORM_TYPE_ORDER } from './formSearchMeta';
 import styles from './FormSearch.module.css';
@@ -82,12 +83,27 @@ export function FormSearchFilters({
     [t],
   );
 
+  // Lisaks Eesti / Välisriigid segmentidele kõik riigid, mille vedaja kohta on kontroll tehtud
+  const [carrierCountryCodes, setCarrierCountryCodes] = useState<string[]>([]);
+  useEffect(() => {
+    getSearchCarrierCountries()
+      .then((rows) => setCarrierCountryCodes(rows.map((r) => r.countryCode)))
+      .catch(() => setCarrierCountryCodes([]));
+  }, []);
+
   const carrierOriginOptions = useMemo<Option[]>(
     () => [
       { value: 'ee', label: t('search.carrierOrigin.ee') },
       { value: 'foreign', label: t('search.carrierOrigin.foreign') },
+      ...carrierCountryCodes
+        .filter((code) => code && code !== 'EE')
+        .map((code) => ({
+          value: `country:${code}`,
+          label: getByCode('COUNTRY').find((c) => c.code === code)?.name ?? code,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'et')),
     ],
-    [t],
+    [t, carrierCountryCodes, getByCode],
   );
 
   const violationOptions = useMemo<Option[]>(

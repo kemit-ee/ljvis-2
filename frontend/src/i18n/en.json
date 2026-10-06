@@ -423,8 +423,7 @@
           "future_date_not_allowed": "Date cannot be in the future",
           "max_length_exceeded": "Value is too long",
           "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
-          "already_confirmed": "This form has already been confirmed",
-          "concurrent_modification": "The form was changed by someone else at the same time (e.g. a correction received over X-tee). Reload the form and try again."
+          "already_confirmed": "This form has already been confirmed"
         }
       }
     },
@@ -589,6 +588,8 @@
       "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Driver's assistant data",
+        "open": "Open",
+        "close": "Close",
         "personalCode": "Personal code",
         "firstName": "First name",
         "lastName": "Last name",
@@ -771,7 +772,7 @@
       "selectedForms": "Selected control forms",
       "trailerTechnicalTab": "technical condition inspection card",
       "addTrailerControlForm": "Add trailer control form",
-      "editTrailerControlForm": "Edit trailer control form",
+      "editTrailerControlForm": "Open trailer technical control form",
       "removeTrailer": "Remove trailer",
       "trailerRegNr": "Registration mark",
       "trailerCountry": "Country code",
@@ -1180,7 +1181,7 @@
     },
     "otherDocs": {
       "notChecked": "Not checked",
-      "compliant": "Compliant",
+      "compliant": "Checked",
       "nonCompliant": "Does not comply",
       "missing": "Missing",
       "addRemark": "Add remark",
@@ -1575,9 +1576,13 @@
     "numberPlaceholder": "No.",
     "select": "Select",
     "errors": {
+      "formModified": "Someone else (or another window, or the e-toimik sync) changed this form in the meantime, so your save was not applied. Reload the page, review the new data and save your changes again.",
       "serverError": "Server error. Please try again later.",
       "networkError": "Connection error. Please check your network.",
       "forbidden": "Insufficient permissions for this action.",
+      "formForbiddenTitle": "You do not have permission to view this form",
+      "formForbidden": "An unpublished form can be viewed by its creator, a colleague of the same organisation (with the \"My organisation's forms\" permission) and users who may view unpublished forms. Published forms are visible to every user who may read that form type. If you need access, contact your organisation's user administrator.",
+      "formNotFound": "The requested form was not found. It may have been deleted or the address is wrong.",
       "notFound": "The requested resource was not found.",
       "requestFailed": "Request failed. Please try again.",
       "unexpected": "An unexpected error occurred."

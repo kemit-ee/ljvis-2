@@ -7,6 +7,7 @@ import { useSideNavProps } from './useSideNavProps';
 import { useBreadcrumbs } from './breadcrumbs/useBreadcrumbs';
 import { AppBreadcrumbs } from './breadcrumbs/AppBreadcrumbs';
 import { EnvironmentRibbon } from '../components/EnvironmentRibbon/EnvironmentRibbon';
+import { useScrollToFirstError } from './useScrollToFirstError';
 import styles from './AppLayout.module.css';
 
 export function AppLayout() {
@@ -30,6 +31,8 @@ export function AppLayout() {
     update();
     return () => observer.disconnect();
   }, []);
+
+  useScrollToFirstError();
 
   const headerProps = useHeaderProps();
   const footerProps = useFooterProps();

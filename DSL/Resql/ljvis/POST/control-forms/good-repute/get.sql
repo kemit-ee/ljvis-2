@@ -15,6 +15,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -59,6 +62,7 @@ SELECT
   good_repute_form_key AS id,
   form_number,
   version,
+  revision,
   status,
   personal_code,
   first_name,

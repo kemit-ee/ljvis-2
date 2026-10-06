@@ -2,6 +2,7 @@ declaration:
   version: "1.0"
   description: "Audit: CGR request draft saved (LJVIS2-138). Logged on every draft save — initial create, revision, and creation-as-copy ('Kopeeri päring', LJVIS2-140). The description carries the request identifier, the source request identifier when created as a copy, the list of changed fields and the resulting status."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
@@ -16,10 +17,6 @@ declaration:
       - field: status
         type: string
       - field: version
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:
@@ -36,8 +33,6 @@ writeAudit:
   body:
     event_type: "cgr.request.save"
     event_category: "erru_message_exchange"
-    actor_name: ${incoming.body.actor_name || ''}
-    actor_personal_code: ${incoming.body.actor_personal_code || ''}
     description: ${description}
     log_content: ${log_content}
   result: res

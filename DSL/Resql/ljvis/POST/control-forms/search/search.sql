@@ -1,12 +1,24 @@
 /*
 description: LJVIS2-9 cross-entity form search over forms.form_search view. Filters, pagination, sorting,
-  row-level type allow-list.
+  row-level visibility (published, own, organisation, all).
 namespace: control-forms
 params:
   allowed_types:
     type: string
     required: false
     description: Comma-separated form_type codes the caller may see (row-level)
+  caller_organisation_id:
+    type: string
+    required: false
+    description: Caller organisation id (auth_user.organisationid); empty when unknown
+  caller_view_unpublished:
+    type: string
+    required: false
+    description: Literal true when the caller has control_form.view_unpublished (all rows, any status)
+  caller_view_organisation:
+    type: string
+    required: false
+    description: Literal true when the caller has control_form.view_organisation (colleagues' rows of readable types, any status)
   actor_code:
     type: string
     required: false
@@ -74,7 +86,7 @@ params:
   carrier_origin:
     type: string
     required: false
-    description: "'ee' = Estonian carrier (country EE or unset), 'foreign' = foreign carrier; empty = all"
+    description: "'ee' = Estonian carrier (country EE or unset), 'foreign' = foreign carrier, 'country:XX' = carrier of exactly that country code; empty = all"
   vr_reporting_country_code:
     type: string
     required: false
@@ -152,9 +164,18 @@ SELECT
     (COUNT(*) OVER ())::INTEGER AS total
 FROM forms.form_search fs
 WHERE
-    (fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))
-     OR fs.status = 'published'
-     OR (COALESCE(:actor_code, '') <> '' AND fs.created_by = :actor_code))
+    (fs.status = 'published'
+     OR (COALESCE(:actor_code, '') <> '' AND fs.created_by = :actor_code)
+     OR (:caller_view_unpublished = 'true'
+         AND (fs.form_type <> 'tram_control_card' OR fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))))
+     OR (:caller_view_organisation = 'true'
+         AND COALESCE(:caller_organisation_id, '') <> ''
+         AND fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))
+         AND (SELECT ua.organisation_id::text
+              FROM users.user_account ua
+              WHERE ua.personal_code = fs.created_by
+              ORDER BY ua.created_at DESC
+              LIMIT 1) = :caller_organisation_id))
     AND (COALESCE(:form_type, '') = '' OR fs.form_type = :form_type)
     AND (COALESCE(:date_from, '') = '' OR fs.main_date >= :date_from::DATE)
     AND (COALESCE(:date_to, '') = '' OR fs.main_date <= :date_to::DATE)
@@ -168,7 +189,8 @@ WHERE
     AND (COALESCE(:has_violation, '') = '' OR fs.has_violation = :has_violation::BOOLEAN)
     AND (COALESCE(:carrier_origin, '') = ''
          OR (:carrier_origin = 'ee' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') = 'EE')
-         OR (:carrier_origin = 'foreign' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') <> 'EE'))
+         OR (:carrier_origin = 'foreign' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') <> 'EE')
+         OR (:carrier_origin LIKE 'country:%' AND COALESCE(NULLIF(fs.company_country_code, ''), 'EE') = upper(substr(:carrier_origin, 9))))
     AND (COALESCE(:status, '') = '' OR fs.status = :status)
     AND (COALESCE(:vr_reporting_country_code, '') = '' OR fs.vr_reporting_country_code = :vr_reporting_country_code)
     AND (COALESCE(:vr_sanction_code, '') = '' OR fs.vr_sanction_code = :vr_sanction_code)

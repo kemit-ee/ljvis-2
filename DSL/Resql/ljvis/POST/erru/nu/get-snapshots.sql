@@ -29,16 +29,15 @@ SELECT
   n.id::TEXT AS snapshot_id,
   n.version,
   n.created_at,
-  COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), n.created_by) AS created_by,
-  u.organisation_name AS org_name,
+  COALESCE(NULLIF(TRIM((SELECT u.first_name || ' ' || u.last_name
+                        FROM users.user_account u
+                        WHERE u.personal_code = n.created_by
+                        ORDER BY u.id DESC LIMIT 1)), ''), n.created_by) AS created_by,
+  (SELECT u.organisation_name
+   FROM users.user_account u
+   WHERE u.personal_code = n.created_by
+   ORDER BY u.id DESC LIMIT 1) AS org_name,
   n.status
 FROM erru.nu_message n
-LEFT JOIN LATERAL (
-  SELECT first_name, last_name, organisation_name
-  FROM users.user_account
-  WHERE personal_code = n.created_by
-  ORDER BY id DESC
-  LIMIT 1
-) u ON TRUE
 WHERE n.nu_message_key = :id::BIGINT
 ORDER BY n.created_at, n.id;

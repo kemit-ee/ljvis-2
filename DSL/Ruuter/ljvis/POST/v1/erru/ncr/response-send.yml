@@ -138,8 +138,6 @@ logAuditSent:
     business_case_id: ${business_case_id}
     result_status: "answered"
     ack_status_code: ${ack_status_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_ok
   next: returnAnswered
 
@@ -180,8 +178,6 @@ logAuditNegativeAck:
     business_case_id: ${business_case_id}
     result_status: "error"
     ack_status_code: ${ack_status_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_neg
   next: returnAckError
 
@@ -222,8 +218,6 @@ logAuditTransportError:
     business_case_id: ${business_case_id}
     result_status: "error"
     ack_status_code: "transport_failure"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_err
   next: returnTransportError
 

@@ -25,7 +25,7 @@ th { font-weight: bold; text-align: left; }
 .result td { height: 7mm; }
 .notes td { height: 13mm; vertical-align: top; }
 .footer-signature td { height: 11mm; vertical-align: top; }
-.legend { break-before: page; font-size: 10pt; line-height: 1.35; }
+.legend { break-inside: avoid; margin-top: 4mm; font-size: 10pt; line-height: 1.35; }
 .legend p { margin: 0 0 3mm; }
 h2 { font-size: 11pt; margin-top: 6mm; }
 .appendix { break-before: page; font-size: 10pt; line-height: 1.3; }
@@ -59,7 +59,8 @@ thead { display: table-header-group; }
 <colgroup><col style="width:52%"><col style="width:5%"><col style="width:5%"><col style="width:5%"><col style="width:12%"><col style="width:21%"></colgroup>
 <thead><tr><th rowspan="2">Kontrollitav valdkond</th><th colspan="3">Kontrolli staatus (4)</th><th>Rikkumine</th><th rowspan="2">ADR-i punkt + osaleja(d) (6)</th></tr><tr><th>C</th><th>NC</th><th>NA</th><th>Riskikategooria (5)</th></tr></thead>
 <tbody>{% for row in rows %}{% if row.group %}<tr><td colspan="6" class="section">{{ row.group }}</td></tr>{% endif %}
-<tr><td>{{ row.title }}</td>{% for status in ['C','NC','NA'] %}<td class="status">{{ box(row.status == status) }}</td>{% endfor %}<td>{{ row.risk }}</td><td>{{ row.reference }}</td></tr>{% endfor %}</tbody>
+<tr><td>{{ row.title }}</td>{% for status in ['C','NC','NA'] %}<td class="status">{{ box(row.status == status) }}</td>{% endfor %}<td>{{ row.risk }}</td><td>{{ row.reference }}</td></tr>{% for more in row.extra %}
+<tr class="cont"><td></td>{% for status in ['C','NC','NA'] %}<td class="status"></td>{% endfor %}<td>{{ more.risk }}</td><td>{{ more.reference }}</td></tr>{% endfor %}{% endfor %}</tbody>
 </table>
 <div class="section">Tulemus</div>
 <table class="result">

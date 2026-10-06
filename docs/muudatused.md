@@ -12,9 +12,80 @@
 
 - Sama kontrolli ID täpne kordus ei loo uut kirjet. Muudetud andmetega kordus kinnitamata aktile salvestatakse akti uue seisuna (sama number ja versioon); kinnitatud, avaldatud, kustutatud või arhiveeritud akti korral tagastatakse viga (HTTP 409 / SOAP Fault) ja andmeid ei muudeta — varem jäeti muudatus vaikselt kõrvale ja vastati „Success“.
 - Samaaegsed sama ID-ga päringud loovad ühe akti. REST v3 senine käitumine (kordus tagastab olemasoleva akti) ei muutu.
-- Tööinspektsiooni akti ei saa enam samaaegselt kaks kirjutajat (kasutaja, X-tee parandus, e-toimik) sama seisu pealt muuta: kui vorm muutus vahepeal, kuvatakse salvestamisel, kinnitamisel, avaldamisel või kustutamisel teade „Vormi muutis samal ajal keegi teine … Laadi vorm uuesti“. Varem võis hiljem salvestunud muudatus eelmise (nt kinnituse) vaikselt üle kirjutada.
+- X-tee kaudu saabunud parandus kasutab sama samaaegse muutmise kaitset (`revision`) nagu kasutajaliides: kui kasutaja kinnitas akti samal ajal, saab X-tee tarbija vea (409) ja kinnitus jääb kehtima; kui parandus jõudis enne, näeb kasutaja teadet, et vormi muudeti vahepeal.
 - `RegisterJobInspection` v1: liik „Sõitjate vedu“ määratakse ainult siis, kui sõitjateveo juhtide loendurid on nullist suuremad (varem piisas loendurite objekti olemasolust). Kehtib nii SOAP-i kui REST v1 kaudu.
 - Kasutajaliideses salvestamine säilitab akti X-tee allika ID (`external_inspection_id`).
+
+### Samaaegne muutmine: teade, kui keegi teine vormi vahepeal muutis
+
+- Kui sama vormi on pärast sinu avamist salvestanud keegi teine (teine kasutaja, teine aken või e-toimiku sünkroonimine), siis sinu salvestus, kinnitamine või avalikustamine **ei kirjuta tema muudatusi enam vaikselt üle**. Ekraanile ilmub hoiatus „Seda vormi muutis vahepeal keegi teine …“, mis jääb nähtavale kuni sulgemiseni; laadi leht uuesti, vaata uusi andmeid ja salvesta oma muudatused uuesti.
+- Kontroll on vormi tasemel (kõik 11 vormitüüpi). Uue vormi esmasalvestust, kustutamist ja menetluse tulemuse salvestust see ei mõjuta.
+
+### E-toimiku päringu kaart ("Päri e-toimikust") ainult karistusregistri õigusega kasutajale
+
+- Koondvormi (PPA) lehe ülaosas olev kaart „E-toimiku kvalifikatsiooni kontroll“ koos nupuga „Päri e-toimikust“ on nähtav ainult kasutajale, kellel on õigus `control_form.punishment_register`. Varem nägi seda igaüks, kellel oli koondvormi lugemisõigus.
+- Sama kehtib Transpordiameti kontrollkaardi lehel.
+
+### SQL on nüüd ainult INSERT ja SELECT (epic #522)
+
+- Kõik andmebaasi kirjutamised on append-only: ükski Resql-mall ei tee `UPDATE`, `DELETE`, `TRUNCATE` ega `JOIN`-i. Erand on ainult säilitustähtaja järgne kustutamine pärast kontrollitud arhiveerimist (`archive/purge_confirmed.sql`). CI kontrollib seda igal PR-il (`tests/contract/check_resql_append_only.py`, erandite loend `.sql-rule-exemption`).
+- Menetluse tulemuse, X-tee väljade, erakorralise ülevaatuse kuupäeva ja vedaja teavituse lipu salvestamine lisab vormile uue versioonirea; varasem rida jääb ajalukku ja vormi versiooninumber (/V) ei muutu. Versiooniajaloo vaates võib seetõttu ilmuda lisarida (sama versioon, sama staatus).
+- Manuse kustutamine jätab algse rea alles ja lisab kustutusmärke; kustutatud manust ei näidata ega saa alla laadida.
+- Samaaegne salvestamine ei kirjuta enam vaikselt üle: kõigil vormitabelitel on `revision` ja samaaegse topeltkirjutuse korral ebaõnnestub teine päring.
+- Arhiveerimine kustutab töö-baasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
+- ErakorralineYVconfirm uuendab nii kinnitatud kui avalikustatud vormi (uus rida, staatus jääb samaks). Varem muutis see avalikustatud vormi puhul vana kinnitatud rida, mistõttu muudatus ei olnud vormil nähtav.
+- Teavituste logi: Postkast 2.0 staatuse muutused salvestatakse eraldi sündmusena (`notifications.outbound_log_status_event`), `outbound_log` rida ei muutu. Vaates muutust pole.
+
+### Sisemise ruuteri (ruuter-internal) kaitse teenusetokeniga (#515)
+
+- `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.
+- Varasem ws-broadcast jagatud saladus (`INTERNAL_COMMUNICATION_KEY`) on sama token: konstant jääb samaks, päis `x-viljus-knows-a-secret` on nimetatud ümber `x-internal-service-token`-iks. Keskkondades uusi konstante lisada ei ole vaja.
+- CronManager'i ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManager'i konteinerisse tuleb seega mountida sama `constants.ini`.
+- `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
+- Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
+
+### Kasutajaliides ei saada serveripoolselt tuletatavaid välju
+
+Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise sessioonist. Seda hoiab nii CI reegel R8.
+
+### Selge teade, kui vormi ei saa vaadata
+
+- Kui vormi avamine ebaõnnestub, näeb kasutaja põhjust: „Teil puudub õigus seda vormi vaadata“ koos selgitusega, kes avalikustamata vormi näeb (looja, sama asutuse kolleeg õigusega „Minu asutuse vormid“, avalikustamata vormide vaatamise õigusega kasutaja), või „Soovitud vormi ei leitud“. Varem näidati kõigil juhtudel üldist „Tekkis viga“.
+
+### Vormiotsing ja eksport järgivad sama nähtavusreeglit mis vormi avamine
+
+- Otsingus ja otsingutulemuse eksportis (xlsx/csv) on nähtavad: kõik **avalikustatud** vormid; **enda** vormid mis tahes olekus; `control_form.view_organisation` õigusega kasutajale lisaks **oma asutuse kolleegide** vormid mis tahes olekus (nende vormitüüpide osas, mille lugemise õigus on olemas); `control_form.view_unpublished` õigusega kasutajale **kõigi** vormid mis tahes olekus.
+- Varem näitas otsing vormitüübi lugemisõigusega kasutajale kõigi asutuste mustandeid; neid ei saanud avada (403). Nüüd ei ilmu otsingutulemustesse vorme, mida kasutaja avada ei saa.
+- Vormi avamise reegel on sama: kolleegi avalikustamata vormi avamiseks on vaja `control_form.view_organisation` õigust (varem piisas samast asutusest olemisest).
+
+### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
+
+- Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
+- Kasutajale nähtavat muutust pole: ametniku töövoogudes oli tegutseja varemgi sama.
+- Epic #502, osa A1.
+- Osa A2 (kirjutamine): manuse üleslaadimisel peab vormi number algama selle vormitüübi prefiksiga (nt `vr-`); muidu 400 `INVALID_FORM_NUMBER` ja S3-sse ei kirjutata. Ametniku töövoogudes muutust pole.
+- Osa A2 (lugemine): vormi lugemine ID järgi (vorm, versioonid, alamvormid, väljatrükk, manuste loend ja allalaadimine) järgib omandireeglit: avalikustatud vormi näeb iga vormitüübi `.read` õigusega ametnik; avalikustamata (salvestatud/kinnitatud) vormi näeb ainult looja, looja asutuse kolleeg või `control_form.view_unpublished` omaja, muidu 403. Vormiotsing jääb samaks.
+- Osa D: CI kontrollib nüüd turvareegleid (identiteet ainult sessioonist, `allowlist` igal DSL-il, `strict` mallid, manuse prefiks, lugemise omandikontroll, `template:` kutsete leping, frontend ei saada identiteedivälju); regressioon ebaõnnestub CI-s.
+- Osa B: audit-, faili- ja PDF-mallid on `strict: true` (tundmatu võti päringus → 400) ja `actor_*` väljad on nende deklaratsioonidest eemaldatud; kõigil Ruuteri DSL-idel (v.a `*.guard.yml`) on `allowlist`.
+
+### PPA kontrollvormide parandused
+
+- Vormiotsing: „Vedaja riik" filtris on lisaks Eesti / Välisriigi segmentidele kõik riigid, mille vedaja kohta on kontroll tehtud.
+- Riskitasemete leht: pealkiri „Eesti veoettevõtjate riskitasemed", otsinguväli „Eesti veoettevõtja nimi".
+- Kontrolli koht: „Muu tee" valimisel saab sisestada tee numbri; nimetus täidetakse muude teede loetelust (klassifikaator ROAD_OTHER, täidetakse haldusvaates).
+- Üldosa: „Lisa haagis" nupp on viimase haagise andmete all. Nupud „Ava haagise tehnokontrollvorm" ja „Ava meeskonnaliikme sõidu- ja puhkeaja kontrollvorm"; „Eemalda meeskonnaliige" on alati aktiivne (eemaldab ka alamvormi).
+- Salvestamisel kerib leht esimese täitmata/vigase välja juurde.
+- ADR vorm: „Autojuhi abi andmed" on vaikimisi suletud (nupp „Ava"); väljatrükil trükitakse mitme rikkumiskirjega punkti iga kirje oma reana.
+- Väljatrükid: tehnokaart mahub 2 lehele (selgitused ja vaidlustamise tekst teise lehe lõppu); sõidu- ja puhkeaja väljatrükil ainult kontrollitud osad, rikkumised artikli, kirjelduse ja raskusastmega (ilma koodita).
+- Sõidu- ja puhkeaja vorm: „Dokumendi või õiguse kontroll" on nähtav ka tulemuse „Korras" korral; „Nõuetekohane" → „Kontrollitud".
+- Koondvormile saab lisada kontrollvorme ka siis, kui olemasolevad alamvormid on kinnitatud (kuni koondvorm pole avalikustatud).
+- Kinnitatud alamvormi (mootorsõiduk, haagis, ADR, veo katkestamine) saab muuta selle looja või koondvormile märgitud kontrolli läbiviija; „Muuda" nupp on neile nähtav. Avalikustatud vormi muudab ainult administraator.
+- Töölaua „Minu asutuse vormid" valik nõuab uut õigust `control_form.view_organisation` (omista grupihalduses).
+
+### X-tee dokumentatsiooni parandus
+
+- LJVIS 2 X-tee alamsüsteem on KLIM registrikoodiga: `ee-dev/GOV/70001231/ljvis2`, `ee-test/GOV/70001231/ljvis2`, `EE/GOV/70001231/ljvis2` (varem oli dokumentides vana MKM kood 70003158 ja `ljvis`).
+- Rahvastikuregistri teenus on `EE/GOV/70008440/rr/domesticDataExchange/isikud` (varem `RR404_isik/v3`).
 
 ## 2026-10-03
 

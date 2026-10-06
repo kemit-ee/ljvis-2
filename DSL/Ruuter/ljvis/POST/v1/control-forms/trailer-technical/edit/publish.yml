@@ -83,6 +83,7 @@ publishForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       status: published
       partsSummary: ${parts_summary}
       partsDefects: ${parts_defects}
@@ -102,7 +103,20 @@ publishForm:
       trailerRegNr: ${trailer_reg_nr}
       created_by: ${created_by}
   result: publishRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: check_publishRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 buildLogDescription:
   assign:
@@ -117,8 +131,6 @@ logAuditEvent:
   body:
     event_type: "control_form.trailer_technical.publish"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
@@ -136,8 +148,6 @@ autoPublishCompound:
   body:
     id: "${compound_form_key == null ? '' : String(compound_form_key)}"
     only_if_confirmed: "true"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
   result: autoPublishCompoundRes
   error: sendCarrierFromRequest
   next: sendCarrierFromRequest
@@ -150,6 +160,7 @@ sendCarrierFromRequest:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entity_type: "trailer_technical"
@@ -164,6 +175,7 @@ evaluateNotifications:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/evaluate-technical-publish"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entityType: "trailer_technical"

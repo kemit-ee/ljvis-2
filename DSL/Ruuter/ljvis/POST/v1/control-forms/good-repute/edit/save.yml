@@ -6,6 +6,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: personalCode
         type: string
       - field: firstName
@@ -123,8 +124,6 @@ logAuditEventInsert:
   body:
     good_repute_form_key: ${good_repute_form_key}
     personal_code: ${personal_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -189,6 +188,7 @@ updateForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${current_status}
       personalCode: ${personal_code}
       firstName: ${first_name}
@@ -203,7 +203,20 @@ updateForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkUpdateSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkUpdateSaved:
   switch:
@@ -225,8 +238,6 @@ logAuditEventUpdate:
   body:
     good_repute_form_key: ${good_repute_form_key}
     personal_code: ${personal_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     changed_fields: ${changed_fields_result}
   result: audit_result
   next: returnSuccess
