@@ -81,7 +81,8 @@ WITH latest AS (
   SELECT form_number,
          CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          enforcement_decision,
-         proceeding_closure_basis
+         proceeding_closure_basis,
+         external_inspection_id
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -95,6 +96,7 @@ INSERT INTO forms.labour_inspection_form (
   status,
   inspector_name,
   inspection_date,
+  external_inspection_id,
   inspection_type,
   company_name,
   company_reg_code,
@@ -119,6 +121,7 @@ SELECT
   :status,
   :inspectorName,
   :inspectionDate::DATE,
+  latest.external_inspection_id,   -- X-tee allika ID ei ole kasutajale muudetav; kandub igasse snapshot'i
   :inspectionType,
   :companyName,
   :companyRegCode,

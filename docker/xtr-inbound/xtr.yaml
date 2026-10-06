@@ -1,0 +1,23 @@
+# Local test lane. Outgoing calls loop back to the provider; no Security Server is contacted.
+dsl_path: /app/DSL
+port: 8080
+xroad_instance: ee-dev
+xroad_protocol_version: "4.0"
+client_data:
+  member_class: GOV
+  member_code: "70001231"
+  subsystem_code: ljvis2
+
+wsdl_watch_dir: /app/wsdl
+wsdl:
+  allow_http_upstream: true      # CI SOAP loopback only
+  upstream_host_allowlist: [localhost]
+
+inbound:
+  port: 8081                     # peer-facing: /soap-in/… and /health only
+  public_base_url: http://localhost:9095
+
+limits:
+  max_request_bytes: 1048576
+  max_response_bytes: 16777216
+  request_timeout_secs: 30

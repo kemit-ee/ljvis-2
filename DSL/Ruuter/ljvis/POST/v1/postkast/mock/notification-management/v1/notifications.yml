@@ -2,8 +2,8 @@ declaration:
   version: "1.0"
   description: >-
     MOCK Postkast 2.0 "Teavituse loomine" — dev ja CI ainult, tootangus
-    kättesaamatu (PK_NOTIFICATIONS_ENDPOINT osutab seal
-    XROAD_SECURITY_SERVER/GOV/70006317/postkast-le). Stand-in X-tee kaudu
+    kättesaamatu (PK_NOTIFICATIONS_ENDPOINT osutab seal XTR-i REST
+    passthrough'ile, mis suunab GOV/70006317/postkast teenusele). Stand-in X-tee kaudu
     ligipääsetava PK 2.0 haldusliidese jaoks, mis pole selles keskkonnas
     saadaval. Tagastab kohe sendingOperationId, test-determinismi jaoks
     ei simuleerita IN_PROGRESS ooteaega — sending-operations mock (samas

@@ -10,6 +10,19 @@
 - Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
 - Fail-closed: sidecar ei käivitu, kui võti on seadmata. Varem lasi pdf-creator tühja `PDF_CREATOR_API_KEY` korral kõik kutsed läbi.
 
+### LJVIS1 SOAP-lepingu pakkumine XTR-i kaudu
+
+- LJVIS1 X-tee SOAP-leping (`ljvis.wsdl`, kuus operatsiooni, sh `RegisterJobInspection_v2`) on pakutav XTR 0.5.0-rc kaudu; äriloogika jääb olemasolevatesse Ruuter.internal-i JSON-töötlejatesse. REST v1/v3 ja AJ liidesed jäävad alles. Juhend: `docs/xtee/09-xtr-soap.md`.
+
+### Tööinspektsiooni aktide kordussaatmine
+
+- X-tee (RegisterJobInspection v1/v2, REST v3) kaudu saabuv tööinspektsiooni akt tekib kohe staatusega „Kinnitatud“ (varem „Salvestatud“); e-toimiku sünkroonimine võtab selle seetõttu kohe käsile.
+- Sama kontrolli ID täpne kordus ei loo uut kirjet. Muudetud andmetega kordus tagastab vea (HTTP 409 / SOAP Fault) ja andmeid ei muudeta — varem jäeti muudatus vaikselt kõrvale ja vastati „Success“. Sama kehtib kinnitatud, avaldatud, kustutatud ja arhiveeritud akti kohta.
+- Samaaegsed sama ID-ga päringud loovad ühe akti. REST v3 senine käitumine (kordus tagastab olemasoleva akti) ei muutu.
+- X-tee kaudu saabunud parandus kasutab sama samaaegse muutmise kaitset (`revision`) nagu kasutajaliides: kui kasutaja kinnitas akti samal ajal, saab X-tee tarbija vea (409) ja kinnitus jääb kehtima; kui parandus jõudis enne, näeb kasutaja teadet, et vormi muudeti vahepeal.
+- `RegisterJobInspection` v1: liik „Sõitjate vedu“ määratakse ainult siis, kui sõitjateveo juhtide loendurid on nullist suuremad (varem piisas loendurite objekti olemasolust). Kehtib nii SOAP-i kui REST v1 kaudu.
+- Kasutajaliideses salvestamine säilitab akti X-tee allika ID (`external_inspection_id`).
+
 ### Samaaegne muutmine: teade, kui keegi teine vormi vahepeal muutis
 
 - Kui sama vormi on pärast sinu avamist salvestanud keegi teine (teine kasutaja, teine aken või e-toimiku sünkroonimine), siis sinu salvestus, kinnitamine või avalikustamine **ei kirjuta tema muudatusi enam vaikselt üle**. Ekraanile ilmub hoiatus „Seda vormi muutis vahepeal keegi teine …“, mis jääb nähtavale kuni sulgemiseni; laadi leht uuesti, vaata uusi andmeid ja salvesta oma muudatused uuesti.
