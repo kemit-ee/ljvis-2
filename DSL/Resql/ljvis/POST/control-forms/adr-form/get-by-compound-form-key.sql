@@ -18,6 +18,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -33,6 +36,7 @@ SELECT DISTINCT ON (adr_form_key)
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   result_type,
   created_by

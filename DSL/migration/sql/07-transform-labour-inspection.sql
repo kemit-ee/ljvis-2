@@ -186,4 +186,13 @@ FROM tmp_lif_numbered f
 JOIN ins i ON i.labour_inspection_form_key = f.target_key
 ;
 
-
+-- RegisterJobInspection_v2 (X-tee) kordused leiavad migreeritud akti saatja ID järgi: allikas xroad-v2,
+-- external_id = InspectionId (LJVIS1 RavenDB V2 dokumendi võti). V1 Raven dokumendi ID on LJVIS1 sisemine
+-- järjenumber, mitte saatja kontrolli_id, seega V1 aktidele seost ei looda. Juba X-tee kaudu saadud ID
+-- on eelkontrollis blokeeriv leid (external_id_already_received); seda seost üle ei kirjutata.
+INSERT INTO forms.labour_inspection_external_ref (source, external_id, labour_inspection_form_key)
+SELECT DISTINCT ON (f.external_inspection_id) 'xroad-v2', f.external_inspection_id, f.target_key
+FROM tmp_lif_numbered f
+WHERE f.schema_version = 2 AND f.external_inspection_id IS NOT NULL
+ORDER BY f.external_inspection_id, f.created_at, f.target_key
+ON CONFLICT DO NOTHING;

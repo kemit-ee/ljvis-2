@@ -6,6 +6,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: notifyCarrier
         type: string
       - field: controlDate
@@ -284,6 +285,7 @@ confirmForm:
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -356,7 +358,20 @@ confirmForm:
       notes: ${notes}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkSaved:
   switch:

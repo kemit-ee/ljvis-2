@@ -109,7 +109,7 @@ returnInvalidCode:
   next: end
 returnNotFound:
   status: 404
-  return: '{"error": "NOT_FOUND", "message": "inspection_id not found or form is not in confirmed status"}'
+  return: '{"error": "NOT_FOUND", "message": "inspection_id not found or form is not in confirmed or published status"}'
   next: end
 returnServerError:
   status: 500

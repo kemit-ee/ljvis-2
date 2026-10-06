@@ -59,6 +59,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -69,10 +73,13 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 WITH latest AS (
   SELECT sub_form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis
   FROM forms.vehicle_technical_form
   WHERE vehicle_technical_form_key = :key::BIGINT
@@ -84,6 +91,7 @@ INSERT INTO forms.vehicle_technical_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   parts_summary,
   parts_defects,
@@ -110,6 +118,7 @@ SELECT
   (SELECT compound_form_key FROM forms.vehicle_technical_form WHERE vehicle_technical_form_key = :key::BIGINT ORDER BY created_at DESC LIMIT 1),
   latest.sub_form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   COALESCE(NULLIF(:partsSummary, '')::jsonb, '[]'::jsonb),
   COALESCE(NULLIF(:partsDefects, '')::jsonb, '[]'::jsonb),
@@ -131,4 +140,5 @@ SELECT
   latest.proceeding_closure_basis,
   :created_by
 FROM latest
-RETURNING vehicle_technical_form_key AS id, sub_form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING vehicle_technical_form_key AS id, sub_form_number, version, revision;

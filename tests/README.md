@@ -54,6 +54,22 @@ PGPASSWORD=01234 psql -h localhost -p 5433 -U ljvis -d ljvis_db -c "
 "
 ```
 
+### XTR SOAP in both directions
+
+The CI stack service `xtr-inbound` runs the published `turnerrainer/xtr:0.5.0-rc`
+image: inbound SOAP on port **9095**, internal outbound JSON on **9094**
+(the `xtr` service stays a mock for the other X-tee dependencies).
+The CI outbound route loops back through the SOAP provider and real LJVIS2 handlers.
+
+The SOAP tests are part of every `run-all.sh` run. Requires `xmllint` and PyYAML. The SOAP collection and `tests/xtr/verify.py` check both
+transport directions, the WSDL's XSD, stored data and repeated writes without
+skipped contract checks. `tests/xtr/repeat_test.py` covers exact/changed/locked
+repeats, concurrent first writes, REST v3, v1 `inspection_type` and RavenDB V2 ETL → SOAP;
+`tests/xtr/bridge_test.py` runs the `xroad/soap/*` adapters
+against JSON/empty/text/WSDL-violating backend answers in a temporary ruuter-internal
+container. `tests/xtr/race_test.py` holds one writer's transaction open (UI `update.sql`/`delete.sql`,
+e-toimik, X-tee repeat) and checks that history never forks (`revision`, changeset 20261208100000). See [XTR SOAP guide](../docs/xtee/09-xtr-soap.md) for targeted runs.
+
 ---
 
 ## How local vs CI differ
@@ -144,6 +160,7 @@ tests/postman/
 | **erru-ctud** | CTUD outgoing requests (LJVIS2-138): draft create (200+403+422 validations), get (200/403/404), revise (403/422/200), list with filters (direction, name OR licence), send (403; DE Found/LV NotFound/PL Timeout/GR NotAvailable/FI error outcomes), resend, retry from error; inbound serving (Found/NotFound, replay dedup, 400 validations for missing fields). Creates its own data. |
 | **erru-cgr** | CGR outgoing requests (LJVIS2-139, LJVIS2-140): draft create (7A name / 7B certificate / broadcast ZZ, 422 validations), revise (403/422/200), authZ (403 per role), send (broadcast ZZ→4 countries, single DE Found, FI error→retry), resend, inbound (name/certificate Found+Fit, replay dedup, 400 validations); list (filter AND-combined, broadcast ZZ display, outgoing-only, sorting). Creates its own isolated data. |
 | **erru-ncr** | NCR outgoing requests (LJVIS2-62/-63): draft create (200+403+422 infringement_incomplete validations), get (200/403/404), revise (version increments, businessCaseId format NCR-EE-YYYY-NNNNN), Pass clears minorInfringement+seriousInfringements, not_editable on bogus BCI; inbound fixture (seeded via SQL): received→viewed auto-transition on first open (idempotent), response/save (403 without ncr.respond), penalty_coverage_incomplete validation (missing/duplicate coverage), isImposed=false strips penaltyTypeImposed. Creates its own outgoing drafts; inbound case seeded by Liquibase. |
+| **xroad-soap-inbound** | XTR SOAP in both directions (`xtr-inbound`): all six operations, X-Road headers, faults, port isolation, JSON → SOAP → LJVIS2 → SOAP → JSON, XSD validation and persisted counters/violations/proceeding fields; no skipped checks. |
 | **erru-rsi** | RSI outgoing requests (LJVIS2-147): draft create (200 initiated v1, businessCaseId EE-RSI-YYYY-NNNNN), get (200/403), revise (version increments, businessCaseId unchanged, not_editable on bogus id), optional driver block (firstName/familyName/licenceNumber/licenceCountry uppercased), identificationDetails JSONB round-trip (transport_undertaking + owner sub-types), checkedItems JSONB array round-trip, UPPERCASE transforms, permission boundaries (rsi.read/rsi.create, Org Admin no-send). Creates its own isolated data. |
 | **technical-check-forms** | Vehicle/trailer technical check sub-forms (LJVIS2-72): edit/save (403, 422 required/max-length, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments), confirm (403, 200, already_confirmed 422), trailer-only exclusion of vehicle codes (422 code_not_applicable_to_trailer), X-tee fields block (403, 422 before confirm, 200 after confirm, no version bump) |
 | **transport-interruption** | Transport interruption sub-form (LJVIS2-74): edit/save (403, 422 required, 200 create+version=1), read/get (403/404/200), get-by-compound-form-key, re-save (version increments, all 4 legalBases codes), confirm (403, 200, already_confirmed 422), UPPERCASE transform of headerText/interruptionReason/personApplications/residenceAddressLine/terminationCondition |

@@ -70,7 +70,7 @@ Iga chart on õhuke wrapper ümber ühise `kemitchart`i (versioon 0.27.1). Kõik
 | `ljvis2-config` | — | Ainult ExternalSecret'id (saladused SSM-ist) ja `constants.ini` Secret |
 | `resql-ljvis` | `resql-ljvis:8090` | Andmebaasi ühendus ja Liquibase migratsiooni Job |
 | `data-mapper` | `data-mapper:3005` | Handlebars-põhine renderdaja |
-| `xtr` | `xtr:8080` | X-tee turvaserveri klient (mTLS) |
+| `xtr` | `xtr:8080`, SOAP pakkumine `xtr:8081` | X-tee turvaserveri klient (mTLS); LJVIS1 SOAP-lepingu pakkumine (`/soap-in/ljvis/ljvis`), vt [XTR SOAP juhend](../xtee/09-xtr-soap.md#tootmisse-paigaldus) |
 | `ruuter` | `ruuter:8080` | Avalik Ruuter (`/ljvis/...`) |
 | `ruuter-internal` | `ruuter-internal:8080` | Sisemine Ruuter, X-tee pakkuja marsruut |
 | `s3-proxy` | `s3-proxy:3010` | Manuste/protokollide S3 proxy |
@@ -94,6 +94,7 @@ Märkus: devops-repo kasutab kõigi Ruuterite jaoks pordi **8080** (kood-repo `d
 | Andmebaasi host, nimi, kasutaja | `environments/<env>/values/resql-ljvis.yaml` (`database.*`) | Parool tuleb SSM-ist; lisaks `networkPolicy` alamvõrgud RDS-i jaoks |
 | TIM-i andmebaas | `environments/<env>/values/tim.yaml` (`networkPolicy`) ja `ljvis2-config.yaml` | Host/kasutaja/parool tulevad SSM-ist (`db/tim/tim/*`) |
 | X-tee instants, kliendi identiteet, turvaserveri URL | `environments/<env>/values/xtr.yaml` | Praegu kõigil kolmel `ee-test`, `GOV/70001231/ljvis2`, `https://urien.ml.ee:443` |
+| XTR SOAP pakkumine (LJVIS1 leping) | `environments/<env>/values/xtr.yaml` + Service/HTTPRoute | `xtr.yaml`: `wsdl_watch_dir: /wsdl`, `dsl_path: /DSL`, `inbound.port: 8081`, `inbound.public_base_url` (turvaserverile nähtav SOAP-aadress). Port 8081 ainult turvaserverile (`xroad` Gateway), port 8080 ainult Ruuteritele. Vt [XTR SOAP juhend](../xtee/09-xtr-soap.md#tootmisse-paigaldus) |
 | X-tee pakkuja avalik hostinimi | `environments/<env>/values/ruuter-internal.yaml` | `ljvis2<env>.xtpnl.kemitaws.ee`, ainult prefiksi `/ljvis/xroad/provide/` jaoks |
 | Lubatud väljaminevad URL-id (ERRU, X-tee SS) | `environments/<env>/values/ruuter.yaml` (`app.outbound.additionalAllowedUrls`) | Ruuter blokeerib kõik, mida siin ega `allowed_urls` nimekirjas pole |
 | Uus sisemine URL Ruuterile | `charts/ruuter/values.yaml` ja/või `charts/ruuter-internal/values.yaml` (`allowed_urls`) | Kontrollib `scripts/check-ruuter-outbound.py` |
@@ -143,8 +144,6 @@ Fail renderdatakse mallist `scripts/constants.ini.tmpl`, kirjutatakse **ühe Sec
 | `ERRU_NCR_RESPONSE_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/response/...` |
 | `ERRU_RSI_ENDPOINT` | seed-ssm.env | MOVEHUB `.../rsi/http/request/...` |
 | `PK_NOTIFICATIONS_ENDPOINT` | seed-ssm.env | `http://xtr:8080/postkast/notifications` (XTR REST passthrough) |
-| `XROAD_INSTANCE` | seed-ssm.env | `ee-dev`, `ee-test` või `ee` |
-| `XROAD_SECURITY_SERVER` | seed-ssm.env | Võib olla tühi; mõjutab ainult RR `/v1/xroad/rr/isikud` marsruuti |
 | `TIM_ADMIN_TOKEN` | seed-ssm.env | **Peab ühtima** SSM-i `tim/admin-token` väärtusega |
 
 ERRU endpoint'ide väärtused on keskkonnapõhised: acceptance kasutab `webgate.acceptance.ec.testa.eu`, live kasutab eraldi kinnitatud hosti. Kui lisad uue väljaminev URL-i, lisa see ka `ruuter.yaml` väärtusfailis `additionalAllowedUrls` alla.
@@ -162,7 +161,7 @@ Koodirepo DSL-id viitavad järgmistele muutujatele, mida `scripts/constants.ini.
 | `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev/CI-s mock |
 | `ERRU_NCR_ORIGINATING_AUTHORITY` | NCR automaatse saatmise asutuse nimi | `Politsei- ja Piirivalveamet` |
 
-Samuti on mallis muutujaid, mida koodirepo DSL otseselt ei kasuta (`AR_USERNAME`, `AR_PASSWORD`, `DOMAIN`, `XROAD_INSTANCE`, `XROAD_SECURITY_SERVER`, `LJVIS_DMAPPER`) — need on jäänud sisse Äriregistri ja X-tee lahenduste tarbeks ning `XROAD_SECURITY_SERVER` on koodirepos märgitud iganenuks.
+Samuti on mallis muutujaid, mida koodirepo DSL otseselt ei kasuta (`AR_USERNAME`, `AR_PASSWORD`, `DOMAIN`, `XROAD_INSTANCE`, `XROAD_SECURITY_SERVER`, `LJVIS_DMAPPER`) — see kirjeldab eespool viidatud devops-malli seisu. `XROAD_INSTANCE` ja `XROAD_SECURITY_SERVER` on koodirepo `constants.ini` failist eemaldatud: X-tee instants ja turvaserver seadistatakse XTR-i konfiguratsioonis (`xroad_instance`, `security_server`), mitte Ruuteri konstantidena. Devops-mallist võib need kaks kasutamata muutujat samuti eemaldada.
 
 Kontrolli iga keskkonna puhul, et töötavas `ruuter-internal` podis oleks `/app/constants.ini` kõik muutujad, mida DSL vajab:
 
@@ -189,7 +188,7 @@ SSM asub **andmekontos** (mitte klastri kontos); klastri External Secrets Operat
 | `audit/salt` | `seed-ssm.sh` | Liquibase auditiahela räsid. **Püsiv — ära vaheta kunagi** (kõik varasemad isikukoodi räsid muutuvad võrreldamatuks) |
 | `cronmanager/admin-token` | `seed-ssm.sh` | CronManager admin API |
 | `services/nysiis-api-key`, `services/s3-proxy-api-key`, `services/pdf-creator-api-key` | `seed-ssm.sh` | Vastav teenus (ExternalSecret `nysiis-secret`, `s3-proxy-secret`, `pdf-creator-secret`); sama väärtus on `constants.ini`-s |
-| `xtr/keystore`, `xtr/keystore-password`, `xtr/server-ca` | kopeeritud (jagatud X-tee klient) | XTR mTLS |
+| `xtr/keystore`, `xtr/keystore-password`, `xtr/server-ca` | kopeeritud (jagatud X-tee klient) | XTR mTLS. `xtr/server-ca` → `xtr.yaml` `security_server.trust_ca_path`: **täpselt üks sertifikaat** (turvaserveri oma või selle CA); XTR loeb ainult esimese, bundle'iga TLS ebaõnnestub |
 | `stesta-gateway/tls.{crt,key}` | `seed-ssm.sh` | sTESTA lüüs |
 | `constants.ini` | `seed-ssm.sh` | `ljvis2-constants` Secret |
 

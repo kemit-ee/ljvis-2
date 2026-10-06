@@ -52,8 +52,8 @@ SELECT
         COALESCE(
             ARRAY(
                 SELECT o.name
-                FROM UNNEST(l.organisations) AS org_id
-                JOIN users.organisation o ON o.id = org_id
+                FROM users.organisation o
+                WHERE o.id = ANY (l.organisations)
                 ORDER BY o.name
             ),
             ARRAY[]::TEXT[]
@@ -72,9 +72,9 @@ WHERE
         OR l.name ILIKE '%' || COALESCE(:search, '') || '%'
         OR EXISTS (
             SELECT 1
-            FROM UNNEST(l.organisations) AS org_id
-            JOIN users.organisation o ON o.id = org_id
-            WHERE o.name ILIKE '%' || COALESCE(:search, '') || '%'
+            FROM users.organisation o
+            WHERE o.id = ANY (l.organisations)
+              AND o.name ILIKE '%' || COALESCE(:search, '') || '%'
         )
     )
 ORDER BY

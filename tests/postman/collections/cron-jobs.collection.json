@@ -945,7 +945,7 @@
    ]
   },
   {
-   "name": "[yvkehtivus] update-extraordinary-inspection-date, real date — writes in place",
+   "name": "[yvkehtivus] update-extraordinary-inspection-date, real date — appends a snapshot with the date",
    "request": {
     "method": "POST",
     "header": [
@@ -979,7 +979,7 @@
        "const body = pm.response.json();",
        "const rows = body.response || body;",
        "pm.test('Wrote exactly one row', () => pm.expect(rows.length).to.eql(1));",
-       "pm.test('version stays 1 — in-place update, not a new snapshot (LJVIS2-72 §4 convention)', () => pm.expect(rows[0].version).to.eql(1));"
+       "pm.test('version stays 1 — the appended snapshot keeps /V (LJVIS2-72 §4 convention)', () => pm.expect(rows[0].version).to.eql(1));"
       ]
      }
     }
@@ -1785,7 +1785,7 @@
    ]
   },
   {
-   "name": "[sp-driver e-toimik] update-xroad-fields found=true — writes decision in place",
+   "name": "[sp-driver e-toimik] update-xroad-fields found=true — appends a snapshot with the decision",
    "request": {
     "method": "POST",
     "header": [
@@ -1818,7 +1818,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
-       "pm.test('Wrote exactly one row (in-place update on the latest confirmed snapshot)', () => pm.expect(rows.length).to.eql(1));"
+       "pm.test('Appended exactly one snapshot row (copy of the latest confirmed snapshot with the decision)', () => pm.expect(rows.length).to.eql(1));"
       ]
      }
     }
@@ -2089,7 +2089,7 @@
     },
     "body": {
      "mode": "raw",
-     "raw": "{\"status\": \"confirmed\", \"controlDate\": \"2026-08-01\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"city\": \"Tallinn\", \"address\": \"Cron tee 1\", \"vehicleRegNr\": \"TRAMCRON1\", \"vehicleCountryCode\": \"EE\", \"trailers\": \"[]\", \"drivers\": \"[{\\\"firstName\\\":\\\"Test\\\",\\\"lastName\\\":\\\"Juht\\\",\\\"personalCodeEe\\\":\\\"60001019906\\\",\\\"citizenship\\\":\\\"EE\\\"}]\", \"driverNotApplicable\": \"false\", \"transportType\": \"Veosevedu\", \"resultType\": \"misdemeanor_proceedings\", \"proceedingType\": \"YLD\", \"proceedingReferenceNumber\": \"1-20/26/TRAM-CRON\", \"inspectorFirstName\": \"Newman\", \"inspectorLastName\": \"Cron\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"notes\": \"\", \"created_by\": \"newman\", \"key\": \"{{cron_tram_id}}\"}"
+     "raw": "{\"status\": \"confirmed\", \"controlDate\": \"2026-08-01\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"city\": \"Tallinn\", \"address\": \"Cron tee 1\", \"vehicleRegNr\": \"TRAMCRON1\", \"vehicleCountryCode\": \"EE\", \"trailers\": \"[]\", \"drivers\": \"[{\\\"firstName\\\":\\\"Test\\\",\\\"lastName\\\":\\\"Juht\\\",\\\"personalCodeEe\\\":\\\"60001019906\\\",\\\"citizenship\\\":\\\"EE\\\"}]\", \"driverNotApplicable\": \"false\", \"transportType\": \"Veosevedu\", \"resultType\": \"misdemeanor_proceedings\", \"proceedingType\": \"YLD\", \"proceedingReferenceNumber\": \"1-20/26/TRAM-CRON\", \"inspectorFirstName\": \"Newman\", \"inspectorLastName\": \"Cron\", \"inspectorOrganisationId\": \"1\", \"inspectorUnit\": \"CI\", \"inspectorProfession\": \"Inspektor\", \"notes\": \"\", \"created_by\": \"newman\", \"key\": \"{{cron_tram_id}}\", \"expected_revision\": \"\"}"
     }
    },
    "event": [
@@ -2643,7 +2643,7 @@
    ]
   },
   {
-   "name": "[vehicle-technical e-toimik] update-xroad-fields found=true — writes decision in place",
+   "name": "[vehicle-technical e-toimik] update-xroad-fields found=true — appends a snapshot with the decision",
    "request": {
     "method": "POST",
     "header": [
@@ -2675,7 +2675,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
-       "pm.test('Wrote exactly one row (in-place update on the latest confirmed snapshot)', () => pm.expect(rows.length).to.eql(1));"
+       "pm.test('Appended exactly one snapshot row (copy of the latest confirmed snapshot with the decision)', () => pm.expect(rows.length).to.eql(1));"
       ]
      }
     }
@@ -2961,7 +2961,7 @@
    ]
   },
   {
-   "name": "[trailer-technical e-toimik] update-xroad-fields found=true — writes decision in place",
+   "name": "[trailer-technical e-toimik] update-xroad-fields found=true — appends a snapshot with the decision",
    "request": {
     "method": "POST",
     "header": [
@@ -2993,7 +2993,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
-       "pm.test('Wrote exactly one row (in-place update on the latest confirmed snapshot)', () => pm.expect(rows.length).to.eql(1));"
+       "pm.test('Appended exactly one snapshot row (copy of the latest confirmed snapshot with the decision)', () => pm.expect(rows.length).to.eql(1));"
       ]
      }
     }
@@ -3383,7 +3383,7 @@
    ]
   },
   {
-   "name": "[trailer-technical yvkehtivus] update-extraordinary-inspection-date, real date — writes in place",
+   "name": "[trailer-technical yvkehtivus] update-extraordinary-inspection-date, real date — appends a snapshot with the date",
    "request": {
     "method": "POST",
     "header": [
@@ -3417,7 +3417,7 @@
        "const body = pm.response.json();",
        "const rows = body.response || body;",
        "pm.test('Wrote exactly one row', () => pm.expect(rows.length).to.eql(1));",
-       "pm.test('version stays 1 — in-place update, not a new snapshot', () => pm.expect(rows[0].version).to.eql(1));"
+       "pm.test('version stays 1 — the appended snapshot keeps /V', () => pm.expect(rows[0].version).to.eql(1));"
       ]
      }
     }
@@ -3737,8 +3737,88 @@
        "pm.test('200', () => pm.response.to.have.status(200));",
        "const rows = pm.response.json().response || pm.response.json();",
        "pm.test('>=1 snapshot before archival', () => pm.expect((rows||[]).length).to.be.at.least(1));",
-       "if (rows && rows.length) pm.environment.set('arch_snapshot_id', String(rows[rows.length-1].snapshot_id || rows[rows.length-1].snapshotId));"
+       "if (rows && rows.length) pm.environment.set('arch_snapshot_id', String(rows[rows.length-1].snapshot_id || rows[rows.length-1].snapshotId));",
+       "if (rows && rows.length) pm.environment.set('arch_first_snapshot_id', String(rows[0].snapshot_id || rows[0].snapshotId));"
       ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] purge_confirmed with only PART of an entity's history deletes nothing (history is never split)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/archive/purge_confirmed",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "archive",
+      "purge_confirmed"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"ids\": \"[{\\\"form_type\\\":\\\"labour-inspection\\\",\\\"id\\\":{{arch_first_snapshot_id}}}]\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"purged 0\", () => pm.expect(Number(rows[0].purged)).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[archive] history still complete in the work DB after the rejected partial purge",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/labour-inspection/get-snapshots",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "labour-inspection",
+      "get-snapshots"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{arch_li_key}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\">=2 snapshots\", () => pm.expect((rows||[]).length).to.be.at.least(2));"
+      ],
+      "type": "text/javascript"
      }
     }
    ]
@@ -4119,6 +4199,1126 @@
       "exec": [
        "pm.test('ruuter-internal healthy', () => pm.response.to.have.status(200));"
       ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only Setup] Insert compound_form",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/compound-form/insert",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "compound-form",
+      "insert"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"status\": \"confirmed\", \"controlDate\": \"2026-08-01\", \"controlTime\": \"10:00\", \"controlCountryCode\": \"EE\", \"county\": \"\", \"city\": \"\", \"road\": \"\", \"roadOther\": \"\", \"kilometer\": \"\", \"address\": \"\", \"road_type\": \"\", \"roadTaxStatus\": \"\", \"roadTaxNotes\": \"\", \"vehicleRegNr\": \"AOINV1\", \"vehicleMake\": \"\", \"vehicleModel\": \"\", \"vehicleCountryCode\": \"EE\", \"vehicleVin\": \"\", \"vehicleFirstRegistration\": \"\", \"vehicleBodyType\": \"\", \"vehicleCategoryCode\": \"\", \"vehicleCategoryOther\": \"\", \"vehicleMileage\": \"\", \"trailers\": \"[]\", \"companyRegCode\": \"12345678\", \"companyName\": \"Newman OU\", \"companyCountryCode\": \"EE\", \"companyCounty\": \"\", \"companyCity\": \"\", \"companyAddressLine1\": \"\", \"companyPostalCode\": \"\", \"companyOwnerFirstName\": \"\", \"companyOwnerLastName\": \"\", \"companyActivityLicenceCopyNumber\": \"\", \"drivers\": \"[]\", \"inspectorFirstName\": \"Newman\", \"inspectorLastName\": \"Tester\", \"inspectorOrganisationId\": \"{{cron_org_id}}\", \"inspectorUnit\": \"Unit\", \"inspectorProfession\": \"Tester\", \"created_by\": \"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('ao_cf_id', String(rows[0].id));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only Setup] Insert confirmed vehicle_technical_form",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/insert",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "insert"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"compoundFormKey\": \"{{ao_cf_id}}\", \"status\": \"confirmed\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"resultTransportInterruption\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"general\", \"proceedingReferenceNumber\": \"1-20/26/AO-INV\", \"violations\": \"[]\", \"notes\": \"\", \"created_by\": \"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('ao_vtf_id', String(rows[0].id));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only] update-proceeding-outcome appends a snapshot (epic #522 T1)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-proceeding-outcome",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update-proceeding-outcome"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"{{ao_vtf_id}}\", \"enforcementDecision\": \"Rahatrahv 90 eurot\", \"proceedingClosureBasis\": \"VTMS § 29\", \"created_by\": \"38001010001\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"Appended exactly one snapshot row\", () => pm.expect(rows.length).to.eql(1));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only] get-snapshots lists the original row and the appended one",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/get-snapshots",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "get-snapshots"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"both snapshots are in the history (nothing was overwritten)\", () => pm.expect(rows.length).to.be.at.least(2));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only] get returns the appended row's values, version unchanged",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"status stays confirmed\", () => pm.expect(rows[0].status).to.eql('confirmed'));",
+       "pm.test(\"decision visible on the latest snapshot\", () => pm.expect(rows[0].enforcementDecision).to.eql('Rahatrahv 90 eurot'));",
+       "pm.test(\"version (/V) not bumped\", () => pm.expect(rows[0].version).to.eql(1));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only] update-proceeding-outcome on a missing key writes nothing",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update-proceeding-outcome",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update-proceeding-outcome"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"2147483000\", \"enforcementDecision\": \"x\", \"proceedingClosureBasis\": \"y\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] get returns the form's revision",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"revision is a number\", () => pm.expect(rows[0].revision).to.be.a('number'));",
+       "pm.environment.set('ol_rev', String(rows[0].revision));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] update with the revision the user saw adds a row and returns the new revision",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"{{ao_vtf_id}}\", \"status\": \"confirmed\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"resultTransportInterruption\": false, \"transportInterruptionAutovs5131\": false, \"otherMeasure\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"violations\": \"[]\", \"notes\": \"\", \"created_by\": \"newman\", \"expected_revision\": \"{{ol_rev}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));",
+       "pm.test(\"revision advanced by one\", () => pm.expect(String(rows[0].revision)).to.eql(String(Number(pm.environment.get('ol_rev')) + 1)));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] update with the now-stale revision adds nothing (conflict)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"{{ao_vtf_id}}\", \"status\": \"confirmed\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"resultTransportInterruption\": false, \"transportInterruptionAutovs5131\": false, \"otherMeasure\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"violations\": \"[]\", \"notes\": \"\", \"created_by\": \"newman\", \"expected_revision\": \"{{ol_rev}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[optimistic lock] update without expected revision is not checked",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/vehicle-technical/update",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "vehicle-technical",
+      "update"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"key\": \"{{ao_vtf_id}}\", \"status\": \"confirmed\", \"partsSummary\": \"[]\", \"partsDefects\": \"[]\", \"resultType\": \"ok\", \"resultTransportInterruption\": false, \"transportInterruptionAutovs5131\": false, \"otherMeasure\": false, \"eraYvMntRegnr\": false, \"eraYvMntVintin\": false, \"eraYvMntAxles\": false, \"eraYvMntPlaces\": false, \"eraYvMntRebuilt\": false, \"proceedingType\": \"\", \"proceedingReferenceNumber\": \"\", \"violations\": \"[]\", \"notes\": \"\", \"created_by\": \"newman\", \"expected_revision\": \"\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only carrier] insert_carrier_request opens a request",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/insert_carrier_request",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "insert_carrier_request"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"entity_type\": \"vehicle_technical\", \"entity_id\": \"{{ao_vtf_id}}\", \"requested_by\": \"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('ao_req_id', String(rows[0].id));",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only carrier] insert_carrier_request again — idempotent while open",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/insert_carrier_request",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "insert_carrier_request"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"entity_type\": \"vehicle_technical\", \"entity_id\": \"{{ao_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"no second open request\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only carrier] get_open_carrier_request returns it",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/get_open_carrier_request",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "get_open_carrier_request"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"entity_type\": \"vehicle_technical\", \"entity_id\": \"{{ao_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"open request found\", () => pm.expect(rows.length).to.eql(1));",
+       "pm.test(\"it is the first one\", () => pm.expect(String(rows[0].id)).to.eql(pm.environment.get('ao_req_id')));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only carrier] mark_carrier_request_sent appends a sent row",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/mark_carrier_request_sent",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "mark_carrier_request_sent"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_req_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only carrier] mark_carrier_request_sent again — no-op",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/mark_carrier_request_sent",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "mark_carrier_request_sent"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_req_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only carrier] no open request after it was sent",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/get_open_carrier_request",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "get_open_carrier_request"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"entity_type\": \"vehicle_technical\", \"entity_id\": \"{{ao_vtf_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only carrier] a new request can be opened after the previous was sent",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/insert_carrier_request",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "insert_carrier_request"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"entity_type\": \"vehicle_technical\", \"entity_id\": \"{{ao_vtf_id}}\", \"requested_by\": \"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only outbound_log Setup] insert_outbound_log (queued)",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/insert_outbound_log",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "insert_outbound_log"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"message_type\": \"carrier_violation\", \"status\": \"queued\", \"recipient_address\": \"newman@example.ee\", \"template_variables\": \"{}\", \"related_entity_type\": \"vehicle_technical\", \"related_entity_id\": \"{{ao_vtf_id}}\", \"notification_key\": \"ao-newman-{{$timestamp}}\", \"payload_json\": \"{}\", \"created_by\": \"newman\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('ao_log_id', rows[0].id);"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only outbound_log] list_pending_status includes the queued row",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/list_pending_status",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "list_pending_status"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"limit\": \"1000\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"queued row is pending\", () => pm.expect(rows.map(r => r.id)).to.include(pm.environment.get('ao_log_id')));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only outbound_log] update_outbound_log_status -> in_progress appends an event",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/update_outbound_log_status",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "update_outbound_log_status"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_log_id}}\", \"status\": \"in_progress\", \"pk_sending_operation_id\": \"OP-NEWMAN\", \"increment_check\": true}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"status in_progress\", () => pm.expect(rows[0].status).to.eql('in_progress'));",
+       "pm.test(\"operation id carried\", () => pm.expect(rows[0].pkSendingOperationId).to.eql('OP-NEWMAN'));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only outbound_log] update_outbound_log_status -> sent keeps earlier fields",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/update_outbound_log_status",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "update_outbound_log_status"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_log_id}}\", \"status\": \"sent\", \"increment_check\": false}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"status sent\", () => pm.expect(rows[0].status).to.eql('sent'));",
+       "pm.test(\"pk_sending_operation_id carried forward from the previous event\", () => pm.expect(rows[0].pkSendingOperationId).to.eql('OP-NEWMAN'));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only outbound_log] get_outbound_log reflects the latest event",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/get_outbound_log",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "get_outbound_log"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{ao_log_id}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"status sent\", () => pm.expect(rows[0].status).to.eql('sent'));",
+       "pm.test(\"operation id\", () => pm.expect(rows[0].pkSendingOperationId).to.eql('OP-NEWMAN'));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[append-only outbound_log] list_pending_status no longer lists it",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/notification/list_pending_status",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "notification",
+      "list_pending_status"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"limit\": \"1000\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"sent row is not pending\", () => pm.expect(rows.map(r => r.id)).to.not.include(pm.environment.get('ao_log_id')));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone Setup] insert_form_attachment",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/insert_form_attachment",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "insert_form_attachment"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"form_number\": \"mv-2026-att-{{$timestamp}}\", \"file_name\": \"ao.pdf\", \"s3_key\": \"newman/ao-{{$timestamp}}.pdf\", \"created_by\": \"newman\", \"form_number_prefix\": \"mv-\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.environment.set('att_id', String(rows[0].id));",
+       "pm.environment.set('att_form_number', rows[0].formNumber);",
+       "pm.environment.set('att_s3_key', rows[0].s3Key);"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] delete_form_attachment appends a deleted row, returns the original id",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/delete_form_attachment",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "delete_form_attachment"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{att_id}}\", \"form_number_prefix\": \"mv-\", \"created_by\": \"38001010001\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"one row\", () => pm.expect(rows.length).to.eql(1));",
+       "pm.test(\"original attachment id\", () => pm.expect(String(rows[0].id)).to.eql(pm.environment.get('att_id')));",
+       "pm.test(\"status deleted\", () => pm.expect(rows[0].status).to.eql('deleted'));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] delete again — no second tombstone",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/delete_form_attachment",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "delete_form_attachment"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{att_id}}\", \"form_number_prefix\": \"mv-\", \"created_by\": \"someone\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] get_form_attachment_by_id hides the deleted attachment",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/get_form_attachment_by_id",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "get_form_attachment_by_id"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"id\": \"{{att_id}}\", \"form_number_prefix\": \"mv-\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
+     }
+    }
+   ]
+  },
+  {
+   "name": "[attachment tombstone] get_form_attachments hides the deleted attachment",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/control-forms/files/get_form_attachments",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "control-forms",
+      "files",
+      "get_form_attachments"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"form_number\": \"{{att_form_number}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test(\"0 rows\", () => pm.expect(rows.length).to.eql(0));"
+      ],
+      "type": "text/javascript"
      }
     }
    ]

@@ -37,10 +37,11 @@ returns:
   type: string
   nullable: true
 */
-SELECT id, form_number, file_name, s3_key, status, created_at, created_by
-FROM forms.form_attachment
-WHERE id = :id::BIGINT
-  AND status = 'active'
+SELECT a.id, a.form_number, a.file_name, a.s3_key, a.status, a.created_at, a.created_by
+FROM forms.form_attachment a
+WHERE a.id = :id::BIGINT
+  AND a.status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM forms.form_attachment d WHERE d.s3_key = a.s3_key AND d.status = 'deleted')
   AND btrim(COALESCE(:form_number_prefix, '')) <> ''
-  AND form_number LIKE :form_number_prefix || '%'
-  AND (btrim(COALESCE(:attachment_form_type, '')) = '' OR starts_with(s3_key, :attachment_form_type || '/'));
+  AND a.form_number LIKE :form_number_prefix || '%'
+  AND (btrim(COALESCE(:attachment_form_type, '')) = '' OR starts_with(a.s3_key, :attachment_form_type || '/'));

@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 41.
+Skeemid: 8, tabeleid: 43.
 
 ## Skeem `audit`
 
@@ -400,7 +400,7 @@ Võõrvõtmed: `inbox_id` → `erru.xml_inbox`
 
 ### `forms.adr_form`
 
-Loodud: `20260804160000-initial-adr-form.sql` · veerge: 37 · PK: `id`
+Loodud: `20260804160000-initial-adr-form.sql` · veerge: 38 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -441,10 +441,11 @@ Loodud: `20260804160000-initial-adr-form.sql` · veerge: 37 · PK: `id`
 | `driving_ban_applied` | BOOLEAN | jah |
 | `transport_interruption_applied` | BOOLEAN | jah |
 | `infringement_notes_summary` | TEXT |  |
+| `revision` | BIGINT |  |
 
 ### `forms.compound_form`
 
-Loodud: `20260713100000-initial-compound-form.sql` · veerge: 52 · PK: `id`
+Loodud: `20260713100000-initial-compound-form.sql` · veerge: 53 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -500,10 +501,11 @@ Loodud: `20260713100000-initial-compound-form.sql` · veerge: 52 · PK: `id`
 | `authority` | VARCHAR(10) | jah |
 | `version` | INTEGER | jah |
 | `driver_not_applicable` | BOOLEAN | jah |
+| `revision` | BIGINT |  |
 
 ### `forms.foreign_violation_form`
 
-Loodud: `20260703100000-initial-foreign-violation-form.sql` · veerge: 63 · PK: `id`
+Loodud: `20260703100000-initial-foreign-violation-form.sql` · veerge: 64 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -570,6 +572,7 @@ Loodud: `20260703100000-initial-foreign-violation-form.sql` · veerge: 63 · PK:
 | `notify_carrier` | BOOLEAN | jah |
 | `erru_ncr_message_key` | BIGINT |  |
 | `notify_labor_inspector` | BOOLEAN | jah |
+| `revision` | BIGINT |  |
 
 ### `forms.form_attachment`
 
@@ -587,7 +590,7 @@ Loodud: `20260708100000-form-attachments.sql` · veerge: 7 · PK: `id`
 
 ### `forms.good_repute_form`
 
-Loodud: `20260804170000-initial-good-repute-form.sql` · veerge: 18 · PK: `id`
+Loodud: `20260804170000-initial-good-repute-form.sql` · veerge: 19 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -609,10 +612,11 @@ Loodud: `20260804170000-initial-good-repute-form.sql` · veerge: 18 · PK: `id`
 | `unfit_until_date` | DATE |  |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+| `revision` | BIGINT |  |
 
 ### `forms.kv_form`
 
-Loodud: `20260804120000-initial-transport-interruption-form.sql` · veerge: 18 · PK: `id`
+Loodud: `20260804120000-initial-transport-interruption-form.sql` · veerge: 19 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -634,10 +638,24 @@ Loodud: `20260804120000-initial-transport-interruption-form.sql` · veerge: 18 �
 | `person_applications` | TEXT |  |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+| `revision` | BIGINT |  |
+
+### `forms.labour_inspection_external_ref`
+
+Loodud: `20261209100000-labour-inspection-external-ref.sql` · veerge: 6 · PK: `source, external_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `source` | VARCHAR(30) | jah |
+| `external_id` | VARCHAR(100) | jah |
+| `labour_inspection_form_key` | BIGINT | jah |
+| `payload_hash` | VARCHAR(32) |  |
+| `created_at` | TIMESTAMPTZ | jah |
+| `updated_at` | TIMESTAMPTZ | jah |
 
 ### `forms.labour_inspection_form`
 
-Loodud: `20260728130000-initial-labour-inspection-form.sql` · veerge: 24 · PK: `id`
+Loodud: `20260728130000-initial-labour-inspection-form.sql` · veerge: 25 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -665,10 +683,11 @@ Loodud: `20260728130000-initial-labour-inspection-form.sql` · veerge: 24 · PK:
 | `violations` | JSONB | jah |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+| `revision` | BIGINT |  |
 
 ### `forms.sp_driver_form`
 
-Loodud: `20260724100000-initial-sp-driver-form.sql` · veerge: 43 · PK: `id`
+Loodud: `20260724100000-initial-sp-driver-form.sql` · veerge: 44 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -715,10 +734,11 @@ Loodud: `20260724100000-initial-sp-driver-form.sql` · veerge: 43 · PK: `id`
 | `liini_number` | VARCHAR(100) |  |
 | `liini_nimetus` | VARCHAR(255) |  |
 | `tachograph_notes` | TEXT |  |
+| `revision` | BIGINT |  |
 
 ### `forms.sp_teammate_form`
 
-Loodud: `20260724200000-initial-sp-teammate-form.sql` · veerge: 49 · PK: `id`
+Loodud: `20260724200000-initial-sp-teammate-form.sql` · veerge: 50 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -771,10 +791,11 @@ Loodud: `20260724200000-initial-sp-teammate-form.sql` · veerge: 49 · PK: `id`
 | `person_citizenship_code` | VARCHAR(10) |  |
 | `person_code_foreign` | VARCHAR(50) |  |
 | `person_birth_date` | DATE |  |
+| `revision` | BIGINT |  |
 
 ### `forms.trailer_technical_form`
 
-Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 27 · PK: `id`
+Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 28 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -805,10 +826,11 @@ Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 27 · PK: `
 | `trailer_reg_nr` | VARCHAR(100) |  |
 | `transport_interruption_autovs_51_3_1` | BOOLEAN | jah |
 | `other_measure` | BOOLEAN | jah |
+| `revision` | BIGINT |  |
 
 ### `forms.tram_control_card`
 
-Loodud: `20261112100000-tram-control-card-table.sql` · veerge: 78 · PK: `id`
+Loodud: `20261112100000-tram-control-card-table.sql` · veerge: 79 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -890,10 +912,11 @@ Loodud: `20261112100000-tram-control-card-table.sql` · veerge: 78 · PK: `id`
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
 | `tachograph_notes` | TEXT |  |
+| `revision` | BIGINT |  |
 
 ### `forms.vehicle_technical_form`
 
-Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 26 · PK: `id`
+Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 27 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -923,12 +946,13 @@ Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 26 · PK: `
 | `created_by` | VARCHAR(100) | jah |
 | `transport_interruption_autovs_51_3_1` | BOOLEAN | jah |
 | `other_measure` | BOOLEAN | jah |
+| `revision` | BIGINT |  |
 
 ## Skeem `notifications`
 
 ### `notifications.carrier_notification_request`
 
-Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 6 · PK: `id`
+Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 7 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -938,6 +962,7 @@ Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 6 · PK: `i
 | `requested_by` | VARCHAR(100) | jah |
 | `requested_at` | TIMESTAMPTZ | jah |
 | `sent_at` | TIMESTAMPTZ |  |
+| `revision` | BIGINT | jah |
 
 ### `notifications.notification`
 
@@ -1027,6 +1052,25 @@ Võõrvõtmed: `log_id` → `notifications.outbound_log`
 | `person_name` | TEXT |  |
 | `person_code` | TEXT |  |
 | `sending_report` | TEXT | jah |
+
+### `notifications.outbound_log_status_event`
+
+Loodud: `20261208110000-notifications-append-only.sql` · veerge: 10 · PK: `id`
+
+Võõrvõtmed: `log_id` → `notifications.outbound_log`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `id` | BIGSERIAL | jah |
+| `log_id` | UUID | jah |
+| `revision` | BIGINT | jah |
+| `status` | TEXT | jah |
+| `failure_reason` | TEXT |  |
+| `pk_sending_operation_id` | TEXT |  |
+| `pk_operation_restart_allowed` | BOOLEAN |  |
+| `pk_completed_at` | TIMESTAMPTZ |  |
+| `status_check_count` | INTEGER | jah |
+| `created_at` | TIMESTAMPTZ | jah |
 
 ## Skeem `risk`
 
