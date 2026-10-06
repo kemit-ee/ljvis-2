@@ -27,7 +27,7 @@ dsl_path: /DSL
 wsdl_watch_dir: /wsdl
 inbound:
   port: 8081
-  public_base_url: https://<SOAP-host>   # ilma /soap-in/... lõputa
+  public_base_url: https://<SOAP-host>   # ilma /soap-in/... lõputa; dev: https://ljvis2dev.xtpnl.kemitaws.ee
 ```
 
 **Turvaserveri sertifikaat (`trust_ca_path`):** failis peab olema **täpselt üks sertifikaat** — turvaserveri enda (iseallkirjastatud) sertifikaat või selle väljastanud CA. XTR loeb failist ainult esimese sertifikaadi; kui sinna panna mitme sertifikaadiga komplekt (bundle), ebaõnnestub TLS-ühendus vaikselt. Dev: `cammy-server.crt`, test: `urien-server.crt`. Keskkonnamuutujat `SSL_CERT_FILE` ei kasutata.
@@ -35,6 +35,8 @@ inbound:
 `security_server` on kohustuslik. Ilma selleta XTR ei käivitu.
 
 ## Pordid ja aadressid
+
+`<SOAP-host>` on keskkonna avalik SOAP-aadress, mida turvaserver näeb. **Dev:** `https://ljvis2dev.xtpnl.kemitaws.ee/` (nt WSDL: `https://ljvis2dev.xtpnl.kemitaws.ee/soap-in/ljvis/ljvis?wsdl`). Test ja prod aadress lisatakse siia, kui see on teada.
 
 | Port | Kes tohib ligi | Milleks |
 |---|---|---|
