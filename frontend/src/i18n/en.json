@@ -758,6 +758,8 @@
       "address": "Address",
       "road": "Road",
       "road_other": "Other road",
+      "road_other_number": "Road number",
+      "road_other_number_not_found": "This road number was not found in the other roads list. Enter the road name manually",
       "kilometer": "Kilometer (km)",
       "road_type": "Road type",
       "roadTaxStatus": "Vehicle road tax",

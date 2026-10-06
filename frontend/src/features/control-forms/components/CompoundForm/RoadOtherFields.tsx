@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TextField } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { findOtherRoadName } from './roadOtherLookup';
 
 interface RoadOtherFieldsProps {
   value: string;
@@ -26,11 +27,9 @@ export function RoadOtherFields({ value, onChange }: RoadOtherFieldsProps) {
       setNotFound(false);
       return;
     }
-    const match = getByCode('ROAD_OTHER').find(
-      (r) => r.isValid !== false && r.code.trim() === number,
-    );
-    setNotFound(!match);
-    if (match) onChange(match.name);
+    const roadName = findOtherRoadName(getByCode('ROAD_OTHER'), number);
+    setNotFound(!roadName);
+    if (roadName) onChange(roadName);
   };
 
   return (
