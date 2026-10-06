@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 42.
+Skeemid: 8, tabeleid: 43.
 
 ## Skeem `audit`
 
@@ -639,6 +639,19 @@ Loodud: `20260804120000-initial-transport-interruption-form.sql` · veerge: 19 �
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
 | `revision` | BIGINT |  |
+
+### `forms.labour_inspection_external_ref`
+
+Loodud: `20261209100000-labour-inspection-external-ref.sql` · veerge: 6 · PK: `source, external_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `source` | VARCHAR(30) | jah |
+| `external_id` | VARCHAR(100) | jah |
+| `labour_inspection_form_key` | BIGINT | jah |
+| `payload_hash` | VARCHAR(32) |  |
+| `created_at` | TIMESTAMPTZ | jah |
+| `updated_at` | TIMESTAMPTZ | jah |
 
 ### `forms.labour_inspection_form`
 
