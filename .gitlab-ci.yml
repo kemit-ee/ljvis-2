@@ -1,5 +1,5 @@
 # LJVIS2 source pipeline: standard-service-delivery@a2f54153 (env image tags trial).
-# Twelve ARM64 images, twelve release components (config + eleven workloads).
+# Thirteen ARM64 images, thirteen release components (config + twelve workloads).
 # Pin: auto to dev on protected main; manual to test and prelive.
 # Liquibase is a build-only image; resql-ljvis bakes the same RELEASE_VERSION
 # into databaseMigration.
@@ -77,6 +77,9 @@ include:
         - name: cronmanager
           image_repository: cronmanager/images
           dockerfile: docker/cronmanager/Dockerfile
+        - name: erru-xml-adapter
+          image_repository: erru-xml-adapter/images
+          dockerfile: docker/erru-xml-adapter/Dockerfile
       components:
         - name: ljvis2-config
         - name: resql-ljvis
@@ -90,6 +93,7 @@ include:
         - name: nysiis
         - name: pdf-creator
         - name: cronmanager
+        - name: erru-xml-adapter
       deploy:
         - environment: dev
           mode: auto
