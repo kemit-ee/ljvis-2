@@ -45,3 +45,15 @@ Värav tohib sisse lülitada alles pärast 3a levikut kõigis keskkondades, muid
 
 - TIM-i täpne avalike teede nimekiri.
 - Kas XTR-i või Resql-i kutsub veel keegi peale Ruuteri (`erru-xml-adapter` kasutab andmebaasi otse).
+
+## Otsus (2026-10-06): autentimisvärav jääb ehitamata
+
+Värav (3b/3c) lisaks neli deploymenti, tagateenuste ümbernimetamise ja sisseviimise järjekorra; devops-repo NetworkPolicy piirab
+Resql'i, XTR-i ja TIM-i ligipääsu juba ainult `ruuter`, `ruuter-internal` ja `frontend` podidele, seega lisandub kaitset
+ainult kompromiteeritud lubatud poodi vastu. Otsustatud:
+
+- 3a (see PR) jääb: väljuvad kutsed kannavad tokenit, valmisolek upstream-toe või mTLS-i jaoks.
+- 3b/3c suletud: PR #561 on suletud, haru `audit/audit-520-authgate` jääb viiteks (nginx-proksi, compose/CI-integratsioon,
+  täielik Newman 0 tõrkega, TIM-i avalike teede allowlist, XTR-lane'i päiste tulemus).
+- Pikaajaline suund: upstream-soovid (Resql/TIM/DataMapper/XTR inbound-auth) või service mesh mTLS (devopsi otsus).
+- Kehtiv lekkereegel: token ei tohi minna XTR REST-lane'i (`scripts/check-internal-token-targets.py`).
