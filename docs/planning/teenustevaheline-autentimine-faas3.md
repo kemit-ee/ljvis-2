@@ -28,7 +28,7 @@ mTLS (service mesh), mille valik on devopsi otsus.
 
 1. **3a (see PR):** väljuvad kutsed Resql/TIM/DataMapper'ile saadavad päise. Teenused ignoreerivad seda,
    seega deploy on ohutu.
-2. **3a-XTR (tehtud):** XTR-i käitumine kontrollitud päris konteineriga (xtr 0.4.1-rc, "turvaserver" = kaja-server).
+2. **3a-XTR (tehtud):** XTR-i käitumine kontrollitud xtr 0.5.0-rc lähtekoodiga ja testiga (REST-lane edastab tundmatud päised; SOAP-täitjad seavad ainult oma päised); lisaks päris 0.4.1-rc konteineriga vastu kaja-serverit.
    **REST-lane (`kind: rest`: `rr/isikud`, `postkast/*`) edastab kõik sissetulevad päised turvaserverisse**, SOAP-lane
    (`ar`, `etoimik`, `mtr`, `liiklusregister`) ei edasta. Seega saadavad päise 27 SOAP-kutset, REST-lane'i kutsed
    (`/rr`, `PK_*`, ERRU-endpointid, mis tootmises osutavad XTR-ile) **mitte**. `scripts/check-internal-token-targets.py`

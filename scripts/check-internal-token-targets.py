@@ -4,7 +4,7 @@ that are ours and do not forward inbound headers.
 
 XTR's REST lane (DSL kind: rest: rr/isikud, postkast/*, and the ERRU/Postkasti endpoints that
 point at XTR in production) forwards EVERY inbound header to the X-Road security server, so the
-token must never be sent there (verified against xtr 0.4.1-rc). The SOAP lane builds its own
+token must never be sent there (verified against xtr 0.5.0-rc: executor/rest_lane.rs forwards unknown inbound headers; SOAP executors set only their own). The SOAP lane builds its own
 request and does not forward headers.
 
 Fails when a DSL step sends the token to a URL outside the allowlist.
