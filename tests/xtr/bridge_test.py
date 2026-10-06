@@ -2,8 +2,10 @@
 """SOAP adapters (DSL/Ruuter.internal/ljvis/POST/xroad/soap/*.yml) against misbehaving backends.
 
 The real backends are Ruuter DSLs and always answer with JSON, so this test starts a temporary copy of the
-ruuter-internal image whose LJVIS_RUUTER_INTERNAL points to a local mock. The mock returns JSON errors,
-empty and text bodies, and successful bodies that violate the WSDL. Integration log rows are checked via psql.
+ruuter-internal image whose LJVIS_RUUTER_INTERNAL points to a mock backend. The mock runs as its own container
+(python image) on the same docker network, so nothing depends on reaching the host from a container
+(host.docker.internal is not reliable on Linux CI). It returns JSON errors, empty and text bodies, and
+successful bodies that violate the WSDL. Integration log rows are checked via psql.
 
 python3 tests/xtr/bridge_test.py --image ljvis-ci-ruuter-internal --network ljvis-ci_ljvis-ci \
   -- docker compose -f docker-compose.ci.yml -p ljvis-ci exec -T database \
@@ -14,11 +16,9 @@ import json
 import re
 import subprocess
 import tempfile
-import threading
 import time
 import urllib.error
 import urllib.request
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -49,11 +49,15 @@ CASES = {
 }
 
 
+MOCK_IMAGE = 'python:3.12-alpine'
+MOCK_SERVER = '''import json, sys
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+CASES = json.load(open('/mock/cases.json'))
+
 class Mock(BaseHTTPRequestHandler):
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers.get('Content-Length') or 0)) or b'{}')
-        case = body.get('isikukood') or body.get('alates')
-        status, content_type, payload = CASES[case]
+        status, content_type, payload = CASES[body.get('isikukood') or body.get('alates')]
         data = payload.encode('utf-8')
         self.send_response(status)
         self.send_header('Content-Type', content_type)
@@ -63,6 +67,11 @@ class Mock(BaseHTTPRequestHandler):
 
     def log_message(self, *args):
         pass
+
+server = ThreadingHTTPServer(('0.0.0.0', 8080), Mock)
+print('ready', flush=True)
+server.serve_forever()
+'''
 
 
 ENDPOINTS = {'IsikuKontroll': 'isiku-kontroll', 'IsikuEttevoteKontrollid': 'isiku-ettevote-kontrollid',
@@ -96,20 +105,36 @@ def main():
     args = parser.parse_args()
     db = args.db_command[1:] if args.db_command[:1] == ['--'] else args.db_command
 
-    server = ThreadingHTTPServer(('0.0.0.0', 0), Mock)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    mock_port = server.server_address[1]
-
+    workdir = Path(tempfile.mkdtemp(prefix='ljvis-bridge-'))
+    (workdir / 'mock.py').write_text(MOCK_SERVER)
+    (workdir / 'cases.json').write_text(json.dumps(CASES))
+    workdir.chmod(0o755)
+    for name in ('mock.py', 'cases.json'):
+        (workdir / name).chmod(0o644)
+    alias = f'bridge-mock-{time.time_ns()}'
     constants = (ROOT / 'constants.ini').read_text()
-    constants = re.sub(r'(?m)^LJVIS_RUUTER_INTERNAL=.*$', f'LJVIS_RUUTER_INTERNAL=http://host.docker.internal:{mock_port}/ljvis', constants)
-    with tempfile.NamedTemporaryFile('w', suffix='.ini', delete=False) as handle:
-        handle.write(constants)
-    container = subprocess.check_output([
-        'docker', 'run', '-d', '--rm', '--network', args.network, '--add-host', 'host.docker.internal:host-gateway',
-        '-v', f'{ROOT}/DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro', '-v', f'{handle.name}:/app/constants.ini:ro',
-        '-v', f'{ROOT}/ruuter-internal.yaml:/app/ruuter.yaml:ro', '-p', '127.0.0.1::8080', args.image], text=True).strip()
+    constants = re.sub(r'(?m)^LJVIS_RUUTER_INTERNAL=.*$', f'LJVIS_RUUTER_INTERNAL=http://{alias}:8080/ljvis', constants)
+    (workdir / 'constants.ini').write_text(constants)
+    (workdir / 'constants.ini').chmod(0o644)
+    containers = []
     checks = []
     try:
+        mock = subprocess.check_output([
+            'docker', 'run', '-d', '--rm', '--network', args.network, '--network-alias', alias,
+            '-v', f'{workdir}:/mock:ro', MOCK_IMAGE, 'python', '/mock/mock.py'], text=True).strip()
+        containers.append(mock)
+        for _ in range(60):
+            if 'ready' in subprocess.run(['docker', 'logs', mock], capture_output=True, text=True).stdout:
+                break
+            time.sleep(1)
+        else:
+            raise RuntimeError('mock backend did not start: ' + subprocess.run(
+                ['docker', 'logs', mock], capture_output=True, text=True).stderr[-2000:])
+        container = subprocess.check_output([
+            'docker', 'run', '-d', '--rm', '--network', args.network,
+            '-v', f'{ROOT}/DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro', '-v', f'{workdir}/constants.ini:/app/constants.ini:ro',
+            '-v', f'{ROOT}/ruuter-internal.yaml:/app/ruuter.yaml:ro', '-p', '127.0.0.1::8080', args.image], text=True).strip()
+        containers.append(container)
         port = subprocess.check_output(['docker', 'port', container, '8080/tcp'], text=True).strip().splitlines()[0].rsplit(':', 1)[1]
         base = f'http://127.0.0.1:{port}/ljvis/xroad/soap/'
         for _ in range(60):
@@ -120,14 +145,21 @@ def main():
                 time.sleep(1)
         run_id = f'bridge-{time.time_ns()}'
 
+        last = {}
+
         def call(case, operation='IsikuKontroll'):
             body = {'alates': case, 'kuni': '2026-12-31'} if operation == 'ErakorralineYVquery' else {'isikukood': case}
             status, text = post(base + ENDPOINTS[operation], body, f'{run_id}-{case}')
-            return status, unwrap(text)
+            last.update(case=case, status=status, text=text[:500])
+            try:
+                return status, unwrap(text)
+            except ValueError:
+                return status, {'unparsed': text[:500]}
 
         def check(condition, message):
             if not condition:
-                raise AssertionError(message)
+                logs = subprocess.run(['docker', 'logs', '--tail', '20', container], capture_output=True, text=True)
+                raise AssertionError(f'{message}\n  last call: {last}\n  ruuter-internal log tail:\n{logs.stdout[-1500:]}{logs.stderr[-1500:]}')
             checks.append(message)
 
         status, _ = post(base + 'isiku-kontroll', {'isikukood': 'ok'}, f'{run_id}-noclient', client=None)
@@ -168,9 +200,11 @@ def main():
                       and '{' not in row['error_message'] and 'Demo' not in json.dumps(row) for row in logs),
                   'log rows hold operation and X-Road id only, no request/response payload')
     finally:
-        subprocess.run(['docker', 'rm', '-f', container], capture_output=True)
-        server.shutdown()
-        Path(handle.name).unlink(missing_ok=True)
+        for name in containers:
+            subprocess.run(['docker', 'rm', '-f', name], capture_output=True)
+        for name in ('mock.py', 'cases.json', 'constants.ini'):
+            (workdir / name).unlink(missing_ok=True)
+        workdir.rmdir()
     print(f'PASS: {len(checks)} checks')
     for message in checks:
         print('  ✓', message)
