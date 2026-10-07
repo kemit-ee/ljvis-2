@@ -64,7 +64,9 @@ checkQueryStatus:
 buildItems:
   assign:
     mapped_items: >-
-      ${(queryResult.response.body || []).map(function(row) {
+      ${(queryResult.response.body || []).map(function(source) {
+        var row = {};
+        Object.keys(source).forEach(function(key) { row[key.replace(/[A-Z]/g, function(c) { return "_" + c.toLowerCase(); })] = source[key]; });
         var defects = [];
         try { defects = JSON.parse(row.issues_json || '[]'); } catch(e) {}
         var refine = [];

@@ -15,6 +15,12 @@
       "description": "Ruuter-internal — CI stack (port 9089, X-tee pakutavad teenused)"
     },
     {
+      "key": "xtr_inbound_url",
+      "value": "http://localhost:9095",
+      "enabled": true,
+      "description": "XTR inbound SOAP lane — CI stack service xtr-inbound (port 9095 → 8081)"
+    },
+    {
       "key": "resql_users_url",
       "value": "http://localhost:9087/users",
       "enabled": true
@@ -375,6 +381,12 @@
       "value": "http://localhost:9092",
       "enabled": true,
       "description": "ERRU Hub mock — CI stack (port 9092). See docker/erru-hub-mock."
+    },
+    {
+      "key": "xtr_outbound_url",
+      "value": "http://localhost:9094",
+      "enabled": true,
+      "description": "XTR internal schema-aware SOAP caller (local loopback tests)"
     }
   ],
   "_postman_variable_scope": "environment"

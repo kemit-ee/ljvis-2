@@ -101,7 +101,7 @@ insertInspection:
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
-      externalInspectionId: ${kontrolli_id}
+      externalInspectionId: ${String(incoming.body.kontrolli_id)}
       inspectorName: ${kontrollija}
       inspectionDate: ${kontrolli_kp}
       inspectionType: ${inspection_type}

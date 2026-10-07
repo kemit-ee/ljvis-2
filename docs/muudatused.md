@@ -10,6 +10,18 @@
 - Päist ei nõua praegu keegi: teenustevahelist autentimisvärava ei ehitata (otsus #520), kaitse jääb NetworkPolicy peale. Token on valmis, kui upstream (Resql, TIM, DataMapper, XTR) hakkab kutsujat autentima või võetakse kasutusele mTLS.
 - XTR-i kontrollitud (xtr 0.5.0-rc lähtekood ja test): SOAP-lane (`ar`, `etoimik`, `mtr`, `liiklusregister`, 27 kutset) ei edasta päiseid ja saadab sisevõtme; **REST-lane (`rr/isikud`, `PK_*`, ERRU-endpointid XTR-i kaudu) edastab kõik päised turvaserverisse, seega sinna sisevõtit ei saadeta**. CI kontrollib seda (`scripts/check-internal-token-targets.py`).
 - Plaan: `docs/planning/teenustevaheline-autentimine-faas3.md`.
+### LJVIS1 SOAP-lepingu pakkumine XTR-i kaudu
+
+- LJVIS1 X-tee SOAP-leping (`ljvis.wsdl`, kuus operatsiooni, sh `RegisterJobInspection_v2`) on pakutav XTR 0.5.0-rc kaudu; äriloogika jääb olemasolevatesse Ruuter.internal-i JSON-töötlejatesse. REST v1/v3 ja AJ liidesed jäävad alles. Juhend: `docs/xtee/09-xtr-soap.md`.
+
+### Tööinspektsiooni aktide kordussaatmine
+
+- X-tee (RegisterJobInspection v1/v2, REST v3) kaudu saabuv tööinspektsiooni akt tekib kohe staatusega „Kinnitatud“ (varem „Salvestatud“); e-toimiku sünkroonimine võtab selle seetõttu kohe käsile.
+- Sama kontrolli ID täpne kordus ei loo uut kirjet. Muudetud andmetega kordus tagastab vea (HTTP 409 / SOAP Fault) ja andmeid ei muudeta — varem jäeti muudatus vaikselt kõrvale ja vastati „Success“. Sama kehtib kinnitatud, avaldatud, kustutatud ja arhiveeritud akti kohta.
+- Samaaegsed sama ID-ga päringud loovad ühe akti. REST v3 senine käitumine (kordus tagastab olemasoleva akti) ei muutu.
+- X-tee kaudu saabunud parandus kasutab sama samaaegse muutmise kaitset (`revision`) nagu kasutajaliides: kui kasutaja kinnitas akti samal ajal, saab X-tee tarbija vea (409) ja kinnitus jääb kehtima; kui parandus jõudis enne, näeb kasutaja teadet, et vormi muudeti vahepeal.
+- `RegisterJobInspection` v1: liik „Sõitjate vedu“ määratakse ainult siis, kui sõitjateveo juhtide loendurid on nullist suuremad (varem piisas loendurite objekti olemasolust). Kehtib nii SOAP-i kui REST v1 kaudu.
+- Kasutajaliideses salvestamine säilitab akti X-tee allika ID (`external_inspection_id`).
 
 ### Samaaegne muutmine: teade, kui keegi teine vormi vahepeal muutis
 
