@@ -23,7 +23,7 @@ Rikkumised: {{ violations|join('; ') }}{% endif %}</div></td></tr></table>
 {% endif %}
 {% if layout == 'control-card' %}
 {% for columns in defect_pages %}<section class="newpage"><h1>Kontrollitavate detailide loetelu</h1><div class="number">{{ number }} · {{ fields.reg }}</div>
-<table class="columns" style="--row:{{ [ (160 / defect_rows_per_col), 6.5 ]|min|round(2) }}mm;--fs:{{ [ (160 / defect_rows_per_col * 1.35), 7 ]|min|round(2) }}pt;"><tr>{% for column in columns %}<td><table class="defect-table"><thead><tr><th style="width:76%">Detail</th><th>VO</th><th>OV</th><th>EOV</th></tr></thead><tbody>{% for d in column %}<tr><td>{{ d.name }}</td>{% for sev in ['VO','OV','EOV'] %}<td class="center">{{ box(sev in d.selections) }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></td>{% endfor %}</tr></table>
+<table class="columns" style="--row:{{ [ (160 / defect_rows_per_col), 6.5 ]|min|round(2) }}mm;--fs:{{ [ (160 / defect_rows_per_col * 1.35), 7 ]|min|round(2) }}pt;"><tr>{% for column in columns %}<td><table class="defect-table"><thead><tr><th style="width:76%">Detail</th><th>VO</th><th>OV</th><th>EOV</th></tr></thead><tbody>{% for d in column %}<tr><td>{{ d.name }}</td>{% for sev in ['VO','OV','EOV'] %}<td class="center">{% if sev in d.allowed or sev in d.selections %}{{ box(sev in d.selections) }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table></td>{% endfor %}</tr></table>
 </section>{% endfor %}
 <p class="small">VO — väheoluline rike või puudus. OV — oluline rike või puudus. EOV — ohtlik rike või puudus.</p>
 <table><tr><td class="signature">{{ field('Kontrollija ees- ja perekonnanimi ning allkiri',fields.inspector) }}</td><td class="signature">Sõidukijuhi allkiri</td></tr></table>

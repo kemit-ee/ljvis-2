@@ -73,11 +73,13 @@ function normalizePartSummary(
 /** Auto-generated "Märkused" line prefix for a given part — lets a later
  * defect edit find and replace exactly this part's own lines without
  * touching other parts' lines or the officer's own free text (p8/p14). */
-const noteLinePrefix = (partCode: string) => `${partCode}: `;
+const noteLinePrefix = (partName: string) => `${partName}: `;
 
-function syncPartNoteLines(notes: string, partCode: string, lines: string[]): string {
-  const prefix = noteLinePrefix(partCode);
-  const otherLines = (notes ?? '').split('\n').filter((l) => l && !l.startsWith(prefix));
+/** `partCode: ` is the legacy prefix (classifier code, e.g. "CAA_4") — still
+ * recognised so older notes get cleaned up, but never written anymore. */
+function syncPartNoteLines(notes: string, partCode: string, partName: string, lines: string[]): string {
+  const prefixes = [noteLinePrefix(partName), `${partCode}: `];
+  const otherLines = (notes ?? '').split('\n').filter((l) => l && !prefixes.some((p) => l.startsWith(p)));
   return [...otherLines, ...lines].join('\n').slice(0, 2000);
 }
 
@@ -324,14 +326,14 @@ export function useTechnicalCheckForm(
     // Replace (not append) this part's own auto-generated note lines with the
     // current selection, so removed/changed defects don't leave stale text
     // behind (15 ettepanekut p8/p14).
-    const defectNames = defectsByPartKey.get(
-      parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
-    ) ?? [];
+    const part = parts.find((p) => p.code === partCode);
+    const partName = part?.name ?? '';
+    const defectNames = defectsByPartKey.get(part?.classifierValueKey ?? -1) ?? [];
     const noteLines = selected.map((s) => {
       const defect = defectNames.find((d) => d.code === s.defectCode);
-      return `${noteLinePrefix(partCode)}${defect?.name ?? s.defectCode} – ${s.severity}`;
+      return `${noteLinePrefix(partName)}${defect?.name ?? s.defectCode} – ${s.severity}`;
     });
-    const notes = syncPartNoteLines(v.notes ?? '', partCode, noteLines);
+    const notes = syncPartNoteLines(v.notes ?? '', partCode, partName, noteLines);
 
     // Single atomic update — see computeResultChanges note.
     formik.setValues({
@@ -383,14 +385,14 @@ export function useTechnicalCheckForm(
       ? prevSummary.map((p) => (p.partCode === partCode ? nextEntry : p))
       : [...prevSummary, nextEntry];
 
-    const defectNames = defectsByPartKey.get(
-      parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
-    ) ?? [];
+    const part = parts.find((p) => p.code === partCode);
+    const partName = part?.name ?? '';
+    const defectNames = defectsByPartKey.get(part?.classifierValueKey ?? -1) ?? [];
     const noteLines = remainingForPart.map((d) => {
       const defect = defectNames.find((dd) => dd.code === d.defectCode);
-      return `${noteLinePrefix(partCode)}${defect?.name ?? d.defectCode} – ${d.severity}`;
+      return `${noteLinePrefix(partName)}${defect?.name ?? d.defectCode} – ${d.severity}`;
     });
-    const notes = syncPartNoteLines(v.notes ?? '', partCode, noteLines);
+    const notes = syncPartNoteLines(v.notes ?? '', partCode, partName, noteLines);
 
     formik.setValues({
       ...v,

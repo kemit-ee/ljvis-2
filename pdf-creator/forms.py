@@ -4,12 +4,12 @@ import re
 from render import ROOT, unwrap, structured, joined, dt
 
 TITLES = {
- 'vehicle-technical': 'MOOTORSÕIDUKI JA SELLE HAAGISE TEHNONÕUETELE VASTAVUSE KONTROLLKAAR',
- 'trailer-technical': 'MOOTORSÕIDUKI JA SELLE HAAGISE TEHNONÕUETELE VASTAVUSE KONTROLLKAAR',
+ 'vehicle-technical': 'MOOTORSÕIDUKI JA SELLE HAAGISE TEHNONÕUETELE VASTAVUSE KONTROLLKAART',
+ 'trailer-technical': 'MOOTORSÕIDUKI JA SELLE HAAGISE TEHNONÕUETELE VASTAVUSE KONTROLLKAART',
  'drive-rest-form': 'AUTOJUHI SÕIDU- JA PUHKEAJA KONTROLLKAART',
  'transport-interruption': 'AUTOVEO KATKESTAMISE OTSUS',
 }
-PARTS = ['Identifitseerimine','Pidurisüsteem','Rooliseade','Nähtavus','Valgustusseadmed ja elektrisüsteem','Teljed, veljed, rehvid, vedrustus','Šassii ja selle kinnitused','Muu varustus, sh sõidumeerik ja kiiruspiirik','Saasted, sh heitgaasid ning kütuse- ja õlilekked','Reisijateveoks kasutatava sõiduki täiendavad sõlmed','Veose kinnitamine']
+PARTS = ['Identifitseerimine','Pidurisüsteem','Rooliseade','Nähtavus','Valgustusseadmed ja elektrisüsteem','Teljed, veljed, rehvid, vedrustus','Šassii ja selle kinnitused','Muu varustus, sh sõidumeerik ja kiiruspiirik','Saasted, sh heitgaasid ning kütuse- ja õlilekked','Reisijateveoks kasutatava sõiduki täiendavad sõlmed','Veose kinnitamine','Muu tehniline viga']
 CATEGORIES=[('A_2012','N2'),('B_2012','N3'),('C_2012','O3'),('D_2012','O4'),('E_2012','M2'),('F_2012','M3'),('G3_2012','T1b'),('H2_2012','T2b'),('I_2012','T3b'),('J_2012','T4.1b'),('K_2012','T4.2b'),('L_2012','T4.3b'),('OTHER_2012','Muu')]
 RESULTS={'ok':'Korras','warning':'Hoiatus','precept':'Ettekirjutus','misdemeanor_proceedings':'Väärteomenetlus','driving_ban':'Sõidukeeld / juhtimiselt kõrvaldamine','arrest':'Arest','transport_interruption':'Autovedu on katkestatud','extraordinary_inspection':'Erakorraline ülevaatus','extraordinary_inspection_ta':'Erakorraline ülevaatus ja liiklusregistri andmete täpsustamine'}
 PROCEEDINGS={'LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
@@ -17,6 +17,12 @@ PROCEEDINGS={'LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','Y
 # roadworthiness defect, so it no longer forces resultType away from 'ok'
 # (frontend useTechnicalCheckForm.ts AUTO_RESULT_EXCLUDED_PARTS) — keep in sync.
 AUTO_RESULT_EXCLUDED_PARTS = ('CAA_10',)
+
+
+def legacy_part_prefixes(notes):
+    """Vanad märkuste read algavad klassifikaatori koodiga ("CAA_4: ..."); koodi ei trükita."""
+    names = {'CAA_' + str(i): n for i, n in enumerate(PARTS)}
+    return re.sub(r'^(CAA_\d+): ', lambda m: names.get(m.group(1), '') + ': ' if m.group(1) in names else '', str(notes or ''), flags=re.M)
 
 
 def is_excluded_part(code):
@@ -77,14 +83,14 @@ def build_standalone_context(template, payload=None, blank=False):
     drivers = safe_tree(structured(f.get('drivers'), list))
     trailers = safe_tree(structured(f.get('trailers'), list))
     fields = {
-        'place': short('Kontrolli koht', joined(label('countries', f.get('controlCountryCode')), f.get('county'), f.get('city'), f.get('address'), label('roads', f.get('road')), f.get('roadOther'), str(f['kilometer']) + ' km' if f.get('kilometer') else '')),
+        'place': short('Kontrolli koht', joined(label('countries', f.get('controlCountryCode')), label('ehak',f.get('county')), label('ehak',f.get('city')), f.get('address'), label('roads', f.get('road')), f.get('roadOther'), str(f['kilometer']) + ' km' if f.get('kilometer') else '')),
         'date': dt(f.get('controlDate') or f.get('inspectionDate')),
         'time': str(f.get('controlTime') or f.get('inspectionTime') or '')[:5],
         'vehicle': joined(f.get('vehicleMake'), f.get('vehicleModel')),
         'vehicleReg': joined(f.get('vehicleCountryCode'), f.get('vehicleRegNr')),
         'vehicleVin': f.get('vehicleVin') or '',
         'company': joined(f.get('companyName'), f.get('companyRegCode')),
-        'companyAddress': joined(f.get('companyAddressLine1'), f.get('companyAddressLine2'), f.get('companyCity'), f.get('companyCounty'), f.get('companyPostalCode'), label('countries', f.get('companyCountryCode'))),
+        'companyAddress': joined(f.get('companyAddressLine1'), f.get('companyAddressLine2'), label('ehak',f.get('companyCity')), label('ehak',f.get('companyCounty')), f.get('companyPostalCode'), label('countries', f.get('companyCountryCode'))),
         'licence': f.get('companyActivityLicenceCopyNumber') or f.get('licenceCopyNumber') or '',
         'inspector': joined(f.get('inspectorName'), f.get('inspectorFirstName'), f.get('inspectorLastName'), label('organisations', f.get('inspectorOrganisationId')), label('units', f.get('inspectorUnit')), f.get('inspectorProfession')),
         'notes': short('Märkused', f.get('notes')),
@@ -281,20 +287,20 @@ def build_context(template, payload=None, blank=False):
         vehicle=candidates[0] if candidates else {}
     elif vehicle_mode!='vehicle':raise ValueError('vehicle must be vehicle or trailer')
     fields={
-      'place':short('Kontrolli koht',joined(label('countries',c.get('controlCountryCode')),c.get('county'),c.get('city'),c.get('address'),label('roads',c.get('road')),c.get('roadOther'),str(c['kilometer'])+' km' if c.get('kilometer') is not None else '')),
+      'place':short('Kontrolli koht',joined(label('countries',c.get('controlCountryCode')),label('ehak',c.get('county')),label('ehak',c.get('city')),c.get('address'),label('roads',c.get('road')),c.get('roadOther'),str(c['kilometer'])+' km' if c.get('kilometer') is not None else '')),
       'date':dt(c.get('controlDate')),'time':str(c.get('controlTime') or '')[:5],
       'vehicle':short('Sõiduk',joined(vehicle.get('make'),vehicle.get('model'))),'reg':vehicle.get('regNr') or '', 'country':vehicle.get('countryCode') or '', 'vin':vehicle.get('vin') or '', 'mileage':vehicle.get('mileage') or '',
       'category':vehicle.get('categoryCode') or '', 'categoryOther':short('Muu kategooria',vehicle.get('categoryOther')),
       'trailers':short('Haagised','; '.join(joined(t.get('make'),t.get('model'),t.get('countryCode'),t.get('regNr')) for t in trailers)),
       'company':short('Vedaja',joined(c.get('companyName'),c.get('companyRegCode'))),
-      'companyAddress':short('Vedaja aadress',joined(c.get('companyAddressLine1'),c.get('companyCity'),c.get('companyCounty'),c.get('companyPostalCode'),label('countries',c.get('companyCountryCode')))),
+      'companyAddress':short('Vedaja aadress',joined(c.get('companyAddressLine1'),label('ehak',c.get('companyCity')),label('ehak',c.get('companyCounty')),c.get('companyPostalCode'),label('countries',c.get('companyCountryCode')))),
       'licence':c.get('companyActivityLicenceCopyNumber') or '',
       'driver':short('Juht',person(driver)), 'driverName':' '.join(filter(None,[driver.get('firstName'),driver.get('lastName')])), 'citizenship':label('countries',driver.get('citizenshipCode')),
       'secondDriver':short('Teine juht','; '.join(person(p) for i,p in enumerate(drivers) if i!=driver_index)),
       'inspector':short('Kontrollija',joined(c.get('inspectorFirstName'),c.get('inspectorLastName'),c.get('inspectorProfession'),label('organisations',c.get('inspectorOrganisationId')),label('units',c.get('inspectorUnit')))),
       'result':label('results',RESULTS.get(f.get('resultType'),f.get('resultType'))),
       'proceeding':joined(PROCEEDINGS.get(f.get('proceedingType'),f.get('proceedingType')),f.get('proceedingReferenceNumber')),
-      'notes':short('Märkused',f.get('notes'),500),
+      'notes':short('Märkused',legacy_part_prefixes(f.get('notes')),500),
     }
     layout='roadworthy-act' if is_technical and not blank and f.get('resultType')=='ok' else 'control-card'
     data=dict(layout=layout,title='KOMMERTSSÕIDUKI KONTROLLIAKT' if layout=='roadworthy-act' else TITLES[template],blank=blank,fields=fields,f=f,appendix=appendix,warnings=warnings,number=joined(f.get('subFormNumber'),'v'+str(f['version']) if f.get('version') else ''),categories=CATEGORIES)
