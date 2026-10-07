@@ -373,7 +373,7 @@ def build_context(template, payload=None, blank=False):
         data['measurements']=structured(f.get('massDimensionMeasurements'),list)
         data['tachograph_options']=[('ANALOGUE','Analoogsõidumeerik'),('DIGITAL','Digitaalne sõidumeerik'),('SMART_1','Arukas sõidumeerik SMART 1'),('SMART_2','Arukas sõidumeerik SMART 2')]
         data['tachograph']=label('tachographs',f.get('tachographTypeCode'))
-        data['road_tax']=joined(label('roadTax',c.get('roadTaxStatus')),c.get('roadTaxNotes'))
+        data['road_tax']=joined(label('roadTax','' if c.get('roadTaxStatus')=='Ei kohaldu' else c.get('roadTaxStatus')),c.get('roadTaxNotes'))
         data['additional_measure']=RESULTS.get(f.get('additionalMeasure'),f.get('additionalMeasure') or '')
         data['atp']=yes(f.get('atpViolationFound'))
         data['atp_notes']=short('ATP',f.get('atpViolationDescription'))

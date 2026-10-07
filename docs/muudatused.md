@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-07
+
+### Teekasutustasu rikkumise andmed koondvormis
+
+- „Andmed teekasutustasu nõude rikkumise kohta“ plokis on valik „Ei kohaldu“ eemaldatud; kui rikkumist ei ole, ei märgita midagi. Valitud rikkumise saab tühistada lingiga „Tühista valik“. Varem salvestatud „Ei kohaldu“ loetakse tühjaks.
+- Kui rikkumist ei ole valitud (ja märkust pole), ei trükita teekasutustasu rida koondvormi ega sõidu- ja puhkeaja vormi väljatrükile.
+
 ## 2026-10-05
 
 ### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
