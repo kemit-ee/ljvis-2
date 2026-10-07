@@ -73,6 +73,9 @@ function normalizePartSummary(
 /** Auto-generated "Märkused" line prefix for a given part — lets a later
  * defect edit find and replace exactly this part's own lines without
  * touching other parts' lines or the officer's own free text (p8/p14). */
+/** Severity goes in parentheses right after the defect text, glued with a
+ * non-breaking space so a wrapped line never leaves "(OV)" alone on its own row. */
+const noteSeverity = (severity: string) => `\u00a0(${severity})`;
 const noteLinePrefix = (partName: string) => `${partName}: `;
 
 /** `partCode: ` is the legacy prefix (classifier code, e.g. "CAA_4") — still
@@ -331,7 +334,7 @@ export function useTechnicalCheckForm(
     const defectNames = defectsByPartKey.get(part?.classifierValueKey ?? -1) ?? [];
     const noteLines = selected.map((s) => {
       const defect = defectNames.find((d) => d.code === s.defectCode);
-      return `${noteLinePrefix(partName)}${defect?.name ?? s.defectCode} – ${s.severity}`;
+      return `${noteLinePrefix(partName)}${defect?.name ?? s.defectCode}${noteSeverity(s.severity)}`;
     });
     const notes = syncPartNoteLines(v.notes ?? '', partCode, partName, noteLines);
 
@@ -390,7 +393,7 @@ export function useTechnicalCheckForm(
     const defectNames = defectsByPartKey.get(part?.classifierValueKey ?? -1) ?? [];
     const noteLines = remainingForPart.map((d) => {
       const defect = defectNames.find((dd) => dd.code === d.defectCode);
-      return `${noteLinePrefix(partName)}${defect?.name ?? d.defectCode} – ${d.severity}`;
+      return `${noteLinePrefix(partName)}${defect?.name ?? d.defectCode}${noteSeverity(d.severity)}`;
     });
     const notes = syncPartNoteLines(v.notes ?? '', partCode, partName, noteLines);
 
