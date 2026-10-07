@@ -8,6 +8,11 @@
 
 - Sõiduki ja haagise tehnoandmete vormil on viitenumbri välja all nupp „Eemalda märge“, mis tühjendab menetluse liigi (lühi-/kiir-/üldmenetlus) ja viitenumbri. Seda saab kasutada ka siis, kui menetlust lõpuks ei alustata ja kontrolli tulemust (nt „Suunatud erakorralisele tehnoülevaatusele“) muuta ei saa. Tulemus, „Muu meede“ ja AutoVS § 51 märkeruut jäävad samaks.
 
+### Tehnokaardi trükivorm mahub kahele lehele
+
+- Sõiduki ja haagise tehnovormi (kontrollkaardi) PDF-is on selgitused, allmärkused ja haldusakti edasikaebamise tekst veidi väiksema kirjaga ning kontrollija ja juhi allkirja väli madalam (10 mm); edasikaebamise tekst ei lähe enam kolmandale lehele.
+- Kontrollkaardi märkustes on rikke raskusaste (VO/OV/EOV) kohe rikke nimetuse järel sulgudes ega satu enam eraldi reale.
+
 ### Mitmerealised märkused ei tohi vormi avamist katki teha
 
 - DataMapperi mallid kodeerivad vabatekstiväljad (märkused, kirjeldused, põhjendused) JSON-ina; varem tekitas märkuste väljal reavahetus või kaldkriips vigase vastuse ja vormi avamisel tuli „Serveri viga“ (nt sõiduki tehnoandmete vorm automaatridadega).
