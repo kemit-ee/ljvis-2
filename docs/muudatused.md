@@ -4,6 +4,11 @@
 
 ## 2026-10-07
 
+### Teekasutustasu rikkumise andmed koondvormis
+
+- „Andmed teekasutustasu nõude rikkumise kohta“ plokis on valik „Ei kohaldu“ eemaldatud; kui rikkumist ei ole, ei märgita midagi. Valitud rikkumise saab tühistada lingiga „Tühista valik“. Varem salvestatud „Ei kohaldu“ loetakse tühjaks.
+- Kui rikkumist ei ole valitud (ja märkust pole), ei trükita teekasutustasu rida koondvormi ega sõidu- ja puhkeaja vormi väljatrükile.
+=======
 ### Sõiduki ja haagise tehnoandmete vormi parandused
 
 - Märkuste väljale lisatavad automaatread algavad nüüd osa nimetusega (nt „Pidurisüsteem: …“), mitte klassifikaatori koodiga („CAA_4: …“). Vanad koodiga read trükitakse samuti nimetusega.

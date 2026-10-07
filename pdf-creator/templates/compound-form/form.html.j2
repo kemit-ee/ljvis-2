@@ -6,7 +6,7 @@
 <tr><th colspan="4" class="section">Sõiduk</th></tr>
 <tr><td>{{ field('Registreerimismärk',fields.vehicleReg) }}</td><td>{{ field('Mark ja mudel',fields.vehicle) }}</td><td colspan="2">{{ field('VIN',fields.vehicleVin) }}</td></tr>
 <tr><td>{{ field('Esmaregistreerimine',dt(f.vehicleFirstRegistration)) }}</td><td>{{ field('Keretüüp',f.vehicleBodyType) }}</td><td>{{ field('Kategooria',f.vehicleCategoryCode) }}</td><td>{{ field('Läbisõit',f.vehicleMileage) }}</td></tr>
-<tr><td colspan="4">{{ field('Teekasutustasu',label('roadTax',f.roadTaxStatus) ~ (' - ' ~ f.roadTaxNotes if f.roadTaxNotes else '')) }}</td></tr>
+{% set road_tax_status = '' if f.roadTaxStatus == 'Ei kohaldu' else (f.roadTaxStatus or '') %}{% if road_tax_status or f.roadTaxNotes %}<tr><td colspan="4">{{ field('Teekasutustasu',label('roadTax',road_tax_status) ~ (' - ' ~ f.roadTaxNotes if road_tax_status and f.roadTaxNotes else (f.roadTaxNotes or ''))) }}</td></tr>{% endif %}
 <tr><th colspan="4" class="section">Haagised</th></tr>
 {% if trailers %}{% for row in trailers %}<tr><td colspan="4"><b>{{ loop.index }}.</b> {{ row.display }}</td></tr>{% endfor %}{% else %}<tr><td colspan="4" class="space"></td></tr>{% endif %}
 <tr><th colspan="4" class="section">Veoettevõtja</th></tr>

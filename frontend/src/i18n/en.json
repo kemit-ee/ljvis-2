@@ -766,6 +766,7 @@
       "roadTaxStatusNotApplicable": "Not applicable",
       "roadTaxStatusUnpaid": "Unpaid",
       "roadTaxStatusUnderpaid": "Paid in lesser amount",
+      "roadTaxClear": "Clear selection",
       "roadTaxNotes": "Notes",
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
