@@ -239,6 +239,70 @@ tests:
     - url_matches: /dmapper/map_foreign_violation_form
       method: POST
       status: 200
+      body:
+        formNumber: vr-1
+    - url_matches: /notification/list_outbound_log
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/foreign-violation-form?q=1
+    headers:
+      cookie: test
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /log/insert_audit_event
+    count: 1
+    body_matches:
+      actor_personal_code: SESSION1
+      actor_name: Real Person
+      event_type: control_form.foreign_violation.view
+
+- name: wrapper -> strict audit template chain works end to end (DataMapper answers a JSON string)
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions:
+        - foreign_violation_form.read
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body:
+      - formNumber: vr-1
+        createdBy: OTHER
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - organisation_id: '5'
+        user_account_id: '7'
+        actor_name: Real Person
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /dmapper/map_foreign_violation_form
+      method: POST
+      status: 200
       body: '{"formNumber":"vr-1"}'
     - url_matches: /notification/list_outbound_log
       method: POST

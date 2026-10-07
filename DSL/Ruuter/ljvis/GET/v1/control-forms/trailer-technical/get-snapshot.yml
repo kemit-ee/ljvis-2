@@ -92,7 +92,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${[JSON.parse(mapped.response.body)]}
+  return: "${[(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)]}"
   next: end
 
 returnForbidden:
