@@ -4,25 +4,6 @@ interface RuuterResponse<T> {
   response: T;
 }
 
-function unwrapResponse<T>(json: RuuterResponse<T> | null): T {
-  const response = json!.response;
-
-  // DMapper renders Handlebars templates as text. Depending on the deployed
-  // Ruuter/DataMapper combination that JSON text may reach the gateway as the
-  // value of `response` instead of an already parsed object. Normalise both
-  // wire formats here so forms do not lose nested arrays when they are loaded
-  // and saved again.
-  if (typeof response === 'string') {
-    try {
-      return JSON.parse(response) as T;
-    } catch {
-      // Plain-string endpoints are valid too (for example access decisions).
-    }
-  }
-
-  return response;
-}
-
 export class ApiError extends Error {
   status: number;
   body: unknown;
@@ -83,8 +64,7 @@ export async function get<T>(
   const url = new URL(`${BASE}${path}`, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '' && v !== 'undefined')
-        url.searchParams.set(k, v);
+      if (v !== undefined && v !== '' && v !== 'undefined') url.searchParams.set(k, v);
     });
   }
   const res = await fetch(url.toString(), { credentials: 'include' });
@@ -99,7 +79,7 @@ export async function get<T>(
     handleErrorResponse(err);
     throw err;
   }
-  return unwrapResponse(json);
+  return json!.response;
 }
 
 // Ruuter's declaration.allowlist.body check requires every declared field
@@ -136,7 +116,7 @@ export async function post<T>(
     handleErrorResponse(err);
     throw err;
   }
-  return unwrapResponse(json);
+  return json!.response;
 }
 
 export async function postSilent<T>(
@@ -157,7 +137,7 @@ export async function postSilent<T>(
       json?.response,
     );
   }
-  return unwrapResponse(json);
+  return json!.response;
 }
 
 export async function put<T>(
@@ -180,7 +160,7 @@ export async function put<T>(
     handleErrorResponse(err);
     throw err;
   }
-  return unwrapResponse(json);
+  return json!.response;
 }
 
 export async function del<T>(
@@ -190,8 +170,7 @@ export async function del<T>(
   const url = new URL(`${BASE}${path}`, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== '' && v !== 'undefined')
-        url.searchParams.set(k, v);
+      if (v !== undefined && v !== '' && v !== 'undefined') url.searchParams.set(k, v);
     });
   }
   const res = await fetch(url.toString(), {
@@ -208,5 +187,5 @@ export async function del<T>(
     handleErrorResponse(err);
     throw err;
   }
-  return unwrapResponse(json);
+  return json!.response;
 }
