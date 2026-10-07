@@ -123,11 +123,11 @@ sub_union AS (
     FROM lkv kv WHERE kv.status <> 'deleted'
 ),
 sub_scoped AS (
-    SELECT su.*, ps.started_at AS proceeding_started_at
+    SELECT su.*,
+           (SELECT ps.started_at FROM proceeding_started ps
+             WHERE ps.sub_form_key = su.form_key AND ps.form_type = su.form_type) AS proceeding_started_at
     FROM sub_union su
-    JOIN compound_scoped cf ON cf.compound_form_key = su.compound_form_key
-    LEFT JOIN proceeding_started ps
-           ON ps.sub_form_key = su.form_key AND ps.form_type = su.form_type
+    WHERE su.compound_form_key = ANY (SELECT cf.compound_form_key FROM compound_scoped cf)
 ),
 compound_progress AS (
     SELECT
@@ -237,23 +237,28 @@ active_standalone AS (
     FROM standalone_union
 ),
 -- ── section 3: needs attention (deadline overdue/soon, or confirmed-not-published) ──
+-- compound_progress.sub_forms lahtipakitud SRF-ina select-listis (mitte LATERAL JOIN-iga)
+deadline_src AS (
+    SELECT cp.compound_form_key, cp.form_number, cp.control_date,
+           jsonb_array_elements(cp.sub_forms) AS sf
+    FROM compound_progress cp
+),
 deadline_candidates AS (
     SELECT
-        cp.compound_form_key, cp.form_number, sf->>'formType' AS form_type,
-        (sf->>'formKey')::bigint AS form_key, sf->>'formNumber' AS sub_form_number,
-        sf->>'proceedingType' AS proceeding_type,
+        ds.compound_form_key, ds.form_number, ds.sf->>'formType' AS form_type,
+        (ds.sf->>'formKey')::bigint AS form_key, ds.sf->>'formNumber' AS sub_form_number,
+        ds.sf->>'proceedingType' AS proceeding_type,
         CASE
-            WHEN sf->>'proceedingType' = 'expedited' THEN
+            WHEN ds.sf->>'proceedingType' = 'expedited' THEN
                 (SELECT ps.started_at FROM proceeding_started ps
-                 WHERE ps.sub_form_key = (sf->>'formKey')::bigint AND ps.form_type = sf->>'formType') + INTERVAL '15 days'
-            WHEN sf->>'proceedingType' = 'general' THEN
-                cp.control_date + INTERVAL '45 days'
+                 WHERE ps.sub_form_key = (ds.sf->>'formKey')::bigint AND ps.form_type = ds.sf->>'formType') + INTERVAL '15 days'
+            WHEN ds.sf->>'proceedingType' = 'general' THEN
+                ds.control_date + INTERVAL '45 days'
             ELSE NULL
         END AS deadline_at
-    FROM compound_progress cp,
-         LATERAL jsonb_array_elements(cp.sub_forms) sf
-    WHERE sf->>'proceedingType' IN ('expedited', 'general')
-      AND sf->>'status' <> 'published'
+    FROM deadline_src ds
+    WHERE ds.sf->>'proceedingType' IN ('expedited', 'general')
+      AND ds.sf->>'status' <> 'published'
 ),
 needs_attention AS (
     SELECT jsonb_build_object(

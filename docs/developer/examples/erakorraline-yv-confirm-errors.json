@@ -20,7 +20,7 @@
   {
     "status": 404,
     "body": {
-      "response": "{\"error\": \"NOT_FOUND\", \"message\": \"inspection_id not found or form is not in confirmed status\"}"
+      "response": "{\"error\": \"NOT_FOUND\", \"message\": \"inspection_id not found or form is not in confirmed or published status\"}"
     }
   },
   {

@@ -32,35 +32,24 @@ WITH latest_ttf AS (
         created_at
     FROM forms.trailer_technical_form
     ORDER BY trailer_technical_form_key, created_at DESC
-),
-latest_cf AS (
-    SELECT DISTINCT ON (compound_form_key)
-        compound_form_key,
-        trailers
-    FROM forms.compound_form
-    ORDER BY compound_form_key, created_at DESC
-),
--- Flatten the trailers[] JSONB array so each candidate can be matched to
--- its own trailer by registration number, not just any trailer on the koondvorm.
-matched_trailer AS (
-    SELECT
-        c.compound_form_key,
-        upper(btrim(elem ->> 'reg_nr')) AS reg_nr,
-        elem ->> 'vin' AS vin
-    FROM latest_cf c
-    CROSS JOIN LATERAL jsonb_array_elements(c.trailers) AS elem
 )
 SELECT
     t.id,
     -- The sub-form's own trailer_reg_nr is authoritative for the XTR query
-    -- (it's what the officer entered on THIS snapshot) — matched_trailer is
-    -- only consulted for the VIN, which trailer_reg_nr alone doesn't carry.
+    -- (it's what the officer entered on THIS snapshot) — the compound form's trailers[]
+    -- is only consulted for the VIN, which trailer_reg_nr alone doesn't carry.
     COALESCE(upper(btrim(t.trailer_reg_nr)), '') AS registration_number,
-    COALESCE(m.vin, '') AS vin
+    COALESCE((
+        SELECT e ->> 'vin'
+        FROM jsonb_array_elements((
+            SELECT c.trailers FROM forms.compound_form c
+            WHERE c.compound_form_key = t.compound_form_key
+            ORDER BY c.created_at DESC LIMIT 1
+        )) AS e
+        WHERE upper(btrim(e ->> 'reg_nr')) = upper(btrim(t.trailer_reg_nr))
+        LIMIT 1
+    ), '') AS vin
 FROM latest_ttf t
-LEFT JOIN matched_trailer m
-    ON m.compound_form_key = t.compound_form_key
-   AND m.reg_nr = upper(btrim(t.trailer_reg_nr))
 WHERE t.status = 'confirmed'
   AND t.result_type IN ('extraordinary_inspection', 'extraordinary_inspection_ta')
   AND t.extraordinary_inspection_date IS NULL

@@ -80,8 +80,9 @@ assignParams:
     kontrollimised_json: ${JSON.stringify(incoming.body.kontrollimised)}
     rikkumised_json: ${JSON.stringify(incoming.body.rikkumised)}
     vaarteomenetlus: ${incoming.body.vaarteomenetlus || ''}
-    inspection_type: '${(incoming.body.kontrollimised && incoming.body.kontrollimised.kontrollitud_soitjate_veol)
-      ? ''passenger'' : ''cargo''}'
+    inspection_type: '${(() => { var counts = (incoming.body.kontrollimised || {}).kontrollitud_soitjate_veol; return
+      (typeof counts === ''object'' && counts != null ? Number(counts.arv_analoogmeerik || 0) + Number(counts.arv_digitaalmeerik
+      || 0) : Number(counts || 0)) > 0 ? ''passenger'' : ''cargo''; })()}'
     start_time: ${new Date().getTime()}
   next: insertInspection
 insertInspection:
@@ -95,6 +96,8 @@ checkInsertStatus:
   switch:
   - condition: ${insertResult.response.status < 200 || insertResult.response.status >= 300}
     next: logFailure
+  - condition: ${['conflict', 'archived'].includes(((insertResult.response.body || [])[0] || {}).outcome)}
+    next: logConflict
   next: logSuccess
 logSuccess:
   assign:
@@ -103,6 +106,20 @@ logSuccess:
         status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
         body: ${[]}
   next: returnSuccess
+logConflict:
+  assign:
+    logResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[]}
+  next: returnConflict
+returnConflict:
+  status: 409
+  return: '${JSON.stringify({error: ''CONFLICT'', message: insertResult.response.body[0].outcome === ''archived''
+    ? ''Inspection with this kontrolli_id has been archived; changed data from the repeated request was not applied''
+    : ''Inspection with this kontrolli_id is no longer in saved status; changed data from the repeated request was
+    not applied''})}'
+  next: end
 returnSuccess:
   status: 200
   return: '{"message": "Success"}'

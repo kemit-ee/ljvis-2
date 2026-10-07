@@ -21,7 +21,7 @@ BEGIN
   PERFORM pg_temp.assert(NOT EXISTS(SELECT 1 FROM erru.nu_exchange_event WHERE nu_message_key=k),'conflicts do not reserve a send');
   -- Source remains eligible, but its identity/certificate changed. The draft
   -- keeps the values entered by the official according to the decision.
-  g.id := nextval('forms.good_repute_form_id_seq'); g.created_at := clock_timestamp(); g.certificate_number := 'NEW-CERT';
+  g.id := nextval('forms.good_repute_form_id_seq'); g.revision := g.revision + 1; g.created_at := clock_timestamp(); g.certificate_number := 'NEW-CERT';
   INSERT INTO forms.good_repute_form SELECT g.*;
   PERFORM pg_temp.assert(erru.nu_save_draft(k,2,NULL,old_source,p,'test')->>'code'='source_changed','stale source preview rejected');
   PERFORM pg_temp.assert(erru.nu_save_draft(NULL,NULL,g.good_repute_form_key,old_source,p,'test')->>'code'='source_changed','stale create preview rejected');
@@ -42,11 +42,11 @@ BEGIN
     RAISE EXCEPTION 'Duplicate version was accepted';
   EXCEPTION WHEN unique_violation THEN NULL; END;
   -- Eligibility rechecked when reserving: inclusive end date and future start.
-  g.id := nextval('forms.good_repute_form_id_seq'); g.created_at := clock_timestamp();
+  g.id := nextval('forms.good_repute_form_id_seq'); g.revision := g.revision + 1; g.created_at := clock_timestamp();
   g.unfit_from_date := current_date+1; g.unfit_until_date := current_date+2;
   INSERT INTO forms.good_repute_form SELECT g.*;
   x := erru.nu_save_draft(NULL,NULL,g.good_repute_form_key,g.id,p,'test'); k := (x->>'id')::BIGINT;
-  g.id := nextval('forms.good_repute_form_id_seq'); g.created_at := clock_timestamp(); g.fitness_status := 'fit';
+  g.id := nextval('forms.good_repute_form_id_seq'); g.revision := g.revision + 1; g.created_at := clock_timestamp(); g.fitness_status := 'fit';
   INSERT INTO forms.good_repute_form SELECT g.*;
   PERFORM pg_temp.assert(erru.nu_begin_send(k,1,'A','B','test','Test')->>'code'='source_not_eligible','latest source eligibility checked at reservation');
 END $$;

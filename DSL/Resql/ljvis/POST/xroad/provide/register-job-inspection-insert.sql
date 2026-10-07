@@ -1,13 +1,14 @@
 /*
-description: 'X-tee RegisterJobInspection v1: INSERT INTO forms.labour_inspection_form. Kaardistab vana
-  WSDL RegisterJobInspectionRequestType välju. Idempotentsuse võti: external_inspection_id (kontrolli_id
-  stringina). ON CONFLICT DO NOTHING: korduspäring sama id-ga ei tekita duplikaati. inspection_type tuletab
-  YAML (passenger/cargo).'
+description: 'X-tee RegisterJobInspection v1: kirjutab forms.labour_inspection_form tabelisse funktsiooni
+  forms.register_external_labour_inspection kaudu (allikas xroad-v1, saatja kontrolli_id ilma prefiksita).
+  Täpne kordus ei loo rida (outcome=unchanged); muudetud kordus saved-aktile lisab snapshot''i (updated);
+  muudetud kordus kinnitatud/avaldatud/kustutatud aktile ei muuda midagi (conflict). Samaaegsed esmased
+  päringud loovad ühe akti. inspection_type tuletab YAML (passenger/cargo).'
 namespace: xroad
 params:
   externalInspectionId:
     type: string
-    required: false
+    required: true
   inspectorName:
     type: string
     required: false
@@ -51,64 +52,23 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: status
+  type: string
+  nullable: true
+- name: outcome
+  type: string
+  nullable: true
 - name: skipped
   type: boolean
   nullable: true
 */
 
--- Idempotentsuse kontroll: kas sama external_inspection_id on juba olemas?
--- Kui jah, tagastatakse olemasolev rida (skipped=true) ilma duplikaadi loomiseta
-WITH existing AS (
-  SELECT labour_inspection_form_key, form_number, 1 AS version
-  FROM forms.labour_inspection_form
-  WHERE external_inspection_id = :externalInspectionId
-  ORDER BY created_at DESC
-  LIMIT 1
-),
--- Uue rea sisestamine — ainult siis kui sama ID puudub
-ins AS (
-  INSERT INTO forms.labour_inspection_form (
-    labour_inspection_form_key,
-    form_number,       -- automaatselt genereeritud 'ti-YYYY-NNNNN' formaadis
-    version,
-    status,            -- uus kirje alustab 'saved' staatusest
-    inspector_name,
-    inspection_date,
-    inspection_type,   -- YAML tuletab: 'passenger' kui soitjate veol, muul juhul 'cargo'
-    company_name,
-    company_reg_code,
-    vehicle_count,
-    controls_matrix,   -- KontrollimisteArvud JSONB-na
-    prescription_composed,
-    violations,        -- RikkumisteArvud JSONB-na
-    external_inspection_id,   -- WSDL kontrolli_id — idempotentsuse võti
-    proceeding_reference_number,
-    created_by
-  )
-  SELECT
-    nextval('forms.seq_labour_inspection_form_key'),
-    -- Vormi number: 'ti-' + aasta + '-' + järjekord (vähemalt 5 numbrit, nullidega täidetud)
-    'ti-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_labour_inspection_form_key')::TEXT, GREATEST(5, LENGTH(currval('forms.seq_labour_inspection_form_key')::TEXT)), '0'),
-    1,
-    'saved',
-    :inspectorName,
-    :inspectionDate::DATE,
-    :inspectionType,
-    :companyName,
-    :companyRegCode,
-    NULLIF(:vehicleCount, '')::INTEGER,   -- tühi string -> NULL
-    COALESCE(NULLIF(:controlsMatrix, ''), '[]')::JSONB,
-    -- boolean teisendus: 'true', '1' või 'yes' -> true, muul juhul false
-    CASE WHEN :prescriptionComposed IN ('true', '1', 'yes') THEN true ELSE false END,
-    COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
-    :externalInspectionId,
-    NULLIF(:proceedingReferenceNumber, ''),
-    :created_by
-  WHERE NOT EXISTS (SELECT 1 FROM existing)   -- INSERT ainult kui sama ID puudub
-  RETURNING labour_inspection_form_key AS id, form_number, version
-)
--- Tagasta uus rida (skipped=false) VÕI olemasolev rida (skipped=true)
-SELECT id, form_number, version, false AS skipped FROM ins
-UNION ALL
-SELECT labour_inspection_form_key AS id, form_number, version, true AS skipped FROM existing
-LIMIT 1;   -- alati täpselt üks rida
+SELECT r.id, r.form_number, r.version, r.status, r.outcome, r.outcome <> 'created' AS skipped
+FROM forms.register_external_labour_inspection(
+  'xroad-v1', :externalInspectionId, 'new_snapshot',
+  :inspectorName, :inspectionDate, :inspectionType,
+  :companyName, :companyRegCode, :vehicleCount,
+  :prescriptionComposed, :controlsMatrix, :violations,
+  '', '', '',
+  :proceedingReferenceNumber, :created_by
+) r;

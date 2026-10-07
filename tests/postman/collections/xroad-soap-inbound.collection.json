@@ -1,0 +1,1172 @@
+{
+  "info": {
+    "name": "LJVIS — XTR SOAP mõlemas suunas",
+    "_postman_id": "ljvis-xroad-soap-inbound-v1",
+    "description": "Published XTR 0.5.0-rc: inbound SOAP provider and outbound JSON/SOAP loopback through real Ruuter/Resql. No skipped contract checks. Runs in tests/postman/run-all.sh (CI service xtr-inbound).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// X-Road SOAP header as the Security Server would send it (client = test consumer).",
+          "['IsikuKontroll','IsikuEttevoteKontrollid','ErakorralineYVquery','ErakorralineYVconfirm','RegisterJobInspection','RegisterJobInspection_v2'].forEach(function (op) {",
+          "  var ver = (op === 'ErakorralineYVquery' || op === 'RegisterJobInspection_v2') ? 'v2' : 'v1';",
+          "  pm.collectionVariables.set('xrd_header_' + op,",
+          "    '<xrd:client id:objectType=\"SUBSYSTEM\"><id:xRoadInstance>ee-dev</id:xRoadInstance><id:memberClass>GOV</id:memberClass><id:memberCode>70000310</id:memberCode><id:subsystemCode>ljvis-test</id:subsystemCode></xrd:client>' +",
+          "    '<xrd:service id:objectType=\"SERVICE\"><id:xRoadInstance>ee-dev</id:xRoadInstance><id:memberClass>GOV</id:memberClass><id:memberCode>70001231</id:memberCode><id:subsystemCode>ljvis2</id:subsystemCode><id:serviceCode>' + op + '</id:serviceCode><id:serviceVersion>' + ver + '</id:serviceVersion></xrd:service>' +",
+          "    '<xrd:id>ci-' + op + '-' + Date.now() + '</xrd:id><xrd:userId>EE38001085718</xrd:userId><xrd:protocolVersion>4.0</xrd:protocolVersion>');",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "soap_v1_kontrolli_id",
+      "value": ""
+    },
+    {
+      "key": "soap_v1_soitjate",
+      "value": "1"
+    },
+    {
+      "key": "soap_v1_veose",
+      "value": "2"
+    }
+  ],
+  "item": [
+    {
+      "name": "Kontrakt ja eraldatus",
+      "item": [
+        {
+          "name": "GET ?wsdl → 200, soap:address viitab XTR-ile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis?wsdl"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('soap:address matches configured peer URL', () => pm.expect(pm.response.text()).to.include('soap:address location=\"' + pm.environment.get('xtr_inbound_url') + '/soap-in/ljvis/ljvis\"'));",
+                  "pm.test('All 6 LJVIS1 operations published', () => { const t = pm.response.text(); ['ErakorralineYVquery','ErakorralineYVconfirm','IsikuKontroll','IsikuEttevoteKontrollid','RegisterJobInspection','RegisterJobInspection_v2'].forEach(op => pm.expect(t).to.include('<wsdl:operation name=\"' + op + '\"')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /health peer-pordil → 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{xtr_inbound_url}}/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "/soap-out/ peer-pordil → 404 (XTR-i identiteediga väljakutsed pole peer-võrgule nähtavad)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-out/ljvis/ljvis/IsikuKontroll",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DSL marsruut /:group/:service peer-pordil → 404",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/rr/RR434",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SOAP 1.2 ümbrik → Fault VersionMismatch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/soap+xml"
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<e:Envelope xmlns:e=\"http://www.w3.org/2003/05/soap-envelope\"><e:Body><x/></e:Body></e:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:VersionMismatch', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:VersionMismatch</faultcode>'));",
+                  "pm.test('faultstring mentions SOAP 1.2', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*SOAP 1.2[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "JSON keha SOAP-otspunktile → Fault Client (malformed XML)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"isikukood\": \"39001010001\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions malformed XML', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*malformed XML[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tundmatu operatsioon → Fault Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header></SOAP-ENV:Header><SOAP-ENV:Body><tns:Foo><request><x>1</x></request></tns:Foo></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions no operation of this service accepts', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*no operation of this service accepts[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "IsikuKontroll",
+      "item": [
+        {
+          "name": "Puuduv X-tee päis → Fault Client (Ruuter .guard 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Body><tns:IsikuKontroll><request><isikukood>39001010001</isikukood></request></tns:IsikuKontroll></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions HTTP 403', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*HTTP 403[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vale isikukood → Fault Client (Ruuter 400 INVALID_PARAMETER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_IsikuKontroll}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:IsikuKontroll><request><isikukood>123</isikukood></request></tns:IsikuKontroll></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions isikukood must be 11 digits', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*isikukood must be 11 digits[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Puuduv isikukood → Fault Client (Ruuter 400 MISSING_PARAMETER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_IsikuKontroll}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:IsikuKontroll><request></request></tns:IsikuKontroll></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions isikukood is required', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*isikukood is required[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Kehtiv päring → 200, request + response.kontrollid.item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_IsikuKontroll}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:IsikuKontroll><request><isikukood>39001010001</isikukood></request></tns:IsikuKontroll></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:IsikuKontrollResponse', () => pm.expect(pm.response.text()).to.match(/<tns:IsikuKontrollResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('request echoes isikukood', () => pm.expect(pm.response.text()).to.match(/<request><isikukood>39001010001<\\/isikukood><\\/request>/));",
+                  "pm.test('response.kontrollid has at least one item', () => pm.expect(pm.response.text()).to.match(/<response><kontrollid><item>/));",
+                  "pm.test('item has kuupaev + nimetus (WSDL order)', () => pm.expect(pm.response.text()).to.match(/<item><kuupaev>[^<]+<\\/kuupaev><nimetus>[^<]+<\\/nimetus>/));",
+                  "pm.test('Old WSDL names used, no REST driver aliases', () => { const t=pm.response.text(); pm.expect(t).to.include('<soiduki_nimi'); pm.expect(t).to.include('<soiduki_perekonnanimi'); pm.expect(t).not.to.match(/<(juhiNimi|juhiPerekonnanimi|juhi_nimi|juhi_perekonnanimi)>/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tundmatu isikukood → 200, tühi kontrollid",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_IsikuKontroll}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:IsikuKontroll><request><isikukood>19001010001</isikukood></request></tns:IsikuKontroll></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:IsikuKontrollResponse', () => pm.expect(pm.response.text()).to.match(/<tns:IsikuKontrollResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('empty kontrollid', () => pm.expect(pm.response.text()).to.match(/<response><kontrollid\\/><\\/response>/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "IsikuEttevoteKontrollid",
+      "item": [
+        {
+          "name": "Kehtiv päring → 200, response.kontrollid.item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_IsikuEttevoteKontrollid}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:IsikuEttevoteKontrollid><request><isikukood>39001010001</isikukood></request></tns:IsikuEttevoteKontrollid></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:IsikuEttevoteKontrollidResponse', () => pm.expect(pm.response.text()).to.match(/<tns:IsikuEttevoteKontrollidResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('response.Kontrollid has items', () => pm.expect(pm.response.text()).to.match(/<response><Kontrollid><item>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vale isikukood → Fault Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_IsikuEttevoteKontrollid}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:IsikuEttevoteKontrollid><request><isikukood>123</isikukood></request></tns:IsikuEttevoteKontrollid></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions HTTP 400', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*HTTP 400[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVquery",
+      "item": [
+        {
+          "name": "Kehtiv periood → 200, targeted_for_inspection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_ErakorralineYVquery}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:ErakorralineYVquery><request><alates>2026-01-01T00:00:00</alates><kuni>2026-12-31T00:00:00</kuni></request></tns:ErakorralineYVquery></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:ErakorralineYVqueryResponse', () => pm.expect(pm.response.text()).to.match(/<tns:ErakorralineYVqueryResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('request echoes alates/kuni', () => pm.expect(pm.response.text()).to.match(/<request><alates>2026-01-01T00:00:00<\\/alates><kuni>2026-12-31T00:00:00<\\/kuni><\\/request>/));",
+                  "pm.test('response has targeted_for_inspection', () => pm.expect(pm.response.text()).to.match(/<response><targeted_for_inspection/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tuleviku periood → 200, tühi targeted_for_inspection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_ErakorralineYVquery}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:ErakorralineYVquery><request><alates>2099-01-01T00:00:00</alates><kuni>2099-01-31T00:00:00</kuni></request></tns:ErakorralineYVquery></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:ErakorralineYVqueryResponse', () => pm.expect(pm.response.text()).to.match(/<tns:ErakorralineYVqueryResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('empty targeted_for_inspection', () => pm.expect(pm.response.text()).to.match(/<response><targeted_for_inspection\\/><\\/response>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "alates > kuni → Fault Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_ErakorralineYVquery}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:ErakorralineYVquery><request><alates>2026-12-31T00:00:00</alates><kuni>2026-01-01T00:00:00</kuni></request></tns:ErakorralineYVquery></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions alates must not be after kuni', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*alates must not be after kuni[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ErakorralineYVconfirm",
+      "item": [
+        {
+          "name": "Tundmatu inspection_id → Fault Client (Ruuter 404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_ErakorralineYVconfirm}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:ErakorralineYVconfirm><request><confirmed><item><inspection_id>999999999</inspection_id><code>INSPECTION_DATE</code><value>2026-07-01</value></item></confirmed></request></tns:ErakorralineYVconfirm></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions HTTP 404', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*HTTP 404[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lubamatu code → Fault Client (Ruuter 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_ErakorralineYVconfirm}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:ErakorralineYVconfirm><request><confirmed><item><inspection_id>1</inspection_id><code>INVALID_CODE</code><value>x</value></item></confirmed></request></tns:ErakorralineYVconfirm></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions HTTP 400', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*HTTP 400[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection (v1)",
+      "item": [
+        {
+          "name": "Kõik väljad WSDL järgi → 200 message=Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_RegisterJobInspection}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:RegisterJobInspection><request><kontrollija>CI Inspektor</kontrollija><kontrolli_id>{{soap_v1_kontrolli_id}}</kontrolli_id><kontrolli_kp>2026-06-15T10:00:00</kontrolli_kp><tooandja_nimi>OÜ CI SOAP</tooandja_nimi><tooandja_reg_kood>12345678</tooandja_reg_kood><soidukite_arv>3</soidukite_arv><koostatatud_ettekirjutus>false</koostatatud_ettekirjutus><kontrollimised><kontrollitud_kokku>3</kontrollitud_kokku><kontrollitud_soitjate_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>{{soap_v1_soitjate}}</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_soitjate_veol><kontrollitud_veose_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>{{soap_v1_veose}}</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_veose_veol><kontrollitud_ok_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_ok_veol><kontrollitud_tasulisel_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_tasulisel_veol></kontrollimised><rikkumised><maarus_3821_85_art15_p1>0</maarus_3821_85_art15_p1><maarus_3821_85_art15_lg2>0</maarus_3821_85_art15_lg2><maarus_3821_85_art15_lg3>0</maarus_3821_85_art15_lg3><maarus_3821_85_art15_lg5>0</maarus_3821_85_art15_lg5><maarus_561_2006_a10_lg5><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a10_lg5><maarus_561_2006_a6_oop_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_oop_aeg><maarus_561_2006_a6_nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_nadal_aeg><maarus_561_2006_a6_2nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_2nadal_aeg><maarus_561_2006_a7_vaheaeg_45><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_45><maarus_561_2006_a7_vaheaeg_min><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_min><maarus_561_2006_a8_oop_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_oop_puhkus><maarus_561_2006_a8_nadal_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_nadal_puhkus><maarus_561_2006_a16_puudulik_gr>0</maarus_561_2006_a16_puudulik_gr><maarus_561_2006_a16_gr_eiramine>0</maarus_561_2006_a16_gr_eiramine></rikkumised><vaarteomenetlus>Ei</vaarteomenetlus></request></tns:RegisterJobInspection></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('soap_v1_kontrolli_id', String(Math.floor(Date.now() / 1000) % 1000000000 + 1000000000));",
+                  "pm.collectionVariables.set('soap_v1_soitjate', '1'); pm.collectionVariables.set('soap_v1_veose', '2');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:RegisterJobInspectionResponse', () => pm.expect(pm.response.text()).to.match(/<tns:RegisterJobInspectionResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('response.message = Success', () => pm.expect(pm.response.text()).to.match(/<response><message>Success<\\/message><\\/response>/));",
+                  "pm.test('request echoed in schema order', () => pm.expect(pm.response.text()).to.match(/<request><kontrollija>CI Inspektor<\\/kontrollija><kontrolli_id>\\d+<\\/kontrolli_id>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Korduspäring sama kontrolli_id-ga → 200 idempotentne",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_RegisterJobInspection}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:RegisterJobInspection><request><kontrollija>CI Inspektor</kontrollija><kontrolli_id>{{soap_v1_kontrolli_id}}</kontrolli_id><kontrolli_kp>2026-06-15T10:00:00</kontrolli_kp><tooandja_nimi>OÜ CI SOAP</tooandja_nimi><tooandja_reg_kood>12345678</tooandja_reg_kood><soidukite_arv>3</soidukite_arv><koostatatud_ettekirjutus>false</koostatatud_ettekirjutus><kontrollimised><kontrollitud_kokku>3</kontrollitud_kokku><kontrollitud_soitjate_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>{{soap_v1_soitjate}}</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_soitjate_veol><kontrollitud_veose_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>{{soap_v1_veose}}</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_veose_veol><kontrollitud_ok_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_ok_veol><kontrollitud_tasulisel_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_tasulisel_veol></kontrollimised><rikkumised><maarus_3821_85_art15_p1>0</maarus_3821_85_art15_p1><maarus_3821_85_art15_lg2>0</maarus_3821_85_art15_lg2><maarus_3821_85_art15_lg3>0</maarus_3821_85_art15_lg3><maarus_3821_85_art15_lg5>0</maarus_3821_85_art15_lg5><maarus_561_2006_a10_lg5><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a10_lg5><maarus_561_2006_a6_oop_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_oop_aeg><maarus_561_2006_a6_nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_nadal_aeg><maarus_561_2006_a6_2nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_2nadal_aeg><maarus_561_2006_a7_vaheaeg_45><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_45><maarus_561_2006_a7_vaheaeg_min><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_min><maarus_561_2006_a8_oop_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_oop_puhkus><maarus_561_2006_a8_nadal_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_nadal_puhkus><maarus_561_2006_a16_puudulik_gr>0</maarus_561_2006_a16_puudulik_gr><maarus_561_2006_a16_gr_eiramine>0</maarus_561_2006_a16_gr_eiramine></rikkumised><vaarteomenetlus>Ei</vaarteomenetlus></request></tns:RegisterJobInspection></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:RegisterJobInspectionResponse', () => pm.expect(pm.response.text()).to.match(/<tns:RegisterJobInspectionResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('response.message = Success', () => pm.expect(pm.response.text()).to.match(/<response><message>Success<\\/message><\\/response>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Puuduv kontrollija → Fault Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_RegisterJobInspection}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:RegisterJobInspection><request><kontrolli_id>{{soap_v1_kontrolli_id}}</kontrolli_id><kontrolli_kp>2026-06-15T10:00:00</kontrolli_kp><tooandja_nimi>OÜ CI SOAP</tooandja_nimi><tooandja_reg_kood>12345678</tooandja_reg_kood><soidukite_arv>3</soidukite_arv><koostatatud_ettekirjutus>false</koostatatud_ettekirjutus><kontrollimised><kontrollitud_kokku>3</kontrollitud_kokku><kontrollitud_soitjate_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>{{soap_v1_soitjate}}</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_soitjate_veol><kontrollitud_veose_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>{{soap_v1_veose}}</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_veose_veol><kontrollitud_ok_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_ok_veol><kontrollitud_tasulisel_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_tasulisel_veol></kontrollimised><rikkumised><maarus_3821_85_art15_p1>0</maarus_3821_85_art15_p1><maarus_3821_85_art15_lg2>0</maarus_3821_85_art15_lg2><maarus_3821_85_art15_lg3>0</maarus_3821_85_art15_lg3><maarus_3821_85_art15_lg5>0</maarus_3821_85_art15_lg5><maarus_561_2006_a10_lg5><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a10_lg5><maarus_561_2006_a6_oop_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_oop_aeg><maarus_561_2006_a6_nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_nadal_aeg><maarus_561_2006_a6_2nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_2nadal_aeg><maarus_561_2006_a7_vaheaeg_45><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_45><maarus_561_2006_a7_vaheaeg_min><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_min><maarus_561_2006_a8_oop_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_oop_puhkus><maarus_561_2006_a8_nadal_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_nadal_puhkus><maarus_561_2006_a16_puudulik_gr>0</maarus_561_2006_a16_puudulik_gr><maarus_561_2006_a16_gr_eiramine>0</maarus_561_2006_a16_gr_eiramine></rikkumised><vaarteomenetlus>Ei</vaarteomenetlus></request></tns:RegisterJobInspection></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 500 (SOAP Fault)', () => pm.response.to.have.status(500));",
+                  "pm.test('faultcode is SOAP-ENV:Client', () => pm.expect(pm.response.text()).to.include('<faultcode>SOAP-ENV:Client</faultcode>'));",
+                  "pm.test('faultstring mentions kontrollija', () => pm.expect(pm.response.text()).to.match(/<faultstring>[^<]*kontrollija[^<]*<\\/faultstring>/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V1 zero passenger counters → cargo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_RegisterJobInspection}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:RegisterJobInspection><request><kontrollija>CI Inspektor</kontrollija><kontrolli_id>{{soap_v1_cargo_id}}</kontrolli_id><kontrolli_kp>2026-06-15T10:00:00</kontrolli_kp><tooandja_nimi>OÜ CI SOAP</tooandja_nimi><tooandja_reg_kood>12345678</tooandja_reg_kood><soidukite_arv>3</soidukite_arv><koostatatud_ettekirjutus>false</koostatatud_ettekirjutus><kontrollimised><kontrollitud_kokku>3</kontrollitud_kokku><kontrollitud_soitjate_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_soitjate_veol><kontrollitud_veose_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>{{soap_v1_veose}}</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_veose_veol><kontrollitud_ok_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_ok_veol><kontrollitud_tasulisel_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik></kontrollitud_tasulisel_veol></kontrollimised><rikkumised><maarus_3821_85_art15_p1>0</maarus_3821_85_art15_p1><maarus_3821_85_art15_lg2>0</maarus_3821_85_art15_lg2><maarus_3821_85_art15_lg3>0</maarus_3821_85_art15_lg3><maarus_3821_85_art15_lg5>0</maarus_3821_85_art15_lg5><maarus_561_2006_a10_lg5><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a10_lg5><maarus_561_2006_a6_oop_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_oop_aeg><maarus_561_2006_a6_nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_nadal_aeg><maarus_561_2006_a6_2nadal_aeg><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a6_2nadal_aeg><maarus_561_2006_a7_vaheaeg_45><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_45><maarus_561_2006_a7_vaheaeg_min><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a7_vaheaeg_min><maarus_561_2006_a8_oop_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_oop_puhkus><maarus_561_2006_a8_nadal_puhkus><soitjateveol>0</soitjateveol><veoseveol>0</veoseveol></maarus_561_2006_a8_nadal_puhkus><maarus_561_2006_a16_puudulik_gr>0</maarus_561_2006_a16_puudulik_gr><maarus_561_2006_a16_gr_eiramine>0</maarus_561_2006_a16_gr_eiramine></rikkumised><vaarteomenetlus>Ei</vaarteomenetlus></request></tns:RegisterJobInspection></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('soap_v1_cargo_id', String(Number(pm.collectionVariables.get('soap_v1_kontrolli_id')) + 1));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is text/xml', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/xml'));",
+                  "pm.test('Body is tns:RegisterJobInspectionResponse', () => pm.expect(pm.response.text()).to.match(/<tns:RegisterJobInspectionResponse xmlns:tns=\"http:\\/\\/ljvis\\.x-road\\.eu\">/));",
+                  "pm.test('X-Road header echoed (xrd:id, xrd:client)', () => { const t = pm.response.text(); pm.expect(t).to.include('<xrd:id'); pm.expect(t).to.include('<id:memberCode>70000310</id:memberCode>'); });",
+                  "pm.test('response.message = Success', () => pm.expect(pm.response.text()).to.match(/<response><message>Success<\\/message><\\/response>/));",
+                  "pm.test('request echoed in schema order', () => pm.expect(pm.response.text()).to.match(/<request><kontrollija>CI Inspektor<\\/kontrollija><kontrolli_id>\\d+<\\/kontrolli_id>/));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RegisterJobInspection_v2",
+      "item": [
+        {
+          "name": "WSDL v2 payload → 200 message=Success",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_RegisterJobInspection_v2}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:RegisterJobInspection_v2><request><kontrollija>CI Inspektor</kontrollija><kontrolli_id>SOAP-V2-{{soap_v1_kontrolli_id}}</kontrolli_id><kontrolli_kp>2026-06-15T10:00:00</kontrolli_kp><kontrolli_tyyp>S</kontrolli_tyyp><tooandja_nimi>OÜ CI SOAP</tooandja_nimi><tooandja_reg_kood>12345678</tooandja_reg_kood><soidukite_arv>3</soidukite_arv><koostatud_ettekirjutus>true</koostatud_ettekirjutus><kontrollimised><kontrollitud_kokku>3</kontrollitud_kokku><kontrollitud_soitjate_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>1</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_soitjate_veol><kontrollitud_veose_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>2</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_veose_veol><kontrollitud_ok_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_ok_veol><kontrollitud_tasulisel_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_tasulisel_veol></kontrollimised><rikkumised><rikkumiste_arv><rikkumise_kood>CODE_A</rikkumise_kood><arv>1</arv></rikkumiste_arv><rikkumiste_arv><rikkumise_kood>CODE_B</rikkumise_kood><arv>2</arv></rikkumiste_arv></rikkumised><vaarteomenetlus><viitenumber>M-2026-CI-1</viitenumber><karistatud_isiku_kood>39001010001</karistatud_isiku_kood><karistatud_isiku_eesnimi>Demo</karistatud_isiku_eesnimi><karistatud_isiku_nimi>Test</karistatud_isiku_nimi></vaarteomenetlus></request></tns:RegisterJobInspection_v2></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('response.message = Success', () => pm.expect(pm.response.text()).to.include('<message>Success</message>'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V2 cargo, no optional proceeding, false boolean",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_RegisterJobInspection_v2}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:RegisterJobInspection_v2><request><kontrollija>CI Inspektor</kontrollija><kontrolli_id>SOAP-V2-CARGO-{{soap_v1_kontrolli_id}}</kontrolli_id><kontrolli_kp>2026-06-15T10:00:00</kontrolli_kp><kontrolli_tyyp>V</kontrolli_tyyp><tooandja_nimi>OÜ CI SOAP</tooandja_nimi><tooandja_reg_kood>12345678</tooandja_reg_kood><soidukite_arv>3</soidukite_arv><koostatud_ettekirjutus>0</koostatud_ettekirjutus><kontrollimised><kontrollitud_kokku>3</kontrollitud_kokku><kontrollitud_soitjate_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>1</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_soitjate_veol><kontrollitud_veose_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>2</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_veose_veol><kontrollitud_ok_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_ok_veol><kontrollitud_tasulisel_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_tasulisel_veol></kontrollimised><rikkumised><rikkumiste_arv><rikkumise_kood>CODE_A</rikkumise_kood><arv>1</arv></rikkumiste_arv><rikkumiste_arv><rikkumise_kood>CODE_B</rikkumise_kood><arv>2</arv></rikkumiste_arv></rikkumised></request></tns:RegisterJobInspection_v2></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('response.message = Success', () => pm.expect(pm.response.text()).to.include('<message>Success</message>'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "V2 invalid transport type → Client fault",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SOAPAction",
+                "value": "\"\""
+              }
+            ],
+            "url": "{{xtr_inbound_url}}/soap-in/ljvis/ljvis",
+            "body": {
+              "mode": "raw",
+              "raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xrd=\"http://x-road.eu/xsd/xroad.xsd\" xmlns:id=\"http://x-road.eu/xsd/identifiers\" xmlns:tns=\"http://ljvis.x-road.eu\"><SOAP-ENV:Header>{{xrd_header_RegisterJobInspection_v2}}</SOAP-ENV:Header><SOAP-ENV:Body><tns:RegisterJobInspection_v2><request><kontrollija>CI Inspektor</kontrollija><kontrolli_id>SOAP-V2-CARGO-{{soap_v1_kontrolli_id}}</kontrolli_id><kontrolli_kp>2026-06-15T10:00:00</kontrolli_kp><kontrolli_tyyp>X</kontrolli_tyyp><tooandja_nimi>OÜ CI SOAP</tooandja_nimi><tooandja_reg_kood>12345678</tooandja_reg_kood><soidukite_arv>3</soidukite_arv><koostatud_ettekirjutus>0</koostatud_ettekirjutus><kontrollimised><kontrollitud_kokku>3</kontrollitud_kokku><kontrollitud_soitjate_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>1</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_soitjate_veol><kontrollitud_veose_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>2</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_veose_veol><kontrollitud_ok_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_ok_veol><kontrollitud_tasulisel_veol><arv_analoogmeerik>0</arv_analoogmeerik><arv_digitaalmeerik>0</arv_digitaalmeerik><arv_nutimeerik>0</arv_nutimeerik><tp_analoogmeerik>0</tp_analoogmeerik><tp_digitaalmeerik>0</tp_digitaalmeerik><tp_nutimeerik>0</tp_nutimeerik></kontrollitud_tasulisel_veol></kontrollimised><rikkumised><rikkumiste_arv><rikkumise_kood>CODE_A</rikkumise_kood><arv>1</arv></rikkumiste_arv><rikkumiste_arv><rikkumise_kood>CODE_B</rikkumise_kood><arv>2</arv></rikkumiste_arv></rikkumised></request></tns:RegisterJobInspection_v2></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns SOAP fault', () => pm.response.to.have.status(500));",
+                  "pm.test('Useful business validation error', () => { pm.expect(pm.response.text()).to.include('SOAP-ENV:Client'); pm.expect(pm.response.text()).to.include('kontrolli_tyyp must be S or V'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Väljuv SOAP — täielik ring",
+      "item": [
+        {
+          "name": "IsikuKontroll JSON → SOAP → LJVIS2 → SOAP → JSON",
+          "request": {
+            "method": "POST",
+            "url": "{{xtr_outbound_url}}/soap-out/ljvis/ljvis/IsikuKontroll",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request\": {\"isikukood\": \"39001010001\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('SOAP response decoded to JSON', () => { const j=pm.response.json(); pm.expect(j.response).to.have.property('request'); pm.expect(j.response).to.have.property('response'); });",
+                  "pm.test('X-Road service matches operation', () => pm.expect(pm.response.json().header.service.serviceCode).to.equal('IsikuKontroll'));",
+                  "pm.test('Request round-tripped without losing nested fields', () => { const expected=JSON.parse(pm.variables.replaceIn(pm.request.body.raw)).request; const actual=pm.response.json().response.request; function normal(v) { if(Array.isArray(v)) return v.map(normal); if(v && typeof v==='object') { const o={}; Object.keys(v).forEach(k=>o[k]=normal(v[k])); return o; } return String(v); } pm.expect(normal(actual)).to.deep.equal(normal(expected)); });",
+                  "pm.test('Multiple records and real names survived both conversions', () => { const rows=pm.response.json().response.response.kontrollid.item; pm.expect(rows.length).to.be.at.least(2); pm.expect(rows.some(r=>r.soiduki_nimi==='Demo' && r.soiduki_perekonnanimi==='Test')).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "IsikuEttevoteKontrollid JSON → SOAP → LJVIS2 → SOAP → JSON",
+          "request": {
+            "method": "POST",
+            "url": "{{xtr_outbound_url}}/soap-out/ljvis/ljvis/IsikuEttevoteKontrollid",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request\": {\"isikukood\": \"39001010001\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('SOAP response decoded to JSON', () => { const j=pm.response.json(); pm.expect(j.response).to.have.property('request'); pm.expect(j.response).to.have.property('response'); });",
+                  "pm.test('X-Road service matches operation', () => pm.expect(pm.response.json().header.service.serviceCode).to.equal('IsikuEttevoteKontrollid'));",
+                  "pm.test('Request round-tripped without losing nested fields', () => { const expected=JSON.parse(pm.variables.replaceIn(pm.request.body.raw)).request; const actual=pm.response.json().response.request; function normal(v) { if(Array.isArray(v)) return v.map(normal); if(v && typeof v==='object') { const o={}; Object.keys(v).forEach(k=>o[k]=normal(v[k])); return o; } return String(v); } pm.expect(normal(actual)).to.deep.equal(normal(expected)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ErakorralineYVquery JSON → SOAP → LJVIS2 → SOAP → JSON",
+          "request": {
+            "method": "POST",
+            "url": "{{xtr_outbound_url}}/soap-out/ljvis/ljvis/ErakorralineYVquery",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request\": {\"alates\": \"2026-01-01T00:00:00\", \"kuni\": \"2026-12-31T00:00:00\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('SOAP response decoded to JSON', () => { const j=pm.response.json(); pm.expect(j.response).to.have.property('request'); pm.expect(j.response).to.have.property('response'); });",
+                  "pm.test('X-Road service matches operation', () => pm.expect(pm.response.json().header.service.serviceCode).to.equal('ErakorralineYVquery'));",
+                  "pm.test('Request round-tripped without losing nested fields', () => { const expected=JSON.parse(pm.variables.replaceIn(pm.request.body.raw)).request; const actual=pm.response.json().response.request; function normal(v) { if(Array.isArray(v)) return v.map(normal); if(v && typeof v==='object') { const o={}; Object.keys(v).forEach(k=>o[k]=normal(v[k])); return o; } return String(v); } pm.expect(normal(actual)).to.deep.equal(normal(expected)); });",
+                  "pm.test('Non-empty technical data preserved', () => { const rows=pm.response.json().response.response.targeted_for_inspection.item; const r=rows.find(x=>x.inspection_id==='900000001'); pm.expect(r).to.exist; pm.expect(r.licence_plate_no).to.equal('123ABC'); pm.expect(r.issues.item[0].value).to.equal('1.1'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ErakorralineYVconfirm JSON → SOAP → LJVIS2 → SOAP → JSON",
+          "request": {
+            "method": "POST",
+            "url": "{{xtr_outbound_url}}/soap-out/ljvis/ljvis/ErakorralineYVconfirm",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request\": {\"confirmed\": {\"item\": [{\"inspection_id\": \"900000001\", \"code\": \"ENFORCEMENT_DECISION\", \"value\": \"CI decision\"}, {\"inspection_id\": \"900000001\", \"code\": \"CLOSURE_BASIS\", \"value\": \"CI closure\"}]}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('SOAP response decoded to JSON', () => { const j=pm.response.json(); pm.expect(j.response).to.have.property('request'); pm.expect(j.response).to.have.property('response'); });",
+                  "pm.test('X-Road service matches operation', () => pm.expect(pm.response.json().header.service.serviceCode).to.equal('ErakorralineYVconfirm'));",
+                  "pm.test('Request round-tripped without losing nested fields', () => { const expected=JSON.parse(pm.variables.replaceIn(pm.request.body.raw)).request; const actual=pm.response.json().response.request; function normal(v) { if(Array.isArray(v)) return v.map(normal); if(v && typeof v==='object') { const o={}; Object.keys(v).forEach(k=>o[k]=normal(v[k])); return o; } return String(v); } pm.expect(normal(actual)).to.deep.equal(normal(expected)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RegisterJobInspection JSON → SOAP → LJVIS2 → SOAP → JSON",
+          "request": {
+            "method": "POST",
+            "url": "{{xtr_outbound_url}}/soap-out/ljvis/ljvis/RegisterJobInspection",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request\": {\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"{{soap_v1_kontrolli_id}}\", \"kontrolli_kp\": \"2026-06-15T10:00:00\", \"tooandja_nimi\": \"OÜ CI SOAP\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"3\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_kokku\": \"3\", \"kontrollitud_soitjate_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"{{soap_v1_soitjate}}\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\"}, \"kontrollitud_veose_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"{{soap_v1_veose}}\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\"}, \"kontrollitud_ok_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"0\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\"}, \"kontrollitud_tasulisel_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"0\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\"}}, \"rikkumised\": {\"maarus_3821_85_art15_p1\": \"0\", \"maarus_3821_85_art15_lg2\": \"0\", \"maarus_3821_85_art15_lg3\": \"0\", \"maarus_3821_85_art15_lg5\": \"0\", \"maarus_561_2006_a10_lg5\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a6_oop_aeg\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a6_nadal_aeg\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a6_2nadal_aeg\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a7_vaheaeg_45\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a7_vaheaeg_min\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a8_oop_puhkus\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a8_nadal_puhkus\": {\"soitjateveol\": \"0\", \"veoseveol\": \"0\"}, \"maarus_561_2006_a16_puudulik_gr\": \"0\", \"maarus_561_2006_a16_gr_eiramine\": \"0\"}, \"vaarteomenetlus\": \"Ei\"}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('SOAP response decoded to JSON', () => { const j=pm.response.json(); pm.expect(j.response).to.have.property('request'); pm.expect(j.response).to.have.property('response'); });",
+                  "pm.test('X-Road service matches operation', () => pm.expect(pm.response.json().header.service.serviceCode).to.equal('RegisterJobInspection'));",
+                  "pm.test('Request round-tripped without losing nested fields', () => { const expected=JSON.parse(pm.variables.replaceIn(pm.request.body.raw)).request; const actual=pm.response.json().response.request; function normal(v) { if(Array.isArray(v)) return v.map(normal); if(v && typeof v==='object') { const o={}; Object.keys(v).forEach(k=>o[k]=normal(v[k])); return o; } return String(v); } pm.expect(normal(actual)).to.deep.equal(normal(expected)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RegisterJobInspection_v2 JSON → SOAP → LJVIS2 → SOAP → JSON",
+          "request": {
+            "method": "POST",
+            "url": "{{xtr_outbound_url}}/soap-out/ljvis/ljvis/RegisterJobInspection_v2",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"request\": {\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"SOAP-OUT-{{soap_v1_kontrolli_id}}\", \"kontrolli_kp\": \"2026-06-15T10:00:00\", \"kontrolli_tyyp\": \"S\", \"tooandja_nimi\": \"OÜ CI SOAP\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"3\", \"koostatud_ettekirjutus\": \"true\", \"kontrollimised\": {\"kontrollitud_kokku\": \"3\", \"kontrollitud_soitjate_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"1\", \"arv_nutimeerik\": \"0\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\", \"tp_nutimeerik\": \"0\"}, \"kontrollitud_veose_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"2\", \"arv_nutimeerik\": \"0\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\", \"tp_nutimeerik\": \"0\"}, \"kontrollitud_ok_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"0\", \"arv_nutimeerik\": \"0\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\", \"tp_nutimeerik\": \"0\"}, \"kontrollitud_tasulisel_veol\": {\"arv_analoogmeerik\": \"0\", \"arv_digitaalmeerik\": \"0\", \"arv_nutimeerik\": \"0\", \"tp_analoogmeerik\": \"0\", \"tp_digitaalmeerik\": \"0\", \"tp_nutimeerik\": \"0\"}}, \"rikkumised\": {\"rikkumiste_arv\": [{\"rikkumise_kood\": \"CODE_A\", \"arv\": \"1\"}, {\"rikkumise_kood\": \"CODE_B\", \"arv\": \"2\"}]}, \"vaarteomenetlus\": {\"viitenumber\": \"M-2026-CI-1\", \"karistatud_isiku_kood\": \"39001010001\", \"karistatud_isiku_eesnimi\": \"Demo\", \"karistatud_isiku_nimi\": \"Test\"}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "pm.test('SOAP response decoded to JSON', () => { const j=pm.response.json(); pm.expect(j.response).to.have.property('request'); pm.expect(j.response).to.have.property('response'); });",
+                  "pm.test('X-Road service matches operation', () => pm.expect(pm.response.json().header.service.serviceCode).to.equal('RegisterJobInspection_v2'));",
+                  "pm.test('Request round-tripped without losing nested fields', () => { const expected=JSON.parse(pm.variables.replaceIn(pm.request.body.raw)).request; const actual=pm.response.json().response.request; function normal(v) { if(Array.isArray(v)) return v.map(normal); if(v && typeof v==='object') { const o={}; Object.keys(v).forEach(k=>o[k]=normal(v[k])); return o; } return String(v); } pm.expect(normal(actual)).to.deep.equal(normal(expected)); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sisemine port",
+      "item": [
+        {
+          "name": "Inbound unavailable on internal port",
+          "request": {
+            "method": "POST",
+            "url": "{{xtr_outbound_url}}/soap-in/ljvis/ljvis",
+            "header": []
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Returns 404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -21,14 +21,17 @@ FROM (
         cv.classifier_value_key,
         cv.code,
         cv.name,
-        CASE c.code WHEN 'EU_INFRINGEMENT' THEN 1 ELSE 2 END AS priority
+        (SELECT min(CASE c.code WHEN 'EU_INFRINGEMENT' THEN 1 ELSE 2 END)
+           FROM classifier.classifier c
+          WHERE c.classifier_key = cv.classifier_key
+            AND c.code IN ('EU_INFRINGEMENT', 'CARGO_CABOTAGE_VIOLATION', 'PASSENGER_CABOTAGE_VIOLATION')) AS priority
     FROM classifier.classifier_value cv
-    JOIN (
-        SELECT DISTINCT classifier_key, code
-        FROM classifier.classifier
-        WHERE code IN ('EU_INFRINGEMENT', 'CARGO_CABOTAGE_VIOLATION', 'PASSENGER_CABOTAGE_VIOLATION')
-    ) c ON c.classifier_key = cv.classifier_key
     WHERE cv.code = ANY (string_to_array(:codes, ','))
+      AND cv.classifier_key = ANY (
+        SELECT c.classifier_key
+        FROM classifier.classifier c
+        WHERE c.code IN ('EU_INFRINGEMENT', 'CARGO_CABOTAGE_VIOLATION', 'PASSENGER_CABOTAGE_VIOLATION')
+      )
     ORDER BY cv.classifier_value_key, cv.created_at DESC
 ) latest
 ORDER BY latest.code, latest.priority;

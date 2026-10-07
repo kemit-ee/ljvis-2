@@ -16,6 +16,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -27,6 +30,7 @@ SELECT DISTINCT ON (trailer_technical_form_key)
   trailer_technical_form_key AS id,
   sub_form_number,
   version,
+  revision,
   status,
   result_type
 FROM forms.trailer_technical_form

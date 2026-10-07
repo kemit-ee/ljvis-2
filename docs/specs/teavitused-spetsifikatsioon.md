@@ -151,7 +151,7 @@ Kliendi identifikaator: `<instants>/GOV/70001231/ljvis2`, teenus `<instants>/GOV
 |---|---|---|
 | `PK_NOTIFICATIONS_ENDPOINT`, `PK_SENDING_OPERATIONS_ENDPOINT` | `constants.ini` / ConfigMap | Postkast 2.0 lõpp-punktid |
 | `INTERNAL_COMMUNICATION_KEY` | SSM / Secret | Jagatud saladus WS-broadcast'i sisekutsele |
-| `XROAD_INSTANCE` | `constants.ini` | X-tee instants |
+| `xroad_instance` | `xtr.yaml` | X-tee instants |
 | Malli tunnused, saajad, keel, aktiivsus | Haldus → „Postkasti mallide ja vastuvõtjate seaded" | Muudetav ilma väljalaseta |
 | Staatuse sünk | `DSL/CronManager/notification-status-sync.yaml` | `0 */5 * * * ?` |
 

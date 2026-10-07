@@ -119,35 +119,44 @@ all_sp_forms AS (
   FROM sp_teammate_active
 ),
 violation_counts AS (
+  -- ühe SP-vormi raskuskoodid massiivina (alampäring, mitte LATERAL JOIN); loendur allpool
   SELECT
     f.sp_form_key,
     f.compound_form_key,
     f.sp_applicability,
     f.result_type,
     f.proceeding_type,
-    COUNT(*) FILTER (WHERE v.severity_code = 'MSI') AS n_msi,
-    COUNT(*) FILTER (WHERE v.severity_code = 'VSI') AS n_vsi,
-    COUNT(*) FILTER (WHERE v.severity_code = 'SI')  AS n_si,
-    COUNT(*) FILTER (WHERE v.severity_code = 'MI')  AS n_mi
+    ARRAY(
+      SELECT elem->>'severityCode'
+      FROM jsonb_array_elements(
+             COALESCE(f.violations_561_2006, '[]'::jsonb)
+             || COALESCE(f.violations_165_2014, '[]'::jsonb)
+             || COALESCE(f.violations_2002_15, '[]'::jsonb)
+             || COALESCE(f.violations_593_2008, '[]'::jsonb)
+             || COALESCE(f.violations_2020_1057, '[]'::jsonb)
+           ) elem
+      WHERE (elem->>'isDetected') = 'true' OR elem->'isDetected' IS NULL
+      UNION ALL
+      SELECT elem->>'severityCode'
+      FROM jsonb_array_elements(COALESCE(f.document_checks, '[]'::jsonb)) elem
+      UNION ALL
+      SELECT elem->>'severityCode'
+      FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
+    ) AS severity_codes
   FROM all_sp_forms f
-  LEFT JOIN LATERAL (
-    SELECT elem->>'severityCode' AS severity_code
-    FROM jsonb_array_elements(
-           COALESCE(f.violations_561_2006, '[]'::jsonb)
-           || COALESCE(f.violations_165_2014, '[]'::jsonb)
-           || COALESCE(f.violations_2002_15, '[]'::jsonb)
-           || COALESCE(f.violations_593_2008, '[]'::jsonb)
-           || COALESCE(f.violations_2020_1057, '[]'::jsonb)
-         ) elem
-    WHERE (elem->>'isDetected') = 'true' OR elem->'isDetected' IS NULL
-    UNION ALL
-    SELECT elem->>'severityCode'
-    FROM jsonb_array_elements(COALESCE(f.document_checks, '[]'::jsonb)) elem
-    UNION ALL
-    SELECT elem->>'severityCode'
-    FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
-  ) v ON TRUE
-  GROUP BY f.sp_form_key, f.compound_form_key, f.sp_applicability, f.result_type, f.proceeding_type
+),
+violation_tallies AS (
+  SELECT
+    vc.sp_form_key,
+    vc.compound_form_key,
+    vc.sp_applicability,
+    vc.result_type,
+    vc.proceeding_type,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'MSI') AS n_msi,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'VSI') AS n_vsi,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'SI')  AS n_si,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'MI')  AS n_mi
+  FROM violation_counts vc
 ),
 sp_form_category AS (
   SELECT
@@ -163,25 +172,18 @@ sp_form_category AS (
         THEN 'zero_point'
       ELSE 'counted'
     END AS category
-  FROM violation_counts
+  FROM violation_tallies
 ),
 -- Per compound_form_key: severity counts and weighted points are summed only
 -- over 'counted' SP forms — same convention as calculate_risk_score.sql's
 -- weighted_sum, so the two numbers stay consistent for a given control.
--- LEFT JOIN so that compound forms with no sp_driver/sp_teammate rows still
--- appear in the result (e.g. newly-created controls or controls where driver
--- checks have not been added yet), instead of silently vanishing from the
--- citizen's view. Per docs/risk-score/formula.md §3 ("Täielik välistamine...
--- Samuti kui koondvormil pole ühtegi SP-alamvormi üldse"), a compound form
--- with NO sp_driver/sp_teammate rows at all is fully excluded — same rule
--- calculate_risk_score.sql encodes via its INNER JOIN (such forms never
--- reach per_control there, so they never contribute to r/R either). Hence
--- COALESCE(..., true) here, NOT false — zero SP rows must default to
--- "excluded", matching that INNER-JOIN behaviour's effect on the score.
-per_control AS (
+-- Koondvormid ilma ühegi SP-alamvormita ilmuvad tulemusse ikkagi (per_control loeb sp_agg
+-- alampäringuga ja vaikeväärtus on "täielikult välistatud", docs/risk-score/formula.md §3),
+-- nii et nad ei kao kodaniku vaatest vaikselt.
+sp_agg AS (
   SELECT
-    qf.compound_form_key,
-    COALESCE(BOOL_AND(sfc.category = 'excluded'), true) AS is_fully_excluded,
+    sfc.compound_form_key,
+    BOOL_AND(sfc.category = 'excluded') AS is_fully_excluded,
     COALESCE(SUM(CASE WHEN sfc.category = 'counted' THEN sfc.n_msi ELSE 0 END), 0) AS n_msi,
     COALESCE(SUM(CASE WHEN sfc.category = 'counted' THEN sfc.n_vsi ELSE 0 END), 0) AS n_vsi,
     COALESCE(SUM(CASE WHEN sfc.category = 'counted' THEN sfc.n_si  ELSE 0 END), 0) AS n_si,
@@ -189,21 +191,35 @@ per_control AS (
     COALESCE(SUM(CASE WHEN sfc.category = 'counted'
                        THEN sfc.n_msi * 90 + sfc.n_vsi * 30 + sfc.n_si * 10 + sfc.n_mi * 1
                        ELSE 0 END), 0) AS weighted_points
+  FROM sp_form_category sfc
+  GROUP BY sfc.compound_form_key
+),
+per_control AS (
+  SELECT
+    qf.compound_form_key,
+    COALESCE((SELECT a.is_fully_excluded FROM sp_agg a WHERE a.compound_form_key = qf.compound_form_key), true) AS is_fully_excluded,
+    COALESCE((SELECT a.n_msi FROM sp_agg a WHERE a.compound_form_key = qf.compound_form_key), 0) AS n_msi,
+    COALESCE((SELECT a.n_vsi FROM sp_agg a WHERE a.compound_form_key = qf.compound_form_key), 0) AS n_vsi,
+    COALESCE((SELECT a.n_si  FROM sp_agg a WHERE a.compound_form_key = qf.compound_form_key), 0) AS n_si,
+    COALESCE((SELECT a.n_mi  FROM sp_agg a WHERE a.compound_form_key = qf.compound_form_key), 0) AS n_mi,
+    COALESCE((SELECT a.weighted_points FROM sp_agg a WHERE a.compound_form_key = qf.compound_form_key), 0) AS weighted_points
   FROM qualifying_forms qf
-  LEFT JOIN sp_form_category sfc ON sfc.compound_form_key = qf.compound_form_key
-  GROUP BY qf.compound_form_key
+),
+controls AS (
+  SELECT
+    pc.compound_form_key,
+    (SELECT fs.form_number FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key) AS form_number,
+    (SELECT fs.main_date FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key) AS main_date,
+    (SELECT fs.vehicle_reg_nr FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key) AS vehicle_reg_nr,
+    pc.is_fully_excluded,
+    pc.n_msi,
+    pc.n_vsi,
+    pc.n_si,
+    pc.n_mi,
+    pc.weighted_points
+  FROM per_control pc
+  WHERE EXISTS (SELECT 1 FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key)
 )
-SELECT
-  pc.compound_form_key,
-  fs.form_number,
-  fs.main_date,
-  fs.vehicle_reg_nr,
-  pc.is_fully_excluded,
-  pc.n_msi,
-  pc.n_vsi,
-  pc.n_si,
-  pc.n_mi,
-  pc.weighted_points
-FROM per_control pc
-JOIN forms.form_search fs ON fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key
-ORDER BY fs.main_date DESC, pc.compound_form_key DESC;
+SELECT compound_form_key, form_number, main_date, vehicle_reg_nr, is_fully_excluded, n_msi, n_vsi, n_si, n_mi, weighted_points
+FROM controls
+ORDER BY main_date DESC, compound_form_key DESC;

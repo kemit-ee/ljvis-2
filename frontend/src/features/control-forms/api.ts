@@ -1,5 +1,11 @@
 import { post, get, ApiError } from '../../shared/api/client';
 import type { PagedResponse } from '../../hooks/usePaginatedList';
+import {
+  tracked,
+  untracked,
+  withRevision,
+  type RevisionScope,
+} from './formRevisions';
 import type {
   ForeignViolationForm,
   CompoundForm,
@@ -50,50 +56,67 @@ export type ProceedingOutcomeFormType =
   | 'trailer_technical'
   | 'adr';
 
+const PROCEEDING_OUTCOME_SCOPES: Record<ProceedingOutcomeFormType, RevisionScope> = {
+  labour_inspection: 'labour-inspection',
+  tram_control_card: 'tram',
+  sp_driver: 'sp-driver',
+  sp_teammate: 'sp-teammate',
+  vehicle_technical: 'vehicle',
+  trailer_technical: 'trailer',
+  adr: 'adr',
+};
+
 export const saveProceedingOutcome = (
   formType: ProceedingOutcomeFormType,
   id: string | number,
   enforcementDecision?: string,
   proceedingClosureBasis?: string,
 ) =>
-  post<{ id: number }[]>(
-    '/v1/control-forms/proceeding-outcome/edit/save',
-    {
-      formType,
-      id: String(id),
-      enforcementDecision: enforcementDecision?.trim() ?? '',
-      proceedingClosureBasis: proceedingClosureBasis?.trim() ?? '',
-    },
+  untracked(
+    PROCEEDING_OUTCOME_SCOPES[formType],
+    id,
+    post<{ id: number }[]>(
+      '/v1/control-forms/proceeding-outcome/edit/save',
+      {
+        formType,
+        id: String(id),
+        enforcementDecision: enforcementDecision?.trim() ?? '',
+        proceedingClosureBasis: proceedingClosureBasis?.trim() ?? '',
+      },
+    ),
   );
 
-/** DSL allowlist nõuab id välja stringina; konverteerime enne saatmist. */
-const withStringId = <T extends { id?: string | number | null }>(
-  data: T,
-): Record<string, unknown> =>
-  ({ ...data, id: data.id != null ? String(data.id) : undefined }) as Record<string, unknown>;
-
 export const getForm = (id: number) =>
-  get<ForeignViolationForm>('/v1/control-forms/foreign-violation-form', {
-    q: String(id),
-  });
+  tracked(
+    'foreign-violation',
+    get<ForeignViolationForm>('/v1/control-forms/foreign-violation-form', {
+      q: String(id),
+    }),
+  );
 
 export const saveForeignViolationForm = (data: ForeignViolationForm) =>
-  post<ForeignViolationForm[]>(
-    `/v1/control-forms/foreign-violation-form/edit/save`,
-    withStringId(data),
+  tracked(
+    'foreign-violation',
+    post<ForeignViolationForm[]>(
+      `/v1/control-forms/foreign-violation-form/edit/save`,
+      withRevision('foreign-violation', data),
+    ),
   );
 
 export const confirmForeignViolationForm = (data: ForeignViolationForm) =>
-  post<ForeignViolationForm[]>(
-    `/v1/control-forms/foreign-violation-form/edit/confirm`,
-    withStringId(data),
+  tracked(
+    'foreign-violation',
+    post<ForeignViolationForm[]>(
+      `/v1/control-forms/foreign-violation-form/edit/confirm`,
+      withRevision('foreign-violation', data),
+    ),
   );
 
 export const publishForeignViolationForm = (id: string) =>
-  post<ForeignViolationForm[]>(
+  untracked('foreign-violation', id, post<ForeignViolationForm[]>(
     `/v1/control-forms/foreign-violation-form/edit/publish`,
     { id: String(id) },
-  );
+  ));
 
 export const getCarrierRegistryEmail = (companyRegCode: string, id?: string) =>
   get<{ email: string; found: boolean }>(
@@ -123,45 +146,54 @@ export const deleteForeignViolationForm = (
   form_number: string,
   old_status: string,
 ) =>
-  post<ForeignViolationForm[]>(
+  untracked('foreign-violation', id, post<ForeignViolationForm[]>(
     `/v1/control-forms/foreign-violation-form/edit/delete`,
     { id, form_number, old_status },
-  );
+  ));
 
 export const getCompoundForm = (id: number, subFormId?: number) =>
-  get<CompoundForm>(
-    `/v1/control-forms/compound-form`,
-    subFormId != null
-      ? { q: String(id), subFormId: String(subFormId) }
-      : { q: String(id) },
+  tracked(
+    'compound',
+    get<CompoundForm>(
+      `/v1/control-forms/compound-form`,
+      subFormId != null
+        ? { q: String(id), subFormId: String(subFormId) }
+        : { q: String(id) },
+    ),
   );
 
 export const saveCompoundForm = (data: CompoundForm) =>
-  post<CompoundForm[]>(
-    `/v1/control-forms/compound-form/edit/save`,
-    withStringId(data),
+  tracked(
+    'compound',
+    post<CompoundForm[]>(
+      `/v1/control-forms/compound-form/edit/save`,
+      withRevision('compound', data),
+    ),
   );
 
 export const confirmCompoundForm = (data: CompoundForm) =>
-  post<CompoundForm[]>(
-    `/v1/control-forms/compound-form/edit/confirm`,
-    withStringId(data),
+  tracked(
+    'compound',
+    post<CompoundForm[]>(
+      `/v1/control-forms/compound-form/edit/confirm`,
+      withRevision('compound', data),
+    ),
   );
 
 export const publishCompoundForm = (id: string) =>
-  post<CompoundForm[]>(
+  untracked('compound', id, post<CompoundForm[]>(
     `/v1/control-forms/compound-form/edit/publish`,
     { id: String(id) }
-  );
+  ));
 
 export const deleteCompoundForm = (
   id: string,
   old_status: string,
 ) =>
-  post<CompoundForm[]>(`/v1/control-forms/compound-form/edit/delete`, {
+  untracked('compound', id, post<CompoundForm[]>(`/v1/control-forms/compound-form/edit/delete`, {
     id,
     old_status,
-  });
+  }));
 
 export const getFormSnapshots = (id: string, formType: string) =>
   get<FormSnapshot[]>(`/v1/control-forms/get-snapshots`, { id, formType });
@@ -213,30 +245,36 @@ export const deleteFormFile = (formPath: string, id: string) =>
 // Funktsiooninimed jäävad *TramForm — useCompoundForm impordib neid.
 
 export const getTramForm = (id: number) =>
-  get<CompoundForm>(`/v1/control-forms/tram-card/get`, { q: String(id) });
+  tracked('tram', get<CompoundForm>(`/v1/control-forms/tram-card/get`, { q: String(id) }));
 
 export const saveTramForm = (data: CompoundForm) =>
-  post<CompoundForm[]>(
-    `/v1/control-forms/tram-card/edit/save`,
-    withStringId(data),
+  tracked(
+    'tram',
+    post<CompoundForm[]>(
+      `/v1/control-forms/tram-card/edit/save`,
+      withRevision('tram', data),
+    ),
   );
 
 export const confirmTramForm = (data: CompoundForm) =>
-  post<CompoundForm[]>(
-    `/v1/control-forms/tram-card/edit/confirm`,
-    withStringId(data),
+  tracked(
+    'tram',
+    post<CompoundForm[]>(
+      `/v1/control-forms/tram-card/edit/confirm`,
+      withRevision('tram', data),
+    ),
   );
 
 export const publishTramForm = (id: string) =>
-  post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/publish`, {
+  untracked('tram', id, post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/publish`, {
     id: String(id),
-  });
+  }));
 
 export const deleteTramForm = (id: string, old_status: string) =>
-  post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/delete`, {
+  untracked('tram', id, post<CompoundForm[]>(`/v1/control-forms/tram-card/edit/delete`, {
     id,
     old_status,
-  });
+  }));
 
 export const getTramFormSnapshot = (id: string, formKey: string) =>
   post<CompoundForm>(`/v1/control-forms/tram-card/read/get-snapshot`, {
@@ -260,41 +298,56 @@ export const getCompoundFormSnapshot = (id: string, formKey: string) =>
   });
 
 export const saveDriveRestForm = (scope: 'driver' | 'teammate', data: DriveRestForm) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/drive-rest-form/${scope}/edit/save`,
-    withStringId(data),
+  tracked(
+    driveRestScope(scope),
+    post<DriveRestForm[]>(
+      `/v1/control-forms/drive-rest-form/${scope}/edit/save`,
+      withRevision(driveRestScope(scope), data),
+    ),
   );
 
 export const confirmDriveRestForm = (
   scope: 'driver' | 'teammate',
   data: DriveRestForm,
 ) =>
-  post<DriveRestForm[]>(
-    `/v1/control-forms/drive-rest-form/${scope}/edit/confirm`,
-    withStringId(data),
+  tracked(
+    driveRestScope(scope),
+    post<DriveRestForm[]>(
+      `/v1/control-forms/drive-rest-form/${scope}/edit/confirm`,
+      withRevision(driveRestScope(scope), data),
+    ),
   );
 
 export const publishDriveRestForm = (
   scope: 'driver' | 'teammate',
   id: string,
 ) =>
-  post<DriveRestForm[]>(
+  untracked(driveRestScope(scope), id, post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/publish`,
     { id: String(id) },
-  );
+  ));
+
+const driveRestScope = (scope: 'driver' | 'teammate'): RevisionScope =>
+  scope === 'driver' ? 'sp-driver' : 'sp-teammate';
 
 export const getDriveRestForm = (scope: 'driver' | 'teammate', id: number) =>
-  get<DriveRestForm>(`/v1/control-forms/${scope}-form`, {
-    q: String(id),
-  });
+  tracked(
+    driveRestScope(scope),
+    get<DriveRestForm>(`/v1/control-forms/${scope}-form`, {
+      q: String(id),
+    }),
+  );
 
 export const getDriveRestFormByCompoundFormKey = (
   scope: 'driver' | 'teammate',
   compoundFormKey: number,
 ): Promise<DriveRestForm | null> =>
-  get<DriveRestForm | null>(
-    `/v1/control-forms/sp-${scope}/read/get-by-compound-form-key`,
-    { compoundFormKey: String(compoundFormKey) },
+  tracked(
+    driveRestScope(scope),
+    get<DriveRestForm | null>(
+      `/v1/control-forms/sp-${scope}/read/get-by-compound-form-key`,
+      { compoundFormKey: String(compoundFormKey) },
+    ),
   )
     .then((res) => (res?.status === 'deleted' ? null : res))
     .catch((err: ApiError) => {
@@ -308,10 +361,10 @@ export const deleteDriveRestForm = (
   form_number: string,
   old_status: string,
 ) =>
-  post<DriveRestForm[]>(
+  untracked(driveRestScope(scope), id, post<DriveRestForm[]>(
     `/v1/control-forms/drive-rest-form/${scope}/edit/delete`,
     { id, form_number, old_status },
-  );
+  ));
 
 export const deleteTechnicalCheckForm = (
   scope: 'vehicle' | 'trailer',
@@ -319,10 +372,10 @@ export const deleteTechnicalCheckForm = (
   form_number: string,
   old_status: string,
 ) =>
-  post<TechnicalCheckForm[]>(
+  untracked(scope, id, post<TechnicalCheckForm[]>(
     `/v1/control-forms/${scope}-technical/edit/delete`,
     { id, form_number, old_status },
-  );
+  ));
 
 export const getDriveRestFormSnapshot = (
   scope: 'driver' | 'teammate',
@@ -335,33 +388,42 @@ export const getDriveRestFormSnapshot = (
   );
 
 export const getLabourInspectionForm = (id: number) =>
-  get<LabourInspectionForm>(`/v1/control-forms/labour-inspection`, {
-    q: String(id),
-  });
+  tracked(
+    'labour-inspection',
+    get<LabourInspectionForm>(`/v1/control-forms/labour-inspection`, {
+      q: String(id),
+    }),
+  );
 
 export const saveLabourInspectionForm = (data: LabourInspectionForm) =>
-  post<LabourInspectionForm[]>(
-    `/v1/control-forms/labour-inspection/edit/save`,
-    withStringId(data),
+  tracked(
+    'labour-inspection',
+    post<LabourInspectionForm[]>(
+      `/v1/control-forms/labour-inspection/edit/save`,
+      withRevision('labour-inspection', data),
+    ),
   );
 
 export const confirmLabourInspectionForm = (data: LabourInspectionForm) =>
-  post<LabourInspectionForm[]>(
-    `/v1/control-forms/labour-inspection/edit/confirm`,
-    withStringId(data),
+  tracked(
+    'labour-inspection',
+    post<LabourInspectionForm[]>(
+      `/v1/control-forms/labour-inspection/edit/confirm`,
+      withRevision('labour-inspection', data),
+    ),
   );
 
 export const publishLabourInspectionForm = (id: string) =>
-  post<LabourInspectionForm[]>(
+  untracked('labour-inspection', id, post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/publish`,
     { id: String(id) },
-  );
+  ));
 
 export const deleteLabourInspectionForm = (id: string, old_status: string) =>
-  post<LabourInspectionForm[]>(
+  untracked('labour-inspection', id, post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/delete`,
     { id, old_status },
-  );
+  ));
 
 export const getLabourInspectionFormSnapshot = (id: string, formKey: string) =>
   post<LabourInspectionForm[]>(
@@ -383,57 +445,75 @@ export const getTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
   id: string,
 ) =>
-  get<TechnicalCheckForm>(`/v1/control-forms/${technicalCheckPath(variant)}`, {
-    q: id,
-  });
+  tracked(
+    variant,
+    get<TechnicalCheckForm>(`/v1/control-forms/${technicalCheckPath(variant)}`, {
+      q: id,
+    }),
+  );
 
 export const listTechnicalCheckFormsByCompoundFormKey = (
   variant: TechnicalCheckVariant,
   compoundFormKey: number,
 ) =>
-  get<TechnicalCheckFormListItem[]>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/get-by-compound-form-key`,
-    { compoundFormKey: String(compoundFormKey) },
+  tracked(
+    variant,
+    get<TechnicalCheckFormListItem[]>(
+      `/v1/control-forms/${technicalCheckPath(variant)}/get-by-compound-form-key`,
+      { compoundFormKey: String(compoundFormKey) },
+    ),
   ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const saveTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
   data: TechnicalCheckForm,
 ) =>
-  post<TechnicalCheckForm[]>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/edit/save`,
-    withStringId(data),
+  tracked(
+    variant,
+    post<TechnicalCheckForm[]>(
+      `/v1/control-forms/${technicalCheckPath(variant)}/edit/save`,
+      withRevision(variant, data),
+    ),
   );
 
 export const confirmTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
   data: TechnicalCheckForm,
 ) =>
-  post<TechnicalCheckForm[]>(
-    `/v1/control-forms/${technicalCheckPath(variant)}/edit/confirm`,
-    withStringId(data),
+  tracked(
+    variant,
+    post<TechnicalCheckForm[]>(
+      `/v1/control-forms/${technicalCheckPath(variant)}/edit/confirm`,
+      withRevision(variant, data),
+    ),
   );
 
 export const publishTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
   id: string,
 ) =>
-  post<TechnicalCheckForm[]>(
+  untracked(variant, id, post<TechnicalCheckForm[]>(
     `/v1/control-forms/${technicalCheckPath(variant)}/edit/publish`,
     { id: String(id) }
-  );
+  ));
 
 export const getTransportInterruptionForm = (id: string) =>
-  get<TransportInterruptionForm>(`/v1/control-forms/transport-interruption`, {
-    q: id,
-  });
+  tracked(
+    'transport-interruption',
+    get<TransportInterruptionForm>(`/v1/control-forms/transport-interruption`, {
+      q: id,
+    }),
+  );
 
 export const listTransportInterruptionFormsByCompoundFormKey = (
   compoundFormKey: number,
 ) =>
-  get<TransportInterruptionFormListItem[]>(
-    `/v1/control-forms/transport-interruption/get-by-compound-form-key`,
-    { compoundFormKey: String(compoundFormKey) },
+  tracked(
+    'transport-interruption',
+    get<TransportInterruptionFormListItem[]>(
+      `/v1/control-forms/transport-interruption/get-by-compound-form-key`,
+      { compoundFormKey: String(compoundFormKey) },
+    ),
   ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const getTransportInterruptionFormSnapshot = (
@@ -448,56 +528,71 @@ export const getTransportInterruptionFormSnapshot = (
 export const saveTransportInterruptionForm = (
   data: TransportInterruptionForm,
 ) =>
-  post<TransportInterruptionForm[]>(
-    `/v1/control-forms/transport-interruption/edit/save`,
-    withStringId(data),
+  tracked(
+    'transport-interruption',
+    post<TransportInterruptionForm[]>(
+      `/v1/control-forms/transport-interruption/edit/save`,
+      withRevision('transport-interruption', data),
+    ),
   );
 
 export const confirmTransportInterruptionForm = (
   data: TransportInterruptionForm,
 ) =>
-  post<TransportInterruptionForm[]>(
-    `/v1/control-forms/transport-interruption/edit/confirm`,
-    withStringId(data),
+  tracked(
+    'transport-interruption',
+    post<TransportInterruptionForm[]>(
+      `/v1/control-forms/transport-interruption/edit/confirm`,
+      withRevision('transport-interruption', data),
+    ),
   );
 
 export const publishTransportInterruptionForm = (
   id: string,
 ) =>
-  post<TransportInterruptionForm[]>(
+  untracked('transport-interruption', id, post<TransportInterruptionForm[]>(
     `/v1/control-forms/transport-interruption/edit/publish`,
     { id: String(id) }
-  );
+  ));
 
 export const getAdrForm = (id: string) =>
-  get<AdrForm>(`/v1/control-forms/adr-form`, { q: id });
+  tracked('adr', get<AdrForm>(`/v1/control-forms/adr-form`, { q: id }));
 
 export const listAdrFormsByCompoundFormKey = (compoundFormKey: number) =>
-  get<AdrFormListItem[]>(
-    `/v1/control-forms/adr-form/get-by-compound-form-key`,
-    { compoundFormKey: String(compoundFormKey) },
+  tracked(
+    'adr',
+    get<AdrFormListItem[]>(
+      `/v1/control-forms/adr-form/get-by-compound-form-key`,
+      { compoundFormKey: String(compoundFormKey) },
+    ),
   ).then((list) => list.filter((item) => item.status !== 'deleted'));
 
 export const getAdrFormSnapshot = (id: string, formKey: string) =>
   get<AdrForm>(`/v1/control-forms/adr-form/get-snapshot`, { id, formKey });
 
 export const saveAdrForm = (data: AdrForm) =>
-  post<AdrForm[]>(
-    `/v1/control-forms/adr-form/edit/save`,
-    withStringId(data),
+  tracked(
+    'adr',
+    post<AdrForm[]>(
+      `/v1/control-forms/adr-form/edit/save`,
+      withRevision('adr', data),
+    ),
   );
 
 export const confirmAdrForm = (data: AdrForm) =>
-  post<AdrForm[]>(
-    `/v1/control-forms/adr-form/edit/confirm`,
-    withStringId(data),
+  tracked(
+    'adr',
+    post<AdrForm[]>(
+      `/v1/control-forms/adr-form/edit/confirm`,
+      withRevision('adr', data),
+    ),
   );
 
 export const publishAdrForm = (id: string) =>
-  post<AdrForm[]>(
+  untracked('adr', id, post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/publish`,
     { id: String(id) }
-  );
+  ));
 
 export interface PdfRenderResponse {
   filename: string;
@@ -523,50 +618,55 @@ export const saveAdrFormXroadFields = (data: {
   enforcementDecision?: string;
   proceedingClosureBasis?: string;
 }) =>
-  post<AdrForm[]>(
+  untracked('adr', data.id, post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/xroad/save-xroad-fields`,
     data,
-  );
+  ));
 
 export const deleteTransportInterruptionForm = (id: string, old_status: string) =>
-  post<TransportInterruptionForm[]>(
+  untracked('transport-interruption', id, post<TransportInterruptionForm[]>(
     `/v1/control-forms/transport-interruption/edit/delete`,
     { id, old_status },
-  );
+  ));
 
 export const deleteAdrForm = (id: string, old_status: string) =>
-  post<AdrForm[]>(
+  untracked('adr', id, post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/delete`,
     { id, old_status },
-  );
+  ));
 
 export const deleteGoodReputeForm = (id: string, old_status: string) =>
-  post<GoodReputeForm[]>(`/v1/control-forms/good-repute/edit/delete`, {
+  untracked('good-repute', id, post<GoodReputeForm[]>(`/v1/control-forms/good-repute/edit/delete`, {
     id,
     old_status,
-  });
+  }));
 
 export const getGoodReputeForm = (id: string) =>
-  get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: id });
+  tracked('good-repute', get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: id }));
 
 export const saveGoodReputeForm = (data: GoodReputeForm) =>
-  post<GoodReputeForm[]>(
-    `/v1/control-forms/good-repute/edit/save`,
-    withStringId(data),
+  tracked(
+    'good-repute',
+    post<GoodReputeForm[]>(
+      `/v1/control-forms/good-repute/edit/save`,
+      withRevision('good-repute', data),
+    ),
   );
 
 export const confirmGoodReputeForm = (data: GoodReputeForm) =>
-  post<GoodReputeForm[]>(
-    `/v1/control-forms/good-repute/edit/confirm`,
-    withStringId(data),
+  tracked(
+    'good-repute',
+    post<GoodReputeForm[]>(
+      `/v1/control-forms/good-repute/edit/confirm`,
+      withRevision('good-repute', data),
+    ),
   );
 
 export const publishGoodReputeForm = (id: string) =>
-  post<GoodReputeForm[]>(
+  untracked('good-repute', id, post<GoodReputeForm[]>(
     `/v1/control-forms/good-repute/edit/publish`,
     { id: String(id) },
-  );
-
+  ));
 
 export const getGoodReputeFormSnapshot = (id: string, formKey: string) =>
   get<GoodReputeForm[]>(`/v1/control-forms/good-repute/get-snapshot`, {

@@ -1610,6 +1610,7 @@
     "numberPlaceholder": "Nr",
     "select": "Vali",
     "errors": {
+      "formModified": "Seda vormi muutis vahepeal keegi teine (või teine aken või e-toimiku sünkroonimine), seega sinu salvestus jäi tegemata. Laadi leht uuesti, kontrolli uusi andmeid ja salvesta oma muudatused uuesti.",
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",
       "forbidden": "Puuduvad õigused selle toimingu tegemiseks.",

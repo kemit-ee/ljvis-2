@@ -1,0 +1,262 @@
+declaration:
+
+  version: "1.0"
+  description: >-
+    LJVIS1 RegisterJobInspection_v2 SOAP contract: nested counters, S/V type,
+    koostatud_ettekirjutus and optional punished-person/proceeding details.
+    External identity: source xroad-v2 + kontrolli_id (same as the LJVIS1 RavenDB V2 migration).
+    Exact repeat: no new row; changed repeat of a saved act: new snapshot; of a locked act: 409.
+  namespace: xroad
+
+# Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
+validateKontrollija:
+  switch:
+    - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
+      next: returnMissingKontrollija
+  next: validateKontrolliId
+
+validateKontrolliId:
+  switch:
+    - condition: "${incoming.body.kontrolli_id == null || String(incoming.body.kontrolli_id).trim() == ''}"
+      next: returnMissingKontrolliId
+  next: validateKontrolliKp
+
+validateKontrolliKp:
+  switch:
+    - condition: "${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}"
+      next: returnMissingKontrolliKp
+    - condition: "${isNaN(new Date(incoming.body.kontrolli_kp).getTime())}"
+      next: returnInvalidKontrolliKp
+  next: validateTooandja
+
+validateTooandja:
+  switch:
+    - condition: "${incoming.body.tooandja_nimi == null || incoming.body.tooandja_nimi == ''}"
+      next: returnMissingTooandja
+    - condition: "${incoming.body.tooandja_reg_kood == null || incoming.body.tooandja_reg_kood == ''}"
+      next: returnMissingTooandjaRegKood
+  next: validateKontrollimised
+
+validateKontrollimised:
+  switch:
+    - condition: "${incoming.body.kontrollimised == null}"
+      next: returnMissingKontrollimised
+    - condition: "${incoming.body.rikkumised == null}"
+      next: returnMissingRikkumised
+    - condition: "${incoming.body.koostatud_ettekirjutus == null}"
+      next: returnMissingEttekirjutus
+  next: validateControlType
+
+validateControlType:
+  switch:
+    - condition: ${!(['S', 'V'].includes(incoming.body.kontrolli_tyyp))}
+      next: invalidControlType
+  next: assignParams
+
+invalidControlType:
+  status: 400
+  return: '{"error":"INVALID_PARAMETER","message":"kontrolli_tyyp must be S or V"}'
+  next: end
+
+# Map the old v2 fields to the existing database columns.
+assignParams:
+  assign:
+    kontrollija: "${incoming.body.kontrollija.trim()}"
+    kontrolli_id: "${String(incoming.body.kontrolli_id).trim()}"
+    kontrolli_kp: "${incoming.body.kontrolli_kp}"
+    tooandja_nimi: "${incoming.body.tooandja_nimi.trim()}"
+    tooandja_reg_kood: "${incoming.body.tooandja_reg_kood.trim()}"
+    soidukite_arv: "${incoming.body.soidukite_arv != null ? String(incoming.body.soidukite_arv) : ''}"
+    koostatud_ettekirjutus: "${String(incoming.body.koostatud_ettekirjutus)}"
+    juhi_isikukood: "${((incoming.body.vaarteomenetlus || {}).karistatud_isiku_kood || '').trim()}"
+    juhi_eesnimi: "${(incoming.body.vaarteomenetlus || {}).karistatud_isiku_eesnimi || ''}"
+    juhi_perekonnanimi: "${(incoming.body.vaarteomenetlus || {}).karistatud_isiku_nimi || ''}"
+    menetluse_number: "${(incoming.body.vaarteomenetlus || {}).viitenumber || ''}"
+    inspection_type: "${incoming.body.kontrolli_tyyp === 'S' ? 'passenger' : 'cargo'}"
+    # Keep legacy counters, type and optional proceeding together; no v3 vehicle fields are invented.
+    controls_matrix_with_vehicle: >-
+      ${JSON.stringify(Object.assign({}, incoming.body.kontrollimised, {
+        kontrolli_tyyp: incoming.body.kontrolli_tyyp,
+        vaarteomenetlus: incoming.body.vaarteomenetlus || null
+      }))}
+    rikkumised_json: "${JSON.stringify(incoming.body.rikkumised)}"
+    start_time: "${new Date().getTime()}"
+    xroad_member_code: "${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}"
+    xroad_subsystem: "${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}"
+  next: insertInspection
+
+# Samm 9: Salvesta Resql-i kaudu
+insertInspection:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-v2-insert"
+    headers:
+      type: json
+    body:
+      externalInspectionId: ${kontrolli_id}
+      inspectorName: ${kontrollija}
+      inspectionDate: ${kontrolli_kp}
+      inspectionType: ${inspection_type}
+      companyName: ${tooandja_nimi}
+      companyRegCode: ${tooandja_reg_kood}
+      vehicleCount: ${soidukite_arv}
+      prescriptionComposed: ${koostatud_ettekirjutus}
+      controlsMatrix: ${controls_matrix_with_vehicle}
+      violations: ${rikkumised_json}
+      punishedPersonIdCode: ${juhi_isikukood}
+      punishedPersonFirstName: ${juhi_eesnimi}
+      punishedPersonLastName: ${juhi_perekonnanimi}
+      proceedingReferenceNumber: ${menetluse_number}
+      created_by: "xroad"
+  result: insertResult
+  next: checkInsertStatus
+
+checkInsertStatus:
+  switch:
+    - condition: "${insertResult.response.status < 200 || insertResult.response.status >= 300}"
+      next: logFailure
+    - condition: "${['conflict', 'archived'].includes(((insertResult.response.body || [])[0] || {}).outcome)}"
+      next: logConflict
+  next: logSuccess
+
+# Log success without personal identifiers.
+logSuccess:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection-v2"
+      request_xml: "${'kontrolli_id=' + kontrolli_id + '&reg_kood=' + tooandja_reg_kood}"
+      response_xml: "${JSON.stringify({ received: (insertResult.response.body || {}) != null, count: (Array.isArray(insertResult.response.body || {}) ? (insertResult.response.body || {}).length : null) })}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "job_inspection"
+      source_record_id: "${'' + kontrolli_id}"
+  result: logResult
+  next: checkAjUsageLog
+
+# Log AJ usage when a punished-person identifier is present.
+checkAjUsageLog:
+  switch:
+    - condition: "${juhi_isikukood == null || juhi_isikukood == ''}"
+      next: returnSuccess
+  next: logAjUsage
+
+logAjUsage:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
+    headers:
+      type: json
+    body:
+      user_code: "${juhi_isikukood}"
+      action: "Töökontrolli andmete sisestamine X-tee kaudu"
+      receiver_code: "${xroad_member_code}"
+      receiver_name: ""
+      receiver_system: "${xroad_subsystem}"
+  result: ajLogResult
+  next: returnSuccess
+
+# Muudetud kordus aktile, mis ei ole enam saved-staatuses või on arhiveeritud: midagi ei salvestatud, Success-i ei tagastata.
+logConflict:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection-v2"
+      request_xml: "${'kontrolli_id=' + kontrolli_id}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Changed repeat rejected: ' + (insertResult.response.body[0].outcome === 'archived' ? 'form archived' : 'form status ' + insertResult.response.body[0].status)}"
+      person_identifier: ""
+      source_type: "job_inspection"
+      source_record_id: "${'' + kontrolli_id}"
+  result: logResult
+  next: returnConflict
+
+returnConflict:
+  status: 409
+  return: "${JSON.stringify({error: 'CONFLICT', message: insertResult.response.body[0].outcome === 'archived' ? 'Inspection with this kontrolli_id has been archived; changed data from the repeated request was not applied' : 'Inspection with this kontrolli_id is no longer in saved status; changed data from the repeated request was not applied'})}"
+  next: end
+
+returnSuccess:
+  status: 200
+  return: '{"message": "Success"}'
+  next: end
+
+logFailure:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection-v2"
+      request_xml: "${'kontrolli_id=' + kontrolli_id}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Resql HTTP ' + insertResult.response.status}"
+      person_identifier: ""
+      source_type: "job_inspection"
+      source_record_id: "${'' + kontrolli_id}"
+  result: logResult
+  next: returnServerError
+
+# Veavastused
+returnServerError:
+  status: 500
+  return: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+  next: end
+
+returnMissingKontrollija:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollija is required"}'
+  next: end
+
+returnMissingKontrolliId:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_id is required"}'
+  next: end
+
+returnMissingKontrolliKp:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrolli_kp is required"}'
+  next: end
+
+returnInvalidKontrolliKp:
+  status: 400
+  return: '{"error": "INVALID_PARAMETER", "message": "kontrolli_kp must be a valid date"}'
+  next: end
+
+returnMissingTooandja:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_nimi is required"}'
+  next: end
+
+returnMissingTooandjaRegKood:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "tooandja_reg_kood is required"}'
+  next: end
+
+returnMissingKontrollimised:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "kontrollimised is required"}'
+  next: end
+
+returnMissingRikkumised:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "rikkumised is required"}'
+  next: end
+
+returnMissingEttekirjutus:
+  status: 400
+  return: '{"error": "MISSING_PARAMETER", "message": "koostatud_ettekirjutus is required"}'
+  next: end

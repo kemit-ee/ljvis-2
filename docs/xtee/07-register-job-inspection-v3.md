@@ -6,7 +6,7 @@ Uuem versioon töökontrolli andmete vastuvõtmisest X-tee kaudu — rikkam stru
 
 ## 1. Eesmärk
 
-V3 laiendab v1 lepingut sõiduki identifikaatorite (reg.nr, VIN), juhi isikukoodi ja menetluse lisaväljadega. Salvestatakse samasse `forms.labour_inspection_form` tabelisse — idempotentsuse võti on `v3-` + `kontrolli_id`.
+V3 laiendab v1 lepingut sõiduki identifikaatorite (reg.nr, VIN), juhi isikukoodi ja menetluse lisaväljadega. Salvestatakse samasse `forms.labour_inspection_form` tabelisse — idempotentsuse võti on leping `xroad-v3` + `kontrolli_id` (`forms.labour_inspection_external_ref`); `external_inspection_id` veerus `v3-` + `kontrolli_id`. Korduspäring tagastab olemasoleva akti ega rakenda muudatusi; samaaegsed päringud loovad ühe akti (atomaarne funktsioon `forms.register_external_labour_inspection`).
 
 ---
 
@@ -92,6 +92,8 @@ sequenceDiagram
 | T1 | Kõik v3 väljad | HTTP 200 |
 | T2 | Ainult v1 kohustuslikud (v3 lisandused puuduvad) | HTTP 200 |
 | T3 | Korduspäring sama kontrolli_id | HTTP 200, duplikaati ei looda |
+| T3a | Samaaegsed korduspäringud sama kontrolli_id | Kõik HTTP 200, üks akt |
+| T3b | Muudetud korduspäring | HTTP 200, olemasolev akt jääb muutmata (v3 senine leping) |
 | T4 | Vale juhi_isikukood formaat | HTTP 400 |
 | T5 | Lubamatu menetluse_liik | HTTP 400 |
 | T6 | V1 ja v3 sama kontrolli_id | Mõlemad HTTP 200 (prefiks eristab) |

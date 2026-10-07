@@ -4,8 +4,8 @@ declaration:
   description: >-
     X-tee pakutav teenus RegisterJobInspection (v1): võtab vastu Tööinspektsiooni
     töökontrolli andmed (vana WSDL RegisterJobInspectionRequestType) ja salvestab
-    forms.labour_inspection_form tabelisse. Idempotentne: sama kontrolli_id uuesti
-    saatmine ei tekita duplikaati (INSERT ON CONFLICT DO NOTHING).
+    forms.labour_inspection_form tabelisse. Sama kontrolli_id täpne kordus ei tekita uut rida; muudetud kordus
+    saved-aktile lisab snapshot'i, lukustatud aktile tagastab 409 CONFLICT.
     Vt docs/xtee/05-register-job-inspection.md.
   namespace: xroad
 
@@ -67,7 +67,7 @@ assignParams:
     rikkumised_json: "${JSON.stringify(incoming.body.rikkumised)}"
     vaarteomenetlus: "${incoming.body.vaarteomenetlus || ''}"
     # Kontrolli liigi tuletus: kas soitjate veol on täidetud?
-    inspection_type: "${(incoming.body.kontrollimised && incoming.body.kontrollimised.kontrollitud_soitjate_veol) ? 'passenger' : 'cargo'}"
+    inspection_type: "${(() => { var counts = (incoming.body.kontrollimised || {}).kontrollitud_soitjate_veol; return (typeof counts === 'object' && counts != null ? Number(counts.arv_analoogmeerik || 0) + Number(counts.arv_digitaalmeerik || 0) : Number(counts || 0)) > 0 ? 'passenger' : 'cargo'; })()}"
     start_time: "${new Date().getTime()}"
   next: insertInspection
 
@@ -99,6 +99,8 @@ checkInsertStatus:
   switch:
     - condition: "${insertResult.response.status < 200 || insertResult.response.status >= 300}"
       next: logFailure
+    - condition: "${['conflict', 'archived'].includes(((insertResult.response.body || [])[0] || {}).outcome)}"
+      next: logConflict
   next: logSuccess
 
 # Samm 10a: Logi edukas salvestamine
@@ -120,6 +122,31 @@ logSuccess:
       source_record_id: "${'' + kontrolli_id}"
   result: logResult
   next: returnSuccess
+
+# Muudetud kordus aktile, mis ei ole enam saved-staatuses või on arhiveeritud: midagi ei salvestatud, Success-i ei tagastata.
+logConflict:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      type: json
+    body:
+      service_code: "xroad.provide.register-job-inspection"
+      request_xml: "${'kontrolli_id=' + kontrolli_id}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "${'Changed repeat rejected: ' + (insertResult.response.body[0].outcome === 'archived' ? 'form archived' : 'form status ' + insertResult.response.body[0].status)}"
+      person_identifier: ""
+      source_type: "job_inspection"
+      source_record_id: "${'' + kontrolli_id}"
+  result: logResult
+  next: returnConflict
+
+returnConflict:
+  status: 409
+  return: "${JSON.stringify({error: 'CONFLICT', message: insertResult.response.body[0].outcome === 'archived' ? 'Inspection with this kontrolli_id has been archived; changed data from the repeated request was not applied' : 'Inspection with this kontrolli_id is no longer in saved status; changed data from the repeated request was not applied'})}"
+  next: end
 
 returnSuccess:
   status: 200

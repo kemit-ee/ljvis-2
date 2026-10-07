@@ -107,35 +107,44 @@ all_sp_forms AS (
 -- (string, not boolean) OR a missing isDetected key; document_checks and
 -- cabotage_violations have no isDetected field at all, so every entry counts.
 violation_counts AS (
+  -- ühe SP-vormi raskuskoodid massiivina (alampäring, mitte LATERAL JOIN); loendur allpool
   SELECT
     f.sp_form_key,
     f.compound_form_key,
     f.sp_applicability,
     f.result_type,
     f.proceeding_type,
-    COUNT(*) FILTER (WHERE v.severity_code = 'MSI') AS n_msi,
-    COUNT(*) FILTER (WHERE v.severity_code = 'VSI') AS n_vsi,
-    COUNT(*) FILTER (WHERE v.severity_code = 'SI')  AS n_si,
-    COUNT(*) FILTER (WHERE v.severity_code = 'MI')  AS n_mi
+    ARRAY(
+      SELECT elem->>'severityCode'
+      FROM jsonb_array_elements(
+             COALESCE(f.violations_561_2006, '[]'::jsonb)
+             || COALESCE(f.violations_165_2014, '[]'::jsonb)
+             || COALESCE(f.violations_2002_15, '[]'::jsonb)
+             || COALESCE(f.violations_593_2008, '[]'::jsonb)
+             || COALESCE(f.violations_2020_1057, '[]'::jsonb)
+           ) elem
+      WHERE (elem->>'isDetected') = 'true' OR elem->'isDetected' IS NULL
+      UNION ALL
+      SELECT elem->>'severityCode'
+      FROM jsonb_array_elements(COALESCE(f.document_checks, '[]'::jsonb)) elem
+      UNION ALL
+      SELECT elem->>'severityCode'
+      FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
+    ) AS severity_codes
   FROM all_sp_forms f
-  LEFT JOIN LATERAL (
-    SELECT elem->>'severityCode' AS severity_code
-    FROM jsonb_array_elements(
-           COALESCE(f.violations_561_2006, '[]'::jsonb)
-           || COALESCE(f.violations_165_2014, '[]'::jsonb)
-           || COALESCE(f.violations_2002_15, '[]'::jsonb)
-           || COALESCE(f.violations_593_2008, '[]'::jsonb)
-           || COALESCE(f.violations_2020_1057, '[]'::jsonb)
-         ) elem
-    WHERE (elem->>'isDetected') = 'true' OR elem->'isDetected' IS NULL
-    UNION ALL
-    SELECT elem->>'severityCode'
-    FROM jsonb_array_elements(COALESCE(f.document_checks, '[]'::jsonb)) elem
-    UNION ALL
-    SELECT elem->>'severityCode'
-    FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
-  ) v ON TRUE
-  GROUP BY f.sp_form_key, f.compound_form_key, f.sp_applicability, f.result_type, f.proceeding_type
+),
+violation_tallies AS (
+  SELECT
+    vc.sp_form_key,
+    vc.compound_form_key,
+    vc.sp_applicability,
+    vc.result_type,
+    vc.proceeding_type,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'MSI') AS n_msi,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'VSI') AS n_vsi,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'SI')  AS n_si,
+    (SELECT COUNT(*) FROM unnest(vc.severity_codes) c WHERE c = 'MI')  AS n_mi
+  FROM violation_counts vc
 ),
 -- Classify each SP form: excluded (no contribution at all) / zero_point
 -- (r++, 0 weighted points) / counted (r++, weighted points added).
@@ -153,22 +162,22 @@ sp_form_category AS (
         THEN 'zero_point'
       ELSE 'counted'
     END AS category
-  FROM violation_counts
+  FROM violation_tallies
 ),
 -- Per compound_form_key: a control is fully excluded only if EVERY one of
 -- its SP forms is 'excluded' (a compound_form with no SP forms at all never
--- appears here at all, since the JOIN below is INNER — which itself
+-- appears here at all, since only SP forms are grouped — which itself
 -- satisfies the "no sp_driver/teammate_form => fully excluded" rule).
 per_control AS (
   SELECT
-    qf.compound_form_key,
+    sfc.compound_form_key,
     BOOL_AND(sfc.category = 'excluded') AS is_fully_excluded,
     COALESCE(SUM(CASE WHEN sfc.category = 'counted'
                        THEN sfc.n_msi * 90 + sfc.n_vsi * 30 + sfc.n_si * 10 + sfc.n_mi * 1
                        ELSE 0 END), 0) AS weighted_sum
-  FROM qualifying_forms qf
-  JOIN sp_form_category sfc ON sfc.compound_form_key = qf.compound_form_key
-  GROUP BY qf.compound_form_key
+  FROM sp_form_category sfc
+  WHERE sfc.compound_form_key = ANY (SELECT qf.compound_form_key FROM qualifying_forms qf)
+  GROUP BY sfc.compound_form_key
 ),
 formula AS (
   -- N (vehicles per control) is always 1 (task spec §2), so

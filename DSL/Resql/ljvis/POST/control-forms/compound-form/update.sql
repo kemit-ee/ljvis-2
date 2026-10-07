@@ -128,6 +128,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -138,10 +142,13 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          template_version, control_year
   FROM forms.compound_form
   WHERE compound_form_key = :key::BIGINT
@@ -153,6 +160,7 @@ INSERT INTO forms.compound_form (
   form_number,
   control_year,
   version,
+  revision,
   template_version,
   status,
   control_date,
@@ -201,6 +209,7 @@ SELECT
   l.form_number,
   l.control_year,
   l.version,
+  l.revision + 1,
   l.template_version,
   :status,
   :controlDate::DATE,
@@ -244,4 +253,5 @@ SELECT
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
   :created_by
 FROM latest l
-RETURNING compound_form_key AS id, form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR l.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING compound_form_key AS id, form_number, version, revision;

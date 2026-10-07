@@ -62,16 +62,18 @@ checkQueryStatus:
   next: buildItems
 buildItems:
   assign:
-    mapped_items: "${(queryResult.response.body || []).map(function(row) {\n  var defects = [];\n  try { defects\
-      \ = JSON.parse(row.issues_json || '[]'); } catch(e) {}\n  var refine = [];\n  if (row.era_yv_mnt_regnr) refine.push('REGNR');\n\
-      \  if (row.era_yv_mnt_vintin) refine.push('VINTIN');\n  if (row.era_yv_mnt_axles) refine.push('AXLES');\n\
-      \  if (row.era_yv_mnt_places) refine.push('PLACES');\n  if (row.era_yv_mnt_rebuilt) refine.push('REBUILT');\n\
-      \  return {\n    licence_plate_no: row.licence_plate_no || '',\n    trailer_no: row.trailer_no || null,\n\
-      \    inspection_id: String(row.inspection_id || ''),\n    inspection_no: row.inspection_no || '',\n    inspection_date:\
-      \ row.inspection_date || '',\n    inspection_type: row.inspection_type || '',\n    inspection_unit: row.inspection_unit\
-      \ || '',\n    inspection_notes: row.inspection_notes || null,\n    inspector: row.inspector || null,\n   \
-      \ issues: {item: defects.map(function(d) { return {code: d.partCode || '', value: d.defectCode || ''}; })},\n\
-      \    notes: {item: []},\n    inspection_refine_options: {item: refine}\n  };\n})}"
+    mapped_items: "${(queryResult.response.body || []).map(function(source) {\n  var row = {};\n  Object.keys(source).forEach(function(key)\
+      \ { row[key.replace(/[A-Z]/g, function(c) { return \"_\" + c.toLowerCase(); })] = source[key]; });\n  var\
+      \ defects = [];\n  try { defects = JSON.parse(row.issues_json || '[]'); } catch(e) {}\n  var refine = [];\n\
+      \  if (row.era_yv_mnt_regnr) refine.push('REGNR');\n  if (row.era_yv_mnt_vintin) refine.push('VINTIN');\n\
+      \  if (row.era_yv_mnt_axles) refine.push('AXLES');\n  if (row.era_yv_mnt_places) refine.push('PLACES');\n\
+      \  if (row.era_yv_mnt_rebuilt) refine.push('REBUILT');\n  return {\n    licence_plate_no: row.licence_plate_no\
+      \ || '',\n    trailer_no: row.trailer_no || null,\n    inspection_id: String(row.inspection_id || ''),\n \
+      \   inspection_no: row.inspection_no || '',\n    inspection_date: row.inspection_date || '',\n    inspection_type:\
+      \ row.inspection_type || '',\n    inspection_unit: row.inspection_unit || '',\n    inspection_notes: row.inspection_notes\
+      \ || null,\n    inspector: row.inspector || null,\n    issues: {item: defects.map(function(d) { return {code:\
+      \ d.partCode || '', value: d.defectCode || ''}; })},\n    notes: {item: []},\n    inspection_refine_options:\
+      \ {item: refine}\n  };\n})}"
   next: logSuccess
 logSuccess:
   assign:

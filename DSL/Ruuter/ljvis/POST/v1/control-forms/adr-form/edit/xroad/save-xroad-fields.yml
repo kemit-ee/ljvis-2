@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Save the X-tee block fields (enforcement_decision, proceeding_closure_basis) on an already-confirmed ADR sub-form. Requires control_form.edit_locked (enforced by .guard); additionally requires the sub-form's current status to be confirmed. Updates the latest snapshot row in place — does not bump version. LJVIS2-141 §4.14."
+  description: "Save the X-tee block fields (enforcement_decision, proceeding_closure_basis) on an already-confirmed ADR sub-form. Requires control_form.edit_locked (enforced by .guard); additionally requires the sub-form's current status to be confirmed. Appends a new snapshot row (revision + 1) carrying the new values — does not bump version. LJVIS2-141 §4.14."
   namespace: control-forms
   allowlist:
     body:
@@ -51,6 +51,7 @@ updateXroadFields:
       key: ${incoming.body.id}
       enforcementDecision: ${incoming.body.enforcementDecision || ''}
       proceedingClosureBasis: ${incoming.body.proceedingClosureBasis || ''}
+      created_by: "${u.personalcode || ''}"
   result: updateRes
   next: check_updateRes_persisted
 

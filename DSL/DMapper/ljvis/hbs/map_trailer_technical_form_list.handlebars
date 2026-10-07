@@ -5,6 +5,7 @@
                 "subFormNumber": "{{this.subFormNumber}}",
                 "version": {{#if this.version}}{{this.version}}{{else}}null{{/if}},
                 "status": "{{this.status}}",
+                "revision": {{#if this.revision}}{{this.revision}}{{else}}null{{/if}},
                 "resultType": {{#if this.resultType}}"{{this.resultType}}"{{else}}null{{/if}}
         }{{#unless @last}},{{/unless}}
         {{/each}}

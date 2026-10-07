@@ -22,16 +22,15 @@ WITH latest_user AS (
     ORDER BY user_account_key, created_at DESC
 ),
 user_group_keys AS (
-    SELECT grp_key AS user_group_key
-    FROM latest_user,
-         UNNEST(user_groups) AS grp_key
+    SELECT UNNEST(user_groups) AS user_group_key
+    FROM latest_user
 ),
 latest_groups AS (
     SELECT DISTINCT ON (ug.user_group_key)
         ug.user_group_key,
         ug.name
     FROM users.user_group ug
-    JOIN user_group_keys ugk ON ugk.user_group_key = ug.user_group_key
+    WHERE ug.user_group_key = ANY (SELECT user_group_key FROM user_group_keys)
     ORDER BY ug.user_group_key, ug.created_at DESC
 )
 SELECT
