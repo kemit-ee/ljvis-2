@@ -17,6 +17,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/select_etoimik_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: candidatesRes
@@ -59,6 +60,7 @@ processCandidates:
         args:
           url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body: ${xtr_request_body}
         result: xtrResponse
@@ -105,6 +107,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron"
@@ -123,6 +126,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/labour-inspection/apply_etoimik_decision"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
@@ -144,6 +148,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/labour-inspection/log_etoimik_publish_audit"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             found: "${published_now ? 'true' : 'false'}"

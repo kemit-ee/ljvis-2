@@ -87,6 +87,7 @@ export:
   args:
     url: "[#LJVIS_RESQL]/control-forms/search/export"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       allowed_types: "${allowed_types}"

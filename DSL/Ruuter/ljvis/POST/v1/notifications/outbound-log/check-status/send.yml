@@ -33,6 +33,7 @@ loadLog:
   args:
     url: "[#LJVIS_RESQL]/notification/get_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}
@@ -99,6 +100,7 @@ logIntegration:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "pk.notification-management.v1"
@@ -144,6 +146,7 @@ updateStatus:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}

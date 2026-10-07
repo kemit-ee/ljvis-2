@@ -27,6 +27,7 @@ get_cookie_info:
   args:
     url: "[#LJVIS_TIM]/jwt/userinfo"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       cookie: ${incoming.headers.cookie}
   result: tim_res
   next: check_tim_response
@@ -58,6 +59,7 @@ lookup_user:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}

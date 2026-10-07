@@ -47,6 +47,7 @@ getClassifierCode:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${classifier_id}
@@ -76,6 +77,7 @@ getOldFormScope:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       classifier_value_id: ${classifier_value_id}
@@ -92,6 +94,7 @@ updateClassifierValue:
   args:
     url: "[#LJVIS_RESQL]/classifier/update_classifier_value"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       classifier_value_id: ${classifier_value_id}
@@ -126,6 +129,7 @@ setFormScope:
   args:
     url: "[#LJVIS_RESQL]/classifier/set_classifier_value_form_scope"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       classifier_value_id: ${classifier_value_id}

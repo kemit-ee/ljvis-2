@@ -51,6 +51,8 @@ validateEnvelope:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/nu/validate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       payload: "${JSON.stringify(incoming.body)}"
       kind: "inbound"
@@ -93,6 +95,7 @@ storeAtomic:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/append-inbound"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technicalId: ${technical_id}
@@ -137,6 +140,7 @@ lookupExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-by-technical-id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technical_id: ${technical_id}
@@ -158,6 +162,7 @@ checkAuditExists:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/audit-event-exists"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       message_key: "${'' + existing_res.response.body[0].id}"
@@ -227,6 +232,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/erru/record-inbound-audit"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_type: "nu.inbound_request.store"
@@ -259,6 +265,8 @@ getSavedAck:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-ack"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${existing_res.response.body[0].id}
   result: savedAck

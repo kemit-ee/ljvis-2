@@ -89,6 +89,7 @@ loadExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -111,6 +112,7 @@ getSource:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-source"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${source_key}
@@ -171,6 +173,8 @@ saveDraft:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/nu/save-draft"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: "${id || null}"
       expectedVersion: ${expected_version}
