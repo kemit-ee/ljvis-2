@@ -4,6 +4,10 @@
 
 ## 2026-10-07
 
+### Sisselogimisleht alati eesti keeles
+
+- Sisselogimisleht avaneb alati eesti keeles, sõltumata brauseri keelest; keelt saab pärast sisselogimist vahetada.
+
 ### Teekasutustasu rikkumise andmed koondvormis
 
 - „Andmed teekasutustasu nõude rikkumise kohta“ plokis on valik „Ei kohaldu“ eemaldatud; kui rikkumist ei ole, ei märgita midagi. Valitud rikkumise saab tühistada lingiga „Tühista valik“. Varem salvestatud „Ei kohaldu“ loetakse tühjaks.

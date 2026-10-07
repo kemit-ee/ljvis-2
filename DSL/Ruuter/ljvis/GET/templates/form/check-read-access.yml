@@ -1,7 +1,7 @@
 declaration:
 
   version: "1.0"
-  description: "Read-ownership decision for one form (epic #502, A2 read). Returns the plain string `allow` or `deny`. The caller is the authenticated TARA session (guard variable session_personal_code); the caller's organisation and `control_form.view_unpublished` are looked up server-side and are NEVER accepted from the request. The caller already holds the form type's `.read` permission (checked by the calling handler). Rule: a published form is readable by everyone with the type's read permission; an unpublished form only by its creator, a colleague of the creator's organisation who holds control_form.view_organisation, or a holder of control_form.view_unpublished. A form that does not exist yet answers `allow` so the calling handler can return 404 or fall back to the archive."
+  description: "Read-ownership decision for one form (epic #502, A2 read). Returns the plain string `allow` or `deny`. The caller is the authenticated TARA session (guard variable session_personal_code); permissions and organisation are looked up server-side and are NEVER accepted from the request. Rule: the creator can always read their own form regardless of status; a published form is readable with the form type's read permission; an unpublished form is also readable by an authorised colleague or a holder of control_form.view_unpublished. A form that does not exist yet answers `allow` so the calling handler can return 404 or fall back to the archive."
   namespace: service
   strict: true
   allowlist:
@@ -56,6 +56,16 @@ assignCaller:
     caller_org: "${caller_res.response.body[0].organisationid == null ? '' : String(caller_res.response.body[0].organisationid)}"
     caller_view_unpublished: "${(caller_res.response.body[0].permissions || []).includes('control_form.view_unpublished') ? 'true' : 'false'}"
     caller_view_organisation: "${(caller_res.response.body[0].permissions || []).includes('control_form.view_organisation') ? 'true' : 'false'}"
+  next: resolveReadPermission
+
+resolveReadPermission:
+  assign:
+    required_read_permission: "${({'adr-form':'adr_form.read','compound-form':'compound_form.read','drive-rest-form/driver':'sp_driver_form.read','drive-rest-form/teammate':'sp_teammate_form.read','foreign-violation-form':'foreign_violation_form.read','good-repute':'good_repute_form.read','labour-inspection':'labour_inspection_form.read','trailer-technical':'trailer_technical_form.read','tram-card':'tram_driver_form.read','transport-interruption':'transport_interruption_form.read','vehicle-technical':'vehicle_technical_form.read'})[incoming.body.form_type] || '__no_such_permission__'}"
+  next: resolveCallerReadPermission
+
+resolveCallerReadPermission:
+  assign:
+    caller_can_read_type: "${(caller_res.response.body[0].permissions || []).includes(required_read_permission) ? 'true' : 'false'}"
   next: checkAccess
 
 checkAccess:
@@ -71,6 +81,7 @@ checkAccess:
       form_number: ${form_number}
       caller_personal_code: ${session_personal_code}
       caller_organisation_id: ${caller_org}
+      caller_can_read_type: ${caller_can_read_type}
       caller_view_unpublished: ${caller_view_unpublished}
       caller_view_organisation: ${caller_view_organisation}
   result: access_res

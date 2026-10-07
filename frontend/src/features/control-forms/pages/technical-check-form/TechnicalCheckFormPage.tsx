@@ -73,9 +73,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   const forbidden = !(
     ((formType == FORM_TYPE.VEHICLE_TECHNICAL_CHECK &&
-      hasPermission('vehicle_technical_form.read')) ||
+      (hasPermission('vehicle_technical_form.read') || hasPermission('vehicle_technical_form.write'))) ||
       (formType == FORM_TYPE.TRAILER_TECHNICAL_CHECK &&
-        hasPermission('trailer_technical_form.read')) ||
+        (hasPermission('trailer_technical_form.read') || hasPermission('trailer_technical_form.write'))) ||
       hasPermission('control_form.view_unpublished'))
   );
 

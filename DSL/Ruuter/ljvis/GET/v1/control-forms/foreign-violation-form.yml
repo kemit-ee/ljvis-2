@@ -11,7 +11,7 @@ declaration:
 
 checkPermission:
   switch:
-    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('foreign_violation_form.read'))}
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('foreign_violation_form.read') || auth_user.permissions.includes('foreign_violation_form.write'))}
       next: get_user_context
   next: returnForbidden
 
@@ -135,11 +135,11 @@ mergeNotificationHistory:
   next: returnSuccess
 
 returnSuccess:
-  return: "${Object.assign({}, mapped.response.body, { notificationHistory: notification_history })}"
+  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: notification_history })}"
   next: end
 
 returnSuccessWithoutHistory:
-  return: "${Object.assign({}, mapped.response.body, { notificationHistory: [] })}"
+  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: [] })}"
   next: end
 
 returnNotFound:
