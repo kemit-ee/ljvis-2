@@ -3,7 +3,7 @@
     {
         "permissionId": "{{this.permissionId}}",
         "code": "{{this.code}}",
-        "description": "{{this.description}}"
+        "description": {{#if this.description}}{{{json this.description}}}{{else}}""{{/if}}
     }{{#unless @last}},{{/unless}}
     {{/each}}
 ]

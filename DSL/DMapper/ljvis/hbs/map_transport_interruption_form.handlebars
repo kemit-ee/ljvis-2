@@ -6,16 +6,16 @@
         "version": {{#if this.version}}{{this.version}}{{else}}null{{/if}},
         "status": "{{this.status}}",
         "revision": {{#if this.revision}}{{this.revision}}{{else}}null{{/if}},
-        "headerText": {{#if this.headerText}}"{{this.headerText}}"{{else}}null{{/if}},
+        "headerText": {{#if this.headerText}}{{{json this.headerText}}}{{else}}null{{/if}},
         "residenceCountry": {{#if this.residenceCountry}}"{{this.residenceCountry}}"{{else}}null{{/if}},
         "residenceRegion": {{#if this.residenceRegion}}"{{this.residenceRegion}}"{{else}}null{{/if}},
         "residenceCity": {{#if this.residenceCity}}"{{this.residenceCity}}"{{else}}null{{/if}},
         "residenceAddressLine": {{#if this.residenceAddressLine}}"{{this.residenceAddressLine}}"{{else}}null{{/if}},
         "residencePostalCode": {{#if this.residencePostalCode}}"{{this.residencePostalCode}}"{{else}}null{{/if}},
-        "interruptionReason": {{#if this.interruptionReason}}"{{this.interruptionReason}}"{{else}}null{{/if}},
+        "interruptionReason": {{#if this.interruptionReason}}{{{json this.interruptionReason}}}{{else}}null{{/if}},
         "legalBases": {{#if this.legalBases}}{{{this.legalBases}}}{{else}}[]{{/if}},
-        "terminationCondition": {{#if this.terminationCondition}}"{{this.terminationCondition}}"{{else}}null{{/if}},
-        "personApplications": {{#if this.personApplications}}"{{this.personApplications}}"{{else}}null{{/if}},
+        "terminationCondition": {{#if this.terminationCondition}}{{{json this.terminationCondition}}}{{else}}null{{/if}},
+        "personApplications": {{#if this.personApplications}}{{{json this.personApplications}}}{{else}}null{{/if}},
         "createdBy": "{{this.createdBy}}"
 }
 {{/with}}
