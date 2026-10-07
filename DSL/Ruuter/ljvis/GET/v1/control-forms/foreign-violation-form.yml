@@ -135,11 +135,11 @@ mergeNotificationHistory:
   next: returnSuccess
 
 returnSuccess:
-  return: "${Object.assign({}, JSON.parse(mapped.response.body), { notificationHistory: notification_history })}"
+  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: notification_history })}"
   next: end
 
 returnSuccessWithoutHistory:
-  return: "${Object.assign({}, JSON.parse(mapped.response.body), { notificationHistory: [] })}"
+  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: [] })}"
   next: end
 
 returnNotFound:
