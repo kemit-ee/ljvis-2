@@ -534,6 +534,8 @@
         },
         "proceedingReferenceNumber": "Proceeding reference number",
         "caseNumber": "Misdemeanour case number",
+        "clearProceeding": "Remove mark",
+        "clearProceedingConfirm": "Are you sure you want to remove the proceeding information?",
         "autovs5131": "Transport has been interrupted under AutoVS § 51(3)(1)"
       },
       "notes": {

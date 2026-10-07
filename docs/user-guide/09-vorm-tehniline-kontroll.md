@@ -68,7 +68,7 @@ Raskete rikkete (`OV`, `EOV`) alusel arvutab süsteem kontrolli tulemuse automaa
 | **Autovedu on katkestatud** | Kuvatakse, kui tulemus on *Sõidukeeld* |
 | **Transpordiameti täpsustus** | Kuvatakse erakorralise ülevaatuse TA variandi korral: registreerimisnumber, VIN/TIN, telgede arv, istekohtade arv, omavoliline ümberehitus |
 | **Menetluse liik** | Lühimenetlus / Kiirmenetlus / Üldmenetlus (kuvatakse, kui tulemus pole *Tehniliselt korras*) |
-| **Menetluse viitenumber** | Vaba tekst, kuvatakse menetluse liigi valikul |
+| **Menetluse viitenumber** | Vaba tekst, kuvatakse menetluse liigi valikul. Nupuga **Eemalda märge** saab pärast kinnitust menetluse liigi valiku ja viitenumbri välja sisu tühjaks teha, kui menetlust ei alustata |
 
 ### 4. Märkused
 

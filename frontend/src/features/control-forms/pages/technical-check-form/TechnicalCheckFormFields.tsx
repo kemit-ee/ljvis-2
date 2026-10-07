@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Button,
   Card,
   Heading,
+  Modal,
   ChoiceGroup,
   TextArea,
   TextField,
@@ -82,6 +84,7 @@ export function TechnicalCheckFormFields({
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
   const [modalPartCode, setModalPartCode] = useState<string | null>(null);
+  const [confirmClearProceeding, setConfirmClearProceeding] = useState(false);
 
   const values = formik.values as unknown as TechnicalCheckForm & Record<string, unknown>;
   const canEditProceedingOutcome =
@@ -436,6 +439,58 @@ export function TechnicalCheckFormFields({
                   }
                 />
               )}
+              {values.proceedingType && canEdit && (
+                <Button
+                  id={`${idPrefix}-clearProceeding`}
+                  type="button"
+                  visualType="link"
+                  size="small"
+                  onClick={() => setConfirmClearProceeding(true)}
+                >
+                  {t('forms.technical_check.result.clearProceeding')}
+                </Button>
+              )}
+              <Modal
+                open={confirmClearProceeding}
+                onToggle={(next) => !next && setConfirmClearProceeding(false)}
+              >
+                <Modal.Content>
+                  <Modal.Header
+                    title={t('forms.technical_check.result.clearProceeding')}
+                    closeButton
+                  />
+                  <Modal.Body>
+                    <Text>
+                      {t('forms.technical_check.result.clearProceedingConfirm')}
+                    </Text>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Modal.Closer>
+                      <Button
+                        visualType="secondary"
+                        onClick={() => setConfirmClearProceeding(false)}
+                      >
+                        {t('common.cancel')}
+                      </Button>
+                    </Modal.Closer>
+                    <Button
+                      color="danger"
+                      onClick={() => {
+                        formik.setFieldValue('proceedingType', '');
+                        formik.setFieldValue('proceedingReferenceNumber', '');
+                        formik.setFieldTouched(
+                          'proceedingReferenceNumber',
+                          false,
+                          false,
+                        );
+                        setConfirmClearProceeding(false);
+                      }}
+                    >
+                      {t('forms.technical_check.result.clearProceeding')}
+                    </Button>
+                  </Modal.Footer>
+                </Modal.Content>
+              </Modal>
               <div className="mt-1">
                 <ChoiceGroup
                   id={`${idPrefix}-transportInterruptionAutovs5131`}
