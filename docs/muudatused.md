@@ -4,6 +4,11 @@
 
 ## 2026-10-07
 
+### Tehnokaardi trükivorm mahub kahele lehele
+
+- Sõiduki ja haagise tehnovormi (kontrollkaardi) PDF-is on selgitused, allmärkused ja haldusakti edasikaebamise tekst veidi väiksema kirjaga ning kontrollija ja juhi allkirja väli madalam (10 mm); edasikaebamise tekst ei lähe enam kolmandale lehele.
+- Kontrollkaardi märkustes on rikke raskusaste (VO/OV/EOV) kohe rikke nimetuse järel sulgudes ega satu enam eraldi reale.
+
 ### Mitmerealised märkused ei tohi vormi avamist katki teha
 
 - DataMapperi mallid kodeerivad vabatekstiväljad (märkused, kirjeldused, põhjendused) JSON-ina; varem tekitas märkuste väljal reavahetus või kaldkriips vigase vastuse ja vormi avamisel tuli „Serveri viga“ (nt sõiduki tehnoandmete vorm automaatridadega).

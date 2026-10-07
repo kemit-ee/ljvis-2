@@ -22,7 +22,9 @@ AUTO_RESULT_EXCLUDED_PARTS = ('CAA_10',)
 def legacy_part_prefixes(notes):
     """Vanad märkuste read algavad klassifikaatori koodiga ("CAA_4: ..."); koodi ei trükita."""
     names = {'CAA_' + str(i): n for i, n in enumerate(PARTS)}
-    return re.sub(r'^(CAA_\d+): ', lambda m: names.get(m.group(1), '') + ': ' if m.group(1) in names else '', str(notes or ''), flags=re.M)
+    text = re.sub(r'^(CAA_\d+): ', lambda m: names.get(m.group(1), '') + ': ' if m.group(1) in names else '', str(notes or ''), flags=re.M)
+    # Severity stays glued to the defect text ("... (OV)"), never alone on a wrapped row; old "– OV" lines are converted.
+    return re.sub(r'[ \u00a0]+(?:– |\()(VO|OV|EOV)\)?[ \t]*$', '\u00a0(\\1)', text, flags=re.M)
 
 
 def is_excluded_part(code):
