@@ -6,7 +6,7 @@
 
 ### Väärteomenetluse märke eemaldamine tehnokaardilt
 
-- Sõiduki ja haagise tehnoandmete vormil on viitenumbri välja all nupp „Eemalda märge“, mis tühjendab menetluse liigi (lühi-/kiir-/üldmenetlus) ja viitenumbri. Seda saab kasutada ka siis, kui menetlust lõpuks ei alustata ja kontrolli tulemust (nt „Suunatud erakorralisele tehnoülevaatusele“) muuta ei saa. Tulemus, „Muu meede“ ja AutoVS § 51 märkeruut jäävad samaks.
+- Sõiduki ja haagise tehnoandmete vormil on viitenumbri välja all nupp „Eemalda märge“, mis tühjendab menetluse liigi (lühi-/kiir-/üldmenetlus) ja viitenumbri. Seda saab kasutada ka siis, kui menetlust lõpuks ei alustata ja kontrolli tulemust (nt „Suunatud erakorralisele tehnoülevaatusele“) muuta ei saa. Enne eemaldamist küsitakse kinnitust („Kas oled kindel, et soovid menetluse info eemaldada?“). Tulemus, „Muu meede“ ja AutoVS § 51 märkeruut jäävad samaks.
 
 ### Tehnokaardi trükivorm mahub kahele lehele
 
