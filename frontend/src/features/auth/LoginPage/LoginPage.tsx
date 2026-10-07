@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -64,8 +64,13 @@ async function startLogin(
 }
 
 export function LoginPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { showMessage } = useErrorContext();
+  // Sisselogimisleht on alati eesti keeles (lehel puudub keelevalik); muidu
+  // valiks keeleandur brauseri keele järgi ingliskeelse lehe.
+  useLayoutEffect(() => {
+    if (i18n.language?.slice(0, 2) !== 'et') void i18n.changeLanguage('et');
+  }, [i18n]);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const footerProps = useFooterProps();
   const handleLoginError = (messageKey: string) =>
