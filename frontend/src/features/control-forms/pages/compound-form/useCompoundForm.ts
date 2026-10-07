@@ -424,7 +424,12 @@ export function useCompoundForm(
       vehicleCategoryCode: form?.vehicleCategoryCode ?? '',
       vehicleCategoryOther: form?.vehicleCategoryOther ?? '',
       vehicleMileage: form?.vehicleMileage ?? '',
-      roadTaxStatus: form?.roadTaxStatus ?? ROAD.TAX_STATUS_NOT_APPLICABLE,
+      // Tühi = rikkumist ei ole; vana "Ei kohaldu" väärtus loetakse tühjaks.
+      roadTaxStatus:
+        form?.roadTaxStatus &&
+        form.roadTaxStatus !== ROAD.TAX_STATUS_NOT_APPLICABLE
+          ? form.roadTaxStatus
+          : '',
       roadTaxNotes: form?.roadTaxNotes ?? '',
       trailers: (Array.isArray(form?.trailers)
         ? form.trailers

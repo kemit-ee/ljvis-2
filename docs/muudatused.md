@@ -8,12 +8,19 @@
 
 - Sisselogimisleht avaneb alati eesti keeles, sõltumata brauseri keelest; keelt saab pärast sisselogimist vahetada.
 
+### Teekasutustasu rikkumise andmed koondvormis
+
+- „Andmed teekasutustasu nõude rikkumise kohta“ plokis on valik „Ei kohaldu“ eemaldatud; kui rikkumist ei ole, ei märgita midagi. Valitud rikkumise saab tühistada lingiga „Tühista valik“. Varem salvestatud „Ei kohaldu“ loetakse tühjaks.
+- Kui rikkumist ei ole valitud (ja märkust pole), ei trükita teekasutustasu rida koondvormi ega sõidu- ja puhkeaja vormi väljatrükile.
+
 ### Sõiduki ja haagise tehnoandmete vormi parandused
 
 - Märkuste väljale lisatavad automaatread algavad nüüd osa nimetusega (nt „Pidurisüsteem: …“), mitte klassifikaatori koodiga („CAA_4: …“). Vanad koodiga read trükitakse samuti nimetusega.
 - Väljatrükil on pealkiri „…KONTROLLKAART“ (lõpust puudus T), osa 11 nimetus on „Muu tehniline viga“.
 - Väljatrükil näidatakse kontrolli koha ja vedaja aadressi maakonda ning linna/valda nimena, mitte koodina; „muu tee“ valiku korral trükitakse „Muu tee“.
 - Detailide lehel trükitakse märkeruut ainult lubatud raskusastmete (VO/OV/EOV) veergudesse; mittelubatud lahtrid jäävad tühjaks.
+- Tehnokaardi väljatrüki pöördel on VO, OV, EOV ja (S) selgitused otse detailide tabeli all, ametliku sõnastusega.
+- Tehnokaardi väljatrüki allmärkuste (1)–(8) tekstid vastavad ametlikule vormile (kategooria määrused nr 42 ja nr 39, direktiivi 2014/47/EL sõnastus, viited LS § 91 lg 2 p 5 ja § 196² lg 1 p 9).
 - Vormi failiplokk ei näita enam veateadet, kui failide loendit ei õnnestunud laadida (viga näidatakse vaid üleslaadimisel, kustutamisel ja allalaadimisel).
 
 ## 2026-10-05

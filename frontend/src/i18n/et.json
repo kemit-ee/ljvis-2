@@ -944,6 +944,7 @@
       "roadTaxStatusNotApplicable": "Ei kohaldu",
       "roadTaxStatusUnpaid": "Tasumata",
       "roadTaxStatusUnderpaid": "Tasutud väiksemas määras",
+      "roadTaxClear": "Tühista valik",
       "roadTaxNotes": "Märkus",
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
