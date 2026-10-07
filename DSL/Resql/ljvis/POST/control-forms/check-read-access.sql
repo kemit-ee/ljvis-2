@@ -1,8 +1,8 @@
 /*
 description: >-
   Read-access decision for one form (epic 502, A2 read). Resolves the latest snapshot of the form by
-  form key or form number and decides whether the caller may read it. The caller already holds the
-  form type read permission (checked in Ruuter); this adds the ownership rule. Returns no row when
+  form key or form number and decides whether the caller may read it. The caller's form type read
+  permission is resolved server-side in Ruuter. Returns no row when
   the form does not exist in the live database, so the handler answers 404 or falls back to the archive.
 namespace: control-forms
 params:
@@ -26,6 +26,10 @@ params:
     type: string
     required: false
     description: Caller organisation id (auth_user.organisationid); empty when unknown
+  caller_can_read_type:
+    type: string
+    required: false
+    description: "Literal true when the caller has the target form type's read permission"
   caller_view_unpublished:
     type: string
     required: false
@@ -42,8 +46,9 @@ returns:
   type: string
   nullable: true
 */
--- Reegel: avalikustatud vorm on nähtav igaühele, kellel on vormitüübi `.read` õigus; avalikustamata
--- (saved/confirmed/deleted) vormi näeb looja, `control_form.view_organisation` omaja looja asutuse
+-- Reegel: looja näeb enda vormi alati, olenemata staatusest; avalikustatud vorm on lisaks nähtav
+-- igaühele, kellel on vormitüübi `.read` õigus; avalikustamata vormi näeb
+-- `control_form.view_organisation` omaja looja asutuse
 -- kolleegina (looja viimane users.user_account kirje) või `control_form.view_unpublished` omaja.
 -- Sama reegel kehtib vormiotsingus (search.sql / export.sql).
 WITH target AS (
@@ -126,7 +131,7 @@ WITH target AS (
 )
 SELECT
   (
-    t.status = 'published'
+    (t.status = 'published' AND :caller_can_read_type = 'true')
     OR :caller_view_unpublished = 'true'
     OR (COALESCE(:caller_personal_code, '') <> '' AND t.created_by = :caller_personal_code)
     OR (

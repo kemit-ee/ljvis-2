@@ -118,7 +118,7 @@ export function AdrFormPage() {
   const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const forbidden = !(
-    (hasPermission('adr_form.read') || hasPermission('control_form.view_unpublished'))
+    (hasPermission('adr_form.read') || hasPermission('adr_form.write') || hasPermission('control_form.view_unpublished'))
   );
 
   const [snapshot, setSnapshot] = useState<AdrForm | null>(null);

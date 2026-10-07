@@ -92,5 +92,5 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${JSON.parse(mapped.response.body)}
   next: end

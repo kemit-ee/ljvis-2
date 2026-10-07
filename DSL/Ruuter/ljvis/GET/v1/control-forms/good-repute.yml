@@ -11,7 +11,7 @@ declaration:
 
 checkPermission:
   switch:
-    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('good_repute_form.read'))}
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('good_repute_form.read') || auth_user.permissions.includes('good_repute_form.write'))}
       next: get_user_context
   next: returnForbidden
 
@@ -114,7 +114,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${JSON.parse(mapped.response.body)}
   next: end
 
 returnNotFound:

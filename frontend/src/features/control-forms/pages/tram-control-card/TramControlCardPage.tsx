@@ -46,7 +46,8 @@ export function TramControlCardPage() {
   const isAdmin = useIsAdmin();
 
   const forbidden = !(
-    hasPermission('tram_driver_form.read')
+    hasPermission('tram_driver_form.read') ||
+    hasPermission('tram_driver_form.write')
   );
 
   const [isEditActive, setIsEditActive] = useState(false);

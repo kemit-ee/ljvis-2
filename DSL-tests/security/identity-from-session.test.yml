@@ -239,8 +239,7 @@ tests:
     - url_matches: /dmapper/map_foreign_violation_form
       method: POST
       status: 200
-      body:
-        formNumber: vr-1
+      body: '{"formNumber":"vr-1"}'
     - url_matches: /notification/list_outbound_log
       method: POST
       status: 200
