@@ -47,6 +47,8 @@ export function FileUploadBlock({
   const refreshRequest = useRef(0);
   const pendingOperations = useRef(0);
 
+  // A failed list (e.g. nothing uploaded yet) is not a user-facing error —
+  // the alert is reserved for failed upload / delete / download actions.
   const refresh = useCallback(() => {
     if (!formNumber) return;
     const request = ++refreshRequest.current;
@@ -55,7 +57,7 @@ export function FileUploadBlock({
         if (request === refreshRequest.current) setAttachments(result);
       })
       .catch(() => {
-        if (request === refreshRequest.current) setError(true);
+        if (request === refreshRequest.current) setAttachments([]);
       });
   }, [formPath, formNumber]);
 
@@ -77,6 +79,7 @@ export function FileUploadBlock({
     if (newFiles.length === 0) return;
     pendingOperations.current += 1;
     setBusy(true);
+    setError(false);
     for (const raw of newFiles) {
       try {
         const base64 = await fileToBase64(raw);
