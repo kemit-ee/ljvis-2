@@ -11,6 +11,7 @@ import {
   Text,
 } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
 import { formatDate } from '../../../../hooks/dateUtils';
 import {
   FORM_READ_PERMISSIONS,
@@ -46,6 +47,17 @@ export function FormSearchPage() {
   const navigate = useNavigate();
   const { hasAnyPermission, hasPermission } = useAuth();
   const forbidden = !hasAnyPermission(FORM_READ_PERMISSIONS);
+  const { getByCode } = useClassifiers();
+
+  // Vormid hoiavad maakonda ja linna/valda EHAK klassifikaatori väärtuse võtmena
+  const placeNames = useMemo(
+    () => new Map(getByCode('EHAK').map((e) => [String(e.classifierValueKey), e.name])),
+    [getByCode],
+  );
+  const placeName = useCallback(
+    (value: string) => placeNames.get(value) ?? value,
+    [placeNames],
+  );
 
   const {
     applied,
@@ -83,7 +95,7 @@ export function FormSearchPage() {
           );
           return;
         }
-        const table = buildExportTable(rows);
+        const table = buildExportTable(rows, placeName);
         const filename = exportFilename(applied.formType, format);
         if (format === 'xlsx') await downloadXlsx(table, filename);
         else downloadCsv(table, filename);
@@ -94,7 +106,7 @@ export function FormSearchPage() {
         setExporting(false);
       }
     },
-    [applied, t],
+    [applied, t, placeName],
   );
 
   const openRow = useCallback(
@@ -146,7 +158,10 @@ export function FormSearchPage() {
       columnHelper.accessor('county', {
         header: t('search.columns.county'),
         enableSorting: false,
-        cell: (info) => info.getValue() ?? '—',
+        cell: (info) => {
+          const county = info.getValue();
+          return county ? placeName(county) : '—';
+        },
       }),
       columnHelper.accessor('vehicleRegNr', {
         header: t('search.columns.vehicleRegNr'),
@@ -184,7 +199,7 @@ export function FormSearchPage() {
         ),
       }),
     ],
-    [t, openRow],
+    [t, openRow, placeName],
   );
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;

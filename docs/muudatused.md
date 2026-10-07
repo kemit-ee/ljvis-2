@@ -4,6 +4,10 @@
 
 ## 2026-10-07
 
+### Otsingu tulemustes maakond nimena
+
+- Otsingu tulemuste tabelis ja eksporditud failis (xlsx/csv) näidatakse maakonda ning linna/valda nimena, mitte klassifikaatori koodina (nt „Jõgeva maakond“ asemel 197).
+
 ### Sisselogimisleht alati eesti keeles
 
 - Sisselogimisleht avaneb alati eesti keeles, sõltumata brauseri keelest; keelt saab pärast sisselogimist vahetada.
