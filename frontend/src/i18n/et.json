@@ -647,6 +647,7 @@
         },
         "proceedingReferenceNumber": "Menetluse viitenumber",
         "caseNumber": "Väärteoasja number",
+        "clearProceeding": "Eemalda märge",
         "autovs5131": "Autovedu on katkestatud AutoVS § 51 lõike 3 punkti 1 alusel"
       },
       "notes": {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Button,
   Card,
   Heading,
   ChoiceGroup,
@@ -435,6 +436,21 @@ export function TechnicalCheckFormFields({
                       : undefined
                   }
                 />
+              )}
+              {values.proceedingType && canEdit && (
+                <Button
+                  id={`${idPrefix}-clearProceeding`}
+                  type="button"
+                  visualType="link"
+                  size="small"
+                  onClick={() => {
+                    formik.setFieldValue('proceedingType', '');
+                    formik.setFieldValue('proceedingReferenceNumber', '');
+                    formik.setFieldTouched('proceedingReferenceNumber', false, false);
+                  }}
+                >
+                  {t('forms.technical_check.result.clearProceeding')}
+                </Button>
               )}
               <div className="mt-1">
                 <ChoiceGroup
