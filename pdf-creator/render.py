@@ -74,10 +74,10 @@ def context(payload=None, blank=False):
         people.append(joined('Juhiabi: ' + ' '.join(filter(None, [assistant.get('firstName'), assistant.get('lastName')])), a.get('assistantAdrCertificateNumber')))
     goods = structured(a.get('dangerousGoods'), list)
     fields = {
-        '1': short(1, joined(label('countries', c.get('controlCountryCode')), c.get('county'), c.get('city'), c.get('address'), label('roads', c.get('road')), c.get('roadOther'), str(c['kilometer']) + ' km' if c.get('kilometer') else ''), 95),
+        '1': short(1, joined(label('countries', c.get('controlCountryCode')), label('ehak',c.get('county')), label('ehak',c.get('city')), c.get('address'), label('roads', c.get('road')), c.get('roadOther'), str(c['kilometer']) + ' km' if c.get('kilometer') else ''), 95),
         '2': dt(c.get('controlDate')), '3': str(c.get('controlTime') or '')[:5],
         '4': short(4, '; '.join(filter(None, [joined(c.get('vehicleCountryCode'), c.get('vehicleRegNr'))] + [joined(t.get('countryCode'), t.get('regNr')) for t in trailers]))),
-        '5': short(5, joined(c.get('companyName'), c.get('companyRegCode'), c.get('companyAddressLine1'), c.get('companyCity'), c.get('companyCounty'), c.get('companyPostalCode'), label('countries', c.get('companyCountryCode')))),
+        '5': short(5, joined(c.get('companyName'), c.get('companyRegCode'), c.get('companyAddressLine1'), label('ehak',c.get('companyCity')), label('ehak',c.get('companyCounty')), c.get('companyPostalCode'), label('countries', c.get('companyCountryCode')))),
         '6': short(6, '; '.join(people)),
         '7': short(7, joined(address(a.get('lastLoadAddress')), dt(a.get('lastLoadDate')))),
         '8': short(8, address(a.get('nextLoadAddress'))),
