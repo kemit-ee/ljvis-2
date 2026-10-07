@@ -4,6 +4,10 @@
 
 ## 2026-10-07
 
+### Sisselogimisleht alati eesti keeles
+
+- Sisselogimisleht avaneb alati eesti keeles, sõltumata brauseri keelest; keelt saab pärast sisselogimist vahetada.
+
 ### Sõiduki ja haagise tehnoandmete vormi parandused
 
 - Märkuste väljale lisatavad automaatread algavad nüüd osa nimetusega (nt „Pidurisüsteem: …“), mitte klassifikaatori koodiga („CAA_4: …“). Vanad koodiga read trükitakse samuti nimetusega.
