@@ -4,6 +4,10 @@
 
 ## 2026-10-07
 
+### Mitmerealised märkused ei tohi vormi avamist katki teha
+
+- DataMapperi mallid kodeerivad vabatekstiväljad (märkused, kirjeldused, põhjendused) JSON-ina; varem tekitas märkuste väljal reavahetus või kaldkriips vigase vastuse ja vormi avamisel tuli „Serveri viga“ (nt sõiduki tehnoandmete vorm automaatridadega).
+
 ### Sisselogimisleht alati eesti keeles
 
 - Sisselogimisleht avaneb alati eesti keeles, sõltumata brauseri keelest; keelt saab pärast sisselogimist vahetada.
