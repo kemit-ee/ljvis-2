@@ -92,11 +92,10 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${[mapped.response.body]}
+  return: ${[JSON.parse(mapped.response.body)]}
   next: end
 
 returnForbidden:
   status: 403
   return: '{"error":"FORBIDDEN"}'
   next: end
-

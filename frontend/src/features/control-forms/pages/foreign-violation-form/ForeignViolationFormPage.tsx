@@ -35,8 +35,9 @@ export function ForeignViolationFormPage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const forbidden = !(
-    (hasPermission('foreign_violation_form.read') ||
-      hasPermission('control_form.view_unpublished'))
+    hasPermission('foreign_violation_form.read') ||
+    hasPermission('foreign_violation_form.write') ||
+    hasPermission('control_form.view_unpublished')
   );
 
   const [isEditActive, setIsEditActive] = useState(

@@ -35,6 +35,7 @@ export function LabourInspectionFormPage() {
 
   const forbidden = !(
     hasPermission('labour_inspection_form.read') ||
+    hasPermission('labour_inspection_form.write') ||
     hasPermission('control_form.view_unpublished')
   );
 
