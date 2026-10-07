@@ -15,7 +15,7 @@
         "address": "{{this.address}}",
         "road_type": "{{this.roadType}}",
         "roadTaxStatus": "{{this.roadTaxStatus}}",
-        "roadTaxNotes": "{{this.roadTaxNotes}}",
+        "roadTaxNotes": {{#if this.roadTaxNotes}}{{{json this.roadTaxNotes}}}{{else}}""{{/if}},
         "vehicleRegNr": "{{this.vehicleRegNr}}",
         "vehicleMake": "{{this.vehicleMake}}",
         "vehicleModel": "{{this.vehicleModel}}",

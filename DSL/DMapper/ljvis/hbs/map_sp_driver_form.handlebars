@@ -20,7 +20,7 @@
         "spApplicability": "{{this.spApplicability}}",
         "tachographTypeCode": "{{this.tachographTypeCode}}",
         "tachographDataNotDownloaded": {{#if this.tachographDataNotDownloaded}}true{{else}}false{{/if}},
-        "tachographNotes": "{{this.tachographNotes}}",
+        "tachographNotes": {{#if this.tachographNotes}}{{{json this.tachographNotes}}}{{else}}""{{/if}},
         "checkedDaysCount": "{{this.checkedDaysCount}}",
         "workDaysCount": "{{this.workDaysCount}}",
         "otherActivityDaysCount": "{{this.otherActivityDaysCount}}",
@@ -32,11 +32,11 @@
         "massDimensionNonCompliant": {{#if this.massDimensionNonCompliant}}true{{else}}false{{/if}},
         "massDimensionMeasurements": {{{this.massDimensionMeasurements}}},
         "atpViolationFound": {{#if this.atpViolationFound}}true{{else}}false{{/if}},
-        "atpViolationDescription": "{{this.atpViolationDescription}}",
+        "atpViolationDescription": {{#if this.atpViolationDescription}}{{{json this.atpViolationDescription}}}{{else}}""{{/if}},
         "erruPoints": {{{this.erruPoints}}},
         "enforcementDecision": "{{this.enforcementDecision}}",
         "proceedingClosureBasis": "{{this.proceedingClosureBasis}}",
-        "notes": "{{this.notes}}",
+        "notes": {{#if this.notes}}{{{json this.notes}}}{{else}}""{{/if}},
         "createdBy": "{{this.createdBy}}"
 }
 {{/with}}
