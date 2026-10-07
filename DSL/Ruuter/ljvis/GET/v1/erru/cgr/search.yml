@@ -49,6 +49,7 @@ searchRequests:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -90,6 +91,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_cgr_list"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       requests: ${res.response.body}

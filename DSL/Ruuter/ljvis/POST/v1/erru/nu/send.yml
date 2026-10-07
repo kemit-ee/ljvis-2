@@ -32,6 +32,7 @@ getMessage:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -77,6 +78,7 @@ revalidateSource:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-source"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${source_key}
@@ -187,6 +189,8 @@ beginSend:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/nu/begin-send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}
       expectedVersion: ${expected_version}
@@ -235,6 +239,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/nu/request"
@@ -255,6 +260,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/nu/request"
@@ -290,6 +296,8 @@ checkMemberStates:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/nu/validate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       payload: "${JSON.stringify({memberStates: member_states_raw})}"
       kind: "ack"
@@ -306,6 +314,8 @@ storeSent:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/nu/finish-send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}
       memberStates: "${JSON.stringify(member_states_raw)}"
@@ -333,6 +343,8 @@ storeFailure:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/nu/finish-send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}
       memberStates: ""

@@ -37,6 +37,7 @@ get_userinfo:
   args:
     url: "[#LJVIS_TIM]/jwt/userinfo"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       cookie: ${incoming.headers.cookie}
   result: userinfo_res
   next: check_userinfo
@@ -73,6 +74,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ""
@@ -131,6 +133,7 @@ cacheAndReturn:
   args:
     url: "[#LJVIS_TIM]/jwt/custom/generate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
       X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
     body:

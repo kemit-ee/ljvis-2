@@ -54,6 +54,7 @@ createGroup:
   args:
     url: "[#LJVIS_RESQL]/user_group/insert_user_group"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       name: ${name}
@@ -73,6 +74,7 @@ getPermissions:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${user_group_id}
@@ -84,6 +86,7 @@ getOrganisationsCount:
   args:
     url: "[#LJVIS_RESQL]/organisation/list_organisations"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: orgsCountRes

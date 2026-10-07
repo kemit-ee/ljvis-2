@@ -36,6 +36,7 @@ lookupOrganisation:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_organisation_by_personal_code"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${session_personal_code}
@@ -53,6 +54,7 @@ logToResql:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}

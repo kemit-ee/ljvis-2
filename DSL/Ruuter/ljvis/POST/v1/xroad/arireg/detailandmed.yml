@@ -39,6 +39,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/ar/detailandmed_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ${reg_code}
@@ -56,6 +57,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.detailandmed_v1.v1"
@@ -80,6 +82,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.detailandmed_v1.v1"

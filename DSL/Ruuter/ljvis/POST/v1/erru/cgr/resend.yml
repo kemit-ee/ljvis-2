@@ -30,6 +30,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -109,6 +110,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/cgr/resend"
@@ -128,6 +130,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/cgr/resend"
@@ -176,6 +179,7 @@ storeResent:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

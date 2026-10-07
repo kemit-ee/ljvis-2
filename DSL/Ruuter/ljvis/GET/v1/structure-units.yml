@@ -19,6 +19,7 @@ getStructureUnits:
   args:
     url: "[#LJVIS_RESQL]/structure-units/list_structure_units"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       organisationId: ${organisationId}

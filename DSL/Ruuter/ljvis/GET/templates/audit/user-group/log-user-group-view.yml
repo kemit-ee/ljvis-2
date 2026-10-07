@@ -23,6 +23,7 @@ fetchGroupUsers:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${Number(incoming.body.group_id)}

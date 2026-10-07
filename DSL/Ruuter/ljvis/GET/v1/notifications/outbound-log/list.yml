@@ -50,6 +50,7 @@ queryLog:
   args:
     url: "[#LJVIS_RESQL]/notification/list_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: ${status}

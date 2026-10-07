@@ -18,6 +18,7 @@ getFilesFromDB:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachments"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       form_number: ${incoming.body.form_number}

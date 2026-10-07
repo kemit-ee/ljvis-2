@@ -11,6 +11,7 @@ getRoads:
   args:
     url: "[#LJVIS_RESQL]/roads/list_roads"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: res

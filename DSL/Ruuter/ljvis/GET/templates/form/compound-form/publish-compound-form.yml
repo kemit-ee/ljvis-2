@@ -29,6 +29,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -54,6 +55,7 @@ getSubFormPublishState:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get-subform-publish-state"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       compoundFormKey: ${id}
@@ -120,6 +122,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

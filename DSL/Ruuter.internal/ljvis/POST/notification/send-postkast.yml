@@ -85,6 +85,7 @@ getTemplateMapping:
   args:
     url: "[#LJVIS_RESQL]/notification/get_template_mapping"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: ${notification_type}
@@ -156,6 +157,7 @@ insertQueued:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_key: ${generated_key}
@@ -189,6 +191,7 @@ insertRecipientRow:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       log_id: ${log_id}
@@ -218,7 +221,6 @@ callPk:
       # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       templateId: ${original_template_id}
-      notification_language: "ET"
       parameters:
         - "${Object.assign({}, template_variables_obj, { recipient: recipient_email })}"
   result: pkRes
@@ -250,6 +252,7 @@ logXroadSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "pk.notification-management.v1"
@@ -270,6 +273,7 @@ updateInProgress:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}
@@ -311,6 +315,7 @@ logXroadFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "pk.notification-management.v1"
@@ -331,6 +336,7 @@ updateFailedStatus:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}
@@ -360,6 +366,7 @@ insertAsError:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_key: ${generated_key}
@@ -389,6 +396,7 @@ insertErrorRecipientRow:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       log_id: ${error_log_id}

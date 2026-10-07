@@ -111,6 +111,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/mtr/checkTransportManagerGoodRepute"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       firstName: ${first_name_nysiis}
@@ -135,6 +136,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "mtr.checkTransportManagerGoodRepute.v1"
@@ -224,6 +226,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "mtr.checkTransportManagerGoodRepute.v1"
