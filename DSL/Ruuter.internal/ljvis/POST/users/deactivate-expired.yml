@@ -23,6 +23,7 @@ deactivateExpired:
   args:
     url: "[#LJVIS_RESQL]/user/deactivate_expired_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       created_by: ${created_by}
@@ -44,6 +45,7 @@ logAuditEvent:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ""

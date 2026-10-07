@@ -38,6 +38,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/select-autodispatch-candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: candidatesRes
@@ -66,6 +67,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/build"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             spFormKey: ${sp_form_key}
@@ -89,6 +91,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/get"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: ${business_case_id}
@@ -156,6 +159,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: ${business_case_id}
@@ -182,6 +186,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: "${result.outcome === 'acknowledged' ? business_case_id : ''}"
@@ -208,6 +213,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: "${result.outcome === 'error' ? business_case_id : ''}"
@@ -234,6 +240,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/log-autodispatch"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             spFormKey: ${sp_form_key}
@@ -250,6 +257,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "erru.ncr.autodispatch.v1.cron"

@@ -19,6 +19,7 @@ getUserGroups:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_id: ${user_id}
@@ -30,6 +31,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_user_assigned_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       groups: ${res.response.body}

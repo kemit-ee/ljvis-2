@@ -25,6 +25,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -68,6 +69,7 @@ markSent:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
@@ -127,6 +129,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/ctud/request"
@@ -146,6 +149,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/ctud/request"
@@ -196,6 +200,7 @@ markResponded:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
@@ -216,6 +221,7 @@ markError:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
@@ -236,6 +242,7 @@ markErrorMissingStatus:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

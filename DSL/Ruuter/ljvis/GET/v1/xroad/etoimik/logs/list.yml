@@ -45,6 +45,7 @@ queryLog:
   args:
     url: "[#LJVIS_RESQL]/xroad/etoimik/list_integration_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       date_from: ${date_from}

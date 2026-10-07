@@ -31,6 +31,7 @@ getUserGroup:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${user_group_id}
@@ -54,6 +55,7 @@ addUsers:
   args:
     url: "[#LJVIS_RESQL]/user_group/set_user_group_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${user_group_id}
@@ -68,6 +70,7 @@ getAddedUserPersonalCodes:
   args:
     url: "[#LJVIS_RESQL]/user/get_users_by_ids"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_ids: ${user_ids}

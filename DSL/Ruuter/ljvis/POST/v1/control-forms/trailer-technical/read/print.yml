@@ -58,6 +58,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -77,6 +78,7 @@ getSnapshot:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${snapshot_id}
@@ -105,6 +107,7 @@ getCompoundForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${selected_form.compoundFormKey}

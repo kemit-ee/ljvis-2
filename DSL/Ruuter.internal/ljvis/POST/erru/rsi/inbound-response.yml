@@ -56,6 +56,7 @@ findByWorkflowId:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get-by-workflow-id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       workflow_id: ${workflow_id}
@@ -89,6 +90,7 @@ storeResponded:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${request_key}
@@ -118,6 +120,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}

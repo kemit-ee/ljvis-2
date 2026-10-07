@@ -21,6 +21,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -79,6 +80,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

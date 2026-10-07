@@ -30,6 +30,7 @@ markRead:
   args:
     url: "[#LJVIS_RESQL]/notification/mark_notification_read"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_id: ${notification_id}

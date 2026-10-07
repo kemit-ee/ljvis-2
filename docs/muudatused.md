@@ -4,6 +4,12 @@
 
 ## 2026-10-05
 
+### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
+
+- Kõik kutsed Resql-ile (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`), TIM-ile ja DataMapper'ile saadavad päise `x-internal-service-token` (sama väärtus `INTERNAL_COMMUNICATION_KEY`, mis ruuter-internal'i kaitseks). Teenused ignoreerivad päist: kasutajale ja deploy'le muutust pole, uusi konstante lisada ei ole vaja.
+- Päist ei nõua praegu keegi: teenustevahelist autentimisvärava ei ehitata (otsus #520), kaitse jääb NetworkPolicy peale. Token on valmis, kui upstream (Resql, TIM, DataMapper, XTR) hakkab kutsujat autentima või võetakse kasutusele mTLS.
+- XTR-i kontrollitud (xtr 0.5.0-rc lähtekood ja test): SOAP-lane (`ar`, `etoimik`, `mtr`, `liiklusregister`, 27 kutset) ei edasta päiseid ja saadab sisevõtme; **REST-lane (`rr/isikud`, `PK_*`, ERRU-endpointid XTR-i kaudu) edastab kõik päised turvaserverisse, seega sinna sisevõtit ei saadeta**. CI kontrollib seda (`scripts/check-internal-token-targets.py`).
+- Plaan: `docs/planning/teenustevaheline-autentimine-faas3.md`.
 ### LJVIS1 SOAP-lepingu pakkumine XTR-i kaudu
 
 - LJVIS1 X-tee SOAP-leping (`ljvis.wsdl`, kuus operatsiooni, sh `RegisterJobInspection_v2`) on pakutav XTR 0.5.0-rc kaudu; äriloogika jääb olemasolevatesse Ruuter.internal-i JSON-töötlejatesse. REST v1/v3 ja AJ liidesed jäävad alles. Juhend: `docs/xtee/09-xtr-soap.md`.

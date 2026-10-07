@@ -34,6 +34,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -112,6 +113,7 @@ storeSent:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -152,6 +154,7 @@ storeAcknowledged:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -199,6 +202,7 @@ markErrorAfterNegativeAck:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -240,6 +244,7 @@ markError:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}

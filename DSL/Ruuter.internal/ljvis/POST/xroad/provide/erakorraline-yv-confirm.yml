@@ -65,6 +65,7 @@ updateXroadField:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/erakorraline-yv-confirm-update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       inspectionId: "${items[current_index].inspection_id}"
@@ -96,6 +97,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-confirm"
@@ -121,6 +123,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-confirm"

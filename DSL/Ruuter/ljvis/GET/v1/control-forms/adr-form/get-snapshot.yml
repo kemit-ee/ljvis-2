@@ -48,6 +48,7 @@ getSnapshot:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.params.id}
@@ -66,6 +67,7 @@ getFromArchive:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       formType: "adr-form"
@@ -82,6 +84,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_adr_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}

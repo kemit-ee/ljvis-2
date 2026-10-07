@@ -11,6 +11,7 @@ getTrailerCategories:
   args:
     url: "[#LJVIS_RESQL]/trailer-categories/list_trailer-categories"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: res

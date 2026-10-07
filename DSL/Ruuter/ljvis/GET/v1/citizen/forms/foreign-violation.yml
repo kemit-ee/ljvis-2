@@ -59,6 +59,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: "${incoming.params.q}"
@@ -108,6 +109,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_foreign_violation_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}

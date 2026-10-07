@@ -33,6 +33,7 @@ queryKontrollid:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/isiku-kontroll"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       isikukood: ${isikukood}
@@ -52,6 +53,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.isiku-kontroll"
@@ -72,6 +74,7 @@ logAjUsage:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${isikukood}"
@@ -100,6 +103,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.isiku-kontroll"

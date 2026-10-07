@@ -86,6 +86,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: saved
@@ -132,6 +133,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -185,6 +187,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

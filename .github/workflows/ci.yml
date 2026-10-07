@@ -72,6 +72,9 @@ jobs:
           pip3 install pyyaml -q
           python3 tests/contract/check_dsl_security.py
 
+      - name: Service token only goes to allowlisted targets (no XTR REST-lane leak)
+        run: python3 scripts/check-internal-token-targets.py
+
       # Epic #522: Resql is INSERT + SELECT only (no UPDATE/DELETE/TRUNCATE/MERGE, no JOIN/LATERAL,
       # no ON CONFLICT DO UPDATE); the retention purge is the one exemption (.sql-rule-exemption).
       - name: SQL append-only invariant (Resql)

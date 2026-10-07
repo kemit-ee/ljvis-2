@@ -23,6 +23,7 @@ fetchCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.body.id}
@@ -46,6 +47,7 @@ updateXroadFields:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/update-xroad-fields"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${incoming.body.id}

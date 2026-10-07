@@ -20,6 +20,7 @@ get_userinfo:
   args:
     url: "[#LJVIS_TIM]/jwt/userinfo"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       cookie: ${incoming.headers.cookie}
   result: userinfo_res
   next: check_userinfo

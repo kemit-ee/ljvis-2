@@ -23,6 +23,7 @@ selectStep:
   args:
     url: "[#LJVIS_RESQL]/archive/select_deleted_snapshots"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       limit: 5000
@@ -47,6 +48,7 @@ insertStep:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/insert_snapshots"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       rows: "${JSON.stringify(rows)}"
@@ -63,6 +65,7 @@ verifyStep:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/count_present"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       pairs: "${pairsJson}"
@@ -85,6 +88,7 @@ purgeStep:
   args:
     url: "[#LJVIS_RESQL]/archive/purge_confirmed"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       ids: "${pairsJson}"
@@ -101,6 +105,7 @@ logDone:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.deleted_forms.cron"
@@ -125,6 +130,7 @@ logNothing:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.deleted_forms.cron"
@@ -149,6 +155,7 @@ logNotVerified:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.deleted_forms.cron"

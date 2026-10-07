@@ -63,6 +63,7 @@ checkCompanyRepresentative:
   args:
     url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ""

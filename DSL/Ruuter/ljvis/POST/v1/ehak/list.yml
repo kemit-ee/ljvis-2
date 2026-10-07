@@ -18,6 +18,7 @@ getEhak:
   args:
     url: "[#LJVIS_RESQL]/ehak/list_cities_parishes"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       parentId: ${parentId}

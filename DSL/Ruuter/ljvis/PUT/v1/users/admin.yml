@@ -58,6 +58,7 @@ getCurrentUserGroups:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_id: ${user_account_id}
@@ -145,6 +146,7 @@ updateUser:
   args:
     url: "[#LJVIS_RESQL]/user/update_user_account"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_account_id: ${user_account_id}

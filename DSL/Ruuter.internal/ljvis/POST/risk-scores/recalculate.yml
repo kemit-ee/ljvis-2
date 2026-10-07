@@ -42,6 +42,7 @@ calculateRiskScore:
   args:
     url: "[#LJVIS_RESQL]/risk_score/calculate_risk_score"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}
@@ -69,6 +70,7 @@ saveRiskScore:
   args:
     url: "[#LJVIS_RESQL]/risk_score/save_risk_score"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}

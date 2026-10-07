@@ -20,6 +20,7 @@ expire_tim_session:
   args:
     url: "[#LJVIS_TIM]/jwt/blacklist"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       cookie: ${incoming.headers.cookie}
       X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
   result: expire_result

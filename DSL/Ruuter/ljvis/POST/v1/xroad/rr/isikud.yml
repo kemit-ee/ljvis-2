@@ -94,6 +94,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "rr.dde.v1"
@@ -114,6 +115,7 @@ logAjUsage:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${personal_code}"
@@ -173,6 +175,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "rr.dde.v1"
@@ -194,6 +197,7 @@ logAjUsageOnFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${personal_code}"

@@ -19,6 +19,7 @@ getPermissions:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${user_group_id}
@@ -30,6 +31,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_user_group_permissions"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       permissions: ${res.response.body}

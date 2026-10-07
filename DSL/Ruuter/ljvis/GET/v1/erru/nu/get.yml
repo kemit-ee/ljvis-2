@@ -33,6 +33,7 @@ getSnapshot:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -45,6 +46,7 @@ getMessage:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -83,6 +85,7 @@ getHistory:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-snapshots"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -94,6 +97,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_nu_request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       requests: ${res.response.body}

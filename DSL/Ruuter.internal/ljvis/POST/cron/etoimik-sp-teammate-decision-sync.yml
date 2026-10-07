@@ -18,6 +18,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/select_etoimik_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: candidatesRes
@@ -58,6 +59,7 @@ processCandidates:
         args:
           url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body: ${xtr_request_body}
         result: xtrResponse
@@ -104,6 +106,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.sp_teammate"
@@ -122,6 +125,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update-etoimik-decision"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
@@ -140,6 +144,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/log_etoimik_sp_teammate_audit"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             found: "${applied_now ? 'true' : 'false'}"

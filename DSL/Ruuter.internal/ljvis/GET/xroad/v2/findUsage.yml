@@ -69,6 +69,7 @@ queryUsages:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/find_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: ${user_code}

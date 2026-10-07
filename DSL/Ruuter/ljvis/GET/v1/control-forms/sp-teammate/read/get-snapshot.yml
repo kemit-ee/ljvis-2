@@ -48,6 +48,7 @@ getSnapshot:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -66,6 +67,7 @@ getFromArchive:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       formType: "drive-rest-form/teammate"
@@ -82,6 +84,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_sp_teammate_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}

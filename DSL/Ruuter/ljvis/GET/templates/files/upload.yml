@@ -68,6 +68,7 @@ insertFileToDB:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/insert_form_attachment"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       form_number: ${incoming.body.form_number}

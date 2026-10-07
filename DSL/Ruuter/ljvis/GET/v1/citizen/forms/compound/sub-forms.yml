@@ -52,6 +52,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: "${incoming.params.q}"
@@ -116,6 +117,7 @@ getSubForms:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/compound-subforms"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       compound_form_key: "${row.id}"

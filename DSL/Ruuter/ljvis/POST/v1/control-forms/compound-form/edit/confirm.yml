@@ -203,6 +203,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${key}
@@ -284,6 +285,7 @@ logAjDriver1:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${driver1_personal_code_ee}"
@@ -305,6 +307,7 @@ logAjDriver2:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${driver2_personal_code_ee}"

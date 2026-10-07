@@ -26,6 +26,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -66,6 +67,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_ctud_request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       requests: ${res.response.body}

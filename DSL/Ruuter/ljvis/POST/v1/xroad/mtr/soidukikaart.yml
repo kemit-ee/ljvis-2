@@ -61,6 +61,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/mtr/soidukikaart"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       registrikood: ${registry_code}
@@ -82,6 +83,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "mtr.soidukikaart.v1"
@@ -185,6 +187,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "mtr.soidukikaart.v1"

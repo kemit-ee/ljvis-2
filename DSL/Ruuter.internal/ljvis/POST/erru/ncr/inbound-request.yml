@@ -112,6 +112,7 @@ storeReceived:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-inbound"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technicalId: ${technical_id}
@@ -203,6 +204,7 @@ lookupExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get-by-technical-id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technical_id: ${technical_id}
@@ -235,6 +237,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/erru/record-inbound-audit"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_type: "ncr.inbound_request.serve"
