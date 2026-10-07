@@ -15,6 +15,7 @@
 - Väljatrükil on pealkiri „…KONTROLLKAART“ (lõpust puudus T), osa 11 nimetus on „Muu tehniline viga“.
 - Väljatrükil näidatakse kontrolli koha ja vedaja aadressi maakonda ning linna/valda nimena, mitte koodina; „muu tee“ valiku korral trükitakse „Muu tee“.
 - Detailide lehel trükitakse märkeruut ainult lubatud raskusastmete (VO/OV/EOV) veergudesse; mittelubatud lahtrid jäävad tühjaks.
+- Tehnokaardi väljatrüki allmärkuste (1)–(8) tekstid vastavad ametlikule vormile (kategooria määrused nr 42 ja nr 39, direktiivi 2014/47/EL sõnastus, viited LS § 91 lg 2 p 5 ja § 196² lg 1 p 9).
 - Vormi failiplokk ei näita enam veateadet, kui failide loendit ei õnnestunud laadida (viga näidatakse vaid üleslaadimisel, kustutamisel ja allalaadimisel).
 
 ## 2026-10-05
