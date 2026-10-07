@@ -12,3 +12,8 @@ DSL/Ruuter/ljvis/POST/v1/erru/mock
 # mock above: excluded from the build context so it can never ship in a deployed
 # image; local/CI bind-mounts restore it.
 DSL/Ruuter/ljvis/POST/v1/postkast/mock
+
+# Frontend build uses the repo root as Docker context (standard-service-delivery
+# shared build_context). Keep local install/build output out of the image context.
+frontend/node_modules
+frontend/dist
