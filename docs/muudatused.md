@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-08
+
+### Postkasti saatmise vea vastus X-tee logis
+
+- Kui Postkast lükkab teavituse saatmise tagasi, salvestatakse Postkasti vastuse olek ja sisu Haldus > X-tee logide kirje vastuseväljale (varem jäi see tühjaks), nii et ebaõnnestumise põhjus on logist nähtav.
+
 ## 2026-10-07
 
 ### Väärteomenetluse märke eemaldamine tehnokaardilt

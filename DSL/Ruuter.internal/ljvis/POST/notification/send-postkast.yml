@@ -320,7 +320,7 @@ logXroadFailure:
     body:
       service_code: "pk.notification-management.v1"
       request_xml: "${'notificationKey=' + notification_key + ';type=' + notification_type}"
-      response_xml: ""
+      response_xml: "${(typeof pkRes !== 'undefined' && pkRes.response) ? JSON.stringify({ status: pkRes.response.status, body: pkRes.response.body }) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: ${pk_error_message}
