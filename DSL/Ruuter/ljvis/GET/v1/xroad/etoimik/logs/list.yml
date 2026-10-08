@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "2.0"
   description: >-
     Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
@@ -27,6 +28,9 @@ declaration:
         type: string
       - field: page
       - field: pageSize
+    headers:
+      - field: cookie
+        type: string
 
 extractParams:
   assign:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "List latest snapshots of all ADR sub-forms linked to a compound form key"
@@ -8,6 +9,9 @@ declaration:
       - field: compoundFormKey
         type: string
         description: "Compound form key"
+    headers:
+      - field: cookie
+        type: string
 
 checkPermission:
   switch:

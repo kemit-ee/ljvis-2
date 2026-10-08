@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single vehicle technical-check form snapshot by snapshot ID, for the read-only historical version view (LJVIS2-72)."
@@ -11,6 +12,9 @@ declaration:
       - field: formKey
         type: string
         description: "Vehicle technical form key"
+    headers:
+      - field: cookie
+        type: string
 
 checkPermission:
   switch:

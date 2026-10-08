@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm compound form"
@@ -93,7 +94,8 @@ declaration:
         type: string
       - field: driver2PersonalCodeForeign
         type: string
-      - field: status
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

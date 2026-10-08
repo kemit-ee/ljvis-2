@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Get one NCR case (erru.ncr_message) by businessCaseId, returning the FULL snapshot
     history (LJVIS2-63) — the last element is the current state (drives the editable header/blocks),
@@ -14,6 +15,9 @@ declaration:
       - field: q
         type: string
         description: "NCR case identifier (business_case_id)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:

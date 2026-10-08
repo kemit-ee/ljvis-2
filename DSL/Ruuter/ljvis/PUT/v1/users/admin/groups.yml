@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Replace all group memberships for a user"
@@ -14,6 +15,9 @@ declaration:
       - field: removedGroupIds
         type: array
         description: "Array of removed user group IDs"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja

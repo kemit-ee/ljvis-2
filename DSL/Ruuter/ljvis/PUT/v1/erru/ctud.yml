@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Revise an existing outgoing CTUD request draft (LJVIS2-143). PUT is full update per docs/rest-api-design-guide.md section 1, with the id in the request body. Appends a new snapshot with version + 1; nothing is ever updated in place. Editability is enforced in append-draft-revision.sql, which yields zero rows unless the latest snapshot is status='initiated' AND direction='outgoing' — so a sent request and an inbound request are both rejected with 422 not_editable regardless of the caller's permissions."
   namespace: erru
@@ -23,6 +24,9 @@ declaration:
       - field: vehicleRegistrationCountry
         type: string
       - field: requestAllVehicles
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

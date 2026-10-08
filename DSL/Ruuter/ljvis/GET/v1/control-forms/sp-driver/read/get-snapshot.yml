@@ -1,16 +1,16 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get version history snapshot for a drive rest form (driver)"
   namespace: control-forms
   allowlist:
-    params:
-      - field: id
-        type: string
-        description: "Snapshot ID"
+    body:
       - field: formKey
+      - field: id
+    headers:
+      - field: cookie
         type: string
-        description: "sp_driver_form_key"
 
 extractRequestData:
   assign:

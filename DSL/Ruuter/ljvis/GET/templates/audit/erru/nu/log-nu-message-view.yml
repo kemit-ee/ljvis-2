@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "NU log nu message view."
   namespace: service
@@ -6,6 +7,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: business_case_id

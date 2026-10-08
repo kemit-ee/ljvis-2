@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "LJVIS2-9 cross-entity form search. Returns a paged, filtered list of forms the caller is allowed to see (row-level by read permission)."
   namespace: control-forms

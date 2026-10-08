@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Save/revise the Estonian response draft to an INCOMING NCR message (LJVIS2-63).
     Moves the message to status 'answer_drafted'. Coverage validation (LJVIS2-63 §4 'Vastust ei
@@ -31,6 +32,9 @@ declaration:
       - field: transportUndertakingName
         type: string
       - field: communityLicenceNumber
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

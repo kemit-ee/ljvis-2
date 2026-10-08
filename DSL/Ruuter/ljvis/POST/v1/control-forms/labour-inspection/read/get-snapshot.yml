@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get version history snapshot for a labour inspection form"
@@ -11,6 +12,9 @@ declaration:
       - field: formKey
         type: string
         description: "Labour inspection form key"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:

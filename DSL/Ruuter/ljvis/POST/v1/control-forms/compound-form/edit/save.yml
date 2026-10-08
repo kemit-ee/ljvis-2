@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create or update the compound form — single unified save endpoint, branches internally on presence of id. Status is always computed/controlled server-side and never trusts client input."
@@ -94,6 +95,9 @@ declaration:
       - field: driver2PersonalCodeEe
         type: string
       - field: driver2PersonalCodeForeign
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

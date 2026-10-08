@@ -169,7 +169,7 @@ guard = yaml.safe_load((SOURCE / "POST/xroad/provide/.guard").read_text())
 guard = {"declaration": {"description": "X-Road-Client peab olema neljaosaline. Ainult mockis 70000000 tähistab keelatud tarbijat."}, **guard}
 guard["checkXRoadClient"]["switch"].append({"condition": expression("(incoming.headers['x-road-client'] || '').split('/')[2] === '70000000'"), "next": "deny"})
 emit(DEST / "POST/xroad/v1/.guard.yml", adapt_runtime(guard))
-emit(DEST / "GET/health/ready.yml", {"declaration": {"description": "Avalik sünteetilise mocki tervisekontroll.", "allowlist": {"params": []}},
+emit(DEST / "GET/health/ready.yml", {"declaration": {"internal": False, "description": "Avalik sünteetilise mocki tervisekontroll.", "allowlist": {"params": []}},
                                     "ready": {"status": 200, "return": {"status": "OK", "mock": True}, "wrapper": False, "next": "end"}})
 
 tests = []
@@ -245,6 +245,11 @@ for method, name, service, version, sample, success in operations:
             rows = expression("[]")
         data[step_name] = {"assign": {result: {"response": {"status": expression("incoming.headers['x-mock-scenario'] === 'server-error' ? 500 : 200"), "body": rows}}}, "next": step["next"]}
     data = adapt_runtime(data)
+    # Ruuter audit (#146): declare only headers the DSL body actually reads (guards are not counted).
+    used = json.dumps({k: v for k, v in data.items() if k != "declaration"})
+    data["declaration"]["allowlist"]["headers"] = [h for h in data["declaration"]["allowlist"]["headers"]
+                                                   if h["field"] == "content-type" or f"headers['{h['field']}']" in used or f"headers.{h['field']}" in used]
+    data["declaration"] = {"internal": False, **data["declaration"]}
     emit(DEST / (method + mock_path + ".yml"), data)
     emit(DOCS / "examples" / (name + "-request.json"), json_text(sample))
     emit(DOCS / "examples" / (name + "-success.json"), json_text(wire(success)))

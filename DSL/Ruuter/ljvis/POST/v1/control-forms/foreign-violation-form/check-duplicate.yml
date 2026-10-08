@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Check for duplicate VR foreign violation form (same company reg code + vehicle reg nr + inspection date)"
   namespace: control-forms

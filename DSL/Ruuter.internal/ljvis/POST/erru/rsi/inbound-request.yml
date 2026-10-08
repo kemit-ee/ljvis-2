@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: |
     Serve an INBOUND RSI (RoadSideInspection) notification from another member state and

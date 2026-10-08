@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single version-history snapshot of a TRAM control card. Guarded by tram_driver_form.read."
@@ -11,6 +12,9 @@ declaration:
       - field: formKey
         type: string
         description: "tram_control_card_key"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:

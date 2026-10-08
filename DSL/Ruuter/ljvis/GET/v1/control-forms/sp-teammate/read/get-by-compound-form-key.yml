@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get the latest active drive rest form (teammate) for a compound form"
@@ -6,6 +7,9 @@ declaration:
   allowlist:
     params:
       - field: compoundFormKey
+    headers:
+      - field: cookie
+        type: string
 
 # Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
 # `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.

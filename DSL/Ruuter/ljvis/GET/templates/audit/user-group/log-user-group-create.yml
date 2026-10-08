@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Audit: user group create event — fetches permissions and organisation count internally"
@@ -8,6 +9,8 @@ declaration:
     headers:
       - field: cookie
         type: string
+      - field: content-type
+        type: string
     body:
       - field: user_group_id
         type: string
@@ -16,8 +19,6 @@ declaration:
       - field: organisation_ids
         type: string
       - field: selected_org_count
-      - field: permission_ids
-        type: string
 
 fetchPermissions:
   call: http.post

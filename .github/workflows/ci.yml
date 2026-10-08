@@ -251,6 +251,19 @@ jobs:
           done
           exit $fail
 
+      # Ruuter #146: GET /_/audit/dsl on the loaded tree must report 0 errors
+      # and 0 warnings (blocking). Info-level findings are tolerated.
+      - name: DSL audit (/_/audit/dsl) — errors == 0 and warnings == 0
+        run: scripts/dsl-audit.sh '${{ steps.img.outputs.ref }}' dsl-audit-out
+
+      - name: Upload DSL audit findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsl-audit
+          path: dsl-audit-out/
+          if-no-files-found: ignore
+
   # ── 1c. Ruuter dsl-lint / dsl-test ─────────────────────────────────────────
   # Static validation against the ACTUAL Ruuter DSL parser. Catches what the
   # Python checks above and the Guard Audit boot cannot: unrecognised step
@@ -292,6 +305,18 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
             --dsl DSL/Ruuter.internal --constants constants.ini --require-guard
+
+      # Build-time twin of /_/audit/dsl (Ruuter #146): exits non-zero on any
+      # error-severity finding (warnings are gated by scripts/dsl-audit.sh).
+      - name: dsl-lint --audit — public gateway
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter --constants constants.ini --audit
+
+      - name: dsl-lint --audit — internal router
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter.internal --constants constants.ini --audit
 
       - name: X-Road OpenAPI DSL route — in sync with docs/xtee/XroadOpenapi.yaml
         run: python3 scripts/generate-xroad-openapi-dsl.py --check

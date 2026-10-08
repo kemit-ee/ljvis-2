@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Read the current NU message or a snapshot, with version history."
   namespace: erru
@@ -11,6 +12,9 @@ declaration:
       - field: snapshotId
         type: string
         description: "Optional immutable snapshot ID, scoped to q"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:

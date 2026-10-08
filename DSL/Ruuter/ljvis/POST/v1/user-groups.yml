@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create a new user group with optional organisations and permissions"
@@ -13,6 +14,9 @@ declaration:
       - field: permissionIds
         type: array
         description: "Array of permission UUIDs"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja

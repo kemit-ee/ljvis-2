@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get version history snapshots for a control form"
@@ -11,6 +12,9 @@ declaration:
       - field: formType
         type: string
         description: "Form type"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:

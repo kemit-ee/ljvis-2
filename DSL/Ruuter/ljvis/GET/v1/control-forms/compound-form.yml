@@ -1,16 +1,18 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single compound form by ID"
   namespace: control-forms
   allowlist:
-    body:
-      - field: q
+    headers:
+      - field: cookie
         type: string
-        description: "Compound form ID"
+    params:
       - field: subFormId
         type: string
-        description: "Sub-form ID if called from sub-form page"
+      - field: q
+        type: string
 
 checkPermission:
   switch:
