@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Read-ownership decision for one form (epic #502, A2 read). Returns the plain string `allow` or `deny`. The caller is the authenticated TARA session (guard variable session_personal_code); permissions and organisation are looked up server-side and are NEVER accepted from the request. Rule: the creator can always read their own form regardless of status; a published form is readable with the form type's read permission; an unpublished form is also readable by an authorised colleague or a holder of control_form.view_unpublished. A form that does not exist yet answers `allow` so the calling handler can return 404 or fall back to the archive."

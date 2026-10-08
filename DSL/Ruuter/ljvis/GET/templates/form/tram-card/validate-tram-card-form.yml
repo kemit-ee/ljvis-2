@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Single source of truth for TRAM control card (Transpordiameti kontrollkaart) field validation — shared by edit/save.yml, edit/confirm.yml and edit/publish.yml. Mirrors the frontend Yup schema and the forms.tram_control_card CHECK constraints. Returns '{\"valid\":true}' when all checks pass, otherwise the VALIDATION_ERROR shape the callers forward to the client as-is."

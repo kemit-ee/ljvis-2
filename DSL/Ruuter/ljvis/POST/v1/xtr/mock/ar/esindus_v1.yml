@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     MOCK Äriregister esindus_v1 (representation rights) — dev and CI only.
@@ -21,11 +22,7 @@ declaration:
   namespace: xtr_mock
   allowlist:
     body:
-      - field: reg_code
-        type: string
       - field: personal_code
-        type: string
-      - field: personal_code_country
         type: string
 
 lookupRepresentation:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) the vehicle technical-check sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
@@ -30,6 +31,9 @@ declaration:
       - field: violations
         type: string
       - field: notes
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

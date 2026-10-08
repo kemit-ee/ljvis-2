@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -14,10 +15,6 @@ declaration:
     raw name, not a pre-computed key.
   namespace: xroad
   allowlist:
-    headers:
-      - field: cookie
-        type: string
-        description: "Cookie field"
     body:
       - field: firstName
         type: string

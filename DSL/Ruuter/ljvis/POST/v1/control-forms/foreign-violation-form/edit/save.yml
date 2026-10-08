@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create or update a foreign violation form — single unified save endpoint, branches internally on presence of id. Confirmed forms can only be re-saved by a user with control_form.edit_locked."
@@ -108,6 +109,9 @@ declaration:
       - field: inspectorUnit
         type: string
       - field: inspectorProfession
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

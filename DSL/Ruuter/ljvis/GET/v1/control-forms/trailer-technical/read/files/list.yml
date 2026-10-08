@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "List active file attachments for a trailer technical check form"
@@ -8,6 +9,9 @@ declaration:
       - field: form_number
         type: string
         description: "Logical form number to list files for"
+    headers:
+      - field: cookie
+        type: string
 
 # Omand (epic #502 A2 read): manuste loend järgib vormi lugemisreeglit (avalikustamata vorm: looja,
 # looja asutus või `control_form.view_unpublished`).

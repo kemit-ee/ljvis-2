@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -11,8 +12,6 @@ declaration:
   allowlist:
     headers:
       - field: x-road-userid
-        required: false
-      - field: x-road-client
         required: false
     params:
       - field: userCode

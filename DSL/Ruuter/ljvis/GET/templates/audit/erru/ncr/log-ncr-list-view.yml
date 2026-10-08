@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Audit: NCR case list viewed (LJVIS2-65). Logged on EVERY list load because the list
     exposes transport undertaking and handler names (personal-data footprint). The description
@@ -9,6 +10,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: filters

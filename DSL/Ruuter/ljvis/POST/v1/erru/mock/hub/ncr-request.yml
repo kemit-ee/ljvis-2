@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "MOCK ERRU hub for NCR (NotifyCheckResult) request send — dev and CI only
     (ERRU_NCR_ENDPOINT points at XTR in production). Unlike RSI, NCR's acknowledgement is
@@ -12,20 +13,6 @@ declaration:
   allowlist:
     body:
       - field: ncrTo
-        type: string
-      - field: businessCaseId
-        type: string
-      - field: originatingAuthority
-        type: string
-      - field: transportUndertakingName
-        type: string
-      - field: communityLicenceNumber
-        type: string
-      - field: vehicleRegistrationNumber
-        type: string
-      - field: vehicleRegistrationCountry
-        type: string
-      - field: checkResult
         type: string
 
 selectScenario:

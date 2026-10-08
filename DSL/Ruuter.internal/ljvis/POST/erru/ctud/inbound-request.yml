@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: |
     Serve an INBOUND CTUD request from another member state and answer it synchronously (LJVIS2-144).

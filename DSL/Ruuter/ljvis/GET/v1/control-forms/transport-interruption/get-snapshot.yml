@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single transport-interruption form snapshot by snapshot ID, for the read-only historical version view."
@@ -11,6 +12,9 @@ declaration:
       - field: formKey
         type: string
         description: "KV form key"
+    headers:
+      - field: cookie
+        type: string
 
 checkPermission:
   switch:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     SISEMINE endpoint. Ruuter.internal notification/create.yml kutsub selle peale
@@ -18,8 +19,6 @@ declaration:
   namespace: notification
   allowlist:
     body:
-      - field: type
-        type: string
       - field: required_permission
         type: string
 

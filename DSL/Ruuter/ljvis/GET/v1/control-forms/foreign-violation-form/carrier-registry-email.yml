@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -14,6 +15,9 @@ declaration:
       - field: companyRegCode
         type: string
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 checkPermission:

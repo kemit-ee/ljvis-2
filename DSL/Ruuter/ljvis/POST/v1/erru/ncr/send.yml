@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Send an outgoing NCR request to the ERRU hub and store BOTH the 'sent'
     transition and the synchronous acknowledgement (LJVIS2-64 §4.2). Unlike RSI, the ACK
@@ -14,6 +15,9 @@ declaration:
   allowlist:
     body:
       - field: businessCaseId
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

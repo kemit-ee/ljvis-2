@@ -1,4 +1,6 @@
 declaration:
+  description: "Arenduse mock: PUT /v1/user-groups/users/mock tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
+  internal: false
   allowlist:
     body: []
 

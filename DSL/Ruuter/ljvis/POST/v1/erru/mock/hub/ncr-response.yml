@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "MOCK ERRU hub for NCR (NotifyCheckResult) RESPONSE send — dev and CI only
     (ERRU_NCR_RESPONSE_ENDPOINT points at XTR in production). Same synchronous ack shape as
@@ -9,14 +10,6 @@ declaration:
   allowlist:
     body:
       - field: ncrTo
-        type: string
-      - field: businessCaseId
-        type: string
-      - field: originatingAuthority
-        type: string
-      - field: respondingAuthority
-        type: string
-      - field: responseStatusCode
         type: string
 
 selectScenario:
