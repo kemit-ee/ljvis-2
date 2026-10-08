@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Publish (avalikusta) the compound form and return the outcome as JSON (`{outcome, body}`). Shared by compound-form/edit/publish and by the sub-form publish handlers, which auto-publish the general part server-side once the last active sub-form is published (only_if_confirmed=true limits that to a confirmed compound form). Form field values are taken from the current database record."
@@ -9,6 +10,11 @@ declaration:
       - field: id
         type: string
       - field: only_if_confirmed
+        type: string
+    headers:
+      - field: cookie
+        type: string
+      - field: content-type
         type: string
 
 extractRequestData:

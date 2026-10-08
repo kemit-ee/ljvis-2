@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create or update the ADR sub-form (ohtlik veos, LJVIS2-141) — single unified save endpoint, branches internally on presence of id. Status is always server-controlled. Requires an already-existing compoundFormKey. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
@@ -53,6 +54,9 @@ declaration:
       - field: notes
         type: string
       - field: infringementNotesSummary
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -197,7 +201,6 @@ logAuditEventInsert:
     compound_form_key: ${compound_form_key}
     sub_form_number: ${sub_form_number}
     result_type: ${result_type}
-    proceeding_type: ${proceeding_type}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
@@ -351,7 +354,6 @@ logAuditEventUpdate:
     compound_form_key: ${current_compound_form_key}
     sub_form_number: ${sub_form_number}
     result_type: ${result_type}
-    proceeding_type: ${proceeding_type}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}

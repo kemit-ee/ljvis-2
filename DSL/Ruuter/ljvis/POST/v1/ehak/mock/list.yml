@@ -1,4 +1,6 @@
 declaration:
+  description: "Arenduse mock: POST /v1/ehak/mock/list tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
+  internal: false
   allowlist:
     body: []
 

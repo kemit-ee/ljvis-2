@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -8,9 +9,6 @@ declaration:
     "OK" kui vastab, "FAIL" kui mitte.
   namespace: xroad-aj
   allowlist:
-    headers:
-      - field: x-road-client
-        required: false
     params: []
 
 checkDatabase:

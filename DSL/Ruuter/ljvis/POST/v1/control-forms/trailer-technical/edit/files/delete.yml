@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Delete a file attachment for a trailer technical check form"
@@ -6,6 +7,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 get_user_context:

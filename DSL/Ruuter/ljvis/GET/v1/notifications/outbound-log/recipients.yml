@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Ühe Postkast 2.0 saatmiskirje saajate loend (UC-03).

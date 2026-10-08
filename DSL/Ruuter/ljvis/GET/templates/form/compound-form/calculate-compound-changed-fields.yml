@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Calculate changed fields for compound form including SQL lookup"
@@ -84,6 +85,9 @@ declaration:
       - field: inspector_unit
         type: string
       - field: inspector_profession
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 getForm:

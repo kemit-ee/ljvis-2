@@ -1,13 +1,11 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single classifier value by ID"
   namespace: classifiers
   allowlist:
     params:
-      - field: q
-        type: string
-        description: "Classifier ID"
       - field: valueId
         type: string
         description: "Classifier Value ID"

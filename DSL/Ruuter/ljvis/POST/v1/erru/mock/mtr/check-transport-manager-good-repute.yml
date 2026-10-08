@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "MOCK Estonian transport manager good-repute lookup — dev and CI only. Stands in for the WHOLE erru/cgr/lookup-mtr.yml wrapper (NYSIIS encoding + real MTR CheckTransportManagerGoodRepute via XTR), which erru/cgr/inbound-request.yml calls with RAW (not yet NYSIIS-encoded) firstName/lastName — lookup-mtr.yml only NYSIIS-encodes internally, right before its own XTR call. This mock therefore matches on the raw names, exactly like lookup-mtr.yml's caller sees them. Field names and response shape are kept identical to that real path (DSL/Ruuter/ljvis/POST/v1/xroad/mtr/check-transport-manager-good-repute.yml's buildResult) so cgr/inbound-request.yml's mapping code works unchanged against either. Match rule: Found when lastName is 'TAMM' or firstName is 'MART' (case-insensitive) or cpcDocumentNumber is EE-CPC-2020-00111; everything else is NotFound."
   namespace: erru
@@ -8,15 +9,7 @@ declaration:
         type: string
       - field: lastName
         type: string
-      - field: birthDate
-        type: string
-      - field: birthPlace
-        type: string
       - field: cpcDocumentNumber
-        type: string
-      - field: cpcDocumentIssueCountry
-        type: string
-      - field: cpcDocumentIssueDate
         type: string
 
 selectScenario:

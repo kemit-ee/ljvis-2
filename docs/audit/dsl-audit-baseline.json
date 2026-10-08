@@ -1,0 +1,25 @@
+{
+  "ruuter": "0.12.1-rc",
+  "generated": "2026-10-08",
+  "note": "ljvis project, GET /_/audit/dsl. Regenerate: scripts/dsl-audit.sh. CI fails on any error or warning.",
+  "trees": {
+    "public": {
+      "errors": 0,
+      "warnings": 0,
+      "info": 496,
+      "info_by_rule": {
+        "declaration.body.type_missing": 50,
+        "declaration.returns_missing": 446
+      }
+    },
+    "internal": {
+      "errors": 0,
+      "warnings": 0,
+      "info": 52,
+      "info_by_rule": {
+        "declaration.body.type_missing": 7,
+        "declaration.returns_missing": 45
+      }
+    }
+  }
+}

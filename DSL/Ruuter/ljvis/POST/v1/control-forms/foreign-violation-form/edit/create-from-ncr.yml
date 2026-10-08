@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Create a new VR (foreign violation) control card pre-filled from an ERRU NCR message and link them bidirectionally"
   namespace: control-forms

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     LJVIS2-37 officer dashboard aggregate. No dedicated guard — the

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -7,6 +8,19 @@ declaration:
     External identity: source xroad-v2 + kontrolli_id (same as the LJVIS1 RavenDB V2 migration).
     Exact repeat: no new row; changed repeat of a saved act: new snapshot; of a locked act: 409.
   namespace: xroad
+  allowlist:
+    body:
+      - field: kontrollija
+      - field: kontrolli_id
+      - field: kontrolli_kp
+      - field: tooandja_nimi
+      - field: tooandja_reg_kood
+      - field: kontrollimised
+      - field: rikkumised
+      - field: koostatud_ettekirjutus
+      - field: kontrolli_tyyp
+      - field: vaarteomenetlus
+      - field: soidukite_arv
 
 # Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
 validateKontrollija:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Audit: outgoing NCR request draft saved (LJVIS2-63). Logged on every draft save
     — initial create and revision. Description carries the case identifier, changed fields and
@@ -8,6 +9,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: business_case_id

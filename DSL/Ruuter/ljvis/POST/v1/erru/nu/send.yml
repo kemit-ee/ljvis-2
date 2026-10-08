@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Send an eligible outgoing draft and store its acknowledgement or transport error. Failed messages cannot be resent."
   namespace: erru
@@ -8,6 +9,9 @@ declaration:
         type: string
       - field: expectedVersion
         type: number
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:

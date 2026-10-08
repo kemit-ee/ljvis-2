@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: |
     Receive an INCOMING NCR (NotifyCheckResult) request from another member state and
