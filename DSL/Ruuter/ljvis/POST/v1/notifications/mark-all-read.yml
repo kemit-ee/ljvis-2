@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Märgib kõik autenditud kasutaja lugemata teavitused loetuks.

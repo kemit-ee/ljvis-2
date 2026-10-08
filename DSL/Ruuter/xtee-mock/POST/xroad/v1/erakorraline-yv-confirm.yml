@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: '1.0'
   description: 'ErakorralineYVconfirm: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
     POST/xroad/provide/erakorraline-yv-confirm.yml. X-Mock-Scenario: empty või server-error.'
@@ -6,10 +7,6 @@ declaration:
   allowlist:
     headers:
     - field: content-type
-      required: false
-    - field: x-road-client
-      required: false
-    - field: x-road-userid
       required: false
     - field: x-mock-scenario
       required: false

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Generate a filled, historical or blank drive-rest-form PDF."
   namespace: control-forms
@@ -9,6 +10,9 @@ declaration:
       - field: blank
         type: boolean
       - field: snapshotId
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Render an allow-listed control-form PDF and record the print audit event."
   namespace: service
@@ -16,6 +17,11 @@ declaration:
       - field: description
         type: string
       - field: logContent
+        type: string
+    headers:
+      - field: cookie
+        type: string
+      - field: content-type
         type: string
 
 # Koondvormi maakond/linn on salvestatud EHAK klassifikaatori võtmena; PDF-i jaoks lahendame nimeks.

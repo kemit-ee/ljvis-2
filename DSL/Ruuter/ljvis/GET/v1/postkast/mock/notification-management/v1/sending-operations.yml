@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     MOCK Postkast 2.0 "Saatmisoperatsioonide päring" — dev ja CI ainult.
@@ -12,10 +13,6 @@ declaration:
     params:
       - field: externalId
         type: string
-      - field: page
-        type: integer
-      - field: size
-        type: integer
 
 selectScenario:
   switch:

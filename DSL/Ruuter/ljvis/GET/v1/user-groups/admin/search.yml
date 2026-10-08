@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Search/list user groups (admin scope — all organisations)"
@@ -17,6 +18,9 @@ declaration:
         description: "Sorting"
       - field: logSearch
         description: "Whether to log this as a user-initiated search"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja

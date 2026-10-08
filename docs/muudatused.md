@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-08
+
+### Ruuter 0.12.1-rc ja DSL-i auditi värav
+
+- Ruuter uuendati versioonile 0.12.1-rc. Uus admin-lõpp-punkt `/_/audit/dsl` ja `dsl-lint --audit` kontrollivad deklaratsioonide korrektsust; CI nõuab nüüd mõlema puu puhul 0 viga ja 0 hoiatust. Deklaratsioonide `allowlist` täpsustati vastavalt tegelikule kasutusele (puuduvad päised/väljad lisati, kasutamata väljad eemaldati).
+
 ## 2026-10-07
 
 ### Väärteomenetluse märke eemaldamine tehnokaardilt

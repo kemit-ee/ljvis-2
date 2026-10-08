@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Form search export. Same filters as search/list but unpaged; returns the latest snapshot (all data fields) of every matching form of ONE form type. Requires form.export plus read permission for the chosen form type. Capped at 5000 rows."
   namespace: control-forms
@@ -49,6 +50,9 @@ declaration:
       - field: vrSanctionCode
         type: string
         description: "VR only - applied sanction code (exact match)"
+    headers:
+      - field: cookie
+        type: string
 
 getAuthority:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml); search/.guard.yml nõuab vähemalt ühte lugemisõigust

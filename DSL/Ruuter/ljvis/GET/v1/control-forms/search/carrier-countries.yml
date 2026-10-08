@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Vormiotsingu filtri 'Vedaja riik' valikud: riigikoodid, mille vedaja kohta on mõni kontroll tehtud."
   namespace: control-forms

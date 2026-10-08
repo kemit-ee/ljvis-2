@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "List audit logs. audit.read sees all organisations; only audit.read.local restricts to the caller's own organisation."

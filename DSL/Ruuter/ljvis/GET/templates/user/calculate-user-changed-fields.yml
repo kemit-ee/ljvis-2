@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Calculate changed fields for user including SQL lookup"
@@ -25,6 +26,7 @@ declaration:
         type: string
       - field: access_end
         type: string
+      - field: personalCode
 
 getUser:
   call: http.post

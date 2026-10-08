@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Create or revise an NU draft using identity data from its eligible source declaration."
   namespace: erru
@@ -20,8 +21,6 @@ declaration:
         type: string
       - field: requestPurpose
         type: string
-      - field: primaryElement
-        type: string
       - field: tmFirstName
         type: string
       - field: tmFamilyName
@@ -37,6 +36,9 @@ declaration:
       - field: certificateIssueCountry
         type: string
       - field: unfitStartDate
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Audit: single RSI message viewed (LJVIS2-147). Logged on EVERY open of the message, because the view may show the driver's personal data (name, licence number). The description carries the message identifier, the vehicle registration number, the driver name (if present) and the viewer's personal code."
   namespace: service
@@ -6,6 +7,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: business_case_id

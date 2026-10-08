@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -7,6 +8,10 @@ declaration:
     extraordinary_inspection_ta). Mõlemad kuupäevad kohustuslikud — piiramatu päring
     ei ole lubatud. Vt docs/xtee/03-erakorraline-yv-query.md.
   namespace: xroad
+  allowlist:
+    body:
+      - field: alates
+      - field: kuni
 
 # Samm 1: Alguskuupäev on kohustuslik (piiramatu päring pole lubatud)
 validateAlates:

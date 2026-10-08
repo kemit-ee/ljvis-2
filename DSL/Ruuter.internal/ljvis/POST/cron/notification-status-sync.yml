@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Taustatöö (analüüs 12-1 §5 /api/v1/internal/notifications/sync-status),

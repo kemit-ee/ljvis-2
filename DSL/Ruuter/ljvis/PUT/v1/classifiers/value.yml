@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Update a classifier value validity period"
@@ -20,6 +21,9 @@ declaration:
       - field: formTypes
         type: array
         description: "ADR-011: FORM_TYPE koodid, millele väärtus piiratakse; [] = kõik vormid; puudumisel piirangut ei muudeta"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja

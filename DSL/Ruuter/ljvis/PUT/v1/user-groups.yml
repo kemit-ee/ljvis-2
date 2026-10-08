@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Update user group name"
@@ -8,6 +9,9 @@ declaration:
       - field: id
         type: string
       - field: name
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 get_user_context:
