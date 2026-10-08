@@ -26,6 +26,7 @@ CONTRACTS = [
 check = "--check" in sys.argv
 
 HEADER = '''declaration:
+  internal: false
 
   version: "1.0"
   description: >-
