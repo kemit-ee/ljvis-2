@@ -308,6 +308,18 @@ onPkError:
             .replace(/"/g, "'")
             .substring(0, 500))
         : 'Postkast 2.0 ei ole kättesaadav või päring aegus'}
+  next: logPkFailure
+
+# Ruuteri logisse (kubectl/Argo): Postkasti tagasilükkamise põhjus koos vastuse
+# kehaga — muidu on näha ainult "status=400". failure_reason on 500 märgi
+# piiriga, siin kuni 2000.
+logPkFailure:
+  log: >-
+    Postkast 2.0 saatmine ebaõnnestus notification_key=${notification_key}
+    type=${notification_type} templateId=${original_template_id}:
+    ${(typeof pkRes !== 'undefined' && pkRes.response)
+      ? ('HTTP ' + pkRes.response.status + ' ' + JSON.stringify(pkRes.response.body)).substring(0, 2000)
+      : 'vastust ei saadud (transpordiviga või timeout)'}
   next: logXroadFailure
 
 logXroadFailure:

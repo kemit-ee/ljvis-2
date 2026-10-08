@@ -6,7 +6,7 @@
 
 ### Postkasti saatmise vea vastus X-tee logis
 
-- Kui Postkast lükkab teavituse saatmise tagasi, salvestatakse Postkasti vastuse olek ja sisu Haldus > X-tee logide kirje vastuseväljale (varem jäi see tühjaks), nii et ebaõnnestumise põhjus on logist nähtav.
+- Kui Postkast lükkab teavituse saatmise tagasi, salvestatakse Postkasti vastuse olek ja sisu Haldus > X-tee logide kirje vastuseväljale (varem jäi see tühjaks) ja kirjutatakse teenuse (Ruuteri) logisse, nii et ebaõnnestumise põhjus on logist nähtav.
 
 ## 2026-10-07
 
