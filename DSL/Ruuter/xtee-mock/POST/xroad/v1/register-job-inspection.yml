@@ -81,18 +81,6 @@ assignParams:
       (typeof counts === ''object'' && counts != null ? Number(counts.arv_analoogmeerik || 0) + Number(counts.arv_digitaalmeerik
       || 0) : Number(counts || 0)) > 0 ? ''passenger'' : ''cargo''; })()}'
     start_time: ${new Date().getTime()}
-  next: resolveViolations
-resolveViolations:
-  assign:
-    resolveResult:
-      response:
-        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
-        body: ${[{"total_count":0,"matched_count":0,"violations_json":"[]","unmatched_codes_json":"[]"}]}
-  next: checkViolationsResolved
-checkViolationsResolved:
-  switch:
-  - condition: ${(resolveResult.response.body[0] || {}).matched_count !== (resolveResult.response.body[0] || {}).total_count}
-    next: returnUnknownViolationCode
   next: insertInspection
 insertInspection:
   assign:
@@ -179,8 +167,4 @@ returnMissingRikkumised:
 returnMissingEttekirjutus:
   status: 400
   return: '{"error": "MISSING_PARAMETER", "message": "koostatatud_ettekirjutus is required"}'
-  next: end
-returnUnknownViolationCode:
-  status: 400
-  return: '${JSON.stringify({error: ''UNKNOWN_VIOLATION_CODE'', message: ''Tundmatu rikkumiskood'', codes: JSON.parse(resolveResult.response.body[0].unmatched_codes_json)})}'
   next: end

@@ -125,7 +125,23 @@ def main():
     for row in rows:
         assert row['acts'] == 1, f"Repeated requests created {row['acts']} acts for {row['source']}"
         op, expected = writes[(row['source'], row['external_id'])]
-        assert row['violations'] == expected['rikkumised'], 'Nested/repeated violations were lost'
+        if op.endswith('_v2'):
+            # V2 rikkumised (WSDL RikkumisteArv_v2) is now resolved against LABOUR_INSPECTION_VIOLATION
+            # before storage — violations is [{level1/level2/level3ValueKey, quantity}], not a raw echo.
+            raw = expected['rikkumised'].get('rikkumiste_arv', [])
+            items = raw if isinstance(raw, list) else [raw]
+            assert len(row['violations']) == len(items), 'Nested/repeated violations were lost'
+            for v, item in zip(row['violations'], items):
+                expected_key = json.loads(subprocess.check_output(command, input=f"""SELECT COALESCE(json_agg(classifier_value_key), '[]')
+                    FROM classifier.classifier_value
+                    WHERE classifier_key = (SELECT classifier_key FROM classifier.classifier WHERE code='LABOUR_INSPECTION_VIOLATION')
+                      AND code = {literal('TI_' + item['rikkumise_kood'])}
+                    ORDER BY created_at DESC LIMIT 1""", text=True))[0]
+                assert v['level2ValueKey'] == expected_key, f"Violation code {item['rikkumise_kood']} resolved to wrong classifier entry"
+                assert int(v['quantity']) == int(item.get('arv', 1)), 'Violation quantity lost'
+        else:
+            # V1 rikkumised (legacy fixed-field RikkumisteArvud) is untouched passthrough.
+            assert row['violations'] == expected['rikkumised'], 'V1 violations (fixed-field passthrough) were lost'
         for key, value in expected['kontrollimised'].items():
             assert row['controls_matrix'][key] == value, f'Counter lost: {key}'
         if op.endswith('_v2'):

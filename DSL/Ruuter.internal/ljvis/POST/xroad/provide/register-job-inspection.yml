@@ -82,28 +82,6 @@ assignParams:
     # Kontrolli liigi tuletus: kas soitjate veol on täidetud?
     inspection_type: "${(() => { var counts = (incoming.body.kontrollimised || {}).kontrollitud_soitjate_veol; return (typeof counts === 'object' && counts != null ? Number(counts.arv_analoogmeerik || 0) + Number(counts.arv_digitaalmeerik || 0) : Number(counts || 0)) > 0 ? 'passenger' : 'cargo'; })()}"
     start_time: "${new Date().getTime()}"
-  next: resolveViolations
-
-# Samm 7b: Vastenda rikkumised_loend TI koodid (nt "E5") LABOUR_INSPECTION_VIOLATION
-# classifier_value kirjetega, et violations salvestuks UI-le loetaval kujul
-# (level1/level2/level3ValueKey + quantity), mitte toore X-tee JSONB-na.
-resolveViolations:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/xroad/provide/resolve-labour-inspection-violations"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      rikkumisedJson: ${rikkumised_json}
-  result: resolveResult
-  next: checkViolationsResolved
-
-# Samm 7c: kui mõni rikkumiskood ei leidnud vastet, lükka päring tagasi (ei salvesta pooliku/vale mapinguga akti)
-checkViolationsResolved:
-  switch:
-    - condition: "${(resolveResult.response.body[0] || {}).matched_count !== (resolveResult.response.body[0] || {}).total_count}"
-      next: returnUnknownViolationCode
   next: insertInspection
 
 # Samm 8: Salvesta Resql-i kaudu (idempotentsus SQL-tasemel)
@@ -124,7 +102,7 @@ insertInspection:
       vehicleCount: ${soidukite_arv}
       prescriptionComposed: ${koostatatud_ettekirjutus}
       controlsMatrix: ${kontrollimised_json}
-      violations: ${resolveResult.response.body[0].violations_json}
+      violations: ${rikkumised_json}
       proceedingReferenceNumber: ${vaarteomenetlus}
       created_by: "xroad"
   result: insertResult
@@ -260,9 +238,4 @@ returnMissingRikkumised:
 returnMissingEttekirjutus:
   status: 400
   return: '{"error": "MISSING_PARAMETER", "message": "koostatatud_ettekirjutus is required"}'
-  next: end
-
-returnUnknownViolationCode:
-  status: 400
-  return: "${JSON.stringify({error: 'UNKNOWN_VIOLATION_CODE', message: 'Tundmatu rikkumiskood', codes: JSON.parse(resolveResult.response.body[0].unmatched_codes_json)})}"
   next: end

@@ -7,7 +7,7 @@
 ### Tööinspektsiooni rikkumiskoodide X-tee vastendus
 
 - Tööinspektsiooni kontrollvormi rikkumiste klassifikaatoris said varem ühise koodi (nt „E4") alla peidetud raskusastmed (SI/VSI) nüüd oma eraldi koodi (nt „E5", „E6"), vastavalt Tööinspektsiooni enda numeratsioonile.
-- X-tee teenused `RegisterJobInspection` (v1, v2, v3) vastendavad nüüd sisse tuleva rikkumiskoodi meie klassifikaatori kirjega enne kontrollvormi salvestamist, nii et vormi rikkumiste sektsioon kuvab andmed korrektselt; tundmatu rikkumiskood lükatakse tagasi (`400 UNKNOWN_VIOLATION_CODE`).
+- X-tee teenused `RegisterJobInspection_v2` ja `_v3` vastendavad nüüd sisse tuleva rikkumiskoodi (`rikkumiste_arv[].rikkumise_kood`) meie klassifikaatori kirjega enne kontrollvormi salvestamist, nii et vormi rikkumiste sektsioon kuvab andmed korrektselt; tundmatu rikkumiskood lükatakse tagasi (`400 UNKNOWN_VIOLATION_CODE`). V1 (vana fikseeritud nimega rikkumiste struktuur) jääb muutumatuks.
 
 ## 2026-10-08
 

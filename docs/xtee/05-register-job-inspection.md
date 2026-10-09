@@ -35,26 +35,8 @@ V1 leping vastab vanale WSDL-i `RegisterJobInspectionRequestType` struktuurile, 
 | `soidukite_arv` | `soidukite_arv` | integer | Ei | `vehicle_count` |
 | `koostatatud_ettekirjutus` | `koostatatud_ettekirjutus` | boolean | Jah | `prescription_composed` |
 | `kontrollimised` | `kontrollimised` | object | Jah | `controls_matrix` (JSONB) |
-| `rikkumised` | `rikkumised` | object | Jah | `violations` (JSONB, vastendatud — vt allpool) |
+| `rikkumised` | `rikkumised` | object | Jah | `violations` (JSONB) |
 | `vaarteomenetlus` | `vaarteomenetlus` | string | Ei | `proceeding_reference_number` |
-
-### 3.1. `rikkumised` struktuur
-
-```json
-{
-  "rikkumised_loend": [
-    { "kood": "E5", "kogus": 2 },
-    { "kood": "B1" }
-  ]
-}
-```
-
-| Väli | Tüüp | Kohustuslik | Kirjeldus |
-|------|------|-------------|-----------|
-| `rikkumised_loend[].kood` | string | Jah | Tööinspektsiooni täht+number rikkumiskood (nt `"E5"`, `"B1"`) — vastab `LABOUR_INSPECTION_VIOLATION` klassifikaatori `TI_<kood>` kirjele. |
-| `rikkumised_loend[].kogus` | integer | Ei (vaikimisi 1) | Rikkumise esinemiste arv. |
-
-LJVIS vastendab iga koodi `LABOUR_INSPECTION_VIOLATION` klassifikaatori kirjega (Resql `resolve-labour-inspection-violations`) ja salvestab `violations` veergu kuju `[{level1ValueKey, level2ValueKey, level3ValueKey?, quantity}]`, mida kontrollvormi UI oskab kuvada. Tundmatu kood lükatakse tagasi (vt punkt 6).
 
 ---
 
@@ -70,9 +52,6 @@ sequenceDiagram
     VS->>RI: POST /ljvis/xroad/provide/register-job-inspection
     RI->>RI: Valideeri kõik kohustuslikud väljad
     RI->>RI: Tuleta inspection_type (passenger/cargo)
-    RI->>RS: POST /xroad/provide/resolve-labour-inspection-violations
-    RS-->>RI: {total_count, matched_count, violations_json, unmatched_codes_json}
-    RI->>RI: Kui matched_count != total_count → 400 UNKNOWN_VIOLATION_CODE
     RI->>RS: POST /xroad/provide/register-job-inspection-insert
     RS->>DB: forms.register_external_labour_inspection('xroad-v1', …)
     DB-->>RS: {id, form_number, version, status, outcome}
@@ -112,7 +91,6 @@ LJVIS1 (RavenDB) uuendas sama ID-ga dokumenti igas staatuses. LJVIS2-s on muutmi
 | `kontrolli_kp` | Parsitav kuupäev | 400 INVALID_PARAMETER |
 | `kontrollimised` | Kohustuslik objekt | 400 MISSING_PARAMETER |
 | `rikkumised` | Kohustuslik objekt | 400 MISSING_PARAMETER |
-| `rikkumised_loend[].kood` | Peab vastama olemasolevale `LABOUR_INSPECTION_VIOLATION` koodile | 400 UNKNOWN_VIOLATION_CODE |
 
 ---
 
@@ -127,5 +105,3 @@ LJVIS1 (RavenDB) uuendas sama ID-ga dokumenti igas staatuses. LJVIS2-s on muutmi
 | T3 | `kontrollija` puudub | HTTP 400 |
 | T4 | Vale `kontrolli_kp` formaat | HTTP 400 |
 | T5 | `X-Road-Client` puudub | HTTP 400 |
-| T6 | `rikkumised_loend` sisaldab tundmatut koodi (nt `"Z99"`) | HTTP 400 `UNKNOWN_VIOLATION_CODE` |
-| T7 | `rikkumised_loend` sisaldab tuntud koode (nt `"E5"`, `"B1"`) | HTTP 200, vorm tekib `violations` väljaga korrektselt vastendatuna |

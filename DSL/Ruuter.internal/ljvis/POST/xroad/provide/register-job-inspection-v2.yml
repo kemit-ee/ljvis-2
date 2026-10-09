@@ -99,7 +99,7 @@ assignParams:
     xroad_subsystem: "${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}"
   next: resolveViolations
 
-# Vastenda rikkumised_loend TI koodid (nt "E5") LABOUR_INSPECTION_VIOLATION classifier_value
+# Vastenda rikkumised.rikkumiste_arv[].rikkumise_kood TI koodid (nt "E5") LABOUR_INSPECTION_VIOLATION classifier_value
 # kirjetega, et violations salvestuks UI-le loetaval kujul, mitte toore X-tee JSONB-na.
 resolveViolations:
   call: http.post

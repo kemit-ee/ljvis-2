@@ -10,15 +10,7 @@
     "kontrollitud_soitjate_veol": false
   },
   "rikkumised": {
-    "rikkumised_loend": [
-      {
-        "kood": "E5",
-        "kogus": 2
-      },
-      {
-        "kood": "B1"
-      }
-    ]
+    "rikkumised_loend": []
   },
   "vaarteomenetlus": "MOCK-VM-001"
 }

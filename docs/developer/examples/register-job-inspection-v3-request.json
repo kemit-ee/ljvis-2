@@ -10,13 +10,13 @@
     "kontrollitud_soitjate_veol": false
   },
   "rikkumised": {
-    "rikkumised_loend": [
+    "rikkumiste_arv": [
       {
-        "kood": "E5",
-        "kogus": 2
+        "rikkumise_kood": "E5",
+        "arv": 2
       },
       {
-        "kood": "B1"
+        "rikkumise_kood": "B1"
       }
     ]
   },

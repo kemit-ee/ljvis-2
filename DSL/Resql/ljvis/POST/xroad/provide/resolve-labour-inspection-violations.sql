@@ -1,8 +1,10 @@
 /*
-description: 'X-tee register-job-inspection (v1/v2/v3): vastendab rikkumised_loend (Tööinspektsiooni
-  täht+number koodid, nt "E5") LABOUR_INSPECTION_VIOLATION classifier_value kirjetega. Tagastab
-  resolve''itud violations massiivi (level1/level2/level3ValueKey + quantity) ning matched_count vs
-  total_count, et Ruuter saaks tuvastada tundmatu koodi enne kontrollvormi salvestamist.'
+description: 'X-tee register-job-inspection (v2/v3): vastendab rikkumised.rikkumiste_arv[].rikkumise_kood
+  (Tööinspektsiooni täht+number kood, nt "E5") LABOUR_INSPECTION_VIOLATION classifier_value kirjetega.
+  Väljanimed vastavad WSDL tüübile RikkumisteArv_v2 (docker/xtr-inbound/wsdl/ljvis/ljvis.wsdl).
+  V1 (vana RikkumisteArvud, fikseeritud nimega väljad) ei kasuta seda — vt register-job-inspection.yml.
+  Tagastab resolve''itud violations massiivi (level1/level2/level3ValueKey + quantity) ning
+  matched_count vs total_count, et Ruuter saaks tuvastada tundmatu koodi enne salvestamist.'
 namespace: xroad
 params:
   rikkumisedJson:
@@ -23,18 +25,25 @@ returns:
   nullable: true
 */
 
--- Iga rikkumised_loend element on kujul {"kood": "E5", "kogus": 2}. Kood vastendub meie level2
--- classifier_value'le koodiga 'TI_' || kood (vt 20261209110000 struktuuriparandus — iga
--- raskusaste on nüüd oma eraldi level2 kirje, mitte peidetud ühise koodi laps). level3 (ametlik
--- ERRU kood, kui eksisteerib — MI-tasemel seda pole) tuletatakse level2 ainsa lapse kaudu.
+-- rikkumiste_arv on XML-is unbounded-korduv element — SOAP->JSON teisendus annab ühe elemendi
+-- korral objekti, mitme korral massiivi (vt tests/xtr/verify.py xml_value()); REST v3 saadab
+-- alati massiivi. Normaliseerime mõlemad kujud massiiviks enne lahtipakkimist.
 WITH parsed AS (
     SELECT COALESCE(NULLIF(:rikkumisedJson, ''), '{}')::JSONB AS body
 ),
+normalized AS (
+    SELECT CASE jsonb_typeof(parsed.body -> 'rikkumiste_arv')
+             WHEN 'array' THEN parsed.body -> 'rikkumiste_arv'
+             WHEN 'object' THEN jsonb_build_array(parsed.body -> 'rikkumiste_arv')
+             ELSE '[]'::JSONB
+           END AS items
+    FROM parsed
+),
 input_items AS (
     SELECT
-        elem ->> 'kood' AS kood,
-        COALESCE((elem ->> 'kogus')::INTEGER, 1) AS kogus
-    FROM parsed, jsonb_array_elements(COALESCE(parsed.body -> 'rikkumised_loend', '[]'::JSONB)) AS elem
+        elem ->> 'rikkumise_kood' AS kood,
+        COALESCE((elem ->> 'arv')::INTEGER, 1) AS kogus
+    FROM normalized, jsonb_array_elements(normalized.items) AS elem
 ),
 clf AS (
     SELECT classifier_key
@@ -53,13 +62,16 @@ current_values AS (
 matched AS (
     SELECT
         ii.kogus,
-        level2.parent_key AS level1_key,
-        level2.classifier_value_key AS level2_key,
+        (SELECT c2.parent_key FROM current_values c2
+          WHERE c2.code = 'TI_' || ii.kood) AS level1_key,
+        (SELECT c2.classifier_value_key FROM current_values c2
+          WHERE c2.code = 'TI_' || ii.kood) AS level2_key,
         (SELECT c3.classifier_value_key FROM current_values c3
-          WHERE c3.parent_key = level2.classifier_value_key
+          WHERE c3.parent_key = (SELECT c2.classifier_value_key FROM current_values c2
+                                   WHERE c2.code = 'TI_' || ii.kood)
           LIMIT 1) AS level3_key
     FROM input_items ii
-    JOIN current_values level2 ON level2.code = 'TI_' || ii.kood
+    WHERE EXISTS (SELECT 1 FROM current_values c2 WHERE c2.code = 'TI_' || ii.kood)
 )
 SELECT
     (SELECT COUNT(*) FROM input_items) AS total_count,

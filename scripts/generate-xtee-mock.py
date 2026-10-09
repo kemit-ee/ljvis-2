@@ -134,9 +134,14 @@ usage_rows = [
 job = {"kontrollija": "Mock Kontrollija", "kontrolli_id": 900001, "kontrolli_kp": "2026-06-15",
        "tooandja_nimi": "Mockvedaja OÜ", "tooandja_reg_kood": "00000001", "soidukite_arv": 2,
        "koostatatud_ettekirjutus": False, "kontrollimised": {"kontrollitud_soitjate_veol": False},
-       "rikkumised": {"rikkumised_loend": [{"kood": "E5", "kogus": 2}, {"kood": "B1"}]}, "vaarteomenetlus": "MOCK-VM-001"}
+       # V1 kasutab vana fikseeritud nimega RikkumisteArvud tüüpi (v. ljvis.wsdl) — toores passthrough,
+       # koodi-vastendust ei rakendata. Tühi platsholder piisab mock-näiteks.
+       "rikkumised": {"rikkumised_loend": []}, "vaarteomenetlus": "MOCK-VM-001"}
 job_v3 = dict(job, soiduki_reg_nr="MOCK123", soiduki_vin="MOCKVIN0000000001", juhi_isikukood=SUCCESS_PERSON,
-              juhi_eesnimi="Test", juhi_perekonnanimi="Juht", menetluse_liik="uldmenetlus", menetluse_number="MOCK-001")
+              juhi_eesnimi="Test", juhi_perekonnanimi="Juht", menetluse_liik="uldmenetlus", menetluse_number="MOCK-001",
+              # V3 kasutab WSDL tüüpi RikkumisteArv_v2 (rikkumiste_arv[].rikkumise_kood/arv) — vastendub
+              # LABOUR_INSPECTION_VIOLATION klassifikaatori TI_<kood> kirjega.
+              rikkumised={"rikkumiste_arv": [{"rikkumise_kood": "E5", "arv": 2}, {"rikkumise_kood": "B1"}]})
 target_response = []
 for row in target_rows:
     item = {k: row[k] for k in ["licence_plate_no", "trailer_no", "inspection_id", "inspection_no",
