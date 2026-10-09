@@ -114,7 +114,7 @@ resolveViolations:
 
 checkViolationsResolved:
   switch:
-    - condition: "${(resolveResult.response.body[0] || {}).matched_count !== (resolveResult.response.body[0] || {}).total_count}"
+    - condition: "${(resolveResult.response.body[0] || {}).matchedCount !== (resolveResult.response.body[0] || {}).totalCount}"
       next: returnUnknownViolationCode
   next: insertInspection
 
@@ -135,7 +135,7 @@ insertInspection:
       vehicleCount: ${soidukite_arv}
       prescriptionComposed: ${koostatud_ettekirjutus}
       controlsMatrix: ${controls_matrix_with_vehicle}
-      violations: ${resolveResult.response.body[0].violations_json}
+      violations: ${resolveResult.response.body[0].violationsJson}
       punishedPersonIdCode: ${juhi_isikukood}
       punishedPersonFirstName: ${juhi_eesnimi}
       punishedPersonLastName: ${juhi_perekonnanimi}
@@ -291,7 +291,7 @@ returnMissingRikkumised:
 
 returnUnknownViolationCode:
   status: 400
-  return: "${JSON.stringify({error: 'UNKNOWN_VIOLATION_CODE', message: 'Tundmatu rikkumiskood', codes: JSON.parse(resolveResult.response.body[0].unmatched_codes_json)})}"
+  return: "${JSON.stringify({error: 'UNKNOWN_VIOLATION_CODE', message: 'Tundmatu rikkumiskood', codes: JSON.parse(resolveResult.response.body[0].unmatchedCodesJson)})}"
   next: end
 
 returnMissingEttekirjutus:
