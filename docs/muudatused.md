@@ -4,6 +4,10 @@
 
 ## 2026-10-08
 
+### Avalikustatud välisriigi kontrollkaardil märgitud teavitus saadetakse salvestamisel
+
+- Kui avalikustatud välisriigi kontrollkaardil märgitakse hiljem „Edasta teavitus tööinspektorile“ või „Teavita vedajat rikkumisest“ ja kaart salvestatakse, saadetakse teavitus kohe; kaarti ei pea uuesti kinnitama ja avalikustama. Teavitus saadetakse ainult linnukese märkimisel (juba märgitud linnukese korral tavaline salvestamine uut kirja ei saada). Salvestamata kaardi teavitused saadetakse endiselt avalikustamisel.
+
 ### Postkasti saatmise vea vastus X-tee logis
 
 - Kui Postkast lükkab teavituse saatmise tagasi, salvestatakse Postkasti vastuse olek ja sisu Haldus > X-tee logide kirje vastuseväljale (varem jäi see tühjaks) ja kirjutatakse teenuse (Ruuteri) logisse, nii et ebaõnnestumise põhjus on logist nähtav.
