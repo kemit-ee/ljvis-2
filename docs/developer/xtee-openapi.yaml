@@ -875,7 +875,10 @@ paths:
               kontrollimised: &id001
                 kontrollitud_soitjate_veol: false
               rikkumised: &id002
-                rikkumised_loend: []
+                rikkumised_loend:
+                - kood: E5
+                  kogus: 2
+                - kood: B1
               vaarteomenetlus: MOCK-VM-001
   /xroad/v1/register-job-inspection-v3:
     post:

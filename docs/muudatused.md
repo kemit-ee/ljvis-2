@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-09
+
+### Tööinspektsiooni rikkumiskoodide X-tee vastendus
+
+- Tööinspektsiooni kontrollvormi rikkumiste klassifikaatoris said varem ühise koodi (nt „E4") alla peidetud raskusastmed (SI/VSI) nüüd oma eraldi koodi (nt „E5", „E6"), vastavalt Tööinspektsiooni enda numeratsioonile.
+- X-tee teenused `RegisterJobInspection` (v1, v2, v3) vastendavad nüüd sisse tuleva rikkumiskoodi meie klassifikaatori kirjega enne kontrollvormi salvestamist, nii et vormi rikkumiste sektsioon kuvab andmed korrektselt; tundmatu rikkumiskood lükatakse tagasi (`400 UNKNOWN_VIOLATION_CODE`).
+
 ## 2026-10-08
 
 ### Postkasti saatmise vea vastus X-tee logis

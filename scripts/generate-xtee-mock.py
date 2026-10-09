@@ -134,7 +134,7 @@ usage_rows = [
 job = {"kontrollija": "Mock Kontrollija", "kontrolli_id": 900001, "kontrolli_kp": "2026-06-15",
        "tooandja_nimi": "Mockvedaja OÜ", "tooandja_reg_kood": "00000001", "soidukite_arv": 2,
        "koostatatud_ettekirjutus": False, "kontrollimised": {"kontrollitud_soitjate_veol": False},
-       "rikkumised": {"rikkumised_loend": []}, "vaarteomenetlus": "MOCK-VM-001"}
+       "rikkumised": {"rikkumised_loend": [{"kood": "E5", "kogus": 2}, {"kood": "B1"}]}, "vaarteomenetlus": "MOCK-VM-001"}
 job_v3 = dict(job, soiduki_reg_nr="MOCK123", soiduki_vin="MOCKVIN0000000001", juhi_isikukood=SUCCESS_PERSON,
               juhi_eesnimi="Test", juhi_perekonnanimi="Juht", menetluse_liik="uldmenetlus", menetluse_number="MOCK-001")
 target_response = []
@@ -230,6 +230,9 @@ for method, name, service, version, sample, success in operations:
             rows = expression("['900001','900002'].indexOf(String(items[current_index].inspection_id)) >= 0 ? [{confirmed:true}] : []")
         elif url.endswith("-insert"):
             rows = expression('[{"id":900001,"form_number":"MOCK-TI-001","skipped":false}]')
+        elif url.endswith("/resolve-labour-inspection-violations"):
+            # Sünteetiline: mock ei tunne klassifikaatori andmeid, teatab alati kõik koodid sobitatuks.
+            rows = expression('[{"total_count":0,"matched_count":0,"violations_json":"[]","unmatched_codes_json":"[]"}]')
         elif url.endswith("/find_usage"):
             # Like find_usage.sql via Resql (camelCase columns): total over all matches; an empty page is one row with logtime NULL.
             matches = "(incoming.headers['x-mock-scenario'] === 'empty' || user_code !== '" + SUCCESS_PERSON + "' ? [] : " + json.dumps(usage_rows) + ").filter(function(r) {return (!period_start || new Date(r.logtime) >= new Date(period_start)) && (!period_end || new Date(r.logtime) <= new Date(period_end));})"

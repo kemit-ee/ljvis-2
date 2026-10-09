@@ -34,6 +34,8 @@ V3 laiendab v1 lepingut sõiduki identifikaatorite (reg.nr, VIN), juhi isikukood
 | `menetluse_liik` | enum | `controls_matrix.v2_menetluse_liik` | lyhimenetlus/kiirmenetlus/uldmenetlus |
 | `menetluse_number` | string | `proceeding_reference_number` | valikuline |
 
+`rikkumised` struktuur ja koodi-vastendus on samad mis v1-s (vt [05-register-job-inspection.md §3.1](05-register-job-inspection.md#31-rikkumised-struktuur)) — tundmatu `rikkumised_loend[].kood` lükatakse tagasi `400 UNKNOWN_VIOLATION_CODE`.
+
 ---
 
 ## 4. V1 vs V3 erinevused
@@ -64,6 +66,9 @@ sequenceDiagram
     RI->>RI: Valideeri menetluse_liik (enum, valikuline)
     RI->>RI: Lisa 'v3-' prefiks kontrolli_id-le
     RI->>RI: Kogu controls_matrix (kontrollimised + v3 sõiduki andmed)
+    RI->>RS: POST /xroad/provide/resolve-labour-inspection-violations
+    RS-->>RI: {total_count, matched_count, violations_json, unmatched_codes_json}
+    RI->>RI: Kui matched_count != total_count → 400 UNKNOWN_VIOLATION_CODE
     RI->>RS: POST /xroad/provide/register-job-inspection-v3-insert
     RS->>DB: WITH existing ... INSERT WHERE NOT EXISTS
     DB-->>RS: {id, form_number, skipped}
@@ -82,6 +87,7 @@ sequenceDiagram
 | (v1 kohustuslikud) | samad mis v1-s | 400 |
 | `juhi_isikukood` | Kui esitatud: `/^[1-6][0-9]{10}$/` | 400 INVALID_PARAMETER |
 | `menetluse_liik` | Kui esitatud: enum | 400 INVALID_PARAMETER |
+| `rikkumised_loend[].kood` | Peab vastama olemasolevale `LABOUR_INSPECTION_VIOLATION` koodile | 400 UNKNOWN_VIOLATION_CODE |
 
 ---
 
@@ -100,3 +106,5 @@ sequenceDiagram
 | T7 | juhi_isikukood logis | Ei tohi olla selge tekstina |
 | T8 | Puuduv X-Road-Client header | HTTP 403 FORBIDDEN |
 | T9 | Vale X-Road-Client formaat | HTTP 403 FORBIDDEN |
+| T10 | `rikkumised_loend` sisaldab tundmatut koodi (nt `"Z99"`) | HTTP 400 `UNKNOWN_VIOLATION_CODE` |
+| T11 | `rikkumised_loend` sisaldab tuntud koode (nt `"E5"`, `"B1"`) | HTTP 200, vorm tekib `violations` väljaga korrektselt vastendatuna |

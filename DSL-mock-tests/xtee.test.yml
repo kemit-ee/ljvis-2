@@ -326,7 +326,10 @@ tests:
       kontrollimised: &id006
         kontrollitud_soitjate_veol: false
       rikkumised: &id007
-        rikkumised_loend: []
+        rikkumised_loend:
+        - kood: E5
+          kogus: 2
+        - kood: B1
       vaarteomenetlus: MOCK-VM-001
   expect:
     status: 200

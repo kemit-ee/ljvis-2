@@ -112,6 +112,18 @@ assignParams:
     start_time: ${new Date().getTime()}
     xroad_member_code: ${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}
     xroad_subsystem: ${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}
+  next: resolveViolations
+resolveViolations:
+  assign:
+    resolveResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: ${[{"total_count":0,"matched_count":0,"violations_json":"[]","unmatched_codes_json":"[]"}]}
+  next: checkViolationsResolved
+checkViolationsResolved:
+  switch:
+  - condition: ${(resolveResult.response.body[0] || {}).matched_count !== (resolveResult.response.body[0] || {}).total_count}
+    next: returnUnknownViolationCode
   next: insertInspection
 insertInspection:
   assign:
@@ -186,6 +198,10 @@ returnMissingTooandjaRegKood:
 returnMissingKontrollimised:
   status: 400
   return: '{"error": "MISSING_PARAMETER", "message": "kontrollimised is required"}'
+  next: end
+returnUnknownViolationCode:
+  status: 400
+  return: '${JSON.stringify({error: ''UNKNOWN_VIOLATION_CODE'', message: ''Tundmatu rikkumiskood'', codes: JSON.parse(resolveResult.response.body[0].unmatched_codes_json)})}'
   next: end
 returnMissingRikkumised:
   status: 400
