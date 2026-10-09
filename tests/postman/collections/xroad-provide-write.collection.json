@@ -666,6 +666,97 @@
               }
             }
           ]
+        },
+        {
+          "name": "Tundmatu rikkumiskood → 400 UNKNOWN_VIOLATION_CODE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "{{xroad_client}}"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "register-job-inspection"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"CI-BADCODE-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {\"rikkumised_loend\": [{\"kood\": \"ZZ99\"}]}, \"vaarteomenetlus\": \"\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('error is UNKNOWN_VIOLATION_CODE', () => pm.expect(body.error).to.eql('UNKNOWN_VIOLATION_CODE'));",
+                  "pm.test('lists the unknown code', () => pm.expect(body.codes).to.include('ZZ99'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tuntud rikkumiskoodid (E5, B1) → 200, violations vastendatud",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "{{xroad_client}}"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "register-job-inspection"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"CI-GOODCODE-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {\"rikkumised_loend\": [{\"kood\": \"E5\", \"kogus\": 2}, {\"kood\": \"B1\"}]}, \"vaarteomenetlus\": \"\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('message is Success', () => pm.expect(body.message).to.eql('Success'));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -1043,6 +1134,97 @@
               "script": {
                 "exec": [
                   "pm.test('Returns 200 (v3 prefiks eristab v1-st)', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tundmatu rikkumiskood → 400 UNKNOWN_VIOLATION_CODE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "{{xroad_client}}"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v3",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "register-job-inspection-v3"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"CI-V3-BADCODE-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {\"rikkumised_loend\": [{\"kood\": \"ZZ99\"}]}, \"vaarteomenetlus\": \"\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('error is UNKNOWN_VIOLATION_CODE', () => pm.expect(body.error).to.eql('UNKNOWN_VIOLATION_CODE'));",
+                  "pm.test('lists the unknown code', () => pm.expect(body.codes).to.include('ZZ99'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tuntud rikkumiskoodid (E5, B1) → 200, violations vastendatud",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Road-Client",
+                "value": "{{xroad_client}}"
+              }
+            ],
+            "url": {
+              "raw": "{{xroad_internal_url}}/ljvis/xroad/provide/register-job-inspection-v3",
+              "host": [
+                "{{xroad_internal_url}}"
+              ],
+              "path": [
+                "ljvis",
+                "xroad",
+                "provide",
+                "register-job-inspection-v3"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"kontrollija\": \"CI Inspektor\", \"kontrolli_id\": \"CI-V3-GOODCODE-001\", \"kontrolli_kp\": \"2026-06-15\", \"tooandja_nimi\": \"OÜ CI Test\", \"tooandja_reg_kood\": \"12345678\", \"soidukite_arv\": \"1\", \"koostatatud_ettekirjutus\": \"false\", \"kontrollimised\": {\"kontrollitud_soitjate_veol\": true, \"kontrollitud_kaubaveol\": false}, \"rikkumised\": {\"rikkumised_loend\": [{\"kood\": \"E5\", \"kogus\": 2}, {\"kood\": \"B1\"}]}, \"vaarteomenetlus\": \"\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+                  "var raw = pm.response.json();",
+                  "var body = (raw && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+                  "pm.test('message is Success', () => pm.expect(body.message).to.eql('Success'));"
                 ]
               }
             }
