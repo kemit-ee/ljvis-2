@@ -1,0 +1,120 @@
+declaration:
+  internal: false
+
+  version: "1.0"
+  description: >-
+    Jõudlustestide andmete öine koristus (ajutine). Märgib `deleted`-ks need koondvormid,
+    mille registrinumber algab `PERF` ja mille viimase snapshot'i lõi testkasutaja
+    (k6 seemendus `PERF0000…` ja kirjutusvoog `PERFW…`, vt tests/performance/).
+    Kustutamine on append-only tombstone (nagu tavaline vormi kustutamine); ajalugu ja
+    audit jäävad alles. Pealüliti puudub: töö jookseb iga kord; kaitseks on range valik
+    (registrinumber algab `PERF` JA viimase snapshot'i looja on testkasutaja).
+    ETTEPANEK: eemalda see voog ja CronManageri töö, kui jõudlustestide andmeid enam ei looda.
+    Parameetrid: personalCode (testkasutaja isikukood), batch (1-5000,
+    vaikimisi 1000). Üks logirida jooksu kohta (service_code perf.cleanup.cron).
+  namespace: cron
+  allowlist:
+    params:
+      - field: personalCode
+        required: false
+      - field: batch
+        required: false
+
+parseParams:
+  assign:
+    creator: "${String(incoming.params.personalCode ?? '60001019906').trim()}"
+    batch_size: "${Number(String(incoming.params.batch ?? '1000').trim())}"
+  next: checkEnabled
+
+checkEnabled:
+  switch:
+    - condition: "${!/^[0-9]{11}$/.test(creator)}"
+      next: returnBadCreator
+    - condition: "${!Number.isInteger(batch_size) || batch_size < 1 || batch_size > 5000}"
+      next: returnBadBatch
+  next: tombstone
+
+tombstone:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/perf-cleanup/tombstone"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      created_by: "${creator}"
+      reg_prefix: "PERF"
+      batch: "${batch_size}"
+  result: tombRes
+  next: checkTombstone
+
+checkTombstone:
+  switch:
+    - condition: "${tombRes.response == null || tombRes.response.status < 200 || tombRes.response.status >= 300 || !Array.isArray(tombRes.response.body)}"
+      next: logError
+  next: assignCount
+
+assignCount:
+  assign:
+    marked: "${(tombRes.response.body || []).length}"
+  next: logDone
+
+logDone:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      service_code: "perf.cleanup.cron"
+      request_xml: "${JSON.stringify({ regPrefix: 'PERF', batch: batch_size })}"
+      response_xml: "${JSON.stringify({ marked_deleted: Number(marked) })}"
+      duration_ms: 0
+      success: true
+      error_message: ""
+      person_identifier: ""
+      source_type: "perf_cleanup"
+      source_record_id: "0"
+  result: logRes
+  next: returnDone
+
+returnDone:
+  status: 200
+  return: "${({ markedDeleted: Number(marked), moreMayRemain: Number(marked) >= batch_size })}"
+  next: end
+
+logError:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      service_code: "perf.cleanup.cron"
+      request_xml: "${JSON.stringify({ regPrefix: 'PERF', batch: batch_size })}"
+      response_xml: ""
+      duration_ms: 0
+      success: false
+      error_message: "tombstone päring ebaõnnestus"
+      person_identifier: ""
+      source_type: "perf_cleanup"
+      source_record_id: "0"
+  result: logRes
+  next: returnError
+
+returnError:
+  status: 500
+  return: "${({ error: 'tombstone failed' })}"
+  next: end
+
+returnBadCreator:
+  status: 400
+  return: "${({ error: 'personalCode must be 11 digits' })}"
+  next: end
+
+returnBadBatch:
+  status: 400
+  return: "${({ error: 'batch must be 1-5000' })}"
+  next: end

@@ -72,6 +72,20 @@ perioodiliseks käivituseks.
 - **Kasutajad:** `dev-login` (vt `tests/postman/ci-stack-environment.json`), saadaval ainult CI/dev/test keskkonnas.
   Tootmise vastu jõudlustesti ei tehta.
 
+## 5a. Testandmete koristus
+
+Testid loovad andmeid (koondvormid registrinumbriga `PERF…`). Baas on append-only, seega koristus on
+rakenduse tavaline kustutamine: lisatakse staatusega `deleted` snapshot, vorm kaob otsingust ja nimekirjadest;
+ajalugu, audit ja riskiskoori ajalugu jäävad alles (ADR-010 võib need hiljem arhiivi viia).
+
+- **Käsitsi:** `python3 tests/performance/cleanup.py --base-url <url>` (kuivjooks; `--apply` kustutab). Vajab `dev-login`i.
+- **Automaatselt:** CronManager töö `cleanup_perf_test_forms` (`DSL/CronManager/cleanup-perf-test-forms.yaml`)
+  käivitub iga päev 00:00 ja kutsub sisemist voogu `cron/cleanup-perf-test-forms` (ei vaja sisselogimist). Voog märgib
+  `deleted`-ks ainult vormid, mille **viimase snapshot'i lõi testkasutaja** (`60001019906`) ja mille registrinumber
+  **algab** `PERF`; kuni 1000 vormi jooksu kohta.
+- **Ajutine:** pealüliti puudub, töö jookseb igas keskkonnas, kuhu see deploy'takse; kaitseks on range valik (prefiks + looja). Eemalda CronManageri fail ja Ruuteri voog, kui testandmeid enam ei looda.
+- Kontrollitud lokaalses CI-pinus: 5 `PERF` vormi märgiti kustutatuks, `XPERF9` ja `REAL001` jäid puutumata, kordusjooks on tühi.
+
 ## 6. Käivitamine
 
 ```bash
