@@ -15,6 +15,7 @@ callNysiisSidecar:
   args:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
       type: json
     body:
       name: ${(incoming.body.name || '').trim()}

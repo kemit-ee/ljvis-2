@@ -3,7 +3,8 @@
 const express = require('express');
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { randomUUID } = require('node:crypto');
+const crypto = require('node:crypto');
+const { randomUUID } = crypto;
 
 // ── Required env vars ─────────────────────────────────────────────────────────
 const REQUIRED_ENV = ['S3_ENDPOINT', 'S3_BUCKET_NAME', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'];
@@ -161,6 +162,25 @@ function sanitizeFilename(raw, maxLen) {
 // ── Express app ───────────────────────────────────────────────────────────────
 const jsonLimit = `${Math.ceil(MAX_BYTES / (1024 * 1024) * 1.4 + 2)}mb`; // base64 overhead ~1.37x + headroom
 const app = express();
+
+// Inbound auth (#520): every route except /health needs `Authorization: Bearer <S3_PROXY_API_KEY>`.
+// Fail closed — the service refuses to start without a key.
+const API_KEY = process.env.S3_PROXY_API_KEY || '';
+if (!API_KEY) {
+  console.error('[s3-proxy] S3_PROXY_API_KEY must be set');
+  process.exit(1);
+}
+const EXPECTED_AUTH = Buffer.from(`Bearer ${API_KEY}`);
+app.use((req, res, next) => {
+  if (req.path === '/health') return next();
+  const given = Buffer.from(req.get('authorization') || '');
+  // timingSafeEqual needs equal lengths; only the key length can leak through the early exit.
+  if (given.length !== EXPECTED_AUTH.length || !crypto.timingSafeEqual(given, EXPECTED_AUTH)) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+});
+
 app.use(express.json({ limit: jsonLimit }));
 
 /**

@@ -9,6 +9,11 @@ from render import TEMPLATES, render_pdf
 
 MAX_BODY = 2 * 1024 * 1024
 
+# Fail closed (#520): without an API key every non-health request would be anonymous.
+API_KEY = os.environ.get('PDF_CREATOR_API_KEY', '')
+if not API_KEY:
+    raise RuntimeError('PDF_CREATOR_API_KEY must be set')
+
 
 def validate_tree(value, depth=0):
     if depth > 16: raise ValueError('JSON nesting too deep')
@@ -28,8 +33,7 @@ def application(environ, start_response):
         return [body]
     path=environ.get('PATH_INFO','');method=environ.get('REQUEST_METHOD','GET')
     if path=='/health' and method=='GET':return reply(200,{'status':'ok'})
-    token=os.environ.get('PDF_CREATOR_API_KEY','')
-    if token and not hmac.compare_digest(environ.get('HTTP_AUTHORIZATION',''), 'Bearer '+token):
+    if not hmac.compare_digest(environ.get('HTTP_AUTHORIZATION',''), 'Bearer '+API_KEY):
         return reply(401,{'error':'unauthorized'})
     if path=='/v1/templates' and method=='GET':return reply(200,{'templates':list(TEMPLATES),'modes':['blank','filled'],'outputs':['pdf','base64']})
     if path!='/v1/render':return reply(404,{'error':'not_found'})

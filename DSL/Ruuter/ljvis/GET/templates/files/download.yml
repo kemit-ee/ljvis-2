@@ -79,6 +79,7 @@ getPresignedUrl:
   args:
     url: "[#S3_PROXY]/presign"
     headers:
+      Authorization: "Bearer [#S3_PROXY_API_KEY]"
       type: json
     query:
       key: ${dbResult.response.body[0].s3Key || dbResult.response.body[0].s3_key}
