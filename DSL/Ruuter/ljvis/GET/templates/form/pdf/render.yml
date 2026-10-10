@@ -52,6 +52,7 @@ renderPdf:
     url: "[#LJVIS_PDF_CREATOR]/v1/render"
     headers:
       type: json
+      Authorization: "Bearer [#PDF_CREATOR_API_KEY]"
     body:
       templateCode: ${incoming.body.templateCode}
       blank: ${incoming.body.blank}

@@ -3,6 +3,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
   NYSIIS_ENDPOINT: '{MOCK}/nysiis'
+  NYSIIS_API_KEY: test-key
   ERRU_NU_ENDPOINT: http://127.0.0.1:1/unreachable
 tests:
 - name: connection refused persists terminal failure

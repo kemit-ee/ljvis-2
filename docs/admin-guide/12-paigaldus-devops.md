@@ -133,8 +133,11 @@ Fail renderdatakse mallist `scripts/constants.ini.tmpl`, kirjutatakse **ühe Sec
 | `LJVIS_DMAPPER_HBS` | `http://data-mapper:3005/ljvis` | Ilma vana `/hbs/` osata |
 | `LJVIS_TIM` | `http://tim:8085` | Fikseeritud |
 | `LJVIS_PDF_CREATOR` | `http://pdf-creator:3020` | Fikseeritud |
+| `PDF_CREATOR_API_KEY` | seed-ssm.env | Bearer-võti pdf-creator'ile; **peab ühtima** SSM-i `services/pdf-creator-api-key` väärtusega |
 | `LJVIS_PROJECT_LAYER` | `ljvis` | Fikseeritud |
 | `S3_PROXY` | `http://s3-proxy:3010` | Fikseeritud |
+| `S3_PROXY_API_KEY` | seed-ssm.env | Bearer-võti s3-proxy'le; **peab ühtima** SSM-i `services/s3-proxy-api-key` väärtusega |
+| `NYSIIS_ENDPOINT`, `NYSIIS_API_KEY` | `http://nysiis:8080/nysiis`; võti seed-ssm.env | Bearer-võti nysiis'ele; **peab ühtima** SSM-i `services/nysiis-api-key` väärtusega |
 | `DOMAIN` | `LJVIS2_DOMAIN` | Keskkonna avalik hostinimi |
 | `AR_USERNAME`, `AR_PASSWORD` | seed-ssm.env | Äriregistri teenuse andmed (saladus) |
 | `ERRU_CTUD_ENDPOINT`, `ERRU_CGR_ENDPOINT`, `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/request/BTSHTTPReceive.dll` |
@@ -153,7 +156,6 @@ Koodirepo DSL-id viitavad järgmistele muutujatele, mida `scripts/constants.ini.
 |---------|---------|---------------------|
 | `PK_SENDING_OPERATIONS_ENDPOINT` | Postkasti saatmisstaatuse kontroll (`check-status`, `notification-status-sync` cron) | `http://xtr:8080/postkast/sending-operations` |
 | `LJVIS_RESQL_ARHIIV` | Kustutatud vormide arhiiv (ADR-010) | `http://resql-ljvis:8090/arhiiv` (kui arhiiv on samas resql-is) |
-| `NYSIIS_ENDPOINT` | ERRU NYSIIS otsinguvõtmed | `http://nysiis:8080/nysiis` |
 | `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, CronManager, `erru-xml-adapter`) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` env-muutujas `INTERNAL_COMMUNICATION_KEY` ja CronManager'i mountitud `constants.ini`-s | Juhuslik, `openssl rand -hex 32`; **saladus** |
 | `ETOIMIK_SUBSYSTEM_CODE`, `ETOIMIK_SERVICE_VERSION` | eToimiku X-tee päringud | `etoimik-arendus` (ee-dev) või `etoimik` (ee-test/prod); versioon `v6` |
 | `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev/CI-s mock |
@@ -185,6 +187,7 @@ SSM asub **andmekontos** (mitte klastri kontos); klastri External Secrets Operat
 | `tim/session-encryption-key` | `seed-ssm.sh` | TIM; täpselt 64 hex-märki; vahetamine logib kõik välja |
 | `audit/salt` | `seed-ssm.sh` | Liquibase auditiahela räsid. **Püsiv — ära vaheta kunagi** (kõik varasemad isikukoodi räsid muutuvad võrreldamatuks) |
 | `cronmanager/admin-token` | `seed-ssm.sh` | CronManager admin API |
+| `services/nysiis-api-key`, `services/s3-proxy-api-key`, `services/pdf-creator-api-key` | `seed-ssm.sh` | Vastav teenus (ExternalSecret `nysiis-secret`, `s3-proxy-secret`, `pdf-creator-secret`); sama väärtus on `constants.ini`-s |
 | `xtr/keystore`, `xtr/keystore-password`, `xtr/server-ca` | kopeeritud (jagatud X-tee klient) | XTR mTLS. `xtr/server-ca` → `xtr.yaml` `security_server.trust_ca_path`: **täpselt üks sertifikaat** (turvaserveri oma või selle CA); XTR loeb ainult esimese, bundle'iga TLS ebaõnnestub |
 | `stesta-gateway/tls.{crt,key}` | `seed-ssm.sh` | sTESTA lüüs |
 | `constants.ini` | `seed-ssm.sh` | `ljvis2-constants` Secret |
@@ -199,6 +202,36 @@ cp scripts/seed-ssm.env.example scripts/seed-ssm.env   # täida väärtused; fai
 ```
 
 `seed-ssm.sh` kontrollib enne kirjutamist AWS konto numbrit. **Jagatud parameetreid kopeeri ainult `copy-ssm-params.py` abil** (`./copy-ssm-params.py dev test`), mitte shell'i silmusega: AWS CLI `--output text` lisab lõppu reavahetuse, mis rikub PKCS12 keystore'i ja paroolid vaikselt.
+
+## Siseteenuste API-võtmed (nysiis, s3-proxy, pdf-creator)
+
+Kolm siseteenust nõuavad päringus `Authorization: Bearer <võti>`. Võtit saadab Ruuter (ja `ruuter-internal`) `constants.ini` väärtusest; teenus loeb sama võtme oma keskkonnamuutujast.
+
+| Teenus | Muutuja (teenuses ja `constants.ini`-s) | SSM-parameeter | ExternalSecret |
+|--------|-----------------------------------------|----------------|----------------|
+| `nysiis` | `NYSIIS_API_KEY` | `services/nysiis-api-key` | `nysiis-secret` |
+| `s3-proxy` | `S3_PROXY_API_KEY` | `services/s3-proxy-api-key` | `s3-proxy-secret` (lisaks S3 võtmetele) |
+| `pdf-creator` | `PDF_CREATOR_API_KEY` | `services/pdf-creator-api-key` | `pdf-creator-secret` |
+
+- Iga teenuse jaoks eraldi juhuslik väärtus: `openssl rand -hex 32`. Lisa need `scripts/seed-ssm.env` faili (`NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY`); `seed-ssm.sh` kirjutab iga väärtuse nii SSM-i parameetrisse kui `constants.ini`-sse, seega kaks koopiat ei lähe lahku.
+- `/health` jääb autentimata (probe'id). Kui teenuse võti on tühi, ei kontrollita midagi (ainult kohalik arendus); klastris peab võti alati olema seatud.
+- Võtmeta või vale võtmega päring annab **401 `unauthorized`**. Ruuteri logis näeb seda kui `nysiis_unavailable`, ebaõnnestunud PDF-i/manuse toiming või ERRU NYSIIS-viga.
+
+**Väljalaskejärjekord** (muidu on lühiajaline 401 voog):
+
+1. Kirjuta võtmed SSM-i: `./scripts/seed-ssm.sh --dry-run`, siis päris käivitus, siis `--verify` (peab näitama `services/` all kolme parameetrit ja uut `constants.ini`-t).
+2. Merge'i devops-repo muudatus (ExternalSecret'id + chart'ide `envVarsSecret`) ja oota ExternalSecret'ide sünkroniseerimist (`kubectl -n ljvis2-<env> get externalsecret`; kõik `SecretSynced`).
+3. Tee `ruuter` ja `ruuter-internal` Deploymentile rollout restart, et uus `constants.ini` laeks.
+4. Lase välja koodirepo uus väljalase (teenuste image'id, mis võtit kontrollivad).
+
+Kontroll pärast väljalaset (võtmeta päring peab andma 401, õige võtmega 200):
+
+```bash
+kubectl -n ljvis2-<env> exec deploy/ruuter -- sh -c 'wget -S -qO- --post-data="{\"name\":\"Mart\"}" http://nysiis:8080/nysiis 2>&1 | head -1'
+kubectl -n ljvis2-<env> get secret nysiis-secret pdf-creator-secret s3-proxy-secret
+```
+
+**Võtme vahetamine:** kirjuta uus väärtus seed-ssm.env-i ja käivita `seed-ssm.sh` uuesti, oota ExternalSecret'i sünkroniseerimist, tee `ruuter` ja `ruuter-internal` restart. Teenuse pod taaskäivitub automaatselt (Reloader). Vahepeal tulevad lühiajalised 401-d.
 
 ## Uue keskkonna lisamine
 

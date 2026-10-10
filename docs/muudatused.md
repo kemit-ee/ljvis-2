@@ -110,6 +110,11 @@
 - `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
 - Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
 
+### Siseteenuste (nysiis, s3-proxy, pdf-creator) päringud nõuavad API-võtit
+
+- Teenused nysiis, s3-proxy ja pdf-creator nõuavad nüüd päringus `Authorization: Bearer <võti>` (`NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY`); Ruuter lisab selle ise. Võtmeta päring annab 401. `/health` jääb avatuks.
+- Kasutajale muutust pole. Administraatorile: võtmed tuleb enne väljalaset SSM-i kirjutada, vt admin juhendi peatükk „Siseteenuste API-võtmed“.
+
 ### Kasutajaliides ei saada serveripoolselt tuletatavaid välju
 
 Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise sessioonist. Seda hoiab nii CI reegel R8.

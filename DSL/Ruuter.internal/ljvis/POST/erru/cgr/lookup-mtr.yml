@@ -63,6 +63,7 @@ computeNysiisFirst:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
       type: json
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
     body:
       name: ${first_name}
       useFullName: false
@@ -86,6 +87,7 @@ computeNysiisLast:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
       type: json
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
     body:
       name: ${last_name}
       useFullName: true

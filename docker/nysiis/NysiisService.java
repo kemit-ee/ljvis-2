@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +26,19 @@ public class NysiisService {
         Pattern.compile("\"name\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
     private static final Pattern USE_FULL_NAME_FIELD =
         Pattern.compile("\"useFullName\"\\s*:\\s*(true|false)");
+
+    // Ruuter sends `Authorization: Bearer <NYSIIS_API_KEY>`. Empty key = no check (local dev
+    // only); /health stays open for probes.
+    private static final String API_KEY = System.getenv().getOrDefault("NYSIIS_API_KEY", "");
+
+    static boolean authorized(HttpExchange exchange) {
+        if (API_KEY.isEmpty()) return true;
+        String header = exchange.getRequestHeaders().getFirst("Authorization");
+        if (header == null) return false;
+        return MessageDigest.isEqual(
+            header.getBytes(StandardCharsets.UTF_8),
+            ("Bearer " + API_KEY).getBytes(StandardCharsets.UTF_8));
+    }
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"));
@@ -48,6 +62,10 @@ public class NysiisService {
 
         @Override
         public void handle(HttpExchange exchange) throws IOException {
+            if (!authorized(exchange)) {
+                writeResponse(exchange, 401, "{\"error\":\"unauthorized\"}");
+                return;
+            }
             if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
                 writeResponse(exchange, 405, "{\"error\":\"method_not_allowed\"}");
                 return;
