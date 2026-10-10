@@ -116,7 +116,7 @@ def v1_request(kontrolli_id, goods=2, violation=0):
               '<vaarteomenetlus>Ei</vaarteomenetlus>')
 
 
-def v2_request(kontrolli_id, code='CODE_A', count=1, reference=None):
+def v2_request(kontrolli_id, code='B1', count=1, reference=None):
     proceeding = ''
     if reference:
         proceeding = (f'<vaarteomenetlus><viitenumber>{reference}</viitenumber><karistatud_isiku_kood>39001010001'
@@ -214,7 +214,7 @@ def concurrency(client):
               f'{operation}: concurrent identical first requests created exactly one act and one snapshot')
 
     external_id = f'PAR-CHG-{RUN}'
-    payloads = [v2_request(external_id, code=f'CODE_{n}', count=n + 1) for n in range(8)]
+    payloads = [v2_request(external_id, code=['B1','B2','B3','B4','B5','B6','B7','B8'][n], count=n + 1) for n in range(8)]
     results = parallel(lambda body: client.soap('RegisterJobInspection_v2', body), payloads, workers=8)
     successes = [r for r in results if r[1]]
     check(len(successes) == 1 and all('HTTP 409' in r[3] for r in results if not r[1]),
@@ -255,7 +255,7 @@ def archived(client, db):
     db.run(f"DELETE FROM forms.labour_inspection_form WHERE labour_inspection_form_key = {int(act['key'])};")
     _, ok, _, _ = client.soap('RegisterJobInspection_v2', first)
     check(ok and client.forms_with_external_id(external_id) == 0, 'archive: exact repeat of a purged act is Success and recreates nothing')
-    status, ok, fault, text = client.soap('RegisterJobInspection_v2', v2_request(external_id, code='CODE_X'))
+    status, ok, fault, text = client.soap('RegisterJobInspection_v2', v2_request(external_id, code='C1'))
     check(not ok and '<faultcode>SOAP-ENV:Client</faultcode>' in text and 'archived' in text,
           'archive: changed repeat of a purged act is a Client SOAP Fault (409, archived), not a 500')
     check(client.forms_with_external_id(external_id) == 0 and client.act('xroad-v2', external_id)['key'] == act['key'],
@@ -336,8 +336,8 @@ def main():
     db = Db(command)
     client = Client(args, db)
     lifecycle(client, 'RegisterJobInspection_v2', 'xroad-v2', f'RPT-V2-{RUN}',
-              v2_request(f'RPT-V2-{RUN}'), v2_request(f'RPT-V2-{RUN}', code='CODE_B', count=3, reference='M-1'),
-              v2_request(f'RPT-V2-{RUN}', code='CODE_C', count=4))
+              v2_request(f'RPT-V2-{RUN}'), v2_request(f'RPT-V2-{RUN}', code='C2', count=3, reference='M-1'),
+              v2_request(f'RPT-V2-{RUN}', code='C3', count=4))
     v1_id = str(1400000000 + int(RUN) % 100000000)
     lifecycle(client, 'RegisterJobInspection', 'xroad-v1', v1_id,
               v1_request(v1_id), v1_request(v1_id, violation=2), v1_request(v1_id, violation=5))

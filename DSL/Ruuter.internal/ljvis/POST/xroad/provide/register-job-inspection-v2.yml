@@ -97,6 +97,25 @@ assignParams:
     start_time: "${new Date().getTime()}"
     xroad_member_code: "${(incoming.headers['x-road-client'] || '').split('/')[2] || ''}"
     xroad_subsystem: "${(incoming.headers['x-road-client'] || '').split('/')[3] || ''}"
+  next: resolveViolations
+
+# Vastenda rikkumised.rikkumiste_arv[].rikkumise_kood TI koodid (nt "E5") LABOUR_INSPECTION_VIOLATION classifier_value
+# kirjetega, et violations salvestuks UI-le loetaval kujul, mitte toore X-tee JSONB-na.
+resolveViolations:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/provide/resolve-labour-inspection-violations"
+    headers:
+      type: json
+    body:
+      rikkumisedJson: ${rikkumised_json}
+  result: resolveResult
+  next: checkViolationsResolved
+
+checkViolationsResolved:
+  switch:
+    - condition: "${(resolveResult.response.body[0] || {}).matchedCount !== (resolveResult.response.body[0] || {}).totalCount}"
+      next: returnUnknownViolationCode
   next: insertInspection
 
 # Samm 9: Salvesta Resql-i kaudu
@@ -116,7 +135,7 @@ insertInspection:
       vehicleCount: ${soidukite_arv}
       prescriptionComposed: ${koostatud_ettekirjutus}
       controlsMatrix: ${controls_matrix_with_vehicle}
-      violations: ${rikkumised_json}
+      violations: ${resolveResult.response.body[0].violationsJson}
       punishedPersonIdCode: ${juhi_isikukood}
       punishedPersonFirstName: ${juhi_eesnimi}
       punishedPersonLastName: ${juhi_perekonnanimi}
@@ -268,6 +287,11 @@ returnMissingKontrollimised:
 returnMissingRikkumised:
   status: 400
   return: '{"error": "MISSING_PARAMETER", "message": "rikkumised is required"}'
+  next: end
+
+returnUnknownViolationCode:
+  status: 400
+  return: "${JSON.stringify({error: 'UNKNOWN_VIOLATION_CODE', message: 'Tundmatu rikkumiskood', codes: JSON.parse(resolveResult.response.body[0].unmatchedCodesJson)})}"
   next: end
 
 returnMissingEttekirjutus:
