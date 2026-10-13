@@ -309,6 +309,8 @@ getCurrentFormForStatus:
 extractCurrentStatus:
   assign:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
+    prev_notify_carrier: "${String(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyCarrier) === 'true' ? 'true' : 'false'}"
+    prev_notify_labor_inspector: "${String(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].notifyLaborInspector) === 'true' ? 'true' : 'false'}"
   next: checkFormNotLocked
 
 checkFormNotLocked:
@@ -474,6 +476,65 @@ logAuditEvent:
     form_number: ${form_number}
     changed_fields: ${changed_fields_result}
   result: audit_result
+  next: checkSendOnPublishedEdit
+
+# Avalikustatud kaardil märgitud (uus) teavituse linnuke saadetakse kohe
+# salvestamisel — kasutajal pole vaja kaarti uuesti kinnitada ja avalikustada.
+# Saadetakse ainult linnukese FALSE -> TRUE üleminekul, nii et tavaline
+# muudatuste salvestamine juba märgitud linnukese korral ei saada midagi uuesti.
+# Salvestamata (saved) kaardil saatmist ei tehta: see toimub avalikustamisel
+# (publish.yml). Saatmise viga ei tühista salvestamist (outbound_log error-rida).
+checkSendOnPublishedEdit:
+  switch:
+    - condition: ${current_status === 'published' && ((notify_labor_inspector === 'true' && prev_notify_labor_inspector !== 'true') || (notify_carrier === 'true' && prev_notify_carrier !== 'true'))}
+      next: sendNotificationsOnPublishedEdit
+  next: returnSuccess
+
+sendNotificationsOnPublishedEdit:
+  template: "templates/form/foreign-violation/notify-transition-and-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    formId: ${id}
+    companyRegCode: ${company_reg_code}
+    companyName: ${company_name}
+    formNumber: "${saveRes.response.body[0].formNumber || ''}"
+    violations: ${violations}
+    violationDescription: ${violation_description}
+    inspectionDate: ${inspection_date}
+    inspectionTime: ${inspection_time}
+    inspectionCountryCode: ${inspection_country_code}
+    vehicleRegNr: ${vehicle_reg_nr}
+    vehicleMake: ${vehicle_make}
+    vehicleModel: ${vehicle_model}
+    vehicleVin: ${vehicle_vin}
+    createdBy: ${created_by}
+    newNotifyCarrier: "${(notify_carrier === 'true' && prev_notify_carrier !== 'true') ? 'true' : 'false'}"
+    newNotifyLaborInspector: "${(notify_labor_inspector === 'true' && prev_notify_labor_inspector !== 'true') ? 'true' : 'false'}"
+    sendGateMet: "true"
+  result: notifyResult
+  error: returnSuccess
+  next: checkCarrierSentOnEdit
+
+# Sama mis publish.yml: pärast edukat vedaja teavitust võetakse linnuke maha.
+checkCarrierSentOnEdit:
+  switch:
+    - condition: ${notify_carrier === 'true' && prev_notify_carrier !== 'true' && notifyResult != null && String(notifyResult).indexOf('"carrierSent":"true"') !== -1}
+      next: clearNotifyCarrierOnEdit
+  next: returnSuccess
+
+clearNotifyCarrierOnEdit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/clear-notify-carrier"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      key: ${id}
+  result: clearNotifyCarrierRes
+  error: returnSuccess
   next: returnSuccess
 
 returnResqlSaveError:

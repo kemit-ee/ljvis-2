@@ -134,9 +134,14 @@ usage_rows = [
 job = {"kontrollija": "Mock Kontrollija", "kontrolli_id": 900001, "kontrolli_kp": "2026-06-15",
        "tooandja_nimi": "Mockvedaja OÜ", "tooandja_reg_kood": "00000001", "soidukite_arv": 2,
        "koostatatud_ettekirjutus": False, "kontrollimised": {"kontrollitud_soitjate_veol": False},
+       # V1 kasutab vana fikseeritud nimega RikkumisteArvud tüüpi (v. ljvis.wsdl) — toores passthrough,
+       # koodi-vastendust ei rakendata. Tühi platsholder piisab mock-näiteks.
        "rikkumised": {"rikkumised_loend": []}, "vaarteomenetlus": "MOCK-VM-001"}
 job_v3 = dict(job, soiduki_reg_nr="MOCK123", soiduki_vin="MOCKVIN0000000001", juhi_isikukood=SUCCESS_PERSON,
-              juhi_eesnimi="Test", juhi_perekonnanimi="Juht", menetluse_liik="uldmenetlus", menetluse_number="MOCK-001")
+              juhi_eesnimi="Test", juhi_perekonnanimi="Juht", menetluse_liik="uldmenetlus", menetluse_number="MOCK-001",
+              # V3 kasutab WSDL tüüpi RikkumisteArv_v2 (rikkumiste_arv[].rikkumise_kood/arv) — vastendub
+              # LABOUR_INSPECTION_VIOLATION klassifikaatori TI_<kood> kirjega.
+              rikkumised={"rikkumiste_arv": [{"rikkumise_kood": "E5", "arv": 2}, {"rikkumise_kood": "B1"}]})
 target_response = []
 for row in target_rows:
     item = {k: row[k] for k in ["licence_plate_no", "trailer_no", "inspection_id", "inspection_no",
@@ -230,6 +235,9 @@ for method, name, service, version, sample, success in operations:
             rows = expression("['900001','900002'].indexOf(String(items[current_index].inspection_id)) >= 0 ? [{confirmed:true}] : []")
         elif url.endswith("-insert"):
             rows = expression('[{"id":900001,"form_number":"MOCK-TI-001","skipped":false}]')
+        elif url.endswith("/resolve-labour-inspection-violations"):
+            # Sünteetiline: mock ei tunne klassifikaatori andmeid, teatab alati kõik koodid sobitatuks.
+            rows = expression('[{"total_count":0,"matched_count":0,"violations_json":"[]","unmatched_codes_json":"[]"}]')
         elif url.endswith("/find_usage"):
             # Like find_usage.sql via Resql (camelCase columns): total over all matches; an empty page is one row with logtime NULL.
             matches = "(incoming.headers['x-mock-scenario'] === 'empty' || user_code !== '" + SUCCESS_PERSON + "' ? [] : " + json.dumps(usage_rows) + ").filter(function(r) {return (!period_start || new Date(r.logtime) >= new Date(period_start)) && (!period_end || new Date(r.logtime) <= new Date(period_end));})"

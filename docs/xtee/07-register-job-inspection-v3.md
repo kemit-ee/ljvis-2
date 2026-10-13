@@ -34,6 +34,29 @@ V3 laiendab v1 lepingut sõiduki identifikaatorite (reg.nr, VIN), juhi isikukood
 | `menetluse_liik` | enum | `controls_matrix.v2_menetluse_liik` | lyhimenetlus/kiirmenetlus/uldmenetlus |
 | `menetluse_number` | string | `proceeding_reference_number` | valikuline |
 
+### 3.1. `rikkumised` struktuur
+
+V3 (ja v2) `rikkumised` väli kasutab WSDL tüüpi `RikkumisteArv_v2` (`docker/xtr-inbound/wsdl/ljvis/ljvis.wsdl`) — **erineb v1-st**, mis kasutab vana fikseeritud nimega `RikkumisteArvud` tüüpi (üks int-väli konkreetse määruse artikli kohta, ilma koodideta — v1 `rikkumised` salvestub muutmata kujul, koodi-vastendust ei rakendata):
+
+```json
+{
+  "rikkumised": {
+    "rikkumiste_arv": [
+      { "rikkumise_kood": "E5", "arv": 2 },
+      { "rikkumise_kood": "B1" }
+    ]
+  }
+}
+```
+
+| Väli | Tüüp | Kohustuslik | Kirjeldus |
+|------|------|-------------|-----------|
+| `rikkumiste_arv` | object või array | Jah | Üks kirje ⇒ objekt; mitu ⇒ massiiv (SOAP-silla XML→JSON teisendus annab objekti ühe korduse korral — Resql normaliseerib mõlemad kujud). REST-kliendid peaksid alati saatma massiivi. |
+| `rikkumiste_arv[].rikkumise_kood` | string | Jah | Tööinspektsiooni täht+number rikkumiskood (nt `"E5"`, `"B1"`) — vastab `LABOUR_INSPECTION_VIOLATION` klassifikaatori `TI_<kood>` kirjele. |
+| `rikkumiste_arv[].arv` | integer | Ei (vaikimisi 1) | Rikkumise esinemiste arv. |
+
+LJVIS vastendab iga koodi `LABOUR_INSPECTION_VIOLATION` klassifikaatori kirjega (Resql `resolve-labour-inspection-violations`) ja salvestab `violations` veergu kuju `[{level1ValueKey, level2ValueKey, level3ValueKey?, quantity}]`, mida kontrollvormi UI oskab kuvada. Tundmatu `rikkumise_kood` lükatakse tagasi `400 UNKNOWN_VIOLATION_CODE`.
+
 ---
 
 ## 4. V1 vs V3 erinevused
@@ -64,6 +87,9 @@ sequenceDiagram
     RI->>RI: Valideeri menetluse_liik (enum, valikuline)
     RI->>RI: Lisa 'v3-' prefiks kontrolli_id-le
     RI->>RI: Kogu controls_matrix (kontrollimised + v3 sõiduki andmed)
+    RI->>RS: POST /xroad/provide/resolve-labour-inspection-violations
+    RS-->>RI: {total_count, matched_count, violations_json, unmatched_codes_json}
+    RI->>RI: Kui matched_count != total_count → 400 UNKNOWN_VIOLATION_CODE
     RI->>RS: POST /xroad/provide/register-job-inspection-v3-insert
     RS->>DB: WITH existing ... INSERT WHERE NOT EXISTS
     DB-->>RS: {id, form_number, skipped}
@@ -82,6 +108,7 @@ sequenceDiagram
 | (v1 kohustuslikud) | samad mis v1-s | 400 |
 | `juhi_isikukood` | Kui esitatud: `/^[1-6][0-9]{10}$/` | 400 INVALID_PARAMETER |
 | `menetluse_liik` | Kui esitatud: enum | 400 INVALID_PARAMETER |
+| `rikkumiste_arv[].rikkumise_kood` | Peab vastama olemasolevale `LABOUR_INSPECTION_VIOLATION` koodile | 400 UNKNOWN_VIOLATION_CODE |
 
 ---
 
@@ -100,3 +127,5 @@ sequenceDiagram
 | T7 | juhi_isikukood logis | Ei tohi olla selge tekstina |
 | T8 | Puuduv X-Road-Client header | HTTP 403 FORBIDDEN |
 | T9 | Vale X-Road-Client formaat | HTTP 403 FORBIDDEN |
+| T10 | `rikkumiste_arv` sisaldab tundmatut koodi (nt `"Z99"`) | HTTP 400 `UNKNOWN_VIOLATION_CODE` |
+| T11 | `rikkumiste_arv` sisaldab tuntud koode (nt `"E5"`, `"B1"`) | HTTP 200, vorm tekib `violations` väljaga korrektselt vastendatuna |
