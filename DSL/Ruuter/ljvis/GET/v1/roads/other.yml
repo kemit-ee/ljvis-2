@@ -1,0 +1,47 @@
+declaration:
+  internal: false
+
+  version: "1.0"
+  description: >-
+    Find the name of an other state road (ROAD_OTHER classifier) by road number for the
+    compound form "Muu tee" lookup. ROAD_OTHER (~3 200 values) is not part of the bulk
+    classifier endpoints (/v1/classifier-values, /v1/classifiers/bundle), so the form asks
+    for one road at a time. Returns [] when the number is not a valid road number or has no
+    currently valid match, the form then keeps manual entry.
+  namespace: roads
+  allowlist:
+    params:
+      - field: number
+        type: string
+        description: "Road number, 1-5 digits"
+
+extractRequestData:
+  assign:
+    number: "${incoming.params == null || incoming.params.number == null ? '' : String(incoming.params.number).trim()}"
+  next: validateNumber
+
+validateNumber:
+  switch:
+    - condition: ${/^[0-9]{1,5}$/.test(number)}
+      next: getOtherRoad
+  next: returnEmpty
+
+getOtherRoad:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/roads/get_other_road_by_number"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      number: ${number}
+  result: res
+  next: returnSuccess
+
+returnSuccess:
+  return: ${res.response.body}
+  next: end
+
+returnEmpty:
+  return: []
+  next: end
