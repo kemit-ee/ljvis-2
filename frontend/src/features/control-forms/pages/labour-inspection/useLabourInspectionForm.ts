@@ -73,7 +73,7 @@ export function useLabourInspectionForm(
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      id: form?.id ?? '',
+      id: form?.id != null ? String(form.id) : '',
       formNumber: form?.formNumber ?? '',
       version: form?.version ?? 1,
       inspectorName: form?.inspectorName ?? '',

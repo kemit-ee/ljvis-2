@@ -16,7 +16,7 @@ vi.mock('../../../classifiers/ClassifierProvider', () => ({
 }));
 
 const baseMessage: RsiMessage = {
-  id: '1',
+  id: 1,
   version: 1,
   direction: 'outgoing',
   status: 'initiated',
