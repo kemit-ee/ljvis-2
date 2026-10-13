@@ -13,6 +13,19 @@
 ### Klassifikaatorite brauseripuhver (ETag)
 
 - Klassifikaatorite täisnimekirjad (`/v1/classifier-values`, `/v1/citizen/classifier-values`, `/v1/classifiers/bundle`) saadavad `ETag` ja `Cache-Control: private, no-cache` päise. Kui klassifikaatorid pole vahepeal muutunud, vastab server korduval laadimisel (lehe värskendus, uus vaheleht) `304 Not Modified` ja brauser kasutab oma koopiat. Muutunud klassifikaatorid, väärtused või vormipiirangud ja uus kuupäev (kehtivus) muudavad ETag-i ning siis laaditakse andmed uuesti.
+### Klassifikaatorite laadimine kiiremaks („Muu tee" otsing serverist)
+
+- Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga sessiooni klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.
+- Koondvormi „Muu tee" tee numbri otsing küsib tee nime nüüd serverist ühe tee kaupa (`GET /v1/roads/other?number=<nr>`, ainult kehtiv kirje) pärast trükkimise lõppu. Kasutaja jaoks käitumine ei muutu: vaste korral täidetakse tee nimetus, vasteta numbri korral kuvatakse mitteblokeeriv teade ja nime saab käsitsi sisestada.
+- Haldusvaates on `ROAD_OTHER` väärtused endiselt nähtavad ja muudetavad (klassifikaatori väärtuste lehekülgedega loend).
+
+### XTR SOAP juhend lisatud dokumentatsiooni sisukorda
+
+- `docs/xtee/09-xtr-soap.md` on nüüd `docs/SUMMARY.md` kaudu leitav ("Integratsioonid ja spetsifikatsioonid" sektsioon). Leht on käsitsi avaldatud ka Confluence'i ("LJVIS2 · XTR: SOAP mõlemas suunas", lehe 346494942 all).
+
+### XTR SOAP tootmisse paigalduse juhend täpsustatud
+
+- `docs/xtee/09-xtr-soap.md`: tootmise `xtr.yaml` näites on `inbound.public_base_url` nüüd dummy-väärtus (`http://example.org/xroad-endpoint`), koos selgitusega, miks WSDL-i `soap:address` ei tohi näidata keskkonna tegelikku hostinime. Rakenduse käitumist ei muudeta — XTR SOAP vastuvõtt ei ole veel üheski keskkonnas juurutatud.
 
 ### Jõudlustestide testvormide öine koristus (ajutine)
 
