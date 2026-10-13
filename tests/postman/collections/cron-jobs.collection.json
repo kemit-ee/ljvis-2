@@ -255,7 +255,7 @@
    ]
   },
   {
-   "name": "[LJVIS2-12] POST cron/users/deactivate-expired — deactivates and clears groups",
+   "name": "[LJVIS2-12] POST cron/deactivate-expired-users — deactivates and clears groups",
    "request": {
     "method": "POST",
     "header": [
@@ -265,14 +265,14 @@
      }
     ],
     "url": {
-     "raw": "{{internal_api_url}}/ljvis/users/deactivate-expired",
+     "raw": "{{internal_api_url}}/ljvis/cron/deactivate-expired-users",
      "host": [
       "{{internal_api_url}}"
      ],
      "path": [
       "ljvis",
-      "users",
-      "deactivate-expired"
+      "cron",
+      "deactivate-expired-users"
      ]
     },
     "body": {
@@ -384,14 +384,14 @@
      }
     ],
     "url": {
-     "raw": "{{internal_api_url}}/ljvis/users/deactivate-expired",
+     "raw": "{{internal_api_url}}/ljvis/cron/deactivate-expired-users",
      "host": [
       "{{internal_api_url}}"
      ],
      "path": [
       "ljvis",
-      "users",
-      "deactivate-expired"
+      "cron",
+      "deactivate-expired-users"
      ]
     },
     "body": {

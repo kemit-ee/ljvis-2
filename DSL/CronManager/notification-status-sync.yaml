@@ -4,8 +4,9 @@
 # värskendab notifications.outbound_log staatuseid.
 notification_status_sync:
   trigger: "0 */5 * * * ?"
-  type: exec
-  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/notification-status-sync
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/notification-status-sync
   retryCount: 2
   retryDelay: 30000
   ignoreFailures: true
