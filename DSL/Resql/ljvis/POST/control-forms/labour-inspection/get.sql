@@ -16,6 +16,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -78,6 +81,7 @@ SELECT
   labour_inspection_form_key AS id,
   form_number,
   version,
+  revision,
   status,
   inspector_name,
   inspection_date,

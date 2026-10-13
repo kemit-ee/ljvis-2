@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single labour inspection form (labour_inspection_form) by ID"
@@ -8,6 +9,9 @@ declaration:
       - field: q
         type: string
         description: "Labour inspection form ID"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -17,7 +21,7 @@ get_user_context:
 
 checkPermission:
   switch:
-    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('labour_inspection_form.read'))}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('labour_inspection_form.read') || auth_user.permissions.includes('labour_inspection_form.write'))}
       next: extractRequestData
   next: returnForbidden
 
@@ -57,6 +61,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -99,6 +104,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -106,7 +112,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
   next: end
 
 returnNotFound:

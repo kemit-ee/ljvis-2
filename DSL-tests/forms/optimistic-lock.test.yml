@@ -1,0 +1,122 @@
+# Samaaegse kirjutamise kaitse: salvestamine/kinnitamine saadab Resql-ile expected_revision'i ja
+# vastab 409 form_modified, kui vorm on vahepeal muutunud (update.sql lisas 0 rida); publish ei kontrolli.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+tests:
+- name: save with a stale revision is refused with 409 form_modified
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [vehicle_technical_form.write, vehicle_technical_form.read, control_form.edit_locked]
+    - url_matches: /control-forms/vehicle-technical/get
+      method: POST
+      status: 200
+      body: [{id: 5, status: saved, compoundFormKey: 9, createdBy: SESSION1, revision: 4}]
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body: [{id: 9, inspectorPersonalCode: SESSION1}]
+    - url_matches: /control-forms/vehicle-technical/update
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/vehicle-technical/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {id: '5', revision: 3, resultType: ok}
+  expect:
+    status: 409
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update
+    count: 1
+    body_matches:
+      expected_revision: '3'
+
+- name: save without a known revision is not checked (fail-open) and a failed write stays a 500
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [vehicle_technical_form.write, vehicle_technical_form.read, control_form.edit_locked]
+    - url_matches: /control-forms/vehicle-technical/get
+      method: POST
+      status: 200
+      body: [{id: 5, status: saved, compoundFormKey: 9, createdBy: SESSION1}]
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body: [{id: 9, inspectorPersonalCode: SESSION1}]
+    - url_matches: /control-forms/vehicle-technical/update
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/vehicle-technical/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {id: '5', revision: null, resultType: ok}
+  expect:
+    status: 500
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update
+    count: 1
+    body_matches:
+      expected_revision: ''
+
+- name: publish locks against the revision it read and answers 409 when the form changed meanwhile
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [vehicle_technical_form.write, vehicle_technical_form.read, control_form.edit_locked, control_form.punishment_register]
+    - url_matches: /control-forms/vehicle-technical/get
+      method: POST
+      status: 200
+      body: [{id: 5, status: confirmed, compoundFormKey: 9, createdBy: SESSION1, revision: 4, proceedingType: none}]
+    - url_matches: /control-forms/vehicle-technical/update
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/vehicle-technical/edit/publish
+    headers: {cookie: test, content-type: application/json}
+    body: {id: '5'}
+  expect:
+    status: 409
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update
+    count: 1
+    body_matches:
+      expected_revision: '4'

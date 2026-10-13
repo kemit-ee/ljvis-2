@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Publish (avalikusta) the trailer technical-check sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
@@ -6,6 +7,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -21,6 +25,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -80,9 +85,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       status: published
       partsSummary: ${parts_summary}
       partsDefects: ${parts_defects}
@@ -102,7 +109,20 @@ publishForm:
       trailerRegNr: ${trailer_reg_nr}
       created_by: ${created_by}
   result: publishRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: check_publishRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 buildLogDescription:
   assign:

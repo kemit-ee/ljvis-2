@@ -25,7 +25,7 @@ viited; väljade täielik loend on SQL-is, et dokument ja kood ei saaks lahku mi
 | `RoadControlCard2012` | `compound_form` + `vehicle_technical_form`; kui `RoadControlTrailer` = true/1 → `trailer_technical_form` | `04-…` | Marsruut tunnuse `migration.is_subtype` järgi |
 | `Roadworthiness2012` | `compound_form` + `sp_driver_form`; kui `RoadWorthinessTeamMember` = true/1 → `sp_teammate_form` | `05-…` | Sõidu- ja puhkeaeg |
 | `DangerousDelivery2012` | `compound_form` + `adr_form` | `06-…` | Kinnitatud haagise/meeskonna tunnused peatavad laadimise kuni marsruutimine on tehtud |
-| RavenDB V1/V2 | `forms.labour_inspection_form` | `07-…` | V2: `Confirmed`/`Published` → `confirmed`; V1 staatust ei ole |
+| RavenDB V1/V2 | `forms.labour_inspection_form` (+ V2: `forms.labour_inspection_external_ref`) | `07-…` | V2: `Confirmed`/`Published` → `confirmed`; V1 staatust ei ole. V2 akt seotakse `xroad-v2` + `InspectionId`-ga, et hilisem X-tee `RegisterJobInspection_v2` sama ID-ga leiaks selle akti; V1 Raven ID ei ole saatja `kontrolli_id`, seost ei looda. Juba X-tee kaudu saabunud `InspectionId` → blokeeriv leid `external_id_already_received` |
 | `FuelSample` | — | — | Välja jäetud |
 
 Koondvormi (`compound_form`) tekitab ETL koondkontrollide ühendamisel

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -58,6 +59,9 @@ declaration:
         type: string
       - field: sendGateMet
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractInputs:
   assign:
@@ -113,6 +117,7 @@ callGetCountryName:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_country_name"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       code: ${inspection_country}
@@ -131,6 +136,7 @@ callGetViolationNames:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_violation_names"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       codes: ${violation_codes}

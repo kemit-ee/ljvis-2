@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   description: Avalik sünteetilise mocki tervisekontroll.
   allowlist:
     params: []

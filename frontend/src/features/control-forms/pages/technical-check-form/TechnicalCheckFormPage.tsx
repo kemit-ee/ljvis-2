@@ -4,6 +4,7 @@ import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator, Heading } from '@tedi-design-system/react/tedi';
+import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 import { useAuth } from '../../../auth/AuthContext';
 import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Driver, Trailer } from '../../types';
 import {
@@ -72,9 +73,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   const forbidden = !(
     ((formType == FORM_TYPE.VEHICLE_TECHNICAL_CHECK &&
-      hasPermission('vehicle_technical_form.read')) ||
+      (hasPermission('vehicle_technical_form.read') || hasPermission('vehicle_technical_form.write'))) ||
       (formType == FORM_TYPE.TRAILER_TECHNICAL_CHECK &&
-        hasPermission('trailer_technical_form.read')) ||
+        (hasPermission('trailer_technical_form.read') || hasPermission('trailer_technical_form.write'))) ||
       hasPermission('control_form.view_unpublished'))
   );
 
@@ -650,7 +651,8 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         {addFormDropdown}
       </div>
 
-      {compoundForm && compoundFormKey && (
+      {/* E-toimiku päringu kaart ("Päri e-toimikust") on ainult karistusregistri õigusega kasutajale. */}
+      {compoundForm && compoundFormKey && hasPermission(PUNISHMENT_REGISTER_PERMISSION) && (
         <EtoimikQueryCard
           drivers={compoundFormDrivers}
           referenceNumberOptions={etoimikReferenceOptions}

@@ -15,10 +15,7 @@ export function ForeignViolationFormCreatePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
-  const forbidden = !(
-    hasPermission('foreign_violation_form.write') &&
-    hasPermission('foreign_violation_form.read')
-  );
+  const forbidden = !hasPermission('foreign_violation_form.write');
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const handleSaved = (id?: string) => {

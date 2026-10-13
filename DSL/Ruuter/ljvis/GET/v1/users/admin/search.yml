@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Search/list users (admin scope — all organisations)"
@@ -15,6 +16,9 @@ declaration:
       - field: sorting
         type: string
         description: "Sorting"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -38,6 +42,7 @@ getUsers:
   args:
     url: "[#LJVIS_RESQL]/user/list_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       search: ${search}
@@ -53,6 +58,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_users_list"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       users: ${res.response.body}
@@ -94,6 +100,7 @@ extractPersonalCodes:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_personal_codes"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       users: ${res.response.body}

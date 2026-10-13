@@ -31,7 +31,7 @@ Kõik komponendid on ClusterIP Service'id namespace'is `ljvis2-<env>`. Service n
 | `tim` | 8085 → 8085 | autentimine (TARA OIDC, JWT) | ei (ainult frontendi `/tim/` kaudu) |
 | `resql-ljvis` | 8090 → 8090 | SQL-teenus → RDS | ei |
 | `data-mapper` | 3005 → 3005 | Handlebars-mallid | ei |
-| `xtr` | 8080 → 8080 | X-tee klient (SOAP + REST passthrough) → turvaserver | ei |
+| `xtr` | 8080 → 8080 (sisemine), 8081 → 8081 (SOAP pakkumine) | X-tee klient (SOAP + REST passthrough) → turvaserver; LJVIS1 SOAP-lepingu pakkumine (`/soap-in/ljvis/ljvis`) | 8080: ei. 8081: jah, ainult turvaserverilt (*xroad* plane, vt [XTR SOAP juhend](../xtee/09-xtr-soap.md)) |
 | `s3-proxy` | 3010 → 3010 | manuste üles-/allalaadimine S3-sse | ei |
 | `nysiis` | 8080 → 8080 | ERRU NYSIIS võtme arvutus (Java sidecar) | ei |
 | `pdf-creator` | 3020 → 3020 | PDF-i genereerimine (WeasyPrint, väliseid ressursse ei laadi — `url_fetcher=deny_resources`) | ei |
@@ -72,7 +72,7 @@ flowchart LR
     TIM[tim :8085]
     RESQL[resql-ljvis :8090]
     DM[data-mapper :3005]
-    XTR[xtr :8080]
+    XTR[xtr :8080 / SOAP :8081]
     S3P[s3-proxy :3010]
     NY[nysiis :8080]
     PDF[pdf-creator :3020]
@@ -93,6 +93,7 @@ flowchart LR
 
   U --> ALBW --> TW --> FE
   SS --> ALBX --> TX --> RI
+  TX -->|SOAP /soap-in/| XTR
   HUB --> TG --> SG --> RI
   FE --> R
   FE --> TIM
@@ -132,7 +133,8 @@ TARA sisselogimisleht (redirect) ja S3 presigned URL-id manuste allalaadimisel (
 | | `ruuter` | tokeni valideerimine, kasutajainfo (`LJVIS_TIM`, admin token) |
 | `resql-ljvis:8090` | `ruuter`, `ruuter-internal` | kõik SQL-päringud (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`) |
 | `data-mapper:3005` | `ruuter` | `LJVIS_DMAPPER_HBS` (ruuter-internal ei kasuta) |
-| `xtr:8080` | `ruuter`, `ruuter-internal` | kõik X-tee kutsed (`LJVIS_XTR`) |
+| `xtr:8080` | `ruuter`, `ruuter-internal` | kõik X-tee kutsed (`LJVIS_XTR`); mitte turvaserverile ega Traefikule |
+| `xtr:8081` | ns `traefik` (Gateway `xroad`), ainult turvaserveri päringud | LJVIS1 SOAP-leping: `POST /soap-in/ljvis/ljvis`, `GET …?wsdl`, `/health`. XTR ei autentiseeri saatjat ise — `X-Road-Client` päisele saab tugineda ainult siis, kui siia pääseb vaid turvaserver |
 | `s3-proxy:3010` | `ruuter` | manuste upload/presign |
 | `nysiis:8080` | `ruuter`, `ruuter-internal` | ERRU otsinguvõtmed |
 | `pdf-creator:3020` | `ruuter` | PDF-i genereerimine |
@@ -157,7 +159,8 @@ Kõigil podidel lisaks: **DNS → `kube-system/kube-dns` UDP+TCP 53** (`stesta-g
 | `ruuter-internal` | `resql-ljvis:8090`, `xtr:8080`, `nysiis:8080`, `ruuter:8080`, `ruuter-internal:8080` (ise) |
 | `cronmanager` | `ruuter-internal:8080` |
 | `stesta-gateway` | `ruuter-internal:8080` |
-| `tim`, `resql-ljvis`, `data-mapper`, `xtr`, `s3-proxy`, `nysiis`, `pdf-creator`, Liquibase | — (klastrisiseseid kutseid ei tee) |
+| `xtr` | `ruuter-internal:8080` (`/ljvis/xroad/provide/*` kirjutavad JSON-töötlejad, `/ljvis/xroad/soap/*` päringute SOAP-adapterid; viimased ei kuulu X-tee REST HTTPRoute'i) |
+| `tim`, `resql-ljvis`, `data-mapper`, `s3-proxy`, `nysiis`, `pdf-creator`, Liquibase | — (klastrisiseseid kutseid ei tee) |
 
 ### 4.2 Klastrist välja
 
@@ -296,10 +299,11 @@ Teised komponendid samal mustril tabelite 3 ja 4 järgi.
 | # | Tähelepanek | Ettepanek |
 |---|---|---|
 | 1 | `ruuter-internal` NetworkPolicy (devops `d9e64a6`) lubab egressi **80/443 kõikjale**, kuid tema `allowed_urls` ei sisalda ühtegi välist URL-i (`additionalAllowedUrls: []`). Ainus võimalik väline sihtkoht on `ERRU_NCR_ENDPOINT` (vt 4.2). | Kui NCR käib XTR-i kaudu: eemaldada 80/443 väljaminev, jätta namespace'i peerid (resql, xtr, nysiis, ruuter, ise) + DNS. Kui otse webgate'i: ainult 443 ja ainult see sihtkoht. |
-| 2 | `ruuter-internal` `allowFromNamespace: true` lubab kõik namespace'i podid. | Kitsendada: `ruuter`, `cronmanager`, `stesta-gateway`, ise + Traefik. |
+| 2 | `ruuter-internal` `allowFromNamespace: true` lubab kõik namespace'i podid. | Kitsendada: `ruuter`, `cronmanager`, `stesta-gateway`, `xtr` (SOAP pakkumine), ise + Traefik. |
 | 3 | `ruuter` allowlistis on `xroad.securityServer: https://urien.ml.ee`, aga `XROAD_SECURITY_SERVER` on deprecated ja ükski DSL ei kutsu turvaserverit otse. Charti kommentaar („RR otse turvaserverisse") on aegunud. | Eemaldada `ruuter` → urien.ml.ee; X-tee egress ainult `xtr`-ilt. |
 | 4 | `xtr` → `ariregxmlv6.rik.ee` on otse-HTTPS, mitte X-tee. | Teadlik erand; lubada eraldi. |
 | 5 | ERRU väljaminev (`ruuter` → `webgate.acceptance.ec.testa.eu`) — `constants.ini` kommentaar ütleb, et toodangus peaks see käima XTR-i ERRU liidese kaudu, devops allowlist lubab aga Ruuterist otse. | Kinnitada tegelik tee (SSM `constants.ini` `ERRU_*_ENDPOINT` väärtused) ja kas webgate on avalikust internetist või ainult sTESTA kaudu ligipääsetav. |
 | 6 | `LJVIS_RESQL_ARHIIV` (ADR-010, `ljvis_arhiiv_db`) — resql-ljvis chartis on ainult datasource `ljvis`. | Kui arhiivibaas tuleb eraldi RDS-i/hosti, lisada ka see resql egressi. |
 | 7 | `stesta-gateway` on ainult dev-is. | test/prelive jaoks sama poliitika, kui MOVEHUB sinna tuleb. |
 | 8 | Live-keskkonnas muutuvad: TARA → `tara.ria.ee`, X-tee instance `ee`, turvaserver, ERRU hub (acceptance → live). | Uuendada p 5 tabel enne live'i. |
+| 9 | XTR SOAP pakkumise port 8081 on uus sissetulev tee. `XTR_INTER_SERVICE_TOKEN` puudumisel on sisemise pordi 8080 `/:group/:service` avatud kõigile, kes porti näevad. | 8081 avada ainult turvaserveri/Traefik `xroad` Gateway'le; 8080 ainult `ruuter`/`ruuter-internal`-ile; kaaluda `XTR_INTER_SERVICE_TOKEN`-it. |

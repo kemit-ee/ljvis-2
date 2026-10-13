@@ -1,20 +1,22 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single compound form by ID"
   namespace: control-forms
   allowlist:
-    body:
-      - field: q
+    headers:
+      - field: cookie
         type: string
-        description: "Compound form ID"
+    params:
       - field: subFormId
         type: string
-        description: "Sub-form ID if called from sub-form page"
+      - field: q
+        type: string
 
 checkPermission:
   switch:
-    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('compound_form.read'))}
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('compound_form.read') || auth_user.permissions.includes('compound_form.write'))}
       next: get_user_context
   next: returnForbidden
 
@@ -62,6 +64,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -114,6 +117,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_compound_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -121,7 +125,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
   next: end
 
 returnNotFound:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Get one NCR case (erru.ncr_message) by businessCaseId, returning the FULL snapshot
     history (LJVIS2-63) — the last element is the current state (drives the editable header/blocks),
@@ -14,6 +15,9 @@ declaration:
       - field: q
         type: string
         description: "NCR case identifier (business_case_id)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -33,6 +37,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -61,6 +66,7 @@ applyViewTransition:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-view-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -72,6 +78,7 @@ refetchAfterView:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -100,6 +107,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_ncr_case"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       snapshots: ${res.response.body}

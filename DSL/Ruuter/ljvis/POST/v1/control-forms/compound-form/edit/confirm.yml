@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm compound form"
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: controlDate
         type: string
       - field: controlTime
@@ -92,7 +94,8 @@ declaration:
         type: string
       - field: driver2PersonalCodeForeign
         type: string
-      - field: status
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -202,9 +205,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${key}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -247,7 +252,20 @@ confirmForm:
       inspectorProfession: ${inspector_profession}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractResponseData:
   assign:
@@ -269,6 +287,7 @@ logAjDriver1:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${driver1_personal_code_ee}"
@@ -290,6 +309,7 @@ logAjDriver2:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${driver2_personal_code_ee}"

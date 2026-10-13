@@ -166,6 +166,7 @@ ALLOWLIST_COVERAGE_SKIP = {
     "DSL/Ruuter.internal/ljvis/POST/xroad/provide/isiku-ettevote-kontrollid.yml",
     "DSL/Ruuter.internal/ljvis/POST/xroad/provide/isiku-kontroll.yml",
     "DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection.yml",
+    "DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection-v2.yml",
     "DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection-v3.yml",
 }
 

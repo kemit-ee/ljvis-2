@@ -247,7 +247,7 @@
         "url": "{{baseUrl}}/xroad/v1/register-job-inspection-v3",
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"{{personCode}}\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumiste_arv\": [\n      {\n        \"rikkumise_kood\": \"E5\",\n        \"arv\": 2\n      },\n      {\n        \"rikkumise_kood\": \"B1\"\n      }\n    ]\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"{{personCode}}\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -1313,7 +1313,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumiste_arv\": [\n      {\n        \"rikkumise_kood\": \"E5\",\n        \"arv\": 2\n      },\n      {\n        \"rikkumise_kood\": \"B1\"\n      }\n    ]\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -1351,7 +1351,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumiste_arv\": [\n      {\n        \"rikkumise_kood\": \"E5\",\n        \"arv\": 2\n      },\n      {\n        \"rikkumise_kood\": \"B1\"\n      }\n    ]\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -1389,7 +1389,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumiste_arv\": [\n      {\n        \"rikkumise_kood\": \"E5\",\n        \"arv\": 2\n      },\n      {\n        \"rikkumise_kood\": \"B1\"\n      }\n    ]\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -1468,7 +1468,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumiste_arv\": [\n      {\n        \"rikkumise_kood\": \"E5\",\n        \"arv\": 2\n      },\n      {\n        \"rikkumise_kood\": \"B1\"\n      }\n    ]\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -1957,7 +1957,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"bad\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumiste_arv\": [\n      {\n        \"rikkumise_kood\": \"E5\",\n        \"arv\": 2\n      },\n      {\n        \"rikkumise_kood\": \"B1\"\n      }\n    ]\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"bad\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"uldmenetlus\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
           "options": {
             "raw": {
               "language": "json"
@@ -1994,7 +1994,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumised_loend\": []\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"bad\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
+          "raw": "{\n  \"kontrollija\": \"Mock Kontrollija\",\n  \"kontrolli_id\": 900001,\n  \"kontrolli_kp\": \"2026-06-15\",\n  \"tooandja_nimi\": \"Mockvedaja OÜ\",\n  \"tooandja_reg_kood\": \"00000001\",\n  \"soidukite_arv\": 2,\n  \"koostatatud_ettekirjutus\": false,\n  \"kontrollimised\": {\n    \"kontrollitud_soitjate_veol\": false\n  },\n  \"rikkumised\": {\n    \"rikkumiste_arv\": [\n      {\n        \"rikkumise_kood\": \"E5\",\n        \"arv\": 2\n      },\n      {\n        \"rikkumise_kood\": \"B1\"\n      }\n    ]\n  },\n  \"vaarteomenetlus\": \"MOCK-VM-001\",\n  \"soiduki_reg_nr\": \"MOCK123\",\n  \"soiduki_vin\": \"MOCKVIN0000000001\",\n  \"juhi_isikukood\": \"60001019906\",\n  \"juhi_eesnimi\": \"Test\",\n  \"juhi_perekonnanimi\": \"Juht\",\n  \"menetluse_liik\": \"bad\",\n  \"menetluse_number\": \"MOCK-001\"\n}\n",
           "options": {
             "raw": {
               "language": "json"

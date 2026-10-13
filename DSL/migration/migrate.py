@@ -259,6 +259,14 @@ def preflight(cur, run_id, cutoff):
             JOIN migration.disposition d ON d.legacy_id=j.raven_id AND d.legacy_source='RavenDB.JobInspectionV2'
             WHERE d.migration_run_id=%s AND d.reason='eligible' AND j.schema_version=2
               AND lower(coalesce(j.document_json->>'InspectionType','')) NOT IN ('s','v','passenger','cargo')""", (run_id,))
+    # RegisterJobInspection_v2 repeats find migrated acts through forms.labour_inspection_external_ref.
+    # An InspectionId already received by LJVIS2 over X-tee would become a second act: decide, never merge silently.
+    finding("external_id_already_received", "V2 InspectionId is already linked to an LJVIS2 act received over X-tee; migrating would create a second act",
+        """SELECT d.legacy_source source,d.legacy_id FROM staging.raw_job_inspection j
+            JOIN migration.disposition d ON d.legacy_id=j.raven_id AND d.legacy_source='RavenDB.JobInspectionV2'
+            JOIN forms.labour_inspection_external_ref r ON r.source='xroad-v2'
+             AND r.external_id=nullif(btrim(j.document_json->>'InspectionId'),'')
+            WHERE d.migration_run_id=%s AND d.reason='eligible' AND j.schema_version=2""", (run_id,))
     finding("invalid_raven_count", "Vehicle/driver count is negative, nonnumeric or outside integer range; original document retained",
         """SELECT d.legacy_source source,d.legacy_id FROM staging.raw_job_inspection j
             JOIN migration.disposition d ON d.legacy_id=j.raven_id AND d.legacy_source LIKE 'RavenDB.%%'

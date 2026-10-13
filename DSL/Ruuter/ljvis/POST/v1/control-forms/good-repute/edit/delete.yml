@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Delete good-repute form"
   namespace: control-forms
@@ -7,6 +8,9 @@ declaration:
       - field: id
         type: string
       - field: old_status
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 checkDeletePermission:
@@ -30,6 +34,7 @@ deleteForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/delete"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}

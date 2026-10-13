@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create a new user"
@@ -24,6 +25,9 @@ declaration:
       - field: phone
         type: string
       - field: accessEnd
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 get_user_context:
@@ -74,6 +78,7 @@ checkPersonalCodeConflict:
   args:
     url: "[#LJVIS_RESQL]/user/check_personal_code_conflict"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}
@@ -92,6 +97,7 @@ createUser:
   args:
     url: "[#LJVIS_RESQL]/user/insert_user_account"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}

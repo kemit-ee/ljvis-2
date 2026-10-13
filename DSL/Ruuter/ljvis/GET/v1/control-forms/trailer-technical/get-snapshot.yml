@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single trailer technical-check form snapshot by snapshot ID, for the read-only historical version view (LJVIS2-72)."
@@ -11,6 +12,9 @@ declaration:
       - field: formKey
         type: string
         description: "Trailer technical form key"
+    headers:
+      - field: cookie
+        type: string
 
 checkPermission:
   switch:
@@ -48,6 +52,7 @@ getSnapshot:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.params.id}
@@ -66,6 +71,7 @@ getFromArchive:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       formType: "trailer-technical"
@@ -82,6 +88,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_trailer_technical_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -89,11 +96,10 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${[mapped.response.body]}
+  return: "${[(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)]}"
   next: end
 
 returnForbidden:
   status: 403
   return: '{"error":"FORBIDDEN"}'
   next: end
-

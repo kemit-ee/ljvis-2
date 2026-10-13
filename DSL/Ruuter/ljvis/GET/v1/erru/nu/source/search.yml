@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Search eligible source declarations."
   namespace: erru
@@ -18,6 +19,7 @@ searchSource:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/search-source"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       firstName: "${incoming.params.firstName || ''}"

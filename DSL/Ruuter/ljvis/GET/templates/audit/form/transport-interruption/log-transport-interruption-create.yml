@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Audit: transport-interruption form create event"
@@ -7,6 +8,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: sub_form_key

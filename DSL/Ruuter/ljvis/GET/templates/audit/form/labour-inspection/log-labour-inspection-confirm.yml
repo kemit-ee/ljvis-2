@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Audit: labour inspection form (labour_inspection_form) confirm event."
@@ -8,15 +9,16 @@ declaration:
     headers:
       - field: cookie
         type: string
+      - field: content-type
+        type: string
     body:
       - field: akti_voti
         type: string
       - field: form_number
         type: string
-      - field: version
-        type: string
       - field: isikukood
         type: string
+      - field: vormi_number
 
 buildAudit:
   assign:

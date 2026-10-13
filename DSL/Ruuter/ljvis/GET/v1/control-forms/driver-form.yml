@@ -1,13 +1,16 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single drive rest form (driver) by key"
   namespace: control-forms
   allowlist:
-    body:
+    headers:
+      - field: cookie
+        type: string
+    params:
       - field: q
         type: string
-        description: "sp_driver_form_key"
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -17,7 +20,7 @@ get_user_context:
 
 checkPermission:
   switch:
-    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('sp_driver_form.read'))}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('sp_driver_form.read') || auth_user.permissions.includes('sp_driver_form.write'))}
       next: extractRequestData
   next: returnForbidden
 
@@ -58,6 +61,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -80,6 +84,7 @@ getCompoundForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${compound_id}
@@ -130,6 +135,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_sp_driver_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -137,7 +143,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
   next: end
 
 returnNotFound:

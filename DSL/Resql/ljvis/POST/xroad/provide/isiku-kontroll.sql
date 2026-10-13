@@ -65,31 +65,37 @@ latest_compound AS (
   ORDER BY compound_form_key, created_at DESC
 ),
 -- Filtreerime juhi isikukoodi järgi JSONB massiivist
+compound_drivers AS (
+  -- juhtide massiiv lahti pakitud SRF-ina select-listis (mitte LATERAL JOIN-iga)
+  SELECT
+    lc.compound_form_key,
+    lc.control_date,
+    lc.form_number,
+    lc.company_name,
+    lc.vehicle_reg_nr,
+    jsonb_array_elements(lc.drivers) AS driver
+  FROM latest_compound lc
+),
 compound_hits AS (
   SELECT
-    lc.control_date                     AS kuupaev,
-    lc.form_number                      AS nimetus,
-    lc.company_name                     AS asutus,
-    lc.vehicle_reg_nr                   AS soiduki_reg_nr,
-    -- Sõiduki tehnoülevaatuse tulemus — LATERAL JOIN viimase snapshoti järgi
-    vtf.result_type                     AS rikkumise_liik,
+    cd.control_date                     AS kuupaev,
+    cd.form_number                      AS nimetus,
+    cd.company_name                     AS asutus,
+    cd.vehicle_reg_nr                   AS soiduki_reg_nr,
+    -- Sõiduki tehnoülevaatuse tulemus — viimase snapshoti järgi (alampäring, mitte LATERAL JOIN)
+    (SELECT v.result_type
+       FROM forms.vehicle_technical_form v
+      WHERE v.compound_form_key = cd.compound_form_key
+        AND v.status <> 'deleted'
+      ORDER BY v.created_at DESC
+      LIMIT 1)                          AS rikkumise_liik,
     'KOONDVORM'                         AS kontrolli_nimetus,
-    driver->>'firstName'                AS juhi_nimi,
-    driver->>'lastName'                 AS juhi_perekonnanimi,
+    cd.driver->>'firstName'             AS juhi_nimi,
+    cd.driver->>'lastName'              AS juhi_perekonnanimi,
     NULL::TEXT                          AS rikkumised,
     NULL::TEXT                          AS rikkumised_lopetatud
-  FROM latest_compound lc,
-       jsonb_array_elements(lc.drivers) AS driver   -- lahti pakkimine JSONB massiivist
-  LEFT JOIN LATERAL (
-    -- Viimane tehnoülevaatuse tulemus sama koondvormi kohta
-    SELECT result_type
-    FROM forms.vehicle_technical_form
-    WHERE compound_form_key = lc.compound_form_key
-      AND status <> 'deleted'
-    ORDER BY created_at DESC
-    LIMIT 1
-  ) vtf ON true
-  WHERE driver->>'personalCodeEe' = :isikukood   -- isikukoodi järgi filtreerimine
+  FROM compound_drivers cd
+  WHERE cd.driver->>'personalCodeEe' = :isikukood   -- isikukoodi järgi filtreerimine
 ),
 
 -- 2. Tööinspektsiooni aktid kus isik on karistatu
@@ -122,27 +128,30 @@ latest_teammate AS (
   WHERE person_code_ee = :isikukood
   ORDER BY sp_teammate_form_key, created_at DESC
 ),
+teammate_resolved AS (
+  SELECT
+    lt.*,
+    (SELECT c FROM forms.compound_form c
+      WHERE c.compound_form_key = lt.compound_form_key
+      ORDER BY c.created_at DESC
+      LIMIT 1) AS cf                     -- koondvormi uusim snapshot (alampäring, mitte LATERAL JOIN)
+  FROM latest_teammate lt
+  WHERE lt.status <> 'deleted'
+),
 teammate_hits AS (
   SELECT
-    cf.control_date                     AS kuupaev,
-    lt.sub_form_number                  AS nimetus,
-    cf.company_name                     AS asutus,
-    cf.vehicle_reg_nr                   AS soiduki_reg_nr,
-    lt.result_type                      AS rikkumise_liik,
+    (tr.cf).control_date                AS kuupaev,
+    tr.sub_form_number                  AS nimetus,
+    (tr.cf).company_name                AS asutus,
+    (tr.cf).vehicle_reg_nr              AS soiduki_reg_nr,
+    tr.result_type                      AS rikkumise_liik,
     'MEESKONNALIIGE_SOIDU_PUHKEAEG'     AS kontrolli_nimetus,
-    lt.person_first_name                AS juhi_nimi,
-    lt.person_last_name                 AS juhi_perekonnanimi,
+    tr.person_first_name                AS juhi_nimi,
+    tr.person_last_name                 AS juhi_perekonnanimi,
     NULL::TEXT                          AS rikkumised,
-    lt.proceeding_closure_basis         AS rikkumised_lopetatud
-  FROM latest_teammate lt
-  JOIN LATERAL (
-    SELECT control_date, company_name, vehicle_reg_nr, status
-    FROM forms.compound_form
-    WHERE compound_form_key = lt.compound_form_key
-    ORDER BY created_at DESC
-    LIMIT 1
-  ) cf ON cf.status <> 'deleted'
-  WHERE lt.status <> 'deleted'
+    tr.proceeding_closure_basis         AS rikkumised_lopetatud
+  FROM teammate_resolved tr
+  WHERE (tr.cf).status <> 'deleted'
 )
 
 -- Koonda mõlema allika tulemused ühtseks loendiks, sorteeri kuupäeva järgi

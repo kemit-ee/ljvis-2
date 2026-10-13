@@ -33,6 +33,8 @@ export interface LabourInspectionForm {
   formNumber?: string;
   /** The /V display suffix of the act number; join as `${formNumber}/${version}` for display. */
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   inspectorName: string;
   inspectionDate: string;
@@ -93,6 +95,8 @@ export interface ForeignViolationForm {
   id?: string;
   formNumber: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   reportingCountryCode: string;
   reportingAuthority: string;
@@ -174,6 +178,8 @@ export type Driver = {
 export interface CompoundForm {
   id?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   formNumber: string;
   status?: string;
   controlCountryCode?: string;
@@ -238,6 +244,8 @@ export interface DriveRestForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   templateVersion?: number;
   status?: string;
   selectionStatus?: string;
@@ -383,6 +391,8 @@ export interface TechnicalCheckForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   partsSummary?: PartSummaryEntry[];
   partsDefects?: PartDefectEntry[];
@@ -416,6 +426,8 @@ export interface TechnicalCheckFormListItem {
   id: string;
   subFormNumber: string;
   version: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status: string;
   resultType: string;
 }
@@ -426,6 +438,8 @@ export interface TransportInterruptionForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   headerText?: string;
   residenceCountry?: string;
@@ -444,6 +458,8 @@ export interface TransportInterruptionFormListItem {
   id: string;
   subFormNumber: string;
   version: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status: string;
 }
 
@@ -514,6 +530,8 @@ export interface AdrForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   driverAssistant?: AdrDriverAssistant;
   driverAdrCertificateNumber?: string;
@@ -550,6 +568,8 @@ export interface AdrFormListItem {
   id: string;
   subFormNumber: string;
   version: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status: string;
   resultType: string;
 }
@@ -560,6 +580,8 @@ export interface GoodReputeForm {
   /** Immutable core form number, format mv-AAAA-NNNNN (no /V suffix — see `version`). */
   formNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   personalCode: string;
   firstName: string;

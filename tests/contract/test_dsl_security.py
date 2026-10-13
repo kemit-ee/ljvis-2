@@ -42,7 +42,7 @@ class DslSecurityRules(unittest.TestCase):
         self.assertIn("R2", self.rules(errors))
 
     def test_r3_missing_allowlist(self):
-        errors = self.mutate("DSL/Ruuter/ljvis/GET/v1/classifiers/mock.yml", "declaration:\n  allowlist:\n    params: []\n", "")
+        errors = self.mutate("DSL/Ruuter/ljvis/GET/v1/classifiers/mock.yml", "  allowlist:\n    params: []\n", "")
         self.assertIn("R3", self.rules(errors))
 
     def test_r4_template_not_strict(self):
