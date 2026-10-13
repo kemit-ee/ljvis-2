@@ -10,6 +10,10 @@
 - Koondvormi „Muu tee" tee numbri otsing küsib tee nime nüüd serverist ühe tee kaupa (`GET /v1/roads/other?number=<nr>`, ainult kehtiv kirje) pärast trükkimise lõppu. Kasutaja jaoks käitumine ei muutu: vaste korral täidetakse tee nimetus, vasteta numbri korral kuvatakse mitteblokeeriv teade ja nime saab käsitsi sisestada.
 - Haldusvaates on `ROAD_OTHER` väärtused endiselt nähtavad ja muudetavad (klassifikaatori väärtuste lehekülgedega loend).
 
+### XTR SOAP tootmisse paigalduse juhend täpsustatud
+
+- `docs/xtee/09-xtr-soap.md`: tootmise `xtr.yaml` näites on `inbound.public_base_url` nüüd dummy-väärtus (`http://example.org/xroad-endpoint`), koos selgitusega, miks WSDL-i `soap:address` ei tohi näidata keskkonna tegelikku hostinime. Rakenduse käitumist ei muudeta — XTR SOAP vastuvõtt ei ole veel üheski keskkonnas juurutatud.
+
 ### Jõudlustestide testvormide öine koristus (ajutine)
 
 - CronManager'i töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
