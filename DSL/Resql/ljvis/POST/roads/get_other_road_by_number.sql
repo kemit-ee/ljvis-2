@@ -34,8 +34,8 @@ latest_value AS (
     WHERE cv.classifier_value_key IN (
         SELECT c2.classifier_value_key
         FROM classifier.classifier_value c2
-        JOIN road_other ro ON ro.classifier_key = c2.classifier_key
         WHERE c2.code = :number
+          AND c2.classifier_key = ANY(SELECT classifier_key FROM road_other)
     )
     ORDER BY cv.classifier_value_key, cv.created_at DESC
 )
