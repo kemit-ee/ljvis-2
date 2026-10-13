@@ -1,0 +1,12 @@
+# Jõudlustestide (tests/performance/) loodud koondvormide öine koristus.
+# Loogika: DSL/Ruuter.internal/ljvis/POST/cron/cleanup-perf-test-forms.yml.
+# AJUTINE: eemalda see fail ja Ruuteri voog, kui jõudlustestide andmeid enam ei looda.
+# Pealüliti puudub; kaitseks on range valik (registrinumber algab PERF + looja on testkasutaja). Märgib `PERF…` registrinumbriga testvormid `deleted`-ks (append-only tombstone).
+# Aeg: iga päev 00:00 Tallinna aja järgi (TZ docker-compose.yml-is).
+cleanup_perf_test_forms:
+  trigger: "0 0 0 * * ?"
+  type: exec
+  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/cleanup-perf-test-forms?personalCode=60001019906&batch=1000
+  retryCount: 1
+  retryDelay: 60000
+  ignoreFailures: true

@@ -82,6 +82,7 @@
 - [Integratsiooni kirjelduse mall](integrations/mall.md)
 - [Versioonimise põhimõtted](integrations/versioonimine.md)
 - [Teavituste ja Postkast 2.0 spetsifikatsioon](specs/teavitused-spetsifikatsioon.md)
+- [XTR: SOAP mõlemas suunas](xtee/09-xtr-soap.md)
 - [Andmemudel: ER-skeem ja seosed](architecture/andmemudel-erd.md)
 - [Andmebaasi skeem (genereeritud)](architecture/andmemudel-skeem.md)
 
