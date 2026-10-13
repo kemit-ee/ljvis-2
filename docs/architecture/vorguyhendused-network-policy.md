@@ -127,7 +127,7 @@ TARA sisselogimisleht (redirect) ja S3 presigned URL-id manuste allalaadimisel (
 | `ruuter-internal:8080` | ns `traefik` (Gateway `xroad`) | X-tee teenuse pakkumine, HTTPRoute lubab ainult `POST /ljvis/xroad/provide/*` |
 | | `stesta-gateway` | ERRU/MOVEHUB sissetulevad päringud ja vastused |
 | | `ruuter` | `/ljvis/auth/log-login`, `/notification/create`, `/notification/send-postkast`, `/risk-scores/{current,controls,recalculate}` |
-| | `cronmanager` | `/ljvis/cron/*`, `/ljvis/users/deactivate-expired` |
+| | `cronmanager` | `/ljvis/cron/*` |
 | | `ruuter-internal` ise | `/notification/create`, `/risk-scores/recalculate` |
 | `tim:8085` | `frontend` | nginx `/tim/` (login, callback, cookie) |
 | | `ruuter` | tokeni valideerimine, kasutajainfo (`LJVIS_TIM`, admin token) |
