@@ -1,6 +1,7 @@
 /*
 description: Get all classifiers with all their (valid + invalid) values, flattened, for FE bulk bundle
-  loading
+  loading. ROAD_OTHER (~3 200 other state roads) is excluded — it is looked up one road at a
+  time via roads/get_other_road_by_number
 namespace: classifier
 params: {}
 returns:
@@ -71,7 +72,9 @@ SELECT
 FROM latest_classifier c
 WHERE NOT EXISTS (SELECT 1 FROM latest_value v WHERE v.classifier_key = c.classifier_key)
 UNION ALL
--- klassifikaatori väärtused; klassifikaatori andmed alampäringuga, mitte JOIN-iga
+-- klassifikaatori väärtused; klassifikaatori andmed alampäringuga, mitte JOIN-iga.
+-- ROAD_OTHER jäetakse välja: 3 209 teed paisutasid vastuse 659 KB → 1 389 KB ja Ruuteri
+-- CPU 167 → 402 ms päringu kohta (#551 järeltöö). Tee nimi: GET /v1/roads/other?number=.
 SELECT
     v.classifier_key   AS classifier_id,
     (SELECT c.code FROM latest_classifier c WHERE c.classifier_key = v.classifier_key) AS classifier_code,
@@ -84,5 +87,5 @@ SELECT
     v.valid_until,
     v.is_valid
 FROM latest_value v
-WHERE EXISTS (SELECT 1 FROM latest_classifier c WHERE c.classifier_key = v.classifier_key)
+WHERE EXISTS (SELECT 1 FROM latest_classifier c WHERE c.classifier_key = v.classifier_key AND c.code <> 'ROAD_OTHER')
 ORDER BY classifier_code, parent_key NULLS FIRST, code;

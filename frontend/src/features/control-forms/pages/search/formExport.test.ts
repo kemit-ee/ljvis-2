@@ -17,6 +17,17 @@ describe('buildExportTable', () => {
   });
 });
 
+describe('buildExportTable places', () => {
+  it('resolves county and city keys to names and leaves other values alone', () => {
+    const names: Record<string, string> = { '197': 'Jõgeva maakond', '5': 'Jõgeva vald' };
+    const t = buildExportTable(
+      [row({ county: '197', city: '5', company_county: 'Vabatekst', notes: '197' })],
+      (v) => names[v] ?? v,
+    );
+    expect(t.rows[0]).toEqual(['Jõgeva maakond', 'Jõgeva vald', 'Vabatekst', '197']);
+  });
+});
+
 describe('buildExportTable drivers', () => {
   const rudolf = {
     lastName: 'Verka',

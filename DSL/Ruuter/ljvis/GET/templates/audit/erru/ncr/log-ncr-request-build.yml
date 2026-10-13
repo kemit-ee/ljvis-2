@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Audit: outgoing NCR request draft built (eeltäitud) from an SP control-form
     sub-form (LJVIS2-64 §4.1). Logged on every successful 'Lisa NCR vorm' action."
@@ -7,6 +8,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: business_case_id

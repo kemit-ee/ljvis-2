@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -9,6 +10,9 @@ declaration:
     Idempotentne: korduspäring sama kombinatsiooniga annab sama tulemuse.
     Vt docs/xtee/04-erakorraline-yv-confirm.md.
   namespace: xroad
+  allowlist:
+    body:
+      - field: confirmed
 
 # Samm 1: Kinnita et confirmed.item[] on olemas ja ei ole tühi
 validateItems:

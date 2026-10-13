@@ -2,8 +2,9 @@
 # PPA sp-driver sync (01:30) and before the technical-check sync (01:45).
 etoimik_sp_teammate_decision_sync:
   trigger: "0 35 1 * * ?"
-  type: exec
-  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/etoimik-sp-teammate-decision-sync
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/etoimik-sp-teammate-decision-sync
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

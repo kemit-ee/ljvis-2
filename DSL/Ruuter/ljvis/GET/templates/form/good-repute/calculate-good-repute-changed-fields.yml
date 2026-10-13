@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Calculate changed fields for good repute form including SQL lookup"

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get audit log details by id. audit.read sees any event; only audit.read.local restricts to events whose actor belonged to the caller's own organisation."

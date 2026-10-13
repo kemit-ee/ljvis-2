@@ -2,6 +2,86 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-13
+
+### Klassifikaatorite laadimine kiiremaks („Muu tee" otsing serverist)
+
+- Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga sessiooni klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.
+- Koondvormi „Muu tee" tee numbri otsing küsib tee nime nüüd serverist ühe tee kaupa (`GET /v1/roads/other?number=<nr>`, ainult kehtiv kirje) pärast trükkimise lõppu. Kasutaja jaoks käitumine ei muutu: vaste korral täidetakse tee nimetus, vasteta numbri korral kuvatakse mitteblokeeriv teade ja nime saab käsitsi sisestada.
+- Haldusvaates on `ROAD_OTHER` väärtused endiselt nähtavad ja muudetavad (klassifikaatori väärtuste lehekülgedega loend).
+
+### XTR SOAP juhend lisatud dokumentatsiooni sisukorda
+
+- `docs/xtee/09-xtr-soap.md` on nüüd `docs/SUMMARY.md` kaudu leitav ("Integratsioonid ja spetsifikatsioonid" sektsioon). Leht on käsitsi avaldatud ka Confluence'i ("LJVIS2 · XTR: SOAP mõlemas suunas", lehe 346494942 all).
+
+### XTR SOAP tootmisse paigalduse juhend täpsustatud
+
+- `docs/xtee/09-xtr-soap.md`: tootmise `xtr.yaml` näites on `inbound.public_base_url` nüüd dummy-väärtus (`http://example.org/xroad-endpoint`), koos selgitusega, miks WSDL-i `soap:address` ei tohi näidata keskkonna tegelikku hostinime. Rakenduse käitumist ei muudeta — XTR SOAP vastuvõtt ei ole veel üheski keskkonnas juurutatud.
+
+### Jõudlustestide testvormide öine koristus (ajutine)
+
+- CronManager'i töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
+- Jõudlustestide k6 skripti otsingupäring on parandatud; tulemused: `docs/testimine/`.
+
+## 2026-10-09
+
+### Tööinspektsiooni rikkumiskoodide X-tee vastendus
+
+- Tööinspektsiooni kontrollvormi rikkumiste klassifikaatoris said varem ühise koodi (nt „E4") alla peidetud raskusastmed (SI/VSI) nüüd oma eraldi koodi (nt „E5", „E6"), vastavalt Tööinspektsiooni enda numeratsioonile.
+- X-tee teenused `RegisterJobInspection_v2` ja `_v3` vastendavad nüüd sisse tuleva rikkumiskoodi (`rikkumiste_arv[].rikkumise_kood`) meie klassifikaatori kirjega enne kontrollvormi salvestamist, nii et vormi rikkumiste sektsioon kuvab andmed korrektselt; tundmatu rikkumiskood lükatakse tagasi (`400 UNKNOWN_VIOLATION_CODE`). V1 (vana fikseeritud nimega rikkumiste struktuur) jääb muutumatuks.
+
+## 2026-10-08
+
+### Avalikustatud välisriigi kontrollkaardil märgitud teavitus saadetakse salvestamisel
+
+- Kui avalikustatud välisriigi kontrollkaardil märgitakse hiljem „Edasta teavitus tööinspektorile“ või „Teavita vedajat rikkumisest“ ja kaart salvestatakse, saadetakse teavitus kohe; kaarti ei pea uuesti kinnitama ja avalikustama. Teavitus saadetakse ainult linnukese märkimisel (juba märgitud linnukese korral tavaline salvestamine uut kirja ei saada). Salvestamata kaardi teavitused saadetakse endiselt avalikustamisel.
+
+### Postkasti saatmise vea vastus X-tee logis
+
+- Kui Postkast lükkab teavituse saatmise tagasi, salvestatakse Postkasti vastuse olek ja sisu Haldus > X-tee logide kirje vastuseväljale (varem jäi see tühjaks) ja kirjutatakse teenuse (Ruuteri) logisse, nii et ebaõnnestumise põhjus on logist nähtav.
+
+### Ruuter 0.12.1-rc ja DSL-i auditi värav
+
+- Ruuter uuendati versioonile 0.12.1-rc. Uus admin-lõpp-punkt `/_/audit/dsl` ja `dsl-lint --audit` kontrollivad deklaratsioonide korrektsust; CI nõuab nüüd mõlema puu puhul 0 viga ja 0 hoiatust. Deklaratsioonide `allowlist` täpsustati vastavalt tegelikule kasutusele (puuduvad päised/väljad lisati, kasutamata väljad eemaldati).
+
+## 2026-10-07
+
+### Väärteomenetluse märke eemaldamine tehnokaardilt
+
+- Sõiduki ja haagise tehnoandmete vormil on viitenumbri välja all nupp „Eemalda märge“, mis tühjendab menetluse liigi (lühi-/kiir-/üldmenetlus) ja viitenumbri. Seda saab kasutada ka siis, kui menetlust lõpuks ei alustata ja kontrolli tulemust (nt „Suunatud erakorralisele tehnoülevaatusele“) muuta ei saa. Enne eemaldamist küsitakse kinnitust („Kas oled kindel, et soovid menetluse info eemaldada?“). Tulemus, „Muu meede“ ja AutoVS § 51 märkeruut jäävad samaks.
+
+### Tehnokaardi trükivorm mahub kahele lehele
+
+- Sõiduki ja haagise tehnovormi (kontrollkaardi) PDF-is on selgitused, allmärkused ja haldusakti edasikaebamise tekst veidi väiksema kirjaga ning kontrollija ja juhi allkirja väli madalam (10 mm); edasikaebamise tekst ei lähe enam kolmandale lehele.
+- Kontrollkaardi märkustes on rikke raskusaste (VO/OV/EOV) kohe rikke nimetuse järel sulgudes ega satu enam eraldi reale.
+
+### Mitmerealised märkused ei tohi vormi avamist katki teha
+
+- DataMapperi mallid kodeerivad vabatekstiväljad (märkused, kirjeldused, põhjendused) JSON-ina; varem tekitas märkuste väljal reavahetus või kaldkriips vigase vastuse ja vormi avamisel tuli „Serveri viga“ (nt sõiduki tehnoandmete vorm automaatridadega).
+
+### Otsingu tulemustes maakond nimena
+
+- Otsingu tulemuste tabelis ja eksporditud failis (xlsx/csv) näidatakse maakonda ning linna/valda nimena, mitte klassifikaatori koodina (nt „Jõgeva maakond“ asemel 197).
+
+### Sisselogimisleht alati eesti keeles
+
+- Sisselogimisleht avaneb alati eesti keeles, sõltumata brauseri keelest; keelt saab pärast sisselogimist vahetada.
+
+### Teekasutustasu rikkumise andmed koondvormis
+
+- „Andmed teekasutustasu nõude rikkumise kohta“ plokis on valik „Ei kohaldu“ eemaldatud; kui rikkumist ei ole, ei märgita midagi. Valitud rikkumise saab tühistada lingiga „Tühista valik“. Varem salvestatud „Ei kohaldu“ loetakse tühjaks.
+- Kui rikkumist ei ole valitud (ja märkust pole), ei trükita teekasutustasu rida koondvormi ega sõidu- ja puhkeaja vormi väljatrükile.
+
+### Sõiduki ja haagise tehnoandmete vormi parandused
+
+- Märkuste väljale lisatavad automaatread algavad nüüd osa nimetusega (nt „Pidurisüsteem: …“), mitte klassifikaatori koodiga („CAA_4: …“). Vanad koodiga read trükitakse samuti nimetusega.
+- Väljatrükil on pealkiri „…KONTROLLKAART“ (lõpust puudus T), osa 11 nimetus on „Muu tehniline viga“.
+- Väljatrükil näidatakse kontrolli koha ja vedaja aadressi maakonda ning linna/valda nimena, mitte koodina; „muu tee“ valiku korral trükitakse „Muu tee“.
+- Detailide lehel trükitakse märkeruut ainult lubatud raskusastmete (VO/OV/EOV) veergudesse; mittelubatud lahtrid jäävad tühjaks.
+- Tehnokaardi väljatrüki pöördel on VO, OV, EOV ja (S) selgitused otse detailide tabeli all, ametliku sõnastusega.
+- Tehnokaardi väljatrüki allmärkuste (1)–(8) tekstid vastavad ametlikule vormile (kategooria määrused nr 42 ja nr 39, direktiivi 2014/47/EL sõnastus, viited LS § 91 lg 2 p 5 ja § 196² lg 1 p 9).
+- Vormi failiplokk ei näita enam veateadet, kui failide loendit ei õnnestunud laadida (viga näidatakse vaid üleslaadimisel, kustutamisel ja allalaadimisel).
+
 ## 2026-10-05
 
 ### Sidecar-teenuste (nysiis, s3-proxy, pdf-creator) sissetulev autentimine (#520)
@@ -10,6 +90,12 @@
 - Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
 - Fail-closed: sidecar ei käivitu, kui võti on seadmata. Varem lasi pdf-creator tühja `PDF_CREATOR_API_KEY` korral kõik kutsed läbi.
 
+### CronManager'i ajastatud tööd on taas `type: http` (korrigeerib #515)
+
+- `/cron/*` route'id ei nõua `x-internal-service-token` päist (`POST/cron/.guard`, `override_ancestors`). Kõik CronManager'i tööd on taas lihtsad `type: http` POST-id; `exec`-skript `call-ruuter-internal.sh` ja CronManager'i `constants.ini` mount on eemaldatud.
+- Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManager'i tokenita päring 403).
+- Kaitse `/cron/*` ees on võrgutasemel (NetworkPolicy lubab `ruuter-internal`'ile ainult teadaolevad podid, host-porti ei publitseerita). Token jääb kõigile teistele `ruuter-internal` route'idele.
+- Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManager'i tööd.
 
 ### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
 

@@ -117,7 +117,14 @@ function expandDrivers(rec: Record<string, unknown>): Record<string, unknown> {
  * esmakordse esinemise järgi, nii et vana ja uus versioon sama tabeli ridu ei sega.
  * Pesastatud väärtused (rikkumised, juhid jms) pannakse lahtrisse JSON-tekstina.
  */
-export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
+/** Veerud, mille väärtus on EHAK klassifikaatori võti (maakond, linn/vald). */
+const PLACE_KEYS = new Set(['county', 'city', 'company_county', 'company_city']);
+
+export function buildExportTable(
+  rows: FormSearchExportRow[],
+  /** EHAK võti → nimi; tundmatu või vaba teksti väärtus jääb samaks. */
+  placeName: (value: string) => string = (v) => v,
+): ExportTable {
   const records = rows.map((r) =>
     expandDrivers(
       addTrailerRegNr(
@@ -140,7 +147,14 @@ export function buildExportTable(rows: FormSearchExportRow[]): ExportTable {
   }
   return {
     headers: labelHeaders(headers),
-    rows: records.map((rec) => headers.map((h) => cellOf(rec[h], h))),
+    rows: records.map((rec) =>
+      headers.map((h) =>
+        cellOf(
+          PLACE_KEYS.has(h) && typeof rec[h] === 'string' ? placeName(rec[h] as string) : rec[h],
+          h,
+        ),
+      ),
+    ),
   };
 }
 

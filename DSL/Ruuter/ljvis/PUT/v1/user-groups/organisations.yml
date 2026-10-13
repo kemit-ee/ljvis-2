@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Replace all organisation links for a user group"
@@ -14,6 +15,9 @@ declaration:
       - field: removedOrganisationIds
         type: array
         description: "Array of removed organisation IDs"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja

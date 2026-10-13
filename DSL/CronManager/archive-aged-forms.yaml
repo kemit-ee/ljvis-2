@@ -15,8 +15,9 @@
 # Aeg: pühapäeviti 04:00 Tallinna aja järgi (TZ docker-compose.yml-is), pärast öiseid töid.
 archive_aged_forms:
   trigger: "0 0 4 ? * SUN"
-  type: exec
-  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/archive-aged-forms?enabled=false&retentionYears=7&purge=false&batch=500&dryRun=false
+  type: http
+  method: POST
+  url: "http://ruuter-internal:8080/ljvis/cron/archive-aged-forms?enabled=false&retentionYears=7&purge=false&batch=500&dryRun=false"
   retryCount: 1
   retryDelay: 60000
   ignoreFailures: true

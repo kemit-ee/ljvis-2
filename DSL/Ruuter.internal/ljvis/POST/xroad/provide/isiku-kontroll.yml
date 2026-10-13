@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -7,6 +8,9 @@ declaration:
     labour_inspection_form.punished_person_id_code. Juurdepääs ainult X-tee
     turvaserveri kaudu — ruuter-internal ei ole nginx-ist proxitud. Vt docs/xtee/01-isiku-kontroll.md.
   namespace: xroad
+  allowlist:
+    body:
+      - field: isikukood
 
 # Samm 1: Valideeri isikukood — kohustuslik ja peab vastama Eesti isikukoodi formaadile
 validateInput:

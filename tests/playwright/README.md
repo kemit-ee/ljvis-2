@@ -15,6 +15,7 @@ tekib `tulemus/` alla detailne sammukirjeldus + ekraanipilt ning HTML-raport.
 | `labour-inspection.spec.ts` | tööinspektsiooni akt: validatsioon + salvestus + tulevikukuupäev |
 | `good-repute.spec.ts` | hea maine: validatsioon + tingimuslikud väljad + salvestus |
 | `compound-subforms.spec.ts` | autojuhi/ADR/tehno alamvormid koondvormi loomisvoos |
+| `technical-check-proceeding.spec.ts` | tehnokaardi väärteomenetluse märke eemaldamine: kinnitusdialoog, „Tühista“, tühjendamine, uus salvestusversioon |
 | `erru.spec.ts` | CTUD/CGR/RSI/NCR: leht avaneb + tühja vormi validatsioon |
 | `adr-form.spec.ts` | ADR-vorm: kinnitamine (PR #311), printimisnupp (PR #310) |
 | `print-buttons.spec.ts` | vormide printimisnupud |

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) the trailer technical-check sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
@@ -32,6 +33,9 @@ declaration:
       - field: notes
         type: string
       - field: trailerRegNr
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

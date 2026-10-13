@@ -3,10 +3,11 @@
 **Hange:** HD4 Lisa 6 p.7 — Täitja teostab korduvkäivitatavad testid, esitab raporti ning tõendab
 kokkulepitud sihtide täitmist. Nõutud: stsenaariumid, testandmed, skriptid, raportid.
 
-**Seis (02.10.2026):** stsenaariumid, skriptid ja raporti genereerija on valmis. Testid on
-**kirjutatud, kuid veel mitte jooksutatud**; allpool olev tulemuste tabel on täitmata ja sihid on
-ettepanek, mille Tellija kinnitab. Raport koostatakse kohe pärast esimest jooksu
-(`scripts/generate-perf-report.py`). Ühtegi tulemust ei ole siin ette kirjutatud.
+**Seis (10.10.2026):** testid on jooksutatud lokaalses CI-pinus kahe koodiseisu vastu (21.09 ja 08.10),
+load kolm korda kummagi seisuga. Sihte ei täideta ühelgi seisul load-, stress- ega spike-koormusel; 08.10 seis
+on 21.09-ga võrreldes ~3,7 korda aeglasem (Ruuteri CPU kulu päringu kohta ~2x). Tulemused:
+[seis 21.09](joudlustestid-tulemused-seis-2026-09-21.md), [seis 08.10](joudlustestid-tulemused-2026-10-10.md).
+Sihid on endiselt ettepanek, mille Tellija kinnitab. `soak` on jooksutamata.
 
 ## 1. Eesmärk
 
@@ -72,6 +73,20 @@ perioodiliseks käivituseks.
 - **Kasutajad:** `dev-login` (vt `tests/postman/ci-stack-environment.json`), saadaval ainult CI/dev/test keskkonnas.
   Tootmise vastu jõudlustesti ei tehta.
 
+## 5a. Testandmete koristus
+
+Testid loovad andmeid (koondvormid registrinumbriga `PERF…`). Baas on append-only, seega koristus on
+rakenduse tavaline kustutamine: lisatakse staatusega `deleted` snapshot, vorm kaob otsingust ja nimekirjadest;
+ajalugu, audit ja riskiskoori ajalugu jäävad alles (ADR-010 võib need hiljem arhiivi viia).
+
+- **Käsitsi:** `python3 tests/performance/cleanup.py --base-url <url>` (kuivjooks; `--apply` kustutab). Vajab `dev-login`i.
+- **Automaatselt:** CronManager töö `cleanup_perf_test_forms` (`DSL/CronManager/cleanup-perf-test-forms.yaml`)
+  käivitub iga päev 00:00 ja kutsub sisemist voogu `cron/cleanup-perf-test-forms` (ei vaja sisselogimist). Voog märgib
+  `deleted`-ks ainult vormid, mille **viimase snapshot'i lõi testkasutaja** (`60001019906`) ja mille registrinumber
+  **algab** `PERF`; kuni 1000 vormi jooksu kohta.
+- **Ajutine:** pealüliti puudub, töö jookseb igas keskkonnas, kuhu see deploy'takse; kaitseks on range valik (prefiks + looja). Eemalda CronManageri fail ja Ruuteri voog, kui testandmeid enam ei looda.
+- Kontrollitud lokaalses CI-pinus: 5 `PERF` vormi märgiti kustutatuks, `XPERF9` ja `REAL001` jäid puutumata, kordusjooks on tühi.
+
 ## 6. Käivitamine
 
 ```bash
@@ -95,10 +110,14 @@ Tulemused ei ole võrreldavad jooksude vahel, kui keskkond erineb.
 
 | Stsenaarium | Kuupäev | Commit | Päringuid | Vigu % | p95 lugemine | p95 kirjutamine | Siht täidetud | Märkused |
 |---|---|---|---|---|---|---|---|---|
-| smoke | — | — | — | — | — | — | — | Pole jooksutatud |
-| load | — | — | — | — | — | — | — | Pole jooksutatud |
-| stress | — | — | — | — | — | — | — | Pole jooksutatud |
-| spike | — | — | — | — | — | — | — | Pole jooksutatud |
+| smoke | 10.10.2026 | `fe63c5666` | 75 | 0,00 | 238 ms | — | jah | seis 21.09 |
+| smoke | 10.10.2026 | `9a06887a` | 75 | 0,00 | 788 ms | — | jah | seis 08.10 |
+| load | 10.10.2026 | `fe63c5666` | 13153 | 0,00 | 2219 ms | 3172 ms | ei | seis 21.09; load #1, 3 jooksu vahemik raportis |
+| load | 10.10.2026 | `9a06887a` | 6592 | 0,00 | 8374 ms | 10043 ms | ei | seis 08.10; load #1, 3 jooksu vahemik raportis |
+| stress | 10.10.2026 | `fe63c5666` | 12505 | 0,50 | 28868 ms | 36587 ms | ei | seis 21.09 |
+| stress | 10.10.2026 | `9a06887a` | 8185 | 12,07 | 36513 ms | 38262 ms | ei | seis 08.10 |
+| spike | 10.10.2026 | `fe63c5666` | 4499 | 0,00 | 20301 ms | — | ei | seis 21.09 |
+| spike | 10.10.2026 | `9a06887a` | 3350 | 5,52 | 34555 ms | — | ei | seis 08.10 |
 | soak | — | — | — | — | — | — | — | Pole jooksutatud |
 
 Raporti kohustuslikud osad pärast esimest jooksu: **kokkuvõte** (täidetud/mitte), **kitsaskohad**

@@ -123,8 +123,8 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const forbidden = !(
-    ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
-      (entryType === 'teammate' && hasPermission('sp_teammate_form.read')) ||
+    ((entryType === 'driver' && (hasPermission('sp_driver_form.read') || hasPermission('sp_driver_form.write'))) ||
+      (entryType === 'teammate' && (hasPermission('sp_teammate_form.read') || hasPermission('sp_teammate_form.write'))) ||
       hasPermission('control_form.view_unpublished'))
   );
 

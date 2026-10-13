@@ -749,11 +749,6 @@ export function CompoundFormEditCard({
                     }
                     items={[
                       {
-                        id: 'road_tax_status_1',
-                        value: 'Ei kohaldu',
-                        label: t('forms.compound.roadTaxStatusNotApplicable'),
-                      },
-                      {
                         id: 'road_tax_status_2',
                         value: 'Tasumata',
                         label: t('forms.compound.roadTaxStatusUnpaid'),
@@ -765,7 +760,18 @@ export function CompoundFormEditCard({
                       },
                     ]}
                   />
-                  <div />
+                  <div>
+                    {formik.values.roadTaxStatus && (
+                      <Button
+                        type="button"
+                        size="small"
+                        visualType="link"
+                        onClick={() => formik.setFieldValue('roadTaxStatus', '')}
+                      >
+                        {t('forms.compound.roadTaxClear')}
+                      </Button>
+                    )}
+                  </div>
                   <TextArea
                     id="roadTaxNotes"
                     label={t('forms.compound.roadTaxNotes')}

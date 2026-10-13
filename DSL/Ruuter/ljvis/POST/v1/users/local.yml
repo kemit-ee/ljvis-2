@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create a new user"
@@ -24,6 +25,9 @@ declaration:
       - field: phone
         type: string
       - field: accessEnd
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 get_user_context:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Delete vehicle technical-check sub-form"
   namespace: control-forms
@@ -9,6 +10,9 @@ declaration:
       - field: form_number
         type: string
       - field: old_status
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 checkDeletePermission:

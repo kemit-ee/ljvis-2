@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Record correlated NU ErrorNotification messages idempotently. Internal endpoint.
@@ -6,25 +7,6 @@ declaration:
     following the CGR/CTUD/RSI/NCR inbound precedent.
   namespace: erru
   allowlist:
-    body:
-      - field: technicalId
-        type: string
-      - field: workflowId
-        type: string
-      - field: sentAt
-        type: string
-      - field: from
-        type: string
-      - field: to
-        type: string
-      - field: businessCaseId
-        type: string
-      - field: statusCode
-        type: string
-      - field: statusMessage
-        type: string
-      - field: originalMessage
-        type: string
 
 recordResult:
   call: http.post

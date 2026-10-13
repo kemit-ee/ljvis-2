@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Delete a user from a user group"
@@ -8,6 +9,9 @@ declaration:
       - field: q
         type: string
       - field: userId
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

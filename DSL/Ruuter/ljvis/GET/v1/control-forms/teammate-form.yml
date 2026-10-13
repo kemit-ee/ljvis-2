@@ -1,13 +1,16 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single drive rest form (teammate) by key"
   namespace: control-forms
   allowlist:
-    body:
+    headers:
+      - field: cookie
+        type: string
+    params:
       - field: q
         type: string
-        description: "sp_teammate_form_key"
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -17,7 +20,7 @@ get_user_context:
 
 checkPermission:
   switch:
-    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('sp_teammate_form.read'))}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('sp_teammate_form.read') || auth_user.permissions.includes('sp_teammate_form.write'))}
       next: extractRequestData
   next: returnForbidden
 
@@ -140,7 +143,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
   next: end
 
 returnNotFound:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Write one audit event to the database. The actor is ALWAYS the authenticated TARA session (guard variable session_personal_code); the personal code and display name are never read from the request body. Uses the database ULID generator in the INSERT transaction. Extracts trace_id and span_id from the incoming traceparent header. Derives the actor's organisation_id and display name from the session personal code (for the audit.read.local scope) — NULL for system actors."

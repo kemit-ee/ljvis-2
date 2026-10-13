@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Render an allow-listed control-form PDF and record the print audit event."
   namespace: service
@@ -17,6 +18,33 @@ declaration:
         type: string
       - field: logContent
         type: string
+    headers:
+      - field: cookie
+        type: string
+      - field: content-type
+        type: string
+
+# Koondvormi maakond/linn on salvestatud EHAK klassifikaatori võtmena; PDF-i jaoks lahendame nimeks.
+collectPlaceIds:
+  assign:
+    place_ids: "${(function(c) { return c ? [c.county, c.city, c.companyCounty, c.companyCity].filter(function(x) { return /^[0-9]+$/.test(String(x || '')); }).join(',') : ''; })(incoming.body.fields && incoming.body.fields.compoundForm)}"
+  next: getPlaceNames
+
+getPlaceNames:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/ehak/get_names"
+    headers:
+      type: json
+    body:
+      ids: ${place_ids}
+  result: placeNamesRes
+  next: buildPdfFields
+
+buildPdfFields:
+  assign:
+    pdf_fields: "${Object.assign({}, incoming.body.fields, {labels: {ehak: ((placeNamesRes.response && placeNamesRes.response.body) || []).reduce(function(m, r) { m[r.id] = r.name; return m; }, {})}})}"
+  next: renderPdf
 
 renderPdf:
   call: http.post
@@ -28,7 +56,7 @@ renderPdf:
     body:
       templateCode: ${incoming.body.templateCode}
       blank: ${incoming.body.blank}
-      fields: ${incoming.body.fields}
+      fields: ${pdf_fields}
       output: "base64"
   result: pdfRes
   next: checkPdfResult

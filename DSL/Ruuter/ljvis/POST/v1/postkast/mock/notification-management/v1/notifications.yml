@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     MOCK Postkast 2.0 "Teavituse loomine" — dev ja CI ainult, tootangus
@@ -10,11 +11,6 @@ declaration:
     kaustas) vastab FINISHED+createdRecipientCount:1 kohe esimesel päringul.
   namespace: postkast
   allowlist:
-    body:
-      - field: templateId
-        type: string
-      - field: parameters
-        type: array
 
 returnAccepted:
   return:

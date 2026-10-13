@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Delete compound form"
@@ -8,6 +9,9 @@ declaration:
       - field: id
         type: string
       - field: old_status
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

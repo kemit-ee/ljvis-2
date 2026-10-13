@@ -149,6 +149,8 @@ test.describe('X-tee pakutavad teenused', () => {
     await test.step('korduspäring sama kontrolli_id-ga → 200 (idempotentne)', async () => {
       expect((await post('register-job-inspection', body)).status).toBe(200);
     });
+    // V1 kasutab vana fikseeritud nimega RikkumisteArvud tüüpi (vt ljvis.wsdl) — toores
+    // passthrough, koodi-vastendust (UNKNOWN_VIOLATION_CODE) ei rakendata siin.
   });
 
   test('6. RegisterJobInspection_v3 — v3 väljad ja valideerimine', async () => {
@@ -180,6 +182,24 @@ test.describe('X-tee pakutavad teenused', () => {
     });
     await test.step('kõik v3 väljad → 200', async () => {
       expect((await post('register-job-inspection-v3', body)).status).toBe(200);
+    });
+    await test.step('tundmatu rikkumiskood → 400 UNKNOWN_VIOLATION_CODE', async () => {
+      const res = await post('register-job-inspection-v3', {
+        ...body,
+        kontrolli_id: `PW-V3-BADCODE-${Date.now()}`,
+        rikkumised: { rikkumiste_arv: [{ rikkumise_kood: 'ZZ99' }] },
+      });
+      expect(res.status).toBe(400);
+      expect(res.json?.error).toBe('UNKNOWN_VIOLATION_CODE');
+      expect(res.json?.codes).toContain('ZZ99');
+    });
+    await test.step('tuntud rikkumiskoodid (E5, B1) → 200, violations vastendatud', async () => {
+      const res = await post('register-job-inspection-v3', {
+        ...body,
+        kontrolli_id: `PW-V3-GOODCODE-${Date.now()}`,
+        rikkumised: { rikkumiste_arv: [{ rikkumise_kood: 'E5', arv: 2 }, { rikkumise_kood: 'B1' }] },
+      });
+      expect(res.status).toBe(200);
     });
   });
 

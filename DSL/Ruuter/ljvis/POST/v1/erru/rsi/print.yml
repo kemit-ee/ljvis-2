@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Generate a filled RSI message PDF."
   namespace: erru

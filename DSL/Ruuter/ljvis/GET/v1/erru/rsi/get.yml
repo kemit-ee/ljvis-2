@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Get a single RSI message (erru.rsi_message) by its logical key, returning the latest snapshot (LJVIS2-147). Read-only; serves both an unsent outgoing draft and a sent/responded/received/answered message. Audited on EVERY open because the view may show the driver's personal data (name, licence number)."
   namespace: erru
@@ -7,6 +8,9 @@ declaration:
       - field: q
         type: string
         description: "RSI message logical key (rsi_message_key)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:

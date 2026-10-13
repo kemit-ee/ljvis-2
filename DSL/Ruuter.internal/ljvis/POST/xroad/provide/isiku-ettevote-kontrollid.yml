@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -7,6 +8,9 @@ declaration:
     Ainult lokaalne DB — Äriregistri välispäringut ei tehta.
     Vt docs/xtee/02-isiku-ettevote-kontrollid.md.
   namespace: xroad
+  allowlist:
+    body:
+      - field: isikukood
 
 # Samm 1: Valideeri isikukood — Eesti isikukoodi formaat (11 numbrit, algab 1-6)
 validateInput:
