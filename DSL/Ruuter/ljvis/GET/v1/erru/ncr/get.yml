@@ -100,22 +100,11 @@ logAuditEvent:
     business_case_id: ${business_case_id}
     message_count: "${'' + res.response.body.length}"
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_ncr_case"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      snapshots: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(){ var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return { snapshots: res.response.body.map(function(f){ return Object.assign({}, f, { minorInfringement: p(f.minorInfringement), seriousInfringements: p(f.seriousInfringements) || [], responsePenaltiesImposed: p(f.responsePenaltiesImposed), responseAddress: p(f.responseAddress) }); }) }; })()}"
   next: end
 
 returnNotFound:
