@@ -4,6 +4,15 @@
 
 ## 2026-10-13
 
+### Kiiremad loendid ja klassifikaatorite laadimine (DataMapperi läbisõidud eemaldatud)
+
+- 25 lugemisteenust (klassifikaatorid ja nende väärtused, kasutajad, kasutajagrupid, riskiskoorid, ERRU CTUD/CGR/RSI/NCR/NU loendid ja vaated, hea maine ja tööinspektsiooni vormid, koondvormi alamvormide loendid) tagastavad andmebaasi vastuse otse, ilma andmete vahepealse ümberkirjutamiseta. Klassifikaatorite täiskomplekti laadimine võtab serveris ligikaudu poole vähem aega.
+- Erimärgid kuvatakse nüüd õigesti: nt klassifikaatori väärtus „Märgi „parvlaev/rong" ebaõige …" ja ettevõtte nimi „K's Merchandise" näitasid varem `&quot;` / `&#x27;` jääke.
+- Klassifikaatori väärtuse muutmisel ei kirjutata erimärke enam topelt-kodeerituna tagasi.
+
+### Klassifikaatorite brauseripuhver (ETag)
+
+- Klassifikaatorite täisnimekirjad (`/v1/classifier-values`, `/v1/citizen/classifier-values`, `/v1/classifiers/bundle`) saadavad `ETag` ja `Cache-Control: private, no-cache` päise. Kui klassifikaatorid pole vahepeal muutunud, vastab server korduval laadimisel (lehe värskendus, uus vaheleht) `304 Not Modified` ja brauser kasutab oma koopiat. Muutunud klassifikaatorid, väärtused või vormipiirangud ja uus kuupäev (kehtivus) muudavad ETag-i ning siis laaditakse andmed uuesti.
 ### Klassifikaatorite laadimine kiiremaks („Muu tee" otsing serverist)
 
 - Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga sessiooni klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.

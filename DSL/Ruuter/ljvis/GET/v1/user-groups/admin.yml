@@ -38,18 +38,6 @@ getUserGroup:
       id: ${id}
       organisation_id: ${organisation_id}
   result: res
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_user_group"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      groups: ${res.response.body}
-  result: mapped
   next: getGroupUsers
 
 getGroupUsers:
@@ -95,5 +83,5 @@ logAuditEvent:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body}
   next: end
