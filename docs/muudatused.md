@@ -4,6 +4,12 @@
 
 ## 2026-10-13
 
+### Kiiremad loendid ja klassifikaatorite laadimine (DataMapperi läbisõidud eemaldatud)
+
+- 25 lugemisteenust (klassifikaatorid ja nende väärtused, kasutajad, kasutajagrupid, riskiskoorid, ERRU CTUD/CGR/RSI/NCR/NU loendid ja vaated, hea maine ja tööinspektsiooni vormid, koondvormi alamvormide loendid) tagastavad andmebaasi vastuse otse, ilma andmete vahepealse ümberkirjutamiseta. Klassifikaatorite täiskomplekti laadimine võtab serveris ligikaudu poole vähem aega.
+- Erimärgid kuvatakse nüüd õigesti: nt klassifikaatori väärtus „Märgi „parvlaev/rong" ebaõige …" ja ettevõtte nimi „K's Merchandise" näitasid varem `&quot;` / `&#x27;` jääke.
+- Klassifikaatori väärtuse muutmisel ei kirjutata erimärke enam topelt-kodeerituna tagasi.
+
 ### Jõudlustestide testvormide öine koristus (ajutine)
 
 - CronManager'i töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
