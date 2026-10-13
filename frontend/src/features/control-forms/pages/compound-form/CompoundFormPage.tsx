@@ -99,6 +99,7 @@ export function CompoundFormPage() {
 
   const forbidden = !(
     (hasPermission('compound_form.read') ||
+      hasPermission('compound_form.write') ||
       hasPermission('control_form.view_unpublished'))
   );
 

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Audit: CGR request sent or re-sent to ERRU (LJVIS2-139). Logged on every send/resend attempt, successful or not. The description carries the request identifier, the target country (ZZ for broadcast), the reached status (sent, resent, or error), the number of responding member states, and the searched transport manager's name (first + family), which makes it traceable whose good-repute data was requested. CGR involves personal data (transport manager name), so actor_personal_code is logged per the data-processing agreement."
   namespace: service
@@ -6,6 +7,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: business_case_id

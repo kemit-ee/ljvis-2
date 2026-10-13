@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Publish (avalikusta) compound form. Only allowed once no active sub-form is left unpublished (the general part is never published on its own). Form field values are taken from the current database record — client only provides the id. The logic lives in templates/form/compound-form/publish-compound-form, which the sub-form publish handlers also use to auto-publish the general part."
@@ -6,6 +7,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:

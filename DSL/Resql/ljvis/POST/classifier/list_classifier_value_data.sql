@@ -1,5 +1,6 @@
 /*
-description: List of all classifier values (latest snapshot per classifier_value_key, with validity)
+description: List of all classifier values (latest snapshot per classifier_value_key, with validity).
+  ROAD_OTHER is excluded — it is looked up one road at a time via roads/get_other_road_by_number
 namespace: classifier
 params: {}
 returns:
@@ -51,6 +52,9 @@ WITH latest_value AS (
         valid_until,
         (valid_from <= CURRENT_DATE AND (valid_until IS NULL OR valid_until > CURRENT_DATE)) AS is_valid
     FROM classifier.classifier_value
+    -- ROAD_OTHER (3 209 teed) ei kuulu FE klassifikaatorivahemällu: see paisutas iga
+    -- sessiooni klassifikaatorilaadimise ~2x (#551 järeltöö). Tee nimi: GET /v1/roads/other.
+    WHERE classifier_key NOT IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'ROAD_OTHER')
     ORDER BY classifier_value_key, created_at DESC
 )
 SELECT

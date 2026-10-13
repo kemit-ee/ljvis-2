@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Read an eligible source declaration."
   namespace: erru
@@ -24,6 +25,7 @@ getSource:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-source"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}

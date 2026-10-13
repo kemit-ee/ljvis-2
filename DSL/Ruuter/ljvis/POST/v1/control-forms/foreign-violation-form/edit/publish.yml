@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Publish (avalikusta) a foreign violation form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
@@ -6,6 +7,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -22,6 +26,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -104,6 +109,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
@@ -245,6 +251,7 @@ clearNotifyCarrier:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/clear-notify-carrier"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

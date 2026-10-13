@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Saadab ühe eeldefineeritud teavituse liigi ühele adressaadile Postkast 2.0
@@ -85,6 +86,7 @@ getTemplateMapping:
   args:
     url: "[#LJVIS_RESQL]/notification/get_template_mapping"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: ${notification_type}
@@ -156,6 +158,7 @@ insertQueued:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_key: ${generated_key}
@@ -189,6 +192,7 @@ insertRecipientRow:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       log_id: ${log_id}
@@ -218,7 +222,6 @@ callPk:
       # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
     body:
       templateId: ${original_template_id}
-      notification_language: "ET"
       parameters:
         - "${Object.assign({}, template_variables_obj, { recipient: recipient_email })}"
   result: pkRes
@@ -250,6 +253,7 @@ logXroadSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "pk.notification-management.v1"
@@ -270,6 +274,7 @@ updateInProgress:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}
@@ -304,6 +309,18 @@ onPkError:
             .replace(/"/g, "'")
             .substring(0, 500))
         : 'Postkast 2.0 ei ole kättesaadav või päring aegus'}
+  next: logPkFailure
+
+# Ruuteri logisse (kubectl/Argo): Postkasti tagasilükkamise põhjus koos vastuse
+# kehaga — muidu on näha ainult "status=400". failure_reason on 500 märgi
+# piiriga, siin kuni 2000.
+logPkFailure:
+  log: >-
+    Postkast 2.0 saatmine ebaõnnestus notification_key=${notification_key}
+    type=${notification_type} templateId=${original_template_id}:
+    ${(typeof pkRes !== 'undefined' && pkRes.response)
+      ? ('HTTP ' + pkRes.response.status + ' ' + JSON.stringify(pkRes.response.body)).substring(0, 2000)
+      : 'vastust ei saadud (transpordiviga või timeout)'}
   next: logXroadFailure
 
 logXroadFailure:
@@ -311,11 +328,12 @@ logXroadFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "pk.notification-management.v1"
       request_xml: "${'notificationKey=' + notification_key + ';type=' + notification_type}"
-      response_xml: ""
+      response_xml: "${(typeof pkRes !== 'undefined' && pkRes.response) ? JSON.stringify({ status: pkRes.response.status, body: pkRes.response.body }) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: ${pk_error_message}
@@ -331,6 +349,7 @@ updateFailedStatus:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}
@@ -360,6 +379,7 @@ insertAsError:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_key: ${generated_key}
@@ -389,6 +409,7 @@ insertErrorRecipientRow:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       log_id: ${error_log_id}

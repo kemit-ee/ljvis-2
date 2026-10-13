@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) the drive/rest teammate sub-form. Uses the same fields as save (update), but forces status=confirmed server-side. Blocked if the sub-form is already confirmed or published."
@@ -63,6 +64,9 @@ declaration:
         type: string
       - field: notes
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -108,6 +112,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -140,6 +145,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
@@ -212,6 +218,7 @@ registerCarrierNotificationRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entity_type: "drive_rest_teammate_form"

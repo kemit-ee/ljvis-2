@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Update an existing user"
@@ -29,6 +30,9 @@ declaration:
         type: string
       - field: status
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -58,6 +62,7 @@ getCurrentUserGroups:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_id: ${user_account_id}
@@ -145,6 +150,7 @@ updateUser:
   args:
     url: "[#LJVIS_RESQL]/user/update_user_account"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_account_id: ${user_account_id}

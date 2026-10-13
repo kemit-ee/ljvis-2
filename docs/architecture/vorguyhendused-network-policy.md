@@ -35,7 +35,7 @@ Kõik komponendid on ClusterIP Service'id namespace'is `ljvis2-<env>`. Service n
 | `s3-proxy` | 3010 → 3010 | manuste üles-/allalaadimine S3-sse | ei |
 | `nysiis` | 8080 → 8080 | ERRU NYSIIS võtme arvutus (Java sidecar) | ei |
 | `pdf-creator` | 3020 → 3020 | PDF-i genereerimine (WeasyPrint, väliseid ressursse ei laadi — `url_fetcher=deny_resources`) | ei |
-| `cronmanager` | 8080 → 8080 | ajastatud tööd (curl + `x-internal-service-token` → ruuter-internal) | ei |
+| `cronmanager` | 8080 → 8080 | ajastatud tööd (HTTP POST `/cron/*` → ruuter-internal; token ei ole nõutud, kaitse on see NetworkPolicy) | ei |
 | `stesta-gateway` | 443 → 8443 (TLS), health 8081 | ERRU/MOVEHUB sissetulevate callback'ide TLS-värav | jah, AWS Target Group `ljvis2-nonlive-stesta-443` (hetkel ainult **dev**) |
 | Liquibase Job (resql-ljvis chart, Argo sync-wave −1) | — | skeemimigratsioon | ei |
 
@@ -127,7 +127,7 @@ TARA sisselogimisleht (redirect) ja S3 presigned URL-id manuste allalaadimisel (
 | `ruuter-internal:8080` | ns `traefik` (Gateway `xroad`) | X-tee teenuse pakkumine, HTTPRoute lubab ainult `POST /ljvis/xroad/provide/*` |
 | | `stesta-gateway` | ERRU/MOVEHUB sissetulevad päringud ja vastused |
 | | `ruuter` | `/ljvis/auth/log-login`, `/notification/create`, `/notification/send-postkast`, `/risk-scores/{current,controls,recalculate}` |
-| | `cronmanager` | `/ljvis/cron/*`, `/ljvis/users/deactivate-expired` |
+| | `cronmanager` | `/ljvis/cron/*` |
 | | `ruuter-internal` ise | `/notification/create`, `/risk-scores/recalculate` |
 | `tim:8085` | `frontend` | nginx `/tim/` (login, callback, cookie) |
 | | `ruuter` | tokeni valideerimine, kasutajainfo (`LJVIS_TIM`, admin token) |

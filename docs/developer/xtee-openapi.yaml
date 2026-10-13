@@ -874,7 +874,7 @@ paths:
               koostatatud_ettekirjutus: false
               kontrollimised: &id001
                 kontrollitud_soitjate_veol: false
-              rikkumised: &id002
+              rikkumised:
                 rikkumised_loend: []
               vaarteomenetlus: MOCK-VM-001
   /xroad/v1/register-job-inspection-v3:
@@ -1067,7 +1067,11 @@ paths:
               soidukite_arv: 2
               koostatatud_ettekirjutus: false
               kontrollimised: *id001
-              rikkumised: *id002
+              rikkumised:
+                rikkumiste_arv:
+                - rikkumise_kood: E5
+                  arv: 2
+                - rikkumise_kood: B1
               vaarteomenetlus: MOCK-VM-001
               soiduki_reg_nr: MOCK123
               soiduki_vin: MOCKVIN0000000001

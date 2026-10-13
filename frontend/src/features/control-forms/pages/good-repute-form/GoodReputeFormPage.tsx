@@ -48,6 +48,7 @@ export function GoodReputeFormPage() {
 
   const forbidden = !(
     hasPermission('good_repute_form.read') ||
+    hasPermission('good_repute_form.write') ||
     hasPermission('control_form.view_unpublished')
   );
 

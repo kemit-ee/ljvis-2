@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -9,6 +10,9 @@ declaration:
     Idempotentne: korduspäring sama kombinatsiooniga annab sama tulemuse.
     Vt docs/xtee/04-erakorraline-yv-confirm.md.
   namespace: xroad
+  allowlist:
+    body:
+      - field: confirmed
 
 # Samm 1: Kinnita et confirmed.item[] on olemas ja ei ole tühi
 validateItems:
@@ -65,6 +69,7 @@ updateXroadField:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/erakorraline-yv-confirm-update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       inspectionId: "${items[current_index].inspection_id}"
@@ -96,6 +101,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-confirm"
@@ -121,6 +127,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-confirm"

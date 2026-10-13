@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) a good repute form (hea maine vorm). Confirming re-validates and re-saves current field values, then transitions status saved -> confirmed. One-way: an already-confirmed form cannot be confirmed again (LJVIS2-136)."
@@ -28,6 +29,9 @@ declaration:
       - field: unfitFromDate
         type: string
       - field: unfitUntilDate
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -81,6 +85,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -103,6 +108,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

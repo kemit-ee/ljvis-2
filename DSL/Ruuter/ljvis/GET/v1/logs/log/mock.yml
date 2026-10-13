@@ -1,4 +1,6 @@
 declaration:
+  description: "Arenduse mock: GET /v1/logs/log/mock tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
+  internal: false
   allowlist:
     params: []
 

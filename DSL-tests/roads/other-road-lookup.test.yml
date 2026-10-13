@@ -1,0 +1,190 @@
+# GET /v1/roads/other?number= — „Muu tee" nime otsing ROAD_OTHER klassifikaatorist ühe tee
+# kaupa (#551 järeltöö: ROAD_OTHER ei kuulu enam klassifikaatorite bulk-vastustesse).
+# Vigane number ei jõua Resql-ini; vasteta number tagastab [] (FE jätab käsitsi sisestuse).
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+tests:
+- name: known road number returns the road name
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions: []
+    - url_matches: /roads/get_other_road_by_number
+      method: POST
+      status: 200
+      body:
+      - code: '1194'
+        name: Posti tee
+  request:
+    method: GET
+    path: /ljvis/v1/roads/other?number=1194
+    headers:
+      cookie: test
+  expect:
+    status: 200
+    body:
+      response:
+      - code: '1194'
+        name: Posti tee
+  verify_mocks:
+  - url_matches: /roads/get_other_road_by_number
+    count: 1
+    body_matches:
+      number: '1194'
+
+- name: unknown road number returns an empty list
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions: []
+    - url_matches: /roads/get_other_road_by_number
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/roads/other?number=99999
+    headers:
+      cookie: test
+  expect:
+    status: 200
+    body:
+      response: []
+  verify_mocks:
+  - url_matches: /roads/get_other_road_by_number
+    count: 1
+    body_matches:
+      number: '99999'
+
+- name: non-numeric number does not reach Resql
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions: []
+    - url_matches: /roads/get_other_road_by_number
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/roads/other?number=12a4
+    headers:
+      cookie: test
+  expect:
+    status: 200
+    body:
+      response: []
+  verify_mocks:
+  - url_matches: /roads/get_other_road_by_number
+    count: 0
+
+- name: too long number does not reach Resql
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions: []
+    - url_matches: /roads/get_other_road_by_number
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/roads/other?number=123456
+    headers:
+      cookie: test
+  expect:
+    status: 200
+    body:
+      response: []
+  verify_mocks:
+  - url_matches: /roads/get_other_road_by_number
+    count: 0
+
+- name: missing number does not reach Resql
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions: []
+    - url_matches: /roads/get_other_road_by_number
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/roads/other
+    headers:
+      cookie: test
+  expect:
+    status: 200
+    body:
+      response: []
+  verify_mocks:
+  - url_matches: /roads/get_other_road_by_number
+    count: 0

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Get a single CTUD request (erru.ctud_request) by its logical key, returning the latest snapshot (LJVIS2-143). Read-only; serves all three form modes (outgoing draft, sent outgoing request with response, inbound request). Per the specification the view is audited on EVERY open — unlike the control forms there is no viewer-equals-creator exemption, because the view always exposes transport undertaking data."
   namespace: erru
@@ -7,6 +8,9 @@ declaration:
       - field: q
         type: string
         description: "CTUD request logical key (ctud_request_key)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -26,6 +30,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -66,6 +71,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_ctud_request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       requests: ${res.response.body}

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create or update a TRAM control card (Transpordiameti kontrollkaart) — single unified save endpoint, branches internally on presence of id. status and the form_number /V version suffix are always computed server-side. A confirmed/published card can only be re-saved by a user with control_form.edit_locked."
@@ -144,6 +145,9 @@ declaration:
         type: string
       - field: notes
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -256,6 +260,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: saved
@@ -337,6 +342,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -365,6 +371,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "List all roads"
@@ -11,6 +12,7 @@ getRoads:
   args:
     url: "[#LJVIS_RESQL]/roads/list_roads"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: res

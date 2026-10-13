@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Publish (avalikusta) a good repute form (hea maine vorm). Publishing re-saves current field values, then transitions status confirmed -> published. One-way: an already-published form cannot be published again."
@@ -6,6 +7,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -22,6 +26,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -59,6 +64,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
