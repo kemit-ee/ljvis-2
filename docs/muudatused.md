@@ -83,6 +83,7 @@
 - `/cron/*` route'id ei nõua `x-internal-service-token` päist (`POST/cron/.guard`, `override_ancestors`). Kõik CronManager'i tööd on taas lihtsad `type: http` POST-id; `exec`-skript `call-ruuter-internal.sh` ja CronManager'i `constants.ini` mount on eemaldatud.
 - Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManager'i tokenita päring 403).
 - Kaitse `/cron/*` ees on võrgutasemel (NetworkPolicy lubab `ruuter-internal`'ile ainult teadaolevad podid, host-porti ei publitseerita). Token jääb kõigile teistele `ruuter-internal` route'idele.
+- Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManager'i tööd.
 
 ### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
 

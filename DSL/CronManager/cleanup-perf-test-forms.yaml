@@ -5,8 +5,9 @@
 # Aeg: iga päev 00:00 Tallinna aja järgi (TZ docker-compose.yml-is).
 cleanup_perf_test_forms:
   trigger: "0 0 0 * * ?"
-  type: exec
-  command: ./scripts/ljvis/call-ruuter-internal.sh /cron/cleanup-perf-test-forms?personalCode=60001019906&batch=1000
+  type: http
+  method: POST
+  url: "http://ruuter-internal:8080/ljvis/cron/cleanup-perf-test-forms?personalCode=60001019906&batch=1000"
   retryCount: 1
   retryDelay: 60000
   ignoreFailures: true
