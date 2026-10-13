@@ -168,7 +168,7 @@ dsl_path: /DSL
 wsdl_watch_dir: /wsdl
 inbound:
   port: 8081
-  public_base_url: https://<turvaserverile nähtav SOAP-aadress>   # ?wsdl soap:address
+  public_base_url: http://example.org/xroad-endpoint   # ?wsdl soap:address — DUMMY, mitte reaalne hostinimi (vt allpool)
 security_server:              # kohustuslik: ilma selleta XTR ei käivitu (WSDL-i aadress on TURVASERVER)
   url: https://<turvaserver>/
   keystore_path: …
@@ -191,6 +191,8 @@ Tootmise `xtr.yaml`-is **ei tohi** olla `wsdl.allow_http_upstream: true` ega `ws
 XTR kopeerib X-Road päised SOAP-ist, kuid ei autentiseeri saatjat ise; Ruuteri `.guard` kontrollib `X-Road-Client` vormingut. Päisele saab tugineda ainult siis, kui port 8081 on kättesaadav üksnes turvaserverile.
 
 **Turvaserver.** Registreeri `?wsdl` aadressilt SOAP-teenuse kirjeldus ja anna õigused konkreetsetele tarbijatele. Enne sisselülitamist sõelu üle tegelik registreering (subsystem, teenusekoodid ja versioonid, sh olemasolevad REST-teenused samade koodidega), tarbijate õigused, mTLS ja avalik SOAP-aadress. Säilinud SOAP-struktuur ei tähenda LJVIS1 muutumatut aadressi ega teenuse ID-d; olemasolevaid REST-publikatsioone ei eemaldata enne tarbijate ülemineku kinnitust.
+
+**`public_base_url` peab olema dummy-väärtus** (nt `http://example.org/xroad-endpoint`), mitte keskkonna tegelik avalik hostinimi (`ljvis2<env>.xtpnl.kemitaws.ee`). X-tee heas tavas ei näidata WSDL-i `soap:address`-is reaalset infrastruktuuri aadressi: turvaserver suunab päringu ikkagi teenuse registreeringu (subsystem + teenusekood), mitte WSDL-i kirjas oleva aadressi järgi, nii et dummy väärtus ei mõjuta toimimist, aga väldib sisevõrgu hostinimede avaldamist X-tee kataloogi kaudu.
 
 Kohalik ringtest kinnitab sõnumite teisenduse ja rakenduse töötlemise. Päris turvaserveri mTLS, registreerimine ja kasutusõigused vajavad eraldi keskkonnatesti.
 
