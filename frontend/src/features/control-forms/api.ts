@@ -25,6 +25,9 @@ import type {
   FormSearchExportRow,
 } from './types';
 
+/** Vormi võti: lugemisvastustes number (Resql bigint), URL-ist string; DSL allowlist ootab stringi. */
+type FormId = string | number;
+
 export const searchForms = async (
   params: Record<string, string>,
 ): Promise<PagedResponse<FormSearchRow>> => {
@@ -368,13 +371,13 @@ export const deleteDriveRestForm = (
 
 export const deleteTechnicalCheckForm = (
   scope: 'vehicle' | 'trailer',
-  id: string,
+  id: FormId,
   form_number: string,
   old_status: string,
 ) =>
   untracked(scope, id, post<TechnicalCheckForm[]>(
     `/v1/control-forms/${scope}-technical/edit/delete`,
-    { id, form_number, old_status },
+    { id: String(id), form_number, old_status },
   ));
 
 export const getDriveRestFormSnapshot = (
@@ -413,16 +416,16 @@ export const confirmLabourInspectionForm = (data: LabourInspectionForm) =>
     ),
   );
 
-export const publishLabourInspectionForm = (id: string) =>
+export const publishLabourInspectionForm = (id: FormId) =>
   untracked('labour-inspection', id, post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/publish`,
     { id: String(id) },
   ));
 
-export const deleteLabourInspectionForm = (id: string, old_status: string) =>
+export const deleteLabourInspectionForm = (id: FormId, old_status: string) =>
   untracked('labour-inspection', id, post<LabourInspectionForm[]>(
     `/v1/control-forms/labour-inspection/edit/delete`,
-    { id, old_status },
+    { id: String(id), old_status },
   ));
 
 export const getLabourInspectionFormSnapshot = (id: string, formKey: string) =>
@@ -443,12 +446,12 @@ export const getTechnicalCheckFormSnapshot = (
 
 export const getTechnicalCheckForm = (
   variant: TechnicalCheckVariant,
-  id: string,
+  id: FormId,
 ) =>
   tracked(
     variant,
     get<TechnicalCheckForm>(`/v1/control-forms/${technicalCheckPath(variant)}`, {
-      q: id,
+      q: String(id),
     }),
   );
 
@@ -497,11 +500,11 @@ export const publishTechnicalCheckForm = (
     { id: String(id) }
   ));
 
-export const getTransportInterruptionForm = (id: string) =>
+export const getTransportInterruptionForm = (id: FormId) =>
   tracked(
     'transport-interruption',
     get<TransportInterruptionForm>(`/v1/control-forms/transport-interruption`, {
-      q: id,
+      q: String(id),
     }),
   );
 
@@ -555,8 +558,8 @@ export const publishTransportInterruptionForm = (
     { id: String(id) }
   ));
 
-export const getAdrForm = (id: string) =>
-  tracked('adr', get<AdrForm>(`/v1/control-forms/adr-form`, { q: id }));
+export const getAdrForm = (id: FormId) =>
+  tracked('adr', get<AdrForm>(`/v1/control-forms/adr-form`, { q: String(id) }));
 
 export const listAdrFormsByCompoundFormKey = (compoundFormKey: number) =>
   tracked(
@@ -623,26 +626,26 @@ export const saveAdrFormXroadFields = (data: {
     data,
   ));
 
-export const deleteTransportInterruptionForm = (id: string, old_status: string) =>
+export const deleteTransportInterruptionForm = (id: FormId, old_status: string) =>
   untracked('transport-interruption', id, post<TransportInterruptionForm[]>(
     `/v1/control-forms/transport-interruption/edit/delete`,
-    { id, old_status },
+    { id: String(id), old_status },
   ));
 
-export const deleteAdrForm = (id: string, old_status: string) =>
+export const deleteAdrForm = (id: FormId, old_status: string) =>
   untracked('adr', id, post<AdrForm[]>(
     `/v1/control-forms/adr-form/edit/delete`,
-    { id, old_status },
+    { id: String(id), old_status },
   ));
 
-export const deleteGoodReputeForm = (id: string, old_status: string) =>
+export const deleteGoodReputeForm = (id: FormId, old_status: string) =>
   untracked('good-repute', id, post<GoodReputeForm[]>(`/v1/control-forms/good-repute/edit/delete`, {
-    id,
+    id: String(id),
     old_status,
   }));
 
-export const getGoodReputeForm = (id: string) =>
-  tracked('good-repute', get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: id }));
+export const getGoodReputeForm = (id: FormId) =>
+  tracked('good-repute', get<GoodReputeForm>(`/v1/control-forms/good-repute`, { q: String(id) }));
 
 export const saveGoodReputeForm = (data: GoodReputeForm) =>
   tracked(
@@ -662,7 +665,7 @@ export const confirmGoodReputeForm = (data: GoodReputeForm) =>
     ),
   );
 
-export const publishGoodReputeForm = (id: string) =>
+export const publishGoodReputeForm = (id: FormId) =>
   untracked('good-repute', id, post<GoodReputeForm[]>(
     `/v1/control-forms/good-repute/edit/publish`,
     { id: String(id) },

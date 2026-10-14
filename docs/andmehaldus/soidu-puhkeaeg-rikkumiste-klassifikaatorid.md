@@ -6,7 +6,7 @@ kontrollvormil (liitvormi alamvorm).
 
 Tabel kajastab seisu pärast migratsioone:
 
-- `20260828277000-initial-sp-form-classifiers.sql` — algseeme
+- `20260828277000-initial-sp-form-classifiers.sql` — algandmed
 - `20261016100000-sp-driving-violation-missing-severities.sql` — 16 puuduvat raskusastme rida
 - `20260901100000-sp-driving-violation-annex-severity-alignment.sql` — 39 raskusastet 2016/403 I lisaga kooskõlla
 - `20260901130000-sp-driving-violation-unique-l3-codes.sql` — korduvate `MI`-koodide unikaalseks tegemine

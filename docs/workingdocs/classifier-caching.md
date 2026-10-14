@@ -9,7 +9,7 @@ Two Ruuter/Resql endpoints expose classifier values in bulk (see `api-endpoints.
 | Endpoint | Permission | Shape | Notes |
 |---|---|---|---|
 | `GET /v1/classifier-values` | none (any authenticated user, `/v1/.guard`) | Flat list of all classifier values, latest snapshot, with validity (`ClassifierValueDataItem`) | **Primary source** for the frontend cache. |
-| `GET /v1/classifiers/bundle` | `classifier.read` (admin-only in seed data) | All classifiers + values grouped, including classifier-level metadata (`classifierId`/`classifierName`) (`ClassifierBundleItem`) | Reserved for admin/validity-aware tooling. **Do not** use for general form dropdowns — a regular inspector user group typically does not have `classifier.read`, so this endpoint 403s for them. |
+| `GET /v1/classifiers/bundle` | `classifier.read` (administrator only in initial data) | All classifiers and values grouped, including classifier-level metadata (`classifierId`/`classifierName`) (`ClassifierBundleItem`) | Reserved for administrator and validity-aware tools. **Do not** use it for general form lists. A regular inspector user group typically does not have `classifier.read`; therefore, this endpoint returns HTTP 403. |
 
 Both backend queries return the **latest snapshot per `classifier_value_key`** (via `DISTINCT ON`) plus computed `isValid`/`validFrom`/`validUntil` — this was a correctness bug fixed in `DSL/Resql/ljvis/POST/classifier/list_classifier_value_data.sql` (previously missing `DISTINCT ON`, could return duplicate/stale rows).
 

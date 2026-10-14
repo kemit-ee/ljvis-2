@@ -139,7 +139,7 @@ Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 ### 4.3 Ruuter Internal (X-tee gateway)
 
 - **Asukoht:** `DSL/Ruuter.internal/ljvis/`
-- **Roll:** Sisemiste ja X-tee kaudu saabuvaute päringute käsitlemine — **ei ole nginx-ist proxitud**, ligipääsetav ainult X-tee turvaserveri ja konteinerivõrgu kaudu
+- **Roll:** Sisemiste ja X-tee kaudu saabuvate päringute käsitlemine — **ei ole nginx-ist proxitud**, ligipääsetav ainult X-tee turvaserveri ja konteinerivõrgu kaudu
 - **Teenused:** X-tee inbound päringud (isiku andmed, töökontrollid), andmejälgija REST API (DUMonitor v2), cron-päringud
 
 ### 4.4 RESQL

@@ -356,7 +356,10 @@ export function useRsiForm(
             values.vehicleProhibitionOrRestriction,
           checkedItems: JSON.stringify(values.checkedItems ?? []),
         };
-        const result = await saveRsiMessage(message?.id ?? '', payload);
+        const result = await saveRsiMessage(
+          message?.id != null ? String(message.id) : '',
+          payload,
+        );
         onSaved(String(result.id));
       } catch (e) {
         const handled = applyValidationError(

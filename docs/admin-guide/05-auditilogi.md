@@ -65,7 +65,7 @@ Iga kirje sisaldab vähemalt järgmisi andmeid:
 - `eventCategory` — sündmuse kategooria
 - `actorName` — tegija kuvatav nimi
 - `actorPersonalCodeHash` — tegija isikukoodi SHA-256 räsi
-- `description` — inimloetav kirjelitus eesti keeles
+- `description` — inimloetav kirjeldus eesti keeles
 - `logContent` — sündmuse detailid JSON-na (nt muudetud väljad, eelnevad ja uued väärtused)
 - `createdAt` — serveripoolne ajatempel
 - `traceId` / `spanId` — võimaldab siduda sündmuse `traceparent` päise kaudu logimis- ja jälgimistööriistadega

@@ -86,7 +86,7 @@ export function ClassifierDetailPage() {
 
   const filteredClassifierValues = useMemo(() => {
     if (showOnlyValid) {
-      return classifierValues.filter((cv) => cv.isValid === 'true');
+      return classifierValues.filter((cv) => cv.isValid === true);
     }
     return classifierValues;
   }, [classifierValues, showOnlyValid]);
@@ -137,7 +137,7 @@ export function ClassifierDetailPage() {
         header: t('classifiers.status'),
         enableSorting: false,
         cell: (info) => {
-          const s = info.getValue() === 'true';
+          const s = info.getValue() === true;
           const color = s ? 'success' : 'neutral';
           const label = s
             ? t('classifiers.statusActive')

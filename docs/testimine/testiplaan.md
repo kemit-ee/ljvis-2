@@ -74,8 +74,9 @@ ja selle tulemus on igal jooksul tõendatav:
 - **tõend ebaõnnestumisel** — iga kukkunud testi kohta kirjeldus, ekraanipilt,
   trace ja lehe URL (`tests/playwright/tulemus/<test>/`).
 
-Testandmed luuakse igal jooksul unikaalsena (isikukood, nimed, koodid), seemne
-kasutajaid ja gruppe ei muudeta; rollid on eraldi sessioonides (§5.3).
+Testandmed luuakse igal käivitusel unikaalsena (isikukood, nimed ja koodid).
+Algandmetena laaditud kasutajaid ega gruppe ei muudeta. Rollid on eraldi
+sessioonides (§5.3).
 
 ### 3.2 API- ja integratsioonitestid
 
@@ -131,7 +132,8 @@ Testide arv on viimase jooksu seisuga ([testiraport](testiraport.md) §3).
 `docker-compose.ci.yml` tõstab üles kogu süsteemi (PostgreSQL + Liquibase,
 Resql, Ruuter, sisemine Ruuter, TIM, DataMapper, PDF, TARA-mock, XTR + X-tee mock,
 ERRU XML-adapter + Hub-mock, Postkasti mock). Iga jooks algab **puhta
-andmebaasiga**: kõik migratsioonid rakendatakse nullist, seejärel testseemned.
+andmebaasiga**: kõik migratsioonid rakendatakse nullist ja seejärel laaditakse
+testandmed.
 Sama pinu kasutavad Newman (`ljvis-ci`) ja Playwright (`ljvis-pw`).
 
 ### 5.2 Testandmed
@@ -190,7 +192,7 @@ versioonil, tulemused [testiraportis](testiraport.md) ja
 ## 7. Testide käivitamine ja dokumentide uuendamine
 
 ```bash
-# UI-testid (tõstab CI-pinu, seemned, build, Playwright, teardown)
+# UI-testid (tõstab CI-pinu, laadib testandmed, ehitab rakenduse, käivitab Playwrighti ja sulgeb pinu)
 bash tests/playwright/run.sh                      # KEEP_STACK=1 jätab pinu alles
 
 # API-testid (puhas CI-pinu + 29 kollektsiooni; JSON-raportid tests/postman/reports/)

@@ -85,7 +85,7 @@ checkShouldLog:
   switch:
     - condition: ${actor_personal_code != created_by}
       next: logAuditEvent
-  next: mapResponse
+  next: returnSuccess
 
 logAuditEvent:
   template: "templates/audit/form/labour-inspection/log-labour-inspection-view"
@@ -97,22 +97,11 @@ logAuditEvent:
     form_number: ${form_number}
     isikukood: ${punished_person_id_code}
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(f){ if (!f) return f; var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return Object.assign({}, f, { controlsMatrix: p(f.controlsMatrix), violations: p(f.violations) }); })(res.response.body[0])}"
   next: end
 
 returnNotFound:
