@@ -8,13 +8,13 @@ export interface Classifier {
 }
 
 export interface ClassifierValue {
-  classifierId: string;
-  classifierValueId: string;
+  classifierId: number;
+  classifierValueId: number;
   code: string;
   name: string;
   validFrom: string;
-  validUntil: string;
-  isValid?: string;
+  validUntil: string | null;
+  isValid?: boolean;
   /** ADR-011: FORM_TYPE koodid, millele väärtus on piiratud; [] = kõik vormid. */
   formTypes?: string[];
 }

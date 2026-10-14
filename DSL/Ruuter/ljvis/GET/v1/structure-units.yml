@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "List of structure units filter by organisation ID"
@@ -19,6 +20,7 @@ getStructureUnits:
   args:
     url: "[#LJVIS_RESQL]/structure-units/list_structure_units"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       organisationId: ${organisationId}

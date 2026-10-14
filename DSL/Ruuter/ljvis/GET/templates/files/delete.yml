@@ -1,7 +1,8 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Soft-delete a file attachment record in the DB. Expects: id, form_type. The actor is the TARA session (guard variable session_personal_code), never the request body"
+  description: "Soft-delete a file attachment record in the DB (appends a status=deleted tombstone row; the active row is kept). Expects: id, form_type. The actor is the TARA session (guard variable session_personal_code), never the request body"
   namespace: templates
   strict: true
   allowlist:
@@ -14,12 +15,18 @@ declaration:
         type: string
       - field: attachment_form_type
         type: string
+    headers:
+      - field: cookie
+        type: string
+      - field: content-type
+        type: string
 
 getAttachmentRecord:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachment_by_id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.body.id}
@@ -44,11 +51,13 @@ deleteFileInDB:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/delete_form_attachment"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.body.id}
       form_number_prefix: ${incoming.body.form_number_prefix}
       attachment_form_type: ${incoming.body.attachment_form_type || ""}
+      created_by: ${session_personal_code}
   result: dbResult
   next: logAuditEvent
 

@@ -46,7 +46,8 @@ export function TramControlCardPage() {
   const isAdmin = useIsAdmin();
 
   const forbidden = !(
-    hasPermission('tram_driver_form.read')
+    hasPermission('tram_driver_form.read') ||
+    hasPermission('tram_driver_form.write')
   );
 
   const [isEditActive, setIsEditActive] = useState(false);
@@ -372,7 +373,8 @@ export function TramControlCardPage() {
     <div>
       {alerts}
 
-      {form && id && drivers.length > 0 && (
+      {/* E-toimiku päringu kaart on ainult karistusregistri õigusega kasutajale. */}
+      {form && id && drivers.length > 0 && hasPermission(PUNISHMENT_REGISTER_PERMISSION) && (
         <EtoimikQueryCard
           drivers={drivers}
           referenceNumberOptions={etoimikReferenceOptions}

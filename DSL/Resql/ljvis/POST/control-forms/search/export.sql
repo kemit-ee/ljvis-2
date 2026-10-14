@@ -226,7 +226,16 @@ snap AS (
         ORDER BY kv_form_key, created_at DESC
     ) t
 )
-SELECT f.form_type, f.form_key, snap.data, snap.parent
-FROM f
-JOIN snap ON snap.form_type = f.form_type AND snap.form_key = f.form_key
-ORDER BY f.main_date DESC, f.created_at DESC;
+,
+-- hetktõmmis vormi kohta alampäringutega (mitte JOIN-iga); vormid ilma hetktõmmiseta jäetakse välja
+resolved AS (
+    SELECT f.form_type, f.form_key, f.main_date, f.created_at,
+           (SELECT s.data FROM snap s WHERE s.form_type = f.form_type AND s.form_key = f.form_key LIMIT 1) AS data,
+           (SELECT s.parent FROM snap s WHERE s.form_type = f.form_type AND s.form_key = f.form_key LIMIT 1) AS parent,
+           EXISTS (SELECT 1 FROM snap s WHERE s.form_type = f.form_type AND s.form_key = f.form_key) AS has_snapshot
+    FROM f
+)
+SELECT r.form_type, r.form_key, r.data, r.parent
+FROM resolved r
+WHERE r.has_snapshot
+ORDER BY r.main_date DESC, r.created_at DESC;

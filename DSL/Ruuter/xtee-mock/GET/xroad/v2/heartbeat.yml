@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: '1.0'
   description: 'heartbeat: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st GET/xroad/v2/heartbeat.yml.
     X-Mock-Scenario: empty või server-error.'
@@ -6,10 +7,6 @@ declaration:
   allowlist:
     headers:
     - field: content-type
-      required: false
-    - field: x-road-client
-      required: false
-    - field: x-road-userid
       required: false
     - field: x-mock-scenario
       required: false

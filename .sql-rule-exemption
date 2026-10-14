@@ -1,0 +1,8 @@
+# SQL append-only invariant (epic #522, ADR-013): the ONLY sanctioned exception.
+# Format: <repo-relative path>  # rationale. Entries must live under an `archive/` directory,
+# may only contain the retention-purge DELETE, and must match a real violation (stale entries fail CI).
+#
+# Retention purge (ADR-010 / ADR-012). Contract: (1) SELECT from the work DB and copy to the archive DB,
+# (2) archive-presence-verify (arhiiv count_present: 100% of the pairs present), (3) this DELETE, called by
+# the Ruuter cron only after step 2, deleting only primary keys and only whole entity histories.
+DSL/Resql/ljvis/POST/archive/purge_confirmed.sql  # retention purge: verified-archive-then-delete, entity histories whole, by id only

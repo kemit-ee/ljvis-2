@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) the drive/rest driver sub-form. Uses the same fields as save (update), but forces status=confirmed server-side. Blocked if the sub-form is already confirmed or published."
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: notifyCarrier
         type: string
       - field: selectionStatus
@@ -67,6 +69,9 @@ declaration:
         type: string
       - field: notes
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -115,6 +120,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -147,9 +153,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       compoundFormKey: ${compound_form_key}
       subFormNumber: ${sub_form_number}
       status: confirmed
@@ -188,7 +196,20 @@ confirmForm:
       notes: ${notes}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: buildLogDescription
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 buildLogDescription:
   assign:
@@ -208,6 +229,7 @@ registerCarrierNotificationRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entity_type: "drive_rest_driver_form"

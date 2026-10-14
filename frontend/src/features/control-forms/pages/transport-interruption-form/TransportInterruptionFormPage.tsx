@@ -118,7 +118,7 @@ export function TransportInterruptionFormPage() {
   const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const forbidden = !(
-    (hasPermission('transport_interruption_form.read') || hasPermission('control_form.view_unpublished'))
+    (hasPermission('transport_interruption_form.read') || hasPermission('transport_interruption_form.write') || hasPermission('control_form.view_unpublished'))
   );
 
   const [snapshot, setSnapshot] = useState<TransportInterruptionForm | null>(null);

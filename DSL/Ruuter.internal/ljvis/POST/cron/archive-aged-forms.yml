@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -13,7 +14,8 @@ declaration:
     kustutada kirje töö-baasist), batch (max üksusi jooksu kohta, 1-5000,
     vaikimisi 500), dryRun (true = ainult loendab, ei kopeeri ega kustuta).
     Töö-baasist kustutatakse AINULT siis, kui purge=true JA arhiivibaas on
-    count_present kaudu kinnitanud 100% vaste. Üks audit-rida jooksu kohta
+    count_present kaudu kinnitanud 100% vaste; purge_confirmed on
+    ainus append-only erand (.sql-rule-exemption, ADR-013) ja kustutab olemi ridu ainult tervikuna. Üks audit-rida jooksu kohta
     (xroad.integration_log, service_code archive.aged_forms.cron).
     Vt docs/admin-guide/13-arhiveerimine.md.
   namespace: cron
@@ -59,6 +61,7 @@ selectStep:
   args:
     url: "[#LJVIS_RESQL]/archive/select_aged_snapshots"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       retention_years: "${years}"
@@ -92,6 +95,7 @@ insertStep:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/insert_snapshots"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       rows: "${JSON.stringify(rows)}"
@@ -108,6 +112,7 @@ verifyStep:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/count_present"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       pairs: "${pairsJson}"
@@ -132,6 +137,7 @@ purgeStep:
   args:
     url: "[#LJVIS_RESQL]/archive/purge_confirmed"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       ids: "${pairsJson}"
@@ -148,6 +154,7 @@ logDone:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.aged_forms.cron"
@@ -172,6 +179,7 @@ logArchivedOnly:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.aged_forms.cron"
@@ -196,6 +204,7 @@ logDryRun:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.aged_forms.cron"
@@ -220,6 +229,7 @@ logNothing:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.aged_forms.cron"
@@ -244,6 +254,7 @@ logNotVerified:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.aged_forms.cron"
@@ -268,6 +279,7 @@ logSelectError:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "archive.aged_forms.cron"

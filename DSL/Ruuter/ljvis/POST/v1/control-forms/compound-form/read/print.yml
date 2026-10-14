@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Generate a filled, historical or blank compound-form PDF."
   namespace: control-forms
@@ -9,6 +10,9 @@ declaration:
       - field: blank
         type: boolean
       - field: snapshotId
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -58,6 +62,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -77,6 +82,7 @@ getSnapshot:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${snapshot_id}

@@ -79,27 +79,25 @@ WITH latest_vtf AS (
     AND vtf.status <> 'deleted'   -- kustutatud vormid välja
   ORDER BY vtf.vehicle_technical_form_key, vtf.created_at DESC
 ),
-latest_compound AS (
-  -- Viimane snapshot iga koondvormi kohta (kuupäeva ja sõiduki andmete saamiseks)
-  SELECT DISTINCT ON (cf.compound_form_key)
-    cf.compound_form_key,
-    cf.control_date,
-    cf.form_number,
-    cf.vehicle_reg_nr,
-    cf.company_name,
-    cf.vehicle_country_code   -- ainult Eesti sõidukid (EE või NULL)
-  FROM forms.compound_form cf
-  WHERE cf.status <> 'deleted'
-  ORDER BY cf.compound_form_key, cf.created_at DESC
+resolved AS (
+  -- Viimane (mitte-kustutatud) snapshot koondvormi kohta alampäringuga (kuupäeva ja sõiduki
+  -- andmete saamiseks) — mitte JOIN-iga
+  SELECT vtf.*,
+         (SELECT cf FROM forms.compound_form cf
+           WHERE cf.compound_form_key = vtf.compound_form_key
+             AND cf.status <> 'deleted'
+           ORDER BY cf.created_at DESC
+           LIMIT 1) AS lc
+  FROM latest_vtf vtf
 )
 SELECT
-  lc.vehicle_reg_nr                             AS licence_plate_no,
+  (vtf.lc).vehicle_reg_nr                       AS licence_plate_no,
   NULL::TEXT                                    AS trailer_no,            -- haagist LJVIS ei salvesta
   vtf.vehicle_technical_form_key::TEXT          AS inspection_id,         -- X-tee viiteID kinnitamiseks
-  lc.form_number                                AS inspection_no,
-  lc.control_date::TEXT                         AS inspection_date,
+  (vtf.lc).form_number                          AS inspection_no,
+  (vtf.lc).control_date::TEXT                   AS inspection_date,
   vtf.result_type                               AS inspection_type,
-  lc.company_name                               AS inspection_unit,       -- kontrolli teinud asutus
+  (vtf.lc).company_name                         AS inspection_unit,       -- kontrolli teinud asutus
   vtf.notes                                     AS inspection_notes,
   NULL::TEXT                                    AS inspector,             -- üksiku kontrollija andmed puuduvad
   vtf.issues_json,                              -- rikked JSON-na, YAML parsib
@@ -108,10 +106,9 @@ SELECT
   vtf.era_yv_mnt_axles,
   vtf.era_yv_mnt_places,
   vtf.era_yv_mnt_rebuilt
-FROM latest_vtf vtf
-JOIN latest_compound lc ON lc.compound_form_key = vtf.compound_form_key
+FROM resolved vtf
 -- Ajavahemiku filter — mõlemad piirid on kaasavad (BETWEEN)
-WHERE lc.control_date BETWEEN :alates::DATE AND :kuni::DATE
+WHERE (vtf.lc).control_date BETWEEN :alates::DATE AND :kuni::DATE
   -- Ainult Eesti sõidukid (välisriigi sõidukid jäetakse välja)
-  AND (lc.vehicle_country_code IS NULL OR lc.vehicle_country_code = 'EE')
-ORDER BY lc.control_date DESC, vtf.vehicle_technical_form_key;
+  AND ((vtf.lc).vehicle_country_code IS NULL OR (vtf.lc).vehicle_country_code = 'EE')
+ORDER BY (vtf.lc).control_date DESC, vtf.vehicle_technical_form_key;

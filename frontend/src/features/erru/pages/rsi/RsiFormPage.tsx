@@ -45,7 +45,7 @@ export function RsiFormPage() {
   };
   const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
   const handlePrint = async () => {
-    const result = await printRsiMessage(message!.id);
+    const result = await printRsiMessage(String(message!.id));
     const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
     const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
     const link = document.createElement('a');

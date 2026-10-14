@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create or update the trailer technical-check sub-form (haagise tehnovorm, LJVIS2-72) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Rejects vehicle-only codes not applicable to a trailer (CAA_2/CAA_3/CAA_7/CAA_9 and their child defects; MSI203/MSI204/VSI847/SI926). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: compoundFormKey
       - field: partsSummary
         type: string
@@ -30,6 +32,9 @@ declaration:
       - field: notes
         type: string
       - field: trailerRegNr
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -85,6 +90,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       compoundFormKey: ${compound_form_key}
@@ -114,6 +120,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -134,6 +141,7 @@ getCompoundForInspector:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${current_compound_form_key}
@@ -157,9 +165,11 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${current_status}
       partsSummary: ${parts_summary}
       partsDefects: ${parts_defects}
@@ -179,7 +189,20 @@ updateForm:
       trailerRegNr: ${trailer_reg_nr}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkSaved:
   switch:

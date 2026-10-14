@@ -1,12 +1,11 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Local NU hub mock: broadcast returns mixed results; LV times out, PL is unavailable, FI fails; other targets return OK."
   namespace: erru
   allowlist:
     body:
       - field: nuTo
-        type: string
-      - field: businessCaseId
         type: string
       - field: sentAt
         type: string
@@ -17,32 +16,6 @@ declaration:
       - field: technicalId
         type: string
       - field: workflowId
-        type: string
-      - field: originatingAuthority
-        type: string
-      - field: requestSource
-        type: string
-      - field: requestPurpose
-        type: string
-      - field: tmFirstName
-        type: string
-      - field: tmFamilyName
-        type: string
-      - field: tmDateOfBirth
-        type: string
-      - field: tmPlaceOfBirth
-        type: string
-      - field: tmFirstNameSearchKey
-        type: string
-      - field: tmFamilyNameSearchKey
-        type: string
-      - field: certificateNumber
-        type: string
-      - field: certificateIssueDate
-        type: string
-      - field: certificateIssueCountry
-        type: string
-      - field: unfitStartDate
         type: string
 
 validateHeader:

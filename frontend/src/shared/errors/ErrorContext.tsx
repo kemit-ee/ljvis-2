@@ -30,11 +30,24 @@ const ErrorContext = createContext<ErrorContextValue>({
   dismissToast: () => {},
 });
 
+function isFormModified(body: unknown): boolean {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    (body as Record<string, unknown>)['code'] === 'form_modified'
+  );
+}
+
+// Sõnum, mida ei sulgeta automaatselt: kasutaja peab lugema, et tema salvestus jäi tegemata.
+const STICKY_MESSAGES = new Set(['common.errors.formModified']);
+
 function classifyApiError(
   err: ApiError,
 ): { message: string; type: ToastType } | null {
   if (err.status === 401) return null;
   if (err.status === 422) return null;
+  if (err.status === 409 && isFormModified(err.body))
+    return { message: 'common.errors.formModified', type: 'warning' };
   if (err.status === 403)
     return { message: 'common.errors.forbidden', type: 'warning' };
   if (err.status === 404)
@@ -82,7 +95,7 @@ export function ErrorProvider({ children }: { children: ReactNode }) {
         }
 
         const id = String(++counterRef.current);
-        scheduleTimer(id);
+        if (!STICKY_MESSAGES.has(message)) scheduleTimer(id);
         return [...prev.slice(-(MAX_TOASTS - 1)), { id, message, type, scope }];
       });
     },

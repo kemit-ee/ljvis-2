@@ -32,7 +32,7 @@ latest_users AS (
         ua.organisation_id, ua.organisation_name, ua.structural_unit, ua.job_title,
         ua.email, ua.phone, ua.access_start, ua.access_end, ua.status, ua.user_groups
     FROM users.user_account ua
-    JOIN user_key_list ukl ON ukl.user_account_key = ua.user_account_key
+    WHERE ua.user_account_key = ANY (SELECT ukl.user_account_key FROM user_key_list ukl)
     ORDER BY ua.user_account_key, ua.created_at DESC
 )
 INSERT INTO users.user_account (

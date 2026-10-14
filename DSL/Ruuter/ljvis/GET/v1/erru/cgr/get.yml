@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Get a single CGR request (erru.cgr_request) by its logical key, returning the latest snapshot (LJVIS2-138). Read-only; serves both an unsent outgoing draft and a sent/answered request. Audited on EVERY open because the view exposes the searched transport manager's personal data (name, date of birth). URL is nested one level deeper than CTUD's bare '/v1/erru/ctud' (which is '/v1/erru/cgr/get' here) because CGR needs its own guard-isolated directory distinct from CTUD's — see GET/v1/erru/cgr/.guard."
   namespace: erru
@@ -7,6 +8,9 @@ declaration:
       - field: q
         type: string
         description: "CGR request logical key (cgr_request_key)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -26,6 +30,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -57,21 +62,11 @@ logAuditEvent:
     tm_family_name: ${tm_family_name}
     tm_date_of_birth: ${tm_date_of_birth}
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_cgr_request"
-    headers:
-      type: json
-    body:
-      requests: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(f){ if (!f) return f; var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return Object.assign({}, f, { memberStates: p(f.memberStates) }); })(res.response.body[0])}"
   next: end
 
 returnNotFound:

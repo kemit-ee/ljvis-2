@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) a good repute form (hea maine vorm). Confirming re-validates and re-saves current field values, then transitions status saved -> confirmed. One-way: an already-confirmed form cannot be confirmed again (LJVIS2-136)."
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: personalCode
         type: string
       - field: firstName
@@ -27,6 +29,9 @@ declaration:
       - field: unfitFromDate
         type: string
       - field: unfitUntilDate
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -80,6 +85,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -102,9 +108,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       personalCode: ${personal_code}
       firstName: ${first_name}
@@ -119,7 +127,20 @@ confirmForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractConfirmResponseData:
   assign:

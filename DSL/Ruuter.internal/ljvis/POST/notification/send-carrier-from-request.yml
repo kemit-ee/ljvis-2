@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Vedajale raske rikkumise teavituse saatmine PPA (sõidu-puhkeaeg, TRAM-kaart)
@@ -58,6 +59,7 @@ getOpenRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/get_open_carrier_request"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       entity_type: ${entity_type}
@@ -91,6 +93,7 @@ getTramCard:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${entity_id}
@@ -117,6 +120,7 @@ getDriverForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${entity_id}
@@ -129,6 +133,7 @@ getTeammateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${entity_id}
@@ -141,6 +146,7 @@ getVehicleTechnicalForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${entity_id}
@@ -153,6 +159,7 @@ getTrailerTechnicalForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${entity_id}
@@ -243,6 +250,7 @@ getCompoundForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${compound_form_key}
@@ -287,6 +295,7 @@ callGetCountryName:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_country_name"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       code: ${inspection_country}
@@ -305,6 +314,7 @@ callGetViolationNames:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_violation_names"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       codes: ${violation_codes}
@@ -354,6 +364,7 @@ lookupCarrierEmail:
   args:
     url: "[#LJVIS_XTR]/ar/detailandmed_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ${company_reg_code}
@@ -368,6 +379,7 @@ logCarrierLookup:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.detailandmed_v1.v1"
@@ -454,6 +466,7 @@ markRequestSent:
   args:
     url: "[#LJVIS_RESQL]/notification/mark_carrier_request_sent"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${request_id}

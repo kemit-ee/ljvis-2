@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) a labour inspection form. Validates the form, then appends a 'confirmed' snapshot. Like tram-card, there is no violations gate — an act with violations may be confirmed and then either published manually or auto-published when e-toimik returns an entered-into-force decision."
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: inspectorName
         type: string
       - field: inspectionDate
@@ -33,6 +35,9 @@ declaration:
       - field: proceedingReferenceNumber
         type: string
       - field: violations
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -84,6 +89,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -140,9 +146,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       inspectorName: ${inspector_name}
       inspectionDate: ${inspection_date}
@@ -160,7 +168,20 @@ confirmForm:
       violations: ${violations}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 logAuditEvent:
   template: "templates/audit/form/labour-inspection/log-labour-inspection-confirm"
@@ -170,7 +191,6 @@ logAuditEvent:
   body:
     akti_voti: ${id}
     form_number: ${confirmRes.response.body[0].formNumber}
-    version: ${confirmRes.response.body[0].version}
     isikukood: ${punished_person_id_code}
   result: audit_result
   next: returnSuccess

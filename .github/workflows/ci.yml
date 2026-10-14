@@ -72,6 +72,17 @@ jobs:
           pip3 install pyyaml -q
           python3 tests/contract/check_dsl_security.py
 
+      - name: Service token only goes to allowlisted targets (no XTR REST-lane leak)
+        run: python3 scripts/check-internal-token-targets.py
+
+      # Epic #522: Resql is INSERT + SELECT only (no UPDATE/DELETE/TRUNCATE/MERGE, no JOIN/LATERAL,
+      # no ON CONFLICT DO UPDATE); the retention purge is the one exemption (.sql-rule-exemption).
+      - name: SQL append-only invariant (Resql)
+        run: |
+          pip3 install pyyaml -q
+          python3 tests/contract/check_resql_append_only.py
+          python3 -B -m unittest discover -s tests/contract -p 'test_resql_append_only.py'
+
       - name: Validate Ruuter YAML files
         run: |
           pip3 install pyyaml -q
@@ -240,6 +251,19 @@ jobs:
           done
           exit $fail
 
+      # Ruuter #146: GET /_/audit/dsl on the loaded tree must report 0 errors
+      # and 0 warnings (blocking). Info-level findings are tolerated.
+      - name: DSL audit (/_/audit/dsl) — errors == 0 and warnings == 0
+        run: scripts/dsl-audit.sh '${{ steps.img.outputs.ref }}' dsl-audit-out
+
+      - name: Upload DSL audit findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsl-audit
+          path: dsl-audit-out/
+          if-no-files-found: ignore
+
   # ── 1c. Ruuter dsl-lint / dsl-test ─────────────────────────────────────────
   # Static validation against the ACTUAL Ruuter DSL parser. Catches what the
   # Python checks above and the Guard Audit boot cannot: unrecognised step
@@ -281,6 +305,18 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
             --dsl DSL/Ruuter.internal --constants constants.ini --require-guard
+
+      # Build-time twin of /_/audit/dsl (Ruuter #146): exits non-zero on any
+      # error-severity finding (warnings are gated by scripts/dsl-audit.sh).
+      - name: dsl-lint --audit — public gateway
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter --constants constants.ini --audit
+
+      - name: dsl-lint --audit — internal router
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter.internal --constants constants.ini --audit
 
       - name: X-Road OpenAPI DSL route — in sync with docs/xtee/XroadOpenapi.yaml
         run: python3 scripts/generate-xroad-openapi-dsl.py --check
@@ -350,6 +386,17 @@ jobs:
 
       - name: Install Newman
         run: npm install -g newman newman-reporter-htmlextra
+
+      # tests/xtr/verify.py: WSDL XSD validation (xmllint) and sidecar comparison (PyYAML)
+      # The runner image's package index goes stale (404 from the mirror on install), so
+      # refresh it first; drop the unused google-chrome repo, which breaks apt-get update
+      # intermittently (same as the UI Tests job).
+      - name: Install XTR SOAP test tools
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.sources
+          sudo apt-get update -q
+          sudo apt-get install -y -q libxml2-utils
+          pip3 install pyyaml -q
 
       - name: Run E2E tests
         run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json

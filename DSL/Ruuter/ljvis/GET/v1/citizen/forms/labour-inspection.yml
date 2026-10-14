@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -65,6 +66,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: "${incoming.params.q}"
@@ -97,7 +99,7 @@ checkPunishedPerson:
 checkOwnership:
   switch:
     - condition: "${is_punished_person}"
-      next: mapResponse
+      next: applyGdprMasking
   next: checkCompanyRepresentative
 
 # templates/citizen-company-representative — same check as forms/search.yml's
@@ -118,25 +120,17 @@ checkCompanyRepresentative:
 checkRepresentativeResult:
   switch:
     - condition: "${representative_check.isRepresentative === true}"
-      next: mapResponse
+      next: applyGdprMasking
   next: returnForbidden
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
-    headers:
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
-  next: applyGdprMasking
 
 applyGdprMasking:
   assign:
     masked_form: >-
       ${(function(){
-        var f = mapped.response.body;
+        var row = res.response.body[0];
+        // jsonb-veerud tulevad Resql-ist JSON-stringina (varem parsis DataMapperi {{{…}}})
+        var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); };
+        var f = Object.assign({}, row, { controlsMatrix: p(row.controlsMatrix), violations: p(row.violations) });
         if (is_punished_person || !f.punishedPersonIdCode) return f;
         var code = String(f.punishedPersonIdCode);
         var masked = code.length > 2 ? ('*'.repeat(code.length - 2) + code.slice(-2)) : code;

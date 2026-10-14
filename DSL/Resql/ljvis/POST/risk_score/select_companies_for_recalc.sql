@@ -44,21 +44,27 @@ WITH recent_or_boundary_compound AS (
 ),
 recent_sp_driver AS (
   SELECT DISTINCT cf.company_reg_code
-  FROM forms.sp_driver_form sdf
-  JOIN forms.compound_form cf ON cf.compound_form_key = sdf.compound_form_key
-  WHERE sdf.status = 'published'
-    AND sdf.created_at >= (now() - INTERVAL '3 days')
-    AND cf.status = 'published'
+  FROM forms.compound_form cf
+  WHERE cf.status = 'published'
     AND cf.company_reg_code ~ '^[0-9]{8}$'
+    AND cf.compound_form_key = ANY (
+      SELECT sdf.compound_form_key
+      FROM forms.sp_driver_form sdf
+      WHERE sdf.status = 'published'
+        AND sdf.created_at >= (now() - INTERVAL '3 days')
+    )
 ),
 recent_sp_teammate AS (
   SELECT DISTINCT cf.company_reg_code
-  FROM forms.sp_teammate_form stf
-  JOIN forms.compound_form cf ON cf.compound_form_key = stf.compound_form_key
-  WHERE stf.status = 'published'
-    AND stf.created_at >= (now() - INTERVAL '3 days')
-    AND cf.status = 'published'
+  FROM forms.compound_form cf
+  WHERE cf.status = 'published'
     AND cf.company_reg_code ~ '^[0-9]{8}$'
+    AND cf.compound_form_key = ANY (
+      SELECT stf.compound_form_key
+      FROM forms.sp_teammate_form stf
+      WHERE stf.status = 'published'
+        AND stf.created_at >= (now() - INTERVAL '3 days')
+    )
 )
 SELECT company_reg_code FROM recent_or_boundary_compound
 UNION

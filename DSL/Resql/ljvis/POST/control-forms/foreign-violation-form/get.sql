@@ -16,6 +16,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: reporting_country_code
   type: string
   nullable: true
@@ -183,6 +186,7 @@ SELECT
   foreign_violation_form_key AS id,
   form_number,
   version,
+  revision,
   reporting_country_code,
   reporting_authority_name,
   inspection_country_code,

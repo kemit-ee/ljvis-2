@@ -20,6 +20,7 @@ generate_jwt:
   args:
     url: "[#LJVIS_TIM]/jwt/custom/generate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
       X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
     body:

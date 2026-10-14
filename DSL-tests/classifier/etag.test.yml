@@ -1,0 +1,245 @@
+# GET /v1/classifiers/bundle ja /v1/classifier-values — HTTP ETag / 304.
+# Versioonimärk (get_classifiers_version) loetakse enne suurt päringut; kui brauseri
+# If-None-Match ühtib, vastatakse 304 ja suurt Resql-päringut ei tehta.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+tests:
+- name: bundle without If-None-Match returns 200 with ETag
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: TEST}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body: [{personalcode: TEST, firstname: Test, lastname: User, permissions: [classifier.list, classifier.read]}]
+    - url_matches: /classifier/get_classifiers_version
+      method: POST
+      status: 200
+      body: [{version: '20261013.1-1.2-2.3-3'}]
+    - url_matches: /classifier/get_classifiers_bundle
+      method: POST
+      status: 200
+      body: [{code: A}]
+  request:
+    method: GET
+    path: /ljvis/v1/classifiers/bundle
+    headers: {cookie: test}
+  expect:
+    status: 200
+    headers:
+      etag: 'W/"bundle-20261013.1-1.2-2.3-3"'
+      cache-control: 'private, no-cache'
+  verify_mocks:
+  - url_matches: /classifier/get_classifiers_version
+    count: 1
+  - url_matches: /classifier/get_classifiers_bundle
+    count: 1
+
+- name: bundle with matching If-None-Match returns 304 without the bulk query
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: TEST}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body: [{personalcode: TEST, firstname: Test, lastname: User, permissions: [classifier.list, classifier.read]}]
+    - url_matches: /classifier/get_classifiers_version
+      method: POST
+      status: 200
+      body: [{version: '20261013.1-1.2-2.3-3'}]
+    - url_matches: /classifier/get_classifiers_bundle
+      method: POST
+      status: 200
+      body: [{code: A}]
+  request:
+    method: GET
+    path: /ljvis/v1/classifiers/bundle
+    headers: {cookie: test, if-none-match: 'W/"bundle-20261013.1-1.2-2.3-3"'}
+  expect:
+    status: 304
+    headers:
+      etag: 'W/"bundle-20261013.1-1.2-2.3-3"'
+      cache-control: 'private, no-cache'
+  verify_mocks:
+  - url_matches: /classifier/get_classifiers_version
+    count: 1
+  - url_matches: /classifier/get_classifiers_bundle
+    count: 0
+
+- name: bundle with a stale ETag returns 200 with the new ETag
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: TEST}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body: [{personalcode: TEST, firstname: Test, lastname: User, permissions: [classifier.list, classifier.read]}]
+    - url_matches: /classifier/get_classifiers_version
+      method: POST
+      status: 200
+      body: [{version: '20261013.1-1.2-2.3-3'}]
+    - url_matches: /classifier/get_classifiers_bundle
+      method: POST
+      status: 200
+      body: [{code: A}]
+  request:
+    method: GET
+    path: /ljvis/v1/classifiers/bundle
+    headers: {cookie: test, if-none-match: 'W/"bundle-20261012.1-1.2-2.3-3"'}
+  expect:
+    status: 200
+    headers:
+      etag: 'W/"bundle-20261013.1-1.2-2.3-3"'
+      cache-control: 'private, no-cache'
+  verify_mocks:
+  - url_matches: /classifier/get_classifiers_version
+    count: 1
+  - url_matches: /classifier/get_classifiers_bundle
+    count: 1
+
+- name: bundle matches one of several If-None-Match tags
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: TEST}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body: [{personalcode: TEST, firstname: Test, lastname: User, permissions: [classifier.list, classifier.read]}]
+    - url_matches: /classifier/get_classifiers_version
+      method: POST
+      status: 200
+      body: [{version: '20261013.1-1.2-2.3-3'}]
+    - url_matches: /classifier/get_classifiers_bundle
+      method: POST
+      status: 200
+      body: [{code: A}]
+  request:
+    method: GET
+    path: /ljvis/v1/classifiers/bundle
+    headers: {cookie: test, if-none-match: 'W/"x", W/"bundle-20261013.1-1.2-2.3-3"'}
+  expect:
+    status: 304
+    headers:
+      etag: 'W/"bundle-20261013.1-1.2-2.3-3"'
+      cache-control: 'private, no-cache'
+  verify_mocks:
+  - url_matches: /classifier/get_classifiers_version
+    count: 1
+  - url_matches: /classifier/get_classifiers_bundle
+    count: 0
+
+- name: classifier-values without If-None-Match returns 200 with ETag
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: TEST}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body: [{personalcode: TEST, firstname: Test, lastname: User, permissions: [classifier.list, classifier.read]}]
+    - url_matches: /classifier/get_classifiers_version
+      method: POST
+      status: 200
+      body: [{version: '20261013.1-1.2-2.3-3'}]
+    - url_matches: /classifier/list_classifier_value_data
+      method: POST
+      status: 200
+      body: [{code: A}]
+  request:
+    method: GET
+    path: /ljvis/v1/classifier-values
+    headers: {cookie: test}
+  expect:
+    status: 200
+    headers:
+      etag: 'W/"cv-20261013.1-1.2-2.3-3"'
+      cache-control: 'private, no-cache'
+  verify_mocks:
+  - url_matches: /classifier/get_classifiers_version
+    count: 1
+  - url_matches: /classifier/list_classifier_value_data
+    count: 1
+
+- name: classifier-values with matching If-None-Match returns 304
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: TEST}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body: [{personalcode: TEST, firstname: Test, lastname: User, permissions: [classifier.list, classifier.read]}]
+    - url_matches: /classifier/get_classifiers_version
+      method: POST
+      status: 200
+      body: [{version: '20261013.1-1.2-2.3-3'}]
+    - url_matches: /classifier/list_classifier_value_data
+      method: POST
+      status: 200
+      body: [{code: A}]
+  request:
+    method: GET
+    path: /ljvis/v1/classifier-values
+    headers: {cookie: test, if-none-match: 'W/"cv-20261013.1-1.2-2.3-3"'}
+  expect:
+    status: 304
+    headers:
+      etag: 'W/"cv-20261013.1-1.2-2.3-3"'
+      cache-control: 'private, no-cache'
+  verify_mocks:
+  - url_matches: /classifier/get_classifiers_version
+    count: 1
+  - url_matches: /classifier/list_classifier_value_data
+    count: 0
+
+- name: bundle ETag is not accepted for classifier-values
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: TEST}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body: [{personalcode: TEST, firstname: Test, lastname: User, permissions: [classifier.list, classifier.read]}]
+    - url_matches: /classifier/get_classifiers_version
+      method: POST
+      status: 200
+      body: [{version: '20261013.1-1.2-2.3-3'}]
+    - url_matches: /classifier/list_classifier_value_data
+      method: POST
+      status: 200
+      body: [{code: A}]
+  request:
+    method: GET
+    path: /ljvis/v1/classifier-values
+    headers: {cookie: test, if-none-match: 'W/"bundle-20261013.1-1.2-2.3-3"'}
+  expect:
+    status: 200
+    headers:
+      etag: 'W/"cv-20261013.1-1.2-2.3-3"'
+      cache-control: 'private, no-cache'
+  verify_mocks:
+  - url_matches: /classifier/get_classifiers_version
+    count: 1
+  - url_matches: /classifier/list_classifier_value_data
+    count: 1

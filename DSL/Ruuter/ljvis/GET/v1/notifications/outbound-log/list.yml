@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "2.0"
   description: >-
     Postkast 2.0 kaudu saadetud kirjade logi (analüüs 12-2 "Saadetud
@@ -30,6 +31,9 @@ declaration:
         type: string
       - field: page
       - field: pageSize
+    headers:
+      - field: cookie
+        type: string
 
 extractParams:
   assign:
@@ -50,6 +54,7 @@ queryLog:
   args:
     url: "[#LJVIS_RESQL]/notification/list_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: ${status}

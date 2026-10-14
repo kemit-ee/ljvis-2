@@ -1,5 +1,5 @@
 # LJVIS2-12: nightly deactivation of users whose access_end has passed.
-# Logic lives in DSL/Ruuter.internal/ljvis/POST/users/deactivate-expired.yml
+# Logic lives in DSL/Ruuter.internal/ljvis/POST/cron/deactivate-expired-users.yml
 # + DSL/Resql/ljvis/POST/user/deactivate_expired_users.sql — this file only
 # schedules the call.
 #
@@ -8,7 +8,7 @@ deactivate_expired_users:
   trigger: "0 0 2 * * ?"
   type: http
   method: POST
-  url: http://ruuter-internal:8080/ljvis/users/deactivate-expired
+  url: http://ruuter-internal:8080/ljvis/cron/deactivate-expired-users
   headerEnvs:
     x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2

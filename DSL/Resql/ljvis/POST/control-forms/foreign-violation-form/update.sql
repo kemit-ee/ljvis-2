@@ -168,6 +168,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -178,10 +182,13 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
          template_version
   FROM forms.foreign_violation_form
   WHERE foreign_violation_form_key = :key::BIGINT
@@ -192,6 +199,7 @@ INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,
   form_number,
   version,
+  revision,
   template_version,
   status,
   reporting_country_code,
@@ -251,6 +259,7 @@ SELECT
   :key::BIGINT,
   latest.form_number,
   latest.version,
+  latest.revision + 1,
   latest.template_version,
   :status,
   :reportingCountryCode,
@@ -306,4 +315,5 @@ SELECT
   COALESCE(NULLIF(:notifyLaborInspector, ''), 'false')::BOOLEAN,
   :created_by
 FROM latest
-RETURNING foreign_violation_form_key AS id, form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING foreign_violation_form_key AS id, form_number, version, revision;

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Paginated, filtered RSI message list — both incoming and outgoing (LJVIS2-149). Unlike
     the CGR list (outgoing-only), the specification includes both directions. ID and vehicleRegistrationNumber
@@ -32,6 +33,9 @@ declaration:
         type: string
       - field: page
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -56,6 +60,7 @@ searchMessages:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -92,16 +97,10 @@ logAuditEvent:
   next: mapResponse
 
 mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_rsi_list"
-    headers:
-      type: json
-    body:
-      messages: ${res.response.body}
-  result: mapped
+  assign:
+    paged: "${({ content: res.response.body, total: res.response.body.length > 0 ? res.response.body[0].total : 0 })}"
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${paged}
   next: end

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get list of available users for a user group with pagination, sorting and search"
@@ -34,6 +35,7 @@ getUsers:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_available_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       page: ${page}
@@ -43,19 +45,8 @@ getUsers:
       user_group_id: ${user_group_id}
       organisation_ids: ${organisation_ids}
   result: res
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_user_group_users"
-    headers:
-      type: json
-    body:
-      users: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body}
   next: end

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Märgib kõik autenditud kasutaja lugemata teavitused loetuks.
@@ -20,6 +21,7 @@ fetchUnreadIds:
   args:
     url: "[#LJVIS_RESQL]/notification/list_unread_notification_ids"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: ${user_code}
@@ -42,6 +44,7 @@ markAllRead:
         args:
           url: "[#LJVIS_RESQL]/notification/mark_notification_read"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             notification_id: ${notif.id}

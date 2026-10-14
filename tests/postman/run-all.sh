@@ -50,6 +50,15 @@ for i in $(seq 1 60); do
   sleep 5
 done
 
+echo "==> Waiting for XTR inbound SOAP lane…"
+for i in $(seq 1 30); do
+  if curl -sf http://localhost:9095/health > /dev/null 2>&1; then
+    echo "    xtr-inbound ready (${i}x2s)"; break
+  fi
+  [ "$i" = "30" ] && { echo "❌ xtr-inbound not ready after 60s"; $COMPOSE logs xtr-inbound --tail=30; exit 1; }
+  sleep 2
+done
+
 echo "==> Waiting for erru-xml-adapter…"
 for i in $(seq 1 60); do
   if curl -sf http://localhost:9091/health > /dev/null 2>&1; then
@@ -69,6 +78,7 @@ python3 "$REPO_ROOT/tests/erru-adapter/test_migrations.py" -- $COMPOSE exec -T d
 python3 "$REPO_ROOT/tests/sql/test_nu_concurrency.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
 $COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/sp-erru-points.sql"
+$COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/form-snapshot-revision.sql"
 
 # ── Newman runs ───────────────────────────────────────────────────────────────
 # Iga kollektsioon jookseb lõpuni ka siis, kui mõni varasem kukub; kukkunud
@@ -209,6 +219,23 @@ newman run "$COL/xroad-provide-write.collection.json" -e "$ENV" \
   -r cli,htmlextra,json \
   --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-write.html" \
   --reporter-json-export "$REPORT_DIR/xroad-provide-write.json" || FAILED+=("xroad-provide-write")
+
+# ── XTR SOAP provider (xtr-inbound) ── see docs/xtee/09-xtr-soap.md
+$COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/xtr/seed.sql"
+newman run "$COL/xroad-soap-inbound.collection.json" -e "$ENV" \
+  -r cli,htmlextra,json \
+  --reporter-htmlextra-export "$REPORT_DIR/xroad-soap-inbound.html" \
+  --reporter-json-export "$REPORT_DIR/xroad-soap-inbound.json" || FAILED+=("xroad-soap-inbound")
+python3 "$REPO_ROOT/tests/xtr/verify.py" --report "$REPORT_DIR/xroad-soap-inbound.json" -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db || FAILED+=("xroad-soap-contract-and-storage")
+# XTR SOAP: repeated/changed/concurrent writes, ETL -> SOAP; SOAP bridge against misbehaving backends.
+python3 "$REPO_ROOT/tests/xtr/repeat_test.py" --soap-url http://localhost:9095 --rest-url http://localhost:9089 \
+  --resql-url http://localhost:9087/ljvis -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db \
+  || FAILED+=("xroad-soap-repeat-concurrency")
+# Concurrent UI / e-toimik / X-tee writers on one act: no forked history (revision).
+python3 "$REPO_ROOT/tests/xtr/race_test.py" -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db \
+  || FAILED+=("labour-inspection-concurrent-writers")
+python3 "$REPO_ROOT/tests/xtr/bridge_test.py" --image ljvis-ci-ruuter-internal --network ljvis-ci_ljvis-ci \
+  -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db || FAILED+=("xroad-soap-bridge")
 
 newman run "$COL/risk-scores.collection.json" -e "$ENV" \
   -r cli,htmlextra,json \

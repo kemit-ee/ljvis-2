@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create or update the drive rest form for teammate — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
@@ -6,10 +7,9 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: compoundFormKey
       - field: subFormNumber
-        type: string
-      - field: status
         type: string
       - field: selectionStatus
         type: string
@@ -64,6 +64,9 @@ declaration:
       - field: proceedingClosureBasis
         type: string
       - field: notes
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -124,6 +127,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       compoundFormKey: ${compound_form_key}
@@ -180,6 +184,7 @@ getCompoundFormInsert:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${compound_form_key}
@@ -222,6 +227,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -239,9 +245,11 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       compoundFormKey: ${current_compound_form_key}
       subFormNumber: ${sub_form_number}
       status: ${current_status}
@@ -277,7 +285,20 @@ updateForm:
       notes: ${notes}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) — see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkUpdateSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkUpdateSaved:
   switch:
@@ -297,6 +318,7 @@ getCompoundFormUpdate:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${current_compound_form_key}

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Check for duplicate VR foreign violation form (same company reg code + vehicle reg nr + inspection date)"
   namespace: control-forms
@@ -26,6 +27,7 @@ runQuery:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/check-duplicate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       companyRegCode: ${company_reg_code}

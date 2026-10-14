@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "2.0"
   description: >-
     Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
@@ -27,6 +28,9 @@ declaration:
         type: string
       - field: page
       - field: pageSize
+    headers:
+      - field: cookie
+        type: string
 
 extractParams:
   assign:
@@ -45,6 +49,7 @@ queryLog:
   args:
     url: "[#LJVIS_RESQL]/xroad/etoimik/list_integration_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       date_from: ${date_from}

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Search/list user groups filtered by own organisation (local scope)"
@@ -17,6 +18,9 @@ declaration:
         description: "Sorting"
       - field: logSearch
         description: "Whether to log this as a user-initiated search"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
   # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
@@ -41,6 +45,7 @@ getUserGroups:
   args:
     url: "[#LJVIS_RESQL]/user_group/list_user_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       search: ${search}
@@ -52,19 +57,13 @@ getUserGroups:
   next: mapResponse
 
 mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_user_groups_list"
-    headers:
-      type: json
-    body:
-      groups: ${res.response.body}
-  result: mapped
+  assign:
+    paged: "${({ content: res.response.body, total: res.response.body.length > 0 ? res.response.body[0].total : 0 })}"
   next: setDefaults
 
 setDefaults:
   assign:
-    result_count: ${mapped.response.body.total}
+    result_count: ${paged.total}
   next: checkSearch
 
 checkSearch:
@@ -87,5 +86,5 @@ logSearchEvent:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${paged}
   next: end

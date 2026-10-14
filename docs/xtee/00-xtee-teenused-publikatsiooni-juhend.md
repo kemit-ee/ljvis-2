@@ -20,7 +20,7 @@ Teenuste testid ja nende tulemused: [X-tee testprotokoll](08-testprotokoll.md).
 | TEST | `ee-test/GOV/70001231/ljvis2` |
 | DEV | `ee-dev/GOV/70001231/ljvis2` |
 
-**Protokoll:** REST/JSON (erinevalt LJVIS1 SOAP teenustest).
+**Protokoll:** REST/JSON. LJVIS1 SOAP-lepingu pakkumine XTR-i kaudu on lisatud eraldi: [XTR SOAP juhend](09-xtr-soap.md). See sisaldab vana `RegisterJobInspection_v2` lepingut; REST v3 on eraldi teenus.
 
 ---
 
@@ -316,7 +316,7 @@ sequenceDiagram
 **DSL:** `DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection.yml`
 
 Võtab vastu Tööinspektsiooni töökontrolli andmed (vana WSDL `RegisterJobInspectionRequestType`, teisendatud REST/JSON-iks) ja salvestab `forms.labour_inspection_form` tabelisse.
-**Idempotentne** — sama `kontrolli_id` uuesti saatmine ei tekita duplikaati.
+**Idempotentne** — sama `kontrolli_id` täpne kordus ei tekita uut rida. Uus akt tekib staatusega `confirmed`; muudetud kordus tagastab **409 `CONFLICT`** ja midagi ei salvestata. Samaaegsed päringud loovad ühe akti. Vt [05-register-job-inspection.md](05-register-job-inspection.md#5-idempotentsus).
 
 #### Sisendid
 
@@ -372,7 +372,7 @@ curl -X POST https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/RegisterJobInspecti
 **DSL:** `DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection-v3.yml`
 
 Laiendatud töökontrolli leping — lisanduvad sõiduki (reg.nr, VIN), juhi isikukoodi ja menetluse lisaväljad. Salvestatakse samasse `forms.labour_inspection_form` tabelisse.
-**Idempotentsuse võti:** `v3-` + `kontrolli_id` (eraldab v1 kirjetest).
+**Idempotentsuse võti:** leping `xroad-v3` + `kontrolli_id` (`external_inspection_id` veerus `v3-` + `kontrolli_id`). Korduspäring tagastab olemasoleva akti ega rakenda muudatusi (senine leping); samaaegsed päringud loovad ühe akti.
 
 #### Sisendid (lisanduvad v1-le)
 
@@ -541,11 +541,13 @@ Andmebaasi rikke korral:
 
 ---
 
-## 4. Turvaserveri admin juhend
+## 4. Turvaserveri admin juhend (REST)
 
 ### 4.1 Ülevaade
 
-LJVIS2 pakub X-tee teenuseid läbi **Ruuter.internal** komponendi, mis ei ole nginx-ist publiku poolt kättesaadav. Turvaserver peab päringud suunama otse Ruuter.internal-ile.
+See peatükk kirjeldab **REST/JSON-lepingute** avaldamist. LJVIS1 SOAP-lepingu jaoks registreeri [XTR-i WSDL](09-xtr-soap.md): SOAP-päring läheb XTR-i pordile `8081`, teele `/soap-in/ljvis/ljvis`; XTR kutsub seejärel Ruuter.internal-i JSON-töötlejaid. SOAP-i ei suunata otse allolevatele REST-teedele.
+
+REST v3 ja AJ jäävad eraldi REST-liidesteks. Nende ning olemasolevate REST-tarbijate päringud suunatakse **Ruuter.internal** komponendile. Allolev skeem ja aadressid kehtivad REST-i kohta; SOAP-i avalik HTTPS-aadress tuleb paigalduskeskkonnas eraldi seadistada.
 
 ```mermaid
 flowchart LR

@@ -32,9 +32,8 @@ valid AS (
     WHERE EXISTS (
         SELECT 1
         FROM classifier.classifier_value cv
-        JOIN classifier.classifier c ON c.classifier_key = cv.classifier_key
-        WHERE c.code = 'FORM_TYPE'
-          AND cv.code = w.code
+        WHERE cv.code = w.code
+          AND cv.classifier_key = ANY (SELECT c.classifier_key FROM classifier.classifier c WHERE c.code = 'FORM_TYPE')
     )
 ),
 -- kehtiv seis: viimane rida iga vormi kohta

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Audit: user group view event — fetches group users internally to build description"
@@ -7,6 +8,8 @@ declaration:
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: group_id
@@ -23,6 +26,7 @@ fetchGroupUsers:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${Number(incoming.body.group_id)}

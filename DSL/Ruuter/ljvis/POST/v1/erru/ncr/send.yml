@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Send an outgoing NCR request to the ERRU hub and store BOTH the 'sent'
     transition and the synchronous acknowledgement (LJVIS2-64 §4.2). Unlike RSI, the ACK
@@ -14,6 +15,9 @@ declaration:
   allowlist:
     body:
       - field: businessCaseId
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -34,6 +38,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -112,6 +117,7 @@ storeSent:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -152,6 +158,7 @@ storeAcknowledged:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -199,6 +206,7 @@ markErrorAfterNegativeAck:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -240,6 +248,7 @@ markError:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}

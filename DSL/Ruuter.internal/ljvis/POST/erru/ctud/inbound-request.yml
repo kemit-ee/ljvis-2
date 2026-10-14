@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: |
     Serve an INBOUND CTUD request from another member state and answer it synchronously (LJVIS2-144).
@@ -14,7 +15,7 @@ declaration:
     (see GET/templates/audit/form/labour-inspection/log-labour-inspection-import.yml). Until that infra
     exists the endpoint lives on the separate ruuter-internal instance (port 8089, allowedIPs
     127.0.0.1), which is not exposed outside the Docker network, following the precedent set by
-    POST/users/deactivate-expired.yml. Moving it to the specified path is then a routing change only.
+    POST/cron/deactivate-expired-users.yml. Moving it to the specified path is then a routing change only.
 
     Idempotency: append-inbound.sql relies on the partial unique index uq_ctud_inbound_technical_id, so
     a redelivered message inserts nothing. This handler detects the empty insert, then looks at the
@@ -98,6 +99,7 @@ storeReceived:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-inbound"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technicalId: ${technical_id}
@@ -135,6 +137,7 @@ lookupExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/get-by-technical-id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technical_id: ${technical_id}
@@ -233,6 +236,7 @@ storeAnswered:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${request_key}
@@ -266,6 +270,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}
@@ -310,6 +315,7 @@ logMtrUnavailableAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}

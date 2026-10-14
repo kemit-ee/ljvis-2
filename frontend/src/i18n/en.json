@@ -534,6 +534,8 @@
         },
         "proceedingReferenceNumber": "Proceeding reference number",
         "caseNumber": "Misdemeanour case number",
+        "clearProceeding": "Remove mark",
+        "clearProceedingConfirm": "Are you sure you want to remove the proceeding information?",
         "autovs5131": "Transport has been interrupted under AutoVS § 51(3)(1)"
       },
       "notes": {
@@ -758,12 +760,15 @@
       "address": "Address",
       "road": "Road",
       "road_other": "Other road",
+      "road_other_number": "Road number",
+      "road_other_number_not_found": "This road number was not found in the other roads list. Enter the road name manually",
       "kilometer": "Kilometer (km)",
       "road_type": "Road type",
       "roadTaxStatus": "Vehicle road tax",
       "roadTaxStatusNotApplicable": "Not applicable",
       "roadTaxStatusUnpaid": "Unpaid",
       "roadTaxStatusUnderpaid": "Paid in lesser amount",
+      "roadTaxClear": "Clear selection",
       "roadTaxNotes": "Notes",
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
@@ -1576,6 +1581,7 @@
     "numberPlaceholder": "No.",
     "select": "Select",
     "errors": {
+      "formModified": "Someone else (or another window, or the e-toimik sync) changed this form in the meantime, so your save was not applied. Reload the page, review the new data and save your changes again.",
       "serverError": "Server error. Please try again later.",
       "networkError": "Connection error. Please check your network.",
       "forbidden": "Insufficient permissions for this action.",

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get groups assigned to a user"
@@ -19,23 +20,13 @@ getUserGroups:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_id: ${user_id}
   result: res
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_user_assigned_groups"
-    headers:
-      type: json
-    body:
-      groups: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body}
   next: end
