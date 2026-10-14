@@ -82,6 +82,34 @@ hinnatakse eraldi ja klassifitseeritakse:
 Koondvorm ise loetakse täielikult välistatuks ainult siis, kui *kõik* selle
 SP-alamvormid on "täielik välistamine" kategoorias.
 
+### 3.1 VR-vormi (`forms.foreign_violation_form`) kaasamine
+
+LJVIS2-151 algses teostuses jäi `forms.foreign_violation_form` (välisriigi
+rikkumise vorm — teise liikmesriigi poolt Eesti vedaja kohta teatatud
+rikkumine) riskiskoori valemist täielikult välja, vastuolus
+`docs/user-guide/06-vorm-valisrikkumine.md` lubadusega, et "EL rikkumiste
+raskusastmed (MSI/VSI/SI/MI) mõjutavad ettevõtte riskiskoori" — ettevõttel,
+kelle ainus/uusim kontroll oli VR-vorm, ei tekkinud kunagi rida
+`risk.company_risk_score`-i ja esindaja vaade kuvas vaikimisi halli
+"Kontrollimata". Parandatud: VR-vorm on nüüd teine, `compound_form`-ist
+sõltumatu kontrolliallikas, mis kasutab sama `status='published'` +
+`^[0-9]{8}$` + 2-aastase akna + "jõustumiskuupäev = esimene `published`
+hetk" reegleid (vt `calculate_risk_score.sql` `vr_*` CTE-sid).
+
+Erinevused koondvormi reeglitest:
+
+- VR-vormil pole PPA koondvormi `sp_applicability`-ga analoogset "ei
+  rakendu/ei kontrollitud" seisundit (iga VR-vorm esindab päriselt toimunud
+  välisriigi kontrolli) — seega VR-kontrollidel **pole "täielik välistamine"
+  kategooriat**, ainult kaks: **nullpunktiline** (`violations=[]`, `r++`,
+  0 kaalupunkti) ja **normaalne kontroll kaaludega** (`r++`, kaalupunktid
+  lisanduvad).
+- `violations` on lihtne JSONB string-massiiv rikkumiskoodidest (nt
+  `["MSI101","VSI800"]`), mitte §4 kirjeldatud objektide massiiv — raskusaste
+  loetakse koodi enda prefiksist (`MSI`/`VSI`/`SI`).
+- VR-vorm toetab ainult kolme raskusastet (MSI/VSI/SI) — `n_mi` on VR-kontrolli
+  puhul alati 0.
+
 ## 4. Rikkumiste JSONB väljad — TÄHTIS väljanimede märkus
 
 Rikkumised loetakse `sp_driver_form`/`sp_teammate_form` seitsmest JSONB
@@ -151,12 +179,17 @@ Migratsioon: `DSL/Liquibase/changelog/20260827100000-initial-risk-score.sql`.
 
 ## 6.1 Öine täisümberarvutus (cronmanager)
 
-`DSL/CronManager/risk-score-recalc.yaml` (03:00) → `DSL/Ruuter.internal/ljvis/POST/cron/risk-score-recalc-sync.yml`: valib `DSL/Resql/ljvis/POST/risk_score/select_companies_for_recalc.sql` kaudu kõik Eesti ettevõtjad, kellel on kunagi olnud vähemalt üks `published` `compound_form`, ja kutsub igaühe kohta `recalculate`'i (`calculation_trigger: ooine_ymberarvutus`). `risk.company_risk_score` on insert-only ajalugu — iga öine käik lisab uue rea, mitte ei "lahenda" ettevõtja kandidaatide hulgast (erinevalt teistest cron-töödest, vt `.ai/future-plans/cronmanager-scheduled-jobs.md`).
+`DSL/CronManager/risk-score-recalc.yaml` (03:00) → `DSL/Ruuter.internal/ljvis/POST/cron/risk-score-recalc-sync.yml`: valib `DSL/Resql/ljvis/POST/risk_score/select_companies_for_recalc.sql` kaudu kõik Eesti ettevõtjad, kellel on kunagi olnud vähemalt üks `published` `compound_form` **või `foreign_violation_form`** (§3.1), ja kutsub igaühe kohta `recalculate`'i (`calculation_trigger: ooine_ymberarvutus`). `risk.company_risk_score` on insert-only ajalugu — iga öine käik lisab uue rea, mitte ei "lahenda" ettevõtja kandidaatide hulgast (erinevalt teistest cron-töödest, vt `.ai/future-plans/cronmanager-scheduled-jobs.md`).
 
-## 7. Kontrollvormi kinnitamine → automaatne ümberarvutus
+## 7. Kontrollvormi kinnitamine/avalikustamine → automaatne ümberarvutus
 
-Koondvormi elutsükkel: `saved → confirmed → published`.
-`calculate_risk_score.sql` arvestab ainult `status='published'` kirjeid.
+Koondvormi elutsükkel: `saved → confirmed → published`; VR-vormi elutsükkel
+samamoodi `saved → confirmed → published` (vt `foreign-violation-form/edit/
+publish.yml`). `calculate_risk_score.sql` arvestab ainult `status='published'`
+kirjeid mõlemalt allikalt. Mõlema vormitüübi avalikustamine (ja kustutamine)
+kutsub fire-and-forget `risk-scores/recalculate`-it (`calculation_trigger:
+kontrollvorm`) — vt `edit/publish.yml` ja `edit/delete.yml` iga vormitüübi
+kataloogis.
 
 ## 8. ERRU CTUD integratsioon (LJVIS2-144, väljaspool skoopi)
 

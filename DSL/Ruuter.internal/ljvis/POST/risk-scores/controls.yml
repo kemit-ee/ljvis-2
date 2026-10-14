@@ -55,7 +55,8 @@ mapControls:
     controls: >-
       ${(res.response.body || []).map(function(row) {
         return {
-          compoundFormKey: row.compoundFormKey,
+          formKey: row.formKey,
+          formType: row.formType,
           formNumber: row.formNumber,
           mainDate: row.mainDate,
           vehicleRegNr: row.vehicleRegNr,

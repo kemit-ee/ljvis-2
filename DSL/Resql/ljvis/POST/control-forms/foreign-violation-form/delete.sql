@@ -18,6 +18,9 @@ returns:
 - name: form_number
   type: string
   nullable: true
+- name: company_reg_code
+  type: string
+  nullable: true
 */
 WITH latest AS (
   SELECT DISTINCT ON (foreign_violation_form_key)
@@ -204,4 +207,4 @@ SELECT
   l.erru_ncr_message_key,
   :created_by
 FROM latest l
-RETURNING foreign_violation_form_key AS id, form_number, version;
+RETURNING foreign_violation_form_key AS id, form_number, version, company_reg_code;

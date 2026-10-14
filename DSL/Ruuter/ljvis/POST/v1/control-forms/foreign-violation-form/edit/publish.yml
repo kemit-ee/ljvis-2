@@ -277,9 +277,33 @@ check_publishRes_persisted:
   switch:
     - condition: ${publishRes.response == null || publishRes.response.status < 200 || publishRes.response.status >= 300 || publishRes.response.body == null || publishRes.response.body.length == null || publishRes.response.body.length === 0}
       next: returnResqlWriteError
-  next: extractResponseData
+  next: checkRiskRecalcEligible
 
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end
+
+# LJVIS2-151 lahknevuse parandus: VR-vormi avalikustamine mõjutab Eesti
+# ettevõtja riskiskoori (EL 2022/695) samamoodi nagu PPA koondvormi
+# avalikustamine — vt publish-compound-form.yml'i callRiskRecalculate muster.
+# Fire-and-forget: tulemust ei kontrollita, viga ei tohi avalikustamist katkestada.
+checkRiskRecalcEligible:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test('' + (company_reg_code || ''))}"
+      next: extractResponseData
+  next: callRiskRecalculate
+
+callRiskRecalculate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: recalc_result
+  error: extractResponseData
+  next: extractResponseData

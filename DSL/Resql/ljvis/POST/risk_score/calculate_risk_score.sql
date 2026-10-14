@@ -1,12 +1,17 @@
 /*
 description: 'LJVIS2-151: computes (but does NOT persist — see save_risk_score.sql) the EU 2022/695 risk
   score R for one Estonian transport undertaking, over a caller-supplied [window_start, window_end] date
-  window (normally "now - 2 years" .. "now"). Only forms.compound_form rows with status=''published''
-  and an 8-digit Estonian company_reg_code count; "enforcement date" is the first time a given compound_form_key
+  window (normally "now - 2 years" .. "now"). Two independent control sources feed the same r/weighted_sum:
+  (a) forms.compound_form rows with status=''published'' (PPA/TRAM domestic checks) and (b)
+  forms.foreign_violation_form rows with status=''published'' (VR-vorm — violations against this
+  Estonian carrier detected/reported by another member state). Both require an 8-digit Estonian
+  company_reg_code; "enforcement date" is the first time a given compound_form_key/foreign_violation_form_key
   reached status=''published'' (MIN(created_at) FILTER). Violation severity/isDetected keys inside the
-  JSONB violation arrays are camelCase (violationCode/severityCode/ isDetected) because they are the raw
-  frontend Formik field shape (frontend/src/features/control-forms/types.ts Violation/DocumentCheck/ CabotageViolation)
-  persisted as-is — NOT snake_case. See docs/risk-score/formula.md for the full formula/rules writeup.'
+  compound_form''s JSONB violation arrays are camelCase (violationCode/severityCode/isDetected) because
+  they are the raw frontend Formik field shape (frontend/src/features/control-forms/types.ts
+  Violation/DocumentCheck/CabotageViolation) persisted as-is — NOT snake_case. foreign_violation_form''s
+  `violations` column is instead a plain JSONB string array of codes (e.g. ["MSI101","VSI800"]) — severity
+  is read from the code''s prefix. See docs/risk-score/formula.md for the full formula/rules writeup.'
 namespace: risk_score
 params:
   company_reg_code:
@@ -179,13 +184,78 @@ per_control AS (
   WHERE sfc.compound_form_key = ANY (SELECT qf.compound_form_key FROM qualifying_forms qf)
   GROUP BY sfc.compound_form_key
 ),
+-- ── VR-vorm (forms.foreign_violation_form) — EL 2022/695 kaasamine (LJVIS2-151 lahknevuse parandus) ──
+vr_enforcement_dates AS (
+  -- Jõustumiskuupäev = first time this foreign_violation_form_key became 'published'.
+  SELECT foreign_violation_form_key, MIN(created_at) AS enforcement_date
+  FROM forms.foreign_violation_form
+  WHERE company_reg_code = :company_reg_code
+    AND status = 'published'
+    -- Kustutatud VR-vorm (viimane versioon status='deleted') ei loe.
+    AND foreign_violation_form_key NOT IN (
+      SELECT l.foreign_violation_form_key
+      FROM (
+        SELECT DISTINCT ON (foreign_violation_form_key) foreign_violation_form_key, status
+        FROM forms.foreign_violation_form
+        WHERE company_reg_code = :company_reg_code
+        ORDER BY foreign_violation_form_key, created_at DESC
+      ) l
+      WHERE l.status = 'deleted'
+    )
+  GROUP BY foreign_violation_form_key
+),
+vr_qualifying_forms AS (
+  SELECT ed.foreign_violation_form_key, ed.enforcement_date
+  FROM vr_enforcement_dates ed
+  WHERE :company_reg_code ~ '^[0-9]{8}$'
+    AND ed.enforcement_date >= :window_start::DATE
+    AND ed.enforcement_date <= (:window_end::DATE + INTERVAL '1 day')
+),
+vr_latest AS (
+  -- Latest published snapshot per foreign_violation_form_key.
+  SELECT DISTINCT ON (foreign_violation_form_key)
+    foreign_violation_form_key, violations
+  FROM forms.foreign_violation_form
+  WHERE foreign_violation_form_key IN (SELECT foreign_violation_form_key FROM vr_qualifying_forms)
+    AND status = 'published'
+  ORDER BY foreign_violation_form_key, created_at DESC
+),
+-- VR-vormi `violations` on lihtne JSONB string-massiiv rikkumiskoodidest (nt
+-- ["MSI101","VSI800"] — vt 20260703100000-initial-foreign-violation-form.sql
+-- veeru kommentaari), mitte objektide massiiv nagu SP-vormidel, seega
+-- raskusaste loetakse koodi enda prefiksist. VR-vormil pole MI-koodi
+-- võimalust (vorm toetab ainult kolme checkbox-gruppi: MSI, VSI, SI).
+vr_violation_tallies AS (
+  SELECT
+    vl.foreign_violation_form_key,
+    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'MSI%') AS n_msi,
+    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'VSI%') AS n_vsi,
+    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%')  AS n_si
+  FROM vr_latest vl
+),
+-- Iga VR-kontroll loeb r-i (zero_point kui rikkumisi ei tuvastatud, counted
+-- muidu) — VR-vormil pole PPA koondvormi sp_applicability-ga analoogset "ei
+-- rakendu/ei kontrollitud" seisundit, seega VR-kontrollidel pole 'excluded'
+-- kategooriat (kasutaja kinnitatud otsus, vt docs/risk-score/formula.md §3.1).
+vr_per_control AS (
+  SELECT
+    vt.foreign_violation_form_key,
+    FALSE AS is_fully_excluded,
+    (vt.n_msi * 90 + vt.n_vsi * 30 + vt.n_si * 10) AS weighted_sum
+  FROM vr_violation_tallies vt
+),
+all_controls AS (
+  SELECT is_fully_excluded, weighted_sum FROM per_control
+  UNION ALL
+  SELECT is_fully_excluded, weighted_sum FROM vr_per_control
+),
 formula AS (
   -- N (vehicles per control) is always 1 (task spec §2), so
   -- weighted_sum/N == weighted_sum; g=1.0 in this algorithm version.
   SELECT
     COUNT(*)::INTEGER AS r,
     COALESCE(SUM(weighted_sum), 0) AS total_weighted_sum
-  FROM per_control
+  FROM all_controls
   WHERE NOT is_fully_excluded
 ),
 result AS (
