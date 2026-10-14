@@ -6,7 +6,7 @@ description: Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for o
   score's window so the two stay comparable). Shares the exact qualifying_forms/violation_counts/sp_form_category
   CTE logic as calculate_risk_score.sql — kept as a separate query rather than reusing that one's output
   because this returns one row PER CONTROL instead of one aggregated row. Two control sources, same as
-  calculate_risk_score.sql: forms.compound_form (PPA/TRAM) and forms.foreign_violation_form (VR-vorm —
+  calculate_risk_score.sql — forms.compound_form (PPA/TRAM) and forms.foreign_violation_form (VR-vorm,
   LJVIS2-151 gap fix). Returned rows are generic (form_key/form_type) rather than compound-specific, so the
   caller (citizen dashboard) can route to the right detail page for either control type. Display
   fields (form_number/main_date/vehicle_reg_nr) come from forms.form_search rather than forms.compound_form/
