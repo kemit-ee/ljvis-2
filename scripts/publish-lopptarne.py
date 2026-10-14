@@ -141,7 +141,10 @@ def md_to_html(md_path):
     """Teisendab Markdown-faili Confluence storage HTML-iks. Tagastab (html, [(name, path)])."""
     md_dir = md_path.parent
     html = subprocess.run(
-        ["pandoc", str(md_path), "-f", "gfm", "-t", "html", "--wrap=none"],
+        [
+            "pandoc", str(md_path), "-f", "gfm", "-t", "html", "--wrap=none",
+            "--syntax-highlighting=none",
+        ],
         check=True, capture_output=True, text=True,
     ).stdout
     attachments = []
