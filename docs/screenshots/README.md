@@ -14,7 +14,7 @@ Peatükkide `.md`-failid viitavad neile suhtelise teega (`![…](images/…)`).
    ```
    docker compose up -d
    ```
-2. Seemneandmed on laetud (kasutaja `60001019906` "Super Admin" + klassifikaatorid +
+2. Algandmed on laetud (kasutaja `60001019906` "Super Admin", klassifikaatorid ja
    riskiskoori näidisvormid). Vajadusel:
    ```
    for f in DSL/Liquibase/test/*.sql; do

@@ -73,7 +73,7 @@ Kordussaatmise reeglid (identiteet: leping + saatja `kontrolli_id`, tabel `forms
 | Esimene päring | Uus akt, staatus `confirmed`, versioon 1 |
 | Täpne kordus (sama sisu kui viimati rakendatud) | HTTP 200 `Success`, uut rida ei lisata |
 | Muudetud sisu, akt on `confirmed` / `published` / `deleted` | HTTP 409 `CONFLICT`, midagi ei salvestata (SOAP-is `Client` Fault) |
-| Muudetud sisu, akt on arhiveerimisel töö-baasist eemaldatud | HTTP 409 `CONFLICT` (arhiveeritud), uut akti ei looda; täpne kordus `Success` |
+| Muudetud sisu, akt on arhiveerimisel tööbaasist eemaldatud | HTTP 409 `CONFLICT` (arhiveeritud), uut akti ei looda; täpne kordus `Success` |
 | Samaaegsed päringud sama ID-ga | Luuakse üks akt; muudetud samaaegsed päringud rakendatakse järjest, ükski ei kao |
 | Samal ajal kinnitatakse/kustutatakse akt UI-s | Ajalugu ei hargne (`revision`): kui UI jõudis enne, HTTP 409; kui X-tee jõudis enne, salvestub X-tee muudatus ja UI palub vormi uuesti laadida (`form_modified`) |
 

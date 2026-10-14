@@ -41,7 +41,7 @@ Allikad:
 
 **Sisu:**
 
-**Tase 1** — 16 kirjet, `code` `P12`…`P27`, `name` = `<nr>. <määruse lisa 2 pealkiri>`, `description` = ADR-viide (kuvatakse pealkirjas sulgudes). Algne seeme (`20260903120000`) lõi pealkirjad PDF-i „Kontrollitav valdkond" veeru järgi; migratsioon `20260907120000-adr-checkpoint-titles-maarus-lisa2.sql` joondas need määruse **lisa 2** täpse sõnastusega:
+**Tase 1** — 16 kirjet, `code` `P12`…`P27`, `name` = `<nr>. <määruse lisa 2 pealkiri>`, `description` = ADR-viide (kuvatakse pealkirjas sulgudes). Algsed andmed (`20260903120000`) lõid pealkirjad PDF-i „Kontrollitav valdkond" veeru järgi; migratsioon `20260907120000-adr-checkpoint-titles-maarus-lisa2.sql` joondas need määruse **lisa 2** täpse sõnastusega:
 
 | code | name | description (ADR-viide) |
 |---|---|---|
@@ -337,7 +337,7 @@ CI (`.github/workflows/ci.yml`) jookseb feature-harul ainult avatud PR-i korral 
 | #233 Backend: save/confirm/resql uued väljad | F5 | `feat(adr): ADR-vormi backend uued väljad (#233)` |
 | #234 forms.form_search ADR has_violation reegel | F5b | `feat(adr): form_search ADR has_violation reegel (#234)` |
 | #235 Frontend: rikkumiste plokk + mahuti + erand + tulemus + aadress | F6 | `feat(adr): ADR-vorm määruse kujule (#235)` |
-| #236 Klassifikaatorite seemneväärtused | F1/F2 tase-2 | `feat(adr): ADR klassifikaatorite väärtused (#236)` |
+| #236 Klassifikaatorite algväärtused | F1/F2 tase-2 | `feat(adr): ADR klassifikaatorite väärtused (#236)` |
 | #237 Dokumentatsioon + Confluence + muudatused.md | F7 | `docs(adr): kasutusjuhend, klassifikaatorid, muudatused (#237)` |
 
 Testid kirjutatakse **iga faasi commiti sees** (F8 loend), et CI kontrolliks vastava issue AC-d.
@@ -346,5 +346,5 @@ Testid kirjutatakse **iga faasi commiti sees** (F8 loend), et CI kontrolliks vas
 
 * **Lisa 1 sõnastus** — plaan tugineb lisale 2 + PDF-ile; punktinimed/ADR-viited kontrollida lõpliku RT-teksti vastu (F5/F0).
 * **`AddressFields` on jagatud** autoveo katkestamise vormiga — tühja riigivaliku ja välisriigi käsitsi väljade muudatus mõjutab ka seda; kontrolli TI-vormi `useTransportInterruptionForm` vaikeväärtust ja view-kaarti.
-* **`getByCode` mitme-snapshot'i probleem** (vt [memory: classifier-values-query-multi-snapshot-bug]) — uue klassifikaatori lisamisel veendu, et `list_classifier_value_data` alampäring on juba parandatud `dev`-is.
+* **`getByCode` mitme-hetktõmmise probleem** (vt [memory: classifier-values-query-multi-snapshot-bug]) — uue klassifikaatori lisamisel veendu, et `list_classifier_value_data` alampäring on juba parandatud `dev`-is.
 * **`infringements` kuju muutus** — kui `dev`-keskkonnas on testandmeid vana kujuga, siis view-kaart peab taluma mõlemat või testandmed puhastada.

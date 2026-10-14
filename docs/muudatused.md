@@ -29,7 +29,7 @@
 
 ### Jõudlustestide testvormide öine koristus (ajutine)
 
-- CronManager'i töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
+- CronManageri töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
 - Jõudlustestide k6 skripti otsingupäring on parandatud; tulemused: `docs/testimine/`.
 
 ## 2026-10-09
@@ -93,12 +93,12 @@
 
 ## 2026-10-05
 
-### CronManager'i ajastatud tööd on taas `type: http` (korrigeerib #515)
+### CronManageri ajastatud tööd on taas `type: http` (korrigeerib #515)
 
-- `/cron/*` route'id ei nõua `x-internal-service-token` päist (`POST/cron/.guard`, `override_ancestors`). Kõik CronManager'i tööd on taas lihtsad `type: http` POST-id; `exec`-skript `call-ruuter-internal.sh` ja CronManager'i `constants.ini` mount on eemaldatud.
-- Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManager'i tokenita päring 403).
+- `/cron/*` route'id ei nõua `x-internal-service-token` päist (`POST/cron/.guard`, `override_ancestors`). Kõik CronManageri tööd on taas lihtsad `type: http` POST-id; `exec`-skript `call-ruuter-internal.sh` ja CronManageri `constants.ini` mount on eemaldatud.
+- Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManageri tokenita päring 403).
 - Kaitse `/cron/*` ees on võrgutasemel (NetworkPolicy lubab `ruuter-internal`'ile ainult teadaolevad podid, host-porti ei publitseerita). Token jääb kõigile teistele `ruuter-internal` route'idele.
-- Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManager'i tööd.
+- Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManageri tööd.
 
 ### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
 
@@ -135,7 +135,7 @@
 - Menetluse tulemuse, X-tee väljade, erakorralise ülevaatuse kuupäeva ja vedaja teavituse lipu salvestamine lisab vormile uue versioonirea; varasem rida jääb ajalukku ja vormi versiooninumber (/V) ei muutu. Versiooniajaloo vaates võib seetõttu ilmuda lisarida (sama versioon, sama staatus).
 - Manuse kustutamine jätab algse rea alles ja lisab kustutusmärke; kustutatud manust ei näidata ega saa alla laadida.
 - Samaaegne salvestamine ei kirjuta enam vaikselt üle: kõigil vormitabelitel on `revision` ja samaaegse topeltkirjutuse korral ebaõnnestub teine päring.
-- Arhiveerimine kustutab töö-baasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
+- Arhiveerimine kustutab tööbaasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
 - ErakorralineYVconfirm uuendab nii kinnitatud kui avalikustatud vormi (uus rida, staatus jääb samaks). Varem muutis see avalikustatud vormi puhul vana kinnitatud rida, mistõttu muudatus ei olnud vormil nähtav.
 - Teavituste logi: Postkast 2.0 staatuse muutused salvestatakse eraldi sündmusena (`notifications.outbound_log_status_event`), `outbound_log` rida ei muutu. Vaates muutust pole.
 
@@ -143,7 +143,7 @@
 
 - `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.
 - Varasem ws-broadcast jagatud saladus (`INTERNAL_COMMUNICATION_KEY`) on sama token: konstant jääb samaks, päis `x-viljus-knows-a-secret` on nimetatud ümber `x-internal-service-token`-iks. Keskkondades uusi konstante lisada ei ole vaja.
-- CronManager'i ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManager'i konteinerisse tuleb seega mountida sama `constants.ini`.
+- CronManageri ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManageri konteinerisse tuleb seega mountida sama `constants.ini`.
 - `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
 - Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
 
@@ -197,7 +197,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 - Uus funktsioon: vormid, mille viimasest tegevusest on möödas seadistatav arv aastaid (vähemalt 3), kopeeritakse eraldi arhiivibaasi.
 - Funktsioon on **vaikimisi välja lülitatud**. Seaded (`enabled`, `retentionYears`, `purge`, `batch`, `dryRun`) on ühes kohas:
   `DSL/CronManager/archive-aged-forms.yaml`.
-- Valik, kas pärast arhiveerimist kustutatakse kirje töö-baasist (`purge`, vaikimisi ei kustutata). Kustutatakse ainult siis, kui arhiivibaas on iga rea olemasolu eraldi kinnitanud.
+- Valik, kas pärast arhiveerimist kustutatakse kirje tööbaasist (`purge`, vaikimisi ei kustutata). Kustutatakse ainult siis, kui arhiivibaas on iga rea olemasolu eraldi kinnitanud.
 - Koondvorm ja selle alamvormid arhiveeritakse koos; vormi ajalugu jääb loetavaks ka pärast arhiveerimist.
 - Juhend: `docs/admin-guide/13-arhiveerimine.md`; otsus ADR-012.
 

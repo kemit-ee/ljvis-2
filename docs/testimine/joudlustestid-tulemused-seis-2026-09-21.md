@@ -6,7 +6,7 @@
 | Commit | `fe63c5666` |
 | Jooksu kuupäev | **10.10.2026** (00:33–04:24) |
 | Keskkond | CI-pinu (`docker-compose.ci.yml`: Ruuterid 0,5 CPU, üks PostgreSQL), Docker Desktop 10 CPU / 8 GB, macOS |
-| Seemendus | `SEED_FORMS=50`, iga jooks puhta andmebaasiga |
+| Algandmete laadimine | `SEED_FORMS=50`, iga käivitus puhta andmebaasiga |
 | k6 | `grafana/k6` v2.2.0 Dockeris |
 | Mõõtmise kord | Iga jooks: pinu maha + üles, oodatakse kuni Docker Desktopi backend < 40 % CPU ja host load < 3 ning pinu konteinerite CPU summa < 20 %; jooksude vahel 4 min paus. Load jooksutati 3 korda. Ruuteri CPU on `docker stats` keskmine 10 s sammuga (100 % = 1 tuum, piir 0,5 tuuma = 50 %). |
 | Skriptid | k6 skriptid haru `feature/ljvis2-perf-load-tests` versioonist (sh otsingu `formType=compound` parandus); 21.09 commitis skripte veel ei olnud, rakenduskood on 21.09 oma |
@@ -61,6 +61,6 @@ Ruuter töötab load'i ajal oma 0,5 CPU piiri lähedal (keskmiselt ~45 %), Resql
 ## Piirangud
 
 - CI-pinu on tootmisest väiksem (Ruuter 0,5 CPU); absoluutarvud ei kehti tootmisele, seisude võrdlus kehtib.
-- Testandmed väikesed (50 seemendatud vormi + kirjutusvoo vormid); tootmismahu mõju pole mõõdetud.
+- Testandmete maht on väike (50 laaditud testvormi ja kirjutusvoo vormid). Tootmismahu mõju ei ole mõõdetud.
 - `soak` (2 h) jooksutamata. Dev-keskkonnas testi ei tehtud (`dev-login` keelatud).
 - Varasem (08.10) mõõtmine oli müraline Docker Desktopi taustakoormuse tõttu ja k6 otsing tagastas vea tõttu 0 rida; need tulemused on asendatud.

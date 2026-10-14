@@ -212,7 +212,7 @@ Enne esimest kustutavat käivitust tee testkeskkonnas taastekatse.
 - Ajapõhine arhiveerimine puudutab ainult kontrollvormide tabeleid (`forms.*`, 11 tabelit).
 - Arhiveeritud vorme ei saa otsingust leida ega redigeerida; ajaloovaates saab neid vaadata.
 - CI testib voo loogikat (lülitid, kontroll, kustutamise vahelejätmine) mokkidega, kuid
-  ei seemenda 3+ aasta vanuseid vorme. Käivita valikupäring
+  ei laadi 3+ aasta vanuseid testvorme. Käivita valikupäring
   `select_aged_snapshots.sql` päris andmetel esimest korda parameetriga `dryRun=true`.
 - Vastavus: andmete säilitustähtajad ja kustutamise õiguslik alus on andmeomaniku otsus.
   Funktsioon annab tehnilise võimaluse; `retentionYears` ja `purge` valik on tema otsustada.

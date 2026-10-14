@@ -58,7 +58,7 @@ Iga sellise tabeli struktuur:
 |---|---|
 | `id` (BIGSERIAL) | Füüsiline reavõti. **Unikaalne. Iga snapshot on eraldi `id`.** Kasuta seda Tableau extract'i incremental-refresh võtmena. |
 | `<entity>_key` (BIGINT) | **Loogiline** olemi identiteet. Kõik ühe olemi snapshot-read jagavad sama `_key` väärtust. **EI ole unikaalne.** Kasuta seda gruppimiseks / joinimiseks. |
-| `created_at` (TIMESTAMPTZ) | Snapshot'i tekkeaeg. Järjestusvõti "viimase seisu" leidmiseks. |
+| `created_at` (TIMESTAMPTZ) | Hetktõmmise tekkeaeg. Järjestusvõti "viimase seisu" leidmiseks. |
 | `created_by` (VARCHAR) | Tegija isikukood või süsteemi-identifikaator. Lõtv audit-viide, **FK-d ei ole**. |
 
 ### "Praegune seis" = viimane snapshot iga loogilise võtme kohta
@@ -259,7 +259,7 @@ ei ole. Praegune seis = `DISTINCT ON (tram_control_card_key) ORDER BY tram_contr
 | `driver_not_applicable` | BOOLEAN | „Ei ole asjakohane" — juhita kontroll |
 | `transport_type`, `result_type`, `additional_measure`, `proceeding_type`, `proceeding_reference_number` | VARCHAR | Juhi kontrolli tulemus / menetlus |
 | `violations_561_2006`, `violations_165_2014`, `violations_2002_15`, `violations_593_2008`, `violations_2020_1057`, `erru_points` | JSONB | Rikkumised (sama kuju mis `sp_driver_form`) |
-| `enforcement_decision`, `proceeding_closure_basis` | TEXT | e-Toimiku jõustunud otsus — kirjutab **ainult öine cron** (`created_by = 'e-toimik'`), mis lisab automaatselt avalikustatud snapshot'i |
+| `enforcement_decision`, `proceeding_closure_basis` | TEXT | e-Toimiku jõustunud otsus — kirjutab **ainult öine cron** (`created_by = 'e-toimik'`), mis lisab automaatselt avalikustatud hetktõmmise |
 | `created_at`, `created_by` | TIMESTAMPTZ / VARCHAR | Audit |
 
 **Ei sisalda** (erinevalt `sp_driver_form`'ist): `mass_dimension_non_compliant`,
@@ -377,7 +377,7 @@ Hea maine vorm.
 ### 5.10 `forms.form_search` — VALMIS ristvormi otsinguvaade
 
 Andmebaasis juba olemas. Projitseerib **iga vormitüübi viimase mittekustutatud
-snapshot'i** ühisele veerukomplektile (10 vormitüüpi, sh alamvormid). Alamvormide
+hetktõmmise** ühisele veerukomplektile (10 vormitüüpi, sh alamvormid). Alamvormide
 äriandmed (sõiduk/ettevõte/juht/asukoht/kuupäev) päritakse vanemalt `compound_form`'ilt.
 
 Ühisveerud: `form_type`, `form_key`, `compound_form_key`, `form_number`, `status`,
@@ -695,7 +695,7 @@ Skeemi tõde elab siin repos:
 monotoonselt kasvav, iga snapshot uus `id`). **Mitte** `created_at` (ajavööndid,
 kellanihked) ega `_key` (kordub). NB: incremental refresh **lisab** ainult uusi
 ridu — kuna tabelid on append-only, on see täpselt õige mudel, aga see tähendab
-et sinu extract sisaldab **kõiki snapshot'e**; "viimase seisu" filter tuleb teha
+et sinu extract sisaldab **kõiki hetktõmmiseid**; "viimase seisu" filter tuleb teha
 kas vaates (`tableau.*_current`) või Tableau arvutatud väljaga.
 
 > Kui vajad extract'i, mis hoiab ainult viimast seisu ja on väike: tee extract
@@ -783,7 +783,7 @@ SELECT direction,
        date_trunc('month', created_at)::date AS kuu,
        COUNT(*) AS sonumeid,
        COUNT(*) FILTER (WHERE status = 'error') AS vigu
-FROM erru.ctud_request           -- kõik snapshot'id: maht ajas
+FROM erru.ctud_request           -- kõik hetktõmmised: maht ajas
 GROUP BY 1, 2
 ORDER BY 2, 1;
 ```
