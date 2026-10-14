@@ -1,5 +1,5 @@
 /*
-description: 'ADR-010/ADR-012 kolmas samm ja EPICU #522 AINUS lubatud erand append-only reeglile (.sql-rule-exemption):
+description: 'ADR-010/ADR-012 kolmas samm ja EPICU #522 ESIMENE kahest lubatud erandist append-only reeglile (.sql-rule-exemption; teine on anonymize_confirmed.sql, ADR-014):
   REAALNE DELETE forms.*-ist. Retention-purge kontrakt (3 sammu, kõik Ruuteri cron''is): (1) SELECT töö-baasist
   (select_deleted_snapshots / select_aged_snapshots), kirjutatud arhiivi insert_snapshots''iga; (2) arhiivi poolt
   kinnitus count_present''iga, et IGA rida on arhiivis olemas; (3) see fail. Ruuter kutsub seda ainult siis, kui

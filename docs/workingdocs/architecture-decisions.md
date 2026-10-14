@@ -5,7 +5,96 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
-## ADR-013 — SQL append-only invariant: ainult INSERT ja SELECT, `revision` lugeja-kirjutaja võidujooksu vastu
+## ADR-014 — Isikuga seose eemaldamine arhiivis: teine lubatud append-only erand (UPDATE)
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 14.10.2026
+**Seotud:** Jira LJVIS2-51 (epic LJVIS2-22 "Andmete arhiveerimine"); ADR-010, ADR-012, ADR-013;
+`DSL/Resql/ljvis/POST/archive/anonymize_confirmed.sql`; `.sql-rule-exemption`;
+`tests/contract/check_resql_append_only.py`; `DSL/Liquibase-arhiiv/changelog/
+20261116110000-archive-anonymized-at.sql`
+
+### Kontekst
+
+Jira epicu LJVIS2-22 vastuvõtutingimus nõuab lisaks andmete arhiveerimisele (ADR-010/012)
+ka "isikuga seose eemaldamist" (LJVIS2-51). Pilet ise oli kirjelduseta — nõue täpsustati
+vestluses: kohe pärast seda, kui kontrollvorm on jõudnud arhiivbaasi JA on töö-baasist
+kinnitatult kustutatud (`purge_confirmed` õnnestus), tuleb arhiveeritud kirje isikuandmed
+asendada.
+
+ADR-013 lubab `DSL/Resql/`-is ainult INSERT+SELECT; ainus erand oli `purge_confirmed.sql`
+(DELETE). Isikuandmete eemaldamine olemasolevalt arhiivirealt nõuab aga **olemasoleva rea
+sisu muutmist** — INSERT-only alternatiivi pole, sest vana PII-ga rida jääks muidu
+füüsiliselt tabelisse alles (uue rea kõrvale lisamine ei eemalda midagi).
+
+### Otsus
+
+**Teine, täpselt piiritletud append-only erand: `UPDATE`.** Uus fail
+`DSL/Resql/ljvis/POST/archive/anonymize_confirmed.sql`, registreeritud
+`.sql-rule-exemption`-is samamoodi nagu `purge_confirmed.sql`. Lindiskript
+(`check_resql_append_only.py`) laiendati lubama erandfailil **kas** DELETE **või** UPDATE
+(mitte mõlemat korraga, mitte teistes failides) — iga erand esindab täpselt üht
+sanktsioneeritud mutatsiooni.
+
+Käivitamine: `archive-deleted-forms.yml` ja `archive-aged-forms.yml` kutsuvad
+`anonymize_confirmed`-i **vahetult pärast** `purge_confirmed` õnnestumist, samade
+`(form_type, id)` paaridega. `archive-aged-forms.yml`-is (kus purge on valikuline)
+käivitub anonümiseerimine **ainult** `purge=true` ja kinnitatud kustutuse harus — kui
+töö-baasi koopia on veel elus (archive-only), isikuandmeid ei puudutata.
+
+**Juhitav `anonymize` lüliti (true/false), vaikimisi `true`.** Mõlemad CronManager'i tööd
+(`DSL/CronManager/archive-deleted-forms.yaml`, `DSL/CronManager/archive-aged-forms.yaml`)
+saavad uue URL-i päringuparameetri `anonymize`, samamoodi nagu teised lülitid (`enabled`,
+`purge`, `dryRun`). Kui `anonymize=false`, jääb arhiveeritud rida pärast purge't täies
+(1:1) kujul, `anonymized_at` jääb NULL-iks — administraator saab seda igal ajal URL-i
+muutes sisse/välja lülitada, Ruuterit ega baasi uuesti ehitamata.
+
+Idempotentsus: uus veerg `archive.form_snapshot.anonymized_at` (NULL = veel
+anonümiseerimata); `anonymize_confirmed.sql` UPDATE-ib ainult `anonymized_at IS NULL`
+ridu, nii et korduv jooks sama paariga ei tee midagi.
+
+### Teisendusreeglid
+
+Eesmärk on k-anonüümsus: sajand/sugu ja sünnikümnend jäävad (kasulikud statistikaks),
+täpne isik ei ole enam tuletatav.
+
+| Väli | Reegel | Näide |
+|---|---|---|
+| Nimi (eesnimi) | `"Anonümiseeritud"` | — |
+| Nimi (perenimi) | `""` (tühi, väldib "Anonümiseeritud Anonümiseeritud" kuvamisel) | — |
+| Sünnikuupäev | päev=`01`, kuu=`01`, aasta kümnendi algusesse | `1865-02-02` → `1860-01-01` |
+| Isikukood (EE formaat, 11 kohta) | 1. number (sajand/sugu) ja sünniaasta kaks numbrit muutumatud, kuu/päev `01`/`01`, jrk-number `000`, kontrollnumber `0` | `38002025213` → `38001010000` |
+| Isikukood (muu formaat, nt välisriigi) | `""` — struktureeritud teisendust ei saa üldistada | — |
+| Sünnikoht (vabatekst) | jääb ainult viimane komaga eraldatud osa (tüüpiliselt riik) | `"Tallinn, Eesti"` → `"Eesti"` |
+
+**Teadaolev piirang:** sünnikoha väli ilma komata (nt lihtsalt linnanimi) jääb
+muutumatuks — vabatekstist riiki usaldusväärselt tuletada ei saa. Vajab manuaalset
+andmekvaliteedi ülevaatust, kui see osutub probleemiks.
+
+Hõlmatud on ainult `forms.*` subjekti (kontrollitav isik/juht) väljad massiivides ja
+tipptasemel (`personal_code`, `driver_first_name`/`_last_name`,
+`company_owner_first_name`/`_last_name`, `punished_person_first_name`/`_last_name`,
+`person_first_name`/`_last_name`/`person_birth_date`, `place_of_birth`, `compound-form`/
+`tram-card` `drivers[]` massiiv mõlemas kasutusel olevas võtmekonventsioonis). **Vormi
+loonud ametniku väljad** (`created_by`, `created_by_name`, `inspector_first_name`/
+`_last_name`) **jäävad alati puutumata** — need on auditjälg, mitte isikuga seos, mida
+LJVIS2-51 silmas peab.
+
+### Tagajärjed
+
+* `archive.form_snapshot` reale, mis on arhiveeritud ja purge'itud, lisandub automaatselt
+  teine kirjutus (UPDATE) — rea `payload` muutub pärast esialgset INSERT-i. See on
+  teadlik, piiritletud erand, mitte tagasipöördumine üldise UPDATE-lubaduse juurde.
+  `.sql-rule-exemption` ja lindiskript väldivad erandi laienemist teistele failidele.
+  * Lindiskripti test: ükski *teine* `DSL/Resql/`-fail, mis sisaldaks UPDATE-i ilma
+    erandita, ei tohi jätkuvalt läbida.
+* Juba varem (enne seda muudatust) arhiveeritud ja purge'itud read **ei anonümiseeru
+  tagasiulatuvalt** — see nõuaks kogu arhiivi ühekordset läbikäiku, mis on eraldi otsus.
+* `place_of_birth`/`tm_place_of_birth` ERRU tabelites (`erru.cgr_request`,
+  `erru.nu_message`) **ei ole** hõlmatud — need pole `archive.form_snapshot`-i osa, sest
+  ERRU sõnumid ei lähe `forms.*`-i arhiveerimisvoogu.
+
+
 
 **Otsustaja:** ootab kinnitust (epic #522 kavand)
 **Kuupäev:** 05.10.2026
