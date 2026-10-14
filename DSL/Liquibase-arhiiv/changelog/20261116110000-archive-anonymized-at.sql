@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261014100000 ignore:true
+-- changeset ljvis:20261116110000 ignore:true
 --
 -- ADR-014 / LJVIS2-51: märgib, millal archive.form_snapshot rea isikuandmed on
 -- anonymize_confirmed.sql poolt eemaldatud (vt purge_confirmed.sql järel käivituv

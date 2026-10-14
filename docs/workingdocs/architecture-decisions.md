@@ -12,7 +12,7 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 **Seotud:** Jira LJVIS2-51 (epic LJVIS2-22 "Andmete arhiveerimine"); ADR-010, ADR-012, ADR-013;
 `DSL/Resql/ljvis/POST/archive/anonymize_confirmed.sql`; `.sql-rule-exemption`;
 `tests/contract/check_resql_append_only.py`; `DSL/Liquibase-arhiiv/changelog/
-20261014100000-archive-anonymized-at.sql`
+20261116110000-archive-anonymized-at.sql`
 
 ### Kontekst
 
