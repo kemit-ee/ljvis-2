@@ -35,7 +35,8 @@ mTLS (service mesh), mille valik on devopsi otsus.
    (CI) hoiab seda. REST-lane'i kutsed saavad päise alles 3b-s, kus värav eemaldab tokeni (`proxy_set_header ... ""`)
    enne XTR-ile edastamist.
 3. **3b:** `docker/authgate/` image, compose/CI (teenused värava taga), TIM-i avalike teede allowlist,
-   otsepäringud Resql-ile (Postman/Playwright seemned, port 9087) saavad päise. Mõõta lisahopi jõudlust.
+   otsepäringud Resql-ile (Postmani ja Playwrighti testandmete laadimine, port 9087)
+   saavad päise. Mõõda lisahüpe jõudlust.
 4. **3c (devops):** sidecar'id Helmis, teenused loopback'ile, NetworkPolicy.
 5. **3d:** ADR (värav vs mesh), upstream-soovid.
 

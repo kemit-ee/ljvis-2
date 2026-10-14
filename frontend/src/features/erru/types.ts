@@ -72,7 +72,7 @@ export interface CtudResponseContent {
 }
 
 export interface CtudRequestListItem {
-  id: string;
+  id: number;
   version: number;
   direction: CtudDirection;
   status: CtudStatus;
@@ -225,7 +225,7 @@ export interface CgrMemberState {
 }
 
 export interface CgrRequest {
-  id: string;
+  id: number;
   version: number;
   direction: CgrDirection;
   status: CgrStatus;
@@ -317,7 +317,7 @@ export function isCgrSendable(
  * request — the per-country breakdown is shown only in the request detail view.
  */
 export interface CgrRequestListItem {
-  id: string;
+  id: number;
   version: number;
   status: CgrStatus;
   businessCaseId: string;
@@ -411,7 +411,7 @@ export interface RsiCheckedItem {
 }
 
 export interface RsiMessage {
-  id: string;
+  id: number;
   version: number;
   direction: RsiDirection;
   status: RsiStatus;
@@ -519,7 +519,7 @@ export interface RsiSendResult {
  * responseStatusCode is a direct column from the latest snapshot (no broadcast ZZ derivation).
  */
 export interface RsiMessageListItem {
-  id: string;
+  id: number;
   version: number;
   direction: RsiDirection;
   status: RsiStatus;
@@ -630,7 +630,7 @@ export interface NcrResponseAddress {
 
 /** One snapshot of an NCR message (INSERT-only — see erru.ncr_message). */
 export interface NcrMessage {
-  id: string;
+  id: number;
   version: number;
   direction: NcrDirection;
   status: NcrStatus;
@@ -934,7 +934,7 @@ export function isNuSendable(
 }
 
 export interface NuMessageListItem {
-  id: string;
+  id: number;
   version: number;
   direction: NuDirection;
   status: NuStatus;

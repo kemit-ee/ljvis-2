@@ -41,8 +41,8 @@ sama asi ja need ei peagi kokku käima 1:1 väärtuste kaupa:
   otse tuletatud task-spekist (LJVIS2-151 §"Riskitaseme koodid" tabel —
   seal on `risk_band_code (andmebaasis)` veerg eraldi "Kuvatav tekst (ET)"
   ja "ERRU väärtus" veergudest; kolm eraldi väärtust, mitte üks).
-- `RISK_BAND` klassifikaator (seeditud `20260801100000-erru-ctud-classifier-
-  seed.sql`-is, kommentaar "Eesti tagastab Grey kuni riskihindamise mooduli
+- `RISK_BAND` klassifikaator (laaditud failiga `20260801100000-erru-ctud-classifier-
+  seed.sql`, kommentaar "Eesti tagastab Grey kuni riskihindamise mooduli
   (EPIC 16) valmimiseni") on mõeldud **CTUD ERRU-sõnumi riskiband-välja
   kuvamiseks** frontend'is (`CtudResponseBlock.tsx`) — nii sissetulevate
   välisriikide vastuste jaoks kui ka (LJVIS2-144 valmimisel) meie oma
@@ -55,7 +55,7 @@ see on korrektne disainiotsus, mitte lahtine ots. **Väike, meie moodulist
 sõltumatu ebakõla:** `RISK_BAND` klassifikaatori `Amber` väärtuse `name` on
 `"Kollakas"`, mitte `"Kollane"` (nagu meie `risk_band_code` ja kõik muu
 selles moodulis kasutab) — potentsiaalne tulevane parandusvajadus CTUD/
-LJVIS2-144 klassifikaatoriseedis, väljaspool selle mooduli skoopi.
+LJVIS2-144 klassifikaatori algandmetes, väljaspool selle mooduli skoopi.
 
 ## 3. Kaasamise ja välistamise reeglid
 

@@ -19,7 +19,10 @@ export interface User {
   lastLoginAt: string | null;
 }
 
-export interface UserListItem extends User {
+/** Nimekirjarida (GET /v1/users/{scope}/search): võtmed tulevad Resql-ist numbritena. */
+export interface UserListItem extends Omit<User, 'id' | 'organisationId'> {
+  id: number;
+  organisationId: number;
   isAdditionalGroupRow?: boolean;
 }
 

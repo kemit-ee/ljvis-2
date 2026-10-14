@@ -37,7 +37,10 @@ export function useClassifierValueForm(
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      id: existingValue?.classifierValueId ?? '',
+      id:
+        existingValue?.classifierValueId != null
+          ? String(existingValue.classifierValueId)
+          : '',
       code: existingValue?.code ?? '',
       name: existingValue?.name ?? '',
       validFrom: existingValue?.validFrom ?? '',
@@ -56,7 +59,7 @@ export function useClassifierValueForm(
         if (isEdit && existingValue) {
           await updateClassifierValue({
             classifierId: classifierId,
-            classifierValueId: existingValue.classifierValueId,
+            classifierValueId: String(existingValue.classifierValueId),
             code: trimmedValues.code,
             name: trimmedValues.name,
             validFrom: trimmedValues.validFrom,

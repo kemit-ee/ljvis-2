@@ -10,6 +10,15 @@ import type {
   UserGroupUser,
 } from './types';
 
+/**
+ * Ruuter tagastab Resql-i read otse (võtmed numbritena); grupi- ja kasutajaloogika (valikute
+ * Set'id, URL-id, PUT/POST kehad, mille allowlist ootab stringi) töötab string-ID-dega.
+ */
+const withStringId = <T extends { id: string | number }>(
+  rows: T[],
+): (T & { id: string })[] =>
+  (rows ?? []).map((r) => ({ ...r, id: String(r.id) }));
+
 export const listUserGroups = (
   scope: 'admin' | 'local',
   params?: ListApiParams,
@@ -18,11 +27,14 @@ export const listUserGroups = (
   return get<PagedResponse<UserGroup>>(`/v1/user-groups/${scope}/search`, {
     ...rest,
     ...(search !== undefined && { q: search }),
-  } as Record<string, string>);
+  } as Record<string, string>).then((paged) => ({
+    ...paged,
+    content: withStringId(paged.content),
+  }));
 };
 
 export const getUserGroup = (scope: 'admin' | 'local', id: string) =>
-  get<UserGroup[]>(`/v1/user-groups/${scope}`, { q: id });
+  get<UserGroup[]>(`/v1/user-groups/${scope}`, { q: id }).then(withStringId);
 
 export const getUserGroupOrganisations = (
   scope: 'admin' | 'local',
@@ -51,7 +63,7 @@ export const getUserGroupUsers = (
     ...(params?.pageSize !== undefined && { pageSize: params.pageSize }),
     ...(params?.sorting !== undefined && { sorting: params.sorting }),
     ...(params?.search !== undefined && { search: params.search }),
-  });
+  }).then(withStringId);
 
 export const getUserGroupAvailableUsers = (params?: {
   userGroupId: string;
@@ -64,7 +76,7 @@ export const getUserGroupAvailableUsers = (params?: {
   post<UserGroupUser[]>(
     '/v1/user-groups/available-users',
     params as Record<string, unknown>,
-  );
+  ).then(withStringId);
 
 export const insertUserGroup = (data: {
   name: string;

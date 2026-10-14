@@ -30,7 +30,7 @@ getClassifierValue:
 checkFound:
   switch:
     - condition: ${res.response.body.length > 0}
-      next: mapResponse
+      next: returnSuccess
   next: notFound
 
 notFound:
@@ -38,18 +38,6 @@ notFound:
   return: "Not found"
   next: end
 
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_classifier_value"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      classifierValues: ${res.response.body}
-  result: mapped
-  next: returnSuccess
-
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body[0]}
   next: end

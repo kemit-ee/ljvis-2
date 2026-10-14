@@ -85,7 +85,7 @@ checkShouldLog:
   switch:
     - condition: ${actor_personal_code != created_by}
       next: logView
-  next: mapResponse
+  next: returnSuccess
 
 logView:
   assign:
@@ -103,22 +103,10 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"formKey\":${res.response.body[0].id}}"
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_good_repute_form"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
+  return: ${res.response.body[0]}
   next: end
 
 returnNotFound:
