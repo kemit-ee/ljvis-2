@@ -2,7 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
-## 2026-10-13
+## 2026-10-14
+
+### Arhiveeritud vormide isikuga seose eemaldamine (ADR-014, LJVIS2-51)
+
+- Kohe pärast seda, kui kontrollvorm on jõudnud arhiivbaasi ja on töö-baasist kinnitatult kustutatud, asendatakse arhiveeritud kirje nimi, isikukood, sünniaeg ja sünnikoht (nt isikukood „38002025213" → „38001010000", sünniaeg 02.02.1865 → 01.01.1860, sünnikoht „Tallinn, Eesti" → „Eesti"). Vormi loonud ametniku andmed jäävad puutumata.
+- Juhitav uue `anonymize` lülitiga (vaikimisi sees) mõlemal arhiveerimise cron-tööl, samamoodi nagu olemasolevad `enabled`/`purge`/`dryRun` lülitid; vt admin-juhend „Arhiveerimine" §12.
+- Tagasiulatuvalt varem arhiveeritud kirjeid ei puudutata.
 
 ### Kiiremad loendid ja klassifikaatorite laadimine (DataMapperi läbisõidud eemaldatud)
 

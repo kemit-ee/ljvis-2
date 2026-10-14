@@ -10,6 +10,10 @@
 #                          kirje töö-baasist; false = töö-baasi jääb koopia alles.
 #   batch=500            ← max üksusi (juhtumit/vormi) ühes jooksus.
 #   dryRun=false         ← true = ainult loendab, mitte midagi ei kopeerita ega kustutata.
+#   anonymize=true       ← ADR-014/LJVIS2-51: isikuga seose eemaldamine. Kui purge=true JA
+#                          kustutamine õnnestub, asendatakse arhiveeritud rea nimi/isikukood/
+#                          sünniaeg/-koht kohe. false = jätab arhiveeritud rea täies (1:1)
+#                          kujul. Archive-only teel (purge=false) ei rakendu kummalgi juhul.
 #
 # Vaikimisi on funktsioon VÄLJA LÜLITATUD (enabled=false): töö jookseb, aga ei tee midagi.
 # Aeg: pühapäeviti 04:00 Tallinna aja järgi (TZ docker-compose.yml-is), pärast öiseid töid.
@@ -17,7 +21,7 @@ archive_aged_forms:
   trigger: "0 0 4 ? * SUN"
   type: http
   method: POST
-  url: "http://ruuter-internal:8080/ljvis/cron/archive-aged-forms?enabled=false&retentionYears=7&purge=false&batch=500&dryRun=false"
+  url: "http://ruuter-internal:8080/ljvis/cron/archive-aged-forms?enabled=false&retentionYears=7&purge=false&batch=500&dryRun=false&anonymize=true"
   retryCount: 1
   retryDelay: 60000
   ignoreFailures: true
