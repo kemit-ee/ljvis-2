@@ -191,9 +191,10 @@ kutsub fire-and-forget `risk-scores/recalculate`-it (`calculation_trigger:
 kontrollvorm`) — vt `edit/publish.yml` ja `edit/delete.yml` iga vormitüübi
 kataloogis.
 
-## 8. ERRU CTUD integratsioon (LJVIS2-144, väljaspool skoopi)
+## 8. ERRU CTUD integratsioon (LJVIS2-144)
 
-Kui CTUD-i sissetuleva päringu töötleja ehitatakse, kutsub see:
+Sissetuleva CTUD päringu töötleja (`DSL/Ruuter.internal/ljvis/POST/erru/ctud/
+inbound-request.yml`) kutsub:
 
 ```
 POST ruuter-internal:8089/risk-scores/current
@@ -203,8 +204,19 @@ Body: { "company_reg_code": "<8-kohaline kood>" }
 ja kaardistab vastuse `riskScore → riskRating`, `riskBandErru → riskBand`.
 Kui ettevõtjal skoori pole, tagastatakse `null`/`Grey` ("hindamata").
 
+**Registrikoodi tuletamine:** MTR X-tee teenus `checkCommunityLicence` ei
+taga­asta kunagi Eesti äriregistri koodi, ainult ühenduse tegevusloa/tõestatud
+koopia numbrit. `inbound-request.yml` tuletab registrikoodi enne
+`risk-scores/current`-i kutsumist `DSL/Resql/ljvis/POST/erru/ctud/
+lookup-reg-code-by-licence.sql` abil — see otsib täpset vastet
+`forms.compound_form`/`forms.foreign_violation_form`/`forms.tram_control_card`
+tabelite juba salvestatud litsentsinumbrite hulgast (ametnikud on neid
+varasemate kontrollide käigus kirja pannud). Kui vastet ei leita, pole
+ettevõtjal niikuinii kunagi riskiskoori, nii et vaikeväärtus `riskRating=0,
+riskBand=Grey` jääb kehtima.
+
 ## 9. Viited
 
-- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD, väljaspool skoopi), #168 (kodaniku töölaud — uued kodaniku endpointid)
+- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD), #168 (kodaniku töölaud — uued kodaniku endpointid)
 - Confluence: 11-1 Riskiskoori arvutamine, 11-2 Riskitasemete vaade, 10-3-3 CTUD ERRU integratsioon
 - `.ai/ljvis-tasks/LJVIS2-150/riskihindamine.md` — täielik ärianalüüs
