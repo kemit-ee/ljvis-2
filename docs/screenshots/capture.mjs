@@ -397,7 +397,7 @@ const shots = [
     },
   },
 
-  // --- Riskihindamine / auditilogi (seemneandmed olemas) ---
+  // --- Riskihindamine / auditilogi (testandmed olemas) ---
   { name: 'user-guide/riskihindamine', run: (p) => gotoShot(p, '/admin/risk-scores', 'user-guide/images/16-riskihindamine/01-riskitasemed.png') },
   {
     name: 'user-guide/auditilogi',
@@ -470,7 +470,7 @@ const shots = [
     },
   },
   {
-    // ncr_violation on desktop-kanaliga (seemnest, ilma saajateta) — vt
+    // ncr_violation on desktop-kanaliga (algandmetest, ilma saajateta) — vt
     // DSL/Liquibase/changelog/20261022100000-postkast2-xtee-alignment.sql.
     // Kasutaja Mari Tamm (60002020202) tuleb olla otsitav — vt
     // tests/bootstrap/seed_test_data.sql ("ametnik" testkasutaja).
@@ -489,7 +489,7 @@ const shots = [
       await page.getByRole('button', { name: 'Lisa' }).click().catch(() => {});
       await sleep(300);
       await shoot(page, 'admin-guide/images/09-teavitused/04-desktop-saaja-lisatud.png');
-      // Puhastus, et seemneandmestik jääks muutumatuks järgmise jooksu jaoks.
+      // Puhastus, et algandmestik jääks muutumatuks järgmise käivituse jaoks.
       await page.getByRole('button', { name: 'Tühista' }).click().catch(() => {});
     },
   },

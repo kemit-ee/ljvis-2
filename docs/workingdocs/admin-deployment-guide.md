@@ -419,7 +419,7 @@ Kolis administraatori juhendi peatükki `docs/admin-guide/11-esimene-superadmin.
 
 Keskkondade tegelik seadistus (chart'id, väärtusfailid, SSM-i parameetrid, `constants.ini` mall, Argo CD) asub eraldi repos `ljvis2-devops` (`../ljvis2-devops/`). Täielik kirjeldus, sh teekond koodist keskkonda ja „mida kus muuta“ tabel: `docs/admin-guide/12-paigaldus-devops.md`.
 
-> **Märkus:** käesolev dokument on kirjutatud enne devops-repo valmimist. Pordid (Ruuter 8086/8089), `constants.ini` ConfigMap'ina ja „init-containerid Helm chart'is“ kirjeldavad kohalikku docker-compose'i. Päris keskkondades kasutavad Ruuterid porti 8080, `constants.ini` tuleb SSM-ist Secret'ina `ljvis2-constants` ja käivitusjärjekorda juhib Argo CD (`config` → `workload`, Liquibase wave -1 Job). Kehtiv allikas on devops-repo.
+> **Märkus:** käesolev dokument on kirjutatud enne devops-repo valmimist. Pordid (Ruuter 8086/8089), `constants.ini` ConfigMapina ja „init-containerid Helm chart'is“ kirjeldavad kohalikku docker-compose'i. Päris keskkondades kasutavad Ruuterid porti 8080, `constants.ini` tuleb SSM-ist Secret'ina `ljvis2-constants` ja käivitusjärjekorda juhib Argo CD (`config` → `workload`, Liquibase wave -1 Job). Kehtiv allikas on devops-repo.
 
 ---
 

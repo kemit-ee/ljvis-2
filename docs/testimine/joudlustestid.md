@@ -22,7 +22,7 @@ koormuse all, leida ülempiir ja jälgida ressursside kasvu pikal jooksul.
 |---|---|
 | `k6/ljvis.js` | Stsenaariumid, profiilid, sihid (`thresholds`) |
 | `k6/lib.js` | Sisselogimine, päringuabid |
-| `fixtures/compound-form-save.json` | Koondvormi näidiskeha seemendamiseks ja kirjutusvooks |
+| `fixtures/compound-form-save.json` | Koondvormi näidiskeha algandmete laadimiseks ja kirjutusvooks |
 | `run.sh` | Käivitus: tõstab CI-pinu üles, jooksutab k6 (lokaalselt või Dockeris), võtab pinu maha |
 | `tulemus/*.json` | Jooksu väljund (Gitis ei ole) |
 | `../../scripts/generate-perf-report.py` | Koostab tulemustabeli JSON-ist |
@@ -66,7 +66,7 @@ perioodiliseks käivituseks.
 
 ## 5. Testandmed
 
-- **Seemendus:** `setup()` loob `SEED_FORMS` (vaikimisi 50) koondvormi API kaudu (registrinumbrid `PERF0000…`).
+- **Algandmete laadimine:** `setup()` loob API kaudu `SEED_FORMS` koondvormi (vaikimisi 50; registrinumbrid `PERF0000…`).
 - **Andmemaht:** vaikimisi väike. Realistliku mahu jaoks kasuta kas suuremat `SEED_FORMS` (nt 5000) või
   [migratsiooni](../migration/README.md) proovibaasi täismahus; tulemus tuleb märkida raportisse koos
   vormide arvuga tabelites `forms.*`.
@@ -82,7 +82,7 @@ ajalugu, audit ja riskiskoori ajalugu jäävad alles (ADR-010 võib need hiljem 
 - **Käsitsi:** `python3 tests/performance/cleanup.py --base-url <url>` (kuivjooks; `--apply` kustutab). Vajab `dev-login`i.
 - **Automaatselt:** CronManager töö `cleanup_perf_test_forms` (`DSL/CronManager/cleanup-perf-test-forms.yaml`)
   käivitub iga päev 00:00 ja kutsub sisemist voogu `cron/cleanup-perf-test-forms` (ei vaja sisselogimist). Voog märgib
-  `deleted`-ks ainult vormid, mille **viimase snapshot'i lõi testkasutaja** (`60001019906`) ja mille registrinumber
+  `deleted`-ks ainult vormid, mille **viimase hetktõmmise lõi testkasutaja** (`60001019906`) ja mille registrinumber
   **algab** `PERF`; kuni 1000 vormi jooksu kohta.
 - **Ajutine:** pealüliti puudub, töö jookseb igas keskkonnas, kuhu see deploy'takse; kaitseks on range valik (prefiks + looja). Eemalda CronManageri fail ja Ruuteri voog, kui testandmeid enam ei looda.
 - Kontrollitud lokaalses CI-pinus: 5 `PERF` vormi märgiti kustutatuks, `XPERF9` ja `REAL001` jäid puutumata, kordusjooks on tühi.
