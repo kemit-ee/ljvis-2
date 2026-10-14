@@ -2,16 +2,17 @@
 
 ## Ülevaade
 
-LJVIS 2 hoiab kontrollvorme ainult lisamise põhimõttel (INSERT-only snapshot): iga
-muudatus lisab uue rea, vana rida ei muudeta. Aastatega kasvatavad vanad vormid
-töötabeleid ja indekseid, kuigi neid enam igapäevatöös ei vaadata.
+LJVIS 2 talletab kontrollvormid ainult lisatavate hetktõmmistena. Süsteem lisab iga
+muudatuse korral uue rea. Süsteem ei muuda olemasolevat rida. Vanad vormid
+suurendavad aja jooksul töötabeleid ja indekseid, kuigi kasutajad neid enam
+igapäevatöös ei vaata.
 
 Arhiveerimine kannab vanad vormid **eraldi arhiivibaasi** (`ljvis_arhiiv_db`,
 toodangus `ljvis2_<env>_arhiiv`). Arhiivil on kolm omavahel seotud funktsiooni:
 
 | Funktsioon | Mida arhiveeritakse | Seis | Juhend |
 |---|---|---|---|
-| **A. Kustutatud vormide arhiveerimine** (ADR-010) | Vormid, mille viimane seis on „kustutatud" | Tehtud, cron on **inertne** (2099) | [peatükk 7](#7-kustutatud-vormide-arhiveerimine-adr-010) |
+| **A. Kustutatud vormide arhiveerimine** (ADR-010) | Vormid, mille viimane seis on „kustutatud“ | Tehtud; automaatne käivitus on **välja lülitatud** (2099) | [peatükk 7](#7-kustutatud-vormide-arhiveerimine-adr-010) |
 | **B. Ajapõhine arhiveerimine** (ADR-012) | Vormid, mille viimasest tegevusest on möödas X aastat | Tehtud, **vaikimisi välja lülitatud** | see juhend |
 | **C. Isikuga seose eemaldamine** (ADR-014, LJVIS2-51) | A/B käigus kustutatud (purge'itud) vormide arhiivikoopia isikuandmed | Tehtud, **vaikimisi sisse lülitatud** | [peatükk 12](#12-isikuga-seose-eemaldamine-adr-014-ljvis2-51) |
 
@@ -19,17 +20,17 @@ A ja B kasutavad sama kopeeri → kontrolli → (valikuliselt) kustuta mustrit j
 arhiivitabelit `archive.form_snapshot`; C käivitub automaatselt kohe pärast A või B
 kustutamissammu õnnestumist, kui `anonymize=true` (vaikimisi nii).
 
-> **Põhimõte:** töö-baasist ei kustutata midagi enne, kui arhiivibaas on eraldi
-> päringuga kinnitanud, et **iga** kopeeritud rida on seal olemas. Ajapõhisel
-> arhiveerimisel kustutatakse töö-baasist üldse ainult siis, kui administraator on
-> kustutamise eraldi sisse lülitanud (`purge=true`). Vaikimisi `purge=false`: arhiivi
-> tehakse koopia ja töö-baasi jääb originaal alles.
+> **Põhimõte:** arhiivibaas kontrollib eraldi päringuga, kas kõik kopeeritud read on
+> olemas. Süsteem kustutab read tööbaasist ainult pärast edukat kontrolli. Ajapõhise
+> arhiveerimise korral peab administraator kustutamise eraldi lubama (`purge=true`).
+> Vaikeväärtus on `purge=false`. Selle väärtuse korral teeb süsteem arhiivi koopia
+> ja jätab originaali tööbaasi.
 
 ## 1. Kolm lülitit
 
 Kõik seaded asuvad ühes failis: [`DSL/CronManager/archive-aged-forms.yaml`](../../DSL/CronManager/archive-aged-forms.yaml),
-töö URL-i päringuparameetrites. Ruuterit, baasi ega rakendust uuesti ehitada ei ole
-vaja, muuta tuleb ainult seda faili ja anda CronManager'ile uus konfiguratsioon.
+töö URL-i päringuparameetrites. Ruuterit, andmebaasi ega rakendust ei ole vaja
+uuesti ehitada. Muuda ainult seda faili ja anna CronManagerile uus konfiguratsioon.
 
 ```yaml
 archive_aged_forms:
@@ -39,13 +40,13 @@ archive_aged_forms:
 
 | Parameeter | Vaikimisi | Tähendus |
 |---|---|---|
-| `enabled` | `false` | **Põhilüliti.** `true` = arhiveerib. Kõik muu = töö jookseb, aga ei tee midagi (ei loe ega kirjuta). |
+| `enabled` | `false` | **Põhilüliti.** Kui väärtus on `true`, arhiveerib süsteem vormid. Kui väärtus ei ole `true`, ei loe ega kirjuta süsteem andmeid. |
 | `retentionYears` | `7` | Mitu täisaastat peab vormi **viimasest tegevusest** möödas olema. Lubatud 3–100; väiksem väärtus lükatakse tagasi (riskiskoor arvutab 2-aastase akna põhjal). |
-| `purge` | `false` | **Kustutuslüliti.** `true` = pärast kinnitatud arhiveerimist kustutatakse kirje töö-baasist. `false` = töö-baasi jääb koopia alles. |
-| `batch` | `500` | Mitu üksust (juhtumit või iseseisvat vormi) ühes jooksus (1–5000). Üksus võetakse alati tervikuna. |
-| `dryRun` | `false` | `true` = ainult loendab, mitu üksust arhiveeriks. Ei kopeeri ega kustuta. |
+| `purge` | `false` | **Kustutuslüliti.** Kui väärtus on `true`, kustutab süsteem kirje tööbaasist pärast edukat kontrolli. Kui väärtus on `false`, jääb originaal tööbaasi. |
+| `batch` | `500` | Mitu üksust (juhtumit või iseseisvat vormi) süsteem ühe käivitusega töötleb (1–5000). Süsteem töötleb üksuse alati tervikuna. |
+| `dryRun` | `false` | Kui väärtus on `true`, loendab süsteem arhiveeritavad üksused. Süsteem ei kopeeri ega kustuta andmeid. |
 
-Aja lugemise alus on **viimane tegevus** (viimase snapshot'i `created_at`), mitte vormi
+Aja lugemise alus on **viimane tegevus** (`created_at` viimases hetktõmmises), mitte vormi
 esmaloomise aeg. Vorm, mida on 7 aasta jooksul kasvõi korra muudetud, ei ole vana.
 
 ## 2. Mis loetakse üksuseks
@@ -53,58 +54,65 @@ esmaloomise aeg. Vorm, mida on 7 aasta jooksul kasvõi korra muudetud, ei ole va
 | Üksus | Vormitüübid | Vananemine |
 |---|---|---|
 | **Juhtum** | koondvorm + selle alamvormid (SP juht, SP kaaslane, tehniline, haagis, ADR, veo katkestamine) | Juhtum arhiveeritakse **koos**, alles kui kõigi liikmete viimasest tegevusest on möödas `retentionYears`. Nii ei jää alamvorm ilma koondvormita ega vastupidi. |
-| **Iseseisev vorm** | TRAM kontrollkaart, välisriigi rikkumine, tööinspektsiooni kontrollakt, hea maine | Vananeb iga ise. |
+| **Iseseisev vorm** | TRAM kontrollkaart, välisriigi rikkumine, tööinspektsiooni kontrollakt, hea maine | Iga vorm vananeb eraldi. |
 
-Üksus arhiveeritakse **kogu ajaloo ulatuses** (kõik versioonid korraga), seega on ühe
-vormi ajalugu alati kas täielikult töö-baasis või täielikult arhiivis. Staatus ei ole
-oluline: ka vana mustand ja „kustutatud" vorm arhiveeritakse, kui aeg on täis.
+Üksus arhiveeritakse **koos kogu ajalooga** (kõik versioonid korraga). Seetõttu on
+vormi ajalugu alati kas täielikult tööbaasis või täielikult arhiivis. Vormi staatus ei
+mõjuta arhiveerimist. Süsteem arhiveerib ka vana mustandi ja kustutatud vormi, kui
+viimasest tegevusest on möödunud vähemalt `retentionYears` aastat.
 
 ## 3. Soovitatav sisselülitamise järjekord
 
-Sisselülitamine on etapiviisiline. Ära hüppa kohe kustutamiseni.
+Luba funktsioon järgmiste etappide kaupa. Ära luba kustutamist enne, kui kopeerimine,
+kontroll ja taaste on edukalt katsetatud.
 
-1. **Kuiv jooks.** Sea `enabled=true&dryRun=true`. Käivita käsitsi (peatükk 5) ja vaata
-   tulemuses `wouldCopy`. See ütleb, mitu üksust arhiveeritaks. Midagi ei muutu.
-2. **Ainult arhiveerimine.** Sea `enabled=true&dryRun=false&purge=false`. Töö kopeerib
-   vormid arhiivi ja kontrollib kopeerimist, aga töö-baasi jääb originaal alles.
-   Kontrolli mõne jooksu vältel logi (peatükk 6) ja arhiivibaasi mahtu.
-3. **Kustutamine.** Kui kopeerimine on tõendatult korras ja arhiivibaasi varundus
-   toimib (peatükk 8), sea `purge=true`. Nüüdsest kustutatakse arhiveeritud kirjed
-   töö-baasist, kuid ainult 100% kinnitatud ridade kohta.
-4. **Tagasi välja.** Sea `enabled=false`. Järgmine jooks ei tee midagi. Juba
-   kustutatud kirjete tagasitoomine: peatükk 9.
+1. **Proovikäivitus.** Sea `enabled=true&dryRun=true`. Käivita töö käsitsi
+   (peatükk 5). Kontrolli vastuse välja `wouldCopy`. See väli näitab arhiveeritavate
+   üksuste arvu. Süsteem ei muuda andmeid.
+2. **Ainult arhiveerimine.** Sea `enabled=true&dryRun=false&purge=false`. Süsteem
+   kopeerib vormid arhiivi ja kontrollib tulemust. Originaalid jäävad tööbaasi.
+   Kontrolli mitme käivituse logisid (peatükk 6) ja arhiivibaasi mahtu.
+3. **Kustutamine.** Kontrolli, et kopeerimine toimib. Kontrolli, et arhiivibaasi
+   varundus ja taastekatse on edukad (peatükk 8). Seejärel sea `purge=true`. Süsteem
+   kustutab arhiveeritud kirjed tööbaasist ainult siis, kui arhiivibaas on kõik read
+   kinnitanud.
+4. **Funktsiooni väljalülitamine.** Sea `enabled=false`. Järgmine käivitus ei loe ega
+   kirjuta andmeid. Kustutatud kirjete taastamiseks järgi peatüki 9.
 
-Soovitatav on enne punkti 3 lasta andmeomanikul kinnitada, et vanu vorme ei ole vaja
-töölaual, otsingus ega riskiarvutuses (vt piirangud peatükis 4).
+Enne kustutamise lubamist küsi andmeomaniku kinnitus. Andmeomanik peab kinnitama, et
+vanu vorme ei ole vaja töölaual, otsingus ega riskiarvutuses (vt peatükk 4).
 
 ## 4. Mis juhtub, kui `purge=true`
 
-- Töö-baasist kustutatakse ainult need read, mille arhiivibaas on `count_present`
-  päringuga kinnitanud. Kui kinnitatud ridu on vähem kui kopeeritud ridu, kustutamist
-  **ei tehta** (logis `purge skipped - archive not complete`) ja järgmine jooks proovib
-  uuesti. Kopeerimine on korduskäivituse suhtes turvaline (`ON CONFLICT DO NOTHING`).
+- Süsteem kustutab tööbaasist ainult need read, mille olemasolu arhiivibaas on
+  päringuga `count_present` kinnitanud. Kui arhiivibaas kinnitab vähem ridu, kui
+  süsteem kopeeris, ei kustuta süsteem andmeid. Logis on teade
+  `purge skipped - archive not complete`. Süsteem proovib järgmisel käivitusel uuesti.
+  Kopeerimist saab ohutult korrata (`ON CONFLICT DO NOTHING`).
 - **Vormi ajalugu kustutatakse ainult tervikuna.** Kustutamise SQL (`archive/purge_confirmed.sql`)
-  kustutab vormivõtme read ainult siis, kui kõik selle vormi snapshot-read on kinnitatud hulgas.
-  Kui partii piir lõikab vormi ajaloo pooleks, jääb vorm tervikuna järgmisse jooksu — ajalugu ei jää
-  kunagi osaliselt töö- ja osaliselt arhiivibaasi. See fail on **ainus** SQL-mall, kus `DELETE` on
-  lubatud (`.sql-rule-exemption`, ADR-013); kõik muu SQL on ainult `INSERT`/`SELECT`.
+  kustutab vormivõtme read ainult siis, kui kõik selle vormi hetktõmmise read on
+  kinnitatud. Kui partii piir jagab vormi ajaloo, töötleb süsteem kogu vormi järgmisel
+  käivitusel. Vormi ajalugu ei jää osaliselt tööbaasi ja osaliselt arhiivibaasi. See
+  fail on **ainus** SQL-mall, kus `DELETE` on lubatud (`.sql-rule-exemption`, ADR-013).
+  Ülejäänud SQL-mallid kasutavad ainult käske `INSERT` ja `SELECT`.
 - **Vormi ajalugu jääb loetavaks.** Vormi versiooniajaloo päringud (`get-snapshots`,
-  `get-snapshot`) vaatavad esmalt töö-baasi ja, kui seal ei ole midagi, arhiivibaasi.
+  `get-snapshot`) vaatavad esmalt tööbaasi ja, kui seal ei ole midagi, arhiivibaasi.
   Arhiveeritud vorm avaneb seega ajaloovaatest ja otselingilt endiselt.
 - **Arhiveeritud vormid ei ole enam otsingus.** Vormiotsing ja töölaua nimekirjad
-  loevad ainult töö-baasi. Pärast kustutamist ei leia vormi otsingust. See on
-  teadlik kompromiss; selle vajaduse korral jäta `purge=false`.
+  loevad ainult tööbaasi. Pärast kustutamist ei leia vormi otsingust. See on teadlik
+  kompromiss. Kui vorme peab saama otsingust leida, jäta `purge=false`.
 - **Muu andmestik ei kao.** Kustutatakse ainult `forms.*` vormitabelite read. Auditilogi,
   X-tee logid, teavitused, ERRU andmed, riskiskooride ajalugu ja manused (S3) jäävad
-  puutumata. Manuste elutsüklit see funktsioon ei haldi.
+  puutumata. See funktsioon ei arhiveeri ega kustuta S3-s talletatud manuseid; nende
+  säilitamist hallatakse eraldi.
 - Riskiskoor arvutatakse 2-aastase akna põhjal. Seetõttu on `retentionYears` alampiir 3:
   arhiveeritud vormid ei ole riskiarvutuses enam vajalikud.
 
 ## 5. Käsitsi käivitamine ja kontroll
 
-CronManager käivitab töö ise ajakava järgi. Käsitsi saab sama voo käivitada otse
-`ruuter-internal` kaudu (võrgus, kuhu ligipääs on ainult teenustel). Parameetrid on
-samad mis cron-töö URL-is:
+CronManager käivitab ajastatud töö määratud ajal. Teenustele mõeldud võrgus saab
+töö `archive-aged-forms` käivitada käsitsi teenuse `ruuter-internal` kaudu. Kasuta
+samu parameetreid nagu ajastatud töö URL-is:
 
 ```bash
 curl -s -X POST "http://ruuter-internal:8080/ljvis/cron/archive-aged-forms?enabled=true&retentionYears=7&dryRun=true"
@@ -118,18 +126,19 @@ Vastuse `mode` näitab tulemust:
 | `nothing-to-do` | Arhiveerimist vajavaid üksusi ei ole |
 | `dry-run` | `wouldCopy` = mitu rida arhiveeritaks; midagi ei muudetud |
 | `archive-only` | Kopeeritud ja kinnitatud (`copied`/`verified`), kustutamist ei tehtud (`purge=false`) |
-| `archive+purge` | Kopeeritud, kinnitatud ja töö-baasist kustutatud (`purged`) |
+| `archive+purge` | Kopeeritud, kinnitatud ja tööbaasist kustutatud (`purged`) |
 | `verify-failed` | Arhiiv ei kinnitanud kõiki ridu; kustutamist **ei tehtud**, uuri logi |
 | `select-failed` | Valikupäring ebaõnnestus (HTTP 500) |
 
-Vigane `retentionYears` (alla 3) või `batch` annab HTTP 400.
+Teenus tagastab HTTP olekukoodi 400, kui `retentionYears` on väiksem kui 3 või
+`batch` ei ole lubatud vahemikus 1–5000.
 
 ## 6. Jälgimine
 
-Iga jooks kirjutab ühe rea tabelisse `xroad.integration_log` (`service_code =
-'archive.aged_forms.cron'`). `request_xml` sisaldab jooksu seadeid, `response_xml`
-arve (`copied`, `inserted`, `verified`, `purged`). Tõrke korral on `success=false`.
-Rida lisatakse samasse logitabelisse, kus on teiste integratsioonide logid; päring on allpool.
+Iga käivitus lisab tabelisse `xroad.integration_log` ühe rea (`service_code =
+'archive.aged_forms.cron'`). Väli `request_xml` sisaldab käivituse seadeid. Väli
+`response_xml` sisaldab väljade `copied`, `inserted`, `verified` ja `purged`
+arvandmeid. Tõrke korral on `success=false`. Järgmine päring loeb logikirjed:
 
 ```sql
 SELECT created_at, success, request_xml, response_xml, error_message
@@ -145,23 +154,27 @@ SELECT form_type, count(*) AS ridu, min(created_at) AS vanim, max(archived_at) A
 FROM archive.form_snapshot GROUP BY form_type ORDER BY form_type;
 ```
 
-Hoiatused, millele reageerida: `success=false` rida (`archive incomplete`), mitu
-järjestikust jooksu ilma `inserted`-ita, kuigi `wouldCopy` oli > 0.
+Reageeri järgmistele hoiatustele:
+
+- Logireal on `success=false` ja teade `archive incomplete`.
+- Mitmel järjestikusel käivitusel on `wouldCopy > 0`, kuid `inserted` puudub.
 
 ## 7. Kustutatud vormide arhiveerimine (ADR-010)
 
-Eraldi funktsioon: kolib kasutaja poolt kustutatud vormid (viimane seis „kustutatud")
-arhiivi, ajast sõltumata. Voog: [`archive-deleted-forms.yml`](../../DSL/Ruuter.internal/ljvis/POST/cron/archive-deleted-forms.yml),
-cron [`archive-deleted-forms.yaml`](../../DSL/CronManager/archive-deleted-forms.yaml).
-Selle trigger on praegu **inertne** (`0 0 0 1 1 ? 2099`), st automaatset kustutamist ei
-toimu; käsitsi saab käivitada. Aktiveerimiseks muuda `trigger` väärtuseks
-`"0 0 0/2 * * ?"` (iga 2 tunni järel). Siin **puudub** `purge`-lüliti: see funktsioon
-kustutab alati pärast kinnitust, sest kustutatud vormi töö-baasis ei vajata.
+See funktsioon arhiveerib kasutaja kustutatud vormid nende vanusest sõltumata. Vormi
+viimane staatus peab olema „kustutatud“. Töövoog on failis
+[`archive-deleted-forms.yml`](../../DSL/Ruuter.internal/ljvis/POST/cron/archive-deleted-forms.yml).
+Ajastatud töö konfiguratsioon on failis
+[`archive-deleted-forms.yaml`](../../DSL/CronManager/archive-deleted-forms.yaml).
+Praegune käivitusreegel (`0 0 0 1 1 ? 2099`) ei käivita tööd automaatselt. Töö saab
+käivitada käsitsi. Automaatseks käivitamiseks iga kahe tunni järel sea `trigger`
+väärtuseks `"0 0 0/2 * * ?"`. Sellel funktsioonil ei ole `purge`-lülitit. Funktsioon
+kustutab vormi tööbaasist alati pärast edukat kontrolli.
 
 ## 8. Varundus ja arhiivibaas
 
-- Arhiivibaas on **eraldi andmebaas** ja vajab **oma varundust**. Kui sisse lülitada
-  `purge=true`, on arhiivibaas ainus koopia. Ära lülita kustutamist sisse enne, kui
+- Arhiivibaas on **eraldi andmebaas** ja vajab **oma varundust**. Kui `purge=true`
+  sisse lülitada, on arhiivibaas ainus koopia. Ära lülita kustutamist sisse enne, kui
   arhiivibaasi varundus ja taastekatse on tehtud.
 - Arhiivibaasi võib hoida eraldi PostgreSQL-i instantsis. Muutub ainult
   `LJVIS_RESQL_ARHIIV` väärtus `constants.ini`-s (vt [paigaldusjuhend](12-paigaldus-devops.md)).
@@ -170,36 +183,38 @@ kustutab alati pärast kinnitust, sest kustutatud vormi töö-baasis ei vajata.
 
 ## 9. Arhiveeritud andmete tagasitoomine
 
-Automaatset „taasta töö-baasi" voogu ei ole. Vorm on arhiivis kogu ajalooga. Kui
-kirjeid on vaja tagasi töö-baasi tuua (nt kustutati ekslikult `purge=true`):
+Automaatset „tööbaasi taastamise“ voogu ei ole. Vorm on arhiivis kogu ajalooga. Kui
+kirjeid on vaja tagasi tööbaasi tuua (nt kustutati ekslikult `purge=true`):
 
 1. Peata arhiveerimine (`enabled=false`).
 2. Loe read arhiivist: `SELECT form_type, id, payload FROM archive.form_snapshot WHERE form_type = '...' AND form_key = ...;`
-3. Tagasi lisatakse need `forms.<tabel>` tabelisse `jsonb_populate_record(NULL::forms.<tabel>, payload)` abil
-   samade `id` väärtustega. Seda teeb DBA, kontrollitud tehases ja hooldusaknas;
-   vormi lisamine rakenduse API kaudu looks uue versiooni, mitte taastaks vana.
+3. Read lisatakse tagasi tabelisse `forms.<tabel>` funktsiooni
+   `jsonb_populate_record(NULL::forms.<tabel>, payload)` abil ja samade `id`
+   väärtustega. Seda teeb DBA kontrollitud tegevusena hooldusaknas. Vormi lisamine
+   rakenduse API kaudu looks uue versiooni, mitte ei taastaks vana.
 4. Kontrolli vormi avamist ajaloovaatest ja otsingust.
 
-Enne esimest kustutavat jooksu soovitame taastekatse läbi teha testkeskkonnas.
+Enne esimest kustutavat käivitust tee testkeskkonnas taastekatse.
 
 ## 10. Keskkonnapõhine seadistus
 
 - **dev/CI:** fail `DSL/CronManager/` on konteinerisse monteeritud; muuda faili ja
   taaskäivita `cronmanager`.
-- **Test/toodang:** CronManager'i töö-DSL antakse paigaldusrepos (devops) ConfigMap'iga.
-  Parameetrite muutmine = ConfigMap'i uuendamine ja CronManager'i taaskäivitus.
+- **Test/toodang:** CronManageri töö-DSL antakse paigaldusrepos (devops) ConfigMapiga.
+  Parameetrite muutmiseks uuenda ConfigMapi ja taaskäivita CronManager.
   Koodirepos olev fail on lähtemall.
 - Ajavöönd on `Europe/Tallinn` (`TZ`). Sagedus (`trigger`) on Quartz-cron kirjeldus.
-  Kogu andmehulga esmakordseks arhiveerimiseks on mõistlik jooksutada tihedamalt
-  (nt `0 0 3 * * ?` igal ööl), seejärel tagasi nädalasele.
+  Kogu andmehulga esmakordse arhiveerimise ajal käivita töö sagedamini, näiteks
+  igal ööl väärtusega `0 0 3 * * ?`. Pärast esmast arhiveerimist taasta
+  iganädalane käivitus.
 
 ## 11. Piirangud
 
 - Ajapõhine arhiveerimine puudutab ainult kontrollvormide tabeleid (`forms.*`, 11 tabelit).
 - Arhiveeritud vorme ei saa otsingust leida ega redigeerida; ajaloovaates saab neid vaadata.
-- CI testib voo loogikat (lülitid, kontroll, kustutamise vahelejätmine) mock'itega, kuid
-  ei seemenda 3+ aasta vanuseid vorme. Valikupäringu (`select_aged_snapshots.sql`) esmakordne
-  jooks päris andmetel tuleb teha `dryRun=true` abil.
+- CI testib voo loogikat (lülitid, kontroll, kustutamise vahelejätmine) mokkidega, kuid
+  ei laadi 3+ aasta vanuseid testvorme. Käivita valikupäring
+  `select_aged_snapshots.sql` päris andmetel esimest korda parameetriga `dryRun=true`.
 - Vastavus: andmete säilitustähtajad ja kustutamise õiguslik alus on andmeomaniku otsus.
   Funktsioon annab tehnilise võimaluse; `retentionYears` ja `purge` valik on tema otsustada.
 

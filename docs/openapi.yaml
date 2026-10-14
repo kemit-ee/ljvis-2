@@ -473,7 +473,7 @@ paths:
         Returns every classifier together with its values (latest snapshot,
         with validity), including classifier-level metadata (`classifierId`,
         `classifierName`). Requires `classifier.read`, which is only granted
-        to admin-scoped user groups in seed data — do **not** use this for
+        to administrator user groups in initial data — do **not** use this for
         data that regular form users need (see `docs/classifier-caching.md`
         for the permission-gap this caused historically). Reserved for
         admin/validity-aware tooling.
@@ -3599,7 +3599,7 @@ components:
       description: |
         Unpaginated list response. Exception to
         `application_general_rules.md` §3.2 R2 per §3.1: the permission
-        catalogue is immutable (Liquibase-seeded, NFR-DATA-17), so the
+        catalogue is immutable (loaded by Liquibase, NFR-DATA-17), so the
         whole catalogue is returned in a single call and the UI renders
         a checkbox list (no TEDI `Pagination` component).
       properties:

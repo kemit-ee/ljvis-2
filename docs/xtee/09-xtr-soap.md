@@ -34,7 +34,7 @@ Akti identiteet on **leping + saatja ID**: tabel `forms.labour_inspection_extern
 | Esimene päring | Uus akt, `confirmed`, versioon 1 | sama |
 | Täpne kordus | `Success`, uut rida ei lisata | olemasolev akt |
 | Muudetud sisu (akt on `confirmed` / `published` / `deleted`) | HTTP 409 → SOAP `Client` Fault, midagi ei salvestata | olemasolev akt |
-| Akt on arhiveerimisel töö-baasist eemaldatud (`purge`) | täpne kordus `Success`; muudetud → 409 (`archived`), uut akti ei looda | olemasolev (arhiveeritud) akt |
+| Akt on arhiveerimisel tööbaasist eemaldatud (`purge`) | täpne kordus `Success`; muudetud → 409 (`archived`), uut akti ei looda | olemasolev (arhiveeritud) akt |
 | Samaaegsed päringud | üks akt; muudetud päringud rakendatakse järjest | üks akt |
 | Samal ajal kinnitab/kustutab kasutaja UI-s | 409, kui UI jõudis enne; muidu salvestub X-tee muudatus ja UI saab `form_modified` | olemasolev akt |
 
@@ -205,7 +205,7 @@ Parandatud lepinguerinevused: Resql-i camelCase → vana WSDL-i väljad, `soiduk
 05.10.2026 (parandused): eraldi sünteetilises `ljvis-xtr-fix` teststendis (`docker-compose.ci.yml` koos teenusega `xtr-inbound`; avaldatud `turnerrainer/xtr:0.5.0-rc`, Ruuter.internal, Resql, PostgreSQL 17):
 
 - SOAP-kollektsioon 118/118 ja `verify.py` (10 XSD-paari, 5 salvestatud akti registri kaudu); REST-pakkujad 42 + 41; `labour-inspection` UI-kollektsioon 51/51 (`update.sql` hoiab nüüd `external_inspection_id`-d alles).
-- `repeat_test.py` 55 kontrolli: täpne, muudetud ja lukustatud kordus v1/v2 (409 → `Client` Fault, midagi ei salvestata); 16 samaaegset identset esmast päringut → üks akt (v1, v2); 8 samaaegset erineva sisuga päringut → kõik 8 rakendatud ühe akti snapshot'idena; REST v3 12 samaaegset → üks akt, leping muutmata; v1 `inspection_type` 8 loendurikombinatsiooni; arhiveerimisel eemaldatud akti muudetud kordus → 409 (`archived`), uut akti ei teki; sünteetiline RavenDB V2 → `07-transform-labour-inspection.sql` → SOAP kordus leiab migreeritud akti; sama numbriline ID v1/v2 lepingus jääb kaheks aktiks.
+- `repeat_test.py` 55 kontrolli: täpne, muudetud ja lukustatud kordus v1/v2 (409 → `Client` Fault, midagi ei salvestata); 16 samaaegset identset esmast päringut → üks akt (v1, v2); 8 samaaegset erineva sisuga päringut → kõik 8 rakendatud ühe akti hetktõmmistena; REST v3 12 samaaegset → üks akt, leping muutmata; v1 `inspection_type` 8 loendurikombinatsiooni; arhiveerimisel eemaldatud akti muudetud kordus → 409 (`archived`), uut akti ei teki; sünteetiline RavenDB V2 → `07-transform-labour-inspection.sql` → SOAP kordus leiab migreeritud akti; sama numbriline ID v1/v2 lepingus jääb kaheks aktiks.
 - `race_test.py` 16 kontrolli (pärast dev-i `revision` mehhanismiga ühendamist 06.10.2026, sh optimistlik lukk `form_modified`): samaaegne UI kinnitus/kustutamine vs X-tee muudetud kordus (mõlemas järjekorras), kaks UI salvestust, e-toimik vs UI — ajalugu ei hargne, kinnitus ei kao, X-tee muudatust ei kirjutata vanade andmetega üle (dev-i `revision` mehhanism).
 - `bridge_test.py` 16 kontrolli (`xroad/soap/*` adapterid, sh oma `X-Road-Client` guard); päris XTR-i kaudu käsitsi: Ruuteri 500 ja 502 → `SOAP-ENV:Server` Fault (`backend returned HTTP 5xx`, ilma sisemise teateta).
 - Liquibase changeset `20261209100000` (tabel + funktsioon): rakendamine puhtale baasile, rollback ja uuesti rakendamine. Olemasolevate ridade seostamist ei tehta — enne seda muudatust ei olnud ühtegi X-tee kaudu saabunud akti.

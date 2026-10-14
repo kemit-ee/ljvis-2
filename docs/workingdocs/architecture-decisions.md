@@ -116,7 +116,7 @@ samaaegset kirjutajat sama `latest` rea ja kumbki lisab uue; hilisem rida varjab
 kaob vaikselt.
 
 1. **`pg_advisory_xact_lock` CTE-s** (epicu pakkumine). **Ei tööta ühe Resql-lause sees:** PostgreSQL
-   READ COMMITTED fikseerib lause snapshot'i lause alguses, seega ootamise järel loeb kirjutaja sama
+   READ COMMITTED fikseerib lause hetktõmmise lause alguses, seega ootamise järel loeb kirjutaja sama
    aegunud `latest` rida. Kontrollitud PostgreSQL 17-ga: lukk ootas, aga mõlemad kirjutajad said
    `revision = 1`. Resql ei toeta mitmelauselist tehingut, kus lukk ja lugemine oleksid eraldi lausetes.
 2. **`SELECT ... FOR UPDATE`.** Lukustab ainult olemasolevad read; lisatud rida ei ole nähtav.
@@ -168,7 +168,7 @@ kadudeta.
   `active` rida jääb. Lugejad peidavad aktiivse rea, kui sama `s3_key`-ga `deleted` rida on olemas. `s3_key` sobib
   identiteediks, sest S3 proxy lisab igale üleslaadimisele ajatempli ja UUID. Osaline `UNIQUE (s3_key) WHERE
   status = 'deleted'` tõrjub samaaegse topeltkustutuse.
-* **Retention-purge** (`archive/purge_confirmed.sql`) on ainus lubatud `DELETE`, ja see on erand, mitte parandus: töö-baasi
+* **Retention-purge** (`archive/purge_confirmed.sql`) on ainus lubatud `DELETE`, ja see on erand, mitte parandus: tööbaasi
   kirjete eemaldamiseks arhiveerimise järel ei ole `INSERT`-only alternatiivi. Erand järgib 3-sammulist kontrakti
   (valik ja kopeerimine → arhiivi kinnitus → kustutus) ja on kirjas `.sql-rule-exemption` failis. Kontrakti tugevdati:
   (a) `count_present` loeb kordumatuid paare ja nõuab korraliku payload'i (topeltpaar ei saa puuduvat rida varjata);
@@ -232,15 +232,15 @@ vaikselt. Õigustesüsteem seda ei välista: õigused piiravad, *kes* tohib kirj
 
 HD4 (arhiveerimine) eeldab vanade andmete eraldamist töökoormusest. ADR-010 arhiveerib
 ainult kustutatud vormid. Vaja on ajapõhist arhiveerimist, kus aastate arv on
-seadistatav ja töö-baasist kustutamine on **valikuline ja selgelt eraldi lülitatav**.
+seadistatav ja tööbaasist kustutamine on **valikuline ja selgelt eraldi lülitatav**.
 
 ### Valikud
 
-1. **Seaded `constants.ini`-s.** Muutmine nõuab ConfigMap'i uuendust ja Ruuteri taaskäivitust; seaded
+1. **Seaded `constants.ini`-s.** Muutmine nõuab ConfigMapi uuendust ja Ruuteri taaskäivitust; seaded
    on mitmes failis.
 2. **Seaded andmebaasi tabelis / halduse vaates.** Paindlik, kuid vajab uut skeemi, õigusi ja UI-d
    ning muudab arhiveerimise riski kasutaja klikiks.
-3. **Seaded CronManager'i töö URL-i päringuparameetrites.** Üks fail, versioonihalduses,
+3. **Seaded CronManageri töö URL-i päringuparameetrites.** Üks fail, versioonihalduses,
    muutmine ei vaja uut väljalaset.
 
 ### Otsus
@@ -249,7 +249,7 @@ seadistatav ja töö-baasist kustutamine on **valikuline ja selgelt eraldi lüli
 `enabled`, `retentionYears`, `purge`, `batch`, `dryRun`. Vaikimisi `enabled=false`
 ja `purge=false`: funktsioon tarnitakse väljalülitatuna.
 
-- **Üksus = kogu ajalugu.** Valitakse terve olem (kõik snapshot'id), et ADR-010 invariant
+- **Üksus = kogu ajalugu.** Valitakse terve olem (kõik hetktõmmised), et ADR-010 invariant
   „ajalugu on alati täielikult kas töö- või arhiivibaasis" kehtiks.
 - **Juhtum vananeb koos.** Koondvorm ja alamvormid arhiveeritakse alles siis, kui kõigi
   liikmete viimasest tegevusest on möödas `retentionYears`; nii ei jää alamvorme ilma koondvormita.
@@ -257,7 +257,7 @@ ja `purge=false`: funktsioon tarnitakse väljalülitatuna.
 - **Taaskasutus.** Kopeerimine ja kontroll kasutavad ADR-010 resql-päringuid
   (`insert_snapshots`, `count_present`, `purge_confirmed`); uus on ainult valik
   (`select_aged_snapshots`).
-- **`purge` on eraldi lüliti.** `purge=false` jätab originaali töö-baasi; `purge=true`
+- **`purge` on eraldi lüliti.** `purge=false` jätab originaali tööbaasi; `purge=true`
   kustutab ainult 100% kinnitatud read.
 - **Alampiir 3 aastat**, sest riskiskoor kasutab 2-aastast akent.
 - **Üks audit-rida jooksu kohta** (`xroad.integration_log`, `archive.aged_forms.cron`).
@@ -267,7 +267,7 @@ ja `purge=false`: funktsioon tarnitakse väljalülitatuna.
 - Arhiveeritud ja kustutatud vormid ei ole otsingus ega nimekirjades; ajaloovaade ja
   otselink toimivad arhiivi fallback'i kaudu (ADR-010).
 - Arhiivibaas muutub kustutamisel ainsaks koopiaks; vajab oma varundust.
-- Parameetrite muutmine toimub CronManager'i konfiguratsiooni kaudu, mitte rakenduses.
+- Parameetrite muutmine toimub CronManageri konfiguratsiooni kaudu, mitte rakenduses.
 - Säilitustähtajad ja õiguslik alus on andmeomaniku otsus; funktsioon annab tehnilise võimaluse.
 
 ---
@@ -296,7 +296,7 @@ sildina:
 - STRUCTURE_UNIT: `description = <organisatsiooni kood>`;
 - FORM_TYPE: `description = DASHBOARD_MANUAL_ADD | DASHBOARD_EXCLUDED`.
 
-`update_classifier_value.sql` ei kanna uude snapshot'i üle `description`-it ega
+`update_classifier_value.sql` ei kanna uude hetktõmmisesse üle `description`-it ega
 `parent_key`-d. Seetõttu kaob silt (ja hierarhia) iga kord, kui väärtust admin-UI-s
 muudetakse.
 
@@ -306,13 +306,13 @@ muudetakse.
    aga väli on üks string, see on vabatekst, seda ei saa admin-UI-s muuta ja see kaob
    muutmisel (vt viga eespool). Mitut vormi ei saa usaldusväärselt kodeerida.
 2. **`form_types TEXT[]` veerg `classifier_value` tabelis.** Andmed on ühes kohas, aga
-   igas snapshot'i kirjutavas päringus tuleb massiiv uude ritta kopeerida. Just selline
+   igas hetktõmmist kirjutavas päringus tuleb massiiv uude ritta kopeerida. Just selline
    kopeerimine on `update_classifier_value.sql`-is praegu katki.
 3. **Eraldi klassifikaatorid vormi kaupa** (näiteks `TI_X` ja `PPA_X`). Andmed
    dubleeruvad, ühise väärtuse muutmine tuleb teha mitmes kohas ning aruandlus ja
    Tableau peavad need uuesti kokku viima.
 4. **Eraldi seosetabel `classifier.classifier_value_form_scope`** (väärtuse püsiv võti ja
-   `FORM_TYPE` kood). Mitu vormi väärtuse kohta, ei sõltu snapshot'ist, admin-UI-s saab
+   `FORM_TYPE` kood). Mitu vormi väärtuse kohta, ei sõltu hetktõmmisest, admin-UI-s saab
    muuta.
 5. **Piiramine asutuse järgi** (`users.organisation`). Üks asutus täidab mitut vormi ja
    PPA ning TRAM kasutavad samu SP-vorme, seega asutus on liiga jäme ühik.
@@ -327,7 +327,7 @@ muudetakse.
   (väärtus, vorm) paari kehtiv seis on viimane rida (`DISTINCT ON (classifier_value_key,
   form_type_code) ORDER BY created_at DESC, id DESC`). Linnukese eemaldamine lisab rea
   `is_active = FALSE` ja Resql käsitleb seda paari nagu rida puuduks. Seos tehakse
-  **püsiva võtmega** `classifier_value_key`, mitte snapshot'i `id`-ga. Nii ei mõjuta
+  **püsiva võtmega** `classifier_value_key`, mitte hetktõmmise `id`-ga. Nii ei mõjuta
   väärtuse nime või kehtivuse muutmine piirangut.
 - **Vormi tunnus on `FORM_TYPE` klassifikaatori kood** (`TI_KONTROLLKAART`,
   `SP_DRIVER_FORM`, `TRAM_KONTROLLKAART` jne), sama mis `formRoutes.ts` →
@@ -371,7 +371,7 @@ muudetakse.
 - **Serveripoolset valideerimist esimeses etapis ei tehta.** Piirang on kasutusmugavuse
   meede, mitte turvapiir: klassifikaatorid on niikuinii avalikud loendid. Vajaduse
   korral lisatakse see hiljem `save.yml` voogudesse.
-- **Kaasparandus:** `update_classifier_value.sql` kannab edaspidi uude snapshot'i üle ka
+- **Kaasparandus:** `update_classifier_value.sql` kannab edaspidi uude hetktõmmisesse üle ka
   `parent_key` ja `description`.
 
 ### Põhjendus
@@ -432,14 +432,14 @@ Liquibase-jooks (`DSL/Liquibase-arhiiv/`).
   resolutsiooniga looja nimi/org (arhiivibaasis `users.*` puudub). Tulevased
   `forms.*` veerumuudatused ei nõua arhiivi migratsiooni.
 - **Kolm faasi, kõik läbi resql** (cron `archive-deleted-forms`, iga 2h):
-  `select_deleted_snapshots` (töö-baas) → `insert_snapshots` (arhiiv, ON CONFLICT
+  `select_deleted_snapshots` (tööbaas) → `insert_snapshots` (arhiiv, ON CONFLICT
   DO NOTHING) → `count_present` (arhiiv kinnitab IGA (form_type, id) olemasolu) →
-  `purge_confirmed` (töö-baas, REAALNE DELETE — ainult kui verify = 100% vaste).
+  `purge_confirmed` (tööbaas, REAALNE DELETE — ainult kui verify = 100% vaste).
   Mittetäieliku vaste korral purge vahele; järgmine jooks parandab ise.
 - **Versiooniajaloo fallback Ruuteri kihis:** `get-snapshots` / `get-snapshot`
-  vood proovivad esmalt töö-baasi ja kukuvad arhiivi endpoint'ile tagasi, kui
-  töö-baas tagastab 0 rida (arhiveeritud olemi kogu ajalugu on ALATI kas
-  täielikult töö-baasis või täielikult arhiivis).
+  vood proovivad esmalt tööbaasi ja kukuvad arhiivi endpoint'ile tagasi, kui
+  tööbaas tagastab 0 rida (arhiveeritud olemi kogu ajalugu on ALATI kas
+  täielikult tööbaasis või täielikult arhiivis).
 
 ### Põhjendus
 
@@ -634,7 +634,7 @@ Lisa 2 juhib tähelepanu, et seos kontrollkaardi rea ja 2016/403 rikkumisliigi v
 
 #### Otsus 1 — Rikkumiste klassifikaator: uus 2-tasemeline `ADR_CONTROL_CHECKPOINT`; `DANGEROUS_GOODS_INFRINGEMENTS_NEW` kustutatakse
 
-* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = `<nr>. <määruse lisa 2 pealkiri>` (nt „17. Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „nt ADR 4.1–4.7"). Pealkirjad ja viited on määruse **lisa 2** sõnastusega joondatud migratsiooniga `20260907120000` (algne seeme `20260903120000` kasutas PDF-i „Kontrollitav valdkond" veergu).
+* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = `<nr>. <määruse lisa 2 pealkiri>` (nt „17. Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „nt ADR 4.1–4.7"). Pealkirjad ja viited on määruse **lisa 2** sõnastusega joondatud migratsiooniga `20260907120000` (algsed andmed failis `20260903120000` kasutasid PDF-i „Kontrollitav valdkond" veergu).
 * **Tase 2 = selle punktiga eelnevalt seostatud 2016/403 I lisa jaotise 9 rikkumisliik.** `parent_key` viitab punktile; `code` = rikkumisliigi number (`1`…`24`); `name` = rikkumisliigi lühikirjeldus; `description` = raskusaste (`MSI` / `VSI` / `SI`). Neid väärtusi kasutab vormil ainult rikkumiskirje väli „Määruse (EL) 2016/403 rikkumisliik" (rippmenüü filtreerimiseks punkti järgi).
 * **Rikkumisliigi „puudub" valik** („Ei ole määruse 2016/403 p 9 rikkumisliik") **ei ole klassifikaatoris** — see on rippmenüü kõva­kood. sentinel (`NONE`), kuna vedaja võib vastutada ka väljaspool jaotist 9.
 * **Many-to-many realiseeritakse duplikaatkirjetena.** Sama rikkumisliik, mis seondub mitme punktiga, sisestatakse iga punkti alla eraldi `classifier_value` kirjena. Eraldi seostabelit **ei tehta**. Lõplik seoste loend: Priit Tuuna ettevalmistatud tabel.
@@ -710,7 +710,7 @@ Pealkirjavihjete tekst („Andmed täidetakse ainult rikkumise korral" → „T�
 
 ### Piirangud / TODO
 
-* Administraator peab enne vormi kasutuselevõttu seemnema kaks klassifikaatorit (`ADR_CONTROL_CHECKPOINT`, `ADR_QUANTITY_UNIT`) — mõlemad tulevad Liquibase-migratsioonis, kui valdkonna loendid (Priit Tuuna MSI/VSI/SI seosed, ühikute loend) on käes.
+* Administraator peab enne vormi kasutuselevõttu laadima kahe klassifikaatori algandmed (`ADR_CONTROL_CHECKPOINT`, `ADR_QUANTITY_UNIT`). Mõlemad klassifikaatorid lisatakse Liquibase'i migratsiooniga, kui valdkonna loendid (Priit Tuuna MSI/VSI/SI seosed ja ühikute loend) on olemas.
 * Dokumentatsioon uuendada: `docs/user-guide/11-vorm-adr.md`, `docs/andmehaldus/klassifikaatorid.md`, `docs/andmehaldus/rikkumiste-klassifikaatorid-2016-403.md`, `docs/muudatused.md`, kasutusjuhendi näidisvorm (`DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql`).
 * Määruse jõustumiskuupäev ja lisa 1 täpne sõnastus kontrollida RT-st enne toodangusse minekut.
 
@@ -1029,7 +1029,7 @@ või oodata e-Toimiku otsust.
 
 Vana `etoimik-sp-driver-decision-sync` cron kirjutas TRAM `sp_driver_form` ridadele
 `enforcement_decision` / `proceeding_closure_basis` **kohapeale** (ilma uue
-snapshot'ita, ilma avalikustamiseta). Uus TRAM-i cron
+hetktõmmiseta, ilma avalikustamiseta). Uus TRAM-i cron
 (`etoimik-tram-decision-sync`, PR3) järgib `labour-inspection` mustrit: kui
 e-Toimikust tuleb **jõustunud karistus** (süüdistuspunkt mille `SulgemiseKP`
 täidetud ja `LahendKL` olemas), lisatakse uus `published` snapshot
