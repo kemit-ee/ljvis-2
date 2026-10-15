@@ -1,6 +1,6 @@
 # XTR: SOAP mõlemas suunas
 
-Kasutame avaldatud `turnerrainer/xtr:0.5.0-rc` pilti. Olemasolevad väljuvate päringute DSL-id (`DSL/xtr`) jäävad kasutusse; SOAP-teenuste pakkumine lisandub samasse XTR-i.
+Kasutame avaldatud `turnerrainer/xtr:0.5.0-rc` image'it. Olemasolevad väljuvate päringute DSL-id (`DSL/xtr`) jäävad kasutusse; SOAP-teenuste pakkumine lisandub samasse XTR-i.
 
 ## Kuidas see töötab
 
@@ -14,40 +14,40 @@ wsdl/ljvis/ljvis.wsdl
 wsdl/ljvis/ljvis.soap.yaml
 ```
 
-Kui WSDL kasutab kohalikke XSD-sid, tuleb need samuti kaasa panna. XTR ei laadi kaugeid XSD-sid internetist. Meie `ljvis.wsdl` pärineb muutmata kujul LJVIS1 lähtekoodi `Ljvis.XTeeService/ljvis.wsdl` failist. Selle kuus operatsiooni on IsikuKontroll, IsikuEttevoteKontrollid, ErakorralineYVquery, ErakorralineYVconfirm, RegisterJobInspection ja RegisterJobInspection_v2. REST v3 jääb eraldi REST-lepinguks.
+Kui WSDL kasutab kohalikke XSD-sid, lisa need samuti kaasa. XTR ei laadi kaugeid XSD-sid internetist. Meie `ljvis.wsdl` pärineb muutmata kujul LJVIS1 lähtekoodi `Ljvis.XTeeService/ljvis.wsdl` failist. Selle kuus operatsiooni on IsikuKontroll, IsikuEttevoteKontrollid, ErakorralineYVquery, ErakorralineYVconfirm, RegisterJobInspection ja RegisterJobInspection_v2. REST v3 jääb eraldi REST-lepinguks.
 
 ## Millised senised teed jäävad vajalikuks?
 
 - `DSL/Ruuter.internal/.../xroad/provide` JSON-töötlejad jäävad alles: XTR kutsub neid ning päringute SOAP-vastuse teisendaja kutsub omakorda olemasolevaid REST-päringuid. Neid ei tohi SOAP-i lisamisel kustutada.
-- `RegisterJobInspection_v3` ja AJ `/ljvis/xroad/v2/*` ei kuulu sellesse WSDL-i; nende REST-lepingud ja OpenAPI jäävad kehtima. Olemasoleva REST-teenuse avaldamise lõpetamine vajab tarbijate ülemineku kinnitust.
+- `RegisterJobInspection_v3` ja Andmejälgija (AJ) `/ljvis/xroad/v2/*` ei kuulu sellesse WSDL-i; nende REST-lepingud ja OpenAPI jäävad kehtima. Enne olemasoleva REST-teenuse avaldamise lõpetamist kinnita, et tarbijad on üle läinud.
 - `LJVIS_XTR` ja `LJVIS_RUUTER_INTERNAL` jäävad kasutusse. Kasutamata `XROAD_SECURITY_SERVER` ja `XROAD_INSTANCE` Ruuteri konstandid on eemaldatud; vastavad XTR-i seaded on `security_server` ja `xroad_instance`.
 - Compose'i `ruuter-internal` hostipordid `8089` / `9089` on endiselt kohalike REST-testide jaoks. Need ei ole uus SOAP-aadress. CI `xtr` mock teenindab muid väliseid sõltuvusi; eraldi `xtr-inbound` käivitab päris XTR-i SOAP-testid.
 
 ## Kordussaatmine ja samaaegsus (RegisterJobInspection, RegisterJobInspection_v2)
 
-Akti identiteet on **leping + saatja ID**: tabel `forms.labour_inspection_external_ref` (`xroad-v1`, `xroad-v2`, `xroad-v3` + `kontrolli_id`). Sama numbriline ID eri lepingutes on eri akt. `forms.labour_inspection_form` on snapshot-tabel (mitu rida ühe akti kohta), seega unikaalsust seal ei kontrollita. Kirjutamine käib ühe atomaarse funktsiooniga `forms.register_external_labour_inspection`: kaotanud samaaegne päring ootab võitja commit'i ja leiab seejärel sama akti.
+Kontrollvormi identiteet on **leping + saatja ID**: tabel `forms.labour_inspection_external_ref` (`xroad-v1`, `xroad-v2`, `xroad-v3` + `kontrolli_id`). Sama numbriline ID eri lepingutes on eri kontrollvorm. `forms.labour_inspection_form` on snapshot-tabel (mitu rida ühe kontrollvormi kohta), seega unikaalsust seal ei kontrollita. Kirjutamine käib ühe atomaarse funktsiooniga `forms.register_external_labour_inspection`: kaotanud samaaegne päring ootab võitja commit'i ja leiab seejärel sama kontrollvormi.
 
-**Samaaegsed kirjutajad ühel aktil (UI, e-toimik, X-tee).** Kasutatakse kõigi vormide ühist kaitset (`revision`, unikaalne `(võti, revision)`, changeset `20261208100000`): iga kirjutaja lisab rea numbriga `latest.revision + 1`. Kui kaks kirjutajat lähtuvad samast seisust, salvestub ainult esimene. X-tee kordus püüab teise kirjutaja unikaalsusrikkumise kinni ja otsustab värske seisu pealt uuesti (nt vahepeal kinnitatud akt → 409). UI saab `409 form_modified` („vormi muutis vahepeal keegi teine“), e-toimik proovib järgmisel sünkroonimisel. Nii ei saa kinnitatud akt X-tee korduse tõttu tagasi `saved`-iks minna ega X-tee muudatus vaikselt vanade andmetega üle kirjutada.
+**Samaaegsed kirjutajad ühel kontrollvormil (UI, e-toimik, X-tee).** Kasutatakse kõigi vormide ühist kaitset (`revision`, unikaalne `(võti, revision)`, changeset `20261208100000`): iga kirjutaja lisab rea numbriga `latest.revision + 1`. Kui kaks kirjutajat lähtuvad samast seisust, salvestub ainult esimene. X-tee kordus püüab teise kirjutaja unikaalsusrikkumise kinni ja otsustab värske seisu pealt uuesti (nt vahepeal kinnitatud kontrollvorm → 409). UI saab `409 form_modified` („vormi muutis vahepeal keegi teine“), e-toimik proovib järgmisel sünkroonimisel. Nii ei saa kinnitatud kontrollvorm X-tee korduse tõttu tagasi `saved`-iks minna ega X-tee muudatus vaikselt vanade andmetega üle kirjutada.
 
 | Olukord | v1 / v2 (SOAP ja REST v1) | REST v3 |
 |---|---|---|
-| Esimene päring | Uus akt, `confirmed`, versioon 1 | sama |
-| Täpne kordus | `Success`, uut rida ei lisata | olemasolev akt |
-| Muudetud sisu (akt on `confirmed` / `published` / `deleted`) | HTTP 409 → SOAP `Client` Fault, midagi ei salvestata | olemasolev akt |
-| Akt on arhiveerimisel tööbaasist eemaldatud (`purge`) | täpne kordus `Success`; muudetud → 409 (`archived`), uut akti ei looda | olemasolev (arhiveeritud) akt |
-| Samaaegsed päringud | üks akt; muudetud päringud rakendatakse järjest | üks akt |
-| Samal ajal kinnitab/kustutab kasutaja UI-s | 409, kui UI jõudis enne; muidu salvestub X-tee muudatus ja UI saab `form_modified` | olemasolev akt |
+| Esimene päring | Uus kontrollvorm, `confirmed`, versioon 1 | sama |
+| Täpne kordus | `Success`, uut rida ei lisata | olemasolev kontrollvorm |
+| Muudetud sisu (kontrollvorm on `confirmed` / `published` / `deleted`) | HTTP 409 → SOAP `Client` Fault, midagi ei salvestata | olemasolev kontrollvorm |
+| Kontrollvorm on arhiveerimisel tööbaasist eemaldatud (`purge`) | täpne kordus `Success`; muudetud → 409 (`archived`), uut kontrollvormi ei looda | olemasolev (arhiveeritud) kontrollvorm |
+| Samaaegsed päringud | üks kontrollvorm; muudetud päringud rakendatakse järjest | üks kontrollvorm |
+| Samal ajal kinnitab/kustutab kasutaja UI-s | 409, kui UI jõudis enne; muidu salvestub X-tee muudatus ja UI saab `form_modified` | olemasolev kontrollvorm |
 
-**Erinevus LJVIS1-st:** LJVIS1 `RavenDbManager.StoreOrUpdateJobInspection(JobInspectionV2)` uuendas sama `InspectionId`-ga dokumenti igas staatuses ja määras staatuse (`Saved`, ilma menetluse viitenumbrita `Published`). LJVIS2 loob sissetulevad aktid alati `confirmed`-staatuses (nii saab e-toimiku sünkroonimine neid kohe töödelda, vt `apply_etoimik_decision.sql`) ja lukustatud akti X-tee kaudu ei muudeta: muudetud kordus tagastab 409. See on **mitte täielik ühilduvus** LJVIS1-ga, kus sama `InspectionId` uuendas dokumenti igas staatuses.
+**Erinevus LJVIS1-st:** LJVIS1 `RavenDbManager.StoreOrUpdateJobInspection(JobInspectionV2)` uuendas sama `InspectionId`-ga dokumenti igas staatuses ja määras staatuse (`Saved`, ilma menetluse viitenumbrita `Published`). LJVIS2 loob sissetulevad kontrollvormid alati `confirmed`-staatuses (nii saab e-toimiku sünkroonimine neid kohe töödelda, vt `apply_etoimik_decision.sql`) ja lukustatud kontrollvormi X-tee kaudu ei muudeta: muudetud kordus tagastab 409. LJVIS2 ei ole seega LJVIS1-ga täielikult ühilduv.
 
-**Migratsioon:** LJVIS1 RavenDB V2 aktid seotakse `xroad-v2` + `InspectionId`-ga (`DSL/migration/sql/07-transform-labour-inspection.sql`), seega hilisem `RegisterJobInspection_v2` sama ID-ga leiab migreeritud akti (kinnitatud → 409, duplikaati ei teki). V1 Raven dokumendi ID on LJVIS1 sisemine järjenumber, mitte saatja `kontrolli_id`; V1 aktidele seost ei looda. Kui sama `InspectionId` on enne migratsiooni juba X-tee kaudu LJVIS2-sse saabunud, peatab eelkontroll jooksu leiuga `external_id_already_received`.
+**Migratsioon:** LJVIS1 RavenDB V2 kontrollvormid seotakse `xroad-v2` + `InspectionId`-ga (`DSL/migration/sql/07-transform-labour-inspection.sql`), seega hilisem `RegisterJobInspection_v2` sama ID-ga leiab migreeritud kontrollvormi (kinnitatud → 409, duplikaati ei teki). V1 Raven dokumendi ID on LJVIS1 sisemine järjenumber, mitte saatja `kontrolli_id`; V1 kontrollvormidele seost ei looda. Kui sama `InspectionId` on enne migratsiooni juba X-tee kaudu LJVIS2-sse saabunud, peatab eelkontroll jooksu leiuga `external_id_already_received`.
 
 ## Vead
 
 | Ruuter.internal | SOAP-vastus (XTR) | Millal |
 |---|---|---|
 | 400 / 403 / 404 JSON | `Client` Fault, `faultstring` sisaldab HTTP koodi ja teadet | sisendi viga, puuduv `X-Road-Client` |
-| 409 `CONFLICT` | `Client` Fault | muudetud kordus lukustatud aktile |
+| 409 `CONFLICT` | `Client` Fault | muudetud kordus lukustatud kontrollvormile |
 | 500 JSON | `Server` Fault | töötleja või andmebaasi viga |
 | 502 `BACKEND_ERROR` | `Server` Fault | päringutöötleja vastas veaga ilma JSON-kehata |
 | 502 `INVALID_BACKEND_RESPONSE` | `Server` Fault | päringutöötleja edukas vastus ei vasta WSDL-ile (puuduv kohustuslik kuupäev, tundmatu enum-väärtus, mitte-JSON) |
@@ -56,7 +56,7 @@ Päringuoperatsioonide adapterid (`DSL/Ruuter.internal/ljvis/POST/xroad/soap/isi
 
 ## Kohalik dev
 
-`docker-compose.yml` kasutab uut pilti, olemasolevat turvaserveri konfiguratsiooni ning WSDL-kausta.
+`docker-compose.yml` kasutab uut image'it, olemasolevat turvaserveri konfiguratsiooni ning WSDL-kausta.
 
 ```bash
 docker compose up -d xtr ruuter-internal
@@ -123,7 +123,7 @@ python3 tests/xtr/repeat_test.py --soap-url http://localhost:9095 --rest-url htt
 # Käivitab ajutise ruuter-internal konteineri, mille LJVIS_RUUTER_INTERNAL osutab kohalikule mockile.
 python3 tests/xtr/bridge_test.py --image ljvis-ci-ruuter-internal --network ljvis-ci_ljvis-ci -- $C
 
-# Samaaegsed kirjutajad ühel aktil (UI update.sql/delete.sql, e-toimik, X-tee kordus).
+# Samaaegsed kirjutajad ühel kontrollvormil (UI update.sql/delete.sql, e-toimik, X-tee kordus).
 python3 tests/xtr/race_test.py -- $C
 ```
 
@@ -153,7 +153,7 @@ outbound:
     subsystem_code: ljvis2
 ```
 
-`request_pointer` ja `response_wrap` on LJVIS-i lepingu jaoks; teise WSDL-i korral tuleb need kohandada selle sõnumistruktuurile. `xroad_service` peab kirjeldama tegelikku sihtteenuse pakkujat. Ilma sissetuleva backend-ita ei saa operatsioon ärilist vastust anda. Kui JSON-struktuurid erinevad, lisa väike teisendus Ruuterisse.
+`request_pointer` ja `response_wrap` on LJVIS-i lepingu jaoks; teise WSDL-i korral tuleb need kohandada selle sõnumistruktuurile. `xroad_service` peab kirjeldama tegelikku sihtteenuse pakkujat. Määra igale operatsioonile sissetulev backend — ilma selleta ei saa operatsioon ärilist vastust anda. Kui JSON-struktuurid erinevad, lisa väike teisendus Ruuterisse.
 
 XTR järgib XSD struktuuri, kuid ei valideeri kõiki kohustuslikke välju ega enum-väärtusi. Rakenduse sisendikontroll ja lepingu testid jäävad vajalikuks.
 
@@ -204,11 +204,11 @@ Parandatud lepinguerinevused: Resql-i camelCase → vana WSDL-i väljad, `soiduk
 
 05.10.2026 (parandused): eraldi sünteetilises `ljvis-xtr-fix` teststendis (`docker-compose.ci.yml` koos teenusega `xtr-inbound`; avaldatud `turnerrainer/xtr:0.5.0-rc`, Ruuter.internal, Resql, PostgreSQL 17):
 
-- SOAP-kollektsioon 118/118 ja `verify.py` (10 XSD-paari, 5 salvestatud akti registri kaudu); REST-pakkujad 42 + 41; `labour-inspection` UI-kollektsioon 51/51 (`update.sql` hoiab nüüd `external_inspection_id`-d alles).
-- `repeat_test.py` 55 kontrolli: täpne, muudetud ja lukustatud kordus v1/v2 (409 → `Client` Fault, midagi ei salvestata); 16 samaaegset identset esmast päringut → üks akt (v1, v2); 8 samaaegset erineva sisuga päringut → kõik 8 rakendatud ühe akti hetktõmmistena; REST v3 12 samaaegset → üks akt, leping muutmata; v1 `inspection_type` 8 loendurikombinatsiooni; arhiveerimisel eemaldatud akti muudetud kordus → 409 (`archived`), uut akti ei teki; sünteetiline RavenDB V2 → `07-transform-labour-inspection.sql` → SOAP kordus leiab migreeritud akti; sama numbriline ID v1/v2 lepingus jääb kaheks aktiks.
+- SOAP-kollektsioon 118/118 ja `verify.py` (10 XSD-paari, 5 salvestatud kontrollvormi registri kaudu); REST-pakkujad 42 + 41; `labour-inspection` UI-kollektsioon 51/51 (`update.sql` hoiab nüüd `external_inspection_id`-d alles).
+- `repeat_test.py` 55 kontrolli: täpne, muudetud ja lukustatud kordus v1/v2 (409 → `Client` Fault, midagi ei salvestata); 16 samaaegset identset esmast päringut → üks kontrollvorm (v1, v2); 8 samaaegset erineva sisuga päringut → kõik 8 rakendatud ühe kontrollvormi hetktõmmistena; REST v3 12 samaaegset → üks kontrollvorm, leping muutmata; v1 `inspection_type` 8 loendurikombinatsiooni; arhiveerimisel eemaldatud kontrollvormi muudetud kordus → 409 (`archived`), uut kontrollvormi ei teki; sünteetiline RavenDB V2 → `07-transform-labour-inspection.sql` → SOAP kordus leiab migreeritud kontrollvormi; sama numbriline ID v1/v2 lepingus jääb kaheks kontrollvormiks.
 - `race_test.py` 16 kontrolli (pärast dev-i `revision` mehhanismiga ühendamist 06.10.2026, sh optimistlik lukk `form_modified`): samaaegne UI kinnitus/kustutamine vs X-tee muudetud kordus (mõlemas järjekorras), kaks UI salvestust, e-toimik vs UI — ajalugu ei hargne, kinnitus ei kao, X-tee muudatust ei kirjutata vanade andmetega üle (dev-i `revision` mehhanism).
 - `bridge_test.py` 16 kontrolli (`xroad/soap/*` adapterid, sh oma `X-Road-Client` guard); päris XTR-i kaudu käsitsi: Ruuteri 500 ja 502 → `SOAP-ENV:Server` Fault (`backend returned HTTP 5xx`, ilma sisemise teateta).
-- Liquibase changeset `20261209100000` (tabel + funktsioon): rakendamine puhtale baasile, rollback ja uuesti rakendamine. Olemasolevate ridade seostamist ei tehta — enne seda muudatust ei olnud ühtegi X-tee kaudu saabunud akti.
+- Liquibase changeset `20261209100000` (tabel + funktsioon): rakendamine puhtale baasile, rollback ja uuesti rakendamine. Olemasolevate ridade seostamist ei tehta — enne seda muudatust ei olnud ühtegi X-tee kaudu saabunud kontrollvormi.
 - `docker/xtr/Dockerfile`-ist ehitatud image (sama digest Docker Hubist; Harbor ei olnud testmasinast kättesaadav) käivitus ilma checkout'i mount'ideta: 6 operatsiooni, `?wsdl` avalik aadress, portide eraldus, päris `IsikuKontroll` ja `RegisterJobInspection_v2` Ruuter.internal-i kaudu.
 
 Kontrollimata: päris turvaserveris meie SOAP-teenuse registreerimine ja õigused (TLS/mTLS cammy ja urien vastu kontrollitud 05.10.2026), GitLab/Harbor ehitus, tootmise `xtr.yaml`/Kubernetes ressursid (väline devops-repo), päris LJVIS1 RavenDB andmed (test kasutas sünteetilisi dokumente).

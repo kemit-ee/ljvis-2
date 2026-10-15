@@ -9,6 +9,9 @@ returns:
 - name: id
   type: number
   nullable: true
+- name: compound_form_key
+  type: number
+  nullable: true
 - name: proceeding_reference_number
   type: string
   nullable: true
@@ -42,12 +45,13 @@ cand AS (
 ),
 -- koondvormi UUSIM snapshot (üks rida võtme kohta) alampäringuga, mitte JOIN-iga
 resolved AS (
-  SELECT cand.id, cand.proceeding_reference_number,
+  SELECT cand.id, cand.compound_form_key, cand.proceeding_reference_number,
          (SELECT c FROM forms.compound_form c WHERE c.compound_form_key = cand.compound_form_key ORDER BY c.created_at DESC LIMIT 1) AS cf
   FROM cand
 )
 SELECT
   id,
+  compound_form_key,
   proceeding_reference_number,
   (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
 FROM resolved

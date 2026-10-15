@@ -67,11 +67,16 @@ class Tree(unittest.TestCase):
         self.assertEqual(1, len(errors))
         self.assertIn("DSL/Resql/ljvis/POST/x/a.sql:", errors[0])
 
-    def test_exemption_allows_only_the_retention_delete(self):
+    def test_exemption_allows_only_a_single_sanctioned_delete_or_update(self):
         root = self.make({PURGE: "DELETE FROM t WHERE id = 1"}, f"{PURGE}  # retention purge\n")
         self.assertEqual([], check(root))
+        anonymize = "DSL/Resql/ljvis/POST/archive/anonymize.sql"
+        root = self.make({anonymize: "UPDATE t SET a = 1"}, f"{anonymize}  # anonymize\n")
+        self.assertEqual([], check(root))
         root = self.make({PURGE: "DELETE FROM t WHERE id = 1;\nUPDATE t SET a = 1"}, f"{PURGE}  # retention purge\n")
-        self.assertTrue(any("more than the retention DELETE" in e for e in check(root)))
+        self.assertTrue(any("more than a single sanctioned" in e for e in check(root)))
+        root = self.make({PURGE: "DELETE FROM t WHERE id = 1;\nSELECT 1 FROM a JOIN b ON true"}, f"{PURGE}  # retention purge\n")
+        self.assertTrue(any("more than a single sanctioned" in e for e in check(root)))
 
     def test_exemption_needs_rationale_archive_path_and_a_real_violation(self):
         self.assertTrue(any("no rationale" in e for e in check(self.make({PURGE: "DELETE FROM t"}, f"{PURGE}\n"))))

@@ -19,3 +19,18 @@ limits:
 # Job execution history disabled for now (no Postgres DSN configured) —
 # jobs still run, nothing is persisted. Revisit once /jobs history is
 # needed for ops visibility.
+
+security:
+  # 0.2.0-alpha+ blocks HTTP jobs whose host resolves to a private IP (SSRF
+  # guard). Every job here targets ruuter-internal on the Docker/K8s network,
+  # so that one host is allowlisted (0.2.4-alpha+) and the guard stays on for
+  # everything else. block_private_networks: false would be refused at boot
+  # under a non-dev APP_ENV. Link-local / cloud metadata stay blocked even for
+  # allowlisted hosts.
+  block_private_networks: true
+  allowed_private_hosts:
+    - ruuter-internal
+  # /jobs and /running list every job and its last result — require the admin
+  # token instead of serving them anonymously (0.2.x default is public).
+  expose_jobs_publicly: false
+  expose_running_publicly: false

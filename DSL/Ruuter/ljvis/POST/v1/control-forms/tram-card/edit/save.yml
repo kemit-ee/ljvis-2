@@ -480,6 +480,42 @@ logAuditEvent:
     description: "TRAM kontrollkaart salvestatud, number=${saveRes.response.body[0].formNumber}/${saveRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${saveRes.response.body[0].id},\"formNumber\":\"${saveRes.response.body[0].formNumber}\",\"version\":${saveRes.response.body[0].version}}"
   result: audit_result
+  next: checkNotifyOnResave
+
+# Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
+# teavituste mõttes — publish.yml-iga sama kontroll, aga event_key sisaldab
+# uut version'it, nii et teavitus ei jää dubleerimiskontrolli taha kinni.
+checkNotifyOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: checkSeriousInfringementResave
+  next: returnSuccess
+
+checkSeriousInfringementResave:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringementResave
+  next: returnSuccess
+
+createSeriousInfringementResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "tram_control_card"
+      related_entity_id: ${id}
+      event_key: "${'tram-control-card:' + id + ':' + saveRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifResResave
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

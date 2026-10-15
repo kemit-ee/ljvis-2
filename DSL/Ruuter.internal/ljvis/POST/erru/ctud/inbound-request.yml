@@ -176,9 +176,9 @@ lookupUndertaking:
   next: buildMtrResponse
 
 
-# Known gaps: legalForm (MTR doesn't return it, left null) and riskRating/riskBand
-# (should come from our risk-assessment module, but MTR gives no registryCode to key
-# off of — left at neutral default Grey/0 for now).
+# Known gap: legalForm (MTR doesn't return it, left null). riskRating/riskBand
+# are resolved below (lookupRegCode/lookupRiskScore) from our own risk-score
+# module, falling back to the neutral Grey/0 default when no match is found.
 buildMtrResponse:
   assign:
     mtr_body: "${(mtr_res.response.body || {}).response || {}}"
@@ -193,8 +193,75 @@ checkMtrStatus:
     - condition: "${mtr_res.response == null || mtr_res.response.status == null || mtr_res.response.status >= 400 || mtr_body.statusCode === 'Error'}"
       next: mtrUnavailableAudit
     - condition: "${mtr_body.statusCode === 'Found' && tu != null}"
-      next: buildFoundResponse
+      next: lookupRegCode
   next: buildNotFoundResponse
+
+# MTR's checkCommunityLicence never returns the Estonian business registry
+# code (confirmed in both the mock and the real X-tee path) — risk-scores/
+# current.yml needs company_reg_code, not a licence number. Resolve it by
+# matching the licence numbers MTR just confirmed against our own control
+# forms' recorded licence-number-to-reg-code links (exact match only — see
+# lookup-reg-code-by-licence.sql's rationale). No match simply means this
+# undertaking has no LJVIS control history, which also means it has no risk
+# score, so falling through to the Grey/0 default is correct either way.
+lookupRegCode:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/lookup-reg-code-by-licence"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      trueCopyNumber: "${(tu.certifiedTrueCopyDetails && tu.certifiedTrueCopyDetails.trueCopyNumber) || ''}"
+      communityLicenceNumber: "${(tu.communityLicenceDetails && tu.communityLicenceDetails.communityLicenceNumber) || ''}"
+  result: reg_code_res
+  error: assignDefaultRisk
+  next: checkRegCodeValid
+
+checkRegCodeValid:
+  assign:
+    resolved_reg_code: "${(reg_code_res.response.body && reg_code_res.response.body[0] && reg_code_res.response.body[0].companyRegCode) || ''}"
+  next: checkRegCodeValidSwitch
+
+checkRegCodeValidSwitch:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test(resolved_reg_code)}"
+      next: assignDefaultRisk
+  next: lookupRiskScore
+
+# Ruuter.internal-sisene kutse teisele Ruuter.internal otspunktile — sama
+# muster mis cron/risk-score-recalc-sync.yml kasutab oma recalculate-kutses:
+# ei vaja x-internal-service-token headerit, sest risk-scores/current.yml ise
+# ei nõua autentimist (port 8089 pole väljastpoolt Docker võrku kättesaadav).
+lookupRiskScore:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/current"
+    headers:
+      type: json
+    body:
+      company_reg_code: ${resolved_reg_code}
+  result: risk_res
+  error: assignDefaultRisk
+  next: checkRiskScoreFound
+
+checkRiskScoreFound:
+  switch:
+    - condition: "${risk_res.response == null || risk_res.response.status < 200 || risk_res.response.status >= 300 || risk_res.response.body == null}"
+      next: assignDefaultRisk
+  next: assignResolvedRisk
+
+assignResolvedRisk:
+  assign:
+    resp_risk_rating: "${risk_res.response.body.riskScore == null ? 0 : Math.round(Number(risk_res.response.body.riskScore))}"
+    resp_risk_band: "${risk_res.response.body.riskBandErru || 'Grey'}"
+  next: buildFoundResponse
+
+assignDefaultRisk:
+  assign:
+    resp_risk_rating: 0
+    resp_risk_band: "Grey"
+  next: buildFoundResponse
 
 buildFoundResponse:
   assign:
@@ -210,8 +277,8 @@ buildFoundResponse:
         legalForm: null,
         numberOfEmployees: tu.numberOfEmployees || 0,
         numberOfVehicles: (tu.vehicles || []).length,
-        riskRating: 0,
-        riskBand: 'Grey',
+        riskRating: resp_risk_rating,
+        riskBand: resp_risk_band,
         searchMethod: 'CommunityLicence',
         address: tu.address || null,
         communityLicenceDetails: tu.communityLicenceDetails ? [tu.communityLicenceDetails] : [],

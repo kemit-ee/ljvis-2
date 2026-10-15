@@ -1,6 +1,10 @@
 # ADR-010: kolib kustutatud kontrollvormid töö-baasist eraldi arhiiv-andmebaasi
 # (copy → verify → real delete). Vt DSL/Ruuter.internal/ljvis/POST/cron/archive-deleted-forms.yml.
 #
+# anonymize=true  ← ADR-014/LJVIS2-51: isikuga seose eemaldamine. Kui purge õnnestub,
+#                   asendatakse arhiveeritud rea nimi/isikukood/sünniaeg/-koht kohe.
+#                   false = jätab arhiveeritud rea täies (1:1) kujul.
+#
 # PR A: trigger on INERTNE (2099) — voog ja SQL on valmis ja testitav käsitsi
 # (POST http://ruuter-internal:8080/ljvis/cron/archive-deleted-forms), aga
 # automaatset kustutamist veel ei toimu. Aktiveeritakse PR B-s: trigger: "0 0 0/2 * * ?"
@@ -9,7 +13,9 @@ archive_deleted_forms:
   trigger: "0 0 0 1 1 ? 2099"
   type: http
   method: POST
-  url: http://ruuter-internal:8080/ljvis/cron/archive-deleted-forms
+  url: "http://ruuter-internal:8080/ljvis/cron/archive-deleted-forms?anonymize=true"
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

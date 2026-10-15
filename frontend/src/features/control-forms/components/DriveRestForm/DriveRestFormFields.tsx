@@ -27,6 +27,7 @@ import { FileUploadBlock } from '../shared/FileUploadBlock';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import { useAuth } from '../../../auth/AuthContext';
 import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { useExpandedWhenSelected } from '../../hooks/useExpandedWhenSelected';
 
 interface ChoiceItem {
   id: string;
@@ -45,6 +46,8 @@ const MAIN_DRIVING_VIOLATION_FIELDS = [
 ];
 const ROOMA1_VIOLATION_FIELDS = ['violations5932008'];
 const POSTING_VIOLATION_FIELDS = ['violations20201057'];
+
+const hasItems = (v: unknown) => Array.isArray(v) && v.length > 0;
 
 // Veoliigi (transportType) järgi mittetäidetavad väljad.
 const PASSENGER_CLASS_CODES = [
@@ -132,6 +135,27 @@ export function DriveRestFormFields({
     hasPermission(PUNISHMENT_REGISTER_PERMISSION);
 
   const fieldId = (id: string) => type === 'teammate' ? `teammate-${id}` : id;
+
+  // Valitud rikkumisega plokk on alati avatud, et rikkumine oleks kogu aeg näha.
+  const fv = formik.values;
+  const docRightAccordion = useExpandedWhenSelected(
+    hasItems(fv.documentChecks) ||
+      (Array.isArray(fv.otherDocuments) &&
+        fv.otherDocuments.some((d) => d.result === 'EI_VASTA_NOUETELE')),
+  );
+  // Vaikimisi avatud: plokis on kohustuslik väli, mida suletuna on lihtne
+  // märkamata jätta.
+  const driveRestAccordion = useExpandedWhenSelected(
+    MAIN_DRIVING_VIOLATION_FIELDS.some((f) => hasItems(fv[f as keyof typeof fv])),
+    true,
+  );
+  const rooma1Accordion = useExpandedWhenSelected(hasItems(fv.violations5932008));
+  const postingAccordion = useExpandedWhenSelected(hasItems(fv.violations20201057));
+  const massDimensionAccordion = useExpandedWhenSelected(
+    hasItems(fv.massDimensionMeasurements) || fv.atpViolationFound === 'true',
+  );
+  const atpAccordion = useExpandedWhenSelected(fv.atpViolationFound === 'true');
+
   const withDisabled = (items: ChoiceItem[]): ChoiceItem[] =>
     items.map((item) => ({
       ...item,
@@ -923,7 +947,7 @@ export function DriveRestFormFields({
       {formik.values.resultType !== '' && (
         <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
-            <AccordionItem id={fieldId('doc-right-check')}>
+            <AccordionItem id={fieldId('doc-right-check')} {...docRightAccordion}>
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
@@ -974,9 +998,7 @@ export function DriveRestFormFields({
       {!hideDriveRestExtras && formik.values.resultType !== '' && (
         <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
-            {/* Vaikimisi avatud: plokis on kohustuslik väli, mida suletuna
-                on lihtne märkamata jätta. */}
-            <AccordionItem id={fieldId('drive-rest-violations')} defaultExpanded>
+            <AccordionItem id={fieldId('drive-rest-violations')} {...driveRestAccordion}>
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
@@ -1092,14 +1114,14 @@ export function DriveRestFormFields({
                     value={formik.values.checkedDaysCount?.toString() || ''}
                     placeholder={t('common.numberPlaceholder', 'Nr')}
                     onChange={(v) => {
-                      const numericValue = v.replace(/\D/g, '');
+                      const numericValue = v.replace(/\D/g, '').slice(0, 2);
                       const parsedValue = parseInt(numericValue, 10) || 0;
                       formik.setFieldValue(
                         'checkedDaysCount',
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 3 }}
+                    input={{ maxLength: 2 }}
                     disabled={readOnly}
                   />
                   <Text>{t('forms.drive_rest.workDaysCount')}</Text>
@@ -1110,14 +1132,14 @@ export function DriveRestFormFields({
                     value={formik.values.workDaysCount?.toString() || ''}
                     placeholder={t('common.numberPlaceholder', 'Nr')}
                     onChange={(v) => {
-                      const numericValue = v.replace(/\D/g, '');
+                      const numericValue = v.replace(/\D/g, '').slice(0, 2);
                       const parsedValue = parseInt(numericValue, 10) || 0;
                       formik.setFieldValue(
                         'workDaysCount',
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 3 }}
+                    input={{ maxLength: 2 }}
                     disabled={readOnly}
                   />
                   <Text>{t('forms.drive_rest.otherActivityDaysCount')}</Text>
@@ -1130,14 +1152,14 @@ export function DriveRestFormFields({
                     }
                     placeholder={t('common.numberPlaceholder', 'Nr')}
                     onChange={(v) => {
-                      const numericValue = v.replace(/\D/g, '');
+                      const numericValue = v.replace(/\D/g, '').slice(0, 2);
                       const parsedValue = parseInt(numericValue, 10) || 0;
                       formik.setFieldValue(
                         'otherActivityDaysCount',
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 3 }}
+                    input={{ maxLength: 2 }}
                     disabled={readOnly}
                   />
                 </div>
@@ -1211,7 +1233,7 @@ export function DriveRestFormFields({
         rooma1Violations.length > 0 && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('rooma1-violations')}>
+              <AccordionItem id={fieldId('rooma1-violations')} {...rooma1Accordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1249,7 +1271,7 @@ export function DriveRestFormFields({
         postingViolations.length > 0 && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('posting-violations')}>
+              <AccordionItem id={fieldId('posting-violations')} {...postingAccordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1286,7 +1308,7 @@ export function DriveRestFormFields({
         type === 'driver' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('mass-dimension-violations')}>
+              <AccordionItem id={fieldId('mass-dimension-violations')} {...massDimensionAccordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1326,7 +1348,7 @@ export function DriveRestFormFields({
         type === 'teammate' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('atp-violation')}>
+              <AccordionItem id={fieldId('atp-violation')} {...atpAccordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">

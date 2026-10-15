@@ -10,14 +10,29 @@ declaration:
     (2) insert_snapshots [arhiiv-baas] — ON CONFLICT DO NOTHING;
     (3) count_present [arhiiv-baas] — verifitseerib, et IGA rida on arhiivis kohal;
     (4) purge_confirmed [töö-baas] — REAALNE DELETE, ainult kui samm 3 = 100% vaste;
-    see on ainus append-only erand (.sql-rule-exemption, ADR-013) ja SQL kustutab olemi
-    ridu ainult tervikuna (osaline ajalugu jääb järgmisse jooksu).
-    Kui vaste pole täielik, purge JÄETAKSE VAHELE (logi hoiatus), järgmine jooks
-    proovib uuesti (ON CONFLICT tõttu idempotentne). Kutsub CronManager
+    (5) anonymize_confirmed [arhiiv-baas] — ADR-014/LJVIS2-51: isikuga seose eemaldamine,
+    käivitub ainult siis, kui samm 4 (purge) õnnestus JA parameeter anonymize=true
+    (vaikimisi true); asendab payload-is subjekti nime, isikukoodi, sünniaja ja -koha
+    (vt docs/admin-guide/13-arhiveerimine.md). Parameeter tuleb CronManager'i töö URL-i
+    päringuparameetrist (DSL/CronManager/archive-deleted-forms.yaml), nagu teistelgi
+    arhiveerimise lülititel (enabled, purge, dryRun archive-aged-forms.yml-is).
+    purge_confirmed ja anonymize_confirmed on kaks lubatud append-only erandit
+    (.sql-rule-exemption, ADR-013): esimene kustutab olemi ridu töö-baasist ainult
+    tervikuna, teine UPDATE-ib arhiivirea payload-it kohapeal.
+    Kui vaste pole täielik, purge (ja seega ka anonymize) JÄETAKSE VAHELE (logi hoiatus),
+    järgmine jooks proovib uuesti (ON CONFLICT tõttu idempotentne). Kutsub CronManager
     (DSL/CronManager/archive-deleted-forms.yaml).
   namespace: cron
   allowlist:
+    params:
+      - field: anonymize
+        required: false
     body: []
+
+parseParams:
+  assign:
+    anonymize_flag: "${String(incoming.params.anonymize ?? 'true').trim().toLowerCase() === 'true'}"
+  next: selectStep
 
 selectStep:
   call: http.post
@@ -99,6 +114,34 @@ purgeStep:
 assignPurged:
   assign:
     purged: "${(purgeRes.response.body && purgeRes.response.body[0] && purgeRes.response.body[0].purged) || 0}"
+  next: checkAnonymize
+
+checkAnonymize:
+  switch:
+    - condition: "${anonymize_flag !== true}"
+      next: skipAnonymize
+  next: anonymizeStep
+
+skipAnonymize:
+  assign:
+    anonymized: 0
+  next: logDone
+
+anonymizeStep:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/archive/anonymize_confirmed"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      pairs: "${pairsJson}"
+  result: anonRes
+  next: assignAnonymized
+
+assignAnonymized:
+  assign:
+    anonymized: "${(anonRes.response.body && anonRes.response.body[0] && anonRes.response.body[0].anonymized) || 0}"
   next: logDone
 
 logDone:
@@ -111,7 +154,7 @@ logDone:
     body:
       service_code: "archive.deleted_forms.cron"
       request_xml: "archive-deleted-forms"
-      response_xml: "${JSON.stringify({ copied: Number(rowCount), inserted: Number(inserted), verified: Number(present), purged: Number(purged) })}"
+      response_xml: "${JSON.stringify({ copied: Number(rowCount), inserted: Number(inserted), verified: Number(present), purged: Number(purged), anonymized: Number(anonymized) })}"
       duration_ms: 0
       success: true
       error_message: ""
@@ -123,7 +166,7 @@ logDone:
 
 returnDone:
   status: 200
-  return: "${({ copied: Number(rowCount), verified: Number(present), purged: Number(purged) })}"
+  return: "${({ copied: Number(rowCount), verified: Number(present), purged: Number(purged), anonymized: Number(anonymized) })}"
   next: end
 
 logNothing:

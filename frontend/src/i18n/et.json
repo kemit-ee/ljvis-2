@@ -913,7 +913,8 @@
       "xteeDataTitle": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
       "validation": {
         "required": "Kohustuslik väli",
-        "workDaysCountMax": "Tööpäevade arv ei tohi ületada kontrollitud päevade arvu"
+        "workDaysCountMax": "Tööpäevade arv ei tohi ületada kontrollitud päevade arvu",
+        "daysCountMaxDigits": "Päevade arv võib olla kuni kahekohaline"
       }
     },
     "compound": {
