@@ -35,6 +35,7 @@ import type {
 } from '../../types';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { useExpandedWhenSelected } from '../../hooks/useExpandedWhenSelected';
 
 interface ForeignViolationFormFieldsProps {
   formik: FormikProps<ForeignViolationForm & Record<string, unknown>>;
@@ -124,6 +125,8 @@ export function ForeignViolationFormFields({
     ? (values.violations as ForeignViolationFormViolation[])
     : [];
   const violationCodes = violationEntries.map((v) => v.code);
+  // Valitud rikkumisega plokk on alati avatud, et rikkumine oleks kogu aeg näha.
+  const euViolationsAccordion = useExpandedWhenSelected(violationEntries.length > 0);
 
   // NCR-ist üle tulnud karistused rikkumise sildi ees: rakendatud karistus
   // (nt "Trahv") ja välisriigi taotletud karistus (ERRU penaltyTypeRequested).
@@ -1016,7 +1019,7 @@ export function ForeignViolationFormFields({
       <Card className="mb-1">
         <Card.Content>
           <Accordion>
-            <AccordionItem id="eu-violations">
+            <AccordionItem id="eu-violations" {...euViolationsAccordion}>
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
