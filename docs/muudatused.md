@@ -10,6 +10,9 @@
 - Terminoloogia ühtlustatud: läbivalt kasutusel "kontrollvorm" (varem segamini "akt"/"kontrollakt").
 - `docs/xtee/10-xtr-uhendamine.md` sünkroonitud tootmisjuhisega: `public_base_url` näidis vahetatud dummy-väärtuse vastu (varem oli näites päris dev-hostinimi), lisatud selgitus, miks WSDL-i `soap:address` ei tohi näidata tegelikku infrastruktuuri aadressi.
 - ASD-STE100 vaimus keeleline korrastus (AGENTS.md juhised): "Docker pilt" asendatud terminiga "image", passiivsed laused toimingulisteks käskudeks eeltingimusega, lühend "AJ" laiendatud esimesel kasutusel, topeltsalgatusega/vastuolulised laused lihtsustatud.
+### XTR SOAP ühendamise juhend täpsustatud
+
+- `docs/xtee/10-xtr-uhendamine.md`: sama dummy `public_base_url` parandus, mis 13.10.2026 tehti `09-xtr-soap.md`-le, nüüd ka ühendamise lühijuhendis — näide ja kontrollnimekiri ei soovita enam keskkonna tegelikku hostinime WSDL-i kirja panna. Rakenduse käitumist ei muudeta.
 
 ### Sõidu- ja puhkeaja vormid: päevade arvud kuni kahekohalised
 
@@ -25,6 +28,11 @@
 - Sõidu- ja puhkeaja (SP) vormil on rikkumiste plokid („Dokumendi või õiguse kontroll", „Sõidu- ja puhkeaja nõuete kontroll", Rooma I, lähetamise nõuded, massi ja mõõtmete / ATP plokk) avatud, kui neis on mõni rikkumine valitud — ka vormi avamisel ja vaatevaates. Valitud rikkumisega plokki ei saa kokku lükata.
 - Sama kehtib välisriigi rikkumise kontrollkaardi ELi rikkumiste plokile.
 - Ilma valitud rikkumiseta plokid avanevad ja sulguvad nagu varem.
+
+### CronManager 0.2.4-alpha: SSRF-kaitse tagasi sees
+
+- Ajastatud tööde teenus uuendati versioonile 0.2.4-alpha. Privaatvõrgu kaitse (`block_private_networks`) on jälle sisse lülitatud; erandina on lubatud ainult `ruuter-internal`, mida kõik tööd kutsuvad (`allowed_private_hosts`). Pilve metaandmete aadressid on keelatud ka sellele hostile.
+- Teenus käivitub nüüd ka rangema keskkonnaseadistusega (`APP_ENV=test`/`production`); varem pidi kõikjal olema `APP_ENV=dev`. Tööde ajakavad ja käitumine ei muutu.
 
 ### CronManager 0.2.3-alpha
 

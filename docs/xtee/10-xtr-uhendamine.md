@@ -30,7 +30,7 @@ inbound:
   public_base_url: http://example.org/xroad-endpoint   # ?wsdl soap:address — DUMMY, mitte reaalne hostinimi (vt allpool)
 ```
 
-**`public_base_url` peab olema dummy-väärtus** (nt `http://example.org/xroad-endpoint`), mitte keskkonna tegelik avalik hostinimi (`ljvis2<env>.xtpnl.kemitaws.ee`). X-tee heas tavas ei näidata WSDL-i `soap:address`-is reaalset infrastruktuuri aadressi: turvaserver suunab päringu ikkagi teenuse registreeringu (subsystem + teenusekood), mitte WSDL-i kirjas oleva aadressi järgi, nii et dummy väärtus ei mõjuta toimimist, aga väldib sisevõrgu hostinimede avaldamist X-tee kataloogi kaudu. Vt ka [09-xtr-soap.md](09-xtr-soap.md).
+**`public_base_url` peab olema dummy-väärtus** (nt `http://example.org/xroad-endpoint`), mitte keskkonna tegelik avalik hostinimi (`ljvis2<env>.xtpnl.kemitaws.ee`). X-tee heas tavas ei näidata WSDL-i `soap:address`-is reaalset infrastruktuuri aadressi: turvaserver suunab päringu ikkagi teenuse registreeringu (subsystem + teenusekood), mitte WSDL-i kirjas oleva aadressi järgi, nii et dummy väärtus ei mõjuta toimimist, aga väldib sisevõrgu hostinimede avaldamist X-tee kataloogi kaudu. Vt ka [09-xtr-soap.md](09-xtr-soap.md#tootmisse-paigaldus).
 
 **Turvaserveri sertifikaat (`trust_ca_path`):** failis peab olema **täpselt üks sertifikaat** — turvaserveri enda (iseallkirjastatud) sertifikaat või selle väljastanud CA. XTR loeb failist ainult esimese sertifikaadi; kui sinna panna mitme sertifikaadiga komplekt (bundle), ebaõnnestub TLS-ühendus vaikselt. Dev: `cammy-server.crt`, test: `urien-server.crt`. Keskkonnamuutujat `SSL_CERT_FILE` ei kasutata.
 
@@ -58,7 +58,7 @@ Lisaks peab XTR ulatuma `ruuter-internal:8080`-ni.
 ## Kuidas kontrollida, et töötab
 
 - XTR-i logis on käivitamisel rida `inbound SOAP endpoint registered … operations=[…]` (6 operatsiooni).
-- Turvaserveri võrgust avaneb `…/soap-in/ljvis/ljvis?wsdl`. Selle `soap:address` näitab dummy-väärtust — see on tahtlik (vt „XTR seadistus" eespool).
+- Turvaserveri võrgust avaneb `…/soap-in/ljvis/ljvis?wsdl`. Selle `soap:address` näitab dummy-väärtust — see on tahtlik (vt [XTR seadistus](#xtr-seadistus-xtryaml-igas-keskkonnas) eespool).
 - Testkeskkonnas tehakse üks lugemine ja üks sünteetiline kirjutamine. Lisaks kontrollitakse, et ilma õiguseta tarbija ei pääse ligi.
 - Vead ja kõik päringud on tabelis `xroad.xroad_integration_log`.
 
