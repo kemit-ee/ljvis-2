@@ -2,7 +2,7 @@
 
 ## Mis see on
 
-Vanad LJVIS1 tarbijad saadavad X-tee kaudu **SOAP**-päringuid (näiteks Tööinspektsioon saadab kontrollakte). LJVIS2 töötab JSON-iga. **XTR** on tõlk nende vahel:
+Vanad LJVIS1 tarbijad saadavad X-tee kaudu **SOAP**-päringuid (näiteks Tööinspektsioon saadab kontrollvorme). LJVIS2 töötab JSON-iga. **XTR** on tõlk nende vahel:
 
 ```text
 Tarbija → turvaserver → XTR (port 8081) → Ruuter.internal → andmebaas
@@ -64,14 +64,15 @@ Lisaks peab XTR ulatuma `ruuter-internal:8080`-ni.
 
 ## Mida süsteem ise tagab (tarbijate küsimuste jaoks)
 
-- **Sama kontrollakt saadetakse uuesti samade andmetega:** vastus on „Success“, topelt kirjet ei teki.
-- **Saadetakse parandatud andmetega ja akt on veel kinnitamata:** parandus salvestatakse.
-- **Saadetakse parandatud andmetega, aga akt on juba kinnitatud, avaldatud, kustutatud või arhiveeritud:** tarbija saab veateate ja andmeid ei muudeta.
-- **Kasutaja kinnitab akti samal ajal, kui X-tee kaudu tuleb parandus:** salvestub see, mis jõudis enne. Teine osapool saab teate. X-tee tarbija saab vea, kasutaja näeb teadet „laadi vorm uuesti“. Midagi ei kirjutata vaikselt üle.
-- **Samaaegsed korduspäringud:** tekib ikkagi ainult üks akt.
+- **Sama kontrollvorm saadetakse uuesti samade andmetega:** vastus on „Success“, topelt kirjet ei teki.
+- **Esimene kord saabub kontrollvorm:** see luuakse kohe olekusse „kinnitatud“ (`confirmed`), mitte „salvestatud“.
+- **Saadetakse parandatud andmetega ja kontrollvorm on veel kinnitamata:** parandus salvestatakse.
+- **Saadetakse parandatud andmetega, aga kontrollvorm on juba kinnitatud, avaldatud, kustutatud või arhiveeritud:** tarbija saab veateate ja andmeid ei muudeta.
+- **Kasutaja kinnitab kontrollvormi samal ajal, kui X-tee kaudu tuleb parandus:** salvestub see, mis jõudis enne. Teine osapool saab teate. X-tee tarbija saab vea, kasutaja näeb teadet „laadi vorm uuesti“. Midagi ei kirjutata vaikselt üle.
+- **Samaaegsed korduspäringud:** tekib ikkagi ainult üks kontrollvorm.
 
 ## Veel lahtine
 
-- Äriotsus: kas X-tee kaudu saabunud aktid jäävad olekusse „salvestatud“ ja kas kinnitatud akti tohib X-tee kaudu muuta. Praegu on vastus „ei“.
+(Hetkel ühtegi lahtist äriotsust ei ole: X-tee kaudu saabunud kontrollvorm läheb kohe „kinnitatud“ olekusse, mitte „salvestatud“ olekusse, ja kinnitatud kontrollvormi X-tee kaudu ei muudeta.)
 
 Kohalikus dev-is: SOAP `http://localhost:9011/soap-in/ljvis/ljvis`, kirjeldus sama aadress `?wsdl` lõpuga. Tehnilised detailid: [09-xtr-soap.md](09-xtr-soap.md).

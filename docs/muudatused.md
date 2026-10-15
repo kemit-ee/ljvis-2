@@ -4,6 +4,10 @@
 
 ## 2026-10-15
 
+### XTR SOAP dokumentatsiooni parandus
+
+- `docs/xtee/` juhendid täpsustatud: X-tee kaudu saabunud tööinspektsiooni kontrollvorm läheb kohe **kinnitatud** olekusse, mitte „salvestatud" olekusse (varem oli „Veel lahtine" sektsioonis esitatud lahendamata äriotsusena, kuigi ülejäänud dokumentatsioon juba kirjeldas tegelikku käitumist).
+- Terminoloogia ühtlustatud: läbivalt kasutusel "kontrollvorm" (varem segamini "akt"/"kontrollakt").
 ### XTR SOAP ühendamise juhend täpsustatud
 
 - `docs/xtee/10-xtr-uhendamine.md`: sama dummy `public_base_url` parandus, mis 13.10.2026 tehti `09-xtr-soap.md`-le, nüüd ka ühendamise lühijuhendis — näide ja kontrollnimekiri ei soovita enam keskkonna tegelikku hostinime WSDL-i kirja panna. Rakenduse käitumist ei muudeta.
