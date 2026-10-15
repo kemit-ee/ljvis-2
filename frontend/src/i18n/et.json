@@ -1517,6 +1517,7 @@
     "originalTemplateId": "Postkasti malli alias (templateId)",
     "defaultLanguage": "Vaikimisi keel",
     "defaultRecipientEmail": "Vaikimisi vastuvõtja e-post",
+    "recipients": "Saajad",
     "desktopRecipients": "Teavituse saajad",
     "desktopRecipientsEmpty": "Saajaid pole valitud",
     "desktopRecipientsSearchPlaceholder": "Otsi kasutajat nime järgi",
