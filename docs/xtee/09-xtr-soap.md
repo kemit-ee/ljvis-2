@@ -1,6 +1,6 @@
 # XTR: SOAP mõlemas suunas
 
-Kasutame avaldatud `turnerrainer/xtr:0.5.0-rc` pilti. Olemasolevad väljuvate päringute DSL-id (`DSL/xtr`) jäävad kasutusse; SOAP-teenuste pakkumine lisandub samasse XTR-i.
+Kasutame avaldatud `turnerrainer/xtr:0.5.0-rc` image'it. Olemasolevad väljuvate päringute DSL-id (`DSL/xtr`) jäävad kasutusse; SOAP-teenuste pakkumine lisandub samasse XTR-i.
 
 ## Kuidas see töötab
 
@@ -14,12 +14,12 @@ wsdl/ljvis/ljvis.wsdl
 wsdl/ljvis/ljvis.soap.yaml
 ```
 
-Kui WSDL kasutab kohalikke XSD-sid, tuleb need samuti kaasa panna. XTR ei laadi kaugeid XSD-sid internetist. Meie `ljvis.wsdl` pärineb muutmata kujul LJVIS1 lähtekoodi `Ljvis.XTeeService/ljvis.wsdl` failist. Selle kuus operatsiooni on IsikuKontroll, IsikuEttevoteKontrollid, ErakorralineYVquery, ErakorralineYVconfirm, RegisterJobInspection ja RegisterJobInspection_v2. REST v3 jääb eraldi REST-lepinguks.
+Kui WSDL kasutab kohalikke XSD-sid, lisa need samuti kaasa. XTR ei laadi kaugeid XSD-sid internetist. Meie `ljvis.wsdl` pärineb muutmata kujul LJVIS1 lähtekoodi `Ljvis.XTeeService/ljvis.wsdl` failist. Selle kuus operatsiooni on IsikuKontroll, IsikuEttevoteKontrollid, ErakorralineYVquery, ErakorralineYVconfirm, RegisterJobInspection ja RegisterJobInspection_v2. REST v3 jääb eraldi REST-lepinguks.
 
 ## Millised senised teed jäävad vajalikuks?
 
 - `DSL/Ruuter.internal/.../xroad/provide` JSON-töötlejad jäävad alles: XTR kutsub neid ning päringute SOAP-vastuse teisendaja kutsub omakorda olemasolevaid REST-päringuid. Neid ei tohi SOAP-i lisamisel kustutada.
-- `RegisterJobInspection_v3` ja AJ `/ljvis/xroad/v2/*` ei kuulu sellesse WSDL-i; nende REST-lepingud ja OpenAPI jäävad kehtima. Olemasoleva REST-teenuse avaldamise lõpetamine vajab tarbijate ülemineku kinnitust.
+- `RegisterJobInspection_v3` ja Andmejälgija (AJ) `/ljvis/xroad/v2/*` ei kuulu sellesse WSDL-i; nende REST-lepingud ja OpenAPI jäävad kehtima. Enne olemasoleva REST-teenuse avaldamise lõpetamist kinnita, et tarbijad on üle läinud.
 - `LJVIS_XTR` ja `LJVIS_RUUTER_INTERNAL` jäävad kasutusse. Kasutamata `XROAD_SECURITY_SERVER` ja `XROAD_INSTANCE` Ruuteri konstandid on eemaldatud; vastavad XTR-i seaded on `security_server` ja `xroad_instance`.
 - Compose'i `ruuter-internal` hostipordid `8089` / `9089` on endiselt kohalike REST-testide jaoks. Need ei ole uus SOAP-aadress. CI `xtr` mock teenindab muid väliseid sõltuvusi; eraldi `xtr-inbound` käivitab päris XTR-i SOAP-testid.
 
@@ -38,7 +38,7 @@ Kontrollvormi identiteet on **leping + saatja ID**: tabel `forms.labour_inspecti
 | Samaaegsed päringud | üks kontrollvorm; muudetud päringud rakendatakse järjest | üks kontrollvorm |
 | Samal ajal kinnitab/kustutab kasutaja UI-s | 409, kui UI jõudis enne; muidu salvestub X-tee muudatus ja UI saab `form_modified` | olemasolev kontrollvorm |
 
-**Erinevus LJVIS1-st:** LJVIS1 `RavenDbManager.StoreOrUpdateJobInspection(JobInspectionV2)` uuendas sama `InspectionId`-ga dokumenti igas staatuses ja määras staatuse (`Saved`, ilma menetluse viitenumbrita `Published`). LJVIS2 loob sissetulevad kontrollvormid alati `confirmed`-staatuses (nii saab e-toimiku sünkroonimine neid kohe töödelda, vt `apply_etoimik_decision.sql`) ja lukustatud kontrollvormi X-tee kaudu ei muudeta: muudetud kordus tagastab 409. See on **mitte täielik ühilduvus** LJVIS1-ga, kus sama `InspectionId` uuendas dokumenti igas staatuses.
+**Erinevus LJVIS1-st:** LJVIS1 `RavenDbManager.StoreOrUpdateJobInspection(JobInspectionV2)` uuendas sama `InspectionId`-ga dokumenti igas staatuses ja määras staatuse (`Saved`, ilma menetluse viitenumbrita `Published`). LJVIS2 loob sissetulevad kontrollvormid alati `confirmed`-staatuses (nii saab e-toimiku sünkroonimine neid kohe töödelda, vt `apply_etoimik_decision.sql`) ja lukustatud kontrollvormi X-tee kaudu ei muudeta: muudetud kordus tagastab 409. LJVIS2 ei ole seega LJVIS1-ga täielikult ühilduv.
 
 **Migratsioon:** LJVIS1 RavenDB V2 kontrollvormid seotakse `xroad-v2` + `InspectionId`-ga (`DSL/migration/sql/07-transform-labour-inspection.sql`), seega hilisem `RegisterJobInspection_v2` sama ID-ga leiab migreeritud kontrollvormi (kinnitatud → 409, duplikaati ei teki). V1 Raven dokumendi ID on LJVIS1 sisemine järjenumber, mitte saatja `kontrolli_id`; V1 kontrollvormidele seost ei looda. Kui sama `InspectionId` on enne migratsiooni juba X-tee kaudu LJVIS2-sse saabunud, peatab eelkontroll jooksu leiuga `external_id_already_received`.
 
@@ -56,7 +56,7 @@ Päringuoperatsioonide adapterid (`DSL/Ruuter.internal/ljvis/POST/xroad/soap/isi
 
 ## Kohalik dev
 
-`docker-compose.yml` kasutab uut pilti, olemasolevat turvaserveri konfiguratsiooni ning WSDL-kausta.
+`docker-compose.yml` kasutab uut image'it, olemasolevat turvaserveri konfiguratsiooni ning WSDL-kausta.
 
 ```bash
 docker compose up -d xtr ruuter-internal
@@ -153,7 +153,7 @@ outbound:
     subsystem_code: ljvis2
 ```
 
-`request_pointer` ja `response_wrap` on LJVIS-i lepingu jaoks; teise WSDL-i korral tuleb need kohandada selle sõnumistruktuurile. `xroad_service` peab kirjeldama tegelikku sihtteenuse pakkujat. Ilma sissetuleva backend-ita ei saa operatsioon ärilist vastust anda. Kui JSON-struktuurid erinevad, lisa väike teisendus Ruuterisse.
+`request_pointer` ja `response_wrap` on LJVIS-i lepingu jaoks; teise WSDL-i korral tuleb need kohandada selle sõnumistruktuurile. `xroad_service` peab kirjeldama tegelikku sihtteenuse pakkujat. Määra igale operatsioonile sissetulev backend — ilma selleta ei saa operatsioon ärilist vastust anda. Kui JSON-struktuurid erinevad, lisa väike teisendus Ruuterisse.
 
 XTR järgib XSD struktuuri, kuid ei valideeri kõiki kohustuslikke välju ega enum-väärtusi. Rakenduse sisendikontroll ja lepingu testid jäävad vajalikuks.
 

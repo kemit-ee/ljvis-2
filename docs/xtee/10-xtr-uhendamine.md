@@ -16,7 +16,7 @@ Samas XTR-is töötavad edasi ka senised väljuvad päringud (rahvastikuregister
 ## Mida paigaldada
 
 1. Sama väljalaske **Liquibase, Resql, Ruuter, Ruuter.internal, frontend ja XTR**. Liquibase käib enne teisi (changeset `20261209100000` lisab tabeli ja funktsiooni).
-2. XTR-i pilt ehitatakse projekti failist `docker/xtr/Dockerfile`. Selles on meie leping (WSDL) juba sees. Upstream'i tühi XTR-i pilt ei sobi.
+2. XTR-i image ehitatakse projekti failist `docker/xtr/Dockerfile`. Selles on meie leping (WSDL) juba sees. Upstream'i tühi XTR-i image ei sobi.
 
 ## XTR seadistus (`xtr.yaml`, igas keskkonnas)
 
@@ -65,14 +65,10 @@ Lisaks peab XTR ulatuma `ruuter-internal:8080`-ni.
 ## Mida süsteem ise tagab (tarbijate küsimuste jaoks)
 
 - **Sama kontrollvorm saadetakse uuesti samade andmetega:** vastus on „Success“, topelt kirjet ei teki.
-- **Esimene kord saabub kontrollvorm:** see luuakse kohe olekusse „kinnitatud“ (`confirmed`), mitte „salvestatud“.
+- **Kontrollvorm saabub esimest korda:** see luuakse kohe olekusse „kinnitatud“ (`confirmed`), mitte „salvestatud“.
 - **Saadetakse parandatud andmetega ja kontrollvorm on veel kinnitamata:** parandus salvestatakse.
 - **Saadetakse parandatud andmetega, aga kontrollvorm on juba kinnitatud, avaldatud, kustutatud või arhiveeritud:** tarbija saab veateate ja andmeid ei muudeta.
 - **Kasutaja kinnitab kontrollvormi samal ajal, kui X-tee kaudu tuleb parandus:** salvestub see, mis jõudis enne. Teine osapool saab teate. X-tee tarbija saab vea, kasutaja näeb teadet „laadi vorm uuesti“. Midagi ei kirjutata vaikselt üle.
 - **Samaaegsed korduspäringud:** tekib ikkagi ainult üks kontrollvorm.
-
-## Veel lahtine
-
-(Hetkel ühtegi lahtist äriotsust ei ole: X-tee kaudu saabunud kontrollvorm läheb kohe „kinnitatud“ olekusse, mitte „salvestatud“ olekusse, ja kinnitatud kontrollvormi X-tee kaudu ei muudeta.)
 
 Kohalikus dev-is: SOAP `http://localhost:9011/soap-in/ljvis/ljvis`, kirjeldus sama aadress `?wsdl` lõpuga. Tehnilised detailid: [09-xtr-soap.md](09-xtr-soap.md).
