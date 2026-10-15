@@ -366,7 +366,14 @@ services:
     depends_on:
       - ruuter-internal
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health > /dev/null 2>&1"]
+      # Fail fast when no jobs got registered: a job file whose headerEnvs
+      # variable (INTERNAL_COMMUNICATION_KEY) is unset is skipped, and
+      # CronManager would otherwise stay "healthy" with 0 jobs.
+      test:
+        - CMD-SHELL
+        - >-
+          curl -sf http://localhost:8080/health > /dev/null &&
+          curl -sf -H "Authorization: Bearer $$CRONMANAGER_ADMIN_TOKEN" http://localhost:8080/jobs | grep -q '"name"'
       interval: 10s
       timeout: 5s
       retries: 12
