@@ -19,6 +19,11 @@
 - Sama kehtib välisriigi rikkumise kontrollkaardi ELi rikkumiste plokile.
 - Ilma valitud rikkumiseta plokid avanevad ja sulguvad nagu varem.
 
+### CronManager 0.2.4-alpha: SSRF-kaitse tagasi sees
+
+- Ajastatud tööde teenus uuendati versioonile 0.2.4-alpha. Privaatvõrgu kaitse (`block_private_networks`) on jälle sisse lülitatud; erandina on lubatud ainult `ruuter-internal`, mida kõik tööd kutsuvad (`allowed_private_hosts`). Pilve metaandmete aadressid on keelatud ka sellele hostile.
+- Teenus käivitub nüüd ka rangema keskkonnaseadistusega (`APP_ENV=test`/`production`); varem pidi kõikjal olema `APP_ENV=dev`. Tööde ajakavad ja käitumine ei muutu.
+
 ### CronManager 0.2.3-alpha
 
 - Ajastatud tööde teenus uuendati versioonilt 0.1.4-alpha versioonile 0.2.3-alpha. Tööde ajakavad ja käitumine ei muutu.
