@@ -8,6 +8,9 @@
 
 - `docs/xtee/10-xtr-uhendamine.md`: sama dummy `public_base_url` parandus, mis 13.10.2026 tehti `09-xtr-soap.md`-le, nüüd ka ühendamise lühijuhendis — näide ja kontrollnimekiri ei soovita enam keskkonna tegelikku hostinime WSDL-i kirja panna. Rakenduse käitumist ei muudeta.
 
+### Sõidu- ja puhkeaja vormid: päevade arvud kuni kahekohalised
+
+- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab samu välju) saab väljadele „Kontrollitud päevade arv", „Tööpäevade arv" ja „Muu tegevuse päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
 ### Vormi vaate kerimine pärast salvestamist ja kinnitamist
 
 - „Salvesta" vigadeta: vaade liigub vormi algusesse. Tram-kontrollkaardil keriti seni üles juba nupuvajutusel (ka vigade korral), nüüd alles õnnestunud salvestamise järel.
