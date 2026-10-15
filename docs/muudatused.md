@@ -2,7 +2,55 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
-## 2026-10-13
+## 2026-10-15
+
+### Desktop-teavitus ka avalikustatud vormi muutmisel-salvestamisel
+
+- Sõiduki ja haagise tehnovormil, autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormil ning TRAM kontrollkaardil tekkis desktop-teavitus (raske rikkumine, sõidukeeld, erakorraline ülevaatus, kaalu/mõõtmete rikkumine) seni ainult esimesel avalikustamisel. Kui avalikustatud vormi hiljem täpsustati ja uuesti salvestati, teavitust ei tekkinud. Nüüd tekib teavitus ka sel juhul, kui tingimus (nt raske rikkumine) on uuesti täidetud.
+
+### XTR SOAP dokumentatsiooni parandus
+
+- `docs/xtee/` juhendid täpsustatud: X-tee kaudu saabunud tööinspektsiooni kontrollvorm läheb kohe **kinnitatud** olekusse, mitte „salvestatud" olekusse (varem oli „Veel lahtine" sektsioonis esitatud lahendamata äriotsusena, kuigi ülejäänud dokumentatsioon juba kirjeldas tegelikku käitumist).
+- Terminoloogia ühtlustatud: läbivalt kasutusel "kontrollvorm" (varem segamini "akt"/"kontrollakt").
+- `docs/xtee/10-xtr-uhendamine.md` sünkroonitud tootmisjuhisega: `public_base_url` näidis vahetatud dummy-väärtuse vastu (varem oli näites päris dev-hostinimi), lisatud selgitus, miks WSDL-i `soap:address` ei tohi näidata tegelikku infrastruktuuri aadressi.
+- ASD-STE100 vaimus keeleline korrastus (AGENTS.md juhised): "Docker pilt" asendatud terminiga "image", passiivsed laused toimingulisteks käskudeks eeltingimusega, lühend "AJ" laiendatud esimesel kasutusel, topeltsalgatusega/vastuolulised laused lihtsustatud.
+### XTR SOAP ühendamise juhend täpsustatud
+
+- `docs/xtee/10-xtr-uhendamine.md`: sama dummy `public_base_url` parandus, mis 13.10.2026 tehti `09-xtr-soap.md`-le, nüüd ka ühendamise lühijuhendis — näide ja kontrollnimekiri ei soovita enam keskkonna tegelikku hostinime WSDL-i kirja panna. Rakenduse käitumist ei muudeta.
+
+### Sõidu- ja puhkeaja vormid: päevade arvud kuni kahekohalised
+
+- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab samu välju) saab väljadele „Kontrollitud päevade arv", „Tööpäevade arv" ja „Muu tegevuse päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
+### Vormi vaate kerimine pärast salvestamist ja kinnitamist
+
+- „Salvesta" vigadeta: vaade liigub vormi algusesse. Tram-kontrollkaardil keriti seni üles juba nupuvajutusel (ka vigade korral), nüüd alles õnnestunud salvestamise järel.
+- „Salvesta" või „Kinnita" vigadega: vaade liigub esimese veaga välja juurde (seni ainult „Salvesta" puhul). Kehtib kontrollvormidel ja ERRU vormidel.
+- „Kinnita" vigadeta: vaade jääb alla ja ilmunud „Avalikusta" nupp keritakse nähtavale, et saaks kohe avalikustada.
+
+### Valitud rikkumisega plokk on alati avatud
+
+- Sõidu- ja puhkeaja (SP) vormil on rikkumiste plokid („Dokumendi või õiguse kontroll", „Sõidu- ja puhkeaja nõuete kontroll", Rooma I, lähetamise nõuded, massi ja mõõtmete / ATP plokk) avatud, kui neis on mõni rikkumine valitud — ka vormi avamisel ja vaatevaates. Valitud rikkumisega plokki ei saa kokku lükata.
+- Sama kehtib välisriigi rikkumise kontrollkaardi ELi rikkumiste plokile.
+- Ilma valitud rikkumiseta plokid avanevad ja sulguvad nagu varem.
+
+### CronManager 0.2.4-alpha: SSRF-kaitse tagasi sees
+
+- Ajastatud tööde teenus uuendati versioonile 0.2.4-alpha. Privaatvõrgu kaitse (`block_private_networks`) on jälle sisse lülitatud; erandina on lubatud ainult `ruuter-internal`, mida kõik tööd kutsuvad (`allowed_private_hosts`). Pilve metaandmete aadressid on keelatud ka sellele hostile.
+- Teenus käivitub nüüd ka rangema keskkonnaseadistusega (`APP_ENV=test`/`production`); varem pidi kõikjal olema `APP_ENV=dev`. Tööde ajakavad ja käitumine ei muutu.
+
+### CronManager 0.2.3-alpha
+
+- Ajastatud tööde teenus uuendati versioonilt 0.1.4-alpha versioonile 0.2.3-alpha. Tööde ajakavad ja käitumine ei muutu.
+- Tööde nimekiri (`/jobs`) ja hetkel töötavate tööde vaade (`/running`) nõuavad nüüd admin-tokenit; varem olid need autentimata loetavad.
+- Teenus lõpetab seiskamisel (`docker stop`, pod'i väljatõstmine) pooleli olevad päringud enne sulgumist.
+
+## 2026-10-14
+
+### Arhiveeritud vormide isikuga seose eemaldamine (ADR-014, LJVIS2-51)
+
+- Kohe pärast seda, kui kontrollvorm on jõudnud arhiivbaasi ja on töö-baasist kinnitatult kustutatud, asendatakse arhiveeritud kirje nimi, isikukood, sünniaeg ja sünnikoht (nt isikukood „38002025213" → „38001010000", sünniaeg 02.02.1865 → 01.01.1860, sünnikoht „Tallinn, Eesti" → „Eesti"). Vormi loonud ametniku andmed jäävad puutumata.
+- Juhitav uue `anonymize` lülitiga (vaikimisi sees) mõlemal arhiveerimise cron-tööl, samamoodi nagu olemasolevad `enabled`/`purge`/`dryRun` lülitid; vt admin-juhend „Arhiveerimine" §12.
+- Tagasiulatuvalt varem arhiveeritud kirjeid ei puudutata.
 
 ### Kiiremad loendid ja klassifikaatorite laadimine (DataMapperi läbisõidud eemaldatud)
 
@@ -93,12 +141,12 @@
 
 ## 2026-10-05
 
-### CronManageri ajastatud tööd on taas `type: http` (korrigeerib #515)
+### CronManager'i ajastatud tööd saadavad teenusetokeni päisega (korrigeerib #515)
 
-- `/cron/*` route'id ei nõua `x-internal-service-token` päist (`POST/cron/.guard`, `override_ancestors`). Kõik CronManageri tööd on taas lihtsad `type: http` POST-id; `exec`-skript `call-ruuter-internal.sh` ja CronManageri `constants.ini` mount on eemaldatud.
-- Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManageri tokenita päring 403).
-- Kaitse `/cron/*` ees on võrgutasemel (NetworkPolicy lubab `ruuter-internal`'ile ainult teadaolevad podid, host-porti ei publitseerita). Token jääb kõigile teistele `ruuter-internal` route'idele.
-- Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManageri tööd.
+- Kõik CronManager'i tööd saadavad päise `x-internal-service-token` CronManager'i `headerEnvs` võimalusega (väärtus keskkonnamuutujast `INTERNAL_COMMUNICATION_KEY`, loetakse iga käivituse ajal); `POST/cron/.guard` erand on eemaldatud ja `/cron/*` nõuab taas tokenit. **Eeldab CronManager'i versiooni, mis toetab `headerEnvs`-i** (CronManager v0.2.3-alpha, turnerrainer/CronManager#46); vana versioon jätab tööfailid vahele (0 tööd). CronManager'i konteinerile tuleb anda `INTERNAL_COMMUNICATION_KEY` (devops: `cronmanager-secret`, SSM `internal/communication-key`).
+- CronManager'i konteineri healthcheck nõuab nüüd, et `GET /jobs` (admin-tokeniga) tagastaks vähemalt ühe töö. Puuduv `INTERNAL_COMMUNICATION_KEY` jätab tööfailid vahele ja CronManager ise käivitub 0 tööga; nüüd muutub konteiner sel juhul `unhealthy`, nii et puuduv env tuleb välja juba deploy'l. Sama käsku tasub kasutada Kubernetes'e `readinessProbe`-s (vt admin juhend 12).
+- Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManager'i tokenita päring 403).
+- Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManager'i tööd.
 
 ### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
 

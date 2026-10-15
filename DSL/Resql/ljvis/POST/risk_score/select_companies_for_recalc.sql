@@ -23,7 +23,10 @@ description: "Candidates for the nightly risk-score recalculation (LJVIS2-150/15
   calculate_risk_score.sql still applies the exact 2-year window and exact rules when it actually computes\
   \ R — these two bands only decide who's *worth checking* tonight. Without them the candidate set would\
   \ grow forever with total historical published-form volume, including companies whose last qualifying\
-  \ control was years ago and will never re-enter the window."
+  \ control was years ago and will never re-enter the window.\n\nSame recent/boundary bands are also applied\
+  \ to forms.foreign_violation_form (VR-vorm, LJVIS2-151 gap fix) so a company whose only qualifying control\
+  \ is a VR-vorm also gets picked up — see calculate_risk_score.sql's vr_* CTEs for the matching inclusion\
+  \ rules."
 namespace: risk_score
 params: {}
 returns:
@@ -65,9 +68,22 @@ recent_sp_teammate AS (
       WHERE stf.status = 'published'
         AND stf.created_at >= (now() - INTERVAL '3 days')
     )
+),
+recent_or_boundary_vr AS (
+  SELECT DISTINCT company_reg_code
+  FROM forms.foreign_violation_form
+  WHERE status = 'published'
+    AND company_reg_code ~ '^[0-9]{8}$'
+    AND (
+      created_at >= (now() - INTERVAL '3 days')
+      OR created_at BETWEEN (now() - INTERVAL '2 years' - INTERVAL '3 days')
+                         AND (now() - INTERVAL '2 years' + INTERVAL '3 days')
+    )
 )
 SELECT company_reg_code FROM recent_or_boundary_compound
 UNION
 SELECT company_reg_code FROM recent_sp_driver
 UNION
-SELECT company_reg_code FROM recent_sp_teammate;
+SELECT company_reg_code FROM recent_sp_teammate
+UNION
+SELECT company_reg_code FROM recent_or_boundary_vr;

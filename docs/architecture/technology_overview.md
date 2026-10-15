@@ -17,7 +17,7 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 | Nysiis | ERRU sõnumite teenus | määramata | `eclipse-temurin:21-jdk-alpine` / `eclipse-temurin:21-jre-alpine` | 2026-08-19 | DEV/CI | Rakenduse versiooni projekt ei määra. |
 | TARA mock | Arenduse autentimise mock | määramata | `golang:latest`, `debian:bookworm-slim` | 2026-09-07 | DEV/CI | Ainult arendus- ja CI-keskkonnas. |
 | S3 proxy | Manuste objektisalvestuse API | 22 | `node:22-alpine` | 2026-07-13 | DEV/CI | |
-| CronManager | Ajastatud tööde käivitamine | 0.1.4-alpha | `turnerrainer/cronmanager:0.1.4-alpha` + digest | 2026-09-10 | DEV/CI | |
+| CronManager | Ajastatud tööde käivitamine | 0.2.4-alpha | `turnerrainer/cronmanager:0.2.4-alpha` + digest | 2026-10-15 | DEV/CI | SSRF-kaitse sees, erandina lubatud ainult `ruuter-internal` (`allowed_private_hosts`); `/jobs` ja `/running` nõuavad admin-tokenit. |
 | pdf-creator | Vormide PDF-genereerimine | 1.1.0 | `pdf-creator/VERSION`; Python `python:3-alpine` + digest | 2026-09-11 | DEV/CI/PROD | Eraldi teenus; templated ja täidetud/tühjad väljatrükid. |
 | Frontend | Kasutajaliides | 1.3.0 | `frontend/package.json` | 2026-09-11 | DEV | React + TypeScript + Vite. |
 
@@ -31,6 +31,9 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 | XTR | 0.5.0-rc | 2026-10-05 |  | SOAPAction tugi `service:`-DSL-idele (0.4.2), valikuline `XTR_INTER_SERVICE_TOKEN` ja graceful shutdown (0.4.3), valikulised SOAP-lane'id (`.soap.yaml`, 0.5.0). Meie `DSL/xtr` päringud muutumatud. LJVIS1 WSDL-i pakkumine (`/soap-in/`, port 8081) ja JSON → SOAP väljuv (`/soap-out/`); release-image sisaldab `/wsdl`; `xtr.yaml` `security_server.trust_ca_path` (üks sertifikaat) asendab `SSL_CERT_FILE`-i. |
 | DataMapper | 0.1.3-alpha | 2026-09-07 | 2026-09-18 | `turnerrainer/datamapper:0.1.3-alpha` |
 | DataMapper | 0.2.1-alpha | 2026-09-18 |  | Turvakõvendus (v0.2.0-alpha) + 405/graceful shutdown patch (v0.2.1-alpha); `APP_ENV=dev` lisatud, kuna env_safety langeb muidu Production-režiimi tagasi. Väljundmallid muutumatud. |
+| CronManager | 0.1.4-alpha | 2026-09-10 | 2026-10-15 | `turnerrainer/cronmanager:0.1.4-alpha` |
+| CronManager | 0.2.3-alpha | 2026-10-15 | 2026-10-15 | env_safety (0.2.0), `doctor` ja graceful SIGTERM (0.2.2), HTTP-tööde päised (0.2.3); SSRF-kaitse privaatvõrgule välja lülitatud, kuna kõik tööd kutsuvad `ruuter-internal`-i. 0.2.0-alpha jäeti vahele (tagasi kutsutud). |
+| CronManager | 0.2.4-alpha | 2026-10-15 |  | `security.allowed_private_hosts` (turnerrainer/CronManager#49): SSRF-kaitse jälle sisse, erandina lubatud ainult `ruuter-internal`; võimaldab range `APP_ENV`-i (test/production). |
 
 ## Täiendav info
 

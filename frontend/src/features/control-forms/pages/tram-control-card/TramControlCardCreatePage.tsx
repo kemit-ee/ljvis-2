@@ -167,10 +167,7 @@ export function TramControlCardCreatePage() {
           <FormPrintButton endpoint="/v1/control-forms/tram-card/read/print" />
           <AsyncButton
             type="button"
-            onClick={() => {
-              formik.handleSubmit();
-              window.scrollTo(0, 0);
-            }}
+            onClick={() => formik.handleSubmit()}
           >
             {t('common.save')}
           </AsyncButton>

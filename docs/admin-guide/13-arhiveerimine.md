@@ -8,16 +8,17 @@ suurendavad aja jooksul töötabeleid ja indekseid, kuigi kasutajad neid enam
 igapäevatöös ei vaata.
 
 Arhiveerimine kannab vanad vormid **eraldi arhiivibaasi** (`ljvis_arhiiv_db`,
-toodangus `ljvis2_<env>_arhiiv`). Arhiveerimisel on kaks eraldi, teineteisest sõltumatut
-funktsiooni:
+toodangus `ljvis2_<env>_arhiiv`). Arhiivil on kolm omavahel seotud funktsiooni:
 
 | Funktsioon | Mida arhiveeritakse | Seis | Juhend |
 |---|---|---|---|
 | **A. Kustutatud vormide arhiveerimine** (ADR-010) | Vormid, mille viimane seis on „kustutatud“ | Tehtud; automaatne käivitus on **välja lülitatud** (2099) | [peatükk 7](#7-kustutatud-vormide-arhiveerimine-adr-010) |
 | **B. Ajapõhine arhiveerimine** (ADR-012) | Vormid, mille viimasest tegevusest on möödas X aastat | Tehtud, **vaikimisi välja lülitatud** | see juhend |
+| **C. Isikuga seose eemaldamine** (ADR-014, LJVIS2-51) | A/B käigus kustutatud (purge'itud) vormide arhiivikoopia isikuandmed | Tehtud, **vaikimisi sisse lülitatud** | [peatükk 12](#12-isikuga-seose-eemaldamine-adr-014-ljvis2-51) |
 
-Mõlemad funktsioonid kasutavad tabelit `archive.form_snapshot`. Mõlemad funktsioonid
-järgivad sama tööjärjestust: kopeeri, kontrolli ja vajaduse korral kustuta.
+A ja B kasutavad sama kopeeri → kontrolli → (valikuliselt) kustuta mustrit ja sama
+arhiivitabelit `archive.form_snapshot`; C käivitub automaatselt kohe pärast A või B
+kustutamissammu õnnestumist, kui `anonymize=true` (vaikimisi nii).
 
 > **Põhimõte:** arhiivibaas kontrollib eraldi päringuga, kas kõik kopeeritud read on
 > olemas. Süsteem kustutab read tööbaasist ainult pärast edukat kontrolli. Ajapõhise
@@ -217,8 +218,57 @@ Enne esimest kustutavat käivitust tee testkeskkonnas taastekatse.
 - Vastavus: andmete säilitustähtajad ja kustutamise õiguslik alus on andmeomaniku otsus.
   Funktsioon annab tehnilise võimaluse; `retentionYears` ja `purge` valik on tema otsustada.
 
+## 12. Isikuga seose eemaldamine (ADR-014, LJVIS2-51)
+
+Peatükkide 4 ja 7 kustutamissamm (`purge`) eemaldab vormi töö-baasist, aga arhiivis
+jääb sisu täies mahus alles. Vastuvõtutingimus LJVIS2-51 nõuab lisaks ka **isikuga
+seose eemaldamist** arhiveeritud kirjelt. See toimub automaatselt, kohe pärast
+kinnitatud kustutamist, ja on eraldi `anonymize` lülitiga juhitav — täpselt samas
+failis, kus teised arhiveerimise seaded (peatükk 1 / 7):
+
+```yaml
+# archive-aged-forms.yaml
+url: "...?enabled=false&retentionYears=7&purge=false&batch=500&dryRun=false&anonymize=true"
+# archive-deleted-forms.yaml
+url: "...?anonymize=true"
+```
+
+| Parameeter | Vaikimisi | Tähendus |
+|---|---|---|
+| `anonymize` | `true` | **Isikuga seose eemaldamise lüliti.** `true` = kohe pärast kinnitatud kustutamist (`purge`) asendatakse arhiveeritud rea isikuandmed (vt tabel allpool). `false` = arhiveeritud rida jääb täies (1:1) kujul. |
+
+**Käivitumise tingimus:** `archive-deleted-forms.yml`-is (ADR-010) käivitub
+anonümiseerimine iga kord, kui kustutamine õnnestub (seal pole `purge`-lülitit — see
+funktsioon kustutab alati). `archive-aged-forms.yml`-is (ADR-012) käivitub see **ainult**
+siis, kui `purge=true` JA kustutamine kinnitati — archive-only teel (`purge=false`)
+isikuandmeid ei puudutata, sest töö-baasi koopia on veel elus.
+
+### Mis asendatakse
+
+| Väli | Reegel | Näide |
+|---|---|---|
+| Nimi (eesnimi) | `"Anonümiseeritud"` | — |
+| Nimi (perenimi) | tühi | — |
+| Sünnikuupäev | päev/kuu `01.01`, aasta kümnendi algusesse | `02.02.1865` → `01.01.1860` |
+| Isikukood (EE formaat) | sajand/sugu-number ja sünniaasta kümnend säilivad, kuu/päev/jrk-nr/kontrollnumber lähtestatakse | `38002025213` → `38001010000` |
+| Isikukood (muu formaat) | tühi | — |
+| Sünnikoht | jääb ainult viimane komaga eraldatud osa (tüüpiliselt riik) | `"Tallinn, Eesti"` → `"Eesti"` |
+
+Vormi **loonud ametniku** väljad (looja isikukood, nimi) jäävad alati puutumata —
+need on auditjälg, mitte isikuga seos.
+
+**Teadaolev piirang:** sünnikoha väli ilma komata (nt ainult linnanimi) jääb
+muutumatuks, kuna vabatekstist riiki usaldusväärselt tuletada ei saa.
+
+**Tagasiulatuvalt EI anonümiseerita** juba varem (enne seda funktsiooni) arhiveeritud ja
+kustutatud ridu — ainult sellest hetkest alates arhiveeritavaid.
+
+Idempotentne: arhiveeritud rea veerg `anonymized_at` (NULL = veel anonümiseerimata)
+välistab korduva töötlemise. Jälgimine käib sama logirea kaudu, mis arhiveerimisel
+(peatükk 6) — `response_xml`-is lisaväli `anonymized`.
+
 ## Seotud
 
-- Otsus: [ADR-012](../workingdocs/architecture-decisions.md) (ajapõhine), [ADR-010](../workingdocs/architecture-decisions.md) (kustutatud vormid)
-- Kood: `DSL/Ruuter.internal/ljvis/POST/cron/archive-aged-forms.yml`, `DSL/Resql/ljvis/POST/archive/select_aged_snapshots.sql`
+- Otsus: [ADR-012](../workingdocs/architecture-decisions.md) (ajapõhine), [ADR-010](../workingdocs/architecture-decisions.md) (kustutatud vormid), [ADR-014](../workingdocs/architecture-decisions.md) (isikuga seose eemaldamine)
+- Kood: `DSL/Ruuter.internal/ljvis/POST/cron/archive-aged-forms.yml`, `DSL/Resql/ljvis/POST/archive/select_aged_snapshots.sql`, `DSL/Resql/ljvis/POST/archive/anonymize_confirmed.sql`
 - Test: `DSL-tests-internal/archive/aged-forms.test.yml`

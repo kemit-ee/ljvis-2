@@ -238,6 +238,7 @@ extractCurrentStatus:
   assign:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
     current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+    cabotage_violations: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].cabotageViolations) || '[]'}"
   next: updateForm
 
 updateForm:
@@ -336,6 +337,7 @@ extractDriverPersonalCodesUpdate:
     driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
     driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"
     driver2_personal_code_foreign: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeForeign || '') : ''}"
+    company_name: "${compoundFormRes.response.body[0].companyName || ''}"
   next: logAuditEventUpdate
 
 logAuditEventUpdate:
@@ -354,6 +356,42 @@ logAuditEventUpdate:
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
   result: audit_result
+  next: checkNotifyOnResave
+
+# Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
+# teavituste mõttes — publish.yml-iga sama kontroll, aga event_key sisaldab
+# uut version'it, nii et teavitus ei jää dubleerimiskontrolli taha kinni.
+checkNotifyOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: checkSeriousInfringementResave
+  next: returnSuccess
+
+checkSeriousInfringementResave:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringementResave
+  next: returnSuccess
+
+createSeriousInfringementResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "drive_rest_teammate_form"
+      related_entity_id: ${sp_teammate_form_key}
+      event_key: "${'drive-rest-teammate:' + sp_teammate_form_key + ':' + saveRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Koondvormi võti: ' + current_compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifResResave
+  error: returnSuccess
   next: returnSuccess
 
 returnResqlSaveError:

@@ -70,14 +70,14 @@ Kordussaatmise reeglid (identiteet: leping + saatja `kontrolli_id`, tabel `forms
 
 | Olukord | Tulemus |
 |---|---|
-| Esimene päring | Uus akt, staatus `confirmed`, versioon 1 |
+| Esimene päring | Uus kontrollvorm, staatus `confirmed`, versioon 1 |
 | Täpne kordus (sama sisu kui viimati rakendatud) | HTTP 200 `Success`, uut rida ei lisata |
-| Muudetud sisu, akt on `confirmed` / `published` / `deleted` | HTTP 409 `CONFLICT`, midagi ei salvestata (SOAP-is `Client` Fault) |
-| Muudetud sisu, akt on arhiveerimisel tööbaasist eemaldatud | HTTP 409 `CONFLICT` (arhiveeritud), uut akti ei looda; täpne kordus `Success` |
-| Samaaegsed päringud sama ID-ga | Luuakse üks akt; muudetud samaaegsed päringud rakendatakse järjest, ükski ei kao |
-| Samal ajal kinnitatakse/kustutatakse akt UI-s | Ajalugu ei hargne (`revision`): kui UI jõudis enne, HTTP 409; kui X-tee jõudis enne, salvestub X-tee muudatus ja UI palub vormi uuesti laadida (`form_modified`) |
+| Muudetud sisu, kontrollvorm on `confirmed` / `published` / `deleted` | HTTP 409 `CONFLICT`, midagi ei salvestata (SOAP-is `Client` Fault) |
+| Muudetud sisu, kontrollvorm on arhiveerimisel tööbaasist eemaldatud | HTTP 409 `CONFLICT` (arhiveeritud), uut kontrollvormi ei looda; täpne kordus `Success` |
+| Samaaegsed päringud sama ID-ga | Luuakse üks kontrollvorm; muudetud samaaegsed päringud rakendatakse järjest, ükski ei kao |
+| Samal ajal kinnitatakse/kustutatakse kontrollvorm UI-s | Ajalugu ei hargne (`revision`): kui UI jõudis enne, HTTP 409; kui X-tee jõudis enne, salvestub X-tee muudatus ja UI palub vormi uuesti laadida (`form_modified`) |
 
-LJVIS1 (RavenDB) uuendas sama ID-ga dokumenti igas staatuses. LJVIS2-s on muutmine lubatud ainult kinnitamata aktil; lukustatud akti muutmine vajab äriotsust.
+LJVIS1 (RavenDB) uuendas sama ID-ga dokumenti igas staatuses. LJVIS2 loob sissetulevad kontrollvormid alati `confirmed`-staatuses ja lukustatud kontrollvormi X-tee kaudu ei muudeta: muudetud kordus tagastab 409.
 
 ---
 
@@ -100,8 +100,8 @@ LJVIS1 (RavenDB) uuendas sama ID-ga dokumenti igas staatuses. LJVIS2-s on muutmi
 |---|--------|-----------------|
 | T1 | Kõik kohustuslikud väljad | HTTP 200, `{"message": "Success"}` |
 | T2 | Korduspäring sama `kontrolli_id` | HTTP 200, duplikaati ei looda |
-| T2b | Muudetud korduspäring, akt `confirmed` | HTTP 409 `CONFLICT`, midagi ei salvestata |
-| T2c | Samaaegsed sama `kontrolli_id` päringud | Üks akt |
+| T2b | Muudetud korduspäring, kontrollvorm `confirmed` | HTTP 409 `CONFLICT`, midagi ei salvestata |
+| T2c | Samaaegsed sama `kontrolli_id` päringud | Üks kontrollvorm |
 | T3 | `kontrollija` puudub | HTTP 400 |
 | T4 | Vale `kontrolli_kp` formaat | HTTP 400 |
 | T5 | `X-Road-Client` puudub | HTTP 400 |

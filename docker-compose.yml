@@ -350,15 +350,16 @@ services:
 
   cronmanager:
     container_name: cronmanager
-    image: turnerrainer/cronmanager:0.1.4-alpha@sha256:429080e890699e11b7330487a04f55596023ef7c5601950716aa3694ceed0a75
+    image: turnerrainer/cronmanager:0.2.4-alpha@sha256:3ab67dc6adc68b927ff00454dd9c24fb8f61e907b57621f885a220c7d3228cd6
     environment:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
-      # Required by CronManager 0.1.4-alpha when binding outside loopback.
+      # Required when binding outside loopback.
       - CRONMANAGER_ADMIN_TOKEN=${CRONMANAGER_ADMIN_TOKEN:-dev-admin-token}
-      # No-op on 0.1.4-alpha (no env_safety gate yet), but a future bump to
-      # 0.2.1-alpha would otherwise fall back to Production and refuse to
-      # boot with the dev-admin-token default above — set ahead of time,
-      # same reasoning as data-mapper's APP_ENV.
+      # Sent by every http job as x-internal-service-token (headerEnvs in DSL/CronManager/*.yaml).
+      - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      # 0.2.0-alpha+ env_safety: unset APP_ENV falls back to Production, which
+      # refuses to boot with the weak dev-admin-token default above. TEST/PROD
+      # must supply a >=32-char token from a secret instead.
       - APP_ENV=dev
       # Quartz-cron triggers (DSL/CronManager/*.yaml) run in this timezone.
       - TZ=Europe/Tallinn
@@ -368,7 +369,14 @@ services:
     depends_on:
       - ruuter-internal
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health > /dev/null 2>&1"]
+      # Fail fast when no jobs got registered: a job file whose headerEnvs
+      # variable (INTERNAL_COMMUNICATION_KEY) is unset is skipped, and
+      # CronManager would otherwise stay "healthy" with 0 jobs.
+      test:
+        - CMD-SHELL
+        - >-
+          curl -sf http://localhost:8080/health > /dev/null &&
+          curl -sf -H "Authorization: Bearer $$CRONMANAGER_ADMIN_TOKEN" http://localhost:8080/jobs | grep -q '"name"'
       interval: 10s
       timeout: 5s
       retries: 12

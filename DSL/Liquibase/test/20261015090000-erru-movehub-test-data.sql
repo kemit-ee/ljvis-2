@@ -1,9 +1,11 @@
 -- Test/dev-only fixture: EL ametliku MOVEHUB ERRU 3.5 konformsustest-paketi
--- (MS Test Pack 3.19) andmed. EI ole Liquibase changeset -- ei asu DSL/Liquibase/-is,
--- ei rakendu kunagi automaatselt (docker-compose up, liquibase update ega CI bootstrap).
+-- (MS Test Pack 3.19) andmed. Fail asub Liquibase test-kataloogis, kuid ei ole
+-- Liquibase changeset ega rakendu automaatselt (docker-compose up, liquibase update
+-- ega CI bootstrap).
 --
 -- Rakendamine (uks kask):
---   docker compose exec -T database psql -U ljvis -d ljvis_db < tests/erru-testdata/erru-movehub-seed.sql
+--   docker compose exec -T database psql -U ljvis -d ljvis_db \
+--     < DSL/Liquibase/test/20261015090000-erru-movehub-test-data.sql
 --
 -- Osa A: koik 59 ametlikku testjuhtumit (Templates/ERRU3.5 Member State Test Cases
 -- version 1.00.xlsx), suund outgoing (Eesti kui saatja, from="XX" originaalis).
