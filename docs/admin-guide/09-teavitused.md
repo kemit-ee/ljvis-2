@@ -161,7 +161,11 @@ teavitus käivitub (**„Vormid, kus teavitus käivitub“**) — teavitused, mi
 tulevad automaatselt sisenevast ERRU sõnumist, mitte kasutaja poolt
 avaldatud LJVIS-vormist, on märgitud kui „Automaatne“.
 
-![Desktop-kanali teavituse vaade](images/09-teavitused/02-desktop-kanali-vaade.png)
+Veerg **„Saajad“** näitab juba koondtabelis, kellele või millisele aadressile
+teavitus läheb — desktop-kanali real kasutaja(te) nime, postkasti kanali real
+vaikimisi vastuvõtja e-posti —, ilma et peaks konkreetset rida avama.
+
+![Postkasti mallide ja vastuvõtjate seaded koos saajate veeruga](images/09-teavitused/02-desktop-kanali-vaade.png)
 
 Iga liigi kohta salvestatakse **uus versioon** (nagu kasutajate ja
 kasutajagruppide puhul) — olemasolevat rida ei muudeta, seega on iga
@@ -198,13 +202,15 @@ mingi õigusega kasutajad.
 
 Muutmisvormis on väli **„Teavituse saajad“** koos otsinguga:
 
-1. Sisesta otsinguväljale **kasutaja nimi** (vähemalt 3 tähemärki) ja vajuta
-   Enter või otsingu ikoonile.
+1. Sisesta otsinguväljale **kasutaja nimi** (vähemalt 3 tähemärki) — tulemused
+   ilmuvad otsingu ajal iseseisvalt, Enterit ega otsingu ikooni vajutada ei
+   ole vaja. Otsing leiab kasutaja nii ees- või perekonnanime kui ka
+   täisnime (nt „Mari Tamm“) järgi.
 2. Vali tulemuste hulgast **„Lisa“** — kasutaja lisandub saajate loendisse.
 3. Vajadusel eemalda saaja loendist nupuga **„Eemalda“**.
 4. Vajuta **„Salvesta“**.
 
-![Desktop-kanali saaja otsing](images/09-teavitused/03-desktop-saaja-otsing.png)
+![Desktop-kanali saaja otsing täisnimega](images/09-teavitused/03-desktop-saaja-otsing.png)
 
 ![Desktop-kanali saaja lisatud](images/09-teavitused/04-desktop-saaja-lisatud.png)
 
