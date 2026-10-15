@@ -4,6 +4,10 @@
 
 ## 2026-10-15
 
+### XTR SOAP ühendamise juhend täpsustatud
+
+- `docs/xtee/10-xtr-uhendamine.md`: sama dummy `public_base_url` parandus, mis 13.10.2026 tehti `09-xtr-soap.md`-le, nüüd ka ühendamise lühijuhendis — näide ja kontrollnimekiri ei soovita enam keskkonna tegelikku hostinime WSDL-i kirja panna. Rakenduse käitumist ei muudeta.
+
 ### Vormi vaate kerimine pärast salvestamist ja kinnitamist
 
 - „Salvesta" vigadeta: vaade liigub vormi algusesse. Tram-kontrollkaardil keriti seni üles juba nupuvajutusel (ka vigade korral), nüüd alles õnnestunud salvestamise järel.
