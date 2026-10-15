@@ -4,6 +4,9 @@
 
 ## 2026-10-15
 
+### Sõidu- ja puhkeaja vormid: päevade arvud kuni kahekohalised
+
+- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab samu välju) saab väljadele „Kontrollitud päevade arv", „Tööpäevade arv" ja „Muu tegevuse päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
 ### Vormi vaate kerimine pärast salvestamist ja kinnitamist
 
 - „Salvesta" vigadeta: vaade liigub vormi algusesse. Tram-kontrollkaardil keriti seni üles juba nupuvajutusel (ka vigade korral), nüüd alles õnnestunud salvestamise järel.
