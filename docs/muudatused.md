@@ -4,6 +4,13 @@
 
 ## 2026-10-15
 
+### Postkasti mallide ja teavituse saajate halduse täiendused
+
+- Teavituse saajad (desktop-kanali kasutajate nimed või postkasti vaikimisi e-post) on nüüd näha juba koondtabelis, ilma et peaks konkreetset rida avama.
+- Desktop-kanali saajate loendis näidatakse varasema isikukoodi asemel kasutaja nime.
+- Saaja lisamise otsing käivitub nüüd iseseisvalt sisestamise ajal (varem tuli otsimiseks vajutada Enter või otsinguikooni).
+- Parandatud viga, kus täisnime (eesnimi + perekonnanimi) sisestamisel kasutajaotsing ei leidnud midagi, kuigi kasutaja oli olemas — otsing vastendas varem kogu sisestuse ühe veeru vastu korraga, mitte eraldi ees- ja perekonnanimele.
+
 ### Desktop-teavitus ka avalikustatud vormi muutmisel-salvestamisel
 
 - Sõiduki ja haagise tehnovormil, autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormil ning TRAM kontrollkaardil tekkis desktop-teavitus (raske rikkumine, sõidukeeld, erakorraline ülevaatus, kaalu/mõõtmete rikkumine) seni ainult esimesel avalikustamisel. Kui avalikustatud vormi hiljem täpsustati ja uuesti salvestati, teavitust ei tekkinud. Nüüd tekib teavitus ka sel juhul, kui tingimus (nt raske rikkumine) on uuesti täidetud.
