@@ -102,8 +102,8 @@ export function readFlow() {
   const steps = [
     ['/ljvis/v1/dashboard/summary', 'dashboard_summary'],
     ['/ljvis/v1/classifiers/bundle', 'classifiers_bundle'],
-    ['/ljvis/v1/control-forms/search/list?formType=compound-form', 'search_list'],
-    ['/ljvis/v1/control-forms/search/list?formType=compound-form&vehicleRegNr=PERF0001', 'search_by_regnr'],
+    ['/ljvis/v1/control-forms/search/list?formType=compound', 'search_list'],
+    ['/ljvis/v1/control-forms/search/list?formType=compound&vehicleRegNr=PERF0001', 'search_by_regnr'],
     ['/ljvis/v1/notifications/list', 'notifications_list'],
     ['/ljvis/v1/notifications/unread-count', 'notifications_unread'],
     ['/ljvis/v1/admin/risk-scores/list', 'risk_scores_list'],
@@ -120,7 +120,7 @@ export function readFlow() {
 // Kirjutusvoog: koondvormi salvestamine, avamine uuesti.
 export function writeFlow() {
   const h = login();
-  const body = { ...formTemplate, vehicleRegNr: `W${__VU}${__ITER}`.slice(0, 10), status: 'saved' };
+  const body = { ...formTemplate, vehicleRegNr: `PERFW${__VU}${__ITER}`.slice(0, 10), status: 'saved' };
   const res = post('/ljvis/v1/control-forms/compound-form/edit/save', body, h, 'compound_save');
   writeTrend.add(res.timings.duration);
   const ok = check(res, { 'compound_save 200': (r) => r.status === 200 });

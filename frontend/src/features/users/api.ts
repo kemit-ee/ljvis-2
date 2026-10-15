@@ -51,7 +51,11 @@ export const updateUser = (
 ) => put<User[]>(`/v1/users/${scope}`, data);
 
 export const getUserGroups = (scope: 'admin' | 'local', userId: string) =>
-  get<UserGroupAssignment[]>(`/v1/users/${scope}/groups`, { q: userId });
+  get<UserGroupAssignment[]>(`/v1/users/${scope}/groups`, { q: userId }).then(
+    // Resql-i võti tuleb numbrina; grupivaliku loogika võrdleb string-ID-dega
+    (rows) =>
+      (rows ?? []).map((g) => ({ ...g, userGroupId: String(g.userGroupId) })),
+  );
 
 export const setUserGroups = (
   scope: 'admin' | 'local',

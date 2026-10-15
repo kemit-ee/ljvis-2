@@ -6,7 +6,7 @@
 |---|---|
 | Viimase testimise kuupäev | 01.10.2026 |
 | Testitud versioon (commit) | `3acdcd97` |
-| Keskkond | CI-pinu `docker-compose.ci.yml` (puhas andmebaas, testseemned `tests/bootstrap/`) |
+| Keskkond | CI-pinu `docker-compose.ci.yml` (puhas andmebaas, testandmed kaustas `tests/bootstrap/`) |
 | Newmani kollektsioone | 29 / 29 |
 | Päringuid | 1033 |
 | Kontrolle (assertion'eid) | 2265 — läbis **2265**, kukkus **0**, vahele jäetud 0 |
@@ -69,10 +69,10 @@ Kukkunud kontrolle ei olnud.
 | 6 |  | GET /v1/organisations — TARA user not registered in LJVIS → 403 | `GET /ljvis/v1/organisations` | Returns 403 for TARA user not registered in LJVIS | läbis |
 | 7 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | Returns 200 | läbis |
 | 8 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | Response is an array | läbis |
-| 9 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | Exactly 8 seeded organisations | läbis |
+| 9 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | Exactly 8 initial organisations | läbis |
 | 10 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | Each org has id (number), name (string) and code (string) | läbis |
 | 11 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | No extra fields exposed (id, name and code only) | läbis |
-| 12 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | All seeded organisations present | läbis |
+| 12 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | All initial organisations present | läbis |
 | 13 |  | GET /v1/organisations — shape, content and sort order | `GET /ljvis/v1/organisations` | Results sorted alphabetically by name | läbis |
 
 ### 2. permissions
@@ -89,7 +89,7 @@ Kukkunud kontrolle ei olnud.
 | 6 |  | GET /v1/permissions — TARA user not registered in LJVIS → 403 | `GET /ljvis/v1/permissions` | Returns 403 for TARA user not registered in LJVIS | läbis |
 | 7 |  | GET /v1/permissions — shape, content and sort order | `GET /ljvis/v1/permissions` | Returns 200 | läbis |
 | 8 |  | GET /v1/permissions — shape, content and sort order | `GET /ljvis/v1/permissions` | Response is an array | läbis |
-| 9 |  | GET /v1/permissions — shape, content and sort order | `GET /ljvis/v1/permissions` | Exactly 79 seeded permissions (69 + xtee.query + nu.list/read/create/send + xroad.log.read + notification_template_mapping.list/edit + control_form.punishment_register + form.export) | läbis |
+| 9 |  | GET /v1/permissions — shape, content and sort order | `GET /ljvis/v1/permissions` | Exactly 79 initial permissions (69 + xtee.query + nu.list/read/create/send + xroad.log.read + notification_template_mapping.list/edit + control_form.punishment_register + form.export) | läbis |
 | 10 |  | GET /v1/permissions — shape, content and sort order | `GET /ljvis/v1/permissions` | Each permission has id, code and description | läbis |
 | 11 |  | GET /v1/permissions — shape, content and sort order | `GET /ljvis/v1/permissions` | No extra fields exposed (id, code, description only) | läbis |
 | 12 |  | GET /v1/permissions — shape, content and sort order | `GET /ljvis/v1/permissions` | All user_group permissions present | läbis |
@@ -122,10 +122,10 @@ Kukkunud kontrolle ei olnud.
 | 6 |  | [Auth] Login — No-perm User | `POST /ljvis/auth/dev/dev-login` | JWT token received | läbis |
 | 7 |  | [Setup] Save org ID | `GET /ljvis/v1/organisations` | Returns 200 | läbis |
 | 8 |  | [Setup] Save org ID | `GET /ljvis/v1/organisations` | Justiitsministeerium org found | läbis |
-| 9 |  | [Setup] Save seeded group ID | `GET /ljvis/v1/user-groups/admin/search` | Returns 200 | läbis |
+| 9 |  | [Setup] Save initial group ID | `GET /ljvis/v1/user-groups/admin/search` | Returns 200 | läbis |
 | 10 |  | GET /v1/users/admin/search — admin sees all users | `GET /ljvis/v1/users/admin/search` | Returns 200 | läbis |
 | 11 |  | GET /v1/users/admin/search — admin sees all users | `GET /ljvis/v1/users/admin/search` | Response has content and total | läbis |
-| 12 |  | GET /v1/users/admin/search — admin sees all users | `GET /ljvis/v1/users/admin/search` | At least 1 seeded user visible | läbis |
+| 12 |  | GET /v1/users/admin/search — admin sees all users | `GET /ljvis/v1/users/admin/search` | At least 1 initial user visible | läbis |
 | 13 |  | GET /v1/users/admin/search — admin sees all users | `GET /ljvis/v1/users/admin/search` | User has required fields | läbis |
 | 14 |  | GET /v1/users/admin/search — admin sees all users | `GET /ljvis/v1/users/admin/search` | userGroups is an array | läbis |
 | 15 |  | GET /v1/users/admin/search — no permission → 403 | `GET /ljvis/v1/users/admin/search` | Returns 403 for user without permission | läbis |
@@ -148,7 +148,7 @@ Kukkunud kontrolle ei olnud.
 | 32 |  | GET /v1/users/admin/groups — empty for new user | `GET /ljvis/v1/users/admin/groups` | Returns 200 | läbis |
 | 33 |  | GET /v1/users/admin/groups — empty for new user | `GET /ljvis/v1/users/admin/groups` | New user has no groups (or re-run) | läbis |
 | 34 |  | PUT /v1/users/admin — update job title | `PUT /ljvis/v1/users/admin` | Returns 200 | läbis |
-| 35 |  | PUT /v1/users/admin/groups — assign user to seeded group | `PUT /ljvis/v1/users/admin/groups` | Returns 200 | läbis |
+| 35 |  | PUT /v1/users/admin/groups — assign user to initial group | `PUT /ljvis/v1/users/admin/groups` | Returns 200 | läbis |
 | 36 |  | GET /v1/users/admin/groups — verify group assignment | `GET /ljvis/v1/users/admin/groups` | Returns 200 | läbis |
 | 37 |  | GET /v1/users/admin/groups — verify group assignment | `GET /ljvis/v1/users/admin/groups` | User now belongs to one group | läbis |
 | 38 |  | GET /v1/users/admin/groups — verify group assignment | `GET /ljvis/v1/users/admin/groups` | Group has userGroupId field | läbis |
@@ -184,29 +184,29 @@ Kukkunud kontrolle ei olnud.
 | 7 |  | [Setup] Save org ID | `GET /ljvis/v1/organisations` | Returns 200 | läbis |
 | 8 |  | [Setup] Save org ID | `GET /ljvis/v1/organisations` | Justiitsministeerium org found | läbis |
 | 9 |  | [Setup] Save permission ID | `GET /ljvis/v1/permissions` | Returns 200 | läbis |
-| 10 |  | [Setup] Save seeded super admin group ID and no-group user ID | `GET /ljvis/v1/user-groups/admin/search` | Returns 200 | läbis |
-| 11 |  | [Setup] Save seeded super admin group ID and no-group user ID | `GET /ljvis/v1/user-groups/admin/search` | Super Admin Group found | läbis |
-| 12 |  | [Setup] Save seeded user ID (Super Admin) | `GET /ljvis/v1/users/admin/search` | Returns 200 | läbis |
-| 13 |  | [Setup] Save seeded user ID (Super Admin) | `GET /ljvis/v1/users/admin/search` | Super Admin found | läbis |
+| 10 |  | [Setup] Save initial super admin group ID and no-group user ID | `GET /ljvis/v1/user-groups/admin/search` | Returns 200 | läbis |
+| 11 |  | [Setup] Save initial super admin group ID and no-group user ID | `GET /ljvis/v1/user-groups/admin/search` | Super Admin Group found | läbis |
+| 12 |  | [Setup] Save initial user ID (Super Admin) | `GET /ljvis/v1/users/admin/search` | Returns 200 | läbis |
+| 13 |  | [Setup] Save initial user ID (Super Admin) | `GET /ljvis/v1/users/admin/search` | Super Admin found | läbis |
 | 14 |  | GET /v1/user-groups/admin/search — admin sees all groups | `GET /ljvis/v1/user-groups/admin/search` | Returns 200 | läbis |
 | 15 |  | GET /v1/user-groups/admin/search — admin sees all groups | `GET /ljvis/v1/user-groups/admin/search` | Response has content and total | läbis |
-| 16 |  | GET /v1/user-groups/admin/search — admin sees all groups | `GET /ljvis/v1/user-groups/admin/search` | At least 2 seeded groups visible | läbis |
+| 16 |  | GET /v1/user-groups/admin/search — admin sees all groups | `GET /ljvis/v1/user-groups/admin/search` | At least 2 initial groups visible | läbis |
 | 17 |  | GET /v1/user-groups/admin/search — admin sees all groups | `GET /ljvis/v1/user-groups/admin/search` | Group has id and name | läbis |
 | 18 |  | GET /v1/user-groups/admin/search — admin sees all groups | `GET /ljvis/v1/user-groups/admin/search` | Super Admin Group has at least one organisation assigned | läbis |
 | 19 |  | GET /v1/user-groups/admin/search — no permission → 403 | `GET /ljvis/v1/user-groups/admin/search` | Returns 403 for user without permission | läbis |
-| 20 |  | GET /v1/user-groups/admin — admin gets seeded group | `GET /ljvis/v1/user-groups/admin` | Returns 200 | läbis |
-| 21 |  | GET /v1/user-groups/admin — admin gets seeded group | `GET /ljvis/v1/user-groups/admin` | Group returned | läbis |
-| 22 |  | GET /v1/user-groups/admin — admin gets seeded group | `GET /ljvis/v1/user-groups/admin` | Group name is Super Admin Group | läbis |
-| 23 |  | GET /v1/user-groups/admin — admin gets seeded group | `GET /ljvis/v1/user-groups/admin` | Group has id and name | läbis |
-| 24 |  | GET /v1/user-groups/admin/organisations — for seeded group | `GET /ljvis/v1/user-groups/admin/organisations` | Returns 200 | läbis |
-| 25 |  | GET /v1/user-groups/admin/organisations — for seeded group | `GET /ljvis/v1/user-groups/admin/organisations` | Super Admin Group has at least one organisation | läbis |
-| 26 |  | GET /v1/user-groups/admin/organisations — for seeded group | `GET /ljvis/v1/user-groups/admin/organisations` | Organisation entry has name | läbis |
-| 27 |  | GET /v1/user-groups/admin/permissions — for seeded group | `GET /ljvis/v1/user-groups/admin/permissions` | Returns 200 | läbis |
-| 28 |  | GET /v1/user-groups/admin/permissions — for seeded group | `GET /ljvis/v1/user-groups/admin/permissions` | Super Admin Group has permissions | läbis |
-| 29 |  | GET /v1/user-groups/admin/permissions — for seeded group | `GET /ljvis/v1/user-groups/admin/permissions` | Permission entry has code | läbis |
-| 30 |  | GET /v1/user-groups/admin/users — for seeded group | `GET /ljvis/v1/user-groups/admin/users` | Returns 200 | läbis |
-| 31 |  | GET /v1/user-groups/admin/users — for seeded group | `GET /ljvis/v1/user-groups/admin/users` | Super Admin Group has at least one member | läbis |
-| 32 |  | GET /v1/user-groups/admin/users — for seeded group | `GET /ljvis/v1/user-groups/admin/users` | Member has firstName field | läbis |
+| 20 |  | GET /v1/user-groups/admin — admin gets initial group | `GET /ljvis/v1/user-groups/admin` | Returns 200 | läbis |
+| 21 |  | GET /v1/user-groups/admin — admin gets initial group | `GET /ljvis/v1/user-groups/admin` | Group returned | läbis |
+| 22 |  | GET /v1/user-groups/admin — admin gets initial group | `GET /ljvis/v1/user-groups/admin` | Group name is Super Admin Group | läbis |
+| 23 |  | GET /v1/user-groups/admin — admin gets initial group | `GET /ljvis/v1/user-groups/admin` | Group has id and name | läbis |
+| 24 |  | GET /v1/user-groups/admin/organisations — for initial group | `GET /ljvis/v1/user-groups/admin/organisations` | Returns 200 | läbis |
+| 25 |  | GET /v1/user-groups/admin/organisations — for initial group | `GET /ljvis/v1/user-groups/admin/organisations` | Super Admin Group has at least one organisation | läbis |
+| 26 |  | GET /v1/user-groups/admin/organisations — for initial group | `GET /ljvis/v1/user-groups/admin/organisations` | Organisation entry has name | läbis |
+| 27 |  | GET /v1/user-groups/admin/permissions — for initial group | `GET /ljvis/v1/user-groups/admin/permissions` | Returns 200 | läbis |
+| 28 |  | GET /v1/user-groups/admin/permissions — for initial group | `GET /ljvis/v1/user-groups/admin/permissions` | Super Admin Group has permissions | läbis |
+| 29 |  | GET /v1/user-groups/admin/permissions — for initial group | `GET /ljvis/v1/user-groups/admin/permissions` | Permission entry has code | läbis |
+| 30 |  | GET /v1/user-groups/admin/users — for initial group | `GET /ljvis/v1/user-groups/admin/users` | Returns 200 | läbis |
+| 31 |  | GET /v1/user-groups/admin/users — for initial group | `GET /ljvis/v1/user-groups/admin/users` | Super Admin Group has at least one member | läbis |
+| 32 |  | GET /v1/user-groups/admin/users — for initial group | `GET /ljvis/v1/user-groups/admin/users` | Member has firstName field | läbis |
 | 33 |  | POST /v1/user-groups — no permission → 403 | `POST /ljvis/v1/user-groups` | Returns 403 for user without permission | läbis |
 | 34 |  | POST /v1/user-groups — name too long → 422 | `POST /ljvis/v1/user-groups` | Returns 422 when group name exceeds 255 chars | läbis |
 | 35 |  | POST /v1/user-groups — success | `POST /ljvis/v1/user-groups` | Returns 200 | läbis |
@@ -226,7 +226,7 @@ Kukkunud kontrolle ei olnud.
 | 49 |  | GET /v1/user-groups/admin/permissions — verify permission added | `GET /ljvis/v1/user-groups/admin/permissions` | Returns 200 | läbis |
 | 50 |  | GET /v1/user-groups/admin/permissions — verify permission added | `GET /ljvis/v1/user-groups/admin/permissions` | Permission was added — list is non-empty | läbis |
 | 51 |  | GET /v1/user-groups/admin/permissions — verify permission added | `GET /ljvis/v1/user-groups/admin/permissions` | Permission user_group.update is present in group | läbis |
-| 52 |  | PUT /v1/user-groups/users — add seeded user to created group | `PUT /ljvis/v1/user-groups/users` | Returns 200 | läbis |
+| 52 |  | PUT /v1/user-groups/users — add initial user to created group | `PUT /ljvis/v1/user-groups/users` | Returns 200 | läbis |
 | 53 |  | GET /v1/user-groups/admin/users — verify member added | `GET /ljvis/v1/user-groups/admin/users` | Returns 200 | läbis |
 | 54 |  | GET /v1/user-groups/admin/users — verify member added | `GET /ljvis/v1/user-groups/admin/users` | Created user is a member of the group | läbis |
 | 55 |  | GET /v1/user-groups/admin/users — verify member added | `GET /ljvis/v1/user-groups/admin/users` | Member has personalCode 60001019906 | läbis |
@@ -245,14 +245,14 @@ Kukkunud kontrolle ei olnud.
 | 3 |  | [Auth] Login — No-perm User | `POST /ljvis/auth/dev/dev-login` | Login returns 200 | läbis |
 | 4 |  | [Auth] Login — No-perm User | `POST /ljvis/auth/dev/dev-login` | JWT token received | läbis |
 | 5 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: classifier list returns 200 | läbis |
-| 6 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: at least 2 classifiers seeded | läbis |
+| 6 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: at least 2 classifiers loaded | läbis |
 | 7 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: RTK classifier present | läbis |
 | 8 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: TEST classifier present | läbis |
 | 9 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: ADR_CONTROL_CHECKPOINT classifier present (#229) | läbis |
 | 10 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: ADR_QUANTITY_UNIT classifier present (#230) | läbis |
 | 11 |  | [Setup] Save classifier IDs | `GET /ljvis/v1/classifiers` | Setup: DANGEROUS_GOODS_INFRINGEMENTS_NEW eemaldatud (#231) | läbis |
-| 12 |  | [Setup] Save seeded value ID (RTK/EE) | `GET /ljvis/v1/classifiers/values` | Setup: values list returns 200 | läbis |
-| 13 |  | [Setup] Save seeded value ID (RTK/EE) | `GET /ljvis/v1/classifiers/values` | Setup: EE value present in RTK | läbis |
+| 12 |  | [Setup] Save initial value ID (RTK/EE) | `GET /ljvis/v1/classifiers/values` | Setup: values list returns 200 | läbis |
+| 13 |  | [Setup] Save initial value ID (RTK/EE) | `GET /ljvis/v1/classifiers/values` | Setup: EE value present in RTK | läbis |
 | 14 |  | GET /v1/classifiers — no permission → 403 | `GET /ljvis/v1/classifiers` | Returns 403 without permission | läbis |
 | 15 |  | GET /v1/classifiers — list shape, total and sort order | `GET /ljvis/v1/classifiers` | Returns 200 | läbis |
 | 16 |  | GET /v1/classifiers — list shape, total and sort order | `GET /ljvis/v1/classifiers` | Body has content array and total | läbis |
@@ -2110,8 +2110,8 @@ Kukkunud kontrolle ei olnud.
 
 | # | Rühm | Päring | Otspunkt | Kontroll | Tulemus |
 |---|---|---|---|---|---|
-| 1 |  | [Setup] Resolve an organisation id (for user seeding) | `POST /ljvis/organisation/list_organisations` | Returns 200 | läbis |
-| 2 |  | [Setup] Resolve an organisation id (for user seeding) | `POST /ljvis/organisation/list_organisations` | At least one organisation exists | läbis |
+| 1 |  | [Setup] Resolve an organisation id (for test user creation) | `POST /ljvis/organisation/list_organisations` | Returns 200 | läbis |
+| 2 |  | [Setup] Resolve an organisation id (for test user creation) | `POST /ljvis/organisation/list_organisations` | At least one organisation exists | läbis |
 | 3 |  | [LJVIS2-12 Setup] Insert user with past access_end + no groups yet | `POST /ljvis/user/insert_user_account` | Returns 200 | läbis |
 | 4 |  | [LJVIS2-12 Setup] Insert user with past access_end + no groups yet | `POST /ljvis/user/insert_user_account` | User inserted | läbis |
 | 5 |  | [LJVIS2-12 Setup] Resolve a real user group id | `POST /ljvis/user_group/list_user_groups` | Returns 200 | läbis |
@@ -2121,17 +2121,17 @@ Kukkunud kontrolle ei olnud.
 | 9 |  | [LJVIS2-12 Setup] Confirm status=active before deactivation | `POST /ljvis/user/get_user` | Status is still active before the job runs | läbis |
 | 10 |  | [LJVIS2-12 Setup] Confirm groups attached before deactivation | `POST /ljvis/user/get_user_groups` | Returns 200 | läbis |
 | 11 |  | [LJVIS2-12 Setup] Confirm groups attached before deactivation | `POST /ljvis/user/get_user_groups` | Has at least one group before the job runs | läbis |
-| 12 |  | [LJVIS2-12] POST cron/users/deactivate-expired — deactivates and clears groups | `POST /ljvis/users/deactivate-expired` | Returns 200 (regression: previously 500'd via a call to a non-existent rebuild_user_account_latest endpoint) | läbis |
-| 13 |  | [LJVIS2-12] POST cron/users/deactivate-expired — deactivates and clears groups | `POST /ljvis/users/deactivate-expired` | Our seeded expired user is in the deactivated list | läbis |
+| 12 |  | [LJVIS2-12] POST cron/deactivate-expired-users — deactivates and clears groups | `POST /ljvis/cron/deactivate-expired-users` | Returns 200 (regression: previously 500'd via a call to a non-existent rebuild_user_account_latest endpoint) | läbis |
+| 13 |  | [LJVIS2-12] POST cron/deactivate-expired-users — deactivates and clears groups | `POST /ljvis/cron/deactivate-expired-users` | The created expired test user is in the deactivated list | läbis |
 | 14 |  | [LJVIS2-12] Verify: status=inactive | `POST /ljvis/user/get_user` | Returns 200 | läbis |
 | 15 |  | [LJVIS2-12] Verify: status=inactive | `POST /ljvis/user/get_user` | status = inactive | läbis |
 | 16 |  | [LJVIS2-12] Verify: user_groups cleared (LJVIS2-12 AC#2) | `POST /ljvis/user/get_user_groups` | Returns 200 | läbis |
 | 17 |  | [LJVIS2-12] Verify: user_groups cleared (LJVIS2-12 AC#2) | `POST /ljvis/user/get_user_groups` | No groups remain (LJVIS2-12 AC#2) | läbis |
-| 18 |  | [LJVIS2-12] Idempotency: re-running the job does not re-select the same user | `POST /ljvis/users/deactivate-expired` | Returns 200 | läbis |
-| 19 |  | [LJVIS2-12] Idempotency: re-running the job does not re-select the same user | `POST /ljvis/users/deactivate-expired` | Regression: our already-inactive user is NOT re-selected (fixed latest-row-vs-filter bug) | läbis |
+| 18 |  | [LJVIS2-12] Idempotency: re-running the job does not re-select the same user | `POST /ljvis/cron/deactivate-expired-users` | Returns 200 | läbis |
+| 19 |  | [LJVIS2-12] Idempotency: re-running the job does not re-select the same user | `POST /ljvis/cron/deactivate-expired-users` | Regression: our already-inactive user is NOT re-selected (fixed latest-row-vs-filter bug) | läbis |
 | 20 |  | [e-toimik Setup] Insert confirmed labour_inspection_form (candidate) | `POST /ljvis/control-forms/labour-inspection/insert` | Returns 200 | läbis |
 | 21 |  | [e-toimik] select_etoimik_candidates — new act is a candidate | `POST /ljvis/control-forms/labour-inspection/select_etoimik_candidates` | Returns 200 | läbis |
-| 22 |  | [e-toimik] select_etoimik_candidates — new act is a candidate | `POST /ljvis/control-forms/labour-inspection/select_etoimik_candidates` | Seeded act appears as a candidate | läbis |
+| 22 |  | [e-toimik] select_etoimik_candidates — new act is a candidate | `POST /ljvis/control-forms/labour-inspection/select_etoimik_candidates` | Created test act appears as a candidate | läbis |
 | 23 |  | [e-toimik] apply_etoimik_decision found=false — no-op (0 rows) | `POST /ljvis/control-forms/labour-inspection/apply_etoimik_decision` | Returns 200 | läbis |
 | 24 |  | [e-toimik] apply_etoimik_decision found=false — no-op (0 rows) | `POST /ljvis/control-forms/labour-inspection/apply_etoimik_decision` | found=false writes nothing | läbis |
 | 25 |  | [e-toimik] apply_etoimik_decision found=true — publishes + writes decision | `POST /ljvis/control-forms/labour-inspection/apply_etoimik_decision` | Returns 200 | läbis |
@@ -2154,7 +2154,7 @@ Kukkunud kontrolle ei olnud.
 | 42 |  | [yvkehtivus Setup] Insert compound_form with a vehicle reg number | `POST /ljvis/control-forms/compound-form/insert` | Returns 200 | läbis |
 | 43 |  | [yvkehtivus Setup] Insert confirmed vehicle_technical_form (extraordinary_inspection) | `POST /ljvis/control-forms/vehicle-technical/insert` | Returns 200 | läbis |
 | 44 |  | [yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_yvkehtivus_candidates` | Returns 200 | läbis |
-| 45 |  | [yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_yvkehtivus_candidates` | Seeded sub-form appears as a candidate | läbis |
+| 45 |  | [yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_yvkehtivus_candidates` | Created test sub-form appears as a candidate | läbis |
 | 46 |  | [yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_yvkehtivus_candidates` | Candidate carries the right registration number | läbis |
 | 47 |  | [yvkehtivus] update-extraordinary-inspection-date, empty date — no-op (0 rows) | `POST /ljvis/control-forms/vehicle-technical/update-extraordinary-inspection-date` | Returns 200 | läbis |
 | 48 |  | [yvkehtivus] update-extraordinary-inspection-date, empty date — no-op (0 rows) | `POST /ljvis/control-forms/vehicle-technical/update-extraordinary-inspection-date` | Empty date writes nothing (regression: previously this would have thrown on ''::DATE if reached, so the guard matters) | läbis |
@@ -2195,7 +2195,7 @@ Kukkunud kontrolle ei olnud.
 | 83 |  | [sp-driver e-toimik Setup] Insert compound_form with a driver personal code | `POST /ljvis/control-forms/compound-form/insert` | Returns 200 | läbis |
 | 84 |  | [sp-driver e-toimik Setup] Insert confirmed sp_driver_form (candidate) | `POST /ljvis/control-forms/drive-rest-form/driver/insert` | Returns 200 | läbis |
 | 85 |  | [sp-driver e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/drive-rest-form/driver/select_etoimik_candidates` | Returns 200 | läbis |
-| 86 |  | [sp-driver e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/drive-rest-form/driver/select_etoimik_candidates` | Seeded sub-form appears as a candidate | läbis |
+| 86 |  | [sp-driver e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/drive-rest-form/driver/select_etoimik_candidates` | Created test sub-form appears as a candidate | läbis |
 | 87 |  | [sp-driver e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/drive-rest-form/driver/select_etoimik_candidates` | Candidate carries the driver personal code from compound_form drivers[0] | läbis |
 | 88 |  | [sp-driver e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/drive-rest-form/driver/select_etoimik_candidates` | Candidate carries the proceeding reference number | läbis |
 | 89 |  | [sp-driver e-toimik] update-xroad-fields found=false — no-op (0 rows) | `POST /ljvis/control-forms/drive-rest-form/driver/update-xroad-fields` | Returns 200 | läbis |
@@ -2239,7 +2239,7 @@ Kukkunud kontrolle ei olnud.
 | 127 |  | [technical-check e-toimik Setup] Insert confirmed vehicle_technical_form (candidate) | `POST /ljvis/control-forms/vehicle-technical/insert` | Returns 200 | läbis |
 | 128 |  | [technical-check e-toimik Setup] Insert confirmed trailer_technical_form (candidate) | `POST /ljvis/control-forms/trailer-technical/insert` | Returns 200 | läbis |
 | 129 |  | [vehicle-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_etoimik_candidates` | Returns 200 | läbis |
-| 130 |  | [vehicle-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_etoimik_candidates` | Seeded sub-form appears as a candidate | läbis |
+| 130 |  | [vehicle-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_etoimik_candidates` | Created test sub-form appears as a candidate | läbis |
 | 131 |  | [vehicle-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_etoimik_candidates` | Candidate carries the driver personal code from compound_form drivers[0] | läbis |
 | 132 |  | [vehicle-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/vehicle-technical/select_etoimik_candidates` | Candidate carries the proceeding reference number | läbis |
 | 133 |  | [vehicle-technical e-toimik] update-xroad-fields found=false — no-op (0 rows) | `POST /ljvis/control-forms/vehicle-technical/update-xroad-fields` | Returns 200 | läbis |
@@ -2259,7 +2259,7 @@ Kukkunud kontrolle ei olnud.
 | 147 |  | [vehicle-technical e-toimik] log_etoimik_xroad_audit found=true — audit event written | `POST /ljvis/control-forms/vehicle-technical/log_etoimik_xroad_audit` | Returns 200 | läbis |
 | 148 |  | [vehicle-technical e-toimik] log_etoimik_xroad_audit found=true — audit event written | `POST /ljvis/control-forms/vehicle-technical/log_etoimik_xroad_audit` | Audit event written with an event_id | läbis |
 | 149 |  | [trailer-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/trailer-technical/select_etoimik_candidates` | Returns 200 | läbis |
-| 150 |  | [trailer-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/trailer-technical/select_etoimik_candidates` | Seeded sub-form appears as a candidate | läbis |
+| 150 |  | [trailer-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/trailer-technical/select_etoimik_candidates` | Created test sub-form appears as a candidate | läbis |
 | 151 |  | [trailer-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/trailer-technical/select_etoimik_candidates` | Candidate carries the driver personal code from compound_form drivers[0] | läbis |
 | 152 |  | [trailer-technical e-toimik] select_etoimik_candidates — new sub-form is a candidate | `POST /ljvis/control-forms/trailer-technical/select_etoimik_candidates` | Candidate carries the proceeding reference number | läbis |
 | 153 |  | [trailer-technical e-toimik] update-xroad-fields found=false — no-op (0 rows) | `POST /ljvis/control-forms/trailer-technical/update-xroad-fields` | Returns 200 | läbis |
@@ -2282,7 +2282,7 @@ Kukkunud kontrolle ei olnud.
 | 170 |  | [Resilience] ruuter-internal still alive after the technical-check sync run | `GET /health` | ruuter-internal /health still responds 200 | läbis |
 | 171 |  | [trailer-technical yvkehtivus Setup] Insert confirmed trailer_technical_form (extraordinary_inspection) matching trailer #1 | `POST /ljvis/control-forms/trailer-technical/insert` | Returns 200 | läbis |
 | 172 |  | [trailer-technical yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate (matches own trailer via trailer_reg_nr) | `POST /ljvis/control-forms/trailer-technical/select_yvkehtivus_candidates` | Returns 200 | läbis |
-| 173 |  | [trailer-technical yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate (matches own trailer via trailer_reg_nr) | `POST /ljvis/control-forms/trailer-technical/select_yvkehtivus_candidates` | Seeded sub-form appears as a candidate | läbis |
+| 173 |  | [trailer-technical yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate (matches own trailer via trailer_reg_nr) | `POST /ljvis/control-forms/trailer-technical/select_yvkehtivus_candidates` | Created test sub-form appears as a candidate | läbis |
 | 174 |  | [trailer-technical yvkehtivus] select_yvkehtivus_candidates — new sub-form is a candidate (matches own trailer via trailer_reg_nr) | `POST /ljvis/control-forms/trailer-technical/select_yvkehtivus_candidates` | Candidate carries the trailer_reg_nr as the registration number | läbis |
 | 175 |  | [trailer-technical yvkehtivus] update-extraordinary-inspection-date, empty date — no-op (0 rows) | `POST /ljvis/control-forms/trailer-technical/update-extraordinary-inspection-date` | Returns 200 | läbis |
 | 176 |  | [trailer-technical yvkehtivus] update-extraordinary-inspection-date, empty date — no-op (0 rows) | `POST /ljvis/control-forms/trailer-technical/update-extraordinary-inspection-date` | Empty date writes nothing | läbis |
@@ -2340,11 +2340,11 @@ Kukkunud kontrolle ei olnud.
 | 1 |  | [Auth] Login — Super Admin (has notification.list) | `POST /ljvis/auth/dev/dev-login` | Login 200 | läbis |
 | 2 |  | [Auth] Login — Super Admin (has notification.list) | `POST /ljvis/auth/dev/dev-login` | JWT received | läbis |
 | 3 |  | [Auth] Login — Officer (registered, no notification.list / ncr.read) | `POST /ljvis/auth/dev/dev-login` | Login 200 | läbis |
-| 4 |  | [Setup] Seed in-app notification A (ncr.read) | `POST /ljvis/notification/insert_notification` | 200 | läbis |
-| 5 |  | [Setup] Seed in-app notification A (ncr.read) | `POST /ljvis/notification/insert_notification` | returns id | läbis |
-| 6 |  | [Setup] Seed in-app notification B (notification.list) | `POST /ljvis/notification/insert_notification` | 200 | läbis |
-| 7 |  | [Setup] insert_notification idempotency — re-seed A returns no new row | `POST /ljvis/notification/insert_notification` | 200 | läbis |
-| 8 |  | [Setup] insert_notification idempotency — re-seed A returns no new row | `POST /ljvis/notification/insert_notification` | ON CONFLICT DO NOTHING — no row returned | läbis |
+| 4 |  | [Setup] Create in-app notification A (ncr.read) | `POST /ljvis/notification/insert_notification` | 200 | läbis |
+| 5 |  | [Setup] Create in-app notification A (ncr.read) | `POST /ljvis/notification/insert_notification` | returns id | läbis |
+| 6 |  | [Setup] Create in-app notification B (notification.list) | `POST /ljvis/notification/insert_notification` | 200 | läbis |
+| 7 |  | [Setup] insert_notification idempotency — loading A again returns no new row | `POST /ljvis/notification/insert_notification` | 200 | läbis |
+| 8 |  | [Setup] insert_notification idempotency — loading A again returns no new row | `POST /ljvis/notification/insert_notification` | ON CONFLICT DO NOTHING — no row returned | läbis |
 | 9 |  | [internal] POST notification/create — 200 + id | `POST /ljvis/notification/create` | 200 | läbis |
 | 10 |  | [internal] POST notification/create — 200 + id | `POST /ljvis/notification/create` | created with an id | läbis |
 | 11 |  | [internal] POST notification/create — empty title_et → 400 | `POST /ljvis/notification/create` | 400 (required-field validation) | läbis |
@@ -2374,21 +2374,21 @@ Kukkunud kontrolle ei olnud.
 | 35 |  | GET /v1/notifications/unread-count — admin → 0 after mark-all-read | `GET /ljvis/v1/notifications/unread-count` | unreadCount = 0 | läbis |
 | 36 |  | POST /v1/notifications/mark-all-read — admin again → 200, markedCount 0 | `POST /ljvis/v1/notifications/mark-all-read` | 200 | läbis |
 | 37 |  | POST /v1/notifications/mark-all-read — admin again → 200, markedCount 0 | `POST /ljvis/v1/notifications/mark-all-read` | nothing left to mark | läbis |
-| 38 |  | [Setup] Seed outbound_log row (error) | `POST /ljvis/notification/insert_outbound_log` | 200 | läbis |
-| 39 |  | [Setup] Seed outbound_log row (error) | `POST /ljvis/notification/insert_outbound_log` | returns id | läbis |
-| 40 |  | [Setup] Seed outbound_log recipient | `POST /ljvis/notification/insert_outbound_recipient` | 200 | läbis |
+| 38 |  | [Setup] Create outbound_log row (error) | `POST /ljvis/notification/insert_outbound_log` | 200 | läbis |
+| 39 |  | [Setup] Create outbound_log row (error) | `POST /ljvis/notification/insert_outbound_log` | returns id | läbis |
+| 40 |  | [Setup] Create outbound_log recipient | `POST /ljvis/notification/insert_outbound_recipient` | 200 | läbis |
 | 41 |  | GET /v1/notifications/outbound-log/list — officer (no notification.list) → 403 | `GET /ljvis/v1/notifications/outbound-log/list` | 403 without notification.list | läbis |
 | 42 |  | GET /v1/notifications/outbound-log/list — no cookie → 401 | `GET /ljvis/v1/notifications/outbound-log/list` | 401 | läbis |
-| 43 |  | GET /v1/notifications/outbound-log/list — admin → 200, contains seeded row | `GET /ljvis/v1/notifications/outbound-log/list` | 200 (admin has notification.list) | läbis |
-| 44 |  | GET /v1/notifications/outbound-log/list — admin → 200, contains seeded row | `GET /ljvis/v1/notifications/outbound-log/list` | seeded outbound_log row present | läbis |
-| 45 |  | GET /v1/notifications/outbound-log/list — admin → 200, contains seeded row | `GET /ljvis/v1/notifications/outbound-log/list` | seeded row status is error | läbis |
+| 43 |  | GET /v1/notifications/outbound-log/list — admin → 200, contains test row | `GET /ljvis/v1/notifications/outbound-log/list` | 200 (admin has notification.list) | läbis |
+| 44 |  | GET /v1/notifications/outbound-log/list — admin → 200, contains test row | `GET /ljvis/v1/notifications/outbound-log/list` | test outbound_log row present | läbis |
+| 45 |  | GET /v1/notifications/outbound-log/list — admin → 200, contains test row | `GET /ljvis/v1/notifications/outbound-log/list` | test row status is error | läbis |
 | 46 |  | GET /v1/notifications/outbound-log/list?status=bogus — admin → 200 empty | `GET /ljvis/v1/notifications/outbound-log/list` | 200 | läbis |
 | 47 |  | GET /v1/notifications/outbound-log/list?status=bogus — admin → 200 empty | `GET /ljvis/v1/notifications/outbound-log/list` | filter excludes everything | läbis |
 | 48 |  | GET /v1/notifications/outbound-log/recipients — missing q → 400 | `GET /ljvis/v1/notifications/outbound-log/recipients` | 400 | läbis |
 | 49 |  | GET /v1/notifications/outbound-log/recipients — officer → 403 | `GET /ljvis/v1/notifications/outbound-log/recipients` | 403 | läbis |
-| 50 |  | GET /v1/notifications/outbound-log/recipients?q= — admin → 200, seeded recipient | `GET /ljvis/v1/notifications/outbound-log/recipients` | 200 | läbis |
-| 51 |  | GET /v1/notifications/outbound-log/recipients?q= — admin → 200, seeded recipient | `GET /ljvis/v1/notifications/outbound-log/recipients` | one recipient | läbis |
-| 52 |  | GET /v1/notifications/outbound-log/recipients?q= — admin → 200, seeded recipient | `GET /ljvis/v1/notifications/outbound-log/recipients` | personEmail matches seed | läbis |
+| 50 |  | GET /v1/notifications/outbound-log/recipients?q= — admin → 200, test recipient | `GET /ljvis/v1/notifications/outbound-log/recipients` | 200 | läbis |
+| 51 |  | GET /v1/notifications/outbound-log/recipients?q= — admin → 200, test recipient | `GET /ljvis/v1/notifications/outbound-log/recipients` | one recipient | läbis |
+| 52 |  | GET /v1/notifications/outbound-log/recipients?q= — admin → 200, test recipient | `GET /ljvis/v1/notifications/outbound-log/recipients` | personEmail matches test data | läbis |
 | 53 |  | POST .../outbound-log/resend/send — officer (no notification.resend) → 403 | `POST /ljvis/v1/notifications/outbound-log/resend/send` | 403 without notification.list | läbis |
 | 54 |  | POST /v1/notifications/resend — missing logId → 400 | `POST /ljvis/v1/notifications/outbound-log/resend/send` | 400 | läbis |
 | 55 |  | POST /v1/notifications/outbound-log/resend — admin → 200 (PK 2.0 mock) | `POST /ljvis/v1/notifications/outbound-log/resend/send` | 200 (send-postkast returns mock success) | läbis |
@@ -2408,9 +2408,9 @@ Kukkunud kontrolle ei olnud.
 | 3 |  | [Auth] Login — Officer (no audit permission) | `POST /ljvis/auth/dev/dev-login` | 200 | läbis |
 | 4 |  | [Setup] Resolve JUM + PPA organisation ids | `POST /ljvis/organisation/list_organisations` | 200 | läbis |
 | 5 |  | [Setup] Resolve JUM + PPA organisation ids | `POST /ljvis/organisation/list_organisations` | JUM + PPA present | läbis |
-| 6 |  | [Setup] Seed audit event in JUM org | `POST /ljvis/log/insert_audit_event` | 200 | läbis |
-| 7 |  | [Setup] Seed audit event in PPA org | `POST /ljvis/log/insert_audit_event` | 200 | läbis |
-| 8 |  | [Setup] Seed audit event with no organisation (system) | `POST /ljvis/log/insert_audit_event` | 200 | läbis |
+| 6 |  | [Setup] Create audit event in JUM org | `POST /ljvis/log/insert_audit_event` | 200 | läbis |
+| 7 |  | [Setup] Create audit event in PPA org | `POST /ljvis/log/insert_audit_event` | 200 | läbis |
+| 8 |  | [Setup] Create audit event with no organisation (system) | `POST /ljvis/log/insert_audit_event` | 200 | läbis |
 | 9 |  | GET /v1/logs — no cookie → 401 | `GET /ljvis/v1/logs` | 401 | läbis |
 | 10 |  | GET /v1/logs — officer (no audit perm) → 403 | `GET /ljvis/v1/logs` | 403 without audit.read / audit.read.local | läbis |
 | 11 |  | GET /v1/logs?search=AUDITCI — Super Admin → 200, sees all 3 (JUM + PPA + system) | `GET /ljvis/v1/logs` | 200 | läbis |
@@ -2664,4 +2664,3 @@ Ruuteri töövoogude loogika testid ilma andmebaasita (`DSL-tests/`, `DSL-tests-
 |---|---|
 | `contract` | OK |
 | `contract-check` | OK — 29 NU contract checks |
-

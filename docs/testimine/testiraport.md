@@ -294,7 +294,7 @@ PR-is #497 ja neid katab test, mis enne parandust kukkus.
 
 Samas käigus parandati kaks testide endi puudust:
 - „menüüpunkti ei kuvata“ kontrollid otsisid vale rolliga elementi ja läbisid alati;
-- `run.sh` jättis seemned rakendamata, kui masinas puudus `psql`.
+- `run.sh` jättis testandmed laadimata, kui masinas puudus `psql`.
 
 ### 6.2 Avatud kohad
 

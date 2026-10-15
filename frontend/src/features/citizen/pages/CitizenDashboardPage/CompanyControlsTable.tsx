@@ -116,11 +116,13 @@ export function CompanyControlsTable({
         cell: ({ row }) => (
           <Button
             visualType="link"
-            onClick={() =>
-              navigate(`/my-companies/compound/${row.original.compoundFormKey}`, {
+            onClick={() => {
+              const basePath =
+                row.original.formType === 'foreign_violation' ? 'foreign-violation' : 'compound';
+              navigate(`/my-companies/${basePath}/${row.original.formKey}`, {
                 state: { from: 'citizen-app' },
-              })
-            }
+              });
+            }}
           >
             {t('citizen.dashboard.controls.view')}
           </Button>

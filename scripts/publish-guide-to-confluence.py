@@ -247,7 +247,10 @@ def render_mermaid(code, out_svg):
 
 def convert(md_path, title_by_relpath):
     md_dir = md_path.parent
-    html = sh(["pandoc", str(md_path), "-f", "gfm", "-t", "html", "--wrap=none"])
+    html = sh([
+        "pandoc", str(md_path), "-f", "gfm", "-t", "html", "--wrap=none",
+        "--syntax-highlighting=none",
+    ])
     attachments = []
 
     def mermaid_sub(m):

@@ -753,8 +753,8 @@
               "  });",
               "});",
               "pm.test('27 valid and 1 expired value', () => {",
-              "  const valid = data.filter(v => v.isValid === 'true').length;",
-              "  const expired = data.filter(v => v.isValid === 'false').length;",
+              "  const valid = data.filter(v => v.isValid === true).length;",
+              "  const expired = data.filter(v => v.isValid === false).length;",
               "  pm.expect(valid).to.eql(27);",
               "  pm.expect(expired).to.eql(1);",
               "});"
@@ -810,10 +810,10 @@
               "var resp = (body && body.response) ? body.response : body;",
               "var data = resp.content || [];",
               "pm.test('First item is valid (isValid desc default sort)', () => {",
-              "  pm.expect(data[0].isValid).to.eql('true');",
+              "  pm.expect(data[0].isValid).to.eql(true);",
               "});",
               "pm.test('Last item is expired', () => {",
-              "  pm.expect(data[data.length - 1].isValid).to.eql('false');",
+              "  pm.expect(data[data.length - 1].isValid).to.eql(false);",
               "});"
             ]
           }

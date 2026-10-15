@@ -54,22 +54,10 @@ fetchList:
     body:
       compoundFormKey: ${incoming.params.compoundFormKey}
   result: res
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_adr_form_list"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
+  return: ${res.response.body}
   next: end
 
 returnForbidden:

@@ -7,7 +7,7 @@ LJVIS2 koosneb kahest omavahel seotud Git-repositooriumist:
 | Repo | Asukoht | Sisu |
 |------|---------|------|
 | **ljvis-2** (kood) | GitHub `kemit-ee/ljvis-2`, GitLab peegel | Rakenduse lähtekood, DSL-id, Liquibase migratsioonid, frontend, Docker image'ite lähtefailid, CI, mis ehitab image'id |
-| **ljvis2-devops** | GitLab `services/ljvis2/devops` (kohalikult tavaliselt kõrvalkaustas `../ljvis2-devops/`) | Helm chart'id, keskkonnapõhised väärtused, release-manifestid, Argo CD ApplicationSet'id, SSM-i seemneskriptid |
+| **ljvis2-devops** | GitLab `services/ljvis2/devops` (kohalikult tavaliselt kõrvalkaustas `../ljvis2-devops/`) | Helm chart'id, keskkonnapõhised väärtused, release-manifestid, Argo CD ApplicationSet'id, SSM-i algandmete laadimise skriptid |
 
 Keskkondade seadistust (hostinimed, andmebaasid, domeenid, saladused) **ei hoita koodirepos**, vaid devops-repos ja AWS SSM-is. Koodirepo `constants.ini` ja `docker-compose.yml` on mõeldud ainult kohalikuks arenduseks ja CI-ks.
 
@@ -154,7 +154,7 @@ Koodirepo DSL-id viitavad järgmistele muutujatele, mida `scripts/constants.ini.
 | `PK_SENDING_OPERATIONS_ENDPOINT` | Postkasti saatmisstaatuse kontroll (`check-status`, `notification-status-sync` cron) | `http://xtr:8080/postkast/sending-operations` |
 | `LJVIS_RESQL_ARHIIV` | Kustutatud vormide arhiiv (ADR-010) | `http://resql-ljvis:8090/arhiiv` (kui arhiiv on samas resql-is) |
 | `NYSIIS_ENDPOINT` | ERRU NYSIIS otsinguvõtmed | `http://nysiis:8080/nysiis` |
-| `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, CronManager, `erru-xml-adapter`) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` env-muutujas `INTERNAL_COMMUNICATION_KEY` ja CronManager'i mountitud `constants.ini`-s | Juhuslik, `openssl rand -hex 32`; **saladus** |
+| `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, `erru-xml-adapter`; CronManageri `/cron/*` kutsed on erand) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` env-muutujas `INTERNAL_COMMUNICATION_KEY` | Juhuslik, `openssl rand -hex 32`; **saladus** |
 | `ETOIMIK_SUBSYSTEM_CODE`, `ETOIMIK_SERVICE_VERSION` | eToimiku X-tee päringud | `etoimik-arendus` (ee-dev) või `etoimik` (ee-test/prod); versioon `v6` |
 | `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev/CI-s mock |
 | `ERRU_NCR_ORIGINATING_AUTHORITY` | NCR automaatse saatmise asutuse nimi | `Politsei- ja Piirivalveamet` |

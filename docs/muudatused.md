@@ -2,6 +2,49 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-14
+
+### Arhiveeritud vormide isikuga seose eemaldamine (ADR-014, LJVIS2-51)
+
+- Kohe pärast seda, kui kontrollvorm on jõudnud arhiivbaasi ja on töö-baasist kinnitatult kustutatud, asendatakse arhiveeritud kirje nimi, isikukood, sünniaeg ja sünnikoht (nt isikukood „38002025213" → „38001010000", sünniaeg 02.02.1865 → 01.01.1860, sünnikoht „Tallinn, Eesti" → „Eesti"). Vormi loonud ametniku andmed jäävad puutumata.
+- Juhitav uue `anonymize` lülitiga (vaikimisi sees) mõlemal arhiveerimise cron-tööl, samamoodi nagu olemasolevad `enabled`/`purge`/`dryRun` lülitid; vt admin-juhend „Arhiveerimine" §12.
+- Tagasiulatuvalt varem arhiveeritud kirjeid ei puudutata.
+
+### Kiiremad loendid ja klassifikaatorite laadimine (DataMapperi läbisõidud eemaldatud)
+
+- 25 lugemisteenust (klassifikaatorid ja nende väärtused, kasutajad, kasutajagrupid, riskiskoorid, ERRU CTUD/CGR/RSI/NCR/NU loendid ja vaated, hea maine ja tööinspektsiooni vormid, koondvormi alamvormide loendid) tagastavad andmebaasi vastuse otse, ilma andmete vahepealse ümberkirjutamiseta. Klassifikaatorite täiskomplekti laadimine võtab serveris ligikaudu poole vähem aega.
+- Erimärgid kuvatakse nüüd õigesti: nt klassifikaatori väärtus „Märgi „parvlaev/rong" ebaõige …" ja ettevõtte nimi „K's Merchandise" näitasid varem `&quot;` / `&#x27;` jääke.
+- Klassifikaatori väärtuse muutmisel ei kirjutata erimärke enam topelt-kodeerituna tagasi.
+
+### Klassifikaatorite brauseripuhver (ETag)
+
+- Klassifikaatorite täisnimekirjad (`/v1/classifier-values`, `/v1/citizen/classifier-values`, `/v1/classifiers/bundle`) saadavad `ETag` ja `Cache-Control: private, no-cache` päise. Kui klassifikaatorid pole vahepeal muutunud, vastab server korduval laadimisel (lehe värskendus, uus vaheleht) `304 Not Modified` ja brauser kasutab oma koopiat. Muutunud klassifikaatorid, väärtused või vormipiirangud ja uus kuupäev (kehtivus) muudavad ETag-i ning siis laaditakse andmed uuesti.
+### Klassifikaatorite laadimine kiiremaks („Muu tee" otsing serverist)
+
+- Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga sessiooni klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.
+- Koondvormi „Muu tee" tee numbri otsing küsib tee nime nüüd serverist ühe tee kaupa (`GET /v1/roads/other?number=<nr>`, ainult kehtiv kirje) pärast trükkimise lõppu. Kasutaja jaoks käitumine ei muutu: vaste korral täidetakse tee nimetus, vasteta numbri korral kuvatakse mitteblokeeriv teade ja nime saab käsitsi sisestada.
+- Haldusvaates on `ROAD_OTHER` väärtused endiselt nähtavad ja muudetavad (klassifikaatori väärtuste lehekülgedega loend).
+
+### XTR SOAP juhend lisatud dokumentatsiooni sisukorda
+
+- `docs/xtee/09-xtr-soap.md` on nüüd `docs/SUMMARY.md` kaudu leitav ("Integratsioonid ja spetsifikatsioonid" sektsioon). Leht on käsitsi avaldatud ka Confluence'i ("LJVIS2 · XTR: SOAP mõlemas suunas", lehe 346494942 all).
+
+### XTR SOAP tootmisse paigalduse juhend täpsustatud
+
+- `docs/xtee/09-xtr-soap.md`: tootmise `xtr.yaml` näites on `inbound.public_base_url` nüüd dummy-väärtus (`http://example.org/xroad-endpoint`), koos selgitusega, miks WSDL-i `soap:address` ei tohi näidata keskkonna tegelikku hostinime. Rakenduse käitumist ei muudeta — XTR SOAP vastuvõtt ei ole veel üheski keskkonnas juurutatud.
+
+### Jõudlustestide testvormide öine koristus (ajutine)
+
+- CronManageri töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
+- Jõudlustestide k6 skripti otsingupäring on parandatud; tulemused: `docs/testimine/`.
+
+## 2026-10-09
+
+### Tööinspektsiooni rikkumiskoodide X-tee vastendus
+
+- Tööinspektsiooni kontrollvormi rikkumiste klassifikaatoris said varem ühise koodi (nt „E4") alla peidetud raskusastmed (SI/VSI) nüüd oma eraldi koodi (nt „E5", „E6"), vastavalt Tööinspektsiooni enda numeratsioonile.
+- X-tee teenused `RegisterJobInspection_v2` ja `_v3` vastendavad nüüd sisse tuleva rikkumiskoodi (`rikkumiste_arv[].rikkumise_kood`) meie klassifikaatori kirjega enne kontrollvormi salvestamist, nii et vormi rikkumiste sektsioon kuvab andmed korrektselt; tundmatu rikkumiskood lükatakse tagasi (`400 UNKNOWN_VIOLATION_CODE`). V1 (vana fikseeritud nimega rikkumiste struktuur) jääb muutumatuks.
+
 ## 2026-10-08
 
 ### Avalikustatud välisriigi kontrollkaardil märgitud teavitus saadetakse salvestamisel
@@ -56,6 +99,13 @@
 
 ## 2026-10-05
 
+### CronManageri ajastatud tööd on taas `type: http` (korrigeerib #515)
+
+- `/cron/*` route'id ei nõua `x-internal-service-token` päist (`POST/cron/.guard`, `override_ancestors`). Kõik CronManageri tööd on taas lihtsad `type: http` POST-id; `exec`-skript `call-ruuter-internal.sh` ja CronManageri `constants.ini` mount on eemaldatud.
+- Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManageri tokenita päring 403).
+- Kaitse `/cron/*` ees on võrgutasemel (NetworkPolicy lubab `ruuter-internal`'ile ainult teadaolevad podid, host-porti ei publitseerita). Token jääb kõigile teistele `ruuter-internal` route'idele.
+- Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManageri tööd.
+
 ### Ruuteri väljuvad kutsed Resql-ile, TIM-ile ja DataMapper'ile kannavad teenusetokenit (#520, 3a)
 
 - Kõik kutsed Resql-ile (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`), TIM-ile ja DataMapper'ile saadavad päise `x-internal-service-token` (sama väärtus `INTERNAL_COMMUNICATION_KEY`, mis ruuter-internal'i kaitseks). Teenused ignoreerivad päist: kasutajale ja deploy'le muutust pole, uusi konstante lisada ei ole vaja.
@@ -91,7 +141,7 @@
 - Menetluse tulemuse, X-tee väljade, erakorralise ülevaatuse kuupäeva ja vedaja teavituse lipu salvestamine lisab vormile uue versioonirea; varasem rida jääb ajalukku ja vormi versiooninumber (/V) ei muutu. Versiooniajaloo vaates võib seetõttu ilmuda lisarida (sama versioon, sama staatus).
 - Manuse kustutamine jätab algse rea alles ja lisab kustutusmärke; kustutatud manust ei näidata ega saa alla laadida.
 - Samaaegne salvestamine ei kirjuta enam vaikselt üle: kõigil vormitabelitel on `revision` ja samaaegse topeltkirjutuse korral ebaõnnestub teine päring.
-- Arhiveerimine kustutab töö-baasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
+- Arhiveerimine kustutab tööbaasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
 - ErakorralineYVconfirm uuendab nii kinnitatud kui avalikustatud vormi (uus rida, staatus jääb samaks). Varem muutis see avalikustatud vormi puhul vana kinnitatud rida, mistõttu muudatus ei olnud vormil nähtav.
 - Teavituste logi: Postkast 2.0 staatuse muutused salvestatakse eraldi sündmusena (`notifications.outbound_log_status_event`), `outbound_log` rida ei muutu. Vaates muutust pole.
 
@@ -99,7 +149,7 @@
 
 - `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.
 - Varasem ws-broadcast jagatud saladus (`INTERNAL_COMMUNICATION_KEY`) on sama token: konstant jääb samaks, päis `x-viljus-knows-a-secret` on nimetatud ümber `x-internal-service-token`-iks. Keskkondades uusi konstante lisada ei ole vaja.
-- CronManager'i ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManager'i konteinerisse tuleb seega mountida sama `constants.ini`.
+- CronManageri ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManageri konteinerisse tuleb seega mountida sama `constants.ini`.
 - `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
 - Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
 
@@ -153,7 +203,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 - Uus funktsioon: vormid, mille viimasest tegevusest on möödas seadistatav arv aastaid (vähemalt 3), kopeeritakse eraldi arhiivibaasi.
 - Funktsioon on **vaikimisi välja lülitatud**. Seaded (`enabled`, `retentionYears`, `purge`, `batch`, `dryRun`) on ühes kohas:
   `DSL/CronManager/archive-aged-forms.yaml`.
-- Valik, kas pärast arhiveerimist kustutatakse kirje töö-baasist (`purge`, vaikimisi ei kustutata). Kustutatakse ainult siis, kui arhiivibaas on iga rea olemasolu eraldi kinnitanud.
+- Valik, kas pärast arhiveerimist kustutatakse kirje tööbaasist (`purge`, vaikimisi ei kustutata). Kustutatakse ainult siis, kui arhiivibaas on iga rea olemasolu eraldi kinnitanud.
 - Koondvorm ja selle alamvormid arhiveeritakse koos; vormi ajalugu jääb loetavaks ka pärast arhiveerimist.
 - Juhend: `docs/admin-guide/13-arhiveerimine.md`; otsus ADR-012.
 

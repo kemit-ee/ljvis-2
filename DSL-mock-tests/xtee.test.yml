@@ -325,7 +325,7 @@ tests:
       koostatatud_ettekirjutus: false
       kontrollimised: &id006
         kontrollitud_soitjate_veol: false
-      rikkumised: &id007
+      rikkumised: &id009
         rikkumised_loend: []
       vaarteomenetlus: MOCK-VM-001
   expect:
@@ -400,7 +400,7 @@ tests:
     headers:
       content-type: application/json
       x-road-client: ee-dev/GOV/70001490/liiklusregister
-    body: &id008
+    body: &id007
       kontrollija: Mock Kontrollija
       kontrolli_id: 900001
       kontrolli_kp: '2026-06-15'
@@ -409,7 +409,11 @@ tests:
       soidukite_arv: 2
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: &id010
+        rikkumiste_arv:
+        - rikkumise_kood: E5
+          arv: 2
+        - rikkumise_kood: B1
       vaarteomenetlus: MOCK-VM-001
       soiduki_reg_nr: MOCK123
       soiduki_vin: MOCKVIN0000000001
@@ -428,7 +432,7 @@ tests:
     path: /xtee-mock/xroad/v1/register-job-inspection-v3
     headers:
       content-type: application/json
-    body: *id008
+    body: *id007
   expect:
     status: 403
     body_matches:
@@ -441,7 +445,7 @@ tests:
     headers:
       content-type: application/json
       x-road-client: bad
-    body: *id008
+    body: *id007
   expect:
     status: 403
     body_matches:
@@ -454,7 +458,7 @@ tests:
     headers:
       content-type: application/json
       x-road-client: ee-dev/GOV/70000000/denied
-    body: *id008
+    body: *id007
   expect:
     status: 403
     body_matches:
@@ -478,7 +482,7 @@ tests:
       content-type: application/json
       x-road-client: ee-dev/GOV/70001490/liiklusregister
       x-mock-scenario: server-error
-    body: *id008
+    body: *id007
   expect:
     status: 500
     body_matches:
@@ -489,7 +493,7 @@ tests:
     path: /xtee-mock/xroad/v2/findUsage
     headers:
       x-road-userid: '60001019906'
-    query: &id009
+    query: &id008
       userCode: '60001019906'
       offset: '0'
       limit: '1000'
@@ -497,18 +501,18 @@ tests:
     status: 200
     body_matches:
       totalUsages: 3
-      usages: &id010
-      - &id011
+      usages: &id011
+      - &id012
         logtime: '2026-06-15T12:00:00Z'
         action: Mock kontrollipäring
         receiverCode: '70001490'
         receiverName: Mock tarbija
         receiverSystem: liiklusregister
-      - &id012
+      - &id013
         logtime: '2026-06-14T12:00:00Z'
         action: Mock töökontroll
         receiverCode: '70001969'
-      - &id013
+      - &id014
         logtime: '2026-06-13T12:00:00Z'
         action: Mock korduspäring
         receiverCode: '70001490'
@@ -521,7 +525,7 @@ tests:
     headers:
       x-road-userid: '60001019906'
       x-mock-scenario: server-error
-    query: *id009
+    query: *id008
   expect:
     status: 500
     body_matches:
@@ -702,7 +706,7 @@ tests:
       tooandja_reg_kood: '00000001'
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: *id009
   expect:
     status: 200
     body_matches:
@@ -723,7 +727,7 @@ tests:
       soidukite_arv: 2
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: *id010
       vaarteomenetlus: MOCK-VM-001
       soiduki_reg_nr: MOCK123
       soiduki_vin: MOCKVIN0000000001
@@ -750,7 +754,7 @@ tests:
       soidukite_arv: 2
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: *id010
       vaarteomenetlus: MOCK-VM-001
       soiduki_reg_nr: MOCK123
       soiduki_vin: MOCKVIN0000000001
@@ -805,7 +809,7 @@ tests:
     status: 200
     body_matches:
       totalUsages: 3
-      usages: *id010
+      usages: *id011
 - name: AJ EE prefix is stripped from userCode
   request:
     method: GET
@@ -818,7 +822,7 @@ tests:
     status: 200
     body_matches:
       totalUsages: 3
-      usages: *id010
+      usages: *id011
 - name: AJ invalid offset
   request:
     method: GET
@@ -862,7 +866,7 @@ tests:
     body_matches:
       totalUsages: 3
       usages:
-      - *id011
+      - *id012
 - name: AJ deterministic page 1
   request:
     method: GET
@@ -878,7 +882,7 @@ tests:
     body_matches:
       totalUsages: 3
       usages:
-      - *id012
+      - *id013
 - name: AJ deterministic page 2
   request:
     method: GET
@@ -894,7 +898,7 @@ tests:
     body_matches:
       totalUsages: 3
       usages:
-      - *id013
+      - *id014
 - name: AJ deterministic page 3
   request:
     method: GET
@@ -938,7 +942,7 @@ tests:
     body_matches:
       totalUsages: 1
       usages:
-      - *id012
+      - *id013
 - name: usage period empty log still reports periodStart
   request:
     method: GET

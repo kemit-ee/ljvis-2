@@ -5,8 +5,10 @@ declaration:
   description: >-
     LJVIS2-151/144: returns the latest PERSISTED risk score for a company —
     never recomputes (see recalculate.yml for that). Consumed by (a) the CTUD
-    inbound-request handler (LJVIS2-144, not built yet — will map riskScore
-    -> ERRU riskRating and riskBandErru -> ERRU riskBand) and (b) the citizen
+    inbound-request handler (erru/ctud/inbound-request.yml, which first
+    resolves company_reg_code from the licence number MTR confirmed via
+    erru/ctud/lookup-reg-code-by-licence.sql, then maps riskScore -> ERRU
+    riskRating and riskBandErru -> ERRU riskBand) and (b) the citizen
     my-company endpoint (DSL/Ruuter/ljvis/GET/v1/citizen/risk-scores/
     my-company.yml), which strips riskBandErru before returning to the
     browser. ERRU riskBand wire values are English classifier codes already

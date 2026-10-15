@@ -28,7 +28,7 @@ export interface ViolationEntry {
 }
 
 export interface LabourInspectionForm {
-  id?: string;
+  id?: string | number;
   /** Immutable core act number, format ti-AAAA-NNNNN (no /V suffix — see `version`). */
   formNumber?: string;
   /** The /V display suffix of the act number; join as `${formNumber}/${version}` for display. */
@@ -423,7 +423,7 @@ export interface TechnicalCheckForm {
 }
 
 export interface TechnicalCheckFormListItem {
-  id: string;
+  id: number;
   subFormNumber: string;
   version: number;
   /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
@@ -455,7 +455,7 @@ export interface TransportInterruptionForm {
 }
 
 export interface TransportInterruptionFormListItem {
-  id: string;
+  id: number;
   subFormNumber: string;
   version: number;
   /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
@@ -565,7 +565,7 @@ export interface AdrForm {
 }
 
 export interface AdrFormListItem {
-  id: string;
+  id: number;
   subFormNumber: string;
   version: number;
   /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
@@ -576,7 +576,7 @@ export interface AdrFormListItem {
 
 /** LJVIS2-136: hea maine vorm (veokorraldusjuhi hea maine nõudele mittevastavus). Independent form — no parent compound form. */
 export interface GoodReputeForm {
-  id?: string;
+  id?: string | number;
   /** Immutable core form number, format mv-AAAA-NNNNN (no /V suffix — see `version`). */
   formNumber?: string;
   version?: number;

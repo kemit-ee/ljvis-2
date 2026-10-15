@@ -64,7 +64,8 @@ Raportitega seotud dokumendid: [migratsioonitesti raport](04-migratsioonitesti-r
 
 ## 5. Valimkontroll (K10)
 
-1. Iga vormitüübi kohta: 10 juhuslikku vormi (`ORDER BY random()` fikseeritud seemnega, seeme raportis).
+1. Iga vormitüübi kohta: 10 juhuslikku vormi (`ORDER BY random()` fikseeritud
+   juhuarvugeneraatori algväärtusega). Lisa algväärtus raportisse.
 2. Lisaks: kõik [client-review](client-review/README.md) vormid ja vähemalt 2 koondkontrolli täielikult (auto + haagis + juht/teine juht).
 3. Võrdlus vanas ja uues UI-s: väljad, rikkumised, osavormid, staatus, kuupäevad, autor, number.
 4. Tulemus tabelisse: vormi ID, tulemus (OK/Viga), märkus, kontrollija, kuupäev.

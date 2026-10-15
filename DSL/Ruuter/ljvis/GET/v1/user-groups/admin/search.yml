@@ -56,20 +56,13 @@ getUserGroups:
   next: mapResponse
 
 mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_user_groups_list"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      groups: ${res.response.body}
-  result: mapped
+  assign:
+    paged: "${({ content: res.response.body, total: res.response.body.length > 0 ? res.response.body[0].total : 0 })}"
   next: setDefaults
 
 setDefaults:
   assign:
-    result_count: ${mapped.response.body.total}
+    result_count: ${paged.total}
   next: checkSearch
 
 checkSearch:
@@ -92,5 +85,5 @@ logSearchEvent:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${paged}
   next: end

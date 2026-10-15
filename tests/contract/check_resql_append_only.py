@@ -15,10 +15,13 @@ Every Resql template under DSL/Resql/ must be INSERT + SELECT only:
 Comments (`/* */`, `--`), string literals and dollar-quoted bodies are stripped before
 matching, so prose in the YAML header never trips the rule.
 
-The only sanctioned exception is the retention-purge DELETE described in the epic
-(archive-move -> verify -> delete). It must be listed in `.sql-rule-exemption` with the
-exact file path and a rationale; an exemption that no longer matches a violation is an
-error, so the allowlist cannot rot.
+There are two sanctioned exceptions, each a single named file: the retention-purge DELETE
+(archive-move -> verify -> delete) and the archive anonymization UPDATE (ADR-014 /
+LJVIS2-51: redact a snapshot's payload in place, right after its retention-purge DELETE
+confirms). Each must be listed in `.sql-rule-exemption` with the exact file path and a
+rationale; an exemption that no longer matches a violation is an error, so the allowlist
+cannot rot. An exempted file may violate ONLY ONE operation (DELETE or UPDATE) — never
+both, never JOIN/LATERAL.
 
 Run from the repo root:  python3 tests/contract/check_resql_append_only.py
 """
@@ -127,8 +130,10 @@ def check(root: Path = ROOT):
         if not found:
             continue
         if rel in exemptions:
-            if any(v[0] != "A1" or "DELETE" not in v[2] for v in found):
-                errors.append(f"{rel}: exempt, but violates more than the retention DELETE: "
+            kinds = {k for v in found for k in ("DELETE", "UPDATE") if k in v[2]}
+            if any(v[0] != "A1" for v in found) or len(kinds) != 1:
+                errors.append(f"{rel}: exempt, but violates more than a single sanctioned "
+                              "DELETE or UPDATE: "
                               + "; ".join(f"{r}@{n} {m}" for r, n, m in found))
             used.add(rel)
             continue

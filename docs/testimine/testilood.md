@@ -19,7 +19,7 @@ nii et testiloo kirjeldus ja selle tulemus ei saa teineteisest lahkneda.
 | Moodul ja rühm | mida testitakse | spec + `describe` | kollektsioon + kaust |
 | Seotud nõuded | jälgitavus | nõude ID-d ([testiraport](testiraport.md) §5) | testiraport §5 |
 | Roll | kelle õigustega | peakasutaja, lokaalne kontohaldur, ametnik, õigusteta, X-tee klient | päringu autentimine (testiplaan §5.3) |
-| Eeltingimused | andmed ja olek enne testi | §2 + testi `beforeAll` (nt seemnekirjed) | kollektsiooni `[Setup]` päringud |
+| Eeltingimused | andmed ja olek enne testi | §2 + testi `beforeAll` (nt algandmete kirjed) | kollektsiooni `[Setup]` päringud |
 | Sammud ja oodatav tulemus | mida tehakse ja mida kontrollitakse | `test.step` pealkirjad | päring + `pm.test` kontroll |
 | Tulemus | viimase jooksu tulemus | läbis / KUKKUS + kestus | läbis / KUKKUS + veateade |
 | Viide | automaattesti asukoht | `tests/playwright/tests/<spec>:<rida>` | `tests/postman/collections/<kollektsioon>.collection.json` |
@@ -33,11 +33,11 @@ korratav ja selle viimane tulemus on alati tõendatav.
 ## 2. Üldised eeltingimused
 
 1. CI-pinu on üles tõstetud puhta andmebaasiga (`docker-compose.ci.yml`), kõik
-   migratsioonid rakendatud ja testseemned laaditud (testiplaan §5.1–5.2).
+   migratsioonid rakendatud ja testandmed laaditud (testiplaan §5.1–5.2).
 2. Testkasutajad on olemas ja sisse logitud dev-login kaudu (testiplaan §5.3).
 3. Frontend jookseb staatilise buildina (`vite preview`) CI-pinu API vastu.
-4. Testandmed, mida test muudab, luuakse testi alguses unikaalsena; seemne
-   kasutajaid ja gruppe ei muudeta.
+4. Testandmed, mida test muudab, luuakse testi alguses unikaalsena. Algandmetena
+   laaditud kasutajaid ega gruppe ei muudeta.
 
 ## 3. UI-testilood moodulite kaupa
 

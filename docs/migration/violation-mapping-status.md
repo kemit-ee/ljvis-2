@@ -26,7 +26,7 @@ Avatud vastenduste tasemed:
 Ettepanekute näited ei ole rakendatud ETL ega valmis JSON-leping. Pakutav ajalooline
 lisa peab säilitama algvõtme, väärtuse, vormi seose, versiooni ja päritolu ning olema
 uues süsteemis loetav/eksporditav. Seda ei tohi automaatselt arvestada kinnitatud
-rikkumisena statistikas ega riskiskooris. Ainult snapshot'is hoidmine ei täida seda nõuet.
+rikkumisena statistikas ega riskiskooris. Ainult hetktõmmises hoidmine ei täida seda nõuet.
 
 **Ühtegi pöördumatu algandmekaoga kirjet ei ole tõendatud.** Võti ja väärtus on olemas;
 puududa võib nende täpne tähendus või võimalus neid praeguse mudeli äriväljas kasutada.

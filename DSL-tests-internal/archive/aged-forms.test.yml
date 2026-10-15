@@ -95,7 +95,67 @@ tests:
   - url_matches: /archive/purge_confirmed
     count: 0
 
-- name: purge=true deletes from the live database after 100% verification
+- name: purge=true deletes from the live database after 100% verification, then anonymizes (anonymize defaults to true)
+  setup:
+    mocks:
+    - url_matches: /archive/select_aged_snapshots
+      method: POST
+      status: 200
+      body:
+      - formType: compound-form
+        id: 11
+        formKey: 5
+        payload: {}
+    - url_matches: /deleted-forms/insert_snapshots
+      method: POST
+      status: 200
+      body:
+      - inserted: 1
+    - url_matches: /deleted-forms/count_present
+      method: POST
+      status: 200
+      body:
+      - present: 1
+    - url_matches: /archive/purge_confirmed
+      method: POST
+      status: 200
+      body:
+      - purged: 1
+    - url_matches: /archive/anonymize_confirmed
+      method: POST
+      status: 200
+      body:
+      - anonymized: 1
+    - url_matches: /xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
+    query:
+      enabled: 'true'
+      retentionYears: '7'
+      purge: 'true'
+  expect:
+    status: 200
+    body:
+      response:
+        copied: 1
+        enabled: true
+        mode: archive+purge
+        purged: 1
+        verified: 1
+        anonymized: 1
+  verify_mocks:
+  - url_matches: /archive/purge_confirmed
+    count: 1
+  - url_matches: /archive/anonymize_confirmed
+    count: 1
+
+- name: purge=true with anonymize=false skips the anonymization step
   setup:
     mocks:
     - url_matches: /archive/select_aged_snapshots
@@ -134,6 +194,7 @@ tests:
       enabled: 'true'
       retentionYears: '7'
       purge: 'true'
+      anonymize: 'false'
   expect:
     status: 200
     body:
@@ -143,9 +204,58 @@ tests:
         mode: archive+purge
         purged: 1
         verified: 1
+        anonymized: 0
   verify_mocks:
-  - url_matches: /archive/purge_confirmed
-    count: 1
+  - url_matches: /archive/anonymize_confirmed
+    count: 0
+
+- name: archive-only (purge=false) never anonymizes even when anonymize=true
+  setup:
+    mocks:
+    - url_matches: /archive/select_aged_snapshots
+      method: POST
+      status: 200
+      body:
+      - formType: compound-form
+        id: 11
+        formKey: 5
+        payload: {}
+    - url_matches: /deleted-forms/insert_snapshots
+      method: POST
+      status: 200
+      body:
+      - inserted: 1
+    - url_matches: /deleted-forms/count_present
+      method: POST
+      status: 200
+      body:
+      - present: 1
+    - url_matches: /xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/cron/archive-aged-forms
+    headers:
+      x-internal-service-token: dev-internal-service-token
+    query:
+      enabled: 'true'
+      retentionYears: '7'
+      purge: 'false'
+      anonymize: 'true'
+  expect:
+    status: 200
+    body:
+      response:
+        copied: 1
+        enabled: true
+        mode: archive-only
+        purged: 0
+        verified: 1
+  verify_mocks:
+  - url_matches: /archive/anonymize_confirmed
+    count: 0
 
 - name: purge=true is skipped when the archive does not confirm every row
   setup:

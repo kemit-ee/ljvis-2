@@ -388,8 +388,13 @@ jobs:
         run: npm install -g newman newman-reporter-htmlextra
 
       # tests/xtr/verify.py: WSDL XSD validation (xmllint) and sidecar comparison (PyYAML)
+      # The runner image's package index goes stale (404 from the mirror on install), so
+      # refresh it first; drop the unused google-chrome repo, which breaks apt-get update
+      # intermittently (same as the UI Tests job).
       - name: Install XTR SOAP test tools
         run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.sources
+          sudo apt-get update -q
           sudo apt-get install -y -q libxml2-utils
           pip3 install pyyaml -q
 

@@ -2,7 +2,11 @@
 
 > **Oluline:** see on ainus viis esimese kasutaja loomiseks. Ilma selleta ei saa keegi rakendusse sisse logida ega kasutajaid hallata. Tee see **iga keskkonna** (DEV, TEST, PRELIVE, PROD) esmasel paigaldusel pärast Liquibase migratsiooni.
 
-Pärast esmast paigaldust on `users.organisation`, `users.permission` ja `users.user_group` tabelid Liquibase'i poolt automaatselt täidetud (vt Liquibase seemned `DSL/Liquibase/changelog/`), aga **ühtegi kasutajat (`users.user_account`) ega superadmini kasutajagruppi ei looda automaatselt**. Esimese kasutaja, kellel on õigus teisi kasutajaid hallata, peab looja käsitsi andmebaasi lisama.
+Pärast esmast paigaldust laadib Liquibase tabelitesse `users.organisation`,
+`users.permission` ja `users.user_group` algandmed (vt `DSL/Liquibase/changelog/`).
+Liquibase ei loo ühtegi kasutajat (`users.user_account`) ega superadmini
+kasutajagruppi. Loo esimene kasutaja käsitsi andmebaasis. Sellel kasutajal peab olema
+õigus teisi kasutajaid hallata.
 
 Kuna kõik LJVIS2 tabelid on append-only (rida ei uuendata, vaid lisatakse uus "hetketõmmis"), tuleb kasutaja ja tema õigustegrupp luua ühekordse SQL-skriptiga, mitte rakenduse UI kaudu (UI eeldab, et esimene kasutaja juba on olemas).
 
@@ -14,7 +18,9 @@ Kuna kõik LJVIS2 tabelid on append-only (rida ei uuendata, vaid lisatakse uus "
 
 ## Asutuste nimekiri
 
-Asutused on Liquibase seemnega (`DSL/Liquibase/changelog/20260828300000-initial-organisations.sql`) juba loodud. Et näha, milline kood millisele asutusele vastab (SQL-skriptis on vaja asutuse `code` väärtust):
+Asutuste algandmed on laaditud Liquibase'i failiga
+`DSL/Liquibase/changelog/20260828300000-initial-organisations.sql`. Järgmine päring
+näitab asutuse nime ja koodi. SQL-skript vajab asutuse välja `code` väärtust.
 
 ```sql
 SELECT id, name, code FROM users.organisation ORDER BY name;

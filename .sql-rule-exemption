@@ -1,8 +1,16 @@
-# SQL append-only invariant (epic #522, ADR-013): the ONLY sanctioned exception.
+# SQL append-only invariant (epic #522, ADR-013): two sanctioned exceptions only.
 # Format: <repo-relative path>  # rationale. Entries must live under an `archive/` directory,
-# may only contain the retention-purge DELETE, and must match a real violation (stale entries fail CI).
+# may only contain a single sanctioned mutating statement (the retention-purge DELETE or the
+# archive anonymization UPDATE), and must match a real violation (stale entries fail CI).
 #
 # Retention purge (ADR-010 / ADR-012). Contract: (1) SELECT from the work DB and copy to the archive DB,
 # (2) archive-presence-verify (arhiiv count_present: 100% of the pairs present), (3) this DELETE, called by
 # the Ruuter cron only after step 2, deleting only primary keys and only whole entity histories.
 DSL/Resql/ljvis/POST/archive/purge_confirmed.sql  # retention purge: verified-archive-then-delete, entity histories whole, by id only
+
+# Isikuga seose eemaldamine (ADR-014 / LJVIS2-51). Kutsutakse vahetult pärast purge_confirmed.sql
+# õnnestumist (sama (form_type, id) paarid) — asendab archive.form_snapshot.payload-is subjekti
+# isikuandmed (nimi, isikukood, sünniaeg, sünnikoht) ja märgib anonymized_at. Idempotentne
+# (WHERE anonymized_at IS NULL). INSERT-only alternatiivi pole, kuna olemasoleva rea PII tuleb
+# füüsiliselt eemaldada, mitte uue rea kõrvale jätta.
+DSL/Resql/ljvis/POST/archive/anonymize_confirmed.sql  # isikuga seose eemaldamine: redigeerib payload-i kohapeal, kutsutakse ainult pärast kinnitatud purge't

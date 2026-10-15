@@ -23,11 +23,13 @@ export interface CompanyRiskScore {
   windowEnd: string | null;
 }
 
-// One row of GET/v1/citizen/risk-scores/controls.yml's `controls` array —
-// one compound_form (control) with its MSI/VSI/SI/MI severity counts and
-// weightedPoints contribution to the company's risk score.
+// One row of GET/v1/citizen/risk-scores/controls.yml's `controls` array — one
+// control (either a PPA/TRAM compound_form or a foreign_violation_form/VR-vorm,
+// see formType) with its MSI/VSI/SI/MI severity counts and weightedPoints
+// contribution to the company's risk score.
 export interface CompanyControlRow {
-  compoundFormKey: number;
+  formKey: number;
+  formType: 'compound' | 'foreign_violation';
   formNumber: string;
   mainDate: string | null;
   vehicleRegNr: string | null;
