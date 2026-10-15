@@ -4,6 +4,11 @@
 
 ## 2026-10-15
 
+### XTR SOAP dokumentatsiooni parandus
+
+- `docs/xtee/` juhendid täpsustatud: X-tee kaudu saabunud tööinspektsiooni kontrollvorm läheb kohe **kinnitatud** olekusse, mitte „salvestatud" olekusse (varem oli „Veel lahtine" sektsioonis esitatud lahendamata äriotsusena, kuigi ülejäänud dokumentatsioon juba kirjeldas tegelikku käitumist).
+- Terminoloogia ühtlustatud: läbivalt kasutusel "kontrollvorm" (varem segamini "akt"/"kontrollakt").
+
 ### Sõidu- ja puhkeaja vormid: päevade arvud kuni kahekohalised
 
 - Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab samu välju) saab väljadele „Kontrollitud päevade arv", „Tööpäevade arv" ja „Muu tegevuse päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
