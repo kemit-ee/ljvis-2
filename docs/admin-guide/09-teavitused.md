@@ -189,12 +189,26 @@ mallifailid ja malli loomise samm-sammuline juhend on repos kaustas
 
 ### Desktop-kanali teavituse saajad
 
-`desktop`-kanaliga liikidel (nt `ncr_violation`, `driving_ban`) puudub
-vaikimisi vastuvõtja e-post — selle asemel saab valida **konkreetsed
-kasutajad**, kellele rakendusesisene (kella-ikooni) teavitus kuvatakse, lisaks
-senisele õiguspõhisele (`required_permission`) reeglile. See sobib juhuks,
-kui teavitust peab nägema kindel isik või väike ring inimesi, mitte kõik
-mingi õigusega kasutajad.
+`desktop`-kanaliga liikidel puudub vaikimisi vastuvõtja e-post — selle asemel
+saab valida **konkreetsed kasutajad**, kellele rakendusesisene (kella-ikooni)
+teavitus kuvatakse, lisaks senisele õiguspõhisele (`required_permission`)
+reeglile. See sobib juhuks, kui teavitust peab nägema kindel isik või väike
+ring inimesi, mitte kõik mingi õigusega kasutajad.
+
+Praegune `desktop`-kanali liikide kataloog:
+
+| Liik (sisemine kood) | Õigus | Päästik |
+|---|---|---|
+| `ncr_ok` | `ncr.read` | Sissetulev ERRU NCR teade, tulemus „Korras“ |
+| `ncr_violation` | `ncr.read` | Sissetulev ERRU NCR teade, tulemus rikkumisega |
+| `ncr_response` | `ncr.respond` | Vastussõnum Eestist saadetud ERRU NCR teatele |
+| `rsi_received` | `rsi.read` | Sissetulev ERRU RSI (tehnokontrolli) teade |
+| `nu_inbound_received` | `nu.read` | Sissetulev ERRU NU (sobimatus) teade |
+| `serious_infringement` | `rsi.read` | Mootorsõiduki/haagise tehnokontrollvormi avalikustamine (**ka uuesti salvestamine pärast avalikustamist**), kui märgitud MSI/VSI/SI raske rikkumine |
+| `extraordinary_inspection` | `rsi.read` | Tehnokontrollvormi avalikustamine (**ka uuesti salvestamine**), tulemus „Erakorraline ülevaatus“, Euroopa Liidu/EMP liikmesriigi sõiduk (va Eesti) |
+| `cargo_securing` | `rsi.read` | Tehnokontrollvormil märgitud veose kinnituse nõude (CAA_10) puudus (**ka uuesti salvestamine**), Euroopa Liidu/EMP liikmesriigi sõiduk |
+| `driving_ban` | `rsi.read` | Tehnokontrollvormi avalikustamine (**ka uuesti salvestamine**), rakendatud sõidukeeld |
+| `weight_violation` | `rsi.read` | Sõidu- ja puhkeaja kontrollkaardi avalikustamine (**ka uuesti salvestamine**), kaalu/mõõtme rikkumine |
 
 Muutmisvormis on väli **„Teavituse saajad“** koos otsinguga:
 
