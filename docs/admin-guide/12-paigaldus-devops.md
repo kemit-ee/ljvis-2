@@ -154,10 +154,17 @@ Koodirepo DSL-id viitavad järgmistele muutujatele, mida `scripts/constants.ini.
 | `PK_SENDING_OPERATIONS_ENDPOINT` | Postkasti saatmisstaatuse kontroll (`check-status`, `notification-status-sync` cron) | `http://xtr:8080/postkast/sending-operations` |
 | `LJVIS_RESQL_ARHIIV` | Kustutatud vormide arhiiv (ADR-010) | `http://resql-ljvis:8090/arhiiv` (kui arhiiv on samas resql-is) |
 | `NYSIIS_ENDPOINT` | ERRU NYSIIS otsinguvõtmed | `http://nysiis:8080/nysiis` |
-| `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, `erru-xml-adapter`; CronManageri `/cron/*` kutsed on erand) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` env-muutujas `INTERNAL_COMMUNICATION_KEY` | Juhuslik, `openssl rand -hex 32`; **saladus** |
+| `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, CronManager, `erru-xml-adapter`) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` ja `cronmanager` env-muutujas `INTERNAL_COMMUNICATION_KEY` | Juhuslik, `openssl rand -hex 32`; **saladus** |
 | `ETOIMIK_SUBSYSTEM_CODE`, `ETOIMIK_SERVICE_VERSION` | eToimiku X-tee päringud | `etoimik-arendus` (ee-dev) või `etoimik` (ee-test/prod); versioon `v6` |
 | `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev/CI-s mock |
 | `ERRU_NCR_ORIGINATING_AUTHORITY` | NCR automaatse saatmise asutuse nimi | `Politsei- ja Piirivalveamet` |
+
+**CronManager'i tööde kontroll deploy'l.** Puuduv `INTERNAL_COMMUNICATION_KEY` cronmanager-podis ei kukuta CronManager'it ära: iga tööfail, mille `headerEnvs` viitab seadmata muutujale, jäetakse vahele ja pod käivitub 0 tööga. Seepärast peab pod olema `Ready` alles siis, kui töid on registreeritud. Kasuta `readinessProbe`-s (docker-compose'is on sama käsk healthcheck'ina):
+
+```bash
+curl -sf http://localhost:8080/health >/dev/null && \
+curl -sf -H "Authorization: Bearer $CRONMANAGER_ADMIN_TOKEN" http://localhost:8080/jobs | grep -q '"name"'
+```
 
 Samuti on mallis muutujaid, mida koodirepo DSL otseselt ei kasuta (`AR_USERNAME`, `AR_PASSWORD`, `DOMAIN`, `XROAD_INSTANCE`, `XROAD_SECURITY_SERVER`, `LJVIS_DMAPPER`) — see kirjeldab eespool viidatud devops-malli seisu. `XROAD_INSTANCE` ja `XROAD_SECURITY_SERVER` on koodirepo `constants.ini` failist eemaldatud: X-tee instants ja turvaserver seadistatakse XTR-i konfiguratsioonis (`xroad_instance`, `security_server`), mitte Ruuteri konstantidena. Devops-mallist võib need kaks kasutamata muutujat samuti eemaldada.
 
