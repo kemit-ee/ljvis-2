@@ -53,18 +53,24 @@ export function createDriveRestValidationSchema(
     }),
     checkedDaysCount: Yup.string().max(
       2,
-      t('forms.sp_form.validation.checkedDaysCountMax'),
+      t('forms.sp_form.validation.daysCountMaxDigits'),
     ),
-    workDaysCount: Yup.string().test(
-      'workDaysCountMax',
-      t('forms.sp_form.validation.workDaysCountMax'),
-      function (value) {
-        if (!value) return true;
-        const workDays = parseInt(value, 10);
-        const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
-        if (isNaN(checkedDays)) return false;
-        return workDays <= checkedDays;
-      },
+    workDaysCount: Yup.string()
+      .max(2, t('forms.sp_form.validation.daysCountMaxDigits'))
+      .test(
+        'workDaysCountMax',
+        t('forms.sp_form.validation.workDaysCountMax'),
+        function (value) {
+          if (!value) return true;
+          const workDays = parseInt(value, 10);
+          const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
+          if (isNaN(checkedDays)) return false;
+          return workDays <= checkedDays;
+        },
+      ),
+    otherActivityDaysCount: Yup.string().max(
+      2,
+      t('forms.sp_form.validation.daysCountMaxDigits'),
     ),
   });
 }

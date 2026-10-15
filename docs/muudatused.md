@@ -4,9 +4,9 @@
 
 ## 2026-10-15
 
-### Sõidu- ja puhkeaja vormid: kontrollitud päevade arv kuni kahekohaline
+### Sõidu- ja puhkeaja vormid: päevade arvud kuni kahekohalised
 
-- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab sama välja) saab välja „Kontrollitud päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
+- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab samu välju) saab väljadele „Kontrollitud päevade arv", „Tööpäevade arv" ja „Muu tegevuse päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
 
 ## 2026-10-14
 

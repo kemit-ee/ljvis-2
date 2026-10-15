@@ -1161,7 +1161,7 @@
       "validation": {
         "required": "Required field",
         "workDaysCountMax": "Number of work days must not exceed the number of checked days",
-        "checkedDaysCountMax": "Number of checked days can have at most 2 digits"
+        "daysCountMaxDigits": "Number of days can have at most 2 digits"
       }
     },
     "drive_rest": {
