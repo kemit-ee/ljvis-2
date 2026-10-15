@@ -1,5 +1,6 @@
 # Runs at 01:30 Tallinn time (TZ pinned in docker-compose.yml) — after the
-# labour-inspection e-toimik sync (01:00) to avoid XTR contention.
+# labour-inspection e-toimik sync (01:00) to avoid XTR contention. The job
+# processes both sp_driver and sp_teammate sub-forms.
 etoimik_sp_driver_decision_sync:
   trigger: "0 30 1 * * ?"
   type: http

@@ -9,6 +9,9 @@ returns:
 - name: id
   type: number
   nullable: true
+- name: compound_form_key
+  type: number
+  nullable: true
 - name: proceeding_reference_number
   type: string
   nullable: true
@@ -43,12 +46,13 @@ cand AS (
     AND s.created_at >= now() - INTERVAL '365 days'
 ),
 resolved AS (
-  SELECT cand.id, cand.proceeding_reference_number, cand.person_code_ee,
+  SELECT cand.id, cand.compound_form_key, cand.proceeding_reference_number, cand.person_code_ee,
          (SELECT c FROM forms.compound_form c WHERE c.compound_form_key = cand.compound_form_key ORDER BY c.created_at DESC LIMIT 1) AS cf
   FROM cand
 )
 SELECT
   id,
+  compound_form_key,
   proceeding_reference_number,
   person_code_ee AS person_personal_code
 FROM resolved

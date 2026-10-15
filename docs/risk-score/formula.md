@@ -41,8 +41,8 @@ sama asi ja need ei peagi kokku käima 1:1 väärtuste kaupa:
   otse tuletatud task-spekist (LJVIS2-151 §"Riskitaseme koodid" tabel —
   seal on `risk_band_code (andmebaasis)` veerg eraldi "Kuvatav tekst (ET)"
   ja "ERRU väärtus" veergudest; kolm eraldi väärtust, mitte üks).
-- `RISK_BAND` klassifikaator (seeditud `20260801100000-erru-ctud-classifier-
-  seed.sql`-is, kommentaar "Eesti tagastab Grey kuni riskihindamise mooduli
+- `RISK_BAND` klassifikaator (laaditud failiga `20260801100000-erru-ctud-classifier-
+  seed.sql`, kommentaar "Eesti tagastab Grey kuni riskihindamise mooduli
   (EPIC 16) valmimiseni") on mõeldud **CTUD ERRU-sõnumi riskiband-välja
   kuvamiseks** frontend'is (`CtudResponseBlock.tsx`) — nii sissetulevate
   välisriikide vastuste jaoks kui ka (LJVIS2-144 valmimisel) meie oma
@@ -55,7 +55,7 @@ see on korrektne disainiotsus, mitte lahtine ots. **Väike, meie moodulist
 sõltumatu ebakõla:** `RISK_BAND` klassifikaatori `Amber` väärtuse `name` on
 `"Kollakas"`, mitte `"Kollane"` (nagu meie `risk_band_code` ja kõik muu
 selles moodulis kasutab) — potentsiaalne tulevane parandusvajadus CTUD/
-LJVIS2-144 klassifikaatoriseedis, väljaspool selle mooduli skoopi.
+LJVIS2-144 klassifikaatori algandmetes, väljaspool selle mooduli skoopi.
 
 ## 3. Kaasamise ja välistamise reeglid
 
@@ -81,6 +81,34 @@ hinnatakse eraldi ja klassifitseeritakse:
 
 Koondvorm ise loetakse täielikult välistatuks ainult siis, kui *kõik* selle
 SP-alamvormid on "täielik välistamine" kategoorias.
+
+### 3.1 VR-vormi (`forms.foreign_violation_form`) kaasamine
+
+LJVIS2-151 algses teostuses jäi `forms.foreign_violation_form` (välisriigi
+rikkumise vorm — teise liikmesriigi poolt Eesti vedaja kohta teatatud
+rikkumine) riskiskoori valemist täielikult välja, vastuolus
+`docs/user-guide/06-vorm-valisrikkumine.md` lubadusega, et "EL rikkumiste
+raskusastmed (MSI/VSI/SI/MI) mõjutavad ettevõtte riskiskoori" — ettevõttel,
+kelle ainus/uusim kontroll oli VR-vorm, ei tekkinud kunagi rida
+`risk.company_risk_score`-i ja esindaja vaade kuvas vaikimisi halli
+"Kontrollimata". Parandatud: VR-vorm on nüüd teine, `compound_form`-ist
+sõltumatu kontrolliallikas, mis kasutab sama `status='published'` +
+`^[0-9]{8}$` + 2-aastase akna + "jõustumiskuupäev = esimene `published`
+hetk" reegleid (vt `calculate_risk_score.sql` `vr_*` CTE-sid).
+
+Erinevused koondvormi reeglitest:
+
+- VR-vormil pole PPA koondvormi `sp_applicability`-ga analoogset "ei
+  rakendu/ei kontrollitud" seisundit (iga VR-vorm esindab päriselt toimunud
+  välisriigi kontrolli) — seega VR-kontrollidel **pole "täielik välistamine"
+  kategooriat**, ainult kaks: **nullpunktiline** (`violations=[]`, `r++`,
+  0 kaalupunkti) ja **normaalne kontroll kaaludega** (`r++`, kaalupunktid
+  lisanduvad).
+- `violations` on lihtne JSONB string-massiiv rikkumiskoodidest (nt
+  `["MSI101","VSI800"]`), mitte §4 kirjeldatud objektide massiiv — raskusaste
+  loetakse koodi enda prefiksist (`MSI`/`VSI`/`SI`).
+- VR-vorm toetab ainult kolme raskusastet (MSI/VSI/SI) — `n_mi` on VR-kontrolli
+  puhul alati 0.
 
 ## 4. Rikkumiste JSONB väljad — TÄHTIS väljanimede märkus
 
@@ -151,16 +179,22 @@ Migratsioon: `DSL/Liquibase/changelog/20260827100000-initial-risk-score.sql`.
 
 ## 6.1 Öine täisümberarvutus (cronmanager)
 
-`DSL/CronManager/risk-score-recalc.yaml` (03:00) → `DSL/Ruuter.internal/ljvis/POST/cron/risk-score-recalc-sync.yml`: valib `DSL/Resql/ljvis/POST/risk_score/select_companies_for_recalc.sql` kaudu kõik Eesti ettevõtjad, kellel on kunagi olnud vähemalt üks `published` `compound_form`, ja kutsub igaühe kohta `recalculate`'i (`calculation_trigger: ooine_ymberarvutus`). `risk.company_risk_score` on insert-only ajalugu — iga öine käik lisab uue rea, mitte ei "lahenda" ettevõtja kandidaatide hulgast (erinevalt teistest cron-töödest, vt `.ai/future-plans/cronmanager-scheduled-jobs.md`).
+`DSL/CronManager/risk-score-recalc.yaml` (03:00) → `DSL/Ruuter.internal/ljvis/POST/cron/risk-score-recalc-sync.yml`: valib `DSL/Resql/ljvis/POST/risk_score/select_companies_for_recalc.sql` kaudu kõik Eesti ettevõtjad, kellel on kunagi olnud vähemalt üks `published` `compound_form` **või `foreign_violation_form`** (§3.1), ja kutsub igaühe kohta `recalculate`'i (`calculation_trigger: ooine_ymberarvutus`). `risk.company_risk_score` on insert-only ajalugu — iga öine käik lisab uue rea, mitte ei "lahenda" ettevõtja kandidaatide hulgast (erinevalt teistest cron-töödest, vt `.ai/future-plans/cronmanager-scheduled-jobs.md`).
 
-## 7. Kontrollvormi kinnitamine → automaatne ümberarvutus
+## 7. Kontrollvormi kinnitamine/avalikustamine → automaatne ümberarvutus
 
-Koondvormi elutsükkel: `saved → confirmed → published`.
-`calculate_risk_score.sql` arvestab ainult `status='published'` kirjeid.
+Koondvormi elutsükkel: `saved → confirmed → published`; VR-vormi elutsükkel
+samamoodi `saved → confirmed → published` (vt `foreign-violation-form/edit/
+publish.yml`). `calculate_risk_score.sql` arvestab ainult `status='published'`
+kirjeid mõlemalt allikalt. Mõlema vormitüübi avalikustamine (ja kustutamine)
+kutsub fire-and-forget `risk-scores/recalculate`-it (`calculation_trigger:
+kontrollvorm`) — vt `edit/publish.yml` ja `edit/delete.yml` iga vormitüübi
+kataloogis.
 
-## 8. ERRU CTUD integratsioon (LJVIS2-144, väljaspool skoopi)
+## 8. ERRU CTUD integratsioon (LJVIS2-144)
 
-Kui CTUD-i sissetuleva päringu töötleja ehitatakse, kutsub see:
+Sissetuleva CTUD päringu töötleja (`DSL/Ruuter.internal/ljvis/POST/erru/ctud/
+inbound-request.yml`) kutsub:
 
 ```
 POST ruuter-internal:8089/risk-scores/current
@@ -170,8 +204,19 @@ Body: { "company_reg_code": "<8-kohaline kood>" }
 ja kaardistab vastuse `riskScore → riskRating`, `riskBandErru → riskBand`.
 Kui ettevõtjal skoori pole, tagastatakse `null`/`Grey` ("hindamata").
 
+**Registrikoodi tuletamine:** MTR X-tee teenus `checkCommunityLicence` ei
+taga­asta kunagi Eesti äriregistri koodi, ainult ühenduse tegevusloa/tõestatud
+koopia numbrit. `inbound-request.yml` tuletab registrikoodi enne
+`risk-scores/current`-i kutsumist `DSL/Resql/ljvis/POST/erru/ctud/
+lookup-reg-code-by-licence.sql` abil — see otsib täpset vastet
+`forms.compound_form`/`forms.foreign_violation_form`/`forms.tram_control_card`
+tabelite juba salvestatud litsentsinumbrite hulgast (ametnikud on neid
+varasemate kontrollide käigus kirja pannud). Kui vastet ei leita, pole
+ettevõtjal niikuinii kunagi riskiskoori, nii et vaikeväärtus `riskRating=0,
+riskBand=Grey` jääb kehtima.
+
 ## 9. Viited
 
-- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD, väljaspool skoopi), #168 (kodaniku töölaud — uued kodaniku endpointid)
+- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD), #168 (kodaniku töölaud — uued kodaniku endpointid)
 - Confluence: 11-1 Riskiskoori arvutamine, 11-2 Riskitasemete vaade, 10-3-3 CTUD ERRU integratsioon
 - `.ai/ljvis-tasks/LJVIS2-150/riskihindamine.md` — täielik ärianalüüs

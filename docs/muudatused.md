@@ -2,7 +2,33 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
-## 2026-10-13
+## 2026-10-15
+
+### Vormi vaate kerimine pärast salvestamist ja kinnitamist
+
+- „Salvesta" vigadeta: vaade liigub vormi algusesse. Tram-kontrollkaardil keriti seni üles juba nupuvajutusel (ka vigade korral), nüüd alles õnnestunud salvestamise järel.
+- „Salvesta" või „Kinnita" vigadega: vaade liigub esimese veaga välja juurde (seni ainult „Salvesta" puhul). Kehtib kontrollvormidel ja ERRU vormidel.
+- „Kinnita" vigadeta: vaade jääb alla ja ilmunud „Avalikusta" nupp keritakse nähtavale, et saaks kohe avalikustada.
+
+### Valitud rikkumisega plokk on alati avatud
+
+- Sõidu- ja puhkeaja (SP) vormil on rikkumiste plokid („Dokumendi või õiguse kontroll", „Sõidu- ja puhkeaja nõuete kontroll", Rooma I, lähetamise nõuded, massi ja mõõtmete / ATP plokk) avatud, kui neis on mõni rikkumine valitud — ka vormi avamisel ja vaatevaates. Valitud rikkumisega plokki ei saa kokku lükata.
+- Sama kehtib välisriigi rikkumise kontrollkaardi ELi rikkumiste plokile.
+- Ilma valitud rikkumiseta plokid avanevad ja sulguvad nagu varem.
+
+### CronManager 0.2.3-alpha
+
+- Ajastatud tööde teenus uuendati versioonilt 0.1.4-alpha versioonile 0.2.3-alpha. Tööde ajakavad ja käitumine ei muutu.
+- Tööde nimekiri (`/jobs`) ja hetkel töötavate tööde vaade (`/running`) nõuavad nüüd admin-tokenit; varem olid need autentimata loetavad.
+- Teenus lõpetab seiskamisel (`docker stop`, pod'i väljatõstmine) pooleli olevad päringud enne sulgumist.
+
+## 2026-10-14
+
+### Arhiveeritud vormide isikuga seose eemaldamine (ADR-014, LJVIS2-51)
+
+- Kohe pärast seda, kui kontrollvorm on jõudnud arhiivbaasi ja on töö-baasist kinnitatult kustutatud, asendatakse arhiveeritud kirje nimi, isikukood, sünniaeg ja sünnikoht (nt isikukood „38002025213" → „38001010000", sünniaeg 02.02.1865 → 01.01.1860, sünnikoht „Tallinn, Eesti" → „Eesti"). Vormi loonud ametniku andmed jäävad puutumata.
+- Juhitav uue `anonymize` lülitiga (vaikimisi sees) mõlemal arhiveerimise cron-tööl, samamoodi nagu olemasolevad `enabled`/`purge`/`dryRun` lülitid; vt admin-juhend „Arhiveerimine" §12.
+- Tagasiulatuvalt varem arhiveeritud kirjeid ei puudutata.
 
 ### Kiiremad loendid ja klassifikaatorite laadimine (DataMapperi läbisõidud eemaldatud)
 
@@ -29,7 +55,7 @@
 
 ### Jõudlustestide testvormide öine koristus (ajutine)
 
-- CronManager'i töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
+- CronManageri töö `cleanup_perf_test_forms` märgib iga päev kell 00:00 kustutatuks koondvormid, mille registrinumber algab `PERF` ja mille viimase versiooni lõi jõudlustestide testkasutaja. Kustutamine on tavaline append-only kustutusmärge; ajalugu ja audit jäävad alles. Teisi vorme töö ei puuduta.
 - Jõudlustestide k6 skripti otsingupäring on parandatud; tulemused: `docs/testimine/`.
 
 ## 2026-10-09
@@ -95,7 +121,7 @@
 
 ### CronManager'i ajastatud tööd saadavad teenusetokeni päisega (korrigeerib #515)
 
-- Kõik CronManager'i tööd saadavad päise `x-internal-service-token` CronManager'i `headerEnvs` võimalusega (väärtus keskkonnamuutujast `INTERNAL_COMMUNICATION_KEY`, loetakse iga käivituse ajal); `POST/cron/.guard` erand on eemaldatud ja `/cron/*` nõuab taas tokenit. **Eeldab CronManager'i versiooni, mis toetab `headerEnvs`-i** (turnerrainer/CronManager#40); vana versioon jätab tööfailid vahele (0 tööd). CronManager'i konteinerile tuleb anda `INTERNAL_COMMUNICATION_KEY` (devops: `cronmanager-secret`, SSM `internal/communication-key`).
+- Kõik CronManager'i tööd saadavad päise `x-internal-service-token` CronManager'i `headerEnvs` võimalusega (väärtus keskkonnamuutujast `INTERNAL_COMMUNICATION_KEY`, loetakse iga käivituse ajal); `POST/cron/.guard` erand on eemaldatud ja `/cron/*` nõuab taas tokenit. **Eeldab CronManager'i versiooni, mis toetab `headerEnvs`-i** (CronManager v0.2.3-alpha, turnerrainer/CronManager#46); vana versioon jätab tööfailid vahele (0 tööd). CronManager'i konteinerile tuleb anda `INTERNAL_COMMUNICATION_KEY` (devops: `cronmanager-secret`, SSM `internal/communication-key`).
 - Aegunud kasutajate öine deaktiveerimine liikus `/ljvis/users/deactivate-expired` pealt `/ljvis/cron/deactivate-expired-users` peale, et ka see töö jääks `/cron/*` erandi alla (muidu saaks CronManager'i tokenita päring 403).
 - Pärast selle haru loomist lisatud `cleanup_perf_test_forms` (jõudlustestide öine koristus) kasutas samuti `exec`-skripti; viidud `type: http` peale, et PR kataks kõik CronManager'i tööd.
 
@@ -134,7 +160,7 @@
 - Menetluse tulemuse, X-tee väljade, erakorralise ülevaatuse kuupäeva ja vedaja teavituse lipu salvestamine lisab vormile uue versioonirea; varasem rida jääb ajalukku ja vormi versiooninumber (/V) ei muutu. Versiooniajaloo vaates võib seetõttu ilmuda lisarida (sama versioon, sama staatus).
 - Manuse kustutamine jätab algse rea alles ja lisab kustutusmärke; kustutatud manust ei näidata ega saa alla laadida.
 - Samaaegne salvestamine ei kirjuta enam vaikselt üle: kõigil vormitabelitel on `revision` ja samaaegse topeltkirjutuse korral ebaõnnestub teine päring.
-- Arhiveerimine kustutab töö-baasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
+- Arhiveerimine kustutab tööbaasist vormi ajaloo ainult tervikuna; osaline ajalugu jääb järgmisse jooksu. Haldusjuhend peatükk 13.
 - ErakorralineYVconfirm uuendab nii kinnitatud kui avalikustatud vormi (uus rida, staatus jääb samaks). Varem muutis see avalikustatud vormi puhul vana kinnitatud rida, mistõttu muudatus ei olnud vormil nähtav.
 - Teavituste logi: Postkast 2.0 staatuse muutused salvestatakse eraldi sündmusena (`notifications.outbound_log_status_event`), `outbound_log` rida ei muutu. Vaates muutust pole.
 
@@ -142,7 +168,7 @@
 
 - `ruuter-internal` nõuab nüüd igal kutsel päist `x-internal-service-token` (väärtus `INTERNAL_COMMUNICATION_KEY` failis `constants.ini`); puuduv või vale token → 403. Erandid on X-tee teenused (`xroad/provide/*`, `xroad/v2/*`), mille kaitse on X-Road-Client kontroll ja Gateway.
 - Varasem ws-broadcast jagatud saladus (`INTERNAL_COMMUNICATION_KEY`) on sama token: konstant jääb samaks, päis `x-viljus-knows-a-secret` on nimetatud ümber `x-internal-service-token`-iks. Keskkondades uusi konstante lisada ei ole vaja.
-- CronManager'i ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManager'i konteinerisse tuleb seega mountida sama `constants.ini`.
+- CronManageri ajastatud tööd kutsuvad `ruuter-internal`-i skriptiga `docker/cronmanager/scripts/call-ruuter-internal.sh` (töö tüüp `exec`), mis loeb URL-i ja tokeni `constants.ini`-st. CronManageri konteinerisse tuleb seega mountida sama `constants.ini`.
 - `erru-xml-adapter` vajab uut keskkonnamuutujat `INTERNAL_COMMUNICATION_KEY`.
 - Dev-stackis ei ole `ruuter-internal` port enam `docker-compose.yml`-is hostile avatud; arenduseks avab 127.0.0.1:8089 uus `docker-compose.override.yml`.
 
@@ -196,7 +222,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 - Uus funktsioon: vormid, mille viimasest tegevusest on möödas seadistatav arv aastaid (vähemalt 3), kopeeritakse eraldi arhiivibaasi.
 - Funktsioon on **vaikimisi välja lülitatud**. Seaded (`enabled`, `retentionYears`, `purge`, `batch`, `dryRun`) on ühes kohas:
   `DSL/CronManager/archive-aged-forms.yaml`.
-- Valik, kas pärast arhiveerimist kustutatakse kirje töö-baasist (`purge`, vaikimisi ei kustutata). Kustutatakse ainult siis, kui arhiivibaas on iga rea olemasolu eraldi kinnitanud.
+- Valik, kas pärast arhiveerimist kustutatakse kirje tööbaasist (`purge`, vaikimisi ei kustutata). Kustutatakse ainult siis, kui arhiivibaas on iga rea olemasolu eraldi kinnitanud.
 - Koondvorm ja selle alamvormid arhiveeritakse koos; vormi ajalugu jääb loetavaks ka pärast arhiveerimist.
 - Juhend: `docs/admin-guide/13-arhiveerimine.md`; otsus ADR-012.
 

@@ -45,7 +45,7 @@ lisatakse algne kood mitteaktiivsena; nimetuseks sobib
 `LJVIS1 klassifikaator — kirjeldus täpsustamisel (<algne kood>)`.
 Olemasolevad neutraalsed `LJVIS1 ajalooline kirje: <kood>` nimetused täidavad sama eesmärki.
 Hiljem täpsustatakse nime, säilitades võtme ja olemasolevad vormiviited.
-Praegust 42 võtmega seed'i ei loeta automaatselt kõigi võimalike LIVE-koodide katteks.
+Praegust 42 võtmega algandmestikku ei loeta automaatselt kõigi võimalike LIVE-koodide katteks.
 
 ## Rakendamine ja rollback
 
@@ -53,7 +53,7 @@ Mõlemal muudatusel on XML, SQL ja eraldi `-rollback.sql`. SQL-failidel on
 `ignore:true`, et `includeAll` ei käivitaks neid XML-i kõrval teist korda.
 
 Rollback taastab klassifikaatoritabelite varasema sisu: kirjelduste muudatus
-võtab tagasi ainult lisatud snapshot'id, põhimuudatus ainult enda loodud read.
+võtab tagasi ainult lisatud hetktõmmised, põhimuudatus ainult enda loodud read.
 Järjekord on vastupidine rakendamisele: kirjeldused, seejärel algväärtused.
 Sequence-numbrite vahesid ei pöörata tagasi.
 

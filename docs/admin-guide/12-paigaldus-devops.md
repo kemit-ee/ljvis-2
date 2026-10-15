@@ -7,7 +7,7 @@ LJVIS2 koosneb kahest omavahel seotud Git-repositooriumist:
 | Repo | Asukoht | Sisu |
 |------|---------|------|
 | **ljvis-2** (kood) | GitHub `kemit-ee/ljvis-2`, GitLab peegel | Rakenduse lähtekood, DSL-id, Liquibase migratsioonid, frontend, Docker image'ite lähtefailid, CI, mis ehitab image'id |
-| **ljvis2-devops** | GitLab `services/ljvis2/devops` (kohalikult tavaliselt kõrvalkaustas `../ljvis2-devops/`) | Helm chart'id, keskkonnapõhised väärtused, release-manifestid, Argo CD ApplicationSet'id, SSM-i seemneskriptid |
+| **ljvis2-devops** | GitLab `services/ljvis2/devops` (kohalikult tavaliselt kõrvalkaustas `../ljvis2-devops/`) | Helm chart'id, keskkonnapõhised väärtused, release-manifestid, Argo CD ApplicationSet'id, SSM-i algandmete laadimise skriptid |
 
 Keskkondade seadistust (hostinimed, andmebaasid, domeenid, saladused) **ei hoita koodirepos**, vaid devops-repos ja AWS SSM-is. Koodirepo `constants.ini` ja `docker-compose.yml` on mõeldud ainult kohalikuks arenduseks ja CI-ks.
 

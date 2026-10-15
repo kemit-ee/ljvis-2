@@ -5,10 +5,13 @@ description: Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for o
   explicitly — Ruuter.internal controls.yml uses "now - 2 years" .. "now", matching the persisted aggregate
   score's window so the two stay comparable). Shares the exact qualifying_forms/violation_counts/sp_form_category
   CTE logic as calculate_risk_score.sql — kept as a separate query rather than reusing that one's output
-  because this returns one row PER CONTROL (compound_form_key) instead of one aggregated row. Display
-  fields (form_number/main_date/vehicle_reg_nr) come from forms.form_search rather than forms.compound_form
-  directly, to reuse its existing "latest non-deleted snapshot" projection instead of duplicating a DISTINCT
-  ON.
+  because this returns one row PER CONTROL instead of one aggregated row. Two control sources, same as
+  calculate_risk_score.sql — forms.compound_form (PPA/TRAM) and forms.foreign_violation_form (VR-vorm,
+  LJVIS2-151 gap fix). Returned rows are generic (form_key/form_type) rather than compound-specific, so the
+  caller (citizen dashboard) can route to the right detail page for either control type. Display
+  fields (form_number/main_date/vehicle_reg_nr) come from forms.form_search rather than forms.compound_form/
+  forms.foreign_violation_form directly, to reuse its existing "latest non-deleted snapshot" projection
+  instead of duplicating a DISTINCT ON.
 namespace: risk_score
 params:
   company_reg_code:
@@ -21,8 +24,11 @@ params:
     type: string
     required: false
 returns:
-- name: compound_form_key
+- name: form_key
   type: number
+  nullable: true
+- name: form_type
+  type: string
   nullable: true
 - name: form_number
   type: string
@@ -205,9 +211,10 @@ per_control AS (
     COALESCE((SELECT a.weighted_points FROM sp_agg a WHERE a.compound_form_key = qf.compound_form_key), 0) AS weighted_points
   FROM qualifying_forms qf
 ),
-controls AS (
+compound_controls AS (
   SELECT
-    pc.compound_form_key,
+    pc.compound_form_key AS form_key,
+    'compound'::text AS form_type,
     (SELECT fs.form_number FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key) AS form_number,
     (SELECT fs.main_date FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key) AS main_date,
     (SELECT fs.vehicle_reg_nr FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key) AS vehicle_reg_nr,
@@ -219,7 +226,62 @@ controls AS (
     pc.weighted_points
   FROM per_control pc
   WHERE EXISTS (SELECT 1 FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key)
+),
+-- ── VR-vorm (forms.foreign_violation_form) — sama laiendus mis calculate_risk_score.sql §vr_* ──
+vr_enforcement_dates AS (
+  SELECT foreign_violation_form_key, MIN(created_at) AS enforcement_date
+  FROM forms.foreign_violation_form
+  WHERE company_reg_code = :company_reg_code
+    AND status = 'published'
+    AND foreign_violation_form_key NOT IN (
+      SELECT l.foreign_violation_form_key
+      FROM (
+        SELECT DISTINCT ON (foreign_violation_form_key) foreign_violation_form_key, status
+        FROM forms.foreign_violation_form
+        WHERE company_reg_code = :company_reg_code
+        ORDER BY foreign_violation_form_key, created_at DESC
+      ) l
+      WHERE l.status = 'deleted'
+    )
+  GROUP BY foreign_violation_form_key
+),
+vr_qualifying_forms AS (
+  SELECT ed.foreign_violation_form_key, ed.enforcement_date
+  FROM vr_enforcement_dates ed
+  WHERE :company_reg_code ~ '^[0-9]{8}$'
+    AND ed.enforcement_date >= :window_start::DATE
+    AND ed.enforcement_date <= (:window_end::DATE + INTERVAL '1 day')
+),
+vr_latest AS (
+  SELECT DISTINCT ON (foreign_violation_form_key)
+    foreign_violation_form_key, violations
+  FROM forms.foreign_violation_form
+  WHERE foreign_violation_form_key IN (SELECT foreign_violation_form_key FROM vr_qualifying_forms)
+    AND status = 'published'
+  ORDER BY foreign_violation_form_key, created_at DESC
+),
+vr_controls AS (
+  SELECT
+    vl.foreign_violation_form_key AS form_key,
+    'foreign_violation'::text AS form_type,
+    (SELECT fs.form_number FROM forms.form_search fs WHERE fs.form_type = 'foreign_violation' AND fs.form_key = vl.foreign_violation_form_key) AS form_number,
+    (SELECT fs.main_date FROM forms.form_search fs WHERE fs.form_type = 'foreign_violation' AND fs.form_key = vl.foreign_violation_form_key) AS main_date,
+    (SELECT fs.vehicle_reg_nr FROM forms.form_search fs WHERE fs.form_type = 'foreign_violation' AND fs.form_key = vl.foreign_violation_form_key) AS vehicle_reg_nr,
+    FALSE AS is_fully_excluded,
+    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'MSI%') AS n_msi,
+    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'VSI%') AS n_vsi,
+    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%')  AS n_si,
+    0 AS n_mi,
+    ((SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'MSI%') * 90
+     + (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'VSI%') * 30
+     + (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%') * 10) AS weighted_points
+  FROM vr_latest vl
+),
+controls AS (
+  SELECT * FROM compound_controls
+  UNION ALL
+  SELECT * FROM vr_controls
 )
-SELECT compound_form_key, form_number, main_date, vehicle_reg_nr, is_fully_excluded, n_msi, n_vsi, n_si, n_mi, weighted_points
+SELECT form_key, form_type, form_number, main_date, vehicle_reg_nr, is_fully_excluded, n_msi, n_vsi, n_si, n_mi, weighted_points
 FROM controls
-ORDER BY main_date DESC, compound_form_key DESC;
+ORDER BY main_date DESC, form_key DESC;
