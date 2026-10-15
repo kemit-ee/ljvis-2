@@ -2,6 +2,29 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-15
+
+### Sõidu- ja puhkeaja vormid: päevade arvud kuni kahekohalised
+
+- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab samu välju) saab väljadele „Kontrollitud päevade arv", „Tööpäevade arv" ja „Muu tegevuse päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
+### Vormi vaate kerimine pärast salvestamist ja kinnitamist
+
+- „Salvesta" vigadeta: vaade liigub vormi algusesse. Tram-kontrollkaardil keriti seni üles juba nupuvajutusel (ka vigade korral), nüüd alles õnnestunud salvestamise järel.
+- „Salvesta" või „Kinnita" vigadega: vaade liigub esimese veaga välja juurde (seni ainult „Salvesta" puhul). Kehtib kontrollvormidel ja ERRU vormidel.
+- „Kinnita" vigadeta: vaade jääb alla ja ilmunud „Avalikusta" nupp keritakse nähtavale, et saaks kohe avalikustada.
+
+### Valitud rikkumisega plokk on alati avatud
+
+- Sõidu- ja puhkeaja (SP) vormil on rikkumiste plokid („Dokumendi või õiguse kontroll", „Sõidu- ja puhkeaja nõuete kontroll", Rooma I, lähetamise nõuded, massi ja mõõtmete / ATP plokk) avatud, kui neis on mõni rikkumine valitud — ka vormi avamisel ja vaatevaates. Valitud rikkumisega plokki ei saa kokku lükata.
+- Sama kehtib välisriigi rikkumise kontrollkaardi ELi rikkumiste plokile.
+- Ilma valitud rikkumiseta plokid avanevad ja sulguvad nagu varem.
+
+### CronManager 0.2.3-alpha
+
+- Ajastatud tööde teenus uuendati versioonilt 0.1.4-alpha versioonile 0.2.3-alpha. Tööde ajakavad ja käitumine ei muutu.
+- Tööde nimekiri (`/jobs`) ja hetkel töötavate tööde vaade (`/running`) nõuavad nüüd admin-tokenit; varem olid need autentimata loetavad.
+- Teenus lõpetab seiskamisel (`docker stop`, pod'i väljatõstmine) pooleli olevad päringud enne sulgumist.
+
 ## 2026-10-14
 
 ### Arhiveeritud vormide isikuga seose eemaldamine (ADR-014, LJVIS2-51)
