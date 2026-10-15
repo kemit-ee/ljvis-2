@@ -1490,6 +1490,7 @@
     "originalTemplateId": "Postkast template alias (templateId)",
     "defaultLanguage": "Default language",
     "defaultRecipientEmail": "Default recipient email",
+    "recipients": "Recipients",
     "desktopRecipients": "Notification recipients",
     "desktopRecipientsEmpty": "No recipients selected",
     "desktopRecipientsSearchPlaceholder": "Search user by name",

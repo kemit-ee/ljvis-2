@@ -2,8 +2,9 @@ declaration:
   internal: false
   version: "1.0"
   description: >-
-    Lahendab personal_code'ide loendi kasutajate nimedeks — kasutab
-    NotificationTemplateMappingDetailPage desktop-kanali saajate kuvamiseks
+    Lahendab personal_code'ide loendi kasutajate nimedeks — kasutavad
+    NotificationTemplateMappingListPage (koondtabeli saajate veerg) ja
+    NotificationTemplateMappingDetailPage (desktop-kanali saajate kuvamine)
     (mapping salvestab ainult personal_code'id, vt insert_template_mapping.sql).
     Nõuab notification_template_mapping.list õigust (kaitstud .guard.yml kaudu).
   namespace: notification
