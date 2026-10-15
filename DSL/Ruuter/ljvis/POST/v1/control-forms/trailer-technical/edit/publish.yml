@@ -185,9 +185,9 @@ evaluateNotifications:
       type: json
     body:
       entityType: "trailer_technical"
-      entityId: ${id}
-      compoundFormKey: ${compound_form_key}
-      version: ${publishRes.response.body[0].version}
+      entityId: "${'' + id}"
+      compoundFormKey: "${'' + compound_form_key}"
+      version: "${'' + publishRes.response.body[0].version}"
       resultType: ${result_type}
       resultTransportInterruption: ${result_transport_interruption}
       partsSummary: ${parts_summary}
