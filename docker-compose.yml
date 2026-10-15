@@ -347,11 +347,13 @@ services:
 
   cronmanager:
     container_name: cronmanager
-    image: turnerrainer/cronmanager:0.2.3-alpha@sha256:622a469f4b0bd4429e1b1c4b7d5adf3cade449a9575af5f2fa9f6847b3b72c7b
+    image: turnerrainer/cronmanager:0.2.4-alpha@sha256:3ab67dc6adc68b927ff00454dd9c24fb8f61e907b57621f885a220c7d3228cd6
     environment:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
       # Required when binding outside loopback.
       - CRONMANAGER_ADMIN_TOKEN=${CRONMANAGER_ADMIN_TOKEN:-dev-admin-token}
+      # Sent by every http job as x-internal-service-token (headerEnvs in DSL/CronManager/*.yaml).
+      - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
       # 0.2.0-alpha+ env_safety: unset APP_ENV falls back to Production, which
       # refuses to boot with the weak dev-admin-token default above. TEST/PROD
       # must supply a >=32-char token from a secret instead.
@@ -364,7 +366,14 @@ services:
     depends_on:
       - ruuter-internal
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health > /dev/null 2>&1"]
+      # Fail fast when no jobs got registered: a job file whose headerEnvs
+      # variable (INTERNAL_COMMUNICATION_KEY) is unset is skipped, and
+      # CronManager would otherwise stay "healthy" with 0 jobs.
+      test:
+        - CMD-SHELL
+        - >-
+          curl -sf http://localhost:8080/health > /dev/null &&
+          curl -sf -H "Authorization: Bearer $$CRONMANAGER_ADMIN_TOKEN" http://localhost:8080/jobs | grep -q '"name"'
       interval: 10s
       timeout: 5s
       retries: 12

@@ -92,7 +92,7 @@ Euroopa Komisjoni ERRU liides (EL Hub, s-TESTA). Sõnumid: **CGR** (hea maine), 
 **NCR** (kontrollitulemuse teated), **NU** (sobimatusteated). Väljaminev: Ruuter → XML-adapter (`erru-xml-adapter`) → XTR → Hub.
 Sissetulev: Hub → adapter → `ruuter-internal`. RSI ja NCR vastuse sisu tuleb eraldi sissetuleva vastusena; NCR ACK on sünkroonne.
 Sissetulevate päringute vastamisel kasutatakse MTR-i ja Liiklusregistrit. Andmed `erru.*`.
-- [ERRU NU vahetus](erru-nu-exchange.md), [asünkroonne XML](../architecture/erru-async-xml.md), [XML taaste](erru-xml-recovery.md)
+- [ERRU testandmete laadimine](erru-test-data.md), [ERRU NU vahetus](erru-nu-exchange.md), [asünkroonne XML](../architecture/erru-async-xml.md), [XML taaste](erru-xml-recovery.md)
 - Leping: [`contracts/erru/3.5`](../../contracts/erru/3.5)
 
 ### 4.2 Testid ja veahaldus

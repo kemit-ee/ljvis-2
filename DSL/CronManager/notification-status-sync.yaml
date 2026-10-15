@@ -7,6 +7,8 @@ notification_status_sync:
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/notification-status-sync
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 30000
   ignoreFailures: true
