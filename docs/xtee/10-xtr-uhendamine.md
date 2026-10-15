@@ -16,7 +16,7 @@ Samas XTR-is töötavad edasi ka senised väljuvad päringud (rahvastikuregister
 ## Mida paigaldada
 
 1. Sama väljalaske **Liquibase, Resql, Ruuter, Ruuter.internal, frontend ja XTR**. Liquibase käib enne teisi (changeset `20261209100000` lisab tabeli ja funktsiooni).
-2. XTR-i pilt ehitatakse projekti failist `docker/xtr/Dockerfile`. Selles on meie leping (WSDL) juba sees. Upstream'i tühi XTR-i pilt ei sobi.
+2. XTR-i image ehitatakse projekti failist `docker/xtr/Dockerfile`. Selles on meie leping (WSDL) juba sees. Upstream'i tühi XTR-i image ei sobi.
 
 ## XTR seadistus (`xtr.yaml`, igas keskkonnas)
 
@@ -27,8 +27,10 @@ dsl_path: /DSL
 wsdl_watch_dir: /wsdl
 inbound:
   port: 8081
-  public_base_url: https://<SOAP-host>   # ilma /soap-in/... lõputa; dev: https://ljvis2dev.xtpnl.kemitaws.ee
+  public_base_url: http://example.org/xroad-endpoint   # ?wsdl soap:address — DUMMY, mitte reaalne hostinimi (vt allpool)
 ```
+
+**`public_base_url` peab olema dummy-väärtus** (nt `http://example.org/xroad-endpoint`), mitte keskkonna tegelik avalik hostinimi (`ljvis2<env>.xtpnl.kemitaws.ee`). X-tee heas tavas ei näidata WSDL-i `soap:address`-is reaalset infrastruktuuri aadressi: turvaserver suunab päringu ikkagi teenuse registreeringu (subsystem + teenusekood), mitte WSDL-i kirjas oleva aadressi järgi, nii et dummy väärtus ei mõjuta toimimist, aga väldib sisevõrgu hostinimede avaldamist X-tee kataloogi kaudu. Vt ka [09-xtr-soap.md](09-xtr-soap.md).
 
 **Turvaserveri sertifikaat (`trust_ca_path`):** failis peab olema **täpselt üks sertifikaat** — turvaserveri enda (iseallkirjastatud) sertifikaat või selle väljastanud CA. XTR loeb failist ainult esimese sertifikaadi; kui sinna panna mitme sertifikaadiga komplekt (bundle), ebaõnnestub TLS-ühendus vaikselt. Dev: `cammy-server.crt`, test: `urien-server.crt`. Keskkonnamuutujat `SSL_CERT_FILE` ei kasutata.
 
@@ -56,21 +58,17 @@ Lisaks peab XTR ulatuma `ruuter-internal:8080`-ni.
 ## Kuidas kontrollida, et töötab
 
 - XTR-i logis on käivitamisel rida `inbound SOAP endpoint registered … operations=[…]` (6 operatsiooni).
-- Turvaserveri võrgust avaneb `…/soap-in/ljvis/ljvis?wsdl` ning selle `soap:address` näitab õiget avalikku aadressi.
+- Turvaserveri võrgust avaneb `…/soap-in/ljvis/ljvis?wsdl`. Selle `soap:address` näitab dummy-väärtust — see on tahtlik (vt „XTR seadistus" eespool).
 - Testkeskkonnas tehakse üks lugemine ja üks sünteetiline kirjutamine. Lisaks kontrollitakse, et ilma õiguseta tarbija ei pääse ligi.
 - Vead ja kõik päringud on tabelis `xroad.xroad_integration_log`.
 
 ## Mida süsteem ise tagab (tarbijate küsimuste jaoks)
 
 - **Sama kontrollvorm saadetakse uuesti samade andmetega:** vastus on „Success“, topelt kirjet ei teki.
-- **Esimene kord saabub kontrollvorm:** see luuakse kohe olekusse „kinnitatud“ (`confirmed`), mitte „salvestatud“.
+- **Kontrollvorm saabub esimest korda:** see luuakse kohe olekusse „kinnitatud“ (`confirmed`), mitte „salvestatud“.
 - **Saadetakse parandatud andmetega ja kontrollvorm on veel kinnitamata:** parandus salvestatakse.
 - **Saadetakse parandatud andmetega, aga kontrollvorm on juba kinnitatud, avaldatud, kustutatud või arhiveeritud:** tarbija saab veateate ja andmeid ei muudeta.
 - **Kasutaja kinnitab kontrollvormi samal ajal, kui X-tee kaudu tuleb parandus:** salvestub see, mis jõudis enne. Teine osapool saab teate. X-tee tarbija saab vea, kasutaja näeb teadet „laadi vorm uuesti“. Midagi ei kirjutata vaikselt üle.
 - **Samaaegsed korduspäringud:** tekib ikkagi ainult üks kontrollvorm.
-
-## Veel lahtine
-
-(Hetkel ühtegi lahtist äriotsust ei ole: X-tee kaudu saabunud kontrollvorm läheb kohe „kinnitatud“ olekusse, mitte „salvestatud“ olekusse, ja kinnitatud kontrollvormi X-tee kaudu ei muudeta.)
 
 Kohalikus dev-is: SOAP `http://localhost:9011/soap-in/ljvis/ljvis`, kirjeldus sama aadress `?wsdl` lõpuga. Tehnilised detailid: [09-xtr-soap.md](09-xtr-soap.md).
