@@ -34,7 +34,13 @@ selectTestPackScenario:
         const certificateKey = ('' + (incoming.body.cpcDocumentNumber || '')).trim().toUpperCase();
         const nameKey = [incoming.body.firstName, incoming.body.lastName, incoming.body.birthDate]
           .map(value => ('' + (value || '')).trim().toUpperCase()).join('|');
-        return scenarios[certificateKey] || scenarios[nameKey] || null;
+        const scenario = scenarios[certificateKey] || scenarios[nameKey] || null;
+        if (scenario == null || scenario.transportManager == null) return scenario;
+        const manager = scenario.transportManager;
+        if (incoming.body.birthPlace && incoming.body.birthPlace !== manager.birthPlace) return null;
+        if (incoming.body.cpcDocumentIssueCountry && incoming.body.cpcDocumentIssueCountry !== manager.cpcDocumentIssueCountry) return null;
+        if (incoming.body.cpcDocumentIssueDate && incoming.body.cpcDocumentIssueDate !== manager.cpcDocumentIssueDate) return null;
+        return scenario;
       })()}
   next: checkTestPackScenario
 

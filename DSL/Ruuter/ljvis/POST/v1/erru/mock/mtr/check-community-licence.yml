@@ -26,9 +26,11 @@ selectTestPackScenario:
         const caseId = ('' + (incoming.body.businessCaseId || '')).trim().toUpperCase();
         const number = ('' + (incoming.body.trueCopyNumber || '')).trim().toUpperCase();
         const name = ('' + (incoming.body.transportUndertakingName || '')).trim().toUpperCase();
+        const vehicle = ('' + (incoming.body.vehicleRegistrationNumber || '')).trim().toUpperCase();
         const byNumber = { 'CL997078-0001':'CTUD_01', 'CL148368':'CTUD_02', 'ABC':'CTUD_03', 'CL779832':'CTUD_06', 'CL961576':'CTUD_07', 'CL762910':'CTUD_08', 'CL86719':'CTUD_09', 'CL180620':'CTUD_10', 'CL546110-0002':'CTUD_11' };
         const byName = { 'SUN FOODS':'CTUD_01', 'AUTO WORKS':'CTUD_02', 'POLK BROTHERS':'CTUD_06', 'GAS LEGION':'CTUD_07', 'H.C. BOHACK':'CTUD_08', 'THE ORIGINAL HOUSE OF PIES':'CTUD_09', 'HARMONY HOUSE':'CTUD_10' };
-        const scenario = scenarios[caseId] || scenarios[byNumber[number]] || scenarios[byName[name]] || null;
+        const byVehicle = { 'EZ 2914':'CTUD_02', 'XP 9669':'CTUD_08', 'OL 6532':'CTUD_09' };
+        const scenario = scenarios[caseId] || scenarios[byNumber[number]] || scenarios[byName[name]] || scenarios[byVehicle[vehicle]] || null;
         if (scenario == null) return null;
         return Object.assign({}, scenario, {
           businessCaseId: incoming.body.businessCaseId || '',
