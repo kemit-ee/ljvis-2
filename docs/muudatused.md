@@ -8,6 +8,12 @@
 
 - Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab samu välju) saab väljadele „Kontrollitud päevade arv", „Tööpäevade arv" ja „Muu tegevuse päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
 
+### CronManager 0.2.3-alpha
+
+- Ajastatud tööde teenus uuendati versioonilt 0.1.4-alpha versioonile 0.2.3-alpha. Tööde ajakavad ja käitumine ei muutu.
+- Tööde nimekiri (`/jobs`) ja hetkel töötavate tööde vaade (`/running`) nõuavad nüüd admin-tokenit; varem olid need autentimata loetavad.
+- Teenus lõpetab seiskamisel (`docker stop`, pod'i väljatõstmine) pooleli olevad päringud enne sulgumist.
+
 ## 2026-10-14
 
 ### Arhiveeritud vormide isikuga seose eemaldamine (ADR-014, LJVIS2-51)
