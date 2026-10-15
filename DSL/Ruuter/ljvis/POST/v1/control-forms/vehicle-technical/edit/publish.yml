@@ -189,9 +189,9 @@ evaluateNotifications:
       type: json
     body:
       entityType: "vehicle_technical"
-      entityId: ${id}
-      compoundFormKey: ${compound_form_key}
-      version: ${sub_form_version}
+      entityId: "${'' + id}"
+      compoundFormKey: "${'' + compound_form_key}"
+      version: "${'' + sub_form_version}"
       resultType: ${result_type}
       resultTransportInterruption: ${result_transport_interruption}
       partsSummary: ${parts_summary}

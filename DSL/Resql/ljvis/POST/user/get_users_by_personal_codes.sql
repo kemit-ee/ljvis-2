@@ -12,21 +12,24 @@ returns:
 - name: id
   type: string
   nullable: true
-- name: firstName
+- name: first_name
   type: string
   nullable: true
-- name: lastName
+- name: last_name
   type: string
   nullable: true
-- name: personalCode
+- name: personal_code
   type: string
   nullable: true
 */
+-- Plain snake_case columns (no quoted camelCase aliases): Resql-on-Rust auto-converts
+-- snake_case to camelCase in the JSON response, but a quoted "firstName"-style alias
+-- has no underscore to split on and comes back lowercased ("firstname").
 SELECT DISTINCT ON (ua.personal_code)
     ua.user_account_key AS id,
-    ua.first_name AS "firstName",
-    ua.last_name AS "lastName",
-    ua.personal_code AS "personalCode"
+    ua.first_name,
+    ua.last_name,
+    ua.personal_code
 FROM users.user_account ua
 WHERE ua.personal_code = ANY (string_to_array(:personal_codes, ','))
 ORDER BY ua.personal_code, ua.created_at DESC;

@@ -10,10 +10,12 @@
 - Desktop-kanali saajate loendis näidatakse varasema isikukoodi asemel kasutaja nime.
 - Saaja lisamise otsing käivitub nüüd iseseisvalt sisestamise ajal (varem tuli otsimiseks vajutada Enter või otsinguikooni).
 - Parandatud viga, kus täisnime (eesnimi + perekonnanimi) sisestamisel kasutajaotsing ei leidnud midagi, kuigi kasutaja oli olemas — otsing vastendas varem kogu sisestuse ühe veeru vastu korraga, mitte eraldi ees- ja perekonnanimele.
+- Parandatud eraldiseisev viga, kus desktop-kanali saajate nimed ei kuvanud kunagi (ei koondtabelis ega vormi uuesti avamisel) — nimede lahendamise päring tagastas väiketähtedega väljanimed (`firstname` mitte `firstName`), mistõttu veebirakendus ei suutnud neid ära tunda.
 
 ### Desktop-teavitus ka avalikustatud vormi muutmisel-salvestamisel
 
 - Sõiduki ja haagise tehnovormil, autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormil ning TRAM kontrollkaardil tekkis desktop-teavitus (raske rikkumine, sõidukeeld, erakorraline ülevaatus, kaalu/mõõtmete rikkumine) seni ainult esimesel avalikustamisel. Kui avalikustatud vormi hiljem täpsustati ja uuesti salvestati, teavitust ei tekkinud. Nüüd tekib teavitus ka sel juhul, kui tingimus (nt raske rikkumine) on uuesti täidetud.
+- **Parandus:** sõiduki ja haagise tehnovormi avalikustamine ei tekitanud erakorralise ülevaatuse, veose kinnituse ega sõidukeelu teavitust **ka esimesel avalikustamisel** — viga andmetüübis (vormi/koondvormi võti ja versioon saadeti teavituste teenusele numbrina, teenus ootas stringi), mistõttu teavitus jäi vaikimisi ebaõnnestuma. Nüüd luuakse teavitus mõlemal juhul korrektselt.
 
 ### XTR SOAP dokumentatsiooni parandus
 

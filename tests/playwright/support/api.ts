@@ -120,6 +120,100 @@ export async function deleteCompoundForm(id: number): Promise<void> {
   }
 }
 
+const VEHICLE_TECHNICAL_DEFAULTS: Record<string, unknown> = {
+  id: '',
+  revision: '',
+  partsSummary: '[]',
+  partsDefects: '[]',
+  resultType: 'ok',
+  resultTransportInterruption: false,
+  transportInterruptionAutovs5131: false,
+  otherMeasure: false,
+  eraYvMntRegnr: false,
+  eraYvMntVintin: false,
+  eraYvMntAxles: false,
+  eraYvMntPlaces: false,
+  eraYvMntRebuilt: false,
+  proceedingType: '',
+  proceedingReferenceNumber: '',
+  violations: '[]',
+  notes: '',
+};
+
+export interface PublishedVehicleTechnical {
+  id: number;
+  version: number;
+}
+
+/**
+ * Loob, kinnitab ja avalikustab mootorsõiduki tehnovormi otse API kaudu
+ * (save → confirm → publish, samad lõpp-punktid, mida kasutajaliides kasutab).
+ * Avalikustamine kutsub reaalselt `notification/evaluate-technical-publish`,
+ * seega see on õige viis desktop-teavituse päästiku testimiseks ilma
+ * tervet tehnokaardi vormi kasutajaliideses täitmata.
+ */
+export async function publishVehicleTechnicalForm(
+  compoundFormKey: number,
+  overrides: Record<string, unknown>,
+): Promise<PublishedVehicleTechnical> {
+  const { api } = await ctx('superadmin');
+  const body = { ...VEHICLE_TECHNICAL_DEFAULTS, ...overrides, compoundFormKey };
+
+  const saveRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/save', {
+    data: body,
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!saveRes.ok()) {
+    throw new Error(`vehicle-technical save ebaõnnestus: ${saveRes.status()} ${await saveRes.text()}`);
+  }
+  const saved = unwrap<Array<{ id: number }>>(await saveRes.json());
+  const id = saved[0].id;
+
+  const confirmRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/confirm', {
+    data: { ...body, id },
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!confirmRes.ok()) {
+    throw new Error(`vehicle-technical confirm ebaõnnestus: ${confirmRes.status()} ${await confirmRes.text()}`);
+  }
+
+  const publishRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/publish', {
+    data: { id: String(id) },
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!publishRes.ok()) {
+    throw new Error(`vehicle-technical publish ebaõnnestus: ${publishRes.status()} ${await publishRes.text()}`);
+  }
+  const published = unwrap<Array<{ version: number }>>(await publishRes.json());
+  await api.dispose();
+  return { id, version: published[0].version };
+}
+
+/**
+ * Salvestab juba avalikustatud mootorsõiduki tehnovormi uuesti (resave) —
+ * status jääb `published`, aga tekib uus versioon. `edit/save.yml` kutsub
+ * sel juhul samuti `notification/evaluate-technical-publish`-i (vt
+ * checkNotifyOnResave), uue `event_key`-ga.
+ */
+export async function resaveVehicleTechnicalForm(
+  id: number,
+  overrides: Record<string, unknown>,
+): Promise<PublishedVehicleTechnical> {
+  const { api } = await ctx('superadmin');
+  const body = { ...VEHICLE_TECHNICAL_DEFAULTS, ...overrides, id: String(id) };
+
+  const saveRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/save', {
+    data: body,
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!saveRes.ok()) {
+    throw new Error(`vehicle-technical resave ebaõnnestus: ${saveRes.status()} ${await saveRes.text()}`);
+  }
+  const saved = unwrap<Array<{ id: number; version: number }>>(await saveRes.json());
+  await api.dispose();
+  return { id: saved[0].id, version: saved[0].version };
+}
+
 /** Kontrollib, kas antud endpoint on pinus üldse olemas (nt ERRU send). */
 export async function endpointExists(path: string): Promise<boolean> {
   const api = await request.newContext({ baseURL: API_URL });
