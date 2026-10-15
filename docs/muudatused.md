@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-15
+
+### Sõidu- ja puhkeaja vormid: kontrollitud päevade arv kuni kahekohaline
+
+- Autojuhi ja meeskonnaliikme sõidu- ja puhkeaja kontrollvormil (ning trammi kontrollkaardil, mis kasutab sama välja) saab välja „Kontrollitud päevade arv" sisestada kuni kaks numbrit (0–99). Varem lubati kolm.
+
 ## 2026-10-14
 
 ### Arhiveeritud vormide isikuga seose eemaldamine (ADR-014, LJVIS2-51)

@@ -51,7 +51,10 @@ export function createDriveRestValidationSchema(
         schema.required(t('forms.sp_form.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
-    checkedDaysCount: Yup.string(),
+    checkedDaysCount: Yup.string().max(
+      2,
+      t('forms.sp_form.validation.checkedDaysCountMax'),
+    ),
     workDaysCount: Yup.string().test(
       'workDaysCountMax',
       t('forms.sp_form.validation.workDaysCountMax'),

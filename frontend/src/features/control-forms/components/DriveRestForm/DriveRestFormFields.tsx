@@ -1092,14 +1092,14 @@ export function DriveRestFormFields({
                     value={formik.values.checkedDaysCount?.toString() || ''}
                     placeholder={t('common.numberPlaceholder', 'Nr')}
                     onChange={(v) => {
-                      const numericValue = v.replace(/\D/g, '');
+                      const numericValue = v.replace(/\D/g, '').slice(0, 2);
                       const parsedValue = parseInt(numericValue, 10) || 0;
                       formik.setFieldValue(
                         'checkedDaysCount',
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 3 }}
+                    input={{ maxLength: 2 }}
                     disabled={readOnly}
                   />
                   <Text>{t('forms.drive_rest.workDaysCount')}</Text>

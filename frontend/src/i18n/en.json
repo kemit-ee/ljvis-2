@@ -1160,7 +1160,8 @@
       "xteeDataTitle": "Data queried via the data exchange layer (X-tee)",
       "validation": {
         "required": "Required field",
-        "workDaysCountMax": "Number of work days must not exceed the number of checked days"
+        "workDaysCountMax": "Number of work days must not exceed the number of checked days",
+        "checkedDaysCountMax": "Number of checked days can have at most 2 digits"
       }
     },
     "drive_rest": {
