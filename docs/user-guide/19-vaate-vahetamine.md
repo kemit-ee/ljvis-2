@@ -11,7 +11,7 @@ sisselogimislehel vajutasite.
 | **Ametnik** | Transpordiametnik, kellele on loodud konto ja antud õigused | Vasakmenüü, kontrollkaardid, otsing, haldus (õiguste järgi) |
 | **Kodanik** | Ettevõtja esindaja (äriregistri järgi) | „Minu ettevõtted" (esindatavate ettevõtete kontrollid ja riskitase) ja „Minu protokollid" (vormid, kus isik on osaline). Vasakmenüüd ei ole. |
 
-## Vaate vahetamine käigu pealt
+## Vaate vahetamine pärast sisselogimist
 
 Kui Teil on **nii ametniku konto kui ka kodaniku õigused**, saate vaadet vahetada ilma
 uuesti sisse logimata. Klõpsake päise paremas servas **Vaade** rippmenüüd ja valige
@@ -19,8 +19,7 @@ uuesti sisse logimata. Klõpsake päise paremas servas **Vaade** rippmenüüd ja
 
 ![Vaate vahetamine ametniku ja kodaniku vahel](images/03-menyy/03-vaade-rollivahetus.png)
 
-- Kui Teil on ainult kodaniku õigused, kuvatakse rippmenüüs ainult „Kodanik" (vahetada
-  ei ole midagi).
+- Kui Teil on ainult kodaniku õigused, kuvatakse rippmenüüs ainult „Kodanik" (ametniku vaadet valida ei saa).
 - Valik jääb meelde ka lehe värskendamisel.
 
 ## Kodaniku töölaud

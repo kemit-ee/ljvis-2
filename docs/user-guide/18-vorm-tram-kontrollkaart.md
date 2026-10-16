@@ -2,10 +2,8 @@
 
 Transpordiameti (TRAM) kontrollkaart on liiklusinspektsiooni käigus täidetav
 kontrollkaart autojuhi sõidu- ja puhkeaja ning muude dokumentide kontrollimiseks.
-Alates ADR-002-st on TRAM kontrollkaart **üks eraldiseisev olem** (`forms.tram_control_card`):
-üldosa ja sõidukijuhi kontrolli sisu on **ühel keritaval vormil**, mille saab salvestada,
-kinnitada ja avalikustada ühe elutsükli jooksul. Varasem kahe olemi mudel (koondvorm +
-eraldi autojuhi alamvorm) on asendatud. Vt ADR-002.
+TRAM kontrollkaart on iseseisev vorm. Üldosa ja sõidukijuhi kontrolli andmed
+asuvad ühel lehel. Kaardi saab salvestada, kinnitada ja avalikustada tervikuna.
 
 ## Juurdepääs ja õigused
 
@@ -60,7 +58,7 @@ Haagised kuvatakse tähistega **Haagis 1**, **Haagis 2**, **Haagis 3**.
 Vedaja andmeid saab täita automaatselt äriregistri X-tee päringuga:
 - **Peanupp** proovib esmalt registrikoodi järgi; kui registrikoodi pole täidetud, otsib nime järgi.
 - **„Otsi nime järgi"** nupp vedaja nimevälja kõrval käivitab otse nimeotsingu.
-- Mitme vaste korral avaneb **valikuaken** — vali sobiv ettevõte loendist, registrikood
+- Mitme vaste korral avaneb **valikuaken** — valige sobiv ettevõte loendist, registrikood
   kantakse üle automaatselt.
 
 ### Sõidukijuhi andmed
@@ -168,10 +166,10 @@ karistust määramata, avalikustab inspektor kaardi käsitsi.
 
 ## Vaatamisvaade
 
-Avalikustatud vormi vaatamisvaates on sõidukijuhi sektsiooni sisu loetav kuid
-mittemuudetav. Sektsioonid, mida TRAM kontrollkaardil ei kasutata (sõidu- ja
+Avalikustatud vormi vaatamisvaates on sõidukijuhi sektsiooni sisu loetav, kuid
+mittemuudetav. Jaotisi, mida TRAM kontrollkaardil ei kasutata (sõidu- ja
 puhkeaja nõuete täitmine, sõiduki mass ja mõõtmed, ATP kokkuleppe nõuete kontroll),
-ei kuvata ei redigeerimis- ega vaatamisvaates — need täidetakse salvestamisel
+ei kuvata muutmis- ega vaatamisvaates — need täidetakse salvestamisel
 vaikeväärtustega.
 
 ## PDF-printimine

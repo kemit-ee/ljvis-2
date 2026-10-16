@@ -128,7 +128,7 @@ GET /ljvis/v1/permissions  +  Cookie: SESSION=…
 rekursiooni piirajat** (per-step `max_recursions` reset'itakse iga
 `engine.run` sees). Ilma cookie'ta päring lõpetab `check_cookie` juures
 kohe (`deny_unauthenticated` 401) — crash tekib **ainult kehtiva
-sessiooni­küpsisega**, s.t. iga sisse loginud kasutaja iga päring.
+seansi­küpsisega**, s.t. iga sisse loginud kasutaja iga päring.
 
 Ei piisa varasema plaani "Variant A" (`templates/pure/**` jaotus): projekti­-
 guard kutsub ise `templates/check-user-authority`, mis **ei ole puhas mall**
@@ -306,7 +306,7 @@ logging: { level: "info,resql=debug", format: "text" }
 | **R5** — `/datasources` vaikimisi **404**; lubatud korral redigeeritud | ljvis-il pole `admin:` blokki | ljvis ei fingerprindi Resql-i selle kaudu → **404-vaikeväärtus OK, ära lisa `admin.datasources_public`**. |
 | **R6+R7** — `request_timeout_seconds: 0` → **boot-fail**; middleware annab nüüd `504`; PG-pool `SET statement_timeout` | ljvis seab **`30`** | OK, muutust ei vaja. (Boonus: aeglased päringud saavad nüüd 504 + PG kill.) |
 | **R4** — sümlingid `sql_dir` all keelatud load-time | `sql_dir: /DSL` (bind-mount) | Kontrolli et `DSL/Resql` all pole sümlinke: `find DSL/Resql -type l`. |
-| **R9** — batch-endpoint veateade üldistatud | ljvis ei kasuta `/batch` URL-kuju | Mõju puudub. |
+| **R9** — batch-lõpp-punkt veateade üldistatud | ljvis ei kasuta `/batch` URL-kuju | Mõju puudub. |
 
 ### 2.3 Muu — DSL-pind
 
@@ -343,8 +343,8 @@ DSL-muudatusi ei vaja.
 > **Seis 2026-09-07: MIGREERITUD `0.3.0-alpha`** harul `feat/tim-0.3.0-alpha`.
 > Mõlemad Dockerfile'id (CI + release) → `0.3.0-alpha@sha256:2859f115…`.
 > **`tara-mock` on ühilduv** — kontrollitud lähtekoodist + tervikliku OIDC-vooga:
-> discovery-dokument annab `https://` endpointid (`helpers.go:81-94`), reklaamib
-> `client_secret_basic`, token-endpoint ignoreerib klient-autentimist ja
+> discovery-dokument annab `https://` lõpp-punktid (`helpers.go:81-94`), reklaamib
+> `client_secret_basic`, token-lõpp-punkt ignoreerib klient-autentimist ja
 > `code_verifier`-it, authorize ignoreerib `code_challenge`-parameetreid.
 > `allow_http_discovery` **ei ole vaja**. Täis-Newman roheline + päris TARA-mock
 > login-voog `user_profile: {first_name, last_name}` täidetud (dot-path claim).
@@ -375,14 +375,14 @@ Mõlemad TARA (`tara-test.ria.ee`) vastu leitud:
   ```
   → `0.2.0-alpha.2`-l need **ei tööta** (flat lookup → `None` → tühjad
   nimed). **`0.2.1-alpha` parandab.** ⇒ **ljvis vajab vähemalt 0.2.1-alpha't**
-  et nimed sessiooni jõuaksid. (Kui praegu töötab, siis tänu sellele et
+  et nimed seansi jõuaksid. (Kui praegu töötab, siis tänu sellele et
   `tara-mock` annab nime top-level — päris TARA vastu katkeks.)
 
 ### 3.3 `0.2.1-alpha → 0.3.0-alpha` — **1 katkendlik + 2 pehmet**
 
 #### Katkendlik — OIDC discovery fail-closed plain-HTTP peal
 
-`provider.discovery_url` **ja** discovery-dokumendi sees olevad endpointid
+`provider.discovery_url` **ja** discovery-dokumendi sees olevad lõpp-punktid
 (`authorization_endpoint`, `token_endpoint`, `jwks_uri`) **peavad** olema
 `https://`, muidu boot/login keeldub. Erand: `oauth2.providers.<id>.allow_http_discovery: true`.
 
@@ -394,10 +394,10 @@ allowed_redirect_uris: ["http://localhost:3001/auth/callback"]                  
 
 - `discovery_url` on juba `https://` ✅
 - **AGA:** discovery-**dokumendi sees** — kui `tara-mock` publitseerib oma
-  `.well-known`-is `http://tara-mock:8080/...` endpointid, keeldub login
+  `.well-known`-is `http://tara-mock:8080/...` lõpp-punktid, keeldub login
   ikka. **Kontrolli `tara-mock` genereeritud discovery-dokumenti** — kui
-  endpointid on `http://`, siis kas (a) muuda `tara-mock` andma `https://`
-  endpointe, või (b) sea `allow_http_discovery: true` ljvis `tim.yaml`-is
+  lõpp-punktid on `http://`, siis kas (a) muuda `tara-mock` andma `https://`
+  lõpp-punkte, või (b) sea `allow_http_discovery: true` ljvis `tim.yaml`-is
   tara provideri all (dev/CI-only, mitte prod).
 
 **Kontroll enne upgrade'i:**
@@ -411,7 +411,7 @@ docker compose exec tara-mock curl -sk https://localhost:8080/oidc/.well-known/o
 `src/oauth2/flow.rs` saadab nüüd `code_challenge` + `code_challenge_method=S256`
 igas autoriseerimispäringus. **`tara-mock` peab PKCE parameetreid taluma**
 (kas kasutama või vähemalt ignoreerima ilma veata). Enamik OIDC-mocke
-talub. **Kontrolli `tara-mock` authorize-endpointi.** Päris TARA/Google
+talub. **Kontrolli `tara-mock` authorize-lõpp-punkti.** Päris TARA/Google
 mandaadid, mis PKCE-t nõuavad, hakkavad **nüüd tööle** (positiivne).
 
 #### Pehme 2 — legacy `?session_id=` → WARN (oli DEBUG); JWT `reason` väärtused
@@ -441,16 +441,16 @@ mandaadid, mis PKCE-t nõuavad, hakkavad **nüüd tööle** (positiivne).
 1. `docker/tim/Dockerfile`: `0.2.0-alpha.2` → `0.3.0-alpha`
    (`docker/tim/Dockerfile.release` juba `0.2.1` — vii sama `0.3.0`-le).
 2. **`tara-mock` kontrollid (kriitilised):**
-   - discovery-dokument annab `https://` endpointid (või sea
+   - discovery-dokument annab `https://` lõpp-punktid (või sea
      `allow_http_discovery: true` dev-is)
-   - token-endpoint aktsepteerib HTTP Basic klient-autentimist
-   - authorize-endpoint talub `code_challenge` / `code_challenge_method`
+   - token-lõpp-punkt aktsepteerib HTTP Basic klient-autentimist
+   - authorize-lõpp-punkt talub `code_challenge` / `code_challenge_method`
      query-parameetreid
    - Kui `tara-mock` ei täida → paranda `tara-mock/service/` **või**
      lisa `allow_http_discovery: true` + veendu Basic-i toes.
 3. `tim.yaml`: kaalu tara provideri alla `jwks_uri:` pinni (prod).
 4. Full login-flow test lokaalses stackis (`Ametnik → Sisene → TARA-mock →
-   kinnita → töölaud`), veendu et **nimi** jõuab sessiooni.
+   kinnita → töölaud`), veendu et **nimi** jõuab seansi.
 5. E2E roheline (Postmani auth-login testid).
 
 ---

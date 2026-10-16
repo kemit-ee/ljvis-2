@@ -2121,7 +2121,7 @@ Kukkunud kontrolle ei olnud.
 | 9 |  | [LJVIS2-12 Setup] Confirm status=active before deactivation | `POST /ljvis/user/get_user` | Status is still active before the job runs | läbis |
 | 10 |  | [LJVIS2-12 Setup] Confirm groups attached before deactivation | `POST /ljvis/user/get_user_groups` | Returns 200 | läbis |
 | 11 |  | [LJVIS2-12 Setup] Confirm groups attached before deactivation | `POST /ljvis/user/get_user_groups` | Has at least one group before the job runs | läbis |
-| 12 |  | [LJVIS2-12] POST cron/deactivate-expired-users — deactivates and clears groups | `POST /ljvis/cron/deactivate-expired-users` | Returns 200 (regression: previously 500'd via a call to a non-existent rebuild_user_account_latest endpoint) | läbis |
+| 12 |  | [LJVIS2-12] POST cron/deactivate-expired-users — deactivates and clears groups | `POST /ljvis/cron/deactivate-expired-users` | Returns 200 (regression: previously 500'd via a call to a non-existent rebuild_user_account_latest lõpp-punkt) | läbis |
 | 13 |  | [LJVIS2-12] POST cron/deactivate-expired-users — deactivates and clears groups | `POST /ljvis/cron/deactivate-expired-users` | The created expired test user is in the deactivated list | läbis |
 | 14 |  | [LJVIS2-12] Verify: status=inactive | `POST /ljvis/user/get_user` | Returns 200 | läbis |
 | 15 |  | [LJVIS2-12] Verify: status=inactive | `POST /ljvis/user/get_user` | status = inactive | läbis |

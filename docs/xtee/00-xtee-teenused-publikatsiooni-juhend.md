@@ -681,7 +681,7 @@ http://ruuter-internal:8080/ljvis/xroad/provide/openapi
 5. Edaspidi saab lepingut värskendada nupuga **"Värskenda"** — käsitsi uuesti üleslaadimist pole vaja.
 
 **Oluline:**
-- See endpoint ei nõua `X-Road-Client` päist ega muud autentimist — turvaserver ei toeta kirjelduse tõmbamisel autentimist. Seega peab tee jääma samasse Ruuter.internal komponenti, mis muidu polegi avalikult (nginx-i kaudu) ligipääsetav ([4.1](#41-ülevaade)) — ainult turvaserverile otse.
+- See lõpp-punkt ei nõua `X-Road-Client` päist ega muud autentimist — turvaserver ei toeta kirjelduse tõmbamisel autentimist. Seega peab tee jääma samasse Ruuter.internal komponenti, mis muidu polegi avalikult (nginx-i kaudu) ligipääsetav ([4.1](#41-ülevaade)) — ainult turvaserverile otse.
 - Ruuter DSL ei toeta faili lugemist kettalt, seega on kirjelduse sisu embed'itud otse DSL-faili sisse. Sisu hoiab failiga `XroadOpenapi.yaml` sünkroonis skript `scripts/generate-xroad-openapi-dsl.py` — kui leping muutub, jooksuta:
   ```bash
   python3 scripts/generate-xroad-openapi-dsl.py

@@ -39,7 +39,7 @@ Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaa
 | Staatiline segment | `/v1/users/admin` | `admin` on DSL kausta nimi |
 | Staatiline toiming | `/v1/users/admin/search` | `search.yml` fail DSL-is |
 | Query param (id) | `/v1/users/admin/?q=123` | dünaamiline identifikaator (`?q=` on de facto standard) |
-| Query param (filter) | `/v1/users/admin/search/?q=Mari&page=1` | otsing ja leheküljed eraldi endpoint-is |
+| Query param (filter) | `/v1/users/admin/search/?q=Mari&page=1` | otsing ja leheküljed eraldi lõpp-punktis |
 
 **Scope** (`admin` | `local`) on **staatiline path segment** — see kaardistub eraldi DSL failidega, millel on erinev äriloogika ja õigusekontrroll.
 
@@ -58,7 +58,7 @@ Ruuter DSL kasutab **staatilisi path segmente** failitee kaardistamiseks. Dünaa
 
 | Toiming | Soovituslik URI | Selgitus |
 |---------|-----------------|----------|
-| Nimekirja otsing | `GET /v1/users/admin/search/?q=Mari&page=0&pageSize=20` | Eraldi `search` endpoint, `?q=` filtrina |
+| Nimekirja otsing | `GET /v1/users/admin/search/?q=Mari&page=0&pageSize=20` | Eraldi `search` lõpp-punkt, `?q=` filtrina |
 | Üksiku ressursi lugemine | `GET /v1/users/admin/?q=123` | `?q=` on de facto standard ID-paramina, ressursinimi ei kordu |
 | Ressursi loomine | `POST /v1/users/admin` | HTTP meetod tähistab loomist |
 | Ressursi uuendamine | `PUT /v1/users/admin/update` | Toiming staatilise segmendina, `id` request body-s |
@@ -134,7 +134,7 @@ Kõik nimekirja-otspunktid toetavad järgmisi query parameid:
 
 | Param | Tüüp | Kirjeldus |
 |-------|------|-----------|
-| `q` | string | Vabatekstotsing (`/search/` endpoint) või ressursi ID (üksiku ressursi endpoint) |
+| `q` | string | Vabatekstotsing (`/search/` lõpp-punkt) või ressursi ID (üksiku ressursi lõpp-punkt) |
 | `page` | integer | Lehekülje number (0-põhine) |
 | `pageSize` | integer | Kirjete arv lehel |
 | `sorting` | string | Sortimisväli ja suund (nt `name asc`) |
@@ -200,7 +200,7 @@ DSL/Ruuter/ljvis/
   DELETE/v1/.guard
 ```
 
-`.guard` fail käivitub **enne** tegelikku endpoint-faili ja tagastab kas `200 success` (lubab edasi) või `403 unauthorized` (katkestab).
+`.guard` fail käivitub **enne** tegelikku lõpp-punkti faili ja tagastab kas `200 success` (lubab edasi) või `403 unauthorized` (katkestab).
 
 **Guard faili loogika sammhaaval:**
 
@@ -209,7 +209,7 @@ DSL/Ruuter/ljvis/
 | `check_for_cookie` | Kontrollib, kas `cookie` päis on olemas | Puudub → `guard_fail` |
 | `authenticate` | Kutsub TIM-i `check-user-authority` template'i JWT küpsisega | Tagastab `authority_result` |
 | `check_authority_result` | Kontrollib, et tulemus ei ole `"false"` | Vale → `guard_fail` |
-| `guard_success` | Tagastab `200 "success"` | Ruuter jätkab endpoint-failiga |
+| `guard_success` | Tagastab `200 "success"` | Ruuter jätkab lõpp-punkti failiga |
 | `guard_fail` | Tagastab `403 "unauthorized"` | Päring katkeb, vastust ei saadeta |
 
 **Guard faili struktuur** (`GET/v1/.guard`):

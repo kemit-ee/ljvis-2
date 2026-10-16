@@ -1,6 +1,6 @@
 # Klassifikaatorite haldus
 
-Klassifikaatorid on süsteemi viitede loendid. Näiteks riigid, maakonnad, teed, rikkumiste koodid, sanktsioonid ja ametikohad.
+Klassifikaatorid on süsteemi valikväärtuste loendid. Näiteks riigid, maakonnad, teed, rikkumiste koodid, sanktsioonid ja ametikohad.
 
 ## Ligipääs
 
@@ -96,4 +96,4 @@ Pange tähele:
 
 ## API
 
-Klassifikaatorite pärimiseks kasutatakse endpointi `/v1/classifiers/catalogue` või `/v1/classifiers/bundle`.
+Klassifikaatorite pärimiseks kasutatakse lõpp-punkti `/v1/classifiers/catalogue` või `/v1/classifiers/bundle`.

@@ -47,4 +47,4 @@ Uued tundmatud koodid säilivad trükis koodina. Algse paberi ridadel 10.1/11.1 
 selles seemnes eraldi detailikoode: veose kinnitamise/muu kokkuvõte trükitakse
 partsSummary järgi ja täiendavad partsDefects koodid lisatakse loendi lõppu.
 X-tee välju extraordinaryInspectionDate, enforcementDecision ja proceedingClosureBasis
-see blankett automaatselt ei trüki. Manuste sisu ega loend pole selle endpoint'i vastuses.
+see blankett automaatselt ei trüki. Manuste sisu ega loend pole selle lõpp-punkti vastuses.
