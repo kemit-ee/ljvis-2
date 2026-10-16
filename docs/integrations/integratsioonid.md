@@ -71,7 +71,7 @@ Kirjeldused kaustas `DSL/xtr/`:
 | Liiklusregister | `liiklusregister/paring2`, `yvkehtivus` | Sõiduki päring, erakorralise ülevaatuse kehtivus |
 | e-Toimik | `etoimik/AnnaIsikuKvalifikatsioonid` | Otsuste sünk (cron) |
 
-Ruuteri rajad: `/v1/xroad/{rr,arireg,mtr,liiklusregister,etoimik}/…`. X-tee instants ja turvaserver määratakse `xtr.yaml` failis (`xroad_instance`, `security_server`). Ruuteri e-Toimiku seaded: `ETOIMIK_SUBSYSTEM_CODE`, `ETOIMIK_SERVICE_VERSION`.
+Ruuteri rajad: `/v1/xroad/{rr,arireg,mtr,liiklusregister,etoimik}/…`. X-tee instants ja turvaserver määratakse `xtr.yaml` failis (`xroad_instance`, `security_server`). e-Toimiku alamsüsteem (`etoimik`) ja teenuse versioon (`v6`) on vaikeväärtused XTR-i DSL-is (`DSL/xtr/etoimik/AnnaIsikuKvalifikatsioonid.yml`); Ruuter neid ei tea.
 Dev/CI-s asendavad välised teenused mockid.
 
 ### 3.2 Testid ja veahaldus
