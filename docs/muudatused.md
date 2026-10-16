@@ -157,6 +157,12 @@
 
 ## 2026-10-05
 
+### Sidecar-teenuste (nysiis, s3-proxy, pdf-creator) sissetulev autentimine (#520)
+
+- Kõik kolm teenust nõuavad nüüd päist `Authorization: Bearer <võti>` (`/health` jääb avatuks); puuduv või vale võti → 401. Ruuter saadab võtme kõigil kutsetel (8 DSL-i).
+- Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
+- Fail-closed: sidecar ei käivitu, kui võti on seadmata. Varem lasi pdf-creator tühja `PDF_CREATOR_API_KEY` korral kõik kutsed läbi.
+
 ### CronManager'i ajastatud tööd saadavad teenusetokeni päisega (korrigeerib #515)
 
 - Kõik CronManager'i tööd saadavad päise `x-internal-service-token` CronManager'i `headerEnvs` võimalusega (väärtus keskkonnamuutujast `INTERNAL_COMMUNICATION_KEY`, loetakse iga käivituse ajal); `POST/cron/.guard` erand on eemaldatud ja `/cron/*` nõuab taas tokenit. **Eeldab CronManager'i versiooni, mis toetab `headerEnvs`-i** (CronManager v0.2.3-alpha, turnerrainer/CronManager#46); vana versioon jätab tööfailid vahele (0 tööd). CronManager'i konteinerile tuleb anda `INTERNAL_COMMUNICATION_KEY` (devops: `cronmanager-secret`, SSM `internal/communication-key`).
