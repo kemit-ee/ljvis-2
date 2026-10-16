@@ -1,0 +1,5 @@
+{
+  "forms": ["adr-form", "compound-form", "compound-subforms", "foreign-violation", "good-repute", "labour-inspection", "print-buttons", "technical-check-proceeding", "tram-form"],
+  "services": ["erru", "manual-jobs", "notification-trigger", "notifications", "nu", "risk-scores", "rsi", "xroad-etoimik-logs", "xtee-teenused"],
+  "admin": ["audit-logs", "classifiers", "form-search", "notification-template-mapping", "smoke", "user-groups", "users"]
+}

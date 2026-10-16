@@ -29,12 +29,16 @@ bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json erru
 Ära käivita neid käske samas arvutis korraga. Need kasutavad samu hosti porte
 ja Compose'i projekti. CI paralleelsus on ohutu, sest runner'id on eraldi.
 
-UI-testid kasutavad Playwrighti jaotust `--shard=1/3`, `2/3` ja `3/3`.
+UI-testid kasutavad kolme nimega rühma: **Kontrollvormid**, **Liidestused ja
+taustatööd** ning **Haldus ja otsing**. Failide fikseeritud jaotus asub failis
+`tests/playwright/groups.json`. Kontroll nõuab, et iga testifail kuuluks täpselt
+ühte rühma. Näiteks käivitab `bash tests/playwright/run.sh --group forms`
+ainult kontrollvormide rühma.
 Iga osa käivitab oma pinu ja sisselogimise ettevalmistuse. Ühe osa sees jääb
 `workers: 1`, sest testid muudavad sama andmebaasi ja õigusi.
 
 Kõik osad jooksevad lõpuni ka teise osa vea korral. API-raportite nimed on
-`api-tests-<rühm>` ja UI-raportite nimed `playwright-tulemus-<osa>`.
+`api-tests-<rühm>` ja UI-raportite nimed `playwright-tulemus-<rühm>`.
 Koondkontrollide nimed `E2E Tests` ja `UI Tests` jäävad samaks. API viga peatab
 Quality Gate'i. UI-testide senine nõuandev staatus ei muutu. UI vigadest teeb
 issue ühe korra koondtöö, mitte iga osa eraldi.
