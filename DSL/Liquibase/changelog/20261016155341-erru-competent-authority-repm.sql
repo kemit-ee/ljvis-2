@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261016155341
+-- changeset ljvis:20261016155341 ignore:true
 -- REPM lisatakse ERRU pädevate asutuste valikusse. Vormipiirangut ei lisata.
 INSERT INTO classifier.classifier_value (
     classifier_value_key, classifier_key, code, name, valid_from, created_by

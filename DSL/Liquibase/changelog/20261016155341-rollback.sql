@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset ljvis:20261016155341-rollback
+-- changeset ljvis:20261016155341-rollback ignore:true
 DELETE FROM classifier.classifier_value
 WHERE code = 'EE-REPM'
   AND created_by = 'ljvis2'
