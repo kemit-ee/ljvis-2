@@ -179,7 +179,17 @@ processCandidates:
             compound_published: "${!!(compoundPublishRes.response.body && compoundPublishRes.response.body[0]) ? 'true' : 'false'}"
             compound_form_number: "${(compoundPublishRes.response.body && compoundPublishRes.response.body[0] && (compoundPublishRes.response.body[0].formNumber || compoundPublishRes.response.body[0].form_number)) || ''}"
         result: auditRes
-    collect: "${({ id: candidate.id, formType: form_type, found: decision.found, applied: applied_now, compoundPublished: !!(compoundPublishRes.response.body && compoundPublishRes.response.body[0]), success: decision.success })}"
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            form_type: "compound"
+            form_key: "${String(compound_form_key)}"
+        result: riskRecalcRes
+    collect: "${({ id: candidate.id, formType: form_type, found: decision.found, applied: applied_now, compoundPublished: !!(compoundPublishRes.response.body && compoundPublishRes.response.body[0]), success: decision.success && riskRecalcRes.response != null && riskRecalcRes.response.status >= 200 && riskRecalcRes.response.status < 300 })}"
     into: results
   next: returnSummary
 

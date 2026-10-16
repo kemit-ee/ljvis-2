@@ -1,32 +1,5 @@
 /*
-description: "Candidates for the nightly risk-score recalculation (LJVIS2-150/151/152): every distinct\
-  \ Estonian company_reg_code whose risk score could plausibly have changed since the last run. No \"\
-  latest snapshot\" resolution is needed here, unlike select_etoimik_candidates.sql/ select_yvkehtivus_candidates.sql\
-  \ — this query returns a distinct set of reg codes, not \"the current state of one entity\".\nA company's\
-  \ score can only change for two reasons, so we look for two narrow bands instead of scanning the whole\
-  \ 2-year window every night:\n1. \"Recent\" band (created_at >= now() - 3 days): a NEW qualifying\n\
-  \   control appeared. This must check compound_form.created_at (a new\n   case), AND ALSO sp_driver_form.created_at\
-  \ / sp_teammate_form.created_at\n   (a sub-form was (re-)published on an ALREADY-published, older\n\
-  \   compound_form — confirmed possible: frontend's DriveRestFormPage\n   allows editing sub-forms while\
-  \ compoundForm.status is already\n   'published' (canEdit includes status==='published'), and neither\n\
-  \   drive-rest-form/driver/edit/save.yml nor its .guard check the parent\n   compound_form's status\
-  \ at all. So a case published months ago can\n   still get a corrected/added violation published today,\
-  \ changing the\n   score with zero new compound_form activity — a filter on\n   compound_form.created_at\
-  \ alone would silently miss this).\n2. \"Boundary\" band (compound_form.created_at within 2 years ±\
-  \ 3 days):\n   an existing control's enforcement_date (= MIN(created_at) FILTER\n   (WHERE status='published'),\
-  \ grouped per compound_form_key — see\n   calculate_risk_score.sql) is about to age out of the 2-year\
-  \ window\n   with zero new activity. Only compound_form.created_at matters here —\n   enforcement_date\
-  \ is defined purely by the compound_form snapshot\n   history, not by sub-form timestamps. The ±3 day\
-  \ slack absorbs up to\n   2 consecutive missed nightly runs (cron interval = 1 day, so\n   2 × 1 + 1\
-  \ = 3 days worst-case catch-up); it can only ever\n   over-include (harmless extra recompute), never\
-  \ under-include, since\n   the row defining enforcement_date is itself what this filter checks.\n\n\
-  calculate_risk_score.sql still applies the exact 2-year window and exact rules when it actually computes\
-  \ R — these two bands only decide who's *worth checking* tonight. Without them the candidate set would\
-  \ grow forever with total historical published-form volume, including companies whose last qualifying\
-  \ control was years ago and will never re-enter the window.\n\nSame recent/boundary bands are also applied\
-  \ to forms.foreign_violation_form (VR-vorm, LJVIS2-151 gap fix) so a company whose only qualifying control\
-  \ is a VR-vorm also gets picked up — see calculate_risk_score.sql's vr_* CTEs for the matching inclusion\
-  \ rules.\n3. \"Unscored or unchecked\" band: a company with a published compound_form or VR-vorm inside the 2-year window but no score or a latest unchecked/zero-control snapshot in risk.company_risk_score (e.g. forms published before VR was included in the formula, or the fire-and-forget recalculate call at publish time failed). The 3-day bands never pick these up. Each company drops out of this band after a recalculation when its latest snapshot has a non-null score and at least one counted control. Unchecked snapshots remain eligible."
+description: Full nightly risk-score recalculation candidates. Includes every Estonian company with a published control or a historical score, so missed publication updates and expired controls are repaired.
 namespace: risk_score
 params: {}
 returns:
@@ -34,77 +7,14 @@ returns:
   type: string
   nullable: true
 */
-WITH recent_or_boundary_compound AS (
-  SELECT DISTINCT company_reg_code
-  FROM forms.compound_form
-  WHERE status = 'published'
-    AND company_reg_code ~ '^[0-9]{8}$'
-    AND (
-      created_at >= (now() - INTERVAL '3 days')
-      OR created_at BETWEEN (now() - INTERVAL '2 years' - INTERVAL '3 days')
-                         AND (now() - INTERVAL '2 years' + INTERVAL '3 days')
-    )
-),
-recent_sp_driver AS (
-  SELECT DISTINCT cf.company_reg_code
-  FROM forms.compound_form cf
-  WHERE cf.status = 'published'
-    AND cf.company_reg_code ~ '^[0-9]{8}$'
-    AND cf.compound_form_key = ANY (
-      SELECT sdf.compound_form_key
-      FROM forms.sp_driver_form sdf
-      WHERE sdf.status = 'published'
-        AND sdf.created_at >= (now() - INTERVAL '3 days')
-    )
-),
-recent_sp_teammate AS (
-  SELECT DISTINCT cf.company_reg_code
-  FROM forms.compound_form cf
-  WHERE cf.status = 'published'
-    AND cf.company_reg_code ~ '^[0-9]{8}$'
-    AND cf.compound_form_key = ANY (
-      SELECT stf.compound_form_key
-      FROM forms.sp_teammate_form stf
-      WHERE stf.status = 'published'
-        AND stf.created_at >= (now() - INTERVAL '3 days')
-    )
-),
-recent_or_boundary_vr AS (
-  SELECT DISTINCT company_reg_code
-  FROM forms.foreign_violation_form
-  WHERE status = 'published'
-    AND company_reg_code ~ '^[0-9]{8}$'
-    AND (
-      created_at >= (now() - INTERVAL '3 days')
-      OR created_at BETWEEN (now() - INTERVAL '2 years' - INTERVAL '3 days')
-                         AND (now() - INTERVAL '2 years' + INTERVAL '3 days')
-    )
-),
-unscored_or_unchecked AS (
-  SELECT DISTINCT q.company_reg_code
-  FROM (
-    SELECT company_reg_code, created_at FROM forms.compound_form WHERE status = 'published'
-    UNION ALL
-    SELECT company_reg_code, created_at FROM forms.foreign_violation_form WHERE status = 'published'
-  ) q
-  WHERE q.company_reg_code ~ '^[0-9]{8}$'
-    AND q.created_at >= (now() - INTERVAL '2 years' - INTERVAL '3 days')
-    -- An existing unchecked snapshot is not evidence of a completed calculation.
-    -- This also repairs old zero-control snapshots after formula changes.
-    AND COALESCE((
-      SELECT crs.total_controls = 0 OR crs.risk_score IS NULL
-      FROM risk.company_risk_score crs
-      WHERE crs.company_reg_code = q.company_reg_code
-      ORDER BY crs.created_at DESC
-      LIMIT 1
-    ), TRUE)
-)
-SELECT company_reg_code FROM recent_or_boundary_compound
+-- Revisit every known Estonian undertaking, including previously scored ones.
+-- This repairs failed publication recalculations and ages out old controls.
+SELECT company_reg_code FROM forms.compound_form WHERE status='published' AND company_reg_code ~ '^[0-9]{8}$'
 UNION
-SELECT company_reg_code FROM recent_sp_driver
+SELECT company_reg_code FROM forms.foreign_violation_form WHERE status='published' AND company_reg_code ~ '^[0-9]{8}$'
 UNION
-SELECT company_reg_code FROM recent_sp_teammate
+SELECT company_reg_code FROM forms.tram_control_card WHERE status='published' AND company_reg_code ~ '^[0-9]{8}$'
 UNION
-SELECT company_reg_code FROM recent_or_boundary_vr
+SELECT company_reg_code FROM forms.labour_inspection_form WHERE status='published' AND company_reg_code ~ '^[0-9]{8}$'
 UNION
-SELECT company_reg_code FROM unscored_or_unchecked;
+SELECT company_reg_code FROM risk.company_risk_score WHERE company_reg_code ~ '^[0-9]{8}$';

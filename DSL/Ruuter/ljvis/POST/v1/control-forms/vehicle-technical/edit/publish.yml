@@ -199,6 +199,20 @@ evaluateNotifications:
       violations: ${violations}
       createdBy: ${actor_personal_code}
   result: notificationEvaluationRes
+  error: recalculateRisk
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(compound_form_key)}"
+  result: riskRecalcRes
   error: returnSuccess
   next: returnSuccess
 

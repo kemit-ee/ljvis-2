@@ -12,6 +12,9 @@ params:
     type: string
     required: false
 returns:
+- name: compound_form_key
+  type: number
+  nullable: true
 - name: id
   type: number
   nullable: true
@@ -96,4 +99,4 @@ SELECT
   l.proceeding_closure_basis,
   :created_by
 FROM latest l
-RETURNING vehicle_technical_form_key AS id, sub_form_number;
+RETURNING vehicle_technical_form_key AS id, sub_form_number, compound_form_key;
