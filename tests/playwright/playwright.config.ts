@@ -28,9 +28,9 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: isCI,
   retries: isCI ? 2 : 1,
-  // Üks jagatud vite-dev server — paralleelsed töölised võistlevad esmase
-  // route-kompileerimise pärast ja tekitavad ebastabiilsust. Seriaalne on
-  // ~3 min, aga usaldusväärne.
+  // Ühe shard'i testid muudavad sama andmebaasi, kasutajaid ja õigusi.
+  // CI paralleelsus tuleb eraldi runner'itest, igal oma pinu ja andmebaas.
+  // Ühe shard'i sees jääb käivitus järjestikuseks.
   workers: 1,
   timeout: 60_000,
   expect: { timeout: 12_000 },
