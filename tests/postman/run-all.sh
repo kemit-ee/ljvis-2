@@ -78,6 +78,7 @@ python3 "$REPO_ROOT/tests/xtr/xml_entities_test.py" --image ljvis-ci-xtr-inbound
 
 python3 "$REPO_ROOT/tests/erru-adapter/test_migrations.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
+python3 "$REPO_ROOT/tests/sql/risk-recalc-candidates.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 python3 "$REPO_ROOT/tests/sql/test_nu_concurrency.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
 $COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/sp-erru-points.sql"
