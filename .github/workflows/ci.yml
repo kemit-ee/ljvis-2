@@ -559,13 +559,19 @@ jobs:
   # vastu. Igal shard'il on eraldi runner ja andmebaas. Esialgu MITTE blokeeriv (continue-on-error + väljas quality-gate'ist)
   # kuni stabiilne.
   ui-tests:
-    name: UI Tests (${{ matrix.shard }}/3)
+    name: UI Tests — ${{ matrix.name }}
     runs-on: ubuntu-22.04
     continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        include:
+          - group: forms
+            name: Kontrollvormid
+          - group: services
+            name: Liidestused ja taustatööd
+          - group: admin
+            name: Haldus ja otsing
 
     steps:
       - name: Checkout
@@ -598,7 +604,7 @@ jobs:
         working-directory: tests/playwright
 
       - name: Run UI tests
-        run: bash tests/playwright/run.sh --shard="${{ matrix.shard }}/3"
+        run: bash tests/playwright/run.sh --group "${{ matrix.group }}"
 
       - name: Show CI stack logs on failure
         if: failure()
@@ -625,7 +631,7 @@ jobs:
         if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-tulemus-${{ matrix.shard }}
+          name: playwright-tulemus-${{ matrix.group }}
           path: tests/playwright/tulemus/
           retention-days: 14
 
