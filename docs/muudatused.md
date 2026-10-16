@@ -9,6 +9,20 @@
 - Jõustunud otsuste kontroll e-toimikus (tööinspektsiooni, TRAM kontrollkaardi, sõiduki ja haagise tehnovormi ning autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormid) käivitub nüüd iga 10 minuti tagant, varem kord öösel. Otsus ilmub vormile seega kuni ~10 minutiga pärast jõustumist.
 - Viis sünkroonimist on omavahel nihutatud 2 minutiga (:00, :02, :04, :06, :08), et X-tee päringud ei kattuks.
 
+### Mootorsõiduki/haagise tehnoülevaatuse alamvormi andmed ja failid tagastasid "Puuduvad õigused"
+
+- Kasutaja, kellel oli õigus koondvormi või selle autojuhi/meeskonnaliikme
+  alamvormi lugeda, sai siiski 403 vea, kui üritas vaadata sellesse
+  koondvormi kuuluva mootorsõiduki või haagise tehnoülevaatuse alamvormi
+  andmeid või faile — need nõudsid eraldi, kitsamat õiguskoodi, mida
+  admin-liideses on lihtne märkamata jätta. Lisati võimalus pääseda
+  tehnoülevaatuse alamvormile ligi ka koondvormi/autojuhi/meeskonnaliikme
+  lugemisõigusega.
+- Ühtlustati ka välisriigi rikkumise vormi ja Transpordiameti kontrollkaardi
+  lugemisõiguste kontroll teiste vormitüüpidega: administraatori üldine
+  "vaata avaldamata vorme" õigus (`control_form.view_unpublished`) andis
+  varem ligipääsu kõigile vormitüüpidele peale nende kahe.
+
 ## 2026-10-15
 
 ### Postkasti mallide ja teavituse saajate halduse täiendused
