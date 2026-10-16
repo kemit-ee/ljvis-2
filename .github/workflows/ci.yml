@@ -370,12 +370,20 @@ jobs:
   # Bootstrap seeds admin + all DSL/Liquibase/test/*.sql fixtures via plain psql
   # (those changesets are ignore:true, so `liquibase update` never applies them).
   e2e-group:
-    name: E2E Tests (${{ matrix.group }})
+    name: E2E-testid — ${{ matrix.name }}
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        group: [core, controls, erru, xroad]
+        include:
+          - group: core
+            name: Põhiandmed ja kontrollvormid
+          - group: controls
+            name: Tehnilised vormid ja riskihindamine
+          - group: erru
+            name: ERRU sõnumivahetus
+          - group: xroad
+            name: X-tee ja lepingukontrollid
 
     steps:
       - name: Checkout
