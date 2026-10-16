@@ -54,8 +54,6 @@ processCandidates:
             personal_code: ${punished_person_id_code}
             # System caller id for the X-Road audit trail — no user session exists here.
             userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
 
       - call: http.post
         args:

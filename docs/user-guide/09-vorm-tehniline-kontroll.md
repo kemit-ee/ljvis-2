@@ -89,7 +89,7 @@ Kui vormi number on olemas, saab lisada faile.
 Järgmised väljad kuvatakse pärast salvestamist ja täidetakse automaatselt süsteemi poolt:
 
 - **Erakorraline tehnoülevaatus läbitud** — kui kontrolli tulemus on *Suunatud erakorralisele tehnoülevaatusele*, kontrollib süsteem iga tund liiklusregistrist (YVkehtivus), kas tehnoülevaatus on läbitud. Läbimise korral täidetakse see kuupäev automaatselt.
-- **Jõustunud otsus** — kui vormil on täidetud väärteomenetluse viitenumber ja koondvormi juhi Eesti isikukood, kontrollitakse iga 10 minuti tagant e-toimikust, kas menetluses on karistus jõustunud. Jõustumise korral täidetakse otsuse tekst automaatselt.
+- **Jõustunud otsus** — kui vormil on täidetud väärteomenetluse viitenumber ja koondvormi juhi Eesti isikukood, kontrollitakse iga tunni tagant e-toimikust, kas menetluses on karistus jõustunud. Jõustumise korral täidetakse otsuse tekst automaatselt.
 - **Menetluse lõpetamise alus** — täidetakse automaatselt koos jõustunud otsusega.
 
 ## Vormi elutsükkel
