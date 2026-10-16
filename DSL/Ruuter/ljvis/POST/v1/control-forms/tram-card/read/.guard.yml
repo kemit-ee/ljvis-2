@@ -1,7 +1,7 @@
-# Nõutav õigus: tram_driver_form.read. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+# Nõutav õigus: control_form.view_unpublished,tram_driver_form.read. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
 check:
   switch:
-    - condition: ${auth_user.permissions != null && auth_user.permissions.includes('tram_driver_form.read')}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('tram_driver_form.read'))}
       next: allow
   next: deny
 
