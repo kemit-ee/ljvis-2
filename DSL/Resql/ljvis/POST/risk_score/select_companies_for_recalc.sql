@@ -26,7 +26,7 @@ description: "Candidates for the nightly risk-score recalculation (LJVIS2-150/15
   \ control was years ago and will never re-enter the window.\n\nSame recent/boundary bands are also applied\
   \ to forms.foreign_violation_form (VR-vorm, LJVIS2-151 gap fix) so a company whose only qualifying control\
   \ is a VR-vorm also gets picked up — see calculate_risk_score.sql's vr_* CTEs for the matching inclusion\
-  \ rules.\n3. \"Never scored\" band: a company with a published compound_form or VR-vorm inside the 2-year window but NO row in risk.company_risk_score yet (e.g. forms published before VR was included in the formula, or the fire-and-forget recalculate call at publish time failed). The 3-day bands never pick these up. Each company drops out of this band after its first recalculation, since recalculate always inserts a row (even for Hall / r=0)."
+  \ rules.\n3. \"Unscored or unchecked\" band: a company with a published compound_form or VR-vorm inside the 2-year window but no score or a latest unchecked/zero-control snapshot in risk.company_risk_score (e.g. forms published before VR was included in the formula, or the fire-and-forget recalculate call at publish time failed). The 3-day bands never pick these up. Each company drops out of this band after a recalculation when its latest snapshot has a non-null score and at least one counted control. Unchecked snapshots remain eligible."
 namespace: risk_score
 params: {}
 returns:
@@ -80,7 +80,7 @@ recent_or_boundary_vr AS (
                          AND (now() - INTERVAL '2 years' + INTERVAL '3 days')
     )
 ),
-never_scored AS (
+unscored_or_unchecked AS (
   SELECT DISTINCT q.company_reg_code
   FROM (
     SELECT company_reg_code, created_at FROM forms.compound_form WHERE status = 'published'
@@ -89,10 +89,15 @@ never_scored AS (
   ) q
   WHERE q.company_reg_code ~ '^[0-9]{8}$'
     AND q.created_at >= (now() - INTERVAL '2 years' - INTERVAL '3 days')
-    AND NOT EXISTS (
-      SELECT 1 FROM risk.company_risk_score crs
+    -- An existing unchecked snapshot is not evidence of a completed calculation.
+    -- This also repairs old zero-control snapshots after formula changes.
+    AND COALESCE((
+      SELECT crs.total_controls = 0 OR crs.risk_score IS NULL
+      FROM risk.company_risk_score crs
       WHERE crs.company_reg_code = q.company_reg_code
-    )
+      ORDER BY crs.created_at DESC
+      LIMIT 1
+    ), TRUE)
 )
 SELECT company_reg_code FROM recent_or_boundary_compound
 UNION
@@ -102,4 +107,4 @@ SELECT company_reg_code FROM recent_sp_teammate
 UNION
 SELECT company_reg_code FROM recent_or_boundary_vr
 UNION
-SELECT company_reg_code FROM never_scored;
+SELECT company_reg_code FROM unscored_or_unchecked;
