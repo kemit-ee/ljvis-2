@@ -166,7 +166,7 @@ processCandidates:
             form_key: "${String(candidate_key)}"
         result: riskRecalcRes
 
-    collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success })}"
+    collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success && riskRecalcRes.response != null && riskRecalcRes.response.status >= 200 && riskRecalcRes.response.status < 300 })}"
     into: results
   next: returnSummary
 

@@ -189,7 +189,7 @@ processCandidates:
             form_type: "compound"
             form_key: "${String(compound_form_key)}"
         result: riskRecalcRes
-    collect: "${({ id: candidate.id, formType: form_type, found: decision.found, applied: applied_now, compoundPublished: !!(compoundPublishRes.response.body && compoundPublishRes.response.body[0]), success: decision.success })}"
+    collect: "${({ id: candidate.id, formType: form_type, found: decision.found, applied: applied_now, compoundPublished: !!(compoundPublishRes.response.body && compoundPublishRes.response.body[0]), success: decision.success && riskRecalcRes.response != null && riskRecalcRes.response.status >= 200 && riskRecalcRes.response.status < 300 })}"
     into: results
   next: returnSummary
 
