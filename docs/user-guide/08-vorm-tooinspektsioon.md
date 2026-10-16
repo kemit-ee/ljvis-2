@@ -80,7 +80,7 @@ Rikkumisi saab lisada nupuga **Lisa rikkumine**. Avanevas valikus saab valida ri
 
 Vorm läbib kolm staatust: **Salvestatud → Kinnitatud → Avalikustatud**.
 
-Kui kinnitatud vormil on täidetud **väärteomenetluse viitenumber** ja **karistatud isiku isikukood**, jälgib süsteem automaatselt, kas e-toimikus on menetluses otsus jõustunud. Iga 10 minuti tagant kontrollitakse kõiki selliseid kinnitatud vorme e-toimiku kaudu. Kui otsus on jõustunud, täidetakse vormile automaatselt:
+Kui kinnitatud vormil on täidetud **väärteomenetluse viitenumber** ja **karistatud isiku isikukood**, jälgib süsteem automaatselt, kas e-toimikus on menetluses otsus jõustunud. Iga tunni tagant kontrollitakse kõiki selliseid kinnitatud vorme e-toimiku kaudu. Kui otsus on jõustunud, täidetakse vormile automaatselt:
 
 - **Jõustunud otsus** — otsuse tekst
 - **Menetluse lõpetamise alus** — lõpetamise aluse tekst

@@ -1,8 +1,8 @@
-# Runs every 10 minutes (:04, :14, ...) Tallinn time (TZ pinned in docker-compose.yml).
+# Runs every hour (at :04) Tallinn time (TZ pinned in docker-compose.yml).
 # Staggered against the other e-toimik syncs to avoid XTR contention. The job
 # processes both sp_driver and sp_teammate sub-forms.
 etoimik_sp_driver_decision_sync:
-  trigger: "0 4/10 * * * ?"
+  trigger: "0 4 * * * ?"
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/etoimik-sp-driver-decision-sync
