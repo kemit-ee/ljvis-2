@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-16
+
+### E-toimiku otsuste sünkroonimine iga 10 minuti tagant
+
+- Jõustunud otsuste kontroll e-toimikus (tööinspektsiooni, TRAM kontrollkaardi, sõiduki ja haagise tehnovormi ning autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormid) käivitub nüüd iga 10 minuti tagant, varem kord öösel. Otsus ilmub vormile seega kuni ~10 minutiga pärast jõustumist.
+- Viis sünkroonimist on omavahel nihutatud 2 minutiga (:00, :02, :04, :06, :08), et X-tee päringud ei kattuks.
+
 ## 2026-10-15
 
 ### Postkasti mallide ja teavituse saajate halduse täiendused
