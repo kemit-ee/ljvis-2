@@ -48,6 +48,13 @@ lühendeid ERRU, CTUD, CGR, RSI, NCR, NU, ADR, ATP ja EHAK.
 - Muudetud tekstis olevate tehniliste identifikaatorite erinevuste ülevaatus.
 - Lisatud suhteliste failiviidete kontroll.
 
+## Confluence’i püsiv juurleht
+
+Kasutus- ja administraatorijuhendi jagatud juurlehe ID on `333210904`.
+Avaldamisskript kontrollib juurlehe ID-d enne avaldamist. See väldib juhendite
+paigutamist sama tähendusega uue juurlehe alla. Juurlehe tutvustus ei sisalda
+automaatse genereerimise ega skripti käivitamise selgitust.
+
 ## Avaldamise järjekord
 
 1. Esitage hoidla muudatused GitHubi tõmbetaotluses sihtharuga `dev`.
