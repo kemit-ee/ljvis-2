@@ -4,6 +4,11 @@
 
 ## 2026-10-16
 
+### E-toimiku alamsüsteem ja teenuse versioon XTR-i vaikeväärtusena
+
+- e-toimiku päringu X-tee alamsüsteemi kood (`etoimik`) ja teenuse versioon (`v6`) on nüüd XTR-i teenuse määratluses vaikeväärtused. Ruuter ei saada neid enam `constants.ini` kaudu. Varem jäi puuduva konstandi korral päringusse kohatäitja `[#ETOIMIK_SUBSYSTEM_CODE]` ja turvaserver vastas `server.clientproxy.unknown_member`.
+- Ee-dev liivakasti alamsüsteem on `etoimik-arendus`. Sinna tuleb väärtus XTR-ile eraldi kaasa anda, kuni XTR-il pole keskkonnapõhist konfiguratsiooni.
+
 ### Brauseri vahekaardi ikoon
 
 - Brauseri aadressiriba ja vahekaardi ikoon (favicon) on KeMIT logo asemel Eesti riigivapp (Kliimaministeeriumi logo vapp).

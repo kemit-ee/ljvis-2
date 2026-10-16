@@ -8,13 +8,9 @@ declaration:
     paragrahvid) by case/reference number and person identification
     (LJVIS2-56), via X-Road SOAP AnnaIsikuKvalifikatsioonid/v6 (per §28/§44/
     §99 of the spec) routed through XTR (see xtr.yaml -> security_server and
-    DSL/xtr/etoimik/AnnaIsikuKvalifikatsioonid.yml). The subsystem code and
-    service version are read from [#ETOIMIK_SUBSYSTEM_CODE] /
-    [#ETOIMIK_SERVICE_VERSION] (constants.ini) — subsystem confirmed live to
-    be `etoimik-arendus` in ee-dev (NOT plain `etoimik`, which produces a
-    misleading unknown_member fault there), but this WILL differ per
-    environment; see constants.ini's comment and .ai/testing-guide.md before
-    deploying elsewhere. No dedicated permission is
+    DSL/xtr/etoimik/AnnaIsikuKvalifikatsioonid.yml). The subsystem code (`etoimik`) and
+    service version (`v6`) are XTR's defaults, set in the XTR DSL; Ruuter does not send them.
+    No dedicated permission is
     required per LJVIS2-56 §3 ("Eraldi privileegi selle teenuse kasutamiseks
     ei kehtestata... kasutaja peab olema autenditud") — session auth only.
     Exactly one of caseNumber/referenceNumber and exactly one of
@@ -111,10 +107,6 @@ assignXtrParams:
 
 # Built once so logSuccessFound/logSuccessNotFound/logFailure can all log the
 # exact same full request body that was actually sent to XTR.
-# subsystem_code/service_version: per-environment override (LJVIS2-56) — ee-dev
-# sandbox uses "etoimik-arendus", production/ee-test almost certainly use plain
-# "etoimik" (confirmed live for ee-dev only, 2026-08-25; re-verify per
-# environment via listClients/allowedMethods, see constants.ini).
 buildXtrRequestBody:
   assign:
     xtr_request_body:
@@ -125,8 +117,6 @@ buildXtrRequestBody:
       last_name: ${last_name}
       birth_date: ${birth_date}
       userId: ${x_road_user_id}
-      subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-      service_version: "[#ETOIMIK_SERVICE_VERSION]"
   next: callXtr
 
 callXtr:

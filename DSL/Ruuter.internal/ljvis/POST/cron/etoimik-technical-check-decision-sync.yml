@@ -58,8 +58,6 @@ processVehicleCandidates:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
             userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
 
       - call: http.post
         args:
@@ -210,8 +208,6 @@ processTrailerCandidates:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
             userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
 
       - call: http.post
         args:

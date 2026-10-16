@@ -67,8 +67,6 @@ processCandidates:
             reference_number: ${reference_number}
             personal_code: ${person_code}
             userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
 
       - call: http.post
         args:
