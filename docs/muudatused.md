@@ -4,6 +4,11 @@
 
 ## 2026-10-16
 
+### Riskiskoori öine ümberarvutus leiab ka ettevõtted, kellel skoori veel pole
+
+- Ettevõtja, kelle avalikustatud kontrollid (nt välisriigi rikkumise vorm) olid vanemad kui 3 päeva ja kellel polnud veel riskiskoori kirjet, jäi riskitasemele „Kontrollimata" ja kontrollide arvule 0. Öine ümberarvutus valis ainult värskelt avalikustatud või 2-aasta piirile lähenevad kontrollid ega leidnud neid üles.
+- Nüüd arvutab öine töö riskiskoori ka kõigile Eesti ettevõtjatele, kellel on viimase 2 aasta jooksul avalikustatud kontroll, aga skoori kirjet veel pole. Pärast esimest arvutust ettevõtja sellest valikust välja langeb. Mõju ilmneb järgmisel öösel kell 03:00.
+- Haldus → E-toimiku X-tee logid lehele on lisatud jaotis **„Manuaalne käivitamine"**, kust saab käsitsi käivitada riskiskooride ümberarvutuse ja kõik e-toimiku otsuste sünkroonimised (tööinspektsioon, TRAM kontrollkaart, autojuhi ja meeskonnaliikme sõidu- ja puhkeaeg, tehniline kontroll). Jaotis on nähtav neile, kellel on X-tee logide vaatamise õigus (`xroad.log.read`). Töö jookseb lõpuni enne tulemuse ilmumist; valmimisel ilmub teade ebaõnnestunute arvuga. Iga käivitus logitakse auditisse.
 ### E-toimiku otsuste sünkroonimine iga 10 minuti tagant
 
 - Jõustunud otsuste kontroll e-toimikus (tööinspektsiooni, TRAM kontrollkaardi, sõiduki ja haagise tehnovormi ning autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormid) käivitub nüüd iga 10 minuti tagant, varem kord öösel. Otsus ilmub vormile seega kuni ~10 minutiga pärast jõustumist.
