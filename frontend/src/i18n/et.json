@@ -1685,13 +1685,43 @@
     "bandHall": "Kontrollimata",
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
-    "bandPunane": "Punane",
-    "recalculate": "Arvuta riskitasemed ümber",
-    "recalculating": "Arvutan…",
-    "recalculateDone": "Riskitasemete ümberarvutus lõpetatud: {{checked}} ettevõtet kontrollitud, {{recalculated}} arvutatud, {{failures}} ebaõnnestus."
+    "bandPunane": "Punane"
   },
   "xroadLogs": {
     "title": "E-toimiku X-tee logid",
+    "manualJobs": {
+      "title": "Manuaalne käivitamine",
+      "description": "Käivitab käsitsi samad tööd, mida süsteem teeb ajastatult. Töö jookseb lõpuni enne, kui tulemus ilmub — jätke leht avatuks.",
+      "run": "Käivita",
+      "running": "Töötab…",
+      "done": "Töö „{{job}}” lõpetatud, ebaõnnestunuid: {{failures}}.",
+      "jobs": {
+        "risk-score-recalc-sync": {
+          "title": "Riskiskooride ümberarvutus",
+          "description": "Arvutab ümber riskitasemed, sh ettevõtetele, kellel skoori veel pole (öösel kell 03:00)."
+        },
+        "etoimik-decision-sync": {
+          "title": "E-toimiku sünkroonimine: tööinspektsioon",
+          "description": "Toob e-toimikust jõustunud otsused tööinspektsiooni vormidele."
+        },
+        "etoimik-tram-decision-sync": {
+          "title": "E-toimiku sünkroonimine: TRAM kontrollkaart",
+          "description": "Toob e-toimikust jõustunud otsused TRAM kontrollkaartidele."
+        },
+        "etoimik-sp-driver-decision-sync": {
+          "title": "E-toimiku sünkroonimine: autojuhi sõidu- ja puhkeaeg",
+          "description": "Toob e-toimikust jõustunud otsused autojuhi sõidu- ja puhkeaja alamvormidele."
+        },
+        "etoimik-sp-teammate-decision-sync": {
+          "title": "E-toimiku sünkroonimine: meeskonnaliikme sõidu- ja puhkeaeg",
+          "description": "Toob e-toimikust jõustunud otsused meeskonnaliikme sõidu- ja puhkeaja alamvormidele."
+        },
+        "etoimik-technical-check-decision-sync": {
+          "title": "E-toimiku sünkroonimine: tehniline kontroll",
+          "description": "Toob e-toimikust jõustunud otsused sõiduki ja haagise tehnovormidele."
+        }
+      }
+    },
     "emptyResult": "Filtrile vastavaid kirjeid ei leitud",
     "empty": "Sisu puudub",
     "viewRequest": "Vaata päringut",

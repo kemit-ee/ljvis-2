@@ -65,11 +65,27 @@ Filtrid rakenduvad "Otsi" nupu vajutamisel.
 
 ![eToimiku X-tee logi kirje sisu](images/10-etoimiku-xtee-logid/02-sisu.png)
 
+## Manuaalne käivitamine
+
+Samal lehel (logitabeli all) on jaotis **Manuaalne käivitamine**. Sealt saab käsitsi käivitada sama töö, mida CronManager käivitab ajastatult:
+
+| Töö | Mida teeb |
+|-----|-----------|
+| Riskiskooride ümberarvutus | Arvutab ümber riskitasemed, sh ettevõtetele, kellel skoori veel pole. |
+| E-toimiku sünkroonimine: tööinspektsioon | Toob jõustunud otsused tööinspektsiooni vormidele. |
+| E-toimiku sünkroonimine: TRAM kontrollkaart | Toob jõustunud otsused TRAM kontrollkaartidele. |
+| E-toimiku sünkroonimine: autojuhi sõidu- ja puhkeaeg | Toob jõustunud otsused autojuhi alamvormidele. |
+| E-toimiku sünkroonimine: meeskonnaliikme sõidu- ja puhkeaeg | Toob jõustunud otsused meeskonnaliikme alamvormidele. |
+| E-toimiku sünkroonimine: tehniline kontroll | Toob jõustunud otsused sõiduki ja haagise tehnovormidele. |
+
+Vajutus käivitab töö kohe ja päring ootab töö lõpuni. Valmimisel ilmub teade ebaõnnestunute arvuga. Jaotis on nähtav samale õigusele (`xroad.log.read`), mis logide vaatamine. API: `POST /v1/admin/manual-jobs/run` (body `{ "job": "<töö nimi>" }`; lubatud on ainult ülaltoodud tööd).
+
 ## Auditisündmused
 
 | `event_type` | `event_category` | Millal logitakse |
 |--------------|------------------|------------------|
 | `xroad.log.view` | `xroad_integration_log` | Alati logide nimekirja avamisel — kirjeldusse salvestatakse rakendatud filtrid, lehekülg ja kuvatud kirjete id-d. |
+| `manual_job.run` | `system_process` | Iga käsitsi käivitatud töö järel — kirjeldus sisaldab töö nime ja ebaõnnestunute arvu, `log_content` töö kokkuvõtet. |
 
 ## Näide
 

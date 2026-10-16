@@ -1,12 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { AppTable } from '../../../../shared/components/AppTable';
 import { Button, Card, Heading, Select, Text, TextField } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { PERMISSIONS } from '../../../../constants/constants';
-import { useErrorContext } from '../../../../shared/errors/ErrorContext';
-import { recalculateAllRiskScores } from '../../api';
 import type { RiskScoreListItem } from '../../types';
 import { useRiskScoresList } from './useRiskScoresList';
 import { RiskBandBadge } from './RiskBandBadge';
@@ -25,13 +23,9 @@ export function RiskScoresListPage() {
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
 
-  const { showMessage } = useErrorContext();
-  const [isRecalculating, setIsRecalculating] = useState(false);
-
   const forbidden = !hasPermission(PERMISSIONS.RISK_REPORT_LIST);
 
   const {
-    refetch,
     data,
     totalRows,
     isLoading,
@@ -44,26 +38,6 @@ export function RiskScoresListPage() {
     applyFilters,
     resetFilters,
   } = useRiskScoresList();
-
-  const handleRecalculate = useCallback(async () => {
-    setIsRecalculating(true);
-    try {
-      const result = await recalculateAllRiskScores();
-      showMessage(
-        t('riskScores.recalculateDone', {
-          checked: result.companiesChecked,
-          recalculated: result.recalculated,
-          failures: result.failures,
-        }),
-        result.failures > 0 ? 'warning' : 'info',
-      );
-      refetch();
-    } catch {
-      // Vea toast'i näitab API klient ise (handleErrorResponse).
-    } finally {
-      setIsRecalculating(false);
-    }
-  }, [refetch, showMessage, t]);
 
   const riskBandOptions = useMemo(
     () =>
@@ -114,17 +88,6 @@ export function RiskScoresListPage() {
         <Card.Content>
           <div className="card-main">
             <Heading element="h1">{t('riskScores.title')}</Heading>
-            <Button
-              id="risk-scores-recalculate"
-              visualType="secondary"
-              onClick={handleRecalculate}
-              disabled={isRecalculating}
-              loading={isRecalculating}
-            >
-              {isRecalculating
-                ? t('riskScores.recalculating')
-                : t('riskScores.recalculate')}
-            </Button>
           </div>
 
           <div className="filter-bar">
