@@ -128,8 +128,8 @@ kustutatud ja eemaldatud alamvormid ei lisa punkte. Autoveo katkestamise vorm
 kirjeldab sama kontrolli lisameedet; see ei lisa eraldi kontrolli ega dubleeri rikkumisi.
 Hea maine vorm kirjeldab isiku sobimatust; see ei ole veoettevõtja kontroll.
 
-Täiendavatele allikatele rakendatakse olemasolevat avalikustamise kuupäeva akent.
-See ei lahenda eraldi nõuet kasutada rikkumise lõpliku jõustumise kuupäeva.
+Jõustumiskuupäev on vormi esimese avalikustamise kuupäev. Sama reegel kehtib
+kõigile kontrolliallikatele. Kordusavalikustamine ei alusta uut kaheaastast perioodi.
 
 ## 4. Rikkumiste JSONB väljad — TÄHTIS väljanimede märkus
 
