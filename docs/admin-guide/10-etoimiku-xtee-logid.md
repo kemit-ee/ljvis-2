@@ -5,12 +5,11 @@
 **E-toimiku X-tee logid** kuvab administraatorile eToimiku
 `AnnaIsikuKvalifikatsioonid` teenuse kaudu tehtud X-tee päringute
 täieliku ajaloo — nii käsitsi vormilt tehtud otsingud (vt E-toimiku
-kvalifikatsiooni kontroll) kui ka öised automaatsed taustatöö
-(cron) päringud, mis kontrollivad, kas menetlusotsus on jõustunud
+kvalifikatsiooni kontroll) kui ka automaatsed taustapäringud, mis kontrollivad, kas menetlusotsus on jõustunud
 (sõidukeeld, autojuhi SP-vorm, tramm-kontrollkaart, tehnokontrolli
 vormid).
 
-Vaade on auditi/järelvalve tööriist: iga rida sisaldab **väljuva
+Vaade on mõeldud auditiks ja järelevalveks: iga rida sisaldab **väljuva
 päringu ja saabunud vastuse täissisu** (mitte kokkuvõtet), et
 administraator saaks kontrollida, mida süsteem eToimikuga täpselt
 vahetas. Kuna sisu sisaldab isikuandmeid (isikukood, X-tee päringu/
@@ -36,11 +35,10 @@ Lehe ülaosas on filtririba:
 
 - **Kuupäevavahemik** (`Alates` / `Kuni`) — päringu loomise aeg
   (`created_at`). Vaikimisi **eile — täna**.
-- **Staatuse checkboxid**: `Vaste leitud`, `Vastuseta`, `Vigased`, ja
+- **Staatuse märkeruudud**: `Vaste leitud`, `Vastuseta`, `Vigased` ja
   tuletatud `Kõik`.
-  - `Kõik` märkimine/eemaldamine mõjutab kõiki kolme staatust korraga.
-  - Ühe staatuse eemaldamine eemaldab automaatselt ka `Kõik` märke
-    (tuletatud olek — näitab, et valik ei ole enam "kõik").
+  - Valiku `Kõik` märkimine või tühjendamine mõjutab kõiki kolme staatust korraga.
+  - Ühe staatuse märkeruudu tühjendamisel tühjendab süsteem ka märkeruudu `Kõik`.
   - Kui kõik kolm on märkimata, ei kuvata ühtegi rida.
 
 Filtrid rakenduvad "Otsi" nupu vajutamisel.
@@ -60,8 +58,8 @@ Filtrid rakenduvad "Otsi" nupu vajutamisel.
 | Päringu aeg | Millal päring eToimikule tehti. |
 | Vorm | Kontrollkaart/vorm, mille andmete põhjal päring tehti — link vormile, kui see on tuvastatav. |
 | Staatus | Vaste leitud / Vastuseta / Vigane (vt eespool). |
-| Väljuv päring | Nupp "Vaata päringut" — avab modaali eToimikule saadetud päringu täissisuga (JSON). |
-| Saabunud vastus | Nupp "Vaata vastust" — avab modaali eToimikust saabunud vastuse täissisuga (JSON). |
+| Väljuv päring | Nupp "Vaata päringut" — avab akna eToimikule saadetud päringu täissisuga (JSON). |
+| Saabunud vastus | Nupp "Vaata vastust" — avab akna eToimikust saabunud vastuse täissisuga (JSON). |
 
 ![eToimiku X-tee logi kirje sisu](images/10-etoimiku-xtee-logid/02-sisu.png)
 

@@ -32,5 +32,5 @@ väärtused ei kärbitaks ja SQL-vead annaksid veakoodi.
 - Väljastatakse väljade nimed, süsteemsed koodid/valikud ja koondarvud.
   Isikuandmete väljade, vaba teksti ja auditi sisu ei väljastata. Süsteemsetesse
   väljadesse ekslikult sisestatud isikuandmeid ei saa automaatselt ära tunda.
-- Skript kasutab sessiooni ajutisi tabeleid. Lugemine võib koormata serverit;
+- Skript kasutab seansi ajutisi tabeleid. Lugemine võib koormata serverit;
   töötavas baasis on loendid ligikaudsed. See raport ei kinnita veel migratsiooni täielikkust.

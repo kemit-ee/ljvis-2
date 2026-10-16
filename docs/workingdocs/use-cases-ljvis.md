@@ -114,7 +114,7 @@ epics:
 >
 > - **Front-end** suhtleb ainult **Ruuter**iga (REST API)
 > - **Ruuter** teostab autoriseerimise (`.guard` failid / JWT) ja orkestreerib äriloogika (YAML DSL)
-> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks endpoint; ainult INSERT ja SELECT)
+> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks lõpp-punkt; ainult INSERT ja SELECT)
 > - **CronManager** haldab perioodilisi taustatöid
 
 ---
@@ -841,7 +841,7 @@ sequenceDiagram
 >
 > - **Front-end** suhtleb ainult **Ruuter**iga (REST API)
 > - **Ruuter** teostab autoriseerimise (`.guard` failid / JWT) ja orkestreerib äriloogika (YAML DSL)
-> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks endpoint; ainult INSERT ja SELECT)
+> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks lõpp-punkt; ainult INSERT ja SELECT)
 > - **CronManager** haldab perioodilisi taustatöid
 
 ## 1. Peakasutaja (Admin)

@@ -180,7 +180,7 @@ Valikud:
 ### Vastuvõtt
 
 - Kohalik ja CI: TARA-mock login → callback → JWT cookie → õigused → esinduse vahetus → logout.
-- Restart ei vaheta JWT võtit (olemasolevad sessioonid kehtivad).
+- Restart ei vaheta JWT võtit (olemasolevad seansid kehtivad).
 - Testkeskkond: päris TARA login.
 - Playwright auth-testid rohelised.
 

@@ -31,7 +31,7 @@ mTLS (service mesh), mille valik on devopsi otsus.
 2. **3a-XTR (tehtud):** XTR-i käitumine kontrollitud xtr 0.5.0-rc lähtekoodiga ja testiga (REST-lane edastab tundmatud päised; SOAP-täitjad seavad ainult oma päised); lisaks päris 0.4.1-rc konteineriga vastu kaja-serverit.
    **REST-lane (`kind: rest`: `rr/isikud`, `postkast/*`) edastab kõik sissetulevad päised turvaserverisse**, SOAP-lane
    (`ar`, `etoimik`, `mtr`, `liiklusregister`) ei edasta. Seega saadavad päise 27 SOAP-kutset, REST-lane'i kutsed
-   (`/rr`, `PK_*`, ERRU-endpointid, mis tootmises osutavad XTR-ile) **mitte**. `scripts/check-internal-token-targets.py`
+   (`/rr`, `PK_*`, ERRU-lõpp-punktid, mis tootmises osutavad XTR-ile) **mitte**. `scripts/check-internal-token-targets.py`
    (CI) hoiab seda. REST-lane'i kutsed saavad päise alles 3b-s, kus värav eemaldab tokeni (`proxy_set_header ... ""`)
    enne XTR-ile edastamist.
 3. **3b:** `docker/authgate/` image, compose/CI (teenused värava taga), TIM-i avalike teede allowlist,

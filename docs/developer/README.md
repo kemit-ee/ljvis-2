@@ -11,6 +11,6 @@ Alusta [X-tee liidestumisest ja turbest](integration.md), seejärel vaata [teenu
 
 Avalik mocki baas-URL on `https://dev.liiklusvalve.ee/developer` ja tervisekontroll `GET /developer/health/ready`.
 
-Mock on ligipääsetav ainult whitelistitud IP-aadressidelt. Enne testimist tuleb liidestuja väline IP-aadress lasta whitelistida — selleks pöörduda Kemiti teenuseomaniku poole.
+Mock on ligipääsetav ainult lubatud IP-aadressidelt. Enne testimist paluge Kemiti teenuseomanikul lisada liidestuja väline IP-aadress lubatud aadresside loendisse.
 
 Mockis on ainult sünteetilised andmed. See ei ole tootmisteenus ning testidentifikaatorite põhjal ei tohi pärisandmeid järeldada.

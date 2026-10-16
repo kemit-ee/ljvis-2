@@ -3,7 +3,7 @@
 ## Ülevaade
 
 **Teavitused** koondab ühte kohta kõik LJVIS 2 poolt saadetud teavitused: nii
-rakendusesisesed (töölaua kella-teavitused) kui ka väliskanali kaudu — üle
+rakendusesisesed (päise kellaikooni kaudu avatavad teavitused) kui ka väliskanali kaudu — üle
 **X-tee Postkast 2.0 teenuse** — e-postiga saadetud kirjad. Peakasutaja saab
 jälgida saatmise õnnestumist, näha vea põhjust ja ebaõnnestunud teavituse
 **muutmata kujul uuesti saata**.
@@ -23,7 +23,7 @@ staatusesse.
 | Tegevus | Õigus | Selgitus |
 |---------|-------|----------|
 | Saadetud teavituste nimekiri (`GET /v1/notifications/outbound-log/list`) | `notification.list` | Loetleb ja filtreerib väliskanali saatmiskirjeid. Ilma selle õiguseta vahekaart «Saadetud kirjad» ei ole nähtav. |
-| Saatmise raport (`GET /v1/notifications/outbound-log/recipients`) | `notification.list` | Kuvab ühe saatmiskirje adressaadi(te) saatmistulemuse. |
+| Saatmise raport (`GET /v1/notifications/outbound-log/recipients`) | `notification.list` | Kuvab ühe saatmiskirje adressaatide saatmistulemused. |
 | Teavituse uuesti saatmine (`POST /v1/notifications/outbound-log/resend/send`) | `notification.resend` | Saadab ebaõnnestunud teavituse muutmata kujul uuesti. |
 
 Varasem koondõigus `notification.admin` on asendatud kahe eraldiseisva
@@ -216,13 +216,13 @@ Praegune `desktop`-kanali liikide kataloog:
 
 Muutmisvormis on väli **„Teavituse saajad“** koos otsinguga:
 
-1. Sisesta otsinguväljale **kasutaja nimi** (vähemalt 3 tähemärki) — tulemused
+1. Sisestage otsinguväljale **kasutaja nimi** (vähemalt 3 tähemärki) — tulemused
    ilmuvad otsingu ajal iseseisvalt, Enterit ega otsingu ikooni vajutada ei
    ole vaja. Otsing leiab kasutaja nii ees- või perekonnanime kui ka
    täisnime (nt „Mari Tamm“) järgi.
-2. Vali tulemuste hulgast **„Lisa“** — kasutaja lisandub saajate loendisse.
-3. Vajadusel eemalda saaja loendist nupuga **„Eemalda“**.
-4. Vajuta **„Salvesta“**.
+2. Valige tulemuste hulgast **„Lisa“** — kasutaja lisandub saajate loendisse.
+3. Vajadusel eemaldage saaja loendist nupuga **„Eemalda“**.
+4. Vajutage **„Salvesta“**.
 
 ![Desktop-kanali saaja otsing täisnimega](images/09-teavitused/03-desktop-saaja-otsing.png)
 

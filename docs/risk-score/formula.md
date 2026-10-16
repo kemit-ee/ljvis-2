@@ -55,7 +55,7 @@ see on korrektne disainiotsus, mitte lahtine ots. **Väike, meie moodulist
 sõltumatu ebakõla:** `RISK_BAND` klassifikaatori `Amber` väärtuse `name` on
 `"Kollakas"`, mitte `"Kollane"` (nagu meie `risk_band_code` ja kõik muu
 selles moodulis kasutab) — potentsiaalne tulevane parandusvajadus CTUD/
-LJVIS2-144 klassifikaatori algandmetes, väljaspool selle mooduli skoopi.
+LJVIS2-144 klassifikaatori algandmetes, väljaspool selle mooduli ulatust.
 
 ## 3. Kaasamise ja välistamise reeglid
 
@@ -164,11 +164,11 @@ Migratsioon: `DSL/Liquibase/changelog/20260827100000-initial-risk-score.sql`.
 | 3 | `ruuter-internal:8089/risk-scores/recalculate` | POST | Docker-network-only | Arvutab + salvestab. Kutsub kontrollvormi kinnitamine (fire-and-forget) ja öine cron (`cron/risk-score-recalc-sync`). |
 | 4 | `ruuter-internal:8089/risk-scores/current` | POST | Docker-network-only | Tagastab viimase salvestatud skoori + `riskBandErru` (ERRU jaoks). CTUD ja kodanikuotspunkti allikas. |
 | 5 | `GET /v1/admin/risk-scores/list` | GET | `risk_report.list` | Pagineeritud, filtreeritud administraatori loend. |
-| 6 | `GET /v1/citizen/risk-scores/my-company?q=<regcode>` | GET | TARA sessioon + AR esindaja kontroll | Ettevõtte esindaja riskiskoori vaade, ilma `riskBandErru` väljata. |
-| 7 | `GET /v1/citizen/me` | GET | TARA sessioon | Kodaniku sessiooniandmed JWT-st (ilma DB-ta). Plaanitud: #168. |
-| 8 | `GET /v1/citizen/my-companies` | GET | TARA sessioon | AR esindusõiguse päring → esindatavad ettevõtted. Plaanitud: #168. |
-| 9 | `GET /v1/citizen/risk-scores/controls?q=<regcode>` | GET | TARA sessioon + AR esindaja kontroll | Ettevõtte avaldatud kontrollide loend kodanikule. Plaanitud: #168. |
-| 10 | `GET /v1/citizen/my-protocols` | GET | TARA sessioon | Kõik avaldatud protokollid kus isik on osaline (juht/karistatu). Plaanitud: #168. |
+| 6 | `GET /v1/citizen/risk-scores/my-company?q=<regcode>` | GET | TARA seanss + AR esindaja kontroll | Ettevõtte esindaja riskiskoori vaade, ilma `riskBandErru` väljata. |
+| 7 | `GET /v1/citizen/me` | GET | TARA seanss | Kodaniku seansiandmed JWT-st (ilma DB-ta). Plaanitud: #168. |
+| 8 | `GET /v1/citizen/my-companies` | GET | TARA seanss | AR esindusõiguse päring → esindatavad ettevõtted. Plaanitud: #168. |
+| 9 | `GET /v1/citizen/risk-scores/controls?q=<regcode>` | GET | TARA seanss + AR esindaja kontroll | Ettevõtte avaldatud kontrollide loend kodanikule. Plaanitud: #168. |
+| 10 | `GET /v1/citizen/my-protocols` | GET | TARA seanss | Kõik avaldatud protokollid kus isik on osaline (juht/karistatu). Plaanitud: #168. |
 
 ### Ruuter.internal teekonventsioon
 
@@ -217,6 +217,6 @@ riskBand=Grey` jääb kehtima.
 
 ## 9. Viited
 
-- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD), #168 (kodaniku töölaud — uued kodaniku endpointid)
+- Jira/GitHub: LJVIS2-150 (epic), LJVIS2-151 (arvutus), LJVIS2-152 (loend), LJVIS2-144 (CTUD), #168 (kodaniku töölaud — uued kodaniku lõpp-punktid)
 - Confluence: 11-1 Riskiskoori arvutamine, 11-2 Riskitasemete vaade, 10-3-3 CTUD ERRU integratsioon
 - `.ai/ljvis-tasks/LJVIS2-150/riskihindamine.md` — täielik ärianalüüs
