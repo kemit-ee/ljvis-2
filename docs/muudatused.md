@@ -9,6 +9,11 @@
 - e-toimiku päringu X-tee alamsüsteemi kood (`etoimik`) ja teenuse versioon (`v6`) on nüüd XTR-i teenuse määratluses vaikeväärtused. Ruuter ei saada neid enam `constants.ini` kaudu. Varem jäi puuduva konstandi korral päringusse kohatäitja `[#ETOIMIK_SUBSYSTEM_CODE]` ja turvaserver vastas `server.clientproxy.unknown_member`.
 - Ee-dev liivakasti alamsüsteem on `etoimik-arendus`. Sinna tuleb väärtus XTR-ile eraldi kaasa anda, kuni XTR-il pole keskkonnapõhist konfiguratsiooni.
 
+### E-toimiku otsuste sünkroonimine iga tunni tagant
+
+- Jõustunud otsuste kontroll e-toimikus käivitub nüüd **iga tunni tagant** (varem iga 10 minuti tagant), et X-tee koormus oleks väiksem. Otsus ilmub vormile seega kuni ~1 tunniga pärast jõustumist.
+- Viis sünkroonimist jäävad tunni sees omavahel nihutatuks (:00, :02, :04, :06, :08). Haldus → E-toimiku X-tee logid lehe manuaalne käivitamine toimib endiselt.
+
 ### Brauseri vahekaardi ikoon
 
 - Brauseri aadressiriba ja vahekaardi ikoon (favicon) on KeMIT logo asemel Eesti riigivapp (Kliimaministeeriumi logo vapp).

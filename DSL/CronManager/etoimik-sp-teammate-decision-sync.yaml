@@ -1,7 +1,7 @@
-# Runs every 10 minutes (:06, :16, ...) Tallinn time (TZ pinned in docker-compose.yml).
+# Runs every hour (at :06) Tallinn time (TZ pinned in docker-compose.yml).
 # Staggered against the other e-toimik syncs to avoid XTR contention.
 etoimik_sp_teammate_decision_sync:
-  trigger: "0 6/10 * * * ?"
+  trigger: "0 6 * * * ?"
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/etoimik-sp-teammate-decision-sync
