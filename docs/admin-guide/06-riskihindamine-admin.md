@@ -52,6 +52,7 @@ Detailvaates kuvatakse:
 ## API
 
 - `GET /v1/admin/risk-scores/list` — riskitasemete loend
+- `POST /v1/admin/risk-scores/recalculate` — käsitsi käivitus: sama töö, mis öösel kell 03:00; vajab õigust `risk_report.list`; kirjutab auditisündmuse `risk_score.manual_recalc`
 - `GET /v1/citizen/risk-scores/my-company` — kodaniku oma ettevõtte vaade
 - `POST /v1/risk-scores/recalculate` — ühe ettevõtte skoori uuesti arvutamine
 - `POST /v1/risk-scores/current` — hetkeseisundi päring (kasutatakse ka ERRU CTUD liideses)

@@ -8,6 +8,12 @@ export interface RiskScoreListItem {
   totalControls: number;
 }
 
+export interface RiskScoreRecalcResult {
+  companiesChecked: number;
+  recalculated: number;
+  failures: number;
+}
+
 export interface RiskScoreListFilters {
   companyName?: string;
   regCode?: string;

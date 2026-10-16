@@ -1,0 +1,65 @@
+declaration:
+  internal: false
+
+  version: "1.0"
+  description: >-
+    Käsitsi käivitus riskiskooride ümberarvutuseks (sama töö, mida CronManager
+    käivitab igal öösel kell 03:00). Kutsub sünkroonselt
+    [#LJVIS_RUUTER_INTERNAL]/cron/risk-score-recalc-sync, mis arvutab ümber
+    kõik kandidaadid (värsked ja aknast väljuvad kontrollid + ettevõtted, kellel
+    skoori kirjet veel pole) ja kirjutab ise süsteemi auditisündmuse
+    risk_score.nightly_recalc. Siin lisatakse eraldi auditisündmus, kes
+    käsitsi käivituse tegi. Auth + risk_report.list õigus kontrollitakse selle
+    kataloogi .guard.yml-is.
+  namespace: risk_score
+  allowlist:
+    body: []
+    headers:
+      - field: cookie
+        type: string
+
+get_user_context:
+  assign:
+    auth_user: ${auth_user}
+  next: callRecalcSync
+
+# Pikk töö (üks recalculate-kutse iga kandidaadi kohta), seepärast suur timeout.
+callRecalcSync:
+  call: http.post
+  timeout: 600000
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/cron/risk-score-recalc-sync"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body: {}
+  result: syncRes
+  next: checkSync
+
+checkSync:
+  switch:
+    - condition: "${syncRes.response == null || syncRes.response.status < 200 || syncRes.response.status >= 300 || syncRes.response.body == null}"
+      next: returnSyncError
+  next: logAuditEvent
+
+logAuditEvent:
+  template: "templates/audit/log-audit-event"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    event_type: "risk_score.manual_recalc"
+    event_category: "risk_score"
+    description: "${'Riskiskooride ümberarvutus käivitati käsitsi: ' + syncRes.response.body.companiesChecked + ' ettevõtet kontrollitud, ' + syncRes.response.body.recalculated + ' arvutatud, ' + syncRes.response.body.failures + ' ebaõnnestus'}"
+    log_content: "{}"
+  result: audit_result
+  next: returnSuccess
+
+returnSuccess:
+  return: "${({ companiesChecked: syncRes.response.body.companiesChecked, recalculated: syncRes.response.body.recalculated, failures: syncRes.response.body.failures })}"
+  next: end
+
+returnSyncError:
+  status: 502
+  return: "${({ error: 'RECALC_FAILED', message: 'Riskiskooride ümberarvutus ebaõnnestus' })}"
+  next: end

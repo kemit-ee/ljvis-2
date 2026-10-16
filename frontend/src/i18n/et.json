@@ -1685,7 +1685,10 @@
     "bandHall": "Kontrollimata",
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
-    "bandPunane": "Punane"
+    "bandPunane": "Punane",
+    "recalculate": "Arvuta riskitasemed ümber",
+    "recalculating": "Arvutan…",
+    "recalculateDone": "Riskitasemete ümberarvutus lõpetatud: {{checked}} ettevõtet kontrollitud, {{recalculated}} arvutatud, {{failures}} ebaõnnestus."
   },
   "xroadLogs": {
     "title": "E-toimiku X-tee logid",

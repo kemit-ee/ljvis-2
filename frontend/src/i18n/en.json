@@ -1654,7 +1654,10 @@
     "bandHall": "Not assessed",
     "bandRoheline": "Green",
     "bandKollane": "Amber",
-    "bandPunane": "Red"
+    "bandPunane": "Red",
+    "recalculate": "Recalculate risk levels",
+    "recalculating": "Calculating…",
+    "recalculateDone": "Risk level recalculation finished: {{checked}} companies checked, {{recalculated}} calculated, {{failures}} failed."
   },
   "xroadLogs": {
     "title": "e-Toimik X-Road logs",

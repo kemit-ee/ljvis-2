@@ -1,6 +1,10 @@
-import { get } from '../../shared/api/client';
+import { get, post } from '../../shared/api/client';
 import type { ListParams, PagedResponse } from '../../hooks/usePaginatedList';
-import type { RiskScoreListItem, RiskScoreListFilters } from './types';
+import type {
+  RiskScoreListItem,
+  RiskScoreListFilters,
+  RiskScoreRecalcResult,
+} from './types';
 
 export function listRiskScores(
   params: ListParams,
@@ -15,4 +19,8 @@ export function listRiskScores(
   if (filters.regCode) query.regCode = filters.regCode;
   if (filters.riskBand) query.riskBand = filters.riskBand;
   return get<PagedResponse<RiskScoreListItem>>('/v1/admin/risk-scores/list', query);
+}
+
+export function recalculateAllRiskScores(): Promise<RiskScoreRecalcResult> {
+  return post<RiskScoreRecalcResult>('/v1/admin/risk-scores/recalculate', {});
 }
