@@ -21,6 +21,7 @@ vastuse täissisu), on iga avamine logitud auditisse.
 | Tegevus | Õigus | Selgitus |
 |---------|-------|----------|
 | Logide nimekiri (`GET /v1/xroad/etoimik/logs/list`) | `xroad.log.read` | Loetleb ja filtreerib eToimiku X-tee integratsioonilogi. Ilma selle õiguseta menüüpunkt «E-toimiku X-tee logid» ei ole nähtav ja otsenavigeerimine annab «Teil puudub ligipääs sellele lehele». |
+| Töö käsitsi käivitamine (`POST /v1/admin/manual-jobs/run`) | `xroad.log.read` | Jaotis «Manuaalne käivitamine» samal lehel. Sama õigus kui logide vaatamisel — eraldi õigust pole. |
 
 `xroad.log.read` on antud **ainult Super Admin Groupile** — logi sisaldab
 isikuandmeid üle asutuste piiride, samamoodi kui `audit.read` (mitte
@@ -78,7 +79,22 @@ Samal lehel (logitabeli all) on jaotis **Manuaalne käivitamine**. Sealt saab k�
 | E-toimiku sünkroonimine: meeskonnaliikme sõidu- ja puhkeaeg | Toob jõustunud otsused meeskonnaliikme alamvormidele. |
 | E-toimiku sünkroonimine: tehniline kontroll | Toob jõustunud otsused sõiduki ja haagise tehnovormidele. |
 
-Vajutus käivitab töö kohe ja päring ootab töö lõpuni. Valmimisel ilmub teade ebaõnnestunute arvuga. Jaotis on nähtav samale õigusele (`xroad.log.read`), mis logide vaatamine. API: `POST /v1/admin/manual-jobs/run` (body `{ "job": "<töö nimi>" }`; lubatud on ainult ülaltoodud tööd).
+![Manuaalse käivitamise jaotis](images/10-etoimiku-xtee-logid/03-manuaalne-kaivitamine.png)
+
+**Kasutamine:**
+
+1. Ava **Haldus > E-toimiku X-tee logid** ja keri logitabeli alla jaotiseni **Manuaalne käivitamine**.
+2. Vajuta soovitud töö kõrval nupule **Käivita**. Töö käimise ajal näitab nupp «Töötab…» ja teised nupud on keelatud. Jäta leht avatuks — töö jookseb lõpuni enne, kui tulemus ilmub.
+3. Valmimisel ilmub teade kujul «Töö „…" lõpetatud, ebaõnnestunuid: N». Kui N on suurem kui 0, vaata üksikasju auditilogist ja X-tee logist.
+
+![Töö tulemuse teade](images/10-etoimiku-xtee-logid/04-manuaalne-kaivitamine-tulemus.png)
+
+**Millal kasutada:**
+
+- Pärast riskiskoori arvutuse parandust või ettevõtja andmete korrigeerimist, kui riskitase peab uuenema kohe, mitte järgmisel öösel kell 03:00. Riskiskooride ümberarvutus arvutab ka ettevõtetele, kellel skoori kirjet veel pole (nt tase «Kontrollimata», kuigi avalikustatud kontrollid on olemas).
+- Kui e-toimiku otsus on jõustunud ja see peab vormile jõudma enne järgmist ajastatud sünkroonimist.
+
+Jaotis on nähtav samale õigusele (`xroad.log.read`), mis logide vaatamine. API: `POST /v1/admin/manual-jobs/run` (body `{ "job": "<töö nimi>" }`; lubatud on ainult ülaltoodud tööd).
 
 ## Auditisündmused
 

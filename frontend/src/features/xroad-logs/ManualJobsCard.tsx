@@ -62,7 +62,7 @@ export function ManualJobsCard() {
               data-testid={`manual-job-${job}`}
             >
               <div>
-                <Text modifierClass="bold">
+                <Text modifiers="bold">
                   {t(`xroadLogs.manualJobs.jobs.${job}.title`)}
                 </Text>
                 <Text>{t(`xroadLogs.manualJobs.jobs.${job}.description`)}</Text>
@@ -72,7 +72,7 @@ export function ManualJobsCard() {
                 visualType="secondary"
                 onClick={() => handleRun(job)}
                 disabled={runningJob !== null}
-                loading={runningJob === job}
+                isLoading={runningJob === job}
               >
                 {runningJob === job
                   ? t('xroadLogs.manualJobs.running')

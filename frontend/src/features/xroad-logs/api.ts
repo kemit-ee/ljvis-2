@@ -1,4 +1,4 @@
-import { get } from '../../shared/api/client';
+import { get, post } from '../../shared/api/client';
 import type { ListParams, PagedResponse } from '../../hooks/usePaginatedList';
 import type { XroadLogEntry, XroadLogFilters } from './types';
 
@@ -29,4 +29,15 @@ export function fetchXroadLogList(
       ? { allServices: filters.allServices }
       : {}),
   });
+}
+
+export interface ManualJobResult {
+  job: string;
+  failures: number;
+  result: Record<string, number>;
+}
+
+/** Haldus > X-tee logid > Manuaalne käivitamine — töö nimi peab olema backendi lubatud nimekirjas. */
+export function runManualJob(job: string): Promise<ManualJobResult> {
+  return post<ManualJobResult>('/v1/admin/manual-jobs/run', { job });
 }
