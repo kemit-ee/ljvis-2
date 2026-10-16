@@ -4,6 +4,10 @@
 
 ## 2026-10-16
 
+### Uus asutus: Regionaal- ja Põllumajandusministeerium
+
+- Asutuste nimekirja on lisatud **Regionaal- ja Põllumajandusministeerium** (kood `REPM`). Asutus ilmub nimekirja pärast uuenduse paigaldamist ja seda saab kasutajatele ning gruppidele määrata.
+
 ### Riskiskoori öine ümberarvutus leiab ka ettevõtted, kellel skoori veel pole
 
 - Ettevõtja, kelle avalikustatud kontrollid (nt välisriigi rikkumise vorm) olid vanemad kui 3 päeva ja kellel polnud veel riskiskoori kirjet, jäi riskitasemele „Kontrollimata" ja kontrollide arvule 0. Öine ümberarvutus valis ainult värskelt avalikustatud või 2-aasta piirile lähenevad kontrollid ega leidnud neid üles.
