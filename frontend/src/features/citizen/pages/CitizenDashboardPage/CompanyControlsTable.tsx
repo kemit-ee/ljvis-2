@@ -113,20 +113,25 @@ export function CompanyControlsTable({
       columnHelper.display({
         id: 'actions',
         header: '',
-        cell: ({ row }) => (
-          <Button
-            visualType="link"
-            onClick={() => {
-              const basePath =
-                row.original.formType === 'foreign_violation' ? 'foreign-violation' : 'compound';
-              navigate(`/my-companies/${basePath}/${row.original.formKey}`, {
+        cell: ({ row }) => {
+          const paths: Partial<Record<CompanyControlRow['formType'], string>> = {
+            compound: 'compound',
+            foreign_violation: 'foreign-violation',
+            labour_inspection: 'labour-inspection',
+          };
+          const basePath = paths[row.original.formType];
+          if (!basePath) return null;
+          return (
+            <Button
+              visualType="link"
+              onClick={() => navigate(`/my-companies/${basePath}/${row.original.formKey}`, {
                 state: { from: 'citizen-app' },
-              });
-            }}
-          >
-            {t('citizen.dashboard.controls.view')}
-          </Button>
-        ),
+              })}
+            >
+              {t('citizen.dashboard.controls.view')}
+            </Button>
+          );
+        },
       }),
     ],
     [t, navigate],

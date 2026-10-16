@@ -277,11 +277,24 @@ vr_controls AS (
      + (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%') * 10) AS weighted_points
   FROM vr_latest vl
 ),
-controls AS (
-  SELECT * FROM compound_controls
+control_parts AS (
+  SELECT form_key,form_type,is_fully_excluded,n_msi,n_vsi,n_si,n_mi,weighted_points::NUMERIC FROM compound_controls
   UNION ALL
-  SELECT * FROM vr_controls
+  SELECT form_key,form_type,is_fully_excluded,n_msi,n_vsi,n_si,n_mi,weighted_points::NUMERIC FROM vr_controls
+  UNION ALL
+  SELECT form_key,form_type,FALSE,n_msi,n_vsi,n_si,n_mi,weighted_points
+  FROM risk.additional_controls(:company_reg_code, :window_start::DATE, :window_end::DATE)
+),
+controls AS (
+ SELECT form_key,form_type,BOOL_AND(is_fully_excluded) AS is_fully_excluded,
+   SUM(n_msi)::BIGINT AS n_msi,SUM(n_vsi)::BIGINT AS n_vsi,SUM(n_si)::BIGINT AS n_si,SUM(n_mi)::BIGINT AS n_mi,
+   SUM(weighted_points) AS weighted_points
+ FROM control_parts GROUP BY form_key,form_type
 )
-SELECT form_key, form_type, form_number, main_date, vehicle_reg_nr, is_fully_excluded, n_msi, n_vsi, n_si, n_mi, weighted_points
-FROM controls
-ORDER BY main_date DESC, form_key DESC;
+SELECT c.form_key,c.form_type,
+ (SELECT fs.form_number FROM forms.form_search fs WHERE fs.form_type=c.form_type AND fs.form_key=c.form_key) AS form_number,
+ (SELECT fs.main_date FROM forms.form_search fs WHERE fs.form_type=c.form_type AND fs.form_key=c.form_key) AS main_date,
+ (SELECT fs.vehicle_reg_nr FROM forms.form_search fs WHERE fs.form_type=c.form_type AND fs.form_key=c.form_key) AS vehicle_reg_nr,
+ c.is_fully_excluded,c.n_msi,c.n_vsi,c.n_si,c.n_mi,c.weighted_points
+FROM controls c
+ORDER BY main_date DESC,c.form_key DESC;

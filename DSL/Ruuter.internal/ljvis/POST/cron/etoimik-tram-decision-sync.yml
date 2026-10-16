@@ -173,6 +173,17 @@ processCandidates:
             entity_id: ${candidate_key}
             created_by: "e-toimik"
         result: carrierNotifRes
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            form_type: "tram_control_card"
+            form_key: "${String(candidate_key)}"
+        result: riskRecalcRes
+
     collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success })}"
     into: results
   next: returnSummary
