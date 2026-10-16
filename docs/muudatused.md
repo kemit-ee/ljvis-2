@@ -4,6 +4,10 @@
 
 ## 2026-10-16
 
+### Brauseri vahekaardi ikoon
+
+- Brauseri aadressiriba ja vahekaardi ikoon (favicon) on KeMIT logo asemel Eesti riigivapp (Kliimaministeeriumi logo vapp).
+
 ### E-toimiku XML-vastuste lugemine
 
 - XTR loeb nüüd standardseid XML-olemeid (`&quot;`, `&apos;`, `&amp;`, `&lt;`, `&gt;`) sisaldavaid SOAP-vastuseid. Varem katkestas parser vastuse lugemise veaga `upstream_xml_parse_error`.
