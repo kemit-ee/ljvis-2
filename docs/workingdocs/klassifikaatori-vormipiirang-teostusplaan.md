@@ -105,7 +105,7 @@ klassifikaatori stsenaariumi laiendamine.
      kasutavad DOC_RIGHT_CHECK/DRIVING_VIOLATION nimekirjad otse).
    - `getValue()` / `label()` jäävad filtreerimata.
    - Skoop arvutatakse alati juurkontekstist (`RootClassifierContext`), seega
-     pesastatud skoop ei filtreeri juba filtreeritud nimekirja.
+     pesastatud ulatus ei filtreeri juba filtreeritud nimekirja.
 4. **Filter kehtib ainult muutmisrežiimis.** Vaaterežiim ehitab sildid samadest
    nimekirjadest, sama loogika nagu `isValid !== false` puhul.
    - `App.tsx`: 31 vormimarsruuti on mähitud `ClassifierScopeProvider`-iga (VR, TI, hea
@@ -119,7 +119,7 @@ klassifikaatori stsenaariumi laiendamine.
      `type` järgi, TRAM-i puhul (`authority="TRAM"`) `TRAM_KONTROLLKAART`.
      Sõiduk/haagis valitakse `type` järgi.
    - Alamvormide `…ViewCard`-id on alati `readOnly` ja jäävad skoobita.
-   - Kodaniku vaated ja otsing ei ole skoobi sees, seega filtrit pole.
+   - Kodaniku vaated ja otsing ei ole ulatuse sees, seega filtrit pole.
 
 ## F5 — Frontend: admin-UI
 
@@ -149,7 +149,7 @@ klassifikaatori stsenaariumi laiendamine.
     ainult valituna, orb lõpus).
   - `ClassifierScopeProvider.test.tsx`: skoobita kõik väärtused; vaaterežiimis filtrit
     pole; muutmisrežiimis ainult lubatud valikud, `getValue` leiab peidetud väärtuse
-    sildi; pesastatud skoop arvutatakse filtreerimata nimekirjast.
+    sildi; pesastatud ulatus arvutatakse filtreerimata nimekirjast.
 - **DSL-tests** (`DSL-tests/classifier/value-form-scope.test.yml`, mock-http): PUT
   `formTypes`-iga, tühja `formTypes`-iga ja ilma `formTypes`-ita (piirangut ei muudeta);
   POST `formTypes`-iga ja tühja `formTypes`-iga.

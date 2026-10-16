@@ -64,7 +64,7 @@ Rakenduse POST-teenused kontrollivad neljaosalist `X-Road-Client` päist. Mocki 
 
 AJ `usagePeriod` ja `heartbeat` handler ei nõua `X-Road-UserId` ega rakenduse tasemel `X-Road-Client` päist.
 Päris turvaserveri kaudu pöördudes on tarbija identifikaator ja teenuse kasutusõigus siiski vajalikud.
-Mock ei nõua ametniku sessiooni, TARA autentimist ega platvormi API võtit.
+Mock ei nõua ametniku seansi, TARA autentimist ega platvormi API võtit.
 
 ## HTTP-vastuse ümbris
 

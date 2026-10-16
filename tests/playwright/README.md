@@ -8,7 +8,7 @@ tekib `tulemus/` alla detailne sammukirjeldus + ekraanipilt ning HTML-raport.
 
 | Spec | Kate |
 |---|---|
-| `smoke.spec.ts` | sessioon, rollid, kõik loomislehed avanevad JS-vigadeta |
+| `smoke.spec.ts` | seanss, rollid, kõik loomislehed avanevad JS-vigadeta |
 | `compound-form.spec.ts` | koondvorm: validatsioon, salvestus + andmete püsivus, #280 P2/P4 |
 | `tram-form.spec.ts` | TRAM kontrollkaart: validatsioon, salvestus, #280 P1/P3/P5/P6 |
 | `foreign-violation.spec.ts` | välisriigi rikkumine: validatsioon + salvestus |
@@ -88,7 +88,7 @@ selle artefaktina **`playwright-tulemus`**.
 
 ## Autentimine
 
-`global-setup.ts` logib sisse kolm testrolli dev-login endpointi kaudu
+`global-setup.ts` logib sisse kolm testrolli dev-login lõpp-punkti kaudu
 (`POST :9086/ljvis/auth/dev/dev-login`) ja salvestab `customJwtCookie` küpsise
 `tulemus/.auth/*.json` failidesse. Testkasutajad (`docker/tara-mock/identities.json`):
 

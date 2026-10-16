@@ -54,7 +54,7 @@ Seetõttu:
   `roads/get_other_road_by_number`) tagastab ühe kehtiva `{code, name}` kirje või
   tühja massiivi. Route asub `/v1/roads/` all, mitte `/v1/classifiers/` all, sest
   viimane nõuab `classifier.list` õigust, mida vormitäitjal ei pruugi olla; kehtib
-  ainult projektiülene ametniku-sessiooni guard (nagu `/v1/classifier-values`).
+  ainult projektiülene ametniku-seansi guard (nagu `/v1/classifier-values`).
 - Number peab olema 1–5 numbrit; muu sisend tagastab tühja massiivi ilma Resql-i
   kutsumata. Vasteta number tagastab samuti `200 []` (mitte 404), et globaalne
   veateade ei hüppaks ette.

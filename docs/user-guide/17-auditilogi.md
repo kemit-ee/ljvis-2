@@ -4,7 +4,7 @@ Auditilogi kuvab süsteemis toimunud olulisi tegevusi. See on abivahend, mille a
 
 ## Ligipääs
 
-Auditilogi avamiseks vali menüüst **Haldus → Logid**.
+Auditilogi avamiseks valige menüüst **Haldus → Logid**.
 
 Õigus: `audit.read`
 
@@ -36,7 +36,7 @@ Iga kirje sisaldab:
 
 ## Logi otsimine
 
-Auditilogi lehel saad:
+Auditilogi lehel saate:
 
 - filtreerida sündmuse tüübi järgi
 - otsida tegija nime järgi
@@ -60,7 +60,7 @@ flowchart LR
 
 ## Räsiahela kontroll
 
-Auditilogi on varustatud räsiahelaga, mis tagab, et ükski kirje ei oleks vaikimisi muudetud. Räsiahela kontrolli saab teha eraldi funktsiooniga, kui seda on õigus kasutada.
+Auditilogi kirjed on seotud räsiahelaga. Räsiahela kontroll aitab tuvastada logikirjete muutmist või kustutamist. Kontrollimiseks on vaja õigust `audit.verify`. Vt [administraatori juhendi auditilogi peatükki](../admin-guide/05-auditilogi.md).
 
 ## Näited sündmustest
 

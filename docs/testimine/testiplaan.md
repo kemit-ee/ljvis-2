@@ -76,7 +76,7 @@ ja selle tulemus on igal jooksul tõendatav:
 
 Testandmed luuakse igal käivitusel unikaalsena (isikukood, nimed ja koodid).
 Algandmetena laaditud kasutajaid ega gruppe ei muudeta. Rollid on eraldi
-sessioonides (§5.3).
+seansides (§5.3).
 
 ### 3.2 API- ja integratsioonitestid
 

@@ -442,7 +442,7 @@ DSL/
     └── sources/            ← WebSocket / event source configs
 ```
 
-> **Reegel:** `DSL/<project>/<METHOD>/<path>.yml` → endpoint `<METHOD> /<project>/<path>`
+> **Reegel:** `DSL/<project>/<METHOD>/<path>.yml` → lõpp-punkt `<METHOD> /<project>/<path>`
 
 ### Näide: LJVIS projekt
 
@@ -733,7 +733,7 @@ X-tee provider-pind (`xroad/provide/*`, pesastatud `type: object`,
 
 ### Guard override — `declaration.override_ancestors: true`
 
-Konkreetne endpoint võib asendada kõik esivanemad guardid:
+Konkreetne lõpp-punkt võib asendada kõik esivanemad guardid:
 
 ```yaml
 # DSL/ljvis/POST/v1/admin/force-reset.guard.yml
@@ -1286,9 +1286,9 @@ Probleemid 3 & 4: 0.2.0-s lahendatud (cast säilib; stabiilne OID → null-baiti
 |---|---|
 | **`state.*`** | Ainult ühe protsessi mälu — kahe replika vahel ei sünkroniseeru. Kasuta Resql-i persistentseks KV-ks. |
 | **Hot-reload** | Ei laadi uuesti: `constants.ini`, `ruuter.yaml`, trigger DSL-id, source configs. Restart vajalik. |
-| **`triggers/` ja `sources/`** | Reserveeritud kataloogid — Ruuter ei loo nende põhjal HTTP endpointe. |
+| **`triggers/` ja `sources/`** | Reserveeritud kataloogid — Ruuter ei loo nende põhjal HTTP lõpp-punkte. |
 | **`cronmanager-jobs/`** | Reserveeritud kataloog — ignoreeritakse DSL-laaduris. |
-| **WebSocket** | `DSL/<project>/WS/<path>.yml` → endpoint `ws://host/<project>/<path>`. OpenAPI-s ei kuvata (AsyncAPI's töö). |
+| **WebSocket** | `DSL/<project>/WS/<path>.yml` → lõpp-punkt `ws://host/<project>/<path>`. OpenAPI-s ei kuvata (AsyncAPI's töö). |
 | **Idempotency-Key** | Raamistik ei käsitle enam — DSL peab ise implementeerima `state.set` + body hash mustriga. |
 | **Path parameetrid** | Toetatud: üks DSL fail saab vastata `/things`, `/things/{id}`, `/things/{id}/{sub}` (task 018). |
 

@@ -12,7 +12,7 @@ mode: create
 
 ## 1. Ülevaade
 
-Loodi EPIC 02 kasutajate ja kasutajagruppide halduse jaoks RESQL ja Ruuter failid järgmistele endpointidele:
+Loodi EPIC 02 kasutajate ja kasutajagruppide halduse jaoks RESQL ja Ruuter failid järgmistele lõpp-punktidele:
 - `users/list`, `users/get`, `users/check-personal-code-exists`, `users/create`, `users/update`, `users/change-organisation`
 - `users/organisations/options`
 - `users/user-groups/get`, `users/user-groups/available`, `users/user-groups/save`

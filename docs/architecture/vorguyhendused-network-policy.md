@@ -168,11 +168,11 @@ Kõigil podidel lisaks: **DNS → `kube-system/kube-dns` UDP+TCP 53** (`stesta-g
 |---|---|---|---|
 | `resql-ljvis` | RDS `ljvis2-<env>-main` | 5432 | vt tabel 5 |
 | Liquibase Job | RDS `ljvis2-<env>-main` | 5432 | sama baas, master-kasutaja |
-| `tim` | RDS `ljvis2-<env>-tim` | 5432 | sessioonid, TIM skeem |
-| `tim` | `tara-test.ria.ee` (live: `tara.ria.ee`) | 443 | OIDC discovery, JWKS, token endpoint |
+| `tim` | RDS `ljvis2-<env>-tim` | 5432 | seansid, TIM skeem |
+| `tim` | `tara-test.ria.ee` (live: `tara.ria.ee`) | 443 | OIDC discovery, JWKS, token lõpp-punkt |
 | `xtr` | X-tee turvaserver `urien.ml.ee` | 443 | mTLS; kõik X-tee SOAP + REST (RR, Postkast, Liiklusregister, MTR, e-Toimik, Äriregister) |
 | `xtr` | `ariregxmlv6.rik.ee` | 443 | **otse, mitte X-tee kaudu** — ainult `ar/ettevottegaSeotudIsikud_v1` |
-| `s3-proxy` | S3 `s3.eu-north-1.amazonaws.com` | 443 | soovitavalt S3 Gateway VPC endpoint (prefix list `com.amazonaws.eu-north-1.s3`) |
+| `s3-proxy` | S3 `s3.eu-north-1.amazonaws.com` | 443 | soovitavalt S3 Gateway VPC lõpp-punkt (prefix list `com.amazonaws.eu-north-1.s3`) |
 | `ruuter` | `webgate.acceptance.ec.testa.eu` | 443 | ERRU/RSI väljaminev MOVEHUB (`additionalAllowedUrls` kõigis kolmes keskkonnas). sTESTA võrk — kontrollida, kas marsruut käib üle avaliku interneti või sTESTA ühenduse |
 | `ruuter-internal` | `webgate.acceptance.ec.testa.eu` | 443 | **tingimuslik**: NCR autodispatch cron (`cron/erru-ncr-autodispatch.yml`) kasutab `ERRU_NCR_ENDPOINT`-i. Kui SSM-i `constants.ini` suunab selle webgate'i (mitte XTR-i/mock'i), vajab ka `ruuter-internal` seda egressi **ja** `additionalAllowedUrls` kirjet — praegu seal pole |
 | `ruuter` | `urien.ml.ee` | 443 | **eemaldatud** allowlistist — X-tee ainult `xtr` kaudu |
@@ -208,7 +208,7 @@ NetworkPolicy katab ainult podidevahelise ja podist väljuva liikluse. AWS-i poo
 | sTESTA LB → TG `ljvis2-nonlive-stesta-443` | 443 | MOVEHUB/sTESTA lähteaadressid; LB → pod IP 8443 (+ health check port) |
 | RDS `*-main` SG | 5432 | EKS pod/node SG (resql-ljvis, Liquibase) |
 | RDS `*-tim` SG | 5432 | EKS pod/node SG (tim) |
-| EKS node/pod SG outbound | 443 | NAT GW kaudu: `urien.ml.ee`, `ariregxmlv6.rik.ee`, `tara-test.ria.ee`, `webgate.acceptance.ec.testa.eu`; S3 läbi VPC endpointi |
+| EKS node/pod SG outbound | 443 | NAT GW kaudu: `urien.ml.ee`, `ariregxmlv6.rik.ee`, `tara-test.ria.ee`, `webgate.acceptance.ec.testa.eu`; S3 läbi VPC lõpp-punkti |
 
 Märkus: ESO (ExternalSecrets → SSM cross-account `900977801442`) ja pildi tõmbamine
 `harbor.kemitaws.ee`-st toimuvad väljaspool LJVIS2 namespace'i (ESO kontroller, kubelet), seega

@@ -35,7 +35,7 @@ Väljajätmine või detaili kaotav koondamine vajab eraldi selgesõnalist otsust
 
 CSV-d on UTF-8 BOM-iga, eraldaja `;`. Kokku 100 erinevat võtit ja 209 mittetühja
 väärtust sama 77 vormi / 2023-09-25 ajapiiriga backup'is. Kõik need väärtused on `on`.
-Need ei ole 209 eraldiseisvat rikkumist: vana JavaScript sünkroonis checkbox'i võtme
+Need ei ole 209 eraldiseisvat rikkumist: vana JavaScript sünkroonis märkeruudu võtme
 ja EL-koodi. Sama vormi alias + EL-kood tuleb ühendada üheks tuvastuseks, säilitades
 mõlema lähtevõtme päritolu. Erinevaid põhjuseid ei tohi ainult koodi järgi kokku liita.
 
@@ -56,7 +56,7 @@ Dokumendi- ja mõõteandmetel on teistsugune struktuur; sama JSON-i ei kopeerita
 
 SI922, SI925 ja VSI845 tähendavad `MASS_DIMENSION`/`EU_INFRINGEMENT` ning
 `DRIVING_VIOLATION` puudes eri asju. Ainult koodi olemasolu järgi ei tohi sihtvälja
-valida. Mõõtmise checkbox `on` ei anna tegelikku mõõdetud/ lubatud väärtust.
+valida. Mõõtmise märkeruut `on` ei anna tegelikku mõõdetud/ lubatud väärtust.
 TBCP tähistab tehnilisi puudusi, mitte ADR-i; tundmatut alamkohta ei tohi vanemasse
 punkti kokku suruda. `rooma_mI` suunamine massi/mõõtmete väljale ei ole tõendatud.
 

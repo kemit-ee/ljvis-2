@@ -1,10 +1,10 @@
-# Koondvorm (tee kontroll)
+# Koondvorm (teel tehtav kontroll)
 
-Koondvorm on peamine tee kontrolli akt. Iga koondvorm võib sisaldada mitut alamvormi: sõidu- ja puhkeaeg, tehniline kontroll, ADR, hea maine, vedude katkestamine.
+Koondvormile kantakse teel tehtava kontrolli põhiandmed. Iga koondvorm võib sisaldada mitut alamvormi: sõidu- ja puhkeaeg, tehniline kontroll, ADR, hea maine, vedude katkestamine.
 
 ## Vormi eesmärk
 
-- Registreerida tee kontrolli põhiandmed (koht, aeg, sõiduk, ettevõte)
+- Registreerida teel tehtava kontrolli põhiandmed (koht, aeg, sõiduk, ettevõte)
 - Siduda kontrolliga juhid, kaasreisijad ja tehnilised alamkontrollid
 - Anda alus riskihindamiseks ja statistikaks
 
@@ -35,7 +35,7 @@ Vorm koosneb **Üldosast** ja alamvormide vahekaartidest. Uue vormi loomisel ava
 |---|---|---|
 | Tee (`road`) | Jah | Riigimaantee, kohalik tee või muu |
 | Tee nimetus (`roadOther`) | Jah, kui tee = "muu" | Vaba tekst |
-| Kilomeeter (`kilometer`) | Jah, kui tee valitud | Numbriline väärtus, max 3 tähte |
+| Kilomeeter (`kilometer`) | Jah, kui tee valitud | Numbriline väärtus, kuni 3 numbrit |
 | Maakond (`county`) | Jah, kui kontrolli riik = "EE" | Valik maakondade loendist |
 | Kontrolli kuupäev (`controlDate`) | Jah | Kuupäev |
 | Kontrolli kellaaeg (`controlTime`) | Jah | Kellaaeg |
@@ -49,7 +49,7 @@ Vorm koosneb **Üldosast** ja alamvormide vahekaartidest. Uue vormi loomisel ava
 | Sõiduki kategooria (`vehicleCategoryCode`) | Jah | Valik sõidukikategooriate loendist |
 | Sõiduki kategooria muu (`vehicleCategoryOther`) | Jah, kui kategooria = "muu" | Vaba tekst |
 
-Sõiduki registri number ja muud andmed täidetakse tehnilise kontrolli alamvormis või otsinguga.
+Sõiduki registreerimismärk ja muud andmed täidetakse tehnilise kontrolli alamvormis või otsinguga.
 
 ### 3. Ettevõtte info
 
@@ -58,7 +58,7 @@ Ettevõtte andmeid saab otsida registrikoodi või nime järgi X-tee liidese kaud
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | Registrikood (`companyRegCode`) | Jah | Ettevõtte registrikood |
-| Ettevõtte nimi (`companyName`) | Jah | Max 300 tähemärki |
+| Ettevõtte nimi (`companyName`) | Jah | Kuni 300 tähemärki |
 | Ettevõtte riik (`companyCountryCode`) | Jah | Valik riikide loendist |
 
 ### 4. Juhtide info
@@ -67,9 +67,9 @@ Koondvormil peab olema vähemalt üks juht.
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Juhi eesnimi (`drivers[].firstName`) | Jah (esimene juht) | Max 200 tähemärki |
-| Juhi perekonnanimi (`drivers[].lastName`) | Jah (esimene juht) | Max 200 tähemärki |
-| Juhi isikukood (`drivers[].personalCodeForeign`) | Jah (esimene juht) | Max 50 tähemärki |
+| Juhi eesnimi (`drivers[].firstName`) | Jah (esimene juht) | Kuni 200 tähemärki |
+| Juhi perekonnanimi (`drivers[].lastName`) | Jah (esimene juht) | Kuni 200 tähemärki |
+| Juhi isikukood (`drivers[].personalCodeForeign`) | Jah (esimene juht) | Kuni 50 tähemärki |
 | Juhi sünnikuupäev (`drivers[].birthDate`) | Jah (esimene juht) | Kuupäev |
 
 ### 5. Kaasreisija info
@@ -80,10 +80,10 @@ Kaasreisija andmed on valikulised, kuid soovitatavad, kui sõidukis oli kaasreis
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Eesnimi (`inspectorFirstName`) | Jah | Max 100 tähemärki |
-| Perekonnanimi (`inspectorLastName`) | Jah | Max 100 tähemärki |
+| Eesnimi (`inspectorFirstName`) | Jah | Kuni 100 tähemärki |
+| Perekonnanimi (`inspectorLastName`) | Jah | Kuni 100 tähemärki |
 | Asutus (`inspectorOrganisationId`) | Jah | Valik organisatsioonide loendist |
-| Ametikoht (`inspectorProfession`) | Jah | Max 100 tähemärki |
+| Ametikoht (`inspectorProfession`) | Jah | Kuni 100 tähemärki |
 
 ### 7. Haagiste info
 
@@ -91,7 +91,7 @@ Koondvormil võib lisada ühe või mitu haagist. Haagiste puhul on täidetavad:
 
 - Haagise riik
 - Haagise kategooria
-- Haagise registri number
+- Haagise registreerimismärk
 - Haagise tunnus
 
 Haagised on nummerdatud **HAAGIS 1**, **HAAGIS 2** ja **HAAGIS 3**. Haagise
@@ -146,7 +146,7 @@ Kinnitatud/avalikustatud vormi saab uuesti avada nupuga **Muuda** (vastava
 
 ## Nipid
 
-- Tee ja kilomeeter seatakse kontrolli toimumuskoha järgi.
+- Tee ja kilomeeter seatakse kontrolli toimumiskoha järgi.
 - Ettevõtte otsing töötab kõige täpsemini Eesti registrikoodiga (8 numbrit).
 - Kõik alamvormid peavad olema seotud koondvormiga enne kinnitamist.
 

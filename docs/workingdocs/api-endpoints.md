@@ -1,4 +1,4 @@
-# LJVIS API otspunktid
+# LJVIS API lõpp-punktid
 
 Kõik Ruuteri kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioonis. Klassifikaatorite laadimise ja esiküljel kehtiva vahemälu täpsem kirjeldus on dokumendis [`classifier-caching.md`](classifier-caching.md).
 
@@ -81,7 +81,7 @@ Kõik Ruuteri kaudu eksponeeritud otspunktid. Mock-otspunktid on eraldi sektsioo
 
 ### Teavitused (in-app)
 
-Kõik endpointid nõuavad kehtivat sessiooni (vaikimisi `/v1/.guard`). Tulemed filtreeritakse kasutaja tegelike õiguste järgi serveris (RESQL `list_notifications.sql` WHERE `required_permission = ANY(user_permissions)`).
+Kõik lõpp-punktid nõuavad kehtivat seanssi (vaikimisi `/v1/.guard`). Tulemed filtreeritakse kasutaja tegelike õiguste järgi serveris (RESQL `list_notifications.sql` WHERE `required_permission = ANY(user_permissions)`).
 
 | Meetod | Tee | Query paramid | Märkus |
 |--------|-----|---------------|--------|
@@ -98,7 +98,7 @@ Kõik endpointid nõuavad kehtivat sessiooni (vaikimisi `/v1/.guard`). Tulemed f
 | GET | `/v1/notifications/outbound-log/recipients` | `q` (outbound-logi id) | konkreetse kirja adressaadid + saatmise raport |
 | POST | `/v1/notifications/outbound-log/resend` | `q` (outbound-logi id) | saada ebaõnnestunud kiri uuesti (body: `{ recipientEmail }`) |
 
-### WebSocket endpoint
+### WebSocket lõpp-punkt
 
 | Protokoll | Tee | Märkus |
 |-----------|-----|--------|
@@ -108,7 +108,7 @@ Kõik endpointid nõuavad kehtivat sessiooni (vaikimisi `/v1/.guard`). Tulemed f
 
 ## X-tee teenused (Ruuter Internal)
 
-Ruuter Internal (port 8089) on ligipääsetav **ainult X-tee turvaserveri kaudu** — nginx-ist proxitud ei ole.  
+Ruuter Internal (port 8089) on ligipääsetav **ainult X-tee turvaserveri kaudu** — nginx-ist proxitud ei ole.
 DSL asukoht: `DSL/Ruuter.internal/ljvis/`
 
 ### Inbound — LJVIS pakub andmeid
@@ -124,8 +124,8 @@ DSL asukoht: `DSL/Ruuter.internal/ljvis/`
 
 ### Andmejälgija — kasutusteabe esitamise protokoll v1.6.1
 
-Andmejälgija (AJ) liides eesti.ee-le: isik saab pärida, kes tema andmeid LJVIS-is on töödelnud (IKS § 19, § 25).  
-Spetsifikatsioon: [Kasutusteabe esitamise protokoll](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/Kasutusteabe_esitamise_protokoll.md) · leping [`docs/xtee/FindUsageOpenapi.yaml`](../xtee/FindUsageOpenapi.yaml)  
+Andmejälgija (AJ) liides eesti.ee-le: isik saab pärida, kes tema andmeid LJVIS-is on töödelnud (IKS § 19, § 25).
+Spetsifikatsioon: [Kasutusteabe esitamise protokoll](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/Kasutusteabe_esitamise_protokoll.md) · leping [`docs/xtee/FindUsageOpenapi.yaml`](../xtee/FindUsageOpenapi.yaml)
 Seadistusjuhend: [`docs/andmejalgija-seadistamine.md`](../andmejalgija-seadistamine.md)
 
 Üks X-tee teenus `findUsage` kolme otspunktiga (tarbija: `…/ljvis2/findUsage/v2/<otspunkt>`). Vastused on protokolli kujul, ilma Ruuteri `{"response": …}` ümbriseta.

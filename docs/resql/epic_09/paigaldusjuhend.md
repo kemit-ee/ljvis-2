@@ -70,7 +70,7 @@ Selles repos hoitakse RESQL source faile kaustas `DSL/Resql/` ja Ruuteri faile k
 4. Veendu, et Ruuter runtime all eksisteerib projektikaust `/DSL/api/` koos `POST/` ja `GET/` alamkaustadega.
 5. Kopeeri source Ruuter YML ja `.guard` failid `DSL/Ruuter/api/` alt runtime alla kujul `/DSL/api/<METHOD>/...`.
 6. Ruuter rakendab muudatused automaatselt (restart ei ole vajalik).
-7. Kontrolli logidest, et uued endpointid on saadaval.
+7. Kontrolli logidest, et uued lõpp-punktid on saadaval.
 
 ## Viited
 

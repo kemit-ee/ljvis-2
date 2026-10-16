@@ -30,7 +30,7 @@ Ei ole ulatuses: Resql, TIM, Ruuter, XTR, CronManager (need on eraldi Etapid
 **Digest tuleb enne rakendamist uuesti kontrollida** (`docker buildx imagetools
 inspect turnerrainer/datamapper:0.2.1-alpha` + cosign-allkirja kontroll
 avaldamistöövoo identiteedi vastu) — käesolev väärtus pärineb Docker Hubi
-API-vastuse kokkuvõttest, mitte otsesest `docker pull`-ist selles sessioonis.
+API-vastuse kokkuvõttest, mitte otsesest `docker pull`-ist selles seansis.
 
 0.2.1-alpha on 0.2.0-alpha peale tulnud patch-väljalase (4 punkti backlogist):
 structured 405 + `Allow` päis, graceful shutdown (SIGTERM/SIGINT/SIGHUP).

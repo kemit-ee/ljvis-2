@@ -42,7 +42,7 @@ Haagise variandil on lisaks haagise registreerimismärk vahekaardi nimes:
 
 ### 1. Sõiduki kontrollitavate osade ja sõlmede nimekiri
 
-Iga osa/sõlm reana. Iga rea olekut saab määrata:
+Iga osa või sõlm on tabelis eraldi real. Valige igale reale olek:
 
 - **Ei kontrollitud**
 - **Kontrollitud**
@@ -58,7 +58,7 @@ Tabelis kuvatakse osa/sõlm, rike ja raskusaste. Rikked jagunevad raskusastmetek
 - `OV`
 - `EOV`
 
-Raskete rikkete (`OV`, `EOV`) alusel arvutab süsteem kontrolli tulemuse automaatselt ümber.
+Raskete rikete (`OV`, `EOV`) alusel arvutab süsteem kontrolli tulemuse automaatselt ümber.
 
 ### 3. Kontrolli tulemus
 
@@ -73,16 +73,16 @@ Raskete rikkete (`OV`, `EOV`) alusel arvutab süsteem kontrolli tulemuse automaa
 ### 4. Märkused
 
 - Väli: **Märkused**
-- Max 2000 tähemärki.
+- Kuni 2000 tähemärki.
 - Rikkete valimisel lisatakse märkustesse automaatselt rida: `<rike> – <raskusaste>`.
 
 ### 5. Raske rikkumise tuvastamine
 
-Kuvatakse, kui tulemus pole *Tehniliselt korras*. Võimalik märgata EU määrusest tulenevaid raskeid rikkumisi kategooriates **MSI**, **VSI** ja **SI**.
+Kuvatakse, kui tulemus pole *Tehniliselt korras*. Saate märkida Euroopa Liidu määrusest tulenevaid raskeid rikkumisi kategooriates **MSI**, **VSI** ja **SI**.
 
 ### 6. Manused
 
-Vormi number olemasolul saab lisada faile.
+Kui vormi number on olemas, saab lisada faile.
 
 ### 7. Automaatselt täidetavad andmed
 
@@ -96,7 +96,7 @@ Järgmised väljad kuvatakse pärast salvestamist ja täidetakse automaatselt s�
 
 Tehniline kontroll on koondvormi alamvorm — selle kinnitamine ja avalikustamine toimub koos koondvormiga.
 
-Pärast kinnitamist toimub automaatne taustaprotsessing:
+Pärast kinnitamist uuendab süsteem andmeid automaatselt:
 
 - Kui tulemus on **suunatud erakorralisele tehnoülevaatusele**, kontrollitakse iga tund liiklusregistrist, kas sõiduk on tehnoülevaatuse läbinud — läbimise korral täidetakse kuupäev automaatselt (kuni 365 päeva alates vormi loomisest).
 - Kui täidetud on väärteomenetluse viitenumber ja juhi Eesti isikukood, kontrollitakse iga öö e-toimikust, kas menetluses on karistus jõustunud — jõustumise korral täidetakse **jõustunud otsus** ja **menetluse lõpetamise alus** automaatselt.
@@ -117,7 +117,7 @@ Muud väljad ei ole vormilt otseselt kohustuslikud, kuid kontrolli tulemuse ja r
 2. Valige avanenud aknas üks või mitu riket.
 3. Määrake iga rikke jaoks raskusaste (`VO`, `OV` või `EOV`).
 4. Kinnitage valikud — rikked ilmuvad **Tuvastatud rikked** tabelisse ja osa olekuks jääb *Ei vasta nõuetele*.
-5. Vajadusel eemaldage rikked tuvastatud rikkete tabelist. Kui osal pole enam rikkeid, muutub olek tagasi *Kontrollituks*.
+5. Vajadusel eemaldage rikked tuvastatud rikete tabelist. Kui osal pole enam rikkeid, muutub olek tagasi *Kontrollituks*.
 
 ## PDF-printimine
 

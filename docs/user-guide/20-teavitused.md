@@ -16,7 +16,7 @@ Vaates on kaks vahekaarti:
 Loetleb rakendusesisesed (kellaikoon päises) teavitused. Lugemata teavitused on
 esile tõstetud. Nupp **Märgi kõik loetuks** eemaldab esile tõstmise korraga kõigilt.
 
-Kui teavitusi ei ole, kuvatakse vastaav teade.
+Kui teavitusi ei ole, kuvatakse vastav teade.
 
 ## Vahekaart „Saadetud kirjad"
 
@@ -28,8 +28,8 @@ Näitab kõiki LJVIS2 poolt saadetud e-kirju (Postkast 2.0 teenuse kaudu X-tee �
 
 | Filter | Selgitus |
 |--------|----------|
-| Alates kuupäevast | Saatmise kuupäeva alates (kaasa arvatud) |
-| Kuni kuupäevani | Saatmise kuupäeva lõpp (kaasa arvatud) |
+| Alates kuupäevast | Saatmisaja vahemiku alguskuupäev (kaasa arvatud) |
+| Kuni kuupäevani | Saatmisaja vahemiku lõppkuupäev (kaasa arvatud) |
 | Sõnumi liik | Teavituse liik klassifikaatorist |
 | Adressaat | E-posti aadress (osaline otsing) |
 | Teavituse tunnus | Unikaalne teavituse identifikaator (täpne otsing) |
@@ -66,7 +66,7 @@ vea põhjusega.
 
 ### Saatmise raport
 
-Nupp **Saatmise raport** avab ühe saatmiskatse adressaadi(te) saatmistulemuse detailvaate.
+Nupp **Saatmise raport** avab ühe saatmiskatse adressaatide saatmistulemuste detailvaate.
 
 ### Uuesti saatmine
 

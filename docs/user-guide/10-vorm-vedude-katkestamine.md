@@ -1,6 +1,6 @@
 # Autoveo katkestamise kontrollvorm
 
-Autoveo katkestamise kontrollvormi kasutatakse tee kontrolli käigus autoveo katkestamise fakti ja selle aluste registreerimiseks. Vorm salvestatakse koondvormi (koondvormi) alamvormina.
+Autoveo katkestamise kontrollvormi kasutatakse teel tehtava kontrolli käigus autoveo katkestamise fakti ja selle aluste registreerimiseks. Vorm salvestatakse koondvormi alamvormina.
 
 ## Vormi eesmärk
 
@@ -37,7 +37,7 @@ vahekaardil:
 | Maakond (`residenceRegion`) | Ei | Valik EHAK maakondade loendist (Eesti puhul) |
 | Linn/Vald (`residenceCity`) | Ei | Valik maakonna linnade/valdade loendist |
 | Tänav, maja (`residenceAddressLine`) | Ei | Vaba tekst |
-| Postiindeks (`residencePostalCode`) | Ei | Max 10 tähemärki |
+| Postiindeks (`residencePostalCode`) | Ei | Kuni 10 tähemärki |
 
 ### 3. Kontrolli tulemus
 
@@ -66,7 +66,7 @@ vahekaardil:
 
 ## Kohustuslikud väljad
 
-Vormi React-komponentides (`TransportInterruptionFormPage.tsx`) pole ühtegi välja `required` parameetriga kohustuslikuks märgitud. Ainus kliendipoolne valideerimine kehtib postiindeksi pikkuse kohta — max 10 tähemärki.
+Vormi React-komponentides (`TransportInterruptionFormPage.tsx`) pole ühtegi välja `required` parameetriga kohustuslikuks märgitud. Ainus kliendipoolne valideerimine kehtib postiindeksi pikkuse kohta — kuni 10 tähemärki.
 
 Täielikuks salvestamiseks ja kinnitamiseks peavad kõik vormi täitmiseks vajalikud andmed siiski olemas olema.
 
@@ -80,7 +80,7 @@ Iga katkestamise vorm saab oma alamnumbri ja versiooni (`subFormNumber/version`)
 
 1. Täitke soovitud väljad.
 2. Klõpsake **Salvesta** — vorm salvestatakse olekusse `saved`.
-3. Kui kõik on korras, klõpsake **Kinnita** — vorm muutub kinnituks.
+3. Kui kõik on korras, klõpsake **Kinnita** — vormi staatuseks saab „Kinnitatud“.
 
 Pärast kinnitamist / avaldamist vormi enam muuta ei saa. Muudatuste tegemiseks tuleb luua uus versioon või pöörduda administraatori poole.
 

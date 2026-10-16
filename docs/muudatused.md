@@ -4,6 +4,10 @@
 
 ## 2026-10-16
 
+### REPM ERRU asutusevalikutes
+
+- ERRU pädevate asutuste klassifikaatorisse lisatakse Regionaal- ja Põllumajandusministeerium koodiga `EE-REPM`. Väärtus on kehtiv ja vormipiiranguta. Asutuste kataloogis jääb asutuse koodiks `REPM`.
+
 ### Uus asutus: Regionaal- ja Põllumajandusministeerium
 
 - Asutuste nimekirja on lisatud **Regionaal- ja Põllumajandusministeerium** (kood `REPM`). Asutus ilmub nimekirja pärast uuenduse paigaldamist ja seda saab kasutajatele ning gruppidele määrata.
@@ -102,7 +106,7 @@
 - Klassifikaatorite täisnimekirjad (`/v1/classifier-values`, `/v1/citizen/classifier-values`, `/v1/classifiers/bundle`) saadavad `ETag` ja `Cache-Control: private, no-cache` päise. Kui klassifikaatorid pole vahepeal muutunud, vastab server korduval laadimisel (lehe värskendus, uus vaheleht) `304 Not Modified` ja brauser kasutab oma koopiat. Muutunud klassifikaatorid, väärtused või vormipiirangud ja uus kuupäev (kehtivus) muudavad ETag-i ning siis laaditakse andmed uuesti.
 ### Klassifikaatorite laadimine kiiremaks („Muu tee" otsing serverist)
 
-- Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga sessiooni klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.
+- Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga seansi klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.
 - Koondvormi „Muu tee" tee numbri otsing küsib tee nime nüüd serverist ühe tee kaupa (`GET /v1/roads/other?number=<nr>`, ainult kehtiv kirje) pärast trükkimise lõppu. Kasutaja jaoks käitumine ei muutu: vaste korral täidetakse tee nimetus, vasteta numbri korral kuvatakse mitteblokeeriv teade ja nime saab käsitsi sisestada.
 - Haldusvaates on `ROAD_OTHER` väärtused endiselt nähtavad ja muudetavad (klassifikaatori väärtuste lehekülgedega loend).
 
@@ -191,7 +195,7 @@
 
 - Kõik kutsed Resql-ile (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`), TIM-ile ja DataMapper'ile saadavad päise `x-internal-service-token` (sama väärtus `INTERNAL_COMMUNICATION_KEY`, mis ruuter-internal'i kaitseks). Teenused ignoreerivad päist: kasutajale ja deploy'le muutust pole, uusi konstante lisada ei ole vaja.
 - Päist ei nõua praegu keegi: teenustevahelist autentimisvärava ei ehitata (otsus #520), kaitse jääb NetworkPolicy peale. Token on valmis, kui upstream (Resql, TIM, DataMapper, XTR) hakkab kutsujat autentima või võetakse kasutusele mTLS.
-- XTR-i kontrollitud (xtr 0.5.0-rc lähtekood ja test): SOAP-lane (`ar`, `etoimik`, `mtr`, `liiklusregister`, 27 kutset) ei edasta päiseid ja saadab sisevõtme; **REST-lane (`rr/isikud`, `PK_*`, ERRU-endpointid XTR-i kaudu) edastab kõik päised turvaserverisse, seega sinna sisevõtit ei saadeta**. CI kontrollib seda (`scripts/check-internal-token-targets.py`).
+- XTR-i kontrollitud (xtr 0.5.0-rc lähtekood ja test): SOAP-lane (`ar`, `etoimik`, `mtr`, `liiklusregister`, 27 kutset) ei edasta päiseid ja saadab sisevõtme; **REST-lane (`rr/isikud`, `PK_*`, ERRU-lõpp-punktid XTR-i kaudu) edastab kõik päised turvaserverisse, seega sinna sisevõtit ei saadeta**. CI kontrollib seda (`scripts/check-internal-token-targets.py`).
 - Plaan: `docs/planning/teenustevaheline-autentimine-faas3.md`.
 ### LJVIS1 SOAP-lepingu pakkumine XTR-i kaudu
 
@@ -236,7 +240,7 @@
 
 ### Kasutajaliides ei saada serveripoolselt tuletatavaid välju
 
-Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise sessioonist. Seda hoiab nii CI reegel R8.
+Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise seansist. Seda hoiab nii CI reegel R8.
 
 ### Selge teade, kui vormi ei saa vaadata
 
@@ -248,14 +252,14 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 - Varem näitas otsing vormitüübi lugemisõigusega kasutajale kõigi asutuste mustandeid; neid ei saanud avada (403). Nüüd ei ilmu otsingutulemustesse vorme, mida kasutaja avada ei saa.
 - Vormi avamise reegel on sama: kolleegi avalikustamata vormi avamiseks on vaja `control_form.view_organisation` õigust (varem piisas samast asutusest olemisest).
 
-### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
+### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb seansist
 
-- Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
+- Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-seansist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
 - Kasutajale nähtavat muutust pole: ametniku töövoogudes oli tegutseja varemgi sama.
 - Epic #502, osa A1.
 - Osa A2 (kirjutamine): manuse üleslaadimisel peab vormi number algama selle vormitüübi prefiksiga (nt `vr-`); muidu 400 `INVALID_FORM_NUMBER` ja S3-sse ei kirjutata. Ametniku töövoogudes muutust pole.
 - Osa A2 (lugemine): vormi lugemine ID järgi (vorm, versioonid, alamvormid, väljatrükk, manuste loend ja allalaadimine) järgib omandireeglit: avalikustatud vormi näeb iga vormitüübi `.read` õigusega ametnik; avalikustamata (salvestatud/kinnitatud) vormi näeb ainult looja, looja asutuse kolleeg või `control_form.view_unpublished` omaja, muidu 403. Vormiotsing jääb samaks.
-- Osa D: CI kontrollib nüüd turvareegleid (identiteet ainult sessioonist, `allowlist` igal DSL-il, `strict` mallid, manuse prefiks, lugemise omandikontroll, `template:` kutsete leping, frontend ei saada identiteedivälju); regressioon ebaõnnestub CI-s.
+- Osa D: CI kontrollib nüüd turvareegleid (identiteet ainult seansist, `allowlist` igal DSL-il, `strict` mallid, manuse prefiks, lugemise omandikontroll, `template:` kutsete leping, frontend ei saada identiteedivälju); regressioon ebaõnnestub CI-s.
 - Osa B: audit-, faili- ja PDF-mallid on `strict: true` (tundmatu võti päringus → 400) ja `actor_*` väljad on nende deklaratsioonidest eemaldatud; kõigil Ruuteri DSL-idel (v.a `*.guard.yml`) on `allowlist`.
 
 ### PPA kontrollvormide parandused
@@ -509,7 +513,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 
 - „Sõidukit kontrollinud ametiisiku andmed" plokis eeltäidetakse nüüd lisaks nimele
   ka asutus, ametikoht ja (olemasolul) struktuuriüksus kasutaja profiilist. Varem
-  ei jõudnud need väärtused sessiooni vastusesse ja väljad jäid tühjaks.
+  ei jõudnud need väärtused seansi vastusesse ja väljad jäid tühjaks.
 
 ### Koondvorm: alamvormi saab avalikustada sõltumata teistest alamvormidest
 
@@ -580,7 +584,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 ### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
 
 - Asutuste kataloog (`GET /v1/organisations`) ei nõua enam `organisation.list`
-  õigust, piisab ametniku sessioonist. Varem jäi näiteks inspektori
+  õigust, piisab ametniku seansist. Varem jäi näiteks inspektori
   organisatsiooni valik tühjaks, kui kasutaja grupil seda õigust polnud, ja
   vormi ei saanud lõpuni täita.
 - Vormilehed ei nõua enam `classifier.read` õigust: vormid loevad
@@ -1039,7 +1043,7 @@ muudatuse (vt allpool) koodiülevaatusel leitud parandused:
 - Vedaja ja tööinspektori teavitamine käivitub nüüd **vormi salvestamisel**
   (varem alles avalikustamisel, ja ainult üks kord). Teavituse saab
   hiljem andmete muutumisel uuesti saata, märkides linnukese ja
-  salvestades vormi uuesti — checkbox ei jää enam püsivalt märgituks/lukku.
+  salvestades vormi uuesti — märkeruut ei jää enam püsivalt märgituks/lukku.
   Teavituste plokis kuvatakse ka varasemate saatmiste ajalugu (kuupäev + staatus).
 - Lisandus eraldi "Teavita tööinspektorit" märkeruut, mis on eraldiseisev
   faktiväljast "Saabus välisriigi pädeva asutuse ettepanek".
@@ -1227,7 +1231,7 @@ muudatuse (vt allpool) koodiülevaatusel leitud parandused:
   otsitakse vedaja e-post äriregistrist (XTR `ar/detailandmed_v1`) — see
   päring läks siiani otse XTR-i, ilma et sellest jääks jälge
   "eToimiku X-tee logid" haldusvaatesse, erinevalt samale teenusele juba
-  varem loodud logivast otsingu-endpoint'ist.
+  varem loodud logivast otsingu-lõpp-punktist.
 - Nüüd logitakse see päring (õnnestumine, viga ja katkenud ühendus eraldi)
   X-tee integratsioonilogisse koos tegeliku äriregistri vastusega, et
   vedaja e-posti tuvastamise vigu (nt vale kontaktandmete kirje valimine)
@@ -1398,7 +1402,7 @@ muudatuse (vt allpool) koodiülevaatusel leitud parandused:
   X-tee päringute ajaloo (nii käsitsi otsingud kui öised automaatsed
   kontrollid), sh väljuva päringu ja saabunud vastuse täissisu.
 - Filtrid: kuupäevavahemik (vaikimisi eile-täna) ja kolm staatuse checkboxi
-  (Vaste leitud / Vastuseta / Vigane) + tuletatud "Kõik" checkbox.
+  (Vaste leitud / Vastuseta / Vigane) + tuletatud "Kõik" märkeruut.
 - Iga rida lingib vormile, mille andmete põhjal päring tehti (kui vorm on
   tuvastatav).
 - Nõuab uut õigust `xroad.log.read` (antud ainult Super Admin Groupile).
