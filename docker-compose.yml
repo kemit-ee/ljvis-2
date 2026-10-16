@@ -315,7 +315,12 @@ services:
 
   xtr:
     container_name: xtr
-    image: turnerrainer/xtr:0.5.0-rc
+    image: ljvis-xtr:local
+    build:
+      context: .
+      dockerfile: docker/xtr/Dockerfile
+      args:
+        XTR_RUNTIME_IMAGE: turnerrainer/xtr@sha256:634b11471ff9c709f6b46cab18f7e85711d18df334a8b9a368f399a62bf1a9ca
     environment:
       - RUST_LOG=debug
       - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD:-defaultpassword}

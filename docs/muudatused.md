@@ -4,6 +4,12 @@
 
 ## 2026-10-16
 
+### E-toimiku XML-vastuste lugemine
+
+- XTR loeb nüüd standardseid XML-olemeid (`&quot;`, `&apos;`, `&amp;`, `&lt;`, `&gt;`) sisaldavaid SOAP-vastuseid. Varem katkestas parser vastuse lugemise veaga `upstream_xml_parse_error`.
+- Otsuse teksti tühikud säilivad. Kohandatud XML-olemite kaitse jääb rakendatuks.
+
+
 ### REPM ERRU asutusevalikutes
 
 - ERRU pädevate asutuste klassifikaatorisse lisatakse Regionaal- ja Põllumajandusministeerium koodiga `EE-REPM`. Väärtus on kehtiv ja vormipiiranguta. Asutuste kataloogis jääb asutuse koodiks `REPM`.
