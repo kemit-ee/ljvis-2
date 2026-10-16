@@ -155,6 +155,17 @@ processCandidates:
             form_number: ${published_form_number}
             punished_person_id_code: ${punished_person_id_code}
         result: auditRes
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            form_type: "labour_inspection"
+            form_key: "${String(candidate_key)}"
+        result: riskRecalcRes
+
     collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success })}"
     into: results
   next: returnSummary

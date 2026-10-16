@@ -46,10 +46,10 @@ checkFound:
   switch:
     - condition: ${currentFormRes.response.body == null || currentFormRes.response.body.length !== 1}
       next: returnNotFound
+    - condition: ${currentFormRes.response.body[0].status === 'published'}
+      next: recalculateExisting
     - condition: ${only_if_confirmed && currentFormRes.response.body[0].status !== 'confirmed'}
       next: returnSkipped
-    - condition: ${currentFormRes.response.body[0].status === 'published'}
-      next: returnAlreadyPublished
   next: getSubFormPublishState
 
 # Üldosa avalikustub ainult siis, kui viimane alamvorm on avalikustatud:
@@ -245,6 +245,20 @@ returnPublished:
 
 # Idempotentne: alamvormi avalikustamine avalikustab üldosa juba serveris ja
 # brauser proovib seda pärast uuesti; teist versiooni ei looda.
+recalculateExisting:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(id)}"
+  result: existingRiskRes
+  error: returnAlreadyPublished
+  next: returnAlreadyPublished
+
 returnAlreadyPublished:
   return: "${JSON.stringify({ outcome: 'published', body: currentFormRes.response.body })}"
   next: end

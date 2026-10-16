@@ -244,14 +244,21 @@ vr_per_control AS (
     (vt.n_msi * 90 + vt.n_vsi * 30 + vt.n_si * 10) AS weighted_sum
   FROM vr_violation_tallies vt
 ),
-all_controls AS (
-  SELECT is_fully_excluded, weighted_sum FROM per_control
+all_control_parts AS (
+  SELECT compound_form_key AS form_key, 'compound'::TEXT AS form_type, is_fully_excluded, weighted_sum::NUMERIC AS weighted_sum FROM per_control
   UNION ALL
-  SELECT is_fully_excluded, weighted_sum FROM vr_per_control
+  SELECT foreign_violation_form_key, 'foreign_violation', is_fully_excluded, weighted_sum::NUMERIC FROM vr_per_control
+  UNION ALL
+  SELECT form_key, form_type, FALSE, weighted_points
+  FROM risk.additional_controls(:company_reg_code, :window_start::DATE, :window_end::DATE)
+),
+all_controls AS (
+  SELECT form_key,form_type,BOOL_AND(is_fully_excluded) AS is_fully_excluded,SUM(weighted_sum) AS weighted_sum
+  FROM all_control_parts GROUP BY form_key,form_type
 ),
 formula AS (
-  -- N (vehicles per control) is always 1 (task spec §2), so
-  -- weighted_sum/N == weighted_sum; g=1.0 in this algorithm version.
+  -- Road controls have one vehicle. additional_controls already divides
+  -- TI points by vehicle_count. g=1.0 in this algorithm version.
   SELECT
     COUNT(*)::INTEGER AS r,
     COALESCE(SUM(weighted_sum), 0) AS total_weighted_sum
@@ -282,7 +289,10 @@ SELECT
   -- prior version used a DISTINCT-ON-per-key CTE with an unordered LIMIT 1
   -- on top, which could return an arbitrary company_name when the same
   -- company has multiple compound_forms with different recorded names).
-  (SELECT cf.company_name FROM forms.compound_form cf
-   WHERE cf.company_reg_code = :company_reg_code
-   ORDER BY cf.created_at DESC LIMIT 1) AS company_name
+  (SELECT names.company_name FROM (
+     SELECT company_name,created_at FROM forms.compound_form WHERE company_reg_code=:company_reg_code
+     UNION ALL SELECT company_name,created_at FROM forms.foreign_violation_form WHERE company_reg_code=:company_reg_code
+     UNION ALL SELECT company_name,created_at FROM forms.tram_control_card WHERE company_reg_code=:company_reg_code
+     UNION ALL SELECT company_name,created_at FROM forms.labour_inspection_form WHERE company_reg_code=:company_reg_code
+   ) names ORDER BY names.created_at DESC LIMIT 1) AS company_name
 FROM result r;

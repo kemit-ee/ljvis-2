@@ -4,7 +4,7 @@ declaration:
   version: "1.0"
   description: >-
     Nightly full risk-score recalculation (LJVIS2-150/151/152): for every
-    company that ever had a published compound_form
+    company with a published compound, VR, TRAM or labour-inspection form, or a historical risk score
     (select_companies_for_recalc.sql), calls
     [#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate with
     calculation_trigger='ooine_ymberarvutus'. risk.company_risk_score is

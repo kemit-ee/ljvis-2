@@ -50,10 +50,10 @@ returns:
 */
 INSERT INTO risk.company_risk_score
     (company_reg_code, company_name, risk_score, risk_band_code, total_controls,
-     g_factor, window_start, window_end, calculation_trigger, created_by)
+     g_factor, window_start, window_end, calculation_trigger, created_by, algorithm_version)
 VALUES
     (:company_reg_code, NULLIF(:company_name, ''), NULLIF(:risk_score, '')::NUMERIC, :risk_band_code,
      :total_controls::INTEGER, COALESCE(NULLIF(:g_factor, '')::NUMERIC, 1.0),
      :window_start::DATE, :window_end::DATE, :calculation_trigger,
-     COALESCE(NULLIF(:created_by, ''), 'system'))
+     COALESCE(NULLIF(:created_by, ''), 'system'), '2022-695-v2')
 RETURNING id, risk_band_code, risk_score, total_controls;
