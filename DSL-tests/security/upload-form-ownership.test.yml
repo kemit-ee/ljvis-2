@@ -4,6 +4,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
   S3_PROXY: '{MOCK}/s3'
+  S3_PROXY_API_KEY: test-key
 tests:
 - name: vr upload with an ADR form number is refused before any S3 write
   setup:
