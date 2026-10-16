@@ -2,6 +2,32 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-16
+
+### Riskiskoori öine ümberarvutus leiab ka ettevõtted, kellel skoori veel pole
+
+- Ettevõtja, kelle avalikustatud kontrollid (nt välisriigi rikkumise vorm) olid vanemad kui 3 päeva ja kellel polnud veel riskiskoori kirjet, jäi riskitasemele „Kontrollimata" ja kontrollide arvule 0. Öine ümberarvutus valis ainult värskelt avalikustatud või 2-aasta piirile lähenevad kontrollid ega leidnud neid üles.
+- Nüüd arvutab öine töö riskiskoori ka kõigile Eesti ettevõtjatele, kellel on viimase 2 aasta jooksul avalikustatud kontroll, aga skoori kirjet veel pole. Pärast esimest arvutust ettevõtja sellest valikust välja langeb. Mõju ilmneb järgmisel öösel kell 03:00.
+- Haldus → E-toimiku X-tee logid lehele on lisatud jaotis **„Manuaalne käivitamine"**, kust saab käsitsi käivitada riskiskooride ümberarvutuse ja kõik e-toimiku otsuste sünkroonimised (tööinspektsioon, TRAM kontrollkaart, autojuhi ja meeskonnaliikme sõidu- ja puhkeaeg, tehniline kontroll). Jaotis on nähtav neile, kellel on X-tee logide vaatamise õigus (`xroad.log.read`). Töö jookseb lõpuni enne tulemuse ilmumist; valmimisel ilmub teade ebaõnnestunute arvuga. Iga käivitus logitakse auditisse.
+### E-toimiku otsuste sünkroonimine iga 10 minuti tagant
+
+- Jõustunud otsuste kontroll e-toimikus (tööinspektsiooni, TRAM kontrollkaardi, sõiduki ja haagise tehnovormi ning autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormid) käivitub nüüd iga 10 minuti tagant, varem kord öösel. Otsus ilmub vormile seega kuni ~10 minutiga pärast jõustumist.
+- Viis sünkroonimist on omavahel nihutatud 2 minutiga (:00, :02, :04, :06, :08), et X-tee päringud ei kattuks.
+
+### Mootorsõiduki/haagise tehnoülevaatuse alamvormi andmed ja failid tagastasid "Puuduvad õigused"
+
+- Kasutaja, kellel oli õigus koondvormi või selle autojuhi/meeskonnaliikme
+  alamvormi lugeda, sai siiski 403 vea, kui üritas vaadata sellesse
+  koondvormi kuuluva mootorsõiduki või haagise tehnoülevaatuse alamvormi
+  andmeid või faile — need nõudsid eraldi, kitsamat õiguskoodi, mida
+  admin-liideses on lihtne märkamata jätta. Lisati võimalus pääseda
+  tehnoülevaatuse alamvormile ligi ka koondvormi/autojuhi/meeskonnaliikme
+  lugemisõigusega.
+- Ühtlustati ka välisriigi rikkumise vormi ja Transpordiameti kontrollkaardi
+  lugemisõiguste kontroll teiste vormitüüpidega: administraatori üldine
+  "vaata avaldamata vorme" õigus (`control_form.view_unpublished`) andis
+  varem ligipääsu kõigile vormitüüpidele peale nende kahe.
+
 ## 2026-10-15
 
 ### Postkasti mallide ja teavituse saajate halduse täiendused

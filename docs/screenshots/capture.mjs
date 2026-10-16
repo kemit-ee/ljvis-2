@@ -467,6 +467,20 @@ const shots = [
       await sleep(300);
       await shoot(page, 'admin-guide/images/10-etoimiku-xtee-logid/02-sisu.png');
       await page.getByRole('button', { name: 'Sulge' }).click().catch(() => {});
+      // Manuaalne käivitamine: kaart logitabeli all; teine pilt tehakse pärast
+      // riskiskooride ümberarvutuse käivitamist (tulemuse teade nähtav).
+      await page.goto(BASE + '/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
+      await settle(page);
+      const manualCard = page.getByRole('heading', { name: 'Manuaalne käivitamine' });
+      await manualCard.scrollIntoViewIfNeeded();
+      await sleep(300);
+      await shoot(page, 'admin-guide/images/10-etoimiku-xtee-logid/03-manuaalne-kaivitamine.png');
+      await page
+        .getByTestId('manual-job-risk-score-recalc-sync')
+        .getByRole('button', { name: 'Käivita' })
+        .click();
+      await page.getByText(/Töö „Riskiskooride ümberarvutus” lõpetatud/).waitFor({ timeout: 120000 });
+      await shoot(page, 'admin-guide/images/10-etoimiku-xtee-logid/04-manuaalne-kaivitamine-tulemus.png');
     },
   },
   {

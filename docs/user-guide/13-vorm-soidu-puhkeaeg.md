@@ -154,7 +154,7 @@ Sõidu- ja puhkeaja kontrollvorm on koondvormi alamvorm — selle elutsükkel s�
 
 ### Automaatne e-toimiku sünkroon (autojuhi vorm)
 
-Kui autojuhi sõidu- ja puhkeaja alamvormil on täidetud **väärteomenetluse viitenumber** ja koondvormi juhi **Eesti isikukood**, kontrollib süsteem iga öö (ligikaudu kell 01:30), kas e-toimikus on menetluses otsus jõustunud. Kui otsus on jõustunud, täidetakse alamvormile automaatselt:
+Kui autojuhi sõidu- ja puhkeaja alamvormil on täidetud **väärteomenetluse viitenumber** ja koondvormi juhi **Eesti isikukood**, kontrollib süsteem iga 10 minuti tagant, kas e-toimikus on menetluses otsus jõustunud. Kui otsus on jõustunud, täidetakse alamvormile automaatselt:
 
 - **Jõustunud otsus** — otsuse tekst
 - **Menetluse lõpetamise alus** — lõpetamise aluse tekst

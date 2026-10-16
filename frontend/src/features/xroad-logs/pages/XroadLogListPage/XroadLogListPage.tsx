@@ -3,6 +3,7 @@ import { Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { PERMISSIONS } from '../../../../constants/constants';
 import { XroadLogTable } from '../../XroadLogTable';
+import { ManualJobsCard } from '../../ManualJobsCard';
 
 /** Haldus > eToimiku X-tee logid — auditi/järelvalve vaade eToimiku päringute logile. */
 export function XroadLogListPage() {
@@ -22,6 +23,7 @@ export function XroadLogListPage() {
           <XroadLogTable />
         </Card.Content>
       </Card>
+      <ManualJobsCard />
     </div>
   );
 }
