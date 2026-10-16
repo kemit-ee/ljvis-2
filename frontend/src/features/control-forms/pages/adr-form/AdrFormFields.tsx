@@ -113,9 +113,7 @@ export function AdrFormFields({
 
   const values = formik.values;
   const notesLength = (values.notes ?? '').length;
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
   const checkpointItems = useMemo(
     () =>
       getByCode('ADR_CONTROL_CHECKPOINT').filter(

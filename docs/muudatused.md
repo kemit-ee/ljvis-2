@@ -4,6 +4,10 @@
 
 ## 2026-10-16
 
+### REPM ERRU asutusevalikutes
+
+- ERRU pädevate asutuste klassifikaatorisse lisatakse Regionaal- ja Põllumajandusministeerium koodiga `EE-REPM`. Väärtus on kehtiv ja vormipiiranguta. Asutuste kataloogis jääb asutuse koodiks `REPM`.
+
 ### Uus asutus: Regionaal- ja Põllumajandusministeerium
 
 - Asutuste nimekirja on lisatud **Regionaal- ja Põllumajandusministeerium** (kood `REPM`). Asutus ilmub nimekirja pärast uuenduse paigaldamist ja seda saab kasutajatele ning gruppidele määrata.

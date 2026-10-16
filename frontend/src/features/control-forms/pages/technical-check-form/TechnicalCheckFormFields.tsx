@@ -123,9 +123,7 @@ export function TechnicalCheckFormFields({
   // checkbox instead. Scope every id/name by variant + trailer index.
   const idPrefix = `${variant}${trailerIndex !== undefined ? `-${trailerIndex}` : ''}`;
   const formPath = variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
 
   // Mirrors resultLevel/computeAutoResult in useTechnicalCheckForm.ts: the
   // lowest resultType the form's current defects allow. Options below this
