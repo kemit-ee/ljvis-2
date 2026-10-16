@@ -45,7 +45,7 @@ Viimase jooksu tulemus: [testilood-ui.md](testilood-ui.md) (päises kuupäev ja 
 
 | Prefiks | Moodul | Testid kontrollivad | Spec |
 |---|---|---|---|
-| TL-SMK | Sisselogimine, töölaud, vormide avamine | sessioon ja roll, ametniku töölaud, kõik loomislehed avanevad JS-vigadeta, õigusteta kasutaja ei näe ametniku kaarte | `smoke.spec.ts` |
+| TL-SMK | Sisselogimine, töölaud, vormide avamine | seanss ja roll, ametniku töölaud, kõik loomislehed avanevad JS-vigadeta, õigusteta kasutaja ei näe ametniku kaarte | `smoke.spec.ts` |
 | TL-KAS | Kasutajate haldus | nimekiri ja otsing (nimi, isikukood), loomise valideerimine (kohustuslikud väljad, isikukood, e-post, duplikaat), loomine, muutmine, grupi sidumine, deaktiveerimine, asutuse muutmise kinnitus, lokaalse kontohalduri ulatus, ligipääsukeeld | `users.spec.ts` |
 | TL-GRP | Kasutajagruppide haldus | nimekiri ja otsing, valideerimine, tühistamise kinnitus, loomine, ümbernimetamine, asutuste ja õiguste muutmine, liikmete lisamine ja eemaldamine, ligipääsukeeld | `user-groups.spec.ts` |
 | TL-KLF | Klassifikaatorite haldus | nimekiri ja otsing, selgituse muutmine, väärtuse lisamine, duplikaatkoodi keeld, kehtivuse lõpetamine, kehtivate filter, kehtivusperioodi valideerimine, ligipääsukeeld | `classifiers.spec.ts` |
@@ -103,7 +103,7 @@ kontrollid koos viimase tulemusega: [apitestid.md](apitestid.md) §3.
 
 | Liik | Asukoht | Kirjeldus |
 |---|---|---|
-| Ruuteri töövoogude stsenaariumid | `DSL-tests/`, `DSL-tests-internal/` | sessioon, marsruutimine, ERRU NU salvestamine/saatmine (samaaegsus, transpordiviga, ACK), RSI koostamine, Postkasti mallid, AJ teenused; loetelu [apitestid.md](apitestid.md) §4 |
+| Ruuteri töövoogude stsenaariumid | `DSL-tests/`, `DSL-tests-internal/` | seanss, marsruutimine, ERRU NU salvestamine/saatmine (samaaegsus, transpordiviga, ACK), RSI koostamine, Postkasti mallid, AJ teenused; loetelu [apitestid.md](apitestid.md) §4 |
 | X-tee arendaja-mock | `DSL-mock-tests/xtee.test.yml` | 69 stsenaariumi, [apitestid.md](apitestid.md) §5 |
 | Lepingutestid | `tests/contract/` | ERRU NU 3.5 XSD vs andmebaasi reeglid, mutatsioonitestid, mocki liivakasti turvalisus |
 | Andmebaasitestid | `tests/sql/` | NU samaaegsus päris transaktsioonidega, SP → ERRU punktid |

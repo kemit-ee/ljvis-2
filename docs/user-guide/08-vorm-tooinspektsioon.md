@@ -19,7 +19,7 @@ aadressilt `/control-forms/labour-inspection/:id`.
 
 ## Vormi osad ja väljad
 
-Vorm koosneb mitmest kaardist. Kui välja juures on täht `*`, on see kohustuslik.
+Vorm koosneb mitmest kaardist. Kui välja juures on tärn `*`, on see kohustuslik.
 
 ![Tööinspektsiooni kontrollkaardi loomisvaade](images/08-vorm-tooinspektsioon/01-loomisvaade.png)
 
@@ -27,18 +27,18 @@ Vorm koosneb mitmest kaardist. Kui välja juures on täht `*`, on see kohustusli
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Kontrolli läbiviimise eest vastutav isik (`inspectorName`) | Jah | Max 200 tähemärki |
+| Kontrolli läbiviimise eest vastutav isik (`inspectorName`) | Jah | Kuni 200 tähemärki |
 | Kontrolli kuupäev (`inspectionDate`) | Jah | Kuupäev, ei tohi olla tulevikus |
 | Kontrolli liik (`inspectionType`) | Jah | Valik: sõitjate vedu või veose vedu |
-| Ettevõtte nimi (`companyName`) | Jah | Max 300 tähemärki |
-| Registrikood (`companyRegCode`) | Jah | Max 20 tähemärki |
+| Ettevõtte nimi (`companyName`) | Jah | Kuni 300 tähemärki |
+| Registrikood (`companyRegCode`) | Jah | Kuni 20 tähemärki |
 
 ### 2. Kontrollimised
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Sõidukite arv (`vehicleCount`) | Ei | Ainult numbrid, max 5 tähemärki |
-| Kontrollitud juhtide arv (`totalDriversCount`) | Ei | Ainult numbrid, max 5 tähemärki |
+| Sõidukite arv (`vehicleCount`) | Ei | Ainult numbrid, kuni 5 tähemärki |
+| Kontrollitud juhtide arv (`totalDriversCount`) | Ei | Ainult numbrid, kuni 5 tähemärki |
 
 Kontrollimiste maatriksis saab lisada ridu erinevate veoliikide kohta. Iga rea kohta täidetakse järgmised arvulised väljad:
 
@@ -60,10 +60,10 @@ Kontrollimiste maatriksis saab lisada ridu erinevate veoliikide kohta. Iga rea k
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Karistatud isiku isikukood (`punishedPersonIdCode`) | Ei | Max 20 tähemärki |
-| Karistatud isiku eesnimi (`punishedPersonFirstName`) | Ei | Max 100 tähemärki |
-| Karistatud isiku perekonnanimi (`punishedPersonLastName`) | Ei | Max 100 tähemärki |
-| Väärteomenetluse viitenumber (`proceedingReferenceNumber`) | Ei | Max 50 tähemärki |
+| Karistatud isiku isikukood (`punishedPersonIdCode`) | Ei | Kuni 20 tähemärki |
+| Karistatud isiku eesnimi (`punishedPersonFirstName`) | Ei | Kuni 100 tähemärki |
+| Karistatud isiku perekonnanimi (`punishedPersonLastName`) | Ei | Kuni 100 tähemärki |
+| Väärteomenetluse viitenumber (`proceedingReferenceNumber`) | Ei | Kuni 50 tähemärki |
 
 ### 5. Rikkumised
 
@@ -80,7 +80,7 @@ Rikkumisi saab lisada nupuga **Lisa rikkumine**. Avanevas valikus saab valida ri
 
 Vorm läbib kolm staatust: **Salvestatud → Kinnitatud → Avalikustatud**.
 
-Kui kinnitatud vormil on täidetud **väärteomenetluse viitenumber** ja **karistatud isiku isikukood**, jälgib süsteem automaatselt, kas e-toimikus on menetluses otsus jõustunud. Iga öösel (ligikaudu kell 01:00) kontrollitakse kõiki selliseid kinnitatud vorme e-toimiku kaudu. Kui otsus on jõustunud, täidetakse vormile automaatselt:
+Kui kinnitatud vormil on täidetud **väärteomenetluse viitenumber** ja **karistatud isiku isikukood**, jälgib süsteem automaatselt, kas e-toimikus on menetluses otsus jõustunud. Iga 10 minuti tagant kontrollitakse kõiki selliseid kinnitatud vorme e-toimiku kaudu. Kui otsus on jõustunud, täidetakse vormile automaatselt:
 
 - **Jõustunud otsus** — otsuse tekst
 - **Menetluse lõpetamise alus** — lõpetamise aluse tekst

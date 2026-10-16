@@ -15,7 +15,7 @@
 - [Vormid](user-guide/05-vormide-uldine.md)
   - [Välisriigi rikkumine](user-guide/06-vorm-valisrikkumine.md)
   - [Koondvorm](user-guide/07-vorm-liitvorm.md)
-    - [Transpordiameti kontrollkaart](user-guide/18-vorm-tram-kontrollkaart.md)
+  - [Transpordiameti kontrollkaart](user-guide/18-vorm-tram-kontrollkaart.md)
   - [Tööinspektsiooni kontrollakt](user-guide/08-vorm-tooinspektsioon.md)
   - [Tehniline kontroll](user-guide/09-vorm-tehniline-kontroll.md)
   - [Autoveo katkestamine](user-guide/10-vorm-vedude-katkestamine.md)
@@ -100,7 +100,7 @@
 # Töödokumendid
 
 - [Ülevaade](workingdocs/README.md)
-- [API otspunktid](workingdocs/api-endpoints.md)
+- [API lõpp-punktid](workingdocs/api-endpoints.md)
 - [Administraatori juhend](workingdocs/admin-guide.md)
 - [Administraatori paigaldus- ja seadistusjuhend](workingdocs/admin-deployment-guide.md)
 - [Klassifikaatorite vahemälu](workingdocs/classifier-caching.md)

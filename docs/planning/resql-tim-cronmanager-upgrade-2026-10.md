@@ -80,6 +80,11 @@ hostide allowlisti (0.2.3 ega `dev`). Praegu töötab, sest Helmi `charts/cronma
 `APP_ENV: dev` kõigile keskkondadele. Range `APP_ENV` eeldab upstream'i muudatust
 (nt `security.allowed_private_hosts: [ruuter-internal]`).
 
+**Lahendatud 2026-10-15:** upstream lisas `security.allowed_private_hosts`
+(turnerrainer/CronManager#49, väljalase 0.2.4-alpha). LJVIS kasutab nüüd
+`block_private_networks: true` + `allowed_private_hosts: [ruuter-internal]`;
+devops võib Helmis `APP_ENV`-i keskkonnapõhiseks muuta.
+
 ## 4. Etapp 2: Resql 0.3.0 → 0.4.3-alpha
 
 ### Mis muutub
@@ -175,7 +180,7 @@ Valikud:
 ### Vastuvõtt
 
 - Kohalik ja CI: TARA-mock login → callback → JWT cookie → õigused → esinduse vahetus → logout.
-- Restart ei vaheta JWT võtit (olemasolevad sessioonid kehtivad).
+- Restart ei vaheta JWT võtit (olemasolevad seansid kehtivad).
 - Testkeskkond: päris TARA login.
 - Playwright auth-testid rohelised.
 

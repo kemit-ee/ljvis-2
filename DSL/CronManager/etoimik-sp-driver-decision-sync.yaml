@@ -1,11 +1,13 @@
-# Runs at 01:30 Tallinn time (TZ pinned in docker-compose.yml) — after the
-# labour-inspection e-toimik sync (01:00) to avoid XTR contention. The job
+# Runs every 10 minutes (:04, :14, ...) Tallinn time (TZ pinned in docker-compose.yml).
+# Staggered against the other e-toimik syncs to avoid XTR contention. The job
 # processes both sp_driver and sp_teammate sub-forms.
 etoimik_sp_driver_decision_sync:
-  trigger: "0 30 1 * * ?"
+  trigger: "0 4/10 * * * ?"
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/etoimik-sp-driver-decision-sync
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

@@ -14,7 +14,7 @@ toodangus `ljvis2_<env>_arhiiv`). Arhiivil on kolm omavahel seotud funktsiooni:
 |---|---|---|---|
 | **A. Kustutatud vormide arhiveerimine** (ADR-010) | Vormid, mille viimane seis on „kustutatud“ | Tehtud; automaatne käivitus on **välja lülitatud** (2099) | [peatükk 7](#7-kustutatud-vormide-arhiveerimine-adr-010) |
 | **B. Ajapõhine arhiveerimine** (ADR-012) | Vormid, mille viimasest tegevusest on möödas X aastat | Tehtud, **vaikimisi välja lülitatud** | see juhend |
-| **C. Isikuga seose eemaldamine** (ADR-014, LJVIS2-51) | A/B käigus kustutatud (purge'itud) vormide arhiivikoopia isikuandmed | Tehtud, **vaikimisi sisse lülitatud** | [peatükk 12](#12-isikuga-seose-eemaldamine-adr-014-ljvis2-51) |
+| **C. Isikuga seose eemaldamine** (ADR-014, LJVIS2-51) | A/B käigus tööbaasist kustutatud vormide arhiivikoopia isikuandmed | Tehtud, **vaikimisi sisse lülitatud** | [peatükk 12](#12-isikuga-seose-eemaldamine-adr-014-ljvis2-51) |
 
 A ja B kasutavad sama kopeeri → kontrolli → (valikuliselt) kustuta mustrit ja sama
 arhiivitabelit `archive.form_snapshot`; C käivitub automaatselt kohe pärast A või B
@@ -26,11 +26,11 @@ kustutamissammu õnnestumist, kui `anonymize=true` (vaikimisi nii).
 > Vaikeväärtus on `purge=false`. Selle väärtuse korral teeb süsteem arhiivi koopia
 > ja jätab originaali tööbaasi.
 
-## 1. Kolm lülitit
+## 1. Arhiveerimise parameetrid
 
 Kõik seaded asuvad ühes failis: [`DSL/CronManager/archive-aged-forms.yaml`](../../DSL/CronManager/archive-aged-forms.yaml),
 töö URL-i päringuparameetrites. Ruuterit, andmebaasi ega rakendust ei ole vaja
-uuesti ehitada. Muuda ainult seda faili ja anna CronManagerile uus konfiguratsioon.
+uuesti ehitada. Muutke ainult seda faili ja andke CronManagerile uus konfiguratsioon.
 
 ```yaml
 archive_aged_forms:
@@ -47,7 +47,7 @@ archive_aged_forms:
 | `dryRun` | `false` | Kui väärtus on `true`, loendab süsteem arhiveeritavad üksused. Süsteem ei kopeeri ega kustuta andmeid. |
 
 Aja lugemise alus on **viimane tegevus** (`created_at` viimases hetktõmmises), mitte vormi
-esmaloomise aeg. Vorm, mida on 7 aasta jooksul kasvõi korra muudetud, ei ole vana.
+esmaloomise aeg. Kui vormi on viimase 7 aasta jooksul muudetud, ei arhiveeri süsteem seda vaikeväärtuse `retentionYears=7` korral.
 
 ## 2. Mis loetakse üksuseks
 
@@ -63,23 +63,23 @@ viimasest tegevusest on möödunud vähemalt `retentionYears` aastat.
 
 ## 3. Soovitatav sisselülitamise järjekord
 
-Luba funktsioon järgmiste etappide kaupa. Ära luba kustutamist enne, kui kopeerimine,
+Lubage funktsioon järgmiste etappide kaupa. Ärge lubage kustutamist enne, kui kopeerimine,
 kontroll ja taaste on edukalt katsetatud.
 
-1. **Proovikäivitus.** Sea `enabled=true&dryRun=true`. Käivita töö käsitsi
+1. **Proovikäivitus.** Seadke `enabled=true&dryRun=true`. Käivita töö käsitsi
    (peatükk 5). Kontrolli vastuse välja `wouldCopy`. See väli näitab arhiveeritavate
    üksuste arvu. Süsteem ei muuda andmeid.
-2. **Ainult arhiveerimine.** Sea `enabled=true&dryRun=false&purge=false`. Süsteem
+2. **Ainult arhiveerimine.** Seadke `enabled=true&dryRun=false&purge=false`. Süsteem
    kopeerib vormid arhiivi ja kontrollib tulemust. Originaalid jäävad tööbaasi.
    Kontrolli mitme käivituse logisid (peatükk 6) ja arhiivibaasi mahtu.
 3. **Kustutamine.** Kontrolli, et kopeerimine toimib. Kontrolli, et arhiivibaasi
-   varundus ja taastekatse on edukad (peatükk 8). Seejärel sea `purge=true`. Süsteem
+   varundus ja taastekatse on edukad (peatükk 8). Seejärel seadke `purge=true`. Süsteem
    kustutab arhiveeritud kirjed tööbaasist ainult siis, kui arhiivibaas on kõik read
    kinnitanud.
-4. **Funktsiooni väljalülitamine.** Sea `enabled=false`. Järgmine käivitus ei loe ega
-   kirjuta andmeid. Kustutatud kirjete taastamiseks järgi peatüki 9.
+4. **Funktsiooni väljalülitamine.** Seadke `enabled=false`. Järgmine käivitus ei loe ega
+   kirjuta andmeid. Kustutatud kirjete taastamiseks järgige peatüki 9 juhiseid.
 
-Enne kustutamise lubamist küsi andmeomaniku kinnitus. Andmeomanik peab kinnitama, et
+Enne kustutamise lubamist küsige andmeomaniku kinnitus. Andmeomanik peab kinnitama, et
 vanu vorme ei ole vaja töölaual, otsingus ega riskiarvutuses (vt peatükk 4).
 
 ## 4. Mis juhtub, kui `purge=true`
@@ -100,7 +100,7 @@ vanu vorme ei ole vaja töölaual, otsingus ega riskiarvutuses (vt peatükk 4).
   Arhiveeritud vorm avaneb seega ajaloovaatest ja otselingilt endiselt.
 - **Arhiveeritud vormid ei ole enam otsingus.** Vormiotsing ja töölaua nimekirjad
   loevad ainult tööbaasi. Pärast kustutamist ei leia vormi otsingust. See on teadlik
-  kompromiss. Kui vorme peab saama otsingust leida, jäta `purge=false`.
+  kompromiss. Kui vorme peab saama otsingust leida, jätke `purge=false`.
 - **Muu andmestik ei kao.** Kustutatakse ainult `forms.*` vormitabelite read. Auditilogi,
   X-tee logid, teavitused, ERRU andmed, riskiskooride ajalugu ja manused (S3) jäävad
   puutumata. See funktsioon ei arhiveeri ega kustuta S3-s talletatud manuseid; nende
@@ -111,7 +111,7 @@ vanu vorme ei ole vaja töölaual, otsingus ega riskiarvutuses (vt peatükk 4).
 ## 5. Käsitsi käivitamine ja kontroll
 
 CronManager käivitab ajastatud töö määratud ajal. Teenustele mõeldud võrgus saab
-töö `archive-aged-forms` käivitada käsitsi teenuse `ruuter-internal` kaudu. Kasuta
+töö `archive-aged-forms` käivitada käsitsi teenuse `ruuter-internal` kaudu. Kasutage
 samu parameetreid nagu ajastatud töö URL-is:
 
 ```bash
@@ -167,14 +167,14 @@ viimane staatus peab olema „kustutatud“. Töövoog on failis
 Ajastatud töö konfiguratsioon on failis
 [`archive-deleted-forms.yaml`](../../DSL/CronManager/archive-deleted-forms.yaml).
 Praegune käivitusreegel (`0 0 0 1 1 ? 2099`) ei käivita tööd automaatselt. Töö saab
-käivitada käsitsi. Automaatseks käivitamiseks iga kahe tunni järel sea `trigger`
+käivitada käsitsi. Automaatseks käivitamiseks iga kahe tunni järel seadke `trigger`
 väärtuseks `"0 0 0/2 * * ?"`. Sellel funktsioonil ei ole `purge`-lülitit. Funktsioon
 kustutab vormi tööbaasist alati pärast edukat kontrolli.
 
 ## 8. Varundus ja arhiivibaas
 
 - Arhiivibaas on **eraldi andmebaas** ja vajab **oma varundust**. Kui `purge=true`
-  sisse lülitada, on arhiivibaas ainus koopia. Ära lülita kustutamist sisse enne, kui
+  sisse lülitada, on arhiivibaas ainus koopia. Ärge lülitage kustutamist sisse enne, kui
   arhiivibaasi varundus ja taastekatse on tehtud.
 - Arhiivibaasi võib hoida eraldi PostgreSQL-i instantsis. Muutub ainult
   `LJVIS_RESQL_ARHIIV` väärtus `constants.ini`-s (vt [paigaldusjuhend](12-paigaldus-devops.md)).
@@ -186,8 +186,8 @@ kustutab vormi tööbaasist alati pärast edukat kontrolli.
 Automaatset „tööbaasi taastamise“ voogu ei ole. Vorm on arhiivis kogu ajalooga. Kui
 kirjeid on vaja tagasi tööbaasi tuua (nt kustutati ekslikult `purge=true`):
 
-1. Peata arhiveerimine (`enabled=false`).
-2. Loe read arhiivist: `SELECT form_type, id, payload FROM archive.form_snapshot WHERE form_type = '...' AND form_key = ...;`
+1. Peatage arhiveerimine (`enabled=false`).
+2. Lugege read arhiivist: `SELECT form_type, id, payload FROM archive.form_snapshot WHERE form_type = '...' AND form_key = ...;`
 3. Read lisatakse tagasi tabelisse `forms.<tabel>` funktsiooni
    `jsonb_populate_record(NULL::forms.<tabel>, payload)` abil ja samade `id`
    väärtustega. Seda teeb DBA kontrollitud tegevusena hooldusaknas. Vormi lisamine
@@ -198,14 +198,14 @@ Enne esimest kustutavat käivitust tee testkeskkonnas taastekatse.
 
 ## 10. Keskkonnapõhine seadistus
 
-- **dev/CI:** fail `DSL/CronManager/` on konteinerisse monteeritud; muuda faili ja
-  taaskäivita `cronmanager`.
+- **dev/CI:** fail `DSL/CronManager/` on konteinerisse monteeritud; muutke faili ja
+  taaskäivitage `cronmanager`.
 - **Test/toodang:** CronManageri töö-DSL antakse paigaldusrepos (devops) ConfigMapiga.
-  Parameetrite muutmiseks uuenda ConfigMapi ja taaskäivita CronManager.
+  Parameetrite muutmiseks uuenda ConfigMapi ja taaskäivitage CronManager.
   Koodirepos olev fail on lähtemall.
 - Ajavöönd on `Europe/Tallinn` (`TZ`). Sagedus (`trigger`) on Quartz-cron kirjeldus.
   Kogu andmehulga esmakordse arhiveerimise ajal käivita töö sagedamini, näiteks
-  igal ööl väärtusega `0 0 3 * * ?`. Pärast esmast arhiveerimist taasta
+  igal ööl väärtusega `0 0 3 * * ?`. Pärast esmast arhiveerimist taastage
   iganädalane käivitus.
 
 ## 11. Piirangud
@@ -220,7 +220,7 @@ Enne esimest kustutavat käivitust tee testkeskkonnas taastekatse.
 
 ## 12. Isikuga seose eemaldamine (ADR-014, LJVIS2-51)
 
-Peatükkide 4 ja 7 kustutamissamm (`purge`) eemaldab vormi töö-baasist, aga arhiivis
+Peatükkide 4 ja 7 kustutamissamm (`purge`) eemaldab vormi tööbaasist, aga arhiivis
 jääb sisu täies mahus alles. Vastuvõtutingimus LJVIS2-51 nõuab lisaks ka **isikuga
 seose eemaldamist** arhiveeritud kirjelt. See toimub automaatselt, kohe pärast
 kinnitatud kustutamist, ja on eraldi `anonymize` lülitiga juhitav — täpselt samas
@@ -241,7 +241,7 @@ url: "...?anonymize=true"
 anonümiseerimine iga kord, kui kustutamine õnnestub (seal pole `purge`-lülitit — see
 funktsioon kustutab alati). `archive-aged-forms.yml`-is (ADR-012) käivitub see **ainult**
 siis, kui `purge=true` JA kustutamine kinnitati — archive-only teel (`purge=false`)
-isikuandmeid ei puudutata, sest töö-baasi koopia on veel elus.
+isikuandmeid ei puudutata, sest koopia on tööbaasis alles.
 
 ### Mis asendatakse
 
@@ -255,7 +255,7 @@ isikuandmeid ei puudutata, sest töö-baasi koopia on veel elus.
 | Sünnikoht | jääb ainult viimane komaga eraldatud osa (tüüpiliselt riik) | `"Tallinn, Eesti"` → `"Eesti"` |
 
 Vormi **loonud ametniku** väljad (looja isikukood, nimi) jäävad alati puutumata —
-need on auditjälg, mitte isikuga seos.
+neid säilitatakse toimingu tegija tuvastamiseks.
 
 **Teadaolev piirang:** sünnikoha väli ilma komata (nt ainult linnanimi) jääb
 muutumatuks, kuna vabatekstist riiki usaldusväärselt tuletada ei saa.

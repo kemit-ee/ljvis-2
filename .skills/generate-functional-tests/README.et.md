@@ -11,8 +11,8 @@ See skill aitab LJVIS projektis genereerida ja laiendada Newman/Postman funktsio
 ## Kiire kasutuselevõtt
 
 1. Veendu, et sihtmärk-endpointidel/-issuedel on DSL failid olemas `DSL/Ruuter/ljvis/` all.
-2. Käivita skill käsuga: *"Loo funktsionaaltestid issue #N jaoks"* või *"Lisa testid users endpointidele"*.
-3. Skill loeb Ruuter YML faile, et välja võtta endpointid, õigused ja valideerimisreeglid.
+2. Käivita skill käsuga: *"Loo funktsionaaltestid issue #N jaoks"* või *"Lisa testid users lõpp-punktidele"*.
+3. Skill loeb Ruuter YML faile, et välja võtta lõpp-punktid, õigused ja valideerimisreeglid.
 4. Uued testiüksused lisatakse `tests/postman/ljvis-e2e-collection.json` failis õigesse kausta.
 5. Käivita SKILL.md Step 5 sanity-check, et kontrollida muutujate viidete korrektsust.
 

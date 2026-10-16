@@ -316,7 +316,7 @@ sequenceDiagram
 **DSL:** `DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection.yml`
 
 Võtab vastu Tööinspektsiooni töökontrolli andmed (vana WSDL `RegisterJobInspectionRequestType`, teisendatud REST/JSON-iks) ja salvestab `forms.labour_inspection_form` tabelisse.
-**Idempotentne** — sama `kontrolli_id` täpne kordus ei tekita uut rida. Uus akt tekib staatusega `confirmed`; muudetud kordus tagastab **409 `CONFLICT`** ja midagi ei salvestata. Samaaegsed päringud loovad ühe akti. Vt [05-register-job-inspection.md](05-register-job-inspection.md#5-idempotentsus).
+**Idempotentne** — sama `kontrolli_id` täpne kordus ei tekita uut rida. Uus kontrollvorm tekib staatusega `confirmed`; muudetud kordus tagastab **409 `CONFLICT`** ja midagi ei salvestata. Samaaegsed päringud loovad ühe kontrollvormi. Vt [05-register-job-inspection.md](05-register-job-inspection.md#5-idempotentsus).
 
 #### Sisendid
 
@@ -372,7 +372,7 @@ curl -X POST https://<turvaserver>/r1/EE/GOV/70001231/ljvis2/RegisterJobInspecti
 **DSL:** `DSL/Ruuter.internal/ljvis/POST/xroad/provide/register-job-inspection-v3.yml`
 
 Laiendatud töökontrolli leping — lisanduvad sõiduki (reg.nr, VIN), juhi isikukoodi ja menetluse lisaväljad. Salvestatakse samasse `forms.labour_inspection_form` tabelisse.
-**Idempotentsuse võti:** leping `xroad-v3` + `kontrolli_id` (`external_inspection_id` veerus `v3-` + `kontrolli_id`). Korduspäring tagastab olemasoleva akti ega rakenda muudatusi (senine leping); samaaegsed päringud loovad ühe akti.
+**Idempotentsuse võti:** leping `xroad-v3` + `kontrolli_id` (`external_inspection_id` veerus `v3-` + `kontrolli_id`). Korduspäring tagastab olemasoleva kontrollvormi ega rakenda muudatusi (senine leping); samaaegsed päringud loovad ühe kontrollvormi.
 
 #### Sisendid (lisanduvad v1-le)
 
@@ -681,7 +681,7 @@ http://ruuter-internal:8080/ljvis/xroad/provide/openapi
 5. Edaspidi saab lepingut värskendada nupuga **"Värskenda"** — käsitsi uuesti üleslaadimist pole vaja.
 
 **Oluline:**
-- See endpoint ei nõua `X-Road-Client` päist ega muud autentimist — turvaserver ei toeta kirjelduse tõmbamisel autentimist. Seega peab tee jääma samasse Ruuter.internal komponenti, mis muidu polegi avalikult (nginx-i kaudu) ligipääsetav ([4.1](#41-ülevaade)) — ainult turvaserverile otse.
+- See lõpp-punkt ei nõua `X-Road-Client` päist ega muud autentimist — turvaserver ei toeta kirjelduse tõmbamisel autentimist. Seega peab tee jääma samasse Ruuter.internal komponenti, mis muidu polegi avalikult (nginx-i kaudu) ligipääsetav ([4.1](#41-ülevaade)) — ainult turvaserverile otse.
 - Ruuter DSL ei toeta faili lugemist kettalt, seega on kirjelduse sisu embed'itud otse DSL-faili sisse. Sisu hoiab failiga `XroadOpenapi.yaml` sünkroonis skript `scripts/generate-xroad-openapi-dsl.py` — kui leping muutub, jooksuta:
   ```bash
   python3 scripts/generate-xroad-openapi-dsl.py

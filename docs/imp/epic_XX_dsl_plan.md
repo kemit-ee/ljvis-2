@@ -64,7 +64,7 @@ Lisa siia päris epicu puhul iga reaalse faili kohta eraldi rida ja lühikomment
 
 ## 7. Detailne Ruuteri loogika
 
-Kirjelda iga endpointi voog sammudena:
+Kirjelda iga lõpp-punkti voog sammudena:
 
 1. sisendi valideerimine,
 2. autoriseerimine (`.guard`),
@@ -74,7 +74,7 @@ Kirjelda iga endpointi voog sammudena:
 6. rollback või recovery voog,
 7. lõppvastus.
 
-Kui endpoint kasutab `GET` meetodit, siis see tohib olla ainult parameetrita listpäring ning Ruuter ei tohi RESQL-ile saata body, query ega path parameetreid.
+Kui lõpp-punkt kasutab `GET` meetodit, siis see tohib olla ainult parameetrita listpäring ning Ruuter ei tohi RESQL-ile saata body, query ega path parameetreid.
 
 ## 8. Ruuteri kontrollide Mermaid flow
 
@@ -124,7 +124,7 @@ Viita `docs/db_errorhandling_rules.md` failile ja täpsusta epicu-spetsiifilisel
 - [ ] Idempotency/rerun risk on käsitletud
 - [ ] Guard reeglid klapivad permission matrixiga
 - [ ] Mock failid on planeeritud
-- [ ] GET endpointid on ainult parameetrita listide jaoks
+- [ ] GET lõpp-punktid on ainult parameetrita listide jaoks
 - [ ] GET vood ei edasta RESQL-ile sisendparameetreid
 - [ ] Dokumentatsiooni failid on planeeritud
 

@@ -233,6 +233,37 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
   result: audit_result
+  next: checkNotifyOnResave
+
+# Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
+# teavituste mõttes — publish.yml-iga sama evaluate-technical-publish, aga
+# iga uus version annab oma event_key, nii et teavitus ei jää dubleerimiskontrolli taha.
+checkNotifyOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: evaluateNotifications
+  next: returnSuccess
+
+evaluateNotifications:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/evaluate-technical-publish"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entityType: "trailer_technical"
+      entityId: "${'' + sub_form_key}"
+      compoundFormKey: "${'' + compound_key_for_log}"
+      version: "${'' + saveRes.response.body[0].version}"
+      resultType: ${result_type}
+      resultTransportInterruption: ${result_transport_interruption}
+      partsSummary: ${parts_summary}
+      partsDefects: ${parts_defects}
+      violations: ${violations}
+      createdBy: ${actor_personal_code}
+  result: notificationEvaluationRes
+  error: returnSuccess
   next: returnSuccess
 
 returnResqlSaveError:

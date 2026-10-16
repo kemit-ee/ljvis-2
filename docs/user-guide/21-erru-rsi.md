@@ -116,5 +116,5 @@ valitud hinnangud on märgitud ristiga.
 - Sihtliikmesriik tuletub automaatselt sõiduki registreerimisriigist — muuta ei saa.
 - Kuupäeva ja kellaajaväljal tekivad eraldajad automaatselt (nt `12.03.2026`, `14:30`).
 - Teate number on alguses `(määratakse salvestamisel)`; pärast salvestamist kuvatakse tegelik number.
-- Veoettevõtja ja juhi plokid on valikulised — lülita sisse ainult siis, kui andmed on olemas.
+- Veoettevõtja ja juhi plokid on valikulised — lülitage sisse ainult siis, kui andmed on olemas.
 - Kui teade on olekus `Saabuv`, ei saa seda kunagi muuta, sõltumata õigustest.

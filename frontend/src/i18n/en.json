@@ -1160,7 +1160,8 @@
       "xteeDataTitle": "Data queried via the data exchange layer (X-tee)",
       "validation": {
         "required": "Required field",
-        "workDaysCountMax": "Number of work days must not exceed the number of checked days"
+        "workDaysCountMax": "Number of work days must not exceed the number of checked days",
+        "daysCountMaxDigits": "Number of days can have at most 2 digits"
       }
     },
     "drive_rest": {
@@ -1489,6 +1490,7 @@
     "originalTemplateId": "Postkast template alias (templateId)",
     "defaultLanguage": "Default language",
     "defaultRecipientEmail": "Default recipient email",
+    "recipients": "Recipients",
     "desktopRecipients": "Notification recipients",
     "desktopRecipientsEmpty": "No recipients selected",
     "desktopRecipientsSearchPlaceholder": "Search user by name",
@@ -1656,6 +1658,39 @@
   },
   "xroadLogs": {
     "title": "e-Toimik X-Road logs",
+    "manualJobs": {
+      "title": "Manual run",
+      "description": "Runs the same jobs the system runs on a schedule. The job runs to completion before the result appears — keep the page open.",
+      "run": "Run",
+      "running": "Running…",
+      "done": "Job \"{{job}}\" finished, failures: {{failures}}.",
+      "jobs": {
+        "risk-score-recalc-sync": {
+          "title": "Risk score recalculation",
+          "description": "Recalculates risk levels, including companies that have no score yet (nightly at 03:00)."
+        },
+        "etoimik-decision-sync": {
+          "title": "e-Toimik sync: labour inspection",
+          "description": "Fetches enforced decisions from e-Toimik for labour inspection forms."
+        },
+        "etoimik-tram-decision-sync": {
+          "title": "e-Toimik sync: TRAM control card",
+          "description": "Fetches enforced decisions from e-Toimik for TRAM control cards."
+        },
+        "etoimik-sp-driver-decision-sync": {
+          "title": "e-Toimik sync: driver driving and rest time",
+          "description": "Fetches enforced decisions from e-Toimik for driver driving and rest time sub-forms."
+        },
+        "etoimik-sp-teammate-decision-sync": {
+          "title": "e-Toimik sync: crew member driving and rest time",
+          "description": "Fetches enforced decisions from e-Toimik for crew member driving and rest time sub-forms."
+        },
+        "etoimik-technical-check-decision-sync": {
+          "title": "e-Toimik sync: technical check",
+          "description": "Fetches enforced decisions from e-Toimik for vehicle and trailer technical check forms."
+        }
+      }
+    },
     "emptyResult": "No entries match the filter",
     "empty": "No content",
     "viewRequest": "View request",

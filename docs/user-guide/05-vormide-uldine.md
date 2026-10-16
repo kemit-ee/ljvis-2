@@ -1,7 +1,7 @@
 # Vormid
 
-Kõik kontrollaktid (vormid) töötavad sarnaselt. Selles peatükis kirjeldatakse kõigile
-vormidele ühised toimingud; iga vormitüüpi käsitletakse eraldi alampeatükis:
+Kontrollvormidel on ühised toimingud. See peatükk kirjeldab neid toiminguid.
+Iga vormitüübi täitmist kirjeldab eraldi peatükk:
 
 - [Välisriigi rikkumine](06-vorm-valisrikkumine.md)
 - [Koondvorm](07-vorm-liitvorm.md) ja selle alamvormid
@@ -37,7 +37,7 @@ enne, kui kõik kohustuslikud väljad on korrektselt täidetud.
 
 | Nupp | Selgitus |
 |---|---|
-| **Salvesta** | Salvestab vormi hetkeseisu. Vorm jääb muudetavaks (staatus *Salvestatud*). Iga salvestus loob uue versiooni. |
+| **Salvesta** | Salvestab vormi hetkeseisu. Vorm jääb muudetavaks (staatus *Salvestatud*). Versioonide tekkimist kirjeldab vastava vormitüübi peatükk. |
 | **Kinnita** | Kinnitab vormi (staatus *Kinnitatud*). Nõuab kõigi kohustuslike väljade täitmist. |
 | **Avalikusta** | Avalikustab kinnitatud vormi (staatus *Avalikustatud*). |
 | **Muuda** | Avab kinnitatud/avalikustatud vormi uuesti redigeerimiseks (vastava õigusega). |
@@ -51,7 +51,7 @@ enne, kui kõik kohustuslikud väljad on korrektselt täidetud.
 | Salvestatud | Salvestatud, veel kinnitamata vorm. Saab muuta. |
 | Kinnitatud | Kinnitatud vorm. Muutmiseks tuleb see uuesti avada nupuga „Muuda". |
 | Avalikustatud | Avalikustatud vorm. |
-| Versioon (snapshot) | Vormi salvestatud seisund ajateljel. Iga salvestus/kinnitus loob uue versiooni; varasemaid saab vaadata. |
+| Versioon | Vormi andmed kindlal ajahetkel. Varasemaid versioone saab vaadata vormi ajaloost. |
 | Vormi number | Unikaalne number, mis antakse vormile esimesel salvestamisel (nt `VR-2026-3001`). |
 
 ## Vormide otsing
@@ -61,4 +61,4 @@ Vormidele pääseb ligi töölaua või menüü kaudu. Iga vormi vaade koosneb:
 - põhiandmete kaartidest
 - alamvormide loendist (koondvormi puhul)
 - failide loendist
-- ajaloo/snapshots loendist
+- varasemate versioonide loendist

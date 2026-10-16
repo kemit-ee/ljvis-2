@@ -5,9 +5,9 @@ teavitatakse välisriigi vedajale tehtud sõidu- ja puhkeaja kontrolli
 tulemustest. Raskete rikkumiste (MSI/VSI/SI) korral edastatakse teade
 vedaja registreerimisriigile.
 
-Siseturul tegutseva (EL) vedaja puhul saadetakse NCR teade automaatselt
-pärast sõidu- ja puhkeaja kontrollkaardi kinnitamist, kui tuvastati raskeid
-rikkumisi. Ametnik saab NCR teate luua ka käsitsi.
+Ametnik saab NCR teate luua käsitsi sõidu- ja puhkeaja kontrollkaardilt.
+Teatud tingimustel loob ja saadab süsteem teate automaatselt. Vt
+[automaatse saatmise tingimusi](#automaatne-ncr-saatmine).
 
 ## Juurdepääs ja õigused
 
@@ -32,11 +32,19 @@ nupp **„Loo välisriigis toimunud rikkumise kontrollkaart"** ilmub NCR teate v
 
 ## Automaatne NCR saatmine
 
-Kui sõidu- ja puhkeaja kontrollkaardil tuvastatakse raskeid rikkumisi (MSI/VSI/SI)
-ja kaart kinnitatakse, loob süsteem **automaatselt** NCR teate ning saadab selle
-öösel ERRU kaudu vedaja registreerimisriiki. Ametnik ei pea seda käsitsi tegema.
-Negatiivse vastuvõtukinnituse või sidevea korral jääb NCR teade süsteemi ootama
-ning ametnik saab selle üle kontrollida.
+Süsteem saadab NCR teate öise taustatööga, kui täidetud on kõik järgmised tingimused:
+
+- autojuhi või meeskonnaliikme sõidu- ja puhkeaja vorm on avalikustatud;
+- kontrolli tulemus on **Korras**;
+- sõiduki registreerimisriik on välisriik;
+- koondvormil on vedaja nimi ja ühenduse tegevusloa kinnitatud ärakirja number;
+- alamvorm on aktiivne ja koondvorm ei ole kustutatud;
+- alamvormi viimase salvestuse vanus ei ületa 365 päeva;
+- sama alamvormi kohta ei ole automaatset saatmiskatset veel registreeritud.
+
+Teade saadetakse ERRU kaudu sõiduki registreerimisriiki. Ametnik ei pea seda
+käsitsi koostama. Kui automaatse saatmise tingimused ei ole täidetud, saab
+ametnik teate koostada käsitsi. Saatmisvea korral kontrollige teadet NCR-teadete vaates.
 
 ## Teate ülesehitus (väljaminev)
 
@@ -53,7 +61,7 @@ ning ametnik saab selle üle kontrollida.
 
 Raskete rikkumiste valik on **ERRU koodi järjekorras** väiksemast suuremaks
 (MSI → VSI → SI). Iga rikkumisliigi ees on ERRU kood (nt `VSI 869`).
-Kaks kabotaaži-kood saavad eristava kirjelduse:
+Kahel kabotaažikoodil on erinev kirjeldus:
 - **VSI 869** – veoseveo kabotaaž (määrus nr 1072/2009)
 - **VSI 872** – sõitjateveo kabotaaž (määrus nr 1073/2009)
 
@@ -92,7 +100,7 @@ Vastusevorm täidetakse ning saadetakse nupuga **„Saada vastus"**.
 
 ## Nipid
 
-- „Karistust saab edasi kaevata" on vaikimisi **Ei** — muuda ainult vajadusel.
+- „Karistust saab edasi kaevata" on vaikimisi **Ei** — muutke ainult vajadusel.
 - Raskete rikkumiste rippmenüü on ERRU koodide järjekorras; VSI869 ja VSI872 on eraldi eristatud.
 - NCR teate saab luua ka automaatselt sõidu- ja puhkeaja kaardilt (kinnitamisel).
 - Saabuva teate vastuse saab salvestada mitmes osas enne lõplikku saatmist.

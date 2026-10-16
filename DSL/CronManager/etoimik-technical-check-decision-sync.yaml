@@ -3,13 +3,15 @@
 # DSL/Ruuter.internal/ljvis/POST/cron/etoimik-technical-check-decision-sync.yml
 # (candidate selection, X-Road query, in-place field write, audit).
 #
-# Runs at 01:45 Tallinn time (TZ pinned in docker-compose.yml) — after the
-# PPA sp-driver sync (01:30) to avoid XTR contention.
+# Runs every 10 minutes (:08, :18, ...) Tallinn time (TZ pinned in docker-compose.yml).
+# Staggered against the other e-toimik syncs to avoid XTR contention.
 etoimik_technical_check_decision_sync:
-  trigger: "0 45 1 * * ?"
+  trigger: "0 8/10 * * * ?"
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/etoimik-technical-check-decision-sync
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

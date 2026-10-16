@@ -42,7 +42,7 @@ Mis andmeid edastatakse, mis salvestatakse (tabel), säilitus, logimine (`xroad.
 | Test | Tüüp (mock / Newman / DSL-test / käsitsi) | Asukoht | Katab |
 |---|---|---|---|
 
-Kuidas testitakse ilma päris vastaspooleta (mock) ja kuidas päris vastaspoole vastu (test-keskkond, protokoll).
+Kuidas testitakse ilma päris vastaspooleta (mock) ja kuidas päris vastaspoole vastu (testkeskkond, protokoll).
 
 ### 2.2 Veahaldus
 | Viga / olukord | Tuvastus | Käitumine (kordus, viivitus, eskaleerimine) | Mida näeb kasutaja / haldur |
@@ -54,7 +54,7 @@ Kuidas testitakse ilma päris vastaspooleta (mock) ja kuidas päris vastaspoole 
 | Osaline ebaõnnestumine | | | |
 
 ### 2.3 Jälgimine ja tõrkeotsing
-Kust logi leiab, millised mõõdikud/ hoiatused on, kuidas ebaõnnestunud saadetist uuesti saata.
+Kust logi leiab, millised mõõdikud ja hoiatused on, kuidas ebaõnnestunud saadetist uuesti saata.
 
 ## 3. Versioonimine
 
@@ -62,7 +62,7 @@ Kust logi leiab, millised mõõdikud/ hoiatused on, kuidas ebaõnnestunud saadet
 |---|---|
 | Praegune versioon | |
 | Mis loetakse tagasiühilduvaks / murdvaks muudatuseks | |
-| Mitu versiooni toetatakse paralleelselt, väljasuremise tähtaeg | |
+| Mitu versiooni toetatakse paralleelselt, toetamise lõpetamise tähtaeg | |
 | Kuidas versiooni valitakse (URL, päis, sõnumi atribuut) | |
 | Muutuse teavitus vastaspoolele | |
 | Lepingufaili asukoht ja kontroll CI-s | |

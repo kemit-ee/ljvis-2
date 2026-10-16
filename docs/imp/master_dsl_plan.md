@@ -18,4 +18,4 @@ Klassifikaatorite haldamine toimub Epic 09 (https://github.com/kemit-ee/ljvis-2/
 - See fail sisaldab lühiviidet epicule ja blueprint failile.
 - `generate-resql-files` skill peab enne genereerimist looma või uuendama vastava epicu plaani.
 - Blueprintid peavad kasutama Ruuteri sisekutsete kuju `[#LOCAL_RESQL]/ljvis2/<moodul>/<entiteet>/v1/...` ja RESQL failiteid kujul `DSL/Resql/<MEETOD>/<moodul>/<entiteet>/v1/...` ja arvestama, et runtime laeb need kujul `/DSL/ljvis2/<MEETOD>/<moodul>/<entiteet>/v1/...`.
-- `state_updater` endpointide kuju on erinev: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v1/` kihita).
+- `state_updater` lõpp-punktide kuju on erinev: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v1/` kihita).

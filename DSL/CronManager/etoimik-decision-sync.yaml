@@ -1,9 +1,12 @@
-# Runs at 01:00 Tallinn time (TZ pinned in docker-compose.yml).
+# Runs every 10 minutes (:00, :10, ...) Tallinn time (TZ pinned in docker-compose.yml).
+# Staggered against the other e-toimik syncs (+2/+4/+6 min) to avoid XTR contention.
 etoimik_decision_sync:
-  trigger: "0 0 1 * * ?"
+  trigger: "0 0/10 * * * ?"
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/etoimik-decision-sync
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
   retryCount: 2
   retryDelay: 60000
   ignoreFailures: true

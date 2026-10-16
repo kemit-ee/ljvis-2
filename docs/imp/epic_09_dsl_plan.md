@@ -36,8 +36,8 @@ Epic 09 katab admin-liidese klassifikaatorite ja klassifikaatori väärtuste lug
 - Uue klassifikaatori loomine
 - Klassifikaatori kustutamine
 - Klassifikaatori väärtuse füüsiline kustutamine
-- Public/consumer read endpointid
-- Ruuteri GET endpointid
+- Avalikud ja liidestujale mõeldud lugemise lõpp-punktid
+- Ruuteri GET lõpp-punktid
 
 ## 4. Sisendallikad ja tõlgendus
 
@@ -46,7 +46,7 @@ Epic 09 katab admin-liidese klassifikaatorite ja klassifikaatori väärtuste lug
 | Epic issue + subtasks | Funktsionaalne vajadus classifier/classifier_value voogude jaoks |
 | `docs/data_model.md` | `classifier*`, `classifier_value*`, `*_latest` ja append-only mudeli valideerimine |
 | `docs/db_errorhandling_rules.md` | Verify-after-write, rollback, partial success, stale read ja idempotency reeglid |
-| Permissions matrix | `.guard` õiguste määramine admin endpointidele |
+| Permissions matrix | `.guard` õiguste määramine halduse lõpp-punktidele |
 | Errors catalog | 401/403/404/409/500/503 vastuste joondamine |
 | `docs/resql/epic_09/README.md` | Juba loodud Epic 09 SQL/Ruuter failide loend ja ärivoogude kirjeldus |
 | `docs/resql/epic_09/paigaldusjuhend.md` | Paigaldusjärjekord ja runtime path-mudel |
@@ -80,14 +80,14 @@ Epic 09 katab admin-liidese klassifikaatorite ja klassifikaatori väärtuste lug
 | `DSL/Resql/POST/state_updater/classifier_latest/mock_build.sql` | SQL | Mock snapshot rebuild vastus |
 | `DSL/Resql/POST/state_updater/classifier_value_latest/build.sql` | SQL | `classifier_value_latest` snapshot rebuild |
 | `DSL/Resql/POST/state_updater/classifier_value_latest/mock_build.sql` | SQL | Mock snapshot rebuild vastus |
-| `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard` | Guard | Ligipääs `classifiers/*` endpointidele |
+| `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard` | Guard | Ligipääs `classifiers/*` lõpp-punktidele |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/list.yml` | Ruuter DSL | Klassifikaatorite listi voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_list.yml` | Ruuter DSL | Mock listi voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/get.yml` | Ruuter DSL | Klassifikaatori detaili voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_get.yml` | Ruuter DSL | Mock detaili voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/update.yml` | Ruuter DSL | Klassifikaatori nime/kirjelduse muutmise voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifiers/mock_update.yml` | Ruuter DSL | Mock update voog |
-| `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard` | Guard | Ligipääs `classifier-values/*` endpointidele |
+| `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard` | Guard | Ligipääs `classifier-values/*` lõpp-punktidele |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/list.yml` | Ruuter DSL | Väärtuste listi voog |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/mock_list.yml` | Ruuter DSL | Mock väärtuste list |
 | `DSL/Ruuter/api/POST/v1/admin/classifier-values/check_code_exists.yml` | Ruuter DSL | Koodi eelkontrolli voog |
@@ -152,7 +152,7 @@ Epic 09 muudab skeemi, seega blueprint sisaldab Liquibase tripletit. Olemasolev 
 5. Muidu tagastab DB-kinnitatud snapshoti.
 
 ### classifiers/update
-1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid endpoint ise kontrollib enne write sammu eraldi `classifier.edit` õigust.
+1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid lõpp-punkt ise kontrollib enne write sammu eraldi `classifier.edit` õigust.
 2. Valideeritakse `classifierId`, `name`, valikuline `description`, `createdBy`.
 3. Kutsub `[#LOCAL_RESQL]/ljvis2/iam/classifier/v1/get_latest_name_state`, et veenduda klassifikaatori olemasolus.
 4. Kui kirjet ei leita, tagastab 404.
@@ -170,13 +170,13 @@ Epic 09 muudab skeemi, seega blueprint sisaldab Liquibase tripletit. Olemasolev 
 4. Tagastab DB-kinnitatud nimekirja.
 
 ### classifier-values/check_code_exists
-1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid endpoint ise kontrollib eraldi `classifier_value.edit` õigust.
+1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid lõpp-punkt ise kontrollib eraldi `classifier_value.edit` õigust.
 2. Valideeritakse `classifierId` ja `code`.
 3. Kutsub `[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/check_code_exists`.
 4. Tagastab olemasolu bool-vastuse.
 
 ### classifier-values/create
-1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid endpoint ise kontrollib enne write sammu eraldi `classifier_value.edit` õigust.
+1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid lõpp-punkt ise kontrollib enne write sammu eraldi `classifier_value.edit` õigust.
 2. Valideeritakse `classifierId`, `code`, `name`, `validFrom`, valikuline `validUntil`, `createdBy`.
 3. Kutsub `[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/check_code_exists` ja katkestab voo `409` conflict vastusega, kui kood on juba kasutusel.
 4. Kutsub `[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/create`.
@@ -188,7 +188,7 @@ Epic 09 muudab skeemi, seega blueprint sisaldab Liquibase tripletit. Olemasolev 
 10. Tagastab snapshot rebuildi DB-kinnitatud tulemuse.
 
 ### classifier-values/update
-1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid endpoint ise kontrollib enne write sammu eraldi `classifier_value.edit` õigust.
+1. Kaustapõhine guard kontrollib JWT olemasolu ja baasõiguseid, kuid lõpp-punkt ise kontrollib enne write sammu eraldi `classifier_value.edit` õigust.
 2. Valideeritakse `classifierValueId`, `validFrom`, valikuline `validUntil`, `createdBy`.
 3. Kutsub `[#LOCAL_RESQL]/ljvis2/iam/classifier_value/v1/get_latest_validity_state`, et veenduda väärtuse olemasolus.
 4. Kui latest state puudub, tagastab 404.
@@ -241,11 +241,11 @@ flowchart TD
 |----------|------------|-------|------------|-----------|
 | `/api/v1/admin/classifiers/list` | `classifier.list` OR `classifier.read` OR `classifier.edit` | admin | puudub | No |
 | `/api/v1/admin/classifiers/get` | `classifier.list` OR `classifier.read` OR `classifier.edit` | admin | puudub | No |
-| `/api/v1/admin/classifiers/update` | `classifier.edit` | admin | endpointi write-check peab `classifier.edit` eraldi kinnitama | No |
+| `/api/v1/admin/classifiers/update` | `classifier.edit` | admin | lõpp-punkti write-check peab `classifier.edit` eraldi kinnitama | No |
 | `/api/v1/admin/classifier-values/list` | `classifier.read` OR `classifier_value.edit` | admin | puudub | No |
-| `/api/v1/admin/classifier-values/check_code_exists` | `classifier_value.edit` | admin | endpointi permission-check peab `classifier_value.edit` eraldi kinnitama | No |
-| `/api/v1/admin/classifier-values/create` | `classifier_value.edit` | admin | endpointi write-check peab `classifier_value.edit` eraldi kinnitama | No |
-| `/api/v1/admin/classifier-values/update` | `classifier_value.edit` | admin | endpointi write-check peab `classifier_value.edit` eraldi kinnitama | No |
+| `/api/v1/admin/classifier-values/check_code_exists` | `classifier_value.edit` | admin | lõpp-punkti permission-check peab `classifier_value.edit` eraldi kinnitama | No |
+| `/api/v1/admin/classifier-values/create` | `classifier_value.edit` | admin | lõpp-punkti write-check peab `classifier_value.edit` eraldi kinnitama | No |
+| `/api/v1/admin/classifier-values/update` | `classifier_value.edit` | admin | lõpp-punkti write-check peab `classifier_value.edit` eraldi kinnitama | No |
 
 ## 10. Failure-handling ja state-management
 
@@ -272,8 +272,8 @@ Viide: `docs/db_errorhandling_rules.md`
 - [ ] Partial success on classifier value create voo jaoks kirjeldatud
 - [ ] Idempotency/rerun risk on käsitletud
 - [ ] Guard reeglid klapivad permissions loogikaga
-- [ ] `edit` / `update` / `create` endpointid teevad vajadusel endpointi-tasemel range write-permission kontrolli
-- [ ] Code-põhised write endpointid teevad enne DB write sammu `check_code_exists` või samaväärse eelkontrolli
+- [ ] `edit` / `update` / `create` lõpp-punktid teevad vajadusel lõpp-punkti tasemel range write-permission kontrolli
+- [ ] Code-põhised write lõpp-punktid teevad enne DB write sammu `check_code_exists` või samaväärse eelkontrolli
 - [ ] Mock failid on planeeritud kõigile production failidele
 - [ ] Liquibase triplet on olemas
 - [ ] `_state` / `_status` indeksid on põhjendatud

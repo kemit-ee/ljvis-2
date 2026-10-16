@@ -13,7 +13,7 @@ Sõidu- ja puhkeaja kontrollvormi kasutatakse tee kontrolli käigus juhi või me
 
 ## Kust vorm avada
 
-Seda vormit täidetakse **koondvormi alamvormina**. Vorm avaneb koondvormi
+Seda vormi täidetakse **koondvormi alamvormina**. Vorm avaneb koondvormi
 vahekaardil:
 
 - **uue koondvormi** loomisel: märkige töölaua ploki „Koondvorm" loendis „Autojuhi
@@ -41,7 +41,7 @@ Olemasolevat vormi saab avada otse URL-ilt:
 
 ## Vormi osad ja väljad
 
-Vormis on täidetavad kaardid/akkordionid. Tärniga `*` tähistatud väljad on kohustuslikud.
+Vormi väljad on jaotatud kaartidele ja avatavatesse jaotistesse. Tärniga `*` tähistatud väljad on kohustuslikud.
 
 ![Autojuhi sõidu- ja puhkeaja kontrollvorm koondvormi vahekaardil](images/13-vorm-soidu-puhkeaeg/01-alamvorm.png)
 
@@ -80,8 +80,8 @@ Juhul kui `resultType` = `KORRAS`, ei avane dokumendi/õiguse, sõidu-puhkeaja e
 
 Aktiivne, kui tulemus pole `KORRAS`.
 
-- **Dokumentide kontroll** (`documentChecks`) – vali dokumentide liigid ja seotud rikkumised modaalaknas.
-- **Muud dokumendid** (`otherDocuments`) – märgi dokumendi olek (nõuetekohane või puudub).
+- **Dokumentide kontroll** (`documentChecks`) – valige dokumentide liigid ja seotud rikkumised modaalaknas.
+- **Muud dokumendid** (`otherDocuments`) – märkige dokumendi olek (nõuetekohane või puudub).
 
 ### 5. Sõidu- ja puhkeaja nõuete täitmine
 
@@ -90,11 +90,11 @@ Aktiivne, kui tulemus pole `KORRAS`.
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | SP rakendatavus (`spApplicability`) | Ei | Valik: Rakendatakse / Ei rakendata / Ei kontrollitud |
-| Tachograafi tüüp (`tachographTypeCode`) | Jah, kui `spApplicability` = `RAKENDATAKSE` | Valik klassifikaatorist |
-| Tachograafi andmed alla laadimata (`tachographDataNotDownloaded`) | Ei | Märkeruut |
-| Kontrollitud päevade arv (`checkedDaysCount`) | Ei | Arv (max 3 numbrit) |
+| Sõidumeeriku liik (`tachographTypeCode`) | Jah, kui `spApplicability` = `RAKENDATAKSE` | Valik klassifikaatorist |
+| Andmed sõidumeerikust või juhikaardilt alla laadimata (teade Tööinspektsioonile) (`tachographDataNotDownloaded`) | Ei | Märkeruut |
+| Kontrollitud päevade arv (`checkedDaysCount`) | Ei | Arv (kuni 3 numbrit) |
 | Tööpäevade arv (`workDaysCount`) | Ei | Arv; peab jääma kontrollitud päevade arvu piiresse |
-| Muu tegevuse päevade arv (`otherActivityDaysCount`) | Ei | Arv (max 3 numbrit) |
+| Muu tegevuse päevade arv (`otherActivityDaysCount`) | Ei | Arv (kuni 3 numbrit) |
 
 Sellel plokil saab lisada ka **sõidu- ja puhkeaja rikkumised** (`violations5612006`, `violations1652014`, `violations200215`, `violations5932008`, `violations20201057`).
 
@@ -109,7 +109,7 @@ Aktiivne ainult autojuhil, kui tulemus pole `KORRAS`.
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | ATP rikkumine leitud (`atpViolationFound`) | Ei | Jah / Ei |
-| ATP rikkumise kirjeldus (`atpViolationDescription`) | Jah, kui `atpViolationFound` = `true` | Vaba tekst, max 4000 tähemärki |
+| ATP rikkumise kirjeldus (`atpViolationDescription`) | Jah, kui `atpViolationFound` = `true` | Vaba tekst, kuni 4000 tähemärki |
 
 ### 8. Failid
 
@@ -126,11 +126,11 @@ vorminumbriga.
 |---|---|---|
 | Märkused (`notes`) | Ei | Vaba tekst, kuvatakse kui tulemus pole `KORRAS` |
 
-## Transport type, control result, tachograph, ATP violation
+## Veoliik, kontrolli tulemus, sõidumeerik ja ATP rikkumine
 
 - **Veoliik** määrab, kas tegu on sõitjate- või veoseveduga. See mõjutab kabotaažrikkumiste loendit.
-- **Kontrolli tulemus** määrab, kas vorm jääb lihtsaks korrashoiuks või avab edasised plokid rikkumisteks ja menetluseks.
-- **Tachograaf** tuleb täpsustada ainult siis, kui sõidu- ja puhkeaja nõuded **rakendatakse**.
+- **Kontrolli tulemus** määrab, kas kuvatakse rikkumiste ja menetluse lisajaotised.
+- **Sõidumeerik** tuleb täpsustada ainult siis, kui sõidu- ja puhkeaja nõudeid **rakendatakse**.
 - **ATP rikkumine** tuleb kirjeldada tekstiväljas juhul, kui valitud on "Jah".
 
 ## Rikkumiste raskusastmed (MSI / VSI / SI / MI)
@@ -154,12 +154,12 @@ Sõidu- ja puhkeaja kontrollvorm on koondvormi alamvorm — selle elutsükkel s�
 
 ### Automaatne e-toimiku sünkroon (autojuhi vorm)
 
-Kui autojuhi sõidu- ja puhkeaja alamvormil on täidetud **väärteomenetluse viitenumber** ja koondvormi juhi **Eesti isikukood**, kontrollib süsteem iga öö (ligikaudu kell 01:30), kas e-toimikus on menetluses otsus jõustunud. Kui otsus on jõustunud, täidetakse alamvormile automaatselt:
+Kui autojuhi sõidu- ja puhkeaja alamvormil on täidetud **väärteomenetluse viitenumber** ja koondvormi juhi **Eesti isikukood**, kontrollib süsteem iga 10 minuti tagant, kas e-toimikus on menetluses otsus jõustunud. Kui otsus on jõustunud, täidetakse alamvormile automaatselt:
 
 - **Jõustunud otsus** — otsuse tekst
 - **Menetluse lõpetamise alus** — lõpetamise aluse tekst
 
-Andmed kirjutatakse alamvormi sisse kohapeal, ilma uut versiooni loomata ja ilma koondvormi uuesti avaldamata. Ametniku sekkumist ei nõuta.
+Süsteem uuendab alamvormi andmeid, ilma uut versiooni loomata ja ilma koondvormi uuesti avaldamata. Ametniku sekkumist ei nõuta.
 
 ### Automaatne NCR teate saatmine (välisriigi sõiduk, tulemus „Korras")
 
@@ -184,9 +184,9 @@ Salvestamata (uuel) vormil on saadaval ainult **„Prindi tühi vorm"**.
 
 ## Nipid
 
-- Määra kõigepealt **kontrolli tulemus** – see avab või peidab ülejäänud plokid.
+- Määrake kõigepealt **kontrolli tulemus** – see avab või peidab ülejäänud plokid.
 - Kui tulemus on **Korras**, ei ole vaja täita dokumendi, sõidu-puhkeaja ega massi/mõõtmete andmeid.
-- Tachograafi tüüp on kohustuslik ainult siis, kui sõidu- ja puhkeaja nõuded **rakendatakse**.
-- ATP rikkumise korral täida kindlasti ka **kirjeldus**.
+- Sõidumeeriku tüüp on kohustuslik ainult siis, kui sõidu- ja puhkeaja nõudeid **rakendatakse**.
+- ATP rikkumise korral täitke kindlasti ka **kirjeldus**.
 - Meeskonnaliikme vormil puuduvad sõiduki massi/mõõtmete ja kabotaaži alamvalikud.
 - Veoklassi valik ja veoliik mõjutavad näidatavaid kabotaažrikkumiste valikuid.

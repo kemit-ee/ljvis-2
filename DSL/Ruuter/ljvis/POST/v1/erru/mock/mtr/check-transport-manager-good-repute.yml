@@ -1,7 +1,7 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "MOCK Estonian transport manager good-repute lookup — dev and CI only. Stands in for the WHOLE erru/cgr/lookup-mtr.yml wrapper (NYSIIS encoding + real MTR CheckTransportManagerGoodRepute via XTR), which erru/cgr/inbound-request.yml calls with RAW (not yet NYSIIS-encoded) firstName/lastName — lookup-mtr.yml only NYSIIS-encodes internally, right before its own XTR call. This mock therefore matches on the raw names, exactly like lookup-mtr.yml's caller sees them. Field names and response shape are kept identical to that real path (DSL/Ruuter/ljvis/POST/v1/xroad/mtr/check-transport-manager-good-repute.yml's buildResult) so cgr/inbound-request.yml's mapping code works unchanged against either. Match rule: Found when lastName is 'TAMM' or firstName is 'MART' (case-insensitive) or cpcDocumentNumber is EE-CPC-2020-00111; everything else is NotFound."
+  description: "Static MTR good-repute mock for dev and test. Responses cover the MOVEHUB MS Test Pack 3.19 registry scenarios. HUB timeout and availability scenarios are handled by the HUB mock."
   namespace: erru
   allowlist:
     body:
@@ -9,52 +9,61 @@ declaration:
         type: string
       - field: lastName
         type: string
+      - field: birthDate
+        type: string
+      - field: birthPlace
+        type: string
       - field: cpcDocumentNumber
+        type: string
+      - field: cpcDocumentIssueCountry
+        type: string
+      - field: cpcDocumentIssueDate
         type: string
 
 selectScenario:
   switch:
     - condition: ${incoming.body.cpcDocumentNumber === 'EE-CPC-SLOW'}
       next: simulateSlowRegister
-    - condition: ${('' + (incoming.body.cpcDocumentNumber || '')).toUpperCase() === 'EE-CPC-2020-00111'}
-      next: returnFound
-    - condition: ${('' + (incoming.body.lastName || '')).toUpperCase() === 'TAMM'}
-      next: returnFound
-    - condition: ${('' + (incoming.body.firstName || '')).toUpperCase() === 'MART'}
-      next: returnFound
-  next: returnNotFound
+  next: selectTestPackScenario
 
-returnFound:
+selectTestPackScenario:
   assign:
     result: >-
       ${(function(){
-        return {
-          transportManager: {
-            firstName: 'Mart',
-            lastName: 'Tamm',
-            birthDate: '1980-05-15',
-            birthPlace: 'Tallinn',
-            cpcDocumentNumber: 'EE-CPC-2020-00111',
-            cpcDocumentIssueCountry: 'EE',
-            cpcDocumentIssueDate: '2020-06-01',
-            companyCount: 1,
-            carCount: 8,
-            fitness: 'Fit',
-            unfitUntil: null
-          },
-          companies: [
-            {
-              name: 'AS EESTI VEOD',
-              registryCode: '10145678',
-              carCount: 8,
-              address: { address: 'Tartu mnt 12', postCode: '10145', city: 'Tallinn', country: 'EE' },
-              communityLicenses: [
-                { communityLicenceNumber: 'EE-CL-2020-11111', communityLicenceStatus: 'Active' }
-              ]
-            }
-          ]
-        };
+        const scenarios = {"LEAH|BRAUER|1931-05-06":{"transportManager":{"firstName":"Leah","lastName":"Brauer","birthDate":"1931-05-06","birthPlace":"København K","cpcDocumentNumber":"CPC001133","cpcDocumentIssueCountry":"DE","cpcDocumentIssueDate":"2017-09-14","companyCount":1,"carCount":12,"fitness":"Fit","unfitUntil":null},"companies":[{"name":"Raleigh's","registryCode":"","carCount":12,"address":{"address":"TILLER, Isdamvegen 135","postCode":"1000","city":"Brussels","country":"DE"},"communityLicenses":[{"communityLicenceNumber":"CL665225","communityLicenceStatus":"Withdrawn"}]}]},"NICOLAI|JOHANSSON|1933-09-23":{"transportManager":{"firstName":"Nicolai","lastName":"Johansson","birthDate":"1933-09-23","birthPlace":"Puconci","cpcDocumentNumber":"CPC002358","cpcDocumentIssueCountry":"PL","cpcDocumentIssueDate":"2017-08-19","companyCount":1,"carCount":23,"fitness":"Unfit","unfitUntil":"2019-05-28"},"companies":[{"name":"Red Baron Electronics","registryCode":"","carCount":23,"address":{"address":"Poznan, ul. Kwidzynska 103","postCode":"1000","city":"Brussels","country":"PL"},"communityLicenses":[{"communityLicenceNumber":"CL308738","communityLicenceStatus":"Withdrawn"}]}]},"CPC002848":{"transportManager":{"firstName":"Aimée","lastName":"Marcil","birthDate":"1942-07-17","birthPlace":"Šentrupert","cpcDocumentNumber":"CPC002848","cpcDocumentIssueCountry":"PL","cpcDocumentIssueDate":"2017-11-03","companyCount":1,"carCount":17,"fitness":"Unfit","unfitUntil":"2022-08-13"},"companies":[{"name":"Red Robin Stores","registryCode":"","carCount":17,"address":{"address":"Katowice, ul. Borysa Szymona 22","postCode":"1000","city":"Brussels","country":"PL"},"communityLicenses":[{"communityLicenceNumber":"CL922736","communityLicenceStatus":"Returned"}]}]},"CPC001678":{"transportManager":{"firstName":"Hildegrim","lastName":"Rønneberg","birthDate":"1936-08-30","birthPlace":"Zabrze","cpcDocumentNumber":"CPC001678","cpcDocumentIssueCountry":"PL","cpcDocumentIssueDate":"2016-11-20","companyCount":1,"carCount":1,"fitness":"Unfit","unfitUntil":"2017-11-23"},"companies":[{"name":"The Fox and Hound","registryCode":"","carCount":1,"address":{"address":"Szczecin, ul. Rodziewiczówny Marii 125","postCode":"1000","city":"Brussels","country":"PL"},"communityLicenses":[{"communityLicenceNumber":"CL230476","communityLicenceStatus":"Withdrawn"}]}]},"NOTFOUND1|NOTFOUND2|1983-10-11":{"transportManager":null,"companies":[]},"NOTFOUND":{"transportManager":null,"companies":[]},"STANISLAVA IVANA|BOGATIN|1979-12-13":{"transportManager":{"firstName":"Stanislava Ivana","lastName":"Bogatin","birthDate":"1979-12-13","birthPlace":"HØNEFOSS","cpcDocumentNumber":"CPC002085","cpcDocumentIssueCountry":"DE","cpcDocumentIssueDate":"2018-03-28","companyCount":1,"carCount":10,"fitness":"Fit","unfitUntil":null},"companies":[{"name":"Knockout Kickboxing","registryCode":"","carCount":10,"address":{"address":"Berlin Tiergarten, Genslerstraße 72","postCode":"1000","city":"Brussels","country":"DE"},"communityLicenses":[{"communityLicenceNumber":"CL645893","communityLicenceStatus":"Active"}]}]},"SIMON-JOE|KRAKOVSKY-WARSHAVSKY|1990-01-31":{"transportManager":{"firstName":"Simon-Joe","lastName":"Krakovsky-Warshavsky","birthDate":"1990-01-31","birthPlace":"Novigrad","cpcDocumentNumber":"CPC001197","cpcDocumentIssueCountry":"RO","cpcDocumentIssueDate":"2016-04-29","companyCount":1,"carCount":3,"fitness":"Fit","unfitUntil":null},"companies":[{"name":"Joe-Tools","registryCode":"","carCount":3,"address":{"address":"Black Street 44","postCode":"1000","city":"Brussels","country":"RO"},"communityLicenses":[{"communityLicenceNumber":"CL614472","communityLicenceStatus":"Annulled"}]}]},"NOTFOUND2|NOTFOUND1|2000-03-13":{"transportManager":null,"companies":[]},"REYMOND|NORDHAGEN|1959-08-23":{"transportManager":{"firstName":"Reymond","lastName":"Nordhagen","birthDate":"1959-08-23","birthPlace":"AGEN","cpcDocumentNumber":"CPC002566","cpcDocumentIssueCountry":"SE","cpcDocumentIssueDate":"2017-06-22","companyCount":1,"carCount":2,"fitness":"Unfit","unfitUntil":"2019-10-10"},"companies":[{"name":"Eisner Food Stores","registryCode":"","carCount":2,"address":{"address":"HANINGE, Storgatan 44","postCode":"1000","city":"Brussels","country":"SE"},"communityLicenses":[{"communityLicenceNumber":"CL652986","communityLicenceStatus":"Expired"}]}]},"ΑΙΣΩΠΟΣ|ΜΕΡΣΗ|1944-11-19":{"transportManager":{"firstName":"Αισωπος","lastName":"Μερση","birthDate":"1985-09-14","birthPlace":"Niebüll","cpcDocumentNumber":"CPC000199","cpcDocumentIssueCountry":"PL","cpcDocumentIssueDate":"2014-02-05","companyCount":1,"carCount":16,"fitness":"Fit","unfitUntil":null},"companies":[{"name":"Grey Fade","registryCode":"","carCount":16,"address":{"address":"Bydgoszcz, ul. Naruszewicza Adama 71","postCode":"1000","city":"Brussels","country":"PL"},"communityLicenses":[{"communityLicenceNumber":"CL532361","communityLicenceStatus":"Withdrawn"}]}]},"ФАТИМА|АКСАКОВА|1974-11-13":{"transportManager":{"firstName":"Фатима","lastName":"Аксакова","birthDate":"1974-11-13","birthPlace":"Filiano","cpcDocumentNumber":"CPC002835","cpcDocumentIssueCountry":"DE","cpcDocumentIssueDate":"2014-08-18","companyCount":1,"carCount":4,"fitness":"Fit","unfitUntil":null},"companies":[{"name":"Fayva","registryCode":"","carCount":4,"address":{"address":"Nassenfels, Potsdamer Platz 76","postCode":"1000","city":"Brussels","country":"DE"},"communityLicenses":[{"communityLicenceNumber":"CL92202","communityLicenceStatus":"Expired"}]}]},"CPC001133":{"transportManager":{"firstName":"Leah","lastName":"Brauer","birthDate":"1931-05-06","birthPlace":"København K","cpcDocumentNumber":"CPC001133","cpcDocumentIssueCountry":"DE","cpcDocumentIssueDate":"2017-09-14","companyCount":1,"carCount":12,"fitness":"Fit","unfitUntil":null},"companies":[{"name":"Raleigh's","registryCode":"","carCount":12,"address":{"address":"TILLER, Isdamvegen 135","postCode":"1000","city":"Brussels","country":"DE"},"communityLicenses":[{"communityLicenceNumber":"CL665225","communityLicenceStatus":"Withdrawn"}]}]},"CPC000395":{"transportManager":{"firstName":"Jana","lastName":"Jelínková","birthDate":"1976-05-13","birthPlace":"Szczecin","cpcDocumentNumber":"CPC000395","cpcDocumentIssueCountry":"DE","cpcDocumentIssueDate":"2015-08-12","companyCount":1,"carCount":18,"fitness":"Unfit","unfitUntil":"2017-12-13"},"companies":[{"name":"Warehouse Club Inc.","registryCode":"","carCount":18,"address":{"address":"ASKER, Poverudveien 172","postCode":"1000","city":"Brussels","country":"DE"},"communityLicenses":[{"communityLicenceNumber":"CL137901","communityLicenceStatus":"Suspended"}]}]},"CPC002281":{"transportManager":{"firstName":"Aleksandra","lastName":"Crnić","birthDate":"1968-09-24","birthPlace":"MANDAL","cpcDocumentNumber":"CPC002281","cpcDocumentIssueCountry":"DE","cpcDocumentIssueDate":"2015-03-25","companyCount":1,"carCount":21,"fitness":"Unfit","unfitUntil":"2016-07-22"},"companies":[{"name":"Argus Tapes & Records","registryCode":"","carCount":21,"address":{"address":"Nürnberg, Rathausstrasse 26","postCode":"1000","city":"Brussels","country":"DE"},"communityLicenses":[{"communityLicenceNumber":"CL104921","communityLicenceStatus":"Active"}]}]},"MILADA|NEŠPOROVÁ|1974-10-28":{"transportManager":{"firstName":"Milada","lastName":"Nešporová","birthDate":"1974-10-28","birthPlace":"Alcudia de Veo","cpcDocumentNumber":"CPC000253","cpcDocumentIssueCountry":"FR","cpcDocumentIssueDate":"2015-07-17","companyCount":13,"carCount":299,"fitness":"Fit","unfitUntil":null},"companies":[{"name":"Simple Solutions","registryCode":"","carCount":23,"address":{"address":"LA ROCHE-SUR-YON, 50 rue du Clair Bocage","postCode":"1000","city":"Brussels","country":"FR"},"communityLicenses":[{"communityLicenceNumber":"CL257210","communityLicenceStatus":"Withdrawn"}]},{"name":"Transportfirma3","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00003210003","communityLicenceStatus":"Active"}]},{"name":"Transportfirma4","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00003210004","communityLicenceStatus":"Active"}]},{"name":"Transportfirma7","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00003210007","communityLicenceStatus":"Active"}]},{"name":"Transportfirma2","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00003210002","communityLicenceStatus":"Active"}]},{"name":"Transportfirma5","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00003210005","communityLicenceStatus":"Active"}]},{"name":"Transportfirma6","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00003210006","communityLicenceStatus":"Active"}]},{"name":"Transporto įmonė1","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00000004832","communityLicenceStatus":"Active"}]},{"name":"Transportbedrijfje2","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00000002632","communityLicenceStatus":"Active"}]},{"name":"Transportonderneming1","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00000067519","communityLicenceStatus":"Active"}]},{"name":"Transportfirma1","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00003210001","communityLicenceStatus":"Active"}]},{"name":"Transportbedrijfje1","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00000002631","communityLicenceStatus":"Active"}]},{"name":"Transportonderneming2","registryCode":"","carCount":23,"address":{"address":"Churchill-laan","postCode":"1078 GA","city":"AMSTERDAM","country":"NL"},"communityLicenses":[{"communityLicenceNumber":"COMM00000067520","communityLicenceStatus":"Active"}]}]}};
+        const certificateKey = ('' + (incoming.body.cpcDocumentNumber || '')).trim().toUpperCase();
+        const nameKey = [incoming.body.firstName, incoming.body.lastName, incoming.body.birthDate]
+          .map(value => ('' + (value || '')).trim().toUpperCase()).join('|');
+        const scenario = scenarios[certificateKey] || scenarios[nameKey] || null;
+        if (scenario == null || scenario.transportManager == null) return scenario;
+        const manager = scenario.transportManager;
+        if (incoming.body.birthPlace && incoming.body.birthPlace !== manager.birthPlace) return null;
+        if (incoming.body.cpcDocumentIssueCountry && incoming.body.cpcDocumentIssueCountry !== manager.cpcDocumentIssueCountry) return null;
+        if (incoming.body.cpcDocumentIssueDate && incoming.body.cpcDocumentIssueDate !== manager.cpcDocumentIssueDate) return null;
+        return scenario;
       })()}
+  next: checkTestPackScenario
+
+checkTestPackScenario:
+  switch:
+    - condition: ${result != null}
+      next: returnResult
+  next: selectCiScenario
+
+selectCiScenario:
+  switch:
+    - condition: ${('' + (incoming.body.cpcDocumentNumber || '')).toUpperCase() === 'EE-CPC-2020-00111'}
+      next: returnCiFound
+    - condition: ${('' + (incoming.body.lastName || '')).toUpperCase() === 'TAMM'}
+      next: returnCiFound
+    - condition: ${('' + (incoming.body.firstName || '')).toUpperCase() === 'MART'}
+      next: returnCiFound
+  next: returnNotFound
+
+returnCiFound:
+  assign:
+    result: >-
+      ${(function(){ return {transportManager:{firstName:'Mart',lastName:'Tamm',birthDate:'1980-05-15',birthPlace:'Tallinn',cpcDocumentNumber:'EE-CPC-2020-00111',cpcDocumentIssueCountry:'EE',cpcDocumentIssueDate:'2020-06-01',companyCount:1,carCount:8,fitness:'Fit',unfitUntil:null},companies:[{name:'AS EESTI VEOD',registryCode:'10145678',carCount:8,address:{address:'Tartu mnt 12',postCode:'10145',city:'Tallinn',country:'EE'},communityLicenses:[{communityLicenceNumber:'EE-CL-2020-11111',communityLicenceStatus:'Active'}]}]}; })()}
   next: returnResult
 
 returnNotFound:
@@ -73,4 +82,4 @@ simulateSlowRegister:
     url: "http://erru-hub-mock:8080/_test/wait/12000"
   timeout: 15000
   result: delayResult
-  next: returnFound
+  next: returnCiFound

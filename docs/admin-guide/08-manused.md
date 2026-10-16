@@ -37,10 +37,10 @@ Suurusepiirangud:
 
 ## Kasutajaliidese sammud manuse lisamiseks
 
-1. Ava vorm, millele soovid faili lisada.
-2. Klõpsa plokis **Failid** (või sarnasel alal) nuppu **Lisa fail**.
-3. Vali arvutist lubatud fail.
-4. Kui vormi number on juba olemas, laaditakse fail automaatselt üles. Kui vormi number puudub, kuvatakse vihje: salvesta vorm kõigepealt.
+1. Avage vorm ja salvestage see, kui vormil ei ole veel numbrit.
+2. Klõpsake vormi failide plokis nuppu **Lisa fail**.
+3. Valige arvutist lubatud fail.
+4. Süsteem laadib valitud faili automaatselt üles.
 5. Pärast üleslaadimist kuvatakse fail loendis. Klõpsates faili nime, avatakse uues vahekaardis allalaadimise link.
 
 ```mermaid
@@ -83,7 +83,7 @@ Andmebaasi tabelis `forms.form_attachment` hoitakse:
 | `created_at` | Üleslaadimise aeg |
 | `created_by` | Laadija isikukood |
 
-## Kustutamine on pehme
+## Manuse märkimine kustutatuks
 
 Kasutajaliideses kustutatud manus ei kustu S3-st, vaid märgistatakse andmebaasis staatusega `deleted`. See tähendab, et faili sisu on endiselt S3-s olemas, kuid seda ei kuvata enam vormi vaates.
 
@@ -128,7 +128,7 @@ aws s3api get-object \
 Praeguses LJVIS2 liideses kuvatakse vormi vaates ainult aktiivsed manused. Kustutatud või varasemate versioonide taastamiseks tuleb administraatoril:
 
 1. päringuid teha otse andmebaasi või auditilogi kaudu, et leida `s3_key` ja ajatemplid
-2. kasutada S3 konsooli või CLI-d, kui versioning on lubatud
+2. kasutada S3 konsooli või CLI-d, kui versioonihaldus on lubatud
 3. vajadusel taastada `forms.form_attachment` kirje staatus `active`-ks
 
 ## Auditilogi
@@ -145,7 +145,7 @@ Iga sündmus sisaldab faili nime, vormi numbrit, `s3_key`-d ja tegija andmeid.
 
 | Meetod | Lõpp-punkt | Selgitus |
 |---|---|---|
-| POST | `/v1/<form-type>/files/upload` | Lisa uus manus |
+| POST | `/v1/<form-type>/files/upload` | Lisage uus manus |
 | GET/POST | `/v1/<form-type>/files/list` | Loetle aktiivsed manused |
 | GET/POST | `/v1/<form-type>/files/download` | Hangi eelsigneeritud allalaadimislink |
 | POST/DELETE | `/v1/<form-type>/files/delete` | Märgista manus kustutatuks |

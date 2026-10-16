@@ -38,7 +38,8 @@ REPO = Path(__file__).resolve().parent.parent
 DOCS = REPO / "docs"
 BUILD = REPO / "build" / "confluence-media"
 TITLE_PREFIX = "LJVIS2"          # nummerdatud lehtede eesliide
-ROOT_TITLE = "LJVIS2 kasutusjuhend"
+ROOT_TITLE = "LJVIS 2 - kasutusjuhend"
+ROOT_ID = "333210904"            # kasutajatele jagatud püsiv juurleht
 
 # SUMMARY.md sektsioonid, mida avaldame (Töödokumendid jäetakse välja).
 SECTIONS = ["Kasutusjuhend", "Administraatori juhend", "Andmehaldus"]
@@ -354,12 +355,13 @@ def main():
     root_body = (
         "<p>LJVIS2 (Liiklusjärelevalve infosüsteem 2) kasutus- ja administraatorijuhend. "
         'Allikas: <a href="https://github.com/kemit-ee/ljvis-2">kemit-ee/ljvis-2</a> '
-        "(<code>docs/</code>). Lehed on genereeritud automaatselt "
-        "(<code>scripts/publish-guide-to-confluence.py</code>) ja nummerdatud lugemis"
-        "järjekorras.</p>"
+        "(<code>docs/</code>).</p>"
         '<p><ac:structured-macro ac:name="children"><ac:parameter ac:name="all">true</ac:parameter>'
         '<ac:parameter ac:name="sort">title</ac:parameter></ac:structured-macro></p>'
     )
+    root = find_page(ROOT_TITLE)
+    if not root or str(root["id"]) != ROOT_ID:
+        raise RuntimeError(f"Juhendi juurleht peab olema {ROOT_ID}; kontrolli lehe nime ja ligipääsu.")
     root_id = upsert_page(ROOT_TITLE, root_body, None)
 
     id_by_num = {}
