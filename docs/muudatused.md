@@ -4,6 +4,10 @@
 
 ## 2026-10-17
 
+### E-toimiku öine uuendus versioonide ajaloos
+
+- Kui e-toimiku öine sünkroon uuendab või avalikustab vormi (TRAM-kaart, autojuht, meeskonnaliige, sõiduk, haagis), kuvatakse vormi versioonide tabelis salvestajana **„eToimik öine uuendus"** (varem „e-toimik", „LJVIS-CRON" või „system").
+
 ### Grupi juht: prefektuuri alluvate vormide nägemine
 
 - Lisandus õigus `control_form.view_unit` („Grupi juht"). Selle õigusega kasutaja näeb oma asutuse ja oma struktuuriüksuse (PPA puhul prefektuuri) kasutajate loodud vorme: otsingu nimekirjas, vormi avamisel ja töölaual uue valikuga „Minu prefektuuri vormid". Vormid on nähtavad igas staatuses, tüübi lugemisõigus (`*_form.read`) peab samuti olemas olema.

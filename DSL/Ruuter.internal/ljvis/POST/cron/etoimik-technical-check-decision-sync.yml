@@ -167,7 +167,7 @@ processVehicleCandidates:
           body:
             entity_type: "vehicle_technical"
             entity_id: ${candidate_key}
-            created_by: "e-toimik"
+            created_by: "eToimik öine uuendus"
         result: carrierNotifRes
     collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
     into: vehicleResults
@@ -317,7 +317,7 @@ processTrailerCandidates:
           body:
             entity_type: "trailer_technical"
             entity_id: ${candidate_key}
-            created_by: "e-toimik"
+            created_by: "eToimik öine uuendus"
         result: carrierNotifRes
     collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
     into: trailerResults

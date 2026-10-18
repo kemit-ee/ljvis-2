@@ -133,7 +133,7 @@ processCandidates:
             found: "${decision.found ? 'true' : 'false'}"
             enforcementDecision: "${decision.enforcementDecision}"
             proceedingClosureBasis: "${decision.proceedingClosureBasis}"
-            created_by: "e-toimik"
+            created_by: "eToimik öine uuendus"
         result: applyRes
 
       # apply_etoimik_decision.sql returns 0 rows unless found=true (and its
@@ -169,7 +169,7 @@ processCandidates:
           body:
             entity_type: "tram_control_card"
             entity_id: ${candidate_key}
-            created_by: "e-toimik"
+            created_by: "eToimik öine uuendus"
         result: carrierNotifRes
       - call: http.post
         args:

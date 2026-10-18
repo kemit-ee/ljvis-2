@@ -160,7 +160,7 @@ processCandidates:
             type: json
           body:
             key: ${compound_form_key}
-            created_by: "LJVIS-CRON"
+            created_by: "eToimik öine uuendus"
         result: compoundPublishRes
 
       - call: http.post
