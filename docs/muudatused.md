@@ -4,6 +4,12 @@
 
 ## 2026-10-17
 
+### Grupi juht: prefektuuri alluvate vormide nägemine
+
+- Lisandus õigus `control_form.view_unit` („Grupi juht"). Selle õigusega kasutaja näeb oma asutuse ja oma struktuuriüksuse (PPA puhul prefektuuri) kasutajate loodud vorme: otsingu nimekirjas, vormi avamisel ja töölaual uue valikuga „Minu prefektuuri vormid". Vormid on nähtavad igas staatuses, tüübi lugemisõigus (`*_form.read`) peab samuti olemas olema.
+- Muutmine käib vormide enda õigustega: salvestatud vormi saab muuta `*_form.write` õigusega, kinnitatud ja avalikustatud vormi `control_form.edit_locked` õigusega. Uus õigus muutmisvõimalust juurde ei anna.
+- Õigus tuleb Haldus → Kasutajagrupid vaates omistada „Grupi juhi" grupile. Kasutajal peab olema struktuuriüksus määratud, muidu ei näe ta alluvate vorme.
+
 ### Haldusmenetluse andmeplokk Transpordiameti ja Kliimaministeeriumi ametnikule
 
 - Plokk „Haldusmenetlus seoses raskete autoveoalaste rikkumistega" on nähtav ja täidetav **Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule** ning süsteemi- ja asutuse administraatorile (ka PPA asutuse administraator näeb plokki PPA vormidel). PPA tavaametnik seda ei näe.

@@ -394,6 +394,7 @@
     "scope": {
       "label": "Vaade",
       "own": "Minu vormid",
+      "unit": "Minu prefektuuri vormid",
       "organisation": "Minu asutuse"
     },
     "sections": {

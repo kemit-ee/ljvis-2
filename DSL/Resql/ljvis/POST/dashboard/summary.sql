@@ -12,7 +12,7 @@ params:
   scope:
     type: string
     required: false
-    description: '''own'' or ''organisation'''
+    description: '''own'', ''unit'' (caller''s own organisation and structural unit) or ''organisation'''
   actor_code:
     type: string
     required: false
@@ -21,6 +21,10 @@ params:
     type: string
     required: false
     description: auth_user.organisationid of the caller
+  actor_unit:
+    type: string
+    required: false
+    description: auth_user.structuralunit of the caller (scope 'unit')
 returns:
 - name: section
   type: string
@@ -46,7 +50,10 @@ compound_valid AS (
 compound_scoped AS (
     SELECT * FROM compound_valid cf
     WHERE (:scope = 'organisation' AND cf.inspector_organisation_id = :actor_org_id)
-       OR (:scope <> 'organisation' AND cf.created_by = :actor_code)
+       OR (:scope NOT IN ('organisation', 'unit') AND cf.created_by = :actor_code)
+       OR (:scope = 'unit' AND COALESCE(:actor_unit, '') <> '' AND (SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+           FROM users.user_account ua WHERE ua.personal_code = cf.created_by
+           ORDER BY ua.created_at DESC LIMIT 1) = :actor_org_id || '|' || :actor_unit)
 ),
 -- latest snapshot per sub-form, across all six sub-form tables, tagged with type
 lsd AS (
@@ -194,7 +201,10 @@ standalone_union AS (
           ORDER BY foreign_violation_form_key, created_at DESC) fv
     WHERE fv.status NOT IN ('deleted','published')
       AND ((:scope = 'organisation' AND fv.inspector_organisation_id = :actor_org_id)
-           OR (:scope <> 'organisation' AND fv.created_by = :actor_code))
+           OR (:scope NOT IN ('organisation', 'unit') AND fv.created_by = :actor_code)
+           OR (:scope = 'unit' AND COALESCE(:actor_unit, '') <> '' AND (SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+               FROM users.user_account ua WHERE ua.personal_code = fv.created_by
+               ORDER BY ua.created_at DESC LIMIT 1) = :actor_org_id || '|' || :actor_unit))
     UNION ALL
     SELECT 'labour_inspection', li.labour_inspection_form_key,
            li.form_number, li.status, li.inspection_date,
@@ -226,7 +236,10 @@ standalone_union AS (
           ORDER BY tram_control_card_key, created_at DESC) tc
     WHERE tc.status NOT IN ('deleted','published')
       AND ((:scope = 'organisation' AND tc.inspector_organisation_id = :actor_org_id)
-           OR (:scope <> 'organisation' AND tc.created_by = :actor_code))
+           OR (:scope NOT IN ('organisation', 'unit') AND tc.created_by = :actor_code)
+           OR (:scope = 'unit' AND COALESCE(:actor_unit, '') <> '' AND (SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+               FROM users.user_account ua WHERE ua.personal_code = tc.created_by
+               ORDER BY ua.created_at DESC LIMIT 1) = :actor_org_id || '|' || :actor_unit))
 ),
 active_standalone AS (
     SELECT jsonb_build_object(

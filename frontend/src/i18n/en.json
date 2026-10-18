@@ -282,6 +282,7 @@
     "scope": {
       "label": "View",
       "own": "My forms",
+      "unit": "My unit's forms",
       "organisation": "My organisation"
     },
     "sections": {
