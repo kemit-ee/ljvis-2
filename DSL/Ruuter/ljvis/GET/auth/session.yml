@@ -78,6 +78,19 @@ composeSession:
   assign:
     officer_available: "${Array.isArray(officer_res.response.body) && officer_res.response.body.length > 0}"
     officer_profile: "${(Array.isArray(officer_res.response.body) && officer_res.response.body.length > 0) ? officer_res.response.body[0] : null}"
+  next: check_administrative_procedure
+
+# Haldusmenetluse ploki ligipääs (reegel elab ühes kohas: templates/administrative-procedure/check-access);
+# frontend loeb ainult tulemust, mitte asutuste nimekirja.
+check_administrative_procedure:
+  template: "templates/administrative-procedure/check-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    organisation_code: "${officer_profile ? (officer_profile.organisationcode || '') : ''}"
+    permissions: "${officer_profile ? (officer_profile.permissions || []).join(',') : ''}"
+  result: administrative_procedure_access
   next: return_session
 
 return_session:
@@ -95,6 +108,7 @@ return_session:
       structuralunit: officer_profile ? officer_profile.structuralunit : null,
       jobtitle: officer_profile ? officer_profile.jobtitle : null,
       permissions: officer_profile ? officer_profile.permissions : [],
+      canUseAdministrativeProcedure: administrative_procedure_access == 'allow',
       activeRole: active_role_claim || (officer_available ? 'officer' : 'citizen-self'),
       activeRegistryCode: active_registry_code,
       representedCompanies: represented_companies

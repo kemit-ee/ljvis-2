@@ -1,7 +1,7 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Vormi haldusmenetluse andmeplokk (PPA andmevormid ja TRAM kontrollkaart). Nõuab Transpordiameti (TRAM) või Kliimaministeeriumi (KLIM) ametnikku või administraatorit ning vormi lugemisõigust; tühi objekt, kui plokki pole täidetud."
+  description: "Vormi haldusmenetluse andmeplokk (PPA andmevormid ja TRAM kontrollkaart). Ligipääsureegel: templates/administrative-procedure/check-access; lisaks vormi lugemisõigus; tühi objekt, kui plokki pole täidetud."
   namespace: control-forms
   allowlist:
     params:
@@ -27,8 +27,19 @@ extractRequestData:
   next: checkPermission
 
 checkPermission:
+  template: "templates/administrative-procedure/check-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    organisation_code: "${auth_user.organisationcode || ''}"
+    permissions: "${(auth_user.permissions || []).join(',')}"
+  result: adminProcAccess
+  next: evalAdminProcAccess
+
+evalAdminProcAccess:
   switch:
-    - condition: ${['TRAM', 'KLIM'].includes(auth_user.organisationcode) || (auth_user.permissions != null && ((auth_user.permissions.includes('control_form.view_unpublished') && auth_user.permissions.includes('control_form.edit_locked') && auth_user.permissions.includes('control_form.delete')) || auth_user.permissions.includes('user.edit.admin') || auth_user.permissions.includes('user.edit.local')))}
+    - condition: ${adminProcAccess == "allow"}
       next: checkInput
   next: returnForbidden
 
