@@ -139,6 +139,21 @@ vormi ülaosas kirjutuskaitstud **e-toimiku päringu kaart**, mis näitab juhiga
 karistuse kvalifikatsioone (sama komponent, mida kasutab PPA koondvorm). Andmeid ei
 salvestata kaardile — kaart on informatiivne.
 
+### Haldusmenetlus
+
+Plokk **Haldusmenetlus seoses raskete autoveoalaste rikkumistega** on nähtav ja täidetav **Transpordiameti ja Kliimaministeeriumi ametnikule** ning süsteemi- ja asutuse administraatorile. PPA tavaametnik seda plokki ei näe. Plokk ilmub pärast vormi esmast salvestamist.
+
+| Väli | Selgitus |
+|---|---|
+| KLIM selgitustaotluse kuupäev | Kuupäev |
+| Vedaja seletuse kuupäev | Kuupäev |
+| Karistus kehtib kuni | Kuupäev; märkeruut **Kehtetu või menetletud** |
+| Järgmise komisjoni koosolek (AKVK) | Kuupäev |
+| Viimase komisjoni otsuse kuupäev | Kuupäev |
+| Otsus | Vaba tekst |
+
+Plokil on oma nupp **Salvesta haldusmenetluse andmed**, mis salvestab andmed ka kinnitatud ja avalikustatud vormil. Salvestus lisab vormile uue versioonirea, vana jääb vormi ajalukku.
+
 ## Vorminumber
 
 Igal kaardil on **üks** jooksev number:
