@@ -14,6 +14,7 @@ import { useAuth } from '../../../auth/AuthContext';
 import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
+import { useCanUseAdministrativeProcedure } from '../../../../hooks/useCanUseAdministrativeProcedure';
 import {
   deleteForeignViolationForm,
   getForeignViolationFormSnapshot,
@@ -74,6 +75,7 @@ export function ForeignViolationFormPage() {
   }, [form?.status]);
 
   const isAdmin = useIsAdmin();
+  const canUseAdministrativeProcedure = useCanUseAdministrativeProcedure();
 
   const canEdit =
     isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
@@ -304,7 +306,7 @@ export function ForeignViolationFormPage() {
               inspectionCitiesParishes={inspectionCitiesParishes}
               handleInspectionRegionChange={handleInspectionRegionChange}
               formType={FORM_TYPE.FOREIGN_VIOLATION}
-              showAdminSection={isAdmin}
+              showAdminSection={canUseAdministrativeProcedure}
             />
 
             {id && (

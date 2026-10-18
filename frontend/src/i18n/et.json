@@ -457,6 +457,12 @@
       "open": "Ava link"
     },
     "shared": {
+      "administrativeProcedure": {
+        "save": "Salvesta haldusmenetluse andmed",
+        "saved": "Haldusmenetluse andmed salvestatud",
+        "saveFailed": "Haldusmenetluse andmete salvestamine ebaõnnestus",
+        "loadFailed": "Haldusmenetluse andmete laadimine ebaõnnestus"
+      },
       "proceedingOutcome": {
         "title": "Menetluse tulemus",
         "enforcementDecision": "Jõustunud otsus",

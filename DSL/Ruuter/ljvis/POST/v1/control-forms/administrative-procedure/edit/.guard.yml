@@ -1,0 +1,16 @@
+# Haldusmenetluse plokk: Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule (ja administraatorile). auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+check:
+  switch:
+    - condition: ${['TRAM', 'KLIM'].includes(auth_user.organisationcode) || (auth_user.permissions != null && auth_user.permissions.includes('control_form.view_unpublished') && auth_user.permissions.includes('control_form.edit_locked') && auth_user.permissions.includes('control_form.delete'))}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

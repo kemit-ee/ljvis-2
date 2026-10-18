@@ -89,6 +89,53 @@ export const saveProceedingOutcome = (
     ),
   );
 
+export type AdministrativeProcedureFormType =
+  | 'adr-form'
+  | 'drive-rest-form/driver'
+  | 'drive-rest-form/teammate'
+  | 'trailer-technical'
+  | 'tram-card'
+  | 'vehicle-technical';
+
+export interface AdministrativeProcedure {
+  klimClarificationDate?: string | null;
+  carrierExplanationDate?: string | null;
+  penaltyValidUntil?: string | null;
+  penaltyExpiredOrProcessed?: boolean;
+  akvkNextMeetingDate?: string | null;
+  commissionLastDecisionDate?: string | null;
+  adminProcedureDecision?: string | null;
+}
+
+export const getAdministrativeProcedure = (
+  formType: AdministrativeProcedureFormType,
+  id: FormId,
+) =>
+  get<AdministrativeProcedure>('/v1/control-forms/administrative-procedure', {
+    formType,
+    id: String(id),
+  });
+
+export const saveAdministrativeProcedure = (
+  formType: AdministrativeProcedureFormType,
+  id: FormId,
+  data: AdministrativeProcedure,
+) =>
+  post<{ id: number }[]>(
+    '/v1/control-forms/administrative-procedure/edit/save',
+    {
+      formType,
+      id: String(id),
+      klimClarificationDate: data.klimClarificationDate ?? '',
+      carrierExplanationDate: data.carrierExplanationDate ?? '',
+      penaltyValidUntil: data.penaltyValidUntil ?? '',
+      penaltyExpiredOrProcessed: String(!!data.penaltyExpiredOrProcessed),
+      akvkNextMeetingDate: data.akvkNextMeetingDate ?? '',
+      commissionLastDecisionDate: data.commissionLastDecisionDate ?? '',
+      adminProcedureDecision: data.adminProcedureDecision?.trim() ?? '',
+    },
+  );
+
 export const getForm = (id: number) =>
   tracked(
     'foreign-violation',

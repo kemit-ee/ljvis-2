@@ -2,6 +2,14 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-17
+
+### Haldusmenetluse andmeplokk Transpordiameti ja Kliimaministeeriumi ametnikule
+
+- Plokk „Haldusmenetlus seoses raskete autoveoalaste rikkumistega" on nähtav ja täidetav **Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule** (ja administraatorile). PPA ametnik seda oma vormidel ei näe.
+- Varem oli plokk olemas ainult välisriigi rikkumise kontrollkaardil ja nähtav ainult administraatorile, seega ei näinud Transpordiameti ametnik seda demos. Nüüd on plokk ka PPA andmevormidel (juht, meeskonnaliige, sõiduk, haagis, ADR; veo katkestamise otsusel plokki ei ole) ja Transpordiameti kontrollkaardil.
+- PPA andmevormidel ja TRAM-kaardil salvestatakse plokk eraldi nupuga „Salvesta haldusmenetluse andmed" ja see ei loo vormist uut versiooni. Plokk ilmub pärast vormi esmast salvestamist.
+
 ## 2026-10-16
 
 ### E-toimiku alamsüsteem ja teenuse versioon XTR-i vaikeväärtusena

@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -982,6 +983,11 @@ export function AdrFormFields({
         enforcementDecision={formik.values.enforcementDecision}
         proceedingClosureBasis={formik.values.proceedingClosureBasis}
         onChange={(field, value) => formik.setFieldValue(field, value)}
+      />
+
+      <AdministrativeProcedureCard
+        formType="adr-form"
+        formKey={formik.values.id}
       />
 
       {formNumber && (

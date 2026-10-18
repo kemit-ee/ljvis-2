@@ -137,7 +137,7 @@ vormi täitmiseks kohustuslikud, kuid on olulised riskihindamiseks.
 
 ### 13. Haldusmenetlus
 
-See plokk on nähtav **ainult administraatorile**. Siia märgitakse raske
+See plokk on nähtav **Transpordiameti ja Kliimaministeeriumi ametnikule ning administraatorile**. Siia märgitakse raske
 autoveoalase rikkumise haldusmenetluse käik.
 
 | Väli | Selgitus |

@@ -344,6 +344,12 @@
       "open": "Open link"
     },
     "shared": {
+      "administrativeProcedure": {
+        "save": "Save administrative procedure data",
+        "saved": "Administrative procedure data saved",
+        "saveFailed": "Saving the administrative procedure data failed",
+        "loadFailed": "Loading the administrative procedure data failed"
+      },
       "proceedingOutcome": {
         "title": "Proceeding outcome",
         "enforcementDecision": "Decision entered into force",

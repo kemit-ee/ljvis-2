@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { useDriveRestForm } from '../../pages/drive-rest-form/useDriveRestForm';
@@ -1405,6 +1406,13 @@ export function DriveRestFormFields({
             </Card>
           </Col>
         </Row>
+      )}
+      {/* Plokk: Haldusmenetlus (õigusega ametnikule; TRAM-kaardil on plokk kaardi tasemel) */}
+      {authority !== 'TRAM' && (
+        <AdministrativeProcedureCard
+          formType={type === 'teammate' ? 'drive-rest-form/teammate' : 'drive-rest-form/driver'}
+          formKey={formik.values.id}
+        />
       )}
       {/* Plokk: Failid */}
       <Row className="m-0">
