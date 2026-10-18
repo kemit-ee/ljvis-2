@@ -3,31 +3,62 @@
 --
 -- Haldusmenetluse andmeplokk ("Haldusmenetlus seoses raskete autoveoalaste
 -- rikkumistega") PPA andmevormidele (juht, meeskonnaliige, sõiduk, haagis, ADR)
--- ja Transpordiameti kontrollkaardile. VR-kontrollkaardil jäävad plokiväljad
--- oma vormitabelisse (20261101110000).
---
--- Plokk on vormi versioonidest sõltumatu: üks rida vormi võtme kohta, muudetav
--- sõltumata vormi staatusest. Nähtav ja täidetav Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM)
--- ametnikule ja administraatorile; PPA ametnik plokki ei näe (use-case I-44).
+-- ja Transpordiameti kontrollkaardile; samad 7 veergu mis VR-kaardil
+-- (20261101110000). Tabelid on append-only: plokk salvestatakse uue
+-- snapshot-reana (update-administrative-procedure.sql), vormi enda salvestus
+-- kannab väärtused edasi.
+-- Nähtav ja täidetav TRAM/KLIM ametnikule ning administraatorile (use-case I-44).
 
-CREATE TABLE IF NOT EXISTS forms.administrative_procedure (
-    form_type                      TEXT        NOT NULL,
-    form_key                       BIGINT      NOT NULL,
-    klim_clarification_date        DATE,
-    carrier_explanation_date       DATE,
-    penalty_valid_until            DATE,
-    penalty_expired_or_processed   BOOLEAN     NOT NULL DEFAULT FALSE,
-    akvk_next_meeting_date         DATE,
-    commission_last_decision_date  DATE,
-    admin_procedure_decision       TEXT,
-    created_by                     TEXT        NOT NULL,
-    created_at                     TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_by                     TEXT        NOT NULL,
-    updated_at                     TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (form_type, form_key),
-    CONSTRAINT administrative_procedure_form_type_check CHECK (form_type IN (
-        'adr-form', 'drive-rest-form/driver', 'drive-rest-form/teammate',
-        'trailer-technical', 'tram-card', 'vehicle-technical'))
-);
+ALTER TABLE forms.adr_form
+    ADD COLUMN IF NOT EXISTS klim_clarification_date        DATE,
+    ADD COLUMN IF NOT EXISTS carrier_explanation_date       DATE,
+    ADD COLUMN IF NOT EXISTS penalty_valid_until            DATE,
+    ADD COLUMN IF NOT EXISTS penalty_expired_or_processed   BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS akvk_next_meeting_date         DATE,
+    ADD COLUMN IF NOT EXISTS commission_last_decision_date  DATE,
+    ADD COLUMN IF NOT EXISTS admin_procedure_decision       TEXT;
 
-COMMENT ON TABLE forms.administrative_procedure IS 'Haldusmenetluse andmeplokk PPA andmevormidele ja Transpordiameti kontrollkaardile; form_key = vormi *_key veerg';
+ALTER TABLE forms.sp_driver_form
+    ADD COLUMN IF NOT EXISTS klim_clarification_date        DATE,
+    ADD COLUMN IF NOT EXISTS carrier_explanation_date       DATE,
+    ADD COLUMN IF NOT EXISTS penalty_valid_until            DATE,
+    ADD COLUMN IF NOT EXISTS penalty_expired_or_processed   BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS akvk_next_meeting_date         DATE,
+    ADD COLUMN IF NOT EXISTS commission_last_decision_date  DATE,
+    ADD COLUMN IF NOT EXISTS admin_procedure_decision       TEXT;
+
+ALTER TABLE forms.sp_teammate_form
+    ADD COLUMN IF NOT EXISTS klim_clarification_date        DATE,
+    ADD COLUMN IF NOT EXISTS carrier_explanation_date       DATE,
+    ADD COLUMN IF NOT EXISTS penalty_valid_until            DATE,
+    ADD COLUMN IF NOT EXISTS penalty_expired_or_processed   BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS akvk_next_meeting_date         DATE,
+    ADD COLUMN IF NOT EXISTS commission_last_decision_date  DATE,
+    ADD COLUMN IF NOT EXISTS admin_procedure_decision       TEXT;
+
+ALTER TABLE forms.trailer_technical_form
+    ADD COLUMN IF NOT EXISTS klim_clarification_date        DATE,
+    ADD COLUMN IF NOT EXISTS carrier_explanation_date       DATE,
+    ADD COLUMN IF NOT EXISTS penalty_valid_until            DATE,
+    ADD COLUMN IF NOT EXISTS penalty_expired_or_processed   BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS akvk_next_meeting_date         DATE,
+    ADD COLUMN IF NOT EXISTS commission_last_decision_date  DATE,
+    ADD COLUMN IF NOT EXISTS admin_procedure_decision       TEXT;
+
+ALTER TABLE forms.tram_control_card
+    ADD COLUMN IF NOT EXISTS klim_clarification_date        DATE,
+    ADD COLUMN IF NOT EXISTS carrier_explanation_date       DATE,
+    ADD COLUMN IF NOT EXISTS penalty_valid_until            DATE,
+    ADD COLUMN IF NOT EXISTS penalty_expired_or_processed   BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS akvk_next_meeting_date         DATE,
+    ADD COLUMN IF NOT EXISTS commission_last_decision_date  DATE,
+    ADD COLUMN IF NOT EXISTS admin_procedure_decision       TEXT;
+
+ALTER TABLE forms.vehicle_technical_form
+    ADD COLUMN IF NOT EXISTS klim_clarification_date        DATE,
+    ADD COLUMN IF NOT EXISTS carrier_explanation_date       DATE,
+    ADD COLUMN IF NOT EXISTS penalty_valid_until            DATE,
+    ADD COLUMN IF NOT EXISTS penalty_expired_or_processed   BOOLEAN NOT NULL DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS akvk_next_meeting_date         DATE,
+    ADD COLUMN IF NOT EXISTS commission_last_decision_date  DATE,
+    ADD COLUMN IF NOT EXISTS admin_procedure_decision       TEXT;

@@ -54,11 +54,10 @@ evalReadAccess:
 save:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/control-forms/administrative-procedure/upsert"
+    url: "[#LJVIS_RESQL]/control-forms/${form_type}/update-administrative-procedure"
     headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
-      formType: ${form_type}
-      formKey: ${id}
+      key: ${id}
       klimClarificationDate: "${incoming.body.klimClarificationDate || ''}"
       carrierExplanationDate: "${incoming.body.carrierExplanationDate || ''}"
       penaltyValidUntil: "${incoming.body.penaltyValidUntil || ''}"
@@ -74,6 +73,8 @@ checkSaved:
   switch:
     - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300}
       next: saveFailed
+    - condition: ${saveRes.response.body == null || saveRes.response.body.length === 0}
+      next: notFound
   next: success
 
 success:
@@ -93,6 +94,11 @@ invalidId:
 forbidden:
   status: 403
   return: '{"error":"FORBIDDEN"}'
+  next: end
+
+notFound:
+  status: 404
+  return: '{"type":"NOT_FOUND","code":"form_not_found"}'
   next: end
 
 saveFailed:

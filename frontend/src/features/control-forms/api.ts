@@ -116,24 +116,41 @@ export const getAdministrativeProcedure = (
     id: String(id),
   });
 
+const ADMINISTRATIVE_PROCEDURE_SCOPES: Record<
+  AdministrativeProcedureFormType,
+  RevisionScope
+> = {
+  'adr-form': 'adr',
+  'drive-rest-form/driver': 'sp-driver',
+  'drive-rest-form/teammate': 'sp-teammate',
+  'trailer-technical': 'trailer',
+  'tram-card': 'tram',
+  'vehicle-technical': 'vehicle',
+};
+
+/** Lisab vormile uue snapshot-rea (append-only), seega unustab meelde jäetud revision-i. */
 export const saveAdministrativeProcedure = (
   formType: AdministrativeProcedureFormType,
   id: FormId,
   data: AdministrativeProcedure,
 ) =>
-  post<{ id: number }[]>(
-    '/v1/control-forms/administrative-procedure/edit/save',
-    {
-      formType,
-      id: String(id),
-      klimClarificationDate: data.klimClarificationDate ?? '',
-      carrierExplanationDate: data.carrierExplanationDate ?? '',
-      penaltyValidUntil: data.penaltyValidUntil ?? '',
-      penaltyExpiredOrProcessed: String(!!data.penaltyExpiredOrProcessed),
-      akvkNextMeetingDate: data.akvkNextMeetingDate ?? '',
-      commissionLastDecisionDate: data.commissionLastDecisionDate ?? '',
-      adminProcedureDecision: data.adminProcedureDecision?.trim() ?? '',
-    },
+  untracked(
+    ADMINISTRATIVE_PROCEDURE_SCOPES[formType],
+    id,
+    post<{ id: number }[]>(
+      '/v1/control-forms/administrative-procedure/edit/save',
+      {
+        formType,
+        id: String(id),
+        klimClarificationDate: data.klimClarificationDate ?? '',
+        carrierExplanationDate: data.carrierExplanationDate ?? '',
+        penaltyValidUntil: data.penaltyValidUntil ?? '',
+        penaltyExpiredOrProcessed: String(!!data.penaltyExpiredOrProcessed),
+        akvkNextMeetingDate: data.akvkNextMeetingDate ?? '',
+        commissionLastDecisionDate: data.commissionLastDecisionDate ?? '',
+        adminProcedureDecision: data.adminProcedureDecision?.trim() ?? '',
+      },
+    ),
   );
 
 export const getForm = (id: number) =>
