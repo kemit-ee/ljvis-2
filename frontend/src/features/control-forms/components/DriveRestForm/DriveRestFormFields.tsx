@@ -130,9 +130,14 @@ export function DriveRestFormFields({
 }: Props) {
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
+  // Kinnitatud vormil sisestab tulemuse karistusregistri kasutaja; avalikustatud
+  // vormil saab e-toimiku vea korral andmeid parandada ainult administraator.
   const canEditProceedingOutcome =
-    formik.values.status === 'confirmed' &&
-    hasPermission(PUNISHMENT_REGISTER_PERMISSION);
+    !readOnly &&
+    ((formik.values.status === 'confirmed' &&
+      hasPermission(PUNISHMENT_REGISTER_PERMISSION)) ||
+      (formik.values.status === 'published' &&
+        hasPermission('control_form.edit_locked')));
 
   const fieldId = (id: string) => type === 'teammate' ? `teammate-${id}` : id;
 
