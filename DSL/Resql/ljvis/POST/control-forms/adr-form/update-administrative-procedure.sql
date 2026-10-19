@@ -1,6 +1,6 @@
 /*
 description: 'Haldusmenetluse andmeploki salvestamine (adr-form). INSERT-only: lisab uue snapshot-rea (revision + 1,
-  version, staatus ja kõik muud väljad kantakse edasi), vana rida jääb ajalukku. Kustutatud vormile ei kirjuta.
+  version + 1 (salvestatud vormil jääb samaks), staatus ja kõik muud väljad kantakse edasi), vana rida jääb ajalukku. Kustutatud vormile ei kirjuta.
   Tühi sõne tähendab tühja välja; created_by on tegutsev kasutaja (tühi → ''system'').'
 namespace: control-forms
 params:
@@ -15,6 +15,7 @@ params:
   created_by: { type: string, required: false }
 returns:
 - { name: id, type: number, nullable: true }
+- { name: version, type: number, nullable: true }
 */
 WITH latest AS (
   SELECT *
@@ -28,6 +29,7 @@ SELECT (jsonb_populate_record(
     NULL::forms.adr_form,
     to_jsonb(l) || jsonb_build_object(
       'id', nextval('forms.adr_form_id_seq'),
+      'version', CASE WHEN l.status = 'saved' THEN l.version ELSE l.version + 1 END,
       'revision', l.revision + 1,
       'created_at', now(),
       'created_by', COALESCE(NULLIF(:created_by, ''), 'system'),
@@ -42,4 +44,4 @@ SELECT (jsonb_populate_record(
 )).*
 FROM latest l
 WHERE l.status <> 'deleted'
-RETURNING adr_form_key AS id;
+RETURNING adr_form_key AS id, version;

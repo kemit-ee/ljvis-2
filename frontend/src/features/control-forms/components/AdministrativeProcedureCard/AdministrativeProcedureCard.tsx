@@ -63,6 +63,7 @@ export function AdministrativeProcedureCard({ formType, formKey }: Props) {
   const { t } = useTranslation();
   const allowed = useCanUseAdministrativeProcedure();
   const [values, setValues] = useState<AdministrativeProcedure>({});
+  const [savedVersion, setSavedVersion] = useState<number | null>(null);
   const [status, setStatus] = useState<
     'idle' | 'saved' | 'saveFailed' | 'loadFailed'
   >('idle');
@@ -91,7 +92,8 @@ export function AdministrativeProcedureCard({ formType, formKey }: Props) {
 
   const save = async () => {
     try {
-      await saveAdministrativeProcedure(formType, formKey, values);
+      const res = await saveAdministrativeProcedure(formType, formKey, values);
+      setSavedVersion(res?.[0]?.version ?? null);
       setStatus('saved');
     } catch {
       setStatus('saveFailed');
@@ -167,7 +169,11 @@ export function AdministrativeProcedureCard({ formType, formKey }: Props) {
             type={status === 'saved' ? 'success' : 'danger'}
             size="small"
           >
-            {t(`forms.shared.administrativeProcedure.${status}`)}
+            {status === 'saved' && savedVersion != null
+              ? t('forms.shared.administrativeProcedure.savedVersion', {
+                  version: savedVersion,
+                })
+              : t(`forms.shared.administrativeProcedure.${status}`)}
           </Alert>
         )}
         <div className="mt-1">

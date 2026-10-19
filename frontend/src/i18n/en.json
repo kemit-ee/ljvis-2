@@ -348,6 +348,7 @@
       "administrativeProcedure": {
         "save": "Update administrative procedure data",
         "saved": "Administrative procedure data saved",
+        "savedVersion": "Administrative procedure data saved, the form is now at version {{version}}",
         "saveFailed": "Saving the administrative procedure data failed",
         "loadFailed": "Loading the administrative procedure data failed"
       },

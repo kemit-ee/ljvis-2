@@ -756,7 +756,8 @@
             "exec": [
               "pm.test('200', () => pm.response.to.have.status(200));",
               "var j = pm.response.json(); var row = (j && j.response !== undefined) ? j.response : j;",
-              "pm.test('returns the form key', () => pm.expect(String(row[0].id)).to.eql(String(pm.environment.get('tcc_key'))));"
+              "pm.test('returns the form key', () => pm.expect(String(row[0].id)).to.eql(String(pm.environment.get('tcc_key'))));",
+              "pm.test('card is published at version 2, so the block save is version 3', () => pm.expect(row[0].version).to.eql(3));"
             ]
           }
         }
@@ -854,7 +855,7 @@
             "exec": [
               "pm.test('200', () => pm.response.to.have.status(200));",
               "var j = pm.response.json(); var row = (j && j.response !== undefined) ? j.response : j;",
-              "pm.test('new snapshot row appended, latest is still published', () => { pm.expect(row.length).to.be.at.least(4); pm.expect(row[row.length-1].status).to.eql('published'); });"
+              "pm.test('new version appended, latest is still published at version 3', () => { pm.expect(row.length).to.be.at.least(4); var last = row[row.length-1]; pm.expect(last.status).to.eql('published'); pm.expect(last.version).to.eql(3); });"
             ]
           }
         }
@@ -898,7 +899,8 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('200', () => pm.response.to.have.status(200));"
+              "pm.test('200', () => pm.response.to.have.status(200));",
+              "var j2 = pm.response.json(); var r2 = (j2 && j2.response !== undefined) ? j2.response : j2; pm.test('every block save is a new version (4)', () => pm.expect(r2[0].version).to.eql(4));"
             ]
           }
         }

@@ -128,7 +128,7 @@ const ADMINISTRATIVE_PROCEDURE_SCOPES: Record<
   'vehicle-technical': 'vehicle',
 };
 
-/** Lisab vormile uue snapshot-rea (append-only), seega unustab meelde jäetud revision-i. */
+/** Lisab vormile uue versiooni (append-only snapshot-rida), seega unustab meelde jäetud revision-i. */
 export const saveAdministrativeProcedure = (
   formType: AdministrativeProcedureFormType,
   id: FormId,
@@ -137,7 +137,7 @@ export const saveAdministrativeProcedure = (
   untracked(
     ADMINISTRATIVE_PROCEDURE_SCOPES[formType],
     id,
-    post<{ id: number }[]>(
+    post<{ id: number; version?: number }[]>(
       '/v1/control-forms/administrative-procedure/edit/save',
       {
         formType,
