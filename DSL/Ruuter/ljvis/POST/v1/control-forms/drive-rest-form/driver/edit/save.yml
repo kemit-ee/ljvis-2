@@ -250,14 +250,12 @@ extractCurrentStatus:
     current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
   next: protectProceedingOutcome
 
-# Jõustunud otsust ja menetluse lõpetamise alust võib kinnitatud vormil muuta ainult
-# karistusregistri kasutaja ja avalikustatud vormil ainult administraator (edit_locked).
-# Kõigil teistel säilitatakse salvestatud väärtused, kliendi saadetut ei usuta.
+# Jõustunud otsust ja menetluse lõpetamise alust võivad kinnitatud ja avalikustatud vormil
+# muuta ainult eToimikuga seonduva ülekirjutamise õigusega kasutaja ja administraator
+# (edit_locked). Kõigil teistel säilitatakse salvestatud väärtused.
 protectProceedingOutcome:
   switch:
-    - condition: ${current_status === 'confirmed' && !(u.permissions != null && u.permissions.includes('control_form.punishment_register'))}
-      next: keepProceedingOutcome
-    - condition: ${current_status === 'published' && !(u.permissions != null && u.permissions.includes('control_form.edit_locked'))}
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && (u.permissions.includes('control_form.punishment_register') || u.permissions.includes('control_form.edit_locked')))}
       next: keepProceedingOutcome
   next: updateForm
 

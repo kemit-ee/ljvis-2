@@ -7,7 +7,8 @@
 ### Jõustunud otsuse ja menetluse lõpetamise aluse parandamine avalikustatud kaardil
 
 - Avalikustatud sõidu- ja puhkeaja kontrollkaardil (autojuht) olid väljad „Jõustunud otsus“ ja „Menetluse lõpetamise alus“ muutmisel alati hallid. Nüüd saab neid välju muuta administraator (õigus `control_form.edit_locked`), et parandada e-toimikus olevat viga.
-- Teised kasutajad, näiteks politsei, ei saa neid välju muuta ning näevad administraatori tehtud parandust. Piirang kehtib ka serveris: kinnitatud kaardil saab väärtusi muuta ainult karistusregistri kasutaja, avalikustatud kaardil ainult administraator.
+- Sama kehtib kaasjuhi (teammate) kaardil. Kinnitatud ja avalikustatud kaardil saavad neid välju muuta kasutajad, kellel on õigus `control_form.punishment_register`, ja administraator. Teised kasutajad, näiteks politsei, ei saa neid välju muuta ning näevad tehtud parandust. Piirang kehtib ka serveris.
+- Õiguse `control_form.punishment_register` nimetus klassifikaatoris on nüüd „eToimikuga seonduva ülekirjutamise õigus“.
 
 ## 2026-10-16
 
