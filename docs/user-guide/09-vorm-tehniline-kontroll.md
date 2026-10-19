@@ -105,7 +105,7 @@ Plokk **Haldusmenetlus seoses raskete autoveoalaste rikkumistega** on nähtav ja
 | Viimase komisjoni otsuse kuupäev | Kuupäev |
 | Otsus | Vaba tekst |
 
-Plokil on oma nupp **Salvesta haldusmenetluse andmed**, mis salvestab andmed ka kinnitatud ja avalikustatud vormil. Salvestus lisab vormile uue versioonirea, vana jääb vormi ajalukku.
+Plokil on oma nupp **Uuenda haldusmenetluse andmeid**, mis salvestab andmed ka kinnitatud ja avalikustatud vormil. Salvestus lisab vormile uue versioonirea, vana jääb vormi ajalukku.
 
 ## Vormi elutsükkel
 

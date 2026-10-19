@@ -400,7 +400,7 @@ Võõrvõtmed: `inbox_id` → `erru.xml_inbox`
 
 ### `forms.adr_form`
 
-Loodud: `20260804160000-initial-adr-form.sql` · veerge: 38 · PK: `id`
+Loodud: `20260804160000-initial-adr-form.sql` · veerge: 45 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -442,6 +442,13 @@ Loodud: `20260804160000-initial-adr-form.sql` · veerge: 38 · PK: `id`
 | `transport_interruption_applied` | BOOLEAN | jah |
 | `infringement_notes_summary` | TEXT |  |
 | `revision` | BIGINT |  |
+| `klim_clarification_date` | DATE |  |
+| `carrier_explanation_date` | DATE |  |
+| `penalty_valid_until` | DATE |  |
+| `penalty_expired_or_processed` | BOOLEAN | jah |
+| `akvk_next_meeting_date` | DATE |  |
+| `commission_last_decision_date` | DATE |  |
+| `admin_procedure_decision` | TEXT |  |
 
 ### `forms.compound_form`
 
@@ -687,7 +694,7 @@ Loodud: `20260728130000-initial-labour-inspection-form.sql` · veerge: 25 · PK:
 
 ### `forms.sp_driver_form`
 
-Loodud: `20260724100000-initial-sp-driver-form.sql` · veerge: 44 · PK: `id`
+Loodud: `20260724100000-initial-sp-driver-form.sql` · veerge: 51 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -735,10 +742,17 @@ Loodud: `20260724100000-initial-sp-driver-form.sql` · veerge: 44 · PK: `id`
 | `liini_nimetus` | VARCHAR(255) |  |
 | `tachograph_notes` | TEXT |  |
 | `revision` | BIGINT |  |
+| `klim_clarification_date` | DATE |  |
+| `carrier_explanation_date` | DATE |  |
+| `penalty_valid_until` | DATE |  |
+| `penalty_expired_or_processed` | BOOLEAN | jah |
+| `akvk_next_meeting_date` | DATE |  |
+| `commission_last_decision_date` | DATE |  |
+| `admin_procedure_decision` | TEXT |  |
 
 ### `forms.sp_teammate_form`
 
-Loodud: `20260724200000-initial-sp-teammate-form.sql` · veerge: 50 · PK: `id`
+Loodud: `20260724200000-initial-sp-teammate-form.sql` · veerge: 57 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -792,10 +806,17 @@ Loodud: `20260724200000-initial-sp-teammate-form.sql` · veerge: 50 · PK: `id`
 | `person_code_foreign` | VARCHAR(50) |  |
 | `person_birth_date` | DATE |  |
 | `revision` | BIGINT |  |
+| `klim_clarification_date` | DATE |  |
+| `carrier_explanation_date` | DATE |  |
+| `penalty_valid_until` | DATE |  |
+| `penalty_expired_or_processed` | BOOLEAN | jah |
+| `akvk_next_meeting_date` | DATE |  |
+| `commission_last_decision_date` | DATE |  |
+| `admin_procedure_decision` | TEXT |  |
 
 ### `forms.trailer_technical_form`
 
-Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 28 · PK: `id`
+Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 35 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -827,10 +848,17 @@ Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 28 · PK: `
 | `transport_interruption_autovs_51_3_1` | BOOLEAN | jah |
 | `other_measure` | BOOLEAN | jah |
 | `revision` | BIGINT |  |
+| `klim_clarification_date` | DATE |  |
+| `carrier_explanation_date` | DATE |  |
+| `penalty_valid_until` | DATE |  |
+| `penalty_expired_or_processed` | BOOLEAN | jah |
+| `akvk_next_meeting_date` | DATE |  |
+| `commission_last_decision_date` | DATE |  |
+| `admin_procedure_decision` | TEXT |  |
 
 ### `forms.tram_control_card`
 
-Loodud: `20261112100000-tram-control-card-table.sql` · veerge: 79 · PK: `id`
+Loodud: `20261112100000-tram-control-card-table.sql` · veerge: 86 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -913,10 +941,17 @@ Loodud: `20261112100000-tram-control-card-table.sql` · veerge: 79 · PK: `id`
 | `created_by` | VARCHAR(100) | jah |
 | `tachograph_notes` | TEXT |  |
 | `revision` | BIGINT |  |
+| `klim_clarification_date` | DATE |  |
+| `carrier_explanation_date` | DATE |  |
+| `penalty_valid_until` | DATE |  |
+| `penalty_expired_or_processed` | BOOLEAN | jah |
+| `akvk_next_meeting_date` | DATE |  |
+| `commission_last_decision_date` | DATE |  |
+| `admin_procedure_decision` | TEXT |  |
 
 ### `forms.vehicle_technical_form`
 
-Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 27 · PK: `id`
+Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 34 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -947,6 +982,13 @@ Loodud: `20260803150000-initial-technical-check-form.sql` · veerge: 27 · PK: `
 | `transport_interruption_autovs_51_3_1` | BOOLEAN | jah |
 | `other_measure` | BOOLEAN | jah |
 | `revision` | BIGINT |  |
+| `klim_clarification_date` | DATE |  |
+| `carrier_explanation_date` | DATE |  |
+| `penalty_valid_until` | DATE |  |
+| `penalty_expired_or_processed` | BOOLEAN | jah |
+| `akvk_next_meeting_date` | DATE |  |
+| `commission_last_decision_date` | DATE |  |
+| `admin_procedure_decision` | TEXT |  |
 
 ## Skeem `notifications`
 

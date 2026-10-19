@@ -346,7 +346,7 @@
     },
     "shared": {
       "administrativeProcedure": {
-        "save": "Save administrative procedure data",
+        "save": "Update administrative procedure data",
         "saved": "Administrative procedure data saved",
         "saveFailed": "Saving the administrative procedure data failed",
         "loadFailed": "Loading the administrative procedure data failed"
