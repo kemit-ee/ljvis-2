@@ -2,6 +2,14 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-19
+
+### Riskitase uueneb ka avalikustatud vormi muutmisel
+
+- Avalikustatud kontrollvormi muutmine ja salvestamine arvutab ettevõtte riskitaseme kohe ümber. Varem uuenes riskitase ainult avalikustamisel, kustutamisel, käsitsi käivitamisel või öise töö käigus. Näiteks jäi lehel „Riskitasemed" vana väärtus (40), kuni käsitsi ümberarvutus andis õige (50).
+- Muudatus kehtib kõigis vormitüüpides, mis riskitaset mõjutavad: koondvorm, sõidu- ja puhkeaja alamvormid (juht, meeskonnaliige), sõiduki ja haagise tehnokontroll, ADR-kontroll, välisriigi rikkumise vorm, TRAM-i kontrollkaart ja Tööinspektsiooni kontrollkaart.
+- Mustandi (salvestatud) vormi salvestamine riskitaset ei muuda.
+
 ## 2026-10-16
 
 ### E-toimiku alamsüsteem ja teenuse versioon XTR-i vaikeväärtusena

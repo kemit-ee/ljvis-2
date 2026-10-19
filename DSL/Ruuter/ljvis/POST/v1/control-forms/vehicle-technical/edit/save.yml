@@ -219,6 +219,29 @@ logAuditEvent:
     description: ${description}
     log_content: "{\"subFormKey\":${sub_form_key},\"compoundFormKey\":${compound_key_for_log},\"subFormNumber\":\"${sub_form_number}\",\"resultType\":\"${result_type}\"}"
   result: audit_result
+  next: recalcRiskOnResave
+
+# Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
+# riskiskoori sisend — skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
+recalcRiskOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: callRiskRecalcOnResave
+  next: checkNotifyOnResave
+
+callRiskRecalcOnResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(current_compound_form_key)}"
+  result: riskRecalcRes
+  error: checkNotifyOnResave
   next: checkNotifyOnResave
 
 # Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus

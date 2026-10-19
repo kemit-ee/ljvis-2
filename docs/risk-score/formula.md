@@ -220,6 +220,14 @@ kutsub fire-and-forget `risk-scores/recalculate`-it (`calculation_trigger:
 kontrollvorm`) — vt `edit/publish.yml` ja `edit/delete.yml` iga vormitüübi
 kataloogis.
 
+Avalikustatud vormi muutmine-salvestamine (`edit/save.yml`, uus avalikustatud
+versioon) kutsub samuti `risk-scores/recalculate`-it (sammud `recalcRiskOnResave`
+/ `callRiskRecalcOnResave`): koondvormi, TRAM-i, tööinspektsiooni ja VR-vormi
+puhul ettevõtja koodiga, alamvormide (SP, tehnokontroll, ADR) puhul
+`recalculate/from-form` kaudu koondvormi võtmega. Mustandi salvestamine ei
+arvuta ümber, sest `risk.company_risk_score` on insert-only. Test:
+`DSL-tests/risk-score/resave-recalculate.test.yml`.
+
 ## 8. ERRU CTUD integratsioon (LJVIS2-144)
 
 Sissetuleva CTUD päringu töötleja (`DSL/Ruuter.internal/ljvis/POST/erru/ctud/
