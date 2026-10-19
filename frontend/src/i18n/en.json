@@ -282,6 +282,7 @@
     "scope": {
       "label": "View",
       "own": "My forms",
+      "unit": "My unit's forms",
       "organisation": "My organisation"
     },
     "sections": {
@@ -344,6 +345,13 @@
       "open": "Open link"
     },
     "shared": {
+      "administrativeProcedure": {
+        "save": "Update administrative procedure data",
+        "saved": "Administrative procedure data saved",
+        "savedVersion": "Administrative procedure data saved, the form is now at version {{version}}",
+        "saveFailed": "Saving the administrative procedure data failed",
+        "loadFailed": "Loading the administrative procedure data failed"
+      },
       "proceedingOutcome": {
         "title": "Proceeding outcome",
         "enforcementDecision": "Decision entered into force",

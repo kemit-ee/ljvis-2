@@ -12,7 +12,9 @@ Kasutajagruppidega tegelemiseks on vajalikud erinevad õigused sõltuvalt soovit
 | Ühe grupi detailvaate avamine | `user_group.read.admin` või `user_group.read.local` |
 | Uue grupi loomine | `user_group.create` |
 | Grupi nime, asutuste või õiguste muutmine | `user_group.update` |
-| Kasutajate lisamine gruppi | `user_group.add_user` |
+| Kasutajate lisamine gruppi | `control_form.view_unit` | Saab näha oma asutuse ja struktuuriüksuse (PPA puhul prefektuuri) kasutajate loodud vorme nimekirjas, otsingus ja vormi avades. Kasutajal peab olema struktuuriüksus määratud. | „Grupi juht (PPA)" näeb oma prefektuuri alluvate vorme. |
+| `control_form.view_organisation` | Saab näha oma asutuse kõigi kasutajate loodud vorme töölaual, otsingus ja vormi avades. | Kontrollide koordinaator. |
+| `user_group.add_user` |
 | Kasutajate eemaldamine grupist | `user_group.remove_user` |
 | Grupi liikmete nimekirja vaatamine | `user_group.list_users.admin` või `user_group.list_users.local` |
 | Sobivate kasutajate otsimine gruppi lisamiseks | `user_group.search_eligible_users` |

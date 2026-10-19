@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -460,6 +461,14 @@ export function TramControlCardPage() {
             </Card.Content>
           </Card>
         </>
+      )}
+
+      {!snapshotId && (
+        <AdministrativeProcedureCard
+          formType="tram-card"
+          formKey={id}
+          reloadAfterSave={!showEdit}
+        />
       )}
 
       <div className="page-actions mt-1">

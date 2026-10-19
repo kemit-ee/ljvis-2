@@ -126,6 +126,21 @@ vorminumbriga.
 |---|---|---|
 | Märkused (`notes`) | Ei | Vaba tekst, kuvatakse kui tulemus pole `KORRAS` |
 
+### 10. Haldusmenetlus
+
+Plokk **Haldusmenetlus seoses raskete autoveoalaste rikkumistega** on nähtav ja täidetav **Transpordiameti ja Kliimaministeeriumi ametnikule** ning süsteemi- ja asutuse administraatorile. PPA tavaametnik seda plokki ei näe. Plokk ilmub pärast vormi esmast salvestamist.
+
+| Väli | Selgitus |
+|---|---|
+| KLIM selgitustaotluse kuupäev | Kuupäev |
+| Vedaja seletuse kuupäev | Kuupäev |
+| Karistus kehtib kuni | Kuupäev; märkeruut **Kehtetu või menetletud** |
+| Järgmise komisjoni koosolek (AKVK) | Kuupäev |
+| Viimase komisjoni otsuse kuupäev | Kuupäev |
+| Otsus | Vaba tekst |
+
+Plokil on oma nupp **Uuenda haldusmenetluse andmeid**, mis salvestab andmed ka kinnitatud ja avalikustatud vormil. Salvestus loob vormist uue versiooni (kinnitatud ja avalikustatud vormil suureneb versiooninumber), vana versioon jääb vormi ajalukku.
+
 ## Veoliik, kontrolli tulemus, sõidumeerik ja ATP rikkumine
 
 - **Veoliik** määrab, kas tegu on sõitjate- või veoseveduga. See mõjutab kabotaažrikkumiste loendit.

@@ -50,6 +50,7 @@ export function DesktopPage() {
     scope,
     setScope,
     canSeeOrganisation,
+    canSeeUnit,
     summary,
     summaryLoading,
     summaryError,
@@ -422,7 +423,7 @@ export function DesktopPage() {
       {/* Scope toggle — only for roles with control_form.view_organisation
           (LJVIS2-69 "Lokaalne kasutaja"/administraator), per LJVIS2-69's
           documented role model. Plain officers never see this. */}
-      {canSeeOrganisation && (
+      {(canSeeOrganisation || canSeeUnit) && (
         <div className="mb-1">
           <ChoiceGroup
             id="dashboard-scope"
@@ -433,7 +434,7 @@ export function DesktopPage() {
             direction="row"
             value={scope}
             onChange={(value) =>
-              setScope((value as 'own' | 'organisation') ?? 'own')
+              setScope((value as 'own' | 'unit' | 'organisation') ?? 'own')
             }
             items={[
               {
@@ -441,11 +442,24 @@ export function DesktopPage() {
                 label: t('dashboard.scope.own'),
                 value: 'own',
               },
-              {
-                id: 'dashboard-scope-organisation',
-                label: t('dashboard.scope.organisation'),
-                value: 'organisation',
-              },
+              ...(canSeeUnit
+                ? [
+                    {
+                      id: 'dashboard-scope-unit',
+                      label: t('dashboard.scope.unit'),
+                      value: 'unit',
+                    },
+                  ]
+                : []),
+              ...(canSeeOrganisation
+                ? [
+                    {
+                      id: 'dashboard-scope-organisation',
+                      label: t('dashboard.scope.organisation'),
+                      value: 'organisation',
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>

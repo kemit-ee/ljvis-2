@@ -62,6 +62,7 @@ export function useDashboard() {
   const [summaryError, setSummaryError] = useState(false);
 
   const canSeeOrganisation = hasPermission('control_form.view_organisation');
+  const canSeeUnit = hasPermission('control_form.view_unit');
 
   const loadSummary = useCallback((requestedScope: DashboardScope) => {
     setSummaryLoading(true);
@@ -107,6 +108,7 @@ export function useDashboard() {
     scope,
     setScope,
     canSeeOrganisation,
+    canSeeUnit,
     summary,
     summaryLoading,
     summaryError,

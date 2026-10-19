@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -650,6 +651,11 @@ export function TechnicalCheckFormFields({
           </Card.Content>
         </Card>
       )}
+      <AdministrativeProcedureCard
+        formType={formPath}
+        formKey={values.id}
+        reloadAfterSave={!canEdit}
+      />
     </div>
   );
 }

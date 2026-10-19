@@ -394,6 +394,7 @@
     "scope": {
       "label": "Vaade",
       "own": "Minu vormid",
+      "unit": "Minu prefektuuri vormid",
       "organisation": "Minu asutuse"
     },
     "sections": {
@@ -457,6 +458,13 @@
       "open": "Ava link"
     },
     "shared": {
+      "administrativeProcedure": {
+        "save": "Uuenda haldusmenetluse andmeid",
+        "saved": "Haldusmenetluse andmed salvestatud",
+        "savedVersion": "Haldusmenetluse andmed salvestatud, vormi uus versioon on {{version}}",
+        "saveFailed": "Haldusmenetluse andmete salvestamine ebaõnnestus",
+        "loadFailed": "Haldusmenetluse andmete laadimine ebaõnnestus"
+      },
       "proceedingOutcome": {
         "title": "Menetluse tulemus",
         "enforcementDecision": "Jõustunud otsus",

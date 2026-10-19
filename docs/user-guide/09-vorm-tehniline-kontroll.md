@@ -92,6 +92,21 @@ Järgmised väljad kuvatakse pärast salvestamist ja täidetakse automaatselt s�
 - **Jõustunud otsus** — kui vormil on täidetud väärteomenetluse viitenumber ja koondvormi juhi Eesti isikukood, kontrollitakse iga tunni tagant e-toimikust, kas menetluses on karistus jõustunud. Jõustumise korral täidetakse otsuse tekst automaatselt.
 - **Menetluse lõpetamise alus** — täidetakse automaatselt koos jõustunud otsusega.
 
+### 8. Haldusmenetlus
+
+Plokk **Haldusmenetlus seoses raskete autoveoalaste rikkumistega** on nähtav ja täidetav **Transpordiameti ja Kliimaministeeriumi ametnikule** ning süsteemi- ja asutuse administraatorile. PPA tavaametnik seda plokki ei näe. Plokk ilmub pärast vormi esmast salvestamist.
+
+| Väli | Selgitus |
+|---|---|
+| KLIM selgitustaotluse kuupäev | Kuupäev |
+| Vedaja seletuse kuupäev | Kuupäev |
+| Karistus kehtib kuni | Kuupäev; märkeruut **Kehtetu või menetletud** |
+| Järgmise komisjoni koosolek (AKVK) | Kuupäev |
+| Viimase komisjoni otsuse kuupäev | Kuupäev |
+| Otsus | Vaba tekst |
+
+Plokil on oma nupp **Uuenda haldusmenetluse andmeid**, mis salvestab andmed ka kinnitatud ja avalikustatud vormil. Salvestus loob vormist uue versiooni (kinnitatud ja avalikustatud vormil suureneb versiooninumber), vana versioon jääb vormi ajalukku.
+
 ## Vormi elutsükkel
 
 Tehniline kontroll on koondvormi alamvorm — selle kinnitamine ja avalikustamine toimub koos koondvormiga.

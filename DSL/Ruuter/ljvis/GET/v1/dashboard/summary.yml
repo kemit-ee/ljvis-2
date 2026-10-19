@@ -14,17 +14,18 @@ declaration:
     params:
       - field: scope
         type: string
-        description: "'own' (default) or 'organisation'"
+        description: "'own' (default), 'unit' (oma struktuuriüksus) or 'organisation'"
 
 resolveScope:
   assign:
     requested_scope: "${incoming.params.scope ?? 'own'}"
     can_see_org: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_organisation')}"
+    can_see_unit: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_unit')}"
   next: applyScopeGuard
 
 applyScopeGuard:
   assign:
-    effective_scope: "${(requested_scope === 'organisation' && can_see_org) ? 'organisation' : 'own'}"
+    effective_scope: "${(requested_scope === 'organisation' && can_see_org) ? 'organisation' : ((requested_scope === 'unit' && can_see_unit) ? 'unit' : 'own')}"
   next: fetchSummary
 
 fetchSummary:
@@ -38,6 +39,7 @@ fetchSummary:
       scope: "${effective_scope}"
       actor_code: "${auth_user.personalcode ?? ''}"
       actor_org_id: "${auth_user.organisationid != null ? String(auth_user.organisationid) : null}"
+      actor_unit: "${auth_user.structuralunit != null ? String(auth_user.structuralunit) : ''}"
   result: res
   next: collectSections
 

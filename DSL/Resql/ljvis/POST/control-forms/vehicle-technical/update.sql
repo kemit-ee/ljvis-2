@@ -80,7 +80,7 @@ returns:
 WITH latest AS (
   SELECT sub_form_number,
          CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
-         extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis
+         extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis, klim_clarification_date, carrier_explanation_date, penalty_valid_until, penalty_expired_or_processed, akvk_next_meeting_date, commission_last_decision_date, admin_procedure_decision
   FROM forms.vehicle_technical_form
   WHERE vehicle_technical_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -111,6 +111,13 @@ INSERT INTO forms.vehicle_technical_form (
   extraordinary_inspection_date,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -138,6 +145,13 @@ SELECT
   latest.extraordinary_inspection_date,
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
+  latest.klim_clarification_date,
+  latest.carrier_explanation_date,
+  latest.penalty_valid_until,
+  latest.penalty_expired_or_processed,
+  latest.akvk_next_meeting_date,
+  latest.commission_last_decision_date,
+  latest.admin_procedure_decision,
   :created_by
 FROM latest
 WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)

@@ -109,6 +109,13 @@ INSERT INTO forms.tram_control_card (
   notes,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -188,6 +195,13 @@ SELECT
   l.notes,
   l.enforcement_decision,
   l.proceeding_closure_basis,
+  l.klim_clarification_date,
+  l.carrier_explanation_date,
+  l.penalty_valid_until,
+  l.penalty_expired_or_processed,
+  l.akvk_next_meeting_date,
+  l.commission_last_decision_date,
+  l.admin_procedure_decision,
   :created_by
 FROM latest l
 RETURNING tram_control_card_key AS id, form_number, version;

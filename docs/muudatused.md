@@ -2,6 +2,26 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-17
+
+### E-toimiku öine uuendus versioonide ajaloos
+
+- Kui e-toimiku öine sünkroon uuendab või avalikustab vormi (TRAM-kaart, autojuht, meeskonnaliige, sõiduk, haagis), kuvatakse vormi versioonide tabelis salvestajana **„eToimik öine uuendus"** (varem „e-toimik", „LJVIS-CRON" või „system").
+- Parandatud viga, kus automaatse avalikustaja nimi jäi sõiduki, haagise, ADR-i, autojuhi, meeskonnaliikme, koondvormi ja teiste vormide versioonide tabelis tühjaks (kuvati ainult tavakasutaja nimi).
+
+### Grupi juht: prefektuuri alluvate vormide nägemine
+
+- Lisandus õigus `control_form.view_unit` („Grupi juht"). Selle õigusega kasutaja näeb oma asutuse ja oma struktuuriüksuse (PPA puhul prefektuuri) kasutajate loodud vorme: otsingu nimekirjas, vormi avamisel ja töölaual uue valikuga „Minu prefektuuri vormid". Vormid on nähtavad igas staatuses, tüübi lugemisõigus (`*_form.read`) peab samuti olemas olema.
+- Muutmine käib vormide enda õigustega: salvestatud vormi saab muuta `*_form.write` õigusega, kinnitatud ja avalikustatud vormi `control_form.edit_locked` õigusega. Uus õigus muutmisvõimalust juurde ei anna.
+- Õigus tuleb Haldus → Kasutajagrupid vaates omistada „Grupi juhi" grupile. Kasutajal peab olema struktuuriüksus määratud, muidu ei näe ta alluvate vorme.
+
+### Haldusmenetluse andmeplokk Transpordiameti ja Kliimaministeeriumi ametnikule
+
+- Plokk „Haldusmenetlus seoses raskete autoveoalaste rikkumistega" on nähtav ja täidetav **Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule** ning süsteemi- ja asutuse administraatorile (ka PPA asutuse administraator näeb plokki PPA vormidel). PPA tavaametnik seda ei näe.
+- Varem oli plokk olemas ainult välisriigi rikkumise kontrollkaardil ja nähtav ainult administraatorile, seega ei näinud Transpordiameti ametnik seda demos. Nüüd on plokk ka PPA andmevormidel (juht, meeskonnaliige, sõiduk, haagis, ADR; veo katkestamise otsusel plokki ei ole) ja Transpordiameti kontrollkaardil.
+- PPA andmevormidel ja TRAM-kaardil salvestatakse plokk eraldi nupuga „Uuenda haldusmenetluse andmeid". Andmed on vormi enda tabelis (samad veerud mis VR-il); salvestus loob vormist uue versiooni (kinnitatud ja avalikustatud vormil suureneb versiooninumber), vana versioon jääb ajalukku. Plokk ilmub pärast vormi esmast salvestamist.
+- Pärast haldusmenetluse andmete salvestamist uueneb vormi versioonide tabel kohe. Vaatamisrežiimis laetakse leht uuesti, et päis näitaks uut versiooni; muutmisrežiimis lehte ei laeta, et pooleli oleva vormi muudatused ei kaoks.
+- Andmehaldusele ja BI-le (Tableau) lisandus vaade `tableau.administrative_procedure`: haldusmenetluse andmed ühtse kujuga, üks rida per vorm (VR, PPA andmevormid, TRAM-kaart), kehtiv seis, liidetav `tableau.form_overview`-ga. Vormiotsingu allalaadimisel (xlsx/csv) on haldusmenetluse väljad nüüd kõigil nendel vormidel kaasas.
 ## 2026-10-19
 
 ### Jõustunud otsuse ja menetluse lõpetamise aluse parandamine avalikustatud kaardil
