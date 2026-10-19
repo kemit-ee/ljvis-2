@@ -239,6 +239,21 @@ extractCurrentStatus:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
     current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
     cabotage_violations: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].cabotageViolations) || '[]'}"
+  next: protectProceedingOutcome
+
+# Jõustunud otsust ja menetluse lõpetamise alust võivad kinnitatud ja avalikustatud vormil
+# muuta ainult eToimikuga seonduva ülekirjutamise õigusega kasutaja ja administraator
+# (edit_locked). Kõigil teistel säilitatakse salvestatud väärtused.
+protectProceedingOutcome:
+  switch:
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && (u.permissions.includes('control_form.punishment_register') || u.permissions.includes('control_form.edit_locked')))}
+      next: keepProceedingOutcome
+  next: updateForm
+
+keepProceedingOutcome:
+  assign:
+    enforcement_decision: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].enforcementDecision) || ''}"
+    proceeding_closure_basis: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].proceedingClosureBasis) || ''}"
   next: updateForm
 
 updateForm:
