@@ -486,6 +486,29 @@ logAuditEventUpdate:
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
   result: audit_result
+  next: recalcRiskOnResave
+
+# Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
+# riskiskoori sisend — skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
+recalcRiskOnResave:
+  switch:
+    - condition: ${status === 'published' && /^[0-9]{8}$/.test('' + (company_reg_code || ''))}
+      next: callRiskRecalcOnResave
+  next: returnSuccess
+
+callRiskRecalcOnResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: riskRecalcRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

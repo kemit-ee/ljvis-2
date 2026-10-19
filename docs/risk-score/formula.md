@@ -72,11 +72,11 @@ Iga kvalifitseeruva koondvormi kõiki SP-alamvorme (`sp_driver_form` +
 hinnatakse eraldi ja klassifitseeritakse:
 
 - **Täielik välistamine** (ei lähe `r`-i ega valemisse):
-  `sp_applicability IN ('EI_RAKENDATA','EI_KONTROLLITUD')` JA `result_type = 'KORRAS'`.
+  `sp_applicability IN ('EI_RAKENDATA','EI_KONTROLLITUD')` JA `result_type = 'ok'` (vana kood `KORRAS`).
   Koondvorm, millel pole ühtegi arvesse minevat SP-, tehnilise kontrolli või ADR-alamvormi, jääb samuti välja.
 - **Nullpunktiline kontroll** (`r++`, kaalupunkte 0):
   - `sp_applicability = 'RAKENDATAKSE'` JA `proceeding_type IN ('KIIR','YLD','LYHI')` JA rikkumisi ei tuvastatud, VÕI
-  - `result_type = 'HOIATUS'` JA `sp_applicability = 'RAKENDATAKSE'` JA rikkumisi ei tuvastatud.
+  - `result_type = 'warning'` (vana kood `HOIATUS`) JA `sp_applicability = 'RAKENDATAKSE'` JA rikkumisi ei tuvastatud.
 - **Normaalne kontroll kaaludega** (`r++`, kaalupunktid lisanduvad): kõik muu.
 
 Koondvorm ise loetakse täielikult välistatuks ainult siis, kui *kõik* selle
@@ -133,10 +133,12 @@ kõigile kontrolliallikatele. Kordusavalikustamine ei alusta uut kaheaastast per
 
 ## 4. Rikkumiste JSONB väljad — TÄHTIS väljanimede märkus
 
-Rikkumised loetakse `sp_driver_form`/`sp_teammate_form` seitsmest JSONB
+Rikkumised loetakse `sp_driver_form`/`sp_teammate_form` kaheksast JSONB
 väljast: `violations_561_2006`, `violations_165_2014`, `violations_2002_15`,
 `violations_593_2008`, `violations_2020_1057`, `document_checks`,
-`cabotage_violations`.
+`cabotage_violations`, `mass_dimension_measurements`. Viimase kirje raskusaste
+on väljas `severity` (nt `VSI`, kood `VSI843`), mitte `severityCode`, ja
+`isDetected` välja pole — iga kirje loeb.
 
 **Massiivi elementide väljanimed on camelCase, mitte snake_case** —
 `violationCode`, `severityCode`, `isDetected` — sest need on toorelt
@@ -219,6 +221,14 @@ kirjeid mõlemalt allikalt. Mõlema vormitüübi avalikustamine (ja kustutamine)
 kutsub fire-and-forget `risk-scores/recalculate`-it (`calculation_trigger:
 kontrollvorm`) — vt `edit/publish.yml` ja `edit/delete.yml` iga vormitüübi
 kataloogis.
+
+Avalikustatud vormi muutmine-salvestamine (`edit/save.yml`, uus avalikustatud
+versioon) kutsub samuti `risk-scores/recalculate`-it (sammud `recalcRiskOnResave`
+/ `callRiskRecalcOnResave`): koondvormi, TRAM-i, tööinspektsiooni ja VR-vormi
+puhul ettevõtja koodiga, alamvormide (SP, tehnokontroll, ADR) puhul
+`recalculate/from-form` kaudu koondvormi võtmega. Mustandi salvestamine ei
+arvuta ümber, sest `risk.company_risk_score` on insert-only. Test:
+`DSL-tests/risk-score/resave-recalculate.test.yml`.
 
 ## 8. ERRU CTUD integratsioon (LJVIS2-144)
 

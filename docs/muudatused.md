@@ -24,11 +24,24 @@
 - Andmehaldusele ja BI-le (Tableau) lisandus vaade `tableau.administrative_procedure`: haldusmenetluse andmed ühtse kujuga, üks rida per vorm (VR, PPA andmevormid, TRAM-kaart), kehtiv seis, liidetav `tableau.form_overview`-ga. Vormiotsingu allalaadimisel (xlsx/csv) on haldusmenetluse väljad nüüd kõigil nendel vormidel kaasas.
 ## 2026-10-19
 
+### Riskitase uueneb ka avalikustatud vormi muutmisel
+
+- Avalikustatud kontrollvormi muutmine ja salvestamine arvutab ettevõtte riskitaseme kohe ümber. Varem uuenes riskitase ainult avalikustamisel, kustutamisel, käsitsi käivitamisel või öise töö käigus. Näiteks jäi lehel „Riskitasemed" vana väärtus (40), kuni käsitsi ümberarvutus andis õige (50).
+- Muudatus kehtib kõigis vormitüüpides, mis riskitaset mõjutavad: koondvorm, sõidu- ja puhkeaja alamvormid (juht, meeskonnaliige), sõiduki ja haagise tehnokontroll, ADR-kontroll, välisriigi rikkumise vorm, TRAM-i kontrollkaart ja Tööinspektsiooni kontrollkaart.
+- Mustandi (salvestatud) vormi salvestamine riskitaset ei muuda.
 ### Jõustunud otsuse ja menetluse lõpetamise aluse parandamine avalikustatud kaardil
 
 - Avalikustatud sõidu- ja puhkeaja kontrollkaardil (autojuht) olid väljad „Jõustunud otsus“ ja „Menetluse lõpetamise alus“ muutmisel alati hallid. Nüüd saab neid välju muuta administraator (õigus `control_form.edit_locked`), et parandada e-toimikus olevat viga.
 - Sama kehtib kaasjuhi (teammate) kaardil. Kinnitatud ja avalikustatud kaardil saavad neid välju muuta kasutajad, kellel on õigus `control_form.punishment_register`, ja administraator. Teised kasutajad, näiteks politsei, ei saa neid välju muuta ning näevad tehtud parandust. Piirang kehtib ka serveris.
 - Õiguse `control_form.punishment_register` nimetus klassifikaatoris on nüüd „eToimikuga seonduva ülekirjutamise õigus“.
+
+### Riskitaseme arvutus tunneb ära „Korras" tulemusega mitterakendatud kontrollid
+
+- SP-alamvorm, kus sõidu- ja puhkeaja nõudeid ei rakendatud või ei kontrollitud ja tulemus on „Korras", jäetakse riskitaseme arvutusest välja, nagu on kokku lepitud. Varem see reegel ei rakendunud (arvutus ootas vana koodi `KORRAS`, vormid salvestavad `ok`), nii et selline kontroll läks 0 punktiga kontrollide arvu ja langetas riskitaset.
+
+### Massi ja mõõtmete rikkumised lähevad riskitaseme arvutusse
+
+- Sõidu- ja puhkeaja alamvormi „Massi ja mõõtmete" rikkumised (nt VSI843) loetakse nüüd riskitaseme arvutuses. Varem need arvesse ei läinud ja riskitase oli seetõttu liiga madal.
 
 ## 2026-10-16
 

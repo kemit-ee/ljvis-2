@@ -480,6 +480,29 @@ logAuditEvent:
     description: "TRAM kontrollkaart salvestatud, number=${saveRes.response.body[0].formNumber}/${saveRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${saveRes.response.body[0].id},\"formNumber\":\"${saveRes.response.body[0].formNumber}\",\"version\":${saveRes.response.body[0].version}}"
   result: audit_result
+  next: recalcRiskOnResave
+
+# Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
+# riskiskoori sisend — skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
+recalcRiskOnResave:
+  switch:
+    - condition: ${current_status === 'published' && /^[0-9]{8}$/.test('' + (company_reg_code || ''))}
+      next: callRiskRecalcOnResave
+  next: checkNotifyOnResave
+
+callRiskRecalcOnResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: riskRecalcRes
+  error: checkNotifyOnResave
   next: checkNotifyOnResave
 
 # Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus

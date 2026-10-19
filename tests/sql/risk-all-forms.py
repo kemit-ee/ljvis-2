@@ -14,7 +14,7 @@ def query(name):
     s=(root/f'DSL/Resql/ljvis/POST/risk_score/{name}.sql').read_text()
     return remap(s.replace(':company_reg_code',"'80410960'").replace(':window_start',"'2024-10-16'").replace(':window_end',"'2026-10-16'"))
 sp='''id BIGINT,compound_form_key BIGINT,status TEXT,selection_status TEXT,sp_applicability TEXT,result_type TEXT,proceeding_type TEXT,created_at TIMESTAMPTZ,
-violations_561_2006 JSONB DEFAULT '[]',violations_165_2014 JSONB DEFAULT '[]',violations_2002_15 JSONB DEFAULT '[]',violations_593_2008 JSONB DEFAULT '[]',violations_2020_1057 JSONB DEFAULT '[]',document_checks JSONB DEFAULT '[]',cabotage_violations JSONB DEFAULT '[]' '''
+violations_561_2006 JSONB DEFAULT '[]',violations_165_2014 JSONB DEFAULT '[]',violations_2002_15 JSONB DEFAULT '[]',violations_593_2008 JSONB DEFAULT '[]',violations_2020_1057 JSONB DEFAULT '[]',document_checks JSONB DEFAULT '[]',cabotage_violations JSONB DEFAULT '[]',mass_dimension_measurements JSONB DEFAULT '[]' '''
 sql='BEGIN;\n'+f'CREATE TEMP TABLE fixture_sp_driver_form (sp_driver_form_key BIGINT,{sp});\n'+f'CREATE TEMP TABLE fixture_sp_teammate_form (sp_teammate_form_key BIGINT,{sp});\n'+f'CREATE TEMP TABLE fixture_tram_control_card (tram_control_card_key BIGINT,company_reg_code TEXT,company_name TEXT,{sp});\n'+'''
 CREATE TEMP TABLE fixture_compound_form (id BIGINT,compound_form_key BIGINT,company_reg_code TEXT,company_name TEXT,status TEXT,created_at TIMESTAMPTZ);
 CREATE TEMP TABLE fixture_foreign_violation_form (id BIGINT,foreign_violation_form_key BIGINT,company_reg_code TEXT,company_name TEXT,status TEXT,created_at TIMESTAMPTZ,violations JSONB);
@@ -25,8 +25,11 @@ CREATE TEMP TABLE fixture_adr_form (id BIGINT,adr_form_key BIGINT,compound_form_
 CREATE TEMP TABLE fixture_form_search (form_key BIGINT,form_type TEXT,form_number TEXT,main_date DATE,vehicle_reg_nr TEXT);
 CREATE TEMP TABLE fixture_classifier_value (id BIGINT,classifier_value_key BIGINT,description TEXT,created_at TIMESTAMPTZ);
 INSERT INTO fixture_compound_form VALUES (1,10,'80410960','Risk test','published','2026-01-01');
-INSERT INTO fixture_sp_driver_form (id,sp_driver_form_key,compound_form_key,status,selection_status,sp_applicability,created_at,violations_561_2006)
- VALUES (1,11,10,'published','active','RAKENDATAKSE','2026-01-01','[{"severityCode":"MSI"}]');
+INSERT INTO fixture_sp_driver_form (id,sp_driver_form_key,compound_form_key,status,selection_status,sp_applicability,created_at,violations_561_2006,mass_dimension_measurements)
+ VALUES (1,11,10,'published','active','RAKENDATAKSE','2026-01-01','[{"severityCode":"MSI"}]','[{"severity":"VSI","level3Code":"VSI843"}]');
+INSERT INTO fixture_compound_form VALUES (2,50,'80410960','Risk test','published','2026-01-01');
+INSERT INTO fixture_sp_driver_form (id,sp_driver_form_key,compound_form_key,status,selection_status,sp_applicability,result_type,created_at)
+ VALUES (2,51,50,'published','active','EI_RAKENDATA','ok','2026-01-01');
 INSERT INTO fixture_vehicle_technical_form VALUES (1,12,10,'published','2026-01-01','active','["VSI800"]'),(2,13,10,'published','2026-01-01','active','["MSI101"]'),(3,13,10,'deleted','2026-02-01','active','["MSI101"]');
 INSERT INTO fixture_trailer_technical_form VALUES (1,14,10,'published','2026-01-01','active','["SI901"]');
 INSERT INTO fixture_adr_form VALUES (1,15,10,'published','2026-01-01','[{"inspectionStatus":"NC","infringementDetected":true,"records":[{"responsibleParticipants":["C"],"reg2016403Code":"1","reg2016403Severity":"MSI"},{"responsibleParticipants":["F"],"reg2016403Code":"1","reg2016403Severity":"MSI"},{"responsibleParticipants":["C"],"reg2016403Code":"NONE","riskCategory":"I"}]}]','[]');
@@ -42,12 +45,13 @@ sql+='\nCREATE TEMP VIEW actual_score AS '+query('calculate_risk_score')
 sql+='\nCREATE TEMP VIEW actual_breakdown AS '+query('company_controls_breakdown')
 sql+='''
 DO $$ BEGIN
- IF (SELECT total_controls FROM actual_score) <> 4 OR (SELECT risk_score FROM actual_score) <> 68.75 THEN
+ IF (SELECT total_controls FROM actual_score) <> 4 OR (SELECT risk_score FROM actual_score) <> 76.25 THEN
   RAISE EXCEPTION 'Wrong score: %', (SELECT row_to_json(s) FROM actual_score s);
  END IF;
+ IF EXISTS (SELECT 1 FROM actual_breakdown WHERE form_key=50 AND NOT is_fully_excluded) THEN RAISE EXCEPTION 'Not-applied SP with result ok must be fully excluded'; END IF;
  IF (SELECT COUNT(*) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 4 THEN RAISE EXCEPTION 'Breakdown control count differs'; END IF;
- IF (SELECT SUM(weighted_points) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 275 THEN RAISE EXCEPTION 'Breakdown points differ'; END IF;
- IF (SELECT weighted_points FROM actual_breakdown WHERE form_type='compound') <> 220 THEN RAISE EXCEPTION 'SP, vehicle, trailer and ADR must count once per compound'; END IF;
+ IF (SELECT SUM(weighted_points) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 305 THEN RAISE EXCEPTION 'Breakdown points differ'; END IF;
+ IF (SELECT weighted_points FROM actual_breakdown WHERE form_type='compound') <> 250 THEN RAISE EXCEPTION 'SP (incl. mass/dimension severity), vehicle, trailer and ADR must count once per compound'; END IF;
  IF (SELECT weighted_points FROM actual_breakdown WHERE form_type='labour_inspection') <> 15 THEN RAISE EXCEPTION 'TI quantity and vehicle divisor must apply'; END IF;
 END $$;
 -- A technical-only control must also count. Drafts, deleted forms, excluded TRAM and old controls must not count.

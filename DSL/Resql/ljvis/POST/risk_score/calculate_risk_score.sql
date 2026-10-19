@@ -70,7 +70,7 @@ sp_driver_latest AS (
   SELECT DISTINCT ON (sp_driver_form_key)
     sp_driver_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_driver_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -85,7 +85,7 @@ sp_teammate_latest AS (
   SELECT DISTINCT ON (sp_teammate_form_key)
     sp_teammate_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_teammate_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -99,16 +99,16 @@ sp_teammate_active AS (
 all_sp_forms AS (
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_driver_active
   UNION ALL
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_teammate_active
 ),
--- Count MSI/VSI/SI/MI occurrences across all 7 JSONB violation-carrying
--- fields of each SP form. violations_* entries require isDetected='true'
+-- Count MSI/VSI/SI/MI occurrences across all 8 JSONB violation-carrying
+-- fields of each SP form (incl. mass_dimension_measurements, severity key `severity`). violations_* entries require isDetected='true'
 -- (string, not boolean) OR a missing isDetected key; document_checks and
 -- cabotage_violations have no isDetected field at all, so every entry counts.
 violation_counts AS (
@@ -135,6 +135,10 @@ violation_counts AS (
       UNION ALL
       SELECT elem->>'severityCode'
       FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
+      UNION ALL
+      -- Massi ja mõõtmete ületamine: kirje raskusaste on väljas `severity` (mitte severityCode), isDetected välja pole.
+      SELECT COALESCE(elem->>'severity', elem->>'severityCode')
+      FROM jsonb_array_elements(COALESCE(f.mass_dimension_measurements, '[]'::jsonb)) elem
     ) AS severity_codes
   FROM all_sp_forms f
 ),
@@ -157,12 +161,12 @@ sp_form_category AS (
   SELECT
     *,
     CASE
-      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type = 'KORRAS'
+      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type IN ('ok', 'KORRAS')
         THEN 'excluded'
       WHEN sp_applicability = 'RAKENDATAKSE' AND proceeding_type IN ('KIIR', 'YLD', 'LYHI')
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
-      WHEN result_type = 'HOIATUS' AND sp_applicability = 'RAKENDATAKSE'
+      WHEN result_type IN ('warning', 'HOIATUS') AND sp_applicability = 'RAKENDATAKSE'
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
       ELSE 'counted'
