@@ -27,6 +27,7 @@ HUB = 'http://localhost:9092'
 INTERNAL = 'http://localhost:9089/ljvis'
 INTERNAL_COMMUNICATION_KEY = os.environ.get('LJVIS_INTERNAL_COMMUNICATION_KEY', 'dev-internal-service-token')
 RESQL = 'http://localhost:9087/ljvis'
+RESQL_INTER_SERVICE_TOKEN = os.environ.get('LJVIS_RESQL_INTER_SERVICE_TOKEN', 'dev-resql-service-token')
 NS = {'e': 'https://webgate.ec.testa.eu/move-hub/erru/3.5'}
 RESPONSE_PATH = '/erru/http/response/btshttpreceive.dll'
 
@@ -44,6 +45,8 @@ def http(url, body=None, xml=False):
     headers = {'Content-Type': 'application/xml' if xml else 'application/json'}
     if url.startswith(INTERNAL):
         headers['x-internal-service-token'] = INTERNAL_COMMUNICATION_KEY
+    if url.startswith(RESQL):
+        headers['Authorization'] = 'Bearer ' + RESQL_INTER_SERVICE_TOKEN
     req = urllib.request.Request(url, data=data, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=20) as response:

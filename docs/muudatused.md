@@ -4,6 +4,12 @@
 
 ## 2026-10-19
 
+### Resql 0.5.1-alpha ja teenustevaheline Bearer-token
+
+- Andmebaasikiht (Resql) uuendati versioonile 0.5.1-alpha (varem 0.3.0-alpha). Kasutajale muutust ei ole.
+- Resql nõuab nüüd igalt kutsel päist `Authorization: Bearer <token>`; kõik Ruuteri DSL-id saadavad selle. **Deploy eeldab uut saladust `RESQL_INTER_SERVICE_TOKEN`:** konstant `constants.ini`-s (Ruuter ja ruuter-internal), sama väärtusega env-muutuja `resql-ljvis` konteineris ning `security.inter_service_token_env` chart'i `resql.yaml`-is. Ilma selleta Resql ei käivitu. Vt admin juhend 12.
+- CI-s kontrollib `scripts/check-resql-bearer.py`, et iga Resql-kutse saadab tokeni ja token ei lähe mujale.
+
 ### Manuaalse käivituse tulemusteade näitab arvestatud ja õnnestunud kirjete arvu
 
 - Haldus → E-toimiku X-tee logid → **Manuaalne käivitamine**: tulemusteade näitab nüüd lisaks ebaõnnestunute arvule ka seda, mitu kirjet töö arvestas (valis töötlemiseks) ja mitu õnnestus, nt „Arvestati 25, õnnestus 23, ebaõnnestus 2". See kehtib riskiskooride ümberarvutusele ja kõigile e-toimiku sünkroonimistele.

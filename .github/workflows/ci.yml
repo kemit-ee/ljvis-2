@@ -75,6 +75,9 @@ jobs:
       - name: Service token only goes to allowlisted targets (no XTR REST-lane leak)
         run: python3 scripts/check-internal-token-targets.py
 
+      - name: Every Resql call carries the bearer token (Resql 0.4+ gate)
+        run: python3 scripts/check-resql-bearer.py
+
       # Epic #522: Resql is INSERT + SELECT only (no UPDATE/DELETE/TRUNCATE/MERGE, no JOIN/LATERAL,
       # no ON CONFLICT DO UPDATE); the retention purge is the one exemption (.sql-rule-exemption).
       - name: SQL append-only invariant (Resql)

@@ -231,11 +231,14 @@ export const RESQL_URL = process.env.LJVIS_RESQL_URL || 'http://localhost:9087';
 export const INTERNAL_API_URL = process.env.LJVIS_INTERNAL_API_URL || 'http://localhost:9089';
 // Sisemise Ruuteri teenusetoken (constants.ini: INTERNAL_COMMUNICATION_KEY); xroad/* teed seda ei vaja.
 export const INTERNAL_COMMUNICATION_KEY = process.env.LJVIS_INTERNAL_COMMUNICATION_KEY || 'dev-internal-service-token';
+// Resqli Bearer-värav (constants.ini: RESQL_INTER_SERVICE_TOKEN).
+export const RESQL_INTER_SERVICE_TOKEN = process.env.LJVIS_RESQL_INTER_SERVICE_TOKEN || 'dev-resql-service-token';
 
 async function postJson<T>(baseURL: string, path: string, data: unknown): Promise<T> {
   const api = await request.newContext({ baseURL });
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (baseURL === INTERNAL_API_URL) headers['x-internal-service-token'] = INTERNAL_COMMUNICATION_KEY;
+  if (baseURL === RESQL_URL) headers.Authorization = `Bearer ${RESQL_INTER_SERVICE_TOKEN}`;
   const res = await api.post(path, { data, headers });
   const text = await res.text();
   await api.dispose();

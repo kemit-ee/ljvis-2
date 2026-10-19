@@ -5,6 +5,21 @@
     "description": "Functional tests for the audit log endpoints (GET /v1/logs, /v1/logs/log, /v1/logs/export, /v1/logs/verify). Covers the permission boundary and the organisation scope: audit.read sees every organisation's events; audit.read.local sees only events whose actor belonged to the caller's own organisation; audit.verify (chain integrity check) is global and Super-Admin only. Self-contained: seeds audit events with known organisation_id values via Resql insert_audit_event and asserts each role sees exactly its allowed slice.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Resql 0.5+: sisemine bearer-v\u00e4rav (constants.ini: RESQL_INTER_SERVICE_TOKEN).",
+          "const resqlOrigin = String(pm.variables.get('resql_ljvis_url') || '').split('/').slice(0, 3).join('/');",
+          "if (resqlOrigin && pm.variables.replaceIn(pm.request.url.toString()).startsWith(resqlOrigin)) {",
+          "  pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.variables.get('resql_inter_service_token') });",
+          "}"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "[Auth] Login \u2014 Super Admin (audit.read)",
