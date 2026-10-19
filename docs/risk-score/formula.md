@@ -72,11 +72,11 @@ Iga kvalifitseeruva koondvormi kõiki SP-alamvorme (`sp_driver_form` +
 hinnatakse eraldi ja klassifitseeritakse:
 
 - **Täielik välistamine** (ei lähe `r`-i ega valemisse):
-  `sp_applicability IN ('EI_RAKENDATA','EI_KONTROLLITUD')` JA `result_type = 'KORRAS'`.
+  `sp_applicability IN ('EI_RAKENDATA','EI_KONTROLLITUD')` JA `result_type = 'ok'` (vana kood `KORRAS`).
   Koondvorm, millel pole ühtegi arvesse minevat SP-, tehnilise kontrolli või ADR-alamvormi, jääb samuti välja.
 - **Nullpunktiline kontroll** (`r++`, kaalupunkte 0):
   - `sp_applicability = 'RAKENDATAKSE'` JA `proceeding_type IN ('KIIR','YLD','LYHI')` JA rikkumisi ei tuvastatud, VÕI
-  - `result_type = 'HOIATUS'` JA `sp_applicability = 'RAKENDATAKSE'` JA rikkumisi ei tuvastatud.
+  - `result_type = 'warning'` (vana kood `HOIATUS`) JA `sp_applicability = 'RAKENDATAKSE'` JA rikkumisi ei tuvastatud.
 - **Normaalne kontroll kaaludega** (`r++`, kaalupunktid lisanduvad): kõik muu.
 
 Koondvorm ise loetakse täielikult välistatuks ainult siis, kui *kõik* selle

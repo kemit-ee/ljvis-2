@@ -172,12 +172,12 @@ sp_form_category AS (
   SELECT
     *,
     CASE
-      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type = 'KORRAS'
+      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type IN ('ok', 'KORRAS')
         THEN 'excluded'
       WHEN sp_applicability = 'RAKENDATAKSE' AND proceeding_type IN ('KIIR', 'YLD', 'LYHI')
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
-      WHEN result_type = 'HOIATUS' AND sp_applicability = 'RAKENDATAKSE'
+      WHEN result_type IN ('warning', 'HOIATUS') AND sp_applicability = 'RAKENDATAKSE'
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
       ELSE 'counted'

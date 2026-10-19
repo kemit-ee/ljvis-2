@@ -15,6 +15,10 @@
 - Sama kehtib kaasjuhi (teammate) kaardil. Kinnitatud ja avalikustatud kaardil saavad neid välju muuta kasutajad, kellel on õigus `control_form.punishment_register`, ja administraator. Teised kasutajad, näiteks politsei, ei saa neid välju muuta ning näevad tehtud parandust. Piirang kehtib ka serveris.
 - Õiguse `control_form.punishment_register` nimetus klassifikaatoris on nüüd „eToimikuga seonduva ülekirjutamise õigus“.
 
+### Riskitaseme arvutus tunneb ära „Korras" tulemusega mitterakendatud kontrollid
+
+- SP-alamvorm, kus sõidu- ja puhkeaja nõudeid ei rakendatud või ei kontrollitud ja tulemus on „Korras", jäetakse riskitaseme arvutusest välja, nagu on kokku lepitud. Varem see reegel ei rakendunud (arvutus ootas vana koodi `KORRAS`, vormid salvestavad `ok`), nii et selline kontroll läks 0 punktiga kontrollide arvu ja langetas riskitaset.
+
 ### Massi ja mõõtmete rikkumised lähevad riskitaseme arvutusse
 
 - Sõidu- ja puhkeaja alamvormi „Massi ja mõõtmete" rikkumised (nt VSI843) loetakse nüüd riskitaseme arvutuses. Varem need arvesse ei läinud ja riskitase oli seetõttu liiga madal.

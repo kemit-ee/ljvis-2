@@ -27,6 +27,9 @@ CREATE TEMP TABLE fixture_classifier_value (id BIGINT,classifier_value_key BIGIN
 INSERT INTO fixture_compound_form VALUES (1,10,'80410960','Risk test','published','2026-01-01');
 INSERT INTO fixture_sp_driver_form (id,sp_driver_form_key,compound_form_key,status,selection_status,sp_applicability,created_at,violations_561_2006,mass_dimension_measurements)
  VALUES (1,11,10,'published','active','RAKENDATAKSE','2026-01-01','[{"severityCode":"MSI"}]','[{"severity":"VSI","level3Code":"VSI843"}]');
+INSERT INTO fixture_compound_form VALUES (2,50,'80410960','Risk test','published','2026-01-01');
+INSERT INTO fixture_sp_driver_form (id,sp_driver_form_key,compound_form_key,status,selection_status,sp_applicability,result_type,created_at)
+ VALUES (2,51,50,'published','active','EI_RAKENDATA','ok','2026-01-01');
 INSERT INTO fixture_vehicle_technical_form VALUES (1,12,10,'published','2026-01-01','active','["VSI800"]'),(2,13,10,'published','2026-01-01','active','["MSI101"]'),(3,13,10,'deleted','2026-02-01','active','["MSI101"]');
 INSERT INTO fixture_trailer_technical_form VALUES (1,14,10,'published','2026-01-01','active','["SI901"]');
 INSERT INTO fixture_adr_form VALUES (1,15,10,'published','2026-01-01','[{"inspectionStatus":"NC","infringementDetected":true,"records":[{"responsibleParticipants":["C"],"reg2016403Code":"1","reg2016403Severity":"MSI"},{"responsibleParticipants":["F"],"reg2016403Code":"1","reg2016403Severity":"MSI"},{"responsibleParticipants":["C"],"reg2016403Code":"NONE","riskCategory":"I"}]}]','[]');
@@ -45,6 +48,7 @@ DO $$ BEGIN
  IF (SELECT total_controls FROM actual_score) <> 4 OR (SELECT risk_score FROM actual_score) <> 76.25 THEN
   RAISE EXCEPTION 'Wrong score: %', (SELECT row_to_json(s) FROM actual_score s);
  END IF;
+ IF EXISTS (SELECT 1 FROM actual_breakdown WHERE form_key=50 AND NOT is_fully_excluded) THEN RAISE EXCEPTION 'Not-applied SP with result ok must be fully excluded'; END IF;
  IF (SELECT COUNT(*) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 4 THEN RAISE EXCEPTION 'Breakdown control count differs'; END IF;
  IF (SELECT SUM(weighted_points) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 305 THEN RAISE EXCEPTION 'Breakdown points differ'; END IF;
  IF (SELECT weighted_points FROM actual_breakdown WHERE form_type='compound') <> 250 THEN RAISE EXCEPTION 'SP (incl. mass/dimension severity), vehicle, trailer and ADR must count once per compound'; END IF;
