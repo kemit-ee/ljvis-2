@@ -21,6 +21,7 @@
 - Varem oli plokk olemas ainult välisriigi rikkumise kontrollkaardil ja nähtav ainult administraatorile, seega ei näinud Transpordiameti ametnik seda demos. Nüüd on plokk ka PPA andmevormidel (juht, meeskonnaliige, sõiduk, haagis, ADR; veo katkestamise otsusel plokki ei ole) ja Transpordiameti kontrollkaardil.
 - PPA andmevormidel ja TRAM-kaardil salvestatakse plokk eraldi nupuga „Uuenda haldusmenetluse andmeid". Andmed on vormi enda tabelis (samad veerud mis VR-il); salvestus loob vormist uue versiooni (kinnitatud ja avalikustatud vormil suureneb versiooninumber), vana versioon jääb ajalukku. Plokk ilmub pärast vormi esmast salvestamist.
 - Pärast haldusmenetluse andmete salvestamist uueneb vormi versioonide tabel kohe. Vaatamisrežiimis laetakse leht uuesti, et päis näitaks uut versiooni; muutmisrežiimis lehte ei laeta, et pooleli oleva vormi muudatused ei kaoks.
+- Andmehaldusele ja BI-le (Tableau) lisandus vaade `tableau.administrative_procedure`: haldusmenetluse andmed ühtse kujuga, üks rida per vorm (VR, PPA andmevormid, TRAM-kaart), kehtiv seis, liidetav `tableau.form_overview`-ga. Vormiotsingu allalaadimisel (xlsx/csv) on haldusmenetluse väljad nüüd kõigil nendel vormidel kaasas.
 
 ## 2026-10-16
 
