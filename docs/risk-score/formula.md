@@ -133,10 +133,12 @@ kõigile kontrolliallikatele. Kordusavalikustamine ei alusta uut kaheaastast per
 
 ## 4. Rikkumiste JSONB väljad — TÄHTIS väljanimede märkus
 
-Rikkumised loetakse `sp_driver_form`/`sp_teammate_form` seitsmest JSONB
+Rikkumised loetakse `sp_driver_form`/`sp_teammate_form` kaheksast JSONB
 väljast: `violations_561_2006`, `violations_165_2014`, `violations_2002_15`,
 `violations_593_2008`, `violations_2020_1057`, `document_checks`,
-`cabotage_violations`.
+`cabotage_violations`, `mass_dimension_measurements`. Viimase kirje raskusaste
+on väljas `severity` (nt `VSI`, kood `VSI843`), mitte `severityCode`, ja
+`isDetected` välja pole — iga kirje loeb.
 
 **Massiivi elementide väljanimed on camelCase, mitte snake_case** —
 `violationCode`, `severityCode`, `isDetected` — sest need on toorelt

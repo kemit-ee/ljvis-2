@@ -87,7 +87,7 @@ sp_driver_latest AS (
   SELECT DISTINCT ON (sp_driver_form_key)
     sp_driver_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_driver_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -102,7 +102,7 @@ sp_teammate_latest AS (
   SELECT DISTINCT ON (sp_teammate_form_key)
     sp_teammate_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_teammate_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -116,12 +116,12 @@ sp_teammate_active AS (
 all_sp_forms AS (
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_driver_active
   UNION ALL
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_teammate_active
 ),
 violation_counts AS (
@@ -148,6 +148,10 @@ violation_counts AS (
       UNION ALL
       SELECT elem->>'severityCode'
       FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
+      UNION ALL
+      -- Massi ja mõõtmete ületamine: kirje raskusaste on väljas `severity` (mitte severityCode), isDetected välja pole.
+      SELECT COALESCE(elem->>'severity', elem->>'severityCode')
+      FROM jsonb_array_elements(COALESCE(f.mass_dimension_measurements, '[]'::jsonb)) elem
     ) AS severity_codes
   FROM all_sp_forms f
 ),

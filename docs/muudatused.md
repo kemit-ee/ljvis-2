@@ -10,6 +10,10 @@
 - Muudatus kehtib kõigis vormitüüpides, mis riskitaset mõjutavad: koondvorm, sõidu- ja puhkeaja alamvormid (juht, meeskonnaliige), sõiduki ja haagise tehnokontroll, ADR-kontroll, välisriigi rikkumise vorm, TRAM-i kontrollkaart ja Tööinspektsiooni kontrollkaart.
 - Mustandi (salvestatud) vormi salvestamine riskitaset ei muuda.
 
+### Massi ja mõõtmete rikkumised lähevad riskitaseme arvutusse
+
+- Sõidu- ja puhkeaja alamvormi „Massi ja mõõtmete" rikkumised (nt VSI843) loetakse nüüd riskitaseme arvutuses. Varem need arvesse ei läinud ja riskitase oli seetõttu liiga madal.
+
 ## 2026-10-16
 
 ### E-toimiku alamsüsteem ja teenuse versioon XTR-i vaikeväärtusena
