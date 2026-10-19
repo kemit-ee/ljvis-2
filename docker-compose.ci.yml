@@ -154,7 +154,7 @@ services:
     environment:
       - RESQL_DB_PASSWORD=01234
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8090/healthz > /dev/null 2>&1"]
+      test: ["CMD", "/app/resql", "health", "--url", "http://127.0.0.1:8090/healthz"]
       interval: 10s
       timeout: 5s
       retries: 18
