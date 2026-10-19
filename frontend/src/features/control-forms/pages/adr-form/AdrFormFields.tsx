@@ -988,6 +988,7 @@ export function AdrFormFields({
       <AdministrativeProcedureCard
         formType="adr-form"
         formKey={formik.values.id}
+        reloadAfterSave={!canEdit}
       />
 
       {formNumber && (

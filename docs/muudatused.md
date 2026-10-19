@@ -20,6 +20,7 @@
 - Plokk „Haldusmenetlus seoses raskete autoveoalaste rikkumistega" on nähtav ja täidetav **Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule** ning süsteemi- ja asutuse administraatorile (ka PPA asutuse administraator näeb plokki PPA vormidel). PPA tavaametnik seda ei näe.
 - Varem oli plokk olemas ainult välisriigi rikkumise kontrollkaardil ja nähtav ainult administraatorile, seega ei näinud Transpordiameti ametnik seda demos. Nüüd on plokk ka PPA andmevormidel (juht, meeskonnaliige, sõiduk, haagis, ADR; veo katkestamise otsusel plokki ei ole) ja Transpordiameti kontrollkaardil.
 - PPA andmevormidel ja TRAM-kaardil salvestatakse plokk eraldi nupuga „Uuenda haldusmenetluse andmeid". Andmed on vormi enda tabelis (samad veerud mis VR-il); salvestus loob vormist uue versiooni (kinnitatud ja avalikustatud vormil suureneb versiooninumber), vana versioon jääb ajalukku. Plokk ilmub pärast vormi esmast salvestamist.
+- Pärast haldusmenetluse andmete salvestamist uueneb vormi versioonide tabel kohe. Vaatamisrežiimis laetakse leht uuesti, et päis näitaks uut versiooni; muutmisrežiimis lehte ei laeta, et pooleli oleva vormi muudatused ei kaoks.
 
 ## 2026-10-16
 

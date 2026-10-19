@@ -654,6 +654,7 @@ export function TechnicalCheckFormFields({
       <AdministrativeProcedureCard
         formType={formPath}
         formKey={values.id}
+        reloadAfterSave={!canEdit}
       />
     </div>
   );

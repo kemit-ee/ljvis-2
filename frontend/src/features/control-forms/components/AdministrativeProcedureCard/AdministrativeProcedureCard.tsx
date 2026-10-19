@@ -22,6 +22,11 @@ interface Props {
   formType: AdministrativeProcedureFormType;
   /** Vormi võti (*_key); plokk ilmub alles siis, kui vorm on salvestatud. */
   formKey?: string | number | null;
+  /**
+   * Vaatamisrežiimis laeb lehe pärast salvestust uuesti, et päis näitaks uut versiooni.
+   * Muutmisrežiimis ei laeta (poolelioleva vormi muudatused ei tohi kaduda).
+   */
+  reloadAfterSave?: boolean;
 }
 
 type DateField =
@@ -59,7 +64,13 @@ const DATE_FIELDS: { name: DateField; labelKey: string }[] = [
  * Nähtav ja täidetav ainult Transpordiameti ametnikule (ja administraatorile);
  * laeb ja salvestab ise (sõltumatu vormi enda salvestusest ja versioonidest).
  */
-export function AdministrativeProcedureCard({ formType, formKey }: Props) {
+export const FORM_VERSION_SAVED_EVENT = 'ljvis:form-version-saved';
+
+export function AdministrativeProcedureCard({
+  formType,
+  formKey,
+  reloadAfterSave,
+}: Props) {
   const { t } = useTranslation();
   const allowed = useCanUseAdministrativeProcedure();
   const [values, setValues] = useState<AdministrativeProcedure>({});
@@ -95,6 +106,12 @@ export function AdministrativeProcedureCard({ formType, formKey }: Props) {
       const res = await saveAdministrativeProcedure(formType, formKey, values);
       setSavedVersion(res?.[0]?.version ?? null);
       setStatus('saved');
+      window.dispatchEvent(
+        new CustomEvent(FORM_VERSION_SAVED_EVENT, {
+          detail: { formType, formKey: String(formKey) },
+        }),
+      );
+      if (reloadAfterSave) setTimeout(() => window.location.reload(), 900);
     } catch {
       setStatus('saveFailed');
     }

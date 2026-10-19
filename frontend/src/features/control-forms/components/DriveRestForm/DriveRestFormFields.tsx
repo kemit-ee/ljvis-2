@@ -1412,6 +1412,7 @@ export function DriveRestFormFields({
         <AdministrativeProcedureCard
           formType={type === 'teammate' ? 'drive-rest-form/teammate' : 'drive-rest-form/driver'}
           formKey={formik.values.id}
+          reloadAfterSave={readOnly}
         />
       )}
       {/* Plokk: Failid */}

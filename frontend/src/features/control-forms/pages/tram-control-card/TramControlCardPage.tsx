@@ -464,7 +464,11 @@ export function TramControlCardPage() {
       )}
 
       {!snapshotId && (
-        <AdministrativeProcedureCard formType="tram-card" formKey={id} />
+        <AdministrativeProcedureCard
+          formType="tram-card"
+          formKey={id}
+          reloadAfterSave={!showEdit}
+        />
       )}
 
       <div className="page-actions mt-1">
