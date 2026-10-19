@@ -50,7 +50,7 @@ test.describe('Manuaalne käivitamine (X-tee logide leht)', () => {
     }
   });
 
-  test('riskiskooride ümberarvutuse käivitamine lõpeb teatega ebaõnnestunud-arvuga', async ({
+  test('riskiskooride ümberarvutuse käivitamine lõpeb teatega arvestatud, õnnestunud ja ebaõnnestunud kirjete arvuga', async ({
     page,
   }) => {
     await openLogsPage(page);
@@ -64,9 +64,11 @@ test.describe('Manuaalne käivitamine (X-tee logide leht)', () => {
     ]);
     expect(response.status()).toBe(200);
     expect(response.request().postDataJSON()).toEqual({ job: 'risk-score-recalc-sync' });
+    const { response: body } = await response.json();
+    expect(body.total).toBe(body.succeeded + body.failures);
 
     await expect(
-      page.getByText(/Töö „Riskiskooride ümberarvutus” lõpetatud, ebaõnnestunuid: \d+\./),
+      page.getByText(/Töö „Riskiskooride ümberarvutus” lõpetatud\. Arvestati \d+, õnnestus \d+, ebaõnnestus \d+\./),
     ).toBeVisible({ timeout: 60_000 });
     // Töö lõppedes on nupud taas kasutatavad.
     await expect(
@@ -117,7 +119,7 @@ test.describe('Manuaalne käivitamine (X-tee logide leht)', () => {
     ]);
     expect(response.status()).toBe(200);
     await expect(
-      page.getByText(/Töö „E-toimiku sünkroonimine: tööinspektsioon” lõpetatud, ebaõnnestunuid: \d+\./),
+      page.getByText(/Töö „E-toimiku sünkroonimine: tööinspektsioon” lõpetatud\. Arvestati \d+, õnnestus \d+, ebaõnnestus \d+\./),
     ).toBeVisible({ timeout: 60_000 });
   });
 

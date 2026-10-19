@@ -33,6 +33,10 @@ export function fetchXroadLogList(
 
 export interface ManualJobResult {
   job: string;
+  /** Mitu kirjet töö töötlemiseks valis. */
+  total: number;
+  /** Mitu kirjet õnnestus töödelda. */
+  succeeded: number;
   failures: number;
   result: Record<string, number>;
 }

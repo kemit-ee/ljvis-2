@@ -157,5 +157,5 @@ processCandidates:
 
 returnSummary:
   status: 200
-  return: "${({ candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.applied).length, failures: results.filter(r => !r.success).length })}"
+  return: "${({ total: candidates.length, succeeded: results.filter(r => r.success).length, candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.applied).length, failures: results.filter(r => !r.success).length })}"
   next: end
