@@ -39,6 +39,7 @@ tombstone:
   args:
     url: "[#LJVIS_RESQL]/control-forms/perf-cleanup/tombstone"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -64,6 +65,7 @@ logDone:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -89,6 +91,7 @@ logError:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

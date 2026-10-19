@@ -24,6 +24,7 @@ checkConflict:
   args:
     url: "[#LJVIS_RESQL]/user/check_personal_code_conflict"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

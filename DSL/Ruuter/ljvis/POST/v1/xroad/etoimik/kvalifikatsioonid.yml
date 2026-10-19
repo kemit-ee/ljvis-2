@@ -250,6 +250,7 @@ logSuccessFound:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -276,6 +277,7 @@ logSuccessNotFound:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -308,6 +310,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

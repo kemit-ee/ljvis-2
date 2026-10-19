@@ -39,6 +39,7 @@ selectStep:
   args:
     url: "[#LJVIS_RESQL]/archive/select_deleted_snapshots"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -64,6 +65,7 @@ insertStep:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/insert_snapshots"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -81,6 +83,7 @@ verifyStep:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/count_present"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -104,6 +107,7 @@ purgeStep:
   args:
     url: "[#LJVIS_RESQL]/archive/purge_confirmed"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -132,6 +136,7 @@ anonymizeStep:
   args:
     url: "[#LJVIS_RESQL]/archive/anonymize_confirmed"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -149,6 +154,7 @@ logDone:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -174,6 +180,7 @@ logNothing:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -199,6 +206,7 @@ logNotVerified:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

@@ -65,6 +65,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -97,6 +98,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -153,6 +155,7 @@ registerCarrierNotificationRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

@@ -38,6 +38,7 @@ fetchVehicleCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/select_yvkehtivus_candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -109,6 +110,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -127,6 +129,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update-extraordinary-inspection-date"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -143,6 +146,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/log_yvkehtivus_audit"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -161,6 +165,7 @@ fetchTrailerCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/select_yvkehtivus_candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -223,6 +228,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -241,6 +247,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-extraordinary-inspection-date"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -257,6 +264,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/trailer-technical/log_yvkehtivus_audit"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:

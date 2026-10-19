@@ -26,6 +26,7 @@ queryNotifications:
   args:
     url: "[#LJVIS_RESQL]/notification/list_notifications"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

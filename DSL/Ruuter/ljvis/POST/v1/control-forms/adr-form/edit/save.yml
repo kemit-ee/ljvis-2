@@ -119,6 +119,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -171,6 +172,7 @@ getCompoundFormInsert:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -213,6 +215,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -234,6 +237,7 @@ getCompoundForInspector:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -258,6 +262,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -324,6 +329,7 @@ getCompoundFormUpdate:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

@@ -41,6 +41,7 @@ getUserGroup:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -59,6 +60,7 @@ setOrgs:
   args:
     url: "[#LJVIS_RESQL]/user_group/set_user_group_organisations"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -80,6 +82,7 @@ getCascadeRemovedUsers:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_group_users_by_organisations"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -104,6 +107,7 @@ removeUsersFromGroup:
   args:
     url: "[#LJVIS_RESQL]/user_group/set_user_group_users"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -119,6 +123,7 @@ getCascadePersonalCodes:
   args:
     url: "[#LJVIS_RESQL]/user/get_users_by_ids"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

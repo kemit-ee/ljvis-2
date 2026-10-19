@@ -20,6 +20,7 @@ getPermissions:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
