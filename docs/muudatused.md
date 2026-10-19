@@ -7,6 +7,7 @@
 ### E-toimiku öine uuendus versioonide ajaloos
 
 - Kui e-toimiku öine sünkroon uuendab või avalikustab vormi (TRAM-kaart, autojuht, meeskonnaliige, sõiduk, haagis), kuvatakse vormi versioonide tabelis salvestajana **„eToimik öine uuendus"** (varem „e-toimik", „LJVIS-CRON" või „system").
+- Parandatud viga, kus automaatse avalikustaja nimi jäi sõiduki, haagise, ADR-i, autojuhi, meeskonnaliikme, koondvormi ja teiste vormide versioonide tabelis tühjaks (kuvati ainult tavakasutaja nimi).
 
 ### Grupi juht: prefektuuri alluvate vormide nägemine
 
