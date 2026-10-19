@@ -4,6 +4,10 @@
 
 ## 2026-10-19
 
+### Kustutatud vormide arhiveerimine töötab automaatselt
+
+- Kustutatud kontrollvormid teisaldatakse iga kahe tunni tagant eraldi arhiivibaasi; töötabelid jäävad väiksemaks ja kiiremaks. Kustutatud vormi **versiooniajalugu jääb endiselt nähtavaks** — süsteem loeb selle vajadusel arhiivist.
+
 ### Manuaalse käivituse tulemusteade näitab arvestatud ja õnnestunud kirjete arvu
 
 - Haldus → E-toimiku X-tee logid → **Manuaalne käivitamine**: tulemusteade näitab nüüd lisaks ebaõnnestunute arvule ka seda, mitu kirjet töö arvestas (valis töötlemiseks) ja mitu õnnestus, nt „Arvestati 25, õnnestus 23, ebaõnnestus 2". See kehtib riskiskooride ümberarvutusele ja kõigile e-toimiku sünkroonimistele.

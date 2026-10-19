@@ -12,7 +12,7 @@ toodangus `ljvis2_<env>_arhiiv`). Arhiivil on kolm omavahel seotud funktsiooni:
 
 | Funktsioon | Mida arhiveeritakse | Seis | Juhend |
 |---|---|---|---|
-| **A. Kustutatud vormide arhiveerimine** (ADR-010) | Vormid, mille viimane seis on „kustutatud“ | Tehtud; automaatne käivitus on **välja lülitatud** (2099) | [peatükk 7](#7-kustutatud-vormide-arhiveerimine-adr-010) |
+| **A. Kustutatud vormide arhiveerimine** (ADR-010) | Vormid, mille viimane seis on „kustutatud“ | Tehtud; automaatne käivitus iga 2 tunni järel | [peatükk 7](#7-kustutatud-vormide-arhiveerimine-adr-010) |
 | **B. Ajapõhine arhiveerimine** (ADR-012) | Vormid, mille viimasest tegevusest on möödas X aastat | Tehtud, **vaikimisi välja lülitatud** | see juhend |
 | **C. Isikuga seose eemaldamine** (ADR-014, LJVIS2-51) | A/B käigus tööbaasist kustutatud vormide arhiivikoopia isikuandmed | Tehtud, **vaikimisi sisse lülitatud** | [peatükk 12](#12-isikuga-seose-eemaldamine-adr-014-ljvis2-51) |
 
@@ -166,10 +166,10 @@ viimane staatus peab olema „kustutatud“. Töövoog on failis
 [`archive-deleted-forms.yml`](../../DSL/Ruuter.internal/ljvis/POST/cron/archive-deleted-forms.yml).
 Ajastatud töö konfiguratsioon on failis
 [`archive-deleted-forms.yaml`](../../DSL/CronManager/archive-deleted-forms.yaml).
-Praegune käivitusreegel (`0 0 0 1 1 ? 2099`) ei käivita tööd automaatselt. Töö saab
-käivitada käsitsi. Automaatseks käivitamiseks iga kahe tunni järel seadke `trigger`
-väärtuseks `"0 0 0/2 * * ?"`. Sellel funktsioonil ei ole `purge`-lülitit. Funktsioon
-kustutab vormi tööbaasist alati pärast edukat kontrolli.
+Käivitusreegel (`0 0 0/2 * * ?`) käivitab töö automaatselt iga kahe tunni järel
+täistunnil. Töö saab käivitada ka käsitsi. Sellel funktsioonil ei ole `purge`-lülitit.
+Funktsioon kustutab vormi tööbaasist alati pärast edukat kontrolli. Automaatse
+käivituse väljalülitamiseks seadke `trigger` väärtuseks `"0 0 0 1 1 ? 2099"`.
 
 ## 8. Varundus ja arhiivibaas
 
