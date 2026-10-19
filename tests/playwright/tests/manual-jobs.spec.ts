@@ -64,7 +64,7 @@ test.describe('Manuaalne käivitamine (X-tee logide leht)', () => {
     ]);
     expect(response.status()).toBe(200);
     expect(response.request().postDataJSON()).toEqual({ job: 'risk-score-recalc-sync' });
-    const body = await response.json();
+    const { response: body } = await response.json();
     expect(body.total).toBe(body.succeeded + body.failures);
 
     await expect(
