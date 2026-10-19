@@ -9,6 +9,11 @@
 - Avalikustatud kontrollvormi muutmine ja salvestamine arvutab ettevõtte riskitaseme kohe ümber. Varem uuenes riskitase ainult avalikustamisel, kustutamisel, käsitsi käivitamisel või öise töö käigus. Näiteks jäi lehel „Riskitasemed" vana väärtus (40), kuni käsitsi ümberarvutus andis õige (50).
 - Muudatus kehtib kõigis vormitüüpides, mis riskitaset mõjutavad: koondvorm, sõidu- ja puhkeaja alamvormid (juht, meeskonnaliige), sõiduki ja haagise tehnokontroll, ADR-kontroll, välisriigi rikkumise vorm, TRAM-i kontrollkaart ja Tööinspektsiooni kontrollkaart.
 - Mustandi (salvestatud) vormi salvestamine riskitaset ei muuda.
+### Jõustunud otsuse ja menetluse lõpetamise aluse parandamine avalikustatud kaardil
+
+- Avalikustatud sõidu- ja puhkeaja kontrollkaardil (autojuht) olid väljad „Jõustunud otsus“ ja „Menetluse lõpetamise alus“ muutmisel alati hallid. Nüüd saab neid välju muuta administraator (õigus `control_form.edit_locked`), et parandada e-toimikus olevat viga.
+- Sama kehtib kaasjuhi (teammate) kaardil. Kinnitatud ja avalikustatud kaardil saavad neid välju muuta kasutajad, kellel on õigus `control_form.punishment_register`, ja administraator. Teised kasutajad, näiteks politsei, ei saa neid välju muuta ning näevad tehtud parandust. Piirang kehtib ka serveris.
+- Õiguse `control_form.punishment_register` nimetus klassifikaatoris on nüüd „eToimikuga seonduva ülekirjutamise õigus“.
 
 ### Massi ja mõõtmete rikkumised lähevad riskitaseme arvutusse
 
