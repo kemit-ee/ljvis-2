@@ -1702,7 +1702,7 @@
       "description": "Käivitab käsitsi samad tööd, mida süsteem teeb ajastatult. Töö jookseb lõpuni enne, kui tulemus ilmub — jätke leht avatuks.",
       "run": "Käivita",
       "running": "Töötab…",
-      "done": "Töö „{{job}}” lõpetatud, ebaõnnestunuid: {{failures}}.",
+      "done": "Töö „{{job}}” lõpetatud. Arvestati {{total}}, õnnestus {{succeeded}}, ebaõnnestus {{failures}}.",
       "jobs": {
         "risk-score-recalc-sync": {
           "title": "Riskiskooride ümberarvutus",

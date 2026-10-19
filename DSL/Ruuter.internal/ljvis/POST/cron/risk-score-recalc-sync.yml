@@ -123,7 +123,7 @@ writeAuditEvent:
 
 returnSummary:
   status: 200
-  return: "${({ companiesChecked: companies.length, recalculated: results.filter(r => r.success).length, failures: results.filter(r => !r.success).length })}"
+  return: "${({ total: companies.length, succeeded: results.filter(r => r.success).length, companiesChecked: companies.length, recalculated: results.filter(r => r.success).length, failures: results.filter(r => !r.success).length })}"
   next: end
 
 returnCompanySelectionError:

@@ -1671,7 +1671,7 @@
       "description": "Runs the same jobs the system runs on a schedule. The job runs to completion before the result appears — keep the page open.",
       "run": "Run",
       "running": "Running…",
-      "done": "Job \"{{job}}\" finished, failures: {{failures}}.",
+      "done": "Job \"{{job}}\" finished. Counted {{total}}, succeeded {{succeeded}}, failed {{failures}}.",
       "jobs": {
         "risk-score-recalc-sync": {
           "title": "Risk score recalculation",

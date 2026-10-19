@@ -34,6 +34,8 @@ export function ManualJobsCard() {
         showMessage(
           t('xroadLogs.manualJobs.done', {
             job: t(`xroadLogs.manualJobs.jobs.${job}.title`),
+            total: res.total,
+            succeeded: res.succeeded,
             failures: res.failures,
           }),
           res.failures > 0 ? 'warning' : 'info',

@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-19
+
+### Manuaalse käivituse tulemusteade näitab arvestatud ja õnnestunud kirjete arvu
+
+- Haldus → E-toimiku X-tee logid → **Manuaalne käivitamine**: tulemusteade näitab nüüd lisaks ebaõnnestunute arvule ka seda, mitu kirjet töö arvestas (valis töötlemiseks) ja mitu õnnestus, nt „Arvestati 25, õnnestus 23, ebaõnnestus 2". See kehtib riskiskooride ümberarvutusele ja kõigile e-toimiku sünkroonimistele.
+- Käivituse auditisündmuse kirjeldus sisaldab samu arve.
+
 ## 2026-10-17
 
 ### E-toimiku öine uuendus versioonide ajaloos

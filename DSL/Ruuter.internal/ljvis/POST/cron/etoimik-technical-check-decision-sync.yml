@@ -325,5 +325,5 @@ processTrailerCandidates:
 
 returnSummary:
   status: 200
-  return: "${({ vehicleCandidatesChecked: vehicleCandidates.length, vehicleDecisionsApplied: vehicleResults.filter(r => r.applied).length, trailerCandidatesChecked: trailerCandidates.length, trailerDecisionsApplied: trailerResults.filter(r => r.applied).length, failures: vehicleResults.filter(r => !r.success).length + trailerResults.filter(r => !r.success).length })}"
+  return: "${({ total: vehicleCandidates.length + trailerCandidates.length, succeeded: vehicleResults.filter(r => r.success).length + trailerResults.filter(r => r.success).length, vehicleCandidatesChecked: vehicleCandidates.length, vehicleDecisionsApplied: vehicleResults.filter(r => r.applied).length, trailerCandidatesChecked: trailerCandidates.length, trailerDecisionsApplied: trailerResults.filter(r => r.applied).length, failures: vehicleResults.filter(r => !r.success).length + trailerResults.filter(r => !r.success).length })}"
   next: end

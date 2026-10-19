@@ -6,7 +6,7 @@ declaration:
     Haldus > X-tee logid > Manuaalne käivitamine: käivitab käsitsi ühe
     CronManageri tööga identse töö (riskiskooride ümberarvutus või e-toimiku
     otsuste sünkroonimine). Kutsub sünkroonselt vastavat
-    [#LJVIS_RUUTER_INTERNAL]/cron/<job> endpointi ja tagastab selle kokkuvõtte.
+    [#LJVIS_RUUTER_INTERNAL]/cron/<job> endpointi ja tagastab selle kokkuvõtte: total (töötlemiseks valitud kirjeid), succeeded (õnnestunud) ja failures (ebaõnnestunud).
     Lubatud tööde nimekiri on kinnine (allowedJobs) — suvalist cron-endpointi
     selle kaudu kutsuda ei saa. Õigus xroad.log.read kontrollitakse selle
     kataloogi .guard.yml-is. Iga käivitus logitakse auditisse
@@ -61,13 +61,13 @@ logAuditEvent:
   body:
     event_type: "manual_job.run"
     event_category: "system_process"
-    description: "${'Töö käivitati käsitsi: ' + job + '; ebaõnnestunuid: ' + (jobRes.response.body.failures == null ? 0 : jobRes.response.body.failures)}"
+    description: "${'Töö käivitati käsitsi: ' + job + '; arvestati: ' + (jobRes.response.body.total == null ? 0 : jobRes.response.body.total) + '; õnnestus: ' + (jobRes.response.body.succeeded == null ? 0 : jobRes.response.body.succeeded) + '; ebaõnnestunuid: ' + (jobRes.response.body.failures == null ? 0 : jobRes.response.body.failures)}"
     log_content: "${JSON.stringify(jobRes.response.body)}"
   result: audit_result
   next: returnSuccess
 
 returnSuccess:
-  return: "${({ job: job, failures: jobRes.response.body.failures == null ? 0 : jobRes.response.body.failures, result: jobRes.response.body })}"
+  return: "${({ job: job, total: jobRes.response.body.total == null ? 0 : jobRes.response.body.total, succeeded: jobRes.response.body.succeeded == null ? 0 : jobRes.response.body.succeeded, failures: jobRes.response.body.failures == null ? 0 : jobRes.response.body.failures, result: jobRes.response.body })}"
   next: end
 
 returnInvalidJob:
