@@ -8,6 +8,7 @@ import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
 import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { NotifyCarrierCheckbox } from '../shared/NotifyCarrierCheckbox';
+import { RequestCarrierNotification } from '../shared/RequestCarrierNotification';
 
 interface DriveRestFormRef {
   formElement: HTMLFormElement;
@@ -102,6 +103,11 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
             <FormPrintButton
               endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`}
               id={form.id}
+            />
+            <RequestCarrierNotification
+              formType={scope === 'driver' ? 'sp_driver' : 'sp_teammate'}
+              id={form.id}
+              status={form.status}
             />
             {canConfirm && (
               <>

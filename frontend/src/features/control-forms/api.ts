@@ -89,6 +89,26 @@ export const saveProceedingOutcome = (
     ),
   );
 
+export type CarrierNotificationFormType =
+  | 'sp_driver'
+  | 'sp_teammate'
+  | 'tram_control_card'
+  | 'vehicle_technical'
+  | 'trailer_technical';
+
+/**
+ * Tellib vedaja teavituse kinnitatud või avalikustatud vormile. Avalikustatud vormil saadetakse
+ * teavitus kohe (`sent: 'true'`), kinnitatud vormil saadetakse see avalikustamisel.
+ */
+export const requestCarrierNotification = (
+  formType: CarrierNotificationFormType,
+  id: FormId,
+) =>
+  post<{ requested: string; sent: string }>(
+    '/v1/control-forms/carrier-notification/edit/request',
+    { formType, id: String(id) },
+  );
+
 export type AdministrativeProcedureFormType =
   | 'adr-form'
   | 'drive-rest-form/driver'

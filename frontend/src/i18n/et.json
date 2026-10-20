@@ -445,6 +445,12 @@
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
     "notifyCarrierOnConfirm": "Teavita vedajat rikkumisest (saadetakse avalikustamisel)",
+    "carrierNotification": {
+      "button": "Teavita vedajat rikkumisest",
+      "sent": "Vedaja teavitus on saadetud.",
+      "queued": "Vedaja teavitus on tellitud ja saadetakse avalikustamisel.",
+      "notSent": "Teavitust ei saadetud: vormil ei ole MSI, VSI või SI rikkumist või vedaja e-posti aadressi ei leitud."
+    },
     "publishUnsavedChanges": "Salvestage muudatused enne avalikustamist",
     "publishedNote": "Vorm on avalikustatud",
     "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",

@@ -2,6 +2,18 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-20
+
+### Vedaja teavitamine ka kinnitatud ja avalikustatud vormil
+
+- Kinnitatud ja avalikustatud sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kaardi ning sõiduki ja haagise tehnovormi muutmisrežiimis (nupp „Muuda") on nupp „Teavita vedajat rikkumisest". Varem sai vedaja teavitust tellida ainult kinnitamisel linnukesega.
+- Avalikustatud vormil saadetakse teavitus kohe, kinnitatud vormil avalikustamisel. Teavitus läheb teele ainult MSI, VSI või SI rikkumise korral; kui teavitust ei saadetud, näitab leht selle põhjuse. Nupp on nähtav kasutajale, kellel on vormitüübi kirjutusõigus (või administraatorile).
+- Uus päring `POST /v1/control-forms/carrier-notification/edit/request`.
+
+### E-toimiku päringukaart on kõigil koondvormi alamvormide lehtedel
+
+- Kaart „E-toimiku kvalifikatsiooni kontroll" ehk nupp „Päri e-toimikust" oli varem ainult tehnokontrolli ja TRAM-kaardi lehel. Nüüd on see kõigil vormidel, kus toimub e-toimikuga andmevahetus: autojuht, kaasjuht, sõiduk ja haagis, ADR, TRAM-kaart ja Tööinspektsiooni kontrollkaart. Kaart on nähtav kasutajale, kellel on õigus `control_form.punishment_register`, ja e-toimikust tulnud otsus seda ei peida.
+
 ## 2026-10-19
 
 ### Resql 0.5.1-alpha ja teenustevaheline Bearer-token
@@ -9,6 +21,9 @@
 - Andmebaasikiht (Resql) uuendati versioonile 0.5.1-alpha (varem 0.3.0-alpha). Kasutajale muutust ei ole.
 - Resql nõuab nüüd igalt kutsel päist `Authorization: Bearer <token>`; kõik Ruuteri DSL-id saadavad selle. **Deploy eeldab uut saladust `RESQL_INTER_SERVICE_TOKEN`:** konstant `constants.ini`-s (Ruuter ja ruuter-internal), sama väärtusega env-muutuja `resql-ljvis` konteineris ning `security.inter_service_token_env` chart'i `resql.yaml`-is. Ilma selleta Resql ei käivitu. Vt admin juhend 12.
 - CI-s kontrollib `scripts/check-resql-bearer.py`, et iga Resql-kutse saadab tokeni ja token ei lähe mujale.
+### Kustutatud vormide arhiveerimine töötab automaatselt
+
+- Kustutatud kontrollvormid teisaldatakse iga kahe tunni tagant eraldi arhiivibaasi; töötabelid jäävad väiksemaks ja kiiremaks. Kustutatud vormi **versiooniajalugu jääb endiselt nähtavaks** — süsteem loeb selle vajadusel arhiivist.
 
 ### Manuaalse käivituse tulemusteade näitab arvestatud ja õnnestunud kirjete arvu
 

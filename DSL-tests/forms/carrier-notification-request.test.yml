@@ -1,0 +1,252 @@
+# Vedaja teavituse tellimine kinnitatud/avalikustatud vormile
+# (POST /v1/control-forms/carrier-notification/edit/request). Kinnitatud vormil jääb tellimus avatuks
+# (saadetakse avalikustamisel), avalikustatud vormil saadetakse teavitus kohe.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
+tests:
+- name: 'confirmed form: request is registered, nothing is sent before publication'
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [sp_driver_form.write]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/drive-rest-form/driver/get
+      method: POST
+      status: 200
+      body: [{id: 9, status: confirmed}]
+    - url_matches: /notification/insert_carrier_request
+      method: POST
+      status: 200
+      body: [{id: 1}]
+    - url_matches: /notification/send-carrier-from-request
+      method: POST
+      status: 200
+      body: {sent: 'false'}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/carrier-notification/edit/request
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: sp_driver, id: '9'}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/insert_carrier_request
+    count: 1
+    body_matches:
+      entity_type: drive_rest_driver_form
+      entity_id: '9'
+      requested_by: SESSION1
+  - url_matches: /notification/send-carrier-from-request
+    count: 0
+
+
+- name: 'published form: request is registered and sent immediately'
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [sp_driver_form.write]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: published}]
+    - url_matches: /control-forms/drive-rest-form/driver/get
+      method: POST
+      status: 200
+      body: [{id: 9, status: published}]
+    - url_matches: /notification/insert_carrier_request
+      method: POST
+      status: 200
+      body: [{id: 1}]
+    - url_matches: /notification/send-carrier-from-request
+      method: POST
+      status: 200
+      body: {sent: 'true'}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/carrier-notification/edit/request
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: sp_driver, id: '9'}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/insert_carrier_request
+    count: 1
+    body_matches:
+      entity_type: drive_rest_driver_form
+      entity_id: '9'
+      requested_by: SESSION1
+  - url_matches: /notification/send-carrier-from-request
+    count: 1
+
+
+- name: 'saved form is refused, use the confirm checkbox'
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [sp_driver_form.write]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: saved}]
+    - url_matches: /control-forms/drive-rest-form/driver/get
+      method: POST
+      status: 200
+      body: [{id: 9, status: saved}]
+    - url_matches: /notification/insert_carrier_request
+      method: POST
+      status: 200
+      body: [{id: 1}]
+    - url_matches: /notification/send-carrier-from-request
+      method: POST
+      status: 200
+      body: {sent: 'false'}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/carrier-notification/edit/request
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: sp_driver, id: '9'}
+  expect:
+    status: 422
+  verify_mocks:
+  - url_matches: /notification/insert_carrier_request
+    count: 0
+  - url_matches: /notification/send-carrier-from-request
+    count: 0
+
+
+- name: 'user without the form write permission is refused'
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [sp_driver_form.read, tram_driver_form.write]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: published}]
+    - url_matches: /control-forms/drive-rest-form/driver/get
+      method: POST
+      status: 200
+      body: [{id: 9, status: published}]
+    - url_matches: /notification/insert_carrier_request
+      method: POST
+      status: 200
+      body: [{id: 1}]
+    - url_matches: /notification/send-carrier-from-request
+      method: POST
+      status: 200
+      body: {sent: 'false'}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/carrier-notification/edit/request
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: sp_driver, id: '9'}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /notification/insert_carrier_request
+    count: 0
+  - url_matches: /notification/send-carrier-from-request
+    count: 0
+
+
+- name: 'unknown formType is rejected'
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [sp_driver_form.write]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: published}]
+    - url_matches: /control-forms/drive-rest-form/driver/get
+      method: POST
+      status: 200
+      body: [{id: 9, status: published}]
+    - url_matches: /notification/insert_carrier_request
+      method: POST
+      status: 200
+      body: [{id: 1}]
+    - url_matches: /notification/send-carrier-from-request
+      method: POST
+      status: 200
+      body: {sent: 'false'}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/carrier-notification/edit/request
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: adr, id: '9'}
+  expect:
+    status: 422
+  verify_mocks:
+  - url_matches: /notification/insert_carrier_request
+    count: 0
+  - url_matches: /notification/send-carrier-from-request
+    count: 0
+
+
