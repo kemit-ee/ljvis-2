@@ -5,12 +5,10 @@
 #                   asendatakse arhiveeritud rea nimi/isikukood/sünniaeg/-koht kohe.
 #                   false = jätab arhiveeritud rea täies (1:1) kujul.
 #
-# PR A: trigger on INERTNE (2099) — voog ja SQL on valmis ja testitav käsitsi
-# (POST http://ruuter-internal:8080/ljvis/cron/archive-deleted-forms), aga
-# automaatset kustutamist veel ei toimu. Aktiveeritakse PR B-s: trigger: "0 0 0/2 * * ?"
-# (iga 2h täistunnil, Europe/Tallinn).
+# Aeg: iga 2h täistunnil, Europe/Tallinn. Töö kustutab vormi tööbaasist alati
+# pärast edukat kontrolli (purge-lülitit ei ole).
 archive_deleted_forms:
-  trigger: "0 0 0 1 1 ? 2099"
+  trigger: "0 0 0/2 * * ?"
   type: http
   method: POST
   url: "http://ruuter-internal:8080/ljvis/cron/archive-deleted-forms?anonymize=true"
