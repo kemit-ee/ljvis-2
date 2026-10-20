@@ -10,6 +10,11 @@
 - Avalikustatud vormil saadetakse teavitus kohe, kinnitatud vormil avalikustamisel. Teavitus läheb teele ainult MSI, VSI või SI rikkumise korral; kui teavitust ei saadetud, näitab leht selle põhjuse. Nupp on nähtav kasutajale, kellel on vormitüübi kirjutusõigus (või administraatorile).
 - Uus päring `POST /v1/control-forms/carrier-notification/edit/request`.
 
+### E-toimikust saadud otsust automaatika enam üle ei kirjuta
+
+- Kui sõidu- ja puhkeaja (juht, kaasjuht), TRAM-i, tehnokontrolli (sõiduk, haagis) või Tööinspektsiooni vormile on e-toimikust öise sünkroonimisega kord otsus (jõustunud otsus ja menetluse lõpetamise alus) tulnud, ei puutu sünkroonimine seda vormi enam. Varem kaitses ainult kontroll „otsus on tühi", nii et käsitsi tühjendatud otsuse võis sünkroonimine uuesti täita.
+- Valesid andmeid saab edasi parandada õigusega `control_form.punishment_register` või administraator (`control_form.edit_locked`).
+
 ### E-toimiku päringukaart on kõigil koondvormi alamvormide lehtedel
 
 - Kaart „E-toimiku kvalifikatsiooni kontroll" ehk nupp „Päri e-toimikust" oli varem ainult tehnokontrolli ja TRAM-kaardi lehel. Nüüd on see kõigil vormidel, kus toimub e-toimikuga andmevahetus: autojuht, kaasjuht, sõiduk ja haagis, ADR, TRAM-kaart ja Tööinspektsiooni kontrollkaart. Kaart on nähtav kasutajale, kellel on õigus `control_form.punishment_register`, ja e-toimikust tulnud otsus seda ei peida.

@@ -16,6 +16,7 @@ returns:
   type: string
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 -- `latest` must resolve one row per key (the true latest snapshot) BEFORE any
 -- filtering — otherwise an already-resolved key keeps reappearing as a candidate.
 WITH latest AS (
@@ -38,4 +39,5 @@ WHERE status = 'confirmed'
   AND proceeding_reference_number IS NOT NULL AND btrim(proceeding_reference_number) <> ''
   AND btrim(coalesce(drivers -> 0 ->> 'personalCodeEe', '')) <> ''
   AND enforcement_decision IS NULL
+  AND NOT EXISTS (SELECT 1 FROM forms.tram_control_card h WHERE h.tram_control_card_key = latest.id AND h.created_by = 'eToimik öine uuendus')
   AND created_at >= now() - INTERVAL '365 days';
