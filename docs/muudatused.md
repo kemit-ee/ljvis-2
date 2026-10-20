@@ -2,6 +2,18 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-20
+
+### Vedaja teavitamine ka kinnitatud ja avalikustatud vormil
+
+- Kinnitatud ja avalikustatud sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kaardi ning sõiduki ja haagise tehnovormi muutmisrežiimis (nupp „Muuda") on nupp „Teavita vedajat rikkumisest". Varem sai vedaja teavitust tellida ainult kinnitamisel linnukesega.
+- Avalikustatud vormil saadetakse teavitus kohe, kinnitatud vormil avalikustamisel. Teavitus läheb teele ainult MSI, VSI või SI rikkumise korral; kui teavitust ei saadetud, näitab leht selle põhjuse. Nupp on nähtav kasutajale, kellel on vormitüübi kirjutusõigus (või administraatorile).
+- Uus päring `POST /v1/control-forms/carrier-notification/edit/request`.
+
+### E-toimiku päringukaart on kõigil koondvormi alamvormide lehtedel
+
+- Kaart „E-toimiku kvalifikatsiooni kontroll" ehk nupp „Päri e-toimikust" oli varem ainult tehnokontrolli ja TRAM-kaardi lehel. Nüüd on see kõigil vormidel, kus toimub e-toimikuga andmevahetus: autojuht, kaasjuht, sõiduk ja haagis, ADR, TRAM-kaart ja Tööinspektsiooni kontrollkaart. Kaart on nähtav kasutajale, kellel on õigus `control_form.punishment_register`, ja e-toimikust tulnud otsus seda ei peida.
+
 ## 2026-10-19
 
 ### Manuaalse käivituse tulemusteade näitab arvestatud ja õnnestunud kirjete arvu

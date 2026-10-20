@@ -6,6 +6,7 @@ import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
 import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import { NotifyCarrierCheckbox } from '../shared/NotifyCarrierCheckbox';
+import { RequestCarrierNotification } from '../shared/RequestCarrierNotification';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../../pages/technical-check-form/TechnicalCheckFormCreatePage.tsx';
 
 export interface TechnicalCheckFormEditCardRef {
@@ -99,6 +100,11 @@ export const TechnicalCheckFormEditCard = forwardRef<
             <FormPrintButton
               endpoint={`/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`}
               id={form.id}
+            />
+            <RequestCarrierNotification
+              formType={scope === 'vehicle' ? 'vehicle_technical' : 'trailer_technical'}
+              id={form.id}
+              status={form.status}
             />
             {canConfirm && (
               <>

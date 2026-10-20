@@ -333,6 +333,12 @@
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
     "notifyCarrierOnConfirm": "Notify the carrier of the infringement (sent on publication)",
+    "carrierNotification": {
+      "button": "Notify the carrier of the violation",
+      "sent": "The carrier notification has been sent.",
+      "queued": "The carrier notification has been requested and will be sent on publication.",
+      "notSent": "The notification was not sent: the form has no MSI, VSI or SI violation, or the carrier e-mail address was not found."
+    },
     "publishUnsavedChanges": "Save your changes before publishing",
     "publishedNote": "Form has been published",
     "versions": {
