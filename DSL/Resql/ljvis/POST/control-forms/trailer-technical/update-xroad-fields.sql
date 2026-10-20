@@ -31,6 +31,7 @@ returns:
   type: number
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest AS (
   SELECT *
   FROM forms.trailer_technical_form
@@ -54,6 +55,7 @@ SELECT (jsonb_populate_record(
 FROM latest l
 WHERE l.status = 'confirmed'
   AND l.enforcement_decision IS NULL
+  AND NOT EXISTS (SELECT 1 FROM forms.trailer_technical_form h WHERE h.trailer_technical_form_key = l.trailer_technical_form_key AND h.created_by = 'eToimik öine uuendus')
   AND :found IN ('true', '1', 'yes')
   AND NULLIF(:enforcementDecision, '') IS NOT NULL
 RETURNING trailer_technical_form_key AS id, sub_form_number, version;

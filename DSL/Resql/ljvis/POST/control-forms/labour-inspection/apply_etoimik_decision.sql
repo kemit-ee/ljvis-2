@@ -40,6 +40,7 @@ returns:
   type: string
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest AS (
   SELECT *
   FROM forms.labour_inspection_form
@@ -101,4 +102,6 @@ WHERE :found IN ('true', '1', 'yes')
   -- Defensive re-check: only ever publish out of 'confirmed' (same rule as
   -- publish.yml), in case the act changed between selection and this call.
   AND status = 'confirmed'
+  AND enforcement_decision IS NULL
+  AND NOT EXISTS (SELECT 1 FROM forms.labour_inspection_form h WHERE h.labour_inspection_form_key = latest.labour_inspection_form_key AND h.created_by = 'eToimik öine uuendus')
 RETURNING labour_inspection_form_key AS id, form_number, version, status;
