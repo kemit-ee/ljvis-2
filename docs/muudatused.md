@@ -12,6 +12,11 @@
 - Kehtib kõigil viiel öisel sünkroonil: autojuht ja meeskonnaliige, TRAM-kaart, sõiduki ja haagise tehnokontroll, Tööinspektsioon (viimasel ainult isikukoodiga). TRAM-kaart avalikustatakse automaatselt niipea, kui lahend on olemas, mitte alles sulgemise järel.
 - Uus sisemine päring `POST /etoimik/lookup-decision` (ainult Ruuter.internal).
 
+### E-toimiku öise sünkroonimise X-tee logi näitab täisvastust
+
+- Kui e-toimik tagastas öise sünkroonimise päringule tühja vastuse, kirjutas süsteem X-tee logisse ainult sõna `null`. Nüüd salvestatakse kogu saadud vastus, nagu vormi pealt käsitsi tehtud päringu puhul. Kõik viis sünkroonimist (Tööinspektsioon, SP juht, SP meeskonnaliige, tehnokontroll, TRAM). Otsuste käitumine ei muutu.
+- Need e-toimiku sünkroonimised käivituvad nüüd iga 3 tunni tagant (00, 03, 06 ... 21, minutiga :00-:08), varem iga tunni tagant.
+
 ### X-tee logides kuvatakse kontrollvormi number
 
 - Haldus > E-toimiku X-tee logid (ka vaates „Kõik teenused") näitab vormi tüübi kõrval eraldi veerus „Vormi number" vormi numbrit kujul `sp-AAAA-NNNNN/V` (vormi viimane versioon). Link vormile jääb samaks.

@@ -100,7 +100,7 @@ parse1:
         var responseNode = responseKey ? soapBody[responseKey] : {};
         var caseNode = responseNode.response || null;
         if (caseNode == null || isNil(caseNode)) {
-          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse1.response.body) };
         }
         var decisions = [];
         toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
@@ -201,7 +201,7 @@ parse2:
         var responseNode = responseKey ? soapBody[responseKey] : {};
         var caseNode = responseNode.response || null;
         if (caseNode == null || isNil(caseNode)) {
-          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse2.response.body) };
         }
         var decisions = [];
         toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
