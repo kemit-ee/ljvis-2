@@ -3,7 +3,7 @@
 # selection, per-company recalculate call).
 #
 # Runs at 03:00 Tallinn time (TZ pinned in docker-compose.yml), after
-# etoimik (hourly :00-:08) and yvkehtivus (hourly :05) to avoid overlap.
+# etoimik (every 3 hours, :00-:08) and yvkehtivus (hourly :05) to avoid overlap.
 risk_score_recalc:
   trigger: "0 0 3 * * ?"
   type: http
