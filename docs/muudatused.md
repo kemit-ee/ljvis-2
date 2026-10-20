@@ -4,6 +4,11 @@
 
 ## 2026-10-20
 
+### X-tee logides kuvatakse kontrollvormi number
+
+- Haldus > E-toimiku X-tee logid (ka vaates „Kõik teenused") näitab vormi tüübi kõrval eraldi veerus „Vormi number" vormi numbrit kujul `sp-AAAA-NNNNN/V` (vormi viimane versioon). Link vormile jääb samaks.
+- Meeskonnaliikme SP-vormi kirjed lingitakse nüüd samuti vormile.
+
 ### Em-dashid eemaldatud DSL-ist
 
 - Ruuter-, Resql-, CronManager- ja XTR-failide kommentaarides ja kirjeldustes on em-dash (—) asendatud sidekriipsuga. Käitumine ei muutu. Liquibase'i migratsioone ei puututud, sest rakendatud changeset'ide sisu muutmine rikuks kontrollsumma.

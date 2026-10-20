@@ -1760,6 +1760,7 @@
     "column": {
       "createdAt": "Päringu aeg",
       "form": "Vorm",
+      "formNumber": "Vormi number",
       "serviceCode": "Teenus",
       "status": "Staatus",
       "request": "Väljuv päring",
@@ -1771,6 +1772,7 @@
       "vehicle_technical_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
       "trailer_technical_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
       "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
+      "sp_teammate_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
       "tram_control_card": "Transpordiameti kontrollkaart"
     }
   },
