@@ -2,7 +2,7 @@
 description: 'Kandidaadid meeskonnaliikme sõidu- ja puhkeaja alamvormi öisele e-toimiku otsuse-sünkroonile: iga
   confirmed alamvormi uusim snapshot, millel on väärteomenetluse viitenumber, meeskonnaliikme (sp_teammate_form.person_code_ee) Eesti
   isikukood ja millel enforcement_decision on veel NULL. Read kaovad kandidaatide seast niipea kui update-xroad-fields.sql
-  kirjutab otsuse — see teeb töö idempotentseks.'
+  kirjutab otsuse - see teeb töö idempotentseks.'
 namespace: control-forms
 params: {}
 returns:
@@ -21,7 +21,7 @@ returns:
 */
 -- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 -- `latest_st` peab lahendama ühe rea per võti (tõeline uusim snapshot) ENNE
--- filtreerimist — filtreerides esmalt saaks stale eelmise oleku (vt labour
+-- filtreerimist - filtreerides esmalt saaks stale eelmise oleku (vt labour
 -- select_etoimik_candidates.sql sama kommentaari).
 WITH latest_st AS (
   SELECT DISTINCT ON (sp_teammate_form_key)

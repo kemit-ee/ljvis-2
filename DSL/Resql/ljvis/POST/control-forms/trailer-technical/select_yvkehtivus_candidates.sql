@@ -2,7 +2,7 @@
 description: 'Candidates for the hourly yvkehtivus sync (LJVIS2-135/58/23), trailer variant (15 ettepanekut
   p15): latest snapshot of each confirmed trailer technical-check sub-form directed to extraordinary
   inspection that hasn''t passed it yet, joined to the SPECIFIC trailer entry in its parent compound_form''s
-  `trailers` JSONB array (matched by trailer_reg_nr — added in 20260826110000 specifically so a sub-form
+  `trailers` JSONB array (matched by trailer_reg_nr - added in 20260826110000 specifically so a sub-form
   snapshot could be tied back to one of up to 3 trailers). Mirrors vehicle-technical/select_yvkehtivus_candidates.sql;
   both `latest_ttf` and `latest_cf` resolve one row per key before any filtering, same reason as that
   file''s comment. Capped at 365 days since the sub-form snapshot was created (same LJVIS2-135 rule).
@@ -36,7 +36,7 @@ WITH latest_ttf AS (
 SELECT
     t.id,
     -- The sub-form's own trailer_reg_nr is authoritative for the XTR query
-    -- (it's what the officer entered on THIS snapshot) — the compound form's trailers[]
+    -- (it's what the officer entered on THIS snapshot) - the compound form's trailers[]
     -- is only consulted for the VIN, which trailer_reg_nr alone doesn't carry.
     COALESCE(upper(btrim(t.trailer_reg_nr)), '') AS registration_number,
     COALESCE((

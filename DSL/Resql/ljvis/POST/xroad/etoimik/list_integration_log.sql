@@ -4,7 +4,7 @@ description: 'Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
   ''etoimik.%''). Filtrid: date_from/date_to (created_at, poolavatud
   intervall nagu list_outbound_log.sql-is), ja kolm sõltumatut
   include_found/include_not_found/include_error lippu (checkbox-grupi
-  filter, mitte massiiv-parameeter — Resql-is puudub sellele siiani
+  filter, mitte massiiv-parameeter - Resql-is puudub sellele siiani
   eeskuju). Kolme lipu OR-kombinatsioon; kui kõik kolm on false, ei tagasta
   midagi. all_services=true eemaldab nii service_code ''etoimik.%'' filtri
   kui ka staatusfiltri (teised allikad, nt erru_cgr, ei täida result_status''i

@@ -1,5 +1,5 @@
 /*
-description: Update compound form — insert new snapshot with updated data
+description: Update compound form - insert new snapshot with updated data
 namespace: control-forms
 params:
   key:

@@ -42,7 +42,7 @@ assignCandidates:
     candidates: "${(driverCandidatesRes.response.body || []).map(function(c) { return Object.assign({}, c, { formType: 'driver' }); }).concat((teammateCandidatesRes.response.body || []).map(function(c) { return Object.assign({}, c, { formType: 'teammate' }); }))}"
   next: processCandidates
 
-# `iterate`'s `do:` on lame jada — `next:` sees ignoreeritakse, `return`
+# `iterate`'s `do:` on lame jada - `next:` sees ignoreeritakse, `return`
 # katkestaks kogu partii. Seetõttu on kõik harud (XTR viga / ei leitud /
 # leitud) koondatud ühte `decision` assign'i ja kirjutuskutsed selle järel
 # alati käivituvad; rakendamise SQL ise on no-op kui found=false.

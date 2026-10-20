@@ -1,11 +1,11 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Paginated, filtered RSI message list — both incoming and outgoing (LJVIS2-149). Unlike
+  description: "Paginated, filtered RSI message list - both incoming and outgoing (LJVIS2-149). Unlike
     the CGR list (outgoing-only), the specification includes both directions. ID and vehicleRegistrationNumber
     filters are OR-combined with each other and AND-combined with all other filters. Audited on every
     load because the list exposes handler names and vehicle registration numbers (personal-data footprint).
-    Sits under the existing GET/v1/erru/rsi/.guard (rsi.read) — no new guard file needed."
+    Sits under the existing GET/v1/erru/rsi/.guard (rsi.read) - no new guard file needed."
   namespace: erru
   allowlist:
     params:

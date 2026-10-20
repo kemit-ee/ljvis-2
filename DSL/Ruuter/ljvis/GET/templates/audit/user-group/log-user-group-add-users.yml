@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Audit: user group add-users event — fetches personal codes internally"
+  description: "Audit: user group add-users event - fetches personal codes internally"
   namespace: service
   strict: true
   allowlist:

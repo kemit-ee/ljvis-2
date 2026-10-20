@@ -1,6 +1,6 @@
 /*
 description: Get all classifiers with all their (valid + invalid) values, flattened, for FE bulk bundle
-  loading. ROAD_OTHER (~3 200 other state roads) is excluded — it is looked up one road at a
+  loading. ROAD_OTHER (~3 200 other state roads) is excluded - it is looked up one road at a
   time via roads/get_other_road_by_number
 namespace: classifier
 params: {}

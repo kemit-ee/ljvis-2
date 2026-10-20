@@ -1,5 +1,5 @@
 # Haldusmenetluse andmeplokk (PPA andmevormid + TRAM-kaart): ligipääsureegel elab ühes kohas
-# (templates/administrative-procedure/check-access) — TRAM/KLIM ametnik, süsteemi- või asutuse admin.
+# (templates/administrative-procedure/check-access) - TRAM/KLIM ametnik, süsteemi- või asutuse admin.
 # GET loeb ja POST edit/save kirjutab uuele snapshot-reale ainult siis, kui reegel lubab ja vormi
 # lugemiskontroll (check-read-access) nõustub.
 mode: mock-http

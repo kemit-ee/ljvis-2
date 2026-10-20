@@ -1,7 +1,7 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Send an outgoing RSI (RoadSideInspection) notification to the ERRU hub and store the ACK (LJVIS2-148). RSI is asynchronous and single-country: only 'initiated' messages can be sent (no retry from error — a failed RSI notification is abandoned and a new one composed). Flow: get the draft, validate it is sendable and that checked_items use RSI_FAILED_REASON codes (every 'Ei vasta nõuetele' item has at least one reason), convert checked_items to the ERRU rsiCheckedItemType shape {itemType, itemFailed, failedChecks:[{failedReason, failedAssessment}]} (severity mapped VO→Minor/OV→Major/EOV→Dangerous), call the ERRU hub, receive only an ACK (no vehicle status — that arrives separately via inbound-response.yml), append exactly one 'sent' snapshot with a newly generated workflowId/technicalId (append-transition.sql), and return the workflowId to the caller so they can display 'Teade saadetud'. A transport failure transitions to 'error' (terminal — no retry). The ERRU hub endpoint is resolved from ERRU_RSI_ENDPOINT (mock in dev/CI, XTR in production). The mock response may be Ruuter-enveloped (dev/CI: {'response': '...'}) or direct (XTR): both shapes are handled."
+  description: "Send an outgoing RSI (RoadSideInspection) notification to the ERRU hub and store the ACK (LJVIS2-148). RSI is asynchronous and single-country: only 'initiated' messages can be sent (no retry from error - a failed RSI notification is abandoned and a new one composed). Flow: get the draft, validate it is sendable and that checked_items use RSI_FAILED_REASON codes (every 'Ei vasta nõuetele' item has at least one reason), convert checked_items to the ERRU rsiCheckedItemType shape {itemType, itemFailed, failedChecks:[{failedReason, failedAssessment}]} (severity mapped VO→Minor/OV→Major/EOV→Dangerous), call the ERRU hub, receive only an ACK (no vehicle status - that arrives separately via inbound-response.yml), append exactly one 'sent' snapshot with a newly generated workflowId/technicalId (append-transition.sql), and return the workflowId to the caller so they can display 'Teade saadetud'. A transport failure transitions to 'error' (terminal - no retry). The ERRU hub endpoint is resolved from ERRU_RSI_ENDPOINT (mock in dev/CI, XTR in production). The mock response may be Ruuter-enveloped (dev/CI: {'response': '...'}) or direct (XTR): both shapes are handled."
   namespace: erru
   allowlist:
     body:
@@ -66,7 +66,7 @@ extractCurrentState:
   next: checkSendable
 
 # RSI differs from CGR: only 'initiated' is sendable. 'error' has NO outgoing transition
-# (LJVIS2-146/148) — a new message with a new rsi_message_key must be composed instead.
+# (LJVIS2-146/148) - a new message with a new rsi_message_key must be composed instead.
 checkSendable:
   switch:
     - condition: ${cur_direction !== 'outgoing'}
@@ -87,7 +87,7 @@ checkSendable:
 # NOTE: this conversion is deliberately split into several small assign steps, each with a
 # short expression. A single large IIFE combining the full parse+filter+map+ternary logic
 # in one `${...}` expression was found to silently fail once enough OTHER variables had
-# already accumulated earlier in this same flow — Ruuter-on-Rust's template evaluator
+# already accumulated earlier in this same flow - Ruuter-on-Rust's template evaluator
 # returned the literal unevaluated template text instead of raising an error, which went
 # unnoticed because no test inspected the actual outbound payload (only the final status).
 # Splitting the transformation avoids the failure and is easier to unit-debug step by step.
@@ -244,7 +244,7 @@ markError:
       newStatus: "error"
       responseStatusCode: ""
       responseStatusMessage: ""
-      errorMessage: "ERRU RSI transport failure — a new message must be composed (no retry)"
+      errorMessage: "ERRU RSI transport failure - a new message must be composed (no retry)"
       created_by: ${actor_personal_code}
   result: error_res
   next: logAuditError
@@ -281,7 +281,7 @@ returnSent:
 
 returnError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU RSI transport failure — request transitioned to error, a new message must be composed"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU RSI transport failure - request transitioned to error, a new message must be composed"}'
   next: end
 
 returnIdRequired:

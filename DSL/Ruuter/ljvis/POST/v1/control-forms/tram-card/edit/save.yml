@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Create or update a TRAM control card (Transpordiameti kontrollkaart) — single unified save endpoint, branches internally on presence of id. status and the form_number /V version suffix are always computed server-side. A confirmed/published card can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update a TRAM control card (Transpordiameti kontrollkaart) - single unified save endpoint, branches internally on presence of id. status and the form_number /V version suffix are always computed server-side. A confirmed/published card can only be re-saved by a user with control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
@@ -159,7 +159,7 @@ extractRequestData:
     city: "${incoming.body.city || ''}"
     road: "${incoming.body.road || ''}"
     road_other: "${incoming.body.roadOther || ''}"
-    # Ei coercida `|| ''`-ga — 0 on legitiimne kilomeetrinäit; `0 || ''` annaks
+    # Ei coercida `|| ''`-ga - 0 on legitiimne kilomeetrinäit; `0 || ''` annaks
     # '' -> NULL. Ruuteri allowlist garanteerib võtme olemasolu.
     kilometer: "${incoming.body.kilometer}"
     address: "${incoming.body.address || ''}"
@@ -210,7 +210,7 @@ extractRequestData:
     tachograph_type_code: "${incoming.body.tachographTypeCode || ''}"
     tachograph_data_not_downloaded: "${String(incoming.body.tachographDataNotDownloaded == null ? 'false' : incoming.body.tachographDataNotDownloaded)}"
     tachograph_notes: "${incoming.body.tachographNotes}"
-    # 0 on legitiimne päevade arv kõigi kolme puhul — vt kilomeeter ülal.
+    # 0 on legitiimne päevade arv kõigi kolme puhul - vt kilomeeter ülal.
     checked_days_count: "${incoming.body.checkedDaysCount}"
     work_days_count: "${incoming.body.workDaysCount}"
     other_activity_days_count: "${incoming.body.otherActivityDaysCount}"
@@ -451,7 +451,7 @@ updateForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
@@ -483,7 +483,7 @@ logAuditEvent:
   next: recalcRiskOnResave
 
 # Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
-# riskiskoori sisend — skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
 # alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
 recalcRiskOnResave:
   switch:
@@ -506,7 +506,7 @@ callRiskRecalcOnResave:
   next: checkNotifyOnResave
 
 # Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
-# teavituste mõttes — publish.yml-iga sama kontroll, aga event_key sisaldab
+# teavituste mõttes - publish.yml-iga sama kontroll, aga event_key sisaldab
 # uut version'it, nii et teavitus ei jää dubleerimiskontrolli taha kinni.
 checkNotifyOnResave:
   switch:

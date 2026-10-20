@@ -2,7 +2,7 @@
 #
 # The parent POST/.guard requires a valid LJVIS user cookie. The mock stands in
 # for XTR / the X-tee security server, and the consuming DSLs call it exactly
-# the way they will call the real XTR in production — i.e. server-to-server,
+# the way they will call the real XTR in production - i.e. server-to-server,
 # WITHOUT forwarding the caller's session cookie (citizen TARA sessions could
 # never satisfy the officer guard anyway). Forwarding a user cookie to an
 # external endpoint would be wrong, so instead of weakening the callers this

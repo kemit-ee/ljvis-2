@@ -1,4 +1,4 @@
-# POST /cron/risk-score-recalc-sync — kokkuvõte sisaldab arvestatud (total),
+# POST /cron/risk-score-recalc-sync - kokkuvõte sisaldab arvestatud (total),
 # õnnestunud (succeeded) ja ebaõnnestunud (failures) kirjete arvu; neid
 # kasutab Haldus → manuaalne käivitamine tulemusteate jaoks.
 mode: mock-http

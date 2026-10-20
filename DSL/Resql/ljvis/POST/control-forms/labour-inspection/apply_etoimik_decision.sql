@@ -2,9 +2,9 @@
 description: 'Append a new labour_inspection_form snapshot with an entered-into-force e-toimik decision
   and auto-publish it (LJVIS2-69 §254/§370: e-toimik-initiated publish is system-authored, status goes
   straight to ''published''). INSERT-only, mirrors update.sql''s copy-forward pattern. Called once per
-  candidate unconditionally by cron/etoimik-decision-sync.yml — found=false, or a stale status<>''confirmed''
+  candidate unconditionally by cron/etoimik-decision-sync.yml - found=false, or a stale status<>''confirmed''
   guard, is a no-op (0 rows), since Ruuter''s iterate step can''t branch on `next:` inside `do:`. Does
-  not call the session-gated publish.yml endpoint (Ruuter.internal has no session) — it only ever acts
+  not call the session-gated publish.yml endpoint (Ruuter.internal has no session) - it only ever acts
   on the confirmed-only candidate set this cron selects, so there''s no competition.'
 namespace: control-forms
 params:

@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input — see extractRequestData / validateRequired / updateForm. Confirmed acts can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) - single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input - see extractRequestData / validateRequired / updateForm. Confirmed acts can only be re-saved by a user with control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
@@ -48,7 +48,7 @@ extractRequestData:
     inspection_type: "${incoming.body.inspectionType || ''}"
     company_name: "${incoming.body.companyName || ''}"
     company_reg_code: "${incoming.body.companyRegCode || ''}"
-    # Ei coercida `|| ''`-ga — 0 on legitiimne sõidukite/juhtide arv ja
+    # Ei coercida `|| ''`-ga - 0 on legitiimne sõidukite/juhtide arv ja
     # `0 || ''` annaks '' -> NULLIF('','')::INTEGER -> NULL (vaikne andmekadu).
     # Ruuteri allowlist garanteerib, et võti eksisteerib; tühi string läbib
     # NULLIF-i õigesti niigi.
@@ -225,7 +225,7 @@ updateForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
@@ -258,7 +258,7 @@ logUpdate:
   next: recalcRiskOnResave
 
 # Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
-# riskiskoori sisend — skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
 # alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
 recalcRiskOnResave:
   switch:

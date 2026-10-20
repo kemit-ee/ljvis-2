@@ -5,7 +5,7 @@ description: 'Record an INCOMING RSI (RoadSideInspection) notification arriving 
   AND status=''received'') means a redelivered RSI message yields zero rows instead of a duplicate, allowing
   the caller to replay the stored response. Unlike CGR, RSI carries vehicle data (not transport manager
   data) and the checked_items are already in ERRU format. rsi_from is the sending country from the ERRU
-  envelope; rsi_to is always EE (us). response_status_code is NULL on receipt — it is set by the separate
+  envelope; rsi_to is always EE (us). response_status_code is NULL on receipt - it is set by the separate
   append-transition call that stores the ''answered'' snapshot.'
 namespace: erru
 params:

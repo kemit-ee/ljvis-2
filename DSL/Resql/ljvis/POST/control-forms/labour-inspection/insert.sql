@@ -1,5 +1,5 @@
 /*
-description: Insert labour inspection form (Tööinspektsiooni kontrollakt) — first save
+description: Insert labour inspection form (Tööinspektsiooni kontrollakt) - first save
 namespace: control-forms
 params:
   status:

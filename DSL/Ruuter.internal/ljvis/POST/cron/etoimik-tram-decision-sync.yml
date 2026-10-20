@@ -30,7 +30,7 @@ assignCandidates:
     candidates: "${candidatesRes.response.body || []}"
   next: processCandidates
 
-# `iterate`'s `do:` runs as a flat sequence — `next:` inside it is ignored,
+# `iterate`'s `do:` runs as a flat sequence - `next:` inside it is ignored,
 # and `return` would abort the whole batch, not just this candidate. So
 # every branch (XTR failure / not found / found) is folded into the single
 # `decision` assign below, and the write calls after it always fire;
@@ -53,7 +53,7 @@ processCandidates:
           xtr_request_body:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
-            # System caller id for the X-Road audit trail — no user session exists here.
+            # System caller id for the X-Road audit trail - no user session exists here.
             userId: "LJVIS-CRON"
 
       - call: http.post
@@ -138,7 +138,7 @@ processCandidates:
 
       # apply_etoimik_decision.sql returns 0 rows unless found=true (and its
       # own status='confirmed' guard passes), so published_now tells us
-      # whether a publish actually happened — needed because the audit
+      # whether a publish actually happened - needed because the audit
       # write below always fires (same no-branching constraint as above).
       - assign:
           published_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"

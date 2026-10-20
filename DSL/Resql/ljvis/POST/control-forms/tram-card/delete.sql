@@ -1,5 +1,5 @@
 /*
-description: 'Soft-delete a TRAM control card — copies the latest snapshot forward with status=''deleted'' (same
+description: 'Soft-delete a TRAM control card - copies the latest snapshot forward with status=''deleted'' (same
   version, revision + 1). INSERT-only tombstone; rows stay for audit and are hidden from search/view. Race-safe
   via UNIQUE (tram_control_card_key, revision): a concurrent writer that read the same latest row computes the same
   revision and its INSERT fails instead of silently shadowing the other (epic #522 T5).'

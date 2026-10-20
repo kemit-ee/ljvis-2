@@ -4,7 +4,7 @@ description: 'Kirjuta tunniloleva yvkehtivus sünkroonimisega (LJVIS2-135/58/23)
   + 1, version ja kõik muud väljad kantakse edasi), vana rida jääb ajalukku. Mõjutab ainult extraordinary_inspection_date''i,
   seega ei saa see kunagi üle kirjutada enforcement_decision/proceeding_closure_basis''it (need tulevad eraldi
   cron''ist). Isekaitstud (status=''confirmed'' JA extraordinary_inspection_date IS NULL JA sissetulev kuupäev
-  ei ole tühi) — korduvkutse on idempotentne, kutsuja kutsub seda iga kandidaadi kohta tingimusteta (Ruuteri
+  ei ole tühi) - korduvkutse on idempotentne, kutsuja kutsub seda iga kandidaadi kohta tingimusteta (Ruuteri
   iterate ei saa `do:` sees `next:`-iga hargneda). Peegeldab vehicle-technical/update-extraordinary-inspection-date.sql.
   created_by = ''system''.'
 namespace: control-forms

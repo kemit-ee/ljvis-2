@@ -1,5 +1,5 @@
 /*
-description: Get good repute form (hea maine vorm) by key — latest snapshot
+description: Get good repute form (hea maine vorm) by key - latest snapshot
 namespace: control-forms
 params:
   id:

@@ -24,7 +24,7 @@ declaration:
         type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -116,7 +116,7 @@ setFormScope:
 
 buildAuditContent:
   assign:
-    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}, vormipiirang: '${form_type_codes}'"
+    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' - '${name}', kehtivus ${valid_from}–${valid_until}, vormipiirang: '${form_type_codes}'"
     log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\",\"formTypes\":\"${form_type_codes}\"}"
   next: logAuditEvent
 

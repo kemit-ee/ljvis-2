@@ -5,15 +5,15 @@ description: 'ADR-010/ADR-012 kolmas samm ja EPICU #522 ESIMENE kahest lubatud e
   kinnitus count_present''iga, et IGA rida on arhiivis olemas; (3) see fail. Ruuter kutsub seda ainult siis, kui
   samm 2 andis 100% vaste, ja edastab TÄPSELT need (form_type, id) paarid. SQL ise lisab veel kaks kaitset: (a)
   kustutab ainult primaarvõtme (id) järgi nimetatud ridu, mitte kunagi võtme/vahemiku/tingimuse põhjal; (b) kustutab
-  vormivõtme (olemi) read ainult siis, kui KÕIK selle olemi snapshot-read on kinnitatud hulgas — ajalugu on alati
+  vormivõtme (olemi) read ainult siis, kui KÕIK selle olemi snapshot-read on kinnitatud hulgas - ajalugu on alati
   täielikult kas töö- või arhiivibaasis, osaline hulk (nt partii piiril) jäetakse järgmisse jooksu. Idempotentne
-  — juba kustutatud id lihtsalt ei leia midagi. Ei tohi sisaldada midagi peale DELETE-de (lint kontrollib).'
+  - juba kustutatud id lihtsalt ei leia midagi. Ei tohi sisaldada midagi peale DELETE-de (lint kontrollib).'
 namespace: archive
 params:
   ids:
     type: string
     required: false
-    description: 'JSON massiiv [{"form_type":"labour-inspection","id":123}, ...] — arhiivis kinnitatud paarid.'
+    description: 'JSON massiiv [{"form_type":"labour-inspection","id":123}, ...] - arhiivis kinnitatud paarid.'
 returns:
 - name: purged
   type: number

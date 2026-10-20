@@ -1,5 +1,5 @@
 # Nõutav õigus: control_form.view_unpublished,vehicle_technical_form.read,compound_form.read,sp_driver_form.read,sp_teammate_form.read.
-# Mootorsõiduki tehnoülevaatus on alati mõne koondvormi (PPA kontrollkaardi) alamvorm — kellel on õigus
+# Mootorsõiduki tehnoülevaatus on alati mõne koondvormi (PPA kontrollkaardi) alamvorm - kellel on õigus
 # koondvormi või selle autojuhi/meeskonnaliikme alamvormi lugeda, näeb ka sellesse kuuluva tehnoülevaatuse
 # alamvormi (sh failide) andmeid. auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
 check:

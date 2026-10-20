@@ -399,7 +399,7 @@ returnSent:
 
 returnError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure — saada uus sobimatusteade"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure - saada uus sobimatusteade"}'
   next: end
 
 returnIdRequired:

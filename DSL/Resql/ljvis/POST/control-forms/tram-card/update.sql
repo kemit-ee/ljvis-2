@@ -1,5 +1,5 @@
 /*
-description: Update a TRAM control card — appends a new snapshot row. version is unchanged while the
+description: Update a TRAM control card - appends a new snapshot row. version is unchanged while the
   latest snapshot's status is 'saved' (repeat saves do not bump /V); it increments by 1 when the status
   changes (confirm/publish) or when re-saving already-locked data.
 namespace: control-forms

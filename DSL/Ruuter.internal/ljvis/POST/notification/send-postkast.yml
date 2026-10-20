@@ -11,7 +11,7 @@ declaration:
 
     APPEND-ONLY: iga saatmiskatse (sh UC-04 uuesti saatmine) loob uue
     outbound_log rea oma notification_key'ga. Teenus ei kirjuta teavituse
-    teksti — ainult malli alias (API väli templateId) ja malli
+    teksti - ainult malli alias (API väli templateId) ja malli
     muutujate väärtused edastatakse Postkast 2.0-le, mis rakendab enda
     haldusliideses seadistatud malli.
 
@@ -24,7 +24,7 @@ declaration:
     X-Road-UserId ei ole nõutav, sest teenus on süsteemidevaheline
     (12-1 §3 "Eraldi õigust ei kehtestata").
 
-    Best-effort: kutsujat ei tohi 500-tada — igal juhul tagastatakse loodud
+    Best-effort: kutsujat ei tohi 500-tada - igal juhul tagastatakse loodud
     logId + saavutatud staatus, ka siis kui X-tee kutse ebaõnnestub
     (staatus 'error', failure_reason täidetud).
   namespace: notification
@@ -70,7 +70,7 @@ validateInput:
     created_by: "${incoming.body.created_by || 'system'}"
   next: checkRequired
 
-# recipient_email on nüüd valikuline sisendväli — kui kutsuja seda ei saada
+# recipient_email on nüüd valikuline sisendväli - kui kutsuja seda ei saada
 # (nt foreign-violation-form/edit/save.yml), kasutatakse allpool
 # notification_template_mapping.default_recipient_email't (haldusliidesest
 # seadistatav, vt notification-template-mapping/save.yml). Siin on kohustuslik
@@ -131,11 +131,11 @@ markInvalidRecipient:
   next: insertAsError
 
 # original_template_id tuleb ajaloolise nimega kataloogiveerust
-# (notification_template_mapping, haldusliidesest seadistatav — vt
+# (notification_template_mapping, haldusliidesest seadistatav - vt
 # notification-template-mapping/save.yml), kuid väärtus on Postkast 2.0
 # malli alias (nt "vrteade"), mille Postkast lahendab aktiivseks UUID-ks.
 # Konstandifallback ([#PK_TEMPLATE_*]) on eemaldatud; puuduva tunnuse korral
-# ei tohi X-tee kutset tühja templateId-ga saata — logi kohe veaga.
+# ei tohi X-tee kutset tühja templateId-ga saata - logi kohe veaga.
 resolveTemplateId:
   assign:
     original_template_id: "${mapping.originalTemplateId || ''}"
@@ -185,7 +185,7 @@ assignLogId:
     start_time: "${new Date().getTime()}"
   next: insertRecipientRow
 
-# outbound_log_recipient jääb UC-03 aruande (OutboundReportModal) tarbeks —
+# outbound_log_recipient jääb UC-03 aruande (OutboundReportModal) tarbeks -
 # uus vool kirjutab sinna täpselt ühe rea (varem 1..N recipients[]-i kaudu).
 insertRecipientRow:
   call: http.post
@@ -205,10 +205,10 @@ insertRecipientRow:
   next: callPk
 
 # Toodangus läheb kutse läbi XTR-i REST passthrough lane'i, mis lisab
-# X-Road-Client päise ise ja teeb mTLS turvaserverisse. Ei bearer-tokenit —
+# X-Road-Client päise ise ja teeb mTLS turvaserverisse. Ei bearer-tokenit -
 # autentimine käib turvaserverite vahel (mutual TLS + PK antud ligipääsuõigus).
 # X-EXTERNAL-ID = notification_key, mille abil leitakse saatmisoperatsioon hiljem
-# üles (sync-status), ka siis kui vastus jäi käesolevas kutses saamata — XTR
+# üles (sync-status), ka siis kui vastus jäi käesolevas kutses saamata - XTR
 # edastab selle päise verbatim.
 callPk:
   call: http.post
@@ -219,7 +219,7 @@ callPk:
       type: json
       X-EXTERNAL-ID: ${notification_key}
       X-User-Access-Type: "UNLIMITED"
-      # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
+      # X-Road-Client eemaldatud - XTR seab selle ise xtr.yaml client_data-st.
     body:
       templateId: ${original_template_id}
       parameters:
@@ -312,7 +312,7 @@ onPkError:
   next: logPkFailure
 
 # Ruuteri logisse (kubectl/Argo): Postkasti tagasilükkamise põhjus koos vastuse
-# kehaga — muidu on näha ainult "status=400". failure_reason on 500 märgi
+# kehaga - muidu on näha ainult "status=400". failure_reason on 500 märgi
 # piiriga, siin kuni 2000.
 logPkFailure:
   log: >-
@@ -370,7 +370,7 @@ returnFailed:
     status: "error"
   next: end
 
-# Jagatud haru "logi kirje kohe error'iga, ilma X-tee kutseta" — mõlemale
+# Jagatud haru "logi kirje kohe error'iga, ilma X-tee kutseta" - mõlemale
 # eeltingimuste kontrollile (kehtetu adressaat, lahendamata malli tunnus).
 # 12-1 §"Veaolukorrad": "Kui adressaadi aadress puudub või ei vasta lubatud
 # kujule, teavitust ei saadeta ja teavitus märgitakse veaga."

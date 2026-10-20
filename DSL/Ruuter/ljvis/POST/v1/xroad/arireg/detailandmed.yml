@@ -4,14 +4,14 @@ declaration:
   version: "1.0"
   description: >-
     Search Ariregister detailed company data (detailandmed_v1) via XTR,
-    routed through the real X-Road Security Server — our subsystem
+    routed through the real X-Road Security Server - our subsystem
     (GOV/70001231/ljvis2) has ACL on arireg's v1 methods (confirmed live via
-    allowedMethods, see .ai/ljvis-tasks/xtee-task.md). New endpoint — the
+    allowedMethods, see .ai/ljvis-tasks/xtee-task.md). New endpoint - the
     previous detailandmed_v2 XTR DSL existed but was never wired up to any
     Ruuter endpoint. First iteration: requests only general (yandmed) and
     person (iandmed) data, no commercial-pledge/petition/decree data
     (kandmed/dandmed/maarused); returns the raw XTR SOAP-to-JSON response
-    unmapped, matching lihtandmed.yml's style — no frontend consumer yet.
+    unmapped, matching lihtandmed.yml's style - no frontend consumer yet.
   namespace: xroad
   allowlist:
     body:

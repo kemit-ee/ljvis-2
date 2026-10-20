@@ -3,7 +3,7 @@ description: 'Apply a CGR lifecycle state transition (LJVIS2-139). Appends exact
   (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero
   rows and nothing is written, which the caller maps to 422 invalid_transition. Atomic by construction:
   the guard is evaluated inside the same INSERT .. SELECT. CGR differs from CTUD in two ways: (1) ''sent''
-  is the outgoing TERMINAL state — responses are stored in member_states JSONB in the same call, so there
+  is the outgoing TERMINAL state - responses are stored in member_states JSONB in the same call, so there
   is no separate ''responded'' status; (2) resend adds a new snapshot that also transitions ''sent ->
   sent'' with updated member_states for one member state. NYSIIS search keys are carried forward untouched
   from the previous snapshot.'

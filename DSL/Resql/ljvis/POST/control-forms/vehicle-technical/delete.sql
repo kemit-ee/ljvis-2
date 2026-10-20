@@ -1,5 +1,5 @@
 /*
-description: Delete vehicle technical-check sub-form — copy latest snapshot with status=deleted
+description: Delete vehicle technical-check sub-form - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:

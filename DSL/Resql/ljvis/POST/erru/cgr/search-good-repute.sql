@@ -1,8 +1,8 @@
 /*
 description: 'Search the local UNFIT register (forms.good_repute_form) for an incoming CGR inbound request
-  (LJVIS2-139). Two match strategies, mirroring the CGR 7A/7B XSD choice: (A) name search — compare date_of_birth
+  (LJVIS2-139). Two match strategies, mirroring the CGR 7A/7B XSD choice: (A) name search - compare date_of_birth
   AND UPPER(last_name) against tmFamilyName AND UPPER(first_name) against tmFirstName; (B) certificate
-  search — compare UPPER(certificate_number) against certNumber. Search (A) is used when both name fields
+  search - compare UPPER(certificate_number) against certNumber. Search (A) is used when both name fields
   and date_of_birth are supplied; search (B) when certNumber is supplied instead. Returns the LATEST snapshot
   of the best-matching confirmed or saved record. fitness_status = ''unfit'' means the transport manager
   was declared unfit; the caller must check the status column. Returns zero rows when no match is found,

@@ -1,6 +1,6 @@
 /*
 description: Single Postkast 2.0 outbound_log row by id. Used by UC-04 resend (resend.yml) and check-status/send.yml
-  to load the original send attempt it is retrying — reads recipient_address + template_variables + notification_type
+  to load the original send attempt it is retrying - reads recipient_address + template_variables + notification_type
   unchanged. Praegune seis = viimane outbound_log_status_event rida (INSERT-only), ilma eventita outbound_log rida
   ise.
 namespace: notification

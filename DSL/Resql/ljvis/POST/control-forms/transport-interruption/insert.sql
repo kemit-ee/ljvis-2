@@ -1,5 +1,5 @@
 /*
-description: Insert transport-interruption sub-form (autoveo katkestamise kontrollvorm) — first save.
+description: Insert transport-interruption sub-form (autoveo katkestamise kontrollvorm) - first save.
   Free-text fields are uppercased server-side (LJVIS2-74 §4).
 namespace: control-forms
 params:

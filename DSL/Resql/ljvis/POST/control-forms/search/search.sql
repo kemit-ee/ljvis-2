@@ -86,7 +86,7 @@ params:
   has_violation:
     type: string
     required: false
-    description: '''true'' / ''false'' — filter by violation presence'
+    description: '''true'' / ''false'' - filter by violation presence'
   status:
     type: string
     required: false

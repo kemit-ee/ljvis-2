@@ -7,7 +7,7 @@ tests:
   # Regression test for the "RSI teate loomiseks eeltäitmine nurjus" bug
   # (fixed alongside the drive-rest-form atpViolationFound issue): resql's
   # odometerReading param is `type: string`, but compound_form.vehicleMileage
-  # is a Postgres INTEGER — the mock below returns it as a JSON number, and
+  # is a Postgres INTEGER - the mock below returns it as a JSON number, and
   # the assertion below requires the value build.yml sends onward to be a
   # JSON string, not a number. Also asserts the item-level mapping of checkedItems
   # (RSI_FAILED_REASON, Liquibase 20261125100000): CAA_1 → '1', CAA_10 → '10'/'20'
@@ -122,7 +122,7 @@ tests:
 
 - name: build leaves identificationDetails empty when the compound form's company block is only partially filled
   # A half-filled "Veoettevõtja" block would later fail validate-rsi-message.yml's
-  # undertaking_block_incomplete / address_incomplete checks on the next save — build.yml
+  # undertaking_block_incomplete / address_incomplete checks on the next save - build.yml
   # must only pre-fill it when every required sub-field is present.
   setup:
     mocks:

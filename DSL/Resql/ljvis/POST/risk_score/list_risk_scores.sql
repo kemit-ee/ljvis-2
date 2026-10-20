@@ -1,6 +1,6 @@
 /*
 description: 'LJVIS2-152: paginated, filtered admin list of the LATEST risk-score record per company (risk.company_risk_score
-  is insert-only/historical — see docs/risk-score/formula.md). Filters are plain AND. Sorting is whitelisted;
+  is insert-only/historical - see docs/risk-score/formula.md). Filters are plain AND. Sorting is whitelisted;
   total via COUNT(*) OVER() to keep round trips to one. Mirrors DSL/Resql/ljvis/POST/erru/ncr/search.sql''s
   "latest per key" + pagination pattern.'
 namespace: risk_score
@@ -63,7 +63,7 @@ WHERE
 ORDER BY
   -- Sort keys MUST match frontend/src/hooks/stringUtils.ts's toSnakeCase()
   -- output of the AppTable column accessor keys (companyName -> company_name,
-  -- NOT "name" — a mismatch here silently produces NO sort at all, since
+  -- NOT "name" - a mismatch here silently produces NO sort at all, since
   -- every CASE WHEN falls through to the company_reg_code tiebreaker below;
   -- confirmed live: sorting=company_name asc/desc, the actual string the UI
   -- sends when the "Veoettevõtja" header is clicked, previously matched

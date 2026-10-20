@@ -13,14 +13,14 @@ declaration:
       3. A re-delivered message yields zero rows: look up the existing snapshot by
          technical_id. Resume received rows; replay only a stored answered result.
       4. Look up the inspected vehicle in the Estonian vehicle register (Liiklusregister,
-         ERRU_RSI_LIIKLUSREGISTER_ENDPOINT — mock in dev/CI, real X-tee in production).
+         ERRU_RSI_LIIKLUSREGISTER_ENDPOINT - mock in dev/CI, real X-tee in production).
          Only an explicit registry NotFound becomes NotFound; registry failures are retried.
       5. Store an 'answered' snapshot with the response_status_code.
-      6. Write audit (rsi.inbound_request.serve) directly to Resql — ruuter-internal
+      6. Write audit (rsi.inbound_request.serve) directly to Resql - ruuter-internal
          cannot reach the main Ruuter instance's GET/templates/audit chain.
 
     Unlike CGR inbound, RSI has no Heartbeat handling (per LJVIS2-146 §Testimine: RSI
-    does not use the Heartbeat requestPurpose — the notification channel carries only
+    does not use the Heartbeat requestPurpose - the notification channel carries only
     real inspection events). Response shape matches the ERRU RSI response XSD: a single
     statusCode (OK/NotFound). Vehicle details are internal lookup data, not RSI XML.
 

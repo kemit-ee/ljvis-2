@@ -1,6 +1,6 @@
 /*
 description: 'ADR-010: kustutatud (arhiveeritud) kontrollvormi versiooniajalugu arhiiv-andmebaasist.
-  Sama väljundikuju mis töö-baasi control-forms/<form>/get-snapshots.sql — Ruuteri fallback kutsub seda,
+  Sama väljundikuju mis töö-baasi control-forms/<form>/get-snapshots.sql - Ruuteri fallback kutsub seda,
   kui töö-baas tagastab 0 rida. Looja nimi + org on juba copy-ajal resolutsiooniga (arhiiv-baasis
   users.user_account puudub).'
 namespace: deleted-forms

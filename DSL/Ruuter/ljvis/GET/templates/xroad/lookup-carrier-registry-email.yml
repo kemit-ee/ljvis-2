@@ -7,13 +7,13 @@ declaration:
     tee (NCR->välisriigi kontrollkaart andmeülekande testimise plaan, p.8).
     Varem kutsuti XTR-i otse mitmes kohas (foreign-violation-form/edit/publish.yml
     lookupCarrierRegistryData, ja punkt 6 UI jaoks planeeritud uus otspunkt)
-    igaüks oma käsitsi lisatud xroad.xroad_integration_log kirjega — see
+    igaüks oma käsitsi lisatud xroad.xroad_integration_log kirjega - see
     template koondab loogika ÜHTE kohta, et kõik kutsujad (save.yml,
     carrier-registry-email.yml GET otspunkt) logiksid täpselt samamoodi ja
     samale service_code'ile ('arireg.detailandmed_v1.v1'), nagu ka
     DSL/Ruuter/ljvis/POST/v1/xroad/arireg/detailandmed.yml kasutab.
     NB: erinevalt detailandmed.yml-ist, mis logib response_xml tühjana,
-    logib SEE template reaalse vastuse (JSON.stringify) — kliendi kaebus
+    logib SEE template reaalse vastuse (JSON.stringify) - kliendi kaebus
     "ei näe logikirjet" tuleneb tõenäoliselt sellest, et vastust ise ei
     saanud kunagi kontrollida, ainult see, et kutse üldse toimus.
     Tagastab JSON-stringina: {"email":"...","found":true|false}.
@@ -126,13 +126,13 @@ logNetworkFailure:
 
 # Päris X-tee (arireg.detailandmed_v1) SOAP->JSON vastus mähib kõik väljad
 # ümber 'ns1:detailandmed_v1Response.ns1:keha...' ja iga võti on 'ns1:'
-# prefiksiga (nt 'ns1:sidevahendid', mitte 'sidevahendid') — algne loogika
+# prefiksiga (nt 'ns1:sidevahendid', mitte 'sidevahendid') - algne loogika
 # eeldas prefiksita võtmeid ja mängis seetõttu alati tühja, mistõttu email
 # jäi alati "määramata", kuigi äriregistris oli olemas.
 # 'g' loeb välja nii prefiksiga kui ilma, et see toimiks ka vanade
 # testide/mockide prefiksita näidisandmetega.
 # XTR ise tagastab oma HTTP vastuse kujul {"body": {...ns1 sisu...},
-# "headers": {...}} — carrierRegistryRes.response.body ON SEE ÜMBRIS, mitte
+# "headers": {...}} - carrierRegistryRes.response.body ON SEE ÜMBRIS, mitte
 # ns1 sisu ise, mistõttu tegelik sisu on üks tase sügavamal
 # (carrierRegistryRes.response.body.body). Ilma selle lahtipakkimiseta
 # kukub 'g' kett vaikimisi alati oma sisendile tagasi ja email jääb tühjaks,

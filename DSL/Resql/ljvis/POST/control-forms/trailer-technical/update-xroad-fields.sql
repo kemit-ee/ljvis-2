@@ -2,7 +2,7 @@
 description: 'Kirjuta e-toimiku päringu tulemus haagise tehnokontrolli alamvormi uusimale confirmed snapshot-reale
   ja avalikusta see automaatselt. INSERT-only: lisab uue snapshot-rea (revision + 1, version ja kõik muud
   väljad kantakse edasi), vana rida jääb ajalukku. version ei muutu (LJVIS2-72 §4: X-tee väljad ei mõjuta
-  /V järelliidet). found != true või juba täidetud enforcement_decision on no-op (0 rida) — cron kutsub seda
+  /V järelliidet). found != true või juba täidetud enforcement_decision on no-op (0 rida) - cron kutsub seda
   iga kandidaadi kohta tingimusteta. created_by = ''eToimik öine uuendus''.'
 namespace: control-forms
 params:

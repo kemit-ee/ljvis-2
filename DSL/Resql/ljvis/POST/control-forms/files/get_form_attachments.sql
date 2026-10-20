@@ -9,7 +9,7 @@ params:
   form_number_prefix:
     type: string
     required: false
-    description: 'Valikuline vorminumbri prefiks — kui antud, peab form_number sellega algama (IDOR-kaitse).'
+    description: 'Valikuline vorminumbri prefiks - kui antud, peab form_number sellega algama (IDOR-kaitse).'
   attachment_form_type:
     type: string
     required: false

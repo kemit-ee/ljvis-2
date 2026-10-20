@@ -7,17 +7,17 @@ params:
 
 method: POST
 
-# No `service:` — routed through the configured Security Server
+# No `service:` - routed through the configured Security Server
 # (xtr.yaml -> security_server), since liiklusregister is only
 # reachable via X-Road (unlike Ariregister's public HTTPS demo
 # endpoint used by DSL/xtr/ar/*.yml).
 #
 # Service identifier: EE/GOV/70001490/liiklusregister/paring2/v2
 # (LJVIS2-55). Verified against the real Security Server via the
-# allowedMethods meta-service — our subsystem (GOV/70001231/ljvis2)
+# allowedMethods meta-service - our subsystem (GOV/70001231/ljvis2)
 # is authorised for paring2/v2 and yvkehtivus/v1.
 #
-# IMPORTANT — elementFormDefault="unqualified" for the
+# IMPORTANT - elementFormDefault="unqualified" for the
 # liiklusregister XSD (confirmed via the service's own getWsdl
 # meta-service response): only the top-level <paring2> element is
 # namespace-qualified (prod:paring2); its child elements (regmrk,
@@ -27,7 +27,7 @@ method: POST
 # though the request otherwise looks well-formed.
 #
 # The paring2_paring XSD type uses <xsd:all> with every field
-# present (nillable="true") — the producer expects all six fields
+# present (nillable="true") - the producer expects all six fields
 # in the body, using xsi:nil="true" for the ones the caller didn't
 # supply (per LJVIS2-55 spec: "SOAP sisendväljad, mida kutsuja ei
 # edasta, saadetakse xsi:nil='true' väärtusega").

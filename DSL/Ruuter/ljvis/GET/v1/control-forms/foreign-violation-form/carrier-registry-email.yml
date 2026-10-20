@@ -5,9 +5,9 @@ declaration:
   description: >-
     Kontrollkaardi vedaja-plokis kuvatav äriregistri e-post (p.6).
     Eraldi otspunkt (mitte osa põhi-GET-ist), et äriregistri X-tee kutse ei
-    lisanduks igale kaardi avamisele — frontend kutsub seda lisaks, kui
+    lisanduks igale kaardi avamisele - frontend kutsub seda lisaks, kui
     companyRegCode on olemas. Kutsub jagatud templates/xroad/lookup-carrier-registry-email
-    kaudu (p.8) — sama tee, mida kasutab ka edit/save.yml teavituse saatmisel,
+    kaudu (p.8) - sama tee, mida kasutab ka edit/save.yml teavituse saatmisel,
     et xroad.xroad_integration_log kirje oleks alati olemas ja identsel kujul.
   namespace: control-forms
   allowlist:

@@ -61,7 +61,7 @@ declaration:
         description: "VR only - applied sanction code (exact match)"
 
 getAuthority:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     u: ${auth_user}
   next: buildAllowedTypes

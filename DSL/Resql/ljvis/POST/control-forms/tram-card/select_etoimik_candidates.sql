@@ -18,7 +18,7 @@ returns:
 */
 -- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 -- `latest` must resolve one row per key (the true latest snapshot) BEFORE any
--- filtering — otherwise an already-resolved key keeps reappearing as a candidate.
+-- filtering - otherwise an already-resolved key keeps reappearing as a candidate.
 WITH latest AS (
   SELECT DISTINCT ON (tram_control_card_key)
       tram_control_card_key AS id,

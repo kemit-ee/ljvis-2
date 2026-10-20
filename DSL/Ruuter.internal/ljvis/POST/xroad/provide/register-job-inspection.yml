@@ -22,21 +22,21 @@ declaration:
       - field: soidukite_arv
       - field: vaarteomenetlus
 
-# Samm 1: Valideeri kontrollija — WSDL väli 'kontrollija'
+# Samm 1: Valideeri kontrollija - WSDL väli 'kontrollija'
 validateKontrollija:
   switch:
     - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
       next: returnMissingKontrollija
   next: validateKontrolliId
 
-# Samm 3: Valideeri kontrolli ID — WSDL väli 'kontrolli_id' (idempotentsuse võti)
+# Samm 3: Valideeri kontrolli ID - WSDL väli 'kontrolli_id' (idempotentsuse võti)
 validateKontrolliId:
   switch:
     - condition: "${incoming.body.kontrolli_id == null}"
       next: returnMissingKontrolliId
   next: validateKontrolliKp
 
-# Samm 4: Valideeri kuupäev — peab olema parsitav
+# Samm 4: Valideeri kuupäev - peab olema parsitav
 validateKontrolliKp:
   switch:
     - condition: "${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}"
