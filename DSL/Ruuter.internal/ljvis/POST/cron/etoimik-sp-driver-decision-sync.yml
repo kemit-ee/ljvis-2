@@ -90,7 +90,7 @@ processCandidates:
               var responseNode = responseKey ? soapBody[responseKey] : {};
               var caseNode = responseNode.response || null;
               if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse.response.body) };
               }
               var decisions = [];
               var bases = [];
