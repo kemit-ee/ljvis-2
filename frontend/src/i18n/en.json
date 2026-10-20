@@ -1729,6 +1729,7 @@
     "column": {
       "createdAt": "Request time",
       "form": "Form",
+      "formNumber": "Form number",
       "serviceCode": "Service",
       "status": "Status",
       "request": "Outgoing request",
@@ -1740,6 +1741,7 @@
       "vehicle_technical_form": "Motor vehicle technical compliance control form",
       "trailer_technical_form": "Trailer technical compliance control form",
       "sp_driver_form": "Driver's driving and rest time control form",
+      "sp_teammate_form": "Team member driving and rest time inspection form",
       "tram_control_card": "Transport Administration control card"
     }
   },

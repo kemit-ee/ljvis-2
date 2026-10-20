@@ -81,11 +81,16 @@ export function XroadLogTable() {
         cell: (info) => {
           const { sourceType, sourceRecordId } = info.row.original;
           const href = buildFormLink(sourceType, sourceRecordId);
-          const label = sourceType
+          const typeLabel = sourceType
             ? t(`xroadLogs.sourceType.${sourceType}`, { defaultValue: sourceType })
             : '—';
-          return href ? <Link to={href}>{label}</Link> : label;
+          return href ? <Link to={href}>{typeLabel}</Link> : typeLabel;
         },
+      }),
+      columnHelper.accessor('formNumber', {
+        header: t('xroadLogs.column.formNumber'),
+        enableSorting: false,
+        cell: (info) => info.getValue() ?? '—',
       }),
       ...(allServices
         ? [

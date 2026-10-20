@@ -15,6 +15,8 @@ export interface XroadLogEntry {
   personIdentifier: string | null;
   sourceType: string | null;
   sourceRecordId: string | null;
+  /** Vormi viimase versiooni number kujul `sp-AAAA-NNNNN/V`; null kui vormi ei leitud. */
+  formNumber: string | null;
   createdAt: string | null;
   total?: number;
 }
