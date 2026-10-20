@@ -7,7 +7,7 @@ declaration:
     Turvaserver saab selle URL-i teenuse kirjeldusena registreerida
     (Teenused -> Lisa REST -> Kirjelduse URL), et automaatselt teenuste
     lepingut uuendada. Sisu on genereeritud failist docs/xtee/XroadOpenapi.yaml
-    skriptiga scripts/generate-xroad-openapi-dsl.py — ÄRA MUUDA KÄSITSI.
+    skriptiga scripts/generate-xroad-openapi-dsl.py - ÄRA MUUDA KÄSITSI.
   namespace: xroad-openapi
 
 returnOpenapi:
