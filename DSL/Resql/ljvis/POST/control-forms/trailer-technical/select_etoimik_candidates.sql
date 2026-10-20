@@ -19,6 +19,7 @@ returns:
   type: string
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest_ttf AS (
   SELECT DISTINCT ON (trailer_technical_form_key)
       trailer_technical_form_key AS id,
@@ -38,6 +39,7 @@ cand AS (
     AND t.proceeding_type IS NOT NULL AND t.proceeding_type <> 'none'
     AND btrim(coalesce(t.proceeding_reference_number, '')) <> ''
     AND t.enforcement_decision IS NULL
+    AND NOT EXISTS (SELECT 1 FROM forms.trailer_technical_form h WHERE h.trailer_technical_form_key = t.id AND h.created_by = 'eToimik öine uuendus')
     AND t.created_at >= now() - INTERVAL '365 days'
 ),
 resolved AS (

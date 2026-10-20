@@ -22,6 +22,7 @@ returns:
   type: string
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 -- `latest` must resolve one row per key (the true latest snapshot) before
 -- any filtering — filtering first, then DISTINCT ON, would instead pick
 -- the latest row *matching the filter*, a stale pre-decision snapshot even
@@ -44,4 +45,6 @@ FROM latest
 WHERE status = 'confirmed'
   AND proceeding_reference_number IS NOT NULL AND btrim(proceeding_reference_number) <> ''
   AND punished_person_id_code IS NOT NULL AND btrim(punished_person_id_code) <> ''
-  AND enforcement_decision IS NULL;
+  AND enforcement_decision IS NULL
+  AND NOT EXISTS (SELECT 1 FROM forms.labour_inspection_form h WHERE h.labour_inspection_form_key = latest.id AND h.created_by = 'eToimik öine uuendus');
+

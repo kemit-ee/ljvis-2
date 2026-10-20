@@ -19,6 +19,7 @@ returns:
   type: string
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 -- `latest_sd` peab lahendama ühe rea per võti (tõeline uusim snapshot) ENNE
 -- filtreerimist — filtreerides esmalt saaks stale eelmise oleku (vt labour
 -- select_etoimik_candidates.sql sama kommentaari).
@@ -41,6 +42,7 @@ cand AS (
     AND s.proceeding_type IS NOT NULL AND s.proceeding_type <> 'none'
     AND btrim(coalesce(s.proceeding_reference_number, '')) <> ''
     AND s.enforcement_decision IS NULL
+    AND NOT EXISTS (SELECT 1 FROM forms.sp_driver_form h WHERE h.sp_driver_form_key = s.id AND h.created_by = 'eToimik öine uuendus')
     AND s.created_at >= now() - INTERVAL '365 days'
 ),
 -- koondvormi UUSIM snapshot (üks rida võtme kohta) alampäringuga, mitte JOIN-iga
