@@ -21,6 +21,7 @@ import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
 import { NotifyCarrierCheckbox } from '../../components/shared/NotifyCarrierCheckbox';
+import { RequestCarrierNotification } from '../../components/shared/RequestCarrierNotification';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
@@ -485,6 +486,13 @@ export function TramControlCardPage() {
             >
               {t('erru.ncr.buildModal.button')}
             </Button>
+          )}
+          {showEdit && (
+            <RequestCarrierNotification
+              formType="tram_control_card"
+              id={id}
+              status={status}
+            />
           )}
           {showEdit ? (
             <>

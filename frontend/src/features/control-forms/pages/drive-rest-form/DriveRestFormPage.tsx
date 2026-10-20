@@ -68,6 +68,7 @@ import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabL
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 import { FormLoadError } from '../../../../shared/components/FormLoadError';
+import { CompoundEtoimikQueryCard } from '../../components/EtoimikQueryCard/CompoundEtoimikQueryCard';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -704,6 +705,17 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         <Heading element="h1">{headingLabel}</Heading>
         {addFormDropdown}
       </div>
+
+      {/* E-toimiku päringukaart ("Päri e-toimikust") on ainult karistusregistri õigusega kasutajale. */}
+      <CompoundEtoimikQueryCard
+        compoundForm={compoundForm}
+        compoundFormKey={compoundFormKey}
+        vehicle={vehicle.form}
+        trailers={trailers.map((t) => t.form)}
+        driver={driver.form}
+        teammate={teammate.form}
+        adr={adr.form}
+      />
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
