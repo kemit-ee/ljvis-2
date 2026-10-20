@@ -1,4 +1,4 @@
-# POST /v1/notification-template-mapping/save — desktop-kanali teavituse saajate
+# POST /v1/notification-template-mapping/save - desktop-kanali teavituse saajate
 # (desktop_recipient_personal_codes) salvestamine, vt insert_template_mapping.sql.
 mode: mock-http
 constants:

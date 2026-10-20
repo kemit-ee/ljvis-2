@@ -1,4 +1,4 @@
-# POST /notification/create (Ruuter.internal) — desktop-kanali teavituse saajad
+# POST /notification/create (Ruuter.internal) - desktop-kanali teavituse saajad
 # (notification_template_mapping.desktop_recipient_personal_codes) tardistatakse
 # notification.recipient_personal_codes veergu loomise hetkel, vt create.yml.
 mode: mock-http

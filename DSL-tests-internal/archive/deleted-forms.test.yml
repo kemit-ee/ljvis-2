@@ -1,4 +1,4 @@
-# POST /cron/archive-deleted-forms (ADR-010) — kustutatud vormide arhiveerimine.
+# POST /cron/archive-deleted-forms (ADR-010) - kustutatud vormide arhiveerimine.
 # Purge toimub siin alati (pole lülitit); anonymize (ADR-014/LJVIS2-51) vaikimisi true.
 mode: mock-http
 constants:
