@@ -106,6 +106,17 @@ test.describe('E-toimiku X-tee logid', () => {
     );
   });
 
+  test('vormi numbri veerg on nähtav; kirje, mille vormi seedis pole, näitab "—"', async ({ page }) => {
+    await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('5 tulemust')).toBeVisible({ timeout: 20_000 });
+
+    await expect(page.getByRole('columnheader', { name: 'Vormi number' })).toBeVisible();
+    // Seedi source_record_id-dele (95002001 jne) vastavaid vorme andmebaasis pole,
+    // seega number puudub. Tegelik number (sp-AAAA-NNNNN/V) vajab seedis vormirida.
+    const cells = page.getByRole('row').nth(2).getByRole('cell');
+    await expect(cells.nth(2)).toHaveText('—');
+  });
+
   test('kuupäevafilter: 10 päeva tagune vahemik näitab ainult vanemat kirjet', async ({ page }) => {
     await page.goto('/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
     await expect(page.getByText('5 tulemust')).toBeVisible({ timeout: 20_000 });
