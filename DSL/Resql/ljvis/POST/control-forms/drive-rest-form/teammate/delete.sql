@@ -1,5 +1,5 @@
 /*
-description: Delete drive rest form for teammate — copy latest snapshot with status=deleted
+description: Delete drive rest form for teammate - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:

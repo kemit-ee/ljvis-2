@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Logout — expire JWT cookie via TIM and clear browser cookie"
+  description: "Logout - expire JWT cookie via TIM and clear browser cookie"
   namespace: backoffice
   allowlist:
     headers:

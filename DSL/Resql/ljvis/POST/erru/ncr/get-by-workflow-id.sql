@@ -4,7 +4,7 @@ description: 'Look up the LATEST snapshot of an OUTGOING NCR message by its work
   response with the original outgoing request. The synchronous ack (sent->acknowledged) happens in the
   same call as the send; the substantive response (acknowledged->responded) arrives later, correlated
   only by the workflowId generated during ''sent''. Returns zero rows when no outgoing NCR message with
-  this workflow_id exists — the caller treats that as an unknown/stale response and does not store anything
+  this workflow_id exists - the caller treats that as an unknown/stale response and does not store anything
   (LJVIS2-64 §Testimine: ''Korreleerimata workflowId-ga vastust ei salvestata'').'
 namespace: erru
 params:

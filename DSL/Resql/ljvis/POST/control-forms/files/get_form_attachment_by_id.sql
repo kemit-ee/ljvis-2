@@ -9,7 +9,7 @@ params:
   form_number_prefix:
     type: string
     required: false
-    description: 'Vorminumbri prefiks (nt ''mv-'', ''vr-''). Kohustuslik — piirab manuse vormi-tüübiga, mille lugemisõigust kutsuja on kontrollinud (IDOR-kaitse). Tühi/NULL → 0 rida.'
+    description: 'Vorminumbri prefiks (nt ''mv-'', ''vr-''). Kohustuslik - piirab manuse vormi-tüübiga, mille lugemisõigust kutsuja on kontrollinud (IDOR-kaitse). Tühi/NULL → 0 rida.'
   attachment_form_type:
     type: string
     required: false

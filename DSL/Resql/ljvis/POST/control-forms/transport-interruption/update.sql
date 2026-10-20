@@ -1,5 +1,5 @@
 /*
-description: Update transport-interruption sub-form — appends a new snapshot row. sub_form_number is always
+description: Update transport-interruption sub-form - appends a new snapshot row. sub_form_number is always
   read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved' (repeat
   saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published) data.
 namespace: control-forms

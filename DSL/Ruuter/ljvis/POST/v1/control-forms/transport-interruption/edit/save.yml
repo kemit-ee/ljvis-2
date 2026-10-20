@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Create or update the transport-interruption sub-form (autoveo katkestamise kontrollvorm, LJVIS2-74) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
+  description: "Create or update the transport-interruption sub-form (autoveo katkestamise kontrollvorm, LJVIS2-74) - single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
@@ -213,7 +213,7 @@ updateForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}

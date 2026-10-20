@@ -6,11 +6,11 @@ description: 'Candidates for the nightly automatic NCR (NotifyCheckResult) dispa
 
   An NCR to the vehicle''s registration MS only makes sense for a foreign transport undertaking, so the
   parent must also carry a carrier name and a community-licence certified-copy number (community_licence_number
-  is mandatory in the ERRU NCR request). Rows missing either are skipped — the officer can still create
+  is mandatory in the ERRU NCR request). Rows missing either are skipped - the officer can still create
   the NCR manually from the control card.
 
   Both `latest_sp` and `latest_cf` resolve one row per key BEFORE filtering (same reason as select_etoimik_candidates.sql
-  — filtering first could read a stale earlier snapshot''s status).
+  - filtering first could read a stale earlier snapshot''s status).
 
   Capped at 365 days since the sub-form snapshot was created, mirroring the other nightly crons. Idempotent:
   once the cron writes a row into erru.ncr_autodispatch_log the candidate drops out of this query.
@@ -34,7 +34,7 @@ returns:
 */
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- AUTOMAATSE NCR-i EELDUSED (#328 p3) — automaatne öine NCR-väljasaatmine
+-- AUTOMAATSE NCR-i EELDUSED (#328 p3) - automaatne öine NCR-väljasaatmine
 -- käivitub SP (autojuhi / meeskonnaliikme sõidu- ja puhkeaja) kontrollkaardi
 -- kohta AINULT kui KÕIK alljärgnev on täidetud:
 --   1. SP-alamvorm on AVALIKUSTATUD  (status = 'published')
@@ -50,10 +50,10 @@ returns:
 --        (rida puudub erru.ncr_autodispatch_log-is)
 --
 -- Otsused (#329):
---   - Juhi / meeskonnaliikme isikukoodi EI nõuta — NCR on ettevõtja-tasandi
+--   - Juhi / meeskonnaliikme isikukoodi EI nõuta - NCR on ettevõtja-tasandi
 --     teade, ERRU-le isikut ei edastata.
 --   - 365-päevane lagi on tahtlik: sama muster mis teistel öistel cronidel
---     (nt select-etoimik-candidates.sql) — ei jäta juhtumit lõputult ootele.
+--     (nt select-etoimik-candidates.sql) - ei jäta juhtumit lõputult ootele.
 --   - requestPurpose = "Control", requestSource = "RSI" on ERRU-spetsi järgi
 --     väljaminevate NCR teadete süsteemikonstandid (NCR_REQUEST_PURPOSE /
 --     NCR_REQUEST_SOURCE klassifikaatorite kirjeldused).

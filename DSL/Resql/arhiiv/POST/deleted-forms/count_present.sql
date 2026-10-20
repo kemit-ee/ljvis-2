@@ -1,7 +1,7 @@
 /*
 description: 'ADR-010 verifitseerimissamm (retention-purge kontrakti samm 2): mitu etteantud (form_type, id) paari
   on arhiiv-andmebaasis reaalselt olemas, loetud kordumatult (topeltpaar ei saa puuduvat rida varjata) ja korraliku
-  payload''iga (objekt, mille id vastab reale). Cron võrdleb seda saadetud ridade arvuga — ainult täieliku vaste
+  payload''iga (objekt, mille id vastab reale). Cron võrdleb seda saadetud ridade arvuga - ainult täieliku vaste
   korral tehakse töö-baasis päris DELETE (purge_confirmed.sql; üks kahest lubatud
   append-only erandist, teine on anonymize_confirmed.sql, vt ADR-014).'
 namespace: deleted-forms

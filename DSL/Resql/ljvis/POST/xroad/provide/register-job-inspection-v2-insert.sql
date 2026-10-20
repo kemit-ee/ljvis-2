@@ -1,7 +1,7 @@
 /*
 description: 'X-tee RegisterJobInspection_v2 (LJVIS1 SOAP leping): kirjutab forms.labour_inspection_form
   tabelisse funktsiooni forms.register_external_labour_inspection kaudu (allikas xroad-v2, saatja
-  kontrolli_id ilma prefiksita — sama mis LJVIS1 RavenDB V2 migratsioonis). Täpne kordus: unchanged;
+  kontrolli_id ilma prefiksita - sama mis LJVIS1 RavenDB V2 migratsioonis). Täpne kordus: unchanged;
   muudetud kordus saved-aktile: uus snapshot (updated); muudetud kordus lukustatud aktile: conflict.
   REST v3 kasutab eraldi päringut register-job-inspection-v3-insert.'
 namespace: xroad

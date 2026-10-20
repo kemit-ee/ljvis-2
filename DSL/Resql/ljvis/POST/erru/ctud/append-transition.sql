@@ -71,7 +71,7 @@ WITH latest AS (
     -- business failure, and forcing the user to re-enter the whole form after a network blip
     -- would be a regression. Nothing is lost either way because the error snapshot is retained
     -- forever by the append-only model. Outgoing only: we cannot retry another country's
-    -- inbound message — they redeliver it with a new technicalId.
+    -- inbound message - they redeliver it with a new technicalId.
     ('error',     'sent',      'outgoing'),
     -- Incoming chain: received -> answered
     ('received',  'answered',  'incoming'),

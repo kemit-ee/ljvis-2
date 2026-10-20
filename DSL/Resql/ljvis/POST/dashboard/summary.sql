@@ -1,7 +1,7 @@
 /*
 description: 'LJVIS2-37 officer dashboard aggregate. Returns unfinished (compound status not published) koondvorm
   cases with their active sub-forms, unfinished standalone forms and a "needs attention" list (deadline
-  / confirmed-not- published) — all scoped to either the caller''s own work (scope=own, created_by = :actor_code)
+  / confirmed-not- published) - all scoped to either the caller''s own work (scope=own, created_by = :actor_code)
   or the caller''s whole organisation (scope=organisation, inspector_organisation_id / org-scoped standalone
   forms = :actor_org_id). Deadline rule (LJVIS2-37 AC): expedited (kiirmenetlus) = +15 days from the first
   snapshot where proceeding_type became ''expedited''; general (üldmenetlus) = +45 days from the koondvorm''s
@@ -86,7 +86,7 @@ lkv AS (
         kv_form_key, compound_form_key, sub_form_number, status, created_at, created_by
     FROM forms.kv_form ORDER BY kv_form_key, created_at DESC
 ),
--- earliest snapshot per sub-form where proceeding_type first became non-'none'/non-null —
+-- earliest snapshot per sub-form where proceeding_type first became non-'none'/non-null -
 -- used as the "väärteomenetlus alustatud" date for the 15-day expedited deadline.
 proceeding_started AS (
     SELECT sp_driver_form_key AS sub_form_key, 'sp_driver'::text AS form_type, MIN(created_at) AS started_at
@@ -189,7 +189,7 @@ active_compound AS (
 -- ── section 2: unfinished standalone forms (saved/confirmed) ───────────────
 -- mainTime/vehicleRegNr: only foreign_violation_form actually captures an
 -- inspection time-of-day and a vehicle reg nr; labour_inspection/good_repute
--- have neither concept, so they report NULL (rendered as "—" on the FE).
+-- have neither concept, so they report NULL (rendered as "-" on the FE).
 standalone_union AS (
     SELECT 'foreign_violation'::text AS form_type, fv.foreign_violation_form_key AS form_key,
            fv.form_number, fv.status, fv.inspection_date AS main_date,

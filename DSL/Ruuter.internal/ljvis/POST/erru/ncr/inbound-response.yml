@@ -4,7 +4,7 @@ declaration:
   description: |
     Receive the ASYNCHRONOUS substantive NCR response from the destination member state
     for a previously-sent Estonian outgoing request (LJVIS2-64 §4.3). Correlated by
-    workflowId — the synchronous ack (sent->acknowledged) already happened during send.yml;
+    workflowId - the synchronous ack (sent->acknowledged) already happened during send.yml;
     this endpoint carries the SUBSTANTIVE response (statusCode OK/NotFound + transport
     undertaking + penalty outcomes) that arrives later and moves the message from
     'acknowledged' to 'responded'.
@@ -140,7 +140,7 @@ checkStored:
   next: createNcrResponseNotification
 
 # Loo teavitus NCR vastuse kohta ncr.respond õigusega kasutajatele.
-# Fire-and-forget — viga ei peata peamist voogu.
+# Fire-and-forget - viga ei peata peamist voogu.
 createNcrResponseNotification:
   call: http.post
   args:
@@ -155,7 +155,7 @@ createNcrResponseNotification:
       related_entity_id: ${business_case_id}
       event_key: "${workflow_id + ':' + response_status_code}"
       title_et: "Saabus vastussõnum Eestist saadetud ERRU NCR teatele"
-      body_et: "${'Juhtum: ' + business_case_id + ' — tulemus: ' + response_status_code}"
+      body_et: "${'Juhtum: ' + business_case_id + ' - tulemus: ' + response_status_code}"
       created_by: "system"
   result: notifRes
   error: buildAudit

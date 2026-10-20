@@ -7,7 +7,7 @@ declaration:
     CronManageri tööga identse töö (riskiskooride ümberarvutus või e-toimiku
     otsuste sünkroonimine). Kutsub sünkroonselt vastavat
     [#LJVIS_RUUTER_INTERNAL]/cron/<job> endpointi ja tagastab selle kokkuvõtte: total (töötlemiseks valitud kirjeid), succeeded (õnnestunud) ja failures (ebaõnnestunud).
-    Lubatud tööde nimekiri on kinnine (allowedJobs) — suvalist cron-endpointi
+    Lubatud tööde nimekiri on kinnine (allowedJobs) - suvalist cron-endpointi
     selle kaudu kutsuda ei saa. Õigus xroad.log.read kontrollitakse selle
     kataloogi .guard.yml-is. Iga käivitus logitakse auditisse
     (manual_job.run). Töö ise kirjutab oma süsteemi auditisündmuse (kui see

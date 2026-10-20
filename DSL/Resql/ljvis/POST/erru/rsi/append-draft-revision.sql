@@ -2,7 +2,7 @@
 description: 'Revise an OUTGOING RSI message draft (LJVIS2-147, ''täiendamine''). Appends a new snapshot
   with version + 1, keeping status ''initiated''. Guarded: the INSERT .. SELECT produces zero rows unless
   the latest snapshot is status=''initiated'' AND direction=''outgoing'', so a sent request or an inbound
-  message can never be edited — the caller detects the empty result and returns 422. Editable fields are
+  message can never be edited - the caller detects the empty result and returns 422. Editable fields are
   fully replaced from the request body; identity and envelope fields (business_case_id, rsi_from, technical_id,
   workflow_id, sent_at, response_status_code, response_status_message) are carried forward untouched.
   rsi_to is re-derived from vehicleRegistrationCountry on every revision, same as append-draft.sql.'

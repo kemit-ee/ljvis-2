@@ -1,5 +1,5 @@
 /*
-description: Update foreign violation form — appends a new snapshot row. form_number and template_version
+description: Update foreign violation form - appends a new snapshot row. form_number and template_version
   are always read from the latest snapshot; version is unchanged while the latest snapshot's status is
   'saved' (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published)
   data.

@@ -1,7 +1,7 @@
 /*
 description: 'Apply an NCR lifecycle state transition (LJVIS2-64). Appends exactly one new snapshot iff
   (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero
-  rows and nothing is written — the caller maps that to 422 not_sendable / invalid_transition. Unlike
+  rows and nothing is written - the caller maps that to 422 not_sendable / invalid_transition. Unlike
   RSI, NCR''s error state is NOT terminal: a failed send can be retried from ''error'' back to ''sent''
   (outgoing) or ''answered'' (incoming response), per LJVIS2-62 §4 ''Viga olekus saab teate või vastuse
   uuesti saata''. The synchronous ack (sent->acknowledged) and the asynchronous substantive response (acknowledged->responded)
@@ -138,7 +138,7 @@ WITH latest AS (
     CASE WHEN :newStatus = 'acknowledged' THEN NULLIF(:ackStatusMessage, '') ELSE l.ack_status_message END,
     CASE WHEN :newStatus = 'acknowledged' THEN now() ELSE l.ack_received_at END,
     -- response content is written only on the substantive 'responded' transition
-    -- (outgoing flow) — all other transitions carry the existing values forward.
+    -- (outgoing flow) - all other transitions carry the existing values forward.
     CASE WHEN :newStatus = 'responded' THEN NULLIF(:responseStatusCode, '') ELSE l.response_status_code END,
     CASE WHEN :newStatus = 'responded' THEN NULLIF(:responseStatusMessage, '') ELSE l.response_status_message END,
     CASE WHEN :newStatus = 'responded' AND NULLIF(:transportUndertakingName, '') IS NOT NULL

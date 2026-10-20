@@ -2,7 +2,7 @@ declaration:
   internal: false
   version: "1.0"
   description: >-
-    LJVIS2-37 officer dashboard aggregate. No dedicated guard — the
+    LJVIS2-37 officer dashboard aggregate. No dedicated guard - the
     project-wide guard (ljvis/.guard.yml) already requires an authenticated
     officer session and exposes auth_user, same as other routes with no
     permission gate of their own. scope=organisation is only honoured when
@@ -45,7 +45,7 @@ fetchSummary:
 
 # Resql returns one row per section {section, payload-as-json-text}; reshape
 # into a single object keyed by section with parsed JSON arrays. Split into
-# two assign steps — a variable assigned in a step cannot be referenced by
+# two assign steps - a variable assigned in a step cannot be referenced by
 # another key assigned in that same step (Ruuter evaluates a step's
 # assignments independently, not sequentially within the step).
 collectSections:
@@ -84,7 +84,7 @@ buildResponse:
       })()}
   next: returnSuccess
 
-# Raw JS object (not JSON.stringify'd) — the frontend's get<T>() client
+# Raw JS object (not JSON.stringify'd) - the frontend's get<T>() client
 # parses one JSON envelope only (see search/list.yml's identical
 # `return: ${res.response.body}` convention).
 returnSuccess:

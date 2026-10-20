@@ -8,11 +8,11 @@ declaration:
 
     The officer-facing endpoint needs check-user-authority (a browser session cookie)
     to resolve X-Road-UserId, but the inbound CTUD handler is machine-to-machine with
-    no user involved — check-user-authority would always 401. userId here is a fixed
+    no user involved - check-user-authority would always 401. userId here is a fixed
     system identifier instead.
 
     XTR call and response mapping are kept byte-identical to the officer-facing
-    endpoint (including the leitud/ei leitud/viga -> Found/NotFound/Error mapping) —
+    endpoint (including the leitud/ei leitud/viga -> Found/NotFound/Error mapping) -
     mirror any change there here too.
   namespace: erru
   allowlist:
@@ -25,7 +25,7 @@ declaration:
         description: "Optional. CTUD ERRU envelope's originatingAuthority."
       - field: transportUndertakingName
         type: string
-        description: "Required. Transport undertaking name — search basis."
+        description: "Required. Transport undertaking name - search basis."
       - field: trueCopyNumber
         type: string
         description: "Required. Community licence number or certified true copy number (CTUD envelope's communityLicenceNumber)."
@@ -98,7 +98,7 @@ logSuccess:
   result: logResult
   next: mapResponse
 
-# Kept byte-identical to xroad/mtr/check-community-licence.yml's mapResponse —
+# Kept byte-identical to xroad/mtr/check-community-licence.yml's mapResponse -
 # see that file's comments for the WSDL-confirmed field/status details.
 mapResponse:
   assign:

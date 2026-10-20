@@ -7,7 +7,7 @@ declaration:
     millel on väärteomenetluse viitenumber + meeskonnaliikme isikukood ja millel
     enforcement_decision on veel NULL, küsib e-toimikult
     (AnnaIsikuKvalifikatsioonid) kas otsus on jõustunud, ja kirjutab tulemuse
-    (jõustunud otsus + menetluse lõpetamise alus) alamvormile KOHAPEAL — ei
+    (jõustunud otsus + menetluse lõpetamise alus) alamvormile KOHAPEAL - ei
     avalikusta, ei bumbi versiooni. Kutsub CronManager 01:35 Europe/Tallinn
     (DSL/CronManager/etoimik-sp-teammate-decision-sync.yaml).
   namespace: cron
@@ -30,7 +30,7 @@ assignCandidates:
     candidates: "${candidatesRes.response.body || []}"
   next: processCandidates
 
-# `iterate`'s `do:` on lame jada — `next:` sees ignoreeritakse, `return`
+# `iterate`'s `do:` on lame jada - `next:` sees ignoreeritakse, `return`
 # katkestaks kogu partii. Seetõttu on kõik harud (XTR viga / ei leitud /
 # leitud) koondatud ühte `decision` assign'i ja kirjutuskutsed selle järel
 # alati käivituvad; update-xroad-fields.sql ise on no-op kui found=false.
@@ -134,7 +134,7 @@ processCandidates:
         result: applyRes
 
       # update-xroad-fields.sql tagastab 0 rida kui found=false või status<>'confirmed'
-      # või enforcement_decision juba täidetud — applied_now ütleb kas kirje tekkis.
+      # või enforcement_decision juba täidetud - applied_now ütleb kas kirje tekkis.
       - assign:
           applied_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"
           applied_sub_form_number: "${(applyRes.response.body && applyRes.response.body[0] && (applyRes.response.body[0].subFormNumber || applyRes.response.body[0].sub_form_number)) || ''}"

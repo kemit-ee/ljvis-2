@@ -145,7 +145,7 @@ callGetViolationNames:
   next: buildViolationList
 
 # Rikkumised raskusastme kaupa (MSIViolationsList / VSIViolationsList / SIViolationsList),
-# üks rikkumine rea kohta „kood — nimetus", ridade vahel <br>.
+# üks rikkumine rea kohta „kood - nimetus", ridade vahel <br>.
 buildViolationList:
   assign:
     MSIViolationsList: >-
@@ -155,7 +155,7 @@ buildViolationList:
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         return String(violation_codes).split(',').filter(function(c) { return /^MSI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
     VSIViolationsList: >-
@@ -165,7 +165,7 @@ buildViolationList:
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         return String(violation_codes).split(',').filter(function(c) { return /^VSI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
     SIViolationsList: >-
@@ -175,7 +175,7 @@ buildViolationList:
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         return String(violation_codes).split(',').filter(function(c) { return /^SI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
   next: checkSendCarrier
@@ -208,9 +208,9 @@ parseCarrierLookupResult:
       })()}
   next: sendCarrierNotification
 
-# review leid 4: lookup ebaõnnestumisel (transpordi tase — template'i enda
+# review leid 4: lookup ebaõnnestumisel (transpordi tase - template'i enda
 # error haru) EI jäeta sendCarrierNotification'it vahele, vaid kutsutakse
-# tühja aadressiga — send-postkast.yml logib selle korrektselt "error"-rea.
+# tühja aadressiga - send-postkast.yml logib selle korrektselt "error"-rea.
 markCarrierEmailLookupFailed:
   assign:
     carrier_email: ""
@@ -248,7 +248,7 @@ checkSendLaborInspector:
       next: sendLaborInspectorNotification
   next: returnResult
 
-# Taaskasutab 'labor_foreign_proposal' malli/adressaati (tööinspektor) —
+# Taaskasutab 'labor_foreign_proposal' malli/adressaati (tööinspektor) -
 # sama teavituse liik, mida varem päästis foreignAuthorityProposal fakt,
 # nüüd päästab eraldiseisev notifyLaborInspector checkbox (p.5).
 sendLaborInspectorNotification:

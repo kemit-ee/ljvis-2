@@ -87,7 +87,7 @@ extractCurrentFormData:
     city: "${currentFormRes.response.body[0].city || ''}"
     road: "${currentFormRes.response.body[0].road || ''}"
     road_other: "${currentFormRes.response.body[0].roadOther || ''}"
-    # `!= null ? String(x) : ''` — mitte `|| ''`, sest 0 on legitiimne
+    # `!= null ? String(x) : ''` - mitte `|| ''`, sest 0 on legitiimne
     # kilomeetrinäit ja `0 || ''` annaks '' -> SQL NULL (vaikne andmekadu).
     kilometer: "${currentFormRes.response.body[0].kilometer != null ? String(currentFormRes.response.body[0].kilometer) : ''}"
     address: "${currentFormRes.response.body[0].address || ''}"
@@ -178,7 +178,7 @@ publishForm:
   next: checkPublishConflict
 
 # Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
-# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
     - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}

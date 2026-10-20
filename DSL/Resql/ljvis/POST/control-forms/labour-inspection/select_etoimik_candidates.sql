@@ -23,7 +23,7 @@ returns:
   nullable: true
 */
 -- `latest` must resolve one row per key (the true latest snapshot) before
--- any filtering — filtering first, then DISTINCT ON, would instead pick
+-- any filtering - filtering first, then DISTINCT ON, would instead pick
 -- the latest row *matching the filter*, a stale pre-decision snapshot even
 -- after a newer one already carries the decision. Without this split, an
 -- already-resolved key kept reappearing as a candidate forever.

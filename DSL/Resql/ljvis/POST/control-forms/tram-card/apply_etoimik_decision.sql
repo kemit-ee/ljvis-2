@@ -2,7 +2,7 @@
 description: 'Append a new tram_control_card snapshot carrying an entered-into-force e-toimik decision and
   auto-publish it (ADR-002 otsus 3: e-toimik-initiated publish is system-authored, status goes straight
   to published, version+1). INSERT-only, mirrors update.sql''s copy-forward. Called once per candidate
-  unconditionally by cron/etoimik-tram-decision-sync.yml — found=false, or a stale status<>''confirmed''
+  unconditionally by cron/etoimik-tram-decision-sync.yml - found=false, or a stale status<>''confirmed''
   guard, is a no-op (0 rows), since Ruuter''s iterate step cannot branch. Does not call the session-gated
   publish.yml endpoint (Ruuter.internal has no session).'
 namespace: control-forms

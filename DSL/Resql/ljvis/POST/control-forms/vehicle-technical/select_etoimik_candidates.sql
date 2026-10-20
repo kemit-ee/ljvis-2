@@ -2,7 +2,7 @@
 description: 'Candidates for the nightly e-toimik decision sync on vehicle technical-check sub-forms
   (LJVIS2-72 15 ettepanekut p9): latest snapshot of each confirmed sub-form with a väärteomenetlus
   reference number and no enforcement_decision yet, joined to its parent compound_form''s first driver
-  (drivers[0]) Estonian personal code — same subject-of-the-decision assumption as
+  (drivers[0]) Estonian personal code - same subject-of-the-decision assumption as
   drive-rest-form/driver/select_etoimik_candidates.sql. Both `latest_vtf` and `latest_cf` resolve one
   row per key before any filtering, same reason as that file''s comment. Rows drop out once
   update-xroad-fields.sql writes a decision, which makes the nightly job idempotent.'

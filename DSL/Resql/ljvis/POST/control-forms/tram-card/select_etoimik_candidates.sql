@@ -17,7 +17,7 @@ returns:
   nullable: true
 */
 -- `latest` must resolve one row per key (the true latest snapshot) BEFORE any
--- filtering — otherwise an already-resolved key keeps reappearing as a candidate.
+-- filtering - otherwise an already-resolved key keeps reappearing as a candidate.
 WITH latest AS (
   SELECT DISTINCT ON (tram_control_card_key)
       tram_control_card_key AS id,

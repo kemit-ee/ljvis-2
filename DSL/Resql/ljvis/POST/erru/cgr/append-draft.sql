@@ -1,11 +1,11 @@
 /*
 description: Create a new OUTGOING CGR request draft (LJVIS2-138), including a copy-from-existing draft
-  ('Kopeeri päring', LJVIS2-140) — the caller (POST/v1/erru/cgr.yml) pre-fills tmFirstName/tmFamilyName/tmDateOfBirth/tmPlaceOfBirth/certificateNumber/certificateIssueDate/certificateIssueCountry
+  ('Kopeeri päring', LJVIS2-140) - the caller (POST/v1/erru/cgr.yml) pre-fills tmFirstName/tmFamilyName/tmDateOfBirth/tmPlaceOfBirth/certificateNumber/certificateIssueDate/certificateIssueCountry
   from the source request via GET before calling this same query, there is no separate copy query. Appends
   the first snapshot of a new erru.cgr_request with status 'initiated'. Allocates both the logical key
   and the human-readable business_case_id (CGR-EE-AAAA-NNNNN) server-side. cgr_from is hardcoded to EE.
   An empty cgrTo defaults to the broadcast marker ZZ ('Kõik riigid') per LJVIS2-138 §4. NYSIIS search
-  keys are computed by the caller (TEMPLATES/erru/cgr/nysiis-key.yml) and passed in verbatim — this query
+  keys are computed by the caller (TEMPLATES/erru/cgr/nysiis-key.yml) and passed in verbatim - this query
   never derives them.
 namespace: erru
 params:

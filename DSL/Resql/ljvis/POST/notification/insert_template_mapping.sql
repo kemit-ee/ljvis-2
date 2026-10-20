@@ -1,5 +1,5 @@
 /*
-description: Lisa uus versioon ühele notification_template_mapping võtmele (append-only —
+description: Lisa uus versioon ühele notification_template_mapping võtmele (append-only -
   rida ei uuendata, halduse salvestus lisab alati uue rea samale notification_type'ile;
   vt notification-template-mapping/save.yml).
 namespace: notification

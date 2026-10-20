@@ -4,6 +4,10 @@
 
 ## 2026-10-20
 
+### Em-dashid eemaldatud DSL-ist
+
+- Ruuter-, Resql-, CronManager- ja XTR-failide kommentaarides ja kirjeldustes on em-dash (—) asendatud sidekriipsuga. Käitumine ei muutu. Liquibase'i migratsioone ei puututud, sest rakendatud changeset'ide sisu muutmine rikuks kontrollsumma.
+
 ### Vedaja teavitamine ka kinnitatud ja avalikustatud vormil
 
 - Kinnitatud ja avalikustatud sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kaardi ning sõiduki ja haagise tehnovormi muutmisrežiimis (nupp „Muuda") on nupp „Teavita vedajat rikkumisest". Varem sai vedaja teavitust tellida ainult kinnitamisel linnukesega.

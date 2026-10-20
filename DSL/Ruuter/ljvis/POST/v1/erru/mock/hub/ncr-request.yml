@@ -1,12 +1,12 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "MOCK ERRU hub for NCR (NotifyCheckResult) request send — dev and CI only
+  description: "MOCK ERRU hub for NCR (NotifyCheckResult) request send - dev and CI only
     (ERRU_NCR_ENDPOINT points at XTR in production). Unlike RSI, NCR's acknowledgement is
-    SYNCHRONOUS — this mock returns the ack (statusCode OK/Timeout/NotAvailable) directly in
+    SYNCHRONOUS - this mock returns the ack (statusCode OK/Timeout/NotAvailable) directly in
     the same call, per LJVIS2-64 §4.2 'Vastuvõtukinnitus saabub sünkroonselt sama saatmise
     käigus'. The substantive response (statusCode OK/NotFound + penalty outcome) is NOT
-    returned here — it arrives later via the separate inbound-response endpoint, exercised
+    returned here - it arrives later via the separate inbound-response endpoint, exercised
     directly by Newman. Scenario selection is by ncrTo: FI -> HTTP 502 (transport failure);
     NO -> ack Timeout; IS -> ack NotAvailable; everything else -> ack OK."
   namespace: erru

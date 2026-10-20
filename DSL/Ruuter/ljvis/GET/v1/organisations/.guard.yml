@@ -1,4 +1,4 @@
-# GET /v1/organisations — piisab kehtivast ametniku sessioonist (baasõigus: vormide täitmiseks
+# GET /v1/organisations - piisab kehtivast ametniku sessioonist (baasõigus: vormide täitmiseks
 # vajalik otsinguandmestik peab olema kõigile ametnikele kohe kättesaadav,
 # et vorm ei avaneks poolikult grupi õiguste puudumise tõttu).
 # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).

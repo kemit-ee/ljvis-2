@@ -1,5 +1,5 @@
 /*
-description: Insert ADR sub-form (ohtlik veos) — first save
+description: Insert ADR sub-form (ohtlik veos) - first save
 namespace: control-forms
 params:
   compoundFormKey:

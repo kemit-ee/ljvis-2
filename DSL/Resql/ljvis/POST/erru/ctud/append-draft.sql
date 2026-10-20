@@ -1,7 +1,7 @@
 /*
 description: Create a new OUTGOING CTUD request draft (LJVIS2-143). Appends the first snapshot of a new
   erru.ctud_request with status 'initiated'. Allocates both the logical key and the human-readable business_case_id
-  (CTUD-EE-AAAA-NNNNN) server-side — neither is ever taken from the client. ctud_from is hardcoded to
+  (CTUD-EE-AAAA-NNNNN) server-side - neither is ever taken from the client. ctud_from is hardcoded to
   EE because an outgoing request is by definition issued by Estonia. status and direction are hardcoded
   here, never accepted from the caller.
 namespace: erru

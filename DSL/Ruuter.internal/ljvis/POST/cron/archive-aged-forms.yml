@@ -17,7 +17,7 @@ declaration:
     count_present kaudu kinnitanud 100% vaste; purge_confirmed on
     üks kahest append-only erandist (.sql-rule-exemption, ADR-013) ja kustutab olemi ridu ainult tervikuna.
     Kui purge õnnestub JA parameeter anonymize=true (vaikimisi true), käivitub kohe ka
-    anonymize_confirmed (ADR-014/LJVIS2-51, teine lubatud erand) — asendab arhiveeritud
+    anonymize_confirmed (ADR-014/LJVIS2-51, teine lubatud erand) - asendab arhiveeritud
     rea payload-is subjekti nime, isikukoodi, sünniaja ja -koha. Archive-only teel
     (purge=false) anonümiseerimist EI käivitata, kuna töö-baasi rida on veel elus. Üks
     audit-rida jooksu kohta (xroad.integration_log, service_code archive.aged_forms.cron).
