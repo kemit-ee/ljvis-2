@@ -2,6 +2,20 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-21
+
+### Mainepäringud (CGR) ja tegevusloa kontrolli päringud (CTUD) saadetakse ERRU XML-ina
+
+- Väljaminev mainepäring ja tegevusloa kontrolli päring saadetakse nüüd ERRU 3.5 XML-ina läbi XML-adapteri, varem saadeti JSON. Adapter kontrollib XML-i XSD vastu enne saatmist ning ei lisa puuduvatele andmetele väljamõeldud väärtusi.
+- Vastus ei tule enam saatmise kutsega. Hub kinnitab päringu vastuvõtmist ja päring jääb olekusse „Päring saadetud". Riigi vastus saabub hiljem: mainepäringu puhul igalt liikmesriigilt eraldi sõnumina, tegevusloa kontrolli puhul sihtriigilt. Vastuse nägemiseks tuleb leht värskendada. Esimese vastuse saabudes läheb päring olekusse „Vastus saadud". Mainepäringu puhul täienevad vastused liikmesriikide kaupa.
+- Uued olekud: „Saatmine pooleli" ja „Saatmise tulemus teadmata". Kui Hubi vastust ei saadud (ühenduse katkemine, aegumine), ei saada süsteem päringut ise uuesti, kuna Hub võis selle siiski vastu võtta. Kontrolli enne uut saatmist integratsioonilogi.
+- Kui Hub lükkab päringu tagasi, läheb see olekusse „Viga" ja saatmist saab korrata, nagu varem.
+- Andmed, mis ei vasta XML-lepingule, ei lähe teele ja päring jääb muudetavaks. Näiteks tegevusloa kontrolli sõiduk ilma registreerimisriigita, vähem kui kaks otsingukriteeriumi või mainepäring ilma sünniajata. Leht näitab sellest eraldi veateadet.
+- Mainepäringu riigipõhine „Saada uuesti" jääb. Uus vastus asendab ainult selle riigi kirje, teiste riikide vastused ja päringu töövoo number (workflowId) jäävad samaks. Uuestisaatmine on nüüd võimalik ka olekus „Vastus saadud".
+- Kui vastuses on mitu veokorraldajat või veoettevõtjat, salvestatakse esimene senises kohas ja ülejäänud eraldi väljale, neid ei jäeta ära. Lehel kuvatakse praegu ainult esimest.
+- Uus tabel `erru.xml_outbound_dispatch` (saadetud XML ja Hubi HTTP-staatus), uued sisemised päringud `POST /erru/cgr/inbound-response` ja `POST /erru/ctud/inbound-response` (ainult Ruuter.internal) ning migratsioon `20261222100000-cgr-ctud-outbound-xml`. Paigaldusjuhis on administraatori juhendi peatükis „CGR ja CTUD XML-saatmise paigaldamine".
+- Kasutamata konstandid `ERRU_CGR_ENDPOINT` ja `ERRU_CTUD_ENDPOINT` on eemaldatud.
+
 ## 2026-10-20
 
 ### E-toimiku otsuse öine sünkroon: paragrahv ja otsuse kuupäev, välismaalased

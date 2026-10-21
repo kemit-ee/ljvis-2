@@ -20,8 +20,8 @@ import { DetailRow } from '../shared/DetailRow';
  * scannable; transportManagerDetails (name/address/certificate/fitness/undertakings) are
  * shown only for statusCode='Found'.
  *
- * "Saada uuesti" is offered per member state while the request is still 'sent' — it
- * replaces only that entry (see resendCgrRequest), the rest of the answers are untouched.
+ * "Saada uuesti" is offered per member state while the request is 'sent' or 'responded' — the
+ * new answer replaces only that entry (see resendCgrRequest), the rest of the answers are untouched.
  */
 export function CgrMemberStatesTable({
   request,
@@ -40,7 +40,7 @@ export function CgrMemberStatesTable({
   const states = request.memberStates;
   if (!states || states.length === 0) return null;
 
-  const canResend = canSend && request.status === 'sent' && !!onResend;
+  const canResend = canSend && (request.status === 'sent' || request.status === 'responded') && !!onResend;
 
   return (
     <Card className="mt-05">

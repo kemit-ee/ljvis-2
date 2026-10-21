@@ -11,6 +11,8 @@ export type CtudDirection = 'outgoing' | 'incoming';
 
 export type CtudStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'responded'
   | 'received'
@@ -168,7 +170,10 @@ export type CgrDirection = 'outgoing' | 'incoming';
 
 export type CgrStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
+  | 'responded'
   | 'received'
   | 'answered'
   | 'error';
@@ -277,18 +282,20 @@ export interface CgrSaveResult {
   status: CgrStatus;
 }
 
-/** Response of POST /v1/erru/cgr/send — the synchronous member-state answer(s). */
+/**
+ * Response of POST /v1/erru/cgr/send — the Hub acceptance (HTTP 202) only. The member-state
+ * answers arrive later and fill memberStates, moving the request to 'responded'.
+ */
 export interface CgrSendResult {
   id: string;
   status: CgrStatus;
   businessCaseId: string;
   workflowId: string;
-  memberStates: CgrMemberState[];
 }
 
-/** Response of POST /v1/erru/cgr/resend — only updatedMemberState changed. */
+/** Response of POST /v1/erru/cgr/resend — the resend was accepted; the answer arrives later. */
 export interface CgrResendResult extends CgrSendResult {
-  updatedMemberState: string;
+  resentMemberState: string;
 }
 
 /** A CGR draft is editable only while it is an outgoing draft, same rule as CTUD. */

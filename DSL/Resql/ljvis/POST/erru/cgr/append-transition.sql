@@ -2,11 +2,12 @@
 description: 'Apply a CGR lifecycle state transition (LJVIS2-139). Appends exactly one new snapshot iff
   (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero
   rows and nothing is written, which the caller maps to 422 invalid_transition. Atomic by construction:
-  the guard is evaluated inside the same INSERT .. SELECT. CGR differs from CTUD in two ways: (1) ''sent''
-  is the outgoing TERMINAL state - responses are stored in member_states JSONB in the same call, so there
-  is no separate ''responded'' status; (2) resend adds a new snapshot that also transitions ''sent ->
-  sent'' with updated member_states for one member state. NYSIIS search keys are carried forward untouched
-  from the previous snapshot.'
+  the guard is evaluated inside the same INSERT .. SELECT. Outgoing sends are reserved by
+  erru.cgr_begin_send (initiated|error -> sending, which owns technical_id, workflow_id and sent_at);
+  Hub HTTP 202 changes sending to sent, an uncertain transport outcome to send_unknown (never resent
+  automatically) and a definite rejection to error (retry permitted). Member-state answers arrive later
+  and are merged by erru.cgr_apply_response (-> responded). Envelope identifiers and NYSIIS search keys
+  are carried forward untouched.'
 namespace: erru
 params:
   key:
@@ -55,13 +56,14 @@ WITH latest AS (
   LIMIT 1
 ), allowed (from_status, to_status, direction) AS (
   VALUES
-    -- Outgoing chain: initiated -> sent (first send)
-    ('initiated', 'sent',     'outgoing'),
-    -- Resend: one member state that did not respond is queried again; the snapshot
-    -- is appended with updated member_states. The workflow_id is preserved.
-    ('sent',      'sent',     'outgoing'),
-    -- Retry after a failed send (transport failure is not a business failure)
-    ('error',     'sent',     'outgoing'),
+    -- Outgoing chain: sending is reserved by erru.cgr_begin_send before any network I/O.
+    ('sending',      'sent',         'outgoing'),
+    ('sending',      'send_unknown', 'outgoing'),
+    ('sending',      'error',        'outgoing'),
+    -- Answers merge through erru.cgr_apply_response; a response may beat the Hub acknowledgement.
+    ('sending',      'responded',    'outgoing'),
+    ('send_unknown', 'responded',    'outgoing'),
+    ('sent',         'responded',    'outgoing'),
     -- Incoming chain: received -> answered
     ('received',  'answered', 'incoming'),
     -- error is reachable from every state, in both directions
@@ -105,19 +107,10 @@ WITH latest AS (
     l.direction,
     :newStatus,
     l.business_case_id,
-    -- technicalId: generate a fresh UUID on each outgoing send (including resend and retry).
-    -- For incoming transitions the technicalId is already in the latest snapshot.
-    CASE
-      WHEN l.direction = 'outgoing' AND :newStatus = 'sent' THEN gen_random_uuid()
-      ELSE l.technical_id
-    END,
-    -- workflowId correlates all sends for this business case; generated once on the first
-    -- send and preserved on retries, resends and incoming transitions.
-    CASE
-      WHEN :newStatus = 'sent' THEN COALESCE(l.workflow_id, gen_random_uuid())
-      ELSE l.workflow_id
-    END,
-    CASE WHEN :newStatus = 'sent' THEN now() ELSE l.sent_at END,
+    -- The reservation owns the envelope. Never replace correlation identifiers here.
+    l.technical_id,
+    l.workflow_id,
+    l.sent_at,
     l.cgr_from,
     l.cgr_to,
     l.originating_authority,
@@ -140,7 +133,7 @@ WITH latest AS (
     l.handler_personal_code,
     l.handler_name,
     -- error_message is meaningful only for the error state; cleared on any recovery
-    CASE WHEN :newStatus = 'error' THEN NULLIF(:errorMessage, '') ELSE NULL END,
+    CASE WHEN :newStatus IN ('error','send_unknown') THEN NULLIF(:errorMessage, '') ELSE NULL END,
     :created_by
   FROM latest l
   WHERE EXISTS (

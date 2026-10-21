@@ -1168,7 +1168,7 @@
       ]
     },
     {
-      "name": "[Send] Broadcast ZZ → 200 sent, 4 member-state entries",
+      "name": "[Send] Broadcast ZZ → 200 sent (Hub accepted the XML)",
       "request": {
         "method": "POST",
         "header": [
@@ -1205,25 +1205,47 @@
           "script": {
             "exec": [
               "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-              "var raw = pm.response.json();",
-              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
               "pm.test('id echoed', () => pm.expect(String(body.id)).to.eql(pm.environment.get('cgr_send_id')));",
-              "pm.test('4 member-state entries', () => pm.expect(body.memberStates).to.have.lengthOf(4));",
-              "var de = body.memberStates.find(e => e.memberStateCode === 'DE');",
-              "pm.test('DE entry is Found', () => pm.expect(de.statusCode).to.eql('Found'));",
-              "pm.test('DE has transport manager details', () => pm.expect(de.transportManagerDetails).to.not.be.null);",
-              "pm.environment.set('cgr_send_workflow', body.workflowId);",
-              "var pl = body.memberStates.find(e => e.memberStateCode === 'PL');",
-              "pm.test('PL entry is NotAvailable', () => pm.expect(pl.statusCode).to.eql('NotAvailable'));",
-              "pm.test('PL has no TM details', () => pm.expect(pl.transportManagerDetails).to.be.null);"
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.empty);",
+              "pm.test('answers are not part of the send response', () => pm.expect(body.memberStates).to.be.undefined);",
+              "pm.environment.set('cgr_send_workflow', body.workflowId);"
             ]
           }
         }
       ]
     },
     {
-      "name": "[Send] Verify broadcast: DB status=sent, memberStates persisted, NYSIIS keys set",
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the response",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify broadcast: status=responded, 4 asynchronous answers persisted, NYSIIS keys set",
       "request": {
         "method": "GET",
         "header": [
@@ -1263,17 +1285,20 @@
             "exec": [
               "pm.test('Returns 200', () => pm.response.to.have.status(200));",
               "var body = pm.response.json().response;",
-              "pm.test('status is sent (terminal)', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('status is responded', () => pm.expect(body.status).to.eql('responded'));",
               "var ms = Array.isArray(body.memberStates) ? body.memberStates : JSON.parse(body.memberStates);",
               "pm.test('4 memberState entries persisted in DB (ZZ broadcast)', () => {",
               "  pm.expect(ms).to.be.an('array').and.have.lengthOf(4);",
               "  var codes = ms.map(e => e.memberStateCode);",
-              "  pm.expect(codes).to.include('DE');",
-              "  pm.expect(codes).to.include('PL');",
+              "  pm.expect(codes).to.include.members(['DE', 'FR', 'SE', 'PL']);",
               "});",
+              "var de = ms.find(e => e.memberStateCode === 'DE');",
+              "pm.test('DE entry is Found with transport manager details', () => { pm.expect(de.statusCode).to.eql('Found'); pm.expect(de.transportManagerDetails.respondingAuthority).to.eql('DE-BAG'); });",
+              "var pl = ms.find(e => e.memberStateCode === 'PL');",
+              "pm.test('PL entry is NotAvailable without details', () => { pm.expect(pl.statusCode).to.eql('NotAvailable'); pm.expect(pl.transportManagerDetails).to.not.exist; });",
               "pm.test('tmFirstNameSearchKey computed', () => pm.expect(body.tmFirstNameSearchKey).to.not.be.empty);",
               "pm.test('tmFamilyNameSearchKey computed', () => pm.expect(body.tmFamilyNameSearchKey).to.not.be.empty);",
-              "pm.environment.set('cgr_send_workflow', body.workflowId);"
+              "pm.test('workflowId is the one returned by send', () => pm.expect(body.workflowId).to.eql(pm.environment.get('cgr_send_workflow')));"
             ]
           }
         }
@@ -1325,7 +1350,7 @@
       ]
     },
     {
-      "name": "[Resend] Resend to PL (NotAvailable) → 200, PL entry updated",
+      "name": "[Resend] Resend to PL → 200, resend accepted by the Hub",
       "request": {
         "method": "POST",
         "header": [
@@ -1362,20 +1387,45 @@
           "script": {
             "exec": [
               "pm.test('Resend returns 200', () => pm.response.to.have.status(200));",
-              "var raw = pm.response.json();",
-              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('status still sent', () => pm.expect(body.status).to.eql('sent'));",
-              "pm.test('updatedMemberState is PL', () => pm.expect(body.updatedMemberState).to.eql('PL'));",
-              "pm.test('still 4 entries total', () => pm.expect(body.memberStates).to.have.lengthOf(4));",
-              "var de = body.memberStates.find(e => e.memberStateCode === 'DE');",
-              "pm.test('DE entry unchanged after resend', () => pm.expect(de.statusCode).to.eql('Found'));"
+              "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status unchanged (responded)', () => pm.expect(body.status).to.eql('responded'));",
+              "pm.test('resentMemberState is PL', () => pm.expect(body.resentMemberState).to.eql('PL'));",
+              "pm.test('same workflow', () => pm.expect(body.workflowId).to.eql(pm.environment.get('cgr_send_workflow')));"
             ]
           }
         }
       ]
     },
     {
-      "name": "[Resend] Verify: workflowId unchanged, new snapshot added",
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the response",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/3000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "3000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Resend] Verify: workflowId unchanged, all four answers still there, reservation snapshot added",
       "request": {
         "method": "GET",
         "header": [
@@ -1417,6 +1467,8 @@
               "var body = pm.response.json().response;",
               "pm.test('workflowId preserved after resend', () => pm.expect(body.workflowId).to.eql(pm.environment.get('cgr_send_workflow')));",
               "pm.test('version incremented (new snapshot)', () => pm.expect(body.version).to.be.above(1));",
+              "var ms = Array.isArray(body.memberStates) ? body.memberStates : JSON.parse(body.memberStates);",
+              "pm.test('still 4 entries, DE unchanged', () => { pm.expect(ms).to.have.lengthOf(4); pm.expect(ms.find(e => e.memberStateCode === 'DE').statusCode).to.eql('Found'); });",
               "pm.environment.set('cgr_send_version', String(body.version));"
             ]
           }
@@ -1510,7 +1562,7 @@
       ]
     },
     {
-      "name": "[Resend] Resend to FI (transport failure) → 502, request NOT moved to error",
+      "name": "[Resend] Resend to FI (rejected by the Hub) → 502, request status unchanged",
       "request": {
         "method": "POST",
         "header": [
@@ -1553,7 +1605,7 @@
       ]
     },
     {
-      "name": "[Resend] Verify: still 'sent' after failed resend (not degraded to error)",
+      "name": "[Resend] Verify: still 'responded' after a rejected resend (not degraded to error)",
       "request": {
         "method": "GET",
         "header": [
@@ -1593,10 +1645,10 @@
             "exec": [
               "pm.test('Returns 200', () => pm.response.to.have.status(200));",
               "var body = pm.response.json().response;",
-              "pm.test('status is still sent, not error', () => pm.expect(body.status).to.eql('sent'));",
-              "pm.test('no new snapshot appended on transport failure', () => pm.expect(String(body.version)).to.eql(pm.environment.get('cgr_send_version')));",
-              "var de = body.memberStates.find(e => e.memberStateCode === 'DE');",
-              "pm.test('other countries unaffected', () => pm.expect(de.statusCode).to.eql('Found'));"
+              "pm.test('status is still responded, not error', () => pm.expect(body.status).to.eql('responded'));",
+              "pm.test('only the reservation snapshot was appended', () => pm.expect(Number(body.version)).to.eql(Number(pm.environment.get('cgr_send_version')) + 1));",
+              "var ms = Array.isArray(body.memberStates) ? body.memberStates : JSON.parse(body.memberStates);",
+              "pm.test('other countries unaffected', () => pm.expect(ms.find(e => e.memberStateCode === 'DE').statusCode).to.eql('Found'));"
             ]
           }
         }
@@ -1692,7 +1744,7 @@
       ]
     },
     {
-      "name": "[Send] DE → 200 sent, 1 member-state entry (Found)",
+      "name": "[Send] DE → 200 sent (Hub accepted the XML)",
       "request": {
         "method": "POST",
         "header": [
@@ -1729,10 +1781,86 @@
           "script": {
             "exec": [
               "pm.test('Returns 200', () => pm.response.to.have.status(200));",
-              "var raw = pm.response.json();",
-              "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
-              "pm.test('1 member-state entry', () => pm.expect(body.memberStates).to.have.lengthOf(1));",
-              "pm.test('DE Found', () => pm.expect(body.memberStates[0].statusCode).to.eql('Found'));"
+              "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the response",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] Verify DE answer: 1 member-state entry (Found), status responded",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/cgr/get?q={{cgr_id_de}}",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "cgr",
+            "get"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "{{cgr_id_de}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "var body = pm.response.json().response;",
+              "pm.test('status is responded', () => pm.expect(body.status).to.eql('responded'));",
+              "var ms = Array.isArray(body.memberStates) ? body.memberStates : JSON.parse(body.memberStates);",
+              "pm.test('1 member-state entry', () => pm.expect(ms).to.have.lengthOf(1));",
+              "pm.test('DE Found', () => pm.expect(ms[0].statusCode).to.eql('Found'));"
             ]
           }
         }
@@ -1784,7 +1912,7 @@
       ]
     },
     {
-      "name": "[Send] FI → 502 send_failed, request transitions to error",
+      "name": "[Send] FI → 502 send_failed (Hub rejected), request transitions to error",
       "request": {
         "method": "POST",
         "header": [
@@ -2785,7 +2913,7 @@
               "var body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "pm.test('exactly one match', () => pm.expect(body.content.length).to.eql(1));",
               "pm.test('cgrTo is ZZ', () => pm.expect(body.content[0].cgrTo).to.eql('ZZ'));",
-              "pm.test('status is sent', () => pm.expect(body.content[0].status).to.eql('sent'));",
+              "pm.test('status is responded', () => pm.expect(body.content[0].status).to.eql('responded'));",
               "pm.test('responseStatusCode is null for broadcast (breakdown only in detail view)', () => pm.expect(body.content[0].responseStatusCode).to.be.null);"
             ]
           }

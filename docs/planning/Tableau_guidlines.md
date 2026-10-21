@@ -416,8 +416,8 @@ Neli tabelit, kõik snapshot + `direction` veerg:
 
 | Tabel | Sõnumitüüp | Suhtlus |
 |---|---|---|
-| `ctud_request` | Check Transport Undertaking Data (tegevusloa kontroll) | Sünkroonne, üks sihtriik |
-| `cgr_request` | Check Good Repute (mainepäring) | Sünkroonne, võib olla broadcast (`cgr_to = ZZ`) |
+| `ctud_request` | Check Transport Undertaking Data (tegevusloa kontroll) | Asünkroonne (Hub kinnitab, vastus tuleb hiljem), üks sihtriik |
+| `cgr_request` | Check Good Repute (mainepäring) | Asünkroonne, võib olla broadcast (`cgr_to = ZZ`), iga liikmesriik vastab eraldi sõnumiga |
 | `rsi_message` | RoadSideInspection (tehnokontrolli teade) | Asünkroonne, üks sihtriik |
 | `ncr_message` | NotifyCheckResult (kontrollitulemuse teade) | Kahepoolne workflow |
 

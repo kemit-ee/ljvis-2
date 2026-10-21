@@ -14,10 +14,11 @@ RUN javac -classpath lib/postgresql-42.7.4.jar -d out src/*.java \
     && java -classpath out:lib/postgresql-42.7.4.jar MapperSmokeTest
 
 # Exercise real local HTTP dispatch during every image build. Tests stay out of the runtime image.
-COPY tests/erru-adapter/RsiSendTest.java tests/erru-adapter/
+COPY tests/erru-adapter/RsiSendTest.java tests/erru-adapter/CgrCtudSendTest.java tests/erru-adapter/
 COPY tests/erru-adapter/fixtures/rsi.json tests/erru-adapter/fixtures/
-RUN javac -classpath out -d test-out tests/erru-adapter/RsiSendTest.java \
-    && java -ea -classpath out:test-out RsiSendTest
+RUN javac -classpath out -d test-out tests/erru-adapter/RsiSendTest.java tests/erru-adapter/CgrCtudSendTest.java \
+    && java -ea -classpath out:test-out RsiSendTest \
+    && java -ea -classpath out:test-out CgrCtudSendTest
 
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app

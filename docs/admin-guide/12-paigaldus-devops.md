@@ -138,10 +138,10 @@ Fail renderdatakse mallist `scripts/constants.ini.tmpl`, kirjutatakse **ühe Sec
 | `S3_PROXY` | `http://s3-proxy:3010` | Fikseeritud |
 | `DOMAIN` | `LJVIS2_DOMAIN` | Keskkonna avalik hostinimi |
 | `AR_USERNAME`, `AR_PASSWORD` | seed-ssm.env | Äriregistri teenuse andmed (saladus) |
-| `ERRU_CTUD_ENDPOINT`, `ERRU_CGR_ENDPOINT`, `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/request/BTSHTTPReceive.dll` |
+| `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/request/BTSHTTPReceive.dll` |
 | `ERRU_NCR_RESPONSE_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/response/...` |
 | `ERRU_XML_ADAPTER` | constants.ini | Sisemine adapter: `http://erru-xml-adapter:8080` |
-| `HUB_RSI_REQUEST_URL` | adapteri Helm envVars | MOVEHUB `.../rsi/http/request/...`; loeb ainult XML-adapter |
+| `HUB_RSI_REQUEST_URL`, `HUB_CGR_REQUEST_URL`, `HUB_CTUD_REQUEST_URL` | adapteri Helm envVars | MOVEHUB `.../rsi/…`, `.../cgr/…`, `.../ctud/http/request/...` (kinnitatud keskkonna otspunktid); loeb ainult XML-adapter. Puuduv URL keelab selle tüübi saatmise (503) |
 | `PK_NOTIFICATIONS_ENDPOINT` | seed-ssm.env | `http://xtr:8080/postkast/notifications` (XTR REST passthrough) |
 | `TIM_ADMIN_TOKEN` | seed-ssm.env | **Peab ühtima** SSM-i `tim/admin-token` väärtusega |
 
@@ -255,3 +255,22 @@ Peata RSI saatmine väljalaske ajaks. Vana saatmisvoog ei tohi töötada uue Res
 Oleku `sending` või `send_unknown` korral kontrolli tabelit `erru.xml_rsi_dispatch`. Tabel sisaldab
 tegelikku XML-i ja Hubi HTTP-staatust. Ära kustuta kirjet kordussaatmise võimaldamiseks.
 Migratsiooni tagasipööre peatub, kui uus olek või transpordiajalugu on juba kasutusel.
+
+### CGR ja CTUD XML-saatmise paigaldamine
+
+Väljaminev CGR (mainepäring) ja CTUD (tegevusloa kontroll) saadetakse XML-ina sama adapteri kaudu nagu RSI. Hub vastab
+HTTP 202-ga ja riikide vastused tulevad hiljem. Peata CGR ja CTUD saatmine väljalaske ajaks. Vana JSON-voog ei tohi töötada
+uue Resql üleminekuloogikaga.
+
+1. Rakenda migratsioon `20261222100000-cgr-ctud-outbound-xml` enne uusi saatmisvooge.
+2. Määra adapteri keskkonnamuutujad `HUB_CGR_REQUEST_URL` ja `HUB_CTUD_REQUEST_URL` kinnitatud keskkonna otspunktidele.
+3. Luba Ruuteri URL-allowlistis adapteri `/internal/cgr/validate`, `/internal/cgr/send`, `/internal/ctud/validate` ja `/internal/ctud/send`
+   (samal moel nagu RSI-l; `ERRU_XML_ADAPTER` peab `constants.ini` failis olema).
+4. Eemalda SSM-i `constants.ini` failist `ERRU_CGR_ENDPOINT` ja `ERRU_CTUD_ENDPOINT`, neid enam ei kasutata.
+5. Paigalda uus Ruuteri ja Ruuter.internal DSL (uued `cgr/inbound-response` ja `ctud/inbound-response`) ning frontend.
+   Frontend näitab olekuid `sending`, `send_unknown` ja CGR-il `responded`.
+6. Kontrolli sünteetilise päringuga XML-i, Hubi 202 vastust ja riigi hilisemat vastust.
+
+Olekus `sending` või `send_unknown` olevat päringut ei saada automaatselt uuesti. Kontrolli tabelit `erru.xml_outbound_dispatch`,
+see sisaldab tegelikku XML-i ja Hubi HTTP-staatust, ning vajadusel Hubi poolt. Ära kustuta kirjet kordussaatmise võimaldamiseks.
+Migratsiooni tagasipööre peatub, kui uued olekud või transpordiajalugu on juba kasutusel.

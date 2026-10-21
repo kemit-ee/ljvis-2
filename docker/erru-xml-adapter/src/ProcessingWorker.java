@@ -110,9 +110,9 @@ final class ProcessingWorker implements Runnable {
             Document doc = XmlUtil.parseHardened(row.rawXml());
             String to = XmlUtil.attr(XmlUtil.firstChild(doc.getDocumentElement(), "Header"), "to");
             if (mapper.oneWay()) {
-                if (!config.memberStateCode.equals(to)) { fail(row, "Wrong RSI response recipient"); return; }
+                if (!config.memberStateCode.equals(to)) { fail(row, "Wrong response recipient"); return; }
                 if (row.attemptsBeforeThisClaim() >= config.processingMaxAttempts) {
-                    fail(row, "RSI response processing attempt budget exhausted"); return;
+                    fail(row, "Response processing attempt budget exhausted"); return;
                 }
                 Outcome outcome = callRuuter(mapper, mapper.requestToJson(doc, row.receivedAt()), mapper.ruuterTimeout());
                 if (outcome.kind() == Kind.ANSWER) db.completeOneWayInbox(row.id(), db.workerId);
