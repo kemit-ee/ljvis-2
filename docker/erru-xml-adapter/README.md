@@ -131,3 +131,56 @@ Production also needs scoped DB credentials, secret management, operational aler
 raw XML and realistic load verification. Receiving asynchronous ErrorNotifications from the Hub is
 not implemented by this request ingress. The small hand-written JSON codec and JDK HTTP server
 remain; their replacement is not required for the local correctness fixes.
+
+## Outgoing RSI
+
+Ruuter calls `POST /internal/rsi/validate` before reserving a send. This internal endpoint
+validates the complete draft against `RoadSideInspection_Request.xsd`. It does not send XML.
+A validation error leaves the draft editable. VIN, odometer, driver and holder or undertaking
+fields must satisfy the XSD. The adapter does not fill missing business data with placeholders.
+
+Ruuter then calls `erru/rsi/begin-send`. The database serializes the reservation and stores
+`sending`, `technicalId`, `workflowId` and `sentAt` before network I/O. Stale saves and concurrent
+send reservations cannot overwrite that snapshot.
+
+Ruuter calls `POST /internal/rsi/send` with the reserved envelope and the draft data. Both internal
+endpoints require `x-internal-service-token`. The adapter builds and validates ERRU 3.5 XML.
+It reserves a row in `erru.xml_rsi_dispatch` before sending to `HUB_RSI_REQUEST_URL`.
+Only a Hub HTTP 202 produces `status=accepted`. The adapter returns JSON to the original Ruuter
+call; no separate callback is needed for this HTTP acceptance. The Hub request timeout is 15 seconds.
+Ruuter's adapter timeout must exceed that limit.
+
+The transport journal stores the exact XML and result. A replay with the same identifiers and XML
+returns the saved result without another dispatch. Different XML with the same identifier returns
+409. Timeout, connection loss, unexpected HTTP success and Hub 5xx are `unknown`. Ruuter stores
+`send_unknown`. Do not automatically retry or create a replacement message until an operator
+checks the journal and the Hub. A process interruption can leave `sending`; reconcile that state
+with the same journal. The journal is not a background retry queue.
+
+A later `RoadSideInspection_Response` arrives through `/erru/xml`. The adapter persists it in the
+inbox, calls `/ljvis/erru/rsi/inbound-response` and completes the inbox without creating another
+response. A response can complete `sending`, `sent` or `send_unknown`. It does not overwrite a
+completed response with a delayed HTTP acceptance.
+
+`HUB_RSI_REQUEST_URL` is optional during rollout. If it is absent, the outgoing endpoints return
+503 without dispatch. Keep this URL in adapter configuration. Clients cannot select a Hub URL.
+The sTESTA gateway must expose only `/Service/ReceiveAsync` and `/erru/xml`; it must not forward
+`/internal/rsi/*` from the external network.
+
+### Verification
+
+The image build runs `MapperSmokeTest` and `RsiSendTest`. The latter uses local HTTP servers and
+synthetic fixtures. It checks XML/XSD, escaping, dates, authentication, 202 acceptance, rejection,
+timeout and replay behavior.
+
+For PostgreSQL and asynchronous response checks, create a disposable PostgreSQL 16 container
+with an empty `rsi_test` database and a localhost port mapping to 55439. Compile the adapter with
+its bundled JDBC driver. Run:
+
+```sh
+python3 tests/erru-adapter/test_rsi_outbound.py CONTAINER
+python3 tests/erru-adapter/test_rsi_transport.py CONTAINER /absolute/path/to/compiled/classes
+```
+
+Use these scripts only with a disposable container. The second script starts the actual adapter,
+a local Hub and an internal Ruuter stub. It verifies durable dispatch claims and callback processing.

@@ -1994,6 +1994,10 @@
     "rsi": {
       "notFound": "Tehnokontrolli teadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue teate saatmist.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli VIN-koodi, läbisõidumõõdiku näitu ning juhi ja omaniku või veoettevõtja andmeid.",
+      "sending": "Saatmine pooleli",
       "checkedItems": {
         "part": "Punkt",
         "checked": "Kontrollitud",

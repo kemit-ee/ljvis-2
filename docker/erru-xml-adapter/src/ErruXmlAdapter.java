@@ -36,7 +36,8 @@ public final class ErruXmlAdapter {
                 new NcrMapper(config.respondingAuthorityNcr, config.memberStateCode),
                 new CgrMapper(config.memberStateCode),
                 new CtudMapper(config.respondingAuthorityCtud, config.memberStateCode),
-                new RsiMapper(config.respondingAuthorityRsi, config.memberStateCode)
+                new RsiMapper(config.respondingAuthorityRsi, config.memberStateCode),
+                new RsiResponseMapper()
         );
 
         List<Thread> workers = new java.util.ArrayList<>();
@@ -51,6 +52,11 @@ public final class ErruXmlAdapter {
         server.createContext("/health", new HealthHandler(config, workers));
         server.createContext("/erru/xml", new IngressHandler(schemas, db,
                 mappers.stream().map(MessageMapper::requestRoot).toArray(String[]::new)));
+        RsiSendHandler rsiSender = new RsiSendHandler(schemas,
+                config.internalServiceToken, config.memberStateCode, config.rsiRequestUrl,
+                java.time.Duration.ofSeconds(15), new RsiDispatchStore.Jdbc(config));
+        server.createContext("/internal/rsi/send", rsiSender);
+        server.createContext("/internal/rsi/validate", rsiSender);
         // A small bounded pool instead of the default single thread, so one slow client cannot
         // block every other request (including /health). It does not add read/idle timeouts: the
         // JDK's built-in HttpServer has no hook for that, so a slowloris-style connection can still

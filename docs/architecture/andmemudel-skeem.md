@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 43.
+Skeemid: 8, tabeleid: 44.
 
 ## Skeem `audit`
 
@@ -395,6 +395,20 @@ Võõrvõtmed: `inbox_id` → `erru.xml_inbox`
 | `last_error` | TEXT |  |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+
+### `erru.xml_rsi_dispatch`
+
+Loodud: `20261021182827-rsi-outbound-xml.sql` · veerge: 7 · PK: `technical_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `technical_id` | UUID | jah |
+| `workflow_id` | UUID | jah |
+| `xml_body` | TEXT | jah |
+| `status` | TEXT | jah |
+| `hub_http_status` | INTEGER |  |
+| `created_at` | TIMESTAMPTZ | jah |
+| `completed_at` | TIMESTAMPTZ |  |
 
 ## Skeem `forms`
 

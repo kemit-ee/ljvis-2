@@ -14,8 +14,9 @@ URLs, network routing/mTLS termination, the treatment of malformed input and res
 The documented async Hub has one response URL, ending in
 `/erru/http/response/btshttpreceive.dll`. `HUB_RESPONSE_URL` configures that full URL. The DLL suffix
 is an HTTP routing convention of the remote service, not a dependency of this Java application.
-Local compose targets a separate test Hub. Outgoing business send workflows and incoming Hub error
-notifications are outside this request-ingress implementation.
+Local compose targets a separate test Hub. Outgoing RSI uses the internal validate/send endpoints described in the
+[adapter README](../../docker/erru-xml-adapter/README.md#outgoing-rsi). Other outgoing business
+workflows and incoming Hub error notifications remain outside this implementation.
 
 ## Components and data ownership
 
@@ -29,7 +30,7 @@ notifications are outside this request-ingress implementation.
 | Ruuter.internal + Resql | Business snapshots, notifications, register calls and audit |
 
 The adapter uses JDBC only for its transport inbox/outbox. Business data remains behind the JSON
-flows and Resql. Five processing threads, one per type, isolate slow register searches from
+flows and Resql. Separate processing threads for five request types and the RSI response isolate slow register searches from
 notification handling. Two delivery threads limit head-of-line blocking by a slow HTTP delivery.
 All concurrency is bounded; health checks inspect every worker and the DB connection.
 

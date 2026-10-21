@@ -354,6 +354,8 @@ export type RsiDirection = 'outgoing' | 'incoming';
 
 export type RsiStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'responded'
   | 'received'
