@@ -21,6 +21,9 @@ ALLOWED = {
     "[#LJVIS_RESQL]", "[#LJVIS_RESQL_ARHIIV]", "[#LJVIS_TIM]", "[#LJVIS_DMAPPER]", "[#LJVIS_DMAPPER_HBS]",
     "[#LJVIS_RUUTER]", "[#LJVIS_RUUTER_INTERNAL]",
 }
+# The adapter consumes the token locally. Its Hub request sets only Content-Type;
+# it does not forward the incoming service token or other incoming headers.
+ADAPTER_INTERNAL_PATHS = {"/internal/rsi/validate", "/internal/rsi/send"}
 XTR_SOAP_PREFIXES = ("/ar/", "/etoimik/", "/mtr/", "/liiklusregister/")
 
 errors = []
@@ -40,7 +43,9 @@ for path in sorted((ROOT / "DSL").rglob("*.yml")):
             block.append(x)
         if not any(TOKEN in x for x in block):
             continue
-        ok = const in ALLOWED or (const == "[#LJVIS_XTR]" and rest.startswith(XTR_SOAP_PREFIXES))
+        ok = (const in ALLOWED
+              or (const == "[#LJVIS_XTR]" and rest.startswith(XTR_SOAP_PREFIXES))
+              or (const == "[#ERRU_XML_ADAPTER]" and rest in ADAPTER_INTERNAL_PATHS))
         if not ok:
             errors.append(f"{path.relative_to(ROOT)}:{i + 1}: {TOKEN} sent to {const}{rest}")
 
