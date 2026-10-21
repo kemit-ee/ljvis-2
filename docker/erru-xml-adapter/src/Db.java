@@ -228,6 +228,16 @@ final class Db {
         }
     }
 
+    /** An inbound business response completes without an outbound acknowledgement. */
+    void completeOneWayInbox(long inboxId, String claimedBy) throws SQLException {
+        try (Connection c = open(); PreparedStatement ps = c.prepareStatement(
+                "UPDATE erru.xml_inbox SET status='processed',last_error=NULL,claimed_by=NULL,lease_expires_at=NULL,next_attempt_at=NULL " +
+                "WHERE id=? AND claimed_by=? AND status='processing'")) {
+            ps.setLong(1, inboxId); ps.setString(2, claimedBy);
+            if (ps.executeUpdate() != 1) throw new SQLException("RSI response inbox lease lost");
+        }
+    }
+
     /** Fenced: a worker whose lease expired and was reclaimed must not overwrite the new owner's result. */
     void markInboxFailed(long inboxId, String claimedBy, String error) throws SQLException {
         try (Connection c = open();

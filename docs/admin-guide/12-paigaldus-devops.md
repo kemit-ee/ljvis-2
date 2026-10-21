@@ -140,7 +140,8 @@ Fail renderdatakse mallist `scripts/constants.ini.tmpl`, kirjutatakse **ühe Sec
 | `AR_USERNAME`, `AR_PASSWORD` | seed-ssm.env | Äriregistri teenuse andmed (saladus) |
 | `ERRU_CTUD_ENDPOINT`, `ERRU_CGR_ENDPOINT`, `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/request/BTSHTTPReceive.dll` |
 | `ERRU_NCR_RESPONSE_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/response/...` |
-| `ERRU_RSI_ENDPOINT` | seed-ssm.env | MOVEHUB `.../rsi/http/request/...` |
+| `ERRU_XML_ADAPTER` | constants.ini | Sisemine adapter: `http://erru-xml-adapter:8080` |
+| `HUB_RSI_REQUEST_URL` | adapteri Helm envVars | MOVEHUB `.../rsi/http/request/...`; loeb ainult XML-adapter |
 | `PK_NOTIFICATIONS_ENDPOINT` | seed-ssm.env | `http://xtr:8080/postkast/notifications` (XTR REST passthrough) |
 | `TIM_ADMIN_TOKEN` | seed-ssm.env | **Peab ühtima** SSM-i `tim/admin-token` väärtusega |
 
@@ -237,3 +238,20 @@ Kohalikult: `helm dependency build charts/<komponent>` ja `helm template` koos `
 - **Puuduvad `constants.ini` muutujad:** vt eespool (`PK_SENDING_OPERATIONS_ENDPOINT` jt). Eriti kriitilised on Postkasti staatuse kontrolli, arhiivi ja WS-teavituste jaoks.
 - **Release-pin test/prelive:** praegu ei uuene automaatselt; versioonid kirjutatakse käsitsi.
 - **CronManageril ja DataMapperil** ei ole keskkonnapõhiseid väärtusfaile. Kõik seaded tulevad Helmi paketi vaikeväärtustest.
+
+### RSI XML-saatmise paigaldamine
+
+Peata RSI saatmine väljalaske ajaks. Vana saatmisvoog ei tohi töötada uue Resql üleminekuloogikaga.
+
+1. Rakenda migratsioon `20261021182827-rsi-outbound-xml` enne uut saatmisvoogu.
+2. Paigalda uus XML-adapter. Määra `HUB_RSI_REQUEST_URL` kinnitatud keskkonna otspunktile.
+3. Luba NetworkPolicy abil Ruuterist adapteri port 8080. Luba adapterist Hubi port 443.
+4. Lisa Ruuteri URL-allowlisti adapteri `/internal/rsi/validate` ja `/internal/rsi/send`.
+5. Lisa SSM-i `constants.ini` faili `ERRU_XML_ADAPTER=http://erru-xml-adapter:8080`.
+6. Paigalda uus Ruuteri DSL ja frontend. Frontend näitab olekuid `sending` ja `send_unknown`.
+7. Kontrolli sünteetilise teatega XML-i, Hubi 202 vastust ja hilisemat RSI vastust.
+
+Ära saada varem saadetuks märgitud teateid automaatselt uuesti. Kontrolli nende tulemust Hubist.
+Oleku `sending` või `send_unknown` korral kontrolli tabelit `erru.xml_rsi_dispatch`. Tabel sisaldab
+tegelikku XML-i ja Hubi HTTP-staatust. Ära kustuta kirjet kordussaatmise võimaldamiseks.
+Migratsiooni tagasipööre peatub, kui uus olek või transpordiajalugu on juba kasutusel.

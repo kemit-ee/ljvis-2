@@ -64,6 +64,7 @@ final class SchemaRegistry {
     private final XMLInputFactory xmlInputFactory;
 
     SchemaRegistry(Path bundleDir) throws Exception {
+        requestRootNames.add("RoadSideInspection_Response");
         for (String entryFile : REQUEST_ENTRY_FILES) {
             String rootName = entryFile.substring(0, entryFile.length() - ".xsd".length());
             requestRootNames.add(rootName);

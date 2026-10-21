@@ -21,6 +21,7 @@ public final class ErruHubMock {
         var schemas = new SchemaRegistry(Path.of(System.getenv().getOrDefault("CONTRACTS_DIR", "/app/contracts/erru/3.5")));
         var server = HttpServer.create(new InetSocketAddress(Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"))), 0);
         server.createContext("/health", ex -> write(ex, 200, "text/plain", "ok"));
+        server.createContext("/rsi/http/request/BTSHTTPReceive.dll", ex -> receiveRsi(ex, schemas));
         server.createContext(RESPONSE_PATH, ex -> receive(ex, schemas));
         server.createContext("/_test/count", ex -> write(ex, 200, "application/json", "{\"count\":" + COUNT.get() + "}"));
         server.createContext("/_test/last", ex -> {
@@ -38,6 +39,27 @@ public final class ErruHubMock {
         server.setExecutor(Executors.newFixedThreadPool(8));
         server.start();
         System.out.println("ERRU mock answer path=" + RESPONSE_PATH);
+    }
+
+    private static void receiveRsi(HttpExchange ex, SchemaRegistry schemas) throws java.io.IOException {
+        if (!"POST".equals(ex.getRequestMethod()) || !"/rsi/http/request/BTSHTTPReceive.dll".equals(ex.getRequestURI().getPath())) {
+            write(ex, 404, "text/plain", "Unknown endpoint"); return;
+        }
+        byte[] bytes = ex.getRequestBody().readNBytes(MAX_BODY_BYTES + 1);
+        if (bytes.length > MAX_BODY_BYTES) { write(ex, 413, "text/plain", "Body too large"); return; }
+        try {
+            schemas.validate("RoadSideInspection_Request", bytes);
+            var doc = XmlUtil.parseHardened(bytes);
+            String workflow = XmlUtil.attr(XmlUtil.firstChild(doc.getDocumentElement(), "Header"), "workflowId");
+            String to = XmlUtil.attr(XmlUtil.firstChild(doc.getDocumentElement(), "Header"), "to");
+            if ("FI".equals(to)) { write(ex, 400, "text/plain", "Synthetic rejection"); return; }
+            synchronized (RECEIVED) {
+                last = new String(bytes, StandardCharsets.UTF_8);
+                RECEIVED.put(workflow, last);
+                COUNT.incrementAndGet();
+            }
+            write(ex, 202, "text/plain", "");
+        } catch (Exception e) { write(ex, 400, "text/plain", "Invalid RSI XML"); }
     }
 
     private static void receive(HttpExchange exchange, SchemaRegistry schemas) throws java.io.IOException {

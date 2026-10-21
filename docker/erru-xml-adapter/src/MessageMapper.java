@@ -22,6 +22,8 @@ interface MessageMapper {
     java.time.Duration ruuterTimeout();
 
     /** Notifications must finish their business effects even after the response deadline. */
+    default boolean oneWay() { return false; }
+
     default boolean requiresBusinessCompletion() { return false; }
 
     /** Builds the JSON body for the Ruuter call from a validated request DOM. */

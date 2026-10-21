@@ -1963,6 +1963,10 @@
     "rsi": {
       "notFound": "RSI message not found",
       "sendFailed": "Sending the message to ERRU failed. The message stays in 'error' state — no retry is possible, a new message must be composed.",
+      "sendUnknownStatus": "Dispatch outcome unknown",
+      "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending a new message.",
+      "invalidXml": "The data does not meet the ERRU XML contract. Check the VIN, odometer reading, driver and holder or transport undertaking details.",
+      "sending": "Sending",
       "checkedItems": {
         "part": "Item",
         "checked": "Checked",
