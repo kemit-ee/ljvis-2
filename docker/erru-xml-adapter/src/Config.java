@@ -53,6 +53,7 @@ final class Config {
         // message type. The earlier HUB_BASE_URL + a per-type path segment (`hubPath()`) invented
         // a routing scheme the real Hub does not have.
         hubResponseUrl = required("HUB_RESPONSE_URL", problems);
+        checkHubUrl("HUB_RESPONSE_URL", hubResponseUrl, problems);
         // Optional during rollout. A missing URL disables that outgoing type; it never guesses a Hub.
         rsiRequestUrl = optionalHubUrl("HUB_RSI_REQUEST_URL", problems);
         cgrRequestUrl = optionalHubUrl("HUB_CGR_REQUEST_URL", problems);
@@ -109,6 +110,12 @@ final class Config {
 
     private static java.net.URI optionalHubUrl(String name, List<String> problems) {
         String value = System.getenv(name);
+        if (value == null || value.isBlank()) return null;
+        return checkHubUrl(name, value, problems);
+    }
+
+    /** A Hub URL must be an HTTP(S) URL with a host and without credentials; a bad one is a startup problem. */
+    private static java.net.URI checkHubUrl(String name, String value, List<String> problems) {
         if (value == null || value.isBlank()) return null;
         try {
             java.net.URI uri = java.net.URI.create(value);

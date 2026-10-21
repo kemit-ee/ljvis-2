@@ -3,7 +3,6 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
   NYSIIS_ENDPOINT: '{MOCK}/nysiis'
-  ERRU_NU_ENDPOINT: '{MOCK}/hub'
 tests:
 - name: create persists preview
   setup:

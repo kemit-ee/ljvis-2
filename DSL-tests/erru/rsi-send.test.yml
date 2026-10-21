@@ -2,7 +2,6 @@ mode: mock-http
 constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
-  ERRU_RSI_ENDPOINT: '{MOCK}/hub'
   ERRU_XML_ADAPTER: '{MOCK}/adapter'
   INTERNAL_COMMUNICATION_KEY: test-token
 tests:
