@@ -4,6 +4,14 @@
 
 ## 2026-10-20
 
+### E-toimiku otsuse öine sünkroon: paragrahv ja otsuse kuupäev, välismaalased
+
+- Kontrollvormi plokis „Andmevahetuskihi päringuga sisestatavad andmed (X-tee)" kirjutab öine sünkroon väljale „Jõustunud otsus" nüüd kujul „KarS § 100 lg 2, otsuse kuupäev 07.02.2025" (paragrahv + otsuse kuupäev). Varem sattus sinna e-toimiku klassifikaatori toorkood. Väli „Menetluse lõpetamise alus" jäetakse sünkroonist täitmata.
+- Otsus loetakse olemasolevaks, kui süüdistuspunktil on lahend ja lahendi kuupäev. Tühjad (xsi:nil) väärtused ei loe enam täidetuks, varem läksid ka lahtised punktid läbi.
+- Välismaalased (isikukoodita juhid ja meeskonnaliikmed) jõuavad nüüd samuti sünkrooni: neid otsitakse eesnime, perekonnanime ja sünniajaga. Eestlast otsitakse esmalt isikukoodiga ja, kui otsust ei leita ning nimi ja sünniaeg on olemas, teist korda nime ja sünniajaga.
+- Kehtib kõigil viiel öisel sünkroonil: autojuht ja meeskonnaliige, TRAM-kaart, sõiduki ja haagise tehnokontroll, Tööinspektsioon (viimasel ainult isikukoodiga). TRAM-kaart avalikustatakse automaatselt niipea, kui lahend on olemas, mitte alles sulgemise järel.
+- Uus sisemine päring `POST /etoimik/lookup-decision` (ainult Ruuter.internal).
+
 ### E-toimiku öise sünkroonimise X-tee logi näitab täisvastust
 
 - Kui e-toimik tagastas öise sünkroonimise päringule tühja vastuse, kirjutas süsteem X-tee logisse ainult sõna `null`. Nüüd salvestatakse kogu saadud vastus, nagu vormi pealt käsitsi tehtud päringu puhul. Kõik viis sünkroonimist (Tööinspektsioon, SP juht, SP meeskonnaliige, tehnokontroll, TRAM). Otsuste käitumine ei muutu.

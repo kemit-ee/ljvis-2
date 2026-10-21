@@ -18,6 +18,15 @@ returns:
 - name: driver_personal_code
   type: string
   nullable: true
+- name: person_first_name
+  type: string
+  nullable: true
+- name: person_last_name
+  type: string
+  nullable: true
+- name: person_birth_date
+  type: string
+  nullable: true
 */
 -- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest_ttf AS (
@@ -50,7 +59,11 @@ resolved AS (
 SELECT
   id,
   proceeding_reference_number,
-  (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
+  (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code,
+  (COALESCE((cf).drivers -> 0 ->> 'firstName', (cf).drivers -> 0 ->> 'first_name')) AS person_first_name,
+  (COALESCE((cf).drivers -> 0 ->> 'lastName', (cf).drivers -> 0 ->> 'last_name')) AS person_last_name,
+  (LEFT(COALESCE((cf).drivers -> 0 ->> 'birthDate', (cf).drivers -> 0 ->> 'birth_date'), 10)) AS person_birth_date
 FROM resolved
 WHERE (cf).authority = 'PPA'
-  AND btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee'), '')) <> '';
+  AND (btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee'), '')) <> ''
+    OR (btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'firstName', (cf).drivers -> 0 ->> 'first_name'), '')) <> '' AND btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'lastName', (cf).drivers -> 0 ->> 'last_name'), '')) <> '' AND btrim(coalesce(LEFT(COALESCE((cf).drivers -> 0 ->> 'birthDate', (cf).drivers -> 0 ->> 'birth_date'), 10), '')) <> ''));
