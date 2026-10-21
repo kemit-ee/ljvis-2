@@ -131,18 +131,29 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
               {message.businessCaseId}
             </Heading>
             <StatusBadge>
-              {label('NU_MESSAGE_STATUS', message.status)}
+              {message.status === 'sending'
+                ? t('erru.nu.sending')
+                : message.status === 'send_unknown'
+                  ? t('erru.nu.sendUnknownStatus')
+                  : label('NU_MESSAGE_STATUS', message.status)}
             </StatusBadge>
           </div>
           <Text>
             {t('erru.nu.form.version', { version: message.version })}
             {!editable && ` · ${t('erru.nu.form.readOnly')}`}
           </Text>
+          {message.direction === 'outgoing' &&
+            message.status === 'sent' &&
+            !message.memberStates?.length && (
+              <Text>{t('erru.nu.awaitingAck')}</Text>
+            )}
           {(sendError || message.errorMessage) && (
             <Alert type="danger" size="small" className="mt-1">
               {message.status === 'error'
                 ? t('erru.nu.sendFailed')
-                : sendError || message.errorMessage}
+                : message.status === 'send_unknown'
+                  ? t('erru.nu.sendUnknown')
+                  : sendError || message.errorMessage}
             </Alert>
           )}
         </Card.Content>

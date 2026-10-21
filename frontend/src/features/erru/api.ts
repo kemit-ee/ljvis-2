@@ -279,13 +279,17 @@ export function buildNcrRequest(body: NcrBuildRequest): Promise<NcrSaveResult> {
   return post<NcrSaveResult>('/v1/erru/ncr/request/build', { ...body });
 }
 
-/** Send the outgoing NCR request draft to ERRU (initiated/error -> sent -> acknowledged). */
-export function sendNcrRequest(businessCaseId: string): Promise<{ businessCaseId: string; status: string; ackStatusCode: string; workflowId?: string }> {
+/**
+ * Send the outgoing NCR request draft to ERRU as XML. Asynchronous: resolving means the Hub accepted it
+ * (status 'sent'); the acknowledgement and the response arrive later. 502 send_failed = rejected (retry
+ * permitted), 502 send_unknown = uncertain outcome (do not resend), 422 invalid_ncr_xml = draft stays editable.
+ */
+export function sendNcrRequest(businessCaseId: string): Promise<{ businessCaseId: string; status: string; workflowId?: string }> {
   return post('/v1/erru/ncr/send', { businessCaseId });
 }
 
-/** Send the composed response to an incoming NCR message (answer_drafted/error -> answered). */
-export function sendNcrResponse(businessCaseId: string): Promise<{ businessCaseId: string; status: string; ackStatusCode: string }> {
+/** Send the composed response to an incoming NCR message as XML (answer_drafted/error -> sending -> answered). */
+export function sendNcrResponse(businessCaseId: string): Promise<{ businessCaseId: string; status: string }> {
   return post('/v1/erru/ncr/response-send', { businessCaseId });
 }
 

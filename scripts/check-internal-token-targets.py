@@ -25,7 +25,10 @@ ALLOWED = {
 # it does not forward the incoming service token or other incoming headers.
 ADAPTER_INTERNAL_PATHS = {"/internal/rsi/validate", "/internal/rsi/send",
                           "/internal/cgr/validate", "/internal/cgr/send",
-                          "/internal/ctud/validate", "/internal/ctud/send"}
+                          "/internal/ctud/validate", "/internal/ctud/send",
+                          "/internal/ncr/validate", "/internal/ncr/send",
+                          "/internal/ncr-response/validate", "/internal/ncr-response/send",
+                          "/internal/nu/validate", "/internal/nu/send"}
 XTR_SOAP_PREFIXES = ("/ar/", "/etoimik/", "/mtr/", "/liiklusregister/")
 
 errors = []

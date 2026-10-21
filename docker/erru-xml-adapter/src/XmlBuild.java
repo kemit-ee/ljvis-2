@@ -65,4 +65,31 @@ final class XmlBuild {
     static void optional(StringBuilder x, String key, Object value) {
         if (value != null && !value.toString().isBlank()) attr(x, key, value.toString());
     }
+
+    /** An explicit boolean; "1"/"0" are accepted, anything else is refused instead of guessed. */
+    static String bool(Object value) {
+        String s = MiniJson.asString(value);
+        if ("true".equals(s) || "1".equals(s)) return "true";
+        if ("false".equals(s) || "0".equals(s)) return "false";
+        throw new IllegalArgumentException("Expected an explicit boolean");
+    }
+
+    /** A JSON object that arrives either parsed or as a string. */
+    @SuppressWarnings("unchecked")
+    static Map<String, Object> object(Object value) {
+        if (value instanceof String s) return MiniJson.parseObject(s);
+        if (value instanceof Map<?, ?>) return (Map<String, Object>) value;
+        throw new IllegalArgumentException("Expected a JSON object");
+    }
+
+    /** A JSON array that arrives either parsed or as a string; null and blank mean an empty list. */
+    static java.util.List<?> array(Object value) {
+        if (value == null) return java.util.List.of();
+        if (value instanceof String s) {
+            if (s.isBlank()) return java.util.List.of();
+            value = MiniJson.parseObject("{\"items\":" + s + "}").get("items");
+        }
+        if (value instanceof java.util.List<?> list) return list;
+        throw new IllegalArgumentException("Expected a JSON array");
+    }
 }

@@ -3,8 +3,8 @@
 Receives the five ERRU 3.5 request types as XML over asynchronous HTTP. The adapter validates and
 persists the request, calls the corresponding Ruuter.internal JSON flow, validates the XML answer,
 and delivers it through a durable outbox. It also sends the outgoing RSI, CGR and CTUD requests as
-XML and ingests their asynchronous responses (see [Outgoing RSI](#outgoing-rsi) and
-[Outgoing CGR and CTUD](#outgoing-cgr-and-ctud)). See [architecture](../../docs/architecture/erru-async-xml.md)
+XML and ingests their asynchronous responses (see [Outgoing RSI](#outgoing-rsi),
+[Outgoing CGR and CTUD](#outgoing-cgr-and-ctud) and [Outgoing NCR and NU](#outgoing-ncr-and-nu)). See [architecture](../../docs/architecture/erru-async-xml.md)
 and the [recovery procedure](../../docs/integrations/erru-xml-recovery.md).
 
 ## Processing and response deadlines
@@ -93,7 +93,7 @@ inspection fields are persisted, although the detail UI does not display all of 
 | RUUTER_INTERNAL_BASE_URL | Required internal business service URL |
 | INTERNAL_COMMUNICATION_KEY | Required shared service token, sent as `x-internal-service-token` on every ruuter-internal call (same value as `INTERNAL_COMMUNICATION_KEY` in constants.ini) |
 | HUB_RESPONSE_URL | Required full URL for every answer and EN |
-| HUB_RSI_REQUEST_URL / HUB_CGR_REQUEST_URL / HUB_CTUD_REQUEST_URL | Optional Hub URL for outgoing RSI / CGR / CTUD. A missing URL disables that type (503), the adapter never guesses a Hub |
+| HUB_RSI_REQUEST_URL / HUB_CGR_REQUEST_URL / HUB_CTUD_REQUEST_URL / HUB_NCR_REQUEST_URL / HUB_NU_REQUEST_URL | Optional Hub URL for outgoing RSI / CGR / CTUD / NCR request / NU. A missing URL disables that type (503), the adapter never guesses a Hub. Our NCR response goes to `HUB_RESPONSE_URL` like every other answer |
 | CONTRACTS_DIR | Required directory containing ERRU 3.5 XSDs |
 | MEMBER_STATE_CODE | Required local member state, EE in local compose |
 | RESPONDING_AUTHORITY | Required NU authority |
@@ -201,12 +201,37 @@ XSD before anything is sent and invent no data.
   NotFound, `PL` Timeout, `GR` NotAvailable, others Found. CGR: `FR`/`LV` NotFound, `SE` Timeout,
   `PL`/`GR` NotAvailable; a `ZZ` broadcast is answered by `DE`, `FR`, `SE` and `PL`.
 
+### Outgoing NCR and NU
+
+The remaining outgoing types use the same `OutboundXmlHandler`: `POST /internal/ncr/{validate,send}`
+(`NotifyCheckResult_Request`), `POST /internal/ncr-response/{validate,send}` (our `NotifyCheckResult_Response` to an
+incoming NCR) and `POST /internal/nu/{validate,send}` (`NotifyUnfitness_Request`). The builders are `NcrRequestXml`,
+`NcrResponseXml` and `NuRequestXml`; none invents data.
+
+- **NCR request.** TransportUndertaking with Vehicle, CheckSummary, MinorInfringement and every SeriousInfringement with
+  its imposed and requested penalties. A serious infringement needs at least one imposed penalty and `appealPossible`
+  must be an explicit boolean.
+- **NCR response.** The TransportUndertaking block and PenaltiesImposed are written only for `OK`. A `NotFound` answer
+  carries neither, and an incomplete register block is refused instead of being filled in. The envelope reuses the
+  incoming message's `workflowId` with a new `technicalId`. It is posted to `HUB_RESPONSE_URL`, which acknowledges with any
+  2xx (a request needs exactly 202). The journal type is `NCR_RESPONSE`.
+- **NU.** The TransportManager block is the name block (optionally with the certificate) or the certificate alone, with
+  the NYSIIS keys on the name.
+- **Acknowledgements and responses.** `NuAckMapper` (`NotifyUnfitness_Acknowledgement`), `NcrAckMapper`
+  (`NotifyCheckResult_Acknowledgement`, NCRN_Ack for our request and NCRR_Ack for our response) and
+  `NcrResponseInMapper` (`NotifyCheckResult_Response`) call `/ljvis/erru/nu/inbound-ack`,
+  `/ljvis/erru/ncr/inbound-ack` and `/ljvis/erru/ncr/inbound-response`. They never produce a reply.
+- **Hub mock.** With `AUTO_REPLY_URL` the mock Hub acknowledges NU (a `ZZ` broadcast: DE OK, SE Timeout, PL NotAvailable;
+  `LV` Timeout, `PL` NotAvailable, others OK) and NCR requests (`NO` Timeout, `IS` NotAvailable, others OK). It does not
+  simulate the substantive NCR response. `FI` is rejected with HTTP 400.
+
 ### Verification
 
-The image build runs `MapperSmokeTest`, `RsiSendTest` and `CgrCtudSendTest`. The latter uses local HTTP servers and
+The image build runs `MapperSmokeTest`, `RsiSendTest`, `CgrCtudSendTest` and `NcrNuSendTest`. The latter uses local HTTP servers and
 synthetic fixtures. It checks XML/XSD, escaping, dates, authentication, 202 acceptance, rejection,
 timeout and replay behavior. `CgrCtudSendTest` covers the same for CGR and CTUD (all search variants,
 resend, validate-only) and maps sample responses, validated against the XSD, to the stored JSON.
+`NcrNuSendTest` does the same for NU, NCR requests (penalties, infringements) and NCR responses.
 
 For PostgreSQL and asynchronous response checks, create a disposable PostgreSQL 16 container
 with an empty `rsi_test` database and a localhost port mapping to 55439. Compile the adapter with
@@ -216,6 +241,7 @@ its bundled JDBC driver. Run:
 python3 tests/erru-adapter/test_rsi_outbound.py CONTAINER
 python3 tests/erru-adapter/test_rsi_transport.py CONTAINER /absolute/path/to/compiled/classes
 python3 tests/erru-adapter/test_cgr_ctud_outbound.py CONTAINER
+python3 tests/erru-adapter/test_ncr_nu_outbound.py CONTAINER
 ```
 
 Use these scripts only with a disposable container. The second script starts the actual adapter,

@@ -4,7 +4,7 @@ declaration:
   description: |
     Receive the ASYNCHRONOUS substantive NCR response from the destination member state
     for a previously-sent Estonian outgoing request (LJVIS2-64 §4.3). Correlated by
-    workflowId - the synchronous ack (sent->acknowledged) already happened during send.yml;
+    workflowId - the Hub's NotifyCheckResult_Acknowledgement is handled by inbound-ack.yml;
     this endpoint carries the SUBSTANTIVE response (statusCode OK/NotFound + transport
     undertaking + penalty outcomes) that arrives later and moves the message from
     'acknowledged' to 'responded'.
@@ -34,6 +34,8 @@ declaration:
     body:
       - field: workflowId
         type: string
+      - field: businessCaseId
+        type: string
       - field: statusCode
         type: string
       - field: statusMessage
@@ -62,6 +64,7 @@ validateEnvelope:
 extractRequestData:
   assign:
     workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    message_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
     response_status_code: "${('' + (incoming.body.statusCode || '')).trim()}"
     response_status_message: "${('' + (incoming.body.statusMessage || '')).trim()}"
     responding_authority: "${('' + (incoming.body.respondingAuthority || '')).trim()}"
@@ -94,6 +97,13 @@ extractCurrentState:
   assign:
     business_case_id: "${found_res.response.body[0].businessCaseId}"
     cur_status: "${found_res.response.body[0].status}"
+  next: checkCaseMatches
+
+# A response must belong to the request its workflowId identifies.
+checkCaseMatches:
+  switch:
+    - condition: ${message_case_id !== '' && message_case_id !== business_case_id}
+      next: returnCaseMismatch
   next: checkAlreadyResponded
 
 checkAlreadyResponded:
@@ -115,9 +125,6 @@ promoteToResponded:
     body:
       businessCaseId: ${business_case_id}
       newStatus: "responded"
-      technicalId: ""
-      workflowId: ${workflow_id}
-      sentAt: ""
       ackStatusCode: ""
       ackStatusMessage: ""
       respondingAuthority: ${responding_authority}
@@ -211,4 +218,9 @@ returnMissingWorkflowId:
 returnMissingStatusCode:
   status: 400
   return: '{"statusCode":"InvalidData","statusMessage":"statusCode is required"}'
+  next: end
+
+returnCaseMismatch:
+  status: 409
+  return: '{"statusCode":"InvalidData","statusMessage":"businessCaseId does not match the request of this workflowId"}'
   next: end

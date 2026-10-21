@@ -23,6 +23,8 @@ final class Config {
     final java.net.URI rsiRequestUrl;
     final java.net.URI cgrRequestUrl;
     final java.net.URI ctudRequestUrl;
+    final java.net.URI ncrRequestUrl;
+    final java.net.URI nuRequestUrl;
     final String contractsDir;
     final long pollIntervalMs;
     final long leaseMs;
@@ -55,6 +57,8 @@ final class Config {
         rsiRequestUrl = optionalHubUrl("HUB_RSI_REQUEST_URL", problems);
         cgrRequestUrl = optionalHubUrl("HUB_CGR_REQUEST_URL", problems);
         ctudRequestUrl = optionalHubUrl("HUB_CTUD_REQUEST_URL", problems);
+        ncrRequestUrl = optionalHubUrl("HUB_NCR_REQUEST_URL", problems);
+        nuRequestUrl = optionalHubUrl("HUB_NU_REQUEST_URL", problems);
         contractsDir = required("CONTRACTS_DIR", problems);
         // NU only, used on the error/heartbeat ACK path. The success path takes
         // respondingAuthority from erru.nu_register_ack, which has its own hardcoded 'EE-PPA' —

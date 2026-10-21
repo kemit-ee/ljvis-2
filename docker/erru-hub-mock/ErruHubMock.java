@@ -24,6 +24,8 @@ public final class ErruHubMock {
         server.createContext("/rsi/http/request/BTSHTTPReceive.dll", ex -> receiveRsi(ex, schemas));
         server.createContext("/cgr/http/request/BTSHTTPReceive.dll", ex -> receiveRequest(ex, schemas, "CheckGoodRepute_Request"));
         server.createContext("/ctud/http/request/BTSHTTPReceive.dll", ex -> receiveRequest(ex, schemas, "CheckTransportUndertakingData_Request"));
+        server.createContext("/nu/http/request/BTSHTTPReceive.dll", ex -> receiveRequest(ex, schemas, "NotifyUnfitness_Request"));
+        server.createContext("/ncr/http/request/BTSHTTPReceive.dll", ex -> receiveRequest(ex, schemas, "NotifyCheckResult_Request"));
         server.createContext(RESPONSE_PATH, ex -> receive(ex, schemas));
         server.createContext("/_test/count", ex -> write(ex, 200, "application/json", "{\"count\":" + COUNT.get() + "}"));
         server.createContext("/_test/last", ex -> {
@@ -65,8 +67,11 @@ public final class ErruHubMock {
     }
 
     /**
-     * Outgoing CGR/CTUD: validate, retain, answer 202 and, when AUTO_REPLY_URL is set, deliver a
-     * canned asynchronous Response to the adapter's ingress so the dev stack completes end to end.
+     * Outgoing CGR/CTUD/NU/NCR: validate, retain, answer 202 and, when AUTO_REPLY_URL is set, deliver a
+     * canned asynchronous Response or Acknowledgement to the adapter's ingress so the dev stack completes
+     * end to end. NU: a ZZ broadcast is acknowledged by DE OK, SE Timeout and PL NotAvailable, LV Timeout,
+     * PL NotAvailable, anything else OK. NCR: only the acknowledgement (NO Timeout, IS NotAvailable, else OK).
+     * The substantive NCR response is not simulated. FI is rejected with HTTP 400 for every type.
      * Scenarios follow the Header/@to code: FI is rejected (HTTP 400). CTUD: LV NotFound, PL Timeout,
      * GR NotAvailable, anything else Found. CGR: FR and LV NotFound, SE Timeout, PL and GR NotAvailable,
      * anything else Found. A CGR broadcast (ZZ) is answered by DE, FR, SE and PL, one message each.
@@ -98,7 +103,12 @@ public final class ErruHubMock {
                 // A CGR broadcast is answered by each member state in its own message.
                 String[] answering = root.startsWith("CheckGood") && "ZZ".equals(to) ? new String[]{"DE", "FR", "SE", "PL"} : new String[]{to};
                 for (String code : answering) {
-                    String reply = root.startsWith("CheckGood") ? cgrReply(doc, code) : ctudReply(doc, code);
+                    String reply = switch (root) {
+                        case "CheckGoodRepute_Request" -> cgrReply(doc, code);
+                        case "NotifyUnfitness_Request" -> nuReply(doc, to);
+                        case "NotifyCheckResult_Request" -> ncrReply(doc, to);
+                        default -> ctudReply(doc, code);
+                    };
                     var request = java.net.http.HttpRequest.newBuilder(java.net.URI.create(replyUrl))
                             .header("Content-Type", "application/xml; charset=utf-8")
                             .POST(java.net.http.HttpRequest.BodyPublishers.ofString(reply, StandardCharsets.UTF_8)).build();
@@ -114,6 +124,39 @@ public final class ErruHubMock {
                 + XmlUtil.attr(requestHeader, "workflowId") + "\" sentAt=\""
                 + java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(java.time.ZoneOffset.UTC).format(java.time.Instant.now())
                 + "\" from=\"" + from + "\" to=\"" + XmlUtil.attr(requestHeader, "from") + "\"/>";
+    }
+
+    private static String nuMember(String code, String status, String message) {
+        return "<MemberState memberStateCode=\"" + code + "\" respondingAuthority=\"" + code + "-CA\" statusCode=\"" + status + "\""
+                + (message.isEmpty() ? "" : " statusMessage=\"" + message + "\"") + "/>";
+    }
+
+    private static String nuReply(org.w3c.dom.Document request, String to) {
+        var body = XmlUtil.firstChild(request.getDocumentElement(), "Body");
+        var header = XmlUtil.firstChild(request.getDocumentElement(), "Header");
+        var out = new StringBuilder("<NotifyUnfitness_Acknowledgement xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">");
+        out.append(replyHeader(header, "ZZ".equals(to) ? "EU" : to));
+        out.append("<Body businessCaseId=\"").append(XmlUtil.escAttr(XmlUtil.attr(body, "businessCaseId")))
+                .append("\" originatingAuthority=\"").append(XmlUtil.escAttr(XmlUtil.attr(body, "originatingAuthority"))).append("\">");
+        switch (to) {
+            case "ZZ" -> out.append(nuMember("DE", "OK", "")).append(nuMember("SE", "Timeout", "Member state did not respond within the allowed time"))
+                    .append(nuMember("PL", "NotAvailable", "Member state is not yet available on ERRU 3.5"));
+            case "LV" -> out.append(nuMember("LV", "Timeout", "Member state did not respond within the allowed time"));
+            case "PL" -> out.append(nuMember("PL", "NotAvailable", "Member state is not yet available on ERRU 3.5"));
+            default -> out.append(nuMember(to, "OK", ""));
+        }
+        return out.append("</Body></NotifyUnfitness_Acknowledgement>").toString();
+    }
+
+    private static String ncrReply(org.w3c.dom.Document request, String to) {
+        var body = XmlUtil.firstChild(request.getDocumentElement(), "Body");
+        var header = XmlUtil.firstChild(request.getDocumentElement(), "Header");
+        String status = switch (to) { case "NO" -> "Timeout"; case "IS" -> "NotAvailable"; default -> "OK"; };
+        return "<NotifyCheckResult_Acknowledgement xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">" + replyHeader(header, to)
+                + "<Body businessCaseId=\"" + XmlUtil.escAttr(XmlUtil.attr(body, "businessCaseId"))
+                + "\" originatingAuthority=\"" + XmlUtil.escAttr(XmlUtil.attr(body, "originatingAuthority"))
+                + "\" respondingAuthority=\"" + to + "-CA\" acknowledgementType=\"NCRN_Ack\" statusCode=\"" + status + "\"/>"
+                + "</NotifyCheckResult_Acknowledgement>";
     }
 
     private static String cgrStatus(String code) {

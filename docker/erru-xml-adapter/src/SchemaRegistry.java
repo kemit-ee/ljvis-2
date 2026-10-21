@@ -68,6 +68,9 @@ final class SchemaRegistry {
         requestRootNames.add("RoadSideInspection_Response");
         requestRootNames.add("CheckGoodRepute_Response");
         requestRootNames.add("CheckTransportUndertakingData_Response");
+        requestRootNames.add("NotifyUnfitness_Acknowledgement");
+        requestRootNames.add("NotifyCheckResult_Acknowledgement");
+        requestRootNames.add("NotifyCheckResult_Response");
         for (String entryFile : REQUEST_ENTRY_FILES) {
             String rootName = entryFile.substring(0, entryFile.length() - ".xsd".length());
             requestRootNames.add(rootName);
