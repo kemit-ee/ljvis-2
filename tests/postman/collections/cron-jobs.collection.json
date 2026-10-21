@@ -4055,7 +4055,7 @@
    ]
   },
   {
-   "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run dispatches the NCR",
+   "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run sends the NCR as XML (Hub 202)",
    "request": {
     "method": "POST",
     "header": [
@@ -4087,7 +4087,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const s = pm.response.json().response || pm.response.json();",
-       "pm.test('At least one NCR acknowledged', () => pm.expect(s.acknowledged).to.be.at.least(1));",
+       "pm.test('At least one NCR accepted by the Hub', () => pm.expect(s.sent).to.be.at.least(1));",
        "pm.test('No build failures', () => pm.expect(s.buildFailed || 0).to.eql(0));"
       ]
      }
@@ -4167,7 +4167,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const s = pm.response.json().response || pm.response.json();",
-       "pm.test('Nothing acknowledged on the second run', () => pm.expect(s.acknowledged).to.eql(0));"
+       "pm.test('Nothing sent on the second run', () => pm.expect(s.sent).to.eql(0));"
       ]
      }
     }

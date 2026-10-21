@@ -45,9 +45,7 @@ final class CtudResponseMapper implements MessageMapper {
         return json;
     }
 
-    @Override public boolean isAnswer(Map<String, Object> json) {
-        return "responded".equals(json.get("status")) || "already_responded".equals(json.get("status"));
-    }
+    @Override public boolean isAnswer(Map<String, Object> json) { return OneWayAnswers.isAnswer(json); }
 
     @Override public String buildResponseXml(Map<String, Object> json, Document doc, String id) {
         throw new UnsupportedOperationException("CTUD responses do not require another response");

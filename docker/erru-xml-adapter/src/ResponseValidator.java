@@ -8,7 +8,8 @@ import java.util.Set;
 final class ResponseValidator {
     private static final String NS = "https://webgate.ec.testa.eu/move-hub/erru/3.5";
     private static final Set<String> ROOTS = Set.of("CheckGoodRepute_Response", "CheckTransportUndertakingData_Response",
-            "RoadSideInspection_Response", "NotifyCheckResult_Acknowledgement", "NotifyUnfitness_Acknowledgement", "ErrorNotification");
+            "RoadSideInspection_Response", "NotifyCheckResult_Response", "NotifyCheckResult_Acknowledgement",
+            "NotifyUnfitness_Acknowledgement", "ErrorNotification");
 
     private ResponseValidator() { }
 

@@ -15,6 +15,7 @@ import {
   isNcrResponseSendable,
 } from '../../types';
 import { sendNcrRequest, sendNcrResponse } from '../../api';
+import { ncrSendErrorMessage } from '../../ncrErrors';
 import { createVrFormFromNcr } from '../../../control-forms/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -81,7 +82,7 @@ export function NcrFormPage() {
       await sendNcrRequest(current.businessCaseId);
       await reload();
     } catch (e) {
-      setSendError(t('erru.ncr.form.sendFailed'));
+      setSendError(ncrSendErrorMessage(e, t));
       console.error('NCR send failed', e);
       await reload();
     } finally {
@@ -117,7 +118,7 @@ export function NcrFormPage() {
       await sendNcrResponse(current.businessCaseId);
       await reload();
     } catch (e) {
-      setSendError(t('erru.ncr.form.sendFailed'));
+      setSendError(ncrSendErrorMessage(e, t));
       console.error('NCR response send failed', e);
       await reload();
     } finally {
@@ -338,14 +339,25 @@ export function NcrFormPage() {
               {current.businessCaseId}
             </Heading>
             <StatusBadge>
-              {label('NCR_REQUEST_STATUS', current.status)}
+              {current.status === 'sending'
+                ? t('erru.ncr.form.sending')
+                : current.status === 'send_unknown'
+                  ? t('erru.ncr.form.sendUnknownStatus')
+                  : label('NCR_REQUEST_STATUS', current.status)}
             </StatusBadge>
           </div>
           <Text>
             {t('erru.ncr.form.version', { version: current.version })}
           </Text>
           {current.errorMessage && (
-            <Text modifiers="bold">{current.errorMessage}</Text>
+            <Text modifiers="bold">
+              {current.status === 'send_unknown'
+                ? t('erru.ncr.form.sendUnknown')
+                : current.errorMessage}
+            </Text>
+          )}
+          {current.direction === 'outgoing' && current.status === 'sent' && (
+            <Text>{t('erru.ncr.form.awaitingAck')}</Text>
           )}
           {current.ackStatusCode && (
             <DetailRow

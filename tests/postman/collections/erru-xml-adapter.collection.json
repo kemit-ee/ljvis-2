@@ -574,14 +574,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "2000"
+            "4000"
           ]
         }
       }
@@ -665,14 +665,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "2000"
+            "4000"
           ]
         }
       }
@@ -756,14 +756,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "2000"
+            "4000"
           ]
         }
       }
@@ -845,14 +845,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "2000"
+            "4000"
           ]
         }
       }

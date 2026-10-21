@@ -1301,6 +1301,29 @@
               "pm.test('workflowId is the one returned by send', () => pm.expect(body.workflowId).to.eql(pm.environment.get('cgr_send_workflow')));"
             ]
           }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.status === 'responded' && (Array.isArray(b.memberStates) ? b.memberStates : JSON.parse(b.memberStates || '[]')).length >= 4); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
+            ]
+          }
         }
       ]
     },
@@ -1401,14 +1424,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/3000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "3000"
+            "4000"
           ]
         }
       },
@@ -1861,6 +1884,29 @@
               "var ms = Array.isArray(body.memberStates) ? body.memberStates : JSON.parse(body.memberStates);",
               "pm.test('1 member-state entry', () => pm.expect(ms).to.have.lengthOf(1));",
               "pm.test('DE Found', () => pm.expect(ms[0].statusCode).to.eql('Found'));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.status === 'responded'); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
             ]
           }
         }

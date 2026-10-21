@@ -23,6 +23,8 @@ final class Config {
     final java.net.URI rsiRequestUrl;
     final java.net.URI cgrRequestUrl;
     final java.net.URI ctudRequestUrl;
+    final java.net.URI ncrRequestUrl;
+    final java.net.URI nuRequestUrl;
     final String contractsDir;
     final long pollIntervalMs;
     final long leaseMs;
@@ -51,10 +53,13 @@ final class Config {
         // message type. The earlier HUB_BASE_URL + a per-type path segment (`hubPath()`) invented
         // a routing scheme the real Hub does not have.
         hubResponseUrl = required("HUB_RESPONSE_URL", problems);
+        checkHubUrl("HUB_RESPONSE_URL", hubResponseUrl, problems);
         // Optional during rollout. A missing URL disables that outgoing type; it never guesses a Hub.
         rsiRequestUrl = optionalHubUrl("HUB_RSI_REQUEST_URL", problems);
         cgrRequestUrl = optionalHubUrl("HUB_CGR_REQUEST_URL", problems);
         ctudRequestUrl = optionalHubUrl("HUB_CTUD_REQUEST_URL", problems);
+        ncrRequestUrl = optionalHubUrl("HUB_NCR_REQUEST_URL", problems);
+        nuRequestUrl = optionalHubUrl("HUB_NU_REQUEST_URL", problems);
         contractsDir = required("CONTRACTS_DIR", problems);
         // NU only, used on the error/heartbeat ACK path. The success path takes
         // respondingAuthority from erru.nu_register_ack, which has its own hardcoded 'EE-PPA' —
@@ -105,6 +110,12 @@ final class Config {
 
     private static java.net.URI optionalHubUrl(String name, List<String> problems) {
         String value = System.getenv(name);
+        if (value == null || value.isBlank()) return null;
+        return checkHubUrl(name, value, problems);
+    }
+
+    /** A Hub URL must be an HTTP(S) URL with a host and without credentials; a bad one is a startup problem. */
+    private static java.net.URI checkHubUrl(String name, String value, List<String> problems) {
         if (value == null || value.isBlank()) return null;
         try {
             java.net.URI uri = java.net.URI.create(value);

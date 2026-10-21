@@ -14,10 +14,10 @@ URLs, network routing/mTLS termination, the treatment of malformed input and res
 The documented async Hub has one response URL, ending in
 `/erru/http/response/btshttpreceive.dll`. `HUB_RESPONSE_URL` configures that full URL. The DLL suffix
 is an HTTP routing convention of the remote service, not a dependency of this Java application.
-Local compose targets a separate test Hub. Outgoing RSI, CGR and CTUD use the internal validate/send endpoints
+Local compose targets a separate test Hub. Every outgoing request (RSI, CGR, CTUD, NCR, NU) and our NCR response use the internal validate/send endpoints
 described in the [adapter README](../../docker/erru-xml-adapter/README.md#outgoing-rsi); the Hub acknowledges
-with HTTP 202 and the business answer arrives later through `/erru/xml`, correlated by `workflowId`. Outgoing NCR and NU
-and incoming Hub error notifications remain outside this implementation.
+with HTTP 202 (our NCR response is posted to the response URL, any 2xx) and the acknowledgement or business answer arrives
+later through `/erru/xml`, correlated by `workflowId`. Incoming Hub error notifications remain outside this implementation.
 
 ## Components and data ownership
 

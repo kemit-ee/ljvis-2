@@ -37,13 +37,15 @@ BEGIN
     VALUES(k,1,'outgoing','initiated','NU-TEST-SEND','EE','DE','EE-PPA','CA','Issue','Test','Manager','1980-01-01','2026-01-01','test',source_key,'CERT','2020-01-01','EE');
   h := erru.nu_begin_send(k,1,'A','B','test','Test User');
   PERFORM pg_temp.assert(h->>'technicalId' IS NOT NULL AND h->>'sentAt' IS NOT NULL,'header before transport');
-  PERFORM pg_temp.assert(EXISTS(SELECT 1 FROM erru.nu_message WHERE nu_message_key=k AND status='sent' AND technical_id::TEXT=h->>'technicalId'),'same persisted header');
+  PERFORM pg_temp.assert(EXISTS(SELECT 1 FROM erru.nu_message WHERE nu_message_key=k AND status='sending' AND technical_id::TEXT=h->>'technicalId'),'same persisted header');
   PERFORM pg_temp.assert(erru.nu_begin_send(k,1,'A','B','test','Test User')->>'code'='not_sendable','second send forbidden');
-  x := erru.nu_finish_send(k,'[{"memberStateCode":"DE","respondingAuthority":"DE-CA","statusCode":"OK"}]',NULL);
-  PERFORM pg_temp.assert(x->>'status'='sent','send completes without adapter callback');
+  x := erru.nu_mark_dispatch(k,'accepted',NULL);
+  PERFORM pg_temp.assert(x->>'status'='sent','Hub acceptance completes sending');
+  x := erru.nu_apply_ack((h->>'workflowId')::UUID,gen_random_uuid(),'EU','[{"memberStateCode":"DE","respondingAuthority":"DE-CA","statusCode":"OK"}]'::JSONB);
+  PERFORM pg_temp.assert(x->>'status'='acknowledged','the acknowledgement is merged later');
   SELECT count(*) INTO n FROM erru.nu_message WHERE nu_message_key=k;
-  PERFORM erru.nu_finish_send(k,'[]',NULL);
-  PERFORM pg_temp.assert((SELECT count(*) FROM erru.nu_message WHERE nu_message_key=k)=n,'synchronous result is idempotent');
+  PERFORM erru.nu_mark_dispatch(k,'accepted',NULL);
+  PERFORM pg_temp.assert((SELECT count(*) FROM erru.nu_message WHERE nu_message_key=k)=n,'the dispatch result is idempotent');
   PERFORM pg_temp.assert(to_regprocedure('erru.nu_expire_exchanges()') IS NULL,'no automatic timeout function');
   err := jsonb_build_object('technicalId',gen_random_uuid(),'workflowId',h->>'workflowId','businessCaseId','NU-TEST-SEND','from','DE','to','EE','sentAt','2026-09-10T12:00:00Z','statusCode','ServerError','originalMessage',
     '<NotifyUnfitness_Request xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5"><Header technicalId="'||(h->>'technicalId')||'" workflowId="'||(h->>'workflowId')||'" from="EE" to="DE"/><Body businessCaseId="NU-TEST-SEND"/></NotifyUnfitness_Request>');
@@ -55,7 +57,7 @@ BEGIN
   PERFORM pg_temp.assert(erru.nu_record_exchange_result(err || '{"statusCode":"Timeout"}','ErrorNotification')->>'httpStatus'='409','conflicting duplicate');
   PERFORM pg_temp.assert(erru.nu_record_exchange_result(err || jsonb_build_object('technicalId',gen_random_uuid(),'workflowId',gen_random_uuid()),'ErrorNotification')->>'httpStatus'='202','conflicting correlation does not mutate');
   PERFORM pg_temp.assert(erru.nu_record_exchange_result(err || jsonb_build_object('technicalId',gen_random_uuid(),'originalMessage','<!DOCTYPE a [<!ENTITY b "x">]><a/>'),'ErrorNotification')->>'httpStatus'='400','DTD rejected');
-  PERFORM pg_temp.assert(erru.nu_finish_send(k,'[]',NULL)->>'status'='error','late success cannot restore error');
+  PERFORM pg_temp.assert(erru.nu_mark_dispatch(k,'accepted',NULL)->>'status'='error','late success cannot restore error');
 
   k := nextval('erru.seq_nu_message_key');
   INSERT INTO erru.nu_message(nu_message_key,version,direction,status,business_case_id,technical_id,workflow_id,sent_at,received_at,nu_from,nu_to,originating_authority,request_source,request_purpose,tm_first_name,tm_family_name,tm_date_of_birth,unfit_start_date,created_by)

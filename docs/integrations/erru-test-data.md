@@ -96,8 +96,8 @@ Staatilised vastused katavad järgmised Test Packi nõuded:
   veoettevõtjatele.
 
 Test Packi `Timeout` ja `NotAvailable` juhtumid kirjeldavad HUB-i käitumist.
-Neid juhtumeid teenindavad kausta
-`DSL/Ruuter/ljvis/POST/v1/erru/mock/hub/` staatilised marsruudid. MTR mock ei
+Neid juhtumeid teenindab testimisel mock-Hub (`docker/erru-hub-mock`), mis vastab
+väljaminevatele CGR, CTUD, NU ja NCR päringutele asünkroonselt. MTR mock ei
 tekita HUB-i olekuid.
 
 Mock säilitab CI kontrollväärtused `Mart Tamm`, `EE-CPC-2020-00111` ja

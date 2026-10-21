@@ -17,7 +17,12 @@ import java.util.Map;
 class OutboundXmlHandler implements HttpHandler {
     /** One outgoing message type: its internal path prefix, XSD root, builder and error codes. */
     record Kind(String pathPrefix, String xsdRoot, java.util.function.BiFunction<Map<String, Object>, String, String> builder,
-                String invalidCode, String invalidMessage, String notConfiguredCode) { }
+                String invalidCode, String invalidMessage, String notConfiguredCode,
+                java.util.function.IntPredicate accepted) {
+        /** Requests are accepted by HTTP 202 only; an answer posted to the Hub's response URL by any 2xx. */
+        static final java.util.function.IntPredicate ACCEPTED_202 = code -> code == 202;
+        static final java.util.function.IntPredicate ACCEPTED_2XX = code -> code >= 200 && code < 300;
+    }
 
     private final SchemaRegistry schemas;
     private final String token;
@@ -89,7 +94,7 @@ class OutboundXmlHandler implements HttpHandler {
                     .header("Content-Type", "application/xml; charset=utf-8")
                     .POST(HttpRequest.BodyPublishers.ofString(xml, StandardCharsets.UTF_8)).build();
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-            boolean accepted = response.statusCode() == 202;
+            boolean accepted = kind.accepted().test(response.statusCode());
             // 5xx and unexpected 2xx/3xx do not prove whether the remote side persisted the request.
             String status = accepted ? "accepted" : response.statusCode() >= 400 && response.statusCode() < 500 ? "rejected" : "unknown";
             result = Map.of("status", status, "httpStatus", response.statusCode(),

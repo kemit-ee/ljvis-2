@@ -138,10 +138,8 @@ Fail renderdatakse mallist `scripts/constants.ini.tmpl`, kirjutatakse **ühe Sec
 | `S3_PROXY` | `http://s3-proxy:3010` | Fikseeritud |
 | `DOMAIN` | `LJVIS2_DOMAIN` | Keskkonna avalik hostinimi |
 | `AR_USERNAME`, `AR_PASSWORD` | seed-ssm.env | Äriregistri teenuse andmed (saladus) |
-| `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/request/BTSHTTPReceive.dll` |
-| `ERRU_NCR_RESPONSE_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/response/...` |
 | `ERRU_XML_ADAPTER` | constants.ini | Sisemine adapter: `http://erru-xml-adapter:8080` |
-| `HUB_RSI_REQUEST_URL`, `HUB_CGR_REQUEST_URL`, `HUB_CTUD_REQUEST_URL` | adapteri Helm envVars | MOVEHUB `.../rsi/…`, `.../cgr/…`, `.../ctud/http/request/...` (kinnitatud keskkonna otspunktid); loeb ainult XML-adapter. Puuduv URL keelab selle tüübi saatmise (503) |
+| `HUB_RSI_REQUEST_URL`, `HUB_CGR_REQUEST_URL`, `HUB_CTUD_REQUEST_URL`, `HUB_NCR_REQUEST_URL`, `HUB_NU_REQUEST_URL` | adapteri Helm envVars | MOVEHUB `.../erru/http/request/...` (kinnitatud keskkonna otspunktid); loeb ainult XML-adapter. Puuduv URL keelab selle tüübi saatmise (503). Meie NCR vastus läheb olemasolevale `HUB_RESPONSE_URL`-ile |
 | `PK_NOTIFICATIONS_ENDPOINT` | seed-ssm.env | `http://xtr:8080/postkast/notifications` (XTR REST passthrough) |
 | `TIM_ADMIN_TOKEN` | seed-ssm.env | **Peab ühtima** SSM-i `tim/admin-token` väärtusega |
 
@@ -274,3 +272,16 @@ uue Resql üleminekuloogikaga.
 Olekus `sending` või `send_unknown` olevat päringut ei saada automaatselt uuesti. Kontrolli tabelit `erru.xml_outbound_dispatch`,
 see sisaldab tegelikku XML-i ja Hubi HTTP-staatust, ning vajadusel Hubi poolt. Ära kustuta kirjet kordussaatmise võimaldamiseks.
 Migratsiooni tagasipööre peatub, kui uued olekud või transpordiajalugu on juba kasutusel.
+
+### NCR ja NU XML-saatmise paigaldamine
+
+Väljaminev NCR (päring ja vastus) ja NU saadetakse XML-ina sama adapteri kaudu nagu RSI, CGR ja CTUD. Hub vastab HTTP 202-ga ja kinnitused ning vastused tulevad hiljem. Peata NCR, NCR vastuse ja NU saatmine ning ööpäevane NCR automaatsaatmine (CronManager `erru-ncr-autodispatch`) väljalaske ajaks. Vana JSON-voog ei tohi töötada uue Resql üleminekuloogikaga.
+
+1. Rakenda migratsioon `20261223100000-ncr-nu-outbound-xml` (eeldab CGR/CTUD migratsiooni `20261222100000`).
+2. Määra adapteri keskkonnamuutujad `HUB_NCR_REQUEST_URL` ja `HUB_NU_REQUEST_URL` kinnitatud keskkonna otspunktidele. NCR vastuse saadab adapter `HUB_RESPONSE_URL`-ile.
+3. Luba Ruuteri ja Ruuter.internal URL-allowlistis adapteri `/internal/ncr/{validate,send}`, `/internal/ncr-response/{validate,send}` ja `/internal/nu/{validate,send}`. NCR automaatsaatmine käib `ruuter-internal`-ist, seega vajab ka see allowlist adapteri URL-e ja `ERRU_XML_ADAPTER` konstanti.
+4. Eemalda SSM-i `constants.ini` failist `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT`, `ERRU_NCR_RESPONSE_ENDPOINT` ja `ERRU_RSI_ENDPOINT`, neid enam ei kasutata. Ruuter.internal enam otse Hubisse ei lähe.
+5. Paigalda uus Ruuteri ja Ruuter.internal DSL (uued `nu/inbound-ack` ja `ncr/inbound-ack`) ning frontend. Frontend näitab olekuid `sending` ja `send_unknown`.
+6. Kontrolli sünteetilise teatega XML-i, Hubi 202 vastust, NCRN_Ack-i ja NU kinnitust.
+
+Olekus `sending` või `send_unknown` olevat NCR-i, NCR vastust ega NU-d ei saada automaatselt uuesti. Kontrolli tabelit `erru.xml_outbound_dispatch` (`message_type` NCR, NCR_RESPONSE, NU) ja Hubi poolt. Migratsiooni tagasipööre peatub, kui uued olekud või transpordiajalugu on kasutusel.

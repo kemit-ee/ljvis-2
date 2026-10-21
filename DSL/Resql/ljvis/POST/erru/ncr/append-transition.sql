@@ -2,12 +2,12 @@
 description: 'Apply an NCR lifecycle state transition (LJVIS2-64). Appends exactly one new snapshot iff
   (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero
   rows and nothing is written - the caller maps that to 422 not_sendable / invalid_transition. Unlike
-  RSI, NCR''s error state is NOT terminal: a failed send can be retried from ''error'' back to ''sent''
-  (outgoing) or ''answered'' (incoming response), per LJVIS2-62 §4 ''Viga olekus saab teate või vastuse
-  uuesti saata''. The synchronous ack (sent->acknowledged) and the asynchronous substantive response (acknowledged->responded)
-  are modelled as two separate transitions, matching the elutsükkel (LJVIS2-62) transition table, even
-  though in the current mock both the send and the ack happen within one HTTP call (send.yml appends BOTH
-  snapshots back to back). Columns not driven by the transition (transport undertaking, vehicle, infringements,
+  RSI, NCR''s error state is NOT terminal: a failed send can be retried (outgoing: erru.ncr_begin_send,
+  incoming response: erru.ncr_begin_response, both reserve the envelope and move to sending), per LJVIS2-62 §4
+  ''Viga olekus saab teate või vastuse uuesti saata''. The Hub outcome (sending -> sent | send_unknown | error,
+  incoming sending -> answered), the asynchronous acknowledgement (-> acknowledged) and the substantive
+  response (-> responded) are separate transitions. The envelope identifiers belong to the reservation and
+  are never set here. Columns not driven by the transition (transport undertaking, vehicle, infringements,
   response content) are carried forward verbatim from the latest snapshot.'
 namespace: erru
 params:
@@ -15,15 +15,6 @@ params:
     type: string
     required: false
   newStatus:
-    type: string
-    required: false
-  technicalId:
-    type: string
-    required: false
-  workflowId:
-    type: string
-    required: false
-  sentAt:
     type: string
     required: false
   ackStatusCode:
@@ -87,19 +78,30 @@ WITH latest AS (
   LIMIT 1
 ), allowed (from_status, to_status, direction) AS (
   VALUES
-    -- Outgoing send + synchronous ack (both appended within one send.yml call)
-    ('initiated',    'sent',        'outgoing'),
-    ('sent',         'acknowledged','outgoing'),
-    -- Asynchronous substantive response, correlated by workflowId (inbound-response.yml)
-    ('acknowledged', 'responded',   'outgoing'),
-    -- Retry from error: NCR error is NOT terminal, unlike RSI (LJVIS2-62 §4)
-    ('error',        'sent',        'outgoing'),
-    -- Incoming response send (composed on the incoming message itself)
-    ('answer_drafted','answered',   'incoming'),
-    ('error',        'answered',    'incoming'),
+    -- Outgoing: sending is reserved by erru.ncr_begin_send before any network I/O.
+    ('sending',      'sent',         'outgoing'),
+    ('sending',      'send_unknown', 'outgoing'),
+    ('sending',      'error',        'outgoing'),
+    -- NotifyCheckResult_Acknowledgement may beat the Hub HTTP answer or follow an uncertain dispatch.
+    ('sending',      'acknowledged', 'outgoing'),
+    ('send_unknown', 'acknowledged', 'outgoing'),
+    ('sent',         'acknowledged', 'outgoing'),
+    -- Asynchronous substantive response, correlated by workflowId (inbound-response.yml); it can
+    -- also overtake the acknowledgement.
+    ('acknowledged', 'responded',    'outgoing'),
+    ('sent',         'responded',    'outgoing'),
+    ('sending',      'responded',    'outgoing'),
+    ('send_unknown', 'responded',    'outgoing'),
+    -- Incoming response: answer_drafted|error -> sending is reserved by erru.ncr_begin_response.
+    ('sending',      'answered',     'incoming'),
+    ('sending',      'send_unknown', 'incoming'),
+    ('sending',      'error',        'incoming'),
+    -- A negative NCRR_Ack for a response we sent.
+    ('answered',     'error',        'incoming'),
     -- error is reachable from any non-terminal state, both directions
     ('initiated',     'error',      'outgoing'),
     ('sent',          'error',      'outgoing'),
+    ('send_unknown',  'error',      'outgoing'),
     ('acknowledged',  'error',      'outgoing'),
     ('answer_drafted','error',      'incoming'),
     -- a retry from error that fails again is logged as its own snapshot too
@@ -126,9 +128,10 @@ WITH latest AS (
     l.direction,
     :newStatus,
     l.business_case_id,
-    CASE WHEN :newStatus = 'sent' THEN COALESCE(NULLIF(:technicalId, '')::UUID, gen_random_uuid()) ELSE l.technical_id END,
-    CASE WHEN :newStatus = 'sent' THEN COALESCE(NULLIF(:workflowId, '')::UUID, l.workflow_id, gen_random_uuid()) ELSE l.workflow_id END,
-    CASE WHEN :newStatus = 'sent' THEN COALESCE(NULLIF(:sentAt, '')::TIMESTAMPTZ, now()) ELSE l.sent_at END,
+    -- The reservation owns the envelope. Never replace correlation identifiers here.
+    l.technical_id,
+    l.workflow_id,
+    l.sent_at,
     l.ncr_from,
     l.ncr_to,
     l.originating_authority,
@@ -158,7 +161,7 @@ WITH latest AS (
     l.linked_foreign_violation_form_key,
     l.handler_personal_code,
     l.handler_name,
-    CASE WHEN :newStatus = 'error' THEN NULLIF(:errorMessage, '') ELSE NULL END,
+    CASE WHEN :newStatus IN ('error','send_unknown') THEN NULLIF(:errorMessage, '') ELSE NULL END,
     :created_by
   FROM latest l
   WHERE EXISTS (

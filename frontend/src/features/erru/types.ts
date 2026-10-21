@@ -572,6 +572,8 @@ export type NcrDirection = 'outgoing' | 'incoming';
 
 export type NcrStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'acknowledged'
   | 'responded'
@@ -816,6 +818,8 @@ export type NuDirection = 'outgoing' | 'incoming';
 
 export type NuStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'received'
   | 'acknowledged'
@@ -899,12 +903,14 @@ export interface NuSaveResult {
   status: NuStatus;
 }
 
-/** Response of POST /v1/erru/nu/send — the synchronous member-state acknowledgement. */
+/**
+ * Response of POST /v1/erru/nu/send — the Hub acceptance (HTTP 202) only. The member states'
+ * acknowledgements arrive later and fill memberStates of the message.
+ */
 export interface NuSendResult {
   id: string;
   status: NuStatus;
   businessCaseId: string;
-  memberStates: NuMemberState[];
 }
 
 /** A source declaration candidate returned by GET /v1/erru/nu/source/search. */

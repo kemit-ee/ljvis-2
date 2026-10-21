@@ -193,7 +193,7 @@ Loodud: `20261021100000-erru-ncr-autodispatch-log.sql` · veerge: 9 · PK: `id`
 
 ### `erru.ncr_message`
 
-Loodud: `20260816100000-initial-erru-ncr.sql` · veerge: 37 · PK: `id`
+Loodud: `20260816100000-initial-erru-ncr.sql` · veerge: 39 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -234,6 +234,8 @@ Loodud: `20260816100000-initial-erru-ncr.sql` · veerge: 37 · PK: `id`
 | `response_number_of_vehicles` | INTEGER |  |
 | `response_community_licence_status` | VARCHAR(20) |  |
 | `response_address` | JSONB |  |
+| `response_technical_id` | UUID |  |
+| `response_sent_at` | TIMESTAMPTZ |  |
 
 ### `erru.nu_exchange_event`
 

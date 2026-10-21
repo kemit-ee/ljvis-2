@@ -298,6 +298,8 @@ services:
       - HUB_RSI_REQUEST_URL=http://erru-hub-mock:8080/rsi/http/request/BTSHTTPReceive.dll
       - HUB_CGR_REQUEST_URL=http://erru-hub-mock:8080/cgr/http/request/BTSHTTPReceive.dll
       - HUB_CTUD_REQUEST_URL=http://erru-hub-mock:8080/ctud/http/request/BTSHTTPReceive.dll
+      - HUB_NCR_REQUEST_URL=http://erru-hub-mock:8080/ncr/http/request/BTSHTTPReceive.dll
+      - HUB_NU_REQUEST_URL=http://erru-hub-mock:8080/nu/http/request/BTSHTTPReceive.dll
       - CONTRACTS_DIR=/app/contracts/erru/3.5
       - RESPONDING_AUTHORITY=EE-PPA
       - RESPONDING_AUTHORITY_CTUD=EE-TRAM

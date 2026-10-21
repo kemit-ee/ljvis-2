@@ -4,6 +4,17 @@
 
 ## 2026-10-21
 
+### NCR ja NU saadetakse ERRU XML-ina
+
+- Väljaminev NCR (kontrolli tulemuse teade ja vastus saabunud NCR-ile) ning NU (sobimatusteade) saadetakse nüüd ERRU 3.5 XML-ina läbi XML-adapteri, varem saadeti JSON. Adapter kontrollib XML-i XSD vastu enne saatmist ja ei lisa puuduvatele andmetele väljamõeldud väärtusi. Öine NCR automaatsaatmine kasutab sama teed.
+- Vastus ei tule enam saatmise kutsega. Hub kinnitab teate vastuvõtmist ja teade jääb olekusse „Saadetud". NCR-i vastuvõtukinnitus ning sisuline vastus ja NU liikmesriikide kinnitused saabuvad hiljem. Nende nägemiseks tuleb leht värskendada. Negatiivne NCR kinnitus (Timeout, NotAvailable) viib NCR-i olekusse „Viga" ja saatmist saab korrata.
+- Uued olekud „Saatmine pooleli" ja „Saatmise tulemus teadmata". Kui Hubi vastust ei saadud (ühenduse katkemine, aegumine), ei saada süsteem teadet ise uuesti, kuna Hub võis selle siiski vastu võtta. Kontrolli enne uut saatmist integratsioonilogi.
+- Kui Hub lükkab teate tagasi, läheb NCR või NCR vastus olekusse „Viga" ja saatmist saab korrata. NU jääb olekusse „Viga" ja uue saatmise asemel tuleb koostada uus sobimatusteade, nagu varem.
+- Andmed, mis ei vasta XML-lepingule, ei lähe teele ja mustand jääb muudetavaks. Näiteks NCR vastus ilma sõidukite arvu, tegevusloa staatuse või täieliku aadressita (kui ettevõte leiti) või NU veokorraldaja ilma sünniajata. Leht näitab sellest eraldi veateadet.
+- Öine NCR automaatsaatmine lisab logisse tulemuse „sent" (varem „acknowledged") ja uue tulemuse „send_unknown".
+- Uued sisemised päringud `POST /erru/nu/inbound-ack` ja `POST /erru/ncr/inbound-ack` (ainult Ruuter.internal) ning migratsioon `20261223100000-ncr-nu-outbound-xml`. `nu_finish_send` on asendatud funktsioonidega `nu_mark_dispatch` ja `nu_apply_ack`. Paigaldusjuhis on administraatori juhendi peatükis „NCR ja NU XML-saatmise paigaldamine".
+- Kasutamata konstandid `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT`, `ERRU_NCR_RESPONSE_ENDPOINT` ja `ERRU_RSI_ENDPOINT` ning nende Ruuteri mock-voogude kood on eemaldatud.
+
 ### Mainepäringud (CGR) ja tegevusloa kontrolli päringud (CTUD) saadetakse ERRU XML-ina
 
 - Väljaminev mainepäring ja tegevusloa kontrolli päring saadetakse nüüd ERRU 3.5 XML-ina läbi XML-adapteri, varem saadeti JSON. Adapter kontrollib XML-i XSD vastu enne saatmist ning ei lisa puuduvatele andmetele väljamõeldud väärtusi.
