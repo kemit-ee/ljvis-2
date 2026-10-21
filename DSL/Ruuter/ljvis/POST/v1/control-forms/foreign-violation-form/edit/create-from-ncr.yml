@@ -24,6 +24,7 @@ getNcrData:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -91,6 +92,7 @@ insertVrForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -157,6 +159,7 @@ updateNcrLink:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-vr-link"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

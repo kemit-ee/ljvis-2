@@ -10,6 +10,12 @@ project_datasource_map:
   # ADR-010: eraldi kustutatud-vormide arhiivibaas. SQL: DSL/Resql/arhiiv/**
   arhiiv: arhiiv
 
+# Resql 0.4+ keeldub mitte-loopback bind'iga käivitumast ilma autentimiseta. Bearer-värav:
+# iga päring peale /health ja /healthz peab saatma `Authorization: Bearer <env väärtus>`
+# (Ruuteri DSL-id: constants.ini RESQL_INTER_SERVICE_TOKEN). Env peab olema seatud, muidu boot ebaõnnestub.
+security:
+  inter_service_token_env: "RESQL_INTER_SERVICE_TOKEN"
+
 allow_datasource_header: false
 
 datasources:

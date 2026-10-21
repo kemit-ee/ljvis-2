@@ -51,6 +51,7 @@ getClassifierCode:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -81,6 +82,7 @@ getOldFormScope:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier_value"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -98,6 +100,7 @@ updateClassifierValue:
   args:
     url: "[#LJVIS_RESQL]/classifier/update_classifier_value"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -133,6 +136,7 @@ setFormScope:
   args:
     url: "[#LJVIS_RESQL]/classifier/set_classifier_value_form_scope"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

@@ -64,6 +64,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -119,6 +120,7 @@ saveResponse:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-response-draft"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

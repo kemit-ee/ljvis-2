@@ -39,6 +39,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/select-autodispatch-candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -68,6 +69,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/build"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -92,6 +94,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/get"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -160,6 +163,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -187,6 +191,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -214,6 +219,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -241,6 +247,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/log-autodispatch"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -258,6 +265,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:

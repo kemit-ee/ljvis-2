@@ -36,6 +36,7 @@ getMessage:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -82,6 +83,7 @@ revalidateSource:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-source"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -192,6 +194,7 @@ beginSend:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/begin-send"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}
@@ -241,6 +244,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -262,6 +266,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -299,6 +304,7 @@ checkMemberStates:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/validate"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       payload: "${JSON.stringify({memberStates: member_states_raw})}"
@@ -317,6 +323,7 @@ storeSent:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/finish-send"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}
@@ -346,6 +353,7 @@ storeFailure:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/finish-send"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}

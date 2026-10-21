@@ -195,7 +195,7 @@ import urllib.request
 request = urllib.request.Request(
     'http://localhost:9087/ljvis/log/get_logs_verify',
     data=b'{"from_event_id":"","to_event_id":""}',
-    headers={'Content-Type': 'application/json'})
+    headers={'Content-Type': 'application/json', 'Authorization': 'Bearer dev-resql-service-token'})
 with urllib.request.urlopen(request, timeout=20) as response:
     result = json.load(response)[0]
 assert result['ok'], result

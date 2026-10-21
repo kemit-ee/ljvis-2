@@ -67,6 +67,7 @@ services:
         condition: service_completed_successfully
     environment:
       - RESQL_DB_PASSWORD=01234
+      - RESQL_INTER_SERVICE_TOKEN=${RESQL_INTER_SERVICE_TOKEN:-dev-resql-service-token}
     ports:
       - 8090:8090
     volumes:

@@ -25,6 +25,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -85,6 +86,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

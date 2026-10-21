@@ -139,6 +139,7 @@ storeReceived:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-inbound"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -219,6 +220,7 @@ lookupExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get-by-technical-id"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -323,6 +325,7 @@ storeAnswered:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -353,6 +356,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/erru/record-inbound-audit"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

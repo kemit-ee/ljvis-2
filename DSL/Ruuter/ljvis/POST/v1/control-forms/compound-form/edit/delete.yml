@@ -29,6 +29,7 @@ deleteForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/delete"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

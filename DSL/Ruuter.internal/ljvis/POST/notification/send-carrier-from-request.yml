@@ -59,6 +59,7 @@ getOpenRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/get_open_carrier_request"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -93,6 +94,7 @@ getTramCard:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -120,6 +122,7 @@ getDriverForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -133,6 +136,7 @@ getTeammateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -146,6 +150,7 @@ getVehicleTechnicalForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -159,6 +164,7 @@ getTrailerTechnicalForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -250,6 +256,7 @@ getCompoundForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -295,6 +302,7 @@ callGetCountryName:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_country_name"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -314,6 +322,7 @@ callGetViolationNames:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_violation_names"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -379,6 +388,7 @@ logCarrierLookup:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -466,6 +476,7 @@ markRequestSent:
   args:
     url: "[#LJVIS_RESQL]/notification/mark_carrier_request_sent"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

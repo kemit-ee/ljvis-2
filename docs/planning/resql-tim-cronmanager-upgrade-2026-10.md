@@ -96,6 +96,15 @@ devops võib Helmis `APP_ENV`-i keskkonnapõhiseks muuta.
 - Uued: `resql doctor`, `resql health`, `Traceparent` vastusepäis, graceful pool close,
   pikad URL-teed veasõnumis lõigatud 256 baidini (staatus ja `X-Resql-Error-Code` samad).
 
+> **Uuendus 2026-10-19:** siht on nüüd **Resql 0.5.1-alpha** (0.4.3 → 0.5.0 lisas MySQL/MariaDB-toe,
+> 0.5.1 parandas MariaDB-regressiooni; Postgres-kasutajale muutust ei ole), digest
+> `sha256:fed15efd63e0f3409b932dc68fd02d02c6d2b16fa1d7c796f01a49d2ad3bfb5c`. Autentimise otsus: **variant B**
+> eraldi saladusega `RESQL_INTER_SERVICE_TOKEN` (mitte `INTERNAL_COMMUNICATION_KEY`). Tehtud: DSL-ides
+> `Authorization: Bearer [#RESQL_INTER_SERVICE_TOKEN]` (624 kutset, mehaaniliselt), CI-kontroll
+> `scripts/check-resql-bearer.py`, testiklientide päised. Devops (`ljvis2-devops`): secret `resql-ljvis-secret`
+> võti `RESQL_INTER_SERVICE_TOKEN`, chart'i `resql.yaml` `security.inter_service_token_env`, SSM + `constants.ini.tmpl`
+> + `seed-ssm.*`. Allolev variant A tekst on ajalooline.
+
 ### Autentimise otsus (vajalik enne koodi)
 
 Resqli sisseehitatud värav ootab `Authorization: Bearer <token>`. Meie DSL-id (Faas 3a, 291 faili)
