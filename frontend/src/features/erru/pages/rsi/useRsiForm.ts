@@ -5,7 +5,6 @@ import * as Yup from 'yup';
 import { saveRsiMessage } from '../../api';
 import type {
   RsiCheckedItem,
-  RsiDefectSeverity,
   RsiIdentificationDetails,
   RsiMessage,
   RsiOwnerType,
@@ -13,7 +12,12 @@ import type {
 } from '../../types';
 import { applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import type { ClassifierEntry } from '../../../classifiers/types';
+import {
+  RSI_REASON_CLASSIFIER,
+  buildReasonTree,
+  normaliseCheckedItems,
+  withAllItems,
+} from '../../utils/rsiReasons';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 const T = 'erru.rsi.validation';
@@ -48,7 +52,9 @@ const emptyIdentification: DraftIdentification = {
   postCode: '',
 };
 
-const toDraftIdentification = (d: RsiIdentificationDetails | null): DraftIdentification =>
+const toDraftIdentification = (
+  d: RsiIdentificationDetails | null,
+): DraftIdentification =>
   d
     ? {
         isVehicleHolder: d.isVehicleHolder,
@@ -86,36 +92,23 @@ export function useRsiForm(
   const { t } = useTranslation();
   const isEdit = !!message;
   const [formError, setFormError] = useState<string | null>(null);
-  const { getByCode, getChildren, getErruMemberCountries } = useClassifiers();
+  const { getByCode, getErruMemberCountries } = useClassifiers();
 
-  const countries = useMemo(() => getErruMemberCountries(), [getErruMemberCountries]);
-  const vehicleCategories = useMemo(() => getByCode('RSI_VEHICLE_CATEGORY').filter((c) => c.isValid !== false), [getByCode]);
-
-  const allParts = useMemo(() => getByCode('TECHNICAL_CHECK').filter((c) => c.isValid !== false), [getByCode]);
-  const parts: ClassifierEntry[] = useMemo(
-    () =>
-      allParts
-        // CAA_10 (veose kinnitamine) has no ERRU equivalent and must never
-        // appear in an RSI message (see erru.rsi_message.checked_items
-        // column comment, LJVIS2-148 §4.1) — excluded here too, not just in
-        // the vehicle-technical-check build/prefill flow, since this screen
-        // lets the user pick checked items manually as well.
-        .filter((p) => p.parentKey === null && p.code !== 'CAA_10')
-        .sort((a, b) => {
-          const numA = parseInt(a.code.replace(/^\D+/, ''), 10);
-          const numB = parseInt(b.code.replace(/^\D+/, ''), 10);
-          if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-          return a.code.localeCompare(b.code);
-        }),
-    [allParts],
+  const countries = useMemo(
+    () => getErruMemberCountries(),
+    [getErruMemberCountries],
   );
-  const defectsByPartKey = useMemo(() => {
-    const map = new Map<number, ClassifierEntry[]>();
-    parts.forEach((part) => {
-      map.set(part.classifierValueKey, getChildren('TECHNICAL_CHECK', part.classifierValueKey));
-    });
-    return map;
-  }, [parts, getChildren]);
+  const vehicleCategories = useMemo(
+    () => getByCode('RSI_VEHICLE_CATEGORY').filter((c) => c.isValid !== false),
+    [getByCode],
+  );
+
+  // "Kontrollitud punkt": RSI_FAILED_REASON classifier (direktiiv 2014/47/EL II/III lisa),
+  // level 1 = ERRU rsiItemType, leaves = ERRU rsiFailedReason.
+  const reasonTree = useMemo(
+    () => buildReasonTree(getByCode(RSI_REASON_CLASSIFIER)),
+    [getByCode],
+  );
 
   const required = t(`${T}.required`);
 
@@ -125,6 +118,24 @@ export function useRsiForm(
   const [identificationBlockOpen, setIdentificationBlockOpenState] = useState(
     () => !!message?.identificationDetails,
   );
+  // RsiFormPage calls this hook before `message` has loaded (it is fetched
+  // asynchronously by id and the hook runs unconditionally, ahead of the page's
+  // own loading guard) — the useState initialisers above then run once with
+  // `message` still undefined and never re-run once it arrives, leaving a
+  // message with driver/identification data stuck showing its optional blocks
+  // closed. Re-derive the open/closed flags during render the first time
+  // `message` (by id) becomes available — the React-recommended way to adjust
+  // state when a prop changes, without the extra render pass an effect would
+  // add. A later reload() of the same id (after Save) leaves `messageId`
+  // unchanged, so it never overrides the user's own toggle mid-edit.
+  const [messageId, setMessageId] = useState(message?.id);
+  if (message && message.id !== messageId) {
+    setMessageId(message.id);
+    setDriverBlockOpenState(
+      !!(message.driverFirstName || message.driverFamilyName),
+    );
+    setIdentificationBlockOpenState(!!message.identificationDetails);
+  }
 
   const validationSchema = useMemo(
     () =>
@@ -171,15 +182,20 @@ export function useRsiForm(
       vehicleRegistrationNumber: message?.vehicleRegistrationNumber ?? '',
       vehicleRegistrationCountry: message?.vehicleRegistrationCountry ?? '',
       vehicleIdentificationNumber: message?.vehicleIdentificationNumber ?? '',
-      odometerReading: message?.odometerReading != null ? String(message.odometerReading) : '',
+      odometerReading:
+        message?.odometerReading != null ? String(message.odometerReading) : '',
       driverFirstName: message?.driverFirstName ?? '',
       driverFamilyName: message?.driverFamilyName ?? '',
       driverLicenceNumber: message?.driverLicenceNumber ?? '',
       driverLicenceCountry: message?.driverLicenceCountry ?? '',
-      identification: toDraftIdentification(message?.identificationDetails ?? null),
+      identification: toDraftIdentification(
+        message?.identificationDetails ?? null,
+      ),
       inspectionIdentifier: message?.inspectionIdentifier ?? '',
       inspectionLocation: message?.inspectionLocation ?? '',
-      inspectionDate: message?.inspectionDatetime ? message.inspectionDatetime.slice(0, 10) : '',
+      inspectionDate: message?.inspectionDatetime
+        ? message.inspectionDatetime.slice(0, 10)
+        : '',
       inspectionTime: message?.inspectionDatetime
         ? message.inspectionDatetime.slice(11, 16)
         : '',
@@ -196,33 +212,50 @@ export function useRsiForm(
         message?.vehicleProhibitionOrRestriction != null
           ? String(message.vehicleProhibitionOrRestriction)
           : 'false',
-      checkedItems: (Array.isArray(message?.checkedItems)
-        ? message!.checkedItems
-        : parts.map((p) => ({ partCode: p.code, status: 'not_checked', defects: [] }))) as RsiCheckedItem[],
+      checkedItems: withAllItems(
+        reasonTree,
+        normaliseCheckedItems(message?.checkedItems),
+      ),
     },
     validationSchema,
     validate: (values) => {
       // Conditional validation for optional blocks that are currently open
       // (LJVIS2-147 §4 "Ploki avamisel muutuvad selle kohustuslikud väljad nõutavaks").
       const errors: Record<string, unknown> = {};
+      // Every "Ei vasta nõuetele" item needs at least one mitteläbimise põhjus
+      // (send.yml rejects it otherwise — ERRU FailedChecks is mandatory for a failed item).
+      if (
+        values.checkedItems.some(
+          (i) => i.status === 'non_compliant' && i.defects.length === 0,
+        )
+      ) {
+        errors.checkedItems = t(`${T}.reason_required`);
+      }
       if (driverBlockOpen) {
         if (!values.driverFirstName) errors.driverFirstName = required;
         if (!values.driverFamilyName) errors.driverFamilyName = required;
       }
       if (identificationBlockOpen) {
         const idErr: Record<string, string> = {};
-        if (!values.identification.isVehicleHolder) idErr.isVehicleHolder = required;
+        if (!values.identification.isVehicleHolder)
+          idErr.isVehicleHolder = required;
         if (!values.identification.address) idErr.address = required;
         if (!values.identification.city) idErr.city = required;
         if (!values.identification.country) idErr.country = required;
         if (!values.identification.postCode) idErr.postCode = required;
         if (values.identification.isVehicleHolder === 'transport_undertaking') {
-          if (!values.identification.transportUndertakingName) idErr.transportUndertakingName = required;
-          if (!values.identification.communityLicenceNumber) idErr.communityLicenceNumber = required;
+          if (!values.identification.transportUndertakingName)
+            idErr.transportUndertakingName = required;
+          if (!values.identification.communityLicenceNumber)
+            idErr.communityLicenceNumber = required;
         }
         if (values.identification.isVehicleHolder === 'owner') {
-          if (!values.identification.isNaturalPerson) idErr.isNaturalPerson = required;
-          if (values.identification.isNaturalPerson === 'company' && !values.identification.companyName) {
+          if (!values.identification.isNaturalPerson)
+            idErr.isNaturalPerson = required;
+          if (
+            values.identification.isNaturalPerson === 'company' &&
+            !values.identification.companyName
+          ) {
             idErr.companyName = required;
           }
           if (values.identification.isNaturalPerson === 'natural_person') {
@@ -323,7 +356,10 @@ export function useRsiForm(
             values.vehicleProhibitionOrRestriction,
           checkedItems: JSON.stringify(values.checkedItems ?? []),
         };
-        const result = await saveRsiMessage(message?.id ?? '', payload);
+        const result = await saveRsiMessage(
+          message?.id != null ? String(message.id) : '',
+          payload,
+        );
         onSaved(String(result.id));
       } catch (e) {
         const handled = applyValidationError(
@@ -356,33 +392,8 @@ export function useRsiForm(
     }
   };
 
-  const setPartStatus = (partCode: string, status: RsiCheckedItem['status']) => {
-    const items = (formik.values.checkedItems ?? []).map((it) =>
-      it.partCode === partCode
-        ? { ...it, status, defects: status === 'non_compliant' ? it.defects : [] }
-        : it,
-    );
+  const setCheckedItems = (items: RsiCheckedItem[]) =>
     formik.setFieldValue('checkedItems', items);
-  };
-
-  const applyPartDefects = (
-    partCode: string,
-    selected: { defectCode: string; severity: RsiDefectSeverity }[],
-  ) => {
-    const items = (formik.values.checkedItems ?? []).map((it) =>
-      it.partCode === partCode ? { ...it, status: 'non_compliant' as const, defects: selected } : it,
-    );
-    formik.setFieldValue('checkedItems', items);
-  };
-
-  const removeDefect = (partCode: string, defectCode: string) => {
-    const items = (formik.values.checkedItems ?? []).map((it) => {
-      if (it.partCode !== partCode) return it;
-      const defects = it.defects.filter((d) => d.defectCode !== defectCode);
-      return { ...it, defects, status: defects.length === 0 ? ('checked' as const) : it.status };
-    });
-    formik.setFieldValue('checkedItems', items);
-  };
 
   return {
     formik,
@@ -391,15 +402,12 @@ export function useRsiForm(
     clearFormError: () => setFormError(null),
     countries,
     vehicleCategories,
-    parts,
-    defectsByPartKey,
+    reasonTree,
     businessCaseId: message?.businessCaseId ?? '',
     driverBlockOpen,
     setDriverBlockOpen,
     identificationBlockOpen,
     setIdentificationBlockOpen,
-    setPartStatus,
-    applyPartDefects,
-    removeDefect,
+    setCheckedItems,
   };
 }

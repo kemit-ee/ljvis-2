@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -7,7 +8,7 @@ declaration:
     Server-side validates that 'officer' is only chosen when the personal code
     has an active users.user_account, and that 'company' is only chosen when
     registryCode is in the caller's (cached or freshly-fetched) AR
-    representedCompanies list — a forged registryCode is rejected with 403,
+    representedCompanies list - a forged registryCode is rejected with 403,
     per LJVIS2-137. Re-mints the JWT cookie with the new activeRole/
     activeRegistryCode so subsequent requests are cheap (no repeat AR/DB call).
   namespace: service
@@ -22,7 +23,7 @@ declaration:
         description: "One of: officer | citizen-self | company"
       - field: registryCode
         type: string
-        description: "Required when role=company — 8-digit Estonian company registry code"
+        description: "Required when role=company - 8-digit Estonian company registry code"
 
 check_input:
   switch:
@@ -71,6 +72,7 @@ checkOfficerEligible:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_permissions_by_personal_code"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}
@@ -96,6 +98,7 @@ refreshCompaniesForCheck:
   args:
     url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ""
@@ -150,6 +153,7 @@ applySwitch:
   args:
     url: "[#LJVIS_TIM]/jwt/custom/generate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
       X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
     body:

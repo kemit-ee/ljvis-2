@@ -1,10 +1,11 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Get one NCR case (erru.ncr_message) by businessCaseId, returning the FULL snapshot
-    history (LJVIS2-63) — the last element is the current state (drives the editable header/blocks),
+    history (LJVIS2-63) - the last element is the current state (drives the editable header/blocks),
     the whole array is the read-only 'Juhtumi teadete loend'. As a side effect, the first open of an
     incoming case still in 'received' auto-transitions it to 'viewed' (LJVIS2-62 §4 automatic
-    transition, LJVIS2-63 §4 'Teate esmakordsel avamisel liigub teade olekusse Vaadatud') — the
+    transition, LJVIS2-63 §4 'Teate esmakordsel avamisel liigub teade olekusse Vaadatud') - the
     array is re-fetched after the transition so the caller always sees the up-to-date state.
     Audited on EVERY open (ncr.case.view) because the case shows the transport undertaking's and
     handler's personal data."
@@ -14,6 +15,9 @@ declaration:
       - field: q
         type: string
         description: "NCR case identifier (business_case_id)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -33,6 +37,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -61,6 +66,7 @@ applyViewTransition:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-view-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -72,6 +78,7 @@ refetchAfterView:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -92,24 +99,12 @@ logAuditEvent:
   body:
     business_case_id: ${business_case_id}
     message_count: "${'' + res.response.body.length}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_ncr_case"
-    headers:
-      type: json
-    body:
-      snapshots: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(){ var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return { snapshots: res.response.body.map(function(f){ return Object.assign({}, f, { minorInfringement: p(f.minorInfringement), seriousInfringements: p(f.seriousInfringements) || [], responsePenaltiesImposed: p(f.responsePenaltiesImposed), responseAddress: p(f.responseAddress) }); }) }; })()}"
   next: end
 
 returnNotFound:

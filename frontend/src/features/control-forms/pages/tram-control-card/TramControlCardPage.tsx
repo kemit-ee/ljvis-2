@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +20,11 @@ import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
+import { NotifyCarrierCheckbox } from '../../components/shared/NotifyCarrierCheckbox';
+import { RequestCarrierNotification } from '../../components/shared/RequestCarrierNotification';
+import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
+import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 const FORM_TYPE = 'tram-card';
 
@@ -37,21 +43,26 @@ export function TramControlCardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasPermission } = useAuth();
+  const { hasPermission, hasAnyPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const isAdmin = useIsAdmin();
 
   const forbidden = !(
-    hasPermission('tram_driver_form.read') && hasPermission('classifier.read')
+    hasPermission('tram_driver_form.read') ||
+    hasPermission('tram_driver_form.write')
   );
 
   const [isEditActive, setIsEditActive] = useState(false);
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [notifyCarrier, setNotifyCarrier] = useState(false);
+  const [ncrModalOpen, setNcrModalOpen] = useState(false);
 
   const { form, loading, refetch } = useTramControlCardDetail(
     snapshotId ? undefined : id,
@@ -79,6 +90,7 @@ export function TramControlCardPage() {
   }, [form?.status, hasPermission]);
 
   const handleSaved = () => {
+    window.scrollTo(0, 0);
     setShowSavedAlert(true);
     setShowConfirmedAlert(false);
     setShowPublishedAlert(false);
@@ -161,6 +173,11 @@ export function TramControlCardPage() {
     handlePublished,
   );
 
+  // "Lisa NCR vorm" (LJVIS2-64 §4.1 eeltäitmine) — Euroopa Liidu vedaja
+  // kontrollimisel avastatud MSI/VSI/SI rikkumise korral saab kontrollkaardilt
+  // eeltäidetud NCR teate luua, samamoodi nagu PPA sõidu- ja puhkeaja kaardil.
+  const canBuildNcr = hasAnyPermission(['ncr.create']) && !!form?.id;
+
   const handleDelete = async () => {
     if (!id || !form) return;
     try {
@@ -181,7 +198,9 @@ export function TramControlCardPage() {
   const canConfirm =
     hasPermission('tram_driver_form.write') && status === 'saved';
   const canPublish =
-    hasPermission('tram_driver_form.write') && status === 'confirmed';
+    hasPermission('tram_driver_form.write') &&
+    status === 'confirmed' &&
+    canManuallyPublish(formik.values, hasPermission(PUNISHMENT_REGISTER_PERMISSION));
 
   const sharedProps = {
     isDesktop,
@@ -357,7 +376,8 @@ export function TramControlCardPage() {
     <div>
       {alerts}
 
-      {form && id && drivers.length > 0 && (
+      {/* E-toimiku päringu kaart on ainult karistusregistri õigusega kasutajale. */}
+      {form && id && drivers.length > 0 && hasPermission(PUNISHMENT_REGISTER_PERMISSION) && (
         <EtoimikQueryCard
           drivers={drivers}
           referenceNumberOptions={etoimikReferenceOptions}
@@ -444,12 +464,36 @@ export function TramControlCardPage() {
         </>
       )}
 
+      {!snapshotId && (
+        <AdministrativeProcedureCard
+          formType="tram-card"
+          formKey={id}
+          reloadAfterSave={!showEdit}
+        />
+      )}
+
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
           <FormPrintButton
-            endpoint="/v1/control-forms/good-repute/read/print"
+            endpoint="/v1/control-forms/tram-card/read/print"
             id={id}
           />
+          {canBuildNcr && (
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => setNcrModalOpen(true)}
+            >
+              {t('erru.ncr.buildModal.button')}
+            </Button>
+          )}
+          {showEdit && (
+            <RequestCarrierNotification
+              formType="tram_control_card"
+              id={id}
+              status={status}
+            />
+          )}
           {showEdit ? (
             <>
               <Button
@@ -464,17 +508,23 @@ export function TramControlCardPage() {
               </Button>
               <AsyncButton
                 type="button"
-                onClick={() => {
-                  formik.handleSubmit();
-                  window.scrollTo(0, 0);
-                }}
+                onClick={() => formik.handleSubmit()}
               >
                 {t('common.save')}
               </AsyncButton>
               {canConfirm && (
-                <AsyncButton type="button" onClick={() => triggerConfirm()}>
-                  {t('common.confirm')}
-                </AsyncButton>
+                <>
+                  <NotifyCarrierCheckbox
+                    checked={notifyCarrier}
+                    onChange={setNotifyCarrier}
+                  />
+                  <AsyncButton
+                    type="button"
+                    onClick={() => triggerConfirm(notifyCarrier)}
+                  >
+                    {t('common.confirm')}
+                  </AsyncButton>
+                </>
               )}
             </>
           ) : (
@@ -501,6 +551,16 @@ export function TramControlCardPage() {
           )}
         </div>
       </div>
+      {canBuildNcr && form?.id && (
+        <NcrBuildModal
+          spFormKey={form.id}
+          spFormType="tram"
+          initialNcrTo={form.vehicleCountryCode}
+          initialOriginatingAuthority={form.inspectorOrganisationId}
+          open={ncrModalOpen}
+          onClose={() => setNcrModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

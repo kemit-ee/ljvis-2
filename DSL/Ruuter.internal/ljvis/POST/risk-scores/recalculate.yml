@@ -1,15 +1,16 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
-    LJVIS2-151: recalculates and PERSISTS (see save_risk_score.sql — an
+    LJVIS2-151: recalculates and PERSISTS (see save_risk_score.sql - an
     insert-only historical table) the EU 2022/695 risk score for one Estonian
     transport undertaking, over a rolling 2-year window ending "now". Called
     by (a) the compound-form confirm flow (fire-and-forget,
-    calculation_trigger=kontrollvorm — see
+    calculation_trigger=kontrollvorm - see
     DSL/Ruuter/ljvis/POST/v1/control-forms/compound-form/edit/confirm.yml),
     (b) cronmanager's nightly full-recalculation job (one call per company,
-    calculation_trigger=ooine_ymberarvutus — the loop-over-all-companies
+    calculation_trigger=ooine_ymberarvutus - the loop-over-all-companies
     scheduling itself is cronmanager's responsibility, out of this task's
     scope), and (c) manually for testing/ops. No auth required: machine-to-
     machine only, port 8089 is not exposed outside the Docker network (same
@@ -42,6 +43,7 @@ calculateRiskScore:
   args:
     url: "[#LJVIS_RESQL]/risk_score/calculate_risk_score"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}
@@ -69,6 +71,7 @@ saveRiskScore:
   args:
     url: "[#LJVIS_RESQL]/risk_score/save_risk_score"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}
@@ -82,6 +85,12 @@ saveRiskScore:
       calculation_trigger: ${calculation_trigger}
       created_by: "system"
   result: saveResult
+  next: checkSave
+
+checkSave:
+  switch:
+    - condition: "${saveResult.response == null || saveResult.response.status < 200 || saveResult.response.status >= 300 || !saveResult.response.body || saveResult.response.body.length !== 1}"
+      next: returnSaveError
   next: returnSuccess
 
 returnSuccess:
@@ -89,7 +98,7 @@ returnSuccess:
   return: "${({riskScore: risk_score, riskBandCode: risk_band_code, totalControls: total_controls, companyName: company_name})}"
   next: end
 
-# Object-literal `${(...)}` form, NOT a quoted JSON string literal — see
+# Object-literal `${(...)}` form, NOT a quoted JSON string literal - see
 # current.yml's returnNoRecord comment for why (confirmed live via Newman).
 returnInvalidRegCode:
   status: 400
@@ -99,4 +108,9 @@ returnInvalidRegCode:
 returnCalculationError:
   status: 500
   return: "${({error: 'CALCULATION_ERROR', message: 'Risk score calculation failed'})}"
+  next: end
+
+returnSaveError:
+  status: 500
+  return: "${({error: 'SAVE_ERROR', message: 'Risk score persistence failed'})}"
   next: end

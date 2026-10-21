@@ -119,6 +119,7 @@ services:
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100000-risk-score-permission-seed.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100001-risk-score-test-fixtures.sql
         psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20260827100002-risk-score-kollane-fixture.sql
+        psql -h database -U ljvis -d ljvis_db -f /liquibase-test/20261203100000-risk-score-draft-deleted-fixture.sql
     networks:
       - ljvis-ci
 
@@ -207,6 +208,39 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
+  # Real XTR (same patched build as deployment) as the X-tee SOAP provider in front of ruuter-internal.
+  # The `xtr` service above is a mock and cannot do SOAP. Inbound SOAP 9095 → 8081,
+  # internal outbound JSON 9094 → 8080 (CI sidecar loops outbound SOAP back to 8081).
+  # See docs/xtee/09-xtr-soap.md.
+  xtr-inbound:
+    image: ljvis-ci-xtr-inbound
+    build:
+      context: .
+      dockerfile: docker/xtr/Dockerfile
+      args:
+        XTR_RUNTIME_IMAGE: turnerrainer/xtr@sha256:634b11471ff9c709f6b46cab18f7e85711d18df334a8b9a368f399a62bf1a9ca
+    restart: unless-stopped
+    depends_on:
+      - ruuter-internal
+    environment:
+      - RUST_LOG=xtr_on_rust=debug,info
+    volumes:
+      - ./docker/xtr-inbound/xtr.yaml:/app/xtr.yaml:ro
+      - ./docker/xtr-inbound/wsdl:/app/wsdl:ro
+      - ./docker/xtr-inbound/ci/ljvis.soap.yaml:/app/wsdl/ljvis/ljvis.soap.yaml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      - ljvis-ci
+    ports:
+      - "127.0.0.1:9095:8081"
+      - "127.0.0.1:9094:8080"
+    cpus: "0.25"
+    mem_limit: "128M"
+
   ruuter:
     build:
       context: .
@@ -274,6 +308,71 @@ services:
       - ljvis-ci
     cpus: "0.25"
     mem_limit: "128M"
+
+  # ERRU Hub mock — CI only. Stands in for the ERRU Hub so erru-xml-adapter's delivery role has
+  # somewhere to POST to (docs/architecture/erru-async-xml.md). See docker/erru-hub-mock.
+  erru-hub-mock:
+    build:
+      context: .
+      dockerfile: docker/erru-hub-mock/Dockerfile
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvis-ci
+    # localhost-only.
+    ports:
+      - "127.0.0.1:9092:8080"
+    cpus: "0.25"
+    mem_limit: "128M"
+
+  # Asynchronous ERRU 3.5 XML adapter (docs/architecture/erru-async-xml.md,
+  # docker/erru-xml-adapter/README.md). NotifyUnfitness is processed end-to-end; the other 4
+  # request types are rejected with 501 at ingress and not stored.
+  erru-xml-adapter:
+    build:
+      context: .
+      dockerfile: docker/erru-xml-adapter/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+      ruuter-internal:
+        condition: service_started
+      erru-hub-mock:
+        condition: service_healthy
+    environment:
+      - DB_URL=jdbc:postgresql://database:5432/ljvis_db
+      - DB_USER=ljvis
+      - DB_PASSWORD=01234
+      - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - INTERNAL_COMMUNICATION_KEY=dev-internal-service-token
+      - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+      - CONTRACTS_DIR=/app/contracts/erru/3.5
+      - RESPONDING_AUTHORITY=EE-PPA
+      - RESPONDING_AUTHORITY_CTUD=EE-TRAM
+      - RESPONDING_AUTHORITY_NCR=EE-TRAM
+      - RESPONDING_AUTHORITY_RSI=EE-TRAM
+      - MEMBER_STATE_CODE=EE
+      - POLL_INTERVAL_MS=500
+      - WORKER_ID=erru-xml-adapter-ci-1
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvis-ci
+    # No auth/peer trust on the ingress yet — localhost-only exposure.
+    ports:
+      - "127.0.0.1:9091:8080"
+    cpus: "0.5"
+    mem_limit: "256M"
 
   # ── Auth stack (TARA-Mock + TIM) ──────────────────────────────────────────
   tara-mock:

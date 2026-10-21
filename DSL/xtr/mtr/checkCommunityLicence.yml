@@ -9,16 +9,16 @@ params:
 
 method: POST
 
-# LJVIS2-153 — MTR checkCommunityLicence/v1
+# LJVIS2-153 - MTR checkCommunityLicence/v1
 # (EE/GOV/70003218/mtr/checkCommunityLicence/v1).
 #
 # elementFormDefault is unset on the producer's schema (same as
-# checkTransportManagerGoodRepute.yml / liiklusregister/paring2.yml) —
+# checkTransportManagerGoodRepute.yml / liiklusregister/paring2.yml) -
 # only the top-level <prod:checkCommunityLicence> element is
 # namespace-qualified; children are not. originatingAuthority and
-# vehicleRegistrationNumber are minOccurs="0" — omitted entirely (not
+# vehicleRegistrationNumber are minOccurs="0" - omitted entirely (not
 # xsi:nil) when the caller didn't supply them. allVehicles is
-# minOccurs="0" default="false" xsd:boolean — only emitted when true (the
+# minOccurs="0" default="false" xsd:boolean - only emitted when true (the
 # XSD default already covers the false/omitted case).
 envelope: >
   <?xml version="1.0" encoding="UTF-8"?>

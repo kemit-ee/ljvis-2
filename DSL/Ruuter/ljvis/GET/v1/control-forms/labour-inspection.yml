@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single labour inspection form (labour_inspection_form) by ID"
@@ -8,16 +9,19 @@ declaration:
       - field: q
         type: string
         description: "Labour inspection form ID"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: checkPermission
 
 checkPermission:
   switch:
-    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('labour_inspection_form.read'))}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('labour_inspection_form.read') || auth_user.permissions.includes('labour_inspection_form.write'))}
       next: extractRequestData
   next: returnForbidden
 
@@ -25,13 +29,39 @@ extractRequestData:
   assign:
     id: "${incoming.params.q}"
     actor_personal_code: "${auth_user.personalcode || ''}"
-  next: getForm
+  next: checkReadAccess
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "labour-inspection"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getForm
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -55,7 +85,7 @@ checkShouldLog:
   switch:
     - condition: ${actor_personal_code != created_by}
       next: logAuditEvent
-  next: mapResponse
+  next: returnSuccess
 
 logAuditEvent:
   template: "templates/audit/form/labour-inspection/log-labour-inspection-view"
@@ -67,21 +97,11 @@ logAuditEvent:
     form_number: ${form_number}
     isikukood: ${punished_person_id_code}
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
-    headers:
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(f){ if (!f) return f; var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return Object.assign({}, f, { controlsMatrix: p(f.controlsMatrix), violations: p(f.violations) }); })(res.response.body[0])}"
   next: end
 
 returnNotFound:

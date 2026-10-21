@@ -1,12 +1,16 @@
 declaration:
+  internal: false
   version: "1.0"
-  description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be in the 'sent' terminal state. Only the entry for the specified memberStateCode is updated in the member_states JSONB; all other countries' responses and the workflow_id are preserved unchanged. A new snapshot is appended (sent → sent transition). ERRU v2.4 member states appear as NotAvailable in the mock and must be stored as-is. The ERRU_CGR_ENDPOINT constant is used, identical to send.yml. On a transport failure (or a response missing memberStates) the request is NOT transitioned to 'error' — the already-sent broadcast and other countries' answers remain valid, so the status stays 'sent' and a retry of the resend is immediately possible; only an audit entry is logged and 502 is returned."
+  description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be in the 'sent' terminal state. Only the entry for the specified memberStateCode is updated in the member_states JSONB; all other countries' responses and the workflow_id are preserved unchanged. A new snapshot is appended (sent → sent transition). ERRU v2.4 member states appear as NotAvailable in the mock and must be stored as-is. The ERRU_CGR_ENDPOINT constant is used, identical to send.yml. On a transport failure (or a response missing memberStates) the request is NOT transitioned to 'error' - the already-sent broadcast and other countries' answers remain valid, so the status stays 'sent' and a retry of the resend is immediately possible; only an audit entry is logged and 502 is returned."
   namespace: erru
   allowlist:
     body:
       - field: id
         type: string
       - field: memberStateCode
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -30,6 +34,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -109,6 +114,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/cgr/resend"
@@ -128,6 +134,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "erru/cgr/resend"
@@ -176,6 +183,7 @@ storeResent:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
@@ -200,8 +208,6 @@ logAuditResend:
     member_state_count: "1"
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_ok
   next: returnResent
 
@@ -221,8 +227,6 @@ logAuditResendFailed:
     member_state_count: "0"
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_err
   next: returnError
 
@@ -232,7 +236,7 @@ returnResent:
 
 returnError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure during resend — retry permitted"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure during resend - retry permitted"}'
   next: end
 
 returnIdRequired:

@@ -1,6 +1,6 @@
 /*
 description: 'Apply a matching e-toimik decision. Imported confirmed forms publish as a new snapshot;
-  their parent publishes after its last child. Other forms keep existing enrichment behaviour.'
+  their parent publishes after its last child. All forms retain dev append-only history, revision and repeat-response protection.'
 namespace: control-forms
 params:
   key:

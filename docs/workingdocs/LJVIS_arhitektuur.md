@@ -1,7 +1,7 @@
 # LJVIS2 – Arhitektuuridokument
 
-**Versioon:** 0.1  
-**Kuupäev:** 2026-07-07  
+**Versioon:** 0.1
+**Kuupäev:** 2026-07-07
 
 ---
 
@@ -42,7 +42,7 @@ Süsteem töötab Docker Compose põhises dev/test keskkonnas ja on kavandatud A
 |--------|---------|
 | Frontend | React + Vite + TypeScript |
 | API gateway | Ruuter (YAML DSL) |
-| SQL kiht | RESQL (SQL failid → REST endpointid) |
+| SQL kiht | RESQL (SQL failid → REST lõpp-punktid) |
 | Andmebaas | PostgreSQL 17 |
 | Skeemihaldus | Liquibase |
 | Autentimine | TIM + TARA (OIDC) |
@@ -104,7 +104,7 @@ graph TD
 - **Asukoht:** `frontend/src/`
 - **Struktuur:** feature-based (`features/users/`, `features/user-groups/`, `features/classifiers/`, jne)
 - **API suhtlus:** `shared/api/client.ts` — kõik `get/post/put/delete` kutsed käivad läbi ühtse kliendi
-- **Autentimine:** TIM sessiooniküpsis; sessiooni kontroll `AuthContext` kaudu
+- **Autentimine:** TIM seansiküpsis; seansi kontroll `AuthContext` kaudu
 - **Marsruutimine:** React Router v6; kaitstud marsruudid `ProtectedRoute` komponendiga
 
 Põhifunktsionaalsused:
@@ -115,7 +115,7 @@ Põhifunktsionaalsused:
 | `features/user-groups/` | Kasutajagruppide haldus, asutused, õigused, liikmed |
 | `features/classifiers/` | Klassifikaatorite ja väärtuste haldus |
 | `features/audit-logs/` | Audit-logi vaatamine |
-| `features/auth/` | Sisselogimine, sessiooni kontroll, väljalogimine |
+| `features/auth/` | Sisselogimine, seansi kontroll, väljalogimine |
 | `features/control-forms/` | Kontrollvormide marsruutimine (LJVIS-133) |
 
 ### 4.2 Ruuter (API gateway + äriloogika)
@@ -124,14 +124,14 @@ Põhifunktsionaalsused:
 - **Meetodid:** `GET/`, `POST/`, `PUT/`, `DELETE/`
 - **Struktuur:** HTTP meetod → versiooni tee → ressurss → toiming
 
-Iga `.yml` fail on üks endpoint. Failitee = URL path:
+Iga `.yml` fail on üks lõpp-punkt. Failitee = URL path:
 
 ```
 DSL/Ruuter/ljvis/GET/v1/users/admin.yml   →   GET /v1/users/admin
 DSL/Ruuter/ljvis/PUT/v1/users/admin.yml   →   PUT /v1/users/admin
 ```
 
-Jagatud alamvoogud (ei ole HTTP endpointid):
+Jagatud alamvoogud (ei ole HTTP lõpp-punktid):
 - `DSL/Ruuter/ljvis/GET/templates/` — valideerimine, kasutajate autentimine, andmete arvutamine
 
 Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
@@ -139,7 +139,7 @@ Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 ### 4.3 Ruuter Internal (X-tee gateway)
 
 - **Asukoht:** `DSL/Ruuter.internal/ljvis/`
-- **Roll:** Sisemiste ja X-tee kaudu saabuvaute päringute käsitlemine — **ei ole nginx-ist proxitud**, ligipääsetav ainult X-tee turvaserveri ja konteinerivõrgu kaudu
+- **Roll:** Sisemiste ja X-tee kaudu saabuvate päringute käsitlemine — **ei ole nginx-ist proxitud**, ligipääsetav ainult X-tee turvaserveri ja konteinerivõrgu kaudu
 - **Teenused:** X-tee inbound päringud (isiku andmed, töökontrollid), andmejälgija REST API (DUMonitor v2), cron-päringud
 
 ### 4.4 RESQL
@@ -157,7 +157,7 @@ Lähemalt: [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md)
 
 ### 4.6 TIM
 
-- **Roll:** Autentimine ja sessioonihaldus
+- **Roll:** Autentimine ja seansihaldus
 - **Protokoll:** OIDC (dev-s TARA Mock, prod-s päris TARA)
 - **Suhtlus Ruuteriga:** Ruuter valideerib igal päringul JWT küpsise TIM-i vastu (`check-user-authority` mall)
 
@@ -258,7 +258,7 @@ Ruuter DSL kasutab **staatilisi path segmente** — dünaamilised identifikaator
 | Muster | Näide | Selgitus |
 |--------|-------|----------|
 | Üksiku ressursi lugemine | `GET /v1/users/admin?q=<uuid>` | `?q=` on de facto standard ID-paramina |
-| Nimekiri / otsing | `GET /v1/users/admin/search?q=Mari&page=0` | `/search` eraldi endpoint |
+| Nimekiri / otsing | `GET /v1/users/admin/search?q=Mari&page=0` | `/search` eraldi lõpp-punkt |
 | Loomine | `POST /v1/users/admin` | body JSON |
 | Muutmine | `PUT /v1/users/admin` | `id` body-s |
 | Kustutamine | `DELETE /v1/user-groups/user?q=<id>` | `?q=` parameetrina |
@@ -313,13 +313,13 @@ Lähemalt: [`docs/db_errorhandling_rules.md`](db_errorhandling_rules.md)
 
 - **Projektiülene guard** `DSL/Ruuter/ljvis/.guard.yml` (Ruuter issue #39) kaitseb
   KÕIKI `ljvis` route'e igal HTTP-meetodil kõige välimise guardina. Kontrollib
-  sessiooniküpsist TIM-i vastu (`templates/check-user-authority`) täpselt üks kord.
+  seansiküpsist TIM-i vastu (`templates/check-user-authority`) täpselt üks kord.
 - Ebaõnnestunud autentimine → HTTP 401.
 - Guard annab tulemuse muutujas **`auth_user`** edasi nii alamkausta permission-
   guardidele kui handleritele — seega ei autendi ükski handler enam ise.
 - Erandid (`declaration.override_ancestors: true`, bypass'ivad projektiülese guardi):
   `auth/**` (avalik login), `**/mock/**` (dev/CI), `v1/citizen/**` (TARA
-  kodaniku-sessioon, `templates/citizen-authority`), ERRU verbi-guardid (autendivad ise).
+  kodaniku-seanss, `templates/citizen-authority`), ERRU verbi-guardid (autendivad ise).
 
 ### 7.2 Autoriseerimine
 
@@ -391,13 +391,13 @@ Kõik X-tee päringud käivad läbi Ruuter Internal konteinerist. Ruuter Interna
 
 Andmejälgija on RIA koordineeritud infrastruktuur (IKS § 19, § 25), mis võimaldab isikul eesti.ee portaalis näha, kes tema andmeid LJVIS-is on töödelnud.
 
-**Viide:** [RIA Andmejälgija GitHub](https://github.com/e-gov/AJ/) · [DUMonitor OpenAPI v2.1.0](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/dumonitor-openapi.yaml)
+**Viide:** [RIA Andmejälgija GitHub](https://github.com/e-gov/AJ/) · [Kasutusteabe esitamise protokoll v1.6.1](https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/Kasutusteabe_esitamise_protokoll.md)
 
-LJVIS implementeerib DUMonitor OpenAPI v2.1.0 kolme endpointiga:
+LJVIS pakub ühte X-tee teenust `findUsage` kolme otspunktiga (leping [`FindUsageOpenapi.yaml`](../xtee/FindUsageOpenapi.yaml)):
 
 | Endpoint | URL | Kirjeldus |
 |----------|-----|-----------|
-| `heartbeat` | `GET /ljvis/xroad/v2/heartbeat` | Elutuukse |
+| `heartbeat` | `GET /ljvis/xroad/v2/heartbeat` | Elutuks (`OK`/`FAIL` andmebaasi kontrolli järgi) |
 | `usagePeriod` | `GET /ljvis/xroad/v2/usagePeriod` | Ajavahemik mille kohta on kasutusteave |
 | `findUsage` | `GET /ljvis/xroad/v2/findUsage` | Isiku kasutusteabe kirjed (paginated) |
 
@@ -447,7 +447,7 @@ Lähemalt: [`docs/data_model.md`](data_model.md)
 | Dokument | Sisu |
 |----------|------|
 | [`DSL/ARCHITECTURE.md`](../DSL/ARCHITECTURE.md) | DSL failide struktuur, mallid, valideerimine |
-| [`api-endpoints.md`](api-endpoints.md) | Kõik API endpointid ja mock-teed |
+| [`api-endpoints.md`](api-endpoints.md) | Kõik API lõpp-punktid ja mock-teed |
 | [`openapi.yaml`](../openapi.yaml) | OpenAPI 3 spetsifikatsioon |
 | [`docs/rest-api-design-guide.md`](rest-api-design-guide.md) | REST API kujundamise reeglid |
 | [`docs/permissions-matrix.md`](permissions-matrix.md) | Ressursside õiguste maatriks |

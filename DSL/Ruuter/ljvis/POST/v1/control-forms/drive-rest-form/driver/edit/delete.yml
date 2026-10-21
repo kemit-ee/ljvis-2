@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Delete driver form"
@@ -8,6 +9,9 @@ declaration:
       - field: id
         type: string
       - field: old_status
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -25,6 +29,7 @@ deleteForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/delete"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -41,9 +46,31 @@ logAuditEvent:
   body:
     form_number: "${deleteRes.response.body[0].subFormNumber + '/' + deleteRes.response.body[0].version}"
     old_status: ${old_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: triggerRiskRecalculate
+
+# calculate_risk_score.sql jätab kustutatud vormi arvestusest välja, seega
+# kustutamine peab riskiskoori värskendama (muidu jääb kustutatud vormi
+# rikkumine skoori sisse kuni öise risk-score-recalc-sync cron'ini).
+# Fire-and-forget: viga ei tohi kustutamist tagasi pöörata.
+triggerRiskRecalculate:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test('' + (deleteRes.response.body[0].companyRegCode || ''))}"
+      next: returnSuccess
+  next: callRiskRecalculate
+
+callRiskRecalculate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${deleteRes.response.body[0].companyRegCode}
+      calculation_trigger: "kontrollvorm"
+  result: recalc_result
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

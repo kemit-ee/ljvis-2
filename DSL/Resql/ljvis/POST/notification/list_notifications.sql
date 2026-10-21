@@ -35,6 +35,7 @@ SELECT
     (COUNT(*) OVER ())::INTEGER AS total
 FROM notifications.notification n
 WHERE n.required_permission = ANY (string_to_array(:permissions, ','))
+   OR n.recipient_personal_codes @> ARRAY[:user_code]::TEXT[]
 ORDER BY n.created_at DESC
 LIMIT  COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER
 OFFSET ((GREATEST(COALESCE(NULLIF(:page::TEXT, ''), '1')::INTEGER, 1) - 1)

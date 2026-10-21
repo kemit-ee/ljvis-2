@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Publish (avalikusta) a good repute form (hea maine vorm). Publishing re-saves current field values, then transitions status confirmed -> published. One-way: an already-published form cannot be published again."
@@ -6,6 +7,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -22,6 +26,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -59,9 +64,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       status: ${status}
       personalCode: ${personal_code}
       firstName: ${first_name}
@@ -76,7 +83,20 @@ publishForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: confirmRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractConfirmResponseData:
   assign:
@@ -97,8 +117,6 @@ logAuditEvent:
     personal_code: ${personal_code}
     old_status: ${old_status}
     new_status: ${new_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

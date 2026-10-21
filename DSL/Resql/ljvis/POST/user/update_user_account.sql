@@ -1,5 +1,5 @@
 /*
-description: Update user data — copy latest snapshot with new field values and status (replaces v1 insert_user_account_data_state
+description: Update user data - copy latest snapshot with new field values and status (replaces v1 insert_user_account_data_state
   + insert_user_account_state + rebuild)
 namespace: user
 params:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: '1.0'
   description: 'heartbeat: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st GET/xroad/v2/heartbeat.yml.
     X-Mock-Scenario: empty või server-error.'
@@ -7,15 +8,34 @@ declaration:
     headers:
     - field: content-type
       required: false
-    - field: x-road-client
-      required: false
-    - field: x-road-userid
-      required: false
     - field: x-mock-scenario
       required: false
     body: []
     params: []
+checkDatabase:
+  assign:
+    dbResult:
+      response:
+        status: '${incoming.headers[''x-mock-scenario''] === ''server-error'' ? 500 : 200}'
+        body: '${[{periodStart: incoming.headers[''x-mock-scenario''] === ''empty'' ? new Date().toISOString().replace(/\.\d{3}Z$/,
+          ''Z'') : ''2026-06-13T12:00:00Z''}]}'
+  next: checkStatus
+checkStatus:
+  switch:
+  - condition: ${dbResult.response.status >= 200 && dbResult.response.status < 300}
+    next: returnOk
+  next: returnFail
 returnOk:
   status: 200
-  return: '{"status": "OK", "message": "API is ready"}'
+  wrapper: false
+  return:
+    status: OK
+    message: API is ready
+  next: end
+returnFail:
+  status: 200
+  wrapper: false
+  return:
+    status: FAIL
+    message: Usage log database is not available
   next: end

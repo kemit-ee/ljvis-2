@@ -1,0 +1,62 @@
+declaration:
+  internal: false
+  version: "1.0"
+  description: Recalculate after a stored control changes. Unpublished controls and foreign companies are skipped.
+  namespace: risk_score
+  allowlist:
+    body:
+      - field: form_type
+        type: string
+      - field: form_key
+        type: string
+validateSource:
+  switch:
+    - condition: "${!/^[0-9]+$/.test(incoming.body.form_key || '') || !['compound','tram_control_card','labour_inspection'].includes(incoming.body.form_type)}"
+      next: returnInvalid
+  next: resolveCompany
+resolveCompany:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/risk_score/get_company_for_control"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: ${incoming.body.form_type}
+      form_key: ${incoming.body.form_key}
+  result: companyRes
+  next: checkCompany
+checkCompany:
+  switch:
+    - condition: ${companyRes.response == null || companyRes.response.status < 200 || companyRes.response.status >= 300}
+      next: returnError
+    - condition: ${!companyRes.response.body || companyRes.response.body.length === 0}
+      next: returnSkipped
+  next: recalculate
+recalculate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${companyRes.response.body[0].companyRegCode}
+      calculation_trigger: kontrollvorm
+  result: recalcRes
+  next: returnResult
+returnResult:
+  status: ${recalcRes.response.status}
+  return: ${recalcRes.response.body}
+  next: end
+returnSkipped:
+  return: ${({skipped:true})}
+  next: end
+returnError:
+  status: 500
+  return: ${({error:'COMPANY_SELECTION_ERROR'})}
+  next: end
+returnInvalid:
+  status: 400
+  return: ${({error:'INVALID_PARAMETER'})}
+  next: end

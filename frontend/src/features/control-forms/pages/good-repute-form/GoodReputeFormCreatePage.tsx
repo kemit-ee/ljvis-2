@@ -5,7 +5,7 @@ import { Heading, Text, Alert, Card } from '@tedi-design-system/react/tedi';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
 import { useAuth } from '../../../auth/AuthContext';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifiers, useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 import { usePersonSearch } from '../../../xroad/hooks/usePersonSearch';
 import { useGoodReputeForm } from './useGoodReputeForm';
 import { GoodReputeFormFields } from '../../components/GoodRepute/GoodReputeFormFields';
@@ -13,6 +13,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
 
 export function GoodReputeFormCreatePage() {
+  useClassifierScopeActive(true); // ADR-011
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();

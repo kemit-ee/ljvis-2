@@ -1,15 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Create or update the drive rest form for driver — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
+  description: "Create or update the drive rest form for driver - single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: compoundFormKey
       - field: subFormNumber
-        type: string
-      - field: status
         type: string
       - field: selectionStatus
         type: string
@@ -69,6 +69,9 @@ declaration:
       - field: proceedingClosureBasis
         type: string
       - field: notes
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -131,6 +134,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       compoundFormKey: ${compound_form_key}
@@ -190,6 +194,7 @@ getCompoundFormInsert:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${compound_form_key}
@@ -224,8 +229,6 @@ logAuditEventInsert:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -234,6 +237,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -244,6 +248,21 @@ extractCurrentStatus:
   assign:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
     current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+  next: protectProceedingOutcome
+
+# Jõustunud otsust ja menetluse lõpetamise alust võivad kinnitatud ja avalikustatud vormil
+# muuta ainult eToimikuga seonduva ülekirjutamise õigusega kasutaja ja administraator
+# (edit_locked). Kõigil teistel säilitatakse salvestatud väärtused.
+protectProceedingOutcome:
+  switch:
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && (u.permissions.includes('control_form.punishment_register') || u.permissions.includes('control_form.edit_locked')))}
+      next: keepProceedingOutcome
+  next: updateForm
+
+keepProceedingOutcome:
+  assign:
+    enforcement_decision: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].enforcementDecision) || ''}"
+    proceeding_closure_basis: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].proceedingClosureBasis) || ''}"
   next: updateForm
 
 updateForm:
@@ -251,9 +270,11 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       compoundFormKey: ${current_compound_form_key}
       subFormNumber: ${sub_form_number}
       status: ${current_status}
@@ -292,7 +313,20 @@ updateForm:
       notes: ${notes}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkUpdateSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkUpdateSaved:
   switch:
@@ -312,6 +346,7 @@ getCompoundFormUpdate:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${current_compound_form_key}
@@ -329,6 +364,7 @@ extractDriverPersonalCodesUpdate:
     driver1_personal_code_foreign: "${compound_drivers[0] != null ? (compound_drivers[0].personalCodeForeign || '') : ''}"
     driver2_personal_code_ee: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeEe || '') : ''}"
     driver2_personal_code_foreign: "${compound_drivers[1] != null ? (compound_drivers[1].personalCodeForeign || '') : ''}"
+    company_name: "${compoundFormRes.response.body[0].companyName || ''}"
   next: logAuditEventUpdate
 
 logAuditEventUpdate:
@@ -346,9 +382,92 @@ logAuditEventUpdate:
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: recalcRiskOnResave
+
+# Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
+recalcRiskOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: callRiskRecalcOnResave
+  next: checkNotifyOnResave
+
+callRiskRecalcOnResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(current_compound_form_key)}"
+  result: riskRecalcRes
+  error: checkNotifyOnResave
+  next: checkNotifyOnResave
+
+# Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
+# teavituste mõttes - publish.yml-iga samad kontrollid, aga event_key sisaldab
+# uut version'it, nii et teavitus ei jää dubleerimiskontrolli taha kinni.
+checkNotifyOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: checkSeriousInfringementResave
+  next: returnSuccess
+
+checkSeriousInfringementResave:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringementResave
+  next: checkWeightViolationResave
+
+createSeriousInfringementResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${sp_driver_form_key}
+      event_key: "${'drive-rest-driver:' + sp_driver_form_key + ':' + saveRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Koondvormi võti: ' + current_compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifResResave
+  error: checkWeightViolationResave
+  next: checkWeightViolationResave
+
+checkWeightViolationResave:
+  switch:
+    - condition: ${mass_dimension_non_compliant === true || mass_dimension_non_compliant === 'true'}
+      next: createWeightViolationNotificationResave
+  next: returnSuccess
+
+createWeightViolationNotificationResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "weight_violation"
+      required_permission: "rsi.read"
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${sp_driver_form_key}
+      event_key: "${'drive-rest-driver:' + sp_driver_form_key + ':' + saveRes.response.body[0].version}"
+      title_et: "Sõiduki kaalumisel ja mõõtmisel on avastatud rikkumine"
+      body_et: "${'Koondvormi võti: ' + current_compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: notifResResave
+  error: returnSuccess
   next: returnSuccess
 
 returnResqlSaveError:

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single foreign violation form by ID"
@@ -8,15 +9,18 @@ declaration:
       - field: q
         type: string
         description: "Foreign violation form ID"
+    headers:
+      - field: cookie
+        type: string
 
 checkPermission:
   switch:
-    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('foreign_violation_form.read'))}
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('foreign_violation_form.read') || auth_user.permissions.includes('foreign_violation_form.write'))}
       next: get_user_context
   next: returnForbidden
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -26,13 +30,39 @@ extractRequestData:
     id: "${incoming.params.q}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
-  next: getForm
+  next: checkReadAccess
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "foreign-violation-form"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getForm
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -64,8 +94,6 @@ logAuditEvent:
     cookie: ${incoming.headers.cookie}
   body:
     form_number: ${form_number}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 
@@ -74,6 +102,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_foreign_violation_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -81,13 +110,14 @@ mapResponse:
   next: getNotificationHistory
 
 # p.5: teavituse saatmise ajalugu (kuupäevad) tuleb notifications.outbound_log-ist,
-# mitte kaardilt endalt — vt DSL/Resql/ljvis/POST/notification/list_outbound_log.sql,
+# mitte kaardilt endalt - vt DSL/Resql/ljvis/POST/notification/list_outbound_log.sql,
 # millele lisati related_entity_type/related_entity_id filtrid selle jaoks.
 getNotificationHistory:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/notification/list_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       related_entity_type: "foreign_violation_form"
@@ -104,16 +134,16 @@ mergeNotificationHistory:
   assign:
     notification_history: >-
       ${(historyRes.response.body || []).map(function(row) {
-        return { type: row.notificationType, sentAt: row.sendDate, status: row.status };
+        return { type: row.notificationType, sentAt: row.sendDate, status: row.status, recipientAddress: row.recipientAddress };
       })}
   next: returnSuccess
 
 returnSuccess:
-  return: "${Object.assign({}, mapped.response.body, { notificationHistory: notification_history })}"
+  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: notification_history })}"
   next: end
 
 returnSuccessWithoutHistory:
-  return: "${Object.assign({}, mapped.response.body, { notificationHistory: [] })}"
+  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: [] })}"
   next: end
 
 returnNotFound:

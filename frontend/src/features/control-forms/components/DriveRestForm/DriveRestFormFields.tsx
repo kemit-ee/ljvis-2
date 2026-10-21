@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { useDriveRestForm } from '../../pages/drive-rest-form/useDriveRestForm';
@@ -25,6 +26,9 @@ import { DocRightOtherSection } from './DocRightOtherSection';
 import styles from '../../pages/drive-rest-form/DriveRestFormPage.module.css';
 import { FileUploadBlock } from '../shared/FileUploadBlock';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
+import { useAuth } from '../../../auth/AuthContext';
+import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { useExpandedWhenSelected } from '../../hooks/useExpandedWhenSelected';
 
 interface ChoiceItem {
   id: string;
@@ -43,6 +47,8 @@ const MAIN_DRIVING_VIOLATION_FIELDS = [
 ];
 const ROOMA1_VIOLATION_FIELDS = ['violations5932008'];
 const POSTING_VIOLATION_FIELDS = ['violations20201057'];
+
+const hasItems = (v: unknown) => Array.isArray(v) && v.length > 0;
 
 // Veoliigi (transportType) järgi mittetäidetavad väljad.
 const PASSENGER_CLASS_CODES = [
@@ -124,8 +130,38 @@ export function DriveRestFormFields({
   filesFormNumber,
 }: Props) {
   const { t } = useTranslation();
+  const { hasPermission } = useAuth();
+  // Kinnitatud ja avalikustatud vormil saab neid välju muuta eToimikuga seonduva
+  // ülekirjutamise õigusega kasutaja ning administraator (e-toimiku vea parandamiseks).
+  const canEditProceedingOutcome =
+    !readOnly &&
+    (formik.values.status === 'confirmed' ||
+      formik.values.status === 'published') &&
+    (hasPermission(PUNISHMENT_REGISTER_PERMISSION) ||
+      hasPermission('control_form.edit_locked'));
 
   const fieldId = (id: string) => type === 'teammate' ? `teammate-${id}` : id;
+
+  // Valitud rikkumisega plokk on alati avatud, et rikkumine oleks kogu aeg näha.
+  const fv = formik.values;
+  const docRightAccordion = useExpandedWhenSelected(
+    hasItems(fv.documentChecks) ||
+      (Array.isArray(fv.otherDocuments) &&
+        fv.otherDocuments.some((d) => d.result === 'EI_VASTA_NOUETELE')),
+  );
+  // Vaikimisi avatud: plokis on kohustuslik väli, mida suletuna on lihtne
+  // märkamata jätta.
+  const driveRestAccordion = useExpandedWhenSelected(
+    MAIN_DRIVING_VIOLATION_FIELDS.some((f) => hasItems(fv[f as keyof typeof fv])),
+    true,
+  );
+  const rooma1Accordion = useExpandedWhenSelected(hasItems(fv.violations5932008));
+  const postingAccordion = useExpandedWhenSelected(hasItems(fv.violations20201057));
+  const massDimensionAccordion = useExpandedWhenSelected(
+    hasItems(fv.massDimensionMeasurements) || fv.atpViolationFound === 'true',
+  );
+  const atpAccordion = useExpandedWhenSelected(fv.atpViolationFound === 'true');
+
   const withDisabled = (items: ChoiceItem[]): ChoiceItem[] =>
     items.map((item) => ({
       ...item,
@@ -294,6 +330,28 @@ export function DriveRestFormFields({
 
   return (
     <div>
+      {/* Plokk: Meeskonnaliige (ainult loetav, võetakse koondvormi plokist) */}
+      {type === 'teammate' &&
+        (formik.values.personFirstName || formik.values.personLastName) && (
+          <Row className="m-0">
+            <Col className="p-0">
+              <Card className="mb-1">
+                <Card.Content>
+                  <p id="teammate-person-name" className="m-0">
+                    <strong>{t('forms.drive_rest.teammatePerson')}:</strong>{' '}
+                    {[
+                      formik.values.personFirstName,
+                      formik.values.personLastName,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  </p>
+                </Card.Content>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
       {/* Plokk: Veoliik ja veoklass */}
       <Row className="m-0">
         <Col className="p-0">
@@ -610,6 +668,18 @@ export function DriveRestFormFields({
                     value: 'warning',
                     label: t('forms.sp_form.controlResultHoiatus'),
                   },
+                  // Märgukiri (endine "Ettekirjutus" lisameede) kuulub ainult
+                  // Transpordiameti kontrollkaardile, tõstetud siia hoiatuse
+                  // järele.
+                  ...(authority === 'TRAM'
+                    ? [
+                        {
+                          id: 'result_margukiri',
+                          value: 'precept',
+                          label: t('forms.sp_form.controlResultMargukiri'),
+                        },
+                      ]
+                    : []),
                   {
                     id: 'result_alustati',
                     value: 'misdemeanor_proceedings',
@@ -626,51 +696,94 @@ export function DriveRestFormFields({
                   : {})}
               />
               {(formik.values.resultType === 'warning' ||
-                formik.values.resultType === 'misdemeanor_proceedings') && (
-                <ChoiceGroup
-                  id={fieldId('additionalMeasure')}
-                  label={
-                    <strong>{t('forms.sp_form.additionalMeasure')}</strong>
-                  }
-                  name={fieldId('additionalMeasure')}
-                  inputType="radio"
-                  direction="row"
-                  className="mb-1"
-                  value={formik.values.additionalMeasure ?? ''}
-                  onChange={(val) =>
-                    formik.setFieldValue('additionalMeasure', val as string)
-                  }
-                  items={withDisabled([
-                    {
-                      id: 'measure_none',
-                      value: '',
-                      label: t('forms.sp_form.additionalMeasureNone'),
-                    },
-                    {
-                      id: 'measure_ettekirjutus',
-                      value: 'precept',
-                      label: t('forms.sp_form.controlResultEttekirjutus'),
-                    },
-                    {
-                      id: 'measure_juhtimiselt',
-                      value: 'driving_ban',
-                      label: t('forms.sp_form.controlResultJuhtimiselt'),
-                    },
-                    {
-                      id: 'measure_arest',
-                      value: 'arrest',
-                      label: t('forms.sp_form.controlResultArest'),
-                    },
-                    {
-                      id: 'measure_autovedu',
-                      value: 'transport_interruption',
-                      label: t('forms.sp_form.controlResultAutovedu'),
-                    },
-                  ])}
-                />
-              )}
+                formik.values.resultType === 'misdemeanor_proceedings') &&
+                (authority === 'TRAM' ? (
+                  // TRAM: mitut lisameedet võib kohaldada üheaegselt, seega
+                  // kastikesed (mitmikvalik) ühte stringi kokku pakituna
+                  // ("driving_ban,arrest"), mitte raadionupud. "Ettekirjutus"
+                  // (nüüd "Märgukiri") tõsteti Kontrolli tulemuse blokki.
+                  <ChoiceGroup
+                    id={fieldId('additionalMeasure')}
+                    label={
+                      <strong>{t('forms.sp_form.additionalMeasure')}</strong>
+                    }
+                    name={fieldId('additionalMeasure')}
+                    inputType="checkbox"
+                    direction="row"
+                    className="mb-1"
+                    value={(formik.values.additionalMeasure ?? '')
+                      .split(',')
+                      .filter(Boolean)}
+                    onChange={(val) =>
+                      formik.setFieldValue(
+                        'additionalMeasure',
+                        (val as string[]).join(','),
+                      )
+                    }
+                    items={withDisabled([
+                      {
+                        id: 'measure_juhtimiselt',
+                        value: 'driving_ban',
+                        label: t('forms.sp_form.controlResultJuhtimiselt'),
+                      },
+                      {
+                        id: 'measure_arest',
+                        value: 'arrest',
+                        label: t('forms.sp_form.controlResultArest'),
+                      },
+                      {
+                        id: 'measure_autovedu',
+                        value: 'transport_interruption',
+                        label: t('forms.sp_form.controlResultAutovedu'),
+                      },
+                    ])}
+                  />
+                ) : (
+                  <ChoiceGroup
+                    id={fieldId('additionalMeasure')}
+                    label={
+                      <strong>{t('forms.sp_form.additionalMeasure')}</strong>
+                    }
+                    name={fieldId('additionalMeasure')}
+                    inputType="radio"
+                    direction="row"
+                    className="mb-1"
+                    value={formik.values.additionalMeasure ?? ''}
+                    onChange={(val) =>
+                      formik.setFieldValue('additionalMeasure', val as string)
+                    }
+                    items={withDisabled([
+                      {
+                        id: 'measure_none',
+                        value: '',
+                        label: t('forms.sp_form.additionalMeasureNone'),
+                      },
+                      {
+                        id: 'measure_ettekirjutus',
+                        value: 'precept',
+                        label: t('forms.sp_form.controlResultEttekirjutus'),
+                      },
+                      {
+                        id: 'measure_juhtimiselt',
+                        value: 'driving_ban',
+                        label: t('forms.sp_form.controlResultJuhtimiselt'),
+                      },
+                      {
+                        id: 'measure_arest',
+                        value: 'arrest',
+                        label: t('forms.sp_form.controlResultArest'),
+                      },
+                      {
+                        id: 'measure_autovedu',
+                        value: 'transport_interruption',
+                        label: t('forms.sp_form.controlResultAutovedu'),
+                      },
+                    ])}
+                  />
+                ))}
               {formik.values.resultType !== 'ok' &&
                 formik.values.resultType !== 'warning' &&
+                formik.values.resultType !== 'precept' &&
                 formik.values.resultType !== '' && (
                   <>
                     {(() => {
@@ -837,10 +950,10 @@ export function DriveRestFormFields({
         </Col>
       </Row>
       {/* Plokk: Dokumendi või õiguse kontroll */}
-      {formik.values.resultType !== '' && formik.values.resultType !== 'ok' && (
+      {formik.values.resultType !== '' && (
         <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
-            <AccordionItem id={fieldId('doc-right-check')}>
+            <AccordionItem id={fieldId('doc-right-check')} {...docRightAccordion}>
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
@@ -891,13 +1004,13 @@ export function DriveRestFormFields({
       {!hideDriveRestExtras && formik.values.resultType !== '' && (
         <div className={`${styles['overflow-visible']} mb-1`}>
           <Accordion>
-            <AccordionItem id={fieldId('drive-rest-violations')}>
+            <AccordionItem id={fieldId('drive-rest-violations')} {...driveRestAccordion}>
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
                     {t(
                       'forms.restCheck.blockTitle',
-                      'Sõidu- ja puhkeaja nõuete täitmine',
+                      'Sõidu- ja puhkeaja nõuete kontroll',
                     )}
                   </Heading>
                 }
@@ -922,6 +1035,7 @@ export function DriveRestFormFields({
                     onChange={(val) =>
                       formik.setFieldValue('spApplicability', val as string)
                     }
+                    required
                     className="mb-1"
                     items={withDisabled([
                       {
@@ -949,7 +1063,26 @@ export function DriveRestFormFields({
                         ),
                       },
                     ])}
+                    {...(formik.touched.spApplicability &&
+                    formik.errors.spApplicability
+                      ? {
+                          helper: {
+                            text: formik.errors.spApplicability,
+                            type: 'error' as const,
+                          },
+                        }
+                      : {})}
                   />
+                  <Text className="mb-1">
+                    <span className={styles['required-star']}>*</span>{' '}
+                    (
+                    {t(
+                      type === 'driver'
+                        ? 'forms.drive_rest.applicabilityRequiredExplanationDriver'
+                        : 'forms.drive_rest.applicabilityRequiredExplanationTeammate',
+                    )}
+                    )
+                  </Text>
                   {formik.values.spApplicability === 'RAKENDATAKSE' && (
                     <ChoiceGroup
                       id={fieldId('tachographTypeCode')}
@@ -987,14 +1120,14 @@ export function DriveRestFormFields({
                     value={formik.values.checkedDaysCount?.toString() || ''}
                     placeholder={t('common.numberPlaceholder', 'Nr')}
                     onChange={(v) => {
-                      const numericValue = v.replace(/\D/g, '');
+                      const numericValue = v.replace(/\D/g, '').slice(0, 2);
                       const parsedValue = parseInt(numericValue, 10) || 0;
                       formik.setFieldValue(
                         'checkedDaysCount',
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 3 }}
+                    input={{ maxLength: 2 }}
                     disabled={readOnly}
                   />
                   <Text>{t('forms.drive_rest.workDaysCount')}</Text>
@@ -1005,14 +1138,14 @@ export function DriveRestFormFields({
                     value={formik.values.workDaysCount?.toString() || ''}
                     placeholder={t('common.numberPlaceholder', 'Nr')}
                     onChange={(v) => {
-                      const numericValue = v.replace(/\D/g, '');
+                      const numericValue = v.replace(/\D/g, '').slice(0, 2);
                       const parsedValue = parseInt(numericValue, 10) || 0;
                       formik.setFieldValue(
                         'workDaysCount',
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 3 }}
+                    input={{ maxLength: 2 }}
                     disabled={readOnly}
                   />
                   <Text>{t('forms.drive_rest.otherActivityDaysCount')}</Text>
@@ -1025,14 +1158,14 @@ export function DriveRestFormFields({
                     }
                     placeholder={t('common.numberPlaceholder', 'Nr')}
                     onChange={(v) => {
-                      const numericValue = v.replace(/\D/g, '');
+                      const numericValue = v.replace(/\D/g, '').slice(0, 2);
                       const parsedValue = parseInt(numericValue, 10) || 0;
                       formik.setFieldValue(
                         'otherActivityDaysCount',
                         String(parsedValue),
                       );
                     }}
-                    input={{ maxLength: 3 }}
+                    input={{ maxLength: 2 }}
                     disabled={readOnly}
                   />
                 </div>
@@ -1106,7 +1239,7 @@ export function DriveRestFormFields({
         rooma1Violations.length > 0 && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('rooma1-violations')}>
+              <AccordionItem id={fieldId('rooma1-violations')} {...rooma1Accordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1144,7 +1277,7 @@ export function DriveRestFormFields({
         postingViolations.length > 0 && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('posting-violations')}>
+              <AccordionItem id={fieldId('posting-violations')} {...postingAccordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1181,7 +1314,7 @@ export function DriveRestFormFields({
         type === 'driver' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('mass-dimension-violations')}>
+              <AccordionItem id={fieldId('mass-dimension-violations')} {...massDimensionAccordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1221,7 +1354,7 @@ export function DriveRestFormFields({
         type === 'teammate' && (
           <div className={`${styles['overflow-visible']} mb-1`}>
             <Accordion>
-              <AccordionItem id={fieldId('atp-violation')}>
+              <AccordionItem id={fieldId('atp-violation')} {...atpAccordion}>
                 <AccordionItemHeader
                   title={
                     <Heading modifiers="h3" color="primary">
@@ -1256,8 +1389,8 @@ export function DriveRestFormFields({
                     }
                     value={formik.values.enforcementDecision ?? ''}
                     maxHeight="8rem"
-                    onChange={() => {}}
-                    disabled
+                    onChange={(value) => formik.setFieldValue('enforcementDecision', value)}
+                    disabled={!canEditProceedingOutcome}
                   />
                 </div>
                 <div>
@@ -1270,14 +1403,22 @@ export function DriveRestFormFields({
                     }
                     value={formik.values.proceedingClosureBasis ?? ''}
                     maxHeight="8rem"
-                    onChange={() => {}}
-                    disabled
+                    onChange={(value) => formik.setFieldValue('proceedingClosureBasis', value)}
+                    disabled={!canEditProceedingOutcome}
                   />
                 </div>
               </Card.Content>
             </Card>
           </Col>
         </Row>
+      )}
+      {/* Plokk: Haldusmenetlus (õigusega ametnikule; TRAM-kaardil on plokk kaardi tasemel) */}
+      {authority !== 'TRAM' && (
+        <AdministrativeProcedureCard
+          formType={type === 'teammate' ? 'drive-rest-form/teammate' : 'drive-rest-form/driver'}
+          formKey={formik.values.id}
+          reloadAfterSave={readOnly}
+        />
       )}
       {/* Plokk: Failid */}
       <Row className="m-0">
@@ -1297,8 +1438,11 @@ export function DriveRestFormFields({
           </Card>
         </Col>
       </Row>
-      {/* Plokk: Märkused */}
-      {formik.values.resultType !== '' && formik.values.resultType !== 'ok' && (
+      {/* Plokk: Märkused. TRAM kontrollkaardil näidatakse ka "Korras" tulemuse
+          korral, kuna kontrolli kohta võib ikkagi tekkida vajadus midagi üles
+          märkida; PPA kaardil jääb käitumine endiseks. */}
+      {formik.values.resultType !== '' &&
+        (authority === 'TRAM' || formik.values.resultType !== 'ok') && (
         <Card className="mb-1">
           <Card.Content>
             <Heading element="h3" className="mb-1">

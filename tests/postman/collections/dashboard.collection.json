@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — Officer Dashboard (LJVIS2-37)",
     "_postman_id": "ljvis-dashboard-v1",
-    "description": "Functional tests for the officer dashboard (LJVIS2-37): GET /v1/dashboard/summary (activeCompoundForms/activeStandaloneForms/needsAttention, own vs organisation scope gated by control_form.view_unpublished). The LJVIS2-68 '+ Lisa' menu (classifier+permission-driven available form types) is resolved client-side (FORM_TYPE classifier + permissions already loaded in the SPA — see getAvailableFormKeys in frontend/src/features/control-forms/formRoutes.ts), so it has no dedicated backend endpoint to test here. Self-contained: creates its own compound form + sub-form + standalone forms, confirms one, and cleans up at the end.",
+    "description": "Functional tests for the officer dashboard (LJVIS2-37): GET /v1/dashboard/summary (activeCompoundForms/activeStandaloneForms/needsAttention, own vs organisation scope gated by control_form.view_organisation). The LJVIS2-68 '+ Lisa' menu (classifier+permission-driven available form types) is resolved client-side (FORM_TYPE classifier + permissions already loaded in the SPA — see getAvailableFormKeys in frontend/src/features/control-forms/formRoutes.ts), so it has no dedicated backend endpoint to test here. Self-contained: creates its own compound form + sub-form + standalone forms, confirms one, and cleans up at the end.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -586,7 +586,7 @@
       ]
     },
     {
-      "name": "GET dashboard/summary?scope=organisation — admin (control_form.view_unpublished) → organisation honoured",
+      "name": "GET dashboard/summary?scope=organisation — admin (control_form.view_organisation) → organisation honoured",
       "request": {
         "method": "GET",
         "header": [

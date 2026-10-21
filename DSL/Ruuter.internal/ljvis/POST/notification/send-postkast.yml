@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Saadab ühe eeldefineeritud teavituse liigi ühele adressaadile Postkast 2.0
@@ -10,7 +11,7 @@ declaration:
 
     APPEND-ONLY: iga saatmiskatse (sh UC-04 uuesti saatmine) loob uue
     outbound_log rea oma notification_key'ga. Teenus ei kirjuta teavituse
-    teksti — ainult malli algne tunnus (originalTemplateId) ja malli
+    teksti - ainult malli alias (API väli templateId) ja malli
     muutujate väärtused edastatakse Postkast 2.0-le, mis rakendab enda
     haldusliideses seadistatud malli.
 
@@ -23,7 +24,7 @@ declaration:
     X-Road-UserId ei ole nõutav, sest teenus on süsteemidevaheline
     (12-1 §3 "Eraldi õigust ei kehtestata").
 
-    Best-effort: kutsujat ei tohi 500-tada — igal juhul tagastatakse loodud
+    Best-effort: kutsujat ei tohi 500-tada - igal juhul tagastatakse loodud
     logId + saavutatud staatus, ka siis kui X-tee kutse ebaõnnestub
     (staatus 'error', failure_reason täidetud).
   namespace: notification
@@ -52,20 +53,24 @@ validateInput:
   assign:
     notification_type: "${incoming.body.notification_type ?? ''}"
     recipient_email_raw: "${incoming.body.recipient_email ?? ''}"
+    template_variables_obj: "${incoming.body.template_variables ?? {}}"
     # STRING kujul (JSON): Rust Resql `type: json` väli võtab JSON-stringi
     # (nagu vana dev-versioon `JSON.stringify(payload_obj)`), aga BARE tühja
     # objekti `{}` sidumine `::JSONB` konteksti kukub läbi
     # ("invalid input syntax for type json"). Siin normaliseerime kohe stringiks.
     template_variables: "${JSON.stringify(incoming.body.template_variables ?? {})}"
     language: "${incoming.body.language ?? ''}"
-    send_time: "${incoming.body.send_time || new Date().toISOString()}"
+    # Kohese saatmise korral peab sendTime puuduma. Kui panna väärtuseks
+    # new Date().toISOString(), on see Postkasti jõudes juba minevikus ning
+    # notification-management tagastab 400 sendTimeInPast.
+    send_time: "${incoming.body.send_time || ''}"
     related_entity_type: "${incoming.body.related_entity_type ?? ''}"
     related_entity_id: "${incoming.body.related_entity_id ?? ''}"
     original_log_id: "${incoming.body.original_log_id ?? ''}"
     created_by: "${incoming.body.created_by || 'system'}"
   next: checkRequired
 
-# recipient_email on nüüd valikuline sisendväli — kui kutsuja seda ei saada
+# recipient_email on nüüd valikuline sisendväli - kui kutsuja seda ei saada
 # (nt foreign-violation-form/edit/save.yml), kasutatakse allpool
 # notification_template_mapping.default_recipient_email't (haldusliidesest
 # seadistatav, vt notification-template-mapping/save.yml). Siin on kohustuslik
@@ -81,6 +86,7 @@ getTemplateMapping:
   args:
     url: "[#LJVIS_RESQL]/notification/get_template_mapping"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: ${notification_type}
@@ -124,10 +130,12 @@ markInvalidRecipient:
     pre_send_failure_reason: "Adressaadi e-posti aadress puudub või ei vasta lubatud kujule"
   next: insertAsError
 
-# original_template_id tuleb kataloogist (notification_template_mapping,
-# haldusliidesest seadistatav — vt notification-template-mapping/save.yml).
+# original_template_id tuleb ajaloolise nimega kataloogiveerust
+# (notification_template_mapping, haldusliidesest seadistatav - vt
+# notification-template-mapping/save.yml), kuid väärtus on Postkast 2.0
+# malli alias (nt "vrteade"), mille Postkast lahendab aktiivseks UUID-ks.
 # Konstandifallback ([#PK_TEMPLATE_*]) on eemaldatud; puuduva tunnuse korral
-# ei tohi X-tee kutset tühja originalTemplateId'ga saata — logi kohe veaga.
+# ei tohi X-tee kutset tühja templateId-ga saata - logi kohe veaga.
 resolveTemplateId:
   assign:
     original_template_id: "${mapping.originalTemplateId || ''}"
@@ -142,7 +150,7 @@ checkTemplateIdResolved:
 
 markMissingTemplateId:
   assign:
-    pre_send_failure_reason: "Teavituse liigil '${notification_type}' puudub Postkast 2.0 malli tunnus (originalTemplateId)"
+    pre_send_failure_reason: "Teavituse liigil '${notification_type}' puudub Postkast 2.0 malli alias (templateId)"
   next: insertAsError
 
 insertQueued:
@@ -150,6 +158,7 @@ insertQueued:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_key: ${generated_key}
@@ -176,13 +185,14 @@ assignLogId:
     start_time: "${new Date().getTime()}"
   next: insertRecipientRow
 
-# outbound_log_recipient jääb UC-03 aruande (OutboundReportModal) tarbeks —
+# outbound_log_recipient jääb UC-03 aruande (OutboundReportModal) tarbeks -
 # uus vool kirjutab sinna täpselt ühe rea (varem 1..N recipients[]-i kaudu).
 insertRecipientRow:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       log_id: ${log_id}
@@ -195,10 +205,10 @@ insertRecipientRow:
   next: callPk
 
 # Toodangus läheb kutse läbi XTR-i REST passthrough lane'i, mis lisab
-# X-Road-Client päise ise ja teeb mTLS turvaserverisse. Ei bearer-tokenit —
+# X-Road-Client päise ise ja teeb mTLS turvaserverisse. Ei bearer-tokenit -
 # autentimine käib turvaserverite vahel (mutual TLS + PK antud ligipääsuõigus).
 # X-EXTERNAL-ID = notification_key, mille abil leitakse saatmisoperatsioon hiljem
-# üles (sync-status), ka siis kui vastus jäi käesolevas kutses saamata — XTR
+# üles (sync-status), ka siis kui vastus jäi käesolevas kutses saamata - XTR
 # edastab selle päise verbatim.
 callPk:
   call: http.post
@@ -208,13 +218,12 @@ callPk:
     headers:
       type: json
       X-EXTERNAL-ID: ${notification_key}
-      # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
+      X-User-Access-Type: "UNLIMITED"
+      # X-Road-Client eemaldatud - XTR seab selle ise xtr.yaml client_data-st.
     body:
-      originalTemplateId: ${original_template_id}
-      sendTime: ${send_time}
+      templateId: ${original_template_id}
       parameters:
-        - recipient: ${recipient_email}
-          notification_language: ${effective_language}
+        - "${Object.assign({}, template_variables_obj, { recipient: recipient_email })}"
   result: pkRes
   error: onPkError
   next: checkPkStatus
@@ -244,6 +253,7 @@ logXroadSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "pk.notification-management.v1"
@@ -264,6 +274,7 @@ updateInProgress:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}
@@ -290,8 +301,26 @@ onPkError:
   assign:
     pk_error_message: >-
       ${(typeof pkRes !== 'undefined' && pkRes.response)
-        ? ('PK HTTP ' + pkRes.response.status)
+        ? (('PK HTTP ' + pkRes.response.status
+            + (pkRes.response.body != null
+              ? ': ' + JSON.stringify(pkRes.response.body)
+              : ''))
+            .replace(/[\r\n\t\\]+/g, ' ')
+            .replace(/"/g, "'")
+            .substring(0, 500))
         : 'Postkast 2.0 ei ole kättesaadav või päring aegus'}
+  next: logPkFailure
+
+# Ruuteri logisse (kubectl/Argo): Postkasti tagasilükkamise põhjus koos vastuse
+# kehaga - muidu on näha ainult "status=400". failure_reason on 500 märgi
+# piiriga, siin kuni 2000.
+logPkFailure:
+  log: >-
+    Postkast 2.0 saatmine ebaõnnestus notification_key=${notification_key}
+    type=${notification_type} templateId=${original_template_id}:
+    ${(typeof pkRes !== 'undefined' && pkRes.response)
+      ? ('HTTP ' + pkRes.response.status + ' ' + JSON.stringify(pkRes.response.body)).substring(0, 2000)
+      : 'vastust ei saadud (transpordiviga või timeout)'}
   next: logXroadFailure
 
 logXroadFailure:
@@ -299,11 +328,12 @@ logXroadFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "pk.notification-management.v1"
       request_xml: "${'notificationKey=' + notification_key + ';type=' + notification_type}"
-      response_xml: ""
+      response_xml: "${(typeof pkRes !== 'undefined' && pkRes.response) ? JSON.stringify({ status: pkRes.response.status, body: pkRes.response.body }) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
       error_message: ${pk_error_message}
@@ -319,6 +349,7 @@ updateFailedStatus:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${log_id}
@@ -339,7 +370,7 @@ returnFailed:
     status: "error"
   next: end
 
-# Jagatud haru "logi kirje kohe error'iga, ilma X-tee kutseta" — mõlemale
+# Jagatud haru "logi kirje kohe error'iga, ilma X-tee kutseta" - mõlemale
 # eeltingimuste kontrollile (kehtetu adressaat, lahendamata malli tunnus).
 # 12-1 §"Veaolukorrad": "Kui adressaadi aadress puudub või ei vasta lubatud
 # kujule, teavitust ei saadeta ja teavitus märgitakse veaga."
@@ -348,6 +379,7 @@ insertAsError:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_key: ${generated_key}
@@ -377,6 +409,7 @@ insertErrorRecipientRow:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_outbound_recipient"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       log_id: ${error_log_id}

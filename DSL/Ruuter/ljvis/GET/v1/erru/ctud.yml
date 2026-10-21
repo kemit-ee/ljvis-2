@@ -1,12 +1,16 @@
 declaration:
+  internal: false
   version: "1.0"
-  description: "Get a single CTUD request (erru.ctud_request) by its logical key, returning the latest snapshot (LJVIS2-143). Read-only; serves all three form modes (outgoing draft, sent outgoing request with response, inbound request). Per the specification the view is audited on EVERY open — unlike the control forms there is no viewer-equals-creator exemption, because the view always exposes transport undertaking data."
+  description: "Get a single CTUD request (erru.ctud_request) by its logical key, returning the latest snapshot (LJVIS2-143). Read-only; serves all three form modes (outgoing draft, sent outgoing request with response, inbound request). Per the specification the view is audited on EVERY open - unlike the control forms there is no viewer-equals-creator exemption, because the view always exposes transport undertaking data."
   namespace: erru
   allowlist:
     params:
       - field: q
         type: string
         description: "CTUD request logical key (ctud_request_key)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -26,6 +30,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -58,24 +63,12 @@ logAuditEvent:
     community_licence_number: ${community_licence_number}
     vehicle_registration_number: ${vehicle_registration_number}
     ctud_to: ${ctud_to}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_ctud_request"
-    headers:
-      type: json
-    body:
-      requests: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(f){ if (!f) return f; var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return Object.assign({}, f, { responseContent: p(f.responseContent) }); })(res.response.body[0])}"
   next: end
 
 returnNotFound:

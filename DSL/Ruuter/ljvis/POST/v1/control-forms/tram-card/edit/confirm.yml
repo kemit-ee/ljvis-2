@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Confirm (kinnita) a TRAM control card. Validates the form, then appends a 'confirmed' snapshot. Unlike labour-inspection there is no violations gate — a card with violations may be confirmed and then either published manually or auto-published when e-toimik returns an entered-into-force decision."
+  description: "Confirm (kinnita) a TRAM control card. Validates the form, then appends a 'confirmed' snapshot. Unlike labour-inspection there is no violations gate - a card with violations may be confirmed and then either published manually or auto-published when e-toimik returns an entered-into-force decision."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+      - field: revision
+      - field: notifyCarrier
+        type: string
       - field: controlDate
         type: string
       - field: controlTime
@@ -143,10 +147,14 @@ declaration:
         type: string
       - field: notes
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
+    notify_carrier: "${String(incoming.body.notifyCarrier) === 'true' ? 'true' : 'false'}"
     status: "confirmed"
     control_date: "${incoming.body.controlDate || ''}"
     control_time: "${incoming.body.controlTime || ''}"
@@ -155,7 +163,7 @@ extractRequestData:
     city: "${incoming.body.city || ''}"
     road: "${incoming.body.road || ''}"
     road_other: "${incoming.body.roadOther || ''}"
-    # Ei coercida `|| ''`-ga — 0 on legitiimne kilomeetrinäit; `0 || ''` annaks
+    # Ei coercida `|| ''`-ga - 0 on legitiimne kilomeetrinäit; `0 || ''` annaks
     # '' -> NULL. Ruuteri allowlist garanteerib võtme olemasolu.
     kilometer: "${incoming.body.kilometer}"
     address: "${incoming.body.address || ''}"
@@ -206,7 +214,7 @@ extractRequestData:
     tachograph_type_code: "${incoming.body.tachographTypeCode || ''}"
     tachograph_data_not_downloaded: "${String(incoming.body.tachographDataNotDownloaded == null ? 'false' : incoming.body.tachographDataNotDownloaded)}"
     tachograph_notes: "${incoming.body.tachographNotes}"
-    # 0 on legitiimne päevade arv kõigi kolme puhul — vt kilomeeter ülal.
+    # 0 on legitiimne päevade arv kõigi kolme puhul - vt kilomeeter ülal.
     checked_days_count: "${incoming.body.checkedDaysCount}"
     work_days_count: "${incoming.body.workDaysCount}"
     other_activity_days_count: "${incoming.body.otherActivityDaysCount}"
@@ -250,6 +258,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -278,9 +287,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -353,12 +364,48 @@ confirmForm:
       notes: ${notes}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkSaved:
   switch:
     - condition: ${confirmRes.response == null || confirmRes.response.status < 200 || confirmRes.response.status >= 300 || confirmRes.response.body == null || confirmRes.response.body.length == null || confirmRes.response.body.length === 0}
       next: returnResqlSaveError
+  next: checkCarrierNotificationRequest
+
+# „Teavita vedajat" linnuke kinnitamisel: tellimus salvestatakse eraldi tabelisse ja
+# saadetakse avalikustamisel (võib olla automaatne). Viga ei tühista kinnitamist.
+checkCarrierNotificationRequest:
+  switch:
+    - condition: ${notify_carrier === 'true'}
+      next: registerCarrierNotificationRequest
+  next: logAuditEvent
+
+registerCarrierNotificationRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entity_type: "tram_control_card"
+      entity_id: ${id}
+      requested_by: ${actor_personal_code}
+  result: carrierRequestRes
+  error: logAuditEvent
   next: logAuditEvent
 
 logAuditEvent:
@@ -369,8 +416,6 @@ logAuditEvent:
   body:
     event_type: "control_form.tram_control_card.confirm"
     event_category: "control_form_management"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: "TRAM kontrollkaart kinnitatud, number=${confirmRes.response.body[0].formNumber}/${confirmRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${confirmRes.response.body[0].id},\"formNumber\":\"${confirmRes.response.body[0].formNumber}\",\"oldStatus\":\"${current_status}\",\"newStatus\":\"confirmed\"}"
   result: audit_result

@@ -13,6 +13,13 @@ export function useNotificationTemplateMappingForm(
   const { t } = useTranslation();
 
   const validationSchema = Yup.object({
+    originalTemplateId: Yup.string()
+      .trim()
+      .test(
+        'template-alias-or-empty',
+        t('notificationTemplateMapping.validation.templateIdInvalid'),
+        (value) => !value || /^[A-Za-z0-9._-]+$/.test(value),
+      ),
     defaultRecipientEmail: Yup.string()
       .trim()
       .test(
@@ -29,6 +36,7 @@ export function useNotificationTemplateMappingForm(
       defaultRecipientEmail: mapping?.defaultRecipientEmail ?? '',
       defaultLanguage: mapping?.defaultLanguage ?? 'et',
       active: mapping?.active ?? true,
+      desktopRecipientPersonalCodes: mapping?.desktopRecipientPersonalCodes ?? [],
     },
     validationSchema,
     onSubmit: async (values, { setFieldError }) => {
@@ -41,6 +49,7 @@ export function useNotificationTemplateMappingForm(
           defaultRecipientEmail: sanitizeText(values.defaultRecipientEmail),
           defaultLanguage: values.defaultLanguage,
           active: values.active,
+          desktopRecipientPersonalCodes: values.desktopRecipientPersonalCodes,
         });
         onSaved();
       } catch (e) {

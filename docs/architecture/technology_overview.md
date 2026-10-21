@@ -9,15 +9,15 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 | PostgreSQL | Põhiandmebaas | 17 | `postgres:17` | 2026-09-10 | DEV/CI | |
 | PostgreSQL | TIM andmebaas | 17 | `postgres:17` | 2026-09-10 | DEV/CI | |
 | Liquibase | Andmebaasi migratsioonid | 4.29.2 | `liquibase/liquibase:4.29.2` | 2026-09-01 | DEV/CI | |
-| Ruuter | Avalik API ja töövood | 0.9.15-rc | `turnerrainer/ruuter:0.9.15-rc` + digest | 2026-09-10 | DEV/CI | Avalik ja sisemine Ruuter on eraldi teenused. |
+| Ruuter | Avalik API ja töövood | 0.10.1-rc | `turnerrainer/ruuter:0.10.1-rc` + digest | 2026-09-25 | DEV/CI | Avalik ja sisemine Ruuter on eraldi teenused. |
 | Resql | SQL-päringute teenus | 0.3.0-alpha | `turnerrainer/resql:0.3.0-alpha` + digest | 2026-09-10 | DEV/CI | |
 | DataMapper | Andmete teisendamine | 0.2.1-alpha | `turnerrainer/datamapper:0.2.1-alpha` + digest | 2026-09-18 | DEV/CI | `APP_ENV=dev` lisatud env_safety gate'i tõttu (vt versiooniajalugu). |
-| XTR | X-tee väljumispunkt | määramata | `turnerrainer/xtr:rc` (lokaal); release Dockerfile digest | 2026-09-10 | DEV/CI/PROD | Täpset runtime-versiooni ei ole tagist usaldusväärselt tuvastatud. |
+| XTR | X-tee väljumispunkt; LJVIS1 SOAP-lepingu pakkumine | 0.5.0-rc | `turnerrainer/xtr:0.5.0-rc` (lokaal); release Dockerfile digest `sha256:634b1147…` | 2026-10-05 | DEV/CI/PROD | Versioon on fikseeritud nii lokaalses Compose'is kui release-image'is. Release-image sisaldab `DSL/xtr` (`/DSL`) ja WSDL-i (`/wsdl`); vt [XTR SOAP juhend](../xtee/09-xtr-soap.md). |
 | TIM | TARA identiteediteenus | 0.3.0-alpha | `turnerrainer/tim:0.3.0-alpha` + digest | 2026-09-07 | DEV/CI | |
 | Nysiis | ERRU sõnumite teenus | määramata | `eclipse-temurin:21-jdk-alpine` / `eclipse-temurin:21-jre-alpine` | 2026-08-19 | DEV/CI | Rakenduse versiooni projekt ei määra. |
 | TARA mock | Arenduse autentimise mock | määramata | `golang:latest`, `debian:bookworm-slim` | 2026-09-07 | DEV/CI | Ainult arendus- ja CI-keskkonnas. |
 | S3 proxy | Manuste objektisalvestuse API | 22 | `node:22-alpine` | 2026-07-13 | DEV/CI | |
-| CronManager | Ajastatud tööde käivitamine | 0.1.4-alpha | `turnerrainer/cronmanager:0.1.4-alpha` + digest | 2026-09-10 | DEV/CI | |
+| CronManager | Ajastatud tööde käivitamine | 0.2.4-alpha | `turnerrainer/cronmanager:0.2.4-alpha` + digest | 2026-10-15 | DEV/CI | SSRF-kaitse sees, erandina lubatud ainult `ruuter-internal` (`allowed_private_hosts`); `/jobs` ja `/running` nõuavad admin-tokenit. |
 | pdf-creator | Vormide PDF-genereerimine | 1.1.0 | `pdf-creator/VERSION`; Python `python:3-alpine` + digest | 2026-09-11 | DEV/CI/PROD | Eraldi teenus; templated ja täidetud/tühjad väljatrükid. |
 | Frontend | Kasutajaliides | 1.3.0 | `frontend/package.json` | 2026-09-11 | DEV | React + TypeScript + Vite. |
 
@@ -27,8 +27,13 @@ Sellel lehel on ülevaade infosüsteemis kasutatavatest peamistest tehnoloogiate
 |---|---|---|---|---|
 | Frontend | 1.2.2 | määramata | 2026-09-11 | `frontend/package.json` |
 | Frontend | 1.3.0 | 2026-09-11 |  | NCR ja Tööinspektsiooni salvestuse parendused |
+| XTR | 0.4.1-rc | 2026-09-30 | 2026-10-05 | `turnerrainer/xtr:0.4.1-rc` |
+| XTR | 0.5.0-rc | 2026-10-05 |  | SOAPAction tugi `service:`-DSL-idele (0.4.2), valikuline `XTR_INTER_SERVICE_TOKEN` ja graceful shutdown (0.4.3), valikulised SOAP-lane'id (`.soap.yaml`, 0.5.0). Meie `DSL/xtr` päringud muutumatud. LJVIS1 WSDL-i pakkumine (`/soap-in/`, port 8081) ja JSON → SOAP väljuv (`/soap-out/`); release-image sisaldab `/wsdl`; `xtr.yaml` `security_server.trust_ca_path` (üks sertifikaat) asendab `SSL_CERT_FILE`-i. |
 | DataMapper | 0.1.3-alpha | 2026-09-07 | 2026-09-18 | `turnerrainer/datamapper:0.1.3-alpha` |
 | DataMapper | 0.2.1-alpha | 2026-09-18 |  | Turvakõvendus (v0.2.0-alpha) + 405/graceful shutdown patch (v0.2.1-alpha); `APP_ENV=dev` lisatud, kuna env_safety langeb muidu Production-režiimi tagasi. Väljundmallid muutumatud. |
+| CronManager | 0.1.4-alpha | 2026-09-10 | 2026-10-15 | `turnerrainer/cronmanager:0.1.4-alpha` |
+| CronManager | 0.2.3-alpha | 2026-10-15 | 2026-10-15 | env_safety (0.2.0), `doctor` ja graceful SIGTERM (0.2.2), HTTP-tööde päised (0.2.3); SSRF-kaitse privaatvõrgule välja lülitatud, kuna kõik tööd kutsuvad `ruuter-internal`-i. 0.2.0-alpha jäeti vahele (tagasi kutsutud). |
+| CronManager | 0.2.4-alpha | 2026-10-15 |  | `security.allowed_private_hosts` (turnerrainer/CronManager#49): SSRF-kaitse jälle sisse, erandina lubatud ainult `ruuter-internal`; võimaldab range `APP_ENV`-i (test/production). |
 
 ## Täiendav info
 

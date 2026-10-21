@@ -1,6 +1,6 @@
 /*
 description: Auditisündmus kui e-toimiku öine cron kirjutas haagise tehnokontrolli alamvormile jõustunud
-  otsuse (enforcement_decision/proceeding_closure_basis). found != true on no-op — cron kutsub seda iga
+  otsuse (enforcement_decision/proceeding_closure_basis). found != true on no-op - cron kutsub seda iga
   kandidaadi kohta tingimusteta (Ruuteri iterate ei saa harusid teha). Sama event_type mis varasemal
   käsitsi-admin teel (control_form.trailer_technical.save_xroad).
 namespace: control-forms

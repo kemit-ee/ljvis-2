@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "2.0"
   description: >-
     Postkast 2.0 kaudu saadetud kirjade logi (analüüs 12-2 "Saadetud
@@ -7,7 +8,7 @@ declaration:
     sisaldab), notificationKey (täpne). Sortimine sortBy/sortDir (vaikimisi
     sendDate desc). Leheküljed page + pageSize.
     Nõuab notification.list õigust (kaitstud outbound-log/.guard kaudu).
-    Iga avamine logitakse auditisse (notification.list.view) — vaates
+    Iga avamine logitakse auditisse (notification.list.view) - vaates
     kuvatakse isikuandmeid (adressaatide e-posti aadressid), 12-2 §7.
   namespace: notification
   allowlist:
@@ -30,6 +31,9 @@ declaration:
         type: string
       - field: page
       - field: pageSize
+    headers:
+      - field: cookie
+        type: string
 
 extractParams:
   assign:
@@ -50,6 +54,7 @@ queryLog:
   args:
     url: "[#LJVIS_RESQL]/notification/list_outbound_log"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: ${status}
@@ -67,12 +72,12 @@ queryLog:
 
 # Mähime read {content, total} kujusse (frontend PagedResponse). total tuleb
 # list_outbound_log.sql-i COUNT(*) OVER () veerust (igal real ühesugune).
-# NB: EI kasuta DMapperit (varem map_outbound_log_list.handlebars) — see ehitas
+# NB: EI kasuta DMapperit (varem map_outbound_log_list.handlebars) - see ehitas
 # JSON-i käsitsi ilma escape'imata, seega üksainus failure_reason reavahetuse /
 # kurakaldkriipsuga (nt X-teelt op.resolution) tegi terve vastuse vigaseks
 # JSON-iks ja Ruuter tagastas selle stringina (frontend: 0 rida). Ehitame
 # objekti siin ja puhastame failure_reason üherealiseks (split/join, mitte
-# regex — Ruuteri väljendimootor).
+# regex - Ruuteri väljendimootor).
 buildResult:
   assign:
     result_obj: >-
@@ -111,8 +116,6 @@ logAuditEvent:
   body:
     event_type: "notification.list.view"
     event_category: "notification_management"
-    actor_personal_code: "${u.personalcode || ''}"
-    actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
     description: "${('Teavituste logi vaadatud, filter ' + filter_summary + ', lehekülg ' + page + ', kuvatud ' + shown_count + ' kirjet, ulatus: kõik asutused').substring(0, 480)}"
     log_content: "${JSON.stringify({ page: page, pageSize: page_size, sortBy: sort_by, sortDir: sort_dir, filters: { status: status, notificationType: notification_type, dateFrom: date_from, dateTo: date_to, recipient: recipient, notificationKey: notification_key }, shownNotificationKeys: JSON.parse(shown_keys_json), shownRecipients: JSON.parse(shown_recipients_json) })}"
   result: audit_result

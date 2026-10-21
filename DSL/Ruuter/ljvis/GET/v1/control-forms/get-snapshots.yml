@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get version history snapshots for a control form"
@@ -11,6 +12,9 @@ declaration:
       - field: formType
         type: string
         description: "Form type"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -21,19 +25,46 @@ extractRequestData:
 resolveRequiredPermission:
   assign:
     required_perm: "${({'compound-form':'compound_form.read','adr-form':'adr_form.read','vehicle-technical':'vehicle_technical_form.read','trailer-technical':'trailer_technical_form.read','transport-interruption':'transport_interruption_form.read','good-repute':'good_repute_form.read','foreign-violation-form':'foreign_violation_form.read','labour-inspection':'labour_inspection_form.read','drive-rest-form/driver':'sp_driver_form.read','drive-rest-form/teammate':'sp_teammate_form.read'})[formType] || '__no_such_permission__'}"
+    required_write_perm: "${({'compound-form':'compound_form.write','adr-form':'adr_form.write','vehicle-technical':'vehicle_technical_form.write','trailer-technical':'trailer_technical_form.write','transport-interruption':'transport_interruption_form.write','good-repute':'good_repute_form.write','foreign-violation-form':'foreign_violation_form.write','labour-inspection':'labour_inspection_form.write','drive-rest-form/driver':'sp_driver_form.write','drive-rest-form/teammate':'sp_teammate_form.write'})[formType] || '__no_such_permission__'}"
   next: checkSnapshotPermission
 
 checkSnapshotPermission:
   switch:
-    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes(required_perm))}
-      next: getSnapshots
+    - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes(required_perm) || auth_user.permissions.includes(required_write_perm))}
+      next: checkReadAccess
   next: returnForbidden
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "${formType}"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getSnapshots
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getSnapshots:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/${formType}/get-snapshots"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -51,6 +82,7 @@ getFromArchive:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshots"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       formType: ${formType}

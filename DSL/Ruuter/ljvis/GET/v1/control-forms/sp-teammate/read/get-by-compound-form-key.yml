@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get the latest active drive rest form (teammate) for a compound form"
@@ -6,12 +7,41 @@ declaration:
   allowlist:
     params:
       - field: compoundFormKey
+    headers:
+      - field: cookie
+        type: string
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "compound-form"
+    form_key: "${incoming.params.compoundFormKey}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getForm
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get-by-compound-form-key"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       compoundFormKey: ${incoming.params.compoundFormKey}
@@ -29,6 +59,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_sp_teammate_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -36,7 +67,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
   next: end
 
 returnEmpty:

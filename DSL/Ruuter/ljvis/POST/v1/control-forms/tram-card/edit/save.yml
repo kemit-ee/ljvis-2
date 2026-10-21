@@ -1,11 +1,13 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Create or update a TRAM control card (Transpordiameti kontrollkaart) — single unified save endpoint, branches internally on presence of id. status and the form_number /V version suffix are always computed server-side. A confirmed/published card can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update a TRAM control card (Transpordiameti kontrollkaart) - single unified save endpoint, branches internally on presence of id. status and the form_number /V version suffix are always computed server-side. A confirmed/published card can only be re-saved by a user with control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: controlDate
         type: string
       - field: controlTime
@@ -143,6 +145,9 @@ declaration:
         type: string
       - field: notes
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -154,7 +159,7 @@ extractRequestData:
     city: "${incoming.body.city || ''}"
     road: "${incoming.body.road || ''}"
     road_other: "${incoming.body.roadOther || ''}"
-    # Ei coercida `|| ''`-ga — 0 on legitiimne kilomeetrinäit; `0 || ''` annaks
+    # Ei coercida `|| ''`-ga - 0 on legitiimne kilomeetrinäit; `0 || ''` annaks
     # '' -> NULL. Ruuteri allowlist garanteerib võtme olemasolu.
     kilometer: "${incoming.body.kilometer}"
     address: "${incoming.body.address || ''}"
@@ -205,7 +210,7 @@ extractRequestData:
     tachograph_type_code: "${incoming.body.tachographTypeCode || ''}"
     tachograph_data_not_downloaded: "${String(incoming.body.tachographDataNotDownloaded == null ? 'false' : incoming.body.tachographDataNotDownloaded)}"
     tachograph_notes: "${incoming.body.tachographNotes}"
-    # 0 on legitiimne päevade arv kõigi kolme puhul — vt kilomeeter ülal.
+    # 0 on legitiimne päevade arv kõigi kolme puhul - vt kilomeeter ülal.
     checked_days_count: "${incoming.body.checkedDaysCount}"
     work_days_count: "${incoming.body.workDaysCount}"
     other_activity_days_count: "${incoming.body.otherActivityDaysCount}"
@@ -255,6 +260,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: saved
@@ -336,6 +342,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -364,9 +371,11 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${current_status}
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -439,7 +448,20 @@ updateForm:
       notes: ${notes}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkSaved:
   switch:
@@ -455,11 +477,68 @@ logAuditEvent:
   body:
     event_type: "control_form.tram_control_card.save"
     event_category: "control_form_management"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: "TRAM kontrollkaart salvestatud, number=${saveRes.response.body[0].formNumber}/${saveRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${saveRes.response.body[0].id},\"formNumber\":\"${saveRes.response.body[0].formNumber}\",\"version\":${saveRes.response.body[0].version}}"
   result: audit_result
+  next: recalcRiskOnResave
+
+# Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
+recalcRiskOnResave:
+  switch:
+    - condition: ${current_status === 'published' && /^[0-9]{8}$/.test('' + (company_reg_code || ''))}
+      next: callRiskRecalcOnResave
+  next: checkNotifyOnResave
+
+callRiskRecalcOnResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: riskRecalcRes
+  error: checkNotifyOnResave
+  next: checkNotifyOnResave
+
+# Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
+# teavituste mõttes - publish.yml-iga sama kontroll, aga event_key sisaldab
+# uut version'it, nii et teavitus ei jää dubleerimiskontrolli taha kinni.
+checkNotifyOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: checkSeriousInfringementResave
+  next: returnSuccess
+
+checkSeriousInfringementResave:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringementResave
+  next: returnSuccess
+
+createSeriousInfringementResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "tram_control_card"
+      related_entity_id: ${id}
+      event_key: "${'tram-control-card:' + id + ':' + saveRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifResResave
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

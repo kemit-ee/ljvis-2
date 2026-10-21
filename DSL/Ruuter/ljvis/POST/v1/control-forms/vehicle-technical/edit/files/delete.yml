@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Delete a file attachment for a vehicle technical check form"
@@ -7,9 +8,12 @@ declaration:
     body:
       - field: id
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: deleteFile
@@ -23,8 +27,6 @@ deleteFile:
     form_number_prefix: "th-"
     id: ${incoming.body.id}
     form_type: "vehicle-technical-form"
-    actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
-    actor_personal_code: "${auth_user.personalcode || ''}"
   result: deleteResult
   next: returnSuccess
 

@@ -2,7 +2,7 @@
 #
 # The parent POST/.guard requires a LJVIS user cookie. The mock hub stands in for an
 # external system (MOVEHUB / s-TESTA), and send.yml must call it exactly the way it
-# will call XTR in production — i.e. WITHOUT forwarding the operator's session cookie.
+# will call XTR in production - i.e. WITHOUT forwarding the operator's session cookie.
 # Sending a user cookie to an external endpoint would be wrong, so instead of weakening
 # send.yml this narrower guard lets the stub be reached.
 #

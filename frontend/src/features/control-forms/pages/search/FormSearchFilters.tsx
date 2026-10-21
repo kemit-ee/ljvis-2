@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Button,
@@ -7,6 +7,7 @@ import {
   DateField,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { getSearchCarrierCountries } from '../../api';
 import type { FormSearchFilters as Filters } from '../../types';
 import { FORM_TYPE_META, FORM_TYPE_ORDER } from './formSearchMeta';
 import styles from './FormSearch.module.css';
@@ -63,6 +64,16 @@ export function FormSearchFilters({
     [t],
   );
 
+  // Vormid hoiavad maakonda EHAK klassifikaatori väärtuse võtmena, mitte nimena
+  const countyOptions = useMemo<Option[]>(
+    () =>
+      getByCode('EHAK')
+        .filter((e) => e.parentKey === null)
+        .map((e) => ({ value: String(e.classifierValueKey), label: e.name }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'et')),
+    [getByCode],
+  );
+
   const statusOptions = useMemo<Option[]>(
     () => [
       { value: 'saved', label: t('search.status.saved') },
@@ -70,6 +81,29 @@ export function FormSearchFilters({
       { value: 'published', label: t('search.status.published') },
     ],
     [t],
+  );
+
+  // Lisaks Eesti / Välisriigid segmentidele kõik riigid, mille vedaja kohta on kontroll tehtud
+  const [carrierCountryCodes, setCarrierCountryCodes] = useState<string[]>([]);
+  useEffect(() => {
+    getSearchCarrierCountries()
+      .then((rows) => setCarrierCountryCodes(rows.map((r) => r.countryCode)))
+      .catch(() => setCarrierCountryCodes([]));
+  }, []);
+
+  const carrierOriginOptions = useMemo<Option[]>(
+    () => [
+      { value: 'ee', label: t('search.carrierOrigin.ee') },
+      { value: 'foreign', label: t('search.carrierOrigin.foreign') },
+      ...carrierCountryCodes
+        .filter((code) => code && code !== 'EE')
+        .map((code) => ({
+          value: `country:${code}`,
+          label: getByCode('COUNTRY').find((c) => c.code === code)?.name ?? code,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'et')),
+    ],
+    [t, carrierCountryCodes, getByCode],
   );
 
   const violationOptions = useMemo<Option[]>(
@@ -128,6 +162,12 @@ export function FormSearchFilters({
           onChange={(val) => setField('formType', selected(val))}
         />
         <TextField
+          id="search-form-number"
+          label={t('search.filters.formNumber')}
+          value={draft.formNumber}
+          onChange={(v) => setField('formNumber', v)}
+        />
+        <TextField
           id="search-vehicle-reg-nr"
           label={t('search.filters.vehicleRegNr')}
           value={draft.vehicleRegNr}
@@ -151,11 +191,26 @@ export function FormSearchFilters({
           value={draft.driver}
           onChange={(v) => setField('driver', v)}
         />
-        <TextField
+        <Select
+          key={`search-county-${resetKey}`}
           id="search-county"
           label={t('search.filters.county')}
-          value={draft.county}
-          onChange={(v) => setField('county', v)}
+          options={[{ value: '', label: '\u00a0' }, ...countyOptions]}
+          value={pick(countyOptions, draft.county)}
+          onChange={(val) => setField('county', selected(val))}
+        />
+        <Select
+          key={`search-carrier-origin-${resetKey}`}
+          id="search-carrier-origin"
+          label={t('search.filters.carrierOrigin')}
+          options={[{ value: '', label: t('search.carrierOrigin.all') }, ...carrierOriginOptions]}
+          value={
+            pick(carrierOriginOptions, draft.carrierOrigin) ?? {
+              value: '',
+              label: t('search.carrierOrigin.all'),
+            }
+          }
+          onChange={(val) => setField('carrierOrigin', selected(val))}
         />
         <Select
           id="search-has-violation"

@@ -3,7 +3,7 @@ params:
 
 method: POST
 
-# No `service:` — routed through the configured Security Server, same as
+# No `service:` - routed through the configured Security Server, same as
 # lihtandmed_v1.yml/esindus_v1.yml. Replaces detailandmed_v2.yml, which was
 # never wired up to a Ruuter endpoint (dead code) and used the same
 # ariregxmlv6.rik.ee HTTPS bypass. Our subsystem (GOV/70001231/ljvis2) has
@@ -12,10 +12,10 @@ method: POST
 # (www2.rik.ee, detailandmed_v5_Query complexType): after the optional
 # identity filters (arinimi/ariregistri_kood/etc.), yandmed/iandmed/kandmed/
 # dandmed/maarused are REQUIRED xsd:boolean fields (minOccurs defaults to 1)
-# — unlike the old detailandmed_v2.yml, which sent them as 1/0 integers, they
+# - unlike the old detailandmed_v2.yml, which sent them as 1/0 integers, they
 # must be literal true/false here. Requesting only general + person data
 # (yandmed/iandmed=true; kandmed/dandmed/maarused=false) to keep the response
-# small — extend if a future caller needs commercial-pledge/petition/decree
+# small - extend if a future caller needs commercial-pledge/petition/decree
 # data.
 envelope: >
   <?xml version="1.0" encoding="UTF-8"?>

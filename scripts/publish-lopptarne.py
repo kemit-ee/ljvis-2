@@ -8,6 +8,7 @@ lingid GitHubi dokumentidele ja teadaolevad probleemid.
 Kasutus:
     CONFLUENCE_TOKEN=<token> python3 scripts/publish-lopptarne.py [--dry-run]
 """
+import html
 import os
 import re
 import sys
@@ -25,6 +26,10 @@ TOKEN  = os.environ.get("CONFLUENCE_TOKEN", "")
 DRY_RUN = "--dry-run" in sys.argv
 
 LOPPTARNE_ID = "346498787"
+# X-tee juhendite Confluence'i lehed (LIA ruum): 346489411, 346494941, 346503597
+XTEE_JUHEND = "LJVIS2 X-tee pakutavad teenused (REST)"
+XTEE_LIIDESTUMINE = "LJVIS2 · X-tee liidestumine"
+AJ_JUHEND = "LJVIS2 · Andmejälgija (AJ) seadistamine"
 GH_BASE = "https://github.com/kemit-ee/ljvis-2/blob/dev"
 
 REPO = Path(__file__).resolve().parent.parent
@@ -136,7 +141,10 @@ def md_to_html(md_path):
     """Teisendab Markdown-faili Confluence storage HTML-iks. Tagastab (html, [(name, path)])."""
     md_dir = md_path.parent
     html = subprocess.run(
-        ["pandoc", str(md_path), "-f", "gfm", "-t", "html", "--wrap=none"],
+        [
+            "pandoc", str(md_path), "-f", "gfm", "-t", "html", "--wrap=none",
+            "--syntax-highlighting=none",
+        ],
         check=True, capture_output=True, text=True,
     ).stdout
     attachments = []
@@ -190,13 +198,23 @@ def md_to_html(md_path):
     html = re.sub(r'<img src="(?P<src>[^"]+)"(?:\s+alt="(?P<alt>[^"]*)")?\s*/?>', img_sub, html)
     html = re.sub(r"<p>\s*(<ac:image\b.*?</ac:image>)\s*</p>", r"\1", html, flags=re.DOTALL)
 
-    # Välised lingid jäävad; siselingid → plain tekst
-    html = re.sub(
-        r'<a href="(?P<href>[^"]+)"[^>]*>(?P<text>.*?)</a>',
-        lambda m: m.group(0) if m.group("href").startswith(("http://", "https://", "#", "mailto:"))
-                  else re.sub(r"<[^>]+>", "", m.group("text")).strip() or m.group("href"),
-        html, flags=re.DOTALL,
-    )
+    # Välised lingid jäävad; repo-sisesed suhtelised lingid → GitHubi fail
+    # (sama haru kui gh_link), et Lõpptarne lehelt saaks iga viidatud
+    # dokumendi avada. Repost väljapoole viitavad lingid → lihttekst.
+    def link_sub(m):
+        href, text = m.group("href"), m.group("text")
+        if href.startswith(("http://", "https://", "#", "mailto:")):
+            return m.group(0)
+        path, _, anchor = href.partition("#")
+        target = (md_dir / path).resolve()
+        try:
+            rel = target.relative_to(REPO).as_posix()
+        except ValueError:
+            return re.sub(r"<[^>]+>", "", text).strip() or href
+        url = f"{GH_BASE}/{rel}" + (f"#{anchor}" if anchor else "")
+        return f'<a href="{url}">{text}</a>'
+
+    html = re.sub(r'<a href="(?P<href>[^"]+)"[^>]*>(?P<text>.*?)</a>', link_sub, html, flags=re.DOTALL)
     # Eemalda esimene <h1>
     html = re.sub(r"^\s*<h1[^>]*>.*?</h1>\s*", "", html, count=1, flags=re.DOTALL)
     return html, attachments
@@ -208,8 +226,10 @@ def gh_link(relpath, text=None):
     return f'<a href="{url}">{label}</a>'
 
 
-def confluence_link(page_id, text):
-    return (f'<ac:link><ri:page ri:content-id="{page_id}" />'
+def confluence_link(page_title, text):
+    # Confluence Server ei toeta ri:content-id viidet (salvestub tühja <ri:page />-na),
+    # seega viidatakse lehe pealkirja ja ruumi järgi.
+    return (f'<ac:link><ri:page ri:space-key="{SPACE}" ri:content-title="{html.escape(page_title)}" />'
             f'<ac:plain-text-link-body><![CDATA[{text}]]></ac:plain-text-link-body></ac:link>')
 
 
@@ -252,9 +272,9 @@ def build_page():
 """)
 
     # ── Dokumentatsioon ───────────────────────────────────────────────────────
-    conf_ug   = confluence_link("333210904", "LJVIS2 kasutusjuhend (lehepuu)")
-    conf_ugsp = confluence_link("346498942", "LJVIS2 kasutusjuhend ühel lehel")
-    conf_pm   = confluence_link("346489830", "LJVIS2 õiguste maatriks")  # permissions page if it exists
+    conf_ug   = confluence_link("LJVIS2 kasutusjuhend", "LJVIS2 kasutusjuhend (lehepuu)")
+    conf_ugsp = confluence_link("LJVIS2 kasutusjuhend ühel lehel", "LJVIS2 kasutusjuhend ühel lehel")
+    conf_pm   = confluence_link("LJVIS2 õiguste maatriks", "LJVIS2 õiguste maatriks")  # permissions page if it exists
     sections.append(f"""
 <h1>Dokumentatsioon</h1>
 <table>
@@ -290,13 +310,13 @@ def build_page():
     </tr>
     <tr>
       <td><strong>X-tee pakutavad teenused</strong></td>
-      <td>{gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md")}</td>
-      <td>Kõik 9 X-tee teenust (IsikuKontroll, ErakorralineYV, RegisterJobInspection, AJ), turvaserveri seadistus ja masinloetav {gh_link("docs/xtee/XroadOpenapi.yaml", "XroadOpenapi.yaml")}.</td>
+      <td>{confluence_link(XTEE_JUHEND, "LJVIS2 X-tee pakutavad teenused (REST)")}<br />{confluence_link(XTEE_LIIDESTUMINE, "LJVIS2 · X-tee liidestumine")}<br />{gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md")}</td>
+      <td>Kuus LJVIS2 X-tee teenust (IsikuKontroll, ErakorralineYV, RegisterJobInspection) ja Andmejälgija teenus findUsage, turvaserveri seadistus, masinloetavad lepingud {gh_link("docs/xtee/XroadOpenapi.yaml", "XroadOpenapi.yaml")} ja {gh_link("docs/xtee/FindUsageOpenapi.yaml", "FindUsageOpenapi.yaml")}. Arendaja juhendid, mock ja testikogumikud: X-tee liidestumise lehed ja {gh_link("docs/developer/README.md", "docs/developer")}.</td>
     </tr>
     <tr>
       <td><strong>Andmejälgija seadistamine</strong></td>
-      <td>{gh_link("docs/andmejalgija-seadistamine.md")}</td>
-      <td>AJ (DUMonitor) liidestuse seadistus — /v2/findUsage, /v2/usagePeriod, /v2/heartbeat.</td>
+      <td>{confluence_link(AJ_JUHEND, "LJVIS2 · Andmejälgija (AJ) seadistamine")}<br />{gh_link("docs/andmejalgija-seadistamine.md")}</td>
+      <td>Andmejälgija kasutusteabe teenus (RIA protokoll v1.6.1): üks X-tee teenus findUsage otspunktidega /v2/findUsage, /v2/usagePeriod, /v2/heartbeat; turvaserveri seadistus.</td>
     </tr>
     <tr>
       <td><strong>Infra ligipääsuvaade</strong></td>
@@ -309,9 +329,105 @@ def build_page():
       <td>10+ arhitektuuriotsust põhjendustega: andmemudel, X-tee, PDF, auditi sool, arhiivibaas jt.</td>
     </tr>
     <tr>
+      <td><strong>Testiplaan</strong></td>
+      <td>{gh_link("docs/testimine/testiplaan.md")}</td>
+      <td>Testimise eesmärgid, ulatus, testitasemed ja tööriistad, keskkonnad, testkasutajad, sisenemis- ja väljumiskriteeriumid, defektihaldus.</td>
+    </tr>
+    <tr>
+      <td><strong>Testilood</strong></td>
+      <td>{gh_link("docs/testimine/testilood.md")}<br />{gh_link("docs/testimine/testilood-ui.md")}</td>
+      <td>Testilugude ülesehitus ja moodulite koond; kõik UI-testilood (Playwright) sammude ja viimase tulemusega.</td>
+    </tr>
+    <tr>
+      <td><strong>Testiraport</strong></td>
+      <td>Allpool (§ Testimine)<br />{gh_link("docs/testimine/testiraport.md")}</td>
+      <td>Eesmärgid, tegevused, tulemused, testitud nõuete nimekiri, leitud ja parandatud vead, avatud kohad.</td>
+    </tr>
+    <tr>
+      <td><strong>API-testide nimekiri ja tulemused</strong></td>
+      <td>{gh_link("docs/testimine/apitestid.md")}</td>
+      <td>Kõik API-testid (Newman, Ruuteri DSL-stsenaariumid, X-tee arendaja-mock, lepingutestid) iga kontrolli tulemusega.</td>
+    </tr>
+    <tr>
+      <td><strong>X-tee testprotokoll</strong></td>
+      <td>Allpool (§ X-tee pakutavad teenused)<br />{gh_link("docs/xtee/08-testprotokoll.md")}</td>
+      <td>Pakutavate (9 otspunkti) ja kasutatavate X-tee teenuste testid ja tulemused, arendaja-mocki kontrollid.</td>
+    </tr>
+    <tr>
       <td><strong>Teadaolevad probleemid</strong></td>
       <td>Allpool (§ Teadaolevad probleemid)</td>
       <td>KI-001: PostgreSQL JDBC ceiling; KI-002: Liquibase 5.0.x ühilduvusemure.</td>
+    </tr>
+  </tbody>
+</table>
+""")
+
+    # ── Hanke nõuete täitmine (lisadokumendid, alamlehed) ─────────────────────
+    from lopptarne_lehed import title as _t
+    def cl(path, text):
+        return confluence_link(_t(path), text)
+    sections.append(f"""
+<h1>Hanke nõuete täitmine: lisadokumendid</h1>
+<p>
+  Allolev tabel seob hanke nõuded (HD4) selle lehe alamlehtedega. Iga alamleht on koostatud repositooriumi
+  dokumendist; viimane tõene versioon on GitHubis. <strong>Seis</strong> näitab ausalt, mis on valmis ja mis
+  tegemata.
+</p>
+<table>
+  <colgroup><col /><col /><col /><col /></colgroup>
+  <thead>
+    <tr><th>Nõue</th><th>Dokument</th><th>Seis</th><th>Repositoorium</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Migratsioon</strong> (HD4 Lisa 6 p.10): strateegia, kaardistus, ETL, kvaliteet, raportid</td>
+      <td>{cl("docs/migration/README.md", "Migratsiooni sisukord")}<br />
+          {cl("docs/migration/01-migratsioonistrateegia.md", "Strateegia (cutover/rollback)")}<br />
+          {cl("docs/migration/02-andmekaardistus.md", "Andmekaardistus ja transformatsioonireeglid")}<br />
+          {cl("docs/migration/03-andmekvaliteet.md", "Kvaliteedikriteeriumid ja raportid")}<br />
+          {cl("docs/migration/04-migratsioonitesti-raport.md", "Migratsioonitesti raport")}<br />
+          {cl("docs/migration/05-lopliku-migratsiooni-raport.md", "Lõpliku migratsiooni raporti mall")}</td>
+      <td>Dokumendid valmis; ETL olemas, tootmisjooks blokeeritud avatud vastenduste tõttu. <strong>Avatud: ajapiir 3 vs 5 aastat.</strong> Testi- ja lõppraport täidetakse jooksude järel.</td>
+      <td>{gh_link("docs/migration/README.md", "docs/migration")}, {gh_link("DSL/migration/README.md", "DSL/migration")}</td>
+    </tr>
+    <tr>
+      <td><strong>Arhiveerimine</strong>: protsessid, reeglid, juhend</td>
+      <td>{cl("docs/admin-guide/13-arhiveerimine.md", "Arhiveerimine (juhend)")}</td>
+      <td>Ajapõhine arhiveerimine valmis, vaikimisi välja lülitatud; aastad, kustutamise valik (jah/ei) ja kuivjooks seadistatavad CronManageri failis. Kustutatud vormide arhiveerimine (ADR-010) on inertne kuni aktiveerimiseni.</td>
+      <td>{gh_link("docs/admin-guide/13-arhiveerimine.md")}</td>
+    </tr>
+    <tr>
+      <td><strong>Jõudlus / koormus</strong> (HD4 Lisa 6 p.7)</td>
+      <td>{cl("docs/testimine/joudlustestid.md", "Jõudlus- ja koormustestid")}</td>
+      <td>Stsenaariumid, skriptid (k6) ja raporti genereerija valmis; <strong>testid jooksutamata</strong>, sihid Tellijaga kinnitamata.</td>
+      <td>{gh_link("tests/performance/run.sh", "tests/performance")}</td>
+    </tr>
+    <tr>
+      <td><strong>Turve</strong> (HD4 Lisa 6 p.8): parandusraport + kordustõend</td>
+      <td>{cl("docs/testimine/turvaparandused.md", "Turvaparanduste raport ja kordustõend")}</td>
+      <td>Sisemised turvakontrollid ja parandused dokumenteeritud; välist turvatesti pole veel tehtud, leidude ja kordustõendi osad on mall.</td>
+      <td>{gh_link("docs/testimine/turvaparandused.md")}</td>
+    </tr>
+    <tr>
+      <td><strong>Integratsioonid</strong> (HD4 Lisa 6 p.9): liides, testid ja veahaldus, versioonimine</td>
+      <td>{cl("docs/integrations/integratsioonid.md", "Integratsioonide ülevaade")}<br />
+          {cl("docs/integrations/mall.md", "Kirjelduse mall")}<br />
+          {cl("docs/integrations/versioonimine.md", "Versioonimise põhimõtted")}</td>
+      <td>Seitse integratsioonikaarti ja mall valmis; versioonimise väljasuremistähtaeg on ettepanek Tellijale.</td>
+      <td>{gh_link("docs/integrations/integratsioonid.md", "docs/integrations")}</td>
+    </tr>
+    <tr>
+      <td><strong>Teavitused ja Postkast 2.0</strong>: spetsifikatsioon ja administraatori juhend</td>
+      <td>{cl("docs/specs/teavitused-spetsifikatsioon.md", "Teavituste spetsifikatsioon")}<br />{gh_link("docs/admin-guide/09-teavitused.md", "Administraatori juhend")}</td>
+      <td>Valmis. Lahtine: <code>labor_kabotage</code> päästik puudub.</td>
+      <td>{gh_link("docs/specs/teavitused-spetsifikatsioon.md")}</td>
+    </tr>
+    <tr>
+      <td><strong>DB skeemid, ER</strong></td>
+      <td>{cl("docs/architecture/andmemudel-erd.md", "Andmemudel (ER-skeem ja seosed)")}<br />
+          {cl("docs/architecture/andmemudel-skeem.md", "Andmebaasi skeem (genereeritud)")}</td>
+      <td>Valmis; skeemidokument genereeritakse Liquibase'ist ja CI kontrollib aktuaalsust.</td>
+      <td>{gh_link("docs/architecture/andmemudel-erd.md", "docs/architecture")}</td>
     </tr>
   </tbody>
 </table>
@@ -345,8 +461,8 @@ def build_page():
   <li><strong>Kontrollivormid:</strong> Välisriigi rikkumine (VR), Koondvorm (SP/TH), Transpordiameti kontrollkaart (TRAM), Tööinspektsiooni kontrollakt, Tehniline kontroll, Autoveo katkestamine, ADR, Hea maine, Sõidu- ja puhkeaeg</li>
   <li><strong>ERRU andmevahetus:</strong> CTUD (tegevusloa kontroll), CGR (hea maine), RSI (teeäärne kontroll), NCR (kontrollitulemus), NU (vedaja teavitamine)</li>
   <li><strong>Riskihindamine:</strong> automaatne riskiskooride arvutamine (EU 2022/695), administraatori ja kodaniku vaated</li>
-  <li><strong>Andmejälgija:</strong> AJ (DUMonitor) liides eesti.ee-le isikuandmete töötluse jälgimiseks</li>
-  <li><strong>X-tee:</strong> IsikuKontroll, ErakorralineYV, RegisterJobInspection; andmejälgija /v2 teenused</li>
+  <li><strong>Andmejälgija:</strong> kasutusteabe teenus findUsage eesti.ee-le isikuandmete töötluse jälgimiseks (RIA kasutusteabe esitamise protokoll v1.6.1)</li>
+  <li><strong>X-tee:</strong> IsikuKontroll, ErakorralineYV, RegisterJobInspection; Andmejälgija teenus findUsage</li>
   <li><strong>Automaatne öine protsessing:</strong> e-toimikust jõustunud otsuste lugemine (TI, SP, TRAM); liiklusregistrist tehnoülevaatuse kontrollimine; NCR autodispatch</li>
 </ul>
 """)
@@ -384,7 +500,7 @@ def build_page():
     # ── X-tee teenused ────────────────────────────────────────────────────────
     sections.append(f"""
 <h1>X-tee pakutavad teenused</h1>
-<p>LJVIS2 pakub 9 X-tee teenust REST/JSON protokolliga. Täielik dokumentatsioon: {gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md", "xtee-teenused-publikatsiooni-juhend.md")}.</p>
+<p>LJVIS2 pakub REST/JSON protokolliga kuut X-tee teenust ja Andmejälgija teenust <code>findUsage</code> (kolm otspunkti). Juhendid Confluence'is: {confluence_link(XTEE_JUHEND, "LJVIS2 X-tee pakutavad teenused (REST)")}, {confluence_link(XTEE_LIIDESTUMINE, "LJVIS2 · X-tee liidestumine")} (arendajale: liidestumine, mock, OpenAPI ja testikogumikud) ja {confluence_link(AJ_JUHEND, "LJVIS2 · Andmejälgija (AJ) seadistamine")}. Täielik dokumentatsioon GitHubis: {gh_link("docs/xtee/00-xtee-teenused-publikatsiooni-juhend.md", "xtee-teenused-publikatsiooni-juhend.md")}.</p>
 <table>
   <colgroup><col /><col /><col /></colgroup>
   <thead><tr><th>#</th><th>Teenuse kood</th><th>Kirjeldus</th></tr></thead>
@@ -395,10 +511,38 @@ def build_page():
     <tr><td>4</td><td><code>ErakorralineYVconfirm</code></td><td>Erakorralise tehnoülevaatuse kinnitus ({gh_link("docs/xtee/04-erakorraline-yv-confirm.md", "spec")})</td></tr>
     <tr><td>5</td><td><code>RegisterJobInspection</code></td><td>Tööinspektsiooni kontrolli registreerimine v1 ({gh_link("docs/xtee/05-register-job-inspection.md", "spec")})</td></tr>
     <tr><td>6</td><td><code>RegisterJobInspection_v3</code></td><td>Tööinspektsiooni kontrolli registreerimine v3 ({gh_link("docs/xtee/07-register-job-inspection-v3.md", "spec")})</td></tr>
-    <tr><td>7–9</td><td><code>findUsage / usagePeriod / heartbeat</code></td><td>Andmejälgija (AJ / DUMonitor) teenused eesti.ee-le</td></tr>
+    <tr><td>7</td><td><code>findUsage</code></td><td>Andmejälgija kasutusteabe teenus eesti.ee-le, otspunktid <code>/v2/findUsage</code>, <code>/v2/usagePeriod</code>, <code>/v2/heartbeat</code> ({confluence_link(AJ_JUHEND, "juhend")})</td></tr>
   </tbody>
 </table>
-{info_box("<p>Masinloetav OpenAPI leping (kõik 9 teenust): " + gh_link("docs/xtee/XroadOpenapi.yaml") + "</p><p>Turvaserver saab seda URL-i kasutada lepingu automaatseks uuendamiseks (vt juhend §4.8).</p>")}
+{info_box("<p>Masinloetavad OpenAPI lepingud: " + gh_link("docs/xtee/XroadOpenapi.yaml") + " (kuus LJVIS2 teenust, <code>/ljvis/xroad/provide/openapi</code>) ja " + gh_link("docs/xtee/FindUsageOpenapi.yaml") + " (Andmejälgija teenus findUsage, <code>/ljvis/xroad/v2/openapi</code>).</p><p>Turvaserver saab neid URL-e kasutada lepingu automaatseks uuendamiseks (vt juhend §4.8).</p>")}
+<h2>Arendaja-mock</h2>
+<p>Liidestujatele on sünteetiliste andmetega mock aadressil <code>https://dev.liiklusvalve.ee/developer</code> (tervisekontroll <code>/developer/health/ready</code>); ligipääs ainult whitelistitud IP-aadressidelt (taotlus KeMIT-i teenuseomanikule). Juhendid: {confluence_link(XTEE_LIIDESTUMINE, "LJVIS2 · X-tee liidestumine")} ja {gh_link("docs/developer/README.md", "docs/developer")} (liidestumine ja turve, teenused ja näited, mock, lokaalne mock, vead, OpenAPI ja Postmani kogumik).</p>
+""")
+
+    # ── X-tee testprotokoll ───────────────────────────────────────────────────
+    xt_path = DOCS / "xtee" / "08-testprotokoll.md"
+    xt_html, xt_atts = md_to_html(xt_path)
+    all_atts.extend(xt_atts)
+    sections.append(f"""
+<h2>X-tee testprotokoll</h2>
+{xt_html}
+""")
+
+    # ── Testimine ─────────────────────────────────────────────────────────────
+    tr_path = DOCS / "testimine" / "testiraport.md"
+    tr_html, tr_atts = md_to_html(tr_path)
+    all_atts.extend(tr_atts)
+    sections.append(f"""
+<h1>Testimine</h1>
+{info_box("<p>Testidokumentatsioon: " + gh_link("docs/testimine/testiplaan.md", "testiplaan") + ", "
+          + gh_link("docs/testimine/testilood.md", "testilood") + " ("
+          + gh_link("docs/testimine/testilood-ui.md", "UI-testilood") + "), "
+          + gh_link("docs/testimine/apitestid.md", "API-testide nimekiri ja tulemused") + ", "
+          + gh_link("docs/xtee/08-testprotokoll.md", "X-tee testprotokoll") + ". "
+          + "Newmani kollektsioonide detailtulemused: " + confluence_link("E2E testitulemused", "E2E testitulemused")
+          + ". Allpool on testiraport.</p>")}
+<h2>Testiraport</h2>
+{tr_html}
 """)
 
     # ── Teadaolevad probleemid ────────────────────────────────────────────────
@@ -414,14 +558,15 @@ def build_page():
     sections.append(f"""
 <h1>Andmejälgija (AJ) seadistamine</h1>
 <p>
-  LJVIS2 peab implementeerima DUMonitor OpenAPI v2.1.0 spetsifikatsiooni,
-  et isikud saaksid eesti.ee kaudu kontrollida, kes nende andmeid on töödelnud (IKS §19, §25).
-  Täielik juhend: {gh_link("docs/andmejalgija-seadistamine.md", "andmejalgija-seadistamine.md")}.
+  LJVIS2 realiseerib RIA Andmejälgija kasutusteabe esitamise protokolli v1.6.1, et isikud
+  saaksid eesti.ee kaudu kontrollida, kes nende andmeid on töödelnud (IKS §19, §25).
+  Juhend: {confluence_link(AJ_JUHEND, "LJVIS2 · Andmejälgija (AJ) seadistamine")}
+  (GitHubis {gh_link("docs/andmejalgija-seadistamine.md", "andmejalgija-seadistamine.md")}).
 </p>
 <ul>
-  <li><strong>Endpointid:</strong> <code>/v2/findUsage</code>, <code>/v2/usagePeriod</code>, <code>/v2/heartbeat</code></li>
-  <li><strong>Allikas:</strong> kolm inbound X-tee teenust + väljaminevad RR-päringud kirjutavad automaatselt <code>xroad.aj_usage_log</code> tabelisse</li>
-  <li><strong>Turvaserveri seadistus:</strong> REST teenus URL-iga <code>http://ruuter-internal:8080</code>, teenuse kood <code>DUMonitor</code></li>
+  <li><strong>X-tee teenus:</strong> üks REST teenus koodiga <code>findUsage</code> otspunktidega <code>/v2/findUsage</code>, <code>/v2/usagePeriod</code>, <code>/v2/heartbeat</code>; eesti.ee kutsub <code>…/ljvis2/findUsage/v2/findUsage</code></li>
+  <li><strong>Turvaserveri seadistus:</strong> teenuse URL Ruuter.internal-i <code>/ljvis/xroad</code> (mitte <code>/ljvis/xroad/v2</code>), kirjeldus URL-ilt <code>/ljvis/xroad/v2/openapi</code> ({gh_link("docs/xtee/FindUsageOpenapi.yaml", "FindUsageOpenapi.yaml")})</li>
+  <li><strong>Kirjete allikas:</strong> inbound X-tee teenused ning LJVIS2 väljaminevad päringud (rahvastikuregister, äriregister, MTR) ja koondvormi kinnitamine kirjutavad <code>xroad.aj_usage_log</code> tabelisse; LJVIS2 enda toimingute töötlejaks on vastutav töötleja Kliimaministeerium (70001231)</li>
 </ul>
 """)
 
@@ -486,7 +631,8 @@ def build_page():
     plaan on üle minna Rust Ruuterile. Vt {gh_link("docs/workingdocs/rust-services-upgrade-plan.md", "rust-services-upgrade-plan.md")}.
   </li>
   <li>
-    <strong>Arhiiviandmebaas (ADR-010)</strong> — kustutatud kontrollvormide arhiveerimise eraldi andmebaas on arhitektuuris kavandatud aga veel täielikult implementeerimata.
+    <strong>Arhiveerimine (ADR-010, ADR-012)</strong> — kustutatud vormide arhiivi cron on inertne kuni aktiveerimiseni;
+    ajapõhine arhiveerimine on vaikimisi väljas. Sisselülitamine: <a href="{GH_BASE}/docs/admin-guide/13-arhiveerimine.md">arhiveerimise juhend</a>.
   </li>
 </ul>
 """)

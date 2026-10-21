@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single good repute form snapshot by snapshot ID, for the read-only historical version view (LJVIS2-136)."
@@ -11,18 +12,47 @@ declaration:
       - field: formKey
         type: string
         description: "Good repute form key"
+    headers:
+      - field: cookie
+        type: string
 
 checkPermission:
   switch:
     - condition: ${auth_user != null && auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('good_repute_form.read'))}
-      next: getSnapshot
+      next: checkReadAccess
   next: returnForbidden
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "good-repute"
+    form_key: "${incoming.params.formKey}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getSnapshot
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getSnapshot:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.params.id}
@@ -34,13 +64,14 @@ checkEmpty:
   switch:
     - condition: ${res.response.body == null || res.response.body.length == 0}
       next: getFromArchive
-  next: mapResponse
+  next: returnSuccess
 
 getFromArchive:
   call: http.post
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       formType: "good-repute"
@@ -53,29 +84,22 @@ mapResponseArchive:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_good_repute_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
-  result: mapped
-  next: returnSuccess
+  result: archived
+  next: returnArchived
 
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_good_repute_form"
-    headers:
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
-  next: returnSuccess
+returnArchived:
+  return: "${(typeof archived.response.body === 'string' ? JSON.parse(archived.response.body) : archived.response.body)}"
+  next: end
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body[0]}
   next: end
 
 returnForbidden:
   status: 403
   return: '{"error":"FORBIDDEN"}'
   next: end
-

@@ -1,11 +1,12 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
     Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one of
     the citizen's represented companies, backing the CompanyControlsTable
     accordion under a CompanyCard on the citizen dashboard. Same representative-check
-    convention as GET/v1/citizen/risk-scores/my-company.yml — session claims
+    convention as GET/v1/citizen/risk-scores/my-company.yml - session claims
     (activeRole/activeRegistryCode/representedCompanies, from
     representation/switch or representation/companies, backed by Äriregister
     esindus_v1) checked first (free, no X-Road call), falling back to a live
@@ -16,6 +17,9 @@ declaration:
       - field: q
         type: string
         description: "8-digit Estonian company registry code."
+    headers:
+      - field: cookie
+        type: string
 
 getCitizenContext:
   template: "templates/citizen-authority"
@@ -63,6 +67,7 @@ checkCompanyRepresentative:
   args:
     url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ""
@@ -115,6 +120,7 @@ getControlsBreakdown:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/controls"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}

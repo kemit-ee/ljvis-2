@@ -325,7 +325,7 @@ tests:
       koostatatud_ettekirjutus: false
       kontrollimised: &id006
         kontrollitud_soitjate_veol: false
-      rikkumised: &id007
+      rikkumised: &id009
         rikkumised_loend: []
       vaarteomenetlus: MOCK-VM-001
   expect:
@@ -400,7 +400,7 @@ tests:
     headers:
       content-type: application/json
       x-road-client: ee-dev/GOV/70001490/liiklusregister
-    body: &id008
+    body: &id007
       kontrollija: Mock Kontrollija
       kontrolli_id: 900001
       kontrolli_kp: '2026-06-15'
@@ -409,7 +409,11 @@ tests:
       soidukite_arv: 2
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: &id010
+        rikkumiste_arv:
+        - rikkumise_kood: E5
+          arv: 2
+        - rikkumise_kood: B1
       vaarteomenetlus: MOCK-VM-001
       soiduki_reg_nr: MOCK123
       soiduki_vin: MOCKVIN0000000001
@@ -428,7 +432,7 @@ tests:
     path: /xtee-mock/xroad/v1/register-job-inspection-v3
     headers:
       content-type: application/json
-    body: *id008
+    body: *id007
   expect:
     status: 403
     body_matches:
@@ -441,7 +445,7 @@ tests:
     headers:
       content-type: application/json
       x-road-client: bad
-    body: *id008
+    body: *id007
   expect:
     status: 403
     body_matches:
@@ -454,7 +458,7 @@ tests:
     headers:
       content-type: application/json
       x-road-client: ee-dev/GOV/70000000/denied
-    body: *id008
+    body: *id007
   expect:
     status: 403
     body_matches:
@@ -478,7 +482,7 @@ tests:
       content-type: application/json
       x-road-client: ee-dev/GOV/70001490/liiklusregister
       x-mock-scenario: server-error
-    body: *id008
+    body: *id007
   expect:
     status: 500
     body_matches:
@@ -489,16 +493,31 @@ tests:
     path: /xtee-mock/xroad/v2/findUsage
     headers:
       x-road-userid: '60001019906'
-    query: &id009
+    query: &id008
       userCode: '60001019906'
       offset: '0'
       limit: '1000'
   expect:
     status: 200
     body_matches:
-      response: '{"totalUsages":3,"usages":[{"action":"Mock kontrollipäring","logtime":"2026-06-15T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
-        tarbija","receiverSystem":"liiklusregister"},{"action":"Mock töökontroll","logtime":"2026-06-14T12:00:00Z","receiverCode":"70001969","receiverName":null,"receiverSystem":null},{"action":"Mock
-        korduspäring","logtime":"2026-06-13T12:00:00Z","receiverCode":"70001490","receiverName":"Mock tarbija","receiverSystem":"liiklusregister"}]}'
+      totalUsages: 3
+      usages: &id011
+      - &id012
+        logtime: '2026-06-15T12:00:00Z'
+        action: Mock kontrollipäring
+        receiverCode: '70001490'
+        receiverName: Mock tarbija
+        receiverSystem: liiklusregister
+      - &id013
+        logtime: '2026-06-14T12:00:00Z'
+        action: Mock töökontroll
+        receiverCode: '70001969'
+      - &id014
+        logtime: '2026-06-13T12:00:00Z'
+        action: Mock korduspäring
+        receiverCode: '70001490'
+        receiverName: Mock tarbija
+        receiverSystem: liiklusregister
 - name: findUsage server error
   request:
     method: GET
@@ -506,11 +525,12 @@ tests:
     headers:
       x-road-userid: '60001019906'
       x-mock-scenario: server-error
-    query: *id009
+    query: *id008
   expect:
     status: 500
     body_matches:
-      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+      error: SERVER_ERROR
+      message: Internal error
 - name: usagePeriod success
   request:
     method: GET
@@ -519,7 +539,7 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"periodStart":"2026-06-13T12:00:00Z"}'
+      periodStart: '2026-06-13T12:00:00Z'
 - name: usagePeriod server error
   request:
     method: GET
@@ -529,7 +549,8 @@ tests:
   expect:
     status: 500
     body_matches:
-      response: '{"error": "SERVER_ERROR", "message": "Internal error"}'
+      error: SERVER_ERROR
+      message: Internal error
 - name: heartbeat success
   request:
     method: GET
@@ -538,7 +559,8 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"status": "OK", "message": "API is ready"}'
+      status: OK
+      message: API is ready
 - name: health is public without session and X-Road headers
   request:
     method: GET
@@ -684,7 +706,7 @@ tests:
       tooandja_reg_kood: '00000001'
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: *id009
   expect:
     status: 200
     body_matches:
@@ -705,7 +727,7 @@ tests:
       soidukite_arv: 2
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: *id010
       vaarteomenetlus: MOCK-VM-001
       soiduki_reg_nr: MOCK123
       soiduki_vin: MOCKVIN0000000001
@@ -732,7 +754,7 @@ tests:
       soidukite_arv: 2
       koostatatud_ettekirjutus: false
       kontrollimised: *id006
-      rikkumised: *id007
+      rikkumised: *id010
       vaarteomenetlus: MOCK-VM-001
       soiduki_reg_nr: MOCK123
       soiduki_vin: MOCKVIN0000000001
@@ -765,7 +787,8 @@ tests:
   expect:
     status: 400
     body_matches:
-      response: '{"error": "MISSING_HEADER", "message": "X-Road-UserId header is required"}'
+      error: MISSING_HEADER
+      message: X-Road-UserId header is required
 - name: AJ missing userCode
   request:
     method: GET
@@ -774,18 +797,60 @@ tests:
       x-road-userid: '60001019906'
   expect:
     status: 400
-- name: AJ mismatched userid
+- name: 'AJ representation: userid differs from userCode'
   request:
     method: GET
     path: /xtee-mock/xroad/v2/findUsage
     headers:
-      x-road-userid: '60001019907'
+      x-road-userid: EE60001019907
     query:
       userCode: '60001019906'
   expect:
+    status: 200
+    body_matches:
+      totalUsages: 3
+      usages: *id011
+- name: AJ EE prefix is stripped from userCode
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: EE60001019906
+    query:
+      userCode: EE60001019906
+  expect:
+    status: 200
+    body_matches:
+      totalUsages: 3
+      usages: *id011
+- name: AJ invalid offset
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      offset: '-1'
+  expect:
     status: 400
     body_matches:
-      response: '{"error": "FORBIDDEN", "message": "X-Road-UserId must match userCode"}'
+      error: INVALID_PARAMETER
+      message: offset must be a non-negative integer
+- name: AJ invalid periodStart
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/findUsage
+    headers:
+      x-road-userid: '60001019906'
+    query:
+      userCode: '60001019906'
+      periodStart: '2026-06-14'
+  expect:
+    status: 400
+    body_matches:
+      error: INVALID_PARAMETER
+      message: periodStart must be an RFC 3339 date-time
 - name: AJ deterministic page 0
   request:
     method: GET
@@ -799,8 +864,9 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"totalUsages":3,"usages":[{"action":"Mock kontrollipäring","logtime":"2026-06-15T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
-        tarbija","receiverSystem":"liiklusregister"}]}'
+      totalUsages: 3
+      usages:
+      - *id012
 - name: AJ deterministic page 1
   request:
     method: GET
@@ -814,7 +880,9 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"totalUsages":3,"usages":[{"action":"Mock töökontroll","logtime":"2026-06-14T12:00:00Z","receiverCode":"70001969","receiverName":null,"receiverSystem":null}]}'
+      totalUsages: 3
+      usages:
+      - *id013
 - name: AJ deterministic page 2
   request:
     method: GET
@@ -828,8 +896,9 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"totalUsages":3,"usages":[{"action":"Mock korduspäring","logtime":"2026-06-13T12:00:00Z","receiverCode":"70001490","receiverName":"Mock
-        tarbija","receiverSystem":"liiklusregister"}]}'
+      totalUsages: 3
+      usages:
+      - *id014
 - name: AJ deterministic page 3
   request:
     method: GET
@@ -843,7 +912,8 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"totalUsages":0,"usages":[]}'
+      totalUsages: 3
+      usages: []
 - name: AJ unknown person
   request:
     method: GET
@@ -855,7 +925,8 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"totalUsages":0,"usages":[]}'
+      totalUsages: 0
+      usages: []
 - name: AJ date filtering
   request:
     method: GET
@@ -869,8 +940,10 @@ tests:
   expect:
     status: 200
     body_matches:
-      response: '{"totalUsages":1,"usages":[{"action":"Mock töökontroll","logtime":"2026-06-14T12:00:00Z","receiverCode":"70001969","receiverName":null,"receiverSystem":null}]}'
-- name: usage period empty
+      totalUsages: 1
+      usages:
+      - *id013
+- name: usage period empty log still reports periodStart
   request:
     method: GET
     path: /xtee-mock/xroad/v2/usagePeriod
@@ -878,5 +951,14 @@ tests:
       x-mock-scenario: empty
   expect:
     status: 200
+- name: heartbeat database failure
+  request:
+    method: GET
+    path: /xtee-mock/xroad/v2/heartbeat
+    headers:
+      x-mock-scenario: server-error
+  expect:
+    status: 200
     body_matches:
-      response: '{"periodStart":null}'
+      status: FAIL
+      message: Usage log database is not available

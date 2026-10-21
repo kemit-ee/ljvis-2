@@ -19,6 +19,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -133,12 +136,16 @@ returns:
 - name: companyRegCode
   type: string
   nullable: true
+- name: companyName
+  type: string
+  nullable: true
 */
 SELECT
   sp_driver_form_key AS id,
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   selection_status,
   transport_type,
@@ -182,7 +189,14 @@ SELECT
     WHERE compound_form_key = spd.compound_form_key
     ORDER BY created_at DESC
     LIMIT 1
-  ) AS company_reg_code
+  ) AS company_reg_code,
+  (
+    SELECT company_name
+    FROM forms.compound_form
+    WHERE compound_form_key = spd.compound_form_key
+    ORDER BY created_at DESC
+    LIMIT 1
+  ) AS company_name
 FROM forms.sp_driver_form spd
 WHERE sp_driver_form_key = :id::BIGINT
 ORDER BY created_at DESC

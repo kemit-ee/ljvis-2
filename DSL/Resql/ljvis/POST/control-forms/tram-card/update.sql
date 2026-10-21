@@ -1,5 +1,5 @@
 /*
-description: Update a TRAM control card — appends a new snapshot row. version is unchanged while the
+description: Update a TRAM control card - appends a new snapshot row. version is unchanged while the
   latest snapshot's status is 'saved' (repeat saves do not bump /V); it increments by 1 when the status
   changes (confirm/publish) or when re-saving already-locked data.
 namespace: control-forms
@@ -220,6 +220,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -228,6 +232,9 @@ returns:
   type: string
   nullable: true
 - name: version
+  type: number
+  nullable: true
+- name: revision
   type: number
   nullable: true
 - name: status
@@ -239,6 +246,13 @@ WITH latest AS (
          control_year,
          enforcement_decision,
          proceeding_closure_basis,
+         klim_clarification_date,
+         carrier_explanation_date,
+         penalty_valid_until,
+         penalty_expired_or_processed,
+         akvk_next_meeting_date,
+         commission_last_decision_date,
+         admin_procedure_decision,
          -- Publishing bumps /V (confirmed -> published). Otherwise: repeat saves
          -- and the saved -> confirmed transition keep the version; only re-saving
          -- already-locked data (status unchanged, not 'saved') bumps.
@@ -246,7 +260,7 @@ WITH latest AS (
            WHEN :status = 'published' AND status <> 'published' THEN version + 1
            WHEN status = 'saved' OR :status <> status THEN version
            ELSE version + 1
-         END AS version
+         END AS version, revision
   FROM forms.tram_control_card
   WHERE tram_control_card_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -257,6 +271,7 @@ INSERT INTO forms.tram_control_card (
   form_number,
   control_year,
   version,
+  revision,
   status,
   control_date,
   control_time,
@@ -329,6 +344,13 @@ INSERT INTO forms.tram_control_card (
   notes,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -336,6 +358,7 @@ SELECT
   latest.form_number,
   latest.control_year,
   latest.version,
+  latest.revision + 1,
   :status,
   :controlDate::DATE,
   NULLIF(:controlTime, '')::TIME,
@@ -408,6 +431,14 @@ SELECT
   NULLIF(:notes, ''),
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
+  latest.klim_clarification_date,
+  latest.carrier_explanation_date,
+  latest.penalty_valid_until,
+  latest.penalty_expired_or_processed,
+  latest.akvk_next_meeting_date,
+  latest.commission_last_decision_date,
+  latest.admin_procedure_decision,
   :created_by
 FROM latest
-RETURNING tram_control_card_key AS id, form_number, version, status;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING tram_control_card_key AS id, form_number, version, status, revision;

@@ -4,11 +4,13 @@ import { useTransportInterruptionForm } from './useTransportInterruptionForm';
 import { TransportInterruptionFormFields } from './TransportInterruptionFormFields';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { ClassifierScopeProvider } from '../../../classifiers/ClassifierProvider';
+import { FORM_TYPE_CODE } from '../../../classifiers/formScope';
 
 interface Props {
   initialData?: TransportInterruptionForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   onValuesChange?: (values: Partial<TransportInterruptionForm>) => void;
   initialValidate?: boolean;
 }
@@ -23,7 +25,7 @@ export interface TransportInterruptionFormCreatePageRef {
   confirm?: () => void;
 }
 
-export const TransportInterruptionFormCreatePage = forwardRef<TransportInterruptionFormCreatePageRef, Props>(
+const TransportInterruptionFormCreatePageInner = forwardRef<TransportInterruptionFormCreatePageRef, Props>(
   ({ initialData, compoundFormKey, onSaved, onValuesChange, initialValidate }, ref) => {
     const {
       formik,
@@ -36,7 +38,7 @@ export const TransportInterruptionFormCreatePage = forwardRef<TransportInterrupt
       formError,
     } = useTransportInterruptionForm(
       initialData,
-      (id) => onSaved?.(id),
+      (id, confirmed) => onSaved?.(id, confirmed),
       compoundFormKey,
     );
 
@@ -106,5 +108,20 @@ export const TransportInterruptionFormCreatePage = forwardRef<TransportInterrupt
     );
   },
 );
+
+TransportInterruptionFormCreatePageInner.displayName = 'TransportInterruptionFormCreatePageInner';
+
+// ADR-011: alamvormi muutmiskomponent on alati muutmisrežiimis → vormipiirang alati sees.
+// Oma skoop (mitte koondvormi oma), sest iga alamvorm on eraldi FORM_TYPE.
+export const TransportInterruptionFormCreatePage = forwardRef<TransportInterruptionFormCreatePageRef, Props>((props, ref) => (
+  <ClassifierScopeProvider
+    formType={
+      FORM_TYPE_CODE.SP_TRANSPORT_SUSPENDED
+    }
+    active
+  >
+    <TransportInterruptionFormCreatePageInner {...props} ref={ref} />
+  </ClassifierScopeProvider>
+));
 
 TransportInterruptionFormCreatePage.displayName = 'TransportInterruptionFormCreatePage';

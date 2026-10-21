@@ -1,16 +1,17 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
     Citizen-facing read-only list of a compound_form's (koondvorm) published
     sub-forms (sp_driver, sp_teammate, vehicle_technical, trailer_technical,
     adr, kv). Companion to GET/v1/citizen/forms/compound.yml, which only
-    returns the koondvorm's own general/company/drivers fields — the citizen
+    returns the koondvorm's own general/company/drivers fields - the citizen
     detail page had no way to know whether a koondvorm even HAD sub-forms,
     let alone see their content. Guarded by GET/v1/citizen/.guard
     (templates/citizen-authority). Ownership check is byte-for-byte the same
     as compound.yml (self-driver OR company-representative on the PARENT
-    koondvorm — a citizen who can see the koondvorm can see its sub-forms;
+    koondvorm - a citizen who can see the koondvorm can see its sub-forms;
     there's no separate per-sub-form ownership since sub-forms have no
     company/driver fields of their own, they inherit the parent's). Only
     'published' sub-forms are returned even when the parent koondvorm is
@@ -52,6 +53,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: "${incoming.params.q}"
@@ -69,7 +71,7 @@ extractRow:
     row: "${res.response.body[0]}"
   next: parseDrivers
 
-# Same split-step reasoning as compound.yml — see its comment.
+# Same split-step reasoning as compound.yml - see its comment.
 parseDrivers:
   assign:
     drivers_parsed: "${(function(){ try { return JSON.parse(row.drivers || '[]'); } catch (e) { return []; } })()}"
@@ -116,6 +118,7 @@ getSubForms:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/compound-subforms"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       compound_form_key: "${row.id}"

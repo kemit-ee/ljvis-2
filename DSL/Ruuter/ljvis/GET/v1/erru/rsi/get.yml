@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Get a single RSI message (erru.rsi_message) by its logical key, returning the latest snapshot (LJVIS2-147). Read-only; serves both an unsent outgoing draft and a sent/responded/received/answered message. Audited on EVERY open because the view may show the driver's personal data (name, licence number)."
   namespace: erru
@@ -7,6 +8,9 @@ declaration:
       - field: q
         type: string
         description: "RSI message logical key (rsi_message_key)"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -26,6 +30,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -56,24 +61,12 @@ logAuditEvent:
     vehicle_registration_number: ${vehicle_registration_number}
     driver_first_name: ${driver_first_name}
     driver_family_name: ${driver_family_name}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_rsi_message"
-    headers:
-      type: json
-    body:
-      requests: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(f){ if (!f) return f; var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return Object.assign({}, f, { identificationDetails: p(f.identificationDetails), checkedItems: p(f.checkedItems) }); })(res.response.body[0])}"
   next: end
 
 returnNotFound:

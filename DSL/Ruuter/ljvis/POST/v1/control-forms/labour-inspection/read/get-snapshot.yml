@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get version history snapshot for a labour inspection form"
@@ -11,18 +12,47 @@ declaration:
       - field: formKey
         type: string
         description: "Labour inspection form key"
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
     form_key: "${incoming.body.formKey}"
-  next: getSnapshots
+  next: checkReadAccess
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "labour-inspection"
+    form_key: "${form_key}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getSnapshots
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getSnapshots:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -34,13 +64,14 @@ checkEmpty:
   switch:
     - condition: ${res.response.body == null || res.response.body.length == 0}
       next: getFromArchive
-  next: mapResponse
+  next: returnSuccess
 
 getFromArchive:
   call: http.post
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       formType: "labour-inspection"
@@ -53,23 +84,18 @@ mapResponseArchive:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: "${(archiveRes.response.body && archiveRes.response.body[0]) ? [archiveRes.response.body[0].payload] : []}"
-  result: mapped
-  next: returnSuccess
+  result: archived
+  next: returnArchived
 
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_labour_inspection_form"
-    headers:
-      type: json
-    body:
-      forms: ${res.response.body}
-  result: mapped
-  next: returnSuccess
+returnArchived:
+  return: "${(typeof archived.response.body === 'string' ? JSON.parse(archived.response.body) : archived.response.body)}"
+  next: end
 
 returnSuccess:
-  return: ${mapped.response.body}
+  # jsonb-veerud tulevad Resql-ist JSON-stringina; parsime need siin (varem DataMapperi {{{…}}})
+  return: "${(function(f){ if (!f) return f; var p = function(v){ return (v == null || v === '') ? null : (typeof v === 'string' ? JSON.parse(v) : v); }; return Object.assign({}, f, { controlsMatrix: p(f.controlsMatrix), violations: p(f.violations) }); })(res.response.body[0])}"
   next: end

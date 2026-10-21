@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -24,9 +25,12 @@ declaration:
         type: string
       - field: pageSize
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -48,6 +52,7 @@ listRiskScores:
   args:
     url: "[#LJVIS_RESQL]/risk_score/list_risk_scores"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_name: ${company_name}
@@ -68,23 +73,15 @@ logAuditEvent:
     event_type: "risk_score.list.view"
     event_category: "risk_score"
     description: "${'Riskitasemete loend vaadatud, filtrid: name=' + company_name + '; regCode=' + reg_code + '; riskBand=' + risk_band}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     log_content: "{}"
   result: audit_result
   next: mapResponse
 
 mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_risk_scores_list"
-    headers:
-      type: json
-    body:
-      items: ${res.response.body}
-  result: mapped
+  assign:
+    paged: "${({ content: res.response.body.map(function(r){ return Object.assign({}, r, { riskScore: r.riskScore == null ? null : Number(r.riskScore) }); }), total: res.response.body.length > 0 ? res.response.body[0].total : 0 })}"
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${paged}
   next: end

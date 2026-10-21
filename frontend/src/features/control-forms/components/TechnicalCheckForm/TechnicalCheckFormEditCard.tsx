@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { TechnicalCheckForm, Trailer } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
+import { NotifyCarrierCheckbox } from '../shared/NotifyCarrierCheckbox';
+import { RequestCarrierNotification } from '../shared/RequestCarrierNotification';
 import { TechnicalCheckFormCreatePage, type TechnicalCheckFormCreatePageRef } from '../../pages/technical-check-form/TechnicalCheckFormCreatePage.tsx';
 
 export interface TechnicalCheckFormEditCardRef {
@@ -17,9 +20,11 @@ interface TechnicalCheckFormEditCardProps {
   scope: 'vehicle' | 'trailer';
   form: TechnicalCheckForm;
   compoundFormKey: number;
-  onSaved: (id?: string) => void;
+  onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
   onConfirm: () => void;
   formType: string;
   onValuesChange?: (values: Partial<TechnicalCheckForm>) => void;
@@ -38,6 +43,8 @@ export const TechnicalCheckFormEditCard = forwardRef<
     compoundFormKey,
     onSaved,
     canConfirm,
+    canPublish,
+    onPublish,
     formType,
     onValuesChange,
     initialValidate,
@@ -49,6 +56,7 @@ export const TechnicalCheckFormEditCard = forwardRef<
   const { t } = useTranslation();
   const formRef = useRef<TechnicalCheckFormCreatePageRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [notifyCarrier, setNotifyCarrier] = useState(false);
 
 
   useImperativeHandle(ref, () => ({
@@ -68,9 +76,9 @@ export const TechnicalCheckFormEditCard = forwardRef<
           type={scope}
           initialData={form}
           compoundFormKey={compoundFormKey}
-          onSaved={(id) => {
+          onSaved={(id, confirmed) => {
             setVersionsRefreshKey((k) => k + 1);
-            onSaved(id);
+            onSaved(id, confirmed);
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}
@@ -93,14 +101,31 @@ export const TechnicalCheckFormEditCard = forwardRef<
               endpoint={`/v1/control-forms/${scope === 'vehicle' ? 'vehicle-technical' : 'trailer-technical'}/read/print`}
               id={form.id}
             />
+            <RequestCarrierNotification
+              formType={scope === 'vehicle' ? 'vehicle_technical' : 'trailer_technical'}
+              id={form.id}
+              status={form.status}
+            />
             {canConfirm && (
-              <Button
-                type="button"
-                onClick={() => formRef.current?.confirm?.()}
-              >
-                {t('common.confirm')}
-              </Button>
+              <>
+                <NotifyCarrierCheckbox
+                  checked={notifyCarrier}
+                  onChange={setNotifyCarrier}
+                />
+                <Button
+                  type="button"
+                  onClick={() => formRef.current?.confirm?.(notifyCarrier)}
+                >
+                  {t('common.confirm')}
+                </Button>
+              </>
             )}
+            <SubFormEditPublishButton
+              form={form}
+              canPublish={canPublish}
+              onPublish={onPublish}
+              isDirty={() => formRef.current?.isDirty() ?? false}
+            />
           </div>
         </div>
       </Card.Content>

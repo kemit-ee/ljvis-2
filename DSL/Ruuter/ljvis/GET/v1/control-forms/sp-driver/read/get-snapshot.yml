@@ -1,28 +1,54 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get version history snapshot for a drive rest form (driver)"
   namespace: control-forms
   allowlist:
-    params:
-      - field: id
-        type: string
-        description: "Snapshot ID"
+    body:
       - field: formKey
+      - field: id
+    headers:
+      - field: cookie
         type: string
-        description: "sp_driver_form_key"
 
 extractRequestData:
   assign:
     id: "${incoming.body.id}"
     form_key: "${incoming.body.formKey}"
-  next: getSnapshot
+  next: checkReadAccess
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "drive-rest-form/driver"
+    form_key: "${form_key}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getSnapshot
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getSnapshot:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get-snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -41,6 +67,7 @@ getFromArchive:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshot"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       formType: "drive-rest-form/driver"
@@ -57,6 +84,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_sp_driver_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -64,5 +92,5 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
   next: end

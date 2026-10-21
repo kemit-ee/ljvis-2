@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Insert foreign violation form"
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -108,6 +110,9 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -155,8 +160,10 @@ extractRequestData:
     commission_last_decision_date: "${incoming.body.commissionLastDecisionDate}"
     admin_procedure_decision: "${incoming.body.adminProcedureDecision}"
     foreign_authority_proposal: "${incoming.body.foreignAuthorityProposal}"
-    notify_carrier: "${incoming.body.notifyCarrier}"
-    notify_labor_inspector: "${incoming.body.notifyLaborInspector}"
+    # Kinnitamine ei saada teavitusi - linnukesed salvestatakse ja saatmine
+    # toimub avalikustamisel (edit/publish.yml).
+    notify_carrier: "${String(incoming.body.notifyCarrier) === 'true' ? 'true' : 'false'}"
+    notify_labor_inspector: "${String(incoming.body.notifyLaborInspector) === 'true' ? 'true' : 'false'}"
     violations: "${incoming.body.violations}"
     data_entry_date: "${incoming.body.dataEntryDate}"
     inspector_first_name: "${incoming.body.inspectorFirstName}"
@@ -200,42 +207,11 @@ getOldStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${key}
   result: oldFormRes
-  next: notifyTransitionAndSend
-
-# Code review 2026-09-22 leid 5: confirm.yml oli KOLMAS kirjutamistee samasse
-# tabelisse, mille section 5 refaktor unustas — notifyLaborInspector kadus
-# vaikimisi vaikeväärtusesse (allowlist'is puudus) ja notifyCarrier läks
-# otse update'i ilma saatmisloogikata, mistõttu true jäi DB-sse kinni ilma
-# et see saatmiseni jõuaks. Nüüd kutsub confirm.yml sama jagatud
-# notify-transition-and-send.yml template'it, mida ka edit/save.yml.
-# sendGateMet on siin ALATI 'true' — confirm.yml TULEMUS on ju staatuse
-# üleminek 'confirmed'-ks, mis rahuldab save.yml updateForm haru gate'iga
-# samaväärse tingimuse ("vorm ei ole enam literaalne äsjaloodud mustand").
-notifyTransitionAndSend:
-  template: "templates/form/foreign-violation/notify-transition-and-send"
-  requestType: GET
-  headers:
-    cookie: ${incoming.headers.cookie}
-  body:
-    formId: ${key}
-    companyRegCode: ${company_reg_code}
-    companyName: ${company_name}
-    formNumber: "${(oldFormRes.response.body && oldFormRes.response.body[0] && oldFormRes.response.body[0].formNumber) || ''}"
-    createdBy: ${created_by}
-    newNotifyCarrier: ${notify_carrier}
-    newNotifyLaborInspector: ${notify_labor_inspector}
-    sendGateMet: "true"
-  result: notifyResult
-  next: parseNotifyResult
-
-parseNotifyResult:
-  assign:
-    notify_carrier_persisted: "${(JSON.parse(notifyResult) || {}).notifyCarrierPersisted || 'false'}"
-    notify_labor_inspector_persisted: "${(JSON.parse(notifyResult) || {}).notifyLaborInspectorPersisted || 'false'}"
   next: confirmForm
 
 confirmForm:
@@ -243,9 +219,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${key}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -288,8 +266,8 @@ confirmForm:
       commissionLastDecisionDate: ${commission_last_decision_date}
       adminProcedureDecision: ${admin_procedure_decision}
       foreignAuthorityProposal: ${foreign_authority_proposal}
-      notifyCarrier: ${notify_carrier_persisted}
-      notifyLaborInspector: ${notify_labor_inspector_persisted}
+      notifyCarrier: ${notify_carrier}
+      notifyLaborInspector: ${notify_labor_inspector}
       violations: ${violations}
       dataEntryDate: ${data_entry_date}
       inspectorFirstName: ${inspector_first_name}
@@ -300,7 +278,20 @@ confirmForm:
       status: ${status}
       created_by: ${created_by}
   result: insertRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${insertRes.response != null && insertRes.response.status >= 200 && insertRes.response.status < 300 && Array.isArray(insertRes.response.body) && insertRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_insertRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractResponseData:
   assign:
@@ -318,8 +309,6 @@ logAuditEvent:
     form_number: ${form_number}
     old_status: ${old_status}
     new_status: ${new_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

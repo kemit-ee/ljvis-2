@@ -1,11 +1,13 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input — see extractRequestData / validateRequired / updateForm. Confirmed acts can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) - single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input - see extractRequestData / validateRequired / updateForm. Confirmed acts can only be re-saved by a user with control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: inspectorName
         type: string
       - field: inspectionDate
@@ -34,6 +36,9 @@ declaration:
         type: string
       - field: violations
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -43,7 +48,7 @@ extractRequestData:
     inspection_type: "${incoming.body.inspectionType || ''}"
     company_name: "${incoming.body.companyName || ''}"
     company_reg_code: "${incoming.body.companyRegCode || ''}"
-    # Ei coercida `|| ''`-ga — 0 on legitiimne sõidukite/juhtide arv ja
+    # Ei coercida `|| ''`-ga - 0 on legitiimne sõidukite/juhtide arv ja
     # `0 || ''` annaks '' -> NULLIF('','')::INTEGER -> NULL (vaikne andmekadu).
     # Ruuteri allowlist garanteerib, et võti eksisteerib; tühi string läbib
     # NULLIF-i õigesti niigi.
@@ -92,6 +97,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: saved
@@ -129,8 +135,6 @@ logCreate:
     form_number: ${saveRes.response.body[0].formNumber}
     version: ${saveRes.response.body[0].version}
     isikukood: ${punished_person_id_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -139,6 +143,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -195,9 +200,11 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${current_status}
       inspectorName: ${inspector_name}
       inspectionDate: ${inspection_date}
@@ -215,7 +222,20 @@ updateForm:
       violations: ${violations}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkUpdateSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkUpdateSaved:
   switch:
@@ -234,9 +254,30 @@ logUpdate:
     version: ${saveRes.response.body[0].version}
     changed_fields: ${changed_fields_result}
     isikukood: ${punished_person_id_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: recalcRiskOnResave
+
+# Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
+recalcRiskOnResave:
+  switch:
+    - condition: ${current_status === 'published' && /^[0-9]{8}$/.test('' + (company_reg_code || ''))}
+      next: callRiskRecalcOnResave
+  next: returnSuccess
+
+callRiskRecalcOnResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: riskRecalcRes
+  error: returnSuccess
   next: returnSuccess
 
 returnResqlSaveError:

@@ -1,6 +1,6 @@
 # Hea maine vorm
 
-Hea maine vormi (ametlik nimetus: *Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht*) kasutatakse veokorraldusjuhi hea maine hindamise tulemuse registreerimiseks, sealhulgas ametialase pädevuse tunnistuse andmete ja sobivuse hinnangu salvestamiseks.
+Hea maine vormi (ametlik nimetus: *Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuhi andmevorm*) kasutatakse veokorraldusjuhi hea maine hindamise tulemuse registreerimiseks, sealhulgas ametialase pädevuse tunnistuse andmete ja sobivuse hinnangu salvestamiseks.
 
 ## Vormi eesmärk
 
@@ -19,7 +19,7 @@ aadressilt `/control-forms/good-repute/:id`.
 
 ## Vormi osad ja väljad
 
-Vorm koosneb kolmest kaardist. Tähe `*` tähistab kohustuslikku välja.
+Vorm koosneb kolmest kaardist. Tärn `*` tähistab kohustuslikku välja.
 
 ![Hea maine vormi loomisvaade](images/12-vorm-hea-maine/01-loomisvaade.png)
 
@@ -29,17 +29,17 @@ Isiku andmeid saab osaliselt automaatselt täita, sisestades isikukoodi ja klõp
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Isikukood (`personalCode`) | Jah | Max 20 tähemärki |
-| Eesnimi (`firstName`) | Jah | Max 100 tähemärki |
-| Perekonnanimi (`lastName`) | Jah | Max 100 tähemärki |
+| Isikukood (`personalCode`) | Jah | Kuni 20 tähemärki |
+| Eesnimi (`firstName`) | Jah | Kuni 100 tähemärki |
+| Perekonnanimi (`lastName`) | Jah | Kuni 100 tähemärki |
 | Sünniaeg (`dateOfBirth`) | Jah | Kuupäev |
-| Sünnikoht (`placeOfBirth`) | Ei | Max 200 tähemärki |
+| Sünnikoht (`placeOfBirth`) | Ei | Kuni 200 tähemärki |
 
 ### 2. Ametialase pädevuse tunnistus
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Tunnistuse number (`certificateNumber`) | Jah | Max 100 tähemärki |
+| Tunnistuse number (`certificateNumber`) | Jah | Kuni 100 tähemärki |
 | Väljaandmise kuupäev (`certificateIssueDate`) | Jah | Kuupäev |
 | Väljaandnud riik (`certificateCountryCode`) | Jah | Valik riikide loendist |
 

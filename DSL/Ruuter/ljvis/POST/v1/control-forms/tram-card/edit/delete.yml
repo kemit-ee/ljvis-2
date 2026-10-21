@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Soft-delete a TRAM control card (tombstone snapshot, status='deleted'). Requires control_form.delete."
@@ -8,6 +9,9 @@ declaration:
       - field: id
         type: string
       - field: old_status
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 checkDeletePermission:
@@ -31,6 +35,7 @@ deleteForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/delete"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -47,9 +52,21 @@ logAuditEvent:
   body:
     form_number: "${deleteRes.response.body[0].formNumber + '/' + deleteRes.response.body[0].version}"
     old_status: ${old_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "tram_control_card"
+      form_key: "${String(id)}"
+  result: riskRecalcRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

@@ -29,7 +29,7 @@ Migratsioon: `20260828100000-initial-permissions-users.sql`
 | user.read.local | Kasutaja andmete vaatamine ainult oma asutuse kasutajatele |
 | user.edit.admin | Kasutaja lisamine, vaatamine ja muutmine kõigi asutuste ulatuses |
 | user.edit.local | Kasutaja lisamine, vaatamine ja muutmine ainult oma asutuse kasutajatele |
-| organisation.list | Asutuste kataloogi laadimine UI valikute jaoks |
+| organisation.list | (aegunud) Asutuste kataloog on kättesaadav kõigile ametnikele, õigust ei kontrollita |
 | permission.list | Õiguste kataloogi laadimine UI valikute jaoks |
 
 ## Klassifikaatorid
@@ -59,6 +59,8 @@ Migratsioon: `20260828103000-initial-permissions-compound-form.sql`
 | control_form.view_unpublished | Avaldamata (salvestatud/kinnitatud) koondvormide vaatamine muu isiku poolt, kui vormi looja/kinnitaja |
 | control_form.delete | Koondvormi kustutamine koos kõigi alamvormidega |
 | control_form.edit_locked | Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator) |
+| control_form.view_organisation | Töölaual, otsingus ja vormi avamisel oma asutuse kõigi kasutajate loodud vormide vaatamine (Minu asutuse vormid) |
+| control_form.view_unit | Oma asutuse ja struktuuriüksuse (PPA puhul prefektuuri) kasutajate loodud vormide vaatamine (Grupi juht). Kasutajal peab olema struktuuriüksus määratud |
 
 ## Tehniline kontroll
 Migratsioon: `20260828104000-initial-permissions-technical-check-forms.sql`

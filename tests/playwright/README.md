@@ -8,14 +8,29 @@ tekib `tulemus/` alla detailne sammukirjeldus + ekraanipilt ning HTML-raport.
 
 | Spec | Kate |
 |---|---|
-| `smoke.spec.ts` | sessioon, rollid, kõik loomislehed avanevad JS-vigadeta |
+| `smoke.spec.ts` | seanss, rollid, kõik loomislehed avanevad JS-vigadeta |
 | `compound-form.spec.ts` | koondvorm: validatsioon, salvestus + andmete püsivus, #280 P2/P4 |
 | `tram-form.spec.ts` | TRAM kontrollkaart: validatsioon, salvestus, #280 P1/P3/P5/P6 |
 | `foreign-violation.spec.ts` | välisriigi rikkumine: validatsioon + salvestus |
 | `labour-inspection.spec.ts` | tööinspektsiooni akt: validatsioon + salvestus + tulevikukuupäev |
 | `good-repute.spec.ts` | hea maine: validatsioon + tingimuslikud väljad + salvestus |
 | `compound-subforms.spec.ts` | autojuhi/ADR/tehno alamvormid koondvormi loomisvoos |
+| `technical-check-proceeding.spec.ts` | tehnokaardi väärteomenetluse märke eemaldamine: kinnitusdialoog, „Tühista“, tühjendamine, uus salvestusversioon |
 | `erru.spec.ts` | CTUD/CGR/RSI/NCR: leht avaneb + tühja vormi validatsioon |
+| `adr-form.spec.ts` | ADR-vorm: kinnitamine (PR #311), printimisnupp (PR #310) |
+| `print-buttons.spec.ts` | vormide printimisnupud |
+| `rsi.spec.ts`, `nu.spec.ts` | ERRU RSI ja NU: nimekiri, detail, versioonikonflikt |
+| `xroad-etoimik-logs.spec.ts` | eToimiku X-tee logid: filtrid, kuupäevavahemik, "kõiki" vaade (RR päring), modaalid, õigused |
+| `manual-jobs.spec.ts` | X-tee logide leht > Manuaalne käivitamine: kuus tööd, riskiskoori ja e-toimiku sünkroonimise käivitamine, nuppude lukustus töö ajal, tundmatu töö (400), õigusteta kasutaja (403) |
+| `notification-template-mapping.spec.ts` | Postkasti mallide seaded: desktop-kanali saajad |
+| `users.spec.ts` | kasutajad: nimekiri/otsing, loomise valideerimine, loomine, muutmine, grupi sidumine, deaktiveerimine, asutuse muutmise kinnitus, lokaalse kontohalduri ulatus, õigused |
+| `user-groups.spec.ts` | kasutajagrupid: nimekiri/otsing, valideerimine, loomine, ümbernimetamine, asutuste/õiguste muutmine, liikmete lisamine/eemaldamine, õigused |
+| `classifiers.spec.ts` | klassifikaatorid: nimekiri/otsing, selgituse muutmine, väärtuse lisamine/duplikaat/lõpetamine, kehtivate filter, õigused |
+| `risk-scores.spec.ts` | riskitasemed: arvutatud tasemed, filtrid (nimi, registrikood, tase), õigused |
+| `notifications.spec.ts` | teavitused: lugemata/loetud, kella loendur, "Saadetud kirjad" filtrid, saatmise raport, uuesti saatmine, õigused |
+| `audit-logs.spec.ts` | auditilogi: otsing, detail, CSV eksport, ahela kontroll (API), asutusepõhine ulatus, õigused |
+| `form-search.spec.ts` | vormiotsing: otsing reg-nr/registrikoodi/nime järgi, tüübi/staatuse/kuupäeva filtrid, VR-filtrid, "Vaata", õigusepõhine ulatus |
+| `xtee-teenused.spec.ts` | 9 pakutavat X-tee teenust (API): ligipääsukontroll, valideerimine, edukas päring, AJ findUsage |
 
 ## Käivitamine
 
@@ -73,7 +88,7 @@ selle artefaktina **`playwright-tulemus`**.
 
 ## Autentimine
 
-`global-setup.ts` logib sisse kolm testrolli dev-login endpointi kaudu
+`global-setup.ts` logib sisse kolm testrolli dev-login lõpp-punkti kaudu
 (`POST :9086/ljvis/auth/dev/dev-login`) ja salvestab `customJwtCookie` küpsise
 `tulemus/.auth/*.json` failidesse. Testkasutajad (`docker/tara-mock/identities.json`):
 
@@ -82,6 +97,7 @@ selle artefaktina **`playwright-tulemus`**.
 | Super Admin | `60001019906` | kõik, sh ERRU |
 | Ametnik | `60002020202` | kõik kontrollvormide `.write`, ei ERRU |
 | Õigusteta | `60001017869` | puuduvad (kodaniku vaade) |
+| Lokaalne kontohaldur | `60001017727` | JUM: kasutajad/grupid `.local`, `audit.read.local`, välisriigi kontrollkaardi lugemine |
 
 ## Piirangud
 

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -10,13 +11,13 @@ declaration:
     protocol can legitimately show up in both "Minu ettevõtted" and "Minu
     protokollid" at the same time). So the request body may pass an explicit
     `scope` ('self' | 'company'):
-      - scope=self always uses the session's own personalCode — no further
+      - scope=self always uses the session's own personalCode - no further
         check needed, it's the caller's own data.
       - scope=company requires `registry_code` and verifies it the same way
         GET/v1/citizen/risk-scores/my-company.yml does: first against the
         session's cached representedCompanies claim (free), falling back to
         a live Äriregister esindus_v1 call when that claim predates the
-        session or is stale — NOT against activeRegistryCode, since the
+        session or is stale - NOT against activeRegistryCode, since the
         dashboard must list a represented company's forms without first
         switching the active role to it.
     When `scope` is omitted (legacy callers, e.g. detail-page prefetches),
@@ -36,7 +37,7 @@ declaration:
         description: "Optional explicit scope: 'self' | 'company'. Omit for legacy activeRole-based behaviour."
       - field: registry_code
         type: string
-        description: "Required when scope=company — 8-digit Estonian company registry code."
+        description: "Required when scope=company - 8-digit Estonian company registry code."
       - field: page
         description: "Page number (1-based)"
       - field: page_size
@@ -103,6 +104,7 @@ checkCompanyRepresentativeLive:
   args:
     url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ""
@@ -155,6 +157,7 @@ callResqlExplicitCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${requested_registry_code}
@@ -176,8 +179,6 @@ logExplicitCompanyListAudit:
     event_category: "control_form"
     description: "Esindaja vaatas ettevõtte ${requested_registry_code} vormide loetelu"
     log_content: "${JSON.stringify({companyRegCode: requested_registry_code, page: incoming.body.page || 1, formType: incoming.body.form_type || null})}"
-    actor_name: ${session_personal_code}
-    actor_personal_code: ${session_personal_code}
   result: audit_result
   next: returnResults
 
@@ -186,6 +187,7 @@ callResqlCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${active_registry_code}
@@ -200,7 +202,7 @@ callResqlCompany:
 # Audit third-party PII access: listing a company's forms reveals which
 # drivers/individuals were involved in each. citizen-self listing is the
 # viewer's own forms, so it isn't logged (same convention as the detail
-# endpoints — see e.g. citizen/forms/compound.yml's checkShouldLog).
+# endpoints - see e.g. citizen/forms/compound.yml's checkShouldLog).
 logCompanyListAudit:
   template: "templates/audit/log-audit-event"
   requestType: GET
@@ -211,8 +213,6 @@ logCompanyListAudit:
     event_category: "control_form"
     description: "Esindaja vaatas ettevõtte ${active_registry_code} vormide loetelu"
     log_content: "${JSON.stringify({companyRegCode: active_registry_code, page: incoming.body.page || 1, formType: incoming.body.form_type || null})}"
-    actor_name: ${session_personal_code}
-    actor_personal_code: ${session_personal_code}
   result: audit_result
   next: returnResults
 
@@ -221,6 +221,7 @@ callResqlSelf:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ""

@@ -5,6 +5,398 @@ Formaat: kontekst → valikud → otsus → põhjendus.
 
 ---
 
+## ADR-014 — Isikuga seose eemaldamine arhiivis: teine lubatud append-only erand (UPDATE)
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 14.10.2026
+**Seotud:** Jira LJVIS2-51 (epic LJVIS2-22 "Andmete arhiveerimine"); ADR-010, ADR-012, ADR-013;
+`DSL/Resql/ljvis/POST/archive/anonymize_confirmed.sql`; `.sql-rule-exemption`;
+`tests/contract/check_resql_append_only.py`; `DSL/Liquibase-arhiiv/changelog/
+20261116110000-archive-anonymized-at.sql`
+
+### Kontekst
+
+Jira epicu LJVIS2-22 vastuvõtutingimus nõuab lisaks andmete arhiveerimisele (ADR-010/012)
+ka "isikuga seose eemaldamist" (LJVIS2-51). Pilet ise oli kirjelduseta — nõue täpsustati
+vestluses: kohe pärast seda, kui kontrollvorm on jõudnud arhiivbaasi JA on töö-baasist
+kinnitatult kustutatud (`purge_confirmed` õnnestus), tuleb arhiveeritud kirje isikuandmed
+asendada.
+
+ADR-013 lubab `DSL/Resql/`-is ainult INSERT+SELECT; ainus erand oli `purge_confirmed.sql`
+(DELETE). Isikuandmete eemaldamine olemasolevalt arhiivirealt nõuab aga **olemasoleva rea
+sisu muutmist** — INSERT-only alternatiivi pole, sest vana PII-ga rida jääks muidu
+füüsiliselt tabelisse alles (uue rea kõrvale lisamine ei eemalda midagi).
+
+### Otsus
+
+**Teine, täpselt piiritletud append-only erand: `UPDATE`.** Uus fail
+`DSL/Resql/ljvis/POST/archive/anonymize_confirmed.sql`, registreeritud
+`.sql-rule-exemption`-is samamoodi nagu `purge_confirmed.sql`. Lindiskript
+(`check_resql_append_only.py`) laiendati lubama erandfailil **kas** DELETE **või** UPDATE
+(mitte mõlemat korraga, mitte teistes failides) — iga erand esindab täpselt üht
+sanktsioneeritud mutatsiooni.
+
+Käivitamine: `archive-deleted-forms.yml` ja `archive-aged-forms.yml` kutsuvad
+`anonymize_confirmed`-i **vahetult pärast** `purge_confirmed` õnnestumist, samade
+`(form_type, id)` paaridega. `archive-aged-forms.yml`-is (kus purge on valikuline)
+käivitub anonümiseerimine **ainult** `purge=true` ja kinnitatud kustutuse harus — kui
+töö-baasi koopia on veel elus (archive-only), isikuandmeid ei puudutata.
+
+**Juhitav `anonymize` lüliti (true/false), vaikimisi `true`.** Mõlemad CronManager'i tööd
+(`DSL/CronManager/archive-deleted-forms.yaml`, `DSL/CronManager/archive-aged-forms.yaml`)
+saavad uue URL-i päringuparameetri `anonymize`, samamoodi nagu teised lülitid (`enabled`,
+`purge`, `dryRun`). Kui `anonymize=false`, jääb arhiveeritud rida pärast purge't täies
+(1:1) kujul, `anonymized_at` jääb NULL-iks — administraator saab seda igal ajal URL-i
+muutes sisse/välja lülitada, Ruuterit ega baasi uuesti ehitamata.
+
+Idempotentsus: uus veerg `archive.form_snapshot.anonymized_at` (NULL = veel
+anonümiseerimata); `anonymize_confirmed.sql` UPDATE-ib ainult `anonymized_at IS NULL`
+ridu, nii et korduv jooks sama paariga ei tee midagi.
+
+### Teisendusreeglid
+
+Eesmärk on k-anonüümsus: sajand/sugu ja sünnikümnend jäävad (kasulikud statistikaks),
+täpne isik ei ole enam tuletatav.
+
+| Väli | Reegel | Näide |
+|---|---|---|
+| Nimi (eesnimi) | `"Anonümiseeritud"` | — |
+| Nimi (perenimi) | `""` (tühi, väldib "Anonümiseeritud Anonümiseeritud" kuvamisel) | — |
+| Sünnikuupäev | päev=`01`, kuu=`01`, aasta kümnendi algusesse | `1865-02-02` → `1860-01-01` |
+| Isikukood (EE formaat, 11 kohta) | 1. number (sajand/sugu) ja sünniaasta kaks numbrit muutumatud, kuu/päev `01`/`01`, jrk-number `000`, kontrollnumber `0` | `38002025213` → `38001010000` |
+| Isikukood (muu formaat, nt välisriigi) | `""` — struktureeritud teisendust ei saa üldistada | — |
+| Sünnikoht (vabatekst) | jääb ainult viimane komaga eraldatud osa (tüüpiliselt riik) | `"Tallinn, Eesti"` → `"Eesti"` |
+
+**Teadaolev piirang:** sünnikoha väli ilma komata (nt lihtsalt linnanimi) jääb
+muutumatuks — vabatekstist riiki usaldusväärselt tuletada ei saa. Vajab manuaalset
+andmekvaliteedi ülevaatust, kui see osutub probleemiks.
+
+Hõlmatud on ainult `forms.*` subjekti (kontrollitav isik/juht) väljad massiivides ja
+tipptasemel (`personal_code`, `driver_first_name`/`_last_name`,
+`company_owner_first_name`/`_last_name`, `punished_person_first_name`/`_last_name`,
+`person_first_name`/`_last_name`/`person_birth_date`, `place_of_birth`, `compound-form`/
+`tram-card` `drivers[]` massiiv mõlemas kasutusel olevas võtmekonventsioonis). **Vormi
+loonud ametniku väljad** (`created_by`, `created_by_name`, `inspector_first_name`/
+`_last_name`) **jäävad alati puutumata** — need on auditjälg, mitte isikuga seos, mida
+LJVIS2-51 silmas peab.
+
+### Tagajärjed
+
+* `archive.form_snapshot` reale, mis on arhiveeritud ja purge'itud, lisandub automaatselt
+  teine kirjutus (UPDATE) — rea `payload` muutub pärast esialgset INSERT-i. See on
+  teadlik, piiritletud erand, mitte tagasipöördumine üldise UPDATE-lubaduse juurde.
+  `.sql-rule-exemption` ja lindiskript väldivad erandi laienemist teistele failidele.
+  * Lindiskripti test: ükski *teine* `DSL/Resql/`-fail, mis sisaldaks UPDATE-i ilma
+    erandita, ei tohi jätkuvalt läbida.
+* Juba varem (enne seda muudatust) arhiveeritud ja purge'itud read **ei anonümiseeru
+  tagasiulatuvalt** — see nõuaks kogu arhiivi ühekordset läbikäiku, mis on eraldi otsus.
+* `place_of_birth`/`tm_place_of_birth` ERRU tabelites (`erru.cgr_request`,
+  `erru.nu_message`) **ei ole** hõlmatud — need pole `archive.form_snapshot`-i osa, sest
+  ERRU sõnumid ei lähe `forms.*`-i arhiveerimisvoogu.
+
+
+
+**Otsustaja:** ootab kinnitust (epic #522 kavand)
+**Kuupäev:** 05.10.2026
+**Seotud:** epic [#522](https://github.com/kemit-ee/ljvis-2/issues/522) ja T1–T5 (#523–#527); ADR-010, ADR-012;
+`DSL/Liquibase/changelog/20261208100000-form-snapshot-revision.sql`;
+`tests/contract/check_resql_append_only.py`; `tests/sql/form-snapshot-revision.sql`
+
+### Kontekst
+
+Kõik SQL kulgeb läbi Resql-i ja peab olema **append-only**: ainult `INSERT` ja `SELECT`, ilma `UPDATE`,
+`DELETE` ja `JOIN`-ita. Epic #522 auditis oli rikkumisi ~36 faili; praegu (`dev` 9bdb2ee4) on 20
+`UPDATE`, 1 `DELETE` ja 27 `JOIN`-i faili, kuna koodibaas on audit-hetkest edasi arenenud. Viis alamülesannet:
+T1 UPDATE → tombstone, T2 DELETE, T3 JOIN, T4 CI-lint, T5 versioon + võidujooksukaitse.
+
+### Valikud T5 jaoks (kaks kirjutajat loevad sama `latest` rea)
+
+Mustris `WITH latest AS (SELECT DISTINCT ON (võti) ...) INSERT ... SELECT ... FROM latest` loevad kaks
+samaaegset kirjutajat sama `latest` rea ja kumbki lisab uue; hilisem rida varjab varasema ja üks muudatus
+kaob vaikselt.
+
+1. **`pg_advisory_xact_lock` CTE-s** (epicu pakkumine). **Ei tööta ühe Resql-lause sees:** PostgreSQL
+   READ COMMITTED fikseerib lause hetktõmmise lause alguses, seega ootamise järel loeb kirjutaja sama
+   aegunud `latest` rida. Kontrollitud PostgreSQL 17-ga: lukk ootas, aga mõlemad kirjutajad said
+   `revision = 1`. Resql ei toeta mitmelauselist tehingut, kus lukk ja lugemine oleksid eraldi lausetes.
+2. **`SELECT ... FOR UPDATE`.** Lukustab ainult olemasolevad read; lisatud rida ei ole nähtav.
+3. **Monotoonne `revision` + `UNIQUE (võti, revision)`.** Kirjutaja arvutab `latest.revision + 1`; kaks
+   samaaegset kirjutajat saavad sama numbri ja teine INSERT kukub unikaalsusrikkumisega. Töötab ühe
+   lause sees, ei vaja lukku.
+
+### Otsus
+
+**Valik 3.** Uus veerg `revision BIGINT NOT NULL` kõigil 11 versioneeritud `forms.*` tabelil, `UNIQUE
+(võti, revision)`. `BEFORE INSERT` trigger (tabelipõhine `forms.set_<tabel>_revision`, ainult staatiline SQL) täidab `max+1`, kui kirjutaja
+`revision`-it ei anna, nii et vanad `insert.sql`/`update.sql`/`apply_etoimik_decision.sql` ja fikstuurid
+töötavad muutmata. Kirjutaja, mis annab `revision`-i ise (`latest.revision + 1`), saab võidujooksukaitse.
+Tombstone'id ja X-tee väljade kirjutajad (T1/T2) annavad selle alati.
+
+**`version` jääb muutmata.** Epic soovis `version`-i tõsta, aga `version` on kasutajale nähtav /V
+järelliide ja LJVIS2-72 §4 nõuab, et X-tee väljad, tombstone ja korduvsalvestus seda ei tõsta.
+Optimistlik konkurentsikontroll vajab eraldi loendurit, seega `revision`.
+
+`forms.form_attachment`-il versiooni ei ole (võti = `s3_key`); samaaegset topeltkustutust tõrjub osaline
+`UNIQUE (s3_key) WHERE status = 'deleted'`.
+
+### T1 — UPDATE → INSERT-tombstone-forward
+
+Varem muutsid X-tee väljade, menetluse tulemuse, erakorralise ülevaatuse kuupäeva ja `notify_carrier` lipu
+kirjutajad vormi uusimat rida kohapeal. Nüüd lisab iga kirjutaja uue snapshot-rea (`revision + 1`), kus
+`version` ja kõik muud väljad on kantud edasi; vana rida jääb ajalukku. Tabelid on laiad (kuni ~80 veergu),
+seega kopeerib mall rea kujul `to_jsonb(latest) || jsonb_build_object(muudetavad väljad)` →
+`jsonb_populate_record(NULL::forms.<t>, …)`, mitte veergude loendina: uus veerg ei kao vaikselt, kui
+malli ei uuendata. `id`, `revision`, `created_at` ja `created_by` seatakse alati selgelt. Kontrollitud on, et
+kõik veerutüübid (varchar, text, jsonb, boolean, int, bigint, date, time, timestamptz) teevad JSON-ringi
+kadudeta.
+
+* **Ajalugu.** Versiooniajaloo vaates (`get-snapshots`) ilmub lisarida (sama `version`, sama staatus, autor
+  `system` cron-i korral). Mõju on kosmeetiline.
+* **`erakorraline-yv-confirm-update`** valib nüüd *uusima* rea ja nõuab selle staatuseks `confirmed` või `published`;
+  uus rida kannab staatuse edasi. Varem muutis see uusimat `confirmed` rida, ka siis, kui vorm oli vahepeal
+  avalikustatud — sel juhul oli muudatus nähtamatu. Vana rea kopeerimine oleks avalikustatud vormi tagasi
+  `confirmed` olekusse lükanud, seepärast tuleb alus võtta uusimast reast.
+* **Teavitused.** `carrier_notification_request` muutub snapshot-tabeliks (`revision`; avatud tellimus = viimane
+  rida, mille `sent_at` on NULL; saatmine lisab rea). Vana osaline `UNIQUE … WHERE sent_at IS NULL` asendub
+  `UNIQUE (entity_type, entity_id, revision)`-iga. `outbound_log` rida ei muutu; PK 2.0 väljad ja
+  `status_check_count` kirjutatakse tabelisse `outbound_log_status_event` (iga rida täisseis), lugejad võtavad
+  viimase eventi või — ilma eventita — `outbound_log` rea väärtused.
+
+### T2 — kustutamine
+
+* **Manuse kustutamine** (`files/delete_form_attachment`) lisab sama faili kohta rea `status='deleted'`; algne
+  `active` rida jääb. Lugejad peidavad aktiivse rea, kui sama `s3_key`-ga `deleted` rida on olemas. `s3_key` sobib
+  identiteediks, sest S3 proxy lisab igale üleslaadimisele ajatempli ja UUID. Osaline `UNIQUE (s3_key) WHERE
+  status = 'deleted'` tõrjub samaaegse topeltkustutuse.
+* **Retention-purge** (`archive/purge_confirmed.sql`) on ainus lubatud `DELETE`, ja see on erand, mitte parandus: tööbaasi
+  kirjete eemaldamiseks arhiveerimise järel ei ole `INSERT`-only alternatiivi. Erand järgib 3-sammulist kontrakti
+  (valik ja kopeerimine → arhiivi kinnitus → kustutus) ja on kirjas `.sql-rule-exemption` failis. Kontrakti tugevdati:
+  (a) `count_present` loeb kordumatuid paare ja nõuab korraliku payload'i (topeltpaar ei saa puuduvat rida varjata);
+  (b) `purge_confirmed` kustutab vormivõtme read ainult tervikuna, nii et partii piir ei jaga ajalugu töö- ja
+  arhiivibaasi vahel; (c) kustutatakse ainult `id` järgi, `USING`-liide ja `NULL` id on välistatud. Hõlmatud ei ole
+  arhiivikoopia sisu võrdlus (räsi): `jsonb`-arvud muutuvad JSON-transpordis (`12.50` → `12.5`), mis blokeeriks
+  purge'i vaikselt; ridade muutumatus on append-only invariandi enda tagajärg.
+
+### T3 — JOIN-id
+
+`JOIN` asendati `= ANY(SELECT ...)`, `EXISTS`-i, `UNION ALL` + `NOT EXISTS`-i ja korrelleeritud skalaarsete alampäringutega. Koondvormi
+uusim snapshot võetakse alampäringuga `idx_cf_key_ts` kaudu, *pärast* odavaid filtreid; CTE-le viitav korrelleeritud alampäring oleks
+O(N·M). Iga mall on võrreldud vana versiooniga sama sisendiga (A/B, identne tulemus).
+
+### T4 — CI-lint
+
+`tests/contract/check_resql_append_only.py` (CI: `validate-dsl`) keelab `UPDATE`/`DELETE`/`TRUNCATE`/`MERGE`, `JOIN`/`LATERAL` ja
+`ON CONFLICT … DO UPDATE` kõigis `DSL/Resql/` mallides, ning nõuab, et YAML-päis parsiks. `.sql-rule-exemption` lubab ainult
+retention-purge'i `DELETE`-i `archive/` all; kirje, mis enam rikkumisele ei vasta, ebaõnnestub. Piirang: komadega ühendust
+(`FROM a, b`) lint ei tunne.
+
+### Kasutajapoolne lost-update: optimistlik lukk (`expected_revision`)
+
+`UNIQUE (võti, revision)` kaitseb ainult samaaegsete päringute eest ühe lause aknas. Tegelik oht on teine: kasutaja A avab vormi
+(`revision` 3), B (või teine aken, `edit_locked` admin, e-toimiku cron) salvestab, ja A salvestab oma vana vaate põhjal — B muudatused kaovad
+vaikselt. Õigustesüsteem seda ei välista: õigused piiravad, *kes* tohib kirjutada, mitte seda, mitu kirjutajat korraga on.
+
+* `get`-päringud ja DataMapper-mallid tagastavad `revision`-i. Frontend (`formRevisions.ts`, kasutusel `api.ts`-is) jätab vormi
+  revision-i meelde igal lugemisel ja salvestusvastusel ning saadab selle `save`/`confirm` päringus kaasa.
+* Ruuteri `save`/`confirm` annab selle `update.sql`-ile (`expected_revision`); `update.sql` lisab rea ainult siis, kui uusim rida on
+  endiselt see revision. 0 rida + antud revision = **409 `form_modified`**; frontendi globaalne teavitus ütleb, et salvestus jäi tegemata
+  ja leht tuleb uuesti laadida. `publish` lukustab revision'i vastu, mille ta ise `get`-iga luges (kopeeritav sisu on selle rea oma).
+* **Fail-open:** tundmatu revision (uus vorm, vormid mille revision-i klient ei näinud) saadetakse `null`-ina ja kontrolli ei tehta.
+  Väärkonflikt, mis blokeerib kasutaja salvestamise, on hullem kui kontrolli puudumine. Avalikustamine, kustutamine ja menetluse tulemuse
+  salvestus unustavad meelde jäetud revision-i, sest lisavad vormile rea, mida klient ei näe.
+* Vanad kutsujad, mis `revision`-it ei saada (Postman, Playwright), töötavad muutmata (Ruuteri allowlist ei nõua välja olemasolu).
+* Piirang: kontroll on vormi tasemel, mitte välja tasemel — kaks inimest, kes muudavad *erinevaid* välju, saavad ikkagi konflikti.
+  Väljapõhine liitmine on väljaspool epicut.
+
+### Tagajärjed
+
+* Kõik snapshot-kirjutajad (`update.sql`, `delete.sql`, `apply_etoimik_decision.sql`, T1/T2 mallid) annavad
+  `latest.revision + 1` ise ja on võidujooksu vastu kaitstud. Trigger jääb varukaitseks kirjutajatele, kes
+  `revision`-it ei anna (`insert.sql` uue võtmega, fikstuurid): ta annab `max+1`, mis ei sõltu loetud `latest`
+  reast ega kaitse seega lost-update'i eest. `insert.sql` ei vaja kaitset, sest võti tuleb `nextval`-ist.
+* Arhiiv (`select_*_snapshots`) kannab `revision`-i `payload`-i JSON-is edasi; arhiiviskeem ei muutu.
+* `ORDER BY created_at DESC` jääb lugemisjärjestuseks; `revision` on võidujooksu ja auditi tarbeks.
+
+---
+
+## ADR-012 — Ajapõhine arhiveerimine: X aastat vanad vormid arhiivibaasi, kustutamine eraldi lülitiga
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 02.10.2026
+**Seotud:** ADR-010 (kustutatud vormide arhiiv); `DSL/CronManager/archive-aged-forms.yaml`,
+`DSL/Ruuter.internal/ljvis/POST/cron/archive-aged-forms.yml`,
+`DSL/Resql/ljvis/POST/archive/select_aged_snapshots.sql`; juhend
+[`13-arhiveerimine.md`](../admin-guide/13-arhiveerimine.md)
+
+### Kontekst
+
+HD4 (arhiveerimine) eeldab vanade andmete eraldamist töökoormusest. ADR-010 arhiveerib
+ainult kustutatud vormid. Vaja on ajapõhist arhiveerimist, kus aastate arv on
+seadistatav ja tööbaasist kustutamine on **valikuline ja selgelt eraldi lülitatav**.
+
+### Valikud
+
+1. **Seaded `constants.ini`-s.** Muutmine nõuab ConfigMapi uuendust ja Ruuteri taaskäivitust; seaded
+   on mitmes failis.
+2. **Seaded andmebaasi tabelis / halduse vaates.** Paindlik, kuid vajab uut skeemi, õigusi ja UI-d
+   ning muudab arhiveerimise riski kasutaja klikiks.
+3. **Seaded CronManageri töö URL-i päringuparameetrites.** Üks fail, versioonihalduses,
+   muutmine ei vaja uut väljalaset.
+
+### Otsus
+
+**Valik 3.** Uus cron `archive_aged_forms` kutsub `ruuter-internal` voogu parameetritega
+`enabled`, `retentionYears`, `purge`, `batch`, `dryRun`. Vaikimisi `enabled=false`
+ja `purge=false`: funktsioon tarnitakse väljalülitatuna.
+
+- **Üksus = kogu ajalugu.** Valitakse terve olem (kõik hetktõmmised), et ADR-010 invariant
+  „ajalugu on alati täielikult kas töö- või arhiivibaasis" kehtiks.
+- **Juhtum vananeb koos.** Koondvorm ja alamvormid arhiveeritakse alles siis, kui kõigi
+  liikmete viimasest tegevusest on möödas `retentionYears`; nii ei jää alamvorme ilma koondvormita.
+- **Vanus = viimane tegevus**, mitte esmaloomine.
+- **Taaskasutus.** Kopeerimine ja kontroll kasutavad ADR-010 resql-päringuid
+  (`insert_snapshots`, `count_present`, `purge_confirmed`); uus on ainult valik
+  (`select_aged_snapshots`).
+- **`purge` on eraldi lüliti.** `purge=false` jätab originaali tööbaasi; `purge=true`
+  kustutab ainult 100% kinnitatud read.
+- **Alampiir 3 aastat**, sest riskiskoor kasutab 2-aastast akent.
+- **Üks audit-rida jooksu kohta** (`xroad.integration_log`, `archive.aged_forms.cron`).
+
+### Tagajärjed
+
+- Arhiveeritud ja kustutatud vormid ei ole otsingus ega nimekirjades; ajaloovaade ja
+  otselink toimivad arhiivi fallback'i kaudu (ADR-010).
+- Arhiivibaas muutub kustutamisel ainsaks koopiaks; vajab oma varundust.
+- Parameetrite muutmine toimub CronManageri konfiguratsiooni kaudu, mitte rakenduses.
+- Säilitustähtajad ja õiguslik alus on andmeomaniku otsus; funktsioon annab tehnilise võimaluse.
+
+---
+
+## ADR-011 — Klassifikaatori väärtuste nähtavus vormide kaupa: valikuline piirangunimekiri
+
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 01.10.2026
+**Seotud:** `classifier.classifier_value` (INSERT-only snapshot), `FORM_TYPE` klassifikaator,
+`ClassifierProvider.tsx`, teostusplaan
+[`klassifikaatori-vormipiirang-teostusplaan.md`](klassifikaatori-vormipiirang-teostusplaan.md)
+
+### Kontekst
+
+Mitut klassifikaatorit kasutab mitu vormi korraga. Näiteks CARGO_CABOTAGE_VIOLATION,
+MASS_DIMENSION ja TACHOGRAPH_TYPES on kasutusel nii PPA sõidu- ja puhkeaja vormil kui
+ka TRAM kontrollkaardil, STRUCTURE_UNIT on kasutusel koondvormil, TRAM-il ja VR-vormil.
+Osa väärtustest peab olema nähtav ainult ühel vormil (näiteks TI vormil, aga mitte PPA
+vormil) ja osa vastupidi.
+
+Praegu ei ole klassifikaatori väärtusel seost vormi ega asutusega. `ClassifierProvider`
+laeb kõik väärtused korraga ja `getByCode()` filtreerib neid ainult klassifikaatori koodi
+järgi. Kaks kohta kasutavad ajutist lahendust, kus vabatekstiline `description` toimib
+sildina:
+
+- STRUCTURE_UNIT: `description = <organisatsiooni kood>`;
+- FORM_TYPE: `description = DASHBOARD_MANUAL_ADD | DASHBOARD_EXCLUDED`.
+
+`update_classifier_value.sql` ei kanna uude hetktõmmisesse üle `description`-it ega
+`parent_key`-d. Seetõttu kaob silt (ja hierarhia) iga kord, kui väärtust admin-UI-s
+muudetakse.
+
+### Valikud
+
+1. **Silt `description` väljal (laiendada praegust lahendust).** Skeemi pole vaja muuta,
+   aga väli on üks string, see on vabatekst, seda ei saa admin-UI-s muuta ja see kaob
+   muutmisel (vt viga eespool). Mitut vormi ei saa usaldusväärselt kodeerida.
+2. **`form_types TEXT[]` veerg `classifier_value` tabelis.** Andmed on ühes kohas, aga
+   igas hetktõmmist kirjutavas päringus tuleb massiiv uude ritta kopeerida. Just selline
+   kopeerimine on `update_classifier_value.sql`-is praegu katki.
+3. **Eraldi klassifikaatorid vormi kaupa** (näiteks `TI_X` ja `PPA_X`). Andmed
+   dubleeruvad, ühise väärtuse muutmine tuleb teha mitmes kohas ning aruandlus ja
+   Tableau peavad need uuesti kokku viima.
+4. **Eraldi seosetabel `classifier.classifier_value_form_scope`** (väärtuse püsiv võti ja
+   `FORM_TYPE` kood). Mitu vormi väärtuse kohta, ei sõltu hetktõmmisest, admin-UI-s saab
+   muuta.
+5. **Piiramine asutuse järgi** (`users.organisation`). Üks asutus täidab mitut vormi ja
+   PPA ning TRAM kasutavad samu SP-vorme, seega asutus on liiga jäme ühik.
+
+### Otsus
+
+**Valik 4: valikuline piirangunimekiri vormitüübi järgi.**
+
+- **Uus INSERT-only tabel** `classifier.classifier_value_form_scope (id, classifier_value_key,
+  form_type_code, is_active, created_at, created_by)`. See järgib sama mustrit nagu
+  `classifier_value` ja `users.user_group`: ridu ei uuendata ega kustutata. Iga
+  (väärtus, vorm) paari kehtiv seis on viimane rida (`DISTINCT ON (classifier_value_key,
+  form_type_code) ORDER BY created_at DESC, id DESC`). Linnukese eemaldamine lisab rea
+  `is_active = FALSE` ja Resql käsitleb seda paari nagu rida puuduks. Seos tehakse
+  **püsiva võtmega** `classifier_value_key`, mitte hetktõmmise `id`-ga. Nii ei mõjuta
+  väärtuse nime või kehtivuse muutmine piirangut.
+- **Vormi tunnus on `FORM_TYPE` klassifikaatori kood** (`TI_KONTROLLKAART`,
+  `SP_DRIVER_FORM`, `TRAM_KONTROLLKAART` jne), sama mis `formRoutes.ts` →
+  `classifierCode`. Uut enum'it ega loendit ei looda.
+- **Semantika on: ridu pole, järelikult lubatud kõigile.**
+  - Kui väärtusel ridu pole, on see nähtav igal vormil. Kõik olemasolevad andmed
+    käituvad edasi täpselt nagu praegu ja migratsioon andmeid ei muuda.
+  - Kui väärtusel on vähemalt üks rida, on see nähtav ainult loetletud vormidel.
+  - Pärilust ei ole: `SP_COMPOUND` valimine ei hõlma automaatselt alamvorme. Seda
+    leevendab admin-UI grupivalik (vt allpool).
+- **Admin-UI-s on mitmikvalik „Piira vormidele"** (TEDI `Select multiple`, valikud on
+  rühmitatud FORM_TYPE hierarhia järgi ja rühma saab valida korraga). Tühi valik
+  tähendab „kõik vormid". Seda näitab abitekst, et tühja välja ei tõlgendataks kui
+  „mitte ükski".
+- **Muutmisel lisatakse ainult erinevused** (Resql `set_classifier_value_form_scope`,
+  üks CTE). Uus vorm saab rea `is_active = TRUE`, eemaldatud vorm rea `is_active = FALSE`.
+  Muutmata vormidele ridu ei lisata, seega sama nimekirja korduv salvestamine ei kirjuta
+  midagi. Tabel ise on täielik ajalugu (kes, millal, mis vormi lisas või eemaldas).
+  Auditilogi kirjes on lisaks vana ja uus nimekiri. `UPDATE`/`DELETE` on keelatud
+  kokkuleppe korras, nagu `xroad.aj_usage_log` puhul (ADR-005). Triggerit andmebaasis ei
+  ole.
+- **Frontend filtreerib ainult muutmisrežiimis ja ainult valikuid, mitte silte.**
+  - `ClassifierScopeProvider formType="…"` piirab sees olevate komponentide
+    `getByCode()`, `getChildren()` ja `values` vormile lubatud väärtustega.
+    `getValue()` / `label()` jäävad filtreerimata.
+  - Filter kehtib **ainult muutmisrežiimis**. Vaaterežiimis ehitavad vormid silte
+    samadest nimekirjadest, seega varem salvestatud ja hiljem piiratud väärtus
+    kuvatakse vaates edasi. See on sama põhimõte nagu aegunud väärtuste
+    `isValid !== false` filtril (`!canEdit || …`). Muutmisrežiimis on piiratud väärtus
+    valikutest kadunud, aga juba salvestatud väärtus jääb vormi andmetesse alles.
+  - **Üksikvormid** (VR, TI, hea maine, TRAM, koondvormi üldandmed): provider on
+    marsruudi tasemel (`App.tsx`). Leht teatab oma muutmisrežiimist
+    `useClassifierScopeActive(isEditActive)`-ga, loomislehed `true`-ga. Vaikimisi
+    filtrit pole: kui kutse puudub, ei kao ühtegi silti, ainult piirang ei rakendu.
+  - **Koondvormi alamvormid** (autojuht, meeskonnaliige, tehnokaardid, ADR,
+    autoveo katkestamine): igal muutmiskomponendil (`…CreatePage`) on oma ulatus,
+    mis on alati sees (`active`). Pesastatud ulatus arvutatakse alati
+    filtreerimata nimekirjast, mitte koondvormi skoobist. TRAM kaardi sees olev
+    autojuhi alamvorm kasutab koodi `TRAM_KONTROLLKAART`. Alamvormide
+    vaatekaardid (`…ViewCard`) on alati kirjutuskaitstud ja jäävad skoobita.
+- **Serveripoolset valideerimist esimeses etapis ei tehta.** Piirang on kasutusmugavuse
+  meede, mitte turvapiir: klassifikaatorid on niikuinii avalikud loendid. Vajaduse
+  korral lisatakse see hiljem `save.yml` voogudesse.
+- **Kaasparandus:** `update_classifier_value.sql` kannab edaspidi uude hetktõmmisesse üle ka
+  `parent_key` ja `description`.
+
+### Põhjendus
+
+Valge nimekirja ja tühja vaikeväärtuse kombinatsioon on loogiliselt lihtsaim. See ei
+nõua olemasolevate andmete migreerimist ja admin-kasutajale on mõistetav: „kui midagi
+pole piiratud, on kõik lubatud". Eraldi seosetabel hoiab piirangu klassifikaatori
+snapshot-mudelist lahus, nii et tulevased väärtuse muutmise päringud ei saa seda
+kogemata kustutada. FORM_TYPE koodide kasutamine seob piirangu samade koodidega, mida
+töölaud ja `formRoutes.ts` juba kasutavad.
+
+### Tagajärjed
+
+- Vormil, millel puudub FORM_TYPE kood (ERRU vormid: CTUD, CGR, RSI, NCR, NU), ei saa
+  esialgu piiranguid kasutada. Need vormid näevad edasi kõiki väärtusi. Kui vajadus
+  tekib, lisatakse neile FORM_TYPE väärtused.
+- Kui FORM_TYPE väärtus kustutatakse või aegub, jäävad seosetabelisse orvuks jäänud
+  read. Need ei tee midagi halba (sellist vormi pole), kuid admin-UI näitab neid
+  hoiatusega.
+- STRUCTURE_UNIT-i `description` silt (organisatsioonipõhine filter) jääb esialgu alles.
+  Selle üleviimine eraldi organisatsioonipiirangule on eraldi otsus.
+
+---
+
+
 ## ADR-010 — Kustutatud kontrollvormide arhiiv: eraldi andmebaas, suhtlus ainult Ruuteri + resql kaudu
 
 **Otsustaja:** Sten Viljus
@@ -40,14 +432,14 @@ Liquibase-jooks (`DSL/Liquibase-arhiiv/`).
   resolutsiooniga looja nimi/org (arhiivibaasis `users.*` puudub). Tulevased
   `forms.*` veerumuudatused ei nõua arhiivi migratsiooni.
 - **Kolm faasi, kõik läbi resql** (cron `archive-deleted-forms`, iga 2h):
-  `select_deleted_snapshots` (töö-baas) → `insert_snapshots` (arhiiv, ON CONFLICT
+  `select_deleted_snapshots` (tööbaas) → `insert_snapshots` (arhiiv, ON CONFLICT
   DO NOTHING) → `count_present` (arhiiv kinnitab IGA (form_type, id) olemasolu) →
-  `purge_confirmed` (töö-baas, REAALNE DELETE — ainult kui verify = 100% vaste).
+  `purge_confirmed` (tööbaas, REAALNE DELETE — ainult kui verify = 100% vaste).
   Mittetäieliku vaste korral purge vahele; järgmine jooks parandab ise.
 - **Versiooniajaloo fallback Ruuteri kihis:** `get-snapshots` / `get-snapshot`
-  vood proovivad esmalt töö-baasi ja kukuvad arhiivi endpoint'ile tagasi, kui
-  töö-baas tagastab 0 rida (arhiveeritud olemi kogu ajalugu on ALATI kas
-  täielikult töö-baasis või täielikult arhiivis).
+  vood proovivad esmalt tööbaasi ja kukuvad arhiivi lõpp-punktile tagasi, kui
+  tööbaas tagastab 0 rida (arhiveeritud olemi kogu ajalugu on ALATI kas
+  täielikult tööbaasis või täielikult arhiivis).
 
 ### Põhjendus
 
@@ -242,7 +634,7 @@ Lisa 2 juhib tähelepanu, et seos kontrollkaardi rea ja 2016/403 rikkumisliigi v
 
 #### Otsus 1 — Rikkumiste klassifikaator: uus 2-tasemeline `ADR_CONTROL_CHECKPOINT`; `DANGEROUS_GOODS_INFRINGEMENTS_NEW` kustutatakse
 
-* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = `<nr>. <määruse lisa 2 pealkiri>` (nt „17. Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „nt ADR 4.1–4.7"). Pealkirjad ja viited on määruse **lisa 2** sõnastusega joondatud migratsiooniga `20260907120000` (algne seeme `20260903120000` kasutas PDF-i „Kontrollitav valdkond" veergu).
+* **Tase 1 = kontrollkaardi punkt 12–27.** `code` = `P12`…`P27`; `name` = `<nr>. <määruse lisa 2 pealkiri>` (nt „17. Mahuteid käsitlevad sätted"); `description` = ADR-viide, mis kuvatakse pealkirjas sulgudes (nt „nt ADR 4.1–4.7"). Pealkirjad ja viited on määruse **lisa 2** sõnastusega joondatud migratsiooniga `20260907120000` (algsed andmed failis `20260903120000` kasutasid PDF-i „Kontrollitav valdkond" veergu).
 * **Tase 2 = selle punktiga eelnevalt seostatud 2016/403 I lisa jaotise 9 rikkumisliik.** `parent_key` viitab punktile; `code` = rikkumisliigi number (`1`…`24`); `name` = rikkumisliigi lühikirjeldus; `description` = raskusaste (`MSI` / `VSI` / `SI`). Neid väärtusi kasutab vormil ainult rikkumiskirje väli „Määruse (EL) 2016/403 rikkumisliik" (rippmenüü filtreerimiseks punkti järgi).
 * **Rikkumisliigi „puudub" valik** („Ei ole määruse 2016/403 p 9 rikkumisliik") **ei ole klassifikaatoris** — see on rippmenüü kõva­kood. sentinel (`NONE`), kuna vedaja võib vastutada ka väljaspool jaotist 9.
 * **Many-to-many realiseeritakse duplikaatkirjetena.** Sama rikkumisliik, mis seondub mitme punktiga, sisestatakse iga punkti alla eraldi `classifier_value` kirjena. Eraldi seostabelit **ei tehta**. Lõplik seoste loend: Priit Tuuna ettevalmistatud tabel.
@@ -313,12 +705,12 @@ Pealkirjavihjete tekst („Andmed täidetakse ainult rikkumise korral" → „T�
 * **Kõvakood. riskikategooria ja osalejad** — õigusaktiga fikseeritud loendid ei vaja haldusliidest ega migratsiooni; sama muster on projektis juba kasutusel.
 * **Raskusaste eraldi väljana** (ehkki tuletatud) — tehniline suunis nõuab riskikategooria ja 2016/403 raskusastme lahushoidmist; koodist tuletamine toimub sisestushetkel, salvestus on stabiilne.
 * **Uued veerud, mitte olemasolevate ümberkirjutamine** — append-only tabeli filosoofia; toodangus andmeid ei ole, seega andmeteisendus on tarbetu, aga vanad veerud jäävad ajalukku loetavaks.
-* **TEDI disainikeel** — rikkumiste plokk kasutab olemasolevaid `@tedi-design-system` komponente samas mustris nagu ohtlike kaupade tabel ja tehnokontrolli osade loend: `Card` / `Card.Content` sektsioonideks, `GroupedClassifierChecklist` punktide grupeerimiseks, `ChoiceGroup` (raadio/checkbox), `Select` (mitmene), pesastatud `Card` iga rikkumiskirje kohta, `Button visualType="secondary"` „+ Lisa rikkumine" ja `Button icon="delete" color="danger" size="small"` kustutamiseks. Uusi UI-primitiive ei looda.
+* **TEDI disainikeel** — rikkumiste plokk kasutab olemasolevaid `@tedi-design-system` komponente samas mustris nagu ohtlike kaupade tabel ja tehnokontrolli osade loend: `Card` / `Card.Content` sektsioonideks, `GroupedClassifierChecklist` punktide grupeerimiseks, `ChoiceGroup` (raadio/märkeruut), `Select` (mitmene), pesastatud `Card` iga rikkumiskirje kohta, `Button visualType="secondary"` „+ Lisa rikkumine" ja `Button icon="delete" color="danger" size="small"` kustutamiseks. Uusi UI-primitiive ei looda.
 * **Aadressimuudatused `AddressFields` tasemel** on üldised parandused, mis on kasulikud kõigile aadressi kasutavatele vormidele; „ei vaikimisi Eestit" jääb ADR-hooki, et mitte muuta teiste vormide käitumist.
 
 ### Piirangud / TODO
 
-* Administraator peab enne vormi kasutuselevõttu seemnema kaks klassifikaatorit (`ADR_CONTROL_CHECKPOINT`, `ADR_QUANTITY_UNIT`) — mõlemad tulevad Liquibase-migratsioonis, kui valdkonna loendid (Priit Tuuna MSI/VSI/SI seosed, ühikute loend) on käes.
+* Administraator peab enne vormi kasutuselevõttu laadima kahe klassifikaatori algandmed (`ADR_CONTROL_CHECKPOINT`, `ADR_QUANTITY_UNIT`). Mõlemad klassifikaatorid lisatakse Liquibase'i migratsiooniga, kui valdkonna loendid (Priit Tuuna MSI/VSI/SI seosed ja ühikute loend) on olemas.
 * Dokumentatsioon uuendada: `docs/user-guide/11-vorm-adr.md`, `docs/andmehaldus/klassifikaatorid.md`, `docs/andmehaldus/rikkumiste-klassifikaatorid-2016-403.md`, `docs/muudatused.md`, kasutusjuhendi näidisvorm (`DSL/Liquibase/test/20260903100000-user-guide-fixture-forms.sql`).
 * Määruse jõustumiskuupäev ja lisa 1 täpne sõnastus kontrollida RT-st enne toodangusse minekut.
 
@@ -326,8 +718,8 @@ Pealkirjavihjete tekst („Andmed täidetakse ainult rikkumise korral" → „T�
 
 ## ADR-005 — Andmejälgija: ainult inbound X-tee päringud, eraldi append-only tabel
 
-**Otsustaja:** Sten Viljus  
-**Kuupäev:** 01.09.2026  
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 01.09.2026
 **Seotud failid:** `DSL/Ruuter.internal/ljvis/GET/xroad/v2/`, `DSL/Resql/ljvis/POST/xroad/aj/`, `docs/andmejalgija-seadistamine.md`
 
 ### Kontekst
@@ -342,7 +734,7 @@ IKS § 19/§ 25 nõuab et isik saab küsida, kes tema andmeid on töödelnud. Tu
 - Logitatakse ainult **inbound** X-tee päringud — teenused kus väline osapool küsib või sisestab isikuandmeid LJVIS kaudu: `isiku-kontroll`, `isiku-ettevote-kontrollid`, `register-job-inspection-v3` (ainult kui `juhi_isikukood` esitati)
 - `xroad_integration_log` jääb **puutumata** — AJ kirjed lähevad ainult uude `xroad.aj_usage_log` tabelisse
 - `xroad.aj_usage_log` on **append-only** tabel (nagu `audit.audit_event`) — `UPDATE`/`DELETE` on keelatud
-- Isikukood (`user_code`) logitakse **selgetekstiliselt** — AJ `findUsage` endpoint otsib `userCode` järgi, hash ei oleks otsitav
+- Isikukood (`user_code`) logitakse **selgetekstiliselt** — AJ `findUsage` lõpp-punkt otsib `userCode` järgi, hash ei oleks otsitav
 
 ### Põhjendus
 
@@ -350,71 +742,71 @@ IKS § 19/§ 25 nõuab et isik saab küsida, kes tema andmeid on töödelnud. Tu
 - **Outbound** (RR, e-Toimik, ERRU saatmised) on meie enda protsesside initsiatiiv, mitte kolmanda osapoole teenus isiku suhtes
 - **Eraldi tabel:** puhtam skeem, ei sega olemasolevat integratsioonilogi
 - **Append-only:** garanteerib AJ nõuetele vastava auditeeritavuse — kirjeid ei saa tagantjärgi muuta ega kustutada
-- **Hash lükati tagasi:** AJ `findUsage` endpoint vajab otsimist `userCode` järgi selgetekstis; hash ei ole otsitav ilma et pärija esitaks sama isikukoodi — mis tähendaks, et otsing eesti.ee-st ei toimiks
+- **Hash lükati tagasi:** AJ `findUsage` lõpp-punkt vajab otsimist `userCode` järgi selgetekstis; hash ei ole otsitav ilma et pärija esitaks sama isikukoodi — mis tähendaks, et otsing eesti.ee-st ei toimiks
 
 ---
 
 ## ADR-006 — Teavituste moodul: in-app + Postkast 2.0 + WebSocket push (LJVIS-2)
 
-**Otsustaja:** Sten Viljus  
-**Kuupäev:** 10.10.2026  
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 10.10.2026
 **Seotud issue:** LJVIS-2 (Jira), GitHub epic
 
 ### Kontekst
 
 LJVIS-2 vajab moodulipõhist teavitussüsteemi, mis katab kaks kanalit:
 
-1. **In-app teavitused** — reaalajas kasutajaliideses, õiguspõhine filtreerimine (`required_permission`).  
+1. **In-app teavitused** — reaalajas kasutajaliideses, õiguspõhine filtreerimine (`required_permission`).
 2. **Postkast 2.0 (välised e-kirjad)** — raske rikkumise teavitused veoettevõtjatele ja muude DSL-töövoogude genereeritud kirjad.
 
 Lisaks peab süsteem toetama logimist (kes saadeti, millal, mis tulemusega) ning ebaõnnestunud saadetise uuesti saatmist (UC-04).
 
 ### Valikud kaalutud
 
-**A) 30-sekundiline HTTP polling unread-count jaoks**  
+**A) 30-sekundiline HTTP polling unread-count jaoks**
 — Lihtne, kuid tekitab tarbetut serverikoormust ja viibega UX.
 
-**B) WebSocket push broadcast + HTTP pull andmete jaoks**  
-— Ruuter 0.9.0-rc.1 `ws_send` toetab `broadcast_prefix` moodust HTTP kontekstist (nt `create.yml` internal endpointist). Klient saab signaalina ainult `{type: "notification_update"}` — kasutajaandmeid broadcast ei sisalda. Iga klient teeb seejärel oma authenticated HTTP päringud oma sessiooni alusel. WS-ühenduse katkemine langeb back automaatselt 60 s pollingule, reconnect 5 s pärast.
+**B) WebSocket push broadcast + HTTP pull andmete jaoks**
+— Ruuter 0.9.0-rc.1 `ws_send` toetab `broadcast_prefix` moodust HTTP kontekstist (nt `create.yml` internal endpointist). Klient saab signaalina ainult `{type: "notification_update"}` — kasutajaandmeid broadcast ei sisalda. Iga klient teeb seejärel oma authenticated HTTP päringud oma seansi alusel. WS-ühenduse katkemine langeb back automaatselt 60 s pollingule, reconnect 5 s pärast.
 
-**C) Server-Sent Events (SSE)**  
+**C) Server-Sent Events (SSE)**
 — Ühepoolne, pooleldi standardne. Ruuter 0.9.0-rc.1 ei toeta veel SSE-d; WebSocket on paremini dokumenteeritud.
 
 ### Otsus
 
 Valiti **B — WebSocket push + HTTP pull**.
 
-- `DSL/Ruuter/ljvis/WS/inbound/notifications/connect.yml` — WS endpoint; autendib
+- `DSL/Ruuter/ljvis/WS/inbound/notifications/connect.yml` — WS lõpp-punkt; autendib
   iga frame'i (`check-user-authority`) ja märgistab ühenduse `ws_tag`-iga
-  (`perms` sild = kasutaja õigused komadega piiritletult)  
-- `DSL/Ruuter/ljvis/POST/v1/ws-broadcast/send.yml` — sisemine endpoint (`ruuter`-is,
+  (`perms` sild = kasutaja õigused komadega piiritletult)
+- `DSL/Ruuter/ljvis/POST/v1/ws-broadcast/send.yml` — sisemine lõpp-punkt (`ruuter`-is,
   sest `WsRegistry` on protsessisisene); `ws_send broadcast_where tag=perms
-  contains=",<required_permission>,"` → signaal AINULT õigustatud ühendustele  
+  contains=",<required_permission>,"` → signaal AINULT õigustatud ühendustele
 - `DSL/Ruuter.internal/ljvis/POST/notification/create.yml` — loob in-app teavituse +
-  `http.post [#LJVIS_RUUTER]/v1/ws-broadcast/send` (jagatud saladus päises)  
-- `DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml` — Postkast 2.0 saatmine + outbound_log kirje  
-- 7 Ruuter public API endpoint (`/v1/notifications/*`) — dünaamiline id käib
+  `http.post [#LJVIS_RUUTER]/v1/ws-broadcast/send` (jagatud saladus päises)
+- `DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml` — Postkast 2.0 saatmine + outbound_log kirje
+- 7 Ruuter public API lõpp-punkt (`/v1/notifications/*`) — dünaamiline id käib
   `?q=` query-paramina (`rest-api-disainijuhend.md` §4.2). Kehaväli ei sobi:
   Ruuter 0.9.7 nõuab, et kõik `allowlist.body` väljad oleksid päringus olemas,
   seega ei saa id-d valikuliseks kehaväljaks teha. Nt
   `POST /v1/notifications/mark-read?q={id}`,
-  `POST /v1/notifications/outbound-log/resend?q={logId}` body `{ recipientEmail }`  
-- 4 Liquibase tabelit: `notifications.notification`, `notification_read`, `outbound_log`, `outbound_log_recipient`  
+  `POST /v1/notifications/outbound-log/resend?q={logId}` body `{ recipientEmail }`
+- 4 Liquibase tabelit: `notifications.notification`, `notification_read`, `outbound_log`, `outbound_log_recipient`
 - Frontend: `useNotificationCount` hook (WS + fallback polling), `NotificationBellButton` päises, `NotificationsPage` (kahe tabiga: in-app + saadetud kirjad)
 
 ### Turvalisus
 
-- Broadcast payload sisaldab ainult signaali (`{type: "notification_update"}`), mitte kasutajaandmeid.  
-- Broadcast ise on õiguspõhine (`broadcast_where`): signaal jõuab ainult nende ühendusteni, kelle `perms` sild sisaldab teavituse `required_permission`-it. Sild seatakse iga frame'i peal uuesti, seega tühistatud õigus / aegunud sessioon lakkab signaale saamast ≤ 30 s.  
-- Iga klient teeb siiski oma authenticated HTTP päringu — teine kaitsekiht serveri poolel (`required_permission` vs kasutaja tegelikud õigused).  
-- `ruuter-internal` → `ruuter` sisekutse (`/v1/ws-broadcast/send`) on kaitstud jagatud saladusega (`[#INTERNAL_COMMUNICATION_KEY]` päises), guard `override_ancestors`.  
+- Broadcast payload sisaldab ainult signaali (`{type: "notification_update"}`), mitte kasutajaandmeid.
+- Broadcast ise on õiguspõhine (`broadcast_where`): signaal jõuab ainult nende ühendusteni, kelle `perms` sild sisaldab teavituse `required_permission`-it. Sild seatakse iga frame'i peal uuesti, seega tühistatud õigus / aegunud seanss lakkab signaale saamast ≤ 30 s.
+- Iga klient teeb siiski oma authenticated HTTP päringu — teine kaitsekiht serveri poolel (`required_permission` vs kasutaja tegelikud õigused).
+- `ruuter-internal` → `ruuter` sisekutse (`/v1/ws-broadcast/send`) on kaitstud jagatud saladusega (`[#INTERNAL_COMMUNICATION_KEY]` päises), guard `override_ancestors`.
 - `notification.admin` permission kaitseb outbound-logi vaatamist ja uuesti saatmist (ainult Super Admin Group) —
   guard `DSL/Ruuter/ljvis/{GET,POST}/v1/notifications/outbound-log/.guard.yml`.
 
 ### Piirangud / TODO
 
-- **Postkast 2.0 toodangukredentsiaalid** (`PK_URL`, `PK_TOKEN`) on RIA-lt ootel. `send-postkast.yml` on stub-ga, mis logib kavatsuse ja tagastab mock-`sending_operation_id`. Aktiveerimine: DSL-i kommentaaritud `callPkApi` samm aktiveerida kui credentialid on Kubernetes-es saadaval.  
-- ~~**WS auth**: praegu WS endpoint ei kontrolli sessiooni eraldi.~~ **Lahendatud** (PR #216 + järg): `connect.yml` autendib iga sissetuleva frame'i `check-user-authority` kaudu; kehtetu → `{type:"unauthorized"}`.
+- **Postkast 2.0 toodangukredentsiaalid** (`PK_URL`, `PK_TOKEN`) on RIA-lt ootel. `send-postkast.yml` on stub-ga, mis logib kavatsuse ja tagastab mock-`sending_operation_id`. Aktiveerimine: DSL-i kommentaaritud `callPkApi` samm aktiveerida kui credentialid on Kubernetes-es saadaval.
+- ~~**WS auth**: praegu WS lõpp-punkt ei kontrolli seanssi eraldi.~~ **Lahendatud** (PR #216 + järg): `connect.yml` autendib iga sissetuleva frame'i `check-user-authority` kaudu; kehtetu → `{type:"unauthorized"}`.
 
 ### Uuendus — 2026-09 (PR #216, Ruuter 0.9.9-rc)
 
@@ -436,8 +828,8 @@ protsessist) viidi:
 
 ## ADR-002 — Rust Ruuter 0.9.0-rc.1 (turnerrainer/ruuter:rc)
 
-**Otsustaja:** Sten Viljus  
-**Kuupäev:** 26.08.2026  
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 26.08.2026
 **Seotud commit:** `a703c23` — *feat: upgrade Ruuter to 0.9.0-rc.1 — enable outbound HTTP request/response logging*
 
 ### Kontekst
@@ -457,7 +849,7 @@ Liiguti aktiivselt arendatavale Rust-põhisele Ruuterile (`turnerrainer/ruuter:r
 - Uued DSL-sammud: `state:` (mälupõhine KV), `iterate:` (massiivide itereerimine), `single_flight:` (concurrent-päringute koondamine)
 - Märkimisväärne jõudluse paranemine Rust runtime tõttu: üle 3× kiirema throughputi keskmise REST-marsruudi korral võrreldes JVM käivitusega
 
-**Riskikoht — DSL tagurpidi-ühilduvus:**  
+**Riskikoht — DSL tagurpidi-ühilduvus:**
 Rust Ruuter ei ole täielikult tagurpidi ühilduv. Konkreetselt: `declaration:` bloki väljad `method`, `accepts` ja `returns` eemaldati — vana DSL-failiga server ei käivitu. Samuti muutus Resql-image (`askendest/resql:0.1.0-alpha.5` → `turnerrainer/resql:alpha`) mille SQL parameetrite süntaks (`allowlist.body` → `params:`) muutus. Üleminek nõudis hulkade DSL-failide muutmist (vt `migration_guide_to_rust_ruuter.md`). Hinnang: riskikoht realiseerus (migratsioonitöö), kuid see ei kaalu jõudluse, logimis- ja turvaplussid üle.
 
 **API kasutajale midagi ei muutu** — URL-id, HTTP meetodid ja vastuse formaadid on täielikult tagasiühilduvad.
@@ -466,8 +858,8 @@ Rust Ruuter ei ole täielikult tagurpidi ühilduv. Konkreetselt: `declaration:` 
 
 ## ADR-003 — X-tee pakutavad teenused: ainult REST
 
-**Otsustaja:** Sten Viljus  
-**Kuupäev:** 10.07.2026  
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 10.07.2026
 **Seotud commit:** `* docs(xtee): add REST-only requirement for LJVIS-2 provided services`
 
 ### Kontekst
@@ -489,8 +881,8 @@ Kõik LJVIS-2 poolt pakutavad X-tee teenused on **REST-põhised**. SOAP jääb a
 
 ## ADR-004 — Auditi sool `audit.config` tabelis
 
-**Otsustaja:** Sten Viljus  
-**Kuupäev:** 13.08.2026  
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 13.08.2026
 **Seotud commit:** `fix(audit): replace ALTER DATABASE audit_salt with audit.config table + hash_personal_code()`
 
 ### Kontekst
@@ -503,13 +895,13 @@ Sool salvestatakse `audit.config` tabelisse (`key = 'audit_salt'`, `value = '<r�
 
 ### Põhjendus
 
-**Portaablus (CI/CD praktiline põhjus):**  
+**Portaablus (CI/CD praktiline põhjus):**
 `ALTER DATABASE` nõuab PostgreSQL superuser-õigusi, mis CI/CD keskkondades ei ole standardselt saadaval. `audit.config` tabelisse kirjutamine on tavaline SQL INSERT — Liquibase migratsioon haldab seda nagu kõiki teisi migratsioone, ilma DBA erisekkumiseta. Üleminek keskkondade vahel (arendus → test → toodang) on ühtne.
 
-**Paigaldusel tekkinud probleem — AWS RDS-i piirang:**  
+**Paigaldusel tekkinud probleem — AWS RDS-i piirang:**
 Otsuse muutis vältamatuks AWS RDS-i kasutajate õiguste mudel. AWS RDS ei anna kunagi päris PostgreSQL superuser-rolli — isegi nn `rds_superuser` roll ei luba `ALTER DATABASE SET` parameetreid muuta, mis nõuab tegelikku superuseri. Seega oli `ALTER DATABASE audit_salt` lähenemine AWS toodangukeskkonnas *struktuuriliselt võimatu*, mitte ainult ebasobiv. Tabelipõhine lahendus töötab kõikides keskkondades ühtviisi: lokaalselt, CI-s (Docker Compose) ja AWS RDS-il, ilma keskkonnaspetsiifiliste erilahenduste ja käsitsi DBA-sekkumiseta.
 
-**Turvamõtestus (isikuandmete kaitse):**  
+**Turvamõtestus (isikuandmete kaitse):**
 Sool on osa isikukoodi räsimise mehhanismist mis tagab, et auditilõpis ei ole võimalik tagurpidi isikukoodi tuletada ilma soola teadmata. Tabelipõhine lahendus lubab soola lugemisõigust piirata andmebaasi rolli tasemel — funktsiooni `audit.hash_personal_code()` kutsujad ei pea soola väärtust ise nägema.
 
 ---
@@ -520,8 +912,8 @@ Sool on osa isikukoodi räsimise mehhanismist mis tagab, et auditilõpis ei ole 
 > kahe olemi mudelit (`compound_form` authority='TRAM' + `sp_driver_form`).
 > TRAM kontrollkaart on nüüd üks eraldiseisev olem — vt [ADR-002](#adr-002--tram-kontrollkaart--üks-olem-üks-elutsükkel).
 
-**Otsustaja:** Sten Viljus  
-**Kuupäev:** 28.08.2026  
+**Otsustaja:** Sten Viljus
+**Kuupäev:** 28.08.2026
 **Seotud funktsioon:** Transpordiameti (TRAM) autojuhi kontrollkaart
 
 ### Kontekst
@@ -530,7 +922,7 @@ Transpordiamet vajab eraldiseisvat kontrollkaarti (TRAM kontrollkaart), mis funk
 
 1. Kuidas eristada TRAM-vorme PPA-vormidest andmebaasis?
 2. Kas TRAM-vorminumber jagab PPA koond-seeriat või on eraldi?
-3. Kas TRAM SP-alamvormi backend jagab PPA endpoint'i?
+3. Kas TRAM SP-alamvormi backend jagab PPA lõpp-punkti?
 
 ---
 
@@ -542,7 +934,7 @@ Transpordiamet vajab eraldiseisvat kontrollkaarti (TRAM kontrollkaart), mis funk
 - *form_number prefiks* (`koond-` vs `tram-`) — filtrid on `LIKE`-põhised, ei ole tüübipuhtad, hargnemine SQL-is keerukam
 - *eraldi tabel* (`tram_compound_form`) — andmete dubleerimine, keerukamad JOIN-id ERRU-päringutel
 
-**Põhjendus:**  
+**Põhjendus:**
 Dedikeeritud veerg `authority` on kõige puhtam lähenemine: SQL filtrid on indekseeritavad (`WHERE authority = 'TRAM'`), andmetüüp on selge, tulevikus lisatavad autoriteedid (nt mõni kolmas asutus) ei nõua skeemimuutust. Vorminumber-prefiks jääb `tram-AAAA-NNNNN` formaati — see on nähtav kasutajaliidesest ja loetav, kuid ei ole ainuke eristataja.
 
 ---
@@ -560,24 +952,24 @@ Dedikeeritud veerg `authority` on kõige puhtam lähenemine: SQL filtrid on inde
 - *Kõik vormid jagavad `koond-` / `sp-` seeriat* — TRAM-koondvormi numbrid oleksid hõredad ja segadusttekitavad, kui PPA-vorme on palju.
 - *Kõik vormid eraldi seerias (ka alamvorm `tram-sp-...`)* — kaalutud ja tagasi lükatud: alamvormi tasemel ei anna eraldi numeratsioon lisaväärtust, kuna alamvorm on alati konkreetse (juba `tram-` numbriga) koondvormi all.
 
-**Põhjendus:**  
+**Põhjendus:**
 TRAM kontrollkaardid on operatiivselt eraldiseisev tegevus ja koondvormi number on see, mida kasutaja ja aruandlus näevad — seal peab asutus olema üheselt loetav. Alamvormi number on tehniline viide koondvormi sees, seega numbriseeria jagamine PPA-ga on aktsepteeritav ja hoiab koodi lihtsamana.
 
 ---
 
-### Otsus 3 — TRAM SP-alamvormi backend: eraldi endpoint
+### Otsus 3 — TRAM SP-alamvormi backend: eraldi lõpp-punkt
 
 **Valitud:** Uus kaust `DSL/Resql/ljvis/POST/control-forms/tram-form/sp-driver/` ja eraldi Ruuter-guard `tram_driver_form.write` / `tram_driver_form.read` õigusega
 
 **Alternatiivid kaalutud:**
-- *Jagab PPA SP-endpoint'i* — vähem koodi, aga guard peab lubama nii `tram_driver_form.write` kui `sp_driver_form.write`; seob kaks eraldiseisvat domeeni ühte endpointi; tuleviku lahknemine (nt TRAM-spetsiifilised väljad) on keerukas
+- *Jagab PPA SP-lõpp-punkti* — vähem koodi, aga guard peab lubama nii `tram_driver_form.write` kui `sp_driver_form.write`; seob kaks eraldiseisvat domeeni ühte lõpp-punkti; tuleviku lahknemine (nt TRAM-spetsiifilised väljad) on keerukas
 
-**Põhjendus:**  
-Täielik eraldatus endpoint'i tasemel tagab, et TRAM ja PPA õigused ei põimu. Resql SQL-failid on koopiad, kuid TRAM-i spetsiifilised piirangud on lisatud ilma PPA loogikat puutumata. Duplikaat on piiratud (~200 rida SQL) ja õigustatud selge domeenipiiriga.
+**Põhjendus:**
+Täielik eraldatus lõpp-punkti tasemel tagab, et TRAM ja PPA õigused ei põimu. Resql SQL-failid on koopiad, kuid TRAM-i spetsiifilised piirangud on lisatud ilma PPA loogikat puutumata. Duplikaat on piiratud (~200 rida SQL) ja õigustatud selge domeenipiiriga.
 
 **Horisontaalne juurdepääsukaitse (IDOR):** kuna `forms.sp_driver_form` tabelil ei ole `authority` veergu, kontrollivad kõik `tram-form/sp-driver/*` päringud (lugemine ja kirjutamine) alamvormi kuuluvust TRAM-koondvormi külge:
 `... AND EXISTS (SELECT 1 FROM forms.compound_form cf WHERE cf.compound_form_key = sp_driver_form.compound_form_key AND cf.authority = 'TRAM')`.
-Nii ei saa TRAM-õigustega kasutaja PPA autojuhi alamvormi `sp_driver_form_key` kaudu lugeda ega muuta. Versiooniajaloo (`get-snapshots`) lekke vältimiseks on TRAM-il oma guarditud endpointid `GET .../tram-form/get-snapshots` ja `.../tram-form/sp-driver/read/get-snapshots` — üldist `control-forms/get-snapshots` endpointi TRAM ei kasuta.
+Nii ei saa TRAM-õigustega kasutaja PPA autojuhi alamvormi `sp_driver_form_key` kaudu lugeda ega muuta. Versiooniajaloo (`get-snapshots`) lekke vältimiseks on TRAM-il oma guarditud lõpp-punktid `GET .../tram-form/get-snapshots` ja `.../tram-form/sp-driver/read/get-snapshots` — üldist `control-forms/get-snapshots` lõpp-punkti TRAM ei kasuta.
 
 ---
 
@@ -594,7 +986,7 @@ ADR-001 mudelis on TRAM kontrollkaart kaks sõltumatut snapshot-olemit:
 `forms.compound_form` (authority='TRAM', üldosa) + 0–1 `forms.sp_driver_form`
 (juhi kontrolli sisu), seotud `compound_form_key` kaudu. Igal olemil on oma
 elutsükkel, oma nähtav vorminumber (`tram-AAAA-NNNNN` vs `sp-AAAA-NNNNN/1`), oma
-versiooniajalugu, oma Ruuteri endpoint'id ja Resql-failid. Kasutajaliideses
+versiooniajalugu, oma Ruuteri lõpp-punktid ja Resql-failid. Kasutajaliideses
 tähendab see kahte vahekaarti, kus juhi-vahekaart tekib alles pärast üldosa
 esmakordset salvestust (alamvormi INSERT vajab olemasolevat `compound_form_key`).
 
@@ -613,7 +1005,7 @@ kontrolli sisu ja e-Toimiku otsuse väljad. Praegune seis =
 `DISTINCT ON (tram_control_card_key) ORDER BY tram_control_card_key, created_at DESC`.
 
 `forms.compound_form` authority='TRAM' ja sellega seotud `forms.sp_driver_form`
-jäävad **ainult PPA jaoks** (authority='PPA'). Vanad `tram-form/**` endpoint'id
+jäävad **ainult PPA jaoks** (authority='PPA'). Vanad `tram-form/**` lõpp-punktid
 ja Resql-failid eemaldatakse (PR2).
 
 **PPA multimodaalsuse mõisted, mida TRAM ei kasuta ja mis kaovad uuest tabelist:**
@@ -637,7 +1029,7 @@ või oodata e-Toimiku otsust.
 
 Vana `etoimik-sp-driver-decision-sync` cron kirjutas TRAM `sp_driver_form` ridadele
 `enforcement_decision` / `proceeding_closure_basis` **kohapeale** (ilma uue
-snapshot'ita, ilma avalikustamiseta). Uus TRAM-i cron
+hetktõmmiseta, ilma avalikustamiseta). Uus TRAM-i cron
 (`etoimik-tram-decision-sync`, PR3) järgib `labour-inspection` mustrit: kui
 e-Toimikust tuleb **jõustunud karistus** (süüdistuspunkt mille `SulgemiseKP`
 täidetud ja `LahendKL` olemas), lisatakse uus `published` snapshot
@@ -649,9 +1041,9 @@ kohapeal" käitumine jääb PPA jaoks muutmata.
 
 Õigused jäävad `tram_driver_form.write` / `tram_driver_form.read` (juba
 kasutajagruppidele määratud, klassifikaator `TRAM_KONTROLLKAART` seotud) —
-ümbernimetamine oleks puhas risk ilma kasuta. Uued endpoint'id
+ümbernimetamine oleks puhas risk ilma kasuta. Uued lõpp-punktid
 (`v1/control-forms/tram-card/**`) on eraldi guarditud; üldist
-`control-forms/get-snapshots` endpointi TRAM endiselt ei kasuta.
+`control-forms/get-snapshots` lõpp-punkti TRAM endiselt ei kasuta.
 
 ### Otsus 5 — puhas algus, migratsiooni ei tehta
 

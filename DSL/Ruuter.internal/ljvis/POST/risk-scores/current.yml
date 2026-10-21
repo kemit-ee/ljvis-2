@@ -1,16 +1,19 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
-    LJVIS2-151/144: returns the latest PERSISTED risk score for a company —
+    LJVIS2-151/144: returns the latest PERSISTED risk score for a company -
     never recomputes (see recalculate.yml for that). Consumed by (a) the CTUD
-    inbound-request handler (LJVIS2-144, not built yet — will map riskScore
-    -> ERRU riskRating and riskBandErru -> ERRU riskBand) and (b) the citizen
+    inbound-request handler (erru/ctud/inbound-request.yml, which first
+    resolves company_reg_code from the licence number MTR confirmed via
+    erru/ctud/lookup-reg-code-by-licence.sql, then maps riskScore -> ERRU
+    riskRating and riskBandErru -> ERRU riskBand) and (b) the citizen
     my-company endpoint (DSL/Ruuter/ljvis/GET/v1/citizen/risk-scores/
     my-company.yml), which strips riskBandErru before returning to the
     browser. ERRU riskBand wire values are English classifier codes already
     seeded in classifier.classifier_value under RISK_BAND (Grey/Green/Amber/
-    Red) — Kollane maps to "Amber", NOT "Yellow" (the ERRU 3.5 XSD enum has
+    Red) - Kollane maps to "Amber", NOT "Yellow" (the ERRU 3.5 XSD enum has
     no Yellow value; confirmed against that classifier seed). No auth
     required: machine-to-machine only, port 8089 is not exposed outside the
     Docker network.
@@ -30,6 +33,7 @@ getCurrentRiskScore:
   args:
     url: "[#LJVIS_RESQL]/risk_score/get_current_risk_score"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}
@@ -67,7 +71,7 @@ returnResult:
     })}
   next: end
 
-# JS-expression object-literal form, NOT a quoted JSON string literal — the
+# JS-expression object-literal form, NOT a quoted JSON string literal - the
 # latter gets serialized as a nested STRING inside `response` (confirmed live
 # via Newman: a quoted-string `return:` here made every field read back as
 # `undefined` through pm.response.json().response.riskBandCode etc., exactly

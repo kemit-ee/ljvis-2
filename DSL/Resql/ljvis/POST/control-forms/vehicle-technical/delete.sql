@@ -1,5 +1,5 @@
 /*
-description: Delete vehicle technical-check sub-form — copy latest snapshot with status=deleted
+description: Delete vehicle technical-check sub-form - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:
@@ -12,6 +12,9 @@ params:
     type: string
     required: false
 returns:
+- name: compound_form_key
+  type: number
+  nullable: true
 - name: id
   type: number
   nullable: true
@@ -25,6 +28,7 @@ WITH latest AS (
     compound_form_key,
     sub_form_number,
     version,
+    revision,
     parts_summary,
     parts_defects,
     result_type,
@@ -40,7 +44,14 @@ WITH latest AS (
     notes,
     extraordinary_inspection_date,
     enforcement_decision,
-    proceeding_closure_basis
+    proceeding_closure_basis,
+    klim_clarification_date,
+    carrier_explanation_date,
+    penalty_valid_until,
+    penalty_expired_or_processed,
+    akvk_next_meeting_date,
+    commission_last_decision_date,
+    admin_procedure_decision
   FROM forms.vehicle_technical_form
   WHERE vehicle_technical_form_key = :id::BIGINT
   ORDER BY vehicle_technical_form_key, created_at DESC
@@ -50,6 +61,7 @@ INSERT INTO forms.vehicle_technical_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   parts_summary,
   parts_defects,
@@ -67,6 +79,13 @@ INSERT INTO forms.vehicle_technical_form (
   extraordinary_inspection_date,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -74,6 +93,7 @@ SELECT
   l.compound_form_key,
   l.sub_form_number,
   l.version,
+  l.revision + 1,
   :status,
   l.parts_summary,
   l.parts_defects,
@@ -91,6 +111,13 @@ SELECT
   l.extraordinary_inspection_date,
   l.enforcement_decision,
   l.proceeding_closure_basis,
+  l.klim_clarification_date,
+  l.carrier_explanation_date,
+  l.penalty_valid_until,
+  l.penalty_expired_or_processed,
+  l.akvk_next_meeting_date,
+  l.commission_last_decision_date,
+  l.admin_procedure_decision,
   :created_by
 FROM latest l
-RETURNING vehicle_technical_form_key AS id, sub_form_number;
+RETURNING vehicle_technical_form_key AS id, sub_form_number, compound_form_key;

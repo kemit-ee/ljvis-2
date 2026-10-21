@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Update classifier"
@@ -10,9 +11,12 @@ declaration:
         type: string
       - field: description
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -32,6 +36,7 @@ getClassifier:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -62,7 +67,6 @@ validateClassifier:
     cookie: ${incoming.headers.cookie}
   body:
     name: ${name}
-    description: ${description}
   result: field_error
   next: checkClassifier
 
@@ -77,6 +81,7 @@ updateClassifier:
   args:
     url: "[#LJVIS_RESQL]/classifier/update_classifier"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       classifier_id: ${id}
@@ -105,8 +110,6 @@ logAuditEvent:
   body:
     event_type: "classifier.update"
     event_category: "classifier_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: audit_result

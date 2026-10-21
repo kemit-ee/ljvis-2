@@ -1,5 +1,5 @@
 /*
-description: Update drive rest form for driver — insert new snapshot with updated data
+description: Update drive rest form for driver - insert new snapshot with updated data
 namespace: control-forms
 params:
   key:
@@ -122,6 +122,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -132,9 +136,12 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 WITH latest AS (
-  SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
+  SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis, klim_clarification_date, carrier_explanation_date, penalty_valid_until, penalty_expired_or_processed, akvk_next_meeting_date, commission_last_decision_date, admin_procedure_decision
   FROM forms.sp_driver_form
   WHERE sp_driver_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -144,6 +151,7 @@ INSERT INTO forms.sp_driver_form (sp_driver_form_key,
                                   compound_form_key,
                                   sub_form_number,
                                   version,
+                                  revision,
                                   template_version,
                                   status,
                                   selection_status,
@@ -178,6 +186,13 @@ INSERT INTO forms.sp_driver_form (sp_driver_form_key,
                                   erru_points,
                                   enforcement_decision,
                                   proceeding_closure_basis,
+                                  klim_clarification_date,
+                                  carrier_explanation_date,
+                                  penalty_valid_until,
+                                  penalty_expired_or_processed,
+                                  akvk_next_meeting_date,
+                                  commission_last_decision_date,
+                                  admin_procedure_decision,
                                   notes,
                                   liini_number,
                                   liini_nimetus,
@@ -187,6 +202,7 @@ SELECT
         COALESCE(NULLIF(:compoundFormKey::text, ''), l.compound_form_key::text)::BIGINT,
         COALESCE(NULLIF(:subFormNumber, ''), l.sub_form_number),
         l.version,
+        l.revision + 1,
         l.template_version,
         :status,
         NULLIF(:selectionStatus, ''),
@@ -229,9 +245,17 @@ SELECT
         ),
         COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),
         COALESCE(NULLIF(:proceedingClosureBasis, ''), l.proceeding_closure_basis),
+        l.klim_clarification_date,
+        l.carrier_explanation_date,
+        l.penalty_valid_until,
+        l.penalty_expired_or_processed,
+        l.akvk_next_meeting_date,
+        l.commission_last_decision_date,
+        l.admin_procedure_decision,
         NULLIF(:notes, ''),
         NULLIF(:liiniNumber, ''),
         NULLIF(:liiniNimetus, ''),
         :created_by
 FROM latest l
-RETURNING sp_driver_form_key AS id, sub_form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR l.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING sp_driver_form_key AS id, sub_form_number, version, revision;

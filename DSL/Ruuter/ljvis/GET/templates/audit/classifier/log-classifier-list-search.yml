@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Audit: classifier list search event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: search

@@ -1,8 +1,11 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  Button,
   Card,
   Heading,
+  Modal,
   ChoiceGroup,
   TextArea,
   TextField,
@@ -22,6 +25,8 @@ import { PartsSummaryTable } from './PartsSummaryTable';
 import { DefectsResultsTable } from './DefectsResultsTable';
 import { DefectSelectionModal } from './DefectSelectionModal';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
+import { useAuth } from '../../../auth/AuthContext';
+import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 
 interface TechnicalCheckFormFieldsProps {
   variant: TechnicalCheckVariant;
@@ -78,9 +83,13 @@ export function TechnicalCheckFormFields({
   validationTriggered,
 }: TechnicalCheckFormFieldsProps) {
   const { t } = useTranslation();
+  const { hasPermission } = useAuth();
   const [modalPartCode, setModalPartCode] = useState<string | null>(null);
+  const [confirmClearProceeding, setConfirmClearProceeding] = useState(false);
 
   const values = formik.values as unknown as TechnicalCheckForm & Record<string, unknown>;
+  const canEditProceedingOutcome =
+    values.status === 'confirmed' && hasPermission(PUNISHMENT_REGISTER_PERMISSION);
 
   const modalPart = parts.find((p) => p.code === modalPartCode);
   const modalDefects = modalPart ? (defectsByPartKey.get(modalPart.classifierValueKey) ?? []) : [];
@@ -105,10 +114,17 @@ export function TechnicalCheckFormFields({
     euViolations.filter((v) => v.description === category);
 
   const notesLength = (values.notes ?? '').length;
+  // Every open compound-form tab (vehicle + each trailer) mounts its own
+  // TechnicalCheckFormFields at once — Tabs.Content only toggles CSS
+  // display, it doesn't unmount inactive tabs. Static ids/names would
+  // therefore collide across tabs; a duplicate DOM id makes the design
+  // system's <label htmlFor> resolve to the FIRST matching element in the
+  // document (the vehicle tab, mounted before any trailer tab), so ticking
+  // a checkbox on the trailer tab was silently toggling the vehicle tab's
+  // checkbox instead. Scope every id/name by variant + trailer index.
+  const idPrefix = `${variant}${trailerIndex !== undefined ? `-${trailerIndex}` : ''}`;
   const formPath = variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
 
   // Mirrors resultLevel/computeAutoResult in useTechnicalCheckForm.ts: the
   // lowest resultType the form's current defects allow. Options below this
@@ -133,7 +149,7 @@ export function TechnicalCheckFormFields({
               className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}
             >
               <TextField
-                id="trailerRegNr"
+                id={`${idPrefix}-trailerRegNr`}
                 label={t('forms.technical_check.trailerRegNr')}
                 value={
                   (trailerIndex !== undefined
@@ -166,6 +182,7 @@ export function TechnicalCheckFormFields({
             {t('forms.technical_check.parts.title')}
           </Heading>
           <PartsSummaryTable
+            idPrefix={idPrefix}
             parts={parts}
             partsSummary={values.partsSummary ?? []}
             onCheckedChange={setPartChecked}
@@ -187,6 +204,7 @@ export function TechnicalCheckFormFields({
       />
 
       <DefectSelectionModal
+        idPrefix={idPrefix}
         open={modalPartCode !== null}
         onClose={() => setModalPartCode(null)}
         partCode={modalPartCode}
@@ -211,8 +229,8 @@ export function TechnicalCheckFormFields({
             {t('forms.technical_check.result.title')}
           </Heading>
           <ChoiceGroup
-            id="resultType"
-            name="resultType"
+            id={`${idPrefix}-resultType`}
+            name={`${idPrefix}-resultType`}
             label={t('forms.technical_check.result.resultType')}
             inputType="radio"
             direction="row"
@@ -230,7 +248,7 @@ export function TechnicalCheckFormFields({
               if (val === 'ok') formik.setFieldValue('otherMeasure', false);
             }}
             items={(values.resultType === 'legacy_proceedings' ? [...RESULT_OPTIONS, 'legacy_proceedings'] : RESULT_OPTIONS).map((opt) => ({
-              id: `resultType-${opt}`,
+              id: `${idPrefix}-resultType-${opt}`,
               value: opt,
               label: t(`forms.technical_check.result.options.${opt}`),
               disabled: !canEdit || optionLevel(opt) < autoLevel,
@@ -247,8 +265,8 @@ export function TechnicalCheckFormFields({
 
           <div className="mt-1">
             <ChoiceGroup
-              id="otherMeasure"
-              name="otherMeasure"
+              id={`${idPrefix}-otherMeasure`}
+              name={`${idPrefix}-otherMeasure`}
               label={t('forms.technical_check.result.otherMeasure')}
               hideLabel
               inputType="checkbox"
@@ -262,7 +280,7 @@ export function TechnicalCheckFormFields({
               }
               items={[
                 {
-                  id: 'otherMeasure-item',
+                  id: `${idPrefix}-otherMeasure-item`,
                   value: 'true',
                   label: t('forms.technical_check.result.otherMeasure'),
                   disabled: !canEdit,
@@ -274,8 +292,8 @@ export function TechnicalCheckFormFields({
           {values.resultType === 'driving_ban' && (
             <div className="mt-1">
               <ChoiceGroup
-                id="resultTransportInterruption"
-                name="resultTransportInterruption"
+                id={`${idPrefix}-resultTransportInterruption`}
+                name={`${idPrefix}-resultTransportInterruption`}
                 label={t('forms.technical_check.result.transportInterruption')}
                 hideLabel
                 inputType="checkbox"
@@ -289,7 +307,7 @@ export function TechnicalCheckFormFields({
                 }
                 items={[
                   {
-                    id: 'resultTransportInterruption-item',
+                    id: `${idPrefix}-resultTransportInterruption-item`,
                     value: 'true',
                     label: t(
                       'forms.technical_check.result.transportInterruption',
@@ -307,8 +325,8 @@ export function TechnicalCheckFormFields({
                 {t('forms.technical_check.result.taFieldsTitle')}
               </Text>
               <ChoiceGroup
-                id="taFields"
-                name="taFields"
+                id={`${idPrefix}-taFields`}
+                name={`${idPrefix}-taFields`}
                 label={t('forms.technical_check.result.taFieldsTitle')}
                 hideLabel
                 inputType="checkbox"
@@ -341,31 +359,31 @@ export function TechnicalCheckFormFields({
                 }}
                 items={[
                   {
-                    id: 'ta-regnr',
+                    id: `${idPrefix}-ta-regnr`,
                     value: 'regnr',
                     label: t('forms.technical_check.result.taRegnr'),
                     disabled: !canEdit,
                   },
                   {
-                    id: 'ta-vintin',
+                    id: `${idPrefix}-ta-vintin`,
                     value: 'vintin',
                     label: t('forms.technical_check.result.taVintin'),
                     disabled: !canEdit,
                   },
                   {
-                    id: 'ta-axles',
+                    id: `${idPrefix}-ta-axles`,
                     value: 'axles',
                     label: t('forms.technical_check.result.taAxles'),
                     disabled: !canEdit,
                   },
                   {
-                    id: 'ta-places',
+                    id: `${idPrefix}-ta-places`,
                     value: 'places',
                     label: t('forms.technical_check.result.taPlaces'),
                     disabled: !canEdit,
                   },
                   {
-                    id: 'ta-rebuilt',
+                    id: `${idPrefix}-ta-rebuilt`,
                     value: 'rebuilt',
                     label: t('forms.technical_check.result.taRebuilt'),
                     disabled: !canEdit,
@@ -378,8 +396,8 @@ export function TechnicalCheckFormFields({
           {(values.resultType !== 'ok' || values.otherMeasure) && (
             <div className="mt-1">
               <ChoiceGroup
-                id="proceedingType"
-                name="proceedingType"
+                id={`${idPrefix}-proceedingType`}
+                name={`${idPrefix}-proceedingType`}
                 label={t('forms.technical_check.result.proceedingType')}
                 inputType="radio"
                 direction="row"
@@ -388,7 +406,7 @@ export function TechnicalCheckFormFields({
                   canEdit && formik.setFieldValue('proceedingType', val)
                 }
                 items={(values.proceedingType === 'legacy_other' ? [...PROCEEDING_TYPES, 'legacy_other'] : PROCEEDING_TYPES).map((pt) => ({
-                  id: `proceedingType-${pt}`,
+                  id: `${idPrefix}-proceedingType-${pt}`,
                   value: pt,
                   label: t(
                     `forms.technical_check.result.proceedingTypes.${pt}`,
@@ -398,7 +416,7 @@ export function TechnicalCheckFormFields({
               />
               {values.proceedingType && (
                 <TextField
-                  id="proceedingReferenceNumber"
+                  id={`${idPrefix}-proceedingReferenceNumber`}
                   label={t(
                     values.proceedingType === 'general'
                       ? 'forms.technical_check.result.caseNumber'
@@ -420,10 +438,62 @@ export function TechnicalCheckFormFields({
                   }
                 />
               )}
+              {values.proceedingType && canEdit && (
+                <Button
+                  id={`${idPrefix}-clearProceeding`}
+                  type="button"
+                  visualType="link"
+                  size="small"
+                  onClick={() => setConfirmClearProceeding(true)}
+                >
+                  {t('forms.technical_check.result.clearProceeding')}
+                </Button>
+              )}
+              <Modal
+                open={confirmClearProceeding}
+                onToggle={(next) => !next && setConfirmClearProceeding(false)}
+              >
+                <Modal.Content>
+                  <Modal.Header
+                    title={t('forms.technical_check.result.clearProceeding')}
+                    closeButton
+                  />
+                  <Modal.Body>
+                    <Text>
+                      {t('forms.technical_check.result.clearProceedingConfirm')}
+                    </Text>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <Modal.Closer>
+                      <Button
+                        visualType="secondary"
+                        onClick={() => setConfirmClearProceeding(false)}
+                      >
+                        {t('common.cancel')}
+                      </Button>
+                    </Modal.Closer>
+                    <Button
+                      color="danger"
+                      onClick={() => {
+                        formik.setFieldValue('proceedingType', '');
+                        formik.setFieldValue('proceedingReferenceNumber', '');
+                        formik.setFieldTouched(
+                          'proceedingReferenceNumber',
+                          false,
+                          false,
+                        );
+                        setConfirmClearProceeding(false);
+                      }}
+                    >
+                      {t('forms.technical_check.result.clearProceeding')}
+                    </Button>
+                  </Modal.Footer>
+                </Modal.Content>
+              </Modal>
               <div className="mt-1">
                 <ChoiceGroup
-                  id="transportInterruptionAutovs5131"
-                  name="transportInterruptionAutovs5131"
+                  id={`${idPrefix}-transportInterruptionAutovs5131`}
+                  name={`${idPrefix}-transportInterruptionAutovs5131`}
                   label={t('forms.technical_check.result.autovs5131')}
                   hideLabel
                   inputType="checkbox"
@@ -439,7 +509,7 @@ export function TechnicalCheckFormFields({
                   }
                   items={[
                     {
-                      id: 'transportInterruptionAutovs5131-item',
+                      id: `${idPrefix}-transportInterruptionAutovs5131-item`,
                       value: 'true',
                       label: t('forms.technical_check.result.autovs5131'),
                       disabled: !canEdit,
@@ -458,7 +528,7 @@ export function TechnicalCheckFormFields({
             {t('forms.technical_check.notes.label')}
           </Heading>
           <TextArea
-            id="notes"
+            id={`${idPrefix}-notes`}
             label={t('forms.technical_check.notes.label')}
             hideLabel
             value={values.notes ?? ''}
@@ -476,7 +546,7 @@ export function TechnicalCheckFormFields({
         </Card.Content>
       </Card>
 
-      {values.resultType !== 'ok' && (
+      {(values.resultType !== 'ok' || values.otherMeasure) && (
         <Card className="mb-1">
           <Card.Content>
             <Heading element="h3" className="mb-1">
@@ -488,8 +558,8 @@ export function TechnicalCheckFormFields({
               return (
                 <div key={category} className="mb-1">
                   <ChoiceGroup
-                    id={`violations-${category}`}
-                    name={`violations-${category}`}
+                    id={`${idPrefix}-violations-${category}`}
+                    name={`${idPrefix}-violations-${category}`}
                     label={t(
                       `citizen.compoundDetail.severity.${category}`,
                       category,
@@ -511,7 +581,7 @@ export function TechnicalCheckFormFields({
                       });
                     }}
                     items={items.map((i) => ({
-                      id: `violation-${i.code}`,
+                      id: `${idPrefix}-violation-${i.code}`,
                       value: i.code,
                       label: `${i.code} — ${i.name}`,
                       disabled: !canEdit,
@@ -551,7 +621,7 @@ export function TechnicalCheckFormFields({
               {t('forms.technical_check.xroad.title')}
             </Heading>
             <MaskedDateField
-              id="extraordinaryInspectionDate"
+              id={`${idPrefix}-extraordinaryInspectionDate`}
               monthYearSelectType="grid"
               label={t(
                 'forms.technical_check.xroad.extraordinaryInspectionDate',
@@ -565,22 +635,27 @@ export function TechnicalCheckFormFields({
               readOnly
             />
             <TextArea
-              id="enforcementDecision"
+              id={`${idPrefix}-enforcementDecision`}
               label={t('forms.technical_check.xroad.enforcementDecision')}
               value={values.enforcementDecision ?? ''}
-              onChange={() => {}}
-              disabled
+              onChange={(value) => formik.setFieldValue('enforcementDecision', value)}
+              disabled={!canEditProceedingOutcome}
             />
             <TextArea
-              id="proceedingClosureBasis"
+              id={`${idPrefix}-proceedingClosureBasis`}
               label={t('forms.technical_check.xroad.proceedingClosureBasis')}
               value={values.proceedingClosureBasis ?? ''}
-              onChange={() => {}}
-              disabled
+              onChange={(value) => formik.setFieldValue('proceedingClosureBasis', value)}
+              disabled={!canEditProceedingOutcome}
             />
           </Card.Content>
         </Card>
       )}
+      <AdministrativeProcedureCard
+        formType={formPath}
+        formKey={values.id}
+        reloadAfterSave={!canEdit}
+      />
     </div>
   );
 }

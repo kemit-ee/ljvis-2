@@ -1,9 +1,10 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Writes an auth.login.success audit event for LJVIS2 officials.
     Called by the public ruuter's oauth-callback DSL immediately after JWT
-    generation — at that point no cookie exists yet, so the audit template
+    generation - at that point no cookie exists yet, so the audit template
     guard (GET/templates/audit/.guard.yml) would reject the call.
     Running this in ruuter-internal bypasses the cookie guard entirely.
   namespace: auth
@@ -18,7 +19,7 @@ declaration:
 
 generateEventId:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     trace_id: "${(incoming.headers.traceparent || '').split('-')[1] || ''}"
     span_id: "${(incoming.headers.traceparent || '').split('-')[2] || ''}"
   next: logToResql
@@ -28,6 +29,7 @@ logToResql:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}

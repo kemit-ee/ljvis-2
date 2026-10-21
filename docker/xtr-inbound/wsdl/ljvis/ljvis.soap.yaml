@@ -1,0 +1,28 @@
+# LJVIS1 X-tee SOAP contract → LJVIS2 Ruuter.internal REST flows.
+# POST /soap-in/ljvis/ljvis; ?wsdl publishes the contract with XTR's address.
+dsl: false
+inbound:
+  operations:
+    IsikuKontroll:
+      backend: http://ruuter-internal:8080/ljvis/xroad/soap/isiku-kontroll
+    IsikuEttevoteKontrollid:
+      backend: http://ruuter-internal:8080/ljvis/xroad/soap/isiku-ettevote-kontrollid
+    ErakorralineYVquery:
+      backend: http://ruuter-internal:8080/ljvis/xroad/soap/erakorraline-yv-query
+    ErakorralineYVconfirm:
+      backend: http://ruuter-internal:8080/ljvis/xroad/provide/erakorraline-yv-confirm
+    RegisterJobInspection:
+      backend: http://ruuter-internal:8080/ljvis/xroad/provide/register-job-inspection
+    RegisterJobInspection_v2:
+      backend: http://ruuter-internal:8080/ljvis/xroad/provide/register-job-inspection-v2
+  payload: request
+  request_pointer: /request
+  response_pointer: /response
+  response_wrap:
+    request: request
+    response: backend
+outbound:
+  xroad_service:
+    member_class: GOV
+    member_code: "70001231"
+    subsystem_code: ljvis2

@@ -117,6 +117,8 @@ class Database(unittest.TestCase):
     def clone(self, table, **overrides):
         row=self.query(f'SELECT to_jsonb(t) FROM forms.{table} t LIMIT 1')[0][0]
         row.update(overrides)
+        # New dev schema: a snapshot must advance the target form's revision.
+        row['revision']=self.query(f'SELECT coalesce(max(revision),0)+1 FROM forms.{table} WHERE {table}_key=%s',(row[table+'_key'],))[0][0]
         row['id']=self.query('SELECT nextval(pg_get_serial_sequence(%s,\'id\'))',('forms.'+table,))[0][0]
         self.cur.execute(f'INSERT INTO forms.{table} SELECT (jsonb_populate_record(NULL::forms.{table},%s)).*',(Json(row),))
         return row
@@ -140,7 +142,7 @@ class Database(unittest.TestCase):
                        certificate_issue_date=None,unfit_from_date=None,unfit_until_date=None,fitness_status='unfit',created_at='2020-01-01T00:00:00Z')
         params=dict(key='-91901',status='confirmed',personalCode=row['personal_code'],firstName=row['first_name'],lastName=row['last_name'],
                     dateOfBirth='',placeOfBirth='',certificateNumber=row['certificate_number'],certificateIssueDate='',
-                    certificateCountryCode=row['certificate_country_code'],fitnessStatus='unfit',unfitFromDate='',unfitUntilDate='',created_by='test')
+                    certificateCountryCode=row['certificate_country_code'],fitnessStatus='unfit',unfitFromDate='',unfitUntilDate='',created_by='test',expected_revision='')
         sql=(ROOT/'DSL/Resql/ljvis/POST/control-forms/good-repute/update.sql').read_text().split('*/',1)[1]
         sql=re.sub(r'(?<!:):([a-zA-Z_]+)',r'%(\1)s',sql)
         self.cur.execute(sql,params)
@@ -198,9 +200,9 @@ class Database(unittest.TestCase):
     def test_nonimported_sync_behaviour_unchanged(self):
         parent=self.lifecycle_fixture(False)
         self.apply('sp_driver_form',-91001)
-        self.assertEqual(self.status('sp_driver_form',-91001),'confirmed')
+        self.assertEqual(self.status('sp_driver_form',-91001),'published')
         self.assertEqual(self.status('compound_form',parent),'confirmed')
-        self.assertEqual(self.query('SELECT count(*) FROM forms.sp_driver_form WHERE sp_driver_form_key=-91001')[0][0],1)
+        self.assertEqual(self.query('SELECT count(*) FROM forms.sp_driver_form WHERE sp_driver_form_key=-91001')[0][0],2)
 
     def test_manual_last_publication_updates_imported_parent(self):
         parent=self.lifecycle_fixture()

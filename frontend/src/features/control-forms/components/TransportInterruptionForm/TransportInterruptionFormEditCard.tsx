@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { TransportInterruptionForm } from '../../types';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
+import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
 import {
   TransportInterruptionFormCreatePage,
@@ -19,9 +20,11 @@ export interface TransportInterruptionFormEditCardRef {
 interface TransportInterruptionFormEditCardProps {
   form: TransportInterruptionForm;
   compoundFormKey: number;
-  onSaved: (id?: string) => void;
+  onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
   onConfirm: () => void;
   formType: string;
   onValuesChange?: (values: Partial<TransportInterruptionForm>) => void;
@@ -32,7 +35,7 @@ export const TransportInterruptionFormEditCard = forwardRef<
   TransportInterruptionFormEditCardRef,
   TransportInterruptionFormEditCardProps
 >(function TransportInterruptionFormEditCard(
-  { form, compoundFormKey, onSaved, canConfirm, formType, onValuesChange, initialValidate },
+  { form, compoundFormKey, onSaved, canConfirm, canPublish, onPublish, formType, onValuesChange, initialValidate },
   ref,
 ) {
   const { t } = useTranslation();
@@ -56,9 +59,9 @@ export const TransportInterruptionFormEditCard = forwardRef<
         <TransportInterruptionFormCreatePage
           initialData={form}
           compoundFormKey={compoundFormKey}
-          onSaved={(id) => {
+          onSaved={(id, confirmed) => {
             setVersionsRefreshKey((k) => k + 1);
-            onSaved(id);
+            onSaved(id, confirmed);
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}
@@ -87,6 +90,12 @@ export const TransportInterruptionFormEditCard = forwardRef<
                 {t('common.confirm')}
               </Button>
             )}
+            <SubFormEditPublishButton
+              form={form}
+              canPublish={canPublish}
+              onPublish={onPublish}
+              isDirty={() => formRef.current?.isDirty() ?? false}
+            />
           </div>
         </div>
       </Card.Content>

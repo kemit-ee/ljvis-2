@@ -1,5 +1,5 @@
 /*
-description: Create a new user group — snapshot INSERT with name, organisations and permissions
+description: Create a new user group - snapshot INSERT with name, organisations and permissions
 namespace: user_group
 params:
   name:

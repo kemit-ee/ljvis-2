@@ -8,7 +8,7 @@ Vormi detailvaade koosneb järgmistest osadest:
 
 - **Põhiandmed** — vormi kõik täidetud väljad kaartide kaupa
 - **Manused** — üleslaaditud failid
-- **Ajalugu** — varasemad salvestatud versioonid (snapshots)
+- **Ajalugu** — varasemad salvestatud versioonid
 - **Alamvormid** — koondvormi puhul seotud alamvormid
 
 ```mermaid
@@ -17,9 +17,9 @@ flowchart TD
     A --> C[Manused]
     A --> D[Ajalugu]
     A --> E[Alamvormid]
-    D --> F[Snapshot 1]
-    D --> G[Snapshot 2]
-    D --> H[Snapshot N]
+    D --> F[Versioon 1]
+    D --> G[Versioon 2]
+    D --> H[Versioon N]
     E --> I[Sõidu- ja puhkeaeg]
     E --> J[Tehniline kontroll]
     E --> K[ADR]
@@ -41,9 +41,9 @@ staatuse, muutja ja kuupäevaga. Lingiga **Ava link** avaneb vastav ajalooline v
 
 ![Versioonide tabel vormi detailvaates](images/15-vormide-vaatamine-ajalugu/01-versioonid.png)
 
-## Snapshot (ajalooline versioon)
+## Ajalooline versioon
 
-Snapshot on vormi salvestatud seisund ajateljel. Iga salvestamine loob uue snapshoti. Snapshotide abil saab:
+Ajalooline versioon sisaldab vormi andmeid kindlal ajahetkel. Uue versiooni tekkimise reeglid sõltuvad vormitüübist. Varasemate versioonide abil saab:
 
 - vaadata, kuidas vorm aja jooksul muutus
 - võrrelda kahte versiooni
@@ -51,11 +51,11 @@ Snapshot on vormi salvestatud seisund ajateljel. Iga salvestamine loob uue snaps
 
 Ajaloolises versioonis on kõik väljad kirjutuskaitstud:
 
-![Ajalooline versioon (snapshot) kirjutuskaitstuna](images/15-vormide-vaatamine-ajalugu/02-varasem-versioon.png)
+![Varasem versioon kirjutuskaitstuna](images/15-vormide-vaatamine-ajalugu/02-varasem-versioon.png)
 
 ## Muudatuste võrdlus
 
-Mõned vormid võimaldavad võrrelda kahte snapshoti. Süsteem kuvab:
+Mõned vormid võimaldavad võrrelda kahte versiooni. Süsteem kuvab:
 
 - millised väljad on muutunud
 - vana ja uue väärtuse
@@ -66,6 +66,6 @@ Mõned vormid võimaldavad võrrelda kahte snapshoti. Süsteem kuvab:
 
 | Staatus | Selgitus |
 |---|---|
-| Mustand | Salvestatud, kuid mitte kinnitatud. Saab muuta. |
-| Avaldatud | Kinnitatud. Ei saa enam muuta. |
-| Aegunud | Vormi kehtivusaeg on möödas (kui rakendatakse aegumist). |
+| Salvestatud | Vorm on salvestatud ja seda saab muuta. |
+| Kinnitatud | Vorm on kinnitatud. Muutmisvõimalus sõltub vormitüübist ja kasutaja õigustest. |
+| Avalikustatud | Vorm on avalikustatud. Muutmisvõimalus sõltub vormitüübist ja kasutaja õigustest. |

@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) a TRAM control card. Only allowed from 'confirmed'. Field values are taken from the current DB record — the client only sends id. Bumps /V and triggers a company risk-score recalculation."
+  description: "Publish (avalikusta) a TRAM control card. Only allowed from 'confirmed'. Field values are taken from the current DB record - the client only sends id. Bumps /V and triggers a company risk-score recalculation."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -21,6 +25,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -44,6 +49,14 @@ checkFormIsConfirmedSwitch:
       next: returnAlreadyPublishedError
     - condition: ${current_status !== 'confirmed'}
       next: returnNotConfirmedError
+  next: checkManualPublish
+
+checkManualPublish:
+  switch:
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && (u.permissions == null || !u.permissions.includes('control_form.punishment_register'))}
+      next: returnPunishmentRegisterPermissionError
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && !currentFormRes.response.body[0].enforcementDecision && !currentFormRes.response.body[0].proceedingClosureBasis}
+      next: returnProceedingOutcomeRequired
   next: extractCurrentFormData
 
 extractCurrentFormData:
@@ -129,9 +142,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       status: published
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -204,7 +219,20 @@ publishForm:
       notes: ${notes}
       created_by: ${created_by}
   result: publishRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: checkSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkSaved:
   switch:
@@ -220,11 +248,80 @@ logAuditEvent:
   body:
     event_type: "control_form.tram_control_card.publish"
     event_category: "control_form_management"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: "TRAM kontrollkaart avalikustatud, number=${publishRes.response.body[0].formNumber}/${publishRes.response.body[0].version}"
     log_content: "{\"tramControlCardKey\":${publishRes.response.body[0].id},\"formNumber\":\"${publishRes.response.body[0].formNumber}\",\"oldStatus\":\"confirmed\",\"newStatus\":\"published\"}"
   result: audit_result
+  next: sendCarrierFromRequest
+
+# Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
+sendCarrierFromRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entity_type: "tram_control_card"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
+  result: carrierFromRequestRes
+  error: checkSeriousInfringement
+  next: checkSeriousInfringement
+
+checkSeriousInfringement:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringement
+  next: checkCabotageNotification
+
+createSeriousInfringement:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "tram_control_card"
+      related_entity_id: ${id}
+      event_key: "${'tram-control-card:' + id + ':' + publishRes.response.body[0].version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifRes
+  error: checkCabotageNotification
+  next: checkCabotageNotification
+
+checkCabotageNotification:
+  switch:
+    - condition: ${('' + (transport_classes || '')).indexOf('CABOTAGE') !== -1}
+      next: sendCabotageNotification
+  next: triggerRiskRecalculate
+
+sendCabotageNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      notification_type: "labor_kabotage"
+      language: "et"
+      send_time: ""
+      related_entity_type: "tram_control_card"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: publishRes.response.body[0].formNumber, companyName: company_name, companyRegCode: company_reg_code, resultType: result_type } }"
+  result: cabotageNotifRes
+  error: triggerRiskRecalculate
   next: triggerRiskRecalculate
 
 triggerRiskRecalculate:
@@ -238,11 +335,13 @@ callRiskRecalculate:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}
       calculation_trigger: "kontrollvorm"
   result: recalc_result
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:
@@ -257,6 +356,16 @@ returnResqlSaveError:
 returnAlreadyPublishedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnPunishmentRegisterPermissionError:
+  status: 403
+  return: '{"type":"FORBIDDEN","field":null,"code":"punishment_register_permission_required"}'
+  next: end
+
+returnProceedingOutcomeRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"enforcementDecision","code":"proceeding_outcome_required"}'
   next: end
 
 returnNotConfirmedError:

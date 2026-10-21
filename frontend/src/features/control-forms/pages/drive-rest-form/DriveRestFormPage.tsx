@@ -66,6 +66,9 @@ import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/
 import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
+import { CompoundEtoimikQueryCard } from '../../components/EtoimikQueryCard/CompoundEtoimikQueryCard';
 
 interface DriveRestFormPageProps {
   entryType: 'driver' | 'teammate';
@@ -94,6 +97,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     entryType === 'driver' ? ['tab-driver'] : ['tab-teammate'],
   );
   const [compoundEditActive, setCompoundEditActive] = useState(false);
+  // ADR-011: koondvormi (SP_COMPOUND) väljade vormipiirang muutmisrežiimis;
+  // alamvormid rakendavad oma skoobi ise (…CreatePage)
+  useClassifierScopeActive(compoundEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
@@ -118,10 +124,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const forbidden = !(
-    ((entryType === 'driver' && hasPermission('sp_driver_form.read')) ||
-      (entryType === 'teammate' && hasPermission('sp_teammate_form.read')) ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+    ((entryType === 'driver' && (hasPermission('sp_driver_form.read') || hasPermission('sp_driver_form.write'))) ||
+      (entryType === 'teammate' && (hasPermission('sp_teammate_form.read') || hasPermission('sp_teammate_form.write'))) ||
+      hasPermission('control_form.view_unpublished'))
   );
 
   const [snapshot, setSnapshot] = useState<
@@ -386,7 +391,6 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
     teammate.setEditActive(teammate.form?.status === 'saved');
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
-    window.scrollTo(0, 0);
   };
 
   const handleCompoundPublished = () => {
@@ -605,7 +609,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    if (!snapshot) return <FormLoadError />;
     return (
       <div>
         {entryType === 'driver' ? (
@@ -633,7 +637,7 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
 
   if (loadingEntry) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
+  if (loadError || !compoundFormKey) return <FormLoadError />;
 
   const sharedCompoundProps = {
     isDesktop,
@@ -701,6 +705,17 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
         <Heading element="h1">{headingLabel}</Heading>
         {addFormDropdown}
       </div>
+
+      {/* E-toimiku päringukaart ("Päri e-toimikust") on ainult karistusregistri õigusega kasutajale. */}
+      <CompoundEtoimikQueryCard
+        compoundForm={compoundForm}
+        compoundFormKey={compoundFormKey}
+        vehicle={vehicle.form}
+        trailers={trailers.map((t) => t.form)}
+        driver={driver.form}
+        teammate={teammate.form}
+        adr={adr.form}
+      />
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
@@ -843,10 +858,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!driver.form) resetCompoundFormToSaved();
                 refetchDriver(() => {
                   driver.draftRef.current = null;
@@ -897,10 +912,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!teammate.form) resetCompoundFormToSaved();
                 refetchTeammate(() => {
                   teammate.draftRef.current = null;
@@ -951,9 +966,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({
                   ...p,
                   'tab-vehicle-technical-check': false,
@@ -1019,9 +1034,9 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                         ? JSON.parse(compoundForm.trailers)
                         : []
                 }
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   setTabErrors((p) => ({ ...p, [`tab-trailer-technical-check-${idx}`]: false }));
                   refetchTechCheck(trailerHandle, 'trailer', idx, () => {
                     trailerHandle.draftRef.current = null;
@@ -1068,10 +1083,10 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-adr': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchAdr(() => {
                   adr.draftRef.current = null;
                   adr.setDraft(null);
@@ -1118,13 +1133,13 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTransportInterruption(() => {
                   transportInterruption.draftRef.current = null;
                   transportInterruption.setDraft(null);

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Generate a filled RSI message PDF."
   namespace: erru
@@ -11,6 +12,7 @@ getMessage:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: "${incoming.body.id || ''}"

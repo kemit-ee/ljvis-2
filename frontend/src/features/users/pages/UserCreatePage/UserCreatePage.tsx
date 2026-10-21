@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
+  Alert,
   Button,
   DateField,
   Heading,
@@ -17,6 +18,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
 import { PhoneField } from '../../components/PhoneField/PhoneField';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import styles from './UserCreatePage.module.css';
 
 export function UserCreatePage() {
@@ -37,6 +39,12 @@ export function UserCreatePage() {
     handleOrgChange,
     handleStructuralUnitChange,
     isLocalAdmin,
+    searchByPersonalCode,
+    personSearchLoading,
+    personSearchError,
+    setPersonSearchError,
+    personSearchNotFound,
+    setPersonSearchNotFound,
   } = useUserForm(undefined, handleSaved);
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -56,6 +64,26 @@ export function UserCreatePage() {
                   <Heading element="h3" className="mb-1">
                     {t('users.basicInfo')}
                   </Heading>
+                  {personSearchError && (
+                    <Alert
+                      type="danger"
+                      size="small"
+                      className="mb-1"
+                      onClose={() => setPersonSearchError(false)}
+                    >
+                      {t('users.searchInvalid')}
+                    </Alert>
+                  )}
+                  {personSearchNotFound && (
+                    <Alert
+                      type="warning"
+                      size="small"
+                      className="mb-1"
+                      onClose={() => setPersonSearchNotFound(false)}
+                    >
+                      {t('users.searchNotFound')}
+                    </Alert>
+                  )}
                   <div
                     className={
                         isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'
@@ -93,26 +121,38 @@ export function UserCreatePage() {
                           }
                         : {})}
                     />
-                    <TextField
-                      id="personalCode"
-                      label={t('users.personalCode')}
-                      value={formik.values.personalCode}
-                      input={{ maxLength: 11 }}
-                      onChange={(v) => {
-                        const numericValue = v.replace(/\D/g, '');
-                        formik.setFieldValue('personalCode', numericValue);
-                      }}
-                      required
-                      {...(formik.touched.personalCode &&
-                      formik.errors.personalCode
-                        ? {
-                            helper: {
-                              text: formik.errors.personalCode,
-                              type: 'error' as const,
-                            },
-                          }
-                        : {})}
-                    />
+                    <div className={styles['personal-code-row']}>
+                      <TextField
+                        id="personalCode"
+                        label={t('users.personalCode')}
+                        value={formik.values.personalCode}
+                        input={{ maxLength: 11 }}
+                        onChange={(v) => {
+                          const numericValue = v.replace(/\D/g, '');
+                          formik.setFieldValue('personalCode', numericValue);
+                        }}
+                        required
+                        {...(formik.touched.personalCode &&
+                        formik.errors.personalCode
+                          ? {
+                              helper: {
+                                text: formik.errors.personalCode,
+                                type: 'error' as const,
+                              },
+                            }
+                          : {})}
+                      />
+                      <AsyncButton
+                        type="button"
+                        visualType="secondary"
+                        disabled={personSearchLoading}
+                        onClick={() =>
+                          searchByPersonalCode(formik.values.personalCode)
+                        }
+                      >
+                        {t('common.search')}
+                      </AsyncButton>
+                    </div>
                   </div>
                 </Card.Content>
               </Card>

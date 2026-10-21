@@ -1,0 +1,107 @@
+declaration:
+  internal: false
+  version: "1.0"
+  description: "Salvestab vormi haldusmenetluse andmeploki (PPA andmevormid ja TRAM kontrollkaart). Nõuab Transpordiameti (TRAM) või Kliimaministeeriumi (KLIM) ametnikku või süsteemi-/asutuse administraatorit ning vormi lugemisõigust."
+  namespace: control-forms
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - { field: formType, type: string }
+      - { field: id, type: string }
+      - { field: klimClarificationDate, type: string }
+      - { field: carrierExplanationDate, type: string }
+      - { field: penaltyValidUntil, type: string }
+      - { field: penaltyExpiredOrProcessed, type: string }
+      - { field: akvkNextMeetingDate, type: string }
+      - { field: commissionLastDecisionDate, type: string }
+      - { field: adminProcedureDecision, type: string }
+
+extract:
+  assign:
+    form_type: "${incoming.body.formType}"
+    id: "${incoming.body.id}"
+    created_by: "${auth_user.personalcode || ''}"
+  next: checkInput
+
+checkInput:
+  switch:
+    - condition: ${['adr-form','drive-rest-form/driver','drive-rest-form/teammate','trailer-technical','tram-card','vehicle-technical'].indexOf(form_type) === -1}
+      next: invalidType
+    - condition: ${id == null || !/^[0-9]+$/.test(String(id))}
+      next: invalidId
+  next: checkReadAccess
+
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "${form_type}"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: save
+  next: forbidden
+
+save:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/${form_type}/update-administrative-procedure"
+    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
+    body:
+      key: ${id}
+      klimClarificationDate: "${incoming.body.klimClarificationDate || ''}"
+      carrierExplanationDate: "${incoming.body.carrierExplanationDate || ''}"
+      penaltyValidUntil: "${incoming.body.penaltyValidUntil || ''}"
+      penaltyExpiredOrProcessed: "${incoming.body.penaltyExpiredOrProcessed || ''}"
+      akvkNextMeetingDate: "${incoming.body.akvkNextMeetingDate || ''}"
+      commissionLastDecisionDate: "${incoming.body.commissionLastDecisionDate || ''}"
+      adminProcedureDecision: "${incoming.body.adminProcedureDecision || ''}"
+      created_by: ${created_by}
+  result: saveRes
+  next: checkSaved
+
+checkSaved:
+  switch:
+    - condition: ${saveRes.response == null || saveRes.response.status < 200 || saveRes.response.status >= 300}
+      next: saveFailed
+    - condition: ${saveRes.response.body == null || saveRes.response.body.length === 0}
+      next: notFound
+  next: success
+
+success:
+  return: ${saveRes.response.body}
+  next: end
+
+invalidType:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"formType","code":"invalid_form_type"}'
+  next: end
+
+invalidId:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"id","code":"invalid_id"}'
+  next: end
+
+forbidden:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
+
+notFound:
+  status: 404
+  return: '{"type":"NOT_FOUND","code":"form_not_found"}'
+  next: end
+
+saveFailed:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"save_failed"}'
+  next: end

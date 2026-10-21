@@ -5,7 +5,7 @@ description: |
   routing files, and .guard files for an epic, plus a documentation MD file.
   Use when the user says 'loo resql failid', 'loo mulle tehnilised failid', 'loo arendusfailid',
   'generate resql', 'create sql queries for epic', or asks for RESQL or Ruuter
-  endpoint generation for an epic.
+  lõpp-punkt generation for an epic.
   Expects: epic issue number/link; reads epic + subtasks from GitHub issues.
 ---
 
@@ -97,7 +97,7 @@ The skill reads automatically:
 The skill also reads:
 - `.skills/generate-resql-files/references/specification_format.md` — output format and versioning rules
 - `docs/db_errorhandling_rules.md` — corner cases, state-management rules, verify-after-write and rollback requirements
-- `planning/docs/permissions-matrix.md` (**fallback:** `docs/permissions-matrix.md`) — roles, permissions per endpoint, JWT claims used in guards
+- `planning/docs/permissions-matrix.md` (**fallback:** `docs/permissions-matrix.md`) — roles, permissions per lõpp-punkt, JWT claims used in guards
 - `planning/docs/errors.json` (**fallback:** `docs/errors.json`) — error catalog and expected API error mapping
 - Existing Ruuter DSL files in `DSL/Ruuter/` — to understand naming and routing conventions
 
@@ -144,6 +144,12 @@ The skill also reads:
    - Read models must rely on fat snapshot `*_latest` tables.
    - Query logic must not require SQL `JOIN`.
    - Write flows must follow append-only (`INSERT` only, no `UPDATE`, no `DELETE`).
+   - Reads use no `JOIN` / `LATERAL` either: write `WHERE x = ANY (SELECT ...)`, `EXISTS`, or a correlated scalar subquery
+     (`(SELECT c FROM forms.t c WHERE c.key = x.key ORDER BY c.created_at DESC LIMIT 1)` for the latest snapshot).
+   - To change a versioned `forms.*` row, copy the latest snapshot forward with `revision + 1` (see
+     `control-forms/tram-card/delete.sql`, `control-forms/vehicle-technical/update-proceeding-outcome.sql`);
+     never mutate it. CI (`tests/contract/check_resql_append_only.py`) enforces all of this; the one exemption is
+     the retention purge listed in `.sql-rule-exemption`.
    - Failure handling must follow `docs/db_errorhandling_rules.md`.
    - Verify-after-write must be present for all write flows.
    - Partial-success scenarios must be explicitly described.
@@ -151,7 +157,7 @@ The skill also reads:
    - `canContinue: yes/no`
    - Missing/ambiguous model pieces
    - Proposed data model changes (if any)
-   - Planned endpoint/query list
+   - Planned lõpp-punkt/query list
    - Planned rollback/recovery paths
 4. If `canContinue: no` (model gaps exist) → stop and report; otherwise proceed automatically to Step 2 or Step 3.
 
@@ -265,7 +271,7 @@ The skill also reads:
    - GET is allowed only for parameter-less list queries and must not pass any input to RESQL
    - Ruuter must contain the business flow, including validation, verify-after-write, failure path, and compensating rollback decisions.
    - If a write flow updates `_state`, the Ruuter flow must explicitly show: read latest state → copy/modify → write new state → verify returned state → call `state_updater` build → verify snapshot.
-   - If an operation is `edit`, `update`, `create`, or any other write path that changes business data, the authorization layer must explicitly require the matching `*.edit` / `*.create` / write permission. If the folder-level `.guard` is intentionally broader than one endpoint, add an endpoint-level permission gate before the first write step.
+   - If an operation is `edit`, `update`, `create`, or any other write path that changes business data, the authorization layer must explicitly require the matching `*.edit` / `*.create` / write permission. If the folder-level `.guard` is intentionally broader than one lõpp-punkt, add an lõpp-punkt-level permission gate before the first write step.
    - Before every write that creates or mutates a code-bearing entity, call an existence/uniqueness precheck (for example `check_code_exists`) before the DB write and return a functional conflict if the code is already in use.
    - Success response is allowed only after the expected result is verified.
    - On success, return only the verified DB result (`db_response.response.body` or `verify_response.response.body`) and end the flow.
@@ -275,7 +281,7 @@ The skill also reads:
 7.1 **Guard strictness for write endpoints is mandatory**:
    - Read/list endpoints may share a broader folder-level `.guard` when the permission model allows it.
    - `edit` / `update` / `create` endpoints must still explicitly enforce the corresponding write permission.
-   - If one folder contains both read and write endpoints and a single `.guard` cannot safely express both, keep the folder-level `.guard` as the broad baseline and add an endpoint-level permission check inside the write flow before any RESQL write call.
+   - If one folder contains both read and write endpoints and a single `.guard` cannot safely express both, keep the folder-level `.guard` as the broad baseline and add an lõpp-punkt-level permission check inside the write flow before any RESQL write call.
 
 8. **Write `docs/<epic_kataloog>/paigaldusjuhend.md`** per specification format (deployment guide).
 
@@ -327,8 +333,8 @@ done
 ```
 
 **URL kujud:**
-- Tavalised RESQL endpointid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
-- `state_updater` endpointid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
+- Tavalised RESQL lõpp-punktid: `[#LOCAL_RESQL]/ljvis2/v1/<moodul>/<entiteet>/<operatsioon>` → fail `DSL/Resql/<meetod>/<moodul>/<entiteet>/v1/<operatsioon>.sql`
+- `state_updater` lõpp-punktid: `[#LOCAL_RESQL]/ljvis2/state_updater/<entiteet>/build` → fail `DSL/Resql/POST/state_updater/<entiteet>/build.sql` (ilma `v<N>/` tasemeta)
 
 If any `MISSING:` entry appears, fix paths before proceeding.
 
@@ -482,7 +488,7 @@ return_result:
   return: ${mock_response.response.body}
 ```
 
-**GET endpoint structure** (for parameter-less list queries only):
+**GET lõpp-punkt structure** (for parameter-less list queries only):
 
 ```yaml
 declaration:
@@ -513,7 +519,7 @@ return_result:
 - Write operations succeed only after verify-after-write confirms the persisted result; then return the verified DB result and end the flow
 - GET is allowed only for parameter-less list queries
 - GET routes must not send `body`, query params, or path params to RESQL
-- Mock YML calls mock RESQL endpoint — no hardcoded data in the YML itself
+- Mock YML calls mock RESQL lõpp-punkt — no hardcoded data in the YML itself
 - Never duplicate RESQL logic in Ruuter — Ruuter only orchestrates
 - All business logic, failure handling, rollback decisions, and state transition control must live in Ruuter
 - For `_state` updates, Ruuter must read the latest state, copy the full record, modify required fields, write the new state, verify the returned state, then call `state_updater/<entiteet>/build` and verify the snapshot before success
@@ -541,7 +547,7 @@ return_result:
 
 ## Guard File Rules
 
-`.guard` files are Ruuter DSL YAML files that enforce access control **before** any endpoint in the same folder (and subfolders) executes.
+`.guard` files are Ruuter DSL YAML files that enforce access control **before** any lõpp-punkt in the same folder (and subfolders) executes.
 
 **Location:** `DSL/Ruuter/api/<http_method>/v1/admin/<entiteet>/.guard`
 - One `.guard` file per module folder

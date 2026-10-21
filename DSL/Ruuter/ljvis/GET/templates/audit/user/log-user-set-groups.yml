@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Audit: user set-groups event — fetches user info internally, builds description with branch logic"
+  description: "Audit: user set-groups event - fetches user info internally, builds description with branch logic"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: user_account_id
@@ -24,6 +28,7 @@ fetchUser:
   args:
     url: "[#LJVIS_RESQL]/user/get_user"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.body.user_account_id}

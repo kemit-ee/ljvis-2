@@ -5,12 +5,14 @@ import { DriveRestFormFields } from '../../components/DriveRestForm/DriveRestFor
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
 import { useNavigate } from 'react-router-dom';
+import { ClassifierScopeProvider } from '../../../classifiers/ClassifierProvider';
+import { FORM_TYPE_CODE } from '../../../classifiers/formScope';
 
 interface Props {
   type: string;
   initialData?: DriveRestForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   initialValidate?: boolean;
   onValuesChange?: (values: Partial<DriveRestForm>) => void;
   authority?: FormAuthority;
@@ -24,10 +26,10 @@ interface DriveRestFormRef {
   hasErrors: () => boolean;
   isDirty: () => boolean;
   validateForm?: () => void;
-  confirm?: () => void;
+  confirm?: (notifyCarrier?: boolean) => void;
 }
 
-export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
+const DriveRestFormCreatePageInner = forwardRef<DriveRestFormRef, Props>(
   ({ type: type, initialData, compoundFormKey, onSaved, initialValidate, onValuesChange, authority = 'PPA' }, ref) => {
     const navigate = useNavigate();
     const formRef = useRef<HTMLFormElement>(null);
@@ -66,9 +68,9 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
       confirm: triggerConfirm,
     }));
 
-    const handleSaved = (id?: string) => {
+    const handleSaved = (id?: string, confirmed?: boolean) => {
       if (onSaved) {
-        onSaved(id);
+        onSaved(id, confirmed);
       } else {
         navigate(`/`, { state: { justCreated: true } });
       }
@@ -148,5 +150,24 @@ export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>(
     );
   },
 );
+
+DriveRestFormCreatePageInner.displayName = 'DriveRestFormCreatePageInner';
+
+// ADR-011: alamvormi muutmiskomponent on alati muutmisrežiimis → vormipiirang alati sees.
+// Oma skoop (mitte koondvormi oma), sest iga alamvorm on eraldi FORM_TYPE.
+export const DriveRestFormCreatePage = forwardRef<DriveRestFormRef, Props>((props, ref) => (
+  <ClassifierScopeProvider
+    formType={
+      props.authority === 'TRAM'
+        ? FORM_TYPE_CODE.TRAM_CONTROL_CARD
+        : props.type === 'teammate'
+          ? FORM_TYPE_CODE.SP_TEAMMATE
+          : FORM_TYPE_CODE.SP_DRIVER
+    }
+    active
+  >
+    <DriveRestFormCreatePageInner {...props} ref={ref} />
+  </ClassifierScopeProvider>
+));
 
 DriveRestFormCreatePage.displayName = 'DriveRestFormCreatePage';

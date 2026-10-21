@@ -35,7 +35,7 @@ Selles jaos kirjeldatakse, kuidas administraator saab LJVIS 2 süsteemis kasutaj
 
 ## 1. Vajalikud õigused
 
-Kasutajate halamiseks peab sisselogitud kasutajal olema vastavad õigused:
+Kasutajate haldamiseks peab sisselogitud kasutajal olema vastavad õigused:
 
 | Tegevus | Nõutav õigus |
 |---------|--------------|
@@ -44,16 +44,16 @@ Kasutajate halamiseks peab sisselogitud kasutajal olema vastavad õigused:
 | Uue kasutaja loomine ja olemasoleva muutmine | `user.edit.admin` või `user.edit.local` |
 | Kasutajagruppide detailinfo vaatamine | `user_group.read.admin` või `user_group.read.local` |
 
-Kui `admin` õigus puudub, rakendatakse automaatselt `local` skoop, mis piirab ligipääsu ainult oma asutuse kasutajatele.
+Kui `admin` õigus puudub, rakendatakse automaatselt `local` ulatus, mis piirab ligipääsu ainult oma asutuse kasutajatele.
 
 ## 2. Kasutajate nimekirja avamine
 
 Kasutajate nimekirja leiad peamenüüst valiku **Kasutajad** kaudu. Navigeerimisel avaneb lehekülg `/users`, mis kuvab kõik kasutajad, kellele sul on õigusega ligipääs.
 
-Nimekirja päringu skoop määratakse automaatselt:
+Nimekirja päringu ulatus määratakse automaatselt:
 
-- kasutajal, kellel on õigus `user.list.admin`, laetakse kogu süsteemi kasutajaskond (`admin` skoop);
-- kõigil teistel kuvatakse ainult sama asutuse kasutajad (`local` skoop).
+- kasutajal, kellel on õigus `user.list.admin`, laetakse kogu süsteemi kasutajaskond (`admin` ulatus);
+- kõigil teistel kuvatakse ainult sama asutuse kasutajad (`local` ulatus).
 
 ## 3. Otsing, filtreerimine, sorteerimine ja leheküljed
 
@@ -118,7 +118,7 @@ curl -X GET "https://<base-url>/v1/users/admin/search?q=M&page=1&pageSize=20" \
   -H "Cookie: <COOKIE>"
 ```
 
-> Asenda `<base-url>` rakenduse tegeliku baasaadressiga (nt `https://dev.liiklusvalve.ee`) ja `<COOKIE>` TARA/TIM sessiooniküpsise väärtusega.
+> Asenda `<base-url>` rakenduse tegeliku baasaadressiga (nt `https://dev.liiklusvalve.ee`) ja `<COOKIE>` TARA/TIM seansiküpsise väärtusega.
 
 ### Uue kasutaja loomine
 
@@ -220,9 +220,9 @@ Kasutajagruppide õigused kontrollivad, milliseid andmeid ja tegevusi kasutajad 
 
 | Õigus | Selgitus | Näide |
 |-------|----------|-------|
-| `user_group.list.admin` | Saab kõiki kasutajagruppe otsida ja nimekirja vaadata. | Peakasutaja vaatab üle kõikide asutuste gruppid. |
+| `user_group.list.admin` | Saab kõiki kasutajagruppe otsida ja nimekirja vaadata. | Peakasutaja vaatab üle kõikide asutuste grupid. |
 | `user_group.list.local` | Saab otsida ja nimekirja vaadata ainult oma asutuse gruppe. | Asutuse administraator vaatab oma asutuse gruppe. |
-| `user_group.read.admin` | Saab avada iga grupi detailvaate. | Kõikide grupide seadete kontrollimine. |
+| `user_group.read.admin` | Saab avada iga grupi detailvaate. | Kõikide gruppide seadete kontrollimine. |
 | `user_group.read.local` | Saab avada ainult oma asutusega seotud gruppide detailvaate. | Omane asutuse juhile. |
 | `user_group.create` | Saab luua uusi kasutajagruppe. | Uue rolligrupi loomine, nt „PPA analüütikud“. |
 | `user_group.update` | Saab muuta grupi nime, asutusi ja õigusi. | Grupi õiguste häälestamine. |
@@ -233,10 +233,10 @@ Kasutajagruppide õigused kontrollivad, milliseid andmeid ja tegevusi kasutajad 
 
 ## 8. Näited päringutena (curl)
 
-Järgmised näited kasutavad sama autentimise mudelit kui muud adminjuhendid: päringutes peab kaasas olema kehtiv TARA/TIM sessiooniküpsis. Koha täitjad:
+Järgmised näited kasutavad sama autentimise mudelit kui muud adminjuhendid: päringutes peab kaasas olema kehtiv TARA/TIM seansiküpsis. Kohatäited:
 
 - `https://<base-url>` — rakenduse baasaadress, nt `https://dev.liiklusvalve.ee`
-- `<COOKIE>` — TARA/TIM sessiooniküpsise väärtus
+- `<COOKIE>` — TARA/TIM seansiküpsise väärtus
 
 ### Kasutajagruppide otsing
 
@@ -283,7 +283,7 @@ Klassifikaatorid on süsteemi viidete loendid. Näiteks riigid, maakonnad, teed,
 
 Esikülg laadib kõik vormides kasutatavad klassifikaatoriväärtused sisselogimisel ühe päringuga otspunktist `GET /v1/classifier-values`. Andmed salvestatakse `ClassifierProvider`i ühisesse Reacti konteksti ja vormid kasutavad sama vahemälui. Tavaliste vormide jaoks ei tohi kasutada administraatoriõigust `classifier.read` nõudvat otspunkti `/v1/classifiers/bundle` — see võib tavakasutajale tagastada vastuse `403`.
 
-Kehtivuskuupäevad arvutatakse vastuse koostamisel. Kui administraator muudab klassifikaatori väärtuse kehtivust samas sessioonis, saab vahemälui värskendada administraatori vaates oleva uuesti laadimise toiminguga. Tehniline kirjeldus asub dokumendis [`classifier-caching.md`](classifier-caching.md).
+Kehtivuskuupäevad arvutatakse vastuse koostamisel. Kui administraator muudab klassifikaatori väärtuse kehtivust samas seansis, saab vahemälui värskendada administraatori vaates oleva uuesti laadimise toiminguga. Tehniline kirjeldus asub dokumendis [`classifier-caching.md`](classifier-caching.md).
 
 ## Ligipääs
 
@@ -344,7 +344,7 @@ Koodi ja nimetuse muutmine võib mõjutada vormides juba sisestatud andmeid, see
 
 ## API
 
-Klassifikaatorite pärimiseks kasutatakse endpointi `/v1/classifiers/catalogue` või `/v1/classifiers/bundle`.
+Klassifikaatorite pärimiseks kasutatakse lõpp-punkti `/v1/classifiers/catalogue` või `/v1/classifiers/bundle`.
 
 
 ## Auditilogi
@@ -353,7 +353,7 @@ Klassifikaatorite pärimiseks kasutatakse endpointi `/v1/classifiers/catalogue` 
 
 Auditilogi salvestab LJVIS 2 süsteemis toimunud olulised tegevused ja päringud. Iga kirje on kirjutuskaitstud (`INSERT-only`) — andmebaasis ei tohi logikirjeid muuta ega kustutada. See tagab, et igal hetkel on võimalik jälgida, kes milliseid kasutaja-, grupi-, klassifikaatori- või välispäritolu rikkumise vormidega seotud toiminguid tegi või milliseid andmeid vaatas.
 
-Iga sündmus saab unikaalse `event_id` (ULID), serveripoolse ajatempli, tegija nime, sündmuse tüübi ja kategooria, inimloetava kirjelduse ning struktureeritud `log_content` JSON-i. Isikukoodid on andmebaasis alati SHA-256 räsis, plaintekstina neid ei säilitata.
+Iga sündmus saab unikaalse `event_id` (ULID), serveripoolse ajatempli, tegija nime, sündmuse tüübi ja kategooria, inimloetava kirjelduse ning struktureeritud `log_content` JSON-i. Isikukoodid on andmebaasis alati SHA-256 räsis, avatekstina neid ei säilitata.
 
 ## Vajalikud õigused
 
@@ -362,7 +362,7 @@ Iga sündmus saab unikaalse `event_id` (ULID), serveripoolse ajatempli, tegija n
 | Auditilogi nimekiri (`/v1/logs`) | `audit.read` | Loetleb ja otsib logikirjeid. |
 | Üksiku kirje vaade (`/v1/logs/log`) | `audit.read` | Kuvab ühe sündmuse detailid. |
 | CSV eksport (`/v1/logs/export`) | `audit.read` | Laadi logid alla CSV-failina. |
-| Hash-ahela kontroll (`/v1/logs/verify`) | `audit.verify` | Verifitseeri ridadevahelise rägiahela terviklikkus. |
+| Räsiahela kontroll (`/v1/logs/verify`) | `audit.verify` | Verifitseeri ridadevahelise räsiahela terviklikkus. |
 
 `audit.read` annab ligipääsu logidele; `audit.verify` on eraldi õigus, sest see võimaldab tuvastada, kas logitabeli kallutamiskindlus on säilinud.
 
@@ -396,10 +396,10 @@ Auditilogis jagunevad sündmused domeenideks:
 | `control_form.foreign_violation.update` | `control_form_management` | Ainult siis, kui vähemalt üks väli muutus eelmise seisuga võrreldes. |
 | `control_form.foreign_violation.view` | `control_form_management` | Ainult siis, kui vaataja ei ole vormi looja. |
 | `authz.denied` | `access_control` | Kui ligipääsuloa kontroll keelab päringu (403). |
-| `authz.scope_violation` | `access_control` | Kohaliku skoobi kasutaja proovib pääseda teise asutuse ressurssidele. |
+| `authz.scope_violation` | `access_control` | Kohaliku ulatuse kasutaja proovib pääseda teise asutuse ressurssidele. |
 | `input.rate_limited` | `access_control` | Kui päring lükatakse tagasi rate-limit rikkumise tõttu (429). |
 
-Mõned toimingud logitakse ainult kindlate tingimuste täideminekul. Näiteks kasutajaotsing (`user.list.search`) või klassifikaatoriotsing (`classifier.list.search`) salvestatakse alles siis, kui otsingusõna on vähemalt 3 tähemärki pikk; lühema sisendi korral logitakse ainult nimekirja vaatamine (`*.list.view`).
+Mõned toimingud logitakse ainult kindlate tingimuste täitmisel. Näiteks kasutajaotsing (`user.list.search`) või klassifikaatoriotsing (`classifier.list.search`) salvestatakse alles siis, kui otsingusõna on vähemalt 3 tähemärki pikk; lühema sisendi korral logitakse ainult nimekirja vaatamine (`*.list.view`).
 
 ### Logikirje väljad
 
@@ -410,7 +410,7 @@ Iga kirje sisaldab vähemalt järgmisi andmeid:
 - `eventCategory` — sündmuse kategooria
 - `actorName` — tegija kuvatav nimi
 - `actorPersonalCodeHash` — tegija isikukoodi SHA-256 räsi
-- `description` — inimloetav kirjelitus eesti keeles
+- `description` — inimloetav kirjeldus eesti keeles
 - `logContent` — sündmuse detailid JSON-na (nt muudetud väljad, eelnevad ja uued väärtused)
 - `createdAt` — serveripoolne ajatempel
 - `traceId` / `spanId` — võimaldab siduda sündmuse `traceparent` päise kaudu logimis- ja jälgimistööriistadega
@@ -459,9 +459,9 @@ Detailvaade kuvab:
 
 Kui tegija nime pole salvestatud, kuvatakse selle asemel `-`.
 
-## Hash-ahela kontroll
+## Räsiahela kontroll
 
-Auditilogi ridad on omavahel seotud rägiahelaga. Iga uue kirje `row_hash` arvutatakse eelmise rea `row_hash`-i (`prev_row_hash`) põhjal. Kui ükski rida pole muudetud, kustutatud ega vahele jäänud, on ahel terviklik.
+Auditilogi ridad on omavahel seotud räsiahelaga. Iga uue kirje `row_hash` arvutatakse eelmise rea `row_hash`-i (`prev_row_hash`) põhjal. Kui ükski rida pole muudetud, kustutatud ega vahele jäänud, on ahel terviklik.
 
 Ahela terviklikkust saab kontrollida lõpp-punktiga:
 
@@ -532,7 +532,7 @@ curl -X GET "https://<base-url>/v1/logs/export?search=classifier&pageSize=100" \
   -o auditilogi.csv
 ```
 
-### Hash-ahela verifitseerimine
+### Räsiahela verifitseerimine
 
 ```bash
 curl -X GET "https://<base-url>/v1/logs/verify?from=01JAB2C3D4E5F6G7H8J9K0M1N2&to=01JZB9Y8X7W6V5U4T3S2R1Q0P9" \
@@ -595,7 +595,7 @@ Detailvaates kuvatakse:
 
 ## API
 
-Planeeritud administraatori endpointid:
+Planeeritud administraatori lõpp-punktid:
 
 - `GET /v1/admin/risk-scores/list` — riskitasemete loend
 - `GET /v1/citizen/risk-scores/my-company` — kodaniku oma ettevõtte vaade
@@ -609,12 +609,12 @@ Planeeritud administraatori endpointid:
 
 ## 1. Autentimine
 
-Kõik lõpp-punktid eeldavad kehtivat TARA (TIM) sessiooniküpsist. Päringu vastu võetakse ainult siis, kui küpsis sisaldab kehtivat JWT-d. Testikeskkonnas võivad mõned mokklõpp-punktid olla saadaval ilma TARA autentimata — need on eraldi dokumenteeritud.
+Kõik lõpp-punktid eeldavad kehtivat TARA (TIM) seansiküpsist. Päringu vastu võetakse ainult siis, kui küpsis sisaldab kehtivat JWT-d. Testikeskkonnas võivad mõned mokklõpp-punktid olla saadaval ilma TARA autentimata — need on eraldi dokumenteeritud.
 
 Järgmistes näidetes kasutatakse kohatäiteid:
 
 - `https://<base-url>` — rakenduse baasaadress (nt `https://dev.liiklusvalve.ee`)
-- `<COOKIE>` — TARA/TIM sessiooniküpsise väärtus
+- `<COOKIE>` — TARA/TIM seansiküpsise väärtus
 
 ## 2. Kasutajate lõpp-punktid
 
@@ -781,7 +781,7 @@ curl -X POST "https://<base-url>/v1/classifiers/value" \
 | GET | `/v1/logs` | `audit.read` | `search`, `page`, `pageSize`, `sorting` | Tagastab auditilogi kirjed lehekülgedena. |
 | GET | `/v1/logs/log` | `audit.read` | `q` (sündmuse ID) | Tagastab ühe auditilogi kirje. |
 | GET | `/v1/logs/export` | `audit.read` | `search`, `page`, `pageSize`, `sorting` | Ekspordib auditilogi CSV-failina. |
-| GET | `/v1/logs/verify` | `audit.verify` | `from` (valikuline), `to` (valikuline) | Kontrollib auditilogi hash-ahela terviklikkust. |
+| GET | `/v1/logs/verify` | `audit.verify` | `from` (valikuline), `to` (valikuline) | Kontrollib auditilogi räsiahela terviklikkust. |
 
 ### Näited
 
@@ -792,7 +792,7 @@ curl -X GET "https://<base-url>/v1/logs?search=login&page=1&pageSize=50" \
   -H "Cookie: <COOKIE>"
 ```
 
-Hash-ahela verifitseerimine:
+Räsiahela verifitseerimine:
 
 ```bash
 curl -X GET "https://<base-url>/v1/logs/verify?from=01JAB2C3D4E5F6G7H8J9K0M1N2" \
@@ -953,5 +953,4 @@ Iga sündmus sisaldab faili nime, vormi numbrit, `s3_key`-d ja tegija andmeid.
 | POST/DELETE | `/v1/<form-type>/files/delete` | Märgista manus kustutatuks |
 
 Täpsemad autentimise, parameetrite ja `curl` näidised on dokumendis [`07-api-info.md`](./07-api-info.md).
-
 

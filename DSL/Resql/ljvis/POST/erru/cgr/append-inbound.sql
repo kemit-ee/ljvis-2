@@ -4,7 +4,7 @@ description: 'Record an INCOMING CGR request arriving from another member state 
   partial unique index uq_cgr_inbound_technical_id (direction=''incoming'' AND status=''received'') means
   a redelivered CGR message yields zero rows instead of a duplicate, so the caller can detect the replay
   and return the previously produced response. Heartbeat requests (requestPurpose = ''Heartbeat'') are
-  NOT stored — the caller must filter them before calling this query. cgr_from and cgr_to are set from
+  NOT stored - the caller must filter them before calling this query. cgr_from and cgr_to are set from
   the envelope: cgr_from is the sending country, cgr_to is always EE (us). The 7A/7B search-choice CHECK
   constraint (chk_cgr_search_choice) is enforced by the table; an inbound request that violates it will
   cause the INSERT to fail with a constraint error that the caller maps to 422.'

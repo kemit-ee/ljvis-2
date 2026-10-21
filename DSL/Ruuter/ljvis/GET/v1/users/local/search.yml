@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Search/list users filtered by own organisation (local scope)"
@@ -15,9 +16,12 @@ declaration:
       - field: sorting
         type: string
         description: "Sorting"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -38,6 +42,7 @@ getUsers:
   args:
     url: "[#LJVIS_RESQL]/user/list_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       search: ${search}
@@ -49,19 +54,13 @@ getUsers:
   next: mapResponse
 
 mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_users_list"
-    headers:
-      type: json
-    body:
-      users: ${res.response.body}
-  result: mapped
+  assign:
+    paged: "${({ content: res.response.body, total: res.response.body.length > 0 ? res.response.body[0].total : 0 })}"
   next: setResultCount
 
 setResultCount:
   assign:
-    result_count: ${mapped.response.body.total}
+    result_count: ${paged.total}
   next: setDefaults
 
 setDefaults:
@@ -84,8 +83,6 @@ logSearchEvent:
   body:
     event_type: "user.list.search"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: "Otsing '${search}'"
     log_content: "{\"searchTerm\":\"${search}\",\"resultCount\":${result_count},\"scope\":\"ownOrganisation\",\"organisationId\":${organisation_id}}"
   result: audit_result
@@ -96,6 +93,7 @@ extractPersonalCodes:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_personal_codes"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       users: ${res.response.body}
@@ -127,13 +125,11 @@ logViewEvent:
   body:
     event_type: "user.list.view"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${view_description}
     log_content: ${view_log_content}
   result: audit_result
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${paged}
   next: end

@@ -28,9 +28,14 @@ import {
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
 import styles from '../../../control-forms/pages/foreign-violation-form/ForeignViolationFormPage.module.css';
-import type { ForeignViolationForm, ForeignViolationFormViolation } from '../../types';
+import type {
+  ForeignViolationForm,
+  ForeignViolationFormViolation,
+  NotificationHistoryEntry,
+} from '../../types';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { useExpandedWhenSelected } from '../../hooks/useExpandedWhenSelected';
 
 interface ForeignViolationFormFieldsProps {
   formik: FormikProps<ForeignViolationForm & Record<string, unknown>>;
@@ -120,6 +125,37 @@ export function ForeignViolationFormFields({
     ? (values.violations as ForeignViolationFormViolation[])
     : [];
   const violationCodes = violationEntries.map((v) => v.code);
+  // Valitud rikkumisega plokk on alati avatud, et rikkumine oleks kogu aeg näha.
+  const euViolationsAccordion = useExpandedWhenSelected(violationEntries.length > 0);
+
+  // NCR-ist üle tulnud karistused rikkumise sildi ees: rakendatud karistus
+  // (nt "Trahv") ja välisriigi taotletud karistus (ERRU penaltyTypeRequested).
+  const violationLabel = (
+    label: string | React.ReactNode,
+    entry?: ForeignViolationFormViolation,
+  ) => {
+    if (!entry) return label;
+    const sanction = sanctionOptions.find((o) => o.value === entry.sanctionCode);
+    const imposed =
+      sanction && sanction.value !== 'KORRAS' ? t(sanction.labelKey) : '';
+    const requested = (entry.requestedPenaltyCodes ?? [])
+      .map((c) => t(`forms.foreign_violation.requestedPenalty.${c}`))
+      .join(', ');
+    if (!imposed && !requested) return label;
+    return (
+      <>
+        {imposed && <strong>{imposed}</strong>}
+        {imposed && ' '}
+        {requested && (
+          <em>
+            ({t('forms.foreign_violation.requestedPenaltyPrefix')}: {requested})
+          </em>
+        )}
+        {requested && ' '}
+        {label}
+      </>
+    );
+  };
 
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
     ...group,
@@ -202,6 +238,8 @@ export function ForeignViolationFormFields({
             {t('forms.foreign_violation.reportingBasicInfo')}
           </Heading>
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
+            {/* NCR-ist loodud kaardil on teate saatnud riik lukus — vt
+                create-from-ncr.yml, mis täidab välja NCR ncrFrom järgi. */}
             <Select
               id="reportingCountry"
               label={t('forms.foreign_violation.reportingCountry')}
@@ -220,7 +258,7 @@ export function ForeignViolationFormFields({
                 )
               }
               required={!readOnly}
-              disabled={readOnly}
+              disabled={readOnly || !!values.erruNcrMessageKey}
               {...(!readOnly &&
               touched.reportingCountryCode &&
               errors.reportingCountryCode
@@ -981,7 +1019,7 @@ export function ForeignViolationFormFields({
       <Card className="mb-1">
         <Card.Content>
           <Accordion>
-            <AccordionItem id="eu-violations">
+            <AccordionItem id="eu-violations" {...euViolationsAccordion}>
               <AccordionItemHeader
                 title={
                   <Heading modifiers="h3" color="primary">
@@ -997,6 +1035,14 @@ export function ForeignViolationFormFields({
                   const selectedInGroup = violationEntries.filter((v) =>
                     groupCodes.has(v.code),
                   );
+                  // Vaatevaates (avalikustatud/kinnitatud) näidatakse ainult
+                  // välisriigis avastatud rikkumisi; muutmisel on kõik nähtaval.
+                  if (readOnly && selectedInGroup.length === 0) return null;
+                  const visibleItems = readOnly
+                    ? group.items.filter((item) =>
+                        selectedInGroup.some((v) => v.code === item.value),
+                      )
+                    : group.items;
                   return (
                     <div key={group.id} className="mb-1">
                       <Text element="p" modifiers="bold">
@@ -1008,9 +1054,12 @@ export function ForeignViolationFormFields({
                         inputType="checkbox"
                         label=""
                         value={selectedInGroup.map((v) => v.code)}
-                        items={group.items.map((item) => ({
+                        items={visibleItems.map((item) => ({
                           id: `euViolation_${item.value}`,
-                          label: item.label,
+                          label: violationLabel(
+                            item.label,
+                            violationEntries.find((v) => v.code === item.value),
+                          ),
                           value: item.value,
                           disabled: readOnly,
                           ...(readOnly
@@ -1398,7 +1447,6 @@ export function ForeignViolationFormFields({
                 ? ['foreignAuthorityProposal']
                 : []),
               ...(values.notifyCarrier ? ['notifyCarrier'] : []),
-              ...(values.notifyLaborInspector ? ['notifyLaborInspector'] : []),
             ]}
             items={[
               {
@@ -1417,44 +1465,33 @@ export function ForeignViolationFormFields({
                 value: 'notifyCarrier',
                 disabled: readOnly,
               },
-              {
-                id: 'notifyLaborInspector',
-                label: t(
-                  'forms.foreign_violation.notifications.notifyLaborInspector',
-                ),
-                value: 'notifyLaborInspector',
-                disabled: readOnly,
-              },
             ]}
             onChange={(val) => {
               if (!readOnly) {
                 const vals = Array.isArray(val) ? val : [val];
                 if (!values.foreignAuthorityProposal) {
-                  setFieldValue(
-                    'foreignAuthorityProposal',
-                    vals.includes('foreignAuthorityProposal'),
-                  );
+                  // Eraldi "Teavita tööinspektorit" linnukest pole — ettepaneku
+                  // märkimine ise tellib tööinspektori teavituse (backend
+                  // saadab selle avalikustamisel).
+                  const proposal = vals.includes('foreignAuthorityProposal');
+                  setFieldValue('foreignAuthorityProposal', proposal);
+                  setFieldValue('notifyLaborInspector', proposal);
                 }
-                // notifyCarrier/notifyLaborInspector jäävad korduvalt
-                // märgitavaks (p.5) — backend (save.yml) lülitab lipu peale
-                // eduka saatmise tagasi false-ks, ajalugu säilib
-                // notifications.outbound_log-is (vt allpool).
+                // Backend (publish.yml) saadab teavituse avalikustamisel ja
+                // võtab linnukese pärast saatmist maha; muudatuse korral
+                // märgitakse see uuesti. Ajalugu: notifications.outbound_log.
                 setFieldValue('notifyCarrier', vals.includes('notifyCarrier'));
-                setFieldValue(
-                  'notifyLaborInspector',
-                  vals.includes('notifyLaborInspector'),
-                );
               }
             }}
           />
-          {((values.notificationHistory as { type: string; sentAt: string; status: string }[] | undefined)?.length ?? 0) > 0 && (
+          {((values.notificationHistory as NotificationHistoryEntry[] | undefined)?.length ?? 0) > 0 && (
             <div className="mt-1">
               <Text element="p" modifiers="bold">
                 {t('forms.foreign_violation.notifications.historyTitle')}
               </Text>
               {(
                 values.notificationHistory as
-                  | { type: string; sentAt: string; status: string }[]
+                  | NotificationHistoryEntry[]
                   | undefined
               )?.map((entry, i) => (
                 <Text element="p" key={i}>
@@ -1466,7 +1503,7 @@ export function ForeignViolationFormFields({
                   {' — '}
                   {entry.sentAt}
                   {' ('}
-                  {entry.status}
+                  {entry.recipientAddress || entry.status}
                   {')'}
                 </Text>
               ))}

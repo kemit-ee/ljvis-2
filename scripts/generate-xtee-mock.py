@@ -125,18 +125,23 @@ target_rows = [
 ]
 usage_rows = [
     {"logtime": "2026-06-15T12:00:00Z", "action": "Mock kontrollipäring",
-     "receiver_code": "70001490", "receiver_name": "Mock tarbija", "receiver_system": "liiklusregister"},
+     "receiverCode": "70001490", "receiverName": "Mock tarbija", "receiverSystem": "liiklusregister"},
     {"logtime": "2026-06-14T12:00:00Z", "action": "Mock töökontroll",
-     "receiver_code": "70001969", "receiver_name": "", "receiver_system": ""},
+     "receiverCode": "70001969", "receiverName": "", "receiverSystem": ""},
     {"logtime": "2026-06-13T12:00:00Z", "action": "Mock korduspäring",
-     "receiver_code": "70001490", "receiver_name": "Mock tarbija", "receiver_system": "liiklusregister"},
+     "receiverCode": "70001490", "receiverName": "Mock tarbija", "receiverSystem": "liiklusregister"},
 ]
 job = {"kontrollija": "Mock Kontrollija", "kontrolli_id": 900001, "kontrolli_kp": "2026-06-15",
        "tooandja_nimi": "Mockvedaja OÜ", "tooandja_reg_kood": "00000001", "soidukite_arv": 2,
        "koostatatud_ettekirjutus": False, "kontrollimised": {"kontrollitud_soitjate_veol": False},
+       # V1 kasutab vana fikseeritud nimega RikkumisteArvud tüüpi (v. ljvis.wsdl) — toores passthrough,
+       # koodi-vastendust ei rakendata. Tühi platsholder piisab mock-näiteks.
        "rikkumised": {"rikkumised_loend": []}, "vaarteomenetlus": "MOCK-VM-001"}
 job_v3 = dict(job, soiduki_reg_nr="MOCK123", soiduki_vin="MOCKVIN0000000001", juhi_isikukood=SUCCESS_PERSON,
-              juhi_eesnimi="Test", juhi_perekonnanimi="Juht", menetluse_liik="uldmenetlus", menetluse_number="MOCK-001")
+              juhi_eesnimi="Test", juhi_perekonnanimi="Juht", menetluse_liik="uldmenetlus", menetluse_number="MOCK-001",
+              # V3 kasutab WSDL tüüpi RikkumisteArv_v2 (rikkumiste_arv[].rikkumise_kood/arv) — vastendub
+              # LABOUR_INSPECTION_VIOLATION klassifikaatori TI_<kood> kirjega.
+              rikkumised={"rikkumiste_arv": [{"rikkumise_kood": "E5", "arv": 2}, {"rikkumise_kood": "B1"}]})
 target_response = []
 for row in target_rows:
     item = {k: row[k] for k in ["licence_plate_no", "trailer_no", "inspection_id", "inspection_no",
@@ -147,8 +152,9 @@ for row in target_rows:
                     ("regnr", "REGNR"), ("vintin", "VINTIN"), ("axles", "AXLES"),
                     ("places", "PLACES"), ("rebuilt", "REBUILT")] if row.get("era_yv_mnt_" + flag)]})
     target_response.append(item)
-usage_response = [{"logtime": r["logtime"], "action": r["action"], "receiverCode": r["receiver_code"],
-                   "receiverName": r["receiver_name"] or None, "receiverSystem": r["receiver_system"] or None}
+usage_response = [dict({"logtime": r["logtime"], "action": r["action"], "receiverCode": r["receiverCode"]},
+                        **({"receiverName": r["receiverName"]} if r["receiverName"] else {}),
+                        **({"receiverSystem": r["receiverSystem"]} if r["receiverSystem"] else {}))
                   for r in usage_rows]
 
 operations = [
@@ -168,7 +174,7 @@ guard = yaml.safe_load((SOURCE / "POST/xroad/provide/.guard").read_text())
 guard = {"declaration": {"description": "X-Road-Client peab olema neljaosaline. Ainult mockis 70000000 tähistab keelatud tarbijat."}, **guard}
 guard["checkXRoadClient"]["switch"].append({"condition": expression("(incoming.headers['x-road-client'] || '').split('/')[2] === '70000000'"), "next": "deny"})
 emit(DEST / "POST/xroad/v1/.guard.yml", adapt_runtime(guard))
-emit(DEST / "GET/health/ready.yml", {"declaration": {"description": "Avalik sünteetilise mocki tervisekontroll."},
+emit(DEST / "GET/health/ready.yml", {"declaration": {"internal": False, "description": "Avalik sünteetilise mocki tervisekontroll.", "allowlist": {"params": []}},
                                     "ready": {"status": 200, "return": {"status": "OK", "mock": True}, "wrapper": False, "next": "end"}})
 
 tests = []
@@ -192,11 +198,15 @@ def add_test(name, method, path, body=None, query=None, headers=None, status=200
         request["query"] = query
     expect = {"status": status}
     if expected is not None:
-        expect["body_matches"] = expected if path == '/health/ready' else wire_body(expected)
+        expect["body_matches"] = expected if path == '/health/ready' or path.startswith('/xroad/v2/') else wire_body(expected)
     tests.append({"name": name, "request": request, "expect": expect})
 
 
 for method, name, service, version, sample, success in operations:
+    # AJ (GET v2) routes use wrapper: false — the body is the domain response itself.
+    wire = wire_body if method == "POST" else (lambda value: value)
+    # AJ: one X-Road service "findUsage" with endpoints /v2/findUsage, /v2/usagePeriod, /v2/heartbeat.
+    xroad_path = f"{service}/{version}" if method == "POST" else f"findUsage/{version}/{name}"
     source_path = f"{method}/xroad/" + ("provide/" if method == "POST" else "v2/") + name + ".yml"
     mock_path = "/xroad/" + ("v1/" if method == "POST" else "v2/") + name
     data = yaml.safe_load((SOURCE / source_path).read_text())
@@ -225,11 +235,16 @@ for method, name, service, version, sample, success in operations:
             rows = expression("['900001','900002'].indexOf(String(items[current_index].inspection_id)) >= 0 ? [{confirmed:true}] : []")
         elif url.endswith("-insert"):
             rows = expression('[{"id":900001,"form_number":"MOCK-TI-001","skipped":false}]')
+        elif url.endswith("/resolve-labour-inspection-violations"):
+            # Sünteetiline: mock ei tunne klassifikaatori andmeid, teatab alati kõik koodid sobitatuks.
+            rows = expression('[{"total_count":0,"matched_count":0,"violations_json":"[]","unmatched_codes_json":"[]"}]')
         elif url.endswith("/find_usage"):
-            # SQL COUNT OVER is absent on an exhausted page; the actual mapper then returns totalUsages=0.
-            rows = expression("(incoming.headers['x-mock-scenario'] === 'empty' || user_code !== '" + SUCCESS_PERSON + "' ? [] : " + json.dumps(usage_rows) + ").filter(function(r) {return (!period_start || r.logtime >= period_start) && (!period_end || r.logtime <= period_end);}).map(function(r, i, all) {return Object.assign({}, r, {total_usages:all.length});}).slice(offset_val, offset_val + limit_val)")
+            # Like find_usage.sql via Resql (camelCase columns): total over all matches; an empty page is one row with logtime NULL.
+            matches = "(incoming.headers['x-mock-scenario'] === 'empty' || user_code !== '" + SUCCESS_PERSON + "' ? [] : " + json.dumps(usage_rows) + ").filter(function(r) {return (!period_start || new Date(r.logtime) >= new Date(period_start)) && (!period_end || new Date(r.logtime) <= new Date(period_end));})"
+            rows = expression("(function(all) {var page = all.slice(offset_val, offset_val + limit_val).map(function(r) {return Object.assign({}, r, {totalUsages: all.length});}); return page.length > 0 ? page : [{totalUsages: all.length, logtime: null}];})(" + matches + ")")
         elif url.endswith("/usage_period"):
-            rows = expression("[{period_start: incoming.headers['x-mock-scenario'] === 'empty' ? null : '2026-06-13T12:00:00Z'}]")
+            # Like usage_period.sql: an empty log reports the current time.
+            rows = expression("[{periodStart: incoming.headers['x-mock-scenario'] === 'empty' ? new Date().toISOString().replace(/\\.\\d{3}Z$/, 'Z') : '2026-06-13T12:00:00Z'}]")
         elif "/log_" in url:
             rows = expression("[]")
         else:
@@ -238,14 +253,14 @@ for method, name, service, version, sample, success in operations:
             rows = expression("[]")
         data[step_name] = {"assign": {result: {"response": {"status": expression("incoming.headers['x-mock-scenario'] === 'server-error' ? 500 : 200"), "body": rows}}}, "next": step["next"]}
     data = adapt_runtime(data)
-    if name == "findUsage":
-        # Assign steps are evaluated as a map; don't read rows while assigning it.
-        rows_step = {"assign": {"rows": data["buildResponse"]["assign"].pop("rows")}, "next": "buildResponse"}
-        data["checkQueryStatus"]["next"] = "assignRows"
-        data["assignRows"] = rows_step
+    # Ruuter audit (#146): declare only headers the DSL body actually reads (guards are not counted).
+    used = json.dumps({k: v for k, v in data.items() if k != "declaration"})
+    data["declaration"]["allowlist"]["headers"] = [h for h in data["declaration"]["allowlist"]["headers"]
+                                                   if h["field"] == "content-type" or f"headers['{h['field']}']" in used or f"headers.{h['field']}" in used]
+    data["declaration"] = {"internal": False, **data["declaration"]}
     emit(DEST / (method + mock_path + ".yml"), data)
     emit(DOCS / "examples" / (name + "-request.json"), json_text(sample))
-    emit(DOCS / "examples" / (name + "-success.json"), json_text(wire_body(success)))
+    emit(DOCS / "examples" / (name + "-success.json"), json_text(wire(success)))
     errors = []
     for step in data.values():
         if isinstance(step, dict) and isinstance(step.get("status"), int) and step["status"] >= 400:
@@ -257,7 +272,7 @@ for method, name, service, version, sample, success in operations:
                 errors.append((step["status"], error))
     if method == "POST":
         errors.append((403, json.loads(guard["deny"]["return"])))
-    emit(DOCS / "examples" / (name + "-errors.json"), json_text([{"status": s, "body": wire_body(e)} for s, e in errors]))
+    emit(DOCS / "examples" / (name + "-errors.json"), json_text([{"status": s, "body": wire(e)} for s, e in errors]))
     headers = {"content-type": "application/json", "x-road-client": CLIENT} if method == "POST" else {}
     if name == "findUsage":
         headers["x-road-userid"] = SUCCESS_PERSON
@@ -273,19 +288,19 @@ for method, name, service, version, sample, success in operations:
     if method == "POST":
         params.append({"in": "header", "name": "X-Road-Client", "required": True, "schema": {"type": "string"}, "example": CLIENT})
     params.append({"in": "header", "name": "X-Mock-Scenario", "required": False,
-                   "schema": {"type": "string", "enum": ["empty", "server-error"]}, "description": "Ainult mockis; heartbeat ignoreerib."})
+                   "schema": {"type": "string", "enum": ["empty", "server-error"]}, "description": "Ainult mockis."})
     if name == "findUsage":
         params.append({"in": "header", "name": "X-Road-UserId", "required": True, "schema": {"type": "string"}, "example": SUCCESS_PERSON})
         for k in ["userCode", "periodStart", "periodEnd", "offset", "limit"]:
             params.append({"in": "query", "name": k, "required": k == "userCode", "schema": {"type": "integer" if k in ["offset", "limit"] else "string"}})
-    responses = {"200": {"description": "Edukas vastus; JSON.parse(response) annab domeenivastuse. Tühi loend on edukas.", "content": {"application/json": {"schema": schema(wire_body(success)), "example": wire_body(success), "x-decoded-response-schema": schema(success)}}}}
+    responses = {"200": {"description": ("Edukas vastus; JSON.parse(response) annab domeenivastuse." if method == "POST" else "Edukas vastus (AJ protokolli kuju, ümbriseta).") + " Tühi loend on edukas.", "content": {"application/json": {"schema": schema(wire(success)), "example": wire(success), "x-decoded-response-schema": schema(success)}}}}
     # Merge all error variants at each HTTP status instead of hiding individual codes.
     for status in sorted({s for s, e in errors}):
         variants = [e for s, e in errors if s == status]
         responses[str(status)] = {"description": ", ".join(dict.fromkeys(e["error"] for e in variants)), "content": {"application/json": {
-            "schema": schema(wire_body(variants[0])),
-            "examples": {f"error{i}": {"value": wire_body(e)} for i, e in enumerate(variants)}}}}
-    op = {"operationId": service, "summary": service, "x-xroad-service": {"code": service, "version": version},
+            "schema": schema(wire(variants[0])),
+            "examples": {f"error{i}": {"value": wire(e)} for i, e in enumerate(variants)}}}}
+    op = {"operationId": service, "summary": service, "x-xroad-service": {"code": service if method == "POST" else "findUsage", "version": version},
           "x-provider-path": "/ljvis/xroad/" + ("provide/" if method == "POST" else "v2/") + name,
           "parameters": params, "responses": responses}
     if method == "POST":
@@ -333,7 +348,7 @@ for method, name, service, version, sample, success in operations:
         curl += f" \\\n  -H 'Content-Type: application/json' -H 'X-Road-Client: {CLIENT}' \\\n  --data-binary @docs/developer/examples/{name}-request.json"
     if name == "findUsage":
         curl += f" -H 'X-Road-UserId: {SUCCESS_PERSON}'"
-    sections.append(f"\n## {service}\n\n- Meetod: `{method}`; mock: `/developer{mock_path}`.\n- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{{instance}}/GOV/70001231/ljvis2/{service}/{version}`.\n- Pakkuja sisetee: `{op['x-provider-path']}`; [workflow](../../{manifest[-1]['source']}).\n- Sisend: [JSON näidis](examples/{name}-request.json) (GET puhul query parameetrid, mitte keha).\n- Vastus: [edukas HTTP-keha](examples/{name}-success.json); [vead koos staatustega](examples/{name}-errors.json).\n\n```bash\n{curl}\n```\n\nHTTP 200, keha:\n\n```json\n{json_text(wire_body(success)).strip()}\n```\n\n`JSON.parse(response)` tulemus:\n\n```json\n{json_text(success).strip()}\n```\n")
+    sections.append(f"\n## {service}\n\n- Meetod: `{method}`; mock: `/developer{mock_path}`.\n- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{{instance}}/GOV/70001231/ljvis2/{xroad_path}`.\n- Pakkuja sisetee: `{op['x-provider-path']}`; [workflow](../../{manifest[-1]['source']}).\n- Sisend: [JSON näidis](examples/{name}-request.json) (GET puhul query parameetrid, mitte keha).\n- Vastus: [edukas HTTP-keha](examples/{name}-success.json); [vead koos staatustega](examples/{name}-errors.json).\n\n```bash\n{curl}\n```\n\nHTTP 200, keha:\n\n```json\n{json_text(wire(success)).strip()}\n```\n" + (f"\n`JSON.parse(response)` tulemus:\n\n```json\n{json_text(success).strip()}\n```\n" if method == "POST" else ""))
     if errors:
         error_status, error_body = next(((s, e) for s, e in errors if s == 400 and e['error'].startswith('MISSING')), errors[0])
         if method == "POST":
@@ -342,7 +357,7 @@ for method, name, service, version, sample, success in operations:
             faulty = f"curl -i 'https://dev.liiklusvalve.ee/developer{mock_path}?userCode={SUCCESS_PERSON}'"
         else:
             faulty = f"curl -i 'https://dev.liiklusvalve.ee/developer{mock_path}' -H 'X-Mock-Scenario: server-error'"
-        sections.append(f"\nVeastsenaariumi käivitatav näide:\n\n```bash\n{faulty}\n```\n\nHTTP {error_status}:\n\n```json\n{json_text(wire_body(error_body)).strip()}\n```\n")
+        sections.append(f"\nVeastsenaariumi käivitatav näide:\n\n```bash\n{faulty}\n```\n\nHTTP {error_status}:\n\n```json\n{json_text(wire(error_body)).strip()}\n```\n")
 
 add_test("health is public without session and X-Road headers", "GET", "/health/ready", headers={}, expected={"status": "OK", "mock": True})
 for name in ["isiku-kontroll", "isiku-ettevote-kontrollid"]:
@@ -360,12 +375,16 @@ add_test("v3 invalid optional enum", "POST", "/xroad/v1/register-job-inspection-
 add_test("job repeated request", "POST", "/xroad/v1/register-job-inspection", job, expected={"message": "Success"})
 add_test("AJ missing userid", "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON}, headers={}, status=400, expected={"error": "MISSING_HEADER", "message": "X-Road-UserId header is required"})
 add_test("AJ missing userCode", "GET", "/xroad/v2/findUsage", headers={"x-road-userid": SUCCESS_PERSON}, status=400)
-add_test("AJ mismatched userid", "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON}, headers={"x-road-userid": EMPTY_PERSON}, status=400, expected={"error": "FORBIDDEN", "message": "X-Road-UserId must match userCode"})
+add_test("AJ representation: userid differs from userCode", "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON}, headers={"x-road-userid": "EE" + EMPTY_PERSON}, expected={"totalUsages": 3, "usages": usage_response})
+add_test("AJ EE prefix is stripped from userCode", "GET", "/xroad/v2/findUsage", query={"userCode": "EE" + SUCCESS_PERSON}, headers={"x-road-userid": "EE" + SUCCESS_PERSON}, expected={"totalUsages": 3, "usages": usage_response})
+add_test("AJ invalid offset", "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON, "offset": "-1"}, headers={"x-road-userid": SUCCESS_PERSON}, status=400, expected={"error": "INVALID_PARAMETER", "message": "offset must be a non-negative integer"})
+add_test("AJ invalid periodStart", "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON, "periodStart": "2026-06-14"}, headers={"x-road-userid": SUCCESS_PERSON}, status=400, expected={"error": "INVALID_PARAMETER", "message": "periodStart must be an RFC 3339 date-time"})
 for offset in range(4):
-    add_test("AJ deterministic page " + str(offset), "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON, "offset": str(offset), "limit": "1"}, headers={"x-road-userid": SUCCESS_PERSON}, expected={"totalUsages": 3 if offset < 3 else 0, "usages": usage_response[offset:offset+1]})
+    add_test("AJ deterministic page " + str(offset), "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON, "offset": str(offset), "limit": "1"}, headers={"x-road-userid": SUCCESS_PERSON}, expected={"totalUsages": 3, "usages": usage_response[offset:offset+1]})
 add_test("AJ unknown person", "GET", "/xroad/v2/findUsage", query={"userCode": EMPTY_PERSON}, headers={"x-road-userid": EMPTY_PERSON}, expected={"totalUsages": 0, "usages": []})
 add_test("AJ date filtering", "GET", "/xroad/v2/findUsage", query={"userCode": SUCCESS_PERSON, "periodStart": "2026-06-14T00:00:00Z", "periodEnd": "2026-06-14T23:59:59Z"}, headers={"x-road-userid": SUCCESS_PERSON}, expected={"totalUsages": 1, "usages": usage_response[1:2]})
-add_test("usage period empty", "GET", "/xroad/v2/usagePeriod", headers={"x-mock-scenario": "empty"}, expected={"periodStart": None})
+add_test("usage period empty log still reports periodStart", "GET", "/xroad/v2/usagePeriod", headers={"x-mock-scenario": "empty"})
+add_test("heartbeat database failure", "GET", "/xroad/v2/heartbeat", headers={"x-mock-scenario": "server-error"}, expected={"status": "FAIL", "message": "Usage log database is not available"})
 for scenario in tests:
     if scenario["name"].endswith(" success"):
         continue

@@ -1,5 +1,5 @@
 /*
-description: Read one CTUD request by its logical key (LJVIS2-143). Returns the LATEST snapshot only —
+description: Read one CTUD request by its logical key (LJVIS2-143). Returns the LATEST snapshot only -
   current state is always the most recent row for ctud_request_key. Returns zero rows when the key does
   not exist, which the caller maps to 404. Columns are emitted in snake_case and serialised to camelCase
   by Resql; response_content is cast to text so the JSONB document is passed through verbatim.

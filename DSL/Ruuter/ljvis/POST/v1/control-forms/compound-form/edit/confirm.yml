@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm compound form"
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: controlDate
         type: string
       - field: controlTime
@@ -92,7 +94,8 @@ declaration:
         type: string
       - field: driver2PersonalCodeForeign
         type: string
-      - field: status
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -202,9 +205,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${key}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${status}
       controlDate: ${control_date}
       controlTime: ${control_time}
@@ -247,16 +252,30 @@ confirmForm:
       inspectorProfession: ${inspector_profession}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractResponseData:
   assign:
     compound_form_key: "${confirmRes.response.body[0].id || ''}"
   next: checkDriver1AjLog
 
-# Andmejälgija (AJ) — logi Eesti isikukoodi alusel tuvastatud juhtide andmete
+# Andmejälgija (AJ) - logi Eesti isikukoodi alusel tuvastatud juhtide andmete
 # esmakordne registreerimine LJVIS2-sse. Välisriigi juhte (personalCodeForeign)
-# ei logita, kuna AJ nõuab Eesti isikukoodi formaati.
+# ei logita, kuna AJ nõuab Eesti isikukoodi formaati. Töötlejana näidatakse
+# LJVIS2 vastutavat töötlejat Kliimaministeeriumi (70001231).
 checkDriver1AjLog:
   switch:
     - condition: "${driver1_personal_code_ee == null || driver1_personal_code_ee == ''}"
@@ -268,13 +287,14 @@ logAjDriver1:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${driver1_personal_code_ee}"
       action: "Juhi isikuandmete registreerimine liiklusjärelevalve teekontrolli protokollis (koondvorm kinnitatud)"
-      receiver_code: "${inspector_organisation_id}"
-      receiver_name: ""
-      receiver_system: "ljvis2"
+      receiver_code: "70001231"
+      receiver_name: "Kliimaministeerium"
+      receiver_system: "Liiklusjärelevalve infosüsteem (LJVIS2)"
   result: ajLog1Result
   next: checkDriver2AjLog
 
@@ -289,13 +309,14 @@ logAjDriver2:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${driver2_personal_code_ee}"
       action: "Juhi isikuandmete registreerimine liiklusjärelevalve teekontrolli protokollis (koondvorm kinnitatud)"
-      receiver_code: "${inspector_organisation_id}"
-      receiver_name: ""
-      receiver_system: "ljvis2"
+      receiver_code: "70001231"
+      receiver_name: "Kliimaministeerium"
+      receiver_system: "Liiklusjärelevalve infosüsteem (LJVIS2)"
   result: ajLog2Result
   next: buildLogDescription
 
@@ -312,8 +333,6 @@ logAuditEvent:
   body:
     event_type: "control_form.compound_form.confirm"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"compoundFormKey\":${compound_form_key}}"
   result: audit_result

@@ -1,10 +1,11 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
     Look up a company's MTR "sõidukikaardid" (activity-licence / community-
     licence certified-copy register entries, per Eda Rembel's comment on
-    LJVIS2-57 — the term "sõidukikaart" itself is legacy MTR terminology,
+    LJVIS2-57 - the term "sõidukikaart" itself is legacy MTR terminology,
     the current one is "tegevusloa kinnitatud ärakiri"/"tõestatud koopia")
     via X-tee MTR soidukikaart/v1, routed through XTR (see
     DSL/xtr/mtr/soidukikaart.yml). Reusable service backing the compound
@@ -12,14 +13,10 @@ declaration:
     licence-copy validity checks (registrationNumber + validity dates).
 
     Service identifier: EE/GOV/70003218/mtr/soidukikaart/v1. Single
-    required input — the company's Estonian business registry code
+    required input - the company's Estonian business registry code
     ("registrikood").
   namespace: xroad
   allowlist:
-    headers:
-      - field: cookie
-        type: string
-        description: "Cookie field"
     body:
       - field: registryCode
         type: string
@@ -37,11 +34,11 @@ validateInput:
       next: returnMissingParam
   next: get_user_context
 
-# Eraldi privileegi ei ole (LJVIS2-57 §3 — "Kasutaja peab olema
+# Eraldi privileegi ei ole (LJVIS2-57 §3 - "Kasutaja peab olema
 # autenditud... ligipääsukontroll on nende funktsionaalsuste vastutusalas,
 # kust teenust käivitatakse").
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: assignParams
@@ -61,6 +58,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/mtr/soidukikaart"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       registrikood: ${registry_code}
@@ -68,8 +66,8 @@ callXtr:
   result: xtrResponse
   next: checkXtrStatus
 
-# XTR maps every failure mode — Security Server unreachable, timeout, and
-# business-level SOAP Faults alike — to a non-2xx status, so a single
+# XTR maps every failure mode - Security Server unreachable, timeout, and
+# business-level SOAP Faults alike - to a non-2xx status, so a single
 # range check covers all of LJVIS2-57's error scenarios (§Veaolukorrad).
 checkXtrStatus:
   switch:
@@ -82,6 +80,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "mtr.soidukikaart.v1"
@@ -98,7 +97,7 @@ logSuccess:
 
 # soidukikaart's producer schema has elementFormDefault unset
 # (= "unqualified"), same convention as the other two MTR templates. The
-# whole <response> element is nillable="true" (WSDL SoidukikaardiVastus) —
+# whole <response> element is nillable="true" (WSDL SoidukikaardiVastus) -
 # a completely unknown registrikood comes back with response entirely nil,
 # mapped to data:null (LJVIS2-57 §Testimine "MTR-is vastet ei ole" case),
 # not an error. A known company with zero linked "sõidukikaardid" is
@@ -118,8 +117,8 @@ extractResponseNode:
     response_node: "${response_key ? (soap_body[response_key].response || null) : null}"
   next: checkResponseNil
 
-# XTR's xsi:nil serialisation isn't consistent across responses — seen as
-# both the string "1" and the string "true" in the wild — so check for
+# XTR's xsi:nil serialisation isn't consistent across responses - seen as
+# both the string "1" and the string "true" in the wild - so check for
 # either rather than assuming one form.
 checkResponseNil:
   switch:
@@ -185,6 +184,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "mtr.soidukikaart.v1"

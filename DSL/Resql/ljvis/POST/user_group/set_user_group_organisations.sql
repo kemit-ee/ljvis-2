@@ -1,5 +1,5 @@
 /*
-description: Update user group organisations — apply added and removed org IDs in a single insert
+description: Update user group organisations - apply added and removed org IDs in a single insert
 namespace: user_group
 params:
   user_group_id:

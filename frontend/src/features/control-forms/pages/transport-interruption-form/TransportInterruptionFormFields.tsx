@@ -41,9 +41,7 @@ export function TransportInterruptionFormFields({
     [getByCode, canEdit],
   );
   const values = formik.values;
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
 
   return (
     <>

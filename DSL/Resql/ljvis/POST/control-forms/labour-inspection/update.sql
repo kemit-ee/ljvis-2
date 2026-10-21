@@ -1,5 +1,5 @@
 /*
-description: Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row.
+description: Update labour inspection form (Tööinspektsiooni kontrollakt) - appends a new snapshot row.
   version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and
   increments by 1 only when re-saving already-locked (confirmed) data.
 namespace: control-forms
@@ -55,6 +55,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -65,14 +69,20 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 -- `latest` reads form_number and current version from the most recent
 -- snapshot of this act. version only increments when the snapshot being
--- re-saved is already locked (status <> 'saved') — see edit/save.yml's
+-- re-saved is already locked (status <> 'saved') - see edit/save.yml's
 -- edit_locked gate for confirmed data.
 WITH latest AS (
   SELECT form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
+         enforcement_decision,
+         proceeding_closure_basis,
+         external_inspection_id
   FROM forms.labour_inspection_form
   WHERE labour_inspection_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -82,9 +92,11 @@ INSERT INTO forms.labour_inspection_form (
   labour_inspection_form_key,
   form_number,
   version,
+  revision,
   status,
   inspector_name,
   inspection_date,
+  external_inspection_id,
   inspection_type,
   company_name,
   company_reg_code,
@@ -96,6 +108,8 @@ INSERT INTO forms.labour_inspection_form (
   punished_person_first_name,
   punished_person_last_name,
   proceeding_reference_number,
+  enforcement_decision,
+  proceeding_closure_basis,
   violations,
   created_by
 )
@@ -103,9 +117,11 @@ SELECT
   :key::BIGINT,
   latest.form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   :inspectorName,
   :inspectionDate::DATE,
+  latest.external_inspection_id,   -- X-tee allika ID ei ole kasutajale muudetav; kandub igasse snapshot'i
   :inspectionType,
   :companyName,
   :companyRegCode,
@@ -117,7 +133,10 @@ SELECT
   NULLIF(:punishedPersonFirstName, ''),
   NULLIF(:punishedPersonLastName, ''),
   NULLIF(:proceedingReferenceNumber, ''),
+  latest.enforcement_decision,
+  latest.proceeding_closure_basis,
   COALESCE(NULLIF(:violations, ''), '[]')::JSONB,
   :created_by
 FROM latest
-RETURNING labour_inspection_form_key AS id, form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING labour_inspection_form_key AS id, form_number, version, revision;

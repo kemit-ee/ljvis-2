@@ -5,7 +5,7 @@ description: 'Record an INCOMING NCR (NotifyCheckResult) request arriving from a
   AND direction=''incoming'', created in Stage 9 / 20260816100000-initial-erru-ncr.sql) means a redelivered
   NCR message yields zero rows instead of a duplicate, allowing the caller to replay the stored ack. ncr_to
   is always EE (us) for incoming. minorInfringement/seriousInfringements arrive as JSON text, already
-  split into category+infringementType by the caller (matching the request/save.yml convention) — no further
+  split into category+infringementType by the caller (matching the request/save.yml convention) - no further
   transformation is done here.'
 namespace: erru
 params:

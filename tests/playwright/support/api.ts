@@ -120,10 +120,236 @@ export async function deleteCompoundForm(id: number): Promise<void> {
   }
 }
 
+const VEHICLE_TECHNICAL_DEFAULTS: Record<string, unknown> = {
+  id: '',
+  revision: '',
+  partsSummary: '[]',
+  partsDefects: '[]',
+  resultType: 'ok',
+  resultTransportInterruption: false,
+  transportInterruptionAutovs5131: false,
+  otherMeasure: false,
+  eraYvMntRegnr: false,
+  eraYvMntVintin: false,
+  eraYvMntAxles: false,
+  eraYvMntPlaces: false,
+  eraYvMntRebuilt: false,
+  proceedingType: '',
+  proceedingReferenceNumber: '',
+  violations: '[]',
+  notes: '',
+};
+
+export interface PublishedVehicleTechnical {
+  id: number;
+  version: number;
+}
+
+/**
+ * Loob, kinnitab ja avalikustab mootorsõiduki tehnovormi otse API kaudu
+ * (save → confirm → publish, samad lõpp-punktid, mida kasutajaliides kasutab).
+ * Avalikustamine kutsub reaalselt `notification/evaluate-technical-publish`,
+ * seega see on õige viis desktop-teavituse päästiku testimiseks ilma
+ * tervet tehnokaardi vormi kasutajaliideses täitmata.
+ */
+export async function publishVehicleTechnicalForm(
+  compoundFormKey: number,
+  overrides: Record<string, unknown>,
+): Promise<PublishedVehicleTechnical> {
+  const { api } = await ctx('superadmin');
+  const body = { ...VEHICLE_TECHNICAL_DEFAULTS, ...overrides, compoundFormKey };
+
+  const saveRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/save', {
+    data: body,
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!saveRes.ok()) {
+    throw new Error(`vehicle-technical save ebaõnnestus: ${saveRes.status()} ${await saveRes.text()}`);
+  }
+  const saved = unwrap<Array<{ id: number }>>(await saveRes.json());
+  const id = saved[0].id;
+
+  const confirmRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/confirm', {
+    data: { ...body, id },
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!confirmRes.ok()) {
+    throw new Error(`vehicle-technical confirm ebaõnnestus: ${confirmRes.status()} ${await confirmRes.text()}`);
+  }
+
+  const publishRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/publish', {
+    data: { id: String(id) },
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!publishRes.ok()) {
+    throw new Error(`vehicle-technical publish ebaõnnestus: ${publishRes.status()} ${await publishRes.text()}`);
+  }
+  const published = unwrap<Array<{ version: number }>>(await publishRes.json());
+  await api.dispose();
+  return { id, version: published[0].version };
+}
+
+/**
+ * Salvestab juba avalikustatud mootorsõiduki tehnovormi uuesti (resave) —
+ * status jääb `published`, aga tekib uus versioon. `edit/save.yml` kutsub
+ * sel juhul samuti `notification/evaluate-technical-publish`-i (vt
+ * checkNotifyOnResave), uue `event_key`-ga.
+ */
+export async function resaveVehicleTechnicalForm(
+  id: number,
+  overrides: Record<string, unknown>,
+): Promise<PublishedVehicleTechnical> {
+  const { api } = await ctx('superadmin');
+  const body = { ...VEHICLE_TECHNICAL_DEFAULTS, ...overrides, id: String(id) };
+
+  const saveRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/save', {
+    data: body,
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!saveRes.ok()) {
+    throw new Error(`vehicle-technical resave ebaõnnestus: ${saveRes.status()} ${await saveRes.text()}`);
+  }
+  const saved = unwrap<Array<{ id: number; version: number }>>(await saveRes.json());
+  await api.dispose();
+  return { id: saved[0].id, version: saved[0].version };
+}
+
 /** Kontrollib, kas antud endpoint on pinus üldse olemas (nt ERRU send). */
 export async function endpointExists(path: string): Promise<boolean> {
   const api = await request.newContext({ baseURL: API_URL });
   const res = await api.fetch(path, { method: 'OPTIONS' }).catch(() => null);
   await api.dispose();
   return !!res && res.status() !== 404;
+}
+
+// ── Haldusmoodulite eeltingimused ──────────────────────────────────────────
+// Samad sisemised teed, mida Newmani kollektsioonid kasutavad seemneteks:
+// Resql (:9087) ja sisemine Ruuter (:9089) on CI-pinus avatud ainult
+// localhost'is ega ole avaliku gateway kaudu kättesaadavad.
+
+export const RESQL_URL = process.env.LJVIS_RESQL_URL || 'http://localhost:9087';
+export const INTERNAL_API_URL = process.env.LJVIS_INTERNAL_API_URL || 'http://localhost:9089';
+// Sisemise Ruuteri teenusetoken (constants.ini: INTERNAL_COMMUNICATION_KEY); xroad/* teed seda ei vaja.
+export const INTERNAL_COMMUNICATION_KEY = process.env.LJVIS_INTERNAL_COMMUNICATION_KEY || 'dev-internal-service-token';
+
+async function postJson<T>(baseURL: string, path: string, data: unknown): Promise<T> {
+  const api = await request.newContext({ baseURL });
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (baseURL === INTERNAL_API_URL) headers['x-internal-service-token'] = INTERNAL_COMMUNICATION_KEY;
+  const res = await api.post(path, { data, headers });
+  const text = await res.text();
+  await api.dispose();
+  if (!res.ok()) throw new Error(`POST ${baseURL}${path} → ${res.status()} ${text}`);
+  return unwrap<T>(text ? JSON.parse(text) : {});
+}
+
+/** Arvutab ettevõtte riskiskoori ümber (riskitasemete nimekiri täitub alles pärast seda). */
+export async function recalculateRiskScore(companyRegCode: string): Promise<void> {
+  await postJson(INTERNAL_API_URL, '/ljvis/risk-scores/recalculate', {
+    company_reg_code: companyRegCode,
+    calculation_trigger: 'admin',
+  });
+}
+
+/** Lisab rakendusesisese teavituse (idempotentne related_entity_id järgi). */
+export async function seedInAppNotification(opts: {
+  relatedEntityId: string;
+  title: string;
+  requiredPermission?: string;
+  type?: string;
+  relatedEntityType?: string;
+}): Promise<void> {
+  await postJson(RESQL_URL, '/ljvis/notification/insert_notification', {
+    type: opts.type ?? 'ncr_violation',
+    required_permission: opts.requiredPermission ?? 'notification.list',
+    related_entity_type: opts.relatedEntityType ?? 'ncr',
+    related_entity_id: opts.relatedEntityId,
+    title_et: opts.title,
+    body_et: `${opts.title} — sisu`,
+    created_by: 'playwright',
+  });
+}
+
+/** Lisab väljuva kirja logirea (vaikimisi staatus "error") koos saajaga. */
+export async function seedOutboundLog(opts: {
+  notificationKey: string;
+  recipient: string;
+  status?: string;
+}): Promise<string> {
+  const rows = await postJson<Array<{ id: string }> | { id: string }>(
+    RESQL_URL,
+    '/ljvis/notification/insert_outbound_log',
+    {
+      notification_key: opts.notificationKey,
+      message_type: 'carrier_violation',
+      status: opts.status ?? 'error',
+      recipient_address: opts.recipient,
+      notification_language: 'et',
+      template_variables: '{}',
+      failure_reason: 'Playwright seeded failure',
+      related_entity_type: 'ncr',
+      related_entity_id: opts.notificationKey,
+      original_log_id: '',
+      pk_template_id: 'tmpl-pw',
+      pk_sending_operation_id: `op-${opts.notificationKey}`,
+      payload_json: '{}',
+      created_by: 'playwright',
+    },
+  );
+  const id = String((Array.isArray(rows) ? rows[0] : rows).id);
+  await postJson(RESQL_URL, '/ljvis/notification/insert_outbound_recipient', {
+    log_id: id,
+    person_email: opts.recipient,
+    person_name: 'Playwright Saaja',
+    person_code: '12345678',
+    sending_report: 'ok',
+  });
+  return id;
+}
+
+/** Organisatsiooni id lühikoodi järgi (nt "JUM", "PPA"). */
+export async function organisationId(code: string): Promise<string> {
+  const rows = await postJson<Array<Record<string, unknown>>>(
+    RESQL_URL,
+    '/ljvis/organisation/list_organisations',
+    {},
+  );
+  const row = rows.find((r) => Object.values(r).includes(code));
+  if (!row) throw new Error(`Organisatsiooni ${code} ei leitud`);
+  return String(row.id ?? row.organisationId ?? row.organisation_id);
+}
+
+/** Lisab auditisündmuse (description sisaldab otsitavat markerit). */
+export async function seedAuditEvent(description: string, organisation = ''): Promise<void> {
+  await postJson(RESQL_URL, '/ljvis/log/insert_audit_event', {
+    event_id: '',
+    event_type: 'test.audit.playwright',
+    event_category: 'system_process',
+    actor_name: 'Playwright Audit Seeder',
+    actor_personal_code: '',
+    description,
+    log_content: '{}',
+    organisation_id: organisation,
+    created_by: 'playwright',
+    trace_id: '',
+    span_id: '',
+  });
+}
+
+/** GET autenditud rollina (API-ainult kontrollid, nt auditiahela verify). */
+export async function apiGet(
+  role: keyof typeof STORAGE_STATE,
+  path: string,
+): Promise<{ status: number; body: unknown }> {
+  const { api } = await ctx(role);
+  const res = await api.get(path);
+  const text = await res.text();
+  await api.dispose();
+  let body: unknown = text;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    /* mitte-JSON */
+  }
+  return { status: res.status(), body };
 }

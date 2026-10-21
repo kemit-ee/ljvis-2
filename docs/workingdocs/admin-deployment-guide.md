@@ -12,6 +12,8 @@
 3. [GitLab CI/CD pipeline](#3-gitlab-cicd-pipeline)
 4. [X-tee seadistus](#4-x-tee-seadistus)
 5. [Rakenduste käivitusjärjekord](#5-rakenduste-käivitusjärjekord)
+6. [Esimese superadmini loomine](#6-esimese-superadmini-loomine)
+7. [Devops-repo ja Helm chart'id](#7-devops-repo-ja-helm-chartid)
 
 ---
 
@@ -200,9 +202,36 @@ LJVIS_DMAPPER_HBS=http://data-mapper:3005/hbs/ljvis
 LJVIS_TIM=http://tim:8085
 LJVIS_PROJECT_LAYER=ljvis
 DOMAIN=<avalik domeen>
+
+# Postkast 2.0: Ruuter internal -> XTR sisemised endpoint'id
+PK_NOTIFICATIONS_ENDPOINT=http://xtr:8080/postkast/notifications
+PK_SENDING_OPERATIONS_ENDPOINT=http://xtr:8080/postkast/sending-operations
 ```
 
 See fail monteeritakse **ConfigMap**-ina mõlemasse Ruuter konteinerisse (`ruuter` ja `ruuter-internal`).
+Postkasti konstandid peavad kindlasti jõudma `ruuter-internal` konteineri
+`constants.ini` faili, sest teavituse loomise ja saatmisstaatuse töövood töötavad
+Ruuter Internalis. Kuberneteses tuleb väärtused määrata LJVIS-i keskkonnapõhises
+`constants.ini` ConfigMapis (DEV, TEST ja PROD eraldi) ning pärast ConfigMapi
+muutmist teha `ruuter-internal` Deploymentile restart/rollout; Ruuter loeb
+konstandid käivitumisel.
+
+`PK_NOTIFICATIONS_ENDPOINT` peab osutama XTR-i **teavituse loomise** rajale
+`/postkast/notifications`, mitte saatmisoperatsioonide rajale. XTR-i vastav DSL
+on `DSL/xtr/postkast/notifications.yml` ja see kutsub X-tee teenust
+`GOV/70006317/postkast/kliimaministeerium-notification-management/v1/notifications`
+HTTP `POST` meetodiga. Vale teenusenimi `notification-management` või väärtus
+`.../postkast/sending-operations` põhjustab saatmisel HTTP 405 vea.
+
+`PK_SENDING_OPERATIONS_ENDPOINT` on eraldi **staatuse päringu** rada. XTR-i DSL
+`DSL/xtr/postkast/sending-operations.yml` kutsub teenust
+`GOV/70006317/postkast/kliimaministeerium-notification-management/v1/sending-operations`
+HTTP `GET` meetodiga.
+
+Lokaalse ja CI mock-paigalduse `constants.ini` võib teadlikult kasutada Ruuteri
+mock-URL-e; päris DEV/TEST/PROD keskkonnas tuleb kasutada ülal toodud XTR-i
+sisemisi URL-e. Kontrolli töötavas `ruuter-internal` podis, et monteeritud
+`constants.ini` sisaldab täpselt keskkonnale mõeldud väärtusi.
 
 ### 2.6 Ruuter CORS ja turvaseadistus
 
@@ -312,11 +341,14 @@ X-tee on kahetasandiline:
 ### 4.1 LJVIS X-tee kliendi identifikaator
 
 ```
-{instance}/GOV/70003158/ljvis
+{instance}/GOV/70001231/ljvis2
 ```
 
-Dev/test: `ee-test/GOV/70003158/ljvis`  
-Prod: `EE/GOV/70003158/ljvis`
+Dev: `ee-dev/GOV/70001231/ljvis2`  
+Test: `ee-test/GOV/70001231/ljvis2`  
+Prod: `EE/GOV/70001231/ljvis2`
+
+(70001231 on Kliimaministeeriumi (KLIM) registrikood.)
 
 ### 4.2 Tunneli URL
 
@@ -331,7 +363,7 @@ Tunnel URL seadistatakse Ruuteri DSL failides, kus X-tee päringuid tehakse. Ots
 
 | Teenus | X-tee identifikaator | Kasutusjuht |
 |--------|---------------------|-------------|
-| Rahvastikuregister | `ee-test/GOV/70008440/rr/RR404_isik/v3` | Isiku andmete eeltäitmine vormil |
+| Rahvastikuregister | `EE/GOV/70008440/rr/domesticDataExchange/isikud` | Isiku andmete eeltäitmine vormil |
 | Äriregister | `ee-test/GOV/70000310/arireg/lihtandmed_v1/v1` | Ettevõtte andmete eeltäitmine vormil |
 | Liiklusregister | `liiklusregister/paring2/v2` | Sõiduki andmete eeltäitmine vormil |
 
@@ -374,6 +406,20 @@ Kubernetes deployment peab järgima seda järjekorda:
 ```
 
 Kubernetes init-containerid või `depends_on` ekvivalendid tuleb Helm chart'is vastavalt seadistada.
+
+---
+
+## 6. Esimese superadmini loomine
+
+Kolis administraatori juhendi peatükki `docs/admin-guide/11-esimene-superadmin.md` („Esimese superadmini loomine“), mis avaldatakse ka Confluence'is.
+
+---
+
+## 7. Devops-repo ja Helm chart'id
+
+Keskkondade tegelik seadistus (chart'id, väärtusfailid, SSM-i parameetrid, `constants.ini` mall, Argo CD) asub eraldi repos `ljvis2-devops` (`../ljvis2-devops/`). Täielik kirjeldus, sh teekond koodist keskkonda ja „mida kus muuta“ tabel: `docs/admin-guide/12-paigaldus-devops.md`.
+
+> **Märkus:** käesolev dokument on kirjutatud enne devops-repo valmimist. Pordid (Ruuter 8086/8089), `constants.ini` ConfigMapina ja „init-containerid Helm chart'is“ kirjeldavad kohalikku docker-compose'i. Päris keskkondades kasutavad Ruuterid porti 8080, `constants.ini` tuleb SSM-ist Secret'ina `ljvis2-constants` ja käivitusjärjekorda juhib Argo CD (`config` → `workload`, Liquibase wave -1 Job). Kehtiv allikas on devops-repo.
 
 ---
 

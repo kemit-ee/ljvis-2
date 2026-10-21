@@ -118,6 +118,12 @@ returns:
   type: number
   nullable: true
 */
+-- Meeskonnaliikme isikuandmed võetakse koondvormi viimasest versioonist (drivers[1]); vormil endal need ei muutu.
+WITH tm AS (
+  SELECT drivers -> 1 AS d FROM forms.compound_form
+   WHERE compound_form_key = :compoundFormKey::BIGINT
+   ORDER BY created_at DESC LIMIT 1
+)
 INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   compound_form_key,
                                   sub_form_number,
@@ -156,6 +162,12 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   notes,
                                   liini_number,
                                   liini_nimetus,
+                                  person_code_ee,
+                                  person_first_name,
+                                  person_last_name,
+                                  person_citizenship_code,
+                                  person_code_foreign,
+                                  person_birth_date,
                                   created_by)
 VALUES (nextval('forms.seq_sp_teammate_form_key'),
         :compoundFormKey::BIGINT,
@@ -229,4 +241,10 @@ VALUES (nextval('forms.seq_sp_teammate_form_key'),
         NULLIF(:notes, ''),
         NULLIF(:liiniNumber, ''),
         NULLIF(:liiniNimetus, ''),
+        (SELECT NULLIF(COALESCE(d->>'personalCodeEe', d->>'personal_code_ee'), '') FROM tm),
+        (SELECT NULLIF(COALESCE(d->>'firstName', d->>'first_name'), '') FROM tm),
+        (SELECT NULLIF(COALESCE(d->>'lastName', d->>'last_name'), '') FROM tm),
+        (SELECT NULLIF(COALESCE(d->>'citizenshipCode', d->>'citizenship_code'), '') FROM tm),
+        (SELECT NULLIF(COALESCE(d->>'personalCodeForeign', d->>'personal_code_foreign'), '') FROM tm),
+        (SELECT CASE WHEN NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), '') ~ '^\d{4}-\d{2}-\d{2}' THEN LEFT(NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), ''), 10)::DATE END FROM tm),
         :created_by) RETURNING sp_teammate_form_key AS id, sub_form_number, version;

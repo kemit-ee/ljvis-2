@@ -1,5 +1,5 @@
 /*
-description: Update vehicle technical-check sub-form — appends a new snapshot row. sub_form_number is
+description: Update vehicle technical-check sub-form - appends a new snapshot row. sub_form_number is
   always read from the latest snapshot; version is unchanged while the latest snapshot's status is 'saved'
   (repeat saves do not bump /V) and increments by 1 only when re-saving already-locked (confirmed/published)
   data.
@@ -59,6 +59,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -69,11 +73,14 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
 WITH latest AS (
   SELECT sub_form_number,
-         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version,
-         extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis
+         CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
+         extraordinary_inspection_date, enforcement_decision, proceeding_closure_basis, klim_clarification_date, carrier_explanation_date, penalty_valid_until, penalty_expired_or_processed, akvk_next_meeting_date, commission_last_decision_date, admin_procedure_decision
   FROM forms.vehicle_technical_form
   WHERE vehicle_technical_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -84,6 +91,7 @@ INSERT INTO forms.vehicle_technical_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   parts_summary,
   parts_defects,
@@ -103,6 +111,13 @@ INSERT INTO forms.vehicle_technical_form (
   extraordinary_inspection_date,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -110,6 +125,7 @@ SELECT
   (SELECT compound_form_key FROM forms.vehicle_technical_form WHERE vehicle_technical_form_key = :key::BIGINT ORDER BY created_at DESC LIMIT 1),
   latest.sub_form_number,
   latest.version,
+  latest.revision + 1,
   :status,
   COALESCE(NULLIF(:partsSummary, '')::jsonb, '[]'::jsonb),
   COALESCE(NULLIF(:partsDefects, '')::jsonb, '[]'::jsonb),
@@ -129,6 +145,14 @@ SELECT
   latest.extraordinary_inspection_date,
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
+  latest.klim_clarification_date,
+  latest.carrier_explanation_date,
+  latest.penalty_valid_until,
+  latest.penalty_expired_or_processed,
+  latest.akvk_next_meeting_date,
+  latest.commission_last_decision_date,
+  latest.admin_procedure_decision,
   :created_by
 FROM latest
-RETURNING vehicle_technical_form_key AS id, sub_form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING vehicle_technical_form_key AS id, sub_form_number, version, revision;

@@ -1,16 +1,20 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Get a single user by ID (admin scope — all organisations)"
+  description: "Get a single user by ID (admin scope - all organisations)"
   namespace: users
   allowlist:
     params:
       - field: q
         type: string
         description: "User UUID"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -26,6 +30,7 @@ getUser:
   args:
     url: "[#LJVIS_RESQL]/user/get_user"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -56,8 +61,6 @@ logAuditEvent:
   body:
     event_type: "user.view"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${view_description}
     log_content: ${view_log_content}
   result: audit_result
@@ -68,6 +71,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_user"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       users: ${res.response.body}

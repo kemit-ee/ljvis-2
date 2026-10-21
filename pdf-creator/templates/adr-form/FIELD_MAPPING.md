@@ -24,7 +24,7 @@ Kontrollitud `/Users/viljauss/code/ljvis-2` lähtekoodi järgi.
 | 10 | adrForm.exemptionApplied, exemptionAdrProvision | true → jah, false → ei, puuduv → mõlemad tühjad. exemptionNotes lisatakse lahtrisse 29 |
 | 11 | adrForm.containerTypes[] | mahtlast / paak / pakend / memu märkeruudud |
 | 12–26 | adrForm.infringements[], valik checkpointCode=P12…P26 järgi | inspectionStatus vastab täpselt C/NC/NA ruudule; ei tuletata infringementDetected järgi |
-| 12–26 risk | sama punkti records[].riskCategory | Üks kirje → I/II/III; mitu → „Vt lisa”; kõik kirjed lisas |
+| 12–26 risk | sama punkti records[].riskCategory | Iga kirje oma reana: esimene punkti reale, teine ja kolmas samasuguse lisareana sama punkti alla. Lisasse jäävad ainult määruse 2016/403 kood, raskusaste ja märkused |
 | 12–26 ADR ja osalejad | records[].adrReference, responsibleParticipants[] | Seotud ühe rikkumiskirje kaupa; mitu kirjet lisas, mitte ühendatud riskidest sõltumatult |
 | 27 | infringements[checkpointCode=P27]; adrForm.otherInfringements[] | P27 samal põhimõttel; otherInfringements lisas pealkirja, staatuse, põhjuse ja rikkumiskirjetega |
 | 28 parandusmeetmed | adrForm.correctiveMeasures[] | on_spot → kohapealsed; before_journey_end → enne reisi lõppu; at_premises → valdustes |

@@ -16,6 +16,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -24,6 +27,7 @@ SELECT DISTINCT ON (kv_form_key)
   kv_form_key AS id,
   sub_form_number,
   version,
+  revision,
   status
 FROM forms.kv_form
 WHERE compound_form_key = :compoundFormKey::BIGINT

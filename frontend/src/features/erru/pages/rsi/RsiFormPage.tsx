@@ -11,6 +11,8 @@ import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { DetailRow } from '../../components/shared/DetailRow';
 import { PageActions } from '../../../../shared/components/PageActions';
 import { printRsiMessage } from '../../api';
+import { RsiCheckedItemsTable } from '../../components/Rsi/RsiCheckedItemsTable';
+import { isLegacyCheckedItems, normaliseCheckedItems } from '../../utils/rsiReasons';
 
 /**
  * RSI message detail (LJVIS2-147 vorm + LJVIS2-148 send). Modes:
@@ -43,7 +45,7 @@ export function RsiFormPage() {
   };
   const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
   const handlePrint = async () => {
-    const result = await printRsiMessage(message!.id);
+    const result = await printRsiMessage(String(message!.id));
     const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
     const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
     const link = document.createElement('a');
@@ -113,7 +115,11 @@ export function RsiFormPage() {
             <Text modifiers="bold">{message.errorMessage}</Text>
           )}
           {sendError && (
-            <Text modifiers="bold">{t('erru.rsi.sendFailed')}</Text>
+            <Text modifiers="bold">
+              {sendError === 'invalid_checked_items'
+                ? t('erru.rsi.validation.invalid_checked_items')
+                : t('erru.rsi.sendFailed')}
+            </Text>
           )}
         </Card.Content>
       </Card>
@@ -297,6 +303,34 @@ export function RsiFormPage() {
             </Card.Content>
           </Card>
 
+          <Card className="mt-05">
+            <Card.Content>
+              <Heading element="h2" className="mb-1">
+                {t('erru.rsi.form.checkedItemsBlock')}
+              </Heading>
+              {isLegacyCheckedItems(message.checkedItems) ? (
+                <>
+                  <Text className="mb-05">{t('erru.rsi.checkedItems.legacyNotice')}</Text>
+                  <ul>
+                    {(message.checkedItems ?? [])
+                      .filter((i) => i.status !== 'not_checked')
+                      .map((i) => (
+                        <li key={i.partCode}>
+                          {label('TECHNICAL_CHECK', i.partCode)}
+                          {i.defects.length > 0 &&
+                            `: ${i.defects.map((d) => `${label('TECHNICAL_CHECK', d.defectCode)} (${d.severity})`).join('; ')}`}
+                        </li>
+                      ))}
+                  </ul>
+                </>
+              ) : (
+                <RsiCheckedItemsTable
+                  tree={form.reasonTree}
+                  items={normaliseCheckedItems(message.checkedItems)}
+                />
+              )}
+            </Card.Content>
+          </Card>
         </>
       )}
     </div>

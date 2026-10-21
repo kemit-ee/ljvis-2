@@ -1,7 +1,7 @@
 /*
-description: 'LJVIS2-37 officer dashboard aggregate. Returns unfinished (not fully published) koondvorm
+description: 'LJVIS2-37 officer dashboard aggregate. Returns unfinished (compound status not published) koondvorm
   cases with their active sub-forms, unfinished standalone forms and a "needs attention" list (deadline
-  / confirmed-not- published) — all scoped to either the caller''s own work (scope=own, created_by = :actor_code)
+  / confirmed-not- published) - all scoped to either the caller''s own work (scope=own, created_by = :actor_code)
   or the caller''s whole organisation (scope=organisation, inspector_organisation_id / org-scoped standalone
   forms = :actor_org_id). Deadline rule (LJVIS2-37 AC): expedited (kiirmenetlus) = +15 days from the first
   snapshot where proceeding_type became ''expedited''; general (üldmenetlus) = +45 days from the koondvorm''s
@@ -12,7 +12,7 @@ params:
   scope:
     type: string
     required: false
-    description: '''own'' or ''organisation'''
+    description: '''own'', ''unit'' (caller''s own organisation and structural unit) or ''organisation'''
   actor_code:
     type: string
     required: false
@@ -21,6 +21,10 @@ params:
     type: string
     required: false
     description: auth_user.organisationid of the caller
+  actor_unit:
+    type: string
+    required: false
+    description: auth_user.structuralunit of the caller (scope 'unit')
 returns:
 - name: section
   type: string
@@ -46,7 +50,10 @@ compound_valid AS (
 compound_scoped AS (
     SELECT * FROM compound_valid cf
     WHERE (:scope = 'organisation' AND cf.inspector_organisation_id = :actor_org_id)
-       OR (:scope <> 'organisation' AND cf.created_by = :actor_code)
+       OR (:scope NOT IN ('organisation', 'unit') AND cf.created_by = :actor_code)
+       OR (:scope = 'unit' AND COALESCE(:actor_unit, '') <> '' AND (SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+           FROM users.user_account ua WHERE ua.personal_code = cf.created_by
+           ORDER BY ua.created_at DESC LIMIT 1) = :actor_org_id || '|' || :actor_unit)
 ),
 -- latest snapshot per sub-form, across all six sub-form tables, tagged with type
 lsd AS (
@@ -79,7 +86,7 @@ lkv AS (
         kv_form_key, compound_form_key, sub_form_number, status, created_at, created_by
     FROM forms.kv_form ORDER BY kv_form_key, created_at DESC
 ),
--- earliest snapshot per sub-form where proceeding_type first became non-'none'/non-null —
+-- earliest snapshot per sub-form where proceeding_type first became non-'none'/non-null -
 -- used as the "väärteomenetlus alustatud" date for the 15-day expedited deadline.
 proceeding_started AS (
     SELECT sp_driver_form_key AS sub_form_key, 'sp_driver'::text AS form_type, MIN(created_at) AS started_at
@@ -123,11 +130,11 @@ sub_union AS (
     FROM lkv kv WHERE kv.status <> 'deleted'
 ),
 sub_scoped AS (
-    SELECT su.*, ps.started_at AS proceeding_started_at
+    SELECT su.*,
+           (SELECT ps.started_at FROM proceeding_started ps
+             WHERE ps.sub_form_key = su.form_key AND ps.form_type = su.form_type) AS proceeding_started_at
     FROM sub_union su
-    JOIN compound_scoped cf ON cf.compound_form_key = su.compound_form_key
-    LEFT JOIN proceeding_started ps
-           ON ps.sub_form_key = su.form_key AND ps.form_type = su.form_type
+    WHERE su.compound_form_key = ANY (SELECT cf.compound_form_key FROM compound_scoped cf)
 ),
 compound_progress AS (
     SELECT
@@ -139,7 +146,7 @@ compound_progress AS (
         cf.vehicle_reg_nr,
         cf.company_name,
         concat_ws(' ', cf.inspector_first_name, cf.inspector_last_name) AS inspector_name,
-        (SELECT string_agg(concat_ws(' ', d->>'first_name', d->>'last_name'), ', ')
+        (SELECT string_agg(concat_ws(' ', COALESCE(d->>'firstName', d->>'first_name'), COALESCE(d->>'lastName', d->>'last_name')), ', ')
          FROM jsonb_array_elements(cf.drivers) AS d) AS driver_name,
         cf.created_by,
         COALESCE(
@@ -177,12 +184,12 @@ active_compound AS (
     ) AS item,
     control_date AS sort_key
     FROM compound_progress
-    WHERE status <> 'published' OR all_published = false
+    WHERE status <> 'published'
 ),
 -- ── section 2: unfinished standalone forms (saved/confirmed) ───────────────
 -- mainTime/vehicleRegNr: only foreign_violation_form actually captures an
 -- inspection time-of-day and a vehicle reg nr; labour_inspection/good_repute
--- have neither concept, so they report NULL (rendered as "—" on the FE).
+-- have neither concept, so they report NULL (rendered as "-" on the FE).
 standalone_union AS (
     SELECT 'foreign_violation'::text AS form_type, fv.foreign_violation_form_key AS form_key,
            fv.form_number, fv.status, fv.inspection_date AS main_date,
@@ -194,7 +201,10 @@ standalone_union AS (
           ORDER BY foreign_violation_form_key, created_at DESC) fv
     WHERE fv.status NOT IN ('deleted','published')
       AND ((:scope = 'organisation' AND fv.inspector_organisation_id = :actor_org_id)
-           OR (:scope <> 'organisation' AND fv.created_by = :actor_code))
+           OR (:scope NOT IN ('organisation', 'unit') AND fv.created_by = :actor_code)
+           OR (:scope = 'unit' AND COALESCE(:actor_unit, '') <> '' AND (SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+               FROM users.user_account ua WHERE ua.personal_code = fv.created_by
+               ORDER BY ua.created_at DESC LIMIT 1) = :actor_org_id || '|' || :actor_unit))
     UNION ALL
     SELECT 'labour_inspection', li.labour_inspection_form_key,
            li.form_number, li.status, li.inspection_date,
@@ -226,7 +236,10 @@ standalone_union AS (
           ORDER BY tram_control_card_key, created_at DESC) tc
     WHERE tc.status NOT IN ('deleted','published')
       AND ((:scope = 'organisation' AND tc.inspector_organisation_id = :actor_org_id)
-           OR (:scope <> 'organisation' AND tc.created_by = :actor_code))
+           OR (:scope NOT IN ('organisation', 'unit') AND tc.created_by = :actor_code)
+           OR (:scope = 'unit' AND COALESCE(:actor_unit, '') <> '' AND (SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+               FROM users.user_account ua WHERE ua.personal_code = tc.created_by
+               ORDER BY ua.created_at DESC LIMIT 1) = :actor_org_id || '|' || :actor_unit))
 ),
 active_standalone AS (
     SELECT jsonb_build_object(
@@ -237,23 +250,28 @@ active_standalone AS (
     FROM standalone_union
 ),
 -- ── section 3: needs attention (deadline overdue/soon, or confirmed-not-published) ──
+-- compound_progress.sub_forms lahtipakitud SRF-ina select-listis (mitte LATERAL JOIN-iga)
+deadline_src AS (
+    SELECT cp.compound_form_key, cp.form_number, cp.control_date,
+           jsonb_array_elements(cp.sub_forms) AS sf
+    FROM compound_progress cp
+),
 deadline_candidates AS (
     SELECT
-        cp.compound_form_key, cp.form_number, sf->>'formType' AS form_type,
-        (sf->>'formKey')::bigint AS form_key, sf->>'formNumber' AS sub_form_number,
-        sf->>'proceedingType' AS proceeding_type,
+        ds.compound_form_key, ds.form_number, ds.sf->>'formType' AS form_type,
+        (ds.sf->>'formKey')::bigint AS form_key, ds.sf->>'formNumber' AS sub_form_number,
+        ds.sf->>'proceedingType' AS proceeding_type,
         CASE
-            WHEN sf->>'proceedingType' = 'expedited' THEN
+            WHEN ds.sf->>'proceedingType' = 'expedited' THEN
                 (SELECT ps.started_at FROM proceeding_started ps
-                 WHERE ps.sub_form_key = (sf->>'formKey')::bigint AND ps.form_type = sf->>'formType') + INTERVAL '15 days'
-            WHEN sf->>'proceedingType' = 'general' THEN
-                cp.control_date + INTERVAL '45 days'
+                 WHERE ps.sub_form_key = (ds.sf->>'formKey')::bigint AND ps.form_type = ds.sf->>'formType') + INTERVAL '15 days'
+            WHEN ds.sf->>'proceedingType' = 'general' THEN
+                ds.control_date + INTERVAL '45 days'
             ELSE NULL
         END AS deadline_at
-    FROM compound_progress cp,
-         LATERAL jsonb_array_elements(cp.sub_forms) sf
-    WHERE sf->>'proceedingType' IN ('expedited', 'general')
-      AND sf->>'status' <> 'published'
+    FROM deadline_src ds
+    WHERE ds.sf->>'proceedingType' IN ('expedited', 'general')
+      AND ds.sf->>'status' <> 'published'
 ),
 needs_attention AS (
     SELECT jsonb_build_object(

@@ -4,13 +4,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 ENV="${1:-$SCRIPT_DIR/ci-stack-environment.json}"
+GROUP="${2:-all}"
+SELECTED_COLLECTIONS="$(python3 "$SCRIPT_DIR/groups.py" "$GROUP")"
 COL="$SCRIPT_DIR/collections"
-REPORT_DIR="$SCRIPT_DIR/reports"
+REPORT_DIR="${E2E_REPORT_DIR:-$SCRIPT_DIR/reports}"
 COMPOSE="docker compose -f $REPO_ROOT/docker-compose.ci.yml -p ljvis-ci"
 
 mkdir -p "$REPORT_DIR"
 
 echo "Using environment: $ENV"
+echo "Test group: $GROUP"
 echo "Reports directory: $REPORT_DIR"
 echo ""
 
@@ -50,147 +53,159 @@ for i in $(seq 1 60); do
   sleep 5
 done
 
+echo "==> Waiting for XTR inbound SOAP lane…"
+for i in $(seq 1 30); do
+  if curl -sf http://localhost:9095/health > /dev/null 2>&1; then
+    echo "    xtr-inbound ready (${i}x2s)"; break
+  fi
+  [ "$i" = "30" ] && { echo "❌ xtr-inbound not ready after 60s"; $COMPOSE logs xtr-inbound --tail=30; exit 1; }
+  sleep 2
+done
+
+echo "==> Waiting for erru-xml-adapter…"
+for i in $(seq 1 60); do
+  if curl -sf http://localhost:9091/health > /dev/null 2>&1; then
+    echo "    erru-xml-adapter ready (${i}x5s)"; break
+  fi
+  [ "$i" = "60" ] && { echo "❌ erru-xml-adapter not ready after 300s"; $COMPOSE logs erru-xml-adapter --tail=30; exit 1; }
+  sleep 5
+done
+
 echo ""
 
+if [ "$GROUP" = all ] || [ "$GROUP" = xroad ]; then
 python3 -B "$REPO_ROOT/tests/contract/check_erru_contract.py" --emit-sql | $COMPOSE exec -T database psql -X -q -o /dev/null -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db
 
 
+# Test the actual deployment XTR build before the API collections.
+python3 "$REPO_ROOT/tests/xtr/xml_entities_test.py" --image ljvis-ci-xtr-inbound
+
+python3 "$REPO_ROOT/tests/erru-adapter/test_migrations.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
+
+python3 "$REPO_ROOT/tests/sql/risk-all-forms.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
+python3 "$REPO_ROOT/tests/sql/risk-recalc-candidates.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 python3 "$REPO_ROOT/tests/sql/test_nu_concurrency.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
 $COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/sp-erru-points.sql"
+$COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/form-snapshot-revision.sql"
+
+fi
 
 # ── Newman runs ───────────────────────────────────────────────────────────────
+# Iga kollektsioon jookseb lõpuni ka siis, kui mõni varasem kukub; kukkunud
+# kogutakse FAILED massiivi ja skript lõpeb veaga allpool. JSON-raportid
+# (reports/*.json) on masinloetav sisend scripts/generate-api-test-report.py-le.
+FAILED=()
+run_collection() {
+  local name="$1"
+  shift
+  case " $SELECTED_COLLECTIONS " in
+    *" $name "*) ;;
+    *) return 0 ;;
+  esac
+  newman run "$COL/$name.collection.json" -e "$ENV" "$@" \
+    -r cli,htmlextra,json \
+    --reporter-htmlextra-export "$REPORT_DIR/$name.html" \
+    --reporter-json-export "$REPORT_DIR/$name.json" || FAILED+=("$name")
+}
 
-newman run "$COL/organisations.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/organisations.html"
+run_collection organisations
 
-newman run "$COL/permissions.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/permissions.html"
+run_collection permissions
 
-newman run "$COL/users.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/users.html"
+run_collection users
 
-newman run "$COL/user-groups.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/user-groups.html"
+run_collection user-groups
 
-newman run "$COL/classifiers.collection.json" -e "$ENV" \
-  --delay-request 600 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/classifiers.html"
+run_collection classifiers --delay-request 600
 
-newman run "$COL/compound-form.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/compound-form.html"
+run_collection compound-form --delay-request 300
 
-newman run "$COL/driverest-forms.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/driverest-forms.html"
+run_collection driverest-forms --delay-request 300
 
-newman run "$COL/tram-control-card.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/tram-control-card.html"
+run_collection tram-control-card --delay-request 300
 
-newman run "$COL/labour-inspection.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/labour-inspection.html"
+run_collection labour-inspection --delay-request 300
 
-  newman run "$COL/foreign-violation-form.collection.json" -e "$ENV" \
-    --delay-request 300 \
-    -r cli,htmlextra \
-    --reporter-htmlextra-export "$REPORT_DIR/foreign-violation-form.html"
+run_collection foreign-violation-form --delay-request 300
 
-newman run "$COL/erru-ctud.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/erru-ctud.html"
+run_collection erru-ctud --delay-request 300
 
-newman run "$COL/erru-cgr.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/erru-cgr.html"
+run_collection erru-cgr --delay-request 300
 
-newman run "$COL/erru-rsi.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/erru-rsi.html"
+run_collection erru-rsi --delay-request 300
 
-newman run "$COL/erru-ncr.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/erru-ncr.html"
+run_collection erru-ncr --delay-request 300
 
-newman run "$COL/erru-nu.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/erru-nu.html"
+run_collection erru-nu --delay-request 300
 
-newman run "$COL/technical-check-forms.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/technical-check-forms.html"
+run_collection erru-xml-adapter --delay-request 300
 
-newman run "$COL/transport-interruption.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/transport-interruption.html"
+if [ "$GROUP" = all ] || [ "$GROUP" = erru ]; then
+  python3 "$REPO_ROOT/tests/erru-adapter/test_regression.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
+fi
 
-newman run "$COL/adr-form.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/adr-form.html"
+run_collection technical-check-forms --delay-request 300
 
-newman run "$COL/good-repute-form.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/good-repute-form.html"
+run_collection transport-interruption --delay-request 300
 
-newman run "$COL/form-search.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/form-search.html"
+run_collection adr-form --delay-request 300
 
-newman run "$COL/xroad-provide-query.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-query.html"
+run_collection good-repute-form --delay-request 300
 
-newman run "$COL/xroad-provide-write.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/xroad-provide-write.html"
+run_collection form-search --delay-request 300
 
-newman run "$COL/risk-scores.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/risk-scores.html"
+run_collection xroad-provide-query
 
-newman run "$COL/citizen-representation.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/citizen-representation.html"
-newman run "$COL/cron-jobs.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/cron-jobs.html"
+run_collection xroad-provide-write
 
-newman run "$COL/notifications.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/notifications.html"
+if [ "$GROUP" = all ] || [ "$GROUP" = xroad ]; then
+# ── XTR SOAP provider (xtr-inbound) ── see docs/xtee/09-xtr-soap.md
+$COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/xtr/seed.sql"
+run_collection xroad-soap-inbound
+python3 "$REPO_ROOT/tests/xtr/verify.py" --report "$REPORT_DIR/xroad-soap-inbound.json" -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db || FAILED+=("xroad-soap-contract-and-storage")
+# XTR SOAP: repeated/changed/concurrent writes, ETL -> SOAP; SOAP bridge against misbehaving backends.
+python3 "$REPO_ROOT/tests/xtr/repeat_test.py" --soap-url http://localhost:9095 --rest-url http://localhost:9089 \
+  --resql-url http://localhost:9087/ljvis -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db \
+  || FAILED+=("xroad-soap-repeat-concurrency")
+# Concurrent UI / e-toimik / X-tee writers on one act: no forked history (revision).
+python3 "$REPO_ROOT/tests/xtr/race_test.py" -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db \
+  || FAILED+=("labour-inspection-concurrent-writers")
+python3 "$REPO_ROOT/tests/xtr/bridge_test.py" --image ljvis-ci-ruuter-internal --network ljvis-ci_ljvis-ci \
+  -- $COMPOSE exec -T database psql -X -qAt -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db || FAILED+=("xroad-soap-bridge")
 
-newman run "$COL/audit-log.collection.json" -e "$ENV" \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/audit-log.html"
+fi
 
-newman run "$COL/dashboard.collection.json" -e "$ENV" \
-  --delay-request 300 \
-  -r cli,htmlextra \
-  --reporter-htmlextra-export "$REPORT_DIR/dashboard.html"
+run_collection risk-scores
+
+run_collection citizen-representation
+run_collection cron-jobs
+
+run_collection notifications --delay-request 300
+
+run_collection audit-log
+
+run_collection dashboard --delay-request 300
 
 echo ""
+# Verify the complete chain after all producers (including ordinary UI flows) have run.
+python3 - <<'VERIFY_AUDIT'
+import json
+import urllib.request
+request = urllib.request.Request(
+    'http://localhost:9087/ljvis/log/get_logs_verify',
+    data=b'{"from_event_id":"","to_event_id":""}',
+    headers={'Content-Type': 'application/json'})
+with urllib.request.urlopen(request, timeout=20) as response:
+    result = json.load(response)[0]
+assert result['ok'], result
+print('Official audit verification passed:', result['checked'], 'events')
+VERIFY_AUDIT
+
+if [ ${#FAILED[@]} -gt 0 ]; then
+  echo "❌ Kukkunud kollektsioonid: ${FAILED[*]}"
+  exit 1
+fi
 echo "All collections passed."
 echo "HTML reports:"
 find "$REPORT_DIR" -type f -name "*.html" -print

@@ -18,8 +18,10 @@ import {
   saveDriveRestForm,
   confirmDriveRestForm,
   publishDriveRestForm,
+  saveProceedingOutcome,
 } from '../../api';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
+import { hasProceeding } from '../../proceedingOutcome';
 
 export type FormAuthority = 'PPA' | 'TRAM';
 
@@ -31,6 +33,9 @@ export function createDriveRestValidationSchema(
       t('forms.sp_form.validation.required'),
     ),
     resultType: Yup.string().required(
+      t('forms.sp_form.validation.required'),
+    ),
+    spApplicability: Yup.string().required(
       t('forms.sp_form.validation.required'),
     ),
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
@@ -46,17 +51,26 @@ export function createDriveRestValidationSchema(
         schema.required(t('forms.sp_form.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),
-    checkedDaysCount: Yup.string(),
-    workDaysCount: Yup.string().test(
-      'workDaysCountMax',
-      t('forms.sp_form.validation.workDaysCountMax'),
-      function (value) {
-        if (!value) return true;
-        const workDays = parseInt(value, 10);
-        const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
-        if (isNaN(checkedDays)) return false;
-        return workDays <= checkedDays;
-      },
+    checkedDaysCount: Yup.string().max(
+      2,
+      t('forms.sp_form.validation.daysCountMaxDigits'),
+    ),
+    workDaysCount: Yup.string()
+      .max(2, t('forms.sp_form.validation.daysCountMaxDigits'))
+      .test(
+        'workDaysCountMax',
+        t('forms.sp_form.validation.workDaysCountMax'),
+        function (value) {
+          if (!value) return true;
+          const workDays = parseInt(value, 10);
+          const checkedDays = parseInt(this.parent.checkedDaysCount || '', 10);
+          if (isNaN(checkedDays)) return false;
+          return workDays <= checkedDays;
+        },
+      ),
+    otherActivityDaysCount: Yup.string().max(
+      2,
+      t('forms.sp_form.validation.daysCountMaxDigits'),
     ),
   });
 }
@@ -129,12 +143,19 @@ export function serializeDriveRestFormValues(
     liiniNumber: sanitizeText(values.liiniNumber as string),
     liiniNimetus: sanitizeText(values.liiniNimetus as string),
     proceedingReferenceNumber: sanitizeText(values.proceedingReferenceNumber as string),
+    // Meeskonnaliikme andmed on vormil kirjutuskaitstud — server võtab need koondvormi plokist
+    personCodeEe: undefined,
+    personFirstName: undefined,
+    personLastName: undefined,
+    personCitizenshipCode: undefined,
+    personCodeForeign: undefined,
+    personBirthDate: undefined,
   };
 }
 
 export function useDriveRestForm(
   form: DriveRestForm | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string, confirmed?: boolean) => void,
   type: 'driver' | 'teammate',
   compoundFormKey?: number,
   onPublished?: () => void,
@@ -148,6 +169,7 @@ export function useDriveRestForm(
     publish: publishDriveRestForm,
   };
   const pendingConfirm = useRef(false);
+  const pendingNotifyCarrier = useRef(false);
   const pendingPublish = useRef(false);
   const pendingCompoundFormKey = useRef<number | undefined>(undefined);
 
@@ -341,6 +363,12 @@ export function useDriveRestForm(
       notes: form?.notes ?? '',
       liiniNumber: form?.liiniNumber ?? '',
       liiniNimetus: form?.liiniNimetus ?? '',
+      personCodeEe: form?.personCodeEe ?? '',
+      personFirstName: form?.personFirstName ?? '',
+      personLastName: form?.personLastName ?? '',
+      personCitizenshipCode: form?.personCitizenshipCode ?? '',
+      personCodeForeign: form?.personCodeForeign ?? '',
+      personBirthDate: form?.personBirthDate ?? '',
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -350,6 +378,9 @@ export function useDriveRestForm(
         pendingConfirm.current = false;
         pendingPublish.current = false;
         if (isPublishing && form?.id) {
+          if (hasProceeding(values)) {
+            await saveProceedingOutcome(type === 'driver' ? 'sp_driver' : 'sp_teammate', form.id, values.enforcementDecision, values.proceedingClosureBasis);
+          }
           await api.publish(type, form.id);
           onPublished?.();
           return;
@@ -368,9 +399,9 @@ export function useDriveRestForm(
         };
 
         const result = isConfirming
-          ? await api.confirm(type, trimmedValues as unknown as DriveRestForm)
+          ? await api.confirm(type, { ...trimmedValues, notifyCarrier: String(pendingNotifyCarrier.current) } as unknown as DriveRestForm)
           : await api.save(type, trimmedValues as unknown as DriveRestForm);
-        onSaved(result[0]?.id);
+        onSaved(result[0]?.id, isConfirming);
       } catch (e) {
         console.error('Save failed', e);
       }
@@ -386,8 +417,9 @@ export function useDriveRestForm(
     }
   }, [compoundFormKey]);
 
-  const triggerConfirm = () => {
+  const triggerConfirm = (notifyCarrier = false) => {
     pendingConfirm.current = true;
+    pendingNotifyCarrier.current = notifyCarrier === true;
     formik.submitForm();
   };
 

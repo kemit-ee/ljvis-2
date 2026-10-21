@@ -164,6 +164,12 @@
       "enabled": true
     },
     {
+      "key": "internal_service_token",
+      "value": "dev-internal-service-token",
+      "type": "secret",
+      "enabled": true
+    },
+    {
       "key": "cookie_ctud_nosend",
       "value": "",
       "type": "default",
@@ -292,6 +298,18 @@
       "key": "cookie_officer",
       "value": "",
       "enabled": true
+    },
+    {
+      "key": "erru_xml_adapter_url",
+      "value": "http://localhost:8091",
+      "enabled": true,
+      "description": "erru-xml-adapter — dev stack (port 8091). See docker/erru-xml-adapter/README.md."
+    },
+    {
+      "key": "erru_hub_mock_url",
+      "value": "http://localhost:8092",
+      "enabled": true,
+      "description": "ERRU Hub mock — dev stack (port 8092). See docker/erru-hub-mock."
     }
   ],
   "_postman_variable_scope": "environment"

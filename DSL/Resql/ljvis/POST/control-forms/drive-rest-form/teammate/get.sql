@@ -19,6 +19,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -127,10 +130,31 @@ returns:
 - name: liiniNimetus
   type: string
   nullable: true
+- name: personCodeEe
+  type: string
+  nullable: true
+- name: personFirstName
+  type: string
+  nullable: true
+- name: personLastName
+  type: string
+  nullable: true
+- name: personCitizenshipCode
+  type: string
+  nullable: true
+- name: personCodeForeign
+  type: string
+  nullable: true
+- name: personBirthDate
+  type: string
+  nullable: true
 - name: createdBy
   type: string
   nullable: true
 - name: companyRegCode
+  type: string
+  nullable: true
+- name: companyName
   type: string
   nullable: true
 */
@@ -139,6 +163,7 @@ SELECT
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   selection_status,
   transport_type,
@@ -175,6 +200,12 @@ SELECT
   notes,
   liini_number AS "liiniNumber",
   liini_nimetus AS "liiniNimetus",
+  person_code_ee AS "personCodeEe",
+  person_first_name AS "personFirstName",
+  person_last_name AS "personLastName",
+  person_citizenship_code AS "personCitizenshipCode",
+  person_code_foreign AS "personCodeForeign",
+  TO_CHAR(person_birth_date, 'YYYY-MM-DD') AS "personBirthDate",
   created_by,
   (
     SELECT company_reg_code
@@ -182,7 +213,14 @@ SELECT
     WHERE compound_form_key = spt.compound_form_key
     ORDER BY created_at DESC
     LIMIT 1
-  ) AS company_reg_code
+  ) AS company_reg_code,
+  (
+    SELECT company_name
+    FROM forms.compound_form
+    WHERE compound_form_key = spt.compound_form_key
+    ORDER BY created_at DESC
+    LIMIT 1
+  ) AS company_name
 FROM forms.sp_teammate_form spt
 WHERE sp_teammate_form_key = :id::BIGINT
 ORDER BY created_at DESC

@@ -1,0 +1,102 @@
+# Avalikustatud vormi muutmine-salvestamine (uus avalikustatud versioon) arvutab riskiskoori ümber,
+# nagu publish.yml. Salvestatud/mustandi salvestamine skoori ei puuduta (ajalooline tabel on insert-only).
+# Sama `recalcRiskOnResave` samm on kõigi riskiskoori sisendiks olevate vormitüüpide edit/save.yml-is.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
+tests:
+- name: resaving a published form recalculates the risk score
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [vehicle_technical_form.write, vehicle_technical_form.read, control_form.edit_locked]
+    - url_matches: /control-forms/vehicle-technical/get
+      method: POST
+      status: 200
+      body: [{id: 5, status: published, compoundFormKey: 9, createdBy: SESSION1, revision: 4}]
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body: [{id: 9, inspectorPersonalCode: SESSION1, drivers: '[]'}]
+    - url_matches: /control-forms/vehicle-technical/update
+      method: POST
+      status: 200
+      body: [{id: 5, version: 5, subFormNumber: th-2026-00001}]
+    - url_matches: /risk-scores/recalculate/from-form
+      method: POST
+      status: 200
+      body: {riskScore: '50', totalControls: 3}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/vehicle-technical/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {id: '5', revision: 4, resultType: ok}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update
+    count: 1
+  - url_matches: /risk-scores/recalculate/from-form
+    count: 1
+    body_matches:
+      form_type: compound
+      form_key: '9'
+
+- name: saving a not yet published form leaves the risk score alone
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [vehicle_technical_form.write, vehicle_technical_form.read, control_form.edit_locked]
+    - url_matches: /control-forms/vehicle-technical/get
+      method: POST
+      status: 200
+      body: [{id: 5, status: saved, compoundFormKey: 9, createdBy: SESSION1, revision: 4}]
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body: [{id: 9, inspectorPersonalCode: SESSION1, drivers: '[]'}]
+    - url_matches: /control-forms/vehicle-technical/update
+      method: POST
+      status: 200
+      body: [{id: 5, version: 5, subFormNumber: th-2026-00001}]
+    - url_matches: /risk-scores/recalculate/from-form
+      method: POST
+      status: 200
+      body: {riskScore: '50', totalControls: 3}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/vehicle-technical/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {id: '5', revision: 4, resultType: ok}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update
+    count: 1
+  - url_matches: /risk-scores/recalculate/from-form
+    count: 0
+    body_matches:
+      form_type: compound
+      form_key: '9'

@@ -1,10 +1,10 @@
 /*
 description: 'Record one automatic-NCR-dispatch attempt for an SP sub-form (LJVIS2-64). Written by the
   nightly cron (DSL/Ruuter.internal/.../cron/erru-ncr-autodispatch.yml) after it has tried to build +
-  send the NCR. Exactly one row per (sp_form_key, sp_form_type) — a second attempt is silently ignored
+  send the NCR. Exactly one row per (sp_form_key, sp_form_type) - a second attempt is silently ignored
   (ON CONFLICT DO NOTHING), which is also what keeps select-autodispatch-candidates.sql from re-selecting
   the same sub-form. outcome: ''acknowledged'' (ERRU hub confirmed receipt), ''error'' (negative ack or
-  transport failure — the NCR message itself sits in status ''error'' for an officer to re-send manually),
+  transport failure - the NCR message itself sits in status ''error'' for an officer to re-send manually),
   or ''build_failed'' (eeltäitmine returned no row, no NCR message created).'
 namespace: erru
 params:

@@ -1,5 +1,5 @@
 /*
-description: Delete ADR sub-form — copy latest snapshot with status=deleted
+description: Delete ADR sub-form - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:
@@ -12,6 +12,9 @@ params:
     type: string
     required: false
 returns:
+- name: compound_form_key
+  type: number
+  nullable: true
 - name: id
   type: number
   nullable: true
@@ -25,6 +28,7 @@ WITH latest AS (
     compound_form_key,
     sub_form_number,
     version,
+    revision,
     driver_assistant,
     driver_adr_certificate_number,
     crew_adr_certificate_number,
@@ -47,7 +51,14 @@ WITH latest AS (
     seal_installed_date,
     notes,
     enforcement_decision,
-    proceeding_closure_basis
+    proceeding_closure_basis,
+    klim_clarification_date,
+    carrier_explanation_date,
+    penalty_valid_until,
+    penalty_expired_or_processed,
+    akvk_next_meeting_date,
+    commission_last_decision_date,
+    admin_procedure_decision
   FROM forms.adr_form
   WHERE adr_form_key = :id::BIGINT
   ORDER BY adr_form_key, created_at DESC
@@ -57,6 +68,7 @@ INSERT INTO forms.adr_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   driver_assistant,
   driver_adr_certificate_number,
@@ -81,6 +93,13 @@ INSERT INTO forms.adr_form (
   notes,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -88,6 +107,7 @@ SELECT
   l.compound_form_key,
   l.sub_form_number,
   l.version,
+  l.revision + 1,
   :status,
   l.driver_assistant,
   l.driver_adr_certificate_number,
@@ -112,6 +132,13 @@ SELECT
   l.notes,
   l.enforcement_decision,
   l.proceeding_closure_basis,
+  l.klim_clarification_date,
+  l.carrier_explanation_date,
+  l.penalty_valid_until,
+  l.penalty_expired_or_processed,
+  l.akvk_next_meeting_date,
+  l.commission_last_decision_date,
+  l.admin_procedure_decision,
   :created_by
 FROM latest l
-RETURNING adr_form_key AS id, sub_form_number;
+RETURNING adr_form_key AS id, sub_form_number, compound_form_key;

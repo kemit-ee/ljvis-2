@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "LJVIS2-9 cross-entity form search. Returns a paged, filtered list of forms the caller is allowed to see (row-level by read permission)."
   namespace: control-forms
@@ -22,6 +23,9 @@ declaration:
       - field: formType
         type: string
         description: "Filter by a single form type"
+      - field: formNumber
+        type: string
+        description: "Form number, partial match"
       - field: vehicleRegNr
         type: string
         description: "Vehicle registration number"
@@ -36,13 +40,16 @@ declaration:
         description: "Driver personal code or name"
       - field: county
         type: string
-        description: "Control location county / maakond"
+        description: "Control location county / maakond, EHAK classifier value key"
       - field: inspectorOrgId
         type: string
         description: "Performing authority organisation id"
       - field: hasViolation
         type: string
         description: "'true' / 'false'"
+      - field: carrierOrigin
+        type: string
+        description: "'ee' / 'foreign'; empty = all"
       - field: status
         type: string
         description: "Form lifecycle status"
@@ -54,7 +61,7 @@ declaration:
         description: "VR only - applied sanction code (exact match)"
 
 getAuthority:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     u: ${auth_user}
   next: buildAllowedTypes
@@ -69,15 +76,23 @@ search:
   args:
     url: "[#LJVIS_RESQL]/control-forms/search/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       allowed_types: "${allowed_types}"
+      actor_code: "${u.personalcode || ''}"
+      caller_organisation_id: "${u.organisationid == null ? '' : String(u.organisationid)}"
+      caller_view_unpublished: "${u.permissions.includes('control_form.view_unpublished') ? 'true' : 'false'}"
+      caller_view_organisation: "${u.permissions.includes('control_form.view_organisation') ? 'true' : 'false'}"
+      caller_view_unit: "${u.permissions.includes('control_form.view_unit') ? 'true' : 'false'}"
+      caller_structural_unit: "${u.structuralunit == null ? '' : String(u.structuralunit)}"
       page: "${incoming.params.page ?? '1'}"
       page_size: "${incoming.params.pageSize ?? '20'}"
       sorting: "${incoming.params.sorting ?? 'main_date desc'}"
       date_from: "${incoming.params.dateFrom ?? ''}"
       date_to: "${incoming.params.dateTo ?? ''}"
       form_type: "${incoming.params.formType ?? ''}"
+      form_number: "${incoming.params.formNumber ?? ''}"
       vehicle_reg_nr: "${incoming.params.vehicleRegNr ?? ''}"
       company_reg_code: "${incoming.params.companyRegCode ?? ''}"
       company_name: "${incoming.params.companyName ?? ''}"
@@ -85,6 +100,7 @@ search:
       county: "${incoming.params.county ?? ''}"
       inspector_org_id: "${incoming.params.inspectorOrgId ?? ''}"
       has_violation: "${incoming.params.hasViolation ?? ''}"
+      carrier_origin: "${incoming.params.carrierOrigin ?? ''}"
       status: "${incoming.params.status ?? ''}"
       vr_reporting_country_code: "${incoming.params.vrReportingCountryCode ?? ''}"
       vr_sanction_code: "${incoming.params.vrSanctionCode ?? ''}"

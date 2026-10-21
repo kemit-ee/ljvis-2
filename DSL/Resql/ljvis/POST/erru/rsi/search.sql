@@ -1,12 +1,12 @@
 /*
-description: 'Paginated, filtered list of RSI messages — BOTH incoming and outgoing (LJVIS2-149). Unlike
+description: 'Paginated, filtered list of RSI messages - BOTH incoming and outgoing (LJVIS2-149). Unlike
   the CGR list (outgoing-only), the spec explicitly includes both directions: ''kuvab sissetulevad ja
   väljaminevad tehnokontrolli teated ühes tabelis''. The latest CTE reduces the append-only table to one
   row per message before filtering or paging. Text filters businessCaseId and vehicleRegistrationNumber
-  are OR-combined with each other, then AND-combined with all other filters — this is an explicit requirement
-  of the spec (''Väljad ID ja Sõiduki registreerimisnumber on otsitavad väljad — nende omavaheline seos
+  are OR-combined with each other, then AND-combined with all other filters - this is an explicit requirement
+  of the spec (''Väljad ID ja Sõiduki registreerimisnumber on otsitavad väljad - nende omavaheline seos
   on VÕI-loogika''). direction is an exposed filter parameter (not hard-coded). response_status_code is
-  a direct column from the latest snapshot — no derived computation like in CGR (RSI always targets a
+  a direct column from the latest snapshot - no derived computation like in CGR (RSI always targets a
   single country, no broadcast ZZ). Sorting is whitelisted; total via COUNT(*) OVER () to keep round trips
   to one.'
 namespace: erru
@@ -117,7 +117,7 @@ SELECT
   (COUNT(*) OVER ())::INTEGER      AS total
 FROM latest l
 WHERE
-  -- Text filters: businessCaseId OR vehicleRegistrationNumber — OR between them, AND with the rest.
+  -- Text filters: businessCaseId OR vehicleRegistrationNumber - OR between them, AND with the rest.
   -- When both are empty → no text filter (show all). When one is set → filter by that one.
   -- When both are set → match either. Implemented as: (both-empty) OR (id match) OR (regNr match).
   (

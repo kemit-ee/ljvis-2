@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Audit: user group create event — fetches permissions and organisation count internally"
+  description: "Audit: user group create event - fetches permissions and organisation count internally"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: user_group_id
@@ -15,14 +19,13 @@ declaration:
       - field: organisation_ids
         type: string
       - field: selected_org_count
-      - field: permission_ids
-        type: string
 
 fetchPermissions:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${incoming.body.user_group_id}
@@ -34,6 +37,7 @@ fetchOrgsCount:
   args:
     url: "[#LJVIS_RESQL]/organisation/list_organisations"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: orgsCountRes

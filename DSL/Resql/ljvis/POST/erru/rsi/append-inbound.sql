@@ -5,7 +5,7 @@ description: 'Record an INCOMING RSI (RoadSideInspection) notification arriving 
   AND status=''received'') means a redelivered RSI message yields zero rows instead of a duplicate, allowing
   the caller to replay the stored response. Unlike CGR, RSI carries vehicle data (not transport manager
   data) and the checked_items are already in ERRU format. rsi_from is the sending country from the ERRU
-  envelope; rsi_to is always EE (us). response_status_code is NULL on receipt — it is set by the separate
+  envelope; rsi_to is always EE (us). response_status_code is NULL on receipt - it is set by the separate
   append-transition call that stores the ''answered'' snapshot.'
 namespace: erru
 params:
@@ -66,6 +66,27 @@ params:
   checkedItems:
     type: string
     required: false
+  driverFirstName:
+    type: string
+    required: false
+  driverFamilyName:
+    type: string
+    required: false
+  driverLicenceNumber:
+    type: string
+    required: false
+  driverLicenceCountry:
+    type: string
+    required: false
+  odometerReading:
+    type: string
+    required: false
+  inspectionIdentifier:
+    type: string
+    required: false
+  identificationDetails:
+    type: string
+    required: false
   created_by:
     type: string
     required: false
@@ -109,6 +130,13 @@ WITH ins AS (
     pti_requested,
     vehicle_prohibition_or_restriction,
     checked_items,
+    driver_first_name,
+    driver_family_name,
+    driver_licence_number,
+    driver_licence_country,
+    odometer_reading,
+    inspection_identifier,
+    identification_details,
     created_by
   )
   VALUES (
@@ -136,6 +164,13 @@ WITH ins AS (
     NULLIF(:ptiRequested, '')::BOOLEAN,
     NULLIF(:vehicleProhibitionOrRestriction, '')::BOOLEAN,
     COALESCE(NULLIF(:checkedItems, ''), '[]')::JSONB,
+    NULLIF(:driverFirstName, ''),
+    NULLIF(:driverFamilyName, ''),
+    NULLIF(:driverLicenceNumber, ''),
+    NULLIF(:driverLicenceCountry, ''),
+    NULLIF(:odometerReading, '')::INTEGER,
+    NULLIF(:inspectionIdentifier, ''),
+    NULLIF(:identificationDetails, '')::JSONB,
     :created_by
   )
   ON CONFLICT (technical_id) WHERE (direction = 'incoming' AND status = 'received')

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: |
     Serve an INBOUND CGR (Check Good Repute / Mainepäring) request from another member
@@ -12,7 +13,10 @@ declaration:
       3. Store a 'received' snapshot (append-inbound.sql, idempotent via partial unique
          index uq_cgr_inbound_technical_id).
       4. A re-delivered message yields zero rows: look up the existing snapshot by
-         technical_id and replay the stored member_states response.
+         technical_id. If it is already 'answered', replay the stored member_states
+         response. If it is still 'received' (the previous attempt crashed after storing
+         but before completing the lookup), resume processing from that existing row
+         instead of replaying an incomplete/empty answer.
       5. Search the local UNFIT register (forms.good_repute_form via search-good-repute.sql).
          If found with fitness_status='unfit' → respond Found + Unfit (searchMethod='Local').
       6. If not found in UNFIT register → call the MTR mock (ERRU_CGR_MTR_ENDPOINT, which
@@ -22,7 +26,7 @@ declaration:
          technically (NYSIIS/XTR/X-tee error) → audit + respond 502 without storing
          an 'answered' snapshot, so the requesting state retries.
       8. Store an 'answered' snapshot with the EE member_states entry.
-      9. Write audit (cgr.inbound_request.serve) directly to Resql — ruuter-internal cannot
+      9. Write audit (cgr.inbound_request.serve) directly to Resql - ruuter-internal cannot
          reach the main instance's GET/templates/audit chain (same limitation as CTUD
          inbound-request.yml).
 
@@ -34,7 +38,7 @@ declaration:
     uq_cgr_inbound_technical_id (direction='incoming' AND status='received').
 
     Validation: envelope fields are checked here. The CGR 7A/7B choice rule (chk_cgr_search_
-    choice) is enforced by the DB constraint — a single source of truth, no drift possible.
+    choice) is enforced by the DB constraint - a single source of truth, no drift possible.
   namespace: erru
   allowlist:
     body:
@@ -118,6 +122,7 @@ storeReceived:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/append-inbound"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technicalId: ${technical_id}
@@ -156,6 +161,7 @@ lookupExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/get-by-technical-id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       technical_id: ${technical_id}
@@ -166,7 +172,16 @@ checkExisting:
   switch:
     - condition: ${existing_res.response.body == null || existing_res.response.body.length != 1}
       next: returnInvalidData
+    - condition: ${existing_res.response.body[0].status === 'received'}
+      next: resumeFromExisting
   next: returnReplayedAnswer
+
+# Previous attempt stored 'received' but crashed before the lookup/answer completed.
+# Resume from that row instead of treating an incomplete record as a valid replay.
+resumeFromExisting:
+  assign:
+    request_key: "${existing_res.response.body[0].id}"
+  next: searchGoodRepute
 
 # Step 5: check local UNFIT register first.
 searchGoodRepute:
@@ -174,6 +189,7 @@ searchGoodRepute:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/search-good-repute"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       tmFirstName: ${tm_first_name}
@@ -200,12 +216,12 @@ buildUnfitResponse:
     resp_details: "${JSON.stringify({respondingAuthority: 'EE-TRAM', searchMethod: 'Local', nameDetails: {firstName: gr_person.firstName || gr_person.first_name, familyName: gr_person.lastName || gr_person.last_name, dateOfBirth: gr_person.dateOfBirth || gr_person.date_of_birth, placeOfBirth: gr_person.placeOfBirth || gr_person.place_of_birth || null}, addressDetails: null, certificateDetails: {certificateNumber: gr_person.certificateNumber || gr_person.certificate_number, certificateIssueDate: gr_person.certificateIssueDate || gr_person.certificate_issue_date, certificateIssueCountry: gr_person.certificateCountryCode || gr_person.certificate_country_code, certificateValidity: 'Valid', fitness: {fitnessStatus: 'Unfit', unfitStartDate: gr_person.unfitFromDate || gr_person.unfit_from_date || null, unfitEndDate: gr_person.unfitUntilDate || gr_person.unfit_until_date || null}}, transportUndertakings: {totalManagedUndertakings: 0, totalManagedVehicles: 0, undertaking: []}})}"
   next: buildFullResponse
 
-# Step 6: transport manager not in UNFIT register — ask MTR.
+# Step 6: transport manager not in UNFIT register - ask MTR.
 #
 # MTR requires all six identifying fields at once, but ERRU's CGR message
 # allows partial identification (7A: name+DOB, 7B: certificate only). If the
-# request lacks what MTR needs, short-circuit to NotFound instead of sending
-# MTR a request it will reject anyway.
+# request lacks what MTR needs, report ServerError for an ErrorNotification.
+# No negative search result is recorded when the search could not be performed.
 checkMtrDataComplete:
   switch:
     - condition: "${!tm_first_name || !tm_family_name || !tm_date_of_birth || !certificate_number || !certificate_issue_country || !certificate_issue_date}"
@@ -229,14 +245,14 @@ callMtr:
   result: mtr_res
   next: checkMtrStatus
 
-# ERRU_CGR_MTR_ENDPOINT points at erru/cgr/lookup-mtr.yml, which is itself a Ruuter DSL —
+# ERRU_CGR_MTR_ENDPOINT points at erru/cgr/lookup-mtr.yml, which is itself a Ruuter DSL -
 # its HTTP response is therefore always enveloped as {"response": <result>} like every
 # other Ruuter endpoint (confirmed live against real MTR data: the bare fields are one
 # level deeper than mtr_res.response.body). Unwrap one level before reading fields.
 #
 # lookup-mtr.yml tagastab 200 ainult õnnestunud päringu korral; NYSIIS/XTR/X-tee
 # tõrge tuleb 502 (või 400) staatusega. Sellist tõrget EI TOHI tõlgendada ärilise
-# "ei leitud" vastusena — muidu saab küsiv liikmesriik meilt vale eituse ja me
+# "ei leitud" vastusena - muidu saab küsiv liikmesriik meilt vale eituse ja me
 # salvestame selle 'answered' seisundina. Tehniline tõrge → audit + 502, päring
 # jääb 'received' seisundisse ja seda saab korrata (LJVIS2-139).
 checkMtrStatus:
@@ -248,7 +264,7 @@ checkMtrStatus:
   next: buildNotFoundResponse
 
 # MTR Found: address is the undertaking's (not personal) address per spec. searchMethod
-# and fitness are hardcoded — MTR always matches by NYSIIS and is always "Fit" (MTR has
+# and fitness are hardcoded - MTR always matches by NYSIIS and is always "Fit" (MTR has
 # no "Unfit" concept; that's our local UNFIT register, checked above already).
 buildMtrFoundResponse:
   assign:
@@ -259,7 +275,7 @@ buildMtrFoundResponse:
 
 # tm/company0/all_companies come from the previous assign step: Ruuter evaluates
 # every expression in one assign block against the pre-step variable scope, so a
-# later key in the same block cannot see an earlier key's value — hence the split.
+# later key in the same block cannot see an earlier key's value - hence the split.
 assignMtrFoundResponse:
   assign:
     resp_status_code: "Found"
@@ -300,17 +316,14 @@ buildNotFoundResponse:
     resp_details: "null"
   next: buildFullResponse
 
-# Request didn't have enough data to even ask MTR — distinct from a real MTR
+# Request didn't have enough data to even ask MTR - distinct from a real MTR
 # "not found", logged with its own status message for traceability.
-# search_method jääb 'NYSIIS' (sama mis buildNotFoundResponse) — MTR ei anna
+# search_method jääb 'NYSIIS' (sama mis buildNotFoundResponse) - MTR ei anna
 # kunagi 'CPC' meetodit, seega vana tingimuslik väärtus oli eksitav.
 buildInsufficientDataResponse:
-  assign:
-    resp_status_code: "NotFound"
-    resp_status_message: "Insufficient data to query MTR (ERRU 7A/7B partial identification is not supported by MTR's checkTransportManagerGoodRepute, which requires full identification)"
-    search_method: "NYSIIS"
-    resp_details: "null"
-  next: buildFullResponse
+  status: 422
+  return: '{"statusCode":"ServerError","statusMessage":"The register cannot perform this valid partial-identification search"}'
+  next: end
 
 buildFullResponse:
   assign:
@@ -323,6 +336,7 @@ storeAnswered:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${request_key}
@@ -339,7 +353,7 @@ storeAnswered:
 # event_id generation is byte-identical to GET/templates/audit/log-audit-event.yml.
 buildAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "CGR sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${cgr_from}, päringu allikas ${request_source}, otsingumeetod ${search_method}, tulemus ${resp_status_code}, otsitud isik ${tm_first_name} ${tm_family_name}"
     audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['cgrFrom', cgr_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['tmFirstName', tm_first_name || null], ['tmFamilyName', tm_family_name || null], ['tmDateOfBirth', tm_date_of_birth || null], ['searchMethod', search_method || null], ['resultStatus', resp_status_code || null]]))}"
   next: logAudit
@@ -349,6 +363,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}
@@ -385,10 +400,10 @@ returnInvalidData:
 
 # MTR / X-tee / NYSIIS tehniline tõrge. Auditeeri (event_id genereerimine
 # byte-identne buildAudit'iga), kuid ÄRA salvesta 'answered' seisundit ega
-# tagasta ärilist vastust — 502 annab küsivale riigile märku korrata.
+# tagasta ärilist vastust - 502 annab küsivale riigile märku korrata.
 mtrUnavailableAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "CGR sissetuleva päringu teenindamine ebaõnnestus: juhtum ${business_case_id}, küsiv riik ${cgr_from}, MTR/X-tee ei vastanud (HTTP ${(mtr_res.response && mtr_res.response.status) || 'null'}), otsitud isik ${tm_first_name} ${tm_family_name}"
     audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['cgrFrom', cgr_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['tmFirstName', tm_first_name || null], ['tmFamilyName', tm_family_name || null], ['mtrHttpStatus', (mtr_res.response && mtr_res.response.status) || null], ['resultStatus', 'Error']]))}"
   next: logMtrUnavailableAudit
@@ -398,6 +413,7 @@ logMtrUnavailableAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}

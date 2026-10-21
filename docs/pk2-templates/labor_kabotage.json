@@ -7,8 +7,8 @@
   "templateMessage": {
     "channel": "EMAIL",
     "language": "et",
-    "subject": "LJVIS-2: Kabotaaži kontrolli teavitus ({{controlFormId}})",
-    "content": "<p>Tere,</p><p>Liiklusjärelevalve infosüsteemis (LJVIS-2) on avalikustatud kabotaaži kontrolliakt, mis sisaldab Tööinspektsioonile edastamiseks kohustuslikku teavet.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrolliakti võti</th><td>{{controlFormId}}</td></tr><tr><th>Kontrolli kuupäev</th><td>{{controlDate}}</td></tr><tr><th>Veoettevõtja</th><td>{{carrierName}} ({{carrierCode}})</td></tr><tr><th>Sõiduki reg.nr.</th><td>{{vehicleRegNr}}</td></tr><tr><th>Juhi nimi</th><td>{{driverName}}</td></tr><tr><th>Kabotaažirikkumiste arv</th><td>{{cabotageViolationCount}}</td></tr><tr><th>Kontrolliv ametnik</th><td>{{inspectorName}}</td></tr></table><p>Täpsemad andmed on kättesaadavad LJVIS-2 kasutajaliideses kontrolliakti võtme järgi.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "subject": "Eestis on toimunud kabotaažveo kontroll ({{formNumber}})",
+    "content": "<p>Tere,</p><p>Liiklusjärelevalve infosüsteemis on avalikustatud välisriigi vedaja kabotaažveo kontroll.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrollvorm</th><td>{{formNumber}}</td></tr><tr><th>Veoettevõtja</th><td>{{companyName}} ({{companyRegCode}})</td></tr><tr><th>Kontrolli tulemus</th><td>{{resultType}}</td></tr></table><p>Täpsemad andmed on kättesaadavad LJVIS-2 kasutajaliideses.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
     "contentType": "text/html"
   }
 }

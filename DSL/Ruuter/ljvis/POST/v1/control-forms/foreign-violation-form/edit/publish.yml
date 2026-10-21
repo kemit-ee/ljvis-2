@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) a foreign violation form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) a foreign violation form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -22,6 +26,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -71,7 +76,7 @@ extractCurrentFormData:
     vehicle_body_type: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].vehicleBodyType) || ''}"
     licence_copy_number: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].licenceCopyNumber) || ''}"
     violation_description: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].violationDescription) || ''}"
-    # `!= null ? String(x) : ''` — mitte `|| ''`, sest 0 (nt "0 väikest
+    # `!= null ? String(x) : ''` - mitte `|| ''`, sest 0 (nt "0 väikest
     # rikkumist") on legitiimne väärtus, mille `|| ''` muudaks SQL NULL-iks.
     minor_violations_count: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].minorViolationsCount != null) ? String(currentFormRes.response.body[0].minorViolationsCount) : ''}"
     sanction_code: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].sanctionCode) || ''}"
@@ -104,9 +109,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       reportingCountryCode: ${reporting_country_code}
       reportingAuthority: ${reporting_authority}
       inspectionCountryCode: ${inspection_country_code}
@@ -161,14 +168,20 @@ publishForm:
       status: ${status}
       created_by: ${created_by}
   result: publishRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: check_publishRes_persisted
 
-# --- Teavituste saatmine on p.5 refaktoriga kolitud edit/save.yml-i ---
-# Avalikustamine (publish.yml) enam teavitusi ei saada — see on nüüd "puhas"
-# lõpp-samm (p.7). Teavituse saatmine toimub salvestamisel, korduvalt, vt
-# edit/save.yml updateForm haru (notify_carrier/notify_labor_inspector
-# false->true üleminek) ja jagatud lookup-carrier-registry-email template
-# (p.8) äriregistri päringu jaoks.
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractResponseData:
   assign:
@@ -186,9 +199,64 @@ logAuditEvent:
     form_number: ${form_number}
     old_status: ${old_status}
     new_status: ${new_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: sendNotifications
+
+# Teavituste saatmine toimub avalikustamisel: kui kaardil on märgitud
+# „Teavita vedajat rikkumisest" (notifyCarrier) ja/või tööinspektori
+# teavitus (notifyLaborInspector), saadetakse need Postkast 2.0 kaudu.
+# Pärast edukat vedaja teavitamist võetakse notifyCarrier linnuke maha
+# (clearNotifyCarrier) - muudatuse korral märgib kasutaja selle uuesti ja
+# kordusavalikustamine saadab teavituse uuesti. Ajalugu: notifications.outbound_log.
+# Saatmise viga ei tühista avalikustamist - vorm on DB-s juba published ja
+# ebaõnnestunud saatmine logitakse outbound_log-i error-reana.
+sendNotifications:
+  template: "templates/form/foreign-violation/notify-transition-and-send"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    formId: ${id}
+    companyRegCode: ${company_reg_code}
+    companyName: ${company_name}
+    formNumber: "${publishRes.response.body[0].formNumber || ''}"
+    violations: ${violations}
+    violationDescription: ${violation_description}
+    inspectionDate: ${inspection_date}
+    inspectionTime: ${inspection_time}
+    inspectionCountryCode: ${inspection_country_code}
+    vehicleRegNr: ${vehicle_reg_nr}
+    vehicleMake: ${vehicle_make}
+    vehicleModel: ${vehicle_model}
+    vehicleVin: ${vehicle_vin}
+    createdBy: ${created_by}
+    newNotifyCarrier: ${notify_carrier}
+    newNotifyLaborInspector: ${notify_labor_inspector}
+    sendGateMet: "true"
+  result: notifyResult
+  error: returnSuccess
+  next: checkCarrierSent
+
+checkCarrierSent:
+  switch:
+    - condition: ${notify_carrier === 'true' && notifyResult != null && String(notifyResult).indexOf('"carrierSent":"true"') !== -1}
+      next: clearNotifyCarrier
+  next: returnSuccess
+
+# Vedaja teavitus on välja saadetud - võta linnuke maha (püsib ainult
+# publitseeritud kirjel; vea korral jääb linnuke alles ja avalikustamine ei
+# tühistu).
+clearNotifyCarrier:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/clear-notify-carrier"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      key: ${id}
+  result: clearNotifyCarrierRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:
@@ -209,9 +277,33 @@ check_publishRes_persisted:
   switch:
     - condition: ${publishRes.response == null || publishRes.response.status < 200 || publishRes.response.status >= 300 || publishRes.response.body == null || publishRes.response.body.length == null || publishRes.response.body.length === 0}
       next: returnResqlWriteError
-  next: extractResponseData
+  next: checkRiskRecalcEligible
 
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
   next: end
+
+# LJVIS2-151 lahknevuse parandus: VR-vormi avalikustamine mõjutab Eesti
+# ettevõtja riskiskoori (EL 2022/695) samamoodi nagu PPA koondvormi
+# avalikustamine - vt publish-compound-form.yml'i callRiskRecalculate muster.
+# Fire-and-forget: tulemust ei kontrollita, viga ei tohi avalikustamist katkestada.
+checkRiskRecalcEligible:
+  switch:
+    - condition: "${!/^[0-9]{8}$/.test('' + (company_reg_code || ''))}"
+      next: extractResponseData
+  next: callRiskRecalculate
+
+callRiskRecalculate:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      company_reg_code: ${company_reg_code}
+      calculation_trigger: "kontrollvorm"
+  result: recalc_result
+  error: extractResponseData
+  next: extractResponseData

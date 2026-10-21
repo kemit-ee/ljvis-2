@@ -1,6 +1,7 @@
 declaration:
+  internal: false
   version: "1.0"
-  description: "MOCK Estonian transport-undertaking lookup — dev and CI only. Stands in for the X-tee MTR checkCommunityLicence service that the inbound CTUD handler must call to answer another member state (see the LJVIS2-142 comment by Eda Rembel). Production points ERRU_MTR_ENDPOINT at erru/ctud/lookup-mtr.yml (real MTR via XTR) instead. Field names and response shape are kept identical to that real path (DSL/Ruuter/ljvis/POST/v1/xroad/mtr/check-community-licence.yml's buildResult) so ctud/inbound-request.yml's mapping code works unchanged against either. Match rule is deterministic so tests can rely on it: an undertaking is found when trueCopyNumber is EE-CL-2020-11111 or the name contains EESTI; everything else is not found. riskBand is always Grey — Estonia returns a neutral risk band until the risk-assessment module (EPIC 16) is delivered, exactly as the specification requires."
+  description: "Static MTR community-licence mock for dev and test. Responses cover the MOVEHUB MS Test Pack 3.19 registry scenarios. HUB timeout and availability scenarios are handled by the HUB mock."
   namespace: erru
   allowlist:
     body:
@@ -17,101 +18,51 @@ declaration:
       - field: allVehicles
         type: string
 
-selectScenario:
+selectTestPackScenario:
+  assign:
+    result: >-
+      ${(function(){
+        const scenarios = {"CTUD_01":{"statusCode":"Found","statusMessage":"","respondingAuthority":"PL Competent Authority","transportUndertaking":{"transportUndertakingName":"Sun Foods","address":{"address":"Gdansk, ul. Keplera Jana 78","postCode":"1000","city":"Brussels","country":"PL"},"communityLicenceDetails":{"communityLicenceNumber":"CL997078","communityLicenceStatus":"Active","communityLicenceType":"Community licence for goods transport","licencingAuthority":"PL Competent Authority","startDate":"2016-03-15","expiryDate":"2041-03-15","withdrawalDate":null,"withdrawalExpiryDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"numberOfVehicles":2},"certifiedTrueCopyDetails":{"trueCopyNumber":"CL997078-0001","trueCopyIssueDate":"2020-03-09","trueCopyIssueCountry":"PL","trueCopyExpiryDate":"2021-03-15","trueCopyWithdrawalDate":null,"trueCopyWithdrawalExpiryDate":null,"trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null},"numberOfEmployees":105,"vehicles":[]}},"CTUD_02":{"statusCode":"Found","statusMessage":"","respondingAuthority":"SE Competent Authority","transportUndertaking":{"transportUndertakingName":"Auto Works","address":{"address":"LÖDDEKÖPINGE, Främsteby Karlsborg 17","postCode":"1000","city":"Brussels","country":"SE"},"communityLicenceDetails":{"communityLicenceNumber":"CL148368","communityLicenceStatus":"Withdrawn","communityLicenceType":"National licence for goods transport","licencingAuthority":"SE Competent Authority","startDate":"2018-09-08","expiryDate":"2033-09-08","withdrawalDate":"2018-10-04","withdrawalExpiryDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"numberOfVehicles":8},"certifiedTrueCopyDetails":{"trueCopyNumber":"CL148368-0001","trueCopyIssueDate":"2020-11-17","trueCopyIssueCountry":"","trueCopyExpiryDate":"2023-09-08","trueCopyWithdrawalDate":null,"trueCopyWithdrawalExpiryDate":null,"trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null},"numberOfEmployees":57,"vehicles":[{"registrationNumber":"DE 227744","registrationCountry":"SE"},{"registrationNumber":"EZ 291443","registrationCountry":"SE"},{"registrationNumber":"EA 2191154","registrationCountry":"SE"},{"registrationNumber":"AB 119746","registrationCountry":"SE"},{"registrationNumber":"XY 994772","registrationCountry":"SE"},{"registrationNumber":"YK 942257","registrationCountry":"SE"},{"registrationNumber":"NG 5373170","registrationCountry":"SE"},{"registrationNumber":"RE 724854","registrationCountry":"SE"}]}},"CTUD_03":{"statusCode":"NotFound","statusMessage":"","transportUndertaking":null},"CTUD_06":{"statusCode":"Found","statusMessage":"","respondingAuthority":"DK Competent Authority","transportUndertaking":{"transportUndertakingName":"Polk Brothers","address":{"address":"Kettinge, Tarupvej 15","postCode":"1000","city":"Brussels","country":"DK"},"communityLicenceDetails":{"communityLicenceNumber":"CL779832","communityLicenceStatus":"Active","communityLicenceType":"National licence for passenger transport","licencingAuthority":"DK Competent Authority","startDate":"2015-09-26","expiryDate":"2040-09-26","withdrawalDate":null,"withdrawalExpiryDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"numberOfVehicles":10},"certifiedTrueCopyDetails":{"trueCopyNumber":"CL779832-0001","trueCopyIssueDate":"2018-10-16","trueCopyIssueCountry":"","trueCopyExpiryDate":"2020-09-26","trueCopyWithdrawalDate":null,"trueCopyWithdrawalExpiryDate":null,"trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null},"numberOfEmployees":135,"vehicles":[{"registrationNumber":"JA 414327","registrationCountry":"DK"},{"registrationNumber":"DE 227755","registrationCountry":"DK"},{"registrationNumber":"GM 35598","registrationCountry":"DK"},{"registrationNumber":"AI 146210","registrationCountry":"DK"},{"registrationNumber":"NS 5768125","registrationCountry":"DK"},{"registrationNumber":"AJ 1489142","registrationCountry":"DK"},{"registrationNumber":"BM 1551118","registrationCountry":"DK"},{"registrationNumber":"WR 866314","registrationCountry":"DK"},{"registrationNumber":"CB 213477","registrationCountry":"DK"},{"registrationNumber":"XA 915467","registrationCountry":"DK"}]}},"CTUD_07":{"statusCode":"Found","statusMessage":"","respondingAuthority":"BE Competent Authority","transportUndertaking":{"transportUndertakingName":"Gas Legion","address":{"address":"New York, 2787 Turkey Pen Road","postCode":"1000","city":"Brussels","country":"BE"},"communityLicenceDetails":{"communityLicenceNumber":"CL961576","communityLicenceStatus":"Suspended","communityLicenceType":"National licence for passenger transport","licencingAuthority":"BE Competent Authority","startDate":"2018-07-28","expiryDate":"2033-07-28","withdrawalDate":null,"withdrawalExpiryDate":null,"suspensionDate":"2018-07-28","suspensionExpiryDate":"2020-06-22","numberOfVehicles":14},"certifiedTrueCopyDetails":{"trueCopyNumber":"CL961576-0001","trueCopyIssueDate":"2019-12-24","trueCopyIssueCountry":"","trueCopyExpiryDate":"2023-07-28","trueCopyWithdrawalDate":null,"trueCopyWithdrawalExpiryDate":null,"trueCopySuspensionDate":"2018-07-28","trueCopySuspensionExpiryDate":"2020-06-22"},"numberOfEmployees":194,"vehicles":[{"registrationNumber":"OC 628511","registrationCountry":"BE"},{"registrationNumber":"YD 926723","registrationCountry":"BE"},{"registrationNumber":"MA 5151126","registrationCountry":"BE"},{"registrationNumber":"RU 685517","registrationCountry":"BE"},{"registrationNumber":"NG 537320","registrationCountry":"BE"},{"registrationNumber":"ND 525444","registrationCountry":"BE"},{"registrationNumber":"HI 346740","registrationCountry":"BE"},{"registrationNumber":"DE 227746","registrationCountry":"BE"},{"registrationNumber":"LR 574426","registrationCountry":"BE"},{"registrationNumber":"XP 9669198","registrationCountry":"BE"},{"registrationNumber":"IZ 394117","registrationCountry":"BE"},{"registrationNumber":"IE 422922","registrationCountry":"BE"},{"registrationNumber":"CQ 1666123","registrationCountry":"BE"},{"registrationNumber":"QU 688667","registrationCountry":"BE"}]}},"CTUD_08":{"statusCode":"Found","statusMessage":"","respondingAuthority":"SI Competent Authority","transportUndertaking":{"transportUndertakingName":"H.C. Bohack","address":{"address":"Choully, Loorenstrasse 15","postCode":"1000","city":"Brussels","country":"SI"},"communityLicenceDetails":{"communityLicenceNumber":"CL762910","communityLicenceStatus":"LostOrStolen","communityLicenceType":"National licence for goods transport","licencingAuthority":"SI Competent Authority","startDate":"2017-06-12","expiryDate":"2032-06-12","withdrawalDate":null,"withdrawalExpiryDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"numberOfVehicles":15},"certifiedTrueCopyDetails":{"trueCopyNumber":"CL762910-0001","trueCopyIssueDate":"2018-08-16","trueCopyIssueCountry":"","trueCopyExpiryDate":"2022-06-12","trueCopyWithdrawalDate":null,"trueCopyWithdrawalExpiryDate":null,"trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null},"numberOfEmployees":120,"vehicles":[{"registrationNumber":"KD 4286118","registrationCountry":"SI"},{"registrationNumber":"VI 8494197","registrationCountry":"SI"},{"registrationNumber":"IH 4359138","registrationCountry":"SI"},{"registrationNumber":"XP 969148","registrationCountry":"SI"},{"registrationNumber":"CL 2432141","registrationCountry":"SI"},{"registrationNumber":"IK 341935","registrationCountry":"SI"},{"registrationNumber":"VN 8526113","registrationCountry":"SI"},{"registrationNumber":"XP 9669127","registrationCountry":"SI"},{"registrationNumber":"OV 68313","registrationCountry":"SI"},{"registrationNumber":"UN 8542183","registrationCountry":"SI"},{"registrationNumber":"XF 9292243","registrationCountry":"SI"},{"registrationNumber":"WP 862642","registrationCountry":"SI"},{"registrationNumber":"QH 634472","registrationCountry":"SI"},{"registrationNumber":"KD 428613","registrationCountry":"SI"},{"registrationNumber":"IK 34194","registrationCountry":"SI"}]}},"CTUD_09":{"statusCode":"Found","statusMessage":"","respondingAuthority":"AT Competent Authority","transportUndertaking":{"transportUndertakingName":"The Original House of Pies","address":{"address":"Cevio, Werkstrasse 85","postCode":"1000","city":"Brussels","country":"AT"},"communityLicenceDetails":{"communityLicenceNumber":"CL86719","communityLicenceStatus":"Returned","communityLicenceType":"Community licence for goods transport","licencingAuthority":"AT Competent Authority","startDate":"2015-05-21","expiryDate":"2040-05-21","withdrawalDate":null,"withdrawalExpiryDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"numberOfVehicles":12},"certifiedTrueCopyDetails":{"trueCopyNumber":"CL86719-0001","trueCopyIssueDate":"2017-10-05","trueCopyIssueCountry":"","trueCopyExpiryDate":"2020-05-21","trueCopyWithdrawalDate":null,"trueCopyWithdrawalExpiryDate":null,"trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null},"numberOfEmployees":134,"vehicles":[{"registrationNumber":"JP 467391","registrationCountry":"AT"},{"registrationNumber":"SM 7543143","registrationCountry":"AT"},{"registrationNumber":"US 8748164","registrationCountry":"AT"},{"registrationNumber":"JA 418413","registrationCountry":"AT"},{"registrationNumber":"TZ 796970","registrationCountry":"AT"},{"registrationNumber":"GE 329426","registrationCountry":"AT"},{"registrationNumber":"SM 754315","registrationCountry":"AT"},{"registrationNumber":"PS 675432","registrationCountry":"AT"},{"registrationNumber":"TT 7772128","registrationCountry":"AT"},{"registrationNumber":"OL 653262","registrationCountry":"AT"},{"registrationNumber":"GL 356812","registrationCountry":"AT"},{"registrationNumber":"KA 41275","registrationCountry":"AT"}]}},"CTUD_10":{"statusCode":"Found","statusMessage":"","respondingAuthority":"AT Competent Authority","transportUndertaking":{"transportUndertakingName":"Harmony House","address":{"address":"ST. LEONHARD AN DER SAUALPE, Schmiedsberg 55","postCode":"1000","city":"Brussels","country":"AT"},"communityLicenceDetails":{"communityLicenceNumber":"CL180620","communityLicenceStatus":"Expired","communityLicenceType":"National licence for goods transport","licencingAuthority":"AT Competent Authority","startDate":"2012-08-22","expiryDate":"2017-08-22","withdrawalDate":null,"withdrawalExpiryDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"numberOfVehicles":17},"certifiedTrueCopyDetails":null,"numberOfEmployees":0,"vehicles":[]}},"CTUD_11":{"statusCode":"Found","statusMessage":"","respondingAuthority":"FI Competent Authority","transportUndertaking":{"transportUndertakingName":"Lazysize","address":{"address":"LAHTI, Hätilänkatu 51","postCode":"1000","city":"Brussels","country":"FI"},"communityLicenceDetails":{"communityLicenceNumber":"CL546110","communityLicenceStatus":"Expired","communityLicenceType":"Community licence for passenger transport","licencingAuthority":"FI Competent Authority","startDate":"2013-06-23","expiryDate":"2018-06-23","withdrawalDate":null,"withdrawalExpiryDate":null,"suspensionDate":null,"suspensionExpiryDate":null,"numberOfVehicles":5},"certifiedTrueCopyDetails":{"trueCopyNumber":"CL546110-0002","trueCopyIssueDate":"2016-11-07","trueCopyIssueCountry":"","trueCopyExpiryDate":"2018-06-23","trueCopyWithdrawalDate":null,"trueCopyWithdrawalExpiryDate":null,"trueCopySuspensionDate":null,"trueCopySuspensionExpiryDate":null},"numberOfEmployees":155,"vehicles":[{"registrationNumber":"QK 648766","registrationCountry":"FI"},{"registrationNumber":"RV 684226","registrationCountry":"FI"},{"registrationNumber":"PS 675488","registrationCountry":"FI"},{"registrationNumber":"OL 653211","registrationCountry":"FI"},{"registrationNumber":"SE 7282150","registrationCountry":"FI"}]}}};
+        const caseId = ('' + (incoming.body.businessCaseId || '')).trim().toUpperCase();
+        const number = ('' + (incoming.body.trueCopyNumber || '')).trim().toUpperCase();
+        const name = ('' + (incoming.body.transportUndertakingName || '')).trim().toUpperCase();
+        const vehicle = ('' + (incoming.body.vehicleRegistrationNumber || '')).trim().toUpperCase();
+        const byNumber = { 'CL997078-0001':'CTUD_01', 'CL148368':'CTUD_02', 'ABC':'CTUD_03', 'CL779832':'CTUD_06', 'CL961576':'CTUD_07', 'CL762910':'CTUD_08', 'CL86719':'CTUD_09', 'CL180620':'CTUD_10', 'CL546110-0002':'CTUD_11' };
+        const byName = { 'SUN FOODS':'CTUD_01', 'AUTO WORKS':'CTUD_02', 'POLK BROTHERS':'CTUD_06', 'GAS LEGION':'CTUD_07', 'H.C. BOHACK':'CTUD_08', 'THE ORIGINAL HOUSE OF PIES':'CTUD_09', 'HARMONY HOUSE':'CTUD_10' };
+        const byVehicle = { 'EZ 2914':'CTUD_02', 'XP 9669':'CTUD_08', 'OL 6532':'CTUD_09' };
+        const scenario = scenarios[caseId] || scenarios[byNumber[number]] || scenarios[byName[name]] || scenarios[byVehicle[vehicle]] || null;
+        if (scenario == null) return null;
+        return Object.assign({}, scenario, {
+          businessCaseId: incoming.body.businessCaseId || '',
+          originatingAuthority: incoming.body.originatingAuthority || ''
+        });
+      })()}
+  next: checkTestPackScenario
+
+checkTestPackScenario:
+  switch:
+    - condition: ${result != null}
+      next: returnResult
+  next: selectCiScenario
+
+selectCiScenario:
   switch:
     - condition: ${('' + (incoming.body.trueCopyNumber || '')).toUpperCase() === 'EE-CL-2020-11111'}
-      next: checkAllVehicles
+      next: returnCiFound
     - condition: ${('' + (incoming.body.transportUndertakingName || '')).toUpperCase().indexOf('EESTI') >= 0}
-      next: checkAllVehicles
+      next: returnCiFound
   next: returnNotFound
 
-checkAllVehicles:
-  switch:
-    - condition: ${('' + (incoming.body.allVehicles || '')) === 'true'}
-      next: returnFoundWithVehicles
-  next: returnFound
-
-returnFoundWithVehicles:
+returnCiFound:
   assign:
     result: >-
-      ${(function(){
-        return {
-          businessCaseId: incoming.body.businessCaseId || '',
-          originatingAuthority: incoming.body.originatingAuthority || '',
-          respondingAuthority: 'EE-TRAM',
-          statusCode: 'Found',
-          statusMessage: '',
-          transportUndertaking: {
-            transportUndertakingName: 'AS EESTI VEOD',
-            address: { address: 'Tartu mnt 12', postCode: '10145', city: 'Tallinn', country: 'EE' },
-            communityLicenceDetails: {
-              communityLicenceNumber: 'EE-CL-2020-11111', communityLicenceStatus: 'Active',
-              communityLicenceType: 'CommunityLicenceGoods', licencingAuthority: 'EE-TRAM',
-              startDate: '2020-06-01', expiryDate: '2030-05-31',
-              withdrawalDate: null, withdrawalExpiryDate: null, suspensionDate: null, suspensionExpiryDate: null,
-              numberOfVehicles: 3
-            },
-            certifiedTrueCopyDetails: {
-              trueCopyNumber: 'EE-CL-2020-11111-001', trueCopyIssueDate: '2020-06-01', trueCopyIssueCountry: 'EE',
-              trueCopyExpiryDate: '2030-05-31', trueCopyWithdrawalDate: null, trueCopyWithdrawalExpiryDate: null,
-              trueCopySuspensionDate: null, trueCopySuspensionExpiryDate: null
-            },
-            numberOfEmployees: 63,
-            vehicles: [
-              { registrationNumber: '123ABC', registrationCountry: 'EE' },
-              { registrationNumber: '456DEF', registrationCountry: 'EE' },
-              { registrationNumber: '789GHI', registrationCountry: 'EE' }
-            ]
-          }
-        };
-      })()}
-  next: returnResult
-
-returnFound:
-  assign:
-    result: >-
-      ${(function(){
-        return {
-          businessCaseId: incoming.body.businessCaseId || '',
-          originatingAuthority: incoming.body.originatingAuthority || '',
-          respondingAuthority: 'EE-TRAM',
-          statusCode: 'Found',
-          statusMessage: '',
-          transportUndertaking: {
-            transportUndertakingName: 'AS EESTI VEOD',
-            address: { address: 'Tartu mnt 12', postCode: '10145', city: 'Tallinn', country: 'EE' },
-            communityLicenceDetails: {
-              communityLicenceNumber: 'EE-CL-2020-11111', communityLicenceStatus: 'Active',
-              communityLicenceType: 'CommunityLicenceGoods', licencingAuthority: 'EE-TRAM',
-              startDate: '2020-06-01', expiryDate: '2030-05-31',
-              withdrawalDate: null, withdrawalExpiryDate: null, suspensionDate: null, suspensionExpiryDate: null,
-              numberOfVehicles: 3
-            },
-            certifiedTrueCopyDetails: {
-              trueCopyNumber: 'EE-CL-2020-11111-001', trueCopyIssueDate: '2020-06-01', trueCopyIssueCountry: 'EE',
-              trueCopyExpiryDate: '2030-05-31', trueCopyWithdrawalDate: null, trueCopyWithdrawalExpiryDate: null,
-              trueCopySuspensionDate: null, trueCopySuspensionExpiryDate: null
-            },
-            numberOfEmployees: 63,
-            vehicles: []
-          }
-        };
-      })()}
+      ${(function(){ return {businessCaseId:incoming.body.businessCaseId||'',originatingAuthority:incoming.body.originatingAuthority||'',respondingAuthority:'EE-TRAM',statusCode:'Found',statusMessage:'',transportUndertaking:{transportUndertakingName:'AS EESTI VEOD',address:{address:'Tartu mnt 12',postCode:'10145',city:'Tallinn',country:'EE'},communityLicenceDetails:{communityLicenceNumber:'EE-CL-2020-11111',communityLicenceStatus:'Active',communityLicenceType:'CommunityLicenceGoods',licencingAuthority:'EE-TRAM',startDate:'2020-06-01',expiryDate:'2030-05-31',withdrawalDate:null,withdrawalExpiryDate:null,suspensionDate:null,suspensionExpiryDate:null,numberOfVehicles:3},certifiedTrueCopyDetails:{trueCopyNumber:'EE-CL-2020-11111-001',trueCopyIssueDate:'2020-06-01',trueCopyIssueCountry:'EE',trueCopyExpiryDate:'2030-05-31',trueCopyWithdrawalDate:null,trueCopyWithdrawalExpiryDate:null,trueCopySuspensionDate:null,trueCopySuspensionExpiryDate:null},numberOfEmployees:63,vehicles:((''+(incoming.body.allVehicles||''))==='true'?[{registrationNumber:'123ABC',registrationCountry:'EE'},{registrationNumber:'456DEF',registrationCountry:'EE'},{registrationNumber:'789GHI',registrationCountry:'EE'}]:[])}}; })()}
   next: returnResult
 
 returnNotFound:
   assign:
     result: >-
-      ${(function(){
-        return {
-          businessCaseId: incoming.body.businessCaseId || '',
-          originatingAuthority: incoming.body.originatingAuthority || '',
-          respondingAuthority: 'EE-TRAM',
-          statusCode: 'NotFound',
-          statusMessage: 'Otsitud veoettevõtjat ei leitud Eesti andmetest',
-          transportUndertaking: null
-        };
-      })()}
+      ${(function(){ return {businessCaseId:incoming.body.businessCaseId||'',originatingAuthority:incoming.body.originatingAuthority||'',respondingAuthority:'EE-TRAM',statusCode:'NotFound',statusMessage:'Otsitud veoettevõtjat ei leitud Eesti andmetest',transportUndertaking:null}; })()}
   next: returnResult
 
 returnResult:

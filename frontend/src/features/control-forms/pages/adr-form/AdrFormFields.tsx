@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -9,6 +10,7 @@ import {
   TextArea,
   Select,
   Alert,
+  Button,
 } from '@tedi-design-system/react/tedi';
 import { DangerousGoodsTable } from './DangerousGoodsTable';
 import { AdrInfringementsSection } from './AdrInfringementsSection';
@@ -24,6 +26,7 @@ import type { useAdrForm } from './useAdrForm';
 import styles from './AdrFormFields.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { ProceedingOutcomeFields } from '../../components/ProceedingOutcomeFields/ProceedingOutcomeFields';
 
 const RESULT_OPTIONS = ['ok', 'misdemeanor_proceedings', 'warning'] as const;
 
@@ -111,9 +114,7 @@ export function AdrFormFields({
 
   const values = formik.values;
   const notesLength = (values.notes ?? '').length;
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
   const checkpointItems = useMemo(
     () =>
       getByCode('ADR_CONTROL_CHECKPOINT').filter(
@@ -148,6 +149,15 @@ export function AdrFormFields({
   })).sort((a, b) => a.label.localeCompare(b.label));
 
   const idPrefix = canEdit ? '' : 'view-';
+  const da = values.driverAssistant;
+  const hasAssistantData = !!(
+    da?.personalCodeEe ||
+    da?.firstName ||
+    da?.lastName ||
+    da?.citizenshipCode ||
+    da?.birthDate
+  );
+  const [assistantOpen, setAssistantOpen] = useState(hasAssistantData);
 
   return (
     <>
@@ -159,9 +169,32 @@ export function AdrFormFields({
 
       <Card className="mb-1">
         <Card.Content>
-          <Heading element="h3" className="mb-1">
-            {t('forms.adr.driverAssistant.title')}
-          </Heading>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+            className="mb-1"
+          >
+            <Heading element="h3">
+              {t('forms.adr.driverAssistant.title')}
+            </Heading>
+            <Button
+              type="button"
+              visualType="secondary"
+              onClick={() => setAssistantOpen((o) => !o)}
+              aria-expanded={assistantOpen}
+            >
+              {assistantOpen
+                ? t('forms.adr.driverAssistant.close')
+                : t('forms.adr.driverAssistant.open')}
+            </Button>
+          </div>
+          <Text className="mb-1">{t('forms.adr.hintOnlyOnViolation')}</Text>
+          {assistantOpen && (
+            <>
           {searchError && (
             <Alert
               type="danger"
@@ -183,7 +216,6 @@ export function AdrFormFields({
             </Alert>
           )}
 
-          <Text className="mb-1">{t('forms.adr.hintOnlyOnViolation')}</Text>
           <div
             className={
               styles[isDesktop ? 'form-grid-desktop' : 'form-grid-mobile']
@@ -295,6 +327,8 @@ export function AdrFormFields({
               />
             </div>
           </div>
+            </>
+          )}
         </Card.Content>
       </Card>
 
@@ -943,6 +977,19 @@ export function AdrFormFields({
           )}
         </Card.Content>
       </Card>
+
+      <ProceedingOutcomeFields
+        status={formik.values.status}
+        enforcementDecision={formik.values.enforcementDecision}
+        proceedingClosureBasis={formik.values.proceedingClosureBasis}
+        onChange={(field, value) => formik.setFieldValue(field, value)}
+      />
+
+      <AdministrativeProcedureCard
+        formType="adr-form"
+        formKey={formik.values.id}
+        reloadAfterSave={!canEdit}
+      />
 
       {formNumber && (
         <Card className="mb-1">

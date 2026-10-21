@@ -1,9 +1,10 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
     Search Ariregister company data (lihtandmed_v1) via XTR, routed through
-    the real X-Road Security Server — our subsystem (GOV/70001231/ljvis2) has
+    the real X-Road Security Server - our subsystem (GOV/70001231/ljvis2) has
     ACL on arireg's v1 methods (confirmed live via allowedMethods, see
     .ai/ljvis-tasks/xtee-task.md). No Ariregister username/password needed
     anymore (was lihtandmed_v3 via a direct HTTPS bypass to ariregxmlv6.rik.ee).
@@ -47,6 +48,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/ar/lihtandmed_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: "${reg_code}"
@@ -66,6 +68,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.lihtandmed_v1.v1"
@@ -115,6 +118,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/arireg_lihtandmed_response"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: ${mapper_input}
   result: mapped
@@ -136,6 +140,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.lihtandmed_v1.v1"

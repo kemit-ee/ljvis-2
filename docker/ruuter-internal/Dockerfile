@@ -1,4 +1,4 @@
-FROM turnerrainer/ruuter:0.9.15-rc@sha256:f6f40aec9f5f6e1f8d580bddceaadc933558e788e92aa923ba77d1a0fba4c0cb
+FROM turnerrainer/ruuter:0.12.1-rc@sha256:2ab9ee4137bde226fa736d4f43a3f13fe55a6807f261bf62245f08e485b90ff3
 RUN rm -rf /app/DSL/samples
 COPY DSL/Ruuter.internal/ljvis /app/DSL/ljvis
 COPY constants.ini /app/constants.ini

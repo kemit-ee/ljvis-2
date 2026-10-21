@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Replace all group memberships for a user"
@@ -14,9 +15,12 @@ declaration:
       - field: removedGroupIds
         type: array
         description: "Array of removed user group IDs"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -42,6 +46,7 @@ removeGroups:
   args:
     url: "[#LJVIS_RESQL]/user/set_user_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_account_id: ${user_account_id}
@@ -62,6 +67,7 @@ insertGroups:
   args:
     url: "[#LJVIS_RESQL]/user/set_user_groups"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_account_id: ${user_account_id}
@@ -76,6 +82,7 @@ getUser:
   args:
     url: "[#LJVIS_RESQL]/user/get_user"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${user_account_id}
@@ -110,8 +117,6 @@ logAuditEvent:
   body:
     event_type: "user.set_groups"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: audit_result

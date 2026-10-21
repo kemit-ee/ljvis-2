@@ -1,0 +1,14 @@
+{
+  "template": {
+    "name": "ljvis2-labor-tachograph-not-downloaded",
+    "description": "LJVIS-2: Sõidumeerikust või juhikaardilt andmete alla laadimata jätmise teavitus Tööinspektsioonile",
+    "enabled": true
+  },
+  "templateMessage": {
+    "channel": "EMAIL",
+    "language": "et",
+    "subject": "Andmed sõidumeerikust või juhikaardilt on alla laadimata ({{formNumber}})",
+    "content": "<p>Tere,</p><p>Liiklusjärelevalve infosüsteemis on avalikustatud sõidu- ja puhkeaja kontrollkaart, millele on tehtud märge, et andmed sõidumeerikust või juhikaardilt on alla laadimata.</p><table border='1' cellpadding='6' style='border-collapse:collapse'><tr><th>Kontrollvorm</th><td>{{formNumber}}</td></tr><tr><th>Veoettevõtja</th><td>{{companyName}} ({{companyRegCode}})</td></tr></table><p>Täpsemad andmed on kättesaadavad LJVIS-2 kasutajaliideses.</p><p>Lugupidamisega,<br/>Liiklusjärelevalve infosüsteem (LJVIS-2)<br/>Transpordiamet</p>",
+    "contentType": "text/html"
+  }
+}

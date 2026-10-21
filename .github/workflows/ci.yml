@@ -62,6 +62,27 @@ jobs:
           python3 -B tests/contract/check_erru_contract.py
           python3 -B -m unittest discover -s tests/contract -p 'test_*.py'
 
+      - name: Database schema document and ERD are in sync with Liquibase
+        run: python3 scripts/generate-erd.py --check
+
+      # Epic #502 guard rails (identity from session, allowlists, strict templates,
+      # upload prefix, read ownership, template call contract, frontend).
+      - name: DSL security rules (identity and ownership)
+        run: |
+          pip3 install pyyaml -q
+          python3 tests/contract/check_dsl_security.py
+
+      - name: Service token only goes to allowlisted targets (no XTR REST-lane leak)
+        run: python3 scripts/check-internal-token-targets.py
+
+      # Epic #522: Resql is INSERT + SELECT only (no UPDATE/DELETE/TRUNCATE/MERGE, no JOIN/LATERAL,
+      # no ON CONFLICT DO UPDATE); the retention purge is the one exemption (.sql-rule-exemption).
+      - name: SQL append-only invariant (Resql)
+        run: |
+          pip3 install pyyaml -q
+          python3 tests/contract/check_resql_append_only.py
+          python3 -B -m unittest discover -s tests/contract -p 'test_resql_append_only.py'
+
       - name: Validate Ruuter YAML files
         run: |
           pip3 install pyyaml -q
@@ -90,10 +111,16 @@ jobs:
           python3 - <<'EOF'
           import yaml, glob, sys
 
+          # Data-carrying step keys: a `next`/`error` inside them (e.g. `error: FORBIDDEN`
+          # in a `return:` payload) is not a step reference. Same rule as scripts/validate-dsl.py.
+          PAYLOAD_KEYS = {'return', 'args', 'body', 'headers', 'assign'}
+
           def collect_next_refs(obj):
               refs = set()
               if isinstance(obj, dict):
                   for k, v in obj.items():
+                      if k in PAYLOAD_KEYS:
+                          continue
                       if k in ('next', 'error') and isinstance(v, str):
                           refs.add(v)
                       else:
@@ -107,7 +134,7 @@ jobs:
               if isinstance(obj, dict):
                   if 'next' in obj:
                       return True
-                  return any(has_next_key(v) for v in obj.values())
+                  return any(has_next_key(v) for k, v in obj.items() if k not in PAYLOAD_KEYS)
               elif isinstance(obj, list):
                   return any(has_next_key(item) for item in obj)
               return False
@@ -186,9 +213,9 @@ jobs:
           IMG='${{ steps.img.outputs.ref }}'
           docker pull -q "$IMG"
           # require_guards=1 → also assert 0 unguarded routes (public gateway).
-          # Ruuter.internal is IP-restricted, not guard-restricted → boot check only.
+          # Ruuter.internal is guarded by the project-root service-token guard (#515) → also 0 unguarded.
           fail=0
-          for tree in "DSL/Ruuter/ljvis:ruuter.yaml:1" "DSL/Ruuter.internal/ljvis:ruuter-internal.yaml:0"; do
+          for tree in "DSL/Ruuter/ljvis:ruuter.yaml:1" "DSL/Ruuter.internal/ljvis:ruuter-internal.yaml:1"; do
             dir=$(echo "$tree" | cut -d: -f1); cfg=$(echo "$tree" | cut -d: -f2); require_guards=$(echo "$tree" | cut -d: -f3)
             echo "── $dir ──"
             cid=$(docker run -d --rm -p 8080 \
@@ -219,10 +246,23 @@ jobs:
               fi
             else
               docker rm -f "$cid" >/dev/null 2>&1 || true
-              echo "✅ $dir — boots clean (guard check skipped: IP-restricted)"
+              echo "✅ $dir — boots clean"
             fi
           done
           exit $fail
+
+      # Ruuter #146: GET /_/audit/dsl on the loaded tree must report 0 errors
+      # and 0 warnings (blocking). Info-level findings are tolerated.
+      - name: DSL audit (/_/audit/dsl) — errors == 0 and warnings == 0
+        run: scripts/dsl-audit.sh '${{ steps.img.outputs.ref }}' dsl-audit-out
+
+      - name: Upload DSL audit findings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsl-audit
+          path: dsl-audit-out/
+          if-no-files-found: ignore
 
   # ── 1c. Ruuter dsl-lint / dsl-test ─────────────────────────────────────────
   # Static validation against the ACTUAL Ruuter DSL parser. Catches what the
@@ -264,7 +304,19 @@ jobs:
       - name: dsl-lint — internal router
         run: |
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
-            --dsl DSL/Ruuter.internal --constants constants.ini
+            --dsl DSL/Ruuter.internal --constants constants.ini --require-guard
+
+      # Build-time twin of /_/audit/dsl (Ruuter #146): exits non-zero on any
+      # error-severity finding (warnings are gated by scripts/dsl-audit.sh).
+      - name: dsl-lint --audit — public gateway
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter --constants constants.ini --audit
+
+      - name: dsl-lint --audit — internal router
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter.internal --constants constants.ini --audit
 
       - name: X-Road OpenAPI DSL route — in sync with docs/xtee/XroadOpenapi.yaml
         run: python3 scripts/generate-xroad-openapi-dsl.py --check
@@ -273,6 +325,11 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test '${{ steps.ruuter.outputs.img }}' \
             --dsl DSL/Ruuter --tests DSL-tests --constants constants.ini
+
+      - name: dsl-test — DSL-tests-internal/ scenario suite (internal router)
+        run: |
+          docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test '${{ steps.ruuter.outputs.img }}' \
+            --dsl DSL/Ruuter.internal --tests DSL-tests-internal --constants constants.ini
 
       - name: X-tee developer mock — contract and isolated runtime scenarios
         run: |
@@ -312,9 +369,21 @@ jobs:
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
   # Bootstrap seeds admin + all DSL/Liquibase/test/*.sql fixtures via plain psql
   # (those changesets are ignore:true, so `liquibase update` never applies them).
-  e2e:
-    name: E2E Tests
+  e2e-group:
+    name: E2E-testid — ${{ matrix.name }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: core
+            name: Põhiandmed ja kontrollvormid
+          - group: controls
+            name: Tehnilised vormid ja riskihindamine
+          - group: erru
+            name: ERRU sõnumivahetus
+          - group: xroad
+            name: X-tee ja lepingukontrollid
 
     steps:
       - name: Checkout
@@ -330,12 +399,31 @@ jobs:
       - name: Install Newman
         run: npm install -g newman newman-reporter-htmlextra
 
+      # tests/xtr/verify.py: WSDL XSD validation (xmllint) and sidecar comparison (PyYAML)
+      # The runner image's package index goes stale (404 from the mirror on install), so
+      # refresh it first; drop the unused google-chrome repo, which breaks apt-get update
+      # intermittently (same as the UI Tests job).
+      - name: Install XTR SOAP test tools
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome.sources
+          sudo apt-get update -q
+          sudo apt-get install -y -q libxml2-utils
+          pip3 install pyyaml -q
+
+      - name: Validate API test groups
+        run: python3 -m unittest discover -s tests/postman -p 'test_groups.py'
+
       - name: Run E2E tests
-        run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
+        run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json "${{ matrix.group }}"
 
       - name: ZAP — baseline scan (stack already running)
+        if: matrix.group == 'core'
         run: |
           mkdir -p zap-reports
+          # ZAP-i konteiner jookseb kasutajana zap (uid 1000), runneri kaust
+          # kuulub teisele kasutajale — ilma kirjutusõiguseta jääb raport
+          # salvestamata (AccessDeniedException) ja artefakt tühjaks.
+          chmod 777 zap-reports
           docker run --rm \
             --network host \
             -v "$(pwd)/zap-reports:/zap/wrk/:rw" \
@@ -361,12 +449,32 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
 
-      - name: Upload ZAP report
+      - name: Upload API test reports
         if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-tests-${{ matrix.group }}
+          path: tests/postman/reports/
+          retention-days: 14
+
+      - name: Upload ZAP report
+        if: always() && env.ACT != 'true' && matrix.group == 'core'
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
           path: zap-reports/
+
+  # Keep the required check name stable and fail if any group fails or is cancelled.
+  e2e:
+    name: E2E Tests
+    needs: e2e-group
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check all API groups passed
+        env:
+          RESULT: ${{ needs.e2e-group.result }}
+        run: test "$RESULT" = success
 
   # ── 5. Frontend lint ────────────────────────────────────────────────────────
   frontend-lint:
@@ -455,13 +563,23 @@ jobs:
 
   # ── UI Tests (Playwright) ───────────────────────────────────────────────────
   # Brauseripõhised kontrollvormide testid. Tõstab ise üles docker-compose.ci.yml
-  # pinu (tests/playwright/run.sh) ja käivitab frontendi vite-dev serveri selle
-  # vastu. Esialgu MITTE blokeeriv (continue-on-error + väljas quality-gate'ist)
+  # pinu (tests/playwright/run.sh) ja käivitab frontendi preview-serveri selle
+  # vastu. Igal shard'il on eraldi runner ja andmebaas. Esialgu MITTE blokeeriv (continue-on-error + väljas quality-gate'ist)
   # kuni stabiilne.
   ui-tests:
-    name: UI Tests
+    name: UI Tests — ${{ matrix.name }}
     runs-on: ubuntu-22.04
     continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: forms
+            name: Kontrollvormid
+          - group: services
+            name: Liidestused ja taustatööd
+          - group: admin
+            name: Haldus ja otsing
 
     steps:
       - name: Checkout
@@ -494,7 +612,7 @@ jobs:
         working-directory: tests/playwright
 
       - name: Run UI tests
-        run: bash tests/playwright/run.sh
+        run: bash tests/playwright/run.sh --group "${{ matrix.group }}"
 
       - name: Show CI stack logs on failure
         if: failure()
@@ -508,30 +626,71 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.ci.yml -p ljvis-pw down -v || true
 
+      - name: Record shard result
+        if: always()
+        env:
+          SHARD_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p tests/playwright/tulemus
+          printf '%s\n' "$SHARD_STATUS" > tests/playwright/tulemus/ci-status.txt
+
       - name: Upload Playwright results
         id: upload-playwright-results
         if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-tulemus
+          name: playwright-tulemus-${{ matrix.group }}
           path: tests/playwright/tulemus/
           retention-days: 14
 
+  # One reporter avoids concurrent shards creating duplicate failure issues.
+  ui-report:
+    name: UI Tests
+    continue-on-error: true
+    needs: ui-tests
+    if: always() && !cancelled()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all shard reports
+        if: env.ACT != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-tulemus-*
+          path: playwright-results
+
+      - name: Check shard results
+        id: shards
+        env:
+          MATRIX_RESULT: ${{ needs.ui-tests.result }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          statuses = list(Path('playwright-results').glob('*/ci-status.txt'))
+          failed = len(statuses) != 3 or any(p.read_text().strip() != 'success' for p in statuses)
+          failed = failed or os.environ['MATRIX_RESULT'] not in ('success', 'skipped')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'failed={str(failed).lower()}\n')
+          PY
+
       - name: Create or update Playwright failure issue
         if: >-
-          failure() && env.ACT != 'true' &&
+          steps.shards.outputs.failed == 'true' && env.ACT != 'true' &&
           (github.event_name == 'push' ||
           github.event.pull_request.head.repo.full_name == github.repository)
         uses: actions/github-script@v7
         env:
-          ARTIFACT_URL: ${{ steps.upload-playwright-results.outputs.artifact-url }}
+          ARTIFACT_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
             const fs = require('fs');
-            const summaryPath = 'tests/playwright/tulemus/KOKKUVÕTE.md';
-            const summary = fs.existsSync(summaryPath)
-              ? fs.readFileSync(summaryPath, 'utf8').slice(0, 30000)
-              : 'Playwrighti kokkuvõttefaili ei leitud.';
+            const summary = fs.existsSync('playwright-results')
+              ? fs.readdirSync('playwright-results').sort().map((shard) => {
+                  const path = `playwright-results/${shard}/KOKKUVÕTE.md`;
+                  return `### ${shard}\n\n` + (fs.existsSync(path)
+                    ? fs.readFileSync(path, 'utf8') : 'Kokkuvõttefaili ei leitud.');
+                }).join('\n\n').slice(0, 30000)
+              : 'Playwrighti kokkuvõttefaile ei leitud.';
             const isPullRequest = context.eventName === 'pull_request';
             const source = isPullRequest
               ? `PR #${context.issue.number}`
@@ -585,6 +744,10 @@ jobs:
                 labels: ['bug', failureLabel],
               });
             }
+
+      - name: Report failed UI shards
+        if: steps.shards.outputs.failed == 'true' && env.ACT != 'true'
+        run: exit 1
 
   # ── Quality Gate ────────────────────────────────────────────────────────────
   # Aggregates every required check. Add new jobs to `needs:` here as they

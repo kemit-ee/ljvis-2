@@ -1,16 +1,17 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
     Äriregistri esindusõiguste päring (esindus_v1) XTR kaudu, tegeliku X-tee
-    turvaserveri läbi — meie subsüsteemil (GOV/70001231/ljvis2) on ACL arireg
+    turvaserveri läbi - meie subsüsteemil (GOV/70001231/ljvis2) on ACL arireg
     v1-meetoditele (kinnitatud allowedMethods'iga, vt .ai/ljvis-tasks/xtee-task.md).
     Äriregistri kasutajanime/parooli ei ole enam vaja (varem esindus_v2 otse
     HTTPS bypass'iga ariregxmlv6.rik.ee-le). Otsing kas registryCode (ettevõtte
     kõik esindajad) või personalCode (isiku kõik esindatavad ettevõtted) järgi
-    — vähemalt üks on kohustuslik. Autentimine POST/.guard kaudu (kehtiv
+    - vähemalt üks on kohustuslik. Autentimine POST/.guard kaudu (kehtiv
     sessioon nõutud). esindus_v1 vastuses puudub esindusoiguse_grupid
-    (representationGroups) — frontend seda välja praegu ei loe.
+    (representationGroups) - frontend seda välja praegu ei loe.
   namespace: xroad
   allowlist:
     body:
@@ -48,6 +49,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/ar/esindus_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ${reg_code}
@@ -67,6 +69,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.esindus_v1.v1"
@@ -81,7 +84,7 @@ logSuccess:
   result: logResult
   next: checkPersonalCodeForAj
 
-# Andmejälgija (AJ) — logi ainult kui päring sisaldas isikukoodi
+# Andmejälgija (AJ) - logi ainult kui päring sisaldas isikukoodi
 # (päring võib olla ka ainult registryCode järgi, siis isikut ei tuvastata)
 checkPersonalCodeForAj:
   switch:
@@ -94,13 +97,14 @@ logAjUsage:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: "${personal_code}"
       action: "Äriregistrist esindusõiguste pärimine ettevõtte liiklusjärelevalve teekontrolli käigus"
       receiver_code: "70001231"
-      receiver_name: "Liiklusjärelevalve infosüsteem (LJVIS2)"
-      receiver_system: "ljvis2"
+      receiver_name: "Kliimaministeerium"
+      receiver_system: "Liiklusjärelevalve infosüsteem (LJVIS2)"
   result: ajLogResult
   next: mapResponse
 
@@ -176,6 +180,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.esindus_v1.v1"

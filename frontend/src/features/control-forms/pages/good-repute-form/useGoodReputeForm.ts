@@ -82,7 +82,7 @@ export function useGoodReputeForm(
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      id: form?.id ?? '',
+      id: form?.id != null ? String(form.id) : '',
       formNumber: form?.formNumber ?? '',
       version: form?.version ?? 1,
       personalCode: form?.personalCode ?? '',

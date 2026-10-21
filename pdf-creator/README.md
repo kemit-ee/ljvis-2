@@ -62,7 +62,7 @@ curl -f http://127.0.0.1:3020/v1/render \
 
 `PDF_CREATOR_API_KEY` määramisel nõutakse päringus `Authorization: Bearer <võti>`
 (v.a `/health`). Vaikimisi on see lokaalses arenduses tühi, nagu teistel siseteenustel.
-Ära suuna seda teenust avalikku ingressi; kasutaja sessiooni kontrollib Ruuter.
+Ära suuna seda teenust avalikku ingressi; kasutaja seansi kontrollib Ruuter.
 Teenuse sisend ei tohi sisaldada suvalist HTML-i, CSS-i ega URL-e: lubatud on ainult
 registris olevad mallid ja nende andmed. Väliste ressursside laadimine on keelatud.
 

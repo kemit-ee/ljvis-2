@@ -1,4 +1,4 @@
-export type DashboardScope = 'own' | 'organisation';
+export type DashboardScope = 'own' | 'unit' | 'organisation';
 
 export interface DashboardSubForm {
   formType: string;
@@ -45,6 +45,7 @@ export interface DashboardAttentionItem {
 export interface DashboardSummary {
   scope: DashboardScope;
   canSeeOrganisation: boolean;
+  canSeeUnit?: boolean;
   activeCompoundForms: DashboardCompoundCase[];
   activeStandaloneForms: DashboardStandaloneForm[];
   needsAttention: DashboardAttentionItem[];

@@ -75,6 +75,8 @@ import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
 
 export function TransportInterruptionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -93,6 +95,9 @@ export function TransportInterruptionFormPage() {
   const [activeTab, setActiveTab] = useState('tab-transport-interruption');
   const [openTabs, setOpenTabs] = useState<string[]>(['tab-transport-interruption']);
   const [compoundEditActive, setCompoundEditActive] = useState(false);
+  // ADR-011: koondvormi (SP_COMPOUND) väljade vormipiirang muutmisrežiimis;
+  // alamvormid rakendavad oma skoobi ise (…CreatePage)
+  useClassifierScopeActive(compoundEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
@@ -113,8 +118,7 @@ export function TransportInterruptionFormPage() {
   const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const forbidden = !(
-    (hasPermission('transport_interruption_form.read') || hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+    (hasPermission('transport_interruption_form.read') || hasPermission('transport_interruption_form.write') || hasPermission('control_form.view_unpublished'))
   );
 
   const [snapshot, setSnapshot] = useState<TransportInterruptionForm | null>(null);
@@ -353,7 +357,6 @@ export function TransportInterruptionFormPage() {
     setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
-    window.scrollTo(0, 0);
   };
 
   const handleCompoundPublished = () => {
@@ -544,7 +547,7 @@ export function TransportInterruptionFormPage() {
 
   if (loadingEntry) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
+  if (loadError || !compoundFormKey) return <FormLoadError />;
 
   const compoundTrailersList = resolveCompoundTrailersList(formik.values.trailers, compoundForm);
   const tabLabels = buildTabLabels(compoundTrailersList, t);
@@ -750,10 +753,10 @@ export function TransportInterruptionFormPage() {
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!driver.form) resetCompoundFormToSaved();
                 refetchDriver(() => {
                   driver.draftRef.current = null;
@@ -800,10 +803,10 @@ export function TransportInterruptionFormPage() {
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!teammate.form) resetCompoundFormToSaved();
                 refetchTeammate(() => {
                   teammate.draftRef.current = null;
@@ -850,9 +853,9 @@ export function TransportInterruptionFormPage() {
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({
                   ...p,
                   'tab-vehicle-technical-check': false,
@@ -914,9 +917,9 @@ export function TransportInterruptionFormPage() {
                         ? JSON.parse(compoundForm.trailers)
                         : []
                 }
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   setTabErrors((p) => ({ ...p, [`tab-trailer-technical-check-${idx}`]: false }));
                   refetchTechCheck(trailerHandle, 'trailer', idx, () => {
                     trailerHandle.draftRef.current = null;
@@ -959,10 +962,10 @@ export function TransportInterruptionFormPage() {
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-adr': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchAdr(() => {
                   adr.draftRef.current = null;
                   adr.setDraft(null);
@@ -1005,13 +1008,13 @@ export function TransportInterruptionFormPage() {
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTransportInterruption(() => {
                   transportInterruption.draftRef.current = null;
                   transportInterruption.setDraft(null);

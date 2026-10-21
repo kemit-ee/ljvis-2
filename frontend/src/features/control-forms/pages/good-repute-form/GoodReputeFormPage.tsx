@@ -10,7 +10,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { useIsAdmin } from '../../../../hooks/useIsAdmin';
-import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { useClassifiers, useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 import { usePersonSearch } from '../../../xroad/hooks/usePersonSearch';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { useGoodReputeForm } from './useGoodReputeForm';
@@ -48,6 +48,7 @@ export function GoodReputeFormPage() {
 
   const forbidden = !(
     hasPermission('good_repute_form.read') ||
+    hasPermission('good_repute_form.write') ||
     hasPermission('control_form.view_unpublished')
   );
 
@@ -56,6 +57,8 @@ export function GoodReputeFormPage() {
   const [isEditActive, setIsEditActive] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -110,7 +113,6 @@ export function GoodReputeFormPage() {
   };
 
   const handleConfirmed = () => {
-    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);

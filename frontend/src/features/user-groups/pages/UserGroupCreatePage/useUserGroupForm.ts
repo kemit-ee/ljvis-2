@@ -84,7 +84,7 @@ export function useUserGroupForm(onSaved: (id: string) => void) {
         organisationIds: Array.from(selectedOrgs),
         permissionIds: Array.from(selectedPerms),
       });
-      onSaved(result[0].id);
+      onSaved(String(result[0].id));
     } catch (e) {
       console.error('Failed to create group', e);
     } finally {

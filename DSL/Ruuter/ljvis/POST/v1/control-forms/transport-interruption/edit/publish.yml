@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) the transport-interruption sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) the transport-interruption sub-form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -21,6 +25,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -66,9 +71,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       status: published
       headerText: ${header_text}
       residenceCountry: ${residence_country}
@@ -82,7 +89,20 @@ publishForm:
       personApplications: ${person_applications}
       created_by: ${created_by}
   result: publishRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: check_publishRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 buildLogDescription:
   assign:
@@ -97,11 +117,25 @@ logAuditEvent:
   body:
     event_type: "control_form.transport_interruption.publish"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: autoPublishCompound
+
+# Viimase alamvormi avalikustamisel avalikustub kinnitatud koondvormi üldosa
+# serveris, mitte ainult brauseris (brauseri vormi esitus jääb vaikselt
+# tegemata, kui üldosa valideerimine ebaõnnestub). Viga ei tohi alamvormi
+# avalikustamist tagasi pöörata.
+autoPublishCompound:
+  template: "templates/form/compound-form/publish-compound-form"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: "${compound_form_key == null ? '' : String(compound_form_key)}"
+    only_if_confirmed: "true"
+  result: autoPublishCompoundRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

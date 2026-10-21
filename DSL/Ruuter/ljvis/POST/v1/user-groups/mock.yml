@@ -1,3 +1,9 @@
+declaration:
+  description: "Arenduse mock: POST /v1/user-groups/mock tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
+  internal: false
+  allowlist:
+    body: []
+
 mock_step:
   call: reflect.mock
   args:

@@ -1,11 +1,13 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Create or update a good repute form (hea maine vorm) — single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update a good repute form (hea maine vorm) - single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: personalCode
         type: string
       - field: firstName
@@ -27,6 +29,9 @@ declaration:
       - field: unfitFromDate
         type: string
       - field: unfitUntilDate
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -86,6 +91,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/insert"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       status: saved
@@ -124,8 +130,6 @@ logAuditEventInsert:
   body:
     good_repute_form_key: ${good_repute_form_key}
     personal_code: ${personal_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 
@@ -134,6 +138,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -187,9 +192,11 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: ${current_status}
       personalCode: ${personal_code}
       firstName: ${first_name}
@@ -204,7 +211,20 @@ updateForm:
       unfitUntilDate: ${unfit_until_date}
       created_by: ${created_by}
   result: saveRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: checkUpdateSaved
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 checkUpdateSaved:
   switch:
@@ -226,8 +246,6 @@ logAuditEventUpdate:
   body:
     good_repute_form_key: ${good_repute_form_key}
     personal_code: ${personal_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     changed_fields: ${changed_fields_result}
   result: audit_result
   next: returnSuccess

@@ -45,15 +45,12 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
     formik,
     countries,
     vehicleCategories,
-    parts,
-    defectsByPartKey,
+    reasonTree,
     driverBlockOpen,
     setDriverBlockOpen,
     identificationBlockOpen,
     setIdentificationBlockOpen,
-    setPartStatus,
-    applyPartDefects,
-    removeDefect,
+    setCheckedItems,
   } = form;
 
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
@@ -617,12 +614,14 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
         <Card.Content>
           <Heading element="h2">{t('erru.rsi.form.checkedItemsBlock')}</Heading>
           <RsiCheckedItemsTable
-            parts={parts}
-            defectsByPartKey={defectsByPartKey}
+            tree={reasonTree}
             items={formik.values.checkedItems}
-            onStatusChange={setPartStatus}
-            onDefectsChange={applyPartDefects}
-            onRemoveDefect={removeDefect}
+            onChange={setCheckedItems}
+            error={
+              formik.submitCount > 0 && typeof formik.errors.checkedItems === 'string'
+                ? formik.errors.checkedItems
+                : undefined
+            }
           />
         </Card.Content>
       </Card>

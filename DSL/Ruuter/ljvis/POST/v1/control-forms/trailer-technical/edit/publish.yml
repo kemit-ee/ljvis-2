@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) the trailer technical-check sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) the trailer technical-check sub-form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -21,6 +25,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -45,6 +50,14 @@ checkStatusSwitch:
       next: returnAlreadyPublishedError
     - condition: ${current_status !== 'confirmed'}
       next: returnNotConfirmedError
+  next: checkManualPublish
+
+checkManualPublish:
+  switch:
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && (u.permissions == null || !u.permissions.includes('control_form.punishment_register'))}
+      next: returnPunishmentRegisterPermissionError
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && !currentFormRes.response.body[0].enforcementDecision && !currentFormRes.response.body[0].proceedingClosureBasis}
+      next: returnProceedingOutcomeRequired
   next: extractCurrentFormData
 
 extractCurrentFormData:
@@ -72,9 +85,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       status: published
       partsSummary: ${parts_summary}
       partsDefects: ${parts_defects}
@@ -94,7 +109,20 @@ publishForm:
       trailerRegNr: ${trailer_reg_nr}
       created_by: ${created_by}
   result: publishRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: check_publishRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 buildLogDescription:
   assign:
@@ -109,11 +137,79 @@ logAuditEvent:
   body:
     event_type: "control_form.trailer_technical.publish"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: autoPublishCompound
+
+# Viimase alamvormi avalikustamisel avalikustub kinnitatud koondvormi üldosa
+# serveris, mitte ainult brauseris (brauseri vormi esitus jääb vaikselt
+# tegemata, kui üldosa valideerimine ebaõnnestub). Viga ei tohi alamvormi
+# avalikustamist tagasi pöörata.
+autoPublishCompound:
+  template: "templates/form/compound-form/publish-compound-form"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: "${compound_form_key == null ? '' : String(compound_form_key)}"
+    only_if_confirmed: "true"
+  result: autoPublishCompoundRes
+  error: sendCarrierFromRequest
+  next: sendCarrierFromRequest
+
+# Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
+sendCarrierFromRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entity_type: "trailer_technical"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
+  result: carrierFromRequestRes
+  error: evaluateNotifications
+  next: evaluateNotifications
+
+evaluateNotifications:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/evaluate-technical-publish"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entityType: "trailer_technical"
+      entityId: "${'' + id}"
+      compoundFormKey: "${'' + compound_form_key}"
+      version: "${'' + publishRes.response.body[0].version}"
+      resultType: ${result_type}
+      resultTransportInterruption: ${result_transport_interruption}
+      partsSummary: ${parts_summary}
+      partsDefects: ${parts_defects}
+      violations: ${violations}
+      createdBy: ${actor_personal_code}
+  result: notificationEvaluationRes
+  error: recalculateRisk
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(compound_form_key)}"
+  result: riskRecalcRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:
@@ -128,6 +224,16 @@ returnNotFound:
 returnAlreadyPublishedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnPunishmentRegisterPermissionError:
+  status: 403
+  return: '{"type":"FORBIDDEN","field":null,"code":"punishment_register_permission_required"}'
+  next: end
+
+returnProceedingOutcomeRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"enforcementDecision","code":"proceeding_outcome_required"}'
   next: end
 
 returnNotConfirmedError:

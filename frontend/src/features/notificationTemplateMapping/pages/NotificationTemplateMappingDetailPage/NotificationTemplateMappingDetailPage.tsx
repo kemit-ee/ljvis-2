@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,6 +15,12 @@ import { PERMISSIONS } from '../../../../constants/constants';
 import { AutoHideAlert } from '../../../../components/AutoHideAlert/AutoHideAlert';
 import { useNotificationTemplateMappingDetail } from './useNotificationTemplateMappingDetail';
 import { useNotificationTemplateMappingForm } from './useNotificationTemplateMappingForm';
+import { DesktopRecipientsField } from './DesktopRecipientsField';
+import { resolveDesktopRecipientUsers } from '../../api';
+import {
+  NOTIFICATION_TYPE_TEMPLATE_VARIABLES,
+  NOTIFICATION_TYPE_TRIGGER_FORM_KEYS,
+} from '../../notificationTypeMeta';
 
 const LANGUAGE_OPTIONS = [
   { value: 'et', label: 'Eesti' },
@@ -49,9 +55,22 @@ export function NotificationTemplateMappingDetailPage() {
 
   const [isEditActive, setIsEditActive] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [recipientNames, setRecipientNames] = useState<Record<string, string>>({});
 
   const { mapping, loading, refetch } =
     useNotificationTemplateMappingDetail(notificationType);
+
+  useEffect(() => {
+    const codes = mapping?.desktopRecipientPersonalCodes ?? [];
+    if (codes.length === 0) return;
+    resolveDesktopRecipientUsers(codes).then((users) => {
+      setRecipientNames(
+        Object.fromEntries(
+          users.map((u) => [u.personalCode, `${u.firstName} ${u.lastName}`]),
+        ),
+      );
+    });
+  }, [mapping?.desktopRecipientPersonalCodes]);
 
   const handleEditSaved = () => {
     setIsEditActive(false);
@@ -72,6 +91,21 @@ export function NotificationTemplateMappingDetailPage() {
     LANGUAGE_OPTIONS.find((o) => o.value === formik.values.defaultLanguage) ??
     null;
 
+  const notificationTypeName = t(
+    `notifications.types.${mapping.notificationType}`,
+    mapping.notificationType,
+  );
+  const triggeringFormKeys =
+    NOTIFICATION_TYPE_TRIGGER_FORM_KEYS[mapping.notificationType];
+  const triggeringForms = triggeringFormKeys
+    ? triggeringFormKeys.map((key) => t(`search.formType.${key}`)).join(', ')
+    : t('notificationTemplateMapping.triggeredAutomatically');
+
+  const templateVariables =
+    mapping.channel === 'postkast'
+      ? NOTIFICATION_TYPE_TEMPLATE_VARIABLES[mapping.notificationType]
+      : undefined;
+
   return (
     <div>
       {alertMessage && (
@@ -81,7 +115,7 @@ export function NotificationTemplateMappingDetailPage() {
         />
       )}
       <div className="page-header">
-        <Heading element="h1">{mapping.notificationType}</Heading>
+        <Heading element="h1">{notificationTypeName}</Heading>
       </div>
 
       <Card className="mb-1">
@@ -104,15 +138,32 @@ export function NotificationTemplateMappingDetailPage() {
 
           {!isEditActive && (
             <div>
+              <Field label={t('notificationTemplateMapping.notificationType')}>
+                {mapping.notificationType}
+              </Field>
+              <Field label={t('notificationTemplateMapping.triggeringForms')}>
+                {triggeringForms}
+              </Field>
               <Field label={t('notificationTemplateMapping.channel')}>
                 {mapping.channel}
               </Field>
               <Field label={t('notificationTemplateMapping.originalTemplateId')}>
                 {mapping.originalTemplateId || '—'}
               </Field>
-              <Field label={t('notificationTemplateMapping.defaultRecipientEmail')}>
-                {mapping.defaultRecipientEmail || '—'}
-              </Field>
+              {mapping.channel === 'postkast' && (
+                <Field label={t('notificationTemplateMapping.defaultRecipientEmail')}>
+                  {mapping.defaultRecipientEmail || '—'}
+                </Field>
+              )}
+              {mapping.channel === 'desktop' && (
+                <Field label={t('notificationTemplateMapping.desktopRecipients')}>
+                  {mapping.desktopRecipientPersonalCodes?.length
+                    ? mapping.desktopRecipientPersonalCodes
+                        .map((code) => recipientNames[code] ?? code)
+                        .join(', ')
+                    : '—'}
+                </Field>
+              )}
               <Field label={t('notificationTemplateMapping.defaultLanguage')}>
                 {mapping.defaultLanguage}
               </Field>
@@ -126,6 +177,12 @@ export function NotificationTemplateMappingDetailPage() {
 
           {isEditActive && (
             <form onSubmit={formik.handleSubmit}>
+              <Field label={t('notificationTemplateMapping.notificationType')}>
+                {mapping.notificationType}
+              </Field>
+              <Field label={t('notificationTemplateMapping.triggeringForms')}>
+                {triggeringForms}
+              </Field>
               <Field label={t('notificationTemplateMapping.channel')}>
                 {mapping.channel}
               </Field>
@@ -135,25 +192,44 @@ export function NotificationTemplateMappingDetailPage() {
                 label={t('notificationTemplateMapping.originalTemplateId')}
                 value={formik.values.originalTemplateId}
                 onChange={(v) => formik.setFieldValue('originalTemplateId', v)}
-              />
-              <TextField
-                id="defaultRecipientEmail"
-                className="mb-1"
-                label={t('notificationTemplateMapping.defaultRecipientEmail')}
-                value={formik.values.defaultRecipientEmail}
-                onChange={(v) =>
-                  formik.setFieldValue('defaultRecipientEmail', v)
-                }
-                {...(formik.touched.defaultRecipientEmail &&
-                formik.errors.defaultRecipientEmail
+                {...(formik.touched.originalTemplateId &&
+                formik.errors.originalTemplateId
                   ? {
                       helper: {
-                        text: formik.errors.defaultRecipientEmail,
+                        text: formik.errors.originalTemplateId,
                         type: 'error' as const,
                       },
                     }
                   : {})}
               />
+              {mapping.channel === 'postkast' && (
+                <TextField
+                  id="defaultRecipientEmail"
+                  className="mb-1"
+                  label={t('notificationTemplateMapping.defaultRecipientEmail')}
+                  value={formik.values.defaultRecipientEmail}
+                  onChange={(v) =>
+                    formik.setFieldValue('defaultRecipientEmail', v)
+                  }
+                  {...(formik.touched.defaultRecipientEmail &&
+                  formik.errors.defaultRecipientEmail
+                    ? {
+                        helper: {
+                          text: formik.errors.defaultRecipientEmail,
+                          type: 'error' as const,
+                        },
+                      }
+                    : {})}
+                />
+              )}
+              {mapping.channel === 'desktop' && (
+                <DesktopRecipientsField
+                  personalCodes={formik.values.desktopRecipientPersonalCodes}
+                  onChange={(codes) =>
+                    formik.setFieldValue('desktopRecipientPersonalCodes', codes)
+                  }
+                />
+              )}
               <Select
                 id="defaultLanguage"
                 className="mb-1"
@@ -204,6 +280,41 @@ export function NotificationTemplateMappingDetailPage() {
           )}
         </Card.Content>
       </Card>
+
+      {templateVariables && (
+        <Card className="mb-1">
+          <Card.Content>
+            <Heading element="h3">
+              {t('notificationTemplateMapping.variables.title')}
+            </Heading>
+            <Text color="secondary" className="mb-1">
+              {t('notificationTemplateMapping.variables.intro')}
+            </Text>
+            <table className="mb-1" data-testid="template-variables">
+              <thead>
+                <tr>
+                  <th align="left">
+                    {t('notificationTemplateMapping.variables.name')}
+                  </th>
+                  <th align="left">
+                    {t('notificationTemplateMapping.variables.description')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {templateVariables.map((name) => (
+                  <tr key={name}>
+                    <td>
+                      <code>{`{{${name}}}`}</code>
+                    </td>
+                    <td>{t(`notificationTemplateMapping.variables.${name}`)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card.Content>
+        </Card>
+      )}
     </div>
   );
 }

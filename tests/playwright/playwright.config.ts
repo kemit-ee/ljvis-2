@@ -28,9 +28,9 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: isCI,
   retries: isCI ? 2 : 1,
-  // Üks jagatud vite-dev server — paralleelsed töölised võistlevad esmase
-  // route-kompileerimise pärast ja tekitavad ebastabiilsust. Seriaalne on
-  // ~3 min, aga usaldusväärne.
+  // Ühe shard'i testid muudavad sama andmebaasi, kasutajaid ja õigusi.
+  // CI paralleelsus tuleb eraldi runner'itest, igal oma pinu ja andmebaas.
+  // Ühe shard'i sees jääb käivitus järjestikuseks.
   workers: 1,
   timeout: 60_000,
   expect: { timeout: 12_000 },
@@ -38,6 +38,9 @@ export default defineConfig({
   reporter: [
     ['./reporter/tulemus-reporter.ts'],
     ['html', { outputFolder: 'tulemus/html-raport', open: 'never' }],
+    // Masinloetav tulemus — sisend scripts/generate-ui-testlood.py-le
+    // (docs/testimine/testilood.md UI-osa).
+    ['json', { outputFile: 'tulemus/playwright-tulemus.json' }],
     ['list'],
   ],
 
@@ -107,10 +110,16 @@ export const STORAGE_STATE = {
   superadmin: resolve(__dirname, 'tulemus/.auth/superadmin.json'),
   officer: resolve(__dirname, 'tulemus/.auth/officer.json'),
   noperm: resolve(__dirname, 'tulemus/.auth/noperm.json'),
+  compoundonly: resolve(__dirname, 'tulemus/.auth/compoundonly.json'),
+  nocompound: resolve(__dirname, 'tulemus/.auth/nocompound.json'),
+  orgadmin: resolve(__dirname, 'tulemus/.auth/orgadmin.json'),
 };
 
 export const TEST_USERS = {
   superadmin: '60001019906',
   officer: '60002020202',
   noperm: '60001017869',
+  compoundonly: '60003030303',
+  nocompound: '60004040404',
+  orgadmin: '60001017727',
 };

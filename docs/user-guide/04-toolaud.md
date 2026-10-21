@@ -41,10 +41,13 @@ Iga kaardi nupp **„Täida →"** avab vastava tühja vormi.
 
 ## Mina / Organisatsioon
 
-Mõlema tabeli kohal on lüliti **Mina / Organisatsioon**, mis valib, kas
-kuvatakse ainult Teie enda pooleliolevad vormid või kõigi Teie organisatsiooni
-ametnike omad. Lüliti „Organisatsioon" on nähtav ainult vastava õigusega
-kasutajatele.
+Mõlema tabeli kohal on lüliti **Mina / Minu prefektuur / Organisatsioon**, mis
+valib, kas kuvatakse ainult Teie enda pooleliolevad vormid, Teie struktuuriüksuse
+(PPA puhul prefektuuri) ametnike vormid või kõigi Teie organisatsiooni ametnike
+vormid. Valik „Minu prefektuur" on nähtav grupi juhile (õigus
+`control_form.view_unit`) ja „Organisatsioon" õigusega `control_form.view_organisation`.
+Prefektuuri alluvate vormid on nähtavad ka otsingus ja vormi avamisel; muuta saab neid
+vormi enda õigustega (kinnitatud ja avalikustatud vormi õigusega `control_form.edit_locked`).
 
 ## Töös olevad koondvormid
 

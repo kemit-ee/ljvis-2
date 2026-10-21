@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -7,21 +8,21 @@ declaration:
     (result_type='ok') ja mille sõiduk on välisriigi oma, ehitab ja saadab
     automaatselt NCR (NotifyCheckResult) teate sõiduki registreerimisriiki.
 
-    Iga kandidaadi kohta: eeltäida NCR mustand (erru/ncr/build — sama loogika
+    Iga kandidaadi kohta: eeltäida NCR mustand (erru/ncr/build - sama loogika
     mis käsitsi „Lisa NCR vorm", ncrTo = compound_form.vehicle_country_code,
     originatingAuthority eeltäidetakse build.sql-is kontrollkaardi inspektori
     asutusest), loe valmis kirje
     (erru/ncr/get), saada ERRU hub'i ([#ERRU_NCR_ENDPOINT], sünkroonne ack) ja
     salvesta üleminekud (initiated → sent → acknowledged, või → error).
-    Iga katse — õnnestunud või mitte — kirjutab ühe rea
+    Iga katse - õnnestunud või mitte - kirjutab ühe rea
     erru.ncr_autodispatch_log tabelisse; see hoiab partii idempotentsena
     (select-autodispatch-candidates.sql välistab juba logitud alamvormid).
     Negatiivse ack'i / transpordivea korral jääb NCR olekusse error ja ametnik
-    saadab selle käsitsi uuesti (send.yml) — cron ei proovi uuesti.
+    saadab selle käsitsi uuesti (send.yml) - cron ei proovi uuesti.
 
     Kutsub CronManager 02:00 Europe/Tallinn
     (DSL/CronManager/erru-ncr-autodispatch.yaml). Sama „lame iterate-jada"
-    muster nagu cron/etoimik-sp-driver-decision-sync.yml — do: sees ei ole
+    muster nagu cron/etoimik-sp-driver-decision-sync.yml - do: sees ei ole
     next:/return, kõik harud on koondatud arvutatud assign'idesse ja
     kirjutuskutsed käivituvad alati (no-op halva sisendiga).
 
@@ -38,6 +39,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/select-autodispatch-candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: candidatesRes
@@ -66,6 +68,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/build"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             spFormKey: ${sp_form_key}
@@ -89,6 +92,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/get"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: ${business_case_id}
@@ -112,7 +116,7 @@ processCandidates:
               : (authority_code || '[#ERRU_NCR_ORIGINATING_AUTHORITY]')}
 
       # 3) Saada ERRU hub'i (sünkroonne ack). Kui build ebaõnnestus, on
-      #    business_case_id tühi — hub-kutse tehakse ikka, aga tulemust
+      #    business_case_id tühi - hub-kutse tehakse ikka, aga tulemust
       #    ei arvestata (vt outcome allpool).
       - call: http.post
         args:
@@ -135,7 +139,7 @@ processCandidates:
           result: >-
             ${(function(){
               if (!build_ok) {
-                return { outcome: 'build_failed', ackStatusCode: '', errorMessage: 'erru/ncr/build tagastas 0 rida — SP alamvorm või compound_form kadus vahepeal', raw: JSON.stringify(buildRes.response && buildRes.response.body) };
+                return { outcome: 'build_failed', ackStatusCode: '', errorMessage: 'erru/ncr/build tagastas 0 rida - SP alamvorm või compound_form kadus vahepeal', raw: JSON.stringify(buildRes.response && buildRes.response.body) };
               }
               var httpOk = erruRes.response != null && erruRes.response.status != null && erruRes.response.status < 400;
               if (!httpOk) {
@@ -156,6 +160,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: ${business_case_id}
@@ -182,6 +187,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: "${result.outcome === 'acknowledged' ? business_case_id : ''}"
@@ -208,6 +214,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             businessCaseId: "${result.outcome === 'error' ? business_case_id : ''}"
@@ -234,6 +241,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/erru/ncr/log-autodispatch"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             spFormKey: ${sp_form_key}
@@ -250,6 +258,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "erru.ncr.autodispatch.v1.cron"

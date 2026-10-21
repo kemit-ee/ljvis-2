@@ -1,6 +1,6 @@
 # Failide lisamine vormidele
 
-Kontrollaktidele saab lisada manuseid, näiteks fotosid, tõendeid või dokumentide koopiaid. Manused salvestatakse S3-kõlbulikku objektihoidlasse ja nende kirjed andmebaasi.
+Kontrollaktidele saab lisada manuseid, näiteks fotosid, tõendeid või dokumentide koopiaid. Manused salvestatakse S3-ga ühilduvasse objektihoidlasse ja nende kirjed andmebaasi.
 
 ## Millistes vormides saab faile lisada
 
@@ -28,7 +28,7 @@ sequenceDiagram
     participant K as Kasutaja
     participant V as Vormivaade
     participant S as Server
-    participant S3 as S3 hoiulaast
+    participant S3 as S3 objektihoidla
 
     K->>V: Klõpsab "Lisa fail"
     V->>K: Kuvab failivaliku
@@ -52,7 +52,7 @@ S3 laadimisel ja kasutajaliideses aktsepteeritakse järgmisi faile:
 | `.png` | `image/png` | Fotod, joonised |
 | `.tiff` | `image/tiff` | Kõrge eraldusvõimega pildid |
 
-Serveri seadistus (`S3_ALLOWED_MIME_TYPES`) lubad ka `.asics`, `.doc` ja `.docx` faile, kuid kasutajaliideses piiratase praegu valik peamiselt PDF- ja pildifailidega.
+Serveri seadistus (`S3_ALLOWED_MIME_TYPES`) lubab ka `.asics`, `.doc` ja `.docx` faile, kuid kasutajaliideses piiratakse praegu valik peamiselt PDF- ja pildifailidega.
 
 ## Faili piirangud
 
@@ -72,7 +72,7 @@ Iga fail peab olema märgitud tüübiga, mis selgitab, mida fail kujutab. Näite
 
 ## Failide kustutamine
 
-Manuseid saab peita enne vormi kinnitamist. Pärast kinnitamist ei saa manuseid enam lisada ega kustutada. Kustutamine on **pehme kustutamine**: faili kirje andmebaasis märgistatakse staatusega `deleted`, kuid fail jääb S3 hoiularuumi.
+Manuseid saab peita enne vormi kinnitamist. Pärast kinnitamist ei saa manuseid enam lisada ega kustutada. Kustutamine on **pehme kustutamine**: faili kirje andmebaasis märgistatakse staatusega `deleted`, kuid fail jääb S3 objektihoidlasse.
 
 ## Failide allalaadimine
 

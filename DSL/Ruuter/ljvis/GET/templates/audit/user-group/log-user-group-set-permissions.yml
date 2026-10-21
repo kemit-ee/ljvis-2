@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Audit: user group set-permissions event — fetches full permissions list to resolve codes"
+  description: "Audit: user group set-permissions event - fetches full permissions list to resolve codes"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: user_group_id
@@ -22,6 +26,7 @@ fetchAllPermissions:
   args:
     url: "[#LJVIS_RESQL]/permission/list_permissions"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: allPermsRes

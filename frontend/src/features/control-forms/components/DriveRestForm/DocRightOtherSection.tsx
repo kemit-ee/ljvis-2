@@ -46,6 +46,14 @@ const TRAM_ONLY_CODES = new Set([
   'ATL_VALE_SOIDUK',
 ]);
 
+// Autojuhi lähetamisega seotud kirjeldused kuuluvad ainult PPA sõidu- ja
+// puhkeaja kontrollvormile — Transpordiamet lähetuse nõudeid ei kontrolli
+// ja soovib välistada nende ekslikku märkimist oma kontrollkaardil.
+const PPA_ONLY_CODES = new Set([
+  'LAHETUSDEKLARATSIOON_PRAEGUNE',
+  'LAHETUSDEKLARATSIOON_VARASEM',
+]);
+
 export function getVisibility(code: string): Visibility {
   return CODE_TO_VISIBILITY[code] ?? 'BOTH';
 }
@@ -75,6 +83,7 @@ export function DocRightOtherSection({
   useEffect(() => {
     const filteredDocs = (otherDocuments as OtherDocument[]).filter((doc) => {
       if (authority !== 'TRAM' && TRAM_ONLY_CODES.has(doc.documentCode)) return false;
+      if (authority === 'TRAM' && PPA_ONLY_CODES.has(doc.documentCode)) return false;
       const visibility = CODE_TO_VISIBILITY[doc.documentCode] ?? 'BOTH';
       if (visibility === 'BOTH') return true;
       if (visibility === 'CARGO') return transportType === 'Veosevedu';
@@ -88,6 +97,7 @@ export function DocRightOtherSection({
     () =>
       docRightOtherDocs.filter((doc) => {
         if (authority !== 'TRAM' && TRAM_ONLY_CODES.has(doc.code)) return false;
+        if (authority === 'TRAM' && PPA_ONLY_CODES.has(doc.code)) return false;
         const visibility = getVisibility(doc.code);
         if (visibility === 'BOTH') return true;
         if (visibility === 'CARGO') return transportType === 'Veosevedu';

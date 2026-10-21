@@ -149,7 +149,7 @@ changelog:
 
 | Endpoint            | HTTP | operationId          | Required permissions |
 | ------------------- | ---- | -------------------- | ------------------- |
-| `/v1/organisations` | GET  | `getOrganisations`   | `organisation.list` |
+| `/v1/organisations` | GET  | `getOrganisations`   | — (authenticated session; baseline for form pickers) |
 | `/v1/permissions`   | GET  | `getPermissions`     | `permission.list`   |
 
 ### 2.5 Audit logs

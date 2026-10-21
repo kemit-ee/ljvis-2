@@ -37,7 +37,8 @@ class TemplateTests(unittest.TestCase):
         records = self.payload['adrForm']['infringements'][1]['records']
         records.append({'riskCategory': 'III', 'adrReference': 'TEST-SECOND', 'responsibleParticipants': ['L', 'P'], 'notes': 'LAST-RECORD'})
         data = context(self.payload)
-        self.assertEqual(data['rows'][1]['risk'], 'Vt lisa')
+        self.assertEqual(data['rows'][1]['risk'], self.payload['adrForm']['infringements'][1]['records'][0]['riskCategory'])
+        self.assertEqual(data['rows'][1]['extra'], [{'risk': 'III', 'reference': 'TEST-SECOND, L, P'}])
         self.assertIn('LAST-RECORD', str(data['appendix']))
 
     def test_official_report_follows_adr_publication(self):

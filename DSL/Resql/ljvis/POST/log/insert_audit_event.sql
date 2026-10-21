@@ -21,7 +21,7 @@ params:
   actor_personal_code:
     type: string
     required: false
-    description: Cleartext personal code of the actor — hashed to SHA-256 before storage
+    description: Cleartext personal code of the actor - hashed to SHA-256 before storage
   description:
     type: string
     required: false
@@ -38,7 +38,7 @@ params:
   actor_user_account_id:
     type: string
     required: false
-    description: FK to users.user_account(id) — the exact snapshot row of the actor at write time. NULL for
+    description: FK to users.user_account(id) - the exact snapshot row of the actor at write time. NULL for
       system processes and anonymous events.
   created_by:
     type: string

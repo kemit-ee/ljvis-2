@@ -9,17 +9,19 @@ import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundForm
 import { DriveRestFormFields } from '../../components/DriveRestForm/DriveRestFormFields';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 const FORM_TYPE = 'tram-card';
 
 export function TramControlCardCreatePage() {
+  useClassifierScopeActive(true); // ADR-011
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const forbidden = !(
-    hasPermission('tram_driver_form.write') && hasPermission('classifier.read')
+    hasPermission('tram_driver_form.write')
   );
 
   const handleSaved = (savedId?: string) => {
@@ -165,10 +167,7 @@ export function TramControlCardCreatePage() {
           <FormPrintButton endpoint="/v1/control-forms/tram-card/read/print" />
           <AsyncButton
             type="button"
-            onClick={() => {
-              formik.handleSubmit();
-              window.scrollTo(0, 0);
-            }}
+            onClick={() => formik.handleSubmit()}
           >
             {t('common.save')}
           </AsyncButton>

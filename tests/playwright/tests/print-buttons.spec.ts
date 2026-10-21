@@ -4,7 +4,7 @@ import {
   expectSaved,
   COMPOUND_DRIVER_IDS,
 } from '../pages/CompoundGeneralPart';
-import { checkChoiceById } from '../support/tedi';
+import { checkChoiceById, fillMaskedDate } from '../support/tedi';
 
 /**
  * Printimise nuppude olemasolu kontroll koondvormi alamvormidel (PR #310).
@@ -51,10 +51,16 @@ async function fillDriveRestSubForm(
   const prefix = /meeskon/i.test(tabName.source) ? 'teammate-' : '';
   await checkChoiceById(page, `${prefix}transport_type_cargo`);  // Veosevedu
   await checkChoiceById(page, `${prefix}result_korras`);          // Korras
+  // "Sõidu- ja puhkeaja nõuete kontroll" akordion on vaikimisi avatud
+  // (kohustuslik väli), seega applicability raadionupu saab kohe valida.
+  await checkChoiceById(page, `${prefix}applicability_not_checked`); // Ei kontrollitud
   // Liigu Üldosa tabile tagasi — see ootab, kuni Formik async-valideerimine lõpeb
   await page.getByRole('tab', { name: /Üldosa/ }).click();
+  // Pealkirja (mitte suvalise teksti) järgi, et vältida vastet SP alamvormi
+  // "Sõidu- ja puhkeaja nõuete kontroll" selgitava teksti sees olevale
+  // alamstringile "kontrolli koht(a)".
   await expect(
-    page.getByText(/Kontrolli koht/i),
+    page.getByRole('heading', { name: /Kontrolli koht/i }),
   ).toBeVisible({ timeout: 5_000 });
 }
 
@@ -129,10 +135,7 @@ test.describe('Printimise nupud — meeskonnaliikme SP vorm', () => {
     const reg = `PBT${Date.now() % 100000}`;
     let formId = '';
 
-    await page.goto('/control-forms/compound/new?types=teammate');
-    await expect(
-      page.getByRole('tab', { name: /Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm/ }),
-    ).toBeVisible({ timeout: 15_000 });
+    await page.goto('/control-forms/compound/new');
 
     await fillGeneralPart(page, {
       address: 'Prindi tee 2',
@@ -149,6 +152,18 @@ test.describe('Printimise nupud — meeskonnaliikme SP vorm', () => {
         birthDate: '15061990',
       },
     });
+
+    // Meeskonnaliikme kontrollvorm lisatakse üldosa meeskonnaliikme plokist
+    await page.getByRole('button', { name: 'Lisa meeskonnaliige' }).click();
+    await page.locator('#teammateFirstName').fill('Meeskond');
+    await page.locator('#teammateLastName').fill('Liige');
+    await fillMaskedDate(page, 'teammateBirthDate', '15061991');
+    await page
+      .getByRole('button', { name: 'Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm' })
+      .click();
+    await expect(
+      page.getByRole('tab', { name: /Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm/ }),
+    ).toBeVisible({ timeout: 15_000 });
 
     await fillDriveRestSubForm(page, /Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm/);
 
@@ -203,7 +218,7 @@ test.describe('Printimise nupud — sõiduki tehniline kontroll', () => {
     await expect(
       page.getByText(/Kontrolli tulemus/i).first(),
     ).toBeVisible({ timeout: 10_000 });
-    await checkChoiceById(page, 'resultType-extraordinary_inspection');
+    await checkChoiceById(page, 'vehicle-resultType-extraordinary_inspection');
     // Liigu Üldosa tabile tagasi (async-valideerimine jõuab lõpule)
     await page.getByRole('tab', { name: /Üldosa/ }).click();
     await expect(page.getByText(/Kontrolli koht/i)).toBeVisible({ timeout: 5_000 });

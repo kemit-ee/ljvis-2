@@ -17,7 +17,7 @@ const columnHelper = createColumnHelper<CompanyControlRow>();
 
 /**
  * Column header with an explanatory tooltip — used for the severity
- * columns (Huligaansõit/Väga tõsine/Tõsine/Vähemtõsine), since the raw
+ * columns (Kõige raskem/Väga raske/Raske/Kergem), since the raw
  * EU classifier abbreviations (MSI/VSI/SI/MI) mean nothing to a citizen
  * without transport-sector background.
  */
@@ -113,18 +113,25 @@ export function CompanyControlsTable({
       columnHelper.display({
         id: 'actions',
         header: '',
-        cell: ({ row }) => (
-          <Button
-            visualType="link"
-            onClick={() =>
-              navigate(`/my-companies/compound/${row.original.compoundFormKey}`, {
+        cell: ({ row }) => {
+          const paths: Partial<Record<CompanyControlRow['formType'], string>> = {
+            compound: 'compound',
+            foreign_violation: 'foreign-violation',
+            labour_inspection: 'labour-inspection',
+          };
+          const basePath = paths[row.original.formType];
+          if (!basePath) return null;
+          return (
+            <Button
+              visualType="link"
+              onClick={() => navigate(`/my-companies/${basePath}/${row.original.formKey}`, {
                 state: { from: 'citizen-app' },
-              })
-            }
-          >
-            {t('citizen.dashboard.controls.view')}
-          </Button>
-        ),
+              })}
+            >
+              {t('citizen.dashboard.controls.view')}
+            </Button>
+          );
+        },
       }),
     ],
     [t, navigate],

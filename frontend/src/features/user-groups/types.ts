@@ -9,7 +9,7 @@ export interface UserGroup {
 }
 
 export interface UserGroupOrganisation {
-  organisationId: string;
+  organisationId: number;
   name: string;
 }
 

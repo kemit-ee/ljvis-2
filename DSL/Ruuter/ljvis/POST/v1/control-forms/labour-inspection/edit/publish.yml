@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) a labour inspection form (Tööinspektsiooni kontrollakt). Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) a labour inspection form (Tööinspektsiooni kontrollakt). Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -22,6 +26,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -39,6 +44,14 @@ checkFormIsConfirmedSwitch:
       next: returnAlreadyPublishedError
     - condition: ${current_status !== 'confirmed'}
       next: returnNotConfirmedError
+  next: checkManualPublish
+
+checkManualPublish:
+  switch:
+    - condition: ${currentFormRes.response.body[0].proceedingReferenceNumber && (u.permissions == null || !u.permissions.includes('control_form.punishment_register'))}
+      next: returnPunishmentRegisterPermissionError
+    - condition: ${currentFormRes.response.body[0].proceedingReferenceNumber && !currentFormRes.response.body[0].enforcementDecision && !currentFormRes.response.body[0].proceedingClosureBasis}
+      next: returnProceedingOutcomeRequired
   next: extractCurrentFormData
 
 extractCurrentFormData:
@@ -64,9 +77,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       status: ${status}
       inspectorName: ${inspector_name}
       inspectionDate: ${inspection_date}
@@ -84,7 +99,20 @@ publishForm:
       violations: ${violations}
       created_by: ${created_by}
   result: publishRes
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
   next: check_publishRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 extractResponseData:
   assign:
@@ -102,13 +130,24 @@ logAuditEvent:
   body:
     akti_voti: ${id}
     form_number: ${form_number}
-    version: ${version}
     isikukood: ${punished_person_id_code}
     old_status: ${old_status}
     new_status: ${new_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "labour_inspection"
+      form_key: "${String(id)}"
+  result: riskRecalcRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:
@@ -118,6 +157,16 @@ returnSuccess:
 returnAlreadyPublishedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnPunishmentRegisterPermissionError:
+  status: 403
+  return: '{"type":"FORBIDDEN","field":null,"code":"punishment_register_permission_required"}'
+  next: end
+
+returnProceedingOutcomeRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"enforcementDecision","code":"proceeding_outcome_required"}'
   next: end
 
 returnNotConfirmedError:

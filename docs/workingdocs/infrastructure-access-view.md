@@ -17,7 +17,7 @@ Infra vaatest on oluline, et:
 - liiklus jõuaks esmalt **Frontend** teenuseni
 - `Frontend` suunaks edasi ainult vajalikud rajad
 - `Ruuter`, `Ruuter Internal`, `RESQL` ja `Data Mapper` ei oleks otse avalikult eksponeeritud, kui selleks ei ole eraldi põhjendatud vajadust
-- `TIM` oleks avalikult kättesaadav ainult autentimiseks vajalike endpointide ulatuses
+- `TIM` oleks avalikult kättesaadav ainult autentimiseks vajalike lõpp-punktide ulatuses
 - `RESQL` oleks **ainult sisemise võrgu teenus**
 
 ## Avalik aadress
@@ -125,7 +125,7 @@ Infra vaatest võiks avalik liiklus olla piiratud järgmiste teedega:
 
 - **`/tim/*`**
   - jõuab `Frontend` kaudu `TIM` teenuseni
-  - need on TIM-i avalikult vajalikud autentimise endpointid
+  - need on TIM-i avalikult vajalikud autentimise lõpp-punktid
 
 See tähendab, et avalik liiklus ei tohiks minna otse selliste teenusteni nagu:
 
@@ -147,7 +147,7 @@ See tähendab, et avalik liiklus ei tohiks minna otse selliste teenusteni nagu:
    - `RESQL`
    - `Data Mapper`
    - `TIM`
-5. `TIM` teenindab autentimiseks vajalikud endpointid ja suhtleb vajadusel edasi oma sisemiste sõltuvustega
+5. `TIM` teenindab autentimiseks vajalikud lõpp-punktid ja suhtleb vajadusel edasi oma sisemiste sõltuvustega
 6. `RESQL` suhtleb andmebaasiga
 
 ### Mitte-lubatud voog
@@ -160,7 +160,7 @@ Järgmised vood peaksid olema infra tasemel blokeeritud või vähemalt mitte eks
 - `Internet -> Database`
 - `Internet -> TIM PostgreSQL`
 - `Internet -> Ruuter` otse, kui arhitektuur näeb ette, et sisenemine käib läbi `Frontend`-i
-- `Internet -> TIM` otse kõigile endpointidele, mitte ainult autentimiseks vajalikele radadele
+- `Internet -> TIM` otse kõigile lõpp-punktidele, mitte ainult autentimiseks vajalikele radadele
 
 ## Infra kontrollnimekiri
 
@@ -184,7 +184,7 @@ Järgmised vood peaksid olema infra tasemel blokeeritud või vähemalt mitte eks
 - **TIM ligipääs on piiratud**
   - ainult vajalikud autentimise rajad
   - soovituslikult läbi `Frontend` / `LB` path-routing kaudu
-  - mitte üldine avalik otseühendus kõigile endpointidele
+  - mitte üldine avalik otseühendus kõigile lõpp-punktidele
 
 - **Ruuter suhtleb sisemiselt TIM-ga**
   - see side ei pea olema LB kaudu avalik
@@ -195,7 +195,7 @@ Infra vaates on soovitud mudel järgmine:
 
 - **avalik sisenemine toimub läbi Load Balanceri ja Frontendi**
 - **Ruuter ei pea olema otse avalik**
-- **TIM võib vajada piiratud avalikku ligipääsu autentimise endpointidele**
+- **TIM võib vajada piiratud avalikku ligipääsu autentimise lõpp-punktidele**
 - **RESQL on ainult sisemine teenus**
 - **andmebaasid on ainult privaatvõrgus**
 - **avaliku ja sisemise võrgu piir peab olema infrastruktuuris selgelt jõustatud**

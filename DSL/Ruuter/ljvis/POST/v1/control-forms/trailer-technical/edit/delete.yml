@@ -1,4 +1,5 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Delete trailer technical-check sub-form"
   namespace: control-forms
@@ -9,6 +10,9 @@ declaration:
       - field: form_number
         type: string
       - field: old_status
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 checkDeletePermission:
@@ -33,6 +37,7 @@ deleteForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/delete"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -49,9 +54,21 @@ logAuditEvent:
   body:
     form_number: ${form_number}
     old_status: ${old_status}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(deleteRes.response.body[0].compoundFormKey)}"
+  result: riskRecalcRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

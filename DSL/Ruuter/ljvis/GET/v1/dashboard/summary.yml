@@ -1,11 +1,12 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
-    LJVIS2-37 officer dashboard aggregate. No dedicated guard — the
+    LJVIS2-37 officer dashboard aggregate. No dedicated guard - the
     project-wide guard (ljvis/.guard.yml) already requires an authenticated
     officer session and exposes auth_user, same as other routes with no
     permission gate of their own. scope=organisation is only honoured when
-    the caller has control_form.view_unpublished (per the role model in
+    the caller has control_form.view_organisation (kontrollide koordinaator; role model in
     ljvis2-69-kontrollvormi-publish.md: "Lokaalne kasutaja"/administrator);
     otherwise it silently falls back to scope=own rather than erroring.
   namespace: dashboard
@@ -13,17 +14,18 @@ declaration:
     params:
       - field: scope
         type: string
-        description: "'own' (default) or 'organisation'"
+        description: "'own' (default), 'unit' (oma struktuuriüksus) or 'organisation'"
 
 resolveScope:
   assign:
     requested_scope: "${incoming.params.scope ?? 'own'}"
-    can_see_org: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_unpublished')}"
+    can_see_org: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_organisation')}"
+    can_see_unit: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_unit')}"
   next: applyScopeGuard
 
 applyScopeGuard:
   assign:
-    effective_scope: "${(requested_scope === 'organisation' && can_see_org) ? 'organisation' : 'own'}"
+    effective_scope: "${(requested_scope === 'organisation' && can_see_org) ? 'organisation' : ((requested_scope === 'unit' && can_see_unit) ? 'unit' : 'own')}"
   next: fetchSummary
 
 fetchSummary:
@@ -31,17 +33,19 @@ fetchSummary:
   args:
     url: "[#LJVIS_RESQL]/dashboard/summary"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       scope: "${effective_scope}"
       actor_code: "${auth_user.personalcode ?? ''}"
       actor_org_id: "${auth_user.organisationid != null ? String(auth_user.organisationid) : null}"
+      actor_unit: "${auth_user.structuralunit != null ? String(auth_user.structuralunit) : ''}"
   result: res
   next: collectSections
 
 # Resql returns one row per section {section, payload-as-json-text}; reshape
 # into a single object keyed by section with parsed JSON arrays. Split into
-# two assign steps — a variable assigned in a step cannot be referenced by
+# two assign steps - a variable assigned in a step cannot be referenced by
 # another key assigned in that same step (Ruuter evaluates a step's
 # assignments independently, not sequentially within the step).
 collectSections:
@@ -57,11 +61,30 @@ buildResponse:
         (sections || []).forEach(function(row) {
           try { out[row.section] = JSON.parse(row.payload); } catch (e) { /* leave default [] */ }
         });
+        // Näita ainult vorme, mida kasutajal on õigus lugeda (sama vastavus
+        // mis control-forms/search/list.yml-is; view_unpublished = kõik).
+        var perms = auth_user.permissions || [];
+        var all = perms.includes('control_form.view_unpublished');
+        var map = {
+          compound: 'compound_form.read', foreign_violation: 'foreign_violation_form.read',
+          labour_inspection: 'labour_inspection_form.read', good_repute: 'good_repute_form.read',
+          sp_driver: 'sp_driver_form.read', sp_teammate: 'sp_teammate_form.read',
+          vehicle_technical: 'vehicle_technical_form.read', trailer_technical: 'trailer_technical_form.read',
+          adr: 'adr_form.read', kv: 'transport_interruption_form.read',
+          tram_control_card: 'tram_driver_form.read'
+        };
+        var can = function(t) { return (all && t !== 'tram_control_card') || perms.includes(map[t]); };
+        out.activeCompoundForms = out.activeCompoundForms.filter(function(c) { return can('compound'); }).map(function(c) {
+          c.subForms = (c.subForms || []).filter(function(sf) { return can(sf.formType); });
+          return c;
+        });
+        out.activeStandaloneForms = out.activeStandaloneForms.filter(function(f) { return can(f.formType); });
+        out.needsAttention = out.needsAttention.filter(function(n) { return can('compound') && can(n.formType); });
         return out;
       })()}
   next: returnSuccess
 
-# Raw JS object (not JSON.stringify'd) — the frontend's get<T>() client
+# Raw JS object (not JSON.stringify'd) - the frontend's get<T>() client
 # parses one JSON envelope only (see search/list.yml's identical
 # `return: ${res.response.body}` convention).
 returnSuccess:

@@ -1,8 +1,9 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     In-app teavituste nimekiri autenditud kasutaja jaoks.
-    Filtreeritakse kasutaja õiguste alusel — kasutaja näeb ainult
+    Filtreeritakse kasutaja õiguste alusel - kasutaja näeb ainult
     neid teavitusi mille required_permission kuulub tema permissions[].
     is_unread arvutatakse SQL NOT EXISTS kaudu.
     Kaitstud GET/v1/.guard (autentimine) kaudu.
@@ -25,6 +26,7 @@ queryNotifications:
   args:
     url: "[#LJVIS_RESQL]/notification/list_notifications"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_code: ${user_code}

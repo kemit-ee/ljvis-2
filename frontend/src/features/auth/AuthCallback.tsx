@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { switchRepresentation } from './api';
 
 /**
@@ -20,9 +21,20 @@ import { switchRepresentation } from './api';
  *    for role=company); switchRepresentation always sends `registryCode:
  *    registryCode ?? ''`, so this call is only correct through that helper.
  * 7. Browser sets the HttpOnly cookie, we redirect to /
+ *
+ * Both failure paths below (an OAuth `error` param from TARA itself, or our
+ * own callback exchange failing) used to redirect straight back to `/`
+ * with no explanation. If TARA is unreachable/unconfigured, `/` just shows
+ * LoginPage again, the user clicks "Sisene süsteemi" again, bounces back
+ * here again — an apparent infinite loop with no feedback about what's
+ * wrong. We now stop and show a message instead of silently navigating
+ * away, since a `window.location.href` redirect would also just discard
+ * the message before it could be read.
  */
 export function AuthCallback() {
   const called = useRef(false);
+  const [error, setError] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (called.current) return;
@@ -31,14 +43,23 @@ export function AuthCallback() {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const state = params.get('state');
+    const oauthError = params.get('error');
+
+    const intent = sessionStorage.getItem('loginIntent');
+    sessionStorage.removeItem('loginIntent');
+
+    if (oauthError) {
+      // TARA (or TIM in front of it) itself reported a failure — e.g. TARA
+      // isn't configured for this client, or the IdP is unreachable.
+      console.error('TARA OAuth callback error', oauthError);
+      setError(true);
+      return;
+    }
 
     if (!code || !state) {
       window.location.href = '/';
       return;
     }
-
-    const intent = sessionStorage.getItem('loginIntent');
-    sessionStorage.removeItem('loginIntent');
 
     fetch('/api/auth/oauth-callback', {
       method: 'POST',
@@ -58,10 +79,20 @@ export function AuthCallback() {
         }
         window.location.href = '/';
       })
-      .catch(() => {
-        window.location.href = '/';
+      .catch((err) => {
+        console.error('TARA auth callback exchange failed', err);
+        setError(true);
       });
   }, []);
+
+  if (error) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <p>{t('auth.taraUnavailable')}</p>
+        <a href="/">{t('auth.backToLogin')}</a>
+      </div>
+    );
+  }
 
   return <div>Autentimine...</div>;
 }

@@ -1,11 +1,12 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Send an outgoing NCR request to the ERRU hub and store BOTH the 'sent'
     transition and the synchronous acknowledgement (LJVIS2-64 §4.2). Unlike RSI, the ACK
-    arrives in the SAME HTTP call as the send — so this endpoint appends two snapshots back
+    arrives in the SAME HTTP call as the send - so this endpoint appends two snapshots back
     to back: 'sent' then 'acknowledged' (mirroring the two separate rows required by the
     LJVIS2-62 elutsükkel transition table, even though both happen within one request here).
-    Sendable states: 'initiated' (first send) or 'error' (retry — NCR error is NOT terminal,
+    Sendable states: 'initiated' (first send) or 'error' (retry - NCR error is NOT terminal,
     unlike RSI, per LJVIS2-62 §4 'Viga olekus saab teate või vastuse uuesti saata'). A
     negative ack (Timeout/NotAvailable) or a transport failure both transition to 'error'.
     The ERRU hub endpoint is resolved from ERRU_NCR_ENDPOINT (mock in dev/CI, XTR in
@@ -14,6 +15,9 @@ declaration:
   allowlist:
     body:
       - field: businessCaseId
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -34,6 +38,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -112,6 +117,7 @@ storeSent:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -152,6 +158,7 @@ storeAcknowledged:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -191,8 +198,6 @@ logAuditSent:
     ncr_to: "${current.ncrTo}"
     result_status: "acknowledged"
     ack_status_code: ${ack_status_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_ok
   next: returnAcknowledged
 
@@ -201,6 +206,7 @@ markErrorAfterNegativeAck:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -234,8 +240,6 @@ logAuditNegativeAck:
     ncr_to: "${current.ncrTo}"
     result_status: "error"
     ack_status_code: ${ack_status_code}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_neg
   next: returnAckError
 
@@ -244,6 +248,7 @@ markError:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -277,8 +282,6 @@ logAuditTransportError:
     ncr_to: "${current.ncrTo}"
     result_status: "error"
     ack_status_code: "transport_failure"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_err
   next: returnTransportError
 
@@ -288,12 +291,12 @@ returnAcknowledged:
 
 returnAckError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU NCR negative acknowledgement — request transitioned to error"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU NCR negative acknowledgement - request transitioned to error"}'
   next: end
 
 returnTransportError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU NCR transport failure — request transitioned to error"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU NCR transport failure - request transitioned to error"}'
   next: end
 
 returnIdRequired:

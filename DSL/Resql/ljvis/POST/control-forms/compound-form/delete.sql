@@ -1,5 +1,5 @@
 /*
-description: Delete compound form — copy latest snapshot with status=deleted
+description: Delete compound form - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:
@@ -16,6 +16,9 @@ returns:
   type: number
   nullable: true
 - name: formNumber
+  type: string
+  nullable: true
+- name: companyRegCode
   type: string
   nullable: true
 - name: version
@@ -67,7 +70,8 @@ WITH latest AS (
     company_owner_last_name,
     company_activity_licence_copy_number,
     drivers,
-    version
+    version,
+    revision
   FROM forms.compound_form
   WHERE compound_form_key = :id::BIGINT
   ORDER BY compound_form_key, created_at DESC
@@ -77,6 +81,7 @@ INSERT INTO forms.compound_form (
   form_number,
   control_year,
   version,
+  revision,
   template_version,
   status,
   control_date,
@@ -125,6 +130,7 @@ SELECT
   l.form_number,
   l.control_year,
   l.version,
+  l.revision + 1,
   l.template_version,
   :status,
   l.control_date,
@@ -168,4 +174,4 @@ SELECT
   l.drivers,
   :created_by
 FROM latest l
-RETURNING compound_form_key AS id, form_number, version;
+RETURNING compound_form_key AS id, form_number, version, company_reg_code;

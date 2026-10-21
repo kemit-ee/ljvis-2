@@ -47,10 +47,11 @@ kliendi loata teostatavad lahendused:
 - `mapping_incomplete` ja `unmapped_eav` ei ole selle muudatusega üldiselt suletud.
   Rikkumiste, puuduste, ADR-i, ForeignViolate'i ja ülejäänud äriväljade täielik vastendus
   ning manuste/RavenDB ülekanne vajavad endiselt lõpetamist ja vastuvõttu.
-- P05 automaatne e-toimiku otsuse vastuvõtt on ühendatud **olemasoleva kolme** tööga:
-  SP autojuht, TH sõiduk ja TH haagis. Teise juhi/ADR-i jt puuduvat automaatset
-  päringuteed see muudatus ei lisa. Puuduva või maskeeritud isikukoodi/menetlusnumbriga
-  asja ei saa usaldusväärselt küsida; see vajab eraldi sisendite kontrolli.
+- P05 vanusepiiri erand on ühendatud kolme päringuteega: SP autojuht,
+  TH sõiduk ja TH haagis. Dev-i muud e-toimiku tööd (sh teine juht ja tramm)
+  säilivad; nende vanusepiiri erandit see muudatus ei lisa. Kõik kirjutajad
+  säilitavad dev-i revision/ajaloo ja kordusvastuse kaitse. Puuduva või maskeeritud
+  isikukoodi/menetlusnumbriga asja ei saa usaldusväärselt küsida.
 - Mask kohustuslikus koondpäise kuupäeva/kellaaja/riigi väljas annab
   `masked_required_header` blokeeringu. Nende NULL-esitust rakenduses pole laiendatud.
   See ei ole kliendilt uue ärilise loa küsimus, vaid allesjäänud tehniline töö.

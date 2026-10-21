@@ -381,7 +381,7 @@ HTTP 400:
 ## findUsage
 
 - Meetod: `GET`; mock: `/developer/xroad/v2/findUsage`.
-- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{instance}/GOV/70001231/ljvis2/findUsage/v2`.
+- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{instance}/GOV/70001231/ljvis2/findUsage/v2/findUsage`.
 - Pakkuja sisetee: `/ljvis/xroad/v2/findUsage`; [workflow](../../DSL/Ruuter.internal/ljvis/GET/xroad/v2/findUsage.yml).
 - Sisend: [JSON näidis](examples/findUsage-request.json) (GET puhul query parameetrid, mitte keha).
 - Vastus: [edukas HTTP-keha](examples/findUsage-success.json); [vead koos staatustega](examples/findUsage-errors.json).
@@ -391,14 +391,6 @@ curl --fail-with-body -X GET 'https://dev.liiklusvalve.ee/developer/xroad/v2/fin
 ```
 
 HTTP 200, keha:
-
-```json
-{
-  "response": "{\"totalUsages\":3,\"usages\":[{\"action\":\"Mock kontrollipäring\",\"logtime\":\"2026-06-15T12:00:00Z\",\"receiverCode\":\"70001490\",\"receiverName\":\"Mock tarbija\",\"receiverSystem\":\"liiklusregister\"},{\"action\":\"Mock töökontroll\",\"logtime\":\"2026-06-14T12:00:00Z\",\"receiverCode\":\"70001969\",\"receiverName\":null,\"receiverSystem\":null},{\"action\":\"Mock korduspäring\",\"logtime\":\"2026-06-13T12:00:00Z\",\"receiverCode\":\"70001490\",\"receiverName\":\"Mock tarbija\",\"receiverSystem\":\"liiklusregister\"}]}"
-}
-```
-
-`JSON.parse(response)` tulemus:
 
 ```json
 {
@@ -414,9 +406,7 @@ HTTP 200, keha:
     {
       "logtime": "2026-06-14T12:00:00Z",
       "action": "Mock töökontroll",
-      "receiverCode": "70001969",
-      "receiverName": null,
-      "receiverSystem": null
+      "receiverCode": "70001969"
     },
     {
       "logtime": "2026-06-13T12:00:00Z",
@@ -439,14 +429,15 @@ HTTP 400:
 
 ```json
 {
-  "response": "{\"error\": \"MISSING_HEADER\", \"message\": \"X-Road-UserId header is required\"}"
+  "error": "MISSING_HEADER",
+  "message": "X-Road-UserId header is required"
 }
 ```
 
 ## usagePeriod
 
 - Meetod: `GET`; mock: `/developer/xroad/v2/usagePeriod`.
-- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{instance}/GOV/70001231/ljvis2/usagePeriod/v2`.
+- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{instance}/GOV/70001231/ljvis2/findUsage/v2/usagePeriod`.
 - Pakkuja sisetee: `/ljvis/xroad/v2/usagePeriod`; [workflow](../../DSL/Ruuter.internal/ljvis/GET/xroad/v2/usagePeriod.yml).
 - Sisend: [JSON näidis](examples/usagePeriod-request.json) (GET puhul query parameetrid, mitte keha).
 - Vastus: [edukas HTTP-keha](examples/usagePeriod-success.json); [vead koos staatustega](examples/usagePeriod-errors.json).
@@ -456,14 +447,6 @@ curl --fail-with-body -X GET 'https://dev.liiklusvalve.ee/developer/xroad/v2/usa
 ```
 
 HTTP 200, keha:
-
-```json
-{
-  "response": "{\"periodStart\":\"2026-06-13T12:00:00Z\"}"
-}
-```
-
-`JSON.parse(response)` tulemus:
 
 ```json
 {
@@ -481,14 +464,15 @@ HTTP 500:
 
 ```json
 {
-  "response": "{\"error\": \"SERVER_ERROR\", \"message\": \"Internal error\"}"
+  "error": "SERVER_ERROR",
+  "message": "Internal error"
 }
 ```
 
 ## heartbeat
 
 - Meetod: `GET`; mock: `/developer/xroad/v2/heartbeat`.
-- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{instance}/GOV/70001231/ljvis2/heartbeat/v2`.
+- Päris turvaserveri tarbija URL: `https://<tarbija-turvaserver>/r1/{instance}/GOV/70001231/ljvis2/findUsage/v2/heartbeat`.
 - Pakkuja sisetee: `/ljvis/xroad/v2/heartbeat`; [workflow](../../DSL/Ruuter.internal/ljvis/GET/xroad/v2/heartbeat.yml).
 - Sisend: [JSON näidis](examples/heartbeat-request.json) (GET puhul query parameetrid, mitte keha).
 - Vastus: [edukas HTTP-keha](examples/heartbeat-success.json); [vead koos staatustega](examples/heartbeat-errors.json).
@@ -498,14 +482,6 @@ curl --fail-with-body -X GET 'https://dev.liiklusvalve.ee/developer/xroad/v2/hea
 ```
 
 HTTP 200, keha:
-
-```json
-{
-  "response": "{\"status\": \"OK\", \"message\": \"API is ready\"}"
-}
-```
-
-`JSON.parse(response)` tulemus:
 
 ```json
 {

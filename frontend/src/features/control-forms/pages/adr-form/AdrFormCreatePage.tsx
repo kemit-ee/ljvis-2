@@ -5,12 +5,14 @@ import { AdrFormFields } from './AdrFormFields';
 import { usePersonSearch } from '../../../xroad/hooks/usePersonSearch';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { ClassifierScopeProvider } from '../../../classifiers/ClassifierProvider';
+import { FORM_TYPE_CODE } from '../../../classifiers/formScope';
 
 
 interface Props {
   initialData?: AdrForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   onValuesChange?: (values: Partial<AdrForm>) => void;
   initialValidate?: boolean;
 }
@@ -25,7 +27,7 @@ export interface AdrFormCreatePageRef {
   confirm?: () => void;
 }
 
-export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
+const AdrFormCreatePageInner = forwardRef<AdrFormCreatePageRef, Props>(
   ({ initialData, compoundFormKey, onSaved, onValuesChange, initialValidate }, ref) => {
     const {
       formik,
@@ -52,7 +54,7 @@ export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
       addOtherRecord,
       updateOtherRecord,
       removeOtherRecord,
-    } = useAdrForm(initialData, (id) => onSaved?.(id), compoundFormKey);
+    } = useAdrForm(initialData, (id, confirmed) => onSaved?.(id, confirmed), compoundFormKey);
 
     const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
@@ -156,5 +158,20 @@ export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>(
     );
   },
 );
+
+AdrFormCreatePageInner.displayName = 'AdrFormCreatePageInner';
+
+// ADR-011: alamvormi muutmiskomponent on alati muutmisrežiimis → vormipiirang alati sees.
+// Oma skoop (mitte koondvormi oma), sest iga alamvorm on eraldi FORM_TYPE.
+export const AdrFormCreatePage = forwardRef<AdrFormCreatePageRef, Props>((props, ref) => (
+  <ClassifierScopeProvider
+    formType={
+      FORM_TYPE_CODE.SP_DANGEROUS_GOODS
+    }
+    active
+  >
+    <AdrFormCreatePageInner {...props} ref={ref} />
+  </ClassifierScopeProvider>
+));
 
 AdrFormCreatePage.displayName = 'AdrFormCreatePage';

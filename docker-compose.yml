@@ -150,8 +150,7 @@ services:
       - ./DSL/Ruuter.internal/ljvis:/app/DSL/ljvis:ro
       - ${CONSTANTS_FILE:-./constants.ini}:/app/constants.ini:ro
       - ./ruuter-internal.yaml:/app/ruuter.yaml:ro
-    ports:
-      - 8089:8080
+    # Porti hostile EI publitseerita (#515) — dev-ligipääs (8089) on docker-compose.override.yml-is.
     networks:
       - ljvisnetwork
     cpus: "0.5"
@@ -252,20 +251,88 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
+  # ERRU Hub mock — dev/CI only. Stands in for the ERRU Hub so erru-xml-adapter's delivery role
+  # has somewhere to POST to (docs/architecture/erru-async-xml.md). See docker/erru-hub-mock.
+  erru-hub-mock:
+    container_name: erru-hub-mock
+    build:
+      context: .
+      dockerfile: docker/erru-hub-mock/Dockerfile
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvisnetwork
+    # localhost-only: a dev/CI stand-in, never reachable from outside this machine.
+    ports:
+      - 127.0.0.1:8092:8080
+    cpus: "0.25"
+    mem_limit: "128M"
+
+  # Asynchronous ERRU 3.5 XML adapter (docs/architecture/erru-async-xml.md,
+  # docker/erru-xml-adapter/README.md). NotifyUnfitness is processed end-to-end; the other 4
+  # request types are rejected with 501 at ingress and not stored.
+  erru-xml-adapter:
+    container_name: erru-xml-adapter
+    build:
+      context: .
+      dockerfile: docker/erru-xml-adapter/Dockerfile
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+      erru-hub-mock:
+        condition: service_healthy
+    environment:
+      - DB_URL=jdbc:postgresql://database:5432/ljvis_db
+      - DB_USER=ljvis
+      - DB_PASSWORD=01234
+      - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+      - CONTRACTS_DIR=/app/contracts/erru/3.5
+      - RESPONDING_AUTHORITY=EE-PPA
+      - RESPONDING_AUTHORITY_CTUD=EE-TRAM
+      - RESPONDING_AUTHORITY_NCR=EE-TRAM
+      - RESPONDING_AUTHORITY_RSI=EE-TRAM
+      - MEMBER_STATE_CODE=EE
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvisnetwork
+    # POST /erru/xml has no authentication/peer trust yet (a real deployment needs mTLS, an
+    # allowlist or a gateway in front of it), so the port is bound to localhost only.
+    ports:
+      - 127.0.0.1:8091:8080
+    cpus: "0.5"
+    mem_limit: "256M"
+
   xtr:
     container_name: xtr
-    image: turnerrainer/xtr:rc
+    image: ljvis-xtr:local
+    build:
+      context: .
+      dockerfile: docker/xtr/Dockerfile
+      args:
+        XTR_RUNTIME_IMAGE: turnerrainer/xtr@sha256:634b11471ff9c709f6b46cab18f7e85711d18df334a8b9a368f399a62bf1a9ca
     environment:
       - RUST_LOG=debug
       - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD:-defaultpassword}
-      - SSL_CERT_FILE=/app/xtr-config/ca-bundle-with-cammy.pem
     volumes:
       - ./xtr.yaml:/app/xtr.yaml:ro
       - ./DSL/xtr:/app/DSL:ro
+      - ./docker/xtr-inbound/wsdl:/app/wsdl:ro
       - ./.ssl:/app/ssl:ro
       - ./docker/xtr:/app/xtr-config:ro
     ports:
-      - 9010:8080
+      - 127.0.0.1:9010:8080
+      - 127.0.0.1:9011:8081
     networks:
       - ljvisnetwork
     cpus: "0.5"
@@ -285,15 +352,16 @@ services:
 
   cronmanager:
     container_name: cronmanager
-    image: turnerrainer/cronmanager:0.1.4-alpha@sha256:429080e890699e11b7330487a04f55596023ef7c5601950716aa3694ceed0a75
+    image: turnerrainer/cronmanager:0.2.4-alpha@sha256:3ab67dc6adc68b927ff00454dd9c24fb8f61e907b57621f885a220c7d3228cd6
     environment:
       - CRONMANAGER_CONFIG=/app/cronmanager.yaml
-      # Required by CronManager 0.1.4-alpha when binding outside loopback.
+      # Required when binding outside loopback.
       - CRONMANAGER_ADMIN_TOKEN=${CRONMANAGER_ADMIN_TOKEN:-dev-admin-token}
-      # No-op on 0.1.4-alpha (no env_safety gate yet), but a future bump to
-      # 0.2.1-alpha would otherwise fall back to Production and refuse to
-      # boot with the dev-admin-token default above — set ahead of time,
-      # same reasoning as data-mapper's APP_ENV.
+      # Sent by every http job as x-internal-service-token (headerEnvs in DSL/CronManager/*.yaml).
+      - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      # 0.2.0-alpha+ env_safety: unset APP_ENV falls back to Production, which
+      # refuses to boot with the weak dev-admin-token default above. TEST/PROD
+      # must supply a >=32-char token from a secret instead.
       - APP_ENV=dev
       # Quartz-cron triggers (DSL/CronManager/*.yaml) run in this timezone.
       - TZ=Europe/Tallinn
@@ -303,7 +371,14 @@ services:
     depends_on:
       - ruuter-internal
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health > /dev/null 2>&1"]
+      # Fail fast when no jobs got registered: a job file whose headerEnvs
+      # variable (INTERNAL_COMMUNICATION_KEY) is unset is skipped, and
+      # CronManager would otherwise stay "healthy" with 0 jobs.
+      test:
+        - CMD-SHELL
+        - >-
+          curl -sf http://localhost:8080/health > /dev/null &&
+          curl -sf -H "Authorization: Bearer $$CRONMANAGER_ADMIN_TOKEN" http://localhost:8080/jobs | grep -q '"name"'
       interval: 10s
       timeout: 5s
       retries: 12

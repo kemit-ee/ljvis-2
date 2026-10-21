@@ -1,6 +1,7 @@
 declaration:
+  internal: false
   version: "1.0"
-  description: "Paginated, filtered list of OUTGOING CGR requests only (LJVIS2-140) — 'väljaminevad päringud' per the task specification, unlike the CTUD list which covers both directions; direction is hard-coded to 'outgoing' in search.sql, not exposed as a filter. All eight filters are optional and AND-combined, including tmFirstName/tmFamilyName (separate fields, not an OR-group like CTUD's search criteria). Method is GET per docs/rest-api-design-guide.md section 2.3, which lists POST-based list retrieval as a forbidden pattern; the task specification's POST /erru/cgr/list is deliberately not followed, mirroring the CTUD precedent. Audited on every load because the list exposes transport manager and handler names."
+  description: "Paginated, filtered list of OUTGOING CGR requests only (LJVIS2-140) - 'väljaminevad päringud' per the task specification, unlike the CTUD list which covers both directions; direction is hard-coded to 'outgoing' in search.sql, not exposed as a filter. All eight filters are optional and AND-combined, including tmFirstName/tmFamilyName (separate fields, not an OR-group like CTUD's search criteria). Method is GET per docs/rest-api-design-guide.md section 2.3, which lists POST-based list retrieval as a forbidden pattern; the task specification's POST /erru/cgr/list is deliberately not followed, mirroring the CTUD precedent. Audited on every load because the list exposes transport manager and handler names."
   namespace: erru
   allowlist:
     params:
@@ -26,6 +27,9 @@ declaration:
         type: string
       - field: pageSize
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -49,6 +53,7 @@ searchRequests:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/search"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -82,22 +87,14 @@ logAuditEvent:
     filters: ${filter_summary}
     result_count: ${result_count}
     page: ${page}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 
 mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_cgr_list"
-    headers:
-      type: json
-    body:
-      requests: ${res.response.body}
-  result: mapped
+  assign:
+    paged: "${({ content: res.response.body, total: res.response.body.length > 0 ? res.response.body[0].total : 0 })}"
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${paged}
   next: end

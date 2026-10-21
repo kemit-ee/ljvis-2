@@ -4,12 +4,14 @@ import { useTechnicalCheckForm } from './useTechnicalCheckForm';
 import { TechnicalCheckFormFields } from './TechnicalCheckFormFields';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { ClassifierScopeProvider } from '../../../classifiers/ClassifierProvider';
+import { FORM_TYPE_CODE } from '../../../classifiers/formScope';
 
 interface Props {
   type: TechnicalCheckVariant;
   initialData?: TechnicalCheckForm;
   compoundFormKey?: number;
-  onSaved?: (id?: string) => void;
+  onSaved?: (id?: string, confirmed?: boolean) => void;
   onValuesChange?: (values: Partial<TechnicalCheckForm>) => void;
   initialValidate?: boolean;
   compoundTrailers?: Trailer[];
@@ -23,10 +25,10 @@ export interface TechnicalCheckFormCreatePageRef {
   hasErrors: () => boolean;
   isDirty: () => boolean;
   validateForm: () => void;
-  confirm?: () => void;
+  confirm?: (notifyCarrier?: boolean) => void;
 }
 
-export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreatePageRef, Props>(
+const TechnicalCheckFormCreatePageInner = forwardRef<TechnicalCheckFormCreatePageRef, Props>(
   ({ type, initialData, compoundFormKey, onSaved, onValuesChange, initialValidate, compoundTrailers, trailerIndex }, ref) => {
     const [validationTriggered, setValidationTriggered] = useState(false);
     const [checkErrorDismissed, setCheckErrorDismissed] = useState(false);
@@ -44,7 +46,7 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       compoundFormKeyOverride,
       formError,
       setFormError,
-    } = useTechnicalCheckForm(type, initialData, (id) => onSaved?.(id), compoundFormKey);
+    } = useTechnicalCheckForm(type, initialData, (id, confirmed) => onSaved?.(id, confirmed), compoundFormKey);
 
     useImperativeHandle(ref, () => ({
       handleSubmit: (overrideCompoundFormKey?: number) => {
@@ -63,7 +65,7 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
       },
       hasErrors: () => Object.keys(formik.errors).length > 0,
       isDirty: () => formik.dirty,
-      confirm: () => { void triggerConfirm(); },
+      confirm: (notifyCarrier) => { void triggerConfirm(notifyCarrier); },
       validateForm: () => {
         setValidationTriggered(true);
         setCheckErrorDismissed(false);
@@ -138,5 +140,20 @@ export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreateP
     );
   },
 );
+
+TechnicalCheckFormCreatePageInner.displayName = 'TechnicalCheckFormCreatePageInner';
+
+// ADR-011: alamvormi muutmiskomponent on alati muutmisrežiimis → vormipiirang alati sees.
+// Oma skoop (mitte koondvormi oma), sest iga alamvorm on eraldi FORM_TYPE.
+export const TechnicalCheckFormCreatePage = forwardRef<TechnicalCheckFormCreatePageRef, Props>((props, ref) => (
+  <ClassifierScopeProvider
+    formType={
+      props.type === 'trailer' ? FORM_TYPE_CODE.SP_TRAILER_TECH : FORM_TYPE_CODE.SP_VEHICLE_TECH
+    }
+    active
+  >
+    <TechnicalCheckFormCreatePageInner {...props} ref={ref} />
+  </ClassifierScopeProvider>
+));
 
 TechnicalCheckFormCreatePage.displayName = 'TechnicalCheckFormCreatePage';

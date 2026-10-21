@@ -1,10 +1,14 @@
-# Runs at 02:00 Tallinn time (TZ pinned in docker-compose.yml) — after the
+# Runs at 02:00 Tallinn time (TZ pinned in docker-compose.yml) - after the
 # e-toimik decision syncs (01:00 / 01:30) so the nightly XTR / hub traffic
 # does not overlap. LJVIS2-64: automatic NCR (NotifyCheckResult) dispatch for
 # published, KORRAS sõidu- ja puhkeaja checks of foreign-registered vehicles.
 erru_ncr_autodispatch:
   trigger: "0 0 2 * * ?"
-  type: exec
-  command: curl -sf --retry 2 --retry-delay 60 -X POST "${RUUTER_INTERNAL}/ljvis/cron/erru-ncr-autodispatch" || true
-  allowedEnvs:
-    - RUUTER_INTERNAL
+  type: http
+  method: POST
+  url: http://ruuter-internal:8080/ljvis/cron/erru-ncr-autodispatch
+  headerEnvs:
+    x-internal-service-token: INTERNAL_COMMUNICATION_KEY
+  retryCount: 2
+  retryDelay: 60000
+  ignoreFailures: true

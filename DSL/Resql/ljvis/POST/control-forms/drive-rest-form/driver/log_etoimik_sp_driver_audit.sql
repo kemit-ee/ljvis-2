@@ -1,6 +1,6 @@
 /*
 description: Auditisündmus kui e-toimiku cron kirjutas autojuhi alamvormile jõustunud otsuse. found !=
-  true on no-op — cron kutsub seda iga kandidaadi kohta tingimusteta (Ruuteri iterate ei saa harusid teha).
+  true on no-op - cron kutsub seda iga kandidaadi kohta tingimusteta (Ruuteri iterate ei saa harusid teha).
 namespace: control-forms
 params:
   found:

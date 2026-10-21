@@ -1,0 +1,5377 @@
+[
+  {
+    "code": "0",
+    "parent": null,
+    "name": "Sõiduki identifitseerimine",
+    "severities": []
+  },
+  {
+    "code": "G:0.1",
+    "parent": "0",
+    "name": "Registreerimismärgid (kui need on nõuete kohaselt vajalikud)",
+    "severities": []
+  },
+  {
+    "code": "0.1.a",
+    "parent": "G:0.1",
+    "name": "Registreerimismärk puudub (registreerimismärgid puuduvad) või on kinnitatud nii ebakindlalt, et see võib (need võivad) ära kukkuda.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "0.1.b",
+    "parent": "G:0.1",
+    "name": "Kiri puudub või on loetamatu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "0.1.c",
+    "parent": "G:0.1",
+    "name": "Ei vasta sõiduki dokumentidele või registrikirjetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:0.2",
+    "parent": "0",
+    "name": "Valmistajatehase tähis / tehasetähis / seerianumber",
+    "severities": []
+  },
+  {
+    "code": "0.2.a",
+    "parent": "G:0.2",
+    "name": "Puudub või seda ei ole võimalik leida.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "0.2.b",
+    "parent": "G:0.2",
+    "name": "Mittetäielik, loetamatu, ilmselgelt võltsitud, ei vasta sõiduki dokumentidele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "0.2.c",
+    "parent": "G:0.2",
+    "name": "Sõiduki dokumendid on loetamatud või sisaldavad tehnilisi vigu.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "1",
+    "parent": null,
+    "name": "Pidurisüsteem",
+    "severities": []
+  },
+  {
+    "code": "G:1.1",
+    "parent": "1",
+    "name": "Mehaaniline seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "G:1.1.1",
+    "parent": "G:1.1",
+    "name": "Sõidupiduri pedaali / käsipiduri hoova šarniir",
+    "severities": []
+  },
+  {
+    "code": "1.1.1.a",
+    "parent": "G:1.1.1",
+    "name": "Šarniir on liiga tihke.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.1.b",
+    "parent": "G:1.1.1",
+    "name": "Ülemäärane kulumine või lõtk.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.2",
+    "parent": "G:1.1",
+    "name": "Pedaali / käsipiduri hoova seisund ja pidurijuhtimisseadme käigutagavara",
+    "severities": []
+  },
+  {
+    "code": "1.1.2.a",
+    "parent": "G:1.1.2",
+    "name": "Liigne või ebapiisav käigutagavara. Pidurit ei saa täielikult rakendada või on see blokeeritud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.2.b",
+    "parent": "G:1.1.2",
+    "name": "Pidurdusseadis ei vabane korralikult. Toimimine on häiritud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.2.c",
+    "parent": "G:1.1.2",
+    "name": "Piduripedaali libisemisvastane osa puudub, on lahtine või siledaks kulunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.3",
+    "parent": "G:1.1",
+    "name": "Vaakumpump või kompressor ja mahutid",
+    "severities": []
+  },
+  {
+    "code": "1.1.3.a",
+    "parent": "G:1.1.3",
+    "name": "Ebapiisav õhurõhk / vaakum, et võimaldada vähemalt nelja piduri rakendamist pärast hoiatusseadise töölehakkamist (või kui mõõtur näitab ohtu); vähemalt kahe piduri rakendamist pärast hoiatusseadise töölehakkamist (või kui mõõtur näitab ohtu).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.3.b",
+    "parent": "G:1.1.3",
+    "name": "Ohutuks tööks vajaliku õhurõhu/vaakumi tekkeks kuluv aeg on nõudeid arvestades liiga pikk.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.3.c",
+    "parent": "G:1.1.3",
+    "name": "Mitmemähiseline kaitseklapp või rõhualandusventiil ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.3.d",
+    "parent": "G:1.1.3",
+    "name": "Märkimisväärset rõhulangust põhjustav õhuleke või kuuldavad õhulekked.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.3.e",
+    "parent": "G:1.1.3",
+    "name": "Pidurisüsteemi toimimist mõjutada võiv väline kahjustus. Varupiduri tõhusus ei ole piisav.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.1.4",
+    "parent": "G:1.1",
+    "name": "Alarõhu hoiatusmärgutuli või mõõtur",
+    "severities": []
+  },
+  {
+    "code": "1.1.4",
+    "parent": "G:1.1.4",
+    "name": "Defektne mõõtur või märgutuli või mõõturi või märgutule rike. Alarõhku ei ole võimalik kindlaks teha.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.5",
+    "parent": "G:1.1",
+    "name": "Seisupidurikraan",
+    "severities": []
+  },
+  {
+    "code": "1.1.5.a",
+    "parent": "G:1.1.5",
+    "name": "Käepide on pragunenud, kahjustunud või liigselt kulunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.5.b",
+    "parent": "G:1.1.5",
+    "name": "Ebakindel klapivõll või klapp.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.5.c",
+    "parent": "G:1.1.5",
+    "name": "Ühendused on lahti või süsteem lekib.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.5.d",
+    "parent": "G:1.1.5",
+    "name": "Toimib mitterahuldavalt.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.6",
+    "parent": "G:1.1",
+    "name": "Seisupiduri tööseade, pidurikang, piduri lukustus, elektrooniline seisupidur",
+    "severities": []
+  },
+  {
+    "code": "1.1.6.a",
+    "parent": "G:1.1.6",
+    "name": "Piduri lukustus ei tööta nõuetekohaselt.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.6.b",
+    "parent": "G:1.1.6",
+    "name": "Kangiliigend või lukustusmehhanism on kulunud. Ülemäärane kulumine.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.6.c",
+    "parent": "G:1.1.6",
+    "name": "Kangi liigne liikumine, mis viitab ebaõigele reguleerimisele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.6.d",
+    "parent": "G:1.1.6",
+    "name": "Tööseade puudub, see on kahjustunud või ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.6.e",
+    "parent": "G:1.1.6",
+    "name": "Mitterahuldav toimimine, hoiatusmärgutuli näitab riket.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.7",
+    "parent": "G:1.1",
+    "name": "Piduriklapid/ventiilid (jalgpidurikraanid, rõhualandajad, regulaatorid)",
+    "severities": []
+  },
+  {
+    "code": "1.1.7.a",
+    "parent": "G:1.1.7",
+    "name": "Klapp/ventiil on kahjustunud või õhku lekib liigselt. Toimimine on häiritud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.7.b",
+    "parent": "G:1.1.7",
+    "name": "Kompressorist tuleb liigselt õli.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "1.1.7.c",
+    "parent": "G:1.1.7",
+    "name": "Klapp/ventiil on ebakindel või valesti paigaldatud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.7.d",
+    "parent": "G:1.1.7",
+    "name": "Hüdraulikavedeliku leke. Toimimine on häiritud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.1.8",
+    "parent": "G:1.1",
+    "name": "Haagisepidurite ühendused (elektri- ja pneumoühendused)",
+    "severities": []
+  },
+  {
+    "code": "1.1.8.a",
+    "parent": "G:1.1.8",
+    "name": "Kraan või isetihenev ventiil on defektne. Toimimine on häiritud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.8.b",
+    "parent": "G:1.1.8",
+    "name": "Kraan või klapp on ebakindel või valesti paigaldatud. Toimimine on häiritud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.8.c",
+    "parent": "G:1.1.8",
+    "name": "Ülemäärased lekked. Toimimine on häiritud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.8.d",
+    "parent": "G:1.1.8",
+    "name": "Ei tööta õigesti. Piduri toimimine on häiritud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.1.9",
+    "parent": "G:1.1",
+    "name": "Energiavaru survepaak",
+    "severities": []
+  },
+  {
+    "code": "1.1.9.a",
+    "parent": "G:1.1.9",
+    "name": "Paak on kergelt kahjustunud või kergelt korrodeerunud. Paak on tugevalt kahjustunud, korrodeerunud või lekib.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.9.b",
+    "parent": "G:1.1.9",
+    "name": "Äravooluseade ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.9.c",
+    "parent": "G:1.1.9",
+    "name": "Paak on ebakindel või valesti paigaldatud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.10",
+    "parent": "G:1.1",
+    "name": "Pidurivõimendid, peasilinder (hüdraulilistel süsteemidel)",
+    "severities": []
+  },
+  {
+    "code": "1.1.10.a",
+    "parent": "G:1.1.10",
+    "name": "Võimendi on defektne või ebatõhus. Kui ei tööta.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.10.b",
+    "parent": "G:1.1.10",
+    "name": "Peasilinder on defektne, kuid pidur siiski toimib. Peasilinder on defektne või lekib.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.10.c",
+    "parent": "G:1.1.10",
+    "name": "Peasilinder on ebakindel, kuid pidur siiski toimib. Peasilinder on ebakindel.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.10.d",
+    "parent": "G:1.1.10",
+    "name": "Pidurivedelikku ei ole piisavas koguses, tase allpool miinimummärki. Pidurivedeliku tase on oluliselt allpool miinimummärki. Pidurivedelik ei ole nähtav.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.10.e",
+    "parent": "G:1.1.10",
+    "name": "Puudub peasilindri paagi kork.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "1.1.10.f",
+    "parent": "G:1.1.10",
+    "name": "Pidurivedeliku hoiatuslamp põleb või on defektne.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "1.1.10.g",
+    "parent": "G:1.1.10",
+    "name": "Pidurivedeliku taseme hoiatussüsteem ei tööta korralikult.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:1.1.11",
+    "parent": "G:1.1",
+    "name": "Jäigad piduritorud",
+    "severities": []
+  },
+  {
+    "code": "1.1.11.a",
+    "parent": "G:1.1.11",
+    "name": "Ilmne purunemise või pragunemise oht.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.11.b",
+    "parent": "G:1.1.11",
+    "name": "Torud või ühenduskohad lekivad (õhkpidurisüsteemid). Torud või ühenduskohad lekivad (hüdraulilised pidurisüsteemid).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.11.c",
+    "parent": "G:1.1.11",
+    "name": "Torud on kahjustunud või ülemäära korrodeerunud. Mõjutab pidurite toimimist blokeerumise või ilmse lekkeohu tõttu.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.11.d",
+    "parent": "G:1.1.11",
+    "name": "Torud on paigaldatud valesse kohta. Kahjustusoht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.12",
+    "parent": "G:1.1",
+    "name": "Elastsed pidurivoolikud",
+    "severities": []
+  },
+  {
+    "code": "1.1.12.a",
+    "parent": "G:1.1.12",
+    "name": "Ilmne purunemise või pragunemise oht.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.12.b",
+    "parent": "G:1.1.12",
+    "name": "Voolikud on kahjustunud, hõõrdunud, väändunud või liiga lühikesed. Voolikud on kahjustunud või hõõrdunud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.12.c",
+    "parent": "G:1.1.12",
+    "name": "Voolikud või ühenduskohad lekivad (õhkpidurisüsteemid). Voolikud või ühenduskohad lekivad (hüdraulilised pidurisüsteemid).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.12.d",
+    "parent": "G:1.1.12",
+    "name": "Voolikud paisuvad rõhu all. Koorti seisund on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.12.e",
+    "parent": "G:1.1.12",
+    "name": "Voolikud on poorsed.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.13",
+    "parent": "G:1.1",
+    "name": "Piduri hõõrdkatted ja -klotsid",
+    "severities": []
+  },
+  {
+    "code": "1.1.13.a",
+    "parent": "G:1.1.13",
+    "name": "Katted on ülemääraselt kulunud (kulumine on jõudnud miinimummärgistuseni). Katted on ülemääraselt kulunud (miinimummärgistus ei ole nähtav).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.13.b",
+    "parent": "G:1.1.13",
+    "name": "Katted on määrdunud (õli, määre jne). Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.13.c",
+    "parent": "G:1.1.13",
+    "name": "Kate või klots puudub või on valesti paigaldatud.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.1.14",
+    "parent": "G:1.1",
+    "name": "Piduritrumlid, pidurikettad",
+    "severities": []
+  },
+  {
+    "code": "1.1.14.a",
+    "parent": "G:1.1.14",
+    "name": "Trumlid või kettad on kulunud. Trumlid või kettad on ülemääraselt kriimustatud või pragunenud, ebakindlad või mõranenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.14.b",
+    "parent": "G:1.1.14",
+    "name": "Trumlid või kettad on määrdunud (õli, määre jne). Pidurdustõhusus on oluliselt halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.14.c",
+    "parent": "G:1.1.14",
+    "name": "Trumlid või kettad puuduvad.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.14.d",
+    "parent": "G:1.1.14",
+    "name": "Alusplaat on ebakindel.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.15",
+    "parent": "G:1.1",
+    "name": "Piduritrossid, -vardad, -hoovastik",
+    "severities": []
+  },
+  {
+    "code": "1.1.15.a",
+    "parent": "G:1.1.15",
+    "name": "Tross on kahjustunud või sõlmes. Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.15.b",
+    "parent": "G:1.1.15",
+    "name": "Komponent on ülemääraselt kulunud või korrodeerunud. Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.15.c",
+    "parent": "G:1.1.15",
+    "name": "Tross, varras või liitmik on ebakindel.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.15.d",
+    "parent": "G:1.1.15",
+    "name": "Trossijuhik on defektne.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.15.e",
+    "parent": "G:1.1.15",
+    "name": "Pidurisüsteemi vaba liikumine on piiratud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.15.f",
+    "parent": "G:1.1.15",
+    "name": "Hoovad/liitmikud ei liigu õigesti, viidates valele reguleerimisele või liigsele kulumisele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.16",
+    "parent": "G:1.1",
+    "name": "Piduri tööseadmed (sh vedruakud või hüdraulilised silindrid)",
+    "severities": []
+  },
+  {
+    "code": "1.1.16.a",
+    "parent": "G:1.1.16",
+    "name": "Tööseade on mõranenud või kahjustunud. Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.16.b",
+    "parent": "G:1.1.16",
+    "name": "Tööseade lekib. Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.16.c",
+    "parent": "G:1.1.16",
+    "name": "Tööseade on ebakindel või valesti paigaldatud. Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.16.d",
+    "parent": "G:1.1.16",
+    "name": "Tööseade on ülemäära korrodeerunud. Võib mõraneda.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.16.e",
+    "parent": "G:1.1.16",
+    "name": "Survekolvi või -membraani ebapiisav või ülemäärane vabakäik. Pidurdustõhusus on halvenenud (liikumisvaru puudub).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.16.f",
+    "parent": "G:1.1.16",
+    "name": "Tolmukaitse on kahjustunud. Tolmukaitse puudub või on ülemäära kahjustunud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.17",
+    "parent": "G:1.1",
+    "name": "Koormuse regulaator",
+    "severities": []
+  },
+  {
+    "code": "1.1.17.a",
+    "parent": "G:1.1.17",
+    "name": "Ühendused on defektsed.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.17.b",
+    "parent": "G:1.1.17",
+    "name": "Ühendused on valesti reguleeritud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.17.c",
+    "parent": "G:1.1.17",
+    "name": "Regulaator on kinni kiilunud või ei tööta (ABS toimib). Regulaator on kinni kiilunud või ei tööta.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.17.d",
+    "parent": "G:1.1.17",
+    "name": "Regulaator puudub (kui on nõutud).",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.17.e",
+    "parent": "G:1.1.17",
+    "name": "Andmesilt puudub.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "1.1.17.f",
+    "parent": "G:1.1.17",
+    "name": "Andmed on loetamatud või ei vasta nõuetele.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:1.1.18",
+    "parent": "G:1.1",
+    "name": "Kulumise kompensaatorid ja näiturid",
+    "severities": []
+  },
+  {
+    "code": "1.1.18.a",
+    "parent": "G:1.1.18",
+    "name": "Kompensaator on kahjustunud, kinni kiilunud või liigub valesti, on ülemäärselt kulunud või valesti reguleeritud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.18.b",
+    "parent": "G:1.1.18",
+    "name": "Kompensaator on defektne.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.18.c",
+    "parent": "G:1.1.18",
+    "name": "Kompensaator on valesti paigaldatud või asendatud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.19",
+    "parent": "G:1.1",
+    "name": "Aeglustisüsteem (kui see on paigaldatud või nõutav)",
+    "severities": []
+  },
+  {
+    "code": "1.1.19.a",
+    "parent": "G:1.1.19",
+    "name": "Ühendused või kinnitused on ebakindlad. Toimimine on häiritud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.19.b",
+    "parent": "G:1.1.19",
+    "name": "Süsteem on ilmselt defektne või puudub.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.20",
+    "parent": "G:1.1",
+    "name": "Haagisepidurite automaatne rakendumine",
+    "severities": []
+  },
+  {
+    "code": "1.1.20",
+    "parent": "G:1.1.20",
+    "name": "Ühenduse lahtiühendamisel ei rakendu haagisepidur automaatselt.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.1.21",
+    "parent": "G:1.1",
+    "name": "Kogu pidurisüsteem",
+    "severities": []
+  },
+  {
+    "code": "1.1.21.a",
+    "parent": "G:1.1.21",
+    "name": "Muud süsteemi seadmed (näiteks jäätumisvastane pump, õhukuivati jms) on väliselt kahjustatud või ülemäära roostes, nii et see kahjustab pidurisüsteemi. Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.1.21.b",
+    "parent": "G:1.1.21",
+    "name": "Õhu või antifriisi leke. Mõjutab süsteemi toimimist.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.21.c",
+    "parent": "G:1.1.21",
+    "name": "Mis tahes komponent on ebakindel või valesti paigaldatud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.1.21.d",
+    "parent": "G:1.1.21",
+    "name": "Mis tahes komponendi ohtlik muudatus. Pidurdustõhusus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.1.22",
+    "parent": "G:1.1",
+    "name": "Katseühendused (kui need on paigaldatud või nõutavad)",
+    "severities": []
+  },
+  {
+    "code": "1.1.22",
+    "parent": "G:1.1.22",
+    "name": "Puudub.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.1.23",
+    "parent": "G:1.1",
+    "name": "Pealejooksupidur",
+    "severities": []
+  },
+  {
+    "code": "1.1.23",
+    "parent": "G:1.1.23",
+    "name": "Ebapiisav tõhusus.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.2",
+    "parent": "1",
+    "name": "Sõidupiduri toimimine ja tõhusus",
+    "severities": []
+  },
+  {
+    "code": "G:1.2.1",
+    "parent": "G:1.2",
+    "name": "Toimimine (E)",
+    "severities": []
+  },
+  {
+    "code": "1.2.1.a",
+    "parent": "G:1.2.1",
+    "name": "Ühe või enama ratta pidurdusjõud on ebapiisav. Ühe või enama ratta pidurdusjõud puudub.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.2.1.b",
+    "parent": "G:1.2.1",
+    "name": "Mis tahes ratta pidurdusjõud on vähem kui 70 % sama telje teise ratta maksimaalsest mõõdetud pidurdusjõust. Teekatsetuse korral kaldub sõiduk sirgjoonest liigselt kõrvale. Mis tahes ratta pidurdusjõud on vähem kui 50 % sama telje teise ratta maksimaalsest mõõdetud pidurdusjõust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.2.1.c",
+    "parent": "G:1.2.1",
+    "name": "Pidurdusjõud ei muutu järk-järgult (blokeerumine).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.2.1.d",
+    "parent": "G:1.2.1",
+    "name": "Mõne ratta pidur rakendub liiga vara või hilja.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.2.1.e",
+    "parent": "G:1.2.1",
+    "name": "Ratta täispöörde jooksul kõigub pidurdusjõud ülemääraselt.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.2.2",
+    "parent": "G:1.2",
+    "name": "Tõhusus (E)",
+    "severities": []
+  },
+  {
+    "code": "1.2.2",
+    "parent": "G:1.2.2",
+    "name": "Ei anna vähemalt järgmist minimaalset pidurdustõhusust: M1-, M2- ja M3-kategooria: 50 %. N1-kategooria: 45 %. N2- ja N3-kategooria: 43 %. O3- ja O4-kategooria: 40 %. Saavutatud vähem kui 50 % eespool nimetatud väärtustest.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.3",
+    "parent": "1",
+    "name": "Varu-/hädapiduri toimimine ja tõhusus (kui tegemist on eraldi süsteemiga)",
+    "severities": []
+  },
+  {
+    "code": "G:1.3.1",
+    "parent": "G:1.3",
+    "name": "Toimimine (E)",
+    "severities": []
+  },
+  {
+    "code": "1.3.1.a",
+    "parent": "G:1.3.1",
+    "name": "Ühe või enama ratta pidurdusjõud on ebapiisav. Ühe või enama ratta pidurdusjõud puudub.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.3.1.b",
+    "parent": "G:1.3.1",
+    "name": "Mis tahes ratta pidurdusjõud on vähem kui 70 % sama telje teise ratta maksimaalsest mõõdetud pidurdusjõust. Teekatsetuse korral kaldub sõiduk sirgjoonest liigselt kõrvale. Mis tahes ratta pidurdusjõud on vähem kui 50 % sama telje teise ratta maksimaalsest mõõdetud pidurdusjõust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "1.3.1.c",
+    "parent": "G:1.3.1",
+    "name": "Pidurdusjõud ei muutu järk-järgult (blokeerumine).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.3.2",
+    "parent": "G:1.3",
+    "name": "Tõhusus (E)",
+    "severities": []
+  },
+  {
+    "code": "1.3.2",
+    "parent": "G:1.3.2",
+    "name": "Pidurdusjõud on väiksem kui 50 % nõutavast punktis 1.2.2 osutatud sõidupiduri pidurdusjõust registrimassi järgi arvutatuna. Katsetamise ajal saavutatud vähem kui 50 % eespool nimetatud pidurdusjõu väärtustest (sõiduki massi järgi arvutatuna).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.4",
+    "parent": "1",
+    "name": "Seisupiduri toimimine ja tõhusus",
+    "severities": []
+  },
+  {
+    "code": "G:1.4.1",
+    "parent": "G:1.4",
+    "name": "Toimimine (E)",
+    "severities": []
+  },
+  {
+    "code": "1.4.1",
+    "parent": "G:1.4.1",
+    "name": "Ühel küljel pidur ei tööta või teekatsetuse korral kaldub sõiduk sirgjoonest liigselt kõrvale. Katsetamise ajal saavutatud vähem kui 50 % punktis 1.4.2 osutatud pidurdusjõu väärtustest (sõiduki massi järgi arvutatuna).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.4.2",
+    "parent": "G:1.4",
+    "name": "Tõhusus (E)",
+    "severities": []
+  },
+  {
+    "code": "1.4.2",
+    "parent": "G:1.4.2",
+    "name": "Kõikide sõidukikategooriate puhul ei ole pidurdusjõud vähemalt 16 % registrimassi järgi arvutatuna või mootorsõidukitel vähemalt 12 % täismassi järgi arvutatuna, kusjuures kohaldatakse neist kahest suuremat. Katsetamise ajal saavutatud vähem kui 50 % eespool nimetatud pidurdusjõu väärtustest (sõiduki massi järgi arvutatuna).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.5",
+    "parent": "1",
+    "name": "Aeglustisüsteemi toimimine",
+    "severities": []
+  },
+  {
+    "code": "1.5.a",
+    "parent": "G:1.5",
+    "name": "Pidurdusjõud ei muutu järk-järgult (ei kohaldata mootorpiduri suhtes).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.5.b",
+    "parent": "G:1.5",
+    "name": "Süsteem ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.6",
+    "parent": "1",
+    "name": "Mitteblokeeruv pidurisüsteem (ABS)",
+    "severities": []
+  },
+  {
+    "code": "1.6.a",
+    "parent": "G:1.6",
+    "name": "Hoiatusseadise rike.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.6.b",
+    "parent": "G:1.6",
+    "name": "Hoiatusseadis näitab süsteemi riket.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.6.c",
+    "parent": "G:1.6",
+    "name": "Ratta kiirusandurid puuduvad või on kahjustunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.6.d",
+    "parent": "G:1.6",
+    "name": "Juhtmestik on kahjustunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.6.e",
+    "parent": "G:1.6",
+    "name": "Muud osad puuduvad või on kahjustunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.6.f",
+    "parent": "G:1.6",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:1.7",
+    "parent": "1",
+    "name": "Elektrooniline pidurisüsteem (EBS)",
+    "severities": []
+  },
+  {
+    "code": "1.7.a",
+    "parent": "G:1.7",
+    "name": "Hoiatusseadise rike.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.7.b",
+    "parent": "G:1.7",
+    "name": "Hoiatusseadis näitab süsteemi riket.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.7.c",
+    "parent": "G:1.7",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "1.7.d",
+    "parent": "G:1.7",
+    "name": "Vedava sõiduki ja haagise vaheline ühendus ei vasta nõuetele või puudub.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:1.8",
+    "parent": "1",
+    "name": "Pidurivedelik",
+    "severities": []
+  },
+  {
+    "code": "1.8",
+    "parent": "G:1.8",
+    "name": "Pidurivedelik on saastunud või settinud. Ilmne tõrke tekkimise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2",
+    "parent": null,
+    "name": "Rooliseade",
+    "severities": []
+  },
+  {
+    "code": "G:2.1",
+    "parent": "2",
+    "name": "Mehaaniline seisund",
+    "severities": []
+  },
+  {
+    "code": "G:2.1.1",
+    "parent": "G:2.1",
+    "name": "Rooliseadme seisund",
+    "severities": []
+  },
+  {
+    "code": "2.1.1.a",
+    "parent": "G:2.1.1",
+    "name": "Hammassektorvõll on väändunud või selle tihvtid on kulunud. Mõjutab toimimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.1.b",
+    "parent": "G:2.1.1",
+    "name": "Hammassektorvõll on ülemääraselt kulunud. Mõjutab toimimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.1.c",
+    "parent": "G:2.1.1",
+    "name": "Hammassektorvõlli ülemäärane liikumine. Mõjutab toimimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.1.d",
+    "parent": "G:2.1.1",
+    "name": "Leke. Tilkade teke.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:2.1.2",
+    "parent": "G:2.1",
+    "name": "Rooliseadme korpuse kinnitus",
+    "severities": []
+  },
+  {
+    "code": "2.1.2.a",
+    "parent": "G:2.1.2",
+    "name": "Rooliseadme korpus ei ole nõuetekohaselt kinnitatud. Kinnitused on ohtlikult lahti või esineb nähtav liikumine šassii/kere suhtes.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.2.b",
+    "parent": "G:2.1.2",
+    "name": "Kinnitusavad šassiil on välja veninud. Kinnitused on olulisel määral mõjutatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.2.c",
+    "parent": "G:2.1.2",
+    "name": "Kinnituspoldid puuduvad või on purunenud. Kinnitused on olulisel määral mõjutatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.2.d",
+    "parent": "G:2.1.2",
+    "name": "Rooliseadme korpus on mõranenud. Korpuse stabiilsus või kinnitus on kahjustunud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:2.1.3",
+    "parent": "G:2.1",
+    "name": "Roolihoovastiku seisund",
+    "severities": []
+  },
+  {
+    "code": "2.1.3.a",
+    "parent": "G:2.1.3",
+    "name": "Komponendid, mis peaksid olema kohtkindlad, liiguvad üksteise suhtes. Ülemäärne liikumine või tõenäoline lahtitulek.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.3.b",
+    "parent": "G:2.1.3",
+    "name": "Liigendid on ülemääraselt kulunud. Väga tõsine lahtituleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.3.c",
+    "parent": "G:2.1.3",
+    "name": "Teatav komponent on mõranenud või deformeerunud. Mõjutab toimimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.3.d",
+    "parent": "G:2.1.3",
+    "name": "Puuduvad lukustusseadmed.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.1.3.e",
+    "parent": "G:2.1.3",
+    "name": "Komponendid on eritelgsed (nt rööpvarras või juhtvarras).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.1.3.f",
+    "parent": "G:2.1.3",
+    "name": "Ohtlik muudatus. Mõjutab toimimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.3.g",
+    "parent": "G:2.1.3",
+    "name": "Tolmukaitse on kahjustunud või halvenenud seisundis. Tolmukaitse puudub või on oluliselt halvenenud seisundis.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:2.1.4",
+    "parent": "G:2.1",
+    "name": "Roolihoovastiku toimimine",
+    "severities": []
+  },
+  {
+    "code": "2.1.4.a",
+    "parent": "G:2.1.4",
+    "name": "Liikuv roolihoovastik kahjustab šassii kohtkindlat osa.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.1.4.b",
+    "parent": "G:2.1.4",
+    "name": "Rooli piirajad ei tööta või puuduvad.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:2.1.5",
+    "parent": "G:2.1",
+    "name": "Roolivõimendi",
+    "severities": []
+  },
+  {
+    "code": "2.1.5.a",
+    "parent": "G:2.1.5",
+    "name": "Vedelikuleke.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.1.5.b",
+    "parent": "G:2.1.5",
+    "name": "Vedelikku ei ole piisavalt (tase allpool miinimummärki). Ebapiisav mahuti.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.5.c",
+    "parent": "G:2.1.5",
+    "name": "Mehhanism ei tööta. Mõjutab roolimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.5.d",
+    "parent": "G:2.1.5",
+    "name": "Mehhanism on mõranenud või ebakindel. Mõjutab roolimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.5.e",
+    "parent": "G:2.1.5",
+    "name": "Komponendid on eritelgsed või kahjustunud. Mõjutab roolimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.5.f",
+    "parent": "G:2.1.5",
+    "name": "Ohtlik muudatus. Mõjutab roolimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.1.5.g",
+    "parent": "G:2.1.5",
+    "name": "Trossid/voolikud on kahjustunud või ülemääraselt korrodeerunud. Mõjutab roolimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:2.2",
+    "parent": "2",
+    "name": "Rooliratas, roolisammas ja juhtraud",
+    "severities": []
+  },
+  {
+    "code": "G:2.2.1",
+    "parent": "G:2.2",
+    "name": "Rooliratta seisund",
+    "severities": []
+  },
+  {
+    "code": "2.2.1.a",
+    "parent": "G:2.2.1",
+    "name": "Rooliratas ja -sammas liiguvad üksteise suhtes – kinnitus on lõtv. Väga tõsine lahtituleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.2.1.b",
+    "parent": "G:2.2.1",
+    "name": "Roolirattarummul puudub kinnitusseade. Väga tõsine lahtituleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.2.1.c",
+    "parent": "G:2.2.1",
+    "name": "Roolirattarumm, -rõngas või kodarad on mõranenud või lahti tulnud. Väga tõsine lahtituleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.2.1.d",
+    "parent": "G:2.2.1",
+    "name": "Ohtlik muudatus.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:2.2.2",
+    "parent": "G:2.2",
+    "name": "Roolisammas ja juhtimissüsteemi amortisaatorid",
+    "severities": []
+  },
+  {
+    "code": "2.2.2.a",
+    "parent": "G:2.2.2",
+    "name": "Rooliratta keskme ülemäärane liikumine üles või alla.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.2.2.b",
+    "parent": "G:2.2.2",
+    "name": "Roolisamba ülemise osa ülemäärane liikumine radiaalselt samba telje suhtes.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.2.2.c",
+    "parent": "G:2.2.2",
+    "name": "Painduvad ühendused on kahjustunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.2.2.d",
+    "parent": "G:2.2.2",
+    "name": "Kinnitus on defektne. Väga tõsine lahtituleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.2.2.e",
+    "parent": "G:2.2.2",
+    "name": "Ohtlik muudatus",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:2.3",
+    "parent": "2",
+    "name": "Rooli vabakäik",
+    "severities": []
+  },
+  {
+    "code": "2.3",
+    "parent": "G:2.3",
+    "name": "Rooli vabakäik on ettenähtust suurem (näiteks roolirattarõnga teatav punkt liigub rohkem kui ühe viiendiku ulatuses rooliratta läbimõõdust) või ei vasta nõuetele. Mõjutab ohutut roolimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:2.4",
+    "parent": "2",
+    "name": "Rataste kokku- või lahkujooks (X)",
+    "severities": []
+  },
+  {
+    "code": "2.4",
+    "parent": "G:2.4",
+    "name": "Kokku- või lahkujooks ei vasta silmanähtavalt nõuetele. Mõjutab otsesõitu; suunastabiilsus on halvenenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:2.5",
+    "parent": "2",
+    "name": "Haagise pöördtelje pöördlaud",
+    "severities": []
+  },
+  {
+    "code": "2.5.a",
+    "parent": "G:2.5",
+    "name": "Komponent on kergelt kahjustunud. Komponent on tugevalt kahjustunud või mõranenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.5.b",
+    "parent": "G:2.5",
+    "name": "Ülemäärane lõtk. Mõjutab otsesõitu; suunastabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "2.5.c",
+    "parent": "G:2.5",
+    "name": "Kinnitus on defektne. Kinnitus on olulisel määral kahjustunud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:2.6",
+    "parent": "2",
+    "name": "Elektrooniline roolivõimendi (EPS)",
+    "severities": []
+  },
+  {
+    "code": "2.6.a",
+    "parent": "G:2.6",
+    "name": "EPSi rikkeindikaator näitab süsteemis tõrget.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.6.b",
+    "parent": "G:2.6",
+    "name": "Roolivõimendi ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "2.6.c",
+    "parent": "G:2.6",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "3",
+    "parent": null,
+    "name": "Nähtavus",
+    "severities": []
+  },
+  {
+    "code": "G:3.1",
+    "parent": "3",
+    "name": "Vaateväli",
+    "severities": []
+  },
+  {
+    "code": "3.1",
+    "parent": "G:3.1",
+    "name": "Takistused juhi vaateväljas, mis mõjutavad oluliselt nähtavust ettepoole või külgedele (väljaspool klaasipuhastite puhastatavat ala). Klaasipuhastite puhastatav ala on mõjutatud või välispeeglid ei ole nähtavad.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:3.2",
+    "parent": "3",
+    "name": "Klaasi seisund",
+    "severities": []
+  },
+  {
+    "code": "3.2.a",
+    "parent": "G:3.2",
+    "name": "Klaas või läbipaistev esipaneel (kui see on lubatud) on mõranenud või värvi muutnud (väljaspool klaasipuhastite puhastatavat ala). Klaasipuhastite puhastatav ala on mõjutatud või välispeeglid ei ole nähtavad.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "3.2.b",
+    "parent": "G:3.2",
+    "name": "Klaas või läbipaistev esipaneel (sealhulgas peegel- või toonkilega kaetud klaas), mis ei vasta nõuetes esitatud spetsifikatsioonidele (väljaspool klaasipuhastite puhastatavat ala). Klaasipuhastite puhastatav ala on mõjutatud või välispeeglid ei ole nähtavad.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "3.2.c",
+    "parent": "G:3.2",
+    "name": "Klaasi või läbipaistva esipaneeli seisund ei ole vastuvõetav. Nähtavus läbi klaasipuhastite puhastatava ala on tugevalt mõjutatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:3.3",
+    "parent": "3",
+    "name": "Tahavaatepeeglid või -seadmed",
+    "severities": []
+  },
+  {
+    "code": "3.3.a",
+    "parent": "G:3.3",
+    "name": "Peegel või seade puudub või ei ole paigaldatud vastavalt nõuetele (olemas on vähemalt kaks tahavaateseadet). Olemas on vähem kui kaks tahavaateseadet.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "3.3.b",
+    "parent": "G:3.3",
+    "name": "Peegel või seade on kergelt kahjustunud või lahti tulnud. Peegel või seade ei tööta, on tugevalt kahjustunud, lahti tulnud või ebakindel.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "3.3.c",
+    "parent": "G:3.3",
+    "name": "Vajalik vaateväli ei ole hõlmatud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:3.4",
+    "parent": "3",
+    "name": "Klaasipuhastid",
+    "severities": []
+  },
+  {
+    "code": "3.4.a",
+    "parent": "G:3.4",
+    "name": "Puhastid ei tööta või puuduvad.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "3.4.b",
+    "parent": "G:3.4",
+    "name": "Puhasti hari on defektne. Puhasti hari puudub või on silmanähtavalt defektne.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:3.5",
+    "parent": "3",
+    "name": "Klaasipesurid",
+    "severities": []
+  },
+  {
+    "code": "3.5",
+    "parent": "G:3.5",
+    "name": "Pesurid ei tööta nõuetekohaselt (puudub pesemisvedelik, kuid pump töötab, või veejuga on valesti suunatud). Pesurid ei tööta.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:3.6",
+    "parent": "3",
+    "name": "Niiskuse eemaldamise süsteem (X)",
+    "severities": []
+  },
+  {
+    "code": "3.6",
+    "parent": "G:3.6",
+    "name": "Süsteem ei tööta või on silmanähtavalt defektne.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "4",
+    "parent": null,
+    "name": "Valgustusseadmed ja elektrisüsteemi osad",
+    "severities": []
+  },
+  {
+    "code": "G:4.1",
+    "parent": "4",
+    "name": "Esilaternad",
+    "severities": []
+  },
+  {
+    "code": "G:4.1.1",
+    "parent": "G:4.1",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.1.1.a",
+    "parent": "G:4.1.1",
+    "name": "Valgusti/valgusallikas on defektne või puudub (mitu valgustit/valgusallikat; LED-valgusti puhul ei tööta vähem kui 1/3). Üks valgusti/valgusallikas; LED-valgusti puhul on nähtavus olulisel määral mõjutatud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.1.1.b",
+    "parent": "G:4.1.1",
+    "name": "Projektsioonisüsteem (reflektor ja hajutiklaas) on kergelt defektne. Projektsioonisüsteem (reflektor ja hajutiklaas) on tugevalt defektne või puudub.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.1.1.c",
+    "parent": "G:4.1.1",
+    "name": "Latern ei ole kindlalt kinnitatud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.1.2",
+    "parent": "G:4.1",
+    "name": "Reguleeritus",
+    "severities": []
+  },
+  {
+    "code": "4.1.2.a",
+    "parent": "G:4.1.2",
+    "name": "Esilatern on selgelt valesti reguleeritud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.1.2.b",
+    "parent": "G:4.1.2",
+    "name": "Valgusallikas on valesti paigaldatud.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:4.1.3",
+    "parent": "G:4.1",
+    "name": "Lülitid",
+    "severities": []
+  },
+  {
+    "code": "4.1.3.a",
+    "parent": "G:4.1.3",
+    "name": "Lüliti ei tööta nõuetele vastavalt (ühel ja samal ajal põlevate esilaternate arv). Lubatud piirmäära ületav valgustugevus sõidukist ettepoole.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.1.3.b",
+    "parent": "G:4.1.3",
+    "name": "Kontrollseadise talitlus on häiritud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.1.4",
+    "parent": "G:4.1",
+    "name": "Vastavus nõuetele",
+    "severities": []
+  },
+  {
+    "code": "4.1.4.a",
+    "parent": "G:4.1.4",
+    "name": "Latern, selle valgusvihu värvus, asend, valgustugevus või märgistus ei vasta nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.1.4.b",
+    "parent": "G:4.1.4",
+    "name": "Miski hajutiklaasil või valgusallikal vähendab ilmselgelt valgustugevust või muudab valguse värvi.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.1.4.c",
+    "parent": "G:4.1.4",
+    "name": "Valgusallikas ja latern ei ühildu omavahel.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.1.5",
+    "parent": "G:4.1",
+    "name": "Reguleerimisseadmed (kui need on kohustuslikud)",
+    "severities": []
+  },
+  {
+    "code": "4.1.5.a",
+    "parent": "G:4.1.5",
+    "name": "Seade ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.1.5.b",
+    "parent": "G:4.1.5",
+    "name": "Käsijuhtimisega seadet ei saa juhikohalt käitada.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.1.6",
+    "parent": "G:4.1",
+    "name": "Esilaternate puhastusseade (kui see on kohustuslik)",
+    "severities": []
+  },
+  {
+    "code": "4.1.6",
+    "parent": "G:4.1.6",
+    "name": "Seade ei tööta. Gaaslahenduslampide puhul.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.2",
+    "parent": "4",
+    "name": "Eesmised ja tagumised äärelaternad, külgmised äärelaternad, ülemised äärelaternad ning päevasõidulaternad",
+    "severities": []
+  },
+  {
+    "code": "G:4.2.1",
+    "parent": "G:4.2",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.2.1.a",
+    "parent": "G:4.2.1",
+    "name": "Valgusallikas on defektne.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.2.1.b",
+    "parent": "G:4.2.1",
+    "name": "Hajutiklaas on defektne.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.2.1.c",
+    "parent": "G:4.2.1",
+    "name": "Latern ei ole kindlalt kinnitatud. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.2.2",
+    "parent": "G:4.2",
+    "name": "Lülitamine",
+    "severities": []
+  },
+  {
+    "code": "4.2.2.a",
+    "parent": "G:4.2.2",
+    "name": "Lüliti ei tööta vastavalt nõuetele. Tagumisi äärelaternaid ja külgmisi äärelaternaid on võimalik välja lülitada esilaternate põlemise ajal.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.2.2.b",
+    "parent": "G:4.2.2",
+    "name": "Kontrollseadise talitlus on häiritud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.2.3",
+    "parent": "G:4.2",
+    "name": "Vastavus nõuetele",
+    "severities": []
+  },
+  {
+    "code": "4.2.3.a",
+    "parent": "G:4.2.3",
+    "name": "Latern, selle valgusvihu värvus, asend, valgustugevus või märgistus ei vasta nõuetele. Kiirgab ettepoole punast valgust või tahapoole valget valgust; valgustugevus on oluliselt vähenenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.2.3.b",
+    "parent": "G:4.2.3",
+    "name": "Miski hajutiklaasil või valgusallikal vähendab valgustugevust või muudab valguse värvi. Kiirgab ettepoole punast valgust või tahapoole valget valgust; valgustugevus on oluliselt vähenenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.3",
+    "parent": "4",
+    "name": "Pidurilaternad",
+    "severities": []
+  },
+  {
+    "code": "G:4.3.1",
+    "parent": "G:4.3",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.3.1.a",
+    "parent": "G:4.3.1",
+    "name": "Valgusallikas on defektne (mitu valgusallikat; LED-valgusti puhul ei tööta vähem kui 1/3). Üks valgusallikas; LED-valgusti puhul töötab vähem kui 2/3. Ükski valgusallikas ei toimi.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "4.3.1.b",
+    "parent": "G:4.3.1",
+    "name": "Laternaklaas on kergelt defektne (ei mõjuta kiiratavat valgust). Laternaklaas on tugevalt defektne (mõjutab kiiratavat valgust).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.3.1.c",
+    "parent": "G:4.3.1",
+    "name": "Latern ei ole kindlalt kinnitatud. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.3.2",
+    "parent": "G:4.3",
+    "name": "Lülitamine",
+    "severities": []
+  },
+  {
+    "code": "4.3.2.a",
+    "parent": "G:4.3.2",
+    "name": "Lüliti ei tööta vastavalt nõuetele. Toimimine hilinemisega. Lüliti ei tööta üldse.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "4.3.2.b",
+    "parent": "G:4.3.2",
+    "name": "Kontrollseadise talitlus on häiritud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.3.3",
+    "parent": "G:4.3",
+    "name": "Vastavus nõuetele.",
+    "severities": []
+  },
+  {
+    "code": "4.3.3",
+    "parent": "G:4.3.3",
+    "name": "Latern, selle valgusvihu värvus, asend, valgustugevus või märgistus ei vasta nõuetele. Kiirgab tahapoole valget valgust; valgustugevus on oluliselt vähenenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.4",
+    "parent": "4",
+    "name": "Suuna- ja ohulaternad",
+    "severities": []
+  },
+  {
+    "code": "G:4.4.1",
+    "parent": "G:4.4",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.4.1.a",
+    "parent": "G:4.4.1",
+    "name": "Valgusallikas on defektne (mitu valgusallikat; LED-valgusti puhul ei tööta vähem kui 1/3). Üks valgusallikas; LED-valgusti puhul töötab vähem kui 2/3.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.4.1.b",
+    "parent": "G:4.4.1",
+    "name": "Laternaklaas on kergelt defektne (ei mõjuta kiiratavat valgust). Laternaklaas on tugevalt defektne (mõjutab kiiratavat valgust).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.4.1.c",
+    "parent": "G:4.4.1",
+    "name": "Latern ei ole kindlalt kinnitatud. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.4.2",
+    "parent": "G:4.4",
+    "name": "Lülitamine",
+    "severities": []
+  },
+  {
+    "code": "4.4.2",
+    "parent": "G:4.4.2",
+    "name": "Lüliti ei tööta vastavalt nõuetele. Lüliti ei tööta üldse.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.4.3",
+    "parent": "G:4.4",
+    "name": "Vastavus nõuetele.",
+    "severities": []
+  },
+  {
+    "code": "4.4.3",
+    "parent": "G:4.4.3",
+    "name": "Latern, selle valgusvihu värvus, asend, valgustugevus või märgistus ei vasta nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.4.4",
+    "parent": "G:4.4",
+    "name": "Vilkumissagedus",
+    "severities": []
+  },
+  {
+    "code": "4.4.4",
+    "parent": "G:4.4.4",
+    "name": "Vilkumissagedus ei vasta nõuetele (sagedus erineb nõuetest rohkem kui 25 %).",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:4.5",
+    "parent": "4",
+    "name": "Eesmised ja tagumised udulaternad",
+    "severities": []
+  },
+  {
+    "code": "G:4.5.1",
+    "parent": "G:4.5",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.5.1.a",
+    "parent": "G:4.5.1",
+    "name": "Valgusallikas on defektne (mitu valgusallikat; LED-valgusti puhul ei tööta vähem kui 1/3). Üks valgusallikas; LED-valgusti puhul töötab vähem kui 2/3.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.5.1.b",
+    "parent": "G:4.5.1",
+    "name": "Laternaklaas on kergelt defektne (ei mõjuta kiiratavat valgust). Laternaklaas on tugevalt defektne (mõjutab kiiratavat valgust).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.5.1.c",
+    "parent": "G:4.5.1",
+    "name": "Latern ei ole kindlalt kinnitatud. Väga tõsine küljest äratuleku või vastutulevate sõidukite pimestamise oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.5.2",
+    "parent": "G:4.5",
+    "name": "Reguleeritus (X)",
+    "severities": []
+  },
+  {
+    "code": "4.5.2",
+    "parent": "G:4.5.2",
+    "name": "Valgusvihu valguse ja varju piirjoone korral on eesmine udulatern horisontaalselt valesti reguleeritud (valguse ja varju piirjoon on liiga madalal). Valguse ja varju piirjoon on eesmiste lähitulelaternate omast kõrgemal.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.5.3",
+    "parent": "G:4.5",
+    "name": "Lülitamine",
+    "severities": []
+  },
+  {
+    "code": "4.5.3",
+    "parent": "G:4.5.3",
+    "name": "Lüliti ei tööta vastavalt nõuetele. Ei toimi.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.5.4",
+    "parent": "G:4.5",
+    "name": "Vastavus nõuetele.",
+    "severities": []
+  },
+  {
+    "code": "4.5.4.a",
+    "parent": "G:4.5.4",
+    "name": "Latern, selle valgusvihu värvus, asend, valgustugevus või märgistus ei vasta nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.5.4.b",
+    "parent": "G:4.5.4",
+    "name": "Süsteem ei tööta vastavalt nõuetele.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:4.6",
+    "parent": "4",
+    "name": "Tagurduslaternad",
+    "severities": []
+  },
+  {
+    "code": "G:4.6.1",
+    "parent": "G:4.6",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.6.1.a",
+    "parent": "G:4.6.1",
+    "name": "Valgusallikas on defektne.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "4.6.1.b",
+    "parent": "G:4.6.1",
+    "name": "Laternaklaas on defektne.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "4.6.1.c",
+    "parent": "G:4.6.1",
+    "name": "Latern ei ole kindlalt kinnitatud. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.6.2",
+    "parent": "G:4.6",
+    "name": "Vastavus nõuetele",
+    "severities": []
+  },
+  {
+    "code": "4.6.2.a",
+    "parent": "G:4.6.2",
+    "name": "Latern, selle valgusvihu värvus, asend, valgustugevus või märgistus ei vasta nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.6.2.b",
+    "parent": "G:4.6.2",
+    "name": "Süsteem ei tööta vastavalt nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.6.3",
+    "parent": "G:4.6",
+    "name": "Lülitid",
+    "severities": []
+  },
+  {
+    "code": "4.6.3",
+    "parent": "G:4.6.3",
+    "name": "Lüliti ei tööta vastavalt nõuetele. Tagurdustule saab sisse lülitada, kui tagasikäik ei ole sisse lülitatud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.7",
+    "parent": "4",
+    "name": "Tagumine numbrilatern",
+    "severities": []
+  },
+  {
+    "code": "G:4.7.1",
+    "parent": "G:4.7",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.7.1.a",
+    "parent": "G:4.7.1",
+    "name": "Latern heidab otsevalgust või valget valgust taha.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "4.7.1.b",
+    "parent": "G:4.7.1",
+    "name": "Valgusallikas on defektne (mitu valgusallikat). Valgusallikas on defektne (üks valgusallikas).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.7.1.c",
+    "parent": "G:4.7.1",
+    "name": "Latern ei ole kindlalt kinnitatud. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.7.2",
+    "parent": "G:4.7",
+    "name": "Vastavus nõuetele",
+    "severities": []
+  },
+  {
+    "code": "4.7.2",
+    "parent": "G:4.7.2",
+    "name": "Süsteem ei tööta vastavalt nõuetele.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:4.8",
+    "parent": "4",
+    "name": "Helkurid, nähtavamaks tegemise märgistus (valgustpeegeldav) ja tagumised märgistusplaadid",
+    "severities": []
+  },
+  {
+    "code": "G:4.8.1",
+    "parent": "G:4.8",
+    "name": "Seisund",
+    "severities": []
+  },
+  {
+    "code": "4.8.1.a",
+    "parent": "G:4.8.1",
+    "name": "Helkurseadmed on defektsed või kahjustunud. Mõjutab peegeldust.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.8.1.b",
+    "parent": "G:4.8.1",
+    "name": "Helkur ei ole kindlalt kinnitatud. Võib küljest ära kukkuda.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.8.2",
+    "parent": "G:4.8",
+    "name": "Vastavus nõuetele",
+    "severities": []
+  },
+  {
+    "code": "4.8.2",
+    "parent": "G:4.8.2",
+    "name": "Seade, selle peegeldatav värv või asend ei vasta nõuetele. Seade puudub või peegeldab ettepoole punast või tahapoole valget värvust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:4.9",
+    "parent": "4",
+    "name": "Valgustusseadmete kohustuslikud märgulambid",
+    "severities": []
+  },
+  {
+    "code": "G:4.9.1",
+    "parent": "G:4.9",
+    "name": "Seisund ja toimimine",
+    "severities": []
+  },
+  {
+    "code": "4.9.1",
+    "parent": "G:4.9.1",
+    "name": "Seade ei tööta. Seade ei tööta eesmiste kaugtulede või tagumiste udulaternate puhul.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.9.2",
+    "parent": "G:4.9",
+    "name": "Vastavus nõuetele",
+    "severities": []
+  },
+  {
+    "code": "4.9.2",
+    "parent": "G:4.9.2",
+    "name": "Ei vasta nõuetele.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:4.10",
+    "parent": "4",
+    "name": "Pukseeriva sõiduki ja haagise või poolhaagise elektriühendused",
+    "severities": []
+  },
+  {
+    "code": "4.10.a",
+    "parent": "G:4.10",
+    "name": "Kohtkindlad komponendid ei ole kindlalt kinnitatud. Pistikupesa on lahti tulnud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.10.b",
+    "parent": "G:4.10",
+    "name": "Isolatsioon on kahjustunud või selle seisund on halvenenud. Esineb lühise tekke oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.10.c",
+    "parent": "G:4.10",
+    "name": "Haagise või pukseeriva sõiduki elektriühendused ei toimi nõuetekohaselt. Haagise pidurituled ei tööta.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:4.11",
+    "parent": "4",
+    "name": "Elektrijuhtmestik",
+    "severities": []
+  },
+  {
+    "code": "4.11.a",
+    "parent": "G:4.11",
+    "name": "Juhtmestik on halvasti kinnitatud või ei ole piisavalt kaitstud. Kinnitused on lahti, puutuvad vastu teravaid servi, ühendused võivad lahti tulla. Juhtmestik võib puutuda kokku kuumade või pöörlevate osade või maapinnaga, ühendused on lahti (piduri- või roolisüsteemi jaoks olulised osad).",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "4.11.b",
+    "parent": "G:4.11",
+    "name": "Juhtmestik on kergelt kahjustunud. Juhtmestik on tugevalt kahjustunud. Juhtmestik on äärmiselt kahjustunud (piduri- või roolisüsteemi jaoks olulised osad).",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "4.11.c",
+    "parent": "G:4.11",
+    "name": "Isolatsioon on kahjustunud või selle seisund on halvenenud. Esineb lühise tekke oht. Suur tule-/sädelusoht.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:4.12",
+    "parent": "4",
+    "name": "Mittekohustuslikud laternad ja helkurid (X)",
+    "severities": []
+  },
+  {
+    "code": "4.12.a",
+    "parent": "G:4.12",
+    "name": "Laterna/helkuri paigaldus ei vasta nõuetele. Kiirgab/peegeldab ettepoole punast valgust või tahapoole valget valgust.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.12.b",
+    "parent": "G:4.12",
+    "name": "Latern ei tööta vastavalt nõuetele. Ühel ja samal ajal töötavate esilaternate valgustugevus on lubatust suurem; kiirgab ettepoole punast valgust või tahapoole valget valgust.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.12.c",
+    "parent": "G:4.12",
+    "name": "Latern/helkur ei ole kindlalt kinnitatud. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:4.13",
+    "parent": "4",
+    "name": "Aku(d)",
+    "severities": []
+  },
+  {
+    "code": "4.13.a",
+    "parent": "G:4.13",
+    "name": "Aku on ebakindel. Ei ole õigesti kinnitatud; esineb lühise tekke oht.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.13.b",
+    "parent": "G:4.13",
+    "name": "Aku lekib. Ohtlike ainete leke.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "4.13.c",
+    "parent": "G:4.13",
+    "name": "Defektne lüliti (kui lüliti on nõutav).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.13.d",
+    "parent": "G:4.13",
+    "name": "Defektsed kaitsmed (kui kaitsmed on nõutavad).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "4.13.e",
+    "parent": "G:4.13",
+    "name": "Ebasobiv ventilatsioon (kui ventilatsioon on nõutav).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "5",
+    "parent": null,
+    "name": "Teljed, veljed, rehvid, vedrustus",
+    "severities": []
+  },
+  {
+    "code": "G:5.1",
+    "parent": "5",
+    "name": "Teljed",
+    "severities": []
+  },
+  {
+    "code": "G:5.1.1",
+    "parent": "G:5.1",
+    "name": "Teljed (+E)",
+    "severities": []
+  },
+  {
+    "code": "5.1.1.a",
+    "parent": "G:5.1.1",
+    "name": "Telg on mõranenud või deformeerunud.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.1.1.b",
+    "parent": "G:5.1.1",
+    "name": "Telg on sõiduki külge kinnitatud ebakindlalt. Stabiilsus on halvenenud, mõjutab toimimist: ülemäärane liikumine kinnituste suhtes.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.1.1.c",
+    "parent": "G:5.1.1",
+    "name": "Ohtlik muudatus. Stabiilsus on halvenenud, mõjutab toimimist, liiga lähedal muudele sõidukiosadele või maapinnale.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:5.1.2",
+    "parent": "G:5.1",
+    "name": "Käänmikud (+E)",
+    "severities": []
+  },
+  {
+    "code": "5.1.2.a",
+    "parent": "G:5.1.2",
+    "name": "Käänmik on mõranenud.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.1.2.b",
+    "parent": "G:5.1.2",
+    "name": "Kuulliigend ja/või puksid on ülemäära kulunud. Võib lahti tulla; suunastabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.1.2.c",
+    "parent": "G:5.1.2",
+    "name": "Ülemäärane liikumine teljetala ja käänmiku vahel. Võib lahti tulla; suunastabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.1.2.d",
+    "parent": "G:5.1.2",
+    "name": "Käänmikupolt on teljel lahti tulnud. Võib lahti tulla; suunastabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:5.1.3",
+    "parent": "G:5.1",
+    "name": "Rattalaagrid (+E)",
+    "severities": []
+  },
+  {
+    "code": "5.1.3.a",
+    "parent": "G:5.1.3",
+    "name": "Ülemäärane lõtk rattalaagris. Suunastabiilsus on halvenenud; purunemisoht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.1.3.b",
+    "parent": "G:5.1.3",
+    "name": "Rattalaager on liiga tihke, kinni kiilunud. Ülekuumenemisoht; purunemisoht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:5.2",
+    "parent": "5",
+    "name": "Veljed ja rehvid",
+    "severities": []
+  },
+  {
+    "code": "G:5.2.1",
+    "parent": "G:5.2",
+    "name": "Rattarumm",
+    "severities": []
+  },
+  {
+    "code": "5.2.1.a",
+    "parent": "G:5.2.1",
+    "name": "Mis tahes rattamutrid või -poldid puuduvad või on lahti tulnud. Puuduv kinnitus või kinnitus lahti ulatuses, mis mõjutab väga tõsiselt liiklusohutust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.2.1.b",
+    "parent": "G:5.2.1",
+    "name": "Rumm on kulunud või kahjustunud. Rumm on kulunud või kahjustunud nii, et see mõjutab velgede kinnitust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:5.2.2",
+    "parent": "G:5.2",
+    "name": "Veljed",
+    "severities": []
+  },
+  {
+    "code": "5.2.2.a",
+    "parent": "G:5.2.2",
+    "name": "Mis tahes mõra või defekt keevises.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.2.2.b",
+    "parent": "G:5.2.2",
+    "name": "Rehvide lukustusrõngad ei ole nõuetekohaselt paigaldatud. Võivad küljest ära kukkuda.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.2.2.c",
+    "parent": "G:5.2.2",
+    "name": "Velg on tõsiselt deformeerunud või kulunud. Mõjutab kinnitust rummuga; mõjutab kinnitust rehviga.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.2.2.d",
+    "parent": "G:5.2.2",
+    "name": "Velje suurus, tehniline konstruktsioon, kokkusobivus või tüüp ei vasta nõuetele ning mõjutab liiklusohutust.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:5.2.3",
+    "parent": "G:5.2",
+    "name": "Rehvid",
+    "severities": []
+  },
+  {
+    "code": "5.2.3.a",
+    "parent": "G:5.2.3",
+    "name": "Rehvi suurus, koormustaluvus, tüübikinnitusmärk või kiiruskategooria ei vasta nõuetele ning mõjutab liiklusohutust. Kasutamiseks ebapiisav koormustaluvus või kiiruskategooria, rehv puutub kokku sõiduki muude liikumatute osadega, mis halvendab ohutut juhtimist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.2.3.b",
+    "parent": "G:5.2.3",
+    "name": "Samal teljel asuvate rataste või topeltrataste rehvid on erineva suurusega.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "5.2.3.c",
+    "parent": "G:5.2.3",
+    "name": "Samal teljel asuvad rehvid on erineva konstruktsiooniga (radiaal-/diagonaalrehvid).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "5.2.3.d",
+    "parent": "G:5.2.3",
+    "name": "Mis tahes tõsine kahjustus või sisselõige rehvis. Koort on nähtav või kahjustatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.2.3.e",
+    "parent": "G:5.2.3",
+    "name": "Turvise kulumise märgid muutuvad nähtavaks. Rehvimustri sügavus ei vasta nõuetele.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.2.3.f",
+    "parent": "G:5.2.3",
+    "name": "Rehv hõõrdub teiste komponentide vastu (painduvad porikaitsed). Rehv hõõrdub teiste komponentide vastu (ei mõjuta ohutut juhtimist).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "5.2.3.g",
+    "parent": "G:5.2.3",
+    "name": "Lõigatud mustriga rehvid ei vasta nõuetele. Koorti kaitsekiht on kahjustatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:5.3",
+    "parent": "5",
+    "name": "Vedrustus",
+    "severities": []
+  },
+  {
+    "code": "G:5.3.1",
+    "parent": "G:5.3",
+    "name": "Vedrud ja stabilisaator (+E)",
+    "severities": []
+  },
+  {
+    "code": "5.3.1.a",
+    "parent": "G:5.3.1",
+    "name": "Vedrud on šassii või telje külge kinnitatud ebakindlalt. Suhteline liikumine on nähtav, kinnitused on väga suurel määral lahti.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.1.b",
+    "parent": "G:5.3.1",
+    "name": "Vedru osa on kahjustunud või mõranenud. Põhivedru (vedruleht) või lisalehed on väga tõsiselt mõjutatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.1.c",
+    "parent": "G:5.3.1",
+    "name": "Vedru puudub. Põhivedru (vedruleht) või lisalehed on väga tõsiselt mõjutatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.1.d",
+    "parent": "G:5.3.1",
+    "name": "Ohtlik muudatus. Liiga lähedal muudele sõidukiosadele; vedrustussüsteem ei toimi.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:5.3.2",
+    "parent": "G:5.3",
+    "name": "Amortisaatorid",
+    "severities": []
+  },
+  {
+    "code": "5.3.2.a",
+    "parent": "G:5.3.2",
+    "name": "Amortisaatorid on šassii või telje külge kinnitatud ebakindlalt. Amortisaator on lahti.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "5.3.2.b",
+    "parent": "G:5.3.2",
+    "name": "Tõsise lekke või rikke märkidega kahjustunud amortisaator.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "5.3.2.c",
+    "parent": "G:5.3.2",
+    "name": "Amortisaator puudub.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:5.3.3",
+    "parent": "G:5.3",
+    "name": "Pöördtorud, reaktiivvardad, õõtshargid ja -hoovad (+E)",
+    "severities": []
+  },
+  {
+    "code": "5.3.3.a",
+    "parent": "G:5.3.3",
+    "name": "Komponent on šassii või telje külge kinnitatud ebakindlalt. Võib lahti tulla; suunastabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.3.b",
+    "parent": "G:5.3.3",
+    "name": "Komponent on kahjustunud või ülemääraselt korrodeerunud. Mõjutab komponendi stabiilsust või komponent on mõranenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.3.c",
+    "parent": "G:5.3.3",
+    "name": "Ohtlik muudatus. Liiga lähedal muudele sõidukiosadele; süsteem ei toimi.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:5.3.4",
+    "parent": "G:5.3",
+    "name": "Vedrustuse liigendid (+E)",
+    "severities": []
+  },
+  {
+    "code": "5.3.4.a",
+    "parent": "G:5.3.4",
+    "name": "Pöörlipolt ja/või puksid või vedrustuse liigendid on ülemäära kulunud. Võib lahti tulla; suunastabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.4.b",
+    "parent": "G:5.3.4",
+    "name": "Tolmukaitse on oluliselt halvenenud seisundis. Tolmukaitse puudub või on mõranenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:5.3.5",
+    "parent": "G:5.3",
+    "name": "Õhkvedrustus",
+    "severities": []
+  },
+  {
+    "code": "5.3.5.a",
+    "parent": "G:5.3.5",
+    "name": "Süsteem ei tööta.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.5.b",
+    "parent": "G:5.3.5",
+    "name": "Mis tahes komponent on kahjustunud, halvenenud seisundis või seda on muudetud ning see kahjustab süsteemi toimimist. Mõjutab süsteemi toimimist olulisel määral.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "5.3.5.c",
+    "parent": "G:5.3.5",
+    "name": "Kuuldav leke süsteemis.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "5.3.5.d",
+    "parent": "G:5.3.5",
+    "name": "Ohtlik muudatus.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6",
+    "parent": null,
+    "name": "Šassii ja selle kinnitused",
+    "severities": []
+  },
+  {
+    "code": "G:6.1",
+    "parent": "6",
+    "name": "Šassii või raam ja selle kinnitused",
+    "severities": []
+  },
+  {
+    "code": "G:6.1.1",
+    "parent": "G:6.1",
+    "name": "Üldseisund",
+    "severities": []
+  },
+  {
+    "code": "6.1.1.a",
+    "parent": "G:6.1.1",
+    "name": "Mis tahes piki- või risttala kerge mõranemine või deformeerumine. Mis tahes piki- või risttala tõsine mõranemine või deformeerumine.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.1.b",
+    "parent": "G:6.1.1",
+    "name": "Tugevdusplaadid või kinnitused on ebakindlad. Suurem osa kinnitusi on lahti; osad ei ole piisavalt tugevad.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.1.c",
+    "parent": "G:6.1.1",
+    "name": "Koostu jäikust mõjutav ülemäärane korrosioon. Osad ei ole piisavalt tugevad.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.1.2",
+    "parent": "G:6.1",
+    "name": "Väljalasketorud ja summutid",
+    "severities": []
+  },
+  {
+    "code": "6.1.2.a",
+    "parent": "G:6.1.2",
+    "name": "Heitgaasisüsteem on ebakindel või lekib.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.2.b",
+    "parent": "G:6.1.2",
+    "name": "Kabiini või sõitjateruumi tuleb suitsu. Oht sõidukis viibivate isikute tervisele.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.1.3",
+    "parent": "G:6.1",
+    "name": "Kütusepaak ja -torud (sh kütteaine paak ja torud)",
+    "severities": []
+  },
+  {
+    "code": "6.1.3.a",
+    "parent": "G:6.1.3",
+    "name": "Ebaturvaline paak või torud, mis põhjustab suurt tuleohtu.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.3.b",
+    "parent": "G:6.1.3",
+    "name": "Vedelikku lekib, täiteava kork puudub või laseb läbi. Tuleoht; ohtliku materjali ülemäärane kadu.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.3.c",
+    "parent": "G:6.1.3",
+    "name": "Hõõrdunud torud. Kahjustunud torud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.3.d",
+    "parent": "G:6.1.3",
+    "name": "Kütuse korkkraan (kui see on nõutav) ei tööta õigesti.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.3.e",
+    "parent": "G:6.1.3",
+    "name": "Tuleoht, mis on tingitud: — kütuselekkest; — ebaõigesti varjestatud kütusepaagist või heitgaasitorustikust; — mootoriruumi seisundist.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.3.f",
+    "parent": "G:6.1.3",
+    "name": "LPG-/CNG-/LNG- või vesinikusüsteem ei vasta nõuetele, süsteemi mis tahes osa on defektne.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.1.4",
+    "parent": "G:6.1",
+    "name": "Kaitserauad, külgmised ja tagumised allasõidutõkked",
+    "severities": []
+  },
+  {
+    "code": "6.1.4.a",
+    "parent": "G:6.1.4",
+    "name": "Komponent on lahti tulnud või kahjustunud ning võib riivamisel või kokkupuutel tekitada vigastusi. Osad võivad küljest ära kukkuda; mõjutab toimimist olulisel määral.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.4.b",
+    "parent": "G:6.1.4",
+    "name": "Seade ei vasta ilmselgelt nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:6.1.5",
+    "parent": "G:6.1",
+    "name": "Varuratta kandur (kui see on olemas)",
+    "severities": []
+  },
+  {
+    "code": "6.1.5.a",
+    "parent": "G:6.1.5",
+    "name": "Varuratta kandur ei ole nõuetekohases seisukorras.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "6.1.5.b",
+    "parent": "G:6.1.5",
+    "name": "Varuratta kandur on mõranenud või ebakindel.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.5.c",
+    "parent": "G:6.1.5",
+    "name": "Varuratas ei ole kandurile turvaliselt kinnitatud. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.1.6",
+    "parent": "G:6.1",
+    "name": "Mehaanilised haakeseadmed ja pukseerimisseadised (+E)",
+    "severities": []
+  },
+  {
+    "code": "6.1.6.a",
+    "parent": "G:6.1.6",
+    "name": "Komponent on kahjustunud, defektne või mõranenud (kui seda ei kasutata). Komponent on kahjustunud, defektne või mõranenud (kui seda kasutatakse).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.6.b",
+    "parent": "G:6.1.6",
+    "name": "Komponent on ülemäära kulunud. Allpool kulumispiiri.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.6.c",
+    "parent": "G:6.1.6",
+    "name": "Kinnitus on defektne. Mis tahes kinnitus on lahti; väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.6.d",
+    "parent": "G:6.1.6",
+    "name": "Mis tahes ohutusseadis puudub või ei tööta õigesti.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.6.e",
+    "parent": "G:6.1.6",
+    "name": "Mis tahes haakeseadme näidik ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.6.f",
+    "parent": "G:6.1.6",
+    "name": "Registreerimismärk või mõni latern on varjatud (kui seda ei kasutata). Registreerimismärk ei ole loetav (kui seadet ei kasutata).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.6.g",
+    "parent": "G:6.1.6",
+    "name": "Ohtlik muudatus (teisesed osad). Ohtlik muudatus (põhiosad).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.6.h",
+    "parent": "G:6.1.6",
+    "name": "Haagise ühendus on liiga nõrk või mittevastav või haakeseade ei vasta nõuetele.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.1.7",
+    "parent": "G:6.1",
+    "name": "Jõuülekanne",
+    "severities": []
+  },
+  {
+    "code": "6.1.7.a",
+    "parent": "G:6.1.7",
+    "name": "Kinnituspoldid on lahti tulnud või puuduvad. Kinnituspoldid on lahti tulnud või puuduvad ulatuses, mis ohustab tõsiselt liiklusohutust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.7.b",
+    "parent": "G:6.1.7",
+    "name": "Ülekandevõlli laagrid on ülemäära kulunud. Väga tõsine lahtituleku või purunemise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.7.c",
+    "parent": "G:6.1.7",
+    "name": "Universaalliigendid või ülekandeketid/-rihmad on ülemäära kulunud. Väga tõsine lahtituleku või purunemise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.7.d",
+    "parent": "G:6.1.7",
+    "name": "Kahjustunud painduvad ühendused. Väga tõsine lahtituleku või purunemise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.7.e",
+    "parent": "G:6.1.7",
+    "name": "Kahjustunud või paindunud võll.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.7.f",
+    "parent": "G:6.1.7",
+    "name": "Laagri korpus on mõranenud või ebakindel. Väga tõsine lahtituleku või purunemise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.1.7.g",
+    "parent": "G:6.1.7",
+    "name": "Tolmukaitse on oluliselt halvenenud seisundis. Tolmukaitse puudub või on mõranenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.7.h",
+    "parent": "G:6.1.7",
+    "name": "Jõuseadet on ebaseaduslikult muudetud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:6.1.8",
+    "parent": "G:6.1",
+    "name": "Mootori kinnitused",
+    "severities": []
+  },
+  {
+    "code": "6.1.8",
+    "parent": "G:6.1.8",
+    "name": "Kinnitusdetailid on halvenenud seisundis, silmanähtavalt ja tõsiselt kahjustunud. Kinnitusdetailid on lahti tulnud või mõranenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.1.9",
+    "parent": "G:6.1",
+    "name": "Mootori jõudlus (X)",
+    "severities": []
+  },
+  {
+    "code": "6.1.9.a",
+    "parent": "G:6.1.9",
+    "name": "Juhtseadme muutmine, millel on mõju ohutusele ja/või keskkonnale.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.1.9.b",
+    "parent": "G:6.1.9",
+    "name": "Mootori muutmine, millel on mõju ohutusele ja/või keskkonnale.",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.2",
+    "parent": "6",
+    "name": "Kabiin ja kere",
+    "severities": []
+  },
+  {
+    "code": "G:6.2.1",
+    "parent": "G:6.2",
+    "name": "Seisund",
+    "severities": []
+  },
+  {
+    "code": "6.2.1.a",
+    "parent": "G:6.2.1",
+    "name": "Lahti tulnud või kahjustunud paneel või osa, mis võib tekitada vigastusi. Võib küljest ära kukkuda.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.2.1.b",
+    "parent": "G:6.2.1",
+    "name": "Ebakindel kerepost. Stabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.2.1.c",
+    "parent": "G:6.2.1",
+    "name": "Mootorisuits või heitgaasid pääsevad kabiini. Oht sõidukis viibivate isikute tervisele.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.2.1.d",
+    "parent": "G:6.2.1",
+    "name": "Ohtlik muudatus. Liiga lähedal pöörlevatele või liikuvatele osadele ja teele.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.2.2",
+    "parent": "G:6.2",
+    "name": "Paigaldus",
+    "severities": []
+  },
+  {
+    "code": "6.2.2.a",
+    "parent": "G:6.2.2",
+    "name": "Ebakindel kere või kabiin. Mõjutab stabiilsust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.2.2.b",
+    "parent": "G:6.2.2",
+    "name": "Kere/kabiin on šassiil silmanähtavalt viltu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.2.c",
+    "parent": "G:6.2.2",
+    "name": "Kere/kabiini kinnitus šassii või risttalade külge on ebakindel või puudub ja kui kinnitus on sümmeetriline. Kere/kabiini kinnitus šassii või risttalade külge on ebakindel või puudub ulatuses, mis ohustab väga tõsiselt liiklusohutust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.2.2.d",
+    "parent": "G:6.2.2",
+    "name": "Kinnituskohad on ülemääraselt korrodeerunud. Stabiilsus on halvenenud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.2.3",
+    "parent": "G:6.2",
+    "name": "Uksed ja ukselukud",
+    "severities": []
+  },
+  {
+    "code": "6.2.3.a",
+    "parent": "G:6.2.3",
+    "name": "Uks ei avane või ei sulgu korralikult.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.3.b",
+    "parent": "G:6.2.3",
+    "name": "Uks võib iseenesest avaneda või ei püsi suletuna (lükanduksed). Uks võib iseenesest avaneda või ei püsi suletuna (pöörduksed).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.2.3.c",
+    "parent": "G:6.2.3",
+    "name": "Uks, hinged, lukud või tugipost on halvenenud seisundis. Uks, hinged, lukud või tugipost on puudu või lahti tulnud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:6.2.4",
+    "parent": "G:6.2",
+    "name": "Põrand",
+    "severities": []
+  },
+  {
+    "code": "6.2.4",
+    "parent": "G:6.2.4",
+    "name": "Ebakindel või oluliselt halvenenud seisundis põrand. Stabiilsus ei ole piisav.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.2.5",
+    "parent": "G:6.2",
+    "name": "Juhiiste",
+    "severities": []
+  },
+  {
+    "code": "6.2.5.a",
+    "parent": "G:6.2.5",
+    "name": "Istme konstruktsioon on defektne. Iste on lahti tulnud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "6.2.5.b",
+    "parent": "G:6.2.5",
+    "name": "Istme reguleerimise mehhanism ei tööta õigesti. Iste liigub või seljatugi ei ole fikseeritav.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.2.6",
+    "parent": "G:6.2",
+    "name": "Muud istmed",
+    "severities": []
+  },
+  {
+    "code": "6.2.6.a",
+    "parent": "G:6.2.6",
+    "name": "Istmed on defektsed või ebakindlad (teisesed osad). Istmed on defektsed või ebakindlad (põhiosad).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.6.b",
+    "parent": "G:6.2.6",
+    "name": "Istmed ei ole paigaldatud vastavalt nõuetele. Istmeid on lubatust rohkem; nende asetus ei ole vastavuses tüübikinnitusega.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:6.2.7",
+    "parent": "G:6.2",
+    "name": "Juhtimisseadised",
+    "severities": []
+  },
+  {
+    "code": "6.2.7",
+    "parent": "G:6.2.7",
+    "name": "Sõiduki ohutuks käitamiseks vajalik seadis ei tööta õigesti. Mõjutab ohutut käitamist.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:6.2.8",
+    "parent": "G:6.2",
+    "name": "Kabiini astmed",
+    "severities": []
+  },
+  {
+    "code": "6.2.8.a",
+    "parent": "G:6.2.8",
+    "name": "Ebakindel aste või platvorm. Stabiilsus ei ole piisav.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.8.b",
+    "parent": "G:6.2.8",
+    "name": "Astme või platvormi seisund võib kasutajatele vigastusi põhjustada.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:6.2.9",
+    "parent": "G:6.2",
+    "name": "Muud sõiduki sise- ja välisseadmed",
+    "severities": []
+  },
+  {
+    "code": "6.2.9.a",
+    "parent": "G:6.2.9",
+    "name": "Muu seadme kinnitus on defektne.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.9.b",
+    "parent": "G:6.2.9",
+    "name": "Muu seade ei vasta nõuetele. Osad on paigaldatud nii, et võivad tekitada vigastusi; mõjutab ohutut käitamist.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.9.c",
+    "parent": "G:6.2.9",
+    "name": "Hüdraulikaseade lekib. Ohtliku materjali ülemäärane kadu.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:6.2.10",
+    "parent": "G:6.2",
+    "name": "Poritiivad, -plekid, -kummid, pritsmekaitsevarustus",
+    "severities": []
+  },
+  {
+    "code": "6.2.10.a",
+    "parent": "G:6.2.10",
+    "name": "Komponent puudub, on lahti tulnud või tõsiselt korrodeerunud. Võib tekitada vigastusi; võib küljest ära kukkuda.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.10.b",
+    "parent": "G:6.2.10",
+    "name": "Komponent on rehvile/rattale liiga lähedal (pritsmekaitse). Komponent on rehvile/rattale liiga lähedal (poritiivad).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "6.2.10.c",
+    "parent": "G:6.2.10",
+    "name": "Ei vasta nõuetele. Turvis on liiga vähe kaetud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "7",
+    "parent": null,
+    "name": "Muu varustus",
+    "severities": []
+  },
+  {
+    "code": "G:7.1",
+    "parent": "7",
+    "name": "Turvavööd / turvavöö pandlad ja turvasüsteemid",
+    "severities": []
+  },
+  {
+    "code": "G:7.1.1",
+    "parent": "G:7.1",
+    "name": "Turvavööde / turvavööde pannalde kinnituste turvalisus",
+    "severities": []
+  },
+  {
+    "code": "7.1.1.a",
+    "parent": "G:7.1.1",
+    "name": "Kinnituspunkt on oluliselt halvenenud seisundis. Mõjutab stabiilsust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "7.1.1.b",
+    "parent": "G:7.1.1",
+    "name": "Kinnituspunkt on lahti tulnud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.1.2",
+    "parent": "G:7.1",
+    "name": "Turvavööde / turvavööde pannalde seisund",
+    "severities": []
+  },
+  {
+    "code": "7.1.2.a",
+    "parent": "G:7.1.2",
+    "name": "Kohustuslik turvavöö puudub või seda ei ole paigaldatud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.2.b",
+    "parent": "G:7.1.2",
+    "name": "Turvavöö on kahjustunud. Mis tahes sisselõige või märk väljavenimisest.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.2.c",
+    "parent": "G:7.1.2",
+    "name": "Turvavöö ei vasta nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.2.d",
+    "parent": "G:7.1.2",
+    "name": "Turvavöö pannal on kahjustunud või ei toimi õigesti.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.2.e",
+    "parent": "G:7.1.2",
+    "name": "Turvavöö tõmbur on kahjustunud või ei toimi õigesti.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.1.3",
+    "parent": "G:7.1",
+    "name": "Turvavöö koormuse piiraja",
+    "severities": []
+  },
+  {
+    "code": "7.1.3.a",
+    "parent": "G:7.1.3",
+    "name": "Koormuse piiraja puudub ilmselgelt või ei sobi asjaomasele sõidukile.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.3.b",
+    "parent": "G:7.1.3",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.1.4",
+    "parent": "G:7.1",
+    "name": "Turvavöö eelpingutid",
+    "severities": []
+  },
+  {
+    "code": "7.1.4.a",
+    "parent": "G:7.1.4",
+    "name": "Eelpinguti puudub ilmselgelt või ei sobi asjaomasele sõidukile.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.4.b",
+    "parent": "G:7.1.4",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.1.5",
+    "parent": "G:7.1",
+    "name": "Turvapadjasüsteem",
+    "severities": []
+  },
+  {
+    "code": "7.1.5.a",
+    "parent": "G:7.1.5",
+    "name": "Turvapadjasüsteem puudub ilmselgelt või ei sobi asjaomasele sõidukile.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.5.b",
+    "parent": "G:7.1.5",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.5.c",
+    "parent": "G:7.1.5",
+    "name": "Turvapadjasüsteem ilmselgelt ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.1.6",
+    "parent": "G:7.1",
+    "name": "SRS-süsteemid",
+    "severities": []
+  },
+  {
+    "code": "7.1.6.a",
+    "parent": "G:7.1.6",
+    "name": "SRS-süsteemi rikkeindikaator näitab süsteemis tõrget.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.1.6.b",
+    "parent": "G:7.1.6",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.2",
+    "parent": "7",
+    "name": "Tulekustuti (X)",
+    "severities": []
+  },
+  {
+    "code": "7.2.a",
+    "parent": "G:7.2",
+    "name": "Puudub.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.2.b",
+    "parent": "G:7.2",
+    "name": "Ei vasta nõuetele. Kui on nõutav (nt taksod, bussid jne).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.3",
+    "parent": "7",
+    "name": "Lukud ja kasutamistõkis",
+    "severities": []
+  },
+  {
+    "code": "7.3.a",
+    "parent": "G:7.3",
+    "name": "Tõkis ei toimi – ei takista sõiduki käitamist.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "7.3.b",
+    "parent": "G:7.3",
+    "name": "Defektne. Soovimatu lukustumine või blokeerumine.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:7.4",
+    "parent": "7",
+    "name": "Ohukolmnurk (kui see on nõutav) (X)",
+    "severities": []
+  },
+  {
+    "code": "7.4.a",
+    "parent": "G:7.4",
+    "name": "Puudub või ei ole komplektne.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "7.4.b",
+    "parent": "G:7.4",
+    "name": "Ei vasta nõuetele.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:7.5",
+    "parent": "7",
+    "name": "Esmaabivahendid (kui need on nõutavad) (X)",
+    "severities": []
+  },
+  {
+    "code": "7.5",
+    "parent": "G:7.5",
+    "name": "Puuduvad, ei ole komplektsed või ei vasta nõuetele.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:7.6",
+    "parent": "7",
+    "name": "Ratta tõkiskingad (-kiilud) (kui need on nõutavad) (X)",
+    "severities": []
+  },
+  {
+    "code": "7.6",
+    "parent": "G:7.6",
+    "name": "Puuduvad või on halvas seisundis, ei ole piisavalt stabiilsed või piisava suurusega.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.7",
+    "parent": "7",
+    "name": "Helisignaalseade",
+    "severities": []
+  },
+  {
+    "code": "7.7.a",
+    "parent": "G:7.7",
+    "name": "Ei tööta korralikult. Ei tööta üldse.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "7.7.b",
+    "parent": "G:7.7",
+    "name": "Ebakindel juhtseadis.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "7.7.c",
+    "parent": "G:7.7",
+    "name": "Ei vasta nõuetele. Heli võib ajada segi ametivõimude poolt kasutatavate sireenidega.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.8",
+    "parent": "7",
+    "name": "Kiirusmõõdik",
+    "severities": []
+  },
+  {
+    "code": "7.8.a",
+    "parent": "G:7.8",
+    "name": "Ei ole paigaldatud vastavalt nõuetele. Puudub (kui on nõutav).",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "7.8.b",
+    "parent": "G:7.8",
+    "name": "Talitlus on häiritud. Ei toimi üldse.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "7.8.c",
+    "parent": "G:7.8",
+    "name": "Mõõdik ei ole piisavalt valgustatud. Mõõdik ei ole valgustatud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.9",
+    "parent": "7",
+    "name": "Sõidumeerik (kui see on paigaldatud/nõutav)",
+    "severities": []
+  },
+  {
+    "code": "7.9.a",
+    "parent": "G:7.9",
+    "name": "Ei ole paigaldatud vastavalt nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.9.b",
+    "parent": "G:7.9",
+    "name": "Ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.9.c",
+    "parent": "G:7.9",
+    "name": "Defektsed või puuduvad plommid.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.9.d",
+    "parent": "G:7.9",
+    "name": "Paigaldustahvel puudub, on loetamatu või aegunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.9.e",
+    "parent": "G:7.9",
+    "name": "Ilmne rikkumine või manipuleerimine.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.9.f",
+    "parent": "G:7.9",
+    "name": "Rehvide suurus ei vasta kalibreerimisparameetritele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.10",
+    "parent": "7",
+    "name": "Kiiruspiirik (kui see on paigaldatud/nõutav) (+E)",
+    "severities": []
+  },
+  {
+    "code": "7.10.a",
+    "parent": "G:7.10",
+    "name": "Ei ole paigaldatud vastavalt nõuetele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.10.b",
+    "parent": "G:7.10",
+    "name": "Ei ole ilmselgelt töökorras.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.10.c",
+    "parent": "G:7.10",
+    "name": "Vale määratud kiirus (kui seda on kontrollitud).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.10.d",
+    "parent": "G:7.10",
+    "name": "Defektsed või puuduvad plommid.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.10.e",
+    "parent": "G:7.10",
+    "name": "Plaat puudub või on loetamatu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.10.f",
+    "parent": "G:7.10",
+    "name": "Rehvide suurus ei vasta kalibreerimisparameetritele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.11",
+    "parent": "7",
+    "name": "Läbisõidumõõdik, kui see on olemas (X)",
+    "severities": []
+  },
+  {
+    "code": "7.11.a",
+    "parent": "G:7.11",
+    "name": "Ilmselgelt manipuleeritud (pettus), et vähendada sõiduki läbisõidunäitu või näidata seda tegelikust erinevana.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.11.b",
+    "parent": "G:7.11",
+    "name": "Ilmselgelt ei tööta.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:7.12",
+    "parent": "7",
+    "name": "Elektrooniline stabiilsuskontroll (ESC), kui see on paigaldatud/nõutav (X)",
+    "severities": []
+  },
+  {
+    "code": "7.12.a",
+    "parent": "G:7.12",
+    "name": "Ratta kiirusandurid puuduvad või on kahjustunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.12.b",
+    "parent": "G:7.12",
+    "name": "Juhtmestik on kahjustunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.12.c",
+    "parent": "G:7.12",
+    "name": "Muud osad puuduvad või on kahjustunud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.12.d",
+    "parent": "G:7.12",
+    "name": "Lüliti on kahjustunud või ei tööta õigesti.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.12.e",
+    "parent": "G:7.12",
+    "name": "ESC-süsteemi rikkeindikaator näitab süsteemis tõrget.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "7.12.f",
+    "parent": "G:7.12",
+    "name": "Süsteem näitab tõrget sõiduki elektroonilise liidese kaudu.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8",
+    "parent": null,
+    "name": "Saaste",
+    "severities": []
+  },
+  {
+    "code": "G:8.1",
+    "parent": "8",
+    "name": "Müra",
+    "severities": []
+  },
+  {
+    "code": "G:8.1.1",
+    "parent": "G:8.1",
+    "name": "Müravähendussüsteem (+E)",
+    "severities": []
+  },
+  {
+    "code": "8.1.1.a",
+    "parent": "G:8.1.1",
+    "name": "Müratasemed ületavad nõuetes lubatavaid tasemeid.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.1.1.b",
+    "parent": "G:8.1.1",
+    "name": "Müravähendussüsteemi mingi osa on lahti tulnud, kahjustunud, valesti paigaldatud, puudub või seda on ilmselt muudetud, nii et see mõjub negatiivselt müratasemele. Väga tõsine küljest äratuleku oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:8.2",
+    "parent": "8",
+    "name": "Heitgaasid",
+    "severities": []
+  },
+  {
+    "code": "G:8.2.1",
+    "parent": "G:8.2",
+    "name": "Ottomootori tekitatav heide",
+    "severities": []
+  },
+  {
+    "code": "G:8.2.1.1",
+    "parent": "G:8.2.1",
+    "name": "Heitgaaside kontrolli seadmed",
+    "severities": []
+  },
+  {
+    "code": "8.2.1.1.a",
+    "parent": "G:8.2.1.1",
+    "name": "Tootja paigaldatud heitekontrolliseadmed puuduvad, neid on muudetud või need on ilmselt vigased.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.1.1.b",
+    "parent": "G:8.2.1.1",
+    "name": "Heitkoguste mõõtmist mõjutavad lekked.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.1.1.c",
+    "parent": "G:8.2.1.1",
+    "name": "Rikkeindikaator ei näita nõuetekohast toimimist.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:8.2.1.2",
+    "parent": "G:8.2.1",
+    "name": "Gaasiline heide (E)",
+    "severities": []
+  },
+  {
+    "code": "8.2.1.2.a",
+    "parent": "G:8.2.1.2",
+    "name": "Gaasilised heited ületavad tootja kindlaks määratud konkreetseid tasemeid.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.1.2.b",
+    "parent": "G:8.2.1.2",
+    "name": "Või juhul, kui see teave ei ole kättesaadav, süsinikmonooksiidi heited ületavad: i) sõidukite puhul, mille heitgaase ei kontrollita spetsiaalse heitekontrollisüsteemi abil, — 4,5 % või — 3,5 % vastavalt nõuetes kindlaks määratud esmase registreerimise või kasutuselevõtu kuupäevale; ii) sõidukite puhul, mille heitgaase kontrollitakse sellise süsteemi abil, — tühikäigul 0,5 % — kõrgendatud pööretel 0,3 % või — tühikäigul 0,3 % — kõrgendatud pööretel 0,2 % vastavalt samale kuupäevale.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.1.2.c",
+    "parent": "G:8.2.1.2",
+    "name": "Lambda väärtus ei jää vahemikku 1 ± 0,03 või ei ole kooskõlas tootja spetsifikatsiooniga.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.1.2.d",
+    "parent": "G:8.2.1.2",
+    "name": "Pardadiagnostika näit osutab olulisele rikkele.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.1.2.e",
+    "parent": "G:8.2.1.2",
+    "name": "Kaugmõõtmine näitab olulist nõuetele mittevastavust.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:8.2.2",
+    "parent": "G:8.2",
+    "name": "Diiselmootori tekitatav heide",
+    "severities": []
+  },
+  {
+    "code": "G:8.2.2.1",
+    "parent": "G:8.2.2",
+    "name": "Heitgaaside kontrolli seadmed",
+    "severities": []
+  },
+  {
+    "code": "8.2.2.1.a",
+    "parent": "G:8.2.2.1",
+    "name": "Tootja paigaldatud heitekontrolliseadmed puuduvad või need on ilmselgelt vigased.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.2.1.b",
+    "parent": "G:8.2.2.1",
+    "name": "Heitkoguste mõõtmist mõjutavad lekked.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.2.1.c",
+    "parent": "G:8.2.2.1",
+    "name": "Rikkeindikaator ei näita nõuetekohast toimimist.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.2.1.d",
+    "parent": "G:8.2.2.1",
+    "name": "Ebapiisav kogus reagenti (kui see on vajalik).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:8.2.2.2",
+    "parent": "G:8.2.2",
+    "name": "Suitsusus. Seda nõuet ei kohaldata enne 1. jaanuari 1980 registreeritud või kasutusele võetud sõidukite suhtes.",
+    "severities": []
+  },
+  {
+    "code": "8.2.2.2.a",
+    "parent": "G:8.2.2.2",
+    "name": "Sõidukite puhul, mis on registreeritud või esmakordselt kasutusele võetud pärast nõuetes kindlaks määratud kuupäeva, ületab suitsusus taset, mis on märgitud sõidukile kinnitatud tootja andmesildil.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.2.2.b",
+    "parent": "G:8.2.2.2",
+    "name": "Kui see teave ei ole kättesaadav või kui nõuete alusel ei ole kontrollväärtuste kasutamine lubatud, siis — ülelaadeta mootorite puhul 2,5 m⁻¹, — turbomootorite puhul 3,0 m⁻¹, või nõuetes määratud või pärast nõuetes kindlaks määratud kuupäeva esmaselt registreeritud või kasutusele võetud sõidukite puhul 1,5 m⁻¹ või 0,7 m⁻¹",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "8.2.2.2.c",
+    "parent": "G:8.2.2.2",
+    "name": "Kaugmõõtmine näitab olulist nõuetele mittevastavust.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:8.4",
+    "parent": "8",
+    "name": "Muud keskkonnaga seotud punktid",
+    "severities": []
+  },
+  {
+    "code": "G:8.4.1",
+    "parent": "G:8.4",
+    "name": "Vedelikulekked",
+    "severities": []
+  },
+  {
+    "code": "8.4.1",
+    "parent": "G:8.4.1",
+    "name": "Mis tahes ülemäärane vedelikuleke (muu kui vesi), mis võib kahjustada keskkonda või kujutada ohtu teistele liiklejatele. Pidev tilkade teke, mis kujutab endast väga tõsist ohtu.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "9",
+    "parent": null,
+    "name": "Täiendavad ülevaatused reisijateveoks kasutatavatele M2- ja M3-kategooria sõidukitele",
+    "severities": []
+  },
+  {
+    "code": "G:9.1",
+    "parent": "9",
+    "name": "Uksed",
+    "severities": []
+  },
+  {
+    "code": "G:9.1.1",
+    "parent": "G:9.1",
+    "name": "Sisse- ja väljapääsud",
+    "severities": []
+  },
+  {
+    "code": "9.1.1.a",
+    "parent": "G:9.1.1",
+    "name": "Defektne toimimine.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "9.1.1.b",
+    "parent": "G:9.1.1",
+    "name": "Halvenenud seisund. Võib tekitada vigastusi.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.1.1.c",
+    "parent": "G:9.1.1",
+    "name": "Avariiolukordadeks ette nähtud juhtimisseade on defektne.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "9.1.1.d",
+    "parent": "G:9.1.1",
+    "name": "Uste kaugjuhtimisseadmed või hoiatusseadised on defektsed.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.1.2",
+    "parent": "G:9.1",
+    "name": "Avariiväljapääsud",
+    "severities": []
+  },
+  {
+    "code": "9.1.2.a",
+    "parent": "G:9.1.2",
+    "name": "Defektne toimimine.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "9.1.2.b",
+    "parent": "G:9.1.2",
+    "name": "Avariiväljapääsu tähistavad sildid on loetamatud. Avariiväljapääsu tähistavad sildid puuduvad.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.1.2.c",
+    "parent": "G:9.1.2",
+    "name": "Puudub klaasipurustushaamer.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "9.1.2.d",
+    "parent": "G:9.1.2",
+    "name": "Juurdepääs on blokeeritud.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.2",
+    "parent": "9",
+    "name": "Niiskuse ja jäite eemaldamise süsteem (X)",
+    "severities": []
+  },
+  {
+    "code": "9.2.a",
+    "parent": "G:9.2",
+    "name": "Ei tööta õigesti. Mõjutab sõiduki ohutut käitamist.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.2.b",
+    "parent": "G:9.2",
+    "name": "Mürgiste gaaside või heitgaaside pääsemine juhikabiini või sõitjateruumi. Oht sõidukis viibivate isikute tervisele.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "9.2.c",
+    "parent": "G:9.2",
+    "name": "Defektne jäite eemaldamise süsteem (kui see on kohustuslik).",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.3",
+    "parent": "9",
+    "name": "Ventileerimis- ja küttesüsteem (X)",
+    "severities": []
+  },
+  {
+    "code": "9.3.a",
+    "parent": "G:9.3",
+    "name": "Defektne toimimine. Oht sõidukis viibivate isikute tervisele.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.3.b",
+    "parent": "G:9.3",
+    "name": "Mürgiste gaaside või heitgaaside pääsemine juhikabiini või sõitjateruumi. Oht sõidukis viibivate isikute tervisele.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:9.4",
+    "parent": "9",
+    "name": "Istmed",
+    "severities": []
+  },
+  {
+    "code": "G:9.4.1",
+    "parent": "G:9.4",
+    "name": "Sõitjakohad (sh reisisaatjate istmed ja lapse turvasüsteemid, kui need on olemas)",
+    "severities": []
+  },
+  {
+    "code": "9.4.1",
+    "parent": "G:9.4.1",
+    "name": "Klappistmed (kui need on lubatud) ei tööta automaatselt. Need blokeerivad avariiväljapääsu.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.4.2",
+    "parent": "G:9.4",
+    "name": "Juhiiste (lisanõuded)",
+    "severities": []
+  },
+  {
+    "code": "9.4.2.a",
+    "parent": "G:9.4.2",
+    "name": "Defektne erivarustus, näiteks pimestamisvastane vari. Vaateväli on ahenenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.4.2.b",
+    "parent": "G:9.4.2",
+    "name": "Juhi kaitseseadised on ebakindlad. Võivad tekitada vigastusi.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.5",
+    "parent": "9",
+    "name": "Sisevalgustus ja liiniinfo seadmed (X)",
+    "severities": []
+  },
+  {
+    "code": "9.5",
+    "parent": "G:9.5",
+    "name": "Seade on defektne. Ei toimi üldse.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.6",
+    "parent": "9",
+    "name": "Vahekäigud, seisukohad",
+    "severities": []
+  },
+  {
+    "code": "9.6.a",
+    "parent": "G:9.6",
+    "name": "Ebakindel põrand. Mõjutab stabiilsust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "9.6.b",
+    "parent": "G:9.6",
+    "name": "Defektsed käsipuud või käepidemed. Ebakindlad või kasutuskõlbmatud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.7",
+    "parent": "9",
+    "name": "Trepid ja astmed",
+    "severities": []
+  },
+  {
+    "code": "9.7.a",
+    "parent": "G:9.7",
+    "name": "Halvenenud seisund. Kahjustatud seisund. Mõjutab stabiilsust.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "9.7.b",
+    "parent": "G:9.7",
+    "name": "Sissetõmmatavad astmed ei toimi õigesti.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.8",
+    "parent": "9",
+    "name": "Reisijatega suhtlemise süsteem (X)",
+    "severities": []
+  },
+  {
+    "code": "9.8",
+    "parent": "G:9.8",
+    "name": "Süsteem on defektne. Ei toimi üldse.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.9",
+    "parent": "9",
+    "name": "Kirjalik teave (X)",
+    "severities": []
+  },
+  {
+    "code": "9.9",
+    "parent": "G:9.9",
+    "name": "Teave puudub, on väär või loetamatu. Eksitav teave.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.10",
+    "parent": "9",
+    "name": "Laste vedu käsitlevad nõuded (X)",
+    "severities": []
+  },
+  {
+    "code": "G:9.10.1",
+    "parent": "G:9.10",
+    "name": "Uksed",
+    "severities": []
+  },
+  {
+    "code": "9.10.1",
+    "parent": "G:9.10.1",
+    "name": "Uksed ei ole kaitstud kooskõlas asjaomast transpordiliiki käsitlevate nõuetega",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.10.2",
+    "parent": "G:9.10",
+    "name": "Signaal- ja eriseadmed",
+    "severities": []
+  },
+  {
+    "code": "9.10.2",
+    "parent": "G:9.10.2",
+    "name": "Signaal- või eriseadmed puuduvad.",
+    "severities": [
+      "VO"
+    ]
+  },
+  {
+    "code": "G:9.11",
+    "parent": "9",
+    "name": "Piiratud liikumisvõimega isikute vedu käsitlevad nõuded (X)",
+    "severities": []
+  },
+  {
+    "code": "G:9.11.1",
+    "parent": "G:9.11",
+    "name": "Uksed, rambid ja tõstukid",
+    "severities": []
+  },
+  {
+    "code": "9.11.1.a",
+    "parent": "G:9.11.1",
+    "name": "Defektne toimimine. Mõjutab ohutut käitamist.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.11.1.b",
+    "parent": "G:9.11.1",
+    "name": "Halvenenud seisund. Mõjutab stabiilsust, võib tekitada vigastusi.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.11.1.c",
+    "parent": "G:9.11.1",
+    "name": "Defektne juhtseadis (defektsed juhtseadised). Mõjutab ohutut käitamist.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.11.1.d",
+    "parent": "G:9.11.1",
+    "name": "Defektne hoiatusseadis (defektsed hoiatusseadised). Ei toimi üldse.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.11.2",
+    "parent": "G:9.11",
+    "name": "Ratastooli kinnitamise süsteem",
+    "severities": []
+  },
+  {
+    "code": "9.11.2.a",
+    "parent": "G:9.11.2",
+    "name": "Defektne toimimine. Mõjutab ohutut käitamist.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.11.2.b",
+    "parent": "G:9.11.2",
+    "name": "Halvenenud seisund. Mõjutab stabiilsust, võib tekitada vigastusi.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "9.11.2.c",
+    "parent": "G:9.11.2",
+    "name": "Defektne juhtseadis (defektsed juhtseadised). Mõjutab ohutut käitamist.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "G:9.11.3",
+    "parent": "G:9.11",
+    "name": "Signaal- ja eriseadmed",
+    "severities": []
+  },
+  {
+    "code": "9.11.3",
+    "parent": "G:9.11.3",
+    "name": "Signaal- või eriseadmed puuduvad.",
+    "severities": [
+      "OV"
+    ]
+  },
+  {
+    "code": "10",
+    "parent": null,
+    "name": "Sõiduki sobivus",
+    "severities": []
+  },
+  {
+    "code": "G:10.1",
+    "parent": "10",
+    "name": "Esisein (kui kasutatakse veose kinnitamiseks)",
+    "severities": []
+  },
+  {
+    "code": "10.1.1",
+    "parent": "G:10.1",
+    "name": "Rooste või deformatsiooni tõttu kahjustada saanud detailid. Pragunenud detail, mis seab ohtu veoseruumi terviklikkuse.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.1.2",
+    "parent": "G:10.1",
+    "name": "Ebapiisav tugevus (tunnistus või märgis, kui see on olemas). Veetava veose jaoks ebapiisav kõrgus.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:10.2",
+    "parent": "10",
+    "name": "Külgseinad (kui kasutatakse veose kinnitamiseks)",
+    "severities": []
+  },
+  {
+    "code": "10.2.1",
+    "parent": "G:10.2",
+    "name": "Rooste või deformatsiooni tõttu kahjustada saanud detailid, hingede või lukkude seisukord ei ole nõuetekohane. Pragunenud osa; hinged või lukud puuduvad või ei tööta.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.2.2",
+    "parent": "G:10.2",
+    "name": "Tugi ei ole piisavalt tugev (tunnistus või märgis, kui on olemas). Veetava veose jaoks ebapiisav kõrgus.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.2.3",
+    "parent": "G:10.2",
+    "name": "Puidust külgpaneelide seisukord ei ole nõuetekohane. Pragunenud detail.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:10.3",
+    "parent": "10",
+    "name": "Tagasein (kui kasutatakse veose kinnitamiseks)",
+    "severities": []
+  },
+  {
+    "code": "10.3.1",
+    "parent": "G:10.3",
+    "name": "Rooste või deformatsiooni tõttu kahjustada saanud detailid, hingede või lukkude seisukord ei ole nõuetekohane. Pragunenud osa; hinged või lukud puuduvad või ei tööta.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.3.2",
+    "parent": "G:10.3",
+    "name": "Ebapiisav tugevus (tunnistus või märgis, kui see on olemas). Veetava veose jaoks ebapiisav kõrgus.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:10.4",
+    "parent": "10",
+    "name": "Vertikaaltoed (kui kasutatakse veose kinnitamiseks)",
+    "severities": []
+  },
+  {
+    "code": "10.4.1",
+    "parent": "G:10.4",
+    "name": "Rooste või deformatsiooni tõttu kahjustada saanud detailid või need ei ole nõuetekohaselt sõidukile kinnitatud. Pragunenud osa; kinnitus sõiduki külge ei ole stabiilne.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.4.2",
+    "parent": "G:10.4",
+    "name": "Tugevus või konstruktsioon ei ole nõuetekohane. Veetava veose jaoks ebapiisav kõrgus.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:10.5",
+    "parent": "10",
+    "name": "Sidumisvahendite kinnituskohad (kui kasutatakse veose kinnitamiseks)",
+    "severities": []
+  },
+  {
+    "code": "10.5.1",
+    "parent": "G:10.5",
+    "name": "Seisukord või konstruktsioon ei ole nõuetekohane. Ei pea vastu sidemele mõjuvale ettenähtud jõule.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.5.2",
+    "parent": "G:10.5",
+    "name": "Arv ei ole piisav. Arv ei ole piisav, et pidada vastu sidemele mõjuvale ettenähtud jõule.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:10.6",
+    "parent": "10",
+    "name": "Nõutavad erikonstruktsioonid (kui kasutatakse veose kinnitamiseks)",
+    "severities": []
+  },
+  {
+    "code": "10.6.1",
+    "parent": "G:10.6",
+    "name": "Seisukord ei ole nõuetekohane, on kahjustatud. Pragunenud osa; ei pea kinnitusjõule vastu.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.6.2",
+    "parent": "G:10.6",
+    "name": "Ei sobi asjaomase veose vedamiseks. Puuduvad.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:10.7",
+    "parent": "10",
+    "name": "Põhi (kui kasutatakse veose kinnitamiseks)",
+    "severities": []
+  },
+  {
+    "code": "10.7.1",
+    "parent": "G:10.7",
+    "name": "Seisukord ei ole nõuetekohane, on kahjustatud. Pragunenud osa; ei pea veosele vastu.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "10.7.2",
+    "parent": "G:10.7",
+    "name": "Ebapiisav kandevõime. Ei pea veosele vastu.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20",
+    "parent": null,
+    "name": "Kinnitusmeetodid",
+    "severities": []
+  },
+  {
+    "code": "G:20.1",
+    "parent": "20",
+    "name": "Lukustamine, tõkestamine ja otsene kinnitus",
+    "severities": []
+  },
+  {
+    "code": "G:20.1.1",
+    "parent": "G:20.1",
+    "name": "Veose otsene kinnitamine (tõkestamine)",
+    "severities": []
+  },
+  {
+    "code": "20.1.1.1",
+    "parent": "G:20.1.1",
+    "name": "Edasisuunaline kaugus esiseinani liiga suur, kui seina kasutatakse veose otseseks kinnitamiseks. Üle 15 cm ja esineb seina läbistamise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.1.2",
+    "parent": "G:20.1.1",
+    "name": "Külgsuunaline kaugus külgseinani liiga suur, kui seina kasutatakse veose otseseks kinnitamiseks. Üle 15 cm ja esineb seina läbistamise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.1.3",
+    "parent": "G:20.1.1",
+    "name": "Tagasisuunaline kaugus tagaseinani liiga suur, kui seina kasutatakse veose otseseks kinnitamiseks. Üle 15 cm ja esineb seina läbistamise oht.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.1.2",
+    "parent": "G:20.1",
+    "name": "Kinnitusvahendid (nt tõkked, talad, latid ja kiilud ees, külgedel ja taga)",
+    "severities": []
+  },
+  {
+    "code": "20.1.2.1",
+    "parent": "G:20.1.2",
+    "name": "Ei ole sõiduki külge nõuetekohaselt kinnitatud. Ebapiisav kinnitus. Ei pea kinnitusjõule vastu, on lahti.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.2.2",
+    "parent": "G:20.1.2",
+    "name": "Kinnitus ei ole nõuetekohane. Ebapiisav kinnitus. Täiesti mõjutu.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.2.3",
+    "parent": "G:20.1.2",
+    "name": "Kinnitusvahendid ei ole piisavalt sobivad. Kinnitusvahendid on täiesti ebasobivad.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.2.4",
+    "parent": "G:20.1.2",
+    "name": "Pakendite kinnitamiseks valitud meetod ei ole optimaalne. Valitud meetod on täiesti sobimatu.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.1.3",
+    "parent": "G:20.1",
+    "name": "Otsene kinnitamine võrkude ja katetega",
+    "severities": []
+  },
+  {
+    "code": "20.1.3.1",
+    "parent": "G:20.1.3",
+    "name": "Võrkude ja katete seisukord (märgis puudub / on kahjustatud, kuid muidu heas seisukorras). Veose kinnitusvahendid on kahjustatud. Veose kinnitusvahendid on olulisel määral kahjustatud ja ei ole enam kasutuskõlblikud.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.3.2",
+    "parent": "G:20.1.3",
+    "name": "Võrgud ja katted ei ole piisavalt tugevad. Suudavad vastu seista nõutavale kinnitusjõule vähem kui 2/3 ulatuses.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.3.3",
+    "parent": "G:20.1.3",
+    "name": "Võrgud ja katted ei ole piisavalt kinnitatud. Kinnitused suudavad vastu seista nõutavale kinnitusjõule vähem kui 2/3 ulatuses.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.1.3.4",
+    "parent": "G:20.1.3",
+    "name": "Võrgud ja katted ei ole piisavalt sobivad veose kinnitamiseks. Täiesti sobimatud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.1.4",
+    "parent": "G:20.1",
+    "name": "Laadungiüksuste või tühiruumide eraldamine ja polsterdus",
+    "severities": []
+  },
+  {
+    "code": "20.1.4.1",
+    "parent": "G:20.1.4",
+    "name": "Eralduse ja polsterduse sobivus. Eraldus- või tühiruum on liiga suur.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.1.5",
+    "parent": "G:20.1",
+    "name": "Otsene kinnitus (horisontaal-, põiki-, diagonaal-, silmus- ja elastne kinnitus)",
+    "severities": []
+  },
+  {
+    "code": "20.1.5.1",
+    "parent": "G:20.1.5",
+    "name": "Nõutav kinnitusjõud ei ole piisav. On alla 2/3 nõutavast jõust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.2",
+    "parent": "20",
+    "name": "Hõõrdlukk",
+    "severities": []
+  },
+  {
+    "code": "G:20.2.1",
+    "parent": "G:20.2",
+    "name": "Nõutava kinnitusjõu järgimine",
+    "severities": []
+  },
+  {
+    "code": "20.2.1.1",
+    "parent": "G:20.2.1",
+    "name": "Nõutav kinnitusjõud ei ole piisav. On alla 2/3 nõutavast jõust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.3",
+    "parent": "20",
+    "name": "Veose kinnitusvahendid",
+    "severities": []
+  },
+  {
+    "code": "20.3.1",
+    "parent": "G:20.3",
+    "name": "Veose kinnitusvahendite sobivus. Täiesti ebasobivad.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.3.2",
+    "parent": "G:20.3",
+    "name": "Märgis (nt partii/katsehaagis) puudub / on kahjustatud, kuid vahend on heas seisukorras. Märgis (nt partii/katsehaagis) puudub / on kahjustatud, kuid vahendi seisukord on märgatavalt halvenenud.",
+    "severities": [
+      "VO",
+      "OV"
+    ]
+  },
+  {
+    "code": "20.3.3",
+    "parent": "G:20.3",
+    "name": "Veose kinnitusvahendid on kahjustatud. Veose kinnitusvahendid on olulisel määral kahjustatud ega ole enam kasutuskõlblikud.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.3.4",
+    "parent": "G:20.3",
+    "name": "Vintse on valesti kasutatud. Vintsid on defektsed.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.3.5",
+    "parent": "G:20.3",
+    "name": "Veos on valesti kinnitatud (nt puudub servakaitse). Veose kinnitusvahendid on defektsed (nt sõlmed).",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.3.6",
+    "parent": "G:20.3",
+    "name": "Veose kinnitusvahendid ei ole nõuetekohaselt kinnitatud. On alla 2/3 nõutavast jõust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.4",
+    "parent": "20",
+    "name": "Lisavarustus (nt hõõrdematid, servakaitsed, servajalased)",
+    "severities": []
+  },
+  {
+    "code": "20.4.1",
+    "parent": "G:20.4",
+    "name": "Kasutatud on ebastabiilseid vahendeid. Kasutatud on valesid või defektseid vahendeid. Kasutatud vahendid on täiesti sobimatud.",
+    "severities": [
+      "VO",
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.5",
+    "parent": "20",
+    "name": "Puistematerjali, kerge ja lahtise materjali vedu",
+    "severities": []
+  },
+  {
+    "code": "20.5.1",
+    "parent": "G:20.5",
+    "name": "Puistematerjal lendub veo käigus teele, võib häirida liiklust. Ohustab liiklust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.5.2",
+    "parent": "G:20.5",
+    "name": "Puistematerjal ei ole nõuetekohaselt kinnitatud. Veose kadu, mis ohustab liiklust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.5.3",
+    "parent": "G:20.5",
+    "name": "Katte puudumine kergete kaupade puhul. Veose kadu, mis ohustab liiklust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "G:20.6",
+    "parent": "20",
+    "name": "Ümarpuidu vedu",
+    "severities": []
+  },
+  {
+    "code": "20.6.1",
+    "parent": "G:20.6",
+    "name": "Veetav materjal on osaliselt lahtine (palgid)",
+    "severities": [
+      "EOV"
+    ]
+  },
+  {
+    "code": "20.6.2",
+    "parent": "G:20.6",
+    "name": "Laadungiüksuse kinnitamisjõud ei ole piisav. On alla 2/3 nõutavast jõust.",
+    "severities": [
+      "OV",
+      "EOV"
+    ]
+  },
+  {
+    "code": "30",
+    "parent": "20",
+    "name": "Veos on täielikult kinnitamata",
+    "severities": [
+      "EOV"
+    ]
+  }
+]

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create a new user group with optional organisations and permissions"
@@ -13,9 +14,12 @@ declaration:
       - field: permissionIds
         type: array
         description: "Array of permission UUIDs"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -54,6 +58,7 @@ createGroup:
   args:
     url: "[#LJVIS_RESQL]/user_group/insert_user_group"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       name: ${name}
@@ -73,6 +78,7 @@ getPermissions:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_permissions"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${user_group_id}
@@ -84,6 +90,7 @@ getOrganisationsCount:
   args:
     url: "[#LJVIS_RESQL]/organisation/list_organisations"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: orgsCountRes
@@ -103,8 +110,6 @@ logAuditEvent:
   body:
     event_type: "user_group.create"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: "Kasutajagrupi '${name}' loomine"
     log_content: "{\"targetGroupId\":${user_group_id},\"groupName\":\"${name}\",\"organisationIds\":[${organisation_ids}],\"permissionCodes\":${permission_codes},\"coversAllOrganisations\":${covers_all_organisations}}"
   result: audit_result

@@ -1,12 +1,17 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
     X-tee pakutav teenus ErakorralineYVquery (v1): tagastab ajavahemikul erakorralisele
     tehnoülevaatusele suunatud sõidukid (result_type = extraordinary_inspection /
-    extraordinary_inspection_ta). Mõlemad kuupäevad kohustuslikud — piiramatu päring
+    extraordinary_inspection_ta). Mõlemad kuupäevad kohustuslikud - piiramatu päring
     ei ole lubatud. Vt docs/xtee/03-erakorraline-yv-query.md.
   namespace: xroad
+  allowlist:
+    body:
+      - field: alates
+      - field: kuni
 
 # Samm 1: Alguskuupäev on kohustuslik (piiramatu päring pole lubatud)
 validateAlates:
@@ -43,6 +48,7 @@ queryTargeted:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/erakorraline-yv-query"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       alates: ${alates}
@@ -63,7 +69,9 @@ checkQueryStatus:
 buildItems:
   assign:
     mapped_items: >-
-      ${(queryResult.response.body || []).map(function(row) {
+      ${(queryResult.response.body || []).map(function(source) {
+        var row = {};
+        Object.keys(source).forEach(function(key) { row[key.replace(/[A-Z]/g, function(c) { return "_" + c.toLowerCase(); })] = source[key]; });
         var defects = [];
         try { defects = JSON.parse(row.issues_json || '[]'); } catch(e) {}
         var refine = [];
@@ -95,6 +103,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-query"
@@ -121,6 +130,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "xroad.provide.erakorraline-yv-query"
@@ -135,7 +145,7 @@ logFailure:
   result: logResult
   next: returnServerError
 
-# Veavastused — sisemist infot ei avaldata
+# Veavastused - sisemist infot ei avaldata
 returnServerError:
   status: 500
   return: '{"error": "SERVER_ERROR", "message": "Internal error"}'

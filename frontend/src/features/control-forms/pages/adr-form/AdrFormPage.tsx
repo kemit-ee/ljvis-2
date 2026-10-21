@@ -75,6 +75,9 @@ import { useCompoundForm } from '../compound-form/useCompoundForm';
 import { useCompoundFormDetail } from '../compound-form/useCompoundFormDetail';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
+import { CompoundEtoimikQueryCard } from '../../components/EtoimikQueryCard/CompoundEtoimikQueryCard';
 
 export function AdrFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -93,6 +96,9 @@ export function AdrFormPage() {
   const [activeTab, setActiveTab] = useState('tab-adr');
   const [openTabs, setOpenTabs] = useState<string[]>(['tab-adr']);
   const [compoundEditActive, setCompoundEditActive] = useState(false);
+  // ADR-011: koondvormi (SP_COMPOUND) väljade vormipiirang muutmisrežiimis;
+  // alamvormid rakendavad oma skoobi ise (…CreatePage)
+  useClassifierScopeActive(compoundEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(false);
   const [showConfirmedAlert, setShowConfirmedAlert] = useState(false);
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
@@ -113,8 +119,7 @@ export function AdrFormPage() {
   const { canPublish: canPublishSubForms, canConfirm } = useSubFormPermissions({ activeTab, driver, teammate, vehicle, trailers, adr, transportInterruption });
 
   const forbidden = !(
-    (hasPermission('adr_form.read') || hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+    (hasPermission('adr_form.read') || hasPermission('adr_form.write') || hasPermission('control_form.view_unpublished'))
   );
 
   const [snapshot, setSnapshot] = useState<AdrForm | null>(null);
@@ -353,7 +358,6 @@ export function AdrFormPage() {
     setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
-    window.scrollTo(0, 0);
   };
 
   const handleCompoundPublished = () => {
@@ -545,7 +549,7 @@ export function AdrFormPage() {
 
   if (loadingEntry) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
+  if (loadError || !compoundFormKey) return <FormLoadError />;
 
   const sharedCompoundProps = {
     isDesktop,
@@ -613,6 +617,17 @@ export function AdrFormPage() {
         <Heading element="h1">{headingLabel}</Heading>
         {addFormDropdown}
       </div>
+
+      {/* E-toimiku päringukaart ("Päri e-toimikust") on ainult karistusregistri õigusega kasutajale. */}
+      <CompoundEtoimikQueryCard
+        compoundForm={compoundForm}
+        compoundFormKey={compoundFormKey}
+        vehicle={vehicle.form}
+        trailers={trailers.map((t) => t.form)}
+        driver={driver.form}
+        teammate={teammate.form}
+        adr={adr.form}
+      />
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
@@ -751,10 +766,10 @@ export function AdrFormPage() {
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!driver.form) resetCompoundFormToSaved();
                 refetchDriver(() => {
                   driver.draftRef.current = null;
@@ -801,10 +816,10 @@ export function AdrFormPage() {
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={compoundFormKey}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!teammate.form) resetCompoundFormToSaved();
                 refetchTeammate(() => {
                   teammate.draftRef.current = null;
@@ -851,9 +866,9 @@ export function AdrFormPage() {
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({
                   ...p,
                   'tab-vehicle-technical-check': false,
@@ -915,9 +930,9 @@ export function AdrFormPage() {
                         ? JSON.parse(compoundForm.trailers)
                         : []
                 }
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   setTabErrors((p) => ({ ...p, [`tab-trailer-technical-check-${idx}`]: false }));
                   refetchTechCheck(trailerHandle, 'trailer', idx, () => {
                     trailerHandle.draftRef.current = null;
@@ -960,10 +975,10 @@ export function AdrFormPage() {
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-adr': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchAdr(() => {
                   adr.draftRef.current = null;
                   adr.setDraft(null);
@@ -1006,13 +1021,13 @@ export function AdrFormPage() {
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTransportInterruption(() => {
                   transportInterruption.draftRef.current = null;
                   transportInterruption.setDraft(null);

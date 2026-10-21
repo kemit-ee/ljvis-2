@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get ADR sub-form by id (latest snapshot). Logs a view event only when the viewing user differs from the sub-form's creator (LJVIS2-141 §7)."
@@ -8,16 +9,19 @@ declaration:
       - field: q
         type: string
         description: "ADR sub-form ID"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: checkPermission
 
 checkPermission:
   switch:
-    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('adr_form.read'))}
+    - condition: ${auth_user.permissions != null && (auth_user.permissions.includes('control_form.view_unpublished') || auth_user.permissions.includes('adr_form.read') || auth_user.permissions.includes('adr_form.write'))}
       next: extractRequestData
   next: returnForbidden
 
@@ -26,13 +30,39 @@ extractRequestData:
     id: "${incoming.params.q}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
-  next: getForm
+  next: checkReadAccess
+
+# Omand (epic #502 A2 read): avalikustamata vormi loeb ainult looja, looja asutuse kolleeg või
+# `control_form.view_unpublished` omaja; otsus tuleb Resql'ist (check-read-access), mitte kliendilt.
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "adr-form"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getForm
+  next: returnReadAccessDenied
+
+returnReadAccessDenied:
+  status: 403
+  return: '{"error":"FORBIDDEN"}'
+  next: end
 
 getForm:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -66,8 +96,6 @@ logAuditEvent:
     event_category: "control_form"
     description: ${description}
     log_content: "{\"subFormKey\":${res.response.body[0].id}}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: mapResponse
 
@@ -76,6 +104,7 @@ mapResponse:
   args:
     url: "[#LJVIS_DMAPPER_HBS]/map_adr_form"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       forms: ${res.response.body}
@@ -83,7 +112,7 @@ mapResponse:
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: "${(typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body)}"
   next: end
 
 returnNotFound:

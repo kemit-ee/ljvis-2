@@ -1,89 +1,96 @@
-# Postkast 2.0 — LJVIS-2 teavitusmallid
+# Postkast 2.0 teavitusmallid
 
 ## Eesmärk
 
-See kaust sisaldab LJVIS-2 väliste e-kirja teavituste malle, mis tuleb Postkast 2.0-s
-luua enne toodangus kasutuselevõttu. Mallid katavad kolm välist teavituse tüüpi:
+Kaustas on LJVIS-2 e-kirjateavituste mallide sisu. Postkast 2.0 haldur loob
+mallid käsitsi Postkast 2.0 haldusliideses ja edastab LJVIS-2 haldurile iga
+aktiivse malliversiooni tunnuse (`templateId`).
 
-| Mall | Fail | Saaja | Trigger |
+| Teavituse liik | Mallifail | Saaja | Saatmise tingimus |
 |---|---|---|---|
-| `carrier_violation` | `carrier_violation.json` | Veoettevõtja (äriregistrist, `ar/detailandmed_v1`) | `notifyCarrier` linnukese "flip" avalikustatud välisriigi rikkumise vormil |
-| `labor_kabotage` | `labor_kabotage.json` | Tööinspektsioon (fikseeritud aadress) | TBD — trigger DSL puudub veel |
-| `labor_foreign_proposal` | `labor_foreign_proposal.json` | Tööinspektsioon (fikseeritud aadress, muudetav Haldus-vaates) | `foreignAuthorityProposal` linnukese "flip" avalikustatud välisriigi rikkumise vormil |
+| `carrier_violation` | `carrier_violation.json` | veoettevõtja | vormi avalikustamisel, kui vedaja teavitamine on märgitud ja vormil on MSI-, VSI- või SI-rikkumine |
+| `labor_foreign_proposal` | `labor_foreign_proposal.json` | Tööinspektsioon | välisriigi rikkumise vormi avalikustamisel, kui tööinspektori teavitamine on märgitud |
+| `labor_kabotage` | `labor_kabotage.json` | Tööinspektsioon | TRAM-kaardi või sõidu- ja puhkeaja kontrollvormi avalikustamisel, kui kontroll hõlmab kabotaaži |
+| `labor_tachograph_not_downloaded` | `labor_tachograph_not_downloaded.json` | Tööinspektsioon | sõidu- ja puhkeaja kontrollvormi avalikustamisel, kui sõidumeeriku andmeid ei laaditud alla |
 
-## Kanalid: X-tee (meie) vs haldusliides (malli haldus) — MITTE SAMA KANAL
+Veoettevõtja e-posti aadress päritakse äriregistrist. Tööinspektsiooni aadress
+võetakse LJVIS-2 haldusliideses määratud vaikimisi vastuvõtja väljast.
 
-LJVIS-2 ühendub Postkast 2.0-ga **ainult üle X-tee** — REST-native kutse XTR-i
-passthrough lane'i kaudu (`DSL/xtr/postkast/{notifications,sending-operations}.yml`)
-X-tee alamsüsteemi `GOV/70006317/postkast` `notification-management/v1` vastu.
-See on ainuke ligipääs, mis LJVIS2-l on (ja vajab): teavituste **saatmine** ja
-saatmisstaatuse **pollimine**.
+## Seadistamine LJVIS-2-s
 
-Malli **loomine/haldus** (`template/v1/templates`, `template/v1/template-messages`)
-käib aga läbi hoopis teise, eraldiseisva kanali — PK-Doku §11 "Haldusliidese REST
-API-d", mis dokumendi enda sõnul on **"mitte X-tee kataloogis avaldatud
-alamsüsteeme"** (§11) — st X-tee subsüsteemi ligipääs GOV/70006317/postkast-ile
-**ei annagi** õigust haldusliidese API-le. Haldusliides kasutab eraldi
-kokkulepitud autentimist (Bearer `PK_TOKEN` otse `PK_URL` vastu, PK-Doku §7).
+Kui mall on Postkast 2.0 haldusliideses loodud, ava LJVIS-2-s **Haldus →
+Postkasti mallide ja vastuvõtjate seaded** ning määra vastava teavituse liigi
+juures:
 
-**Järeldus: LJVIS2 backend ei loo malle ise ega kunagi ei kutsu haldusliidese
-API-t.** Malli loob kolmas osapool, kellel on haldusliidese ligipääs (nt
-Transpordiameti PK 2.0 administraator, või RIA) — kas otse Postkast 2.0
-haldusliidese veebis, või haldusliidese REST API kaudu (allolevad `.json`
-failid on selleks otse üleslaaditavad). LJVIS2 saab lõpuks ainult valminud
-malli **ID**, mille sisestame Haldus-vaatesse (vt allpool).
+- aktiivse malliversiooni ID (`templateId`);
+- vaikimisi keel;
+- vajaduse korral vaikimisi vastuvõtja e-posti aadress;
+- olek „Aktiivne“.
 
-## Malli loomise töövoog (tehakse haldusliidese ligipääsuga, ÜKS KORD malli kohta)
+Vaikimisi vastuvõtja on vajalik Tööinspektsioonile saadetavate teavituste
+jaoks. `carrier_violation` teavituse saaja leitakse äriregistrist.
 
-Iga malli `.json` fail sisaldab kaht valmis, otse üleslaaditavat väljavõtet:
-`template` (Samm 1 body) ja `templateMessage` (Samm 2 body, ilma `templateId`-ta
-— see lisatakse Sammus 2 pärast Sammu 1 vastuse saamist).
+LJVIS-2 saadab teavituse Postkast 2.0-le X-tee kaudu. Saatmise tulemus
+kuvatakse teavituste logis.
 
-### Samm 1 — Loo mall
+## Mallimuutujad
 
-```bash
-jq '.template' carrier_violation.json | curl -X POST "{PK_URL}/template/v1/templates" \
-  -H "Authorization: Bearer {PK_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d @- | jq '.id'
-```
+Muutuja nimi on tõstutundlik ja peab täpselt vastama alltoodud nimele.
+Postkast 2.0-le saadetakse alati ka `recipient`, mis sisaldab adressaadi
+e-posti aadressi.
 
-### Samm 2 — Lisa malli tekst
+### `carrier_violation`
 
-```bash
-# Asenda TEMPLATE_ID sammust 1 saadud väärtusega
-jq '.templateMessage + {templateId: "TEMPLATE_ID"}' carrier_violation.json | \
-  curl -X POST "{PK_URL}/template/v1/template-messages" \
-  -H "Authorization: Bearer {PK_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d @-
-```
+| Muutuja | Väärtus |
+|---|---|
+| `{{formNumber}}` | kontrollvormi number |
+| `{{companyName}}` | veoettevõtja nimi |
+| `{{companyRegCode}}` | veoettevõtja registrikood |
+| `{{inspectionDateTime}}` | kontrolli kuupäev ja kellaaeg |
+| `{{inspectionCountry}}` | kontrolli riigi nimetus |
+| `{{inspectionCountryCode}}` | kontrolli riigi kood |
+| `{{vehicleRegNr}}` | sõiduki ja haagiste registreerimisnumbrid |
+| `{{violationSeverities}}` | rikkumiste raskusastmed |
+| `{{violationDescription}}` | rikkumiste kirjeldus |
+| `{{MSIViolationsList}}` | MSI-rikkumiste loetelu |
+| `{{VSIViolationsList}}` | VSI-rikkumiste loetelu |
+| `{{SIViolationsList}}` | SI-rikkumiste loetelu |
 
-### Samm 3 — Persisteeri ID LJVIS-is
+### `labor_foreign_proposal`
 
-Sammust 1 tagastatud `id` → sisesta LJVIS-is Haldus → "Postkasti mallide ja
-vastuvõtjate seaded" vaates vastava teavituse liigi rea "Malli tunnus" väljale
-(`notifications.notification_template_mapping.original_template_id`,
-`notification-template-mapping/save.yml`). Sellest hetkest saadab
-`send-postkast.yml` X-tee kaudu reaalseid teavitusi selle malliga —
-eraldi DSL-i aktiveerimist ei ole vaja.
+| Muutuja | Väärtus |
+|---|---|
+| `{{formNumber}}` | kontrollvormi number |
+| `{{companyName}}` | veoettevõtja nimi |
+| `{{companyRegCode}}` | veoettevõtja registrikood |
+| `{{vehicleRegNr}}` | sõiduki registreerimisnumber |
+| `{{vehicleMake}}` | sõiduki mark |
+| `{{vehicleModel}}` | sõiduki mudel |
+| `{{vehicleVin}}` | sõiduki VIN-kood |
+| `{{inspectionCountry}}` | kontrolli riigi kood |
+| `{{inspectionDate}}` | kontrolli kuupäev |
+| `{{inspectionTime}}` | kontrolli kellaaeg |
 
-## Malli muutujaviited
+### `labor_kabotage`
 
-| Muutuja | Kirjeldus | Allikas DSL-is |
-|---|---|---|
-| `{{carrierName}}` | Veoettevõtja nimi | `related_entity_type` järgi RESQL-ist |
-| `{{carrierCode}}` | Registrikood | `person_code` recipients-is |
-| `{{violationDate}}` | Rikkumise kuupäev | `related_entity_id` vorm → `created_at` |
-| `{{controlFormId}}` | Kontrolliakti võti | `related_entity_id` |
-| `{{inspectorName}}` | Ametniku nimi | `created_by` → TIM lookup |
-| `{{fromCountry}}` | Välisriigi kood | CGR payload |
-| `{{vehicleRegNr}}` | Sõiduki registreerimisnumber | SP-kaardi väli |
-| `{{driverName}}` | Juhi nimi | SP-kaardi väli |
+| Muutuja | Väärtus |
+|---|---|
+| `{{formNumber}}` | kontrollvormi või alamvormi number |
+| `{{companyName}}` | veoettevõtja nimi |
+| `{{companyRegCode}}` | veoettevõtja registrikood |
+| `{{resultType}}` | kontrolli tulemuse kood |
 
-## Viited
+### `labor_tachograph_not_downloaded`
 
-- [PK-Doku §7 Tüüpilised kasutuslood](https://github.com/e-gov/PK-Doku/blob/main/07-Tuupilised-kasutuslood/README.md)
-- [PK-Doku §11 Haldusliidese REST API-d](https://github.com/e-gov/PK-Doku/blob/main/11-Haldusliidese-REST-API-d/README.md)
-- [Confluence: 12 - Teavituste moodul](https://wiki.kemit.ee/display/LIA/12+-+Teavituste+moodul)
-- [Jira LJVIS2-156](https://help.kemit.ee/browse/LJVIS2-156) — PK 2.0 haldusliidese credentials, kolmanda osapoole käes (Maris Albrecht)
+| Muutuja | Väärtus |
+|---|---|
+| `{{formNumber}}` | alamvormi number |
+| `{{companyName}}` | veoettevõtja nimi |
+| `{{companyRegCode}}` | veoettevõtja registrikood |
+
+Malli muutujate muutmisel tuleb hoida kooskõlas:
+
+1. saatmisvoo `template_variables` väärtused;
+2. selle kausta mallifailide `{{...}}` viited;
+3. haldusliideses kuvatav muutujate loend failis
+   `frontend/src/features/notificationTemplateMapping/notificationTypeMeta.ts`.

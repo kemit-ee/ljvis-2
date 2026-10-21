@@ -114,7 +114,7 @@ epics:
 >
 > - **Front-end** suhtleb ainult **Ruuter**iga (REST API)
 > - **Ruuter** teostab autoriseerimise (`.guard` failid / JWT) ja orkestreerib äriloogika (YAML DSL)
-> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks endpoint; ainult INSERT ja SELECT)
+> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks lõpp-punkt; ainult INSERT ja SELECT)
 > - **CronManager** haldab perioodilisi taustatöid
 
 ---
@@ -193,7 +193,7 @@ sequenceDiagram
     RESQL-->>Ruuter: userId
 
     Ruuter->>RESQL: POST /insert-user-data-state (userId, andmed)
-    Note over RESQL: Lisab kasutaja andmete esmase snapshot'i
+    Note over RESQL: Lisab kasutaja andmete esmase hetktõmmise
     RESQL->>DB: Andmete snapshot loomine
     DB-->>RESQL: OK
 
@@ -214,7 +214,7 @@ sequenceDiagram
     FE->>Ruuter: POST /users/update (userId, muudetud andmed)
     Note over Ruuter: .guard: kontrollib user.edit.admin
     Ruuter->>RESQL: POST /insert-user-data-state (userId, uuendatud andmed)
-    Note over RESQL: Lisab uue andmete snapshot'i (eelmine jääb ajalukku)
+    Note over RESQL: Lisab uue andmete hetktõmmise (eelmine jääb ajalukku)
     RESQL->>DB: Uus andme-snapshot
     DB-->>RESQL: OK
     alt access_end ≤ tänane kuupäev
@@ -240,7 +240,7 @@ sequenceDiagram
         DB-->>RESQL: OK
 
         Ruuter->>RESQL: POST /insert-user-data-state (userId, uus organisationId)
-        Note over RESQL: Lisab uue andmete snapshot'i uue asutusega
+        Note over RESQL: Lisab uue andmete hetktõmmise uue asutusega
         RESQL->>DB: Andme-snapshot uue asutusega
         DB-->>RESQL: OK
         Ruuter-->>FE: Asutus muudetud, kasutajagrupid eemaldatud
@@ -590,7 +590,7 @@ sequenceDiagram
     RESQL-->>Ruuter: userId
 
     Ruuter->>RESQL: POST /insert-user-data-state (userId, andmed, org=jwtOrg)
-    Note over RESQL: Lisab kasutaja andmete esmase snapshot'i<br/>(asutus = KH asutus automaatselt)
+    Note over RESQL: Lisab kasutaja andmete esmase hetktõmmise<br/>(asutus = KH asutus automaatselt)
     RESQL->>DB: Andmete snapshot loomine
     DB-->>RESQL: OK
 
@@ -611,7 +611,7 @@ sequenceDiagram
     FE->>Ruuter: POST /users/update (userId, muudetud andmed)
     Note over Ruuter: .guard: kontrollib user.edit.local<br/>(kontroll: kasutaja asutus == jwtOrg)
     Ruuter->>RESQL: POST /insert-user-data-state (userId, uuendatud andmed)
-    Note over RESQL: Lisab uue andmete snapshot'i
+    Note over RESQL: Lisab uue andmete hetktõmmise
     RESQL->>DB: Uus andme-snapshot
     DB-->>RESQL: OK
     alt access_end ≤ tänane kuupäev
@@ -841,7 +841,7 @@ sequenceDiagram
 >
 > - **Front-end** suhtleb ainult **Ruuter**iga (REST API)
 > - **Ruuter** teostab autoriseerimise (`.guard` failid / JWT) ja orkestreerib äriloogika (YAML DSL)
-> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks endpoint; ainult INSERT ja SELECT)
+> - **RESQL** täidab andmebaasipäringuid (üks fail = üks päring = üks lõpp-punkt; ainult INSERT ja SELECT)
 > - **CronManager** haldab perioodilisi taustatöid
 
 ## 1. Peakasutaja (Admin)

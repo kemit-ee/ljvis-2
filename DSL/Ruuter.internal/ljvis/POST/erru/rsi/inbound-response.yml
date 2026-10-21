@@ -1,8 +1,9 @@
 declaration:
+  internal: false
   version: "1.0"
   description: |
     Receive an ASYNCHRONOUS RSI (RoadSideInspection) response from the ERRU hub
-    (LJVIS2-148 §7.2). RSI is asynchronous — unlike CGR or CTUD, the hub does NOT
+    (LJVIS2-148 §7.2). RSI is asynchronous - unlike CGR or CTUD, the hub does NOT
     return the vehicle register result in the same call as the send. Instead, the hub
     delivers the result later as a separate HTTP call correlated by workflowId. This
     endpoint receives that deferred response.
@@ -15,7 +16,7 @@ declaration:
          re-applying (uq_rsi_outbound_response_workflow_id prevents DB duplicates too).
       5. Append a 'responded' snapshot via append-transition.sql (sent → responded),
          carrying responseStatusCode and responseStatusMessage.
-      6. Write audit (rsi.inbound_response.receive) directly to Resql — ruuter-internal
+      6. Write audit (rsi.inbound_response.receive) directly to Resql - ruuter-internal
          cannot reach the main Ruuter instance's GET/templates/audit chain.
 
     Idempotency: uq_rsi_outbound_response_workflow_id (partial unique index on workflow_id
@@ -56,6 +57,7 @@ findByWorkflowId:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get-by-workflow-id"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       workflow_id: ${workflow_id}
@@ -89,6 +91,7 @@ storeResponded:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${request_key}
@@ -108,7 +111,7 @@ checkStored:
 
 buildAudit:
   assign:
-    event_id: "${new Date().getTime().toString(36).toUpperCase().padStart(10,'0') + Math.random().toString(36).substring(2,18).toUpperCase().padStart(16,'0')}"
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
     audit_description: "RSI asünkroonse vastuse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}, tulemus ${response_status_code}"
     audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null, responseStatusCode: response_status_code || null, responseStatusMessage: response_status_message || null})}"
   next: logAudit
@@ -118,6 +121,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ${event_id}

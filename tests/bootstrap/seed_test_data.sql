@@ -71,6 +71,8 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('nu.send',                          'ERRU sobimatusteate (NU) saatmine ERRU-sse', 'bootstrap'),
     ('risk_report.list',                 'Veoettevõtjate riskitasemete loendi vaatamine ja filtreerimine (EL 2022/695)', 'bootstrap'),
     ('control_form.edit_locked',         'Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator)', 'bootstrap'),
+    ('control_form.view_organisation',  'Töölaual oma asutuse kõigi vormide vaatamine (Minu asutuse vormid)', 'bootstrap'),
+    ('control_form.view_unit',          'Oma struktuuriüksuse (prefektuuri) alluvate vormide vaatamine (Grupi juht)', 'bootstrap'),
     ('compound_form.write',              'Koondvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('vehicle_technical_form.write',     'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('vehicle_technical_form.read',      'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi andmete lugemine', 'bootstrap'),
@@ -110,7 +112,7 @@ SELECT
     'Super Admin Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation),
-     ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','tram_driver_form.write','tram_driver_form.read','xtee.query.rahvastikuregister','xtee.query','ctud.read','ctud.create','ctud.send','cgr.read','cgr.create','cgr.send','rsi.read','rsi.create','rsi.send','ncr.read','ncr.create','ncr.respond','ncr.send','ncr.list','nu.list','nu.read','nu.create','nu.send','risk_report.list','notification.list','notification.resend','audit.read','audit.verify','audit.read.local','foreign_violation_form.read','foreign_violation_form.write','compound_form.read','xroad.log.read']::TEXT[],
+     ARRAY['user_group.list.admin','user_group.read.admin','user_group.read.local','user_group.create','user_group.update','user_group.list_users.admin','user_group.search_eligible_users','user_group.add_user','user_group.remove_user','user.list.admin','user.read.admin','user.edit.admin','organisation.list','permission.list','classifier.list','classifier.read','classifier.edit','classifier_value.edit','labour_inspection_form.write','labour_inspection_form.read','control_form.view_unpublished','control_form.delete','control_form.edit_locked','control_form.view_organisation','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','tram_driver_form.write','tram_driver_form.read','xtee.query.rahvastikuregister','xtee.query','ctud.read','ctud.create','ctud.send','cgr.read','cgr.create','cgr.send','rsi.read','rsi.create','rsi.send','ncr.read','ncr.create','ncr.respond','ncr.send','ncr.list','nu.list','nu.read','nu.create','nu.send','risk_report.list','notification.list','notification.resend','notification_template_mapping.list','notification_template_mapping.edit','audit.read','audit.verify','audit.read.local','foreign_violation_form.read','foreign_violation_form.write','compound_form.read','xroad.log.read','form.export']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Super Admin Group');
 
@@ -134,9 +136,35 @@ SELECT
     'Officer Group',
     (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
      FROM users.organisation WHERE code = 'PPA'),
-    ARRAY['classifier.read','control_form.view_unpublished','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','tram_driver_form.write','tram_driver_form.read','labour_inspection_form.write','labour_inspection_form.read','xtee.query.rahvastikuregister','xtee.query','foreign_violation_form.read', 'foreign_violation_form.write']::TEXT[],
+    ARRAY['classifier.read','control_form.view_unpublished','control_form.view_organisation','compound_form.write','vehicle_technical_form.write','vehicle_technical_form.read','trailer_technical_form.write','trailer_technical_form.read','transport_interruption_form.write','transport_interruption_form.read','adr_form.write','adr_form.read','good_repute_form.write','good_repute_form.read','sp_driver_form.write','sp_driver_form.read','sp_teammate_form.write','sp_teammate_form.read','tram_driver_form.write','tram_driver_form.read','labour_inspection_form.write','labour_inspection_form.read','xtee.query.rahvastikuregister','xtee.query','foreign_violation_form.read', 'foreign_violation_form.write']::TEXT[],
     'bootstrap'
 WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Officer Group');
+
+-- Compound-only officer: compound_form.write/read but NOT foreign_violation_form.write.
+-- Used by Playwright compound-form.spec.ts to verify that the compound create page
+-- checks compound_form.write (not another form's permission).
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
+SELECT
+    nextval('users.seq_user_group_key'),
+    'Compound Only Group',
+    (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
+     FROM users.organisation WHERE code = 'PPA'),
+    ARRAY['compound_form.write','compound_form.read','transport_interruption_form.write','transport_interruption_form.read']::TEXT[],
+    'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'Compound Only Group');
+
+-- Officer without compound_form.write (has foreign_violation_form.write instead) — the
+-- inverse of 'Compound Only Group'; Playwright compound-form.spec.ts expects the
+-- compound create page to show "no access" for this user.
+INSERT INTO users.user_group (user_group_key, name, organisations, permissions, created_by)
+SELECT
+    nextval('users.seq_user_group_key'),
+    'No Compound Group',
+    (SELECT COALESCE(ARRAY_AGG(id ORDER BY name), ARRAY[]::BIGINT[])
+     FROM users.organisation WHERE code = 'PPA'),
+    ARRAY['foreign_violation_form.write','foreign_violation_form.read']::TEXT[],
+    'bootstrap'
+WHERE NOT EXISTS (SELECT 1 FROM users.user_group WHERE name = 'No Compound Group');
 
 -- ============================================================
 -- Users  (v2: single snapshot INSERT per user)
@@ -204,6 +232,44 @@ SELECT
 FROM users.organisation o
 WHERE o.code = 'PPA'
   AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60002020202');
+
+-- Compound-only officer (see 'Compound Only Group' above).
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60003030303', 'Kaarel', 'Koond',
+    o.id, o.name, 'LÕUNA PREFEKTUUR', 'Kontrolliametnik',
+    'kaarel.koond@ljvis.test', '55500004', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'Compound Only Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'PPA'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60003030303');
+
+-- Officer without compound_form.write (see 'No Compound Group' above).
+INSERT INTO users.user_account (
+    user_account_key, personal_code, first_name, last_name,
+    organisation_id, organisation_name, structural_unit, job_title,
+    email, phone, access_start, status, user_groups, created_by
+)
+SELECT
+    nextval('users.seq_user_account_key'),
+    '60004040404', 'Vello', 'Vaatleja',
+    o.id, o.name, 'LÕUNA PREFEKTUUR', 'Kontrolliametnik',
+    'vello.vaatleja@ljvis.test', '55500005', '2024-01-01', 'active',
+    (SELECT ARRAY[ug.user_group_key]
+     FROM users.user_group ug WHERE ug.name = 'No Compound Group'
+     ORDER BY ug.created_at DESC LIMIT 1),
+    'bootstrap'
+FROM users.organisation o
+WHERE o.code = 'PPA'
+  AND NOT EXISTS (SELECT 1 FROM users.user_account WHERE personal_code = '60004040404');
 
 -- ============================================================
 -- Classifiers  (v2: single snapshot INSERT per classifier)

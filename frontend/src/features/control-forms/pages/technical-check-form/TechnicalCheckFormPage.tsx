@@ -5,7 +5,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Text, Alert, Tabs, Dropdown, ClosingButton, StatusIndicator, Heading } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
-import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Driver, Trailer } from '../../types';
+import type { TechnicalCheckVariant, TechnicalCheckForm, DriveRestForm, AdrForm, TransportInterruptionForm, TransportInterruptionFormListItem, Trailer } from '../../types';
 import {
   getTechnicalCheckForm,
   getTechnicalCheckFormSnapshot,
@@ -32,7 +32,6 @@ import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { CompoundFormViewCard } from '../../components/CompoundForm/CompoundFormViewCard';
 import { CompoundFormEditCard } from '../../components/CompoundForm/CompoundFormEditCard';
-import { EtoimikQueryCard } from '../../components/EtoimikQueryCard/EtoimikQueryCard';
 import { TechnicalCheckFormViewCard } from '../../components/TechnicalCheckForm/TechnicalCheckFormViewCard';
 import { TechnicalCheckFormEditCard, type TechnicalCheckFormEditCardRef } from '../../components/TechnicalCheckForm/TechnicalCheckFormEditCard';
 import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmModal.tsx';
@@ -50,6 +49,9 @@ import { createSaveAllHandler } from '../../hooks/createSaveAllHandler';
 import { createAdrValidationSchema, serializeAdrFormPayload } from '../adr-form/useAdrForm';
 import { useSubFormEditActive, makeCheckAndAutoConfirm, makeCheckAndAutoPublish, useSubFormPermissions, subFormsAllConfirmedOrPublished as getSubFormsStatus, addTab, useDeleteAllSubForms, useRemoveSubFormTab, cancelAllEdits } from '../../hooks/useSubFormEditActive';
 import { resolveCompoundTrailersList, buildTabLabels } from '../../hooks/useTabLabels';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
+import { CompoundEtoimikQueryCard } from '../../components/EtoimikQueryCard/CompoundEtoimikQueryCard';
 
 interface TechnicalCheckFormPageProps {
   variant: TechnicalCheckVariant;
@@ -70,11 +72,10 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   const forbidden = !(
     ((formType == FORM_TYPE.VEHICLE_TECHNICAL_CHECK &&
-      hasPermission('vehicle_technical_form.read')) ||
+      (hasPermission('vehicle_technical_form.read') || hasPermission('vehicle_technical_form.write'))) ||
       (formType == FORM_TYPE.TRAILER_TECHNICAL_CHECK &&
-        hasPermission('trailer_technical_form.read')) ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+        (hasPermission('trailer_technical_form.read') || hasPermission('trailer_technical_form.write'))) ||
+      hasPermission('control_form.view_unpublished'))
   );
 
   const [compoundFormKey, setCompoundFormKey] = useState<number | undefined>(undefined);
@@ -87,6 +88,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   const [activeTab, setActiveTab] = useState(variant === 'vehicle' ? tabId : '');
   const [compoundEditActive, setCompoundEditActive] = useState(false);
+  // ADR-011: koondvormi (SP_COMPOUND) väljade vormipiirang muutmisrežiimis;
+  // alamvormid rakendavad oma skoobi ise (…CreatePage)
+  useClassifierScopeActive(compoundEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -248,7 +252,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
     setShowPublishedAlert(false);
     setCompoundVersionsRefreshKey((k) => k + 1);
     refetchCompoundRef.current();
-    window.scrollTo(0, 0);
   };
 
   const handleCompoundPublished = () => {
@@ -521,32 +524,6 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
       (transportInterruption.form != null && transportInterruption.form.status !== 'deleted') ||
       (compoundForm != null && compoundForm.status !== 'deleted'));
 
-  // LJVIS2-56: e-Toimik query card data — driver identification already lives
-  // on compoundForm.drivers[], reference numbers on whichever loaded
-  // sub-form(s) have one set. No new data-fetching needed (see plan §3/§5).
-  const compoundFormDrivers: Driver[] = Array.isArray(compoundForm?.drivers)
-    ? compoundForm.drivers
-    : typeof compoundForm?.drivers === 'string'
-      ? JSON.parse(compoundForm.drivers)
-      : [];
-
-  const etoimikReferenceOptions = (
-    [
-      vehicle.form && { label: t('forms.technical_check.vehicleTitle'), form: vehicle.form },
-      trailers[0].form && { label: t('forms.technical_check.trailerTitle'), form: trailers[0].form },
-      driver.form && { label: t('forms.driver_drive_rest_form'), form: driver.form },
-      teammate.form && { label: t('forms.teammate_drive_rest_form'), form: teammate.form },
-      adr.form && { label: t('forms.adr.title'), form: adr.form },
-    ] as ({ label: string; form: { subFormNumber?: string; proceedingReferenceNumber?: string } } | null)[]
-  )
-    .filter((entry): entry is { label: string; form: { subFormNumber?: string; proceedingReferenceNumber?: string } } =>
-      !!entry && !!entry.form.proceedingReferenceNumber,
-    )
-    .map((entry) => ({
-      label: `${entry.label} ${entry.form.subFormNumber ?? ''} — ${entry.form.proceedingReferenceNumber}`,
-      value: entry.form.proceedingReferenceNumber as string,
-    }));
-
   const handleDelete = useDeleteAllSubForms({ driver, teammate, vehicle, trailers, adr, transportInterruption, compoundForm });
 
   const { removeConfirmTab, handleRemove, handleRemoveTrailerFromCompound, handleRemoveConfirmed, handleRemoveCancel, removeTrailerFromCompound } = useRemoveSubFormTab({
@@ -588,7 +565,7 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
 
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (loadError || !compoundFormKey) return <Text>{t('common.error')}</Text>;
+  if (loadError || !compoundFormKey) return <FormLoadError />;
   const currentForm = variant === 'vehicle' ? vehicle.form : trailers[0].form;
   if (id && !currentForm) return <FormNotFoundView title={t(titleKey)} />;
 
@@ -647,13 +624,16 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
         {addFormDropdown}
       </div>
 
-      {compoundForm && compoundFormKey && (
-        <EtoimikQueryCard
-          drivers={compoundFormDrivers}
-          referenceNumberOptions={etoimikReferenceOptions}
-          compoundFormKey={compoundFormKey}
-        />
-      )}
+      {/* E-toimiku päringukaart ("Päri e-toimikust") on ainult karistusregistri õigusega kasutajale. */}
+      <CompoundEtoimikQueryCard
+        compoundForm={compoundForm}
+        compoundFormKey={compoundFormKey}
+        vehicle={vehicle.form}
+        trailers={trailers.map((t) => t.form)}
+        driver={driver.form}
+        teammate={teammate.form}
+        adr={adr.form}
+      />
 
       <Tabs value={activeTab} onChange={setActiveTab}>
         <Tabs.List aria-label={t('forms.compound_form')} overflowMode="dropdown">
@@ -793,9 +773,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 refetchDriveRest(driver, 'driver', () => {
                   driver.draftRef.current = null;
@@ -842,9 +822,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 refetchDriveRest(teammate, 'teammate', () => {
                   teammate.draftRef.current = null;
@@ -891,9 +871,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTechCheck(vehicle, 'vehicle', undefined, () => {
                   vehicle.draftRef.current = null;
                   vehicle.setDraft(null);
@@ -951,9 +931,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
                         ? JSON.parse(compoundForm.trailers)
                         : []
                 }
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   refetchTechCheck(trailerHandle, 'trailer', idx, () => {
                     trailerHandle.draftRef.current = null;
                     trailerHandle.setDraft(null);
@@ -995,9 +975,9 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchAdr(() => {
                   adr.draftRef.current = null;
                   adr.setDraft(null);
@@ -1040,13 +1020,13 @@ export function TechnicalCheckFormPage({ variant }: TechnicalCheckFormPageProps)
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={compoundFormKey!}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 refetchTransportInterruption(() => {
                   transportInterruption.draftRef.current = null;
                   transportInterruption.setDraft(null);

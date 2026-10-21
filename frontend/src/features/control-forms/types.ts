@@ -28,11 +28,13 @@ export interface ViolationEntry {
 }
 
 export interface LabourInspectionForm {
-  id?: string;
+  id?: string | number;
   /** Immutable core act number, format ti-AAAA-NNNNN (no /V suffix — see `version`). */
   formNumber?: string;
   /** The /V display suffix of the act number; join as `${formNumber}/${version}` for display. */
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   inspectorName: string;
   inspectionDate: string;
@@ -75,6 +77,8 @@ export interface ForeignViolationFormViolation {
   /** EU 1071/2009 violation code, e.g. "MSI101", "VSI819", "SI912". */
   code: string;
   sanctionCode?: string;
+  /** ERRU penaltyTypeRequested koodid (101, 301–307), mida välisriik taotles. */
+  requestedPenaltyCodes?: string[];
   sanctionNotes?: string;
   recommendedMeasureCode?: string;
   recommendedMeasureNotes?: string;
@@ -84,12 +88,15 @@ export interface NotificationHistoryEntry {
   type: string;
   sentAt: string;
   status: string;
+  recipientAddress?: string;
 }
 
 export interface ForeignViolationForm {
   id?: string;
   formNumber: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   reportingCountryCode: string;
   reportingAuthority: string;
@@ -171,6 +178,8 @@ export type Driver = {
 export interface CompoundForm {
   id?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   formNumber: string;
   status?: string;
   controlCountryCode?: string;
@@ -235,6 +244,8 @@ export interface DriveRestForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   templateVersion?: number;
   status?: string;
   selectionStatus?: string;
@@ -272,6 +283,13 @@ export interface DriveRestForm {
   notes?: string;
   liiniNumber?: string;
   liiniNimetus?: string;
+  /** Meeskonnaliikme andmed (ainult teammate-vormil, kirjutuskaitstud — võetakse koondvormi plokist) */
+  personCodeEe?: string;
+  personFirstName?: string;
+  personLastName?: string;
+  personCitizenshipCode?: string;
+  personCodeForeign?: string;
+  personBirthDate?: string;
 }
 
 export type TransportClass = {
@@ -373,6 +391,8 @@ export interface TechnicalCheckForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   partsSummary?: PartSummaryEntry[];
   partsDefects?: PartDefectEntry[];
@@ -403,9 +423,11 @@ export interface TechnicalCheckForm {
 }
 
 export interface TechnicalCheckFormListItem {
-  id: string;
+  id: number;
   subFormNumber: string;
   version: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status: string;
   resultType: string;
 }
@@ -416,6 +438,8 @@ export interface TransportInterruptionForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   headerText?: string;
   residenceCountry?: string;
@@ -431,9 +455,11 @@ export interface TransportInterruptionForm {
 }
 
 export interface TransportInterruptionFormListItem {
-  id: string;
+  id: number;
   subFormNumber: string;
   version: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status: string;
 }
 
@@ -504,6 +530,8 @@ export interface AdrForm {
   compoundFormKey?: number;
   subFormNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   driverAssistant?: AdrDriverAssistant;
   driverAdrCertificateNumber?: string;
@@ -537,9 +565,11 @@ export interface AdrForm {
 }
 
 export interface AdrFormListItem {
-  id: string;
+  id: number;
   subFormNumber: string;
   version: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status: string;
   resultType: string;
 }
@@ -548,10 +578,12 @@ export interface AdrFormListItem {
 export interface GoodReputeForm {
   /** Read-only provenance supplied by the server. */
   legacyImport?: boolean;
-  id?: string;
+  id?: string | number;
   /** Immutable core form number, format mv-AAAA-NNNNN (no /V suffix — see `version`). */
   formNumber?: string;
   version?: number;
+  /** Rea järjekorranumber vormivõtme sees; optimistliku luku jaoks (formRevisions.ts). */
+  revision?: number | null;
   status?: string;
   personalCode: string;
   firstName: string;
@@ -586,15 +618,29 @@ export interface FormSearchRow {
   total?: number;
 }
 
+/**
+ * Eksporditud vormi viimane versioon: `data` on kõigi veergudega JSON-tekst.
+ * Alamvormi puhul on `parent` selle koondvormi viimane versioon (sõiduk, haagis, juhid, ettevõte).
+ */
+export interface FormSearchExportRow {
+  formType: string;
+  formKey: number;
+  data: string;
+  parent?: string | null;
+}
+
 export interface FormSearchFilters {
   dateFrom: string;
   dateTo: string;
   formType: string;
+  formNumber: string;
   vehicleRegNr: string;
   companyRegCode: string;
   companyName: string;
   driver: string;
   county: string;
+  /** '' = all, 'ee' = Estonian carrier, 'foreign' = foreign carrier */
+  carrierOrigin: string;
   /** '' = any, 'true' = has violation, 'false' = no violation */
   hasViolation: string;
   status: string;

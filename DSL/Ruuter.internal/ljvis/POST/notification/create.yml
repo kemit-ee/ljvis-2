@@ -1,14 +1,19 @@
 declaration:
+  internal: false
   version: "1.0"
   description: >-
     Loob uue in-app teavituse ja saadab WebSocket broadcast signaali kõigile
     ühendatud frontendidele. Kutsutakse teistest DSL-idest (ncr/inbound-request.yml,
     ncr/inbound-response.yml, vehicle-technical/publish.yml jne).
-    Idempotentne: sama type+entity_type+entity_id loob ainult ühe teavituse
-    (uq_notification_entity_type indeks + ON CONFLICT DO NOTHING).
+    Idempotentne: event_key / legacy-indeks + ON CONFLICT DO NOTHING
+    tagab ühe teavituse sama alliksündmuse kohta.
+    Kui notification_template_mapping'is on `type` jaoks seadistatud
+    desktop_recipient_personal_codes, tardistatakse need loomise hetkel
+    notification.recipient_personal_codes veergu - teavitust näevad siis
+    required_permission omanike KÕRVAL ka need konkreetsed kasutajad.
     APPEND-ONLY: INSERT only.
     WebSocket push: POST /v1/ws-broadcast/send teeb broadcast_where perms-sildi
-    järgi — notification_update signaal AINULT nendele ühendustele, kellel on
+    järgi - notification_update signaal AINULT nendele ühendustele, kellel on
     required_permission; iga frontend teeb seejärel oma authenticated
     GET /v1/notifications/unread-count päringu oma andmete jaoks.
   namespace: notification
@@ -22,6 +27,8 @@ declaration:
         type: string
       - field: related_entity_id
         type: string
+      - field: event_key
+        type: string
       - field: title_et
         type: string
       - field: body_et
@@ -34,12 +41,40 @@ validateInput:
     notif_type: "${incoming.body.type ?? ''}"
     required_permission: "${incoming.body.required_permission ?? ''}"
     title_et: "${incoming.body.title_et ?? ''}"
+    recipient_personal_codes: ""
   next: checkRequired
 
 checkRequired:
   switch:
     - condition: ${notif_type === '' || required_permission === '' || title_et === ''}
       next: returnBadRequest
+  next: lookupTemplateMapping
+
+# Desktop-kanali liigid saavad lisaks required_permission'ile ka fikseeritud
+# saajate ringi (halduses valitud personal_code'id, vt notification-template-mapping).
+# Best-effort: kui mapping'ut ei leita või päring ebaõnnestub, jätkatakse ilma
+# konkreetsete saajateta - required_permission-põhine filtreerimine jääb kehtima.
+lookupTemplateMapping:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/get_template_mapping"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      notification_type: ${notif_type}
+  result: mappingRes
+  error: insertNotification
+  next: extractRecipients
+
+extractRecipients:
+  assign:
+    recipient_personal_codes: >-
+      ${(() => {
+        var row = (mappingRes.response.body || [])[0];
+        var codes = row && row.desktopRecipientPersonalCodes;
+        return Array.isArray(codes) ? codes.join(',') : '';
+      })()}
   next: insertNotification
 
 insertNotification:
@@ -47,19 +82,29 @@ insertNotification:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_notification"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: ${incoming.body.type}
       required_permission: ${incoming.body.required_permission}
       related_entity_type: ${incoming.body.related_entity_type ?? ''}
       related_entity_id: ${incoming.body.related_entity_id ?? ''}
+      event_key: ${incoming.body.event_key ?? ''}
       title_et: ${incoming.body.title_et}
       body_et: ${incoming.body.body_et ?? ''}
+      recipient_personal_codes: ${recipient_personal_codes ?? ''}
       created_by: ${incoming.body.created_by ?? 'system'}
   result: insertRes
+  error: returnUnavailable
+  next: checkInsert
+
+checkInsert:
+  switch:
+    - condition: ${insertRes.response == null || insertRes.response.status >= 400 || !Array.isArray(insertRes.response.body)}
+      next: returnUnavailable
   next: wsPush
 
-# WsRegistry on protsessisisene — kliendid ühenduvad `ruuter` containerisse, mitte
+# WsRegistry on protsessisisene - kliendid ühenduvad `ruuter` containerisse, mitte
 # siia (`ruuter-internal`). Seega delegeerime broadcast'i `ruuter`-i sisemisele
 # endpoint'ile. Best-effort: push'i viga EI tohi 500-tada teavituse loomist
 # (insertNotification on juba jooksnud) → error: returnResult.
@@ -69,7 +114,7 @@ wsPush:
     url: "[#LJVIS_RUUTER]/v1/ws-broadcast/send"
     headers:
       type: json
-      x-viljus-knows-a-secret: "[#INTERNAL_COMMUNICATION_KEY]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       type: "notification_update"
       required_permission: ${required_permission}
@@ -84,4 +129,9 @@ returnResult:
 returnBadRequest:
   status: 400
   return: "type, required_permission ja title_et on kohustuslikud"
+  next: end
+
+returnUnavailable:
+  status: 502
+  return: "Notification could not be persisted"
   next: end

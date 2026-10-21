@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -6,13 +7,13 @@ declaration:
     tee (NCR->välisriigi kontrollkaart andmeülekande testimise plaan, p.8).
     Varem kutsuti XTR-i otse mitmes kohas (foreign-violation-form/edit/publish.yml
     lookupCarrierRegistryData, ja punkt 6 UI jaoks planeeritud uus otspunkt)
-    igaüks oma käsitsi lisatud xroad.xroad_integration_log kirjega — see
+    igaüks oma käsitsi lisatud xroad.xroad_integration_log kirjega - see
     template koondab loogika ÜHTE kohta, et kõik kutsujad (save.yml,
     carrier-registry-email.yml GET otspunkt) logiksid täpselt samamoodi ja
     samale service_code'ile ('arireg.detailandmed_v1.v1'), nagu ka
     DSL/Ruuter/ljvis/POST/v1/xroad/arireg/detailandmed.yml kasutab.
     NB: erinevalt detailandmed.yml-ist, mis logib response_xml tühjana,
-    logib SEE template reaalse vastuse (JSON.stringify) — kliendi kaebus
+    logib SEE template reaalse vastuse (JSON.stringify) - kliendi kaebus
     "ei näe logikirjet" tuleneb tõenäoliselt sellest, et vastust ise ei
     saanud kunagi kontrollida, ainult see, et kutse üldse toimus.
     Tagastab JSON-stringina: {"email":"...","found":true|false}.
@@ -45,6 +46,7 @@ callXtr:
   args:
     url: "[#LJVIS_XTR]/ar/detailandmed_v1"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       reg_code: ${company_reg_code}
@@ -64,6 +66,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.detailandmed_v1.v1"
@@ -84,6 +87,7 @@ logStatusFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.detailandmed_v1.v1"
@@ -104,6 +108,7 @@ logNetworkFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       service_code: "arireg.detailandmed_v1.v1"
@@ -119,26 +124,48 @@ logNetworkFailure:
   error: returnNotFound
   next: returnNotFound
 
-# Sama sidevahendite-parsimise loogika mis varem publish.yml
-# extractCarrierEmail-is — vt sealne TÄHELEPANU-kommentaar: JSON-tee pärast
-# XTR SOAP->JSON teisendust ei ole päris X-tee vastuse vastu valideeritud.
+# Päris X-tee (arireg.detailandmed_v1) SOAP->JSON vastus mähib kõik väljad
+# ümber 'ns1:detailandmed_v1Response.ns1:keha...' ja iga võti on 'ns1:'
+# prefiksiga (nt 'ns1:sidevahendid', mitte 'sidevahendid') - algne loogika
+# eeldas prefiksita võtmeid ja mängis seetõttu alati tühja, mistõttu email
+# jäi alati "määramata", kuigi äriregistris oli olemas.
+# 'g' loeb välja nii prefiksiga kui ilma, et see toimiks ka vanade
+# testide/mockide prefiksita näidisandmetega.
+# XTR ise tagastab oma HTTP vastuse kujul {"body": {...ns1 sisu...},
+# "headers": {...}} - carrierRegistryRes.response.body ON SEE ÜMBRIS, mitte
+# ns1 sisu ise, mistõttu tegelik sisu on üks tase sügavamal
+# (carrierRegistryRes.response.body.body). Ilma selle lahtipakkimiseta
+# kukub 'g' kett vaikimisi alati oma sisendile tagasi ja email jääb tühjaks,
+# kuigi äriregistris on kehtiv e-post olemas (nt Askend Estonia OÜ, reg 14133207).
 extractEmail:
   assign:
     carrier_email: >-
       ${(() => {
-        var body = carrierRegistryRes.response && carrierRegistryRes.response.body;
+        var body = carrierRegistryRes.response && carrierRegistryRes.response.body && carrierRegistryRes.response.body.body;
         if (!body) return '';
-        var list = body.ettevotjad || (body.keha && body.keha.ettevotjad) || body.item || body;
-        var company = Array.isArray(list) ? list[0] : list;
+        var g = function(obj, name) {
+          if (!obj) return undefined;
+          return obj[name] !== undefined ? obj[name] : obj['ns1:' + name];
+        };
+        var resp = g(body, 'detailandmed_v1Response') || body;
+        var keha = g(resp, 'keha') || resp;
+        var ettevotjad = g(keha, 'ettevotjad') || keha;
+        var itemNode = g(ettevotjad, 'item') || ettevotjad;
+        var company = Array.isArray(itemNode) ? itemNode[0] : itemNode;
         if (!company) return '';
-        var yld = company.yldandmed || company;
-        var sv = (yld && yld.sidevahendid) || company.sidevahendid;
-        if (sv && sv.item) sv = sv.item;
-        var svList = Array.isArray(sv) ? sv : (sv ? [sv] : []);
-        var match = svList.find(function(s) {
-          return s && typeof s.liik === 'string' && s.liik.toUpperCase().indexOf('POST') !== -1;
+        var yld = g(company, 'yldandmed') || company;
+        var sv = g(yld, 'sidevahendid') || g(company, 'sidevahendid');
+        var svItem = sv ? (g(sv, 'item') || sv) : null;
+        var svList = Array.isArray(svItem) ? svItem : (svItem ? [svItem] : []);
+        var matches = svList.filter(function(s) {
+          var liik = g(s, 'liik');
+          return s && typeof liik === 'string' && liik.toUpperCase().indexOf('EMAIL') !== -1;
         });
-        return (match && (match.sisu || match.vaartus || match.value)) || '';
+        // eelista kirjet, millel ei ole lõppkuupäeva (praegu kehtiv)
+        var active = matches.find(function(s) { return !g(s, 'lopp_kpv'); });
+        var match = active || matches[0];
+        if (!match) return '';
+        return g(match, 'sisu') || g(match, 'vaartus') || g(match, 'value') || '';
       })()}
   next: returnResult
 

@@ -351,6 +351,23 @@ export function useCompoundForm(
             );
         }
         if (index === 1) {
+          // Meeskonnaliige: plokk on lisatud ⇒ samad kohustuslikud väljad nagu juhil
+          if (!driver?.firstName)
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.firstName,
+                `drivers[${index}].firstName`,
+              ),
+            );
+          if (!driver?.lastName)
+            errors.push(
+              new Yup.ValidationError(
+                req,
+                driver?.lastName,
+                `drivers[${index}].lastName`,
+              ),
+            );
           if (!driver?.birthDate)
             errors.push(
               new Yup.ValidationError(
@@ -407,7 +424,12 @@ export function useCompoundForm(
       vehicleCategoryCode: form?.vehicleCategoryCode ?? '',
       vehicleCategoryOther: form?.vehicleCategoryOther ?? '',
       vehicleMileage: form?.vehicleMileage ?? '',
-      roadTaxStatus: form?.roadTaxStatus ?? ROAD.TAX_STATUS_NOT_APPLICABLE,
+      // Tühi = rikkumist ei ole; vana "Ei kohaldu" väärtus loetakse tühjaks.
+      roadTaxStatus:
+        form?.roadTaxStatus &&
+        form.roadTaxStatus !== ROAD.TAX_STATUS_NOT_APPLICABLE
+          ? form.roadTaxStatus
+          : '',
       roadTaxNotes: form?.roadTaxNotes ?? '',
       trailers: (Array.isArray(form?.trailers)
         ? form.trailers
@@ -876,6 +898,8 @@ export function useCompoundForm(
           getAvailableFormKeys(getByCode('FORM_TYPE'), permissions)
               .filter((key) => FORM_CONFIG[key].hasParent)
               .filter((key) => FORM_CONFIG[key].route !== '/trailer-technical')
+              // Meeskonnaliikme vorm lisatakse ainult meeskonnaliikme plokist
+              .filter((key) => FORM_CONFIG[key].route !== '/sp-teammate')
               .map((key) => ({
                 labelKey: FORM_CONFIG[key].labelKey,
                 route: FORM_CONFIG[key].route,

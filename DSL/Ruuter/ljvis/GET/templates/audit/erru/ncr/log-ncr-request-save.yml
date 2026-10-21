@@ -1,12 +1,16 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Audit: outgoing NCR request draft saved (LJVIS2-63). Logged on every draft save
-    — initial create and revision. Description carries the case identifier, changed fields and
+    - initial create and revision. Description carries the case identifier, changed fields and
     the resulting status."
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: business_case_id
@@ -16,10 +20,6 @@ declaration:
       - field: status
         type: string
       - field: version
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildAudit:
@@ -36,8 +36,6 @@ writeAudit:
   body:
     event_type: "ncr.request.save"
     event_category: "erru_message_exchange"
-    actor_name: ${incoming.body.actor_name || ''}
-    actor_personal_code: ${incoming.body.actor_personal_code || ''}
     description: ${description}
     log_content: ${log_content}
   result: res

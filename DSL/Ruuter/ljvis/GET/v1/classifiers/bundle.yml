@@ -1,32 +1,65 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get all classifiers with all their values in one bulk response, for FE app-state bootstrapping (e.g. DRIVING_VIOLATION, TRANSPORT_TYPE)"
   namespace: classifiers
   allowlist:
     params: []
+    headers:
+      - field: if-none-match
+        type: string
+        required: false
+        description: "Varasema vastuse ETag (HTTP tingimuslik päring)"
+
+# ETag / 304 (klassifikaatorid muutuvad harva): odav versioonimärk enne suurt päringut.
+# Kui brauseri If-None-Match ühtib, vastatakse 304 ilma kehata (Ruuteri CPU on vastuse
+# suurusega lineaarne). private, no-cache: brauser hoiab koopiat, aga valideerib iga kord;
+# guard jookseb enne seda DSL-i, seega õiguseta kasutaja 304-t ei saa.
+getVersion:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_classifiers_version"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body: {}
+  result: ver
+  next: setEtag
+
+setEtag:
+  assign:
+    etag: "${'W/\"bundle-' + ver.response.body[0].version + '\"'}"
+  next: checkNotModified
+
+checkNotModified:
+  switch:
+    - condition: "${String(incoming.headers['if-none-match'] || '').split(',').map(function(t){ return t.trim(); }).indexOf(etag) >= 0}"
+      next: returnNotModified
+  next: getClassifiersBundle
+
+returnNotModified:
+  status: 304
+  headers:
+    ETag: ${etag}
+    Cache-Control: "private, no-cache"
+  return: ""
+  next: end
 
 getClassifiersBundle:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifiers_bundle"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: res
-  next: mapResponse
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_classifiers_bundle"
-    headers:
-      type: json
-    body:
-      values: ${res.response.body}
-  result: mapped
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  headers:
+    ETag: ${etag}
+    Cache-Control: "private, no-cache"
+  return: ${res.response.body}
   next: end

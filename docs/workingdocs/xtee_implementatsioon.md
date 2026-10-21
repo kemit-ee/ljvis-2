@@ -6,7 +6,7 @@ X-tee on Eesti riigi infosüsteemi kiht, mille kaudu liikmed (asutused) saavad o
 
 **XTR (X-tee Translator)** on teenus, mis pakub X-tee **SOAP**-teenustele REST-liidest. XTR võtab vastu JSON-päringud, laeb vastava DSL-malli, täidab mallis olevad parameetrid (sh X-tee päised automaatselt), saadab päringu mTLS kaudu X-tee turvaserverisse ja tagastab SOAP vastuse JSON-ina.
 
-Image: `turnerrainer/xtr:rc`
+Image: `turnerrainer/xtr:0.5.0-rc`
 
 ## Kasutusreeglid LJVIS-i jaoks
 
@@ -15,19 +15,19 @@ Image: `turnerrainer/xtr:rc`
 | LJVIS tarbib välist teenust | SOAP | XTR (REST → SOAP) |
 | LJVIS tarbib välist teenust | REST | otse turvaserver ↔ Ruuter |
 | LJVIS pakub teenust | REST | otse turvaserver ↔ Ruuter |
-| LJVIS pakub teenust | SOAP | eraldi SOAP adapter (XTR seda ei toeta) |
+| LJVIS pakub teenust | SOAP | XTR 0.5.0-rc sissetulev SOAP-rada (LJVIS1 WSDL), vt [09-xtr-soap.md](../xtee/09-xtr-soap.md) |
 
-> **Nõue:** Kõik LJVIS-2 poolt pakutavad X-tee teenused peavad olema **REST-põhised**. SOAP teenuste pakkumine ei kuulu hetke lahenduse skoopi.
+> **Nõue:** Uued LJVIS-2 poolt pakutavad X-tee teenused on **REST-põhised**. SOAP-i pakutakse ainult LJVIS1 olemasoleva lepingu (`ljvis.wsdl`) ühilduvuseks XTR-i kaudu; äriloogika jääb Ruuter.internal-i JSON-töötlejatesse.
 
 **Milles XTR-i ei vajata:**
 - **Sisemiste teenuste** puhul (nt Ruuter) pole X-tee liidest vaja, neid otse REST-ga välja kutsuda on otstarbekam.
 - **X-tee REST teenuste** puhul (nii tarbimine kui pakkumine) ei ole vaja XTR-i, sest X-tee liige ja LJVIS suudavad REST päringuid vahetada otse turvaserveri kaudu.
-- **X-tee SOAP teenuse pakkumise** puhul ei sobi XTR, sest XTR ei kuula X-tee/SOAP sissepääsu. Selleks tuleks luua eraldi SOAP adapter.
+- **X-tee SOAP teenuse pakkumine** käib alates 0.5.0-rc XTR-i sissetuleva SOAP-raja kaudu (WSDL + `.soap.yaml`), mitte eraldi adapteriga.
 
 **Milles XTR-i vajatakse:**
 - **X-tee SOAP teenuse tarbimise** korral, et teisendada REST → SOAP ja vastupidi. Eesmärk on muinasaegse SOAP asemel kasutada lihtsamaid REST päringuid.
 
-Hetkel töötab XTR ühes suunas: **REST klient (Ruuter) → XTR → turvaserver → väline teenus**.
+XTR töötab kahes suunas: **REST klient (Ruuter) → XTR → turvaserver → väline teenus** ning **turvaserver → XTR (SOAP, port 8081) → Ruuter.internal (JSON)**.
 
 ---
 
@@ -219,7 +219,7 @@ limits:
 
 ```yaml
 xtr:
-  image: turnerrainer/xtr:rc
+  image: turnerrainer/xtr:0.5.0-rc
   environment:
     - RUST_LOG=info
     - XTR_KEYSTORE_PASSWORD=${XTR_KEYSTORE_PASSWORD}
@@ -265,17 +265,17 @@ Kasutusel olevad teenused:
 | `ar/detailandmed_v1.yml` | `detailandmed` | `v1` | reaalne turvaserver, samuti ACL-iga kaetud |
 | `ar/ettevottegaSeotudIsikud_v1.yml` | `ettevottegaSeotudIsikud` | `v1` | otse HTTPS bypass `ariregxmlv6.rik.ee`-le (ACL puudub — ei ole `allowedMethods` vastuses) |
 
-> **Ajaloomärge:** kuni 2026-08-31 kasutasid `lihtandmed`/`esindus` `v3`/`v2` versioone otse HTTPS bypass'iga (`detailandmed` XTR DSL oli `v2`, kuid ei olnud ühegi Ruuter endpoint'iga ühendatud; selle tabeli varasem `detailandmed_v4` rida oli ekslik) (`service: https://ariregxmlv6.rik.ee/`) koos `AR_USERNAME`/`AR_PASSWORD` autentimisega, kuna X-Road ACL-i arireg'ile ei olnud. Elava `allowedMethods` kontrolliga (vt `.ai/ljvis-tasks/xtee-task.md`) selgus, et meie subsüsteemil on nüüd ACL arireg'i **v1**-meetoditele — migreeriti reaalse turvaserveri kaudu tehtavale kutsele, bypass ja kasutajanimi/parool eemaldatud. `ettevottegaSeotudIsikud_v1` jääb bypass'ile, kuna ACL sellele puudub.
+> **Ajaloomärge:** kuni 2026-08-31 kasutasid `lihtandmed`/`esindus` `v3`/`v2` versioone otse HTTPS bypass'iga (`detailandmed` XTR DSL oli `v2`, kuid ei olnud ühegi Ruuter lõpp-punktiga ühendatud; selle tabeli varasem `detailandmed_v4` rida oli ekslik) (`service: https://ariregxmlv6.rik.ee/`) koos `AR_USERNAME`/`AR_PASSWORD` autentimisega, kuna X-Road ACL-i arireg'ile ei olnud. Elava `allowedMethods` kontrolliga (vt `.ai/ljvis-tasks/xtee-task.md`) selgus, et meie subsüsteemil on nüüd ACL arireg'i **v1**-meetoditele — migreeriti reaalse turvaserveri kaudu tehtavale kutsele, bypass ja kasutajanimi/parool eemaldatud. `ettevottegaSeotudIsikud_v1` jääb bypass'ile, kuna ACL sellele puudub.
 
 ---
 
 ## DMapper — parameetrite teisendus
 
-Ruuter kasutab REST-sõbralikke väljanimed (`registryCode`, `companyName`), kuid XTR DSL nõuab äriregistri WSDL-i väljanimed (`ariregistri_kood`, `evnimi`). Ajalooliselt tegid selle teisenduse DMapper Handlebars mallid; `arireg/*` endpoint'ides tehakse seda nüüd Ruuteri DSL-is otse (vt märkust allpool).
+Ruuter kasutab REST-sõbralikke väljanimed (`registryCode`, `companyName`), kuid XTR DSL nõuab äriregistri WSDL-i väljanimed (`ariregistri_kood`, `evnimi`). Ajalooliselt tegid selle teisenduse DMapper Handlebars mallid; `arireg/*` lõpp-punktides tehakse seda nüüd Ruuteri DSL-is otse (vt märkust allpool).
 
-> **NB (2026-08-31):** `arireg/*` Ruuter endpoint'id ei kutsu enam DMapperit. XTR-i saadetav
+> **NB (2026-08-31):** `arireg/*` Ruuter lõpp-punktid ei kutsu enam DMapperit. XTR-i saadetav
 > keha koostatakse Ruuteri DSL-is otse (WSDL väljanimed on juba XTR malli `params`-is) ja vastuse
-> nimeruumi-prefiksite eemaldus tehakse endpoint'is inline `mapResponse` sammuga (vt allpool).
+> nimeruumi-prefiksite eemaldus tehakse lõpp-punktis inline `mapResponse` sammuga (vt allpool).
 > DMapper HBS mallid (`arireg_lihtandmed_*.handlebars`) on kasutuseta.
 
 ### Ruuter DSL voog (`POST/v1/xroad/arireg/lihtandmed.yml`)

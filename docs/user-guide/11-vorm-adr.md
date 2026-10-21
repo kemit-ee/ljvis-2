@@ -1,6 +1,6 @@
 # ADR kontrollvorm (ohtlik veos)
 
-ADR kontrollvormi kasutatakse ohtliku veose kontrolli tulemuste dokumenteerimiseks. Vorm võimalik salvestada veos, rikkumised, rakendatud meetmed ja viited ADR sätetele.
+ADR kontrollvormi kasutatakse ohtliku veose kontrolli tulemuste dokumenteerimiseks. Vormile saab kanda veose andmed, rikkumised, rakendatud meetmed ja viited ADR-i sätetele.
 
 ## Vormi eesmärk
 
@@ -23,7 +23,7 @@ ADR kontrollvorm on **koondvormi alamvorm**. Vorm avaneb koondvormi vahekaardil:
 
 ![ADR kontrollvorm koondvormi vahekaardil](images/11-vorm-adr/01-alamvorm.png)
 
-Vorm on jagatud kaartideks. Kui välja juures on täht `*`, on see kohustuslik.
+Vorm on jagatud kaartideks. Kui välja juures on tärn `*`, on see kohustuslik.
 
 ### 1. Autojuhi abi andmed
 
@@ -41,9 +41,9 @@ Täita ainult juhul, kui see on rikkumise puhul asjakohane. Isikukoodi järgi sa
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Autojuhi ADR koolitustunnistuse number (`driverAdrCertificateNumber`) | Ei | Max 100 tähemärki |
-| Meeskonnaliikme ADR koolitustunnistuse number (`crewAdrCertificateNumber`) | Ei | Max 100 tähemärki |
-| Autojuhi abi ADR koolitustunnistuse number (`assistantAdrCertificateNumber`) | Ei | Max 100 tähemärki |
+| Autojuhi ADR koolitustunnistuse number (`driverAdrCertificateNumber`) | Ei | Kuni 100 tähemärki |
+| Meeskonnaliikme ADR koolitustunnistuse number (`crewAdrCertificateNumber`) | Ei | Kuni 100 tähemärki |
+| Autojuhi abi ADR koolitustunnistuse number (`assistantAdrCertificateNumber`) | Ei | Kuni 100 tähemärki |
 
 ### 3. Viimase peale- või mahalaadimise aadress ja kuupäev
 
@@ -53,7 +53,7 @@ Täita ainult juhul, kui see on rikkumise puhul asjakohane. Isikukoodi järgi sa
 | Maakond (`lastLoadAddress.county`) | Ei | EHAK valik (tühja valikuga), kui riik on Eesti |
 | Linn (`lastLoadAddress.city`) | Ei | EHAK valik (tühja valikuga), kui riik on Eesti |
 | Tänav (`lastLoadAddress.street`) | Ei | |
-| Postiindeks (`lastLoadAddress.postalCode`) | Ei | Max 10 tähemärki |
+| Postiindeks (`lastLoadAddress.postalCode`) | Ei | Kuni 10 tähemärki |
 | Kuupäev (`lastLoadDate`) | Ei | |
 
 ### 4. Järgmise peale- või mahalaadimise aadress
@@ -82,7 +82,7 @@ Ridade lisamiseks klõpsake **+ Lisa ohtlik kaup**. Rida saab kustutada prügika
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | Kas kohaldatakse erandit (`exemptionApplied`) | Ei | Jah / Ei kohe pealkirja all |
-| ADRi punkt (`exemptionAdrProvision`) | Jah, kui erandit kohaldatakse | Lause „ADR erandi kohaldamine vastavalt ADR sättele:" järel; ADR säte, max 200 tähemärki |
+| ADRi punkt (`exemptionAdrProvision`) | Jah, kui erandit kohaldatakse | Lause „ADR erandi kohaldamine vastavalt ADR sättele:" järel; ADR säte, kuni 200 tähemärki |
 | Märkus (direktiivi 2008/68/EÜ erandid) (`exemptionNotes`) | Ei | Vabatekst |
 
 ### 7. Mahuti tüüp
@@ -133,7 +133,7 @@ Plokk „Muu rikkumine" võimaldab lisada n+1 rikkumist, mida kontrollkaardi pun
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Märkused (`notes`) | Ei | Vaba tekst, max 4000 tähemärki |
+| Märkused (`notes`) | Ei | Vaba tekst, kuni 4000 tähemärki |
 | Rikkumiskirjete märkuste koond (`infringementNotesSummary`) | — | **Kirjutuskaitstud.** Automaatselt koostatud kõigi rikkumiskirjete „Märkused" väljadest, kujul „12. Veodokumendid, Rikkumine 1: tekst; 16. Veoks lubatud kaubad, Rikkumine 1: tekst, Rikkumine 2: tekst". Kuvatakse ainult siis, kui vähemalt üks märkus on täidetud. Salvestatakse vormiga. |
 
 ### 11. X-tee andmed
@@ -144,6 +144,21 @@ Kuvatakse pärast kinnitamist. Muudetav ainult õigusega `control_form.edit_lock
 |---|---|---|
 | Jõustunud otsus (`enforcementDecision`) | Ei | |
 | Menetluse lõpetamise alus (`proceedingClosureBasis`) | Ei | |
+
+### 12. Haldusmenetlus
+
+Plokk **Haldusmenetlus seoses raskete autoveoalaste rikkumistega** on nähtav ja täidetav **Transpordiameti ja Kliimaministeeriumi ametnikule** ning süsteemi- ja asutuse administraatorile. PPA tavaametnik seda plokki ei näe. Plokk ilmub pärast vormi esmast salvestamist.
+
+| Väli | Selgitus |
+|---|---|
+| KLIM selgitustaotluse kuupäev | Kuupäev |
+| Vedaja seletuse kuupäev | Kuupäev |
+| Karistus kehtib kuni | Kuupäev; märkeruut **Kehtetu või menetletud** |
+| Järgmise komisjoni koosolek (AKVK) | Kuupäev |
+| Viimase komisjoni otsuse kuupäev | Kuupäev |
+| Otsus | Vaba tekst |
+
+Plokil on oma nupp **Uuenda haldusmenetluse andmeid**, mis salvestab andmed ka kinnitatud ja avalikustatud vormil. Salvestus loob vormist uue versiooni (kinnitatud ja avalikustatud vormil suureneb versiooninumber), vana versioon jääb vormi ajalukku.
 
 ## Vormi salvestamine ja kinnitamine
 

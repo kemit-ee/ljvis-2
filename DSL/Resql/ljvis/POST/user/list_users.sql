@@ -13,7 +13,7 @@ params:
   search:
     type: string
     required: false
-    description: Search by name or personal code
+    description: Search by first name, last name, full name ("first last"), or personal code
   sorting:
     type: string
     required: false
@@ -76,15 +76,6 @@ WITH latest AS (
         user_groups
     FROM users.user_account
     ORDER BY user_account_key, created_at DESC
-),
-last_login AS (
-    SELECT
-        actor_user_account_id,
-        MAX(created_at) AS last_login_at
-    FROM audit.audit_event
-    WHERE event_type = 'auth.login.success'
-      AND actor_user_account_id IS NOT NULL
-    GROUP BY actor_user_account_id
 )
 SELECT
     l.user_account_key AS id,
@@ -97,30 +88,35 @@ SELECT
     l.status,
     l.access_start,
     l.access_end,
-    ll.last_login_at,
+    (SELECT MAX(e.created_at)
+       FROM audit.audit_event e
+      WHERE e.event_type = 'auth.login.success'
+        AND e.actor_user_account_id = l.user_account_key) AS last_login_at,
     ARRAY_TO_JSON(
         COALESCE(
             ARRAY(
-                SELECT ug.name
-                FROM UNNEST(l.user_groups) AS grp_id
-                CROSS JOIN LATERAL (
-                    SELECT name FROM users.user_group
-                    WHERE user_group_key = grp_id
-                    ORDER BY created_at DESC LIMIT 1
-                ) ug
+                SELECT g.name
+                FROM (
+                    SELECT (SELECT ug.name FROM users.user_group ug
+                            WHERE ug.user_group_key = grp_id
+                            ORDER BY ug.created_at DESC LIMIT 1) AS name
+                    FROM UNNEST(l.user_groups) AS grp_id
+                ) g
+                WHERE g.name IS NOT NULL
             ),
             ARRAY[]::TEXT[]
         )
     ) AS user_groups,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM latest l
-LEFT JOIN last_login ll ON ll.actor_user_account_id = l.user_account_key
 WHERE
     (:organisation_id IS NULL OR l.organisation_id = :organisation_id)
     AND (
         COALESCE(:search, '') = ''
         OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'
         OR l.last_name  ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.personal_code ILIKE '%' || COALESCE(:search, '') || '%'
+        OR (l.first_name || ' ' || l.last_name) ILIKE '%' || COALESCE(:search, '') || '%'
     )
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc'            THEN l.status           END ASC,

@@ -1,0 +1,40 @@
+{
+  "core": [
+    "organisations",
+    "permissions",
+    "users",
+    "user-groups",
+    "classifiers",
+    "compound-form",
+    "driverest-forms",
+    "tram-control-card",
+    "labour-inspection",
+    "foreign-violation-form"
+  ],
+  "controls": [
+    "technical-check-forms",
+    "transport-interruption",
+    "adr-form",
+    "good-repute-form",
+    "form-search",
+    "risk-scores",
+    "citizen-representation",
+    "cron-jobs",
+    "notifications",
+    "audit-log",
+    "dashboard"
+  ],
+  "erru": [
+    "erru-ctud",
+    "erru-cgr",
+    "erru-rsi",
+    "erru-ncr",
+    "erru-nu",
+    "erru-xml-adapter"
+  ],
+  "xroad": [
+    "xroad-provide-query",
+    "xroad-provide-write",
+    "xroad-soap-inbound"
+  ]
+}

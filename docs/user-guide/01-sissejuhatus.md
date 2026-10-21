@@ -21,11 +21,11 @@ flowchart LR
     C[CronManager] --> I
 ```
 
-LJVIS2 (Liiklusjärelvalve infosüsteem 2) on veebipõhine tööriist transpordiametnikele ja ettevõtjatele. Selle abil dokumenteeritakse liiklus-, tööinspektsiooni- ja tehnilisi kontrolle, hallatakse kasutajaid ning vaadatakse auditilogi.
+LJVIS2 (Liiklusjärelevalve infosüsteem 2) on veebipõhine tööriist transpordiametnikele ja ettevõtjatele. Selle abil dokumenteeritakse liiklus-, tööinspektsiooni- ja tehnilisi kontrolle, hallatakse kasutajaid ning vaadatakse auditilogi.
 
 ## Kellele juhend on mõeldud
 
-- **Ametnikele**, kes täidavad kontrollakte (nt tee kontroll, tööinspektsioon, tehniline kontroll).
+- **Ametnikele**, kes täidavad kontrollakte (nt teel tehtavate kontrollide, tööinspektsiooni kontrollide ja tehniliste kontrollide kohta).
 - **Administraatoritele**, kes haldavad süsteemi kasutajaid, gruppe, õigusi ja klassifikaatoreid.
 - **Ettevõtja esindajatele**, kes vaatavad oma ettevõtte riskitaset ja protokolle.
 
@@ -55,3 +55,25 @@ flowchart TD
     C --> E[X-tee liidesed]
     C --> F[Auditilogi]
 ```
+
+## Juhendis kasutatud lühendid
+
+| Lühend | Tähendus |
+|---|---|
+| ERRU | Euroopa autoveoettevõtjate registrite teabevahetussüsteem (European Register of Road Transport Undertakings) |
+| CTUD | ERRU tegevusloa kontrolli päring (CheckTransportUndertakingData) |
+| CGR | ERRU hea maine päring (CheckGoodRepute) |
+| RSI | ERRU tehnokontrolli teade (RoadSideInspection) |
+| NCR | ERRU kontrollitulemuse teade (NotifyCheckResult) |
+| NU | ERRU veokorraldusjuhi sobimatuse teade (NotifyUnfitness) |
+| MSI / VSI / SI / MI | Rikkumiste raskusastmed: kõige raskem, väga raske, raske ja kerge rikkumine |
+| ADR | Ohtlike kaupade rahvusvahelise autoveo kokkulepe |
+| ATP | Kiirestiriknevate toiduainete rahvusvahelise veo ja selleks kasutatavate eriveokite kokkulepe |
+| PPA | Politsei- ja Piirivalveamet |
+| TRAM | Transpordiamet |
+| KLIM | Kliimaministeerium |
+| EHAK | Eesti haldus- ja asustusjaotuse klassifikaator |
+| VIN | Sõiduki valmistajatehase tähis |
+
+Nupu-, välja- ja menüünimed on juhendis esile tõstetud. Kasutajaliidese
+nimetused säilivad ka siis, kui selgitavas tekstis kasutatakse täpsemat terminit.

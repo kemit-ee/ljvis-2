@@ -1,9 +1,9 @@
 /*
 description: 'Apply an RSI lifecycle state transition (LJVIS2-148). Appends exactly one new snapshot iff
   (current status, new status, direction) is in the allowed-transition whitelist; otherwise yields zero
-  rows and nothing is written — the caller maps that to 422 invalid_transition. RSI differs from CGR in
-  three critical ways: (1) error is a TERMINAL outgoing state — there is no error→sent retry path; a failed
-  message must be discarded and a brand-new one composed. (2) RSI is asynchronous — after ''sent'' the
+  rows and nothing is written - the caller maps that to 422 invalid_transition. RSI differs from CGR in
+  three critical ways: (1) error is a TERMINAL outgoing state - there is no error→sent retry path; a failed
+  message must be discarded and a brand-new one composed. (2) RSI is asynchronous - after ''sent'' the
   response arrives later via a separate inbound-response call, so there is a distinct ''responded'' status
   in the outgoing chain. (3) There is no resend (no sent→sent); every send attempt must start from ''initiated''.
   Columns not driven by the transition (vehicle data, driver data, inspection data, identification_details,
@@ -61,7 +61,7 @@ WITH latest AS (
     -- Incoming chain: received -> answered
     ('received',  'answered',  'incoming'),
     -- error is reachable from any state in both directions; it is TERMINAL for outgoing
-    -- (no error -> sent transition — a new message with a new key must be composed)
+    -- (no error -> sent transition - a new message with a new key must be composed)
     ('initiated', 'error',     'outgoing'),
     ('sent',      'error',     'outgoing'),
     ('received',  'error',     'incoming'),
@@ -172,6 +172,7 @@ WITH latest AS (
       AND a.to_status   = :newStatus
       AND a.direction   = l.direction
   )
+  ON CONFLICT (technical_id) WHERE direction = 'incoming' AND status = 'answered' DO NOTHING
   RETURNING rsi_message_key, business_case_id, version, status, workflow_id
 )
 SELECT rsi_message_key AS id, business_case_id, version, status, workflow_id FROM ins;

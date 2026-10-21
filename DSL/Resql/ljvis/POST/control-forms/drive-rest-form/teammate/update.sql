@@ -1,5 +1,5 @@
 /*
-description: Update drive rest form for teammate — insert new snapshot with updated data
+description: Update drive rest form for teammate - insert new snapshot with updated data
 namespace: control-forms
 params:
   key:
@@ -113,6 +113,10 @@ params:
   created_by:
     type: string
     required: false
+  expected_revision:
+    type: string
+    required: false
+    description: 'Optimistlik lukk: revision, mille kasutaja nägi. Kui antud ja vormi uusim rida on uuem, ei lisata midagi (0 rida = konflikt). Tühi = ei kontrollita (confirm/publish-voog ja süsteemikirjutajad).'
 returns:
 - name: id
   type: number
@@ -123,18 +127,32 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 */
+-- Meeskonnaliikme isikuandmed võetakse koondvormi viimasest versioonist (drivers[1]); vormil endal need ei muutu.
 WITH latest AS (
-  SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis
+  SELECT sub_form_number, CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision, template_version, compound_form_key, enforcement_decision, proceeding_closure_basis, klim_clarification_date, carrier_explanation_date, penalty_valid_until, penalty_expired_or_processed, akvk_next_meeting_date, commission_last_decision_date, admin_procedure_decision
   FROM forms.sp_teammate_form
   WHERE sp_teammate_form_key = :key::BIGINT
   ORDER BY created_at DESC
   LIMIT 1
+),
+tm AS (
+  SELECT drivers -> 1 AS d FROM forms.compound_form
+   WHERE compound_form_key = COALESCE(NULLIF(:compoundFormKey::text, ''), (SELECT compound_form_key::text FROM latest))::BIGINT
+   ORDER BY created_at DESC LIMIT 1
+),
+prev AS (
+  SELECT person_code_ee, person_first_name, person_last_name, person_citizenship_code, person_code_foreign, person_birth_date FROM forms.sp_teammate_form
+   WHERE sp_teammate_form_key = :key::BIGINT ORDER BY created_at DESC LIMIT 1
 )
 INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   compound_form_key,
                                   sub_form_number,
                                   version,
+                                  revision,
                                   template_version,
                                   status,
                                   selection_status,
@@ -166,15 +184,29 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
                                   erru_points,
                                   enforcement_decision,
                                   proceeding_closure_basis,
+                                  klim_clarification_date,
+                                  carrier_explanation_date,
+                                  penalty_valid_until,
+                                  penalty_expired_or_processed,
+                                  akvk_next_meeting_date,
+                                  commission_last_decision_date,
+                                  admin_procedure_decision,
                                   notes,
                                   liini_number,
                                   liini_nimetus,
+                                  person_code_ee,
+                                  person_first_name,
+                                  person_last_name,
+                                  person_citizenship_code,
+                                  person_code_foreign,
+                                  person_birth_date,
                                   created_by)
 SELECT
         :key::BIGINT,
         COALESCE(NULLIF(:compoundFormKey::text, ''), l.compound_form_key::text)::BIGINT,
         COALESCE(NULLIF(:subFormNumber, ''), l.sub_form_number),
         l.version,
+        l.revision + 1,
         l.template_version,
         :status,
         NULLIF(:selectionStatus, ''),
@@ -239,9 +271,23 @@ SELECT
         ),
         COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),
         COALESCE(NULLIF(:proceedingClosureBasis, ''), l.proceeding_closure_basis),
+        l.klim_clarification_date,
+        l.carrier_explanation_date,
+        l.penalty_valid_until,
+        l.penalty_expired_or_processed,
+        l.akvk_next_meeting_date,
+        l.commission_last_decision_date,
+        l.admin_procedure_decision,
         NULLIF(:notes, ''),
         NULLIF(:liiniNumber, ''),
         NULLIF(:liiniNimetus, ''),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'personalCodeEe', d->>'personal_code_ee'), '') FROM tm), (SELECT person_code_ee FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'firstName', d->>'first_name'), '') FROM tm), (SELECT person_first_name FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'lastName', d->>'last_name'), '') FROM tm), (SELECT person_last_name FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'citizenshipCode', d->>'citizenship_code'), '') FROM tm), (SELECT person_citizenship_code FROM prev)),
+        COALESCE((SELECT NULLIF(COALESCE(d->>'personalCodeForeign', d->>'personal_code_foreign'), '') FROM tm), (SELECT person_code_foreign FROM prev)),
+        COALESCE((SELECT CASE WHEN NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), '') ~ '^\d{4}-\d{2}-\d{2}' THEN LEFT(NULLIF(COALESCE(d->>'birthDate', d->>'birth_date'), ''), 10)::DATE END FROM tm), (SELECT person_birth_date FROM prev)),
         :created_by
 FROM latest l
-RETURNING sp_teammate_form_key AS id, sub_form_number, version;
+WHERE (NULLIF(:expected_revision, '') IS NULL OR l.revision = NULLIF(:expected_revision, '')::BIGINT)
+RETURNING sp_teammate_form_key AS id, sub_form_number, version, revision;

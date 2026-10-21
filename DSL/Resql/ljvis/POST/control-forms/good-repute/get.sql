@@ -1,5 +1,5 @@
 /*
-description: Get good repute form (hea maine vorm) by key — latest snapshot
+description: Get good repute form (hea maine vorm) by key - latest snapshot
 namespace: control-forms
 params:
   id:
@@ -16,6 +16,9 @@ returns:
   type: string
   nullable: true
 - name: version
+  type: number
+  nullable: true
+- name: revision
   type: number
   nullable: true
 - name: status
@@ -62,6 +65,7 @@ SELECT
   good_repute_form_key AS id,
   form_number,
   version,
+  revision,
   status,
   legacy_import,
   personal_code,

@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Confirm (kinnita) the ADR sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
@@ -6,6 +7,7 @@ declaration:
   allowlist:
     body:
       - field: id
+      - field: revision
       - field: driverAssistant
         type: string
       - field: driverAdrCertificateNumber
@@ -52,6 +54,9 @@ declaration:
         type: string
       - field: infringementNotesSummary
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractRequestData:
   assign:
@@ -88,7 +93,7 @@ extractRequestData:
 
 # Peegeldab useAdrForm.ts Yup-skeemi (proceedingReferenceNumber kohustuslik
 # kui proceedingType valitud; exemptionAdrProvision kohustuslik kui
-# exemptionApplied=true) — varem oli see kontroll ainult kliendipoolne
+# exemptionApplied=true) - varem oli see kontroll ainult kliendipoolne
 # (vt sama valve save.yml-is).
 checkRequiredFields:
   switch:
@@ -113,6 +118,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -144,9 +150,11 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       status: confirmed
       driverAssistant: ${driver_assistant}
       driverAdrCertificateNumber: ${driver_adr_certificate_number}
@@ -175,7 +183,20 @@ confirmForm:
       infringementNotesSummary: ${infringement_notes_summary}
       created_by: ${created_by}
   result: confirmRes
+  next: checkFormModified
+
+# Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
+checkFormModified:
+  switch:
+    - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
+      next: returnFormModifiedError
   next: check_confirmRes_persisted
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
 
 buildLogDescription:
   assign:
@@ -196,8 +217,6 @@ logAuditEvent:
   body:
     event_type: "control_form.adr.confirm"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result

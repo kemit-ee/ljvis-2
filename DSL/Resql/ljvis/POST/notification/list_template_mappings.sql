@@ -1,7 +1,7 @@
 /*
-description: Kõik teavituse liigid ja nende kehtiv Postkast 2.0 malli/vastuvõtja seadistus —
+description: Kõik teavituse liigid ja nende kehtiv Postkast 2.0 malli/vastuvõtja seadistus -
   halduse loendivaate jaoks (notification-template-mapping/list.yml).
-  Append-only tabel — kehtiv rida iga notification_type kohta on värskeim
+  Append-only tabel - kehtiv rida iga notification_type kohta on värskeim
   (created_at DESC, id DESC tiebreak, vt get_template_mapping.sql).
 namespace: notification
 params: {}
@@ -24,6 +24,9 @@ returns:
 - name: defaultRecipientEmail
   type: string
   nullable: true
+- name: desktopRecipientPersonalCodes
+  type: array
+  nullable: true
 - name: createdAt
   type: string
   nullable: true
@@ -38,6 +41,7 @@ SELECT DISTINCT ON (notification_type)
     default_language,
     active,
     default_recipient_email,
+    desktop_recipient_personal_codes,
     created_at,
     created_by
 FROM notifications.notification_template_mapping

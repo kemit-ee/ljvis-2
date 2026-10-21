@@ -18,6 +18,9 @@ returns:
 - name: version
   type: number
   nullable: true
+- name: revision
+  type: number
+  nullable: true
 - name: status
   type: string
   nullable: true
@@ -87,6 +90,7 @@ SELECT
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   status,
   parts_summary::text,
   parts_defects::text,

@@ -85,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutUser = useCallback(async () => {
     await apiLogout();
-    document.cookie = 'customJwtCookie=; Max-Age=0; Path=/;';
     setUser(null);
     setPermissions([]);
   }, []);

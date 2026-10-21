@@ -1,5 +1,5 @@
 /*
-description: Delete drive rest form for teammate — copy latest snapshot with status=deleted
+description: Delete drive rest form for teammate - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:
@@ -18,6 +18,9 @@ returns:
 - name: subFormNumber
   type: string
   nullable: true
+- name: companyRegCode
+  type: string
+  nullable: true
 */
 WITH latest AS (
   SELECT DISTINCT ON (sp_teammate_form_key)
@@ -25,6 +28,7 @@ WITH latest AS (
     compound_form_key,
     sub_form_number,
     version,
+    revision,
     template_version,
     selection_status,
     transport_type,
@@ -53,7 +57,20 @@ WITH latest AS (
     erru_points,
     enforcement_decision,
     proceeding_closure_basis,
-    notes
+    klim_clarification_date,
+    carrier_explanation_date,
+    penalty_valid_until,
+    penalty_expired_or_processed,
+    akvk_next_meeting_date,
+    commission_last_decision_date,
+    admin_procedure_decision,
+    notes,
+    person_code_ee,
+    person_first_name,
+    person_last_name,
+    person_citizenship_code,
+    person_code_foreign,
+    person_birth_date
   FROM forms.sp_teammate_form
   WHERE sp_teammate_form_key = :id::BIGINT
   ORDER BY sp_teammate_form_key, created_at DESC
@@ -63,6 +80,7 @@ INSERT INTO forms.sp_teammate_form (
   compound_form_key,
   sub_form_number,
   version,
+  revision,
   template_version,
   status,
   selection_status,
@@ -92,7 +110,20 @@ INSERT INTO forms.sp_teammate_form (
   erru_points,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   notes,
+  person_code_ee,
+  person_first_name,
+  person_last_name,
+  person_citizenship_code,
+  person_code_foreign,
+  person_birth_date,
   created_by
 )
 SELECT
@@ -100,6 +131,7 @@ SELECT
   l.compound_form_key,
   l.sub_form_number,
   l.version,
+  l.revision + 1,
   l.template_version,
   :status,
   l.selection_status,
@@ -129,7 +161,23 @@ SELECT
   l.erru_points,
   l.enforcement_decision,
   l.proceeding_closure_basis,
+  l.klim_clarification_date,
+  l.carrier_explanation_date,
+  l.penalty_valid_until,
+  l.penalty_expired_or_processed,
+  l.akvk_next_meeting_date,
+  l.commission_last_decision_date,
+  l.admin_procedure_decision,
   l.notes,
+  l.person_code_ee,
+  l.person_first_name,
+  l.person_last_name,
+  l.person_citizenship_code,
+  l.person_code_foreign,
+  l.person_birth_date,
   :created_by
 FROM latest l
-RETURNING sp_teammate_form_key AS id, sub_form_number, version;
+RETURNING sp_teammate_form_key AS id, sub_form_number, version,
+  (SELECT cf.company_reg_code FROM forms.compound_form cf
+   WHERE cf.compound_form_key = forms.sp_teammate_form.compound_form_key
+   ORDER BY cf.created_at DESC LIMIT 1) AS company_reg_code;

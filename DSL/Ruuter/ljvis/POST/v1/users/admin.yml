@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create a new user"
@@ -25,9 +26,12 @@ declaration:
         type: string
       - field: accessEnd
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -74,6 +78,7 @@ checkPersonalCodeConflict:
   args:
     url: "[#LJVIS_RESQL]/user/check_personal_code_conflict"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}
@@ -92,6 +97,7 @@ createUser:
   args:
     url: "[#LJVIS_RESQL]/user/insert_user_account"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       personal_code: ${personal_code}
@@ -124,8 +130,6 @@ logAuditEvent:
   body:
     event_type: "user.create"
     event_category: "user_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${view_description}
     log_content: ${view_log_content}
   result: audit_result
@@ -141,6 +145,9 @@ propagate_error:
   next: end
 
 return_conflict:
-  status: 409
-  return: "personal code already exists"
+  status: 422
+  return:
+    type: VALIDATION_ERROR
+    field: personalCode
+    code: personalCodeConflict
   next: end

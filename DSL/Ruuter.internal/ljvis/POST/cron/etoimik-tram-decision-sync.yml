@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
@@ -18,6 +19,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/select_etoimik_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: candidatesRes
@@ -28,7 +30,7 @@ assignCandidates:
     candidates: "${candidatesRes.response.body || []}"
   next: processCandidates
 
-# `iterate`'s `do:` runs as a flat sequence — `next:` inside it is ignored,
+# `iterate`'s `do:` runs as a flat sequence - `next:` inside it is ignored,
 # and `return` would abort the whole batch, not just this candidate. So
 # every branch (XTR failure / not found / found) is folded into the single
 # `decision` assign below, and the write calls after it always fire;
@@ -51,15 +53,14 @@ processCandidates:
           xtr_request_body:
             reference_number: ${reference_number}
             personal_code: ${driver_personal_code}
-            # System caller id for the X-Road audit trail — no user session exists here.
+            # System caller id for the X-Road audit trail - no user session exists here.
             userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
 
       - call: http.post
         args:
           url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body: ${xtr_request_body}
         result: xtrResponse
@@ -77,7 +78,7 @@ processCandidates:
               var responseNode = responseKey ? soapBody[responseKey] : {};
               var caseNode = responseNode.response || null;
               if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse.response.body) };
               }
               var decisions = [];
               var bases = [];
@@ -106,6 +107,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.tram"
@@ -124,18 +126,19 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/tram-card/apply_etoimik_decision"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
             found: "${decision.found ? 'true' : 'false'}"
             enforcementDecision: "${decision.enforcementDecision}"
             proceedingClosureBasis: "${decision.proceedingClosureBasis}"
-            created_by: "e-toimik"
+            created_by: "eToimik öine uuendus"
         result: applyRes
 
       # apply_etoimik_decision.sql returns 0 rows unless found=true (and its
       # own status='confirmed' guard passes), so published_now tells us
-      # whether a publish actually happened — needed because the audit
+      # whether a publish actually happened - needed because the audit
       # write below always fires (same no-branching constraint as above).
       - assign:
           published_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"
@@ -145,6 +148,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/tram-card/log_etoimik_publish_audit"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             found: "${published_now ? 'true' : 'false'}"
@@ -152,11 +156,37 @@ processCandidates:
             form_number: ${published_form_number}
             driver_personal_code: ${driver_personal_code}
         result: auditRes
-    collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success })}"
+
+      # Automaatne avalikustamine ei käi läbi edit/publish.yml-i: saada vedajale raske rikkumise
+      # teavitus, kui kasutaja märkis kinnitamisel „Teavita vedajat". Teenus ei tee midagi, kui
+      # tellimust ei ole või vorm ei ole avalikustatud (tingimusteta kutse, vt ülaltoodud muster).
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            entity_type: "tram_control_card"
+            entity_id: ${candidate_key}
+            created_by: "eToimik öine uuendus"
+        result: carrierNotifRes
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            form_type: "tram_control_card"
+            form_key: "${String(candidate_key)}"
+        result: riskRecalcRes
+
+    collect: "${({ id: candidate.id, found: decision.found, published: published_now, success: decision.success && riskRecalcRes.response != null && riskRecalcRes.response.status >= 200 && riskRecalcRes.response.status < 300 })}"
     into: results
   next: returnSummary
 
 returnSummary:
   status: 200
-  return: "${({ candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.found).length, published: results.filter(r => r.published).length, failures: results.filter(r => !r.success).length })}"
+  return: "${({ total: candidates.length, succeeded: results.filter(r => r.success).length, candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.found).length, published: results.filter(r => r.published).length, failures: results.filter(r => !r.success).length })}"
   next: end

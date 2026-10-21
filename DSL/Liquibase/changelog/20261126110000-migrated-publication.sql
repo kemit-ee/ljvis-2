@@ -24,6 +24,7 @@ BEGIN
     -- A publication is a new snapshot. Identity and /V do not change.
     parent.id:=nextval(pg_get_serial_sequence('forms.compound_form','id'));
     parent.status:='published';
+    parent.revision:=parent.revision+1;
     parent.created_at:=greatest(clock_timestamp(),parent.created_at+interval '1 microsecond');
     parent.created_by:='system:migration-publication';
     INSERT INTO forms.compound_form SELECT parent.*;
@@ -47,7 +48,7 @@ CREATE OR REPLACE FUNCTION forms.apply_etoimik_decision(p_table text,p_key bigin
     p_found text,p_decision text,p_closure text)
 RETURNS TABLE(id bigint,sub_form_number text,version int)
 LANGUAGE plpgsql AS $$
-DECLARE current_row jsonb; parent_key bigint; imported boolean; updated_row jsonb;
+DECLARE current_row jsonb; parent_key bigint; already_received boolean; updated_row jsonb;
 BEGIN
     IF p_table NOT IN ('vehicle_technical_form','trailer_technical_form','sp_driver_form') THEN
         RAISE EXCEPTION 'Unsupported e-toimik target';
@@ -58,24 +59,21 @@ BEGIN
     IF current_row IS NULL THEN RETURN; END IF;
     parent_key:=(current_row->>'compound_form_key')::bigint;
     PERFORM pg_advisory_xact_lock(261100,(parent_key % 2147483647)::int);
-    -- Re-read after lock: repeated or concurrent responses are no-ops.
+    -- Re-read after lock. UNIQUE (form key, revision) also rejects stale concurrent writers.
     EXECUTE format('SELECT to_jsonb(t) FROM forms.%1$I t WHERE %2$I=$1 ORDER BY created_at DESC,id DESC LIMIT 1 FOR UPDATE',p_table,p_table||'_key')
         INTO current_row USING p_key;
     IF current_row->>'status' <> 'confirmed' OR current_row->>'enforcement_decision' IS NOT NULL THEN RETURN; END IF;
-    SELECT c.extra_data->>'legacy_decision'='owner-2026-10-19' INTO imported FROM forms.compound_form c
-        WHERE c.compound_form_key=parent_key ORDER BY c.created_at DESC,c.id DESC LIMIT 1;
-    IF coalesce(imported,false) THEN
-        updated_row:=current_row || jsonb_build_object('status','published',
-            'enforcement_decision',p_decision,'proceeding_closure_basis',nullif(p_closure,''),
-            'id',nextval(pg_get_serial_sequence('forms.'||p_table,'id')),
-            'created_at',greatest(clock_timestamp(),(current_row->>'created_at')::timestamptz+interval '1 microsecond'),
-            'created_by','system:etoimik');
-        EXECUTE format('INSERT INTO forms.%1$I SELECT (jsonb_populate_record(NULL::forms.%1$I,$1)).*',p_table) USING updated_row;
-        -- The child INSERT trigger publishes the parent only when all children are ready.
-    ELSE
-        -- Existing non-migration behaviour: enrichment in place, no publication.
-        EXECUTE format('UPDATE forms.%I SET enforcement_decision=$1,proceeding_closure_basis=$2 WHERE id=$3',p_table)
-          USING p_decision,nullif(p_closure,''),(current_row->>'id')::bigint;
-    END IF;
+    EXECUTE format('SELECT EXISTS (SELECT 1 FROM forms.%1$I WHERE %2$I=$1 AND created_by=''eToimik öine uuendus'')',p_table,p_table||'_key')
+      INTO already_received USING p_key;
+    IF already_received THEN RETURN; END IF;
+    -- Preserve dev append-only semantics for imported AND ordinary forms.
+    updated_row:=current_row || jsonb_build_object('status','published',
+        'enforcement_decision',p_decision,'proceeding_closure_basis',nullif(p_closure,''),
+        'id',nextval(pg_get_serial_sequence('forms.'||p_table,'id')),
+        'revision',(current_row->>'revision')::bigint+1,
+        'created_at',greatest(clock_timestamp(),(current_row->>'created_at')::timestamptz+interval '1 microsecond'),
+        'created_by','eToimik öine uuendus');
+    EXECUTE format('INSERT INTO forms.%1$I SELECT (jsonb_populate_record(NULL::forms.%1$I,$1)).*',p_table) USING updated_row;
+    -- Child trigger publishes only imported parents after their final child.
     RETURN QUERY SELECT p_key,current_row->>'sub_form_number',(current_row->>'version')::int;
 END $$;

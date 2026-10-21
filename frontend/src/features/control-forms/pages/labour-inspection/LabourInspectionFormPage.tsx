@@ -12,7 +12,8 @@ import {
   deleteLabourInspectionForm,
   getLabourInspectionFormSnapshot,
 } from '../../api';
-import type { LabourInspectionForm } from '../../types';
+import type { Driver, LabourInspectionForm } from '../../types';
+import { EtoimikQueryCard } from '../../components/EtoimikQueryCard/EtoimikQueryCard';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
@@ -21,6 +22,8 @@ import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmM
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
+import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
 
 export function LabourInspectionFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -33,12 +36,15 @@ export function LabourInspectionFormPage() {
 
   const forbidden = !(
     hasPermission('labour_inspection_form.read') ||
+    hasPermission('labour_inspection_form.write') ||
     hasPermission('control_form.view_unpublished')
   );
 
   const [isEditActive, setIsEditActive] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -75,10 +81,6 @@ export function LabourInspectionFormPage() {
   const canConfirm =
     (isAdmin || hasPermission('labour_inspection_form.write')) &&
     form?.status === 'saved';
-  const canPublish =
-    (isAdmin || hasPermission('labour_inspection_form.write')) &&
-    form?.status === 'confirmed';
-
   const handleEditSaved = () => {
     window.scrollTo(0, 0);
     setIsEditActive(form?.status === 'saved');
@@ -90,7 +92,6 @@ export function LabourInspectionFormPage() {
   };
 
   const handleConfirmed = () => {
-    window.scrollTo(0, 0);
     setIsEditActive(false);
     setShowSavedAlert(false);
     setShowConfirmedAlert(true);
@@ -129,6 +130,11 @@ export function LabourInspectionFormPage() {
     onCompanyPicked,
     closeCompanyPicker,
   } = useLabourInspectionForm(form ?? undefined, handleEditSaved, handleConfirmed, handlePublished);
+
+  const canPublish =
+    (isAdmin || hasPermission('labour_inspection_form.write')) &&
+    form?.status === 'confirmed' &&
+    canManuallyPublish(formik.values, hasPermission(PUNISHMENT_REGISTER_PERMISSION));
 
   const handleDelete = async () => {
     if (!id || !form) return;
@@ -209,8 +215,35 @@ export function LabourInspectionFormPage() {
   if (!form)
     return <FormNotFoundView title={t('forms.labour_inspection_form')} />;
 
+  // E-toimiku päringukaart: karistatud isik ja menetluse viitenumber on vormil endal.
+  const punishedPerson: Driver[] =
+    form?.punishedPersonIdCode || form?.punishedPersonFirstName
+      ? [
+          {
+            personalCodeEe: form.punishedPersonIdCode ?? '',
+            firstName: form.punishedPersonFirstName ?? '',
+            lastName: form.punishedPersonLastName ?? '',
+            citizenshipCode: '',
+            personalCodeForeign: '',
+            birthDate: '',
+          },
+        ]
+      : [];
+
   return (
     <div>
+      {form?.id && punishedPerson.length > 0 && hasPermission(PUNISHMENT_REGISTER_PERMISSION) && (
+        <EtoimikQueryCard
+          drivers={punishedPerson}
+          referenceNumberOptions={
+            form.proceedingReferenceNumber
+              ? [{ label: `${form.formNumber ?? ''} — ${form.proceedingReferenceNumber}`, value: form.proceedingReferenceNumber }]
+              : []
+          }
+          compoundFormKey={Number(form.id)}
+          sourceType="labour_inspection_form"
+        />
+      )}
       {showSavedAlert && (
         <Alert
           icon="check_circle"

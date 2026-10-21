@@ -72,7 +72,7 @@ export interface CtudResponseContent {
 }
 
 export interface CtudRequestListItem {
-  id: string;
+  id: number;
   version: number;
   direction: CtudDirection;
   status: CtudStatus;
@@ -225,7 +225,7 @@ export interface CgrMemberState {
 }
 
 export interface CgrRequest {
-  id: string;
+  id: number;
   version: number;
   direction: CgrDirection;
   status: CgrStatus;
@@ -317,7 +317,7 @@ export function isCgrSendable(
  * request — the per-country breakdown is shown only in the request detail view.
  */
 export interface CgrRequestListItem {
-  id: string;
+  id: number;
   version: number;
   status: CgrStatus;
   businessCaseId: string;
@@ -396,15 +396,22 @@ export interface RsiCheckedItemDefect {
   severity: RsiDefectSeverity;
 }
 
-/** National shape until sent (TECHNICAL_CHECK classifier codes); CAA_10 never present. */
+/**
+ * One "Kontrollitud punkt" row. partCode = RSI_FAILED_REASON level-1 code (ERRU
+ * rsiItemType '0'..'10', '20'); defects[].defectCode = RSI_FAILED_REASON leaf (ERRU
+ * rsiFailedReason, e.g. '1.1.3.a'). nationalDefects = TECHNICAL_CHECK defects carried
+ * over from the technical-check card (hint only, never sent). Messages stored before
+ * the RSI_FAILED_REASON classifier may still hold TECHNICAL_CHECK codes ('CAA_*').
+ */
 export interface RsiCheckedItem {
   partCode: string;
   status: RsiCheckedItemStatus;
   defects: RsiCheckedItemDefect[];
+  nationalDefects?: RsiCheckedItemDefect[];
 }
 
 export interface RsiMessage {
-  id: string;
+  id: number;
   version: number;
   direction: RsiDirection;
   status: RsiStatus;
@@ -512,7 +519,7 @@ export interface RsiSendResult {
  * responseStatusCode is a direct column from the latest snapshot (no broadcast ZZ derivation).
  */
 export interface RsiMessageListItem {
-  id: string;
+  id: number;
   version: number;
   direction: RsiDirection;
   status: RsiStatus;
@@ -623,7 +630,7 @@ export interface NcrResponseAddress {
 
 /** One snapshot of an NCR message (INSERT-only — see erru.ncr_message). */
 export interface NcrMessage {
-  id: string;
+  id: number;
   version: number;
   direction: NcrDirection;
   status: NcrStatus;
@@ -715,7 +722,7 @@ export interface NcrSaveResult {
 /** Eeltäitmine input (LJVIS2-64 §4.1) — "Lisa NCR vorm" from an SP/TH control-form sub-form. */
 export interface NcrBuildRequest {
   spFormKey: string;
-  spFormType: 'driver' | 'teammate';
+  spFormType: 'driver' | 'teammate' | 'tram';
   originatingAuthority: string;
   requestSource: string;
   requestPurpose: string;
@@ -927,7 +934,7 @@ export function isNuSendable(
 }
 
 export interface NuMessageListItem {
-  id: string;
+  id: number;
   version: number;
   direction: NuDirection;
   status: NuStatus;

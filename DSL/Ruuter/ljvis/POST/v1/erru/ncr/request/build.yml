@@ -1,10 +1,12 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Eeltäitmine (LJVIS2-64 §4.1): build a new outgoing NCR request draft from an
-    SP control-form sub-form. Triggered by 'Lisa NCR vorm' on the SP/TH control card —
-    ncr.create only. Delegates all derivation logic (Pass/Fail, M1 302 exclusion, serious
-    infringements from erru_points) to build.sql. Exactly one new draft is created per call,
-    in status 'initiated'; the caller (frontend) then navigates to the NCR form in edit mode."
+    SP control-form sub-form or a TRAM control card (spFormType 'driver'/'teammate'/'tram').
+    Triggered by 'Lisa NCR vorm' on the SP/TH or TRAM control card - ncr.create only.
+    Delegates all derivation logic (Pass/Fail, M1 302 exclusion, serious infringements from
+    erru_points) to build.sql. Exactly one new draft is created per call, in status
+    'initiated'; the caller (frontend) then navigates to the NCR form in edit mode."
   namespace: erru
   allowlist:
     body:
@@ -19,6 +21,9 @@ declaration:
       - field: requestPurpose
         type: string
       - field: ncrTo
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -35,7 +40,7 @@ extractRequestData:
 
 checkInputPresent:
   switch:
-    - condition: ${sp_form_key === '' || (sp_form_type !== 'driver' && sp_form_type !== 'teammate')}
+    - condition: ${sp_form_key === '' || (sp_form_type !== 'driver' && sp_form_type !== 'teammate' && sp_form_type !== 'tram')}
       next: returnInvalidInput
   next: buildDraft
 
@@ -44,6 +49,7 @@ buildDraft:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/build"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       spFormKey: ${sp_form_key}
@@ -73,8 +79,6 @@ logAuditEvent:
     business_case_id: "${res.response.body[0].businessCaseId}"
     sp_form_key: ${sp_form_key}
     sp_form_type: ${sp_form_type}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

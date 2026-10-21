@@ -2,7 +2,7 @@
 description: 'Candidates for the nightly e-toimik decision sync on trailer technical-check sub-forms
   (LJVIS2-72 15 ettepanekut p9): latest snapshot of each confirmed sub-form with a väärteomenetlus
   reference number and no enforcement_decision yet, joined to its parent compound_form''s first driver
-  (drivers[0]) Estonian personal code — mirrors vehicle-technical/select_etoimik_candidates.sql. Both
+  (drivers[0]) Estonian personal code - mirrors vehicle-technical/select_etoimik_candidates.sql. Both
   `latest_ttf` and `latest_cf` resolve one row per key before any filtering, same reason as that file''s
   comment. Rows drop out once update-xroad-fields.sql writes a decision, which makes the nightly job
   idempotent.'
@@ -19,6 +19,7 @@ returns:
   type: string
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest_ttf AS (
   SELECT DISTINCT ON (trailer_technical_form_key)
       trailer_technical_form_key AS id,
@@ -31,26 +32,27 @@ WITH latest_ttf AS (
   FROM forms.trailer_technical_form
   ORDER BY trailer_technical_form_key, created_at DESC
 ),
-latest_cf AS (
-  SELECT DISTINCT ON (compound_form_key)
-      compound_form_key,
-      drivers,
-      authority,
-      extra_data
-  FROM forms.compound_form
-  ORDER BY compound_form_key, created_at DESC
+cand AS (
+  SELECT t.id, t.compound_form_key, t.proceeding_reference_number
+  FROM latest_ttf t
+  WHERE t.status = 'confirmed'
+    AND t.proceeding_type IS NOT NULL AND t.proceeding_type <> 'none'
+    AND btrim(coalesce(t.proceeding_reference_number, '')) <> ''
+    AND t.enforcement_decision IS NULL
+    AND NOT EXISTS (SELECT 1 FROM forms.trailer_technical_form h WHERE h.trailer_technical_form_key = t.id AND h.created_by = 'eToimik öine uuendus')
+    AND (t.created_at >= now() - INTERVAL '365 days'
+      OR (SELECT c.extra_data->>'legacy_decision' FROM forms.compound_form c
+          WHERE c.compound_form_key=t.compound_form_key ORDER BY c.created_at DESC,c.id DESC LIMIT 1)='owner-2026-10-19')
+),
+resolved AS (
+  SELECT cand.id, cand.proceeding_reference_number,
+         (SELECT c FROM forms.compound_form c WHERE c.compound_form_key = cand.compound_form_key ORDER BY c.created_at DESC LIMIT 1) AS cf
+  FROM cand
 )
 SELECT
-  t.id,
-  t.proceeding_reference_number,
-  (c.drivers -> 0 ->> 'personal_code_ee') AS driver_personal_code
-FROM latest_ttf t
-JOIN latest_cf c ON c.compound_form_key = t.compound_form_key
-WHERE t.status = 'confirmed'
-  AND c.authority = 'PPA'
-  AND t.proceeding_type IS NOT NULL AND t.proceeding_type <> 'none'
-  AND btrim(coalesce(t.proceeding_reference_number, '')) <> ''
-  AND t.enforcement_decision IS NULL
-  AND btrim(coalesce(c.drivers -> 0 ->> 'personal_code_ee', '')) <> ''
-  AND (t.created_at >= now() - INTERVAL '365 days'
-       OR c.extra_data->>'legacy_decision'='owner-2026-10-19');
+  id,
+  proceeding_reference_number,
+  (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
+FROM resolved
+WHERE (cf).authority = 'PPA'
+  AND btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee'), '')) <> '';

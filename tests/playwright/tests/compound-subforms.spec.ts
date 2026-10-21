@@ -37,6 +37,32 @@ test('autojuhi sõidu-/puhkeaja alamvorm — veo liik ja kontrolli tulemus on ko
   });
 });
 
+test('autojuhi sõidu-/puhkeaja alamvorm — sõidu- ja puhkeaja nõuete kontroll (rakendatakse/ei rakendata/ei kontrollitud) on kohustuslik', async ({
+  page,
+}) => {
+  await test.step('ava koondvorm autojuhi alamvormiga', async () => {
+    await page.goto('/control-forms/compound/new?types=driver');
+    await page.getByRole('tab', { name: /Autojuhi|sõidu- ja puhkeaja/i }).click();
+  });
+
+  await test.step('täida veo liik ja kontrolli tulemus, jäta rakendatavus valimata', async () => {
+    await checkChoiceById(page, 'transport_type_cargo');
+    await checkChoiceById(page, 'result_korras');
+  });
+
+  await test.step('vajuta Salvesta', async () => {
+    await page.getByRole('button', { name: 'Salvesta' }).click();
+  });
+
+  await test.step('sõidu- ja puhkeaja nõuete kontrolli viga on nähtav', async () => {
+    await expectFieldError(page, 'applicability');
+  });
+
+  await test.step('koondvormi ei salvestatud', async () => {
+    await expect(page).toHaveURL(/\/control-forms\/compound\/new/);
+  });
+});
+
 test('ADR alamvorm — koondvormi loomisvoos avaneb ja renderdab sisu', async ({
   page,
 }) => {
@@ -66,7 +92,14 @@ test('PPA autojuhi vormil ei kuvata Transpordiameti liiniandmeid', async ({ page
 });
 
 test('autojuhi veo liik ja veoklass kanduvad meeskonna liikme vormile', async ({ page }) => {
-  await page.goto('/control-forms/compound/new?types=driver,teammate');
+  await page.goto('/control-forms/compound/new?types=driver');
+  // Meeskonnaliikme kontrollvormi saab lisada ainult üldosa meeskonnaliikme plokist
+  await page.getByRole('button', { name: 'Lisa meeskonnaliige' }).click();
+  await page.locator('#teammateFirstName').fill('Mari');
+  await page.locator('#teammateLastName').fill('Maasikas');
+  await page
+    .getByRole('button', { name: 'Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm' })
+    .click();
   await page.getByRole('tab', { name: /^Autojuhi/i }).click();
   const driverPanel = page.locator('#tab-sp-driver-panel');
   await driverPanel.locator('#transport_type_cargo').check({ force: true });
@@ -80,6 +113,7 @@ test('autojuhi veo liik ja veoklass kanduvad meeskonna liikme vormile', async ({
 
   await page.getByRole('tab', { name: /Meeskonnaliikme/i }).click();
   const teammatePanel = page.locator('#tab-sp-teammate-panel');
+  await expect(teammatePanel.locator('#teammate-person-name')).toContainText('Mari Maasikas');
   await expect(teammatePanel.locator('#teammate-transport_type_cargo')).toBeChecked();
   await expect(
     teammatePanel.locator(
@@ -96,7 +130,7 @@ test('sõidu- ja puhkeaja vormi faile saab lisada alles pärast esimest salvesta
   await page.getByRole('tab', { name: /^Autojuhi/i }).click();
   const panel = page.locator('#tab-sp-driver-panel');
   await expect(panel.locator('input[type="file"]')).toBeDisabled();
-  const saveFirst = panel.getByText('Salvesta vorm enne failide lisamist');
+  const saveFirst = panel.getByText('Salvestage vorm enne failide lisamist');
   await expect(saveFirst).toBeVisible();
   await saveFirst.scrollIntoViewIfNeeded();
   await testInfo.attach('ppa-failid-enne-salvestamist', { body: await page.screenshot(), contentType: 'image/png' });
@@ -126,4 +160,11 @@ test.describe('Kontrollvormi failide lugemisõigused', () => {
       expect(response.status(), path).toBe(403);
     }
   });
+});
+
+test('meeskonnaliikme vormi ei saa lisada ülemisest nupust ega töölaua valikust', async ({ page }) => {
+  await page.goto('/control-forms/compound/new?types=driver,teammate');
+  await expect(page.getByRole('tab', { name: /Meeskonnaliikme/i })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Lisa vorm' }).click().catch(() => undefined);
+  await expect(page.getByRole('menuitem', { name: /Meeskonnaliikme/i })).toHaveCount(0);
 });

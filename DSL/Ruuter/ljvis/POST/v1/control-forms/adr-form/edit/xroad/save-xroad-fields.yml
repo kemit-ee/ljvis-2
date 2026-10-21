@@ -1,7 +1,8 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Save the X-tee block fields (enforcement_decision, proceeding_closure_basis) on an already-confirmed ADR sub-form. Requires control_form.edit_locked (enforced by .guard); additionally requires the sub-form's current status to be confirmed. Updates the latest snapshot row in place — does not bump version. LJVIS2-141 §4.14."
+  description: "Save the X-tee block fields (enforcement_decision, proceeding_closure_basis) on an already-confirmed ADR sub-form. Requires control_form.edit_locked (enforced by .guard); additionally requires the sub-form's current status to be confirmed. Appends a new snapshot row (revision + 1) carrying the new values - does not bump version. LJVIS2-141 §4.14."
   namespace: control-forms
   allowlist:
     body:
@@ -11,9 +12,12 @@ declaration:
         type: string
       - field: proceedingClosureBasis
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: fetchCurrentForm
@@ -23,6 +27,7 @@ fetchCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${incoming.body.id}
@@ -46,11 +51,13 @@ updateXroadFields:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/update-xroad-fields"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${incoming.body.id}
       enforcementDecision: ${incoming.body.enforcementDecision || ''}
       proceedingClosureBasis: ${incoming.body.proceedingClosureBasis || ''}
+      created_by: "${u.personalcode || ''}"
   result: updateRes
   next: check_updateRes_persisted
 

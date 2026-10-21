@@ -42,6 +42,7 @@ export function XroadLogTable() {
     draftFilters,
     setFilter,
     applyFilters,
+    applyFiltersWith,
     resetKey,
   } = useXroadLogList();
 
@@ -54,8 +55,7 @@ export function XroadLogTable() {
   const allServices = draftFilters.allServices === 'true';
 
   const toggleScope = () => {
-    setFilter('allServices', String(!allServices));
-    applyFilters();
+    applyFiltersWith({ allServices: String(!allServices) });
   };
 
   const handleStatusChange = (next: {
@@ -81,11 +81,16 @@ export function XroadLogTable() {
         cell: (info) => {
           const { sourceType, sourceRecordId } = info.row.original;
           const href = buildFormLink(sourceType, sourceRecordId);
-          const label = sourceType
+          const typeLabel = sourceType
             ? t(`xroadLogs.sourceType.${sourceType}`, { defaultValue: sourceType })
             : '—';
-          return href ? <Link to={href}>{label}</Link> : label;
+          return href ? <Link to={href}>{typeLabel}</Link> : typeLabel;
         },
+      }),
+      columnHelper.accessor('formNumber', {
+        header: t('xroadLogs.column.formNumber'),
+        enableSorting: false,
+        cell: (info) => info.getValue() ?? '—',
       }),
       ...(allServices
         ? [

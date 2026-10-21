@@ -1,49 +1,27 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
-    Ühine teavituse saatmise otsustus- ja saatmisloogika (p.5/6/8 refaktor,
-    code review 2026-09-22 leidude 2/3/4/5 parandus). Kutsutakse KOLMEST
-    kirjutamisteest — edit/save.yml (nii insertForm kui updateForm haru) ja
-    edit/confirm.yml — et vältida loogika kolmekordset kopeerimist ja tagada
-    ühtne käitumine kõikjal.
+    Välisriigi kontrollkaardi teavituste (vedaja / tööinspektor) saatmine
+    Postkast 2.0 kaudu. Kutsub AINULT edit/publish.yml - salvestamine ja
+    kinnitamine teavitusi ei saada. Vedaja linnuke (notifyCarrier) võetakse
+    pärast edukat saatmist maha (kutsuja teeb seda tagastatud carrierSent
+    põhjal), nii et kordussaatmiseks tuleb see muudatuse korral uuesti
+    märkida. Tööinspektori linnuke (notifyLaborInspector) jääb püsivaks.
 
-    Disainiotsus: notifyCarrier/notifyLaborInspector on MOMENDIVÄLJAD
-    ("saada nüüd"), mitte püsiv olek — see template ei tagasta kunagi
-    "persisted=true"; iga kutse lõpetab kaardi peale kirjutamiseks mõeldud
-    väärtusega 'false' ('{"notifyCarrierPersisted":"false","notifyLaborInspectorPersisted":"false"}'),
-    olenemata sellest, kas saatmine toimus. See kõrvaldab tervikliku
-    veaklassi (checkbox jääb DB-s "true" kinni, kui saatmist ei toimunud —
-    vt review leiud 2/3): kaardil ei tekigi olekut, mida false->true
-    üleminekuna hiljem enam kunagi ei tuvastataks. Kutsuja (save.yml/confirm.yml)
-    ei pea seega enne kutset "vana väärtust" DB-st võrdlema — piisab lugeda
-    kasutaja PRAEGUSEST päringust soovitud väärtus (newNotifyCarrier/
-    newNotifyLaborInspector) ja otsustada, kas saatmine on lubatud
-    (sendGateMet — kutsuja vastutusel, vt allpool).
+    sendGateMet: kutsuja kinnitus, et saatmine on lubatud (publish.yml
+    annab alati 'true' - avalikustamine ise on saatmise hetk).
 
-    sendGateMet: kutsuja otsustab, KAS praegu on lubatud reaalset teavitust
-    saata (review leid 3 — varem sai avalikustamisel saata ainult
-    confirmed staatuselt; nüüd, kui saatmine on kolitud save/confirm'i,
-    peab gate olema endiselt eksplitsiitne, mitte puuduv):
-      - edit/save.yml insertForm haru: sendGateMet ALATI 'false' (uus rida
-        on ALATI staatuses 'saved', mitte kunagi juba kinnitatud).
-      - edit/save.yml updateForm haru: sendGateMet = (praegune, EELMINE
-        staatus salvestamise eest !== 'saved') — st vorm on vähemalt korra
-        kinnitatud.
-      - edit/confirm.yml: sendGateMet ALATI 'true' — confirm.yml enda
-        tulemus ON staatuse üleminek 'confirmed'-ks, mis rahuldab sama
-        tingimust ("vähemalt kinnitatud").
-    Kui sendGateMet on 'false' ja kasutaja märkis linnukese, EI saadeta
-    teavitust — checkbox lähtestub siiski false-ks (momendiväli), kasutaja
-    saab selle uuesti märkida pärast kinnitamist, mil sendGateMet muutub
-    tõeseks.
-
-    Äriregistri e-posti otsingu VIGA (review leid 4): kui jagatud
+    Äriregistri e-posti otsingu VIGA: kui jagatud
     lookup-carrier-registry-email template ebaõnnestub (transpordi tase),
-    ei jäeta sendCarrierNotification'it vahele — kutsutakse ikka, tühja
+    ei jäeta sendCarrierNotification'it vahele - kutsutakse ikka, tühja
     recipient_email'iga, et send-postkast.yml (checkRecipientFormat /
     markInvalidRecipient) looks korrektse "error" rea notifications.outbound_log-i.
     Nii ei kao kasutaja saatmissoov jäljetult.
+
+    Tagastusväärtus: '{"carrierSent":"true|false"}' - "true" ainult siis, kui
+    send-postkast võttis vedaja teavituse vastu (staatus ei ole "error").
   namespace: service
   allowlist:
     body:
@@ -55,6 +33,24 @@ declaration:
         type: string
       - field: formNumber
         type: string
+      - field: violations
+        type: string
+      - field: violationDescription
+        type: string
+      - field: inspectionDate
+        type: string
+      - field: inspectionTime
+        type: string
+      - field: inspectionCountryCode
+        type: string
+      - field: vehicleRegNr
+        type: string
+      - field: vehicleMake
+        type: string
+      - field: vehicleModel
+        type: string
+      - field: vehicleVin
+        type: string
       - field: createdBy
         type: string
       - field: newNotifyCarrier
@@ -63,6 +59,9 @@ declaration:
         type: string
       - field: sendGateMet
         type: string
+    headers:
+      - field: cookie
+        type: string
 
 extractInputs:
   assign:
@@ -70,9 +69,115 @@ extractInputs:
     company_reg_code: "${incoming.body.companyRegCode || ''}"
     company_name: "${incoming.body.companyName || ''}"
     notification_form_number: "${incoming.body.formNumber || ''}"
+    violation_description: "${incoming.body.violationDescription || ''}"
+    violation_severities: >-
+      ${(() => {
+        try {
+          var rows = JSON.parse(incoming.body.violations || '[]');
+          var values = rows.map(function(v) {
+            var match = String(v.code || '').match(/^(MSI|VSI|SI)/);
+            return match ? match[1] : '';
+          }).filter(Boolean);
+          return Array.from(new Set(values)).join(', ');
+        } catch (e) { return ''; }
+      })()}
+    violation_codes: >-
+      ${(() => {
+        try {
+          var rows = JSON.parse(incoming.body.violations || '[]');
+          var codes = rows.map(function(v) { return String(v.code || '').toUpperCase().replace(/[ _-]/g, ''); })
+            .filter(function(c) { return /^(MSI|VSI|SI)[0-9]+$/.test(c); });
+          return Array.from(new Set(codes)).join(',');
+        } catch (e) { return ''; }
+      })()}
+    inspection_date_time: >-
+      ${((incoming.body.inspectionDate || '') + ' ' + (incoming.body.inspectionTime || '')).trim()}
+    inspection_country_code: "${incoming.body.inspectionCountryCode || ''}"
+    vehicle_reg_nr: "${incoming.body.vehicleRegNr || ''}"
+    vehicle_make: "${incoming.body.vehicleMake || ''}"
+    vehicle_model: "${incoming.body.vehicleModel || ''}"
+    vehicle_vin: "${incoming.body.vehicleVin || ''}"
     created_by: "${incoming.body.createdBy || 'system'}"
     send_carrier: "${incoming.body.newNotifyCarrier === 'true' && incoming.body.sendGateMet === 'true'}"
     send_labor_inspector: "${incoming.body.newNotifyLaborInspector === 'true' && incoming.body.sendGateMet === 'true'}"
+    carrier_sent: "false"
+    inspection_country: "${incoming.body.inspectionCountryCode || ''}"
+  next: lookupInspectionCountry
+
+# Kontrolli koha riigi nimetus COUNTRY klassifikaatorist (kood -> nimi). Kui
+# otsing ebaõnnestub või koodi ei leita, jäetakse väärtuseks kood ise.
+lookupInspectionCountry:
+  switch:
+    - condition: ${inspection_country === ''}
+      next: callGetViolationNames
+  next: callGetCountryName
+
+callGetCountryName:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_country_name"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      code: ${inspection_country}
+  result: countryNameRes
+  error: callGetViolationNames
+  next: applyCountryName
+
+applyCountryName:
+  assign:
+    inspection_country: "${(countryNameRes.response.body && countryNameRes.response.body[0] && countryNameRes.response.body[0].name) || inspection_country}"
+  next: callGetViolationNames
+
+# Rikkumiskoodide nimetused klassifikaatoritest; leidmata koodi puhul näidatakse ainult koodi.
+callGetViolationNames:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/get_violation_names"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      codes: ${violation_codes}
+  result: violationNamesRes
+  error: buildViolationList
+  next: buildViolationList
+
+# Rikkumised raskusastme kaupa (MSIViolationsList / VSIViolationsList / SIViolationsList),
+# üks rikkumine rea kohta „kood - nimetus", ridade vahel <br>.
+buildViolationList:
+  assign:
+    MSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^MSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    VSIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^VSI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
+    SIViolationsList: >-
+      ${(() => {
+        var names = {};
+        var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
+        rows.forEach(function(r) { names[r.code] = r.name; });
+        function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        return String(violation_codes).split(',').filter(function(c) { return /^SI[0-9]/.test(c); }).map(function(c) {
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
+        }).join('<br>');
+      })()}
   next: checkSendCarrier
 
 checkSendCarrier:
@@ -103,9 +208,9 @@ parseCarrierLookupResult:
       })()}
   next: sendCarrierNotification
 
-# review leid 4: lookup ebaõnnestumisel (transpordi tase — template'i enda
+# review leid 4: lookup ebaõnnestumisel (transpordi tase - template'i enda
 # error haru) EI jäeta sendCarrierNotification'it vahele, vaid kutsutakse
-# tühja aadressiga — send-postkast.yml logib selle korrektselt "error"-rea.
+# tühja aadressiga - send-postkast.yml logib selle korrektselt "error"-rea.
 markCarrierEmailLookupFailed:
   assign:
     carrier_email: ""
@@ -116,6 +221,7 @@ sendCarrierNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: "carrier_violation"
@@ -126,9 +232,14 @@ sendCarrierNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, inspectionDateTime: inspection_date_time, inspectionCountryCode: inspection_country_code, inspectionCountry: inspection_country, vehicleRegNr: vehicle_reg_nr, violationSeverities: violation_severities, violationDescription: violation_description, MSIViolationsList: MSIViolationsList, VSIViolationsList: VSIViolationsList, SIViolationsList: SIViolationsList } }"
   result: carrierNotifRes
   error: checkSendLaborInspector
+  next: markCarrierSent
+
+markCarrierSent:
+  assign:
+    carrier_sent: "${(carrierNotifRes.response != null && carrierNotifRes.response.status >= 200 && carrierNotifRes.response.status < 300 && carrierNotifRes.response.body != null && carrierNotifRes.response.body.status !== 'error') ? 'true' : 'false'}"
   next: checkSendLaborInspector
 
 checkSendLaborInspector:
@@ -137,7 +248,7 @@ checkSendLaborInspector:
       next: sendLaborInspectorNotification
   next: returnResult
 
-# Taaskasutab 'labor_foreign_proposal' malli/adressaati (tööinspektor) —
+# Taaskasutab 'labor_foreign_proposal' malli/adressaati (tööinspektor) -
 # sama teavituse liik, mida varem päästis foreignAuthorityProposal fakt,
 # nüüd päästab eraldiseisev notifyLaborInspector checkbox (p.5).
 sendLaborInspectorNotification:
@@ -145,6 +256,7 @@ sendLaborInspectorNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       notification_type: "labor_foreign_proposal"
@@ -154,11 +266,11 @@ sendLaborInspectorNotification:
       related_entity_id: ${form_id}
       original_log_id: ""
       created_by: ${created_by}
-      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+      template_variables: "${ { formNumber: notification_form_number, companyName: company_name, companyRegCode: company_reg_code, vehicleRegNr: vehicle_reg_nr, vehicleMake: vehicle_make, vehicleModel: vehicle_model, vehicleVin: vehicle_vin, inspectionCountry: inspection_country, inspectionDate: incoming.body.inspectionDate || '', inspectionTime: incoming.body.inspectionTime || '' } }"
   result: laborInspectorNotifRes
   error: returnResult
   next: returnResult
 
 returnResult:
-  return: '{"notifyCarrierPersisted":"false","notifyLaborInspectorPersisted":"false"}'
+  return: '${JSON.stringify({ carrierSent: carrier_sent })}'
   next: end

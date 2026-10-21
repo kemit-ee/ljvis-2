@@ -84,24 +84,28 @@ import { SelectedFormsNavigation } from '../../components/CompoundForm/SelectedF
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import {useIsAdmin} from "../../../../hooks/useIsAdmin.ts";
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
 
 export function CompoundFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { hasPermission } = useAuth();
+  const { hasPermission, user } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const isAdmin = useIsAdmin();
 
   const forbidden = !(
     (hasPermission('compound_form.read') ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+      hasPermission('compound_form.write') ||
+      hasPermission('control_form.view_unpublished'))
   );
 
   const [isEditActive, setIsEditActive] = useState(false);
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -335,7 +339,31 @@ export function CompoundFormPage() {
     }
   };
 
-  const canEdit = isAdmin && form?.status !== 'deleted';
+  // Kinnitatud vormi võib muuta administraator (edit_locked), vormi looja või
+  // koondvormile märgitud kontrolli läbiviija. Avalikustatud vormi ainult administraator.
+  const normName = (v?: string | null) => (v ?? '').trim().toUpperCase();
+  const isNamedInspector =
+    !!form &&
+    !!user?.firstname &&
+    normName(form.inspectorFirstName) === normName(user.firstname) &&
+    normName(form.inspectorLastName) === normName(user.lastname) &&
+    String(form.inspectorOrganisationId ?? '') === String(user.organisationid ?? '');
+  const canReopenOwn = (f: { status?: string; createdBy?: string } | null | undefined, perm: string) =>
+    !!f &&
+    f.status === 'confirmed' &&
+    hasPermission(perm) &&
+    ((!!f.createdBy && f.createdBy === user?.personalcode) || isNamedInspector);
+  const canReopenCompound = canReopenOwn(form, 'compound_form.write');
+  const canReopenDriver = canReopenOwn(driver.form, 'sp_driver_form.write');
+  const canReopenTeammate = canReopenOwn(teammate.form, 'sp_teammate_form.write');
+  const canReopenVehicle = canReopenOwn(vehicle.form, 'vehicle_technical_form.write');
+  const canReopenAdr = canReopenOwn(adr.form, 'adr_form.write');
+  const canReopenTransportInterruption = canReopenOwn(transportInterruption.form, 'transport_interruption_form.write');
+  const canReopenTrailers = trailers.map((tr) => canReopenOwn(tr.form, 'trailer_technical_form.write'));
+  const canReopenAny =
+    canReopenCompound || canReopenDriver || canReopenTeammate || canReopenVehicle ||
+    canReopenAdr || canReopenTransportInterruption || canReopenTrailers.some(Boolean);
+  const canEdit = (isAdmin || canReopenCompound) && form?.status !== 'deleted';
 
   const { subFormsAllConfirmedOrPublished } = getSubFormsStatus({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
   const getSubFormsStatusRef = useRef({ openTabs, driver, teammate, vehicle, trailers, adr, transportInterruption });
@@ -345,7 +373,7 @@ export function CompoundFormPage() {
   const canDelete =
     hasPermission('control_form.delete') && form?.status !== 'deleted';
   const canConfirm =
-    hasPermission('foreign_violation_form.write') &&
+    hasPermission('compound_form.write') &&
     hasPermission('control_form.view_unpublished') &&
     form?.status !== 'deleted' &&
     form?.status !== 'confirmed';
@@ -448,7 +476,8 @@ export function CompoundFormPage() {
     triggerSaveAsSaved();
   };
 
-  const addableTabs = ALL_FORM_TABS.filter((tab) => !openTabs.includes(tab.tabId));
+  // Meeskonnaliikme kontrollvormi saab lisada ainult üldosa meeskonnaliikme plokist
+  const addableTabs = ALL_FORM_TABS.filter((tab) => tab.tabId !== 'tab-teammate' && !openTabs.includes(tab.tabId));
 
   const handleAddTab = (tabId: 'tab-driver' | 'tab-teammate' | 'tab-vehicle-technical-check' | `tab-trailer-technical-check-${number}` | 'tab-adr' | 'tab-transport-interruption', activate = true) =>
     addTab(tabId, { driver, teammate, vehicle, trailers, adr, transportInterruption, setOpenTabs, setActiveTab, activate });
@@ -470,6 +499,7 @@ export function CompoundFormPage() {
         triggerSaveAfterSubFormDelete(allPublished);
       }
     },
+    onTeammateRemoved: () => formik.setFieldValue('drivers', formik.values.drivers.slice(0, 1)),
     onTrailerRemoved: (index: number) => formik.setFieldValue('trailers', formik.values.trailers.filter((_: Trailer, i: number) => i !== index)),
     onTrailerRemovedSave: undefined,
     onTrailerDeletionDeferred: (idx, subFormId, subFormNumber, status) => {
@@ -587,7 +617,7 @@ export function CompoundFormPage() {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    if (!snapshot) return <FormLoadError />;
     return (
       <div>
         <CompoundFormViewCard
@@ -613,7 +643,7 @@ export function CompoundFormPage() {
 
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!form) return <Text>{t('common.error')}</Text>;
+  if (!form) return <FormLoadError />;
 
   const sharedProps = {
     isDesktop,
@@ -670,6 +700,10 @@ export function CompoundFormPage() {
     trailerFormRegNrs: trailers.map((t, i) => openTabs.includes(`tab-trailer-technical-check-${i}`) ? (t.form?.trailerRegNr ?? formik.values.trailers[i]?.regNr ?? '') : null),
     onAddTrailerControlForm: (index: number) => { handleAddTab(`tab-trailer-technical-check-${index}`, false); },
     onEditTrailerControlForm: (index: number) => { setActiveTab(`tab-trailer-technical-check-${index}`); window.scrollTo(0, 0); },
+    teammateFormExists: openTabs.includes('tab-teammate'),
+    onAddTeammateControlForm: () => { handleAddTab('tab-teammate', false); },
+    onEditTeammateControlForm: () => { setActiveTab('tab-teammate'); window.scrollTo(0, 0); },
+    onRemoveTeammate: () => handleRemove('tab-teammate'),
     onRemoveTrailer: (index: number) => handleRemoveTrailerFromCompound(`tab-trailer-technical-check-${index}` as Parameters<typeof handleRemove>[0]),
   };
 
@@ -684,8 +718,14 @@ export function CompoundFormPage() {
       form?.status !== 'deleted');
   const hasSubForms = openTabs.length > 0;
 
+  // Avalikustamata koondvormile saab lisada kontrollvorme ka siis, kui kõik olemasolevad
+  // alamvormid on juba kinnitatud (muutmisrežiim pole aktiivne).
+  const canAddForms =
+    hasPermission('compound_form.write') &&
+    form?.status !== 'published' &&
+    form?.status !== 'deleted';
   const addFormDropdown =
-    canEdit && anyEditActive ? (
+    (canAddForms || (canEdit && anyEditActive)) ? (
       <Dropdown width="max-content">
         <Dropdown.Trigger>
           <Button
@@ -973,11 +1013,6 @@ export function CompoundFormPage() {
               />
             </Card.Content>
           </Card>
-          <SelectedFormsNavigation
-            tabIds={openTabs}
-            labels={tabLabels}
-            onSelect={setActiveTab}
-          />
         </Tabs.Content>
 
         <SubFormTab
@@ -1003,10 +1038,10 @@ export function CompoundFormPage() {
               scope="driver"
               form={driver.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-driver': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!driver.form) resetCompoundFormToSaved();
                 refetchDriveRest('driver', () => {
                   driver.resetDraft();
@@ -1016,6 +1051,12 @@ export function CompoundFormPage() {
                 driver.setEditActive(false);
                 driver.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('driver', form.id!).then(() =>
+                  refetchDriveRest('driver'),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchDriveRest('driver', () => {
@@ -1068,10 +1109,10 @@ export function CompoundFormPage() {
               scope="teammate"
               form={teammate.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-teammate': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!teammate.form) resetCompoundFormToSaved();
                 refetchDriveRest('teammate', () => {
                   teammate.resetDraft();
@@ -1081,6 +1122,12 @@ export function CompoundFormPage() {
                 teammate.setEditActive(false);
                 teammate.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishDriveRestForm('teammate', form.id!).then(() =>
+                  refetchDriveRest('teammate'),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchDriveRest('teammate', () => {
@@ -1123,13 +1170,13 @@ export function CompoundFormPage() {
               scope="vehicle"
               form={vehicle.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-vehicle-technical-check': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!vehicle.form) resetCompoundFormToSaved();
                 refetchTechCheck('vehicle', undefined, () => {
                   vehicle.resetDraft();
@@ -1139,6 +1186,12 @@ export function CompoundFormPage() {
                 vehicle.setEditActive(false);
                 vehicle.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('vehicle', form.id!).then(() =>
+                  refetchTechCheck('vehicle', undefined),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchTechCheck('vehicle', undefined, () => {
@@ -1185,13 +1238,13 @@ export function CompoundFormPage() {
                 compoundFormKey={Number(id)}
                 compoundTrailers={formik.values.trailers}
                 trailerIndex={idx}
-                onSaved={() => {
+                onSaved={(_id, confirmed) => {
                   setTabErrors((p) => ({
                     ...p,
                     [`tab-trailer-technical-check-${idx}`]: false,
                   }));
                   setShowSavedAlert(true);
-                  window.scrollTo(0, 0);
+                  if (!confirmed) window.scrollTo(0, 0);
                   if (!trailerHandle.form) resetCompoundFormToSaved();
                   refetchTechCheck('trailer', idx, () => {
                     trailerHandle.resetDraft();
@@ -1201,6 +1254,12 @@ export function CompoundFormPage() {
                   trailerHandle.setEditActive(false);
                   trailerHandle.resetDraft();
                 }}
+                canPublish={canPublishSubforms()}
+                onPublish={() =>
+                  publishTechnicalCheckForm('trailer', form.id!).then(() =>
+                    refetchTechCheck('trailer', idx),
+                  )
+                }
                 canConfirm={canConfirmSubform()}
                 onConfirm={() => {
                   refetchTechCheck('trailer', idx, () => {
@@ -1242,10 +1301,10 @@ export function CompoundFormPage() {
               ref={ref}
               form={adr.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({ ...p, 'tab-adr': false }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!adr.form) resetCompoundFormToSaved();
                 refetchAdr(() => {
                   adr.resetDraft();
@@ -1255,6 +1314,10 @@ export function CompoundFormPage() {
                 adr.setEditActive(false);
                 adr.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishAdrForm(form.id!).then(() => refetchAdr())
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchAdr(() => {
@@ -1295,13 +1358,13 @@ export function CompoundFormPage() {
               ref={ref}
               form={transportInterruption.draft ?? form}
               compoundFormKey={Number(id)}
-              onSaved={() => {
+              onSaved={(_id, confirmed) => {
                 setTabErrors((p) => ({
                   ...p,
                   'tab-transport-interruption': false,
                 }));
                 setShowSavedAlert(true);
-                window.scrollTo(0, 0);
+                if (!confirmed) window.scrollTo(0, 0);
                 if (!transportInterruption.form) resetCompoundFormToSaved();
                 refetchTransportInterruption(() => {
                   transportInterruption.resetDraft();
@@ -1311,6 +1374,12 @@ export function CompoundFormPage() {
                 transportInterruption.setEditActive(false);
                 transportInterruption.resetDraft();
               }}
+              canPublish={canPublishSubforms()}
+              onPublish={() =>
+                publishTransportInterruptionForm(form.id!).then(() =>
+                  refetchTransportInterruption(),
+                )
+              }
               canConfirm={canConfirmSubform()}
               onConfirm={() => {
                 refetchTransportInterruption(() => {
@@ -1330,23 +1399,28 @@ export function CompoundFormPage() {
           )}
         />
       </Tabs>
+      <SelectedFormsNavigation
+        tabIds={openTabs}
+        labels={tabLabels}
+        onSelect={setActiveTab}
+      />
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
-          {isAdmin && !anyEditActive && form?.status !== 'deleted' && (
+          {(isAdmin || canReopenAny) && !anyEditActive && form?.status !== 'deleted' && (
             <Button
               iconLeft="edit"
               type="button"
               visualType="secondary"
               onClick={() => {
-                setIsEditActive(true);
-                if (driver.form) driver.setEditActive(true);
-                if (teammate.form) teammate.setEditActive(true);
-                if (vehicle.form) vehicle.setEditActive(true);
-                trailers.forEach((tr) => {
-                  if (tr.form) tr.setEditActive(true);
+                if (isAdmin || canReopenCompound) setIsEditActive(true);
+                if (driver.form && (isAdmin || canReopenDriver)) driver.setEditActive(true);
+                if (teammate.form && (isAdmin || canReopenTeammate)) teammate.setEditActive(true);
+                if (vehicle.form && (isAdmin || canReopenVehicle)) vehicle.setEditActive(true);
+                trailers.forEach((tr, idx) => {
+                  if (tr.form && (isAdmin || canReopenTrailers[idx])) tr.setEditActive(true);
                 });
-                if (adr.form) adr.setEditActive(true);
-                if (transportInterruption.form)
+                if (adr.form && (isAdmin || canReopenAdr)) adr.setEditActive(true);
+                if (transportInterruption.form && (isAdmin || canReopenTransportInterruption))
                   transportInterruption.setEditActive(true);
               }}
             >

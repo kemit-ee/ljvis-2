@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Get a single user group by ID filtered by own organisation (local scope)"
@@ -8,9 +9,12 @@ declaration:
       - field: q
         type: string
         description: "User group ID"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -28,6 +32,7 @@ getUserGroup:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -38,25 +43,15 @@ getUserGroup:
 checkGroupFound:
   switch:
     - condition: ${res.response.body.length > 0}
-      next: mapResponse
+      next: getGroupUsers
   next: return_forbidden
-
-mapResponse:
-  call: http.post
-  args:
-    url: "[#LJVIS_DMAPPER_HBS]/map_user_group"
-    headers:
-      type: json
-    body:
-      groups: ${res.response.body}
-  result: mapped
-  next: getGroupUsers
 
 getGroupUsers:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       user_group_id: ${Number(id)}
@@ -85,15 +80,13 @@ logAuditEvent:
   body:
     event_type: "user_group.view"
     event_category: "user_group_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${view_description}
     log_content: ${log_content}
   result: audit_result
   next: returnSuccess
 
 returnSuccess:
-  return: ${mapped.response.body}
+  return: ${res.response.body}
   next: end
 
 return_forbidden:

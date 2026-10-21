@@ -1,37 +1,51 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
-    Öine partii: iga confirmed autojuhi sõidu- ja puhkeaja alamvormi kohta,
-    millel on väärteomenetluse viitenumber + juhi isikukood ja millel
+    Öine partii: iga confirmed autojuhi või meeskonnaliikme sõidu- ja puhkeaja
+    alamvormi kohta, millel on väärteomenetluse viitenumber + isikukood ja millel
     enforcement_decision on veel NULL, küsib e-toimikult
     (AnnaIsikuKvalifikatsioonid) kas otsus on jõustunud, ja kirjutab tulemuse
-    (jõustunud otsus + menetluse lõpetamise alus) alamvormile KOHAPEAL — ei
-    avalikusta, ei bumbi versiooni. Kutsub CronManager 01:30 Europe/Tallinn
+    (jõustunud otsus + menetluse lõpetamise alus) uuele published snapshotile.
+    Kui kõik koondvormi alamvormid on published, avalikustab ka koondvormi.
+    Kutsub CronManager 01:30 Europe/Tallinn
     (DSL/CronManager/etoimik-sp-driver-decision-sync.yaml).
   namespace: cron
   allowlist:
     body: []
 
-fetchCandidates:
+fetchDriverCandidates:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/select_etoimik_candidates"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
-  result: candidatesRes
+  result: driverCandidatesRes
+  next: fetchTeammateCandidates
+
+fetchTeammateCandidates:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/select_etoimik_candidates"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body: {}
+  result: teammateCandidatesRes
   next: assignCandidates
 
 assignCandidates:
   assign:
-    candidates: "${candidatesRes.response.body || []}"
+    candidates: "${(driverCandidatesRes.response.body || []).map(function(c) { return Object.assign({}, c, { formType: 'driver' }); }).concat((teammateCandidatesRes.response.body || []).map(function(c) { return Object.assign({}, c, { formType: 'teammate' }); }))}"
   next: processCandidates
 
-# `iterate`'s `do:` on lame jada — `next:` sees ignoreeritakse, `return`
+# `iterate`'s `do:` on lame jada - `next:` sees ignoreeritakse, `return`
 # katkestaks kogu partii. Seetõttu on kõik harud (XTR viga / ei leitud /
 # leitud) koondatud ühte `decision` assign'i ja kirjutuskutsed selle järel
-# alati käivituvad; update-xroad-fields.sql ise on no-op kui found=false.
+# alati käivituvad; rakendamise SQL ise on no-op kui found=false.
 processCandidates:
   iterate:
     over: "${candidates}"
@@ -40,8 +54,10 @@ processCandidates:
     do:
       - assign:
           candidate_key: "${String(candidate.id)}"
+          form_type: "${candidate.formType || candidate.form_type || ''}"
+          compound_form_key: "${String(candidate.compoundFormKey || candidate.compound_form_key || '')}"
           reference_number: "${candidate.proceedingReferenceNumber || candidate.proceeding_reference_number || ''}"
-          driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
+          person_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || candidate.personPersonalCode || candidate.person_personal_code || ''}"
           case_start: "${new Date().getTime()}"
 
       # Built once so the log_integration call below can log the exact same
@@ -49,15 +65,14 @@ processCandidates:
       - assign:
           xtr_request_body:
             reference_number: ${reference_number}
-            personal_code: ${driver_personal_code}
+            personal_code: ${person_code}
             userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
 
       - call: http.post
         args:
           url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body: ${xtr_request_body}
         result: xtrResponse
@@ -75,7 +90,7 @@ processCandidates:
               var responseNode = responseKey ? soapBody[responseKey] : {};
               var caseNode = responseNode.response || null;
               if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
+                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse.response.body) };
               }
               var decisions = [];
               var bases = [];
@@ -83,7 +98,7 @@ processCandidates:
                 toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
                   toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
                     var person = p.Isik || {};
-                    if (String(person.Kood || '') !== driver_personal_code) { return; }
+                    if (String(person.Kood || '') !== person_code) { return; }
                     toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
                       toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
                         if (!cp.SulgemiseKP) { return; }
@@ -104,24 +119,26 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/xroad/log_integration"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
-            service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.sp_driver"
+            service_code: "${'etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.sp_' + form_type}"
             request_xml: "${JSON.stringify(xtr_request_body)}"
             response_xml: "${decision.rawResponse}"
             duration_ms: "${new Date().getTime() - case_start}"
             success: ${decision.success}
             error_message: "${decision.errorMessage}"
-            person_identifier: ${driver_personal_code}
-            source_type: "sp_driver_form"
+            person_identifier: ${person_code}
+            source_type: "${form_type === 'teammate' ? 'sp_teammate_form' : 'sp_driver_form'}"
             source_record_id: ${candidate_key}
             result_status: "${decision.resultStatus}"
         result: logRes
 
       - call: http.post
         args:
-          url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-xroad-fields"
+          url: "${form_type === 'teammate' ? '[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update-etoimik-decision' : '[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-xroad-fields'}"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             key: ${candidate_key}
@@ -130,28 +147,53 @@ processCandidates:
             proceedingClosureBasis: "${decision.proceedingClosureBasis}"
         result: applyRes
 
-      # update-xroad-fields.sql tagastab 0 rida kui found=false või status<>'confirmed'
-      # või enforcement_decision juba täidetud — applied_now ütleb kas kirje tekkis.
+      # Vormipõhine rakendamise SQL tagastab 0 rida, kui otsust ei rakendatud.
       - assign:
           applied_now: "${!!(applyRes.response.body && applyRes.response.body[0])}"
           applied_sub_form_number: "${(applyRes.response.body && applyRes.response.body[0] && (applyRes.response.body[0].subFormNumber || applyRes.response.body[0].sub_form_number)) || ''}"
 
       - call: http.post
         args:
-          url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/log_etoimik_sp_driver_audit"
+          url: "[#LJVIS_RESQL]/control-forms/compound-form/publish-if-all-subforms-published"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            key: ${compound_form_key}
+            created_by: "eToimik öine uuendus"
+        result: compoundPublishRes
+
+      - call: http.post
+        args:
+          url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/log-etoimik-publish-audit"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             found: "${applied_now ? 'true' : 'false'}"
             key: ${candidate_key}
+            form_type: ${form_type}
+            compound_form_key: ${compound_form_key}
             sub_form_number: ${applied_sub_form_number}
-            driver_personal_code: ${driver_personal_code}
+            person_code: ${person_code}
+            compound_published: "${!!(compoundPublishRes.response.body && compoundPublishRes.response.body[0]) ? 'true' : 'false'}"
+            compound_form_number: "${(compoundPublishRes.response.body && compoundPublishRes.response.body[0] && (compoundPublishRes.response.body[0].formNumber || compoundPublishRes.response.body[0].form_number)) || ''}"
         result: auditRes
-    collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
+      - call: http.post
+        args:
+          url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            form_type: "compound"
+            form_key: "${String(compound_form_key)}"
+        result: riskRecalcRes
+    collect: "${({ id: candidate.id, formType: form_type, found: decision.found, applied: applied_now, compoundPublished: !!(compoundPublishRes.response.body && compoundPublishRes.response.body[0]), success: decision.success && riskRecalcRes.response != null && riskRecalcRes.response.status >= 200 && riskRecalcRes.response.status < 300 })}"
     into: results
   next: returnSummary
 
 returnSummary:
   status: 200
-  return: "${({ candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.applied).length, failures: results.filter(r => !r.success).length })}"
+  return: "${({ total: candidates.length, succeeded: results.filter(r => r.success).length, candidatesChecked: candidates.length, decisionsApplied: results.filter(r => r.applied).length, compoundsPublished: results.filter(r => r.compoundPublished).length, failures: results.filter(r => !r.success).length })}"
   next: end

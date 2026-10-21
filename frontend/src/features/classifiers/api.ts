@@ -60,6 +60,8 @@ export const insertClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
+  /** ADR-011: FORM_TYPE koodid; [] = kõik vormid */
+  formTypes: string[];
 }) => post<ClassifierValue[]>('/v1/classifiers/value', data);
 
 export const getClassifierValue = (
@@ -78,4 +80,6 @@ export const updateClassifierValue = (data: {
   name: string;
   validFrom: string;
   validUntil: string;
+  /** ADR-011: FORM_TYPE koodid; [] = kõik vormid */
+  formTypes: string[];
 }) => put<ClassifierValue[]>('/v1/classifiers/value', data);

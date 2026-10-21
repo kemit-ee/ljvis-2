@@ -12,9 +12,10 @@ import type {
   PartDefectEntry,
   PartSeverity,
 } from '../../types';
-import { confirmTechnicalCheckForm, saveTechnicalCheckForm, publishTechnicalCheckForm } from '../../api';
+import { confirmTechnicalCheckForm, saveTechnicalCheckForm, publishTechnicalCheckForm, saveProceedingOutcome } from '../../api';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
 import { applyValidationError } from '../../../../shared/api/errors';
+import { hasProceeding } from '../../proceedingOutcome';
 
 /** Parts excluded from the trailer variant (LJVIS2-72 §0/§4). */
 const TRAILER_EXCLUDED_PARTS = ['CAA_2', 'CAA_3', 'CAA_7', 'CAA_9'];
@@ -72,11 +73,16 @@ function normalizePartSummary(
 /** Auto-generated "Märkused" line prefix for a given part — lets a later
  * defect edit find and replace exactly this part's own lines without
  * touching other parts' lines or the officer's own free text (p8/p14). */
-const noteLinePrefix = (partCode: string) => `${partCode}: `;
+/** Severity goes in parentheses right after the defect text, glued with a
+ * non-breaking space so a wrapped line never leaves "(OV)" alone on its own row. */
+const noteSeverity = (severity: string) => `\u00a0(${severity})`;
+const noteLinePrefix = (partName: string) => `${partName}: `;
 
-function syncPartNoteLines(notes: string, partCode: string, lines: string[]): string {
-  const prefix = noteLinePrefix(partCode);
-  const otherLines = (notes ?? '').split('\n').filter((l) => l && !l.startsWith(prefix));
+/** `partCode: ` is the legacy prefix (classifier code, e.g. "CAA_4") — still
+ * recognised so older notes get cleaned up, but never written anymore. */
+function syncPartNoteLines(notes: string, partCode: string, partName: string, lines: string[]): string {
+  const prefixes = [noteLinePrefix(partName), `${partCode}: `];
+  const otherLines = (notes ?? '').split('\n').filter((l) => l && !prefixes.some((p) => l.startsWith(p)));
   return [...otherLines, ...lines].join('\n').slice(0, 2000);
 }
 
@@ -107,12 +113,13 @@ export function createTechnicalCheckValidationSchema(
 export function useTechnicalCheckForm(
   variant: TechnicalCheckVariant,
   form: TechnicalCheckForm | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string, confirmed?: boolean) => void,
   compoundFormKey?: number,
   onPublished?: () => void,
 ) {
   const { t } = useTranslation();
   const pendingConfirm = useRef(false);
+  const pendingNotifyCarrier = useRef(false);
   const pendingPublish = useRef(false);
   const compoundFormKeyOverride = useRef<number | undefined>(undefined);
   const [formError, setFormError] = useState<string | null>(null);
@@ -208,6 +215,9 @@ export function useTechnicalCheckForm(
         pendingConfirm.current = false;
         pendingPublish.current = false;
         if (isPublishing && form?.id) {
+          if (hasProceeding(values)) {
+            await saveProceedingOutcome(variant === 'vehicle' ? 'vehicle_technical' : 'trailer_technical', form.id, values.enforcementDecision, values.proceedingClosureBasis);
+          }
           await publishTechnicalCheckForm(variant, form.id);
           onPublished?.();
           return;
@@ -230,9 +240,9 @@ export function useTechnicalCheckForm(
         } as unknown as TechnicalCheckForm;
         compoundFormKeyOverride.current = undefined;
         const result = isConfirming
-          ? await confirmTechnicalCheckForm(variant, payload)
+          ? await confirmTechnicalCheckForm(variant, { ...payload, notifyCarrier: String(pendingNotifyCarrier.current) } as unknown as TechnicalCheckForm)
           : await saveTechnicalCheckForm(variant, payload);
-        onSaved((result[0] as { id?: string })?.id);
+        onSaved((result[0] as { id?: string })?.id, isConfirming);
       } catch (e) {
         const handled = applyValidationError(
           e,
@@ -247,8 +257,9 @@ export function useTechnicalCheckForm(
     },
   });
 
-  const triggerConfirm = () => {
+  const triggerConfirm = (notifyCarrier = false) => {
     pendingConfirm.current = true;
+    pendingNotifyCarrier.current = notifyCarrier === true;
     return formik.submitForm();
   };
 
@@ -318,14 +329,14 @@ export function useTechnicalCheckForm(
     // Replace (not append) this part's own auto-generated note lines with the
     // current selection, so removed/changed defects don't leave stale text
     // behind (15 ettepanekut p8/p14).
-    const defectNames = defectsByPartKey.get(
-      parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
-    ) ?? [];
+    const part = parts.find((p) => p.code === partCode);
+    const partName = part?.name ?? '';
+    const defectNames = defectsByPartKey.get(part?.classifierValueKey ?? -1) ?? [];
     const noteLines = selected.map((s) => {
       const defect = defectNames.find((d) => d.code === s.defectCode);
-      return `${noteLinePrefix(partCode)}${defect?.name ?? s.defectCode} – ${s.severity}`;
+      return `${noteLinePrefix(partName)}${defect?.name ?? s.defectCode}${noteSeverity(s.severity)}`;
     });
-    const notes = syncPartNoteLines(v.notes ?? '', partCode, noteLines);
+    const notes = syncPartNoteLines(v.notes ?? '', partCode, partName, noteLines);
 
     // Single atomic update — see computeResultChanges note.
     formik.setValues({
@@ -377,14 +388,14 @@ export function useTechnicalCheckForm(
       ? prevSummary.map((p) => (p.partCode === partCode ? nextEntry : p))
       : [...prevSummary, nextEntry];
 
-    const defectNames = defectsByPartKey.get(
-      parts.find((p) => p.code === partCode)?.classifierValueKey ?? -1,
-    ) ?? [];
+    const part = parts.find((p) => p.code === partCode);
+    const partName = part?.name ?? '';
+    const defectNames = defectsByPartKey.get(part?.classifierValueKey ?? -1) ?? [];
     const noteLines = remainingForPart.map((d) => {
       const defect = defectNames.find((dd) => dd.code === d.defectCode);
-      return `${noteLinePrefix(partCode)}${defect?.name ?? d.defectCode} – ${d.severity}`;
+      return `${noteLinePrefix(partName)}${defect?.name ?? d.defectCode}${noteSeverity(d.severity)}`;
     });
-    const notes = syncPartNoteLines(v.notes ?? '', partCode, noteLines);
+    const notes = syncPartNoteLines(v.notes ?? '', partCode, partName, noteLines);
 
     formik.setValues({
       ...v,

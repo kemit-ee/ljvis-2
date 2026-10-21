@@ -19,7 +19,9 @@
     "officialInfo": "Liiklusjärelevalve infosüsteemi on võimalik logida ametnikul, kelle andmed on infosüsteemi sisestatud ja kes omab infosüsteemi andmetele juurdepääsu sõltuvalt oma tööülesannetest.",
     "roleLabel": "Vaade",
     "roleOfficer": "Ametnik",
-    "roleCitizen": "Kodanik"
+    "roleCitizen": "Kodanik",
+    "taraUnavailable": "Ei suuda ühenduda TARA'ga. Autentimisteenus ei vasta või ei ole seadistatud — palun proovige mõne aja pärast uuesti või andke probleemist teada süsteemihaldurile.",
+    "backToLogin": "Tagasi sisselogimisse"
   },
   "countries": {
     "AD": "Andorra",
@@ -281,8 +283,8 @@
     "classifiers": "Klassifikaatorid",
     "logs": "Logid",
     "erru": "ERRU",
-    "ctud": "Tegevusloa kontrolli päringud",
-    "cgr": "Mainepäringud",
+    "ctud": "Tegevusloa kontrolli päringud CTUD",
+    "cgr": "Mainepäringud CGR",
     "search": "Otsing",
     "rsi": "Tehnokontrolli teated RSI",
     "ncr": "Kontrollitulemuse teated NCR",
@@ -290,7 +292,7 @@
     "riskScores": "Riskitasemed",
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused",
-    "xroadLogs": "eToimiku X-tee logid",
+    "xroadLogs": "E-toimiku X-tee logid",
     "notificationTemplateMapping": "Postkasti mallide ja vastuvõtjate seaded"
   },
   "citizen": {
@@ -322,10 +324,10 @@
       "driverName": "Nimi",
       "driverPersonalCode": "Isikukood",
       "subFormsSection": "Kontrolli üksikasjad",
-      "subFormsEmpty": "Selle kontrolli kohta täiendavaid avaldatud alamvorme ei ole.",
+      "subFormsEmpty": "Selle kontrolli kohta täiendavaid avalikustatud alamvorme ei ole.",
       "subFormType": {
         "sp_driver": "Sõidu- ja puhkeaeg (juht)",
-        "sp_teammate": "Sõidu- ja puhkeaeg (kaassõitja)",
+        "sp_teammate": "Sõidu- ja puhkeaeg (meeskonnaliige)",
         "vehicle_technical": "Sõiduki tehnonõuetele vastavus",
         "trailer_technical": "Haagise tehnonõuetele vastavus",
         "adr": "Ohtlike veoste vedu",
@@ -337,21 +339,21 @@
         "ok": "Korras",
         "HOIATUS": "Hoiatus",
         "ETTEKIRJUTUS": "Ettekirjutus",
-        "extraordinary_inspection": "Suunati erakorralisele tehnoülevaatusele",
-        "extraordinary_inspection_ta": "Suunati erakorralisele tehnoülevaatusele",
+        "extraordinary_inspection": "Suunatud erakorralisele tehnoülevaatusele",
+        "extraordinary_inspection_ta": "Suunatud erakorralisele tehnoülevaatusele liiklusregistri andmete täpsustamiseks Transpordiametis",
         "driving_ban": "Sõidukeeld",
         "misdemeanor_proceedings": "Alustati väärteomenetlust",
         "warning": "Hoiatus",
-        "driving_ban_art5": "Sõidukeeld (ADR)",
-        "transport_interruption": "Autovedu katkestati"
+        "driving_ban_art5": "Sõidukeeld (ADR art 5)",
+        "transport_interruption": "Autovedu on katkestatud"
       },
       "violationsTitle": "Tuvastatud rikkumised",
       "noViolations": "Rikkumisi ei tuvastatud.",
       "severity": {
-        "MSI": "Eriti tõsine rikkumine (MSI)",
-        "VSI": "Väga tõsine rikkumine (VSI)",
-        "SI": "Tõsine rikkumine (SI)",
-        "MI": "Vähetõsine rikkumine (MI)"
+        "MSI": "Kõige raskem rikkumine (MSI)",
+        "VSI": "Väga raske rikkumine (VSI)",
+        "SI": "Raske rikkumine (SI)",
+        "MI": "Kergem rikkumine (MI)"
       },
       "notes": "Märkus"
     },
@@ -369,16 +371,16 @@
         "formNumber": "Vormi number",
         "mainDate": "Kuupäev",
         "vehicleRegNr": "Sõiduki reg-nr",
-        "msi": "Ülitõsine",
+        "msi": "Kõige raskem",
         "msiTooltip": "MSI – kõige raskemad rikkumised (Most Serious Infringement), nt sõidumeeriku pettus või selle puudumine, kiiruspiiriku puudumine.",
-        "vsi": "Väga tõsine",
-        "vsiTooltip": "VSI – väga tõsised rikkumised (Very Serious Infringement), nt suur sõiduaja või puhkeaja nõuete ületamine.",
-        "si": "Tõsine",
-        "siTooltip": "SI – tõsised rikkumised (Serious Infringement), nt väiksem sõiduaja või puhkeaja nõuete ületamine.",
-        "mi": "Vähetõsine",
-        "miTooltip": "MI – vähetõsised rikkumised (Minor Infringement), nt formaalsed puudused dokumentide täitmisel.",
+        "vsi": "Väga raske",
+        "vsiTooltip": "VSI – väga rasked rikkumised (Very Serious Infringement), nt suur sõiduaja või puhkeaja nõuete ületamine.",
+        "si": "Raske",
+        "siTooltip": "SI – rasked rikkumised (Serious Infringement), nt väiksem sõiduaja või puhkeaja nõuete ületamine.",
+        "mi": "Kergem",
+        "miTooltip": "MI – kergemad rikkumised (Minor Infringement), nt formaalsed puudused dokumentide täitmisel.",
         "weightedPoints": "Kaalutud punktid",
-        "weightedPointsTooltip": "Kontrolli riskipunktid, arvutatud rikkumiste raskusastme alusel (huligaansõit annab kõige rohkem punkte, vähemtõsine kõige vähem).",
+        "weightedPointsTooltip": "Kontrolli riskipunktid, arvutatud rikkumiste raskusastme alusel (kõige raskem rikkumine annab kõige rohkem punkte, kergem rikkumine kõige vähem).",
         "view": "Vaata"
       }
     },
@@ -391,8 +393,9 @@
   "dashboard": {
     "scope": {
       "label": "Vaade",
-      "own": "Mina",
-      "organisation": "Organisatsioon"
+      "own": "Minu vormid",
+      "unit": "Minu prefektuuri vormid",
+      "organisation": "Minu asutuse"
     },
     "sections": {
       "compoundBlock": "Koondvorm",
@@ -402,7 +405,7 @@
     },
     "compound": {
       "selectSubforms": "Vali kontrollvorm(id):",
-      "selectSubformsHint": "Vali vähemalt üks kontrollvorm"
+      "selectSubformsHint": "Valige vähemalt üks kontrollvorm"
     },
     "kind": {
       "kontrollkaart": "Kontrollkaart",
@@ -441,7 +444,15 @@
   "forms": {
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
-    "publishedNote": "Vorm on avaldatud",
+    "notifyCarrierOnConfirm": "Teavita vedajat rikkumisest (saadetakse avalikustamisel)",
+    "carrierNotification": {
+      "button": "Teavita vedajat rikkumisest",
+      "sent": "Vedaja teavitus on saadetud.",
+      "queued": "Vedaja teavitus on tellitud ja saadetakse avalikustamisel.",
+      "notSent": "Teavitust ei saadetud: vormil ei ole MSI, VSI või SI rikkumist või vedaja e-posti aadressi ei leitud."
+    },
+    "publishUnsavedChanges": "Salvestage muudatused enne avalikustamist",
+    "publishedNote": "Vorm on avalikustatud",
     "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",
     "versions": {
       "title": "Versioonid",
@@ -453,9 +464,21 @@
       "open": "Ava link"
     },
     "shared": {
+      "administrativeProcedure": {
+        "save": "Uuenda haldusmenetluse andmeid",
+        "saved": "Haldusmenetluse andmed salvestatud",
+        "savedVersion": "Haldusmenetluse andmed salvestatud, vormi uus versioon on {{version}}",
+        "saveFailed": "Haldusmenetluse andmete salvestamine ebaõnnestus",
+        "loadFailed": "Haldusmenetluse andmete laadimine ebaõnnestus"
+      },
+      "proceedingOutcome": {
+        "title": "Menetluse tulemus",
+        "enforcementDecision": "Jõustunud otsus",
+        "proceedingClosureBasis": "Menetluse lõpetamise alus"
+      },
       "files": {
         "label": "Failid",
-        "save_first": "Salvesta vorm enne failide lisamist",
+        "save_first": "Salvestage vorm enne failide lisamist",
         "error": "Faili üleslaadimine või allalaadimine ebaõnnestus"
       },
       "address": {
@@ -463,7 +486,7 @@
         "county": "Maakond",
         "city": "Linn/Vald",
         "street": "Tänav, maja",
-        "postalCode": "Postiindeks"
+        "postalCode": "Sihtnumber"
       },
       "personSearch": {
         "personalCode": "Isikukood",
@@ -506,7 +529,7 @@
       "punishedPersonFirstName": "Karistatud isiku eesnimi",
       "punishedPersonLastName": "Karistatud isiku perekonnanimi",
       "proceedingReferenceNumber": "Väärteomenetluse viitenumber",
-      "xroadDecisionSection": "Andmevahetuskihi päringuga sisestatavad andmed (x-tee)",
+      "xroadDecisionSection": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
       "enforcementDecision": "Jõustunud otsus",
       "proceedingClosureBasis": "Menetluse lõpetamise alus",
       "violations": {
@@ -522,7 +545,7 @@
       "validation": {
         "required": "Kohustuslik väli",
         "api": {
-          "violations_present_requires_e_toimik_publish": "Rikkumistega akti ei saa siin kinnitada — avaldamine toimub e-toimiku kaudu.",
+          "violations_present_requires_e_toimik_publish": "Rikkumistega akti ei saa siin kinnitada — avalikustamine toimub e-toimiku kaudu.",
           "required": "Kohustuslik väli",
           "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
           "max_length_exceeded": "Väärtus on liiga pikk",
@@ -568,7 +591,7 @@
         }
       }
     },
-    "good_repute_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuht",
+    "good_repute_form": "Hea maine nõudele mittevastavaks tunnistatud veokorraldusjuhi andmevorm",
     "compound_form": "Veondusjärelevalve ja sõiduki tehnoseisundi kontrollkaart",
     "technical_check": {
       "sectionTitle": "Tehnonõuetele vastavuse kontrollvormid",
@@ -584,7 +607,7 @@
         "api": {
           "required": "Kohustuslik väli",
           "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",
-          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "form_locked_after_publish": "See vorm on avalikustatud ja seda ei saa enam muuta",
           "code_not_applicable_to_trailer": "Valitud kood ei kohaldu haagisele",
           "already_confirmed": "See vorm on juba kinnitatud",
           "xroad_fields_require_confirmed_status": "X-tee väljade salvestamine nõuab kinnitatud olekus vormi"
@@ -597,7 +620,7 @@
         "notChecked": "Ei kontrollitud",
         "checked": "Kontrollitud",
         "nonCompliant": "Ei vasta nõuetele",
-        "editDefects": "Muuda puudusi"
+        "editDefects": "Muuda rikkeid"
       },
       "resultsTable": {
         "title": "Tuvastatud rikked",
@@ -615,7 +638,7 @@
       "result": {
         "title": "Kontrolli tulemus",
         "resultType": "Kontrolli tulemus",
-        "autoLockedHint": "Osad valikud on lukustatud, kuna leitud rikked eeldavad kõrgemat kontrolli tulemuse taset. Eemalda vastavad rikked, et madalamat taset valida.",
+        "autoLockedHint": "Osad valikud on lukustatud, kuna leitud rikked eeldavad kõrgemat kontrolli tulemuse taset. Eemaldage vastavad rikked, et madalamat taset valida.",
         "options": {
           "legacy_proceedings": "Kohaldati väärteomenetlust (LJVIS1)",
           "ok": "Tehniliselt korras",
@@ -640,6 +663,8 @@
         },
         "proceedingReferenceNumber": "Menetluse viitenumber",
         "caseNumber": "Väärteoasja number",
+        "clearProceeding": "Eemalda märge",
+        "clearProceedingConfirm": "Kas oled kindel, et soovid menetluse info eemaldada?",
         "autovs5131": "Autovedu on katkestatud AutoVS § 51 lõike 3 punkti 1 alusel"
       },
       "notes": {
@@ -682,7 +707,7 @@
         "postalCodeMaxLength": "Sihtnumber võib olla kuni {{max}} tähemärki",
         "api": {
           "required": "Kohustuslik väli",
-          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "form_locked_after_publish": "See vorm on avalikustatud ja seda ei saa enam muuta",
           "already_confirmed": "See vorm on juba kinnitatud"
         }
       }
@@ -694,6 +719,8 @@
       "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Autojuhi abi andmed",
+        "open": "Ava",
+        "close": "Sulge",
         "personalCode": "Isikukood",
         "firstName": "Eesnimi",
         "lastName": "Perekonnanimi",
@@ -828,7 +855,7 @@
         "notesMaxLength": "Märkused võivad olla kuni {{max}} tähemärki",
         "api": {
           "required": "Kohustuslik väli",
-          "form_locked_after_publish": "See vorm on avaldatud ja seda ei saa enam muuta",
+          "form_locked_after_publish": "See vorm on avalikustatud ja seda ei saa enam muuta",
           "already_confirmed": "See vorm on juba kinnitatud"
         }
       },
@@ -872,6 +899,7 @@
       "controlResultLabel": "Kontrolli tulemus",
       "controlResultKorras": "Korras",
       "controlResultHoiatus": "Hoiatus",
+      "controlResultMargukiri": "Märgukiri",
       "controlResultEttekirjutus": "Ettekirjutus",
       "controlResultJuhtimiselt": "Juhtimiselt kõrvaldamine",
       "controlResultArest": "Arest",
@@ -901,7 +929,8 @@
       "xteeDataTitle": "Andmevahetuskihi päringuga sisestatavad andmed (X-tee)",
       "validation": {
         "required": "Kohustuslik väli",
-        "workDaysCountMax": "Tööpäevade arv ei tohi ületada kontrollitud päevade arvu"
+        "workDaysCountMax": "Tööpäevade arv ei tohi ületada kontrollitud päevade arvu",
+        "daysCountMaxDigits": "Päevade arv võib olla kuni kahekohaline"
       }
     },
     "compound": {
@@ -926,12 +955,15 @@
       "address": "Aadress",
       "road": "Maantee",
       "road_other": "Muu tee",
+      "road_other_number": "Tee number",
+      "road_other_number_not_found": "Sellist tee numbrit muude teede loetelus ei leitud, sisestage tee nimetus käsitsi",
       "kilometer": "Kilomeeter (km)",
       "road_type": "Tee liik",
       "roadTaxStatus": "Veoauto teekasutustasu",
       "roadTaxStatusNotApplicable": "Ei kohaldu",
       "roadTaxStatusUnpaid": "Tasumata",
       "roadTaxStatusUnderpaid": "Tasutud väiksemas määras",
+      "roadTaxClear": "Tühista valik",
       "roadTaxNotes": "Märkus",
       "trailer": "Haagis",
       "addTrailer": "Lisa haagis",
@@ -940,8 +972,14 @@
       "selectedForms": "Valitud kontrollvormid",
       "trailerTechnicalTab": "tehnoseisundi kontrollkaart",
       "addTrailerControlForm": "Lisa haagise tehno kontrollvorm",
-      "editTrailerControlForm": "Muuda haagise tehno kontrollvormi",
+      "editTrailerControlForm": "Ava haagise tehnokontrollvorm",
       "removeTrailer": "Eemalda haagis",
+      "addTeammate": "Lisa meeskonnaliige",
+      "teammate": "Meeskonnaliikme andmed",
+      "removeTeammate": "Eemalda meeskonnaliige",
+      "removeTeammateBlocked": "Meeskonnaliiget ei saa eemaldada, kuni tema sõidu- ja puhkeaja kontrollvorm on olemas. Kustuta vorm enne.",
+      "addTeammateControlForm": "Lisa meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
+      "editTeammateControlForm": "Ava meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
       "trailerRegNr": "Registreerimismärk",
       "trailerCountry": "Riigi tunnusmärk",
       "trailerMake": "Mark",
@@ -978,14 +1016,14 @@
         "requestFailed": "MTR päring ebaõnnestus."
       },
       "driver": "Sõidukijuhi andmed",
-      "driver2": "Teise juhi / meeskonna liikme andmed",
+      "driver2": "Teise juhi / meeskonnaliikme andmed",
       "driverPersonalCodeEe": "Eesti isikukood",
       "driverFirstName": "Eesnimi",
       "driverLastName": "Perekonnanimi",
       "driverCitizenshipCode": "Kodakondsus",
       "driverPersonalCodeForeign": "Välisriigi isikukood",
       "driverPersonSearchButton": "Otsi rahvastikuregistrist",
-      "driverPersonSearchError": "Rahvastikuregistri päring ebaõnnestus. Kontrolli, et Eesti isikukood on korrektne.",
+      "driverPersonSearchError": "Rahvastikuregistri päring ebaõnnestus. Kontrollige, et Eesti isikukood on korrektne.",
       "driverNotApplicable": "Ei ole asjakohane",
       "driverBirthDate": "Sünniaeg",
       "addDriver": "Lisa teine juht",
@@ -994,7 +1032,7 @@
       "inspectorFirstName": "Eesnimi",
       "inspectorLastName": "Perekonnanimi",
       "inspectorOrganisation": "Asutus",
-      "inspectorUnit": "Struktuurüksus",
+      "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus"
     },
     "admin_procedure_form": "Haldusmenetlus seoses raskete autoveoalaste rikkumistega",
@@ -1049,6 +1087,18 @@
       "sanctionHoiatus": "Hoiatus",
       "sanctionKabotaaz": "Kabotaažveo ajutine keelamine",
       "sanctionTrahv": "Trahv",
+      "requestedPenaltyPrefix": "Taotletud",
+      "requestedPenalty": {
+        "101": "Hoiatus",
+        "301": "Ühenduse tegevusloa kinnitatud ärakirjade ajutine äravõtmine",
+        "302": "Ühenduse tegevusloa kinnitatud ärakirjade lõplik äravõtmine",
+        "303": "Ühenduse tegevusloa ajutine äravõtmine",
+        "304": "Ühenduse tegevusloa lõplik äravõtmine",
+        "305": "Autojuhi tõendi väljastamise peatamine",
+        "306": "Autojuhi tõendi äravõtmine",
+        "307": "Autojuhi tõendi väljastamine lisatingimustega",
+        "102": "Muu"
+      },
       "sanctionLiiklemiskeeld": "Liiklemiskeeld",
       "sanctionSoiduk": "Sõiduki kasutamise takistamine",
       "sanctionMuu": "Muu",
@@ -1066,7 +1116,7 @@
       },
       "notifications": {
         "title": "Teavitused",
-        "hint": "Märkige teavitus ja salvestage vorm — süsteem saadab valitud teavituse. Teavitust saab hiljem andmete muutumisel uuesti saata, märkides linnukese ja salvestades vormi uuesti.",
+        "hint": "Märkige teavitus ja salvestage vorm — valitud teavitus saadetakse kaardi avalikustamisel. Linnuke jääb kaardile alles, nii et kaardi uuesti avalikustamisel saadetakse teavitus uuesti.",
         "foreignProposal": "Saabus välisriigi pädeva asutuse ettepanek vedaja kontrollimiseks. Edasta teavitus tööinspektorile.",
         "notifyCarrier": "Teavita vedajat rikkumisest",
         "notifyLaborInspector": "Teavita tööinspektorit",
@@ -1181,7 +1231,7 @@
       "euViolationSi902": "SI902 - ületatakse 10 tunni pikkust ööpäevast sõiduaega, kui sõiduaega on lubatud pikendada 11h ≤ ... < 12h",
       "euViolationSi903": "SI903 - ületatakse iganädalast sõiduaega 60h ≤ ... < 65h",
       "euViolationSi904": "SI904 - ületatakse kahe järjestikuse nädala maksimaalset sõiduaega 100h ≤ ... < 105h",
-      "euViolationSi905": "SI905 - ületatakse katkematut 4,5 tunni pikkust sõiduaega enne vaheaji tegemist 5h ≤ ... < 6h",
+      "euViolationSi905": "SI905 - ületatakse katkematut 4,5 tunni pikkust sõiduaega enne vaheaja tegemist 5h ≤ ... < 6h",
       "euViolationSi906": "SI906 - ebapiisav ööpäevane puhkeperiood alla 11 tunni, kui vähendatud ööpäevane puhkeperiood ei ole lubatud 8h30 ≤ ... < 10h",
       "euViolationSi907": "SI907 - ebapiisav vähendatud ööpäevane puhkeperiood alla 9 tunni, kui vähendamine on lubatud 7h ≤ ... < 8h",
       "euViolationSi908": "SI908 - ebapiisav kahte ossa jaotatud ööpäevane puhkeperiood alla 3 + 9 tunni 3h + [7h ≤ ... < 8h]",
@@ -1250,7 +1300,7 @@
       "inspectorUnit": "Struktuuriüksus",
       "inspectorProfession": "Ametinimetus",
       "filesUpload": "Laadi üles fail",
-      "filesBoxInfo": "Kukuta failid siia või klõpsa valimiseks",
+      "filesBoxInfo": "Lohistage failid siia või klõpsake valimiseks",
       "filesHelper": "Lubatud formaadid: jpg, jpeg, png, gif, bmp, tif, tiff, pdf, doc, docx, xls, xlsx, odt, rtf, msg, eml, txt, zip, ddd. Maksimaalne failisuurus 10 MB.",
       "statusSaved": "Salvestatud",
       "statusConfirmed": "Kinnitatud",
@@ -1267,6 +1317,7 @@
       }
     },
     "drive_rest": {
+      "teammatePerson": "Meeskonnaliige",
       "atpTitle": "ATP kokkuleppe nõuete kontroll",
       "sectionTitle": "Dokumendi või õiguse kontroll",
       "violationSectionTitle": "Sõidu- ja puhkeaja nõuete rikkumised",
@@ -1274,7 +1325,9 @@
       "selectAtLeastOne": "Valige vähemalt üks rikkumine.",
       "checkedDaysCount": "Kontrollitud päevade arv",
       "workDaysCount": "nendest tööpäevi",
-      "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta"
+      "otherActivityDaysCount": "nendest päevade arv juhi muu tegevuse kui sõiduki juhtimise kohta",
+      "applicabilityRequiredExplanationDriver": "Autojuhi sõidu- ja puhkeaja nõuete kontrolli kohta peab olema vähemalt üks andmeväli täidetud",
+      "applicabilityRequiredExplanationTeammate": "Meeskonnaliikme sõidu- ja puhkeaja nõuete kontrolli kohta peab olema vähemalt üks andmeväli täidetud"
     },
     "massDimension": {
       "blockTitle": "Andmed sõiduki massi ja mõõtmete ning ATP kokkuleppe nõuetele vastavuse kohta",
@@ -1291,14 +1344,14 @@
     },
     "otherDocs": {
       "notChecked": "Ei kontrollitud",
-      "compliant": "Nõuetekohane",
+      "compliant": "Kontrollitud",
       "nonCompliant": "Ei vasta nõuetele",
       "missing": "Puudub",
       "addRemark": "Lisa märkus",
       "remarkPlaceholder": "Sisestage märkus..."
     },
     "restCheck": {
-      "blockTitle": "Sõidu- ja puhkeaja nõuete täitmine"
+      "blockTitle": "Sõidu- ja puhkeaja nõuete kontroll"
     },
     "rooma1": {
       "blockTitle": "Rooma I lepingu rikkumised"
@@ -1358,6 +1411,8 @@
     "noGroups": "Kasutaja ei ole seotud ühegi kasutajagrupiga",
     "basicInfo": "Isikuandmed",
     "access": "Ligipääs",
+    "searchInvalid": "Sisestage kehtiv Eesti isikukood",
+    "searchNotFound": "Isikut ei leitud",
     "validation": {
       "required": "Kohustuslik väli",
       "email": "Vigane e-posti formaat",
@@ -1368,16 +1423,17 @@
       "api": {
         "required": "Kohustuslik väli",
         "invalid_estonian_personal_code": "Vigane Eesti isikukood (isikukood)",
-        "invalid_email_format": "Vigane e-posti formaat"
+        "invalid_email_format": "Vigane e-posti formaat",
+        "personalCodeConflict": "Sellise isikukoodiga kasutaja on juba olemas"
       }
     },
     "viewDetails": "Vaata",
     "newUserAddedNote": "Uus kasutaja lisatud.",
     "userEditedNote": "Muudatused on salvestatud.",
     "userGroupEditedNote": "Kasutajagrupid on salvestatud.",
-    "groupNote": "Kasutajaga saab sisuda ainult kasutaja asutusega seotud kasutajagruppe.",
+    "groupNote": "Kasutajaga saab siduda ainult kasutaja asutusega seotud kasutajagruppe.",
     "chooseGroup": "Vali kasutajagrupp",
-    "confirmOrganisationChange": "Asutuse muutmine eemaldab kasutajalt kõik kasutajagrupid. Kas soovid jätkata?"
+    "confirmOrganisationChange": "Asutuse muutmine eemaldab kasutajalt kõik kasutajagrupid. Kas soovite jätkata?"
   },
   "userGroups": {
     "titleAdministration": "Kasutajagruppide haldus",
@@ -1402,7 +1458,7 @@
     "permissionsDescription": "Õigused, mis on antud seotud asutustele",
     "users": "Kasutajad",
     "deleteUser": "Kasutaja eemaldamine grupist",
-    "deleteUserConfirm": "Kas oled kindel, et soovid selle kasutaja grupist eemaldada?",
+    "deleteUserConfirm": "Kas olete kindel, et soovite selle kasutaja grupist eemaldada?",
     "usersInGroup": "Kasutajad grupis",
     "searchUsers": "Otsi kasutajat",
     "edit": "Muuda",
@@ -1447,22 +1503,42 @@
     "valueAddedNote": "Klassifikaatori väärtus on lisatud",
     "editedNote": "Klassifikaator on muudetud",
     "valueEditedNote": "Klassifikaatori väärtus on muudetud",
+    "formScope": {
+      "label": "Piira vormidele",
+      "help": "Kui ühtegi vormi pole valitud, on väärtus kasutusel kõigil vormidel.",
+      "placeholder": "Kõik vormid",
+      "column": "Vormid",
+      "all": "Kõik",
+      "parentOwn": "{{name}} — üldandmed",
+      "orphan": "{{code}} (vormitüüpi enam pole)"
+    },
     "validation": {
       "required": "Kohustuslik väli",
-      "valueConflict": "Sellise nimetuseda klassifikaatori väärtus on juba olemas",
+      "valueConflict": "Sellise nimetusega klassifikaatori väärtus on juba olemas",
       "endBeforeStart": "Lõppkuupäev peab olema hilisem kui alguskuupäev",
       "api": {
-        "required": "Kohustuslik väli"
+        "required": "Kohustuslik väli",
+        "duplicate_code": "Selle koodiga väärtus on klassifikaatoris juba olemas",
+        "invalid_period": "Kehtivuse lõpp peab olema hilisem kui kehtivuse algus"
       }
     }
   },
   "notificationTemplateMapping": {
     "title": "Postkasti mallide ja vastuvõtjate seaded",
-    "notificationType": "Teavituse liik",
+    "notificationType": "LJVIS muutuja (sisemine)",
+    "notificationTypeName": "Teavituse liik",
+    "triggeringForms": "Vormid, kus teavitus käivitub",
+    "triggeredAutomatically": "Automaatne (ei ole seotud konkreetse vormiga)",
     "channel": "Kanal",
-    "originalTemplateId": "Malli tunnus",
+    "originalTemplateId": "Postkasti malli alias (templateId)",
     "defaultLanguage": "Vaikimisi keel",
     "defaultRecipientEmail": "Vaikimisi vastuvõtja e-post",
+    "recipients": "Saajad",
+    "desktopRecipients": "Teavituse saajad",
+    "desktopRecipientsEmpty": "Saajaid pole valitud",
+    "desktopRecipientsSearchPlaceholder": "Otsi kasutajat nime järgi",
+    "addRecipient": "Lisa",
+    "removeRecipient": "Eemalda",
     "active": "Aktiivne",
     "statusActive": "Aktiivne",
     "statusInactive": "Mitteaktiivne",
@@ -1471,9 +1547,29 @@
     "edit": "Muuda",
     "save": "Salvesta",
     "cancel": "Tühista",
+    "variables": {
+      "title": "Malli muutujad",
+      "intro": "Postkast 2.0 malli tekstis kasutatavad muutujad. LJVIS saadab need iga teavitusega; mall tuleb Postkastis koostada täpselt nende nimedega. Adressaadi e-post lisatakse alati muutujana „recipient“.",
+      "name": "Muutuja",
+      "description": "Sisu",
+      "formNumber": "Kontrollvormi number",
+      "companyName": "Veoettevõtja nimi",
+      "companyRegCode": "Veoettevõtja registrikood",
+      "inspectionDateTime": "Kontrolli aeg (kuupäev ja kellaaeg)",
+      "inspectionCountryCode": "Kontrolli koht (ISO riigikood)",
+      "inspectionCountry": "Kontrolli koha riigi nimetus",
+      "vehicleRegNr": "Kontrollitud sõiduki registreerimisnumber",
+      "violationSeverities": "Rikkumise raskusastmed (nt MSI, VSI)",
+      "violationDescription": "Rikkumise vabatekstiline kirjeldus",
+      "MSIViolationsList": "MSI rikkumised (kood — nimetus, üks rea kohta)",
+      "VSIViolationsList": "VSI rikkumised (kood — nimetus, üks rea kohta)",
+      "SIViolationsList": "SI rikkumised (kood — nimetus, üks rea kohta)",
+      "resultType": "Kontrolli tulemus"
+    },
     "editedNote": "Seadistus on muudetud",
     "validation": {
       "required": "Kohustuslik väli",
+      "templateIdInvalid": "Malli alias võib sisaldada ainult tähti, numbreid, punkti, alakriipsu ja sidekriipsu",
       "emailInvalid": "E-posti aadress ei vasta lubatud kujule"
     }
   },
@@ -1494,8 +1590,8 @@
     "files": {
       "title": "Kontrolliga seotud failid",
       "addBtn": "Lisa fail",
-      "uploadTitle": "Lae fail üles",
-      "uploadBtn": "Lae üles",
+      "uploadTitle": "Laadi fail üles",
+      "uploadBtn": "Laadi üles",
       "limits": "Lubatud tüübid: pdf, jpeg, png, asice, doc, docx. Max suurus: 20MB.",
       "empty": "Vormile pole faile lisatud.",
       "col": {
@@ -1513,7 +1609,7 @@
         "duplicate": "Sama nimega fail on juba lisatud. Üleslaadides lisatakse uus versioon."
       },
       "confirmDeleteTitle": "Kustuta fail",
-      "confirmDelete": "Kas soovid selle faili kustutada?"
+      "confirmDelete": "Kas soovite selle faili kustutada?"
     }
   },
   "common": {
@@ -1535,9 +1631,13 @@
     "numberPlaceholder": "Nr",
     "select": "Vali",
     "errors": {
+      "formModified": "Seda vormi muutis vahepeal keegi teine (või teine aken või e-toimiku sünkroonimine), seega sinu salvestus jäi tegemata. Laadi leht uuesti, kontrolli uusi andmeid ja salvesta oma muudatused uuesti.",
       "serverError": "Serveri viga. Palun proovige hiljem uuesti.",
       "networkError": "Ühenduse viga. Kontrollige võrguühendust.",
       "forbidden": "Puuduvad õigused selle toimingu tegemiseks.",
+      "formForbiddenTitle": "Teil puudub õigus seda vormi vaadata",
+      "formForbidden": "Avalikustamata vormi näeb selle looja, sama asutuse kolleeg (õigusega „Minu asutuse vormid“) ja kasutaja, kellel on õigus vaadata avalikustamata vorme. Avalikustatud vormid on nähtavad kõigile vastava vormi lugemise õigusega kasutajatele. Ligipääsu vajaduse korral pöörduge oma asutuse kasutajahalduse poole.",
+      "formNotFound": "Soovitud vormi ei leitud. Vorm võib olla kustutatud või viidatud aadress on vigane.",
       "notFound": "Soovitud ressurssi ei leitud.",
       "requestFailed": "Päring ebaõnnestus. Palun proovige uuesti.",
       "unexpected": "Ilmnes ootamatu viga."
@@ -1580,20 +1680,20 @@
   "footer": {
     "help": "Abi",
     "department": "Kliimaministeerium",
-    "title": "Liiklusjärelvalve infosüsteem",
+    "title": "Liiklusjärelevalve infosüsteem",
     "faq": "KKK",
     "cookies": "Küpsised",
     "privacy": "Privaatsussätted",
     "logoAlt": "Euroopa Sotsiaalfond"
   },
   "riskScores": {
-    "title": "Riskitasemed",
+    "title": "Eesti veoettevõtjate riskitasemed",
     "companyName": "Veoettevõtja",
     "companyRegCode": "Registrikood",
     "riskScore": "Riskitase",
     "riskBand": "Riskitase",
     "totalControls": "Kontrolle kokku",
-    "filterCompany": "Veoettevõtja",
+    "filterCompany": "Eesti veoettevõtja nimi",
     "filterRegCode": "Registrikood",
     "filterRiskBand": "Riskitase",
     "search": "Otsi",
@@ -1604,7 +1704,40 @@
     "bandPunane": "Punane"
   },
   "xroadLogs": {
-    "title": "eToimiku X-tee logid",
+    "title": "E-toimiku X-tee logid",
+    "manualJobs": {
+      "title": "Manuaalne käivitamine",
+      "description": "Käivitab käsitsi samad tööd, mida süsteem teeb ajastatult. Töö jookseb lõpuni enne, kui tulemus ilmub — jätke leht avatuks.",
+      "run": "Käivita",
+      "running": "Töötab…",
+      "done": "Töö „{{job}}” lõpetatud. Arvestati {{total}}, õnnestus {{succeeded}}, ebaõnnestus {{failures}}.",
+      "jobs": {
+        "risk-score-recalc-sync": {
+          "title": "Riskiskooride ümberarvutus",
+          "description": "Arvutab ümber riskitasemed, sh ettevõtetele, kellel skoori veel pole (öösel kell 03:00)."
+        },
+        "etoimik-decision-sync": {
+          "title": "E-toimiku sünkroonimine: tööinspektsioon",
+          "description": "Toob e-toimikust jõustunud otsused tööinspektsiooni vormidele."
+        },
+        "etoimik-tram-decision-sync": {
+          "title": "E-toimiku sünkroonimine: TRAM kontrollkaart",
+          "description": "Toob e-toimikust jõustunud otsused TRAM kontrollkaartidele."
+        },
+        "etoimik-sp-driver-decision-sync": {
+          "title": "E-toimiku sünkroonimine: autojuhi sõidu- ja puhkeaeg",
+          "description": "Toob e-toimikust jõustunud otsused autojuhi sõidu- ja puhkeaja alamvormidele."
+        },
+        "etoimik-sp-teammate-decision-sync": {
+          "title": "E-toimiku sünkroonimine: meeskonnaliikme sõidu- ja puhkeaeg",
+          "description": "Toob e-toimikust jõustunud otsused meeskonnaliikme sõidu- ja puhkeaja alamvormidele."
+        },
+        "etoimik-technical-check-decision-sync": {
+          "title": "E-toimiku sünkroonimine: tehniline kontroll",
+          "description": "Toob e-toimikust jõustunud otsused sõiduki ja haagise tehnovormidele."
+        }
+      }
+    },
     "emptyResult": "Filtrile vastavaid kirjeid ei leitud",
     "empty": "Sisu puudub",
     "viewRequest": "Vaata päringut",
@@ -1616,7 +1749,7 @@
     },
     "scope": {
       "prefix": "Näidatakse",
-      "etoimik": "eToimiku",
+      "etoimik": "e-toimiku",
       "all": "kõiki",
       "suffix": "X-tee logisid"
     },
@@ -1629,6 +1762,7 @@
     "column": {
       "createdAt": "Päringu aeg",
       "form": "Vorm",
+      "formNumber": "Vormi number",
       "serviceCode": "Teenus",
       "status": "Staatus",
       "request": "Väljuv päring",
@@ -1640,6 +1774,7 @@
       "vehicle_technical_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
       "trailer_technical_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
       "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
+      "sp_teammate_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
       "tram_control_card": "Transpordiameti kontrollkaart"
     }
   },
@@ -1649,7 +1784,7 @@
     "person": "Isik",
     "unnamedDriver": "Nimetu juht",
     "queryButton": "Päri e-toimikust",
-    "queryFailed": "E-toimiku päring ebaõnnestus. Palun proovi uuesti.",
+    "queryFailed": "E-toimiku päring ebaõnnestus. Palun proovige uuesti.",
     "notFound": "E-toimikust vastavat asja ei leitud.",
     "proceedingNumber": "Menetlus",
     "actionTypeCode": "Toimingu liik",
@@ -1662,7 +1797,7 @@
       "notFound": "Tegevusloa kontrolli päringut ei leitud",
       "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
       "list": {
-        "title": "Tegevusloa kontrolli päringud (CTUD)",
+        "title": "Tegevusloa kontrolli päringud CTUD",
         "newRequest": "Uus tegevusloa kontrolli päring",
         "id": "Päringu number",
         "sentAt": "Saadetud",
@@ -1670,7 +1805,7 @@
         "ctudTo": "Saadetud riiki",
         "undertakingName": "Veoettevõtja nimi",
         "licenceNumber": "Ühenduse tegevusloa kinnitatud ärakirja või tõestatud koopia nr",
-        "vehicleNumber": "Sõiduki reg.nr",
+        "vehicleNumber": "Sõiduki reg-nr",
         "status": "Staatus",
         "handler": "Kasutaja",
         "direction": "Suund",
@@ -1693,12 +1828,12 @@
         "requestPurpose": "Päringu eesmärk",
         "primaryElement": "Primaarne element",
         "primaryTransportManager": "Veokorraldusjuht",
-        "primaryCertificate": "Kutseoskuse tunnistus",
+        "primaryCertificate": "Ametialase pädevuse tunnistus",
         "undertakingName": "Veoettevõtja nimi",
         "licenceNumber": "Tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number",
-        "vehicleNumber": "Sõiduki reg.number",
+        "vehicleNumber": "Sõiduki registreerimisnumber",
         "vehicleCountry": "Sõiduki registreerimisriik",
-        "vehicleCountryHint": "Kui sõiduki reg.number on esitatud, siis on sõiduki registreerimisriik kohustuslik",
+        "vehicleCountryHint": "Kui sõiduki registreerimisnumber on esitatud, siis on sõiduki registreerimisriik kohustuslik",
         "requestAllVehicles": "Kõikide sõidukite andmed",
         "minTwoHint": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast — veoettevõtja nimi, tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number ning sõiduki registreerimisnumber",
         "send": "Saada päring",
@@ -1726,7 +1861,7 @@
         "searchMethod": "Otsingu meetod",
         "address": "Veoettevõtja aadress",
         "street": "Tänav",
-        "postCode": "Postiindeks",
+        "postCode": "Sihtnumber",
         "city": "Linn",
         "country": "Asukohariik",
         "licences": "Ühenduse tegevusloa andmed",
@@ -1757,7 +1892,7 @@
       },
       "validation": {
         "required": "Väli on kohustuslik",
-        "min_two_search_criteria": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast  — veoettevõtja nimi, ühenduse tegevusloa või selle kinnitatud ärakirja/tõestatud koopia number ning sõiduki registreerimisnumber",
+        "min_two_search_criteria": "Täidetud peab olema vähemalt kaks kolmest otsinguväljast — veoettevõtja nimi, ühenduse tegevusloa või selle kinnitatud ärakirja/tõestatud koopia number ning sõiduki registreerimisnumber",
         "unknown_not_allowed": "Väärtus „unknown“ ei ole lubatud",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "max_length_exceeded": "Välja pikkus on ületatud",
@@ -1779,7 +1914,7 @@
         "tmFirstName": "Eesnimi",
         "tmFamilyName": "Perekonnanimi",
         "cgrTo": "Sihtriik",
-        "certificateNumber": "Kutsetunnistuse number",
+        "certificateNumber": "Ametialase pädevuse tunnistuse number",
         "status": "Staatus",
         "handler": "Kasutaja",
         "handlerFilter": "Kasutaja (isikukood)"
@@ -1794,7 +1929,7 @@
         "titleNew": "Uus mainepäring CGR (MS → ERRU)",
         "headerBlock": "Päringu päis ja osapooled",
         "nameBlock": "Veokorraldusjuhi otsing",
-        "certificateBlock": "Kutsetunnistuse otsing",
+        "certificateBlock": "Ametialase pädevuse tunnistuse otsing",
         "cgrFrom": "Taotlev liikmesriik",
         "cgrTo": "Sihtliikmesriik",
         "cgrToAll": "Kõik riigid (ZZ)",
@@ -1809,8 +1944,8 @@
         "certificateNumber": "Ametialase pädevuse tunnistuse number",
         "certificateIssueDate": "Ametialase pädevuse tunnistuse väljaandmise kuupäev",
         "certificateIssueCountry": "Ametialase pädevuse tunnistuse väljastanud riik",
-        "searchCertChoiceHint": "Kui puuduvad kutseoskuse tunnistuse andmed, siis veokorraldusjuhi andmed on kohustuslikud.",
-        "searchTransportChoiceHint": "Kui puuduvad veokorraldusjuhi andmed, siis kutseoskuse tunnistuse andmed on kohustuslikud.",
+        "searchCertChoiceHint": "Kui puuduvad ametialase pädevuse tunnistuse andmed, siis veokorraldusjuhi andmed on kohustuslikud.",
+        "searchTransportChoiceHint": "Kui puuduvad veokorraldusjuhi andmed, siis ametialase pädevuse tunnistuse andmed on kohustuslikud.",
         "copyRequest": "Kopeeri päring",
         "readOnly": "ainult lugemiseks",
         "version": "Versioon {{version}}",
@@ -1824,10 +1959,10 @@
         "searchMethod": "Otsingu meetod",
         "address": "Aadress",
         "street": "Tänav",
-        "postCode": "Postiindeks",
+        "postCode": "Sihtnumber",
         "city": "Linn",
         "country": "Asukohariik",
-        "certificateValidity": "Kutsetunnistuse kehtivus",
+        "certificateValidity": "Ametialase pädevuse tunnistuse kehtivus",
         "fitnessStatus": "Sobivuse staatus",
         "unfitStartDate": "Sobimatuse algus",
         "unfitEndDate": "Sobimatuse lõpp",
@@ -1841,9 +1976,9 @@
       },
       "validation": {
         "required": "Väli on kohustuslik",
-        "search_choice_required": "Täidetud peab olema veokorraldusjuhi otsing või kutsetunnistuse otsing",
+        "search_choice_required": "Täidetud peab olema veokorraldusjuhi otsing või ametialase pädevuse tunnistuse otsing",
         "name_block_incomplete": "Veokorraldusjuhi otsingu väljad (eesnimi, perekonnanimi, sünniaeg) tuleb täita koos",
-        "certificate_block_incomplete": "Kutsetunnistuse otsingu väljad (number, väljaandmise kuupäev, riik) tuleb täita koos",
+        "certificate_block_incomplete": "Ametialase pädevuse tunnistuse otsingu väljad (number, väljaandmise kuupäev, riik) tuleb täita koos",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "max_length_exceeded": "Välja pikkus on ületatud",
         "not_editable": "Saadetud või sissetulevat päringut ei saa muuta",
@@ -1862,18 +1997,19 @@
       "notFound": "Tehnokontrolli teadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
       "checkedItems": {
-        "part": "Osa/sõlm",
-        "result": "Tulemus",
-        "notChecked": "Ei kontrollitud",
+        "part": "Punkt",
         "checked": "Kontrollitud",
         "nonCompliant": "Ei vasta nõuetele",
-        "editDefects": "Muuda puudusi"
-      },
-      "defectModal": {
-        "noDefects": "Sellel osal ei ole rikkeid",
-        "selectAtLeastOne": "Valige vähemalt üks rike",
-        "select": "Vali",
-        "clear": "Puudub"
+        "aspect": "Aspekt",
+        "reason": "Tehnoülevaatuse mitteläbimise põhjus",
+        "severity": {
+          "VO": "Väheoluline",
+          "OV": "Oluline",
+          "EOV": "Ohtlik"
+        },
+        "nationalHint": "Kontrollkaardil märgitud rikked (valige allolevast tabelist vastavad mitteläbimise põhjused):",
+        "noneChecked": "Kontrollitud punkte ei ole.",
+        "legacyNotice": "Teade on koostatud enne ERRU mitteläbimise põhjuste klassifikaatori kasutuselevõttu — kuvatakse riiklikud tehnokontrolli koodid."
       },
       "form": {
         "titleOutgoing": "Tehnokontrolli teade RSI (EST → ERRU)",
@@ -1951,7 +2087,9 @@
         "draft_not_created": "Mustandi salvestamine ebaõnnestus",
         "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
         "not_sendable": "Teadet ei saa selles olekus saata",
-        "send_failed": "Teate saatmine ebaõnnestus"
+        "send_failed": "Teate saatmine ebaõnnestus",
+        "reason_required": "Punktil „Ei vasta nõuetele” peab olema valitud vähemalt üks mitteläbimise põhjus ja selle hinnang.",
+        "invalid_checked_items": "Teadet ei saadetud: kontrollitud punktid on vanas vormingus või punktil „Ei vasta nõuetele” puudub mitteläbimise põhjus. Parandage ja salvestage teade ning proovige uuesti."
       },
       "list": {
         "title": "Tehnokontrolli teated RSI",
@@ -1960,7 +2098,7 @@
         "sentAt": "Saadetud",
         "rsiFrom": "Saatnud riik",
         "rsiTo": "Saadetud riiki",
-        "vehicleRegistrationNumber": "Sõiduki reg.nr",
+        "vehicleRegistrationNumber": "Sõiduki reg-nr",
         "status": "Staatus",
         "handler": "Kasutaja",
         "direction": "Suund",
@@ -1980,7 +2118,7 @@
         "seriousInfringementsBlock": "Rasked rikkumised ja karistused",
         "penaltiesImposedBlock": "Kehtestatud ja täide viidud karistused",
         "penaltiesRequestedBlock": "Taotletud karistused",
-        "penaltiesImposedResponseBlock": "Kehtestatud karistused",
+        "penaltiesImposedResponseBlock": "Määratud karistus",
         "responseBlock": "Vastuse sisu",
         "historyBlock": "Juhtumi teadete loend",
         "historyType": "Teate tüüp",
@@ -2013,10 +2151,10 @@
         "detectionCheckDate": "Rikkumise tuvastamise kontrolli kuupäev",
         "appealPossible": "Karistust saab edasi kaevata",
         "penaltyImposedIdentifier": "Määratud karistuse tunnus",
-        "penaltyTypeImposed": "Kehtestatud karistus",
+        "penaltyTypeImposed": "Kehtestatud karistuse liik",
         "finalDecisionDate": "Lõpliku otsuse kuupäev",
-        "isExecuted": "Täideviidud karistused",
-        "notExecutedReason": "Mitte täitmise põhjus",
+        "isExecuted": "Karistus on täide viidud",
+        "notExecutedReason": "Mittetäitmise põhjus",
         "penaltyStartDate": "Karistuse alguskuupäev",
         "penaltyEndDate": "Karistuse lõppkuupäev",
         "penaltyRequestedIdentifier": "Taotletud karistuse tunnus",
@@ -2034,24 +2172,27 @@
         "responseAddressPostCode": "Sihtnumber",
         "responseAddressCity": "Linn",
         "responseAddressCountry": "Riik",
-        "authorityImposingPenalty": "Karistuse määranud asutus",
-        "isImposed": "Määrati karistus",
-        "startDate": "Määratud karistuse kuupäev",
+        "authorityImposingPenalty": "Karistuse määranud pädev asutus",
+        "isImposed": "Karistus määratud",
+        "startDate": "Määratud karistuse alguskuupäev",
         "endDate": "Määratud karistuse lõppkuupäev",
         "penaltyReason": "Karistuse määramata jätmise põhjus",
         "ackStatusCode": "Kinnituse staatus",
         "send": "Saada",
         "sendResponse": "Saada vastus",
         "sendFailed": "Saatmine ebaõnnestus. Teade liigus olekusse Viga.",
-        "createVr": "Loo välisriigis toimunud rikkumise kontrollkaart",
-        "openVr": "Ava välisriigis toimunud rikkumise kontrollkaart",
-        "createVrFailed": "VR kontrollkaardi loomine ebaõnnestus"
+        "createVr": "Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart",
+        "openVr": "Ava välisriigis teostatud autoveoalase kontrolli kontrollkaart",
+        "createVrFailed": "Välisriigis teostatud autoveoalase kontrolli kontrollkaardi loomine ebaõnnestus",
+        "messageDateTime": "Teate kuupäev ja kellaaeg",
+        "responsePenaltyIdentifier": "Määratud karistuse tunnus",
+        "responsePenaltyType": "Määratud karistuse liik"
       },
       "buildModal": {
         "button": "Loo NCR teade",
         "title": "Loo NCR teade",
         "submit": "Koosta",
-        "forbidden": "Teil puudub õigus NCR päringu koostamiseks",
+        "forbidden": "Teil puudub õigus NCR teate koostamiseks",
         "notFound": "Kontrollkaarti ei leitud, NCR mustandit ei loodud",
         "failed": "NCR mustandi koostamine ebaõnnestus"
       },
@@ -2090,10 +2231,10 @@
       },
       "notFound": "NU sobimatusteadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
-      "createFromGoodRepute": "Loo ERRU sobimatusteade",
+      "createFromGoodRepute": "Loo NU sobimatusteade",
       "list": {
         "title": "NU sobimatusteated",
-        "newMessage": "Uus sobimatusteade",
+        "newMessage": "Uus NU sobimatusteade",
         "id": "Teate number",
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
@@ -2112,9 +2253,9 @@
       },
       "source": {
         "title": "Allikdeklaratsiooni otsing",
-        "hint": "Sisestage veokorraldusjuhi eesnimi, perekonnanimi ja sünniaeg, või ametialase pädevuse tunnistuse number. Väljaminevat NU sobimatusteadet saab koostada ainult avaldatud ja sobimatuks tunnistatud hea maine deklaratsiooni alusel.",
+        "hint": "Sisestage veokorraldusjuhi eesnimi, perekonnanimi ja sünniaeg, või ametialase pädevuse tunnistuse number. Väljaminevat NU sobimatusteadet saab koostada ainult avalikustatud ja sobimatuks tunnistatud hea maine deklaratsiooni alusel.",
         "searchFailed": "Otsing ebaõnnestus",
-        "noResults": "Avaldatud ja sobimatuks tunnistatud deklaratsiooni ei leitud"
+        "noResults": "Avalikustatud ja sobimatuks tunnistatud deklaratsiooni ei leitud"
       },
       "form": {
         "titleOutgoing": "NU sobimatusteade (EE → ERRU)",
@@ -2126,7 +2267,7 @@
         "readOnly": "ainult lugemiseks",
         "headerBlock": "Teate andmed",
         "nameBlock": "Veokorraldusjuhi andmed (7A)",
-        "certificateBlock": "Kutseoskuse tunnistuse andmed (7B)",
+        "certificateBlock": "Ametialase pädevuse tunnistuse andmed (7B)",
         "unfitnessBlock": "Sobimatuse andmed",
         "nuFrom": "Taotlev liikmesriik",
         "nuTo": "Sihtliikmesriik",
@@ -2154,7 +2295,7 @@
       },
       "requestPurpose": {
         "Issue": "Väljastamine",
-        "Control": "Järelvalve",
+        "Control": "Järelevalve",
         "Other": "Muu eesmärk"
       },
       "response": {
@@ -2171,7 +2312,7 @@
         "not_sendable": "Teadet ei saa praeguses olekus saata",
         "source_changed": "Allikandmed on muutunud. Värskendage allikandmeid, kontrollige neid ja salvestage enne saatmist.",
         "version_conflict": "Teadet on teises sessioonis muudetud. Laadige leht uuesti ja kontrollige kehtivat versiooni.",
-        "source_not_eligible": "Allikdeklaratsioon ei ole avaldatud, isik ei ole sobimatuks tunnistatud või sobimatuse lõppkuupäev puudub või on möödunud. Kontrollige allikdeklaratsiooni.",
+        "source_not_eligible": "Allikdeklaratsioon ei ole avalikustatud, isik ei ole sobimatuks tunnistatud või sobimatuse lõppkuupäev puudub või on möödunud. Kontrollige allikdeklaratsiooni.",
         "source_not_found": "Hea maine deklaratsiooni ei leitud",
         "send_failed": "Teate saatmine ebaõnnestus",
         "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav",
@@ -2183,7 +2324,17 @@
   "search": {
     "title": "Otsing",
     "clear": "Tühjenda",
+    "carrierOrigin": {"all": "Kõik", "ee": "Eesti", "foreign": "Välisriigi vedaja"},
+    "export": {
+      "xlsx": "Laadi tulemus alla (xlsx)",
+      "csv": "Laadi tulemus alla (csv)",
+      "pickType": "Allalaadimiseks valige filtris vormi tüüp ja vajutage „Otsi“.",
+      "tooMany": "Tulemus on liiga suur (üle {{max}} vormi). Piirake otsingut.",
+      "failed": "Allalaadimine ebaõnnestus."
+    },
     "filters": {
+      "formNumber": "Kontrollkaardi nr",
+      "carrierOrigin": "Vedaja riik",
       "dateFrom": "Kontrolli kuupäev alates",
       "dateTo": "Kontrolli kuupäev kuni",
       "formType": "Vormi tüüp",
@@ -2203,27 +2354,27 @@
       "status": "Staatus",
       "mainDate": "Kontrolli kuupäev",
       "county": "Maakond",
-      "vehicleRegNr": "Reg. märk",
-      "companyName": "Vedaja",
+      "vehicleRegNr": "Sõiduki reg-nr",
+      "companyName": "Ettevõte",
       "inspector": "Ametnik"
     },
     "formType": {
       "compound": "Koondvorm",
-      "foreignViolation": "Välisriigi rikkumine",
-      "labourInspection": "Tööinspektsiooni kontrollvorm",
+      "foreignViolation": "Välisriigi kontrollkaart",
+      "labourInspection": "Tööinspektsiooni kontrollkaart",
       "goodRepute": "Hea maine",
       "spDriver": "Sõidu- ja puhkeaeg (juht)",
-      "spTeammate": "Sõidu- ja puhkeaeg (kaassõitja)",
-      "vehicleTechnical": "Tehnonõuetele vastavus (sõiduk)",
-      "trailerTechnical": "Tehnonõuetele vastavus (haagis)",
-      "adr": "Ohtlik veos (ADR)",
+      "spTeammate": "Sõidu- ja puhkeaeg (meeskonnaliige)",
+      "vehicleTechnical": "Sõiduki tehnonõuetele vastavus",
+      "trailerTechnical": "Haagise tehnonõuetele vastavus",
+      "adr": "Ohtlike veoste vedu",
       "kv": "Autoveo katkestamine",
       "tramControlCard": "Transpordiameti kontrollkaart"
     },
     "status": {
       "saved": "Salvestatud",
       "confirmed": "Kinnitatud",
-      "published": "Avaldatud"
+      "published": "Avalikustatud"
     }
   },
   "notifications": {
@@ -2253,6 +2404,7 @@
       "statusError": "Viga",
       "resend": "Saada uuesti",
       "resendConfirm": "Kas saata teavitus uuesti muutmata kujul samale adressaadile?",
+      "checkStatus": "Kontrolli staatust",
       "report": "Saatmise raport",
       "filterStatus": "Staatus",
       "filterType": "Sõnumi liik",
@@ -2263,13 +2415,20 @@
       "emptyResult": "Otsingule vastavaid teavitusi ei leitud."
     },
     "types": {
+      "ncr_ok": "ERRU NCR korras kontrolli teade",
       "ncr_violation": "NCR raske rikkumise teade",
       "ncr_response": "NCR vastussõnumi teatis",
+      "rsi_received": "ERRU RSI teade",
+      "serious_infringement": "Eestis avastatud raske rikkumine",
+      "extraordinary_inspection": "Erakorralisele tehnoülevaatusele suunamine",
+      "cargo_securing": "Veose kinnitamise nõude mittevastavus",
       "driving_ban": "Sõidukeeld",
       "weight_violation": "Kaalumise/mõõtmise rikkumine",
       "carrier_violation": "Raske rikkumise teavitus veoettevõtjale",
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
-      "labor_foreign_proposal": "Välisriigi ettepaneku teavitus"
+      "labor_tachograph_not_downloaded": "Sõidumeerikuandmete alla laadimata jätmise teavitus",
+      "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
+      "nu_inbound_received": "ERRU NU sobimatusteade"
     }
   },
   "breadcrumbs": {
@@ -2283,17 +2442,17 @@
     "classifierValueEdit": "Väärtus",
     "logDetail": "Logikirje",
     "snapshot": "Versioon",
-    "foreignViolationForm": "Väliskontrolli kontrollkaart",
+    "foreignViolationForm": "Välisriigi kontrollkaart",
     "compoundForm": "Koondvorm",
     "driveRestDriverForm": "Sõidu- ja puhkeaeg (juht)",
-    "driveRestTeammateForm": "Sõidu- ja puhkeaeg (kaassõitja)",
-    "tramDriverForm": "TRAM kontrollkaart",
+    "driveRestTeammateForm": "Sõidu- ja puhkeaeg (meeskonnaliige)",
+    "tramDriverForm": "Transpordiameti kontrollkaart",
     "labourInspectionForm": "Tööinspektsiooni kontrollkaart",
-    "vehicleTechnicalForm": "Sõiduki tehnokontroll",
-    "trailerTechnicalForm": "Haagise tehnokontroll",
+    "vehicleTechnicalForm": "Sõiduki tehnonõuetele vastavus",
+    "trailerTechnicalForm": "Haagise tehnonõuetele vastavus",
     "transportInterruptionForm": "Autoveo katkestamine",
     "adrForm": "Ohtlike veoste vedu",
-    "goodReputeForm": "Hea maine nõuetele mittevastavus",
+    "goodReputeForm": "Hea maine nõudele mittevastavus",
     "ctudCreate": "Uus tegevusloa kontrolli päring",
     "ctudDetail": "Tegevusloa kontrolli päring",
     "cgrCreate": "Uus mainepäring",

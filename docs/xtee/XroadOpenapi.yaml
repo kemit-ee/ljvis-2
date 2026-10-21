@@ -4,8 +4,9 @@ info:
   version: 1.0.0
   description: >
     LJVIS2 alamsüsteemi poolt pakutavate X-tee teenuste ametlik leping (production).
-    Vastab dokumendis 00-xtee-teenused-publikatsiooni-juhend.md kirjeldatud üheksale
-    teenusele. Iga tarbija pöördub oma turvaserveri kaudu — vt server-URL-id allpool
+    Vastab dokumendis 00-xtee-teenused-publikatsiooni-juhend.md kirjeldatud kuuele
+    LJVIS2 teenusele. Andmejälgija (AJ) teenus findUsage on eraldi lepingus
+    FindUsageOpenapi.yaml. Iga tarbija pöördub oma turvaserveri kaudu - vt server-URL-id allpool
     ja asenda {securityserver} enda turvaserveriga.
     Sünteetilise mocki leping (samad teed, testandmed) on eraldi failis:
     ../developer/xtee-openapi.yaml.
@@ -70,7 +71,7 @@ paths:
   /IsikuKontroll/v1:
     post:
       operationId: IsikuKontroll
-      summary: IsikuKontroll — kõik LJVIS-i kontrollid ja rikkumised isikukoodi kohta
+      summary: IsikuKontroll - kõik LJVIS-i kontrollid ja rikkumised isikukoodi kohta
       description: Read-only. Andmeallikad koondvorm (juhi andmed) ja tööinspektsiooniakt (karistatu isikukood).
       x-provider-path: /ljvis/xroad/provide/isiku-kontroll
       parameters:
@@ -146,8 +147,8 @@ paths:
   /IsikuEttevoteKontrollid/v1:
     post:
       operationId: IsikuEttevoteKontrollid
-      summary: IsikuEttevoteKontrollid — kontrollid ettevõtete kohta, millega isik juhina seotud
-      description: Read-only, ainult lokaalne andmebaas — äriregistri välispäringut ei tehta.
+      summary: IsikuEttevoteKontrollid - kontrollid ettevõtete kohta, millega isik juhina seotud
+      description: Read-only, ainult lokaalne andmebaas - äriregistri välispäringut ei tehta.
       x-provider-path: /ljvis/xroad/provide/isiku-ettevote-kontrollid
       parameters:
         - $ref: '#/components/parameters/XRoadClient'
@@ -218,8 +219,8 @@ paths:
   /ErakorralineYVquery/v1:
     post:
       operationId: ErakorralineYVquery
-      summary: ErakorralineYVquery — ajavahemikul erakorralisele ülevaatusele suunatud sõidukid
-      description: Read-only. Esimene samm kahesammulises voos — vastuse `inspection_id` kasutatakse ErakorralineYVconfirm päringus.
+      summary: ErakorralineYVquery - ajavahemikul erakorralisele ülevaatusele suunatud sõidukid
+      description: Read-only. Esimene samm kahesammulises voos - vastuse `inspection_id` kasutatakse ErakorralineYVconfirm päringus.
       x-provider-path: /ljvis/xroad/provide/erakorraline-yv-query
       parameters:
         - $ref: '#/components/parameters/XRoadClient'
@@ -312,10 +313,10 @@ paths:
   /ErakorralineYVconfirm/v1:
     post:
       operationId: ErakorralineYVconfirm
-      summary: ErakorralineYVconfirm — erakorralise ülevaatuse tulemuse kinnitamine
+      summary: ErakorralineYVconfirm - erakorralise ülevaatuse tulemuse kinnitamine
       description: >
         Kirjutav teenus, teine samm kahesammulises voos (vt ErakorralineYVquery).
-        Atomaarne — ühe elemendi vea korral kogu batch katkeb. Idempotentne.
+        Atomaarne - ühe elemendi vea korral kogu batch katkeb. Idempotentne.
       x-provider-path: /ljvis/xroad/provide/erakorraline-yv-confirm
       parameters:
         - $ref: '#/components/parameters/XRoadClient'
@@ -372,13 +373,13 @@ paths:
                 emptyItems:
                   value: {error: MISSING_PARAMETER, message: confirmed.item must be a non-empty array}
                 missingFields:
-                  value: {error: INVALID_PARAMETER, message: Each item requires inspection_id, code and value}
+                  value: {error: INVALID_PARAMETER, message: 'Each item requires inspection_id, code and value'}
                 badCode:
                   value: {error: INVALID_PARAMETER, message: 'code must be one of: INSPECTION_DATE, ENFORCEMENT_DECISION, CLOSURE_BASIS'}
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
-          description: NOT_FOUND — inspection_id puudub või vorm ei ole erakorralisele ülevaatusele suunatud
+          description: NOT_FOUND - inspection_id puudub või vorm ei ole erakorralisele ülevaatusele suunatud
           content:
             application/json:
               schema:
@@ -392,7 +393,7 @@ paths:
   /RegisterJobInspection/v1:
     post:
       operationId: RegisterJobInspection
-      summary: RegisterJobInspection — Tööinspektsiooni töökontrolli andmed (v1)
+      summary: RegisterJobInspection - Tööinspektsiooni töökontrolli andmed (v1)
       description: >
         Vana WSDL RegisterJobInspectionRequestType, teisendatud REST/JSON-iks.
         Salvestab forms.labour_inspection_form tabelisse. Idempotentne kontrolli_id võtme alusel.
@@ -459,7 +460,7 @@ paths:
   /RegisterJobInspection_v3/v3:
     post:
       operationId: RegisterJobInspection_v3
-      summary: RegisterJobInspection_v3 — laiendatud töökontrolli leping
+      summary: RegisterJobInspection_v3 - laiendatud töökontrolli leping
       description: >
         v1 väljadele lisanduvad sõiduki (reg.nr, VIN), juhi isikukoodi ja menetluse väljad.
         Sama tabel forms.labour_inspection_form; idempotentsuse võti v3- + kontrolli_id.
@@ -544,122 +545,3 @@ paths:
                 message: 'X-Road-Client header is missing or has invalid format (expected: instance/memberClass/memberCode/subsystem)'
         '500':
           $ref: '#/components/responses/ServerError'
-  /findUsage/v2:
-    get:
-      operationId: findUsage
-      summary: findUsage — Andmejälgija (AJ) kasutusteabe päring
-      description: >
-        DUMonitor OpenAPI v2 /v2/findUsage. X-Road-UserId peab vastama userCode
-        parameetrile (AJ protokoll §6.1.3), muidu 400 FORBIDDEN.
-      x-provider-path: /ljvis/xroad/v2/findUsage
-      parameters:
-        - $ref: '#/components/parameters/XRoadClient'
-        - in: header
-          name: X-Road-UserId
-          required: true
-          schema: {type: string}
-          example: '39001010001'
-        - in: query
-          name: userCode
-          required: true
-          schema: {type: string}
-          example: '39001010001'
-        - in: query
-          name: periodStart
-          required: false
-          schema: {type: string, format: date-time}
-        - in: query
-          name: periodEnd
-          required: false
-          schema: {type: string, format: date-time}
-        - in: query
-          name: offset
-          required: false
-          schema: {type: integer, default: 0}
-        - in: query
-          name: limit
-          required: false
-          schema: {type: integer, default: 1000, maximum: 1000}
-      responses:
-        '200':
-          description: Kasutusteabe kirjed ajaliselt kahanevas järjekorras
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  totalUsages: {type: integer}
-                  usages:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        logtime: {type: string}
-                        action: {type: string}
-                        receiverCode: {type: string}
-                        receiverName: {type: string, nullable: true}
-                        receiverSystem: {type: string, nullable: true}
-              example:
-                totalUsages: 2
-                usages:
-                  - logtime: '2026-06-10T14:32:00Z'
-                    action: LJVIS-i kontrollide küsimine X-tee kaudu
-                    receiverCode: '70001490'
-                    receiverName: null
-                    receiverSystem: liiklusregister
-        '400':
-          description: MISSING_HEADER / MISSING_PARAMETER / FORBIDDEN
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {error: {type: string}, message: {type: string}}
-              examples:
-                missingHeader:
-                  value: {error: MISSING_HEADER, message: X-Road-UserId header is required}
-                missingParam:
-                  value: {error: MISSING_PARAMETER, message: userCode query parameter is required}
-                mismatch:
-                  value: {error: FORBIDDEN, message: X-Road-UserId must match userCode}
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /usagePeriod/v2:
-    get:
-      operationId: usagePeriod
-      summary: usagePeriod — Andmejälgija (AJ) kasutusteabe saadaoleva perioodi päring
-      x-provider-path: /ljvis/xroad/v2/usagePeriod
-      parameters:
-        - $ref: '#/components/parameters/XRoadClient'
-      responses:
-        '200':
-          description: Varaseim kasutusteabe aeg (null kui tabel tühi)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  periodStart: {type: string, nullable: true}
-              example:
-                periodStart: '2026-01-15T09:00:00Z'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /heartbeat/v2:
-    get:
-      operationId: heartbeat
-      summary: heartbeat — Andmejälgija (AJ) elutuukse päring
-      x-provider-path: /ljvis/xroad/v2/heartbeat
-      parameters:
-        - $ref: '#/components/parameters/XRoadClient'
-      responses:
-        '200':
-          description: Teenus töötab
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status: {type: string}
-                  message: {type: string}
-              example:
-                status: OK
-                message: API is ready

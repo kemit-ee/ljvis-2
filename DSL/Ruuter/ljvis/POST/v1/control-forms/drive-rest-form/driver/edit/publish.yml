@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) the drive/rest driver sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) the drive/rest driver sub-form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -21,6 +25,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${id}
@@ -38,7 +43,9 @@ checkFormIsConfirmed:
     current_status: "${currentFormRes.response.body[0].status}"
     compound_form_key: "${currentFormRes.response.body[0].compoundFormKey}"
     sub_form_number: "${currentFormRes.response.body[0].subFormNumber}"
+    current_version: "${currentFormRes.response.body[0].version}"
     company_reg_code: "${currentFormRes.response.body[0].companyRegCode || ''}"
+    company_name: "${currentFormRes.response.body[0].companyName || ''}"
   next: checkStatusSwitch
 
 checkStatusSwitch:
@@ -47,6 +54,14 @@ checkStatusSwitch:
       next: returnAlreadyPublishedError
     - condition: ${current_status !== 'confirmed'}
       next: returnNotConfirmedError
+  next: checkManualPublish
+
+checkManualPublish:
+  switch:
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && (u.permissions == null || !u.permissions.includes('control_form.punishment_register'))}
+      next: returnPunishmentRegisterPermissionError
+    - condition: ${(currentFormRes.response.body[0].proceedingType && currentFormRes.response.body[0].proceedingType !== 'none' || currentFormRes.response.body[0].proceedingReferenceNumber) && !currentFormRes.response.body[0].enforcementDecision && !currentFormRes.response.body[0].proceedingClosureBasis}
+      next: returnProceedingOutcomeRequired
   next: extractCurrentFormData
 
 extractCurrentFormData:
@@ -91,9 +106,11 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
+      expected_revision: "${String(currentFormRes.response.body[0].revision ?? '')}"  # publish kopeerib get-vastuse andmed: lukk selle revision'i vastu
       compoundFormKey: ${compound_form_key}
       subFormNumber: ${sub_form_number}
       status: published
@@ -132,11 +149,14 @@ publishForm:
       notes: ${notes}
       created_by: ${created_by}
   result: publishRes
+  error: returnPublishError
   next: buildLogDescription
 
 buildLogDescription:
   assign:
-    description: "Sõidu- ja puhkeaja alamvorm (juht) avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${publishRes.response.body[0].subFormNumber}/${publishRes.response.body[0].version}"
+    published_sub_form_number: "${publishRes.response && publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].subFormNumber || sub_form_number}"
+    published_version: "${publishRes.response && publishRes.response.body && publishRes.response.body[0] && publishRes.response.body[0].version != null ? publishRes.response.body[0].version : current_version}"
+    description: "Sõidu- ja puhkeaja alamvorm (juht) avalikustatud, alamvormi võti=${id}, koondvormi võti=${compound_form_key}, alamvormi number=${published_sub_form_number}/${published_version}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -147,15 +167,141 @@ logAuditEvent:
   body:
     event_type: "control_form.sp_driver_form.publish"
     event_category: "control_form"
-    actor_personal_code: ${actor_personal_code}
-    actor_name: ${actor_name}
     description: ${description}
     log_content: "{\"subFormKey\":${id},\"compoundFormKey\":${compound_form_key}}"
   result: audit_result
+  next: checkPublishConflict
+
+# Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
+checkPublishConflict:
+  switch:
+    - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
+      next: returnFormModifiedError
+  next: autoPublishCompound
+
+returnFormModifiedError:
+  status: 409
+  return: '{"type":"CONFLICT","code":"form_modified"}'
+  next: end
+
+# Viimase alamvormi avalikustamisel avalikustub kinnitatud koondvormi üldosa
+# serveris, mitte ainult brauseris (brauseri vormi esitus jääb vaikselt
+# tegemata, kui üldosa valideerimine ebaõnnestub). Viga ei tohi alamvormi
+# avalikustamist tagasi pöörata.
+autoPublishCompound:
+  template: "templates/form/compound-form/publish-compound-form"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    id: "${compound_form_key == null ? '' : String(compound_form_key)}"
+    only_if_confirmed: "true"
+  result: autoPublishCompoundRes
+  error: sendCarrierFromRequest
+  next: sendCarrierFromRequest
+
+# Vedajale raske rikkumise teavitus, kui kasutaja märkis kinnitamisel „Teavita
+# vedajat" (notifications.carrier_notification_request). Best-effort; vormi andmed
+# loeb teenus ise. Sama teenust kutsuvad e-toimiku cron'id automaatse avalikustamise järel.
+sendCarrierFromRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entity_type: "drive_rest_driver_form"
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
+  result: carrierFromRequestRes
+  error: checkSeriousInfringement
+  next: checkSeriousInfringement
+
+checkSeriousInfringement:
+  switch:
+    - condition: >-
+        ${/(^|[^A-Z])(MSI|VSI|SI|MI)[ _-]*[0-9]/.test([violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057, cabotage_violations, erru_points].join(' '))}
+      next: createSeriousInfringement
+  next: checkCabotageNotification
+
+createSeriousInfringement:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "serious_infringement"
+      required_permission: "rsi.read"
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${id}
+      event_key: "${'drive-rest-driver:' + id + ':' + published_version + ':serious'}"
+      title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
+      body_et: "${'Koondvormi võti: ' + compound_form_key}"
+      created_by: ${actor_personal_code}
+  result: seriousNotifRes
+  error: checkCabotageNotification
+  next: checkCabotageNotification
+
+checkCabotageNotification:
+  switch:
+    - condition: ${('' + (transport_classes || '')).indexOf('CABOTAGE') !== -1}
+      next: sendCabotageNotification
+  next: checkTachographNotDownloaded
+
+sendCabotageNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      notification_type: "labor_kabotage"
+      language: "et"
+      send_time: ""
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code, resultType: result_type } }"
+  result: cabotageNotifRes
+  error: checkTachographNotDownloaded
+  next: checkTachographNotDownloaded
+
+checkTachographNotDownloaded:
+  switch:
+    - condition: ${tachograph_data_not_downloaded === true || tachograph_data_not_downloaded === 'true'}
+      next: sendTachographNotification
+  next: checkWeightViolation
+
+# Sõidumeerikust/juhikaardilt andmed alla laadimata -> teavitus Tööinspektsioonile.
+# Fire-and-forget - saatmise viga ei peata avalikustamise voogu.
+sendTachographNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-postkast"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      notification_type: "labor_tachograph_not_downloaded"
+      language: "et"
+      send_time: ""
+      related_entity_type: "drive_rest_driver_form"
+      related_entity_id: ${id}
+      original_log_id: ""
+      created_by: ${actor_personal_code}
+      template_variables: "${ { formNumber: sub_form_number, companyName: company_name, companyRegCode: company_reg_code } }"
+  result: tachographNotifRes
+  error: checkWeightViolation
   next: checkWeightViolation
 
 # Kui mass_dimension_non_compliant = true, loo weight_violation teavitus rsi.read õigusega kasutajatele.
-# Fire-and-forget — teavituse loomise viga ei peata avalikustamise voogu.
+# Fire-and-forget - teavituse loomise viga ei peata avalikustamise voogu.
 checkWeightViolation:
   switch:
     - condition: ${mass_dimension_non_compliant === true || mass_dimension_non_compliant === 'true'}
@@ -167,13 +313,15 @@ createWeightViolationNotification:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       type: "weight_violation"
       required_permission: "rsi.read"
       related_entity_type: "drive_rest_driver_form"
       related_entity_id: ${id}
-      title_et: "Kaalumise/mõõtmise rikkumine — SP-kaart (sõidu- ja puhkeaeg) avalikustatud"
+      event_key: "${'drive-rest-driver:' + id + ':' + published_version}"
+      title_et: "Sõiduki kaalumisel ja mõõtmisel on avastatud rikkumine"
       body_et: "${'Koondvormi võti: ' + compound_form_key}"
       created_by: ${actor_personal_code}
   result: notifRes
@@ -183,7 +331,7 @@ createWeightViolationNotification:
 # calculate_risk_score.sql loeb otse forms.sp_driver_form-i, seega
 # alamvormi avalikustamine peab riskiskoori värskendama samamoodi nagu
 # kompaundvormi/TRAM-kaardi avalikustamine juba teeb (compound-form/edit/
-# publish.yml, tram-card/edit/publish.yml) — muidu jääb skoor vananenuks
+# publish.yml, tram-card/edit/publish.yml) - muidu jääb skoor vananenuks
 # kuni öise risk-score-recalc-sync cron'ini.
 triggerRiskRecalculate:
   switch:
@@ -196,6 +344,7 @@ callRiskRecalculate:
   args:
     url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       company_reg_code: ${company_reg_code}
@@ -213,9 +362,24 @@ returnNotFound:
   return: '{"error": "NOT_FOUND"}'
   next: end
 
+returnPublishError:
+  status: 500
+  return: '{"error":"PUBLISH_FAILED"}'
+  next: end
+
 returnAlreadyPublishedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"already_published"}'
+  next: end
+
+returnPunishmentRegisterPermissionError:
+  status: 403
+  return: '{"type":"FORBIDDEN","field":null,"code":"punishment_register_permission_required"}'
+  next: end
+
+returnProceedingOutcomeRequired:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"enforcementDecision","code":"proceeding_outcome_required"}'
   next: end
 
 returnNotConfirmedError:

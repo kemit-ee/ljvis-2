@@ -58,7 +58,7 @@ Iga sellise tabeli struktuur:
 |---|---|
 | `id` (BIGSERIAL) | Füüsiline reavõti. **Unikaalne. Iga snapshot on eraldi `id`.** Kasuta seda Tableau extract'i incremental-refresh võtmena. |
 | `<entity>_key` (BIGINT) | **Loogiline** olemi identiteet. Kõik ühe olemi snapshot-read jagavad sama `_key` väärtust. **EI ole unikaalne.** Kasuta seda gruppimiseks / joinimiseks. |
-| `created_at` (TIMESTAMPTZ) | Snapshot'i tekkeaeg. Järjestusvõti "viimase seisu" leidmiseks. |
+| `created_at` (TIMESTAMPTZ) | Hetktõmmise tekkeaeg. Järjestusvõti "viimase seisu" leidmiseks. |
 | `created_by` (VARCHAR) | Tegija isikukood või süsteemi-identifikaator. Lõtv audit-viide, **FK-d ei ole**. |
 
 ### "Praegune seis" = viimane snapshot iga loogilise võtme kohta
@@ -104,6 +104,7 @@ annab andmed vahemällu.
 | Vaade | Sisu |
 |---|---|
 | `tableau.form_overview` | Üks rida per kontrollvorm (kõik tüübid). `authority` = PPA / TRAM, `is_published`, maakonna nimi, asutuse nimi, `has_violation`. **Dashboardide alusvaade.** |
+| `tableau.administrative_procedure` | Haldusmenetluse andmeplokk: üks rida per vorm (VR, PPA andmevormid, TRAM-kaart), kehtiv seis. `form_type`, `form_key`, `form_number`, `status`, `is_published`, `version`, KLIM selgitustaotluse kp, vedaja seletuse kp, `penalty_valid_until`, `penalty_expired_or_processed`, AKVK järgmine koosolek, komisjoni viimase otsuse kp, `admin_procedure_decision`, `has_administrative_procedure`, `updated_at`/`updated_by`. JOIN `tableau.form_overview` (`form_type`, `form_key`). |
 | `tableau.classifier_value_current` | Koodide → nimede tõlge. `classifier_code`, `value_code`, `value_name`, `parent_value_name`, `is_valid`. JOIN: `forms.*.<x>_code = value_code` VÕI `forms.*.<x>` (nt `county`) `= classifier_value_key::text`. |
 | `tableau.ehak` | EHAK haldusüksused lamedaks (maakond ↔ linn/vald). |
 | `tableau.organisation` | Asutus id → nimi/kood. |
@@ -259,7 +260,7 @@ ei ole. Praegune seis = `DISTINCT ON (tram_control_card_key) ORDER BY tram_contr
 | `driver_not_applicable` | BOOLEAN | „Ei ole asjakohane" — juhita kontroll |
 | `transport_type`, `result_type`, `additional_measure`, `proceeding_type`, `proceeding_reference_number` | VARCHAR | Juhi kontrolli tulemus / menetlus |
 | `violations_561_2006`, `violations_165_2014`, `violations_2002_15`, `violations_593_2008`, `violations_2020_1057`, `erru_points` | JSONB | Rikkumised (sama kuju mis `sp_driver_form`) |
-| `enforcement_decision`, `proceeding_closure_basis` | TEXT | e-Toimiku jõustunud otsus — kirjutab **ainult öine cron** (`created_by = 'e-toimik'`), mis lisab automaatselt avalikustatud snapshot'i |
+| `enforcement_decision`, `proceeding_closure_basis` | TEXT | e-Toimiku jõustunud otsus — kirjutab **ainult öine cron** (`created_by = 'e-toimik'`), mis lisab automaatselt avalikustatud hetktõmmise |
 | `created_at`, `created_by` | TIMESTAMPTZ / VARCHAR | Audit |
 
 **Ei sisalda** (erinevalt `sp_driver_form`'ist): `mass_dimension_non_compliant`,
@@ -377,7 +378,7 @@ Hea maine vorm.
 ### 5.10 `forms.form_search` — VALMIS ristvormi otsinguvaade
 
 Andmebaasis juba olemas. Projitseerib **iga vormitüübi viimase mittekustutatud
-snapshot'i** ühisele veerukomplektile (10 vormitüüpi, sh alamvormid). Alamvormide
+hetktõmmise** ühisele veerukomplektile (10 vormitüüpi, sh alamvormid). Alamvormide
 äriandmed (sõiduk/ettevõte/juht/asukoht/kuupäev) päritakse vanemalt `compound_form`'ilt.
 
 Ühisveerud: `form_type`, `form_key`, `compound_form_key`, `form_number`, `status`,
@@ -695,7 +696,7 @@ Skeemi tõde elab siin repos:
 monotoonselt kasvav, iga snapshot uus `id`). **Mitte** `created_at` (ajavööndid,
 kellanihked) ega `_key` (kordub). NB: incremental refresh **lisab** ainult uusi
 ridu — kuna tabelid on append-only, on see täpselt õige mudel, aga see tähendab
-et sinu extract sisaldab **kõiki snapshot'e**; "viimase seisu" filter tuleb teha
+et sinu extract sisaldab **kõiki hetktõmmiseid**; "viimase seisu" filter tuleb teha
 kas vaates (`tableau.*_current`) või Tableau arvutatud väljaga.
 
 > Kui vajad extract'i, mis hoiab ainult viimast seisu ja on väike: tee extract
@@ -783,7 +784,7 @@ SELECT direction,
        date_trunc('month', created_at)::date AS kuu,
        COUNT(*) AS sonumeid,
        COUNT(*) FILTER (WHERE status = 'error') AS vigu
-FROM erru.ctud_request           -- kõik snapshot'id: maht ajas
+FROM erru.ctud_request           -- kõik hetktõmmised: maht ajas
 GROUP BY 1, 2
 ORDER BY 2, 1;
 ```

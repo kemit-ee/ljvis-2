@@ -1,11 +1,15 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Audit: ADR sub-form create event"
   namespace: service
+  strict: true
   allowlist:
     headers:
       - field: cookie
+        type: string
+      - field: content-type
         type: string
     body:
       - field: sub_form_key
@@ -14,8 +18,6 @@ declaration:
         type: string
       - field: result_type
         type: string
-      - field: proceeding_type
-        type: string
       - field: driver1PersonalCodeEe
         type: string
       - field: driver1PersonalCodeForeign
@@ -23,10 +25,6 @@ declaration:
       - field: driver2PersonalCodeEe
         type: string
       - field: driver2PersonalCodeForeign
-        type: string
-      - field: actor_name
-        type: string
-      - field: actor_personal_code
         type: string
 
 buildDriver1Code:
@@ -66,8 +64,6 @@ logAuditEvent:
   body:
     event_type: "control_form.adr.create"
     event_category: "control_form"
-    actor_name: ${incoming.body.actor_name}
-    actor_personal_code: ${incoming.body.actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: res

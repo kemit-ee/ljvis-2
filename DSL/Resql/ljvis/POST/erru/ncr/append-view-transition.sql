@@ -4,7 +4,7 @@ description: 'Automatic received -> viewed transition (LJVIS2-62 §4 üleminekut
   open of an incoming case, per LJVIS2-63 §4 ''Teate esmakordsel avamisel liigub teade olekusse Vaadatud''.
   Guarded: the INSERT .. SELECT produces zero rows unless the latest snapshot is status=''received'' AND
   direction=''incoming'', so opening an already-viewed (or outgoing, or terminal) case is a harmless no-op
-  — the caller simply keeps using the already-fetched snapshot. All fields are carried forward unchanged;
+  - the caller simply keeps using the already-fetched snapshot. All fields are carried forward unchanged;
   created_by is ''system'' since this transition has no human actor (LJVIS2-62 §Testimine: ''automaatsel
   üleminekul on actorPersonalCode väärtus null'').'
 namespace: erru

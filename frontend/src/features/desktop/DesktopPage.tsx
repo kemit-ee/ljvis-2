@@ -43,13 +43,14 @@ const formKindLabel = (
 export function DesktopPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const {
     loading,
     availableForms,
     scope,
     setScope,
     canSeeOrganisation,
+    canSeeUnit,
     summary,
     summaryLoading,
     summaryError,
@@ -259,6 +260,15 @@ export function DesktopPage() {
     [summary.activeCompoundForms, overdueCompoundKeys],
   );
 
+  // Töös olevate vormide list (kõik peale koondvormide) näidatakse ainult siis,
+  // kui kasutajal on õigus vähemalt ühte sellist vormitüüpi lugeda.
+  const canReadStandalone =
+    hasPermission('control_form.view_unpublished') ||
+    hasPermission('foreign_violation_form.read') ||
+    hasPermission('labour_inspection_form.read') ||
+    hasPermission('good_repute_form.read') ||
+    hasPermission('tram_driver_form.read');
+
   if (loading) return <Text>{t('common.loading')}</Text>;
 
   // LJVIS2-37 mock ("Töölaud 27.10.2025.png"): the page is a stack of
@@ -410,10 +420,10 @@ export function DesktopPage() {
         </div>
       )}
 
-      {/* Scope toggle — only for roles with control_form.view_unpublished
+      {/* Scope toggle — only for roles with control_form.view_organisation
           (LJVIS2-69 "Lokaalne kasutaja"/administraator), per LJVIS2-69's
           documented role model. Plain officers never see this. */}
-      {canSeeOrganisation && (
+      {(canSeeOrganisation || canSeeUnit) && (
         <div className="mb-1">
           <ChoiceGroup
             id="dashboard-scope"
@@ -424,7 +434,7 @@ export function DesktopPage() {
             direction="row"
             value={scope}
             onChange={(value) =>
-              setScope((value as 'own' | 'organisation') ?? 'own')
+              setScope((value as 'own' | 'unit' | 'organisation') ?? 'own')
             }
             items={[
               {
@@ -432,11 +442,24 @@ export function DesktopPage() {
                 label: t('dashboard.scope.own'),
                 value: 'own',
               },
-              {
-                id: 'dashboard-scope-organisation',
-                label: t('dashboard.scope.organisation'),
-                value: 'organisation',
-              },
+              ...(canSeeUnit
+                ? [
+                    {
+                      id: 'dashboard-scope-unit',
+                      label: t('dashboard.scope.unit'),
+                      value: 'unit',
+                    },
+                  ]
+                : []),
+              ...(canSeeOrganisation
+                ? [
+                    {
+                      id: 'dashboard-scope-organisation',
+                      label: t('dashboard.scope.organisation'),
+                      value: 'organisation',
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>
@@ -531,29 +554,35 @@ export function DesktopPage() {
         </Card.Content>
       </Card>
 
-      {/* Active standalone forms table */}
-      <div className={`${styles.sectionHeader} mt-1 mb-1`}>
-        <Heading element="h2">
-          {t('dashboard.sections.activeStandalone')}
-        </Heading>
-      </div>
-      <Card>
-        <Card.Content>
-          <Table
-            id="dashboard-active-standalone"
-            data={summary.activeStandaloneForms}
-            columns={standaloneColumns}
-            isLoading={summaryLoading}
-            getRowId={(row) => `${row.formType}-${row.formKey}`}
-            onRowClick={(row) =>
-              goTo(buildContinueRoute(row.formType, row.formKey))
-            }
-            placeholder={{ children: t('dashboard.empty.activeStandalone') }}
-            hidePagination
-            hideCardBorder
-          />
-        </Card.Content>
-      </Card>
+      {canReadStandalone && (
+        <>
+          {/* Active standalone forms table */}
+          <div className={`${styles.sectionHeader} mt-1 mb-1`}>
+            <Heading element="h2">
+              {t('dashboard.sections.activeStandalone')}
+            </Heading>
+          </div>
+          <Card>
+            <Card.Content>
+              <Table
+                id="dashboard-active-standalone"
+                data={summary.activeStandaloneForms}
+                columns={standaloneColumns}
+                isLoading={summaryLoading}
+                getRowId={(row) => `${row.formType}-${row.formKey}`}
+                onRowClick={(row) =>
+                  goTo(buildContinueRoute(row.formType, row.formKey))
+                }
+                placeholder={{
+                  children: t('dashboard.empty.activeStandalone'),
+                }}
+                hidePagination
+                hideCardBorder
+              />
+            </Card.Content>
+          </Card>
+        </>
+      )}
 
       {/* Link to full search */}
       <div className="mt-1">

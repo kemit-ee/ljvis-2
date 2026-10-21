@@ -38,7 +38,7 @@ filtreerida kuupäevavahemiku ja kasutaja (isikukood) järgi.
 
 1. Avage avaldatud ja sobimatuks tunnistatud hea maine kontrollvorm.
 2. Klõpsake **„Loo ERRU sobimatusteade"** — avaneb otsinguvaade
-   (**allikdeklaratsiooni otsing**), kuhu deklaratsiooni võti on juba
+   (**aluseks oleva hea maine vormi otsing**), kuhu deklaratsiooni võti on juba
    kaasa antud.
 3. Otsida saab ka käsitsi (**Menüü → NU sobimatusteated → „Uus
    sobimatusteade"**), sisestades veokorraldusjuhi eesnime, perekonnanime ja
@@ -55,10 +55,10 @@ Leitud deklaratsioon eeltäidab uue teate:
 | **Kutseoskuse tunnistuse andmed (7B)** | Tunnistuse number, väljaandmise kuupäev ja riik |
 | **Sobimatuse andmed** | Sobimatuse alguskuupäev |
 
-XSD nõuab, et kas nimeplokk (7A) või tunnistuseplokk (7B) oleks täielik —
+ERRU sõnumiskeemi järgi peab olema täielikult täidetud kas nimeplokk (7A) või tunnistuseplokk (7B) —
 tavaliselt on täidetud mõlemad, kuna need pärinevad samast deklaratsioonist.
 
-![Uue NU sobimatusteate vorm, eeltäidetud allikdeklaratsioonist](images/23-erru-nu/04-vorm.png)
+![Uue NU sobimatusteate vorm, eeltäidetud hea maine vormist](images/23-erru-nu/04-vorm.png)
 
 ### Allikandmete värskendamine
 
@@ -74,12 +74,12 @@ salvestamata muudatused olema salvestatud. Saatmisel kontrollitakse:
 
 - väljade pikkuse- ja vormingupiiranguid (ERRU 3.5 skeem),
 - et nime- ja tunnistuseplokk on terviklikud,
-- et allikdeklaratsioon on endiselt avaldatud, sobimatuks tunnistatud ning
+- et aluseks olev hea maine vorm on endiselt avaldatud, sobimatuks tunnistatud ning
   sobimatuse lõppkuupäev ei ole möödas.
 
-Saatmine on tõrkekindel samaaegsete muudatuste suhtes: kui teadet on
-vahepeal teises seansis muudetud või juba saadetud, kuvatakse
-versioonikonflikti teade ja leht tuleb uuesti laadida. Ebaõnnestunud
+Kui teine kasutaja on teadet vahepeal muutnud või selle juba saatnud,
+kuvab süsteem versioonikonflikti teate. Laadige leht uuesti ja kontrollige
+teate kehtivat versiooni. Ebaõnnestunud
 saatmise korral jääb teade olekusse **Viga** — uut saatmiskatset teha ei
 saa, tuleb koostada uus teade.
 

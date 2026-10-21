@@ -1,11 +1,12 @@
 declaration:
+  internal: false
   version: "1.0"
   description: "Save/revise the Estonian response draft to an INCOMING NCR message (LJVIS2-63).
     Moves the message to status 'answer_drafted'. Coverage validation (LJVIS2-63 §4 'Vastust ei
     saa salvestada enne, kui igale taotletud karistusele on lisatud sellega seotud kehtestatud
     karistus') is enforced HERE, before calling append-response-draft.sql: every
     penaltyRequestedIdentifier from the case's serious_infringements[].penaltiesRequested[] must
-    appear in the submitted responsePenaltiesImposed[] EXACTLY ONCE — missing or duplicated
+    appear in the submitted responsePenaltiesImposed[] EXACTLY ONCE - missing or duplicated
     identifiers both fail with 422 penalty_coverage_incomplete. isImposed=false entries have
     penaltyTypeImposed stripped server-side regardless of what the client submitted (LJVIS2-63
     §4 'Määrati karistus = Ei peidab ja tühjendab [Kehtestatud karistuse] välja')."
@@ -31,6 +32,9 @@ declaration:
       - field: transportUndertakingName
         type: string
       - field: communityLicenceNumber
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -60,6 +64,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -114,6 +119,7 @@ saveResponse:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-response-draft"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
@@ -154,8 +160,6 @@ logAuditEvent:
     changed_fields: "vastuse väljad"
     status: ${new_status}
     version: "${'' + new_version}"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

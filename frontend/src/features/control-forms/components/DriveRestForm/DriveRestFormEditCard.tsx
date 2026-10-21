@@ -5,7 +5,10 @@ import type { DriveRestForm } from '../../types';
 import { DriveRestFormCreatePage } from '../../pages/drive-rest-form/DriveRestFormCreatePage';
 import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable.tsx';
+import { SubFormEditPublishButton } from '../SubFormEditPublishButton/SubFormEditPublishButton';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
+import { NotifyCarrierCheckbox } from '../shared/NotifyCarrierCheckbox';
+import { RequestCarrierNotification } from '../shared/RequestCarrierNotification';
 
 interface DriveRestFormRef {
   formElement: HTMLFormElement;
@@ -15,7 +18,7 @@ interface DriveRestFormRef {
   hasErrors: () => boolean;
   isDirty: () => boolean;
   validateForm?: () => void;
-  confirm?: () => void;
+  confirm?: (notifyCarrier?: boolean) => void;
 }
 
 export interface DriveRestFormEditCardRef {
@@ -29,9 +32,11 @@ interface DriveRestFormEditCardProps {
   scope: 'driver' | 'teammate';
   form: DriveRestForm;
   compoundFormKey: number;
-  onSaved: (id?: string) => void;
+  onSaved: (id?: string, confirmed?: boolean) => void;
   onCancel: () => void;
   canConfirm: boolean;
+  canPublish?: boolean;
+  onPublish?: () => Promise<unknown>;
   onConfirm: () => void;
   formType: string;
   onValuesChange?: (values: Partial<DriveRestForm>) => void;
@@ -45,6 +50,8 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
   compoundFormKey,
   onSaved,
   canConfirm,
+  canPublish,
+  onPublish,
   formType,
   onValuesChange,
   initialValidate,
@@ -53,6 +60,7 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
   const { t } = useTranslation();
   const formRef = useRef<DriveRestFormRef | null>(null);
   const [versionsRefreshKey, setVersionsRefreshKey] = useState(0);
+  const [notifyCarrier, setNotifyCarrier] = useState(false);
 
 
   useImperativeHandle(ref, () => ({
@@ -73,9 +81,9 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
           authority={authority}
           initialData={form}
           compoundFormKey={compoundFormKey}
-          onSaved={(id) => {
+          onSaved={(id, confirmed) => {
             setVersionsRefreshKey((k) => k + 1);
-            onSaved(id);
+            onSaved(id, confirmed);
           }}
           onValuesChange={onValuesChange}
           initialValidate={initialValidate}
@@ -96,14 +104,31 @@ export const DriveRestFormEditCard = forwardRef<DriveRestFormEditCardRef, DriveR
               endpoint={`/v1/control-forms/drive-rest-form/${scope}/read/print`}
               id={form.id}
             />
+            <RequestCarrierNotification
+              formType={scope === 'driver' ? 'sp_driver' : 'sp_teammate'}
+              id={form.id}
+              status={form.status}
+            />
             {canConfirm && (
-              <Button
-                type="button"
-                onClick={() => formRef.current?.confirm?.()}
-              >
-                {t('common.confirm')}
-              </Button>
+              <>
+                <NotifyCarrierCheckbox
+                  checked={notifyCarrier}
+                  onChange={setNotifyCarrier}
+                />
+                <Button
+                  type="button"
+                  onClick={() => formRef.current?.confirm?.(notifyCarrier)}
+                >
+                  {t('common.confirm')}
+                </Button>
+              </>
             )}
+            <SubFormEditPublishButton
+              form={form}
+              canPublish={canPublish}
+              onPublish={onPublish}
+              isDirty={() => formRef.current?.isDirty() ?? false}
+            />
           </div>
         </div>
       </Card.Content>

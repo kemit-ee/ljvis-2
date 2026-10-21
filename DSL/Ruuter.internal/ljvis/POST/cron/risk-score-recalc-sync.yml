@@ -1,18 +1,19 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: >-
     Nightly full risk-score recalculation (LJVIS2-150/151/152): for every
-    company that ever had a published compound_form
+    company with a published compound, VR, TRAM or labour-inspection form, or a historical risk score
     (select_companies_for_recalc.sql), calls
     [#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate with
     calculation_trigger='ooine_ymberarvutus'. risk.company_risk_score is
-    insert-only history (docs/risk-score/formula.md §5) — every run
+    insert-only history (docs/risk-score/formula.md §5) - every run
     appends a new row per company, unlike the other 3 cron jobs which
     resolve a candidate out of the selection query.
 
     Writes one audit.audit_event per run (companiesChecked/recalculated/
-    failures + failed reg codes) — the only trace of a run, since
+    failures + failed reg codes) - the only trace of a run, since
     CronManager history is disabled and ignoreFailures:true swallows
     job-level errors.
 
@@ -26,9 +27,16 @@ fetchCompanies:
   args:
     url: "[#LJVIS_RESQL]/risk_score/select_companies_for_recalc"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
   result: companiesRes
+  next: checkCompaniesResponse
+
+checkCompaniesResponse:
+  switch:
+    - condition: "${companiesRes.response == null || companiesRes.response.status < 200 || companiesRes.response.status >= 300 || !Array.isArray(companiesRes.response.body)}"
+      next: returnCompanySelectionError
   next: assignCompanies
 
 assignCompanies:
@@ -53,6 +61,7 @@ processCompanies:
         args:
           url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate"
           headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
             company_reg_code: ${company_reg_code}
@@ -62,11 +71,12 @@ processCompanies:
       - assign:
           outcome: >-
             ${(function(){
-              var httpOk = recalcRes.response.status >= 200 && recalcRes.response.status < 300;
+              var response = recalcRes && recalcRes.response;
+              var httpOk = response != null && response.status >= 200 && response.status < 300;
               if (!httpOk) {
                 return { success: false, riskBandCode: '' };
               }
-              return { success: true, riskBandCode: (recalcRes.response.body && recalcRes.response.body.riskBandCode) || '' };
+              return { success: true, riskBandCode: (response.body && response.body.riskBandCode) || '' };
             })()}
     collect: "${({ companyRegCode: company_reg_code, success: outcome.success })}"
     into: results
@@ -85,6 +95,7 @@ writeAuditEvent:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       event_id: ""
@@ -112,5 +123,10 @@ writeAuditEvent:
 
 returnSummary:
   status: 200
-  return: "${({ companiesChecked: companies.length, recalculated: results.filter(r => r.success).length, failures: results.filter(r => !r.success).length })}"
+  return: "${({ total: companies.length, succeeded: results.filter(r => r.success).length, companiesChecked: companies.length, recalculated: results.filter(r => r.success).length, failures: results.filter(r => !r.success).length })}"
+  next: end
+
+returnCompanySelectionError:
+  status: 500
+  return: "${({error: 'COMPANY_SELECTION_ERROR', message: 'Risk-score company selection failed'})}"
   next: end

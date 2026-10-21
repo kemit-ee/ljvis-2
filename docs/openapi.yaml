@@ -473,7 +473,7 @@ paths:
         Returns every classifier together with its values (latest snapshot,
         with validity), including classifier-level metadata (`classifierId`,
         `classifierName`). Requires `classifier.read`, which is only granted
-        to admin-scoped user groups in seed data — do **not** use this for
+        to administrator user groups in initial data — do **not** use this for
         data that regular form users need (see `docs/classifier-caching.md`
         for the permission-gap this caused historically). Reserved for
         admin/validity-aware tooling.
@@ -496,13 +496,15 @@ paths:
       tags: [organisations]
       operationId: getOrganisations
       x-permissions:
-        anyOf: [organisation.list]
+        authenticated: true
+        anyOf: []
       summary: List all organisations.
       description: |
         Returns the full organisation catalogue, sorted by name in Estonian
         alphabetical order, case-insensitive. Used to populate organisation
-        pickers in user and user-group create / edit flows. Requires
-        organisation.list.
+        pickers in user, user-group and form (inspector organisation)
+        flows. No specific permission required — only a valid authenticated
+        officer session (`/v1/.guard`), so forms never open half-empty.
         Exception to `application_general_rules.md` §3.2 R2 per §3.1:
         returns the whole small immutable catalogue in a single response
         without a `pagination` object; the UI renders a checkbox list,
@@ -2563,7 +2565,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: RSI message not found. }
-        '422': { description: Validation error. }
+        '422': { description: "not_sendable (status is not initiated) or invalid_checked_items (checkedItems not in RSI_FAILED_REASON codes, or a failed item without a reason)." }
         '502': { description: ERRU transport failure. }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
@@ -3597,7 +3599,7 @@ components:
       description: |
         Unpaginated list response. Exception to
         `application_general_rules.md` §3.2 R2 per §3.1: the permission
-        catalogue is immutable (Liquibase-seeded, NFR-DATA-17), so the
+        catalogue is immutable (loaded by Liquibase, NFR-DATA-17), so the
         whole catalogue is returned in a single call and the UI renders
         a checkbox list (no TEDI `Pagination` component).
       properties:

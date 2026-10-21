@@ -1,0 +1,960 @@
+{
+  "info": {
+    "name": "LJVIS — ERRU XML Adapter",
+    "_postman_id": "ljvis-erru-xml-adapter-v1",
+    "description": "Exercises docker/erru-xml-adapter directly (not through Ruuter): durable acceptance of raw ERRU 3.5 XML, the three replay outcomes (fresh / exact redelivery / conflicting redelivery), XSD rejection, and the full NotifyUnfitness_Request -> Ruuter.internal -> NotifyUnfitness_Acknowledgement -> mock Hub pipeline. See docker/erru-xml-adapter/README.md for which message types are processed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[Setup] generate technicalId/workflowId for this run",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.collectionVariables.set('nu_technical_id', pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('nu_workflow_id', pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('nu_business_case_id', 'DE-NU-CI-' + Date.now());",
+              "pm.collectionVariables.set('cgr_technical_id', pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('cgr_workflow_id', pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('ctud_workflow_id', pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('rsi_workflow_id', pm.variables.replaceIn('{{$guid}}'));",
+              "pm.collectionVariables.set('ncr_workflow_id', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/health",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Adapter and Hub mock are healthy",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/health",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('adapter healthy', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hub mock reachable, capture baseline delivery count",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/count",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "count"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('hub mock reachable', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('hub_count_before_nu', pm.response.json().count);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Malformed XML is rejected, nothing stored",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "this is not XML at all"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('malformed XML -> 400', () => pm.response.to.have.status(400));",
+              "pm.test('error is malformed_xml', () => pm.expect(pm.response.json().error).to.eql('malformed_xml'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unsupported root element is rejected, nothing stored",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<SomeUnrelatedMessage xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\"/>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('unsupported root -> 400', () => pm.response.to.have.status(400));",
+              "pm.test('error is unsupported_root_element', () => pm.expect(pm.response.json().error).to.eql('unsupported_root_element'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Oversized body is rejected with 413, not an OOM risk",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{{oversized_body}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.collectionVariables.set('oversized_body', '<NotifyUnfitness_Request>' + 'A'.repeat(3 * 1024 * 1024) + '</NotifyUnfitness_Request>');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('body over the cap -> 413', () => pm.response.to.have.status(413));",
+              "pm.test('error is payload_too_large', () => pm.expect(pm.response.json().error).to.eql('payload_too_large'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "DOCTYPE is rejected with 400, not 500",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<?xml version=\"1.0\"?>\n<!DOCTYPE NotifyUnfitness_Request [<!ENTITY x \"pwned\">]>\n<NotifyUnfitness_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{$guid}}\" workflowId=\"{{$guid}}\" sentAt=\"2026-09-23T09:15:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"DE-NU-DOCTYPE&x;\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportManager unfitStartDate=\"2026-09-23\">\n      <TransportManagerNameDetails>\n        <TransportManager firstName=\"HANS\" familyName=\"MUELLER\" dateOfBirth=\"1975-04-12\"/>\n        <CertificateOfProfessionalCompetence certificateNumber=\"DE-CPC-000123\" certificateIssueDate=\"2010-05-01\" certificateIssueCountry=\"DE\"/>\n      </TransportManagerNameDetails>\n    </TransportManager>\n  </Body>\n</NotifyUnfitness_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('DOCTYPE -> 400, not 500', () => pm.response.to.have.status(400));",
+              "pm.test('error is malformed_xml', () => pm.expect(pm.response.json().error).to.eql('malformed_xml'));",
+              "pm.test('rejected at the DTD peek, not just the defence-in-depth re-parse', () => pm.expect(pm.response.json().detail).to.include('DOCTYPE'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Non-UTF-8 encoding is rejected with 400, not silently mangled",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<NotifyUnfitness_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{$guid}}\" workflowId=\"{{$guid}}\" sentAt=\"2026-09-23T09:15:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"DE-NU-ENC-TEST\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportManager unfitStartDate=\"2026-09-23\">\n      <TransportManagerNameDetails>\n        <TransportManager firstName=\"HANS\" familyName=\"MULLER\" dateOfBirth=\"1975-04-12\"/>\n        <CertificateOfProfessionalCompetence certificateNumber=\"DE-CPC-ENC01\" certificateIssueDate=\"2010-05-01\" certificateIssueCountry=\"DE\"/>\n      </TransportManagerNameDetails>\n    </TransportManager>\n  </Body>\n</NotifyUnfitness_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('non-UTF-8 -> 400, not accepted-then-mangled', () => pm.response.to.have.status(400));",
+              "pm.test('error is malformed_xml', () => pm.expect(pm.response.json().error).to.eql('malformed_xml'));",
+              "pm.test('detail mentions the unsupported encoding', () => pm.expect(pm.response.json().detail).to.include('ISO-8859-1'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "XSD-invalid NU request (missing required Body attribute) is rejected",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<NotifyUnfitness_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{$guid}}\" workflowId=\"{{$guid}}\" sentAt=\"2026-09-23T09:00:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportManager unfitStartDate=\"2026-09-23\">\n      <TransportManagerNameDetails>\n        <TransportManager firstName=\"HANS\" familyName=\"MUELLER\" dateOfBirth=\"1975-04-12\"/>\n      </TransportManagerNameDetails>\n    </TransportManager>\n  </Body>\n</NotifyUnfitness_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('XSD-invalid (missing businessCaseId) -> 400', () => pm.response.to.have.status(400));",
+              "pm.test('error is xsd_validation_failed', () => pm.expect(pm.response.json().error).to.eql('xsd_validation_failed'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Valid NU request is durably accepted (202)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<NotifyUnfitness_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{nu_technical_id}}\" workflowId=\"{{nu_workflow_id}}\" sentAt=\"2026-09-23T09:00:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"{{nu_business_case_id}}\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportManager unfitStartDate=\"2026-09-23\">\n      <TransportManagerNameDetails>\n        <TransportManager firstName=\"HANS\" familyName=\"MUELLER\" dateOfBirth=\"1975-04-12\"/>\n        <CertificateOfProfessionalCompetence certificateNumber=\"DE-CPC-CI-000001\" certificateIssueDate=\"2010-05-01\" certificateIssueCountry=\"DE\"/>\n      </TransportManagerNameDetails>\n    </TransportManager>\n  </Body>\n</NotifyUnfitness_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('fresh NU request -> 202 accepted', () => pm.response.to.have.status(202));",
+              "var b = pm.response.json();",
+              "pm.test('status is accepted', () => pm.expect(b.status).to.eql('accepted'));",
+              "pm.collectionVariables.set('nu_inbox_id', b.inboxId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exact redelivery of the same NU request is idempotently accepted (202, same inboxId)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<NotifyUnfitness_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{nu_technical_id}}\" workflowId=\"{{nu_workflow_id}}\" sentAt=\"2026-09-23T09:00:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"{{nu_business_case_id}}\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportManager unfitStartDate=\"2026-09-23\">\n      <TransportManagerNameDetails>\n        <TransportManager firstName=\"HANS\" familyName=\"MUELLER\" dateOfBirth=\"1975-04-12\"/>\n        <CertificateOfProfessionalCompetence certificateNumber=\"DE-CPC-CI-000001\" certificateIssueDate=\"2010-05-01\" certificateIssueCountry=\"DE\"/>\n      </TransportManagerNameDetails>\n    </TransportManager>\n  </Body>\n</NotifyUnfitness_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('exact redelivery -> 202 accepted (not an error)', () => pm.response.to.have.status(202));",
+              "var b = pm.response.json();",
+              "pm.test('same inboxId — no duplicate row', () => pm.expect(String(b.inboxId)).to.eql(String(pm.collectionVariables.get('nu_inbox_id'))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conflicting redelivery (same technicalId, different content) is rejected (409)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<NotifyUnfitness_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{nu_technical_id}}\" workflowId=\"{{nu_workflow_id}}\" sentAt=\"2026-09-23T09:00:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"{{nu_business_case_id}}\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportManager unfitStartDate=\"2026-09-23\">\n      <TransportManagerNameDetails>\n        <TransportManager firstName=\"BETTINA\" familyName=\"MUELLER\" dateOfBirth=\"1975-04-12\"/>\n        <CertificateOfProfessionalCompetence certificateNumber=\"DE-CPC-CI-000001\" certificateIssueDate=\"2010-05-01\" certificateIssueCountry=\"DE\"/>\n      </TransportManagerNameDetails>\n    </TransportManager>\n  </Body>\n</NotifyUnfitness_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('conflicting redelivery -> 409', () => pm.response.to.have.status(409));",
+              "pm.test('error is conflicting_technical_id', () => pm.expect(pm.response.json().error).to.eql('conflicting_technical_id'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] give the processing/delivery loops time to run (fallback-scan bound)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/3000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "3000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mock Hub received exactly one new NotifyUnfitness_Acknowledgement",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/count",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "count"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('hub count increased by exactly 1 (redelivery + conflict did not trigger a second send)', () => {",
+              "  var before = pm.collectionVariables.get('hub_count_before_nu');",
+              "  var after = pm.response.json().count;",
+              "  pm.expect(after).to.eql(before + 1);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delivered ACK is well-formed and correlates to the original request",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/workflow/{{nu_workflow_id}}",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "workflow",
+            "{{nu_workflow_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('last delivery is 200', () => pm.response.to.have.status(200));",
+              "var xml = pm.response.text();",
+              "pm.test('is a NotifyUnfitness_Acknowledgement', () => pm.expect(xml).to.include('<NotifyUnfitness_Acknowledgement'));",
+              "pm.test('workflowId correlates to the original request', () => pm.expect(xml).to.include('workflowId=\"' + pm.collectionVariables.get('nu_workflow_id') + '\"'));",
+              "pm.test('businessCaseId round-tripped', () => pm.expect(xml).to.include('businessCaseId=\"' + pm.collectionVariables.get('nu_business_case_id') + '\"'));",
+              "pm.test('statusCode is OK', () => pm.expect(xml).to.include('statusCode=\"OK\"'));",
+              "pm.test('ack technicalId is NOT the inbound technicalId (fresh outbound id, no correlation-id reuse)', () => pm.expect(xml).to.not.include('technicalId=\"' + pm.collectionVariables.get('nu_technical_id') + '\"'));",
+              "var parsedXml = xml2Json(pm.response.text());",
+              "pm.test('Exact response QName and workflow', () => {",
+              "  pm.expect(parsedXml).to.have.property('NotifyUnfitness_Acknowledgement');",
+              "  pm.expect(parsedXml['NotifyUnfitness_Acknowledgement'].$.xmlns).to.eql('https://webgate.ec.testa.eu/move-hub/erru/3.5');",
+              "  pm.expect(parsedXml['NotifyUnfitness_Acknowledgement'].Header.$.workflowId).to.eql(pm.collectionVariables.get('nu_workflow_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CGR request (7A+7B combined, matches the MTR mock's Found rule) is accepted",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<CheckGoodRepute_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{cgr_technical_id}}\" workflowId=\"{{cgr_workflow_id}}\" sentAt=\"2026-09-23T09:05:00Z\" from=\"DE\" to=\"ZZ\"/>\n  <Body businessCaseId=\"DE-CGR-CI-0001\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Issue\">\n    <SearchedTransportManager>\n      <TransportManagerNameDetails firstName=\"MART\" familyName=\"TAMM\" dateOfBirth=\"1980-05-15\" placeOfBirth=\"Tallinn\"/>\n      <TransportManagerCertificateDetails certificateNumber=\"EE-CPC-2020-00111\" certificateIssueDate=\"2020-06-01\" certificateIssueCountry=\"EE\"/>\n    </SearchedTransportManager>\n  </Body>\n</CheckGoodRepute_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CGR accepted', () => pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] then check the CGR answer actually says Found (not a fabricated/mistranslated field)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "2000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "CGR Found answer has the real MTR data, not NotAvailable or a placeholder",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/workflow/{{cgr_workflow_id}}",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "workflow",
+            "{{cgr_workflow_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.text();",
+              "pm.test('CGR MemberState statusCode is Found, not NotAvailable', () => pm.expect(body).to.include('statusCode=\"Found\"'));",
+              "pm.test('licence status is the real value, not a fabricated default', () => pm.expect(body).to.include('communityLicenceStatus=\"Active\"'));",
+              "pm.test('licence number is the real value, not \"unknown\"', () => pm.expect(body).to.include('communityLicenceNumber=\"EE-CL-2020-11111\"'));",
+              "pm.test('numberOfVehicles is a clean integer, not \"8.0\"', () => pm.expect(body).to.include('numberOfVehicles=\"8\"'));",
+              "pm.test('address is the real value, not \"unknown\"/\"00000\"', () => pm.expect(body).to.include('address=\"Tartu mnt 12\"'));",
+              "var parsedXml = xml2Json(pm.response.text());",
+              "pm.test('Exact response QName and workflow', () => {",
+              "  pm.expect(parsedXml).to.have.property('CheckGoodRepute_Response');",
+              "  pm.expect(parsedXml['CheckGoodRepute_Response'].$.xmlns).to.eql('https://webgate.ec.testa.eu/move-hub/erru/3.5');",
+              "  pm.expect(parsedXml['CheckGoodRepute_Response'].Header.$.workflowId).to.eql(pm.collectionVariables.get('cgr_workflow_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CTUD request (AS EESTI VEOD, matches the MTR mock's Found rule) is accepted",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<CheckTransportUndertakingData_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{$guid}}\" workflowId=\"{{ctud_workflow_id}}\" sentAt=\"2026-09-23T09:05:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"DE-CTUD-CI-0001\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <SearchedCompany requestAllVehicles=\"false\">\n      <SearchByLicenceAndName transportUndertakingName=\"AS EESTI VEOD\" communityLicenceNumber=\"EE-CL-2020-11111\">\n        <Vehicle vehicleRegistrationNumber=\"123ABC\" vehicleRegistrationCountry=\"EE\"/>\n      </SearchByLicenceAndName>\n    </SearchedCompany>\n  </Body>\n</CheckTransportUndertakingData_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('CTUD accepted', () => pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] then check the CTUD answer actually says Found",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "2000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "CTUD Found answer translates the compact licence-type code to the real XSD string",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/workflow/{{ctud_workflow_id}}",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "workflow",
+            "{{ctud_workflow_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.text();",
+              "pm.test('CTUD statusCode is Found, not NotAvailable (regression: this used to always fail here)', () => pm.expect(body).to.include('statusCode=\"Found\"'));",
+              "pm.test('communityLicenceType is the real XSD long-form string, not the compact classifier code', () => pm.expect(body).to.include('communityLicenceType=\"Community licence for goods transport\"'));",
+              "pm.test('communityLicenceType is NOT the raw compact code', () => pm.expect(body).to.not.include('CommunityLicenceGoods'));",
+              "pm.test('respondingAuthority is the flow\\'s own EE-TRAM, not NU\\'s EE-PPA', () => pm.expect(body).to.include('respondingAuthority=\"EE-TRAM\"'));",
+              "pm.test('numberOfEmployees is a clean integer, not \"63.0\"', () => pm.expect(body).to.include('numberOfEmployees=\"63\"'));",
+              "var parsedXml = xml2Json(pm.response.text());",
+              "pm.test('Exact response QName and workflow', () => {",
+              "  pm.expect(parsedXml).to.have.property('CheckTransportUndertakingData_Response');",
+              "  pm.expect(parsedXml['CheckTransportUndertakingData_Response'].$.xmlns).to.eql('https://webgate.ec.testa.eu/move-hub/erru/3.5');",
+              "  pm.expect(parsedXml['CheckTransportUndertakingData_Response'].Header.$.workflowId).to.eql(pm.collectionVariables.get('ctud_workflow_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RSI request (with driver/undertaking/checked items) is accepted",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<RoadSideInspection_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{$guid}}\" workflowId=\"{{rsi_workflow_id}}\" sentAt=\"2026-09-23T09:05:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"DE-RSI-CI-0001\" originatingAuthority=\"DE-BAG\" requestSource=\"RSI\" requestPurpose=\"Control\">\n    <InspectionDetails inspectionIdentifier=\"INSP-CI-1\" inspectionLocation=\"Autobahn A1\" inspectionDateTime=\"2026-09-23T09:00:00Z\" inspectionAuthorityOrName=\"DE-Polizei\">\n      <InspectionResult inspectionPassed=\"false\" vehicleProhibitionOrRestriction=\"true\" ptiRequested=\"true\"/>\n    </InspectionDetails>\n    <IdentificationDetails>\n      <VehicleDetails vehicleRegistrationNumber=\"123ABC\" vehicleRegistrationCountry=\"EE\" vehicleIdentificationNumber=\"WVW1234567890ABCD\" vehicleCategory=\"N2\" odometerReading=\"123456\"/>\n      <DriverDetails firstName=\"HANS\" familyName=\"MUELLER\" drivingLicenceNumber=\"DL123\" drivingLicenceCountry=\"DE\"/>\n      <TransportUndertakingDetails transportUndertakingName=\"ACME OU\" communityLicenceNumber=\"EE-CL-001\">\n        <TransportUndertakingAddress address=\"Main St 1\" postCode=\"10111\" city=\"Tallinn\" country=\"EE\"/>\n      </TransportUndertakingDetails>\n    </IdentificationDetails>\n    <CheckedItems>\n      <CheckedItem itemType=\"1\" itemFailed=\"1\">\n        <FailedChecks>\n          <FailedCheck failedReason=\"1.1.1.a\" failedAssessment=\"Major\" isRectified=\"0\"/>\n        </FailedChecks>\n      </CheckedItem>\n    </CheckedItems>\n  </Body>\n</RoadSideInspection_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('RSI accepted', () => pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] then check the RSI answer",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "2000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RSI answer is well-formed, with the correct respondingAuthority",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/workflow/{{rsi_workflow_id}}",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "workflow",
+            "{{rsi_workflow_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.text();",
+              "pm.test('RSI statusCode is OK (EE-registered vehicle)', () => pm.expect(body).to.include('statusCode=\"OK\"'));",
+              "pm.test('respondingAuthority is set (RSI-specific, not NU\\'s EE-PPA)', () => pm.expect(body).to.include('respondingAuthority=\"EE-TRAM\"'));",
+              "pm.test('response has no vehicleDetails (not part of the XSD answer)', () => pm.expect(body).to.not.include('vehicleDetails'));",
+              "var parsedXml = xml2Json(pm.response.text());",
+              "pm.test('Exact response QName and workflow', () => {",
+              "  pm.expect(parsedXml).to.have.property('RoadSideInspection_Response');",
+              "  pm.expect(parsedXml['RoadSideInspection_Response'].$.xmlns).to.eql('https://webgate.ec.testa.eu/move-hub/erru/3.5');",
+              "  pm.expect(parsedXml['RoadSideInspection_Response'].Header.$.workflowId).to.eql(pm.collectionVariables.get('rsi_workflow_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "NCR request (Fail, with a serious infringement, xs:boolean as 1/0) is accepted",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          }
+        ],
+        "url": {
+          "raw": "{{erru_xml_adapter_url}}/erru/xml",
+          "host": [
+            "{{erru_xml_adapter_url}}"
+          ],
+          "path": [
+            "erru",
+            "xml"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "<NotifyCheckResult_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{$guid}}\" workflowId=\"{{ncr_workflow_id}}\" sentAt=\"2026-09-23T09:05:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body businessCaseId=\"DE-NCR-CI-0001\" originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportUndertaking transportUndertakingName=\"ACME OU\" communityLicenceNumber=\"EE-CL-001\">\n      <Vehicle vehicleRegistrationNumber=\"123ABC\" vehicleRegistrationCountry=\"EE\"/>\n      <CheckSummary checkResult=\"Fail\" dateOfCheck=\"2026-09-23\"/>\n      <SeriousInfringement dateOfInfringement=\"2026-09-23\" category=\"MSI\" infringementType=\"101\" appealPossible=\"1\">\n        <PenaltiesImposed>\n          <PenaltyImposed penaltyImposedIdentifier=\"1\" finalDecisionDate=\"2026-09-23\" penaltyTypeImposed=\"101\" isExecuted=\"Yes\"/>\n        </PenaltiesImposed>\n      </SeriousInfringement>\n    </TransportUndertaking>\n  </Body>\n</NotifyCheckResult_Request>"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('NCR accepted', () => pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] then check the NCR answer",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/2000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "2000"
+          ]
+        }
+      }
+    },
+    {
+      "name": "NCR answer is a well-formed NCRN_Ack with the correct respondingAuthority",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/workflow/{{ncr_workflow_id}}",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "workflow",
+            "{{ncr_workflow_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.text();",
+              "pm.test('NCR statusCode is OK', () => pm.expect(body).to.include('statusCode=\"OK\"'));",
+              "pm.test('respondingAuthority is EE-TRAM (confirmed by LJVIS2-64\\'s own example), not NU\\'s EE-PPA', () => pm.expect(body).to.include('respondingAuthority=\"EE-TRAM\"'));",
+              "var parsedXml = xml2Json(pm.response.text());",
+              "pm.test('Exact response QName and workflow', () => {",
+              "  pm.expect(parsedXml).to.have.property('NotifyCheckResult_Acknowledgement');",
+              "  pm.expect(parsedXml['NotifyCheckResult_Acknowledgement'].$.xmlns).to.eql('https://webgate.ec.testa.eu/move-hub/erru/3.5');",
+              "  pm.expect(parsedXml['NotifyCheckResult_Acknowledgement'].Header.$.workflowId).to.eql(pm.collectionVariables.get('ncr_workflow_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hub delivery count increased by exactly 4 (CGR + CTUD + RSI + NCR)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/count",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "count"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('hub count increased by exactly 4', () => {",
+              "  var before = pm.collectionVariables.get('hub_count_before_nu');",
+              "  var after = pm.response.json().count;",
+              "  pm.expect(after).to.eql(before + 5);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "nu_technical_id",
+      "value": ""
+    },
+    {
+      "key": "nu_workflow_id",
+      "value": ""
+    },
+    {
+      "key": "nu_business_case_id",
+      "value": ""
+    },
+    {
+      "key": "nu_inbox_id",
+      "value": ""
+    },
+    {
+      "key": "cgr_technical_id",
+      "value": ""
+    },
+    {
+      "key": "cgr_workflow_id",
+      "value": ""
+    },
+    {
+      "key": "hub_count_before_nu",
+      "value": "0"
+    },
+    {
+      "key": "oversized_body",
+      "value": ""
+    }
+  ]
+}

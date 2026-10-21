@@ -14,6 +14,7 @@ import { useAuth } from '../../../auth/AuthContext';
 import { useIsAdmin } from '../../../../hooks/useIsAdmin';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
+import { useCanUseAdministrativeProcedure } from '../../../../hooks/useCanUseAdministrativeProcedure';
 import {
   deleteForeignViolationForm,
   getForeignViolationFormSnapshot,
@@ -23,6 +24,8 @@ import { DeleteConfirmModal } from '../../../../shared/components/DeleteConfirmM
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
+import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
+import { FormLoadError } from '../../../../shared/components/FormLoadError';
 
 export function ForeignViolationFormPage() {
   const { id, snapshotId } = useParams<{ id: string; snapshotId?: string }>();
@@ -33,14 +36,16 @@ export function ForeignViolationFormPage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
 
   const forbidden = !(
-    (hasPermission('foreign_violation_form.read') ||
-      hasPermission('control_form.view_unpublished')) &&
-    hasPermission('classifier.read')
+    hasPermission('foreign_violation_form.read') ||
+    hasPermission('foreign_violation_form.write') ||
+    hasPermission('control_form.view_unpublished')
   );
 
   const [isEditActive, setIsEditActive] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
+  // ADR-011: klassifikaatori vormipiirang kehtib ainult muutmisrežiimis
+  useClassifierScopeActive(isEditActive);
   const [showSavedAlert, setShowSavedAlert] = useState(
     !!(location.state as { justCreated?: boolean })?.justCreated,
   );
@@ -70,6 +75,7 @@ export function ForeignViolationFormPage() {
   }, [form?.status]);
 
   const isAdmin = useIsAdmin();
+  const canUseAdministrativeProcedure = useCanUseAdministrativeProcedure();
 
   const canEdit =
     isAdmin && (form?.status === 'confirmed' || form?.status === 'published');
@@ -162,7 +168,7 @@ export function ForeignViolationFormPage() {
   if (snapshotId) {
     if (snapshotLoading) return <Text>{t('common.loading')}</Text>;
     if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-    if (!snapshot) return <Text>{t('common.error')}</Text>;
+    if (!snapshot) return <FormLoadError />;
     return (
       <div>
         <Card>
@@ -214,7 +220,7 @@ export function ForeignViolationFormPage() {
 
   if (loading && !form) return <Text>{t('common.loading')}</Text>;
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
-  if (!form) return <Text>{t('common.error')}</Text>;
+  if (!form) return <FormLoadError />;
 
   return (
     <div>
@@ -300,7 +306,7 @@ export function ForeignViolationFormPage() {
               inspectionCitiesParishes={inspectionCitiesParishes}
               handleInspectionRegionChange={handleInspectionRegionChange}
               formType={FORM_TYPE.FOREIGN_VIOLATION}
-              showAdminSection={isAdmin}
+              showAdminSection={canUseAdministrativeProcedure}
             />
 
             {id && (

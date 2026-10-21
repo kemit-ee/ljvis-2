@@ -1,4 +1,5 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "Create a new classifier value"
@@ -15,9 +16,15 @@ declaration:
         type: string
       - field: validUntil
         type: string
+      - field: formTypes
+        type: array
+        description: "ADR-011: FORM_TYPE koodid, millele väärtus piiratakse; [] = kõik vormid; puudumisel piirangut ei muudeta"
+    headers:
+      - field: cookie
+        type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -29,6 +36,8 @@ extractRequestData:
     name: "${incoming.body.name}"
     valid_from: "${incoming.body.validFrom}"
     valid_until: "${incoming.body.validUntil ?? ''}"
+    form_types_provided: ${incoming.body.formTypes != null}
+    form_type_codes: "${(incoming.body.formTypes ?? []).join(',')}"
     created_by: "${auth_user.personalcode || ''}"
     actor_personal_code: "${auth_user.personalcode || ''}"
     actor_name: "${auth_user.firstname || ''} ${auth_user.lastname || ''}"
@@ -39,6 +48,7 @@ getClassifierCode:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       id: ${classifier_id}
@@ -55,6 +65,7 @@ insertClassifierValue:
   args:
     url: "[#LJVIS_RESQL]/classifier/insert_classifier_value"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       classifier_id: ${classifier_id}
@@ -64,17 +75,49 @@ insertClassifierValue:
       valid_until: ${valid_until}
       created_by: ${created_by}
   result: insertRes
-  next: buildAuditData
+  next: checkInsertResult
+
+checkInsertResult:
+  switch:
+    - condition: ${insertRes.response.status >= 200 && insertRes.response.status < 300 && insertRes.response.body != null && insertRes.response.body.length > 0}
+      next: buildAuditData
+    # Tühi vastus = sama koodiga väärtus on klassifikaatoris juba olemas.
+    - condition: ${insertRes.response.status >= 200 && insertRes.response.status < 300}
+      next: returnDuplicateCode
+    # Andmebaasi piirang ck_cv_period (valid_until > valid_from).
+    - condition: ${insertRes.response.status == 400}
+      next: returnInvalidPeriod
+  next: returnSaveFailed
 
 buildAuditData:
   assign:
     classifier_value_id: "${insertRes.response.body[0].id}"
+  next: checkFormScopeProvided
+
+checkFormScopeProvided:
+  switch:
+    - condition: ${form_types_provided && form_type_codes != ''}
+      next: setFormScope
+  next: buildAuditContent
+
+setFormScope:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/classifier/set_classifier_value_form_scope"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      classifier_value_id: ${classifier_value_id}
+      form_type_codes: ${form_type_codes}
+      created_by: ${created_by}
+  result: formScopeRes
   next: buildAuditContent
 
 buildAuditContent:
   assign:
-    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' — '${name}', kehtivus ${valid_from}–${valid_until}"
-    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\"}"
+    description: "Klassifikaator '${classifier_code}' (ID ${classifier_id}), lisatud väärtus '${code}' - '${name}', kehtivus ${valid_from}–${valid_until}, vormipiirang: '${form_type_codes}'"
+    log_content: "{\"classifierId\":${classifier_id},\"classifierCode\":\"${classifier_code}\",\"classifierValueId\":${classifier_value_id},\"code\":\"${code}\",\"name\":\"${name}\",\"validFrom\":\"${valid_from}\",\"validUntil\":\"${valid_until}\",\"formTypes\":\"${form_type_codes}\"}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -85,8 +128,6 @@ logAuditEvent:
   body:
     event_type: "classifier_value.add"
     event_category: "classifier_management"
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
     description: ${description}
     log_content: ${log_content}
   result: audit_result
@@ -94,4 +135,27 @@ logAuditEvent:
 
 returnSuccess:
   return: ${insertRes.response.body}
+  next: end
+
+returnDuplicateCode:
+  status: 422
+  return:
+    type: VALIDATION_ERROR
+    field: code
+    code: duplicate_code
+  next: end
+
+returnInvalidPeriod:
+  status: 422
+  return:
+    type: VALIDATION_ERROR
+    field: validUntil
+    code: invalid_period
+  next: end
+
+returnSaveFailed:
+  status: 500
+  return:
+    type: SERVER_ERROR
+    code: save_failed
   next: end

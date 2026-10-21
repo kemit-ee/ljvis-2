@@ -7,7 +7,7 @@ See dokument kirjeldab põhimõtteid, corner case'e ja vooge, mida tuleb järgid
 - Kogu äriloogika realiseeritakse Ruuteris.
 - RESQL täidab ainult andmeoperatsioone ja tagastab andmebaasi tulemused.
 - Enne `success` vastust on kohustuslik `verify-after-write`.
-- Kui mitmeastmelise voo hilisem samm ebaõnnestub, peab Ruuter käivitama kompenseeriva rollback voo RESQL endpointide kaudu.
+- Kui mitmeastmelise voo hilisem samm ebaõnnestub, peab Ruuter käivitama kompenseeriva rollback voo RESQL lõpp-punktide kaudu.
 - `partial success` ei ole lubatud lõppseis; see tuleb kas taastada või parandada.
 
 ## 2. Kohustuslikud reeglid

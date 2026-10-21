@@ -1,14 +1,25 @@
 declaration:
+  internal: false
 
   version: "1.0"
   description: "List active file attachments for a form. Expects: form_number"
   namespace: templates
+  strict: true
+  allowlist:
+    body:
+      - field: form_number
+        type: string
+      - field: form_number_prefix
+        type: string
+      - field: attachment_form_type
+        type: string
 
 getFilesFromDB:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachments"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       form_number: ${incoming.body.form_number}

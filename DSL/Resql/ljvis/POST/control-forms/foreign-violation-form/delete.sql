@@ -1,5 +1,5 @@
 /*
-description: Delete foreign violation form — copy latest snapshot with status=deleted
+description: Delete foreign violation form - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:
@@ -18,12 +18,16 @@ returns:
 - name: form_number
   type: string
   nullable: true
+- name: company_reg_code
+  type: string
+  nullable: true
 */
 WITH latest AS (
   SELECT DISTINCT ON (foreign_violation_form_key)
     foreign_violation_form_key,
     form_number,
     version,
+    revision,
     template_version,
     reporting_country_code,
     reporting_authority_name,
@@ -85,6 +89,7 @@ INSERT INTO forms.foreign_violation_form (
   foreign_violation_form_key,
   form_number,
   version,
+  revision,
   template_version,
   status,
   reporting_country_code,
@@ -145,6 +150,7 @@ SELECT
   l.foreign_violation_form_key,
   l.form_number,
   l.version,
+  l.revision + 1,
   l.template_version,
   :status,
   l.reporting_country_code,
@@ -201,4 +207,4 @@ SELECT
   l.erru_ncr_message_key,
   :created_by
 FROM latest l
-RETURNING foreign_violation_form_key AS id, form_number, version;
+RETURNING foreign_violation_form_key AS id, form_number, version, company_reg_code;

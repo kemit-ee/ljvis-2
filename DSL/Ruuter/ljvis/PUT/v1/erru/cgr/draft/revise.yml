@@ -1,6 +1,7 @@
 declaration:
+  internal: false
   version: "1.0"
-  description: "Revise an existing outgoing CGR request draft (LJVIS2-138, 'täiendamine'). PUT with the id in the request body, mirroring PUT /v1/erru/ctud. Appends a new snapshot with version + 1; nothing is ever updated in place. Editability is enforced in append-draft-revision.sql, which yields zero rows unless the latest snapshot is status='initiated' AND direction='outgoing' — so a sent request and an inbound request are both rejected with 422 not_editable regardless of the caller's permissions."
+  description: "Revise an existing outgoing CGR request draft (LJVIS2-138, 'täiendamine'). PUT with the id in the request body, mirroring PUT /v1/erru/ctud. Appends a new snapshot with version + 1; nothing is ever updated in place. Editability is enforced in append-draft-revision.sql, which yields zero rows unless the latest snapshot is status='initiated' AND direction='outgoing' - so a sent request and an inbound request are both rejected with 422 not_editable regardless of the caller's permissions."
   namespace: erru
   allowlist:
     body:
@@ -27,6 +28,9 @@ declaration:
       - field: certificateIssueDate
         type: string
       - field: certificateIssueCountry
+        type: string
+    headers:
+      - field: cookie
         type: string
 
 extractRequestData:
@@ -84,6 +88,7 @@ reviseDraft:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/append-draft-revision"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       key: ${id}
@@ -132,8 +137,6 @@ logAuditEvent:
     changed_fields: "päringu väljad"
     status: ${new_status}
     version: ${new_version}
-    actor_name: ${actor_name}
-    actor_personal_code: ${actor_personal_code}
   result: audit_result
   next: returnSuccess
 

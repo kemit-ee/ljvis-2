@@ -246,6 +246,28 @@ const shots = [
   { name: 'user-guide/erru-nu-otsing', run: (p) => gotoShot(p, '/erru/nu/new', 'user-guide/images/23-erru-nu/03-allika-otsing.png') },
   // Otse hea maine deklaratsioonist eeltäidetud vorm (sourceKey = good_repute_form_key).
   { name: 'user-guide/erru-nu-vorm', run: (p) => gotoShot(p, '/erru/nu/new?sourceKey=1', 'user-guide/images/23-erru-nu/04-vorm.png') },
+  // --- RSI tehnokontrolli teade: kontrollpunktid ja mitteläbimise põhjused (RSI_FAILED_REASON) ---
+  { name: 'user-guide/erru-rsi-loend', run: (p) => gotoShot(p, '/erru/rsi', 'user-guide/images/21-erru-rsi/01-loend.png') },
+  {
+    name: 'user-guide/erru-rsi-kontrollitud-punkt',
+    run: async (page) => {
+      await page.goto(BASE + '/erru/rsi/new', { waitUntil: 'domcontentloaded' });
+      await settle(page, 1200);
+      const heading = page.getByRole('heading', { name: 'Kontrollitud punkt' });
+      await heading.scrollIntoViewIfNeeded();
+      await page.evaluate(() => window.scrollBy(0, -80));
+      await shoot(page, 'user-guide/images/21-erru-rsi/02-kontrollitud-punkt.png');
+      // "Ei vasta nõuetele" avab punkti põhjuste tabeli; vali kaks näidispõhjust.
+      await page.locator('label[for="rsi-item-1-non-compliant"]').click();
+      await sleep(400);
+      await page.locator('label[for="rsi-reason-1.1.3.a-OV"]').click();
+      await page.locator('label[for="rsi-reason-1.1.4-VO"]').click();
+      await sleep(300);
+      await page.locator('#rsi-item-1-non-compliant').scrollIntoViewIfNeeded();
+      await page.evaluate(() => window.scrollBy(0, -60));
+      await shoot(page, 'user-guide/images/21-erru-rsi/03-pohjuste-tabel.png');
+    },
+  },
   {
     name: 'user-guide/vorm-tram-kontrollkaart',
     run: async (page) => {
@@ -375,7 +397,7 @@ const shots = [
     },
   },
 
-  // --- Riskihindamine / auditilogi (seemneandmed olemas) ---
+  // --- Riskihindamine / auditilogi (testandmed olemas) ---
   { name: 'user-guide/riskihindamine', run: (p) => gotoShot(p, '/admin/risk-scores', 'user-guide/images/16-riskihindamine/01-riskitasemed.png') },
   {
     name: 'user-guide/auditilogi',
@@ -415,6 +437,24 @@ const shots = [
         await gotoShot(page, href.replace(BASE, ''), 'admin-guide/images/04-klassifikaatorid/02-klassifikaatori-detail.png');
         await gotoShot(page, href.replace(BASE, '') + '/add-value', 'admin-guide/images/04-klassifikaatorid/03-vaartuse-lisamine.png');
       }
+      // ADR-011: „Piira vormidele" — PPA ja TRAM-i jagatud klassifikaatori väärtuse
+      // muutmisvaade, valikumenüü avatud (SP rühm nähtav). Midagi ei salvestata.
+      await page.goto(BASE + '/classifiers', { waitUntil: 'domcontentloaded' });
+      await settle(page);
+      await page.locator('#classifier-search').fill('TACHOGRAPH_TYPES');
+      await page.locator('#classifier-search').press('Enter');
+      await settle(page);
+      const tachoHref = await page.locator('tr', { hasText: 'TACHOGRAPH_TYPES' })
+        .locator('a[href*="/classifiers/"]').first().getAttribute('href').catch(() => null);
+      if (tachoHref) {
+        await page.goto(BASE + tachoHref.replace(BASE, ''), { waitUntil: 'domcontentloaded' });
+        await settle(page);
+        await page.locator('a.table-link').first().click();
+        await settle(page);
+        await page.locator('#formTypes').click();
+        await sleep(500);
+        await shoot(page, 'admin-guide/images/04-klassifikaatorid/04-vaartuse-vormipiirang.png');
+      }
     },
   },
   { name: 'admin-guide/auditilogi', run: (p) => gotoShot(p, '/logs', 'admin-guide/images/05-auditilogi/01-auditilogi.png') },
@@ -427,6 +467,44 @@ const shots = [
       await sleep(300);
       await shoot(page, 'admin-guide/images/10-etoimiku-xtee-logid/02-sisu.png');
       await page.getByRole('button', { name: 'Sulge' }).click().catch(() => {});
+      // Manuaalne käivitamine: kaart logitabeli all; teine pilt tehakse pärast
+      // riskiskooride ümberarvutuse käivitamist (tulemuse teade nähtav).
+      await page.goto(BASE + '/admin/xroad-logs', { waitUntil: 'domcontentloaded' });
+      await settle(page);
+      const manualCard = page.getByRole('heading', { name: 'Manuaalne käivitamine' });
+      await manualCard.scrollIntoViewIfNeeded();
+      await sleep(300);
+      await shoot(page, 'admin-guide/images/10-etoimiku-xtee-logid/03-manuaalne-kaivitamine.png');
+      await page
+        .getByTestId('manual-job-risk-score-recalc-sync')
+        .getByRole('button', { name: 'Käivita' })
+        .click();
+      await page.getByText(/Töö „Riskiskooride ümberarvutus” lõpetatud/).waitFor({ timeout: 120000 });
+      await shoot(page, 'admin-guide/images/10-etoimiku-xtee-logid/04-manuaalne-kaivitamine-tulemus.png');
+    },
+  },
+  {
+    // ncr_violation on desktop-kanaliga (algandmetest, ilma saajateta) — vt
+    // DSL/Liquibase/changelog/20261022100000-postkast2-xtee-alignment.sql.
+    // Kasutaja Mari Tamm (60002020202) tuleb olla otsitav — vt
+    // tests/bootstrap/seed_test_data.sql ("ametnik" testkasutaja).
+    name: 'admin-guide/notification-template-mapping',
+    run: async (page) => {
+      await gotoShot(
+        page,
+        '/notification-template-mapping/ncr_violation',
+        'admin-guide/images/09-teavitused/02-desktop-kanali-vaade.png',
+      );
+      await page.getByRole('button', { name: 'Muuda' }).click().catch(() => {});
+      await page.getByPlaceholder('Otsi kasutajat nime järgi').fill('Mari').catch(() => {});
+      await page.getByPlaceholder('Otsi kasutajat nime järgi').press('Enter').catch(() => {});
+      await page.getByText('Mari Tamm (60002020202)').waitFor({ timeout: 15000 }).catch(() => {});
+      await shoot(page, 'admin-guide/images/09-teavitused/03-desktop-saaja-otsing.png');
+      await page.getByRole('button', { name: 'Lisa' }).click().catch(() => {});
+      await sleep(300);
+      await shoot(page, 'admin-guide/images/09-teavitused/04-desktop-saaja-lisatud.png');
+      // Puhastus, et algandmestik jääks muutumatuks järgmise käivituse jaoks.
+      await page.getByRole('button', { name: 'Tühista' }).click().catch(() => {});
     },
   },
 ];

@@ -56,7 +56,10 @@ SELECT
   version,
   status,
   created_at,
-  (SELECT first_name || ' ' || last_name FROM users.user_account WHERE user_account.personal_code = filtered.created_by ORDER BY user_account.id DESC LIMIT 1) AS created_by,
+  COALESCE(
+    (SELECT first_name || ' ' || last_name FROM users.user_account WHERE user_account.personal_code = filtered.created_by ORDER BY user_account.id DESC LIMIT 1),
+    filtered.created_by
+  ) AS created_by,
   (SELECT organisation_name FROM users.user_account WHERE user_account.personal_code = filtered.created_by ORDER BY user_account.id DESC LIMIT 1) AS org_name
 FROM filtered
 ORDER BY created_at;

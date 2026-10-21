@@ -19,7 +19,9 @@
     "officialInfo": "COMING",
     "roleLabel": "View",
     "roleOfficer": "Officer",
-    "roleCitizen": "Citizen"
+    "roleCitizen": "Citizen",
+    "taraUnavailable": "Unable to connect to TARA. The authentication service is not responding or is not configured — please try again later or contact your system administrator.",
+    "backToLogin": "Back to login"
   },
   "countries": {
     "AD": "Andorra",
@@ -279,8 +281,9 @@
   "dashboard": {
     "scope": {
       "label": "View",
-      "own": "Mine",
-      "organisation": "Organisation"
+      "own": "My forms",
+      "unit": "My unit's forms",
+      "organisation": "My organisation"
     },
     "sections": {
       "compoundBlock": "Compound form",
@@ -329,6 +332,14 @@
   "forms": {
     "savedNote": "Form has been saved",
     "confirmedNote": "Form has been confirmed",
+    "notifyCarrierOnConfirm": "Notify the carrier of the infringement (sent on publication)",
+    "carrierNotification": {
+      "button": "Notify the carrier of the violation",
+      "sent": "The carrier notification has been sent.",
+      "queued": "The carrier notification has been requested and will be sent on publication.",
+      "notSent": "The notification was not sent: the form has no MSI, VSI or SI violation, or the carrier e-mail address was not found."
+    },
+    "publishUnsavedChanges": "Save your changes before publishing",
     "publishedNote": "Form has been published",
     "versions": {
       "title": "Versions",
@@ -340,6 +351,18 @@
       "open": "Open link"
     },
     "shared": {
+      "administrativeProcedure": {
+        "save": "Update administrative procedure data",
+        "saved": "Administrative procedure data saved",
+        "savedVersion": "Administrative procedure data saved, the form is now at version {{version}}",
+        "saveFailed": "Saving the administrative procedure data failed",
+        "loadFailed": "Loading the administrative procedure data failed"
+      },
+      "proceedingOutcome": {
+        "title": "Proceeding outcome",
+        "enforcementDecision": "Decision entered into force",
+        "proceedingClosureBasis": "Basis for terminating proceedings"
+      },
       "files": {
         "label": "Files",
         "save_first": "Save the form before adding files",
@@ -527,6 +550,8 @@
         },
         "proceedingReferenceNumber": "Proceeding reference number",
         "caseNumber": "Misdemeanour case number",
+        "clearProceeding": "Remove mark",
+        "clearProceedingConfirm": "Are you sure you want to remove the proceeding information?",
         "autovs5131": "Transport has been interrupted under AutoVS § 51(3)(1)"
       },
       "notes": {
@@ -581,6 +606,8 @@
       "hintOnlyOnViolation": "Täita ainult juhul, kui see on rikkumise puhul asjakohane.",
       "driverAssistant": {
         "title": "Driver's assistant data",
+        "open": "Open",
+        "close": "Close",
         "personalCode": "Personal code",
         "firstName": "First name",
         "lastName": "Last name",
@@ -749,12 +776,15 @@
       "address": "Address",
       "road": "Road",
       "road_other": "Other road",
+      "road_other_number": "Road number",
+      "road_other_number_not_found": "This road number was not found in the other roads list. Enter the road name manually",
       "kilometer": "Kilometer (km)",
       "road_type": "Road type",
       "roadTaxStatus": "Vehicle road tax",
       "roadTaxStatusNotApplicable": "Not applicable",
       "roadTaxStatusUnpaid": "Unpaid",
       "roadTaxStatusUnderpaid": "Paid in lesser amount",
+      "roadTaxClear": "Clear selection",
       "roadTaxNotes": "Notes",
       "trailer": "Trailer",
       "addTrailer": "Add trailer",
@@ -763,7 +793,7 @@
       "selectedForms": "Selected control forms",
       "trailerTechnicalTab": "technical condition inspection card",
       "addTrailerControlForm": "Add trailer control form",
-      "editTrailerControlForm": "Edit trailer control form",
+      "editTrailerControlForm": "Open trailer technical control form",
       "removeTrailer": "Remove trailer",
       "trailerRegNr": "Registration mark",
       "trailerCountry": "Country code",
@@ -879,6 +909,18 @@
       "sanctionHoiatus": "Warning",
       "sanctionKabotaaz": "Temporary prohibition of cabotage",
       "sanctionTrahv": "Fine",
+      "requestedPenaltyPrefix": "Requested",
+      "requestedPenalty": {
+        "101": "Warning",
+        "301": "Temporary withdrawal of certified true copies of the Community licence",
+        "302": "Permanent withdrawal of certified true copies of the Community licence",
+        "303": "Temporary withdrawal of the Community licence",
+        "304": "Permanent withdrawal of the Community licence",
+        "305": "Suspension of the issue of driver attestations",
+        "306": "Withdrawal of driver attestations",
+        "307": "Issue of driver attestations subject to additional conditions",
+        "102": "Other"
+      },
       "sanctionLiiklemiskeeld": "Prohibition from driving",
       "sanctionSoiduk": "Immobilisation of vehicle",
       "sanctionMuu": "Other",
@@ -896,7 +938,7 @@
       },
       "notifications": {
         "title": "Notifications",
-        "hint": "Tick a notification and save the form — the system sends the selected notification. A sent notification cannot be undone.",
+        "hint": "Tick a notification and save the form — the selected notification is sent when the card is published. The tick stays on the card, so publishing the card again sends the notification again.",
         "foreignProposal": "Proposal received from foreign authority for carrier inspection. Forward the notification to the labour inspector.",
         "notifyCarrier": "Notify carrier of violation"
       },
@@ -1106,6 +1148,7 @@
       "controlResultLabel": "Inspection result",
       "controlResultKorras": "OK",
       "controlResultHoiatus": "Warning",
+      "controlResultMargukiri": "Notice letter",
       "controlResultEttekirjutus": "Prescription",
       "controlResultJuhtimiselt": "Removal from driving",
       "controlResultArest": "Arrest",
@@ -1133,7 +1176,8 @@
       "xteeDataTitle": "Data queried via the data exchange layer (X-tee)",
       "validation": {
         "required": "Required field",
-        "workDaysCountMax": "Number of work days must not exceed the number of checked days"
+        "workDaysCountMax": "Number of work days must not exceed the number of checked days",
+        "daysCountMaxDigits": "Number of days can have at most 2 digits"
       }
     },
     "drive_rest": {
@@ -1144,7 +1188,9 @@
       "selectAtLeastOne": "Select at least one violation.",
       "checkedDaysCount": "Number of days checked",
       "workDaysCount": "of which work days",
-      "otherActivityDaysCount": "of which days for driver activity other than driving"
+      "otherActivityDaysCount": "of which days for driver activity other than driving",
+      "applicabilityRequiredExplanationDriver": "At least one field must be filled in for the driver's driving and rest time requirements check",
+      "applicabilityRequiredExplanationTeammate": "At least one field must be filled in for the crew member's driving and rest time requirements check"
     },
     "massDimension": {
       "blockTitle": "Data on vehicle mass and dimensions and ATP agreement compliance",
@@ -1157,14 +1203,14 @@
     },
     "otherDocs": {
       "notChecked": "Not checked",
-      "compliant": "Compliant",
+      "compliant": "Checked",
       "nonCompliant": "Does not comply",
       "missing": "Missing",
       "addRemark": "Add remark",
       "remarkPlaceholder": "Enter remark..."
     },
     "restCheck": {
-      "blockTitle": "Compliance with driving and rest time requirements"
+      "blockTitle": "Driving and rest time requirements check"
     },
     "rooma1": {
       "blockTitle": "Rome I regulation violations"
@@ -1195,8 +1241,8 @@
     "classifiers": "Klassifikaatorid",
     "logs": "Logs",
     "erru": "ERRU",
-    "ctud": "Transport undertaking data requests",
-    "cgr": "Check good repute requests",
+    "ctud": "Transport undertaking data requests CTUD",
+    "cgr": "Check good repute requests CGR",
     "search": "Search",
     "rsi": "Roadside inspection messages RSI",
     "ncr": "Notify Check Result messages NCR",
@@ -1239,7 +1285,7 @@
       "subFormsEmpty": "No further published sub-forms exist for this control.",
       "subFormType": {
         "sp_driver": "Driving and rest time (driver)",
-        "sp_teammate": "Driving and rest time (co-driver)",
+        "sp_teammate": "Driving and rest time (crew member)",
         "vehicle_technical": "Vehicle technical compliance",
         "trailer_technical": "Trailer technical compliance",
         "adr": "Dangerous goods transport",
@@ -1251,13 +1297,13 @@
         "ok": "OK",
         "HOIATUS": "Warning",
         "ETTEKIRJUTUS": "Prescription",
-        "extraordinary_inspection": "Referred to extraordinary inspection",
-        "extraordinary_inspection_ta": "Referred to extraordinary inspection",
+        "extraordinary_inspection": "Referred for extraordinary roadworthiness test",
+        "extraordinary_inspection_ta": "Referred for extraordinary roadworthiness test with Transport Administration data verification",
         "driving_ban": "Driving ban",
         "misdemeanor_proceedings": "Misdemeanor proceedings started",
         "warning": "Warning",
-        "driving_ban_art5": "Driving ban (ADR)",
-        "transport_interruption": "Transport interrupted"
+        "driving_ban_art5": "Driving ban (ADR art 5)",
+        "transport_interruption": "Road transport interrupted"
       },
       "violationsTitle": "Infringements found",
       "noViolations": "No infringements found.",
@@ -1336,6 +1382,8 @@
     "groupsNotCreated": "COMING",
     "basicInfo": "COMING",
     "access": "COMING",
+    "searchInvalid": "Enter a valid Estonian personal code",
+    "searchNotFound": "Person not found",
     "datePickerPlaceholder": "DD.MM.YYYY",
     "validation": {
       "required": "Required field",
@@ -1347,7 +1395,8 @@
       "api": {
         "required": "Required field",
         "invalid_estonian_personal_code": "Invalid Estonian personal code (isikukood)",
-        "invalid_email_format": "Invalid email format"
+        "invalid_email_format": "Invalid email format",
+        "personalCodeConflict": "A user with this personal code already exists"
       }
     },
     "viewDetails": "COMING",
@@ -1427,21 +1476,42 @@
     "valueAddedNote": "Classifier value has been added",
     "editedNote": "Classifier has been edited",
     "valueEditedNote": "Classifier value has been edited",
+    "formScope": {
+      "label": "Restrict to forms",
+      "help": "If no form is selected, the value is available on all forms.",
+      "placeholder": "All forms",
+      "column": "Forms",
+      "all": "All",
+      "parentOwn": "{{name}} — general data",
+      "orphan": "{{code}} (form type no longer exists)"
+    },
     "validation": {
       "required": "Required field",
       "valueConflict": "COMING",
+      "endBeforeStart": "End date must be after start date",
       "api": {
-        "required": "Required field"
+        "required": "Required field",
+        "duplicate_code": "A value with this code already exists in the classifier",
+        "invalid_period": "Valid until must be later than valid from"
       }
     }
   },
   "notificationTemplateMapping": {
     "title": "Postkast template and recipient settings",
-    "notificationType": "Notification type",
+    "notificationType": "LJVIS variable (internal)",
+    "notificationTypeName": "Notification type",
+    "triggeringForms": "Forms that trigger this notification",
+    "triggeredAutomatically": "Automatic (not tied to a specific form)",
     "channel": "Channel",
-    "originalTemplateId": "Template ID",
+    "originalTemplateId": "Postkast template alias (templateId)",
     "defaultLanguage": "Default language",
     "defaultRecipientEmail": "Default recipient email",
+    "recipients": "Recipients",
+    "desktopRecipients": "Notification recipients",
+    "desktopRecipientsEmpty": "No recipients selected",
+    "desktopRecipientsSearchPlaceholder": "Search user by name",
+    "addRecipient": "Add",
+    "removeRecipient": "Remove",
     "active": "Active",
     "statusActive": "Active",
     "statusInactive": "Inactive",
@@ -1450,9 +1520,29 @@
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
+    "variables": {
+      "title": "Template variables",
+      "intro": "Variables available in the Postkast 2.0 template text. LJVIS sends them with every notification; the template must be authored in Postkast using exactly these names. The recipient email is always added as the variable “recipient”.",
+      "name": "Variable",
+      "description": "Content",
+      "formNumber": "Control form number",
+      "companyName": "Carrier name",
+      "companyRegCode": "Carrier registry code",
+      "inspectionDateTime": "Inspection date and time",
+      "inspectionCountryCode": "Inspection location (ISO country code)",
+      "inspectionCountry": "Inspection location (country name)",
+      "vehicleRegNr": "Inspected vehicle registration number",
+      "violationSeverities": "Violation severities (e.g. MSI, VSI)",
+      "violationDescription": "Free-text violation description",
+      "MSIViolationsList": "MSI violations (code — name, one per line)",
+      "VSIViolationsList": "VSI violations (code — name, one per line)",
+      "SIViolationsList": "SI violations (code — name, one per line)",
+      "resultType": "Inspection result"
+    },
     "editedNote": "Settings have been updated",
     "validation": {
       "required": "Required field",
+      "templateIdInvalid": "Template alias may contain only letters, numbers, dots, underscores, and hyphens",
       "emailInvalid": "Email address is not in a valid format"
     }
   },
@@ -1509,9 +1599,13 @@
     "numberPlaceholder": "No.",
     "select": "Select",
     "errors": {
+      "formModified": "Someone else (or another window, or the e-toimik sync) changed this form in the meantime, so your save was not applied. Reload the page, review the new data and save your changes again.",
       "serverError": "Server error. Please try again later.",
       "networkError": "Connection error. Please check your network.",
       "forbidden": "Insufficient permissions for this action.",
+      "formForbiddenTitle": "You do not have permission to view this form",
+      "formForbidden": "An unpublished form can be viewed by its creator, a colleague of the same organisation (with the \"My organisation's forms\" permission) and users who may view unpublished forms. Published forms are visible to every user who may read that form type. If you need access, contact your organisation's user administrator.",
+      "formNotFound": "The requested form was not found. It may have been deleted or the address is wrong.",
       "notFound": "The requested resource was not found.",
       "requestFailed": "Request failed. Please try again.",
       "unexpected": "An unexpected error occurred."
@@ -1580,6 +1674,39 @@
   },
   "xroadLogs": {
     "title": "e-Toimik X-Road logs",
+    "manualJobs": {
+      "title": "Manual run",
+      "description": "Runs the same jobs the system runs on a schedule. The job runs to completion before the result appears — keep the page open.",
+      "run": "Run",
+      "running": "Running…",
+      "done": "Job \"{{job}}\" finished. Counted {{total}}, succeeded {{succeeded}}, failed {{failures}}.",
+      "jobs": {
+        "risk-score-recalc-sync": {
+          "title": "Risk score recalculation",
+          "description": "Recalculates risk levels, including companies that have no score yet (nightly at 03:00)."
+        },
+        "etoimik-decision-sync": {
+          "title": "e-Toimik sync: labour inspection",
+          "description": "Fetches enforced decisions from e-Toimik for labour inspection forms."
+        },
+        "etoimik-tram-decision-sync": {
+          "title": "e-Toimik sync: TRAM control card",
+          "description": "Fetches enforced decisions from e-Toimik for TRAM control cards."
+        },
+        "etoimik-sp-driver-decision-sync": {
+          "title": "e-Toimik sync: driver driving and rest time",
+          "description": "Fetches enforced decisions from e-Toimik for driver driving and rest time sub-forms."
+        },
+        "etoimik-sp-teammate-decision-sync": {
+          "title": "e-Toimik sync: crew member driving and rest time",
+          "description": "Fetches enforced decisions from e-Toimik for crew member driving and rest time sub-forms."
+        },
+        "etoimik-technical-check-decision-sync": {
+          "title": "e-Toimik sync: technical check",
+          "description": "Fetches enforced decisions from e-Toimik for vehicle and trailer technical check forms."
+        }
+      }
+    },
     "emptyResult": "No entries match the filter",
     "empty": "No content",
     "viewRequest": "View request",
@@ -1604,6 +1731,7 @@
     "column": {
       "createdAt": "Request time",
       "form": "Form",
+      "formNumber": "Form number",
       "serviceCode": "Service",
       "status": "Status",
       "request": "Outgoing request",
@@ -1615,6 +1743,7 @@
       "vehicle_technical_form": "Motor vehicle technical compliance control form",
       "trailer_technical_form": "Trailer technical compliance control form",
       "sp_driver_form": "Driver's driving and rest time control form",
+      "sp_teammate_form": "Team member driving and rest time inspection form",
       "tram_control_card": "Transport Administration control card"
     }
   },
@@ -1637,7 +1766,7 @@
       "notFound": "CTUD request not found",
       "sendFailed": "Sending the request to ERRU failed. You can try again.",
       "list": {
-        "title": "Transport undertaking data requests",
+        "title": "Transport undertaking data requests CTUD",
         "newRequest": "New CTUD request",
         "id": "ID",
         "sentAt": "Sent",
@@ -1645,7 +1774,7 @@
         "ctudTo": "Target country",
         "undertakingName": "Transport undertaking name",
         "licenceNumber": "Community licence / certified true copy no.",
-        "vehicleNumber": "Vehicle reg. no.",
+        "vehicleNumber": "Vehicle reg. no",
         "status": "Status",
         "handler": "User",
         "direction": "Direction",
@@ -1701,7 +1830,7 @@
         "searchMethod": "Search method",
         "address": "Address",
         "street": "Street",
-        "postCode": "Post code",
+        "postCode": "Postal code",
         "city": "City",
         "country": "Country",
         "licences": "Community licences",
@@ -1747,14 +1876,14 @@
       "notFound": "CGR request not found",
       "sendFailed": "Sending the request to ERRU failed. You can try again.",
       "list": {
-        "title": "Check good repute requests",
+        "title": "Check good repute requests CGR",
         "newRequest": "New CGR request",
         "id": "ID",
         "sentAt": "Sent",
         "tmFirstName": "First name",
         "tmFamilyName": "Family name",
         "cgrTo": "Target member state",
-        "certificateNumber": "Certificate number",
+        "certificateNumber": "Certificate of professional competence number",
         "status": "Status",
         "handler": "User",
         "handlerFilter": "User (isikukood)"
@@ -1769,7 +1898,7 @@
         "titleNew": "New CGR request (MS → ERRU)",
         "headerBlock": "Request header and parties",
         "nameBlock": "Transport manager name search",
-        "certificateBlock": "Certificate search",
+        "certificateBlock": "Certificate of professional competence search",
         "cgrFrom": "Requesting member state",
         "cgrTo": "Target member state",
         "cgrToAll": "All member states (ZZ)",
@@ -1799,7 +1928,7 @@
         "searchMethod": "Search method",
         "address": "Address",
         "street": "Street",
-        "postCode": "Post code",
+        "postCode": "Postal code",
         "city": "City",
         "country": "Country",
         "certificateValidity": "Certificate validity",
@@ -1837,18 +1966,19 @@
       "notFound": "RSI message not found",
       "sendFailed": "Sending the message to ERRU failed. The message stays in 'error' state — no retry is possible, a new message must be composed.",
       "checkedItems": {
-        "part": "Part / assembly",
-        "result": "Result",
-        "notChecked": "Not checked",
+        "part": "Item",
         "checked": "Checked",
-        "nonCompliant": "Non-compliant",
-        "editDefects": "Edit defects"
-      },
-      "defectModal": {
-        "noDefects": "This part has no defects",
-        "selectAtLeastOne": "Select at least one defect",
-        "select": "Select",
-        "clear": "None"
+        "nonCompliant": "Failed",
+        "aspect": "Item checked",
+        "reason": "Reason for failure",
+        "severity": {
+          "VO": "Minor",
+          "OV": "Major",
+          "EOV": "Dangerous"
+        },
+        "nationalHint": "Defects recorded on the technical control card (select the matching reasons for failure in the table below):",
+        "noneChecked": "No items checked.",
+        "legacyNotice": "This notification was composed before the ERRU reasons-for-failure classifier — national technical check codes are shown."
       },
       "form": {
         "titleOutgoing": "Roadside inspection message RSI (EST → ERRU)",
@@ -1879,7 +2009,7 @@
         "identificationAddress": "Address",
         "identificationCity": "City",
         "identificationCountry": "Country",
-        "identificationPostCode": "Post code",
+        "identificationPostCode": "Postal code",
         "inspectionBlock": "Vehicle roadworthiness inspection details",
         "resultsBlock": "Inspection results",
         "checkedItemsBlock": "Checked point",
@@ -1926,7 +2056,9 @@
         "draft_not_created": "Saving the draft failed",
         "formHasErrors": "The form contains errors. Please check the fields marked in red.",
         "not_sendable": "The message cannot be sent in this state",
-        "send_failed": "Sending failed"
+        "send_failed": "Sending failed",
+        "reason_required": "A failed item must have at least one reason for failure with an assessment.",
+        "invalid_checked_items": "Not sent: the checked items use the old format or a failed item has no reason for failure. Fix and save the notification, then try again."
       },
       "list": {
         "title": "Roadside inspection messages RSI",
@@ -1935,7 +2067,7 @@
         "sentAt": "Sent",
         "rsiFrom": "Sending country",
         "rsiTo": "Destination country",
-        "vehicleRegistrationNumber": "Vehicle reg.nr",
+        "vehicleRegistrationNumber": "Vehicle reg. no",
         "status": "Status",
         "handler": "User",
         "direction": "Direction",
@@ -1955,7 +2087,7 @@
         "seriousInfringementsBlock": "Serious infringements and penalties",
         "penaltiesImposedBlock": "Imposed and executed penalties",
         "penaltiesRequestedBlock": "Requested penalties",
-        "penaltiesImposedResponseBlock": "Imposed penalties",
+        "penaltiesImposedResponseBlock": "Imposed penalty",
         "responseBlock": "Response content",
         "historyBlock": "Case message list",
         "historyType": "Message type",
@@ -1988,9 +2120,9 @@
         "detectionCheckDate": "Detection check date",
         "appealPossible": "Penalty can be appealed",
         "penaltyImposedIdentifier": "Imposed penalty identifier",
-        "penaltyTypeImposed": "Imposed penalty",
+        "penaltyTypeImposed": "Type of penalty established",
         "finalDecisionDate": "Final decision date",
-        "isExecuted": "Penalty executed",
+        "isExecuted": "Penalty has been executed",
         "notExecutedReason": "Reason not executed",
         "penaltyStartDate": "Penalty start date",
         "penaltyEndDate": "Penalty end date",
@@ -2009,7 +2141,7 @@
         "responseAddressPostCode": "Post code",
         "responseAddressCity": "City",
         "responseAddressCountry": "Country",
-        "authorityImposingPenalty": "Authority imposing the penalty",
+        "authorityImposingPenalty": "Competent authority that imposed the penalty",
         "isImposed": "Penalty imposed",
         "startDate": "Penalty start date",
         "endDate": "Penalty end date",
@@ -2018,15 +2150,18 @@
         "send": "Send",
         "sendResponse": "Send response",
         "sendFailed": "Sending failed. The message moved to Error status.",
-        "createVr": "Create foreign violation control card",
-        "openVr": "Open foreign violation control card",
-        "createVrFailed": "Creating the VR control card failed"
+        "createVr": "Create foreign country inspection report",
+        "openVr": "Open foreign country inspection report",
+        "createVrFailed": "Creating the foreign country inspection report failed",
+        "messageDateTime": "Message date and time",
+        "responsePenaltyIdentifier": "Imposed penalty identifier",
+        "responsePenaltyType": "Type of penalty imposed"
       },
       "buildModal": {
         "button": "Create NCR message",
         "title": "Create NCR message",
         "submit": "Build",
-        "forbidden": "You do not have permission to build an NCR request",
+        "forbidden": "You do not have permission to build an NCR message",
         "notFound": "Control form not found, NCR draft was not created",
         "failed": "Failed to build the NCR draft"
       },
@@ -2065,10 +2200,10 @@
       },
       "notFound": "NU unfitness notification not found",
       "sendFailed": "Sending the message to ERRU failed. The message stays in Error status — retrying in place is not possible, a new message must be created.",
-      "createFromGoodRepute": "Create ERRU unfitness notification",
+      "createFromGoodRepute": "Create NU unfitness notification",
       "list": {
         "title": "NU unfitness notifications",
-        "newMessage": "New unfitness notification",
+        "newMessage": "New NU unfitness notification",
         "id": "Case number",
         "direction": "Direction",
         "directionOutgoing": "Outgoing",
@@ -2158,7 +2293,17 @@
   "search": {
     "title": "Search",
     "clear": "Clear",
+    "carrierOrigin": {"all": "All", "ee": "Estonia", "foreign": "Foreign carrier"},
+    "export": {
+      "xlsx": "Download results (xlsx)",
+      "csv": "Download results (csv)",
+      "pickType": "To download, choose a form type in the filter and press Search.",
+      "tooMany": "Result is too large (over {{max}} forms). Narrow the search.",
+      "failed": "Download failed."
+    },
     "filters": {
+      "formNumber": "Control card no.",
+      "carrierOrigin": "Carrier country",
       "dateFrom": "Control date from",
       "dateTo": "Control date to",
       "formType": "Form type",
@@ -2178,20 +2323,20 @@
       "status": "Status",
       "mainDate": "Control date",
       "county": "County",
-      "vehicleRegNr": "Reg. no.",
-      "companyName": "Carrier",
+      "vehicleRegNr": "Vehicle reg. no",
+      "companyName": "Company",
       "inspector": "Official"
     },
     "formType": {
       "compound": "Compound form",
-      "foreignViolation": "Foreign violation",
-      "labourInspection": "Labour inspection form",
+      "foreignViolation": "Foreign country inspection report",
+      "labourInspection": "Labour Inspectorate inspection form",
       "goodRepute": "Good repute",
       "spDriver": "Driving/rest time (driver)",
-      "spTeammate": "Driving/rest time (co-driver)",
-      "vehicleTechnical": "Technical compliance (vehicle)",
-      "trailerTechnical": "Technical compliance (trailer)",
-      "adr": "Dangerous goods (ADR)",
+      "spTeammate": "Driving and rest time (crew member)",
+      "vehicleTechnical": "Vehicle technical compliance",
+      "trailerTechnical": "Trailer technical compliance",
+      "adr": "Dangerous goods transport",
       "kv": "Transport interruption",
       "tramControlCard": "Transport Administration inspection card"
     },
@@ -2228,6 +2373,7 @@
       "statusError": "Error",
       "resend": "Resend",
       "resendConfirm": "Resend this notification unchanged to the same recipient?",
+      "checkStatus": "Check status",
       "report": "Send report",
       "filterStatus": "Status",
       "filterType": "Message type",
@@ -2238,13 +2384,20 @@
       "emptyResult": "No notifications matched the search."
     },
     "types": {
+      "ncr_ok": "ERRU NCR passed inspection notice",
       "ncr_violation": "NCR serious infringement notice",
       "ncr_response": "NCR response notice",
+      "rsi_received": "ERRU RSI notice",
+      "serious_infringement": "Serious infringement detected in Estonia",
+      "extraordinary_inspection": "Referral to extraordinary technical inspection",
+      "cargo_securing": "Cargo securing non-compliance",
       "driving_ban": "Driving ban",
       "weight_violation": "Weight/measurement infringement",
       "carrier_violation": "Serious infringement notification to carrier",
       "labor_kabotage": "Cabotage inspection notification",
-      "labor_foreign_proposal": "Foreign country proposal notification"
+      "labor_tachograph_not_downloaded": "Tachograph data not downloaded notification",
+      "labor_foreign_proposal": "Foreign country proposal notification",
+      "nu_inbound_received": "ERRU NU non-compliance notice"
     }
   },
   "breadcrumbs": {
@@ -2258,14 +2411,14 @@
     "classifierValueEdit": "Value",
     "logDetail": "Log entry",
     "snapshot": "Version",
-    "foreignViolationForm": "Foreign violation control form",
+    "foreignViolationForm": "Foreign country inspection report",
     "compoundForm": "Compound form",
     "driveRestDriverForm": "Driving/rest time (driver)",
-    "driveRestTeammateForm": "Driving/rest time (teammate)",
-    "tramDriverForm": "TRAM control form",
-    "labourInspectionForm": "Labour inspection control form",
-    "vehicleTechnicalForm": "Vehicle technical check",
-    "trailerTechnicalForm": "Trailer technical check",
+    "driveRestTeammateForm": "Driving and rest time (crew member)",
+    "tramDriverForm": "Transport Administration inspection card",
+    "labourInspectionForm": "Labour Inspectorate inspection form",
+    "vehicleTechnicalForm": "Vehicle technical compliance",
+    "trailerTechnicalForm": "Trailer technical compliance",
     "transportInterruptionForm": "Transport interruption",
     "adrForm": "Dangerous goods transport",
     "goodReputeForm": "Good repute non-compliance",
