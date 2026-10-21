@@ -10,6 +10,7 @@ import re
 
 from psycopg2 import sql
 from psycopg2.extras import Json
+import decisions
 
 
 class MappingConflict(ValueError):
@@ -46,6 +47,8 @@ def parsed_date(value):
 
 
 def integer(value):
+    if value is not None:
+        value = value.strip()
     if value is not None and re.fullmatch(r'[0-9]+', value):
         number = int(value)
         if number <= 2147483647:
@@ -78,11 +81,7 @@ def apply(cur, run_id, children):
     if not links:
         return
     ids = sorted({r[0] for r in links})
-    cur.execute("""SELECT control_form_id,classifier_name,value,date_value,int_value
-        FROM staging.raw_control_form_value WHERE control_form_id=ANY(%s) ORDER BY id""", (ids,))
-    eav = defaultdict(lambda: defaultdict(list))
-    for form_id, key, value, typed_date, typed_int in cur.fetchall():
-        eav[form_id][key].append((value, typed_date, typed_int))
+    eav = decisions.load_eav(cur, ids)
 
     def finding(form_id, issue, detail, severity="blocker"):
         cur.execute("""INSERT INTO migration.finding
@@ -118,8 +117,7 @@ def apply(cur, run_id, children):
             update(table, target_key, data)
         if table in ('sp_driver_form', 'sp_teammate_form'):
             tachograph = get('soidumeerik', ('SoidumeerikType',))
-            mapped = {'mehaaniline':'analogue','mehhaaniline':'analogue','analoog':'analogue',
-                      'digitaalne':'digital','smart_1':'smart_1','smart_2':'smart_2','arukas-2':'smart_2','puudub':'missing'}.get((tachograph or '').lower())
+            mapped = decisions.tachograph(tachograph)
             if tachograph and mapped is None:
                 finding(form_id,'unmapped_tachograph','Legacy tachograph has no unambiguous target generation/type')
             data = {'tachograph_type_code':mapped,'tachograph_notes':get('puhkeaja_nouete_taitmine_markused')}
@@ -140,13 +138,30 @@ def apply(cur, run_id, children):
                         raw = typed_value
                 data[column] = integer(raw)
                 if raw is not None and data[column] is None:
-                    finding(form_id,'invalid_integer',f'{key} is not a nonnegative int32')
+                    finding(form_id,'masked_integer' if decisions.is_masked(raw) else 'invalid_integer',
+                            f'{key}: NULL; source retained', 'warning' if decisions.is_masked(raw) else 'blocker')
             applicability = get('puhkeaja_nouete_taitmine')
             data['sp_applicability'] = {'rakendatakse':'applied','ei_rakendata':'not_applied','ei_kontrollitud':'not_checked'}.get(applicability)
             if applicability and not data['sp_applicability']:
                 finding(form_id,'unmapped_applicability','Unknown rest-time applicability')
             update(table, target_key, data)
         if table in ('sp_driver_form','sp_teammate_form','vehicle_technical_form','trailer_technical_form','adr_form'):
+            cur.execute('SELECT form_type_name FROM staging.raw_control_form WHERE id=%s',(form_id,))
+            form_type=cur.fetchone()[0]
+            approved_other=None
+            if table == 'vehicle_technical_form':
+                try:
+                    approved_other=decisions.other_proceeding(form_type,values,scalar)
+                except ValueError as exc:
+                    finding(form_id,'unresolved_approved_proceeding',str(exc))
+            if approved_other:
+                update(table,target_key,approved_other)
+                cur.execute("""UPDATE migration.quality_report SET approval_basis=%s,
+                    applied_default='legacy_proceedings' WHERE migration_run_id=%s
+                    AND legacy_source='ControlForm' AND legacy_id=%s AND issue='unmapped_result'
+                    AND target_table=%s""",(decisions.APPROVAL,run_id,str(form_id),target))
+                finding(form_id,'approved_other_proceeding','P10: original decision paragraphs retained','info')
+                continue
             proceeding = get('otsus_vaarteomenetlus')
             choices = {'otsus_alustativaarteo_kiirmenetlust':('expedited','kiirmenetlus_viitenumber'),
                        'otsus_alustativaarteo_lyhimenetlust':('summary','lyhimenetlus_viitenumber'),
@@ -164,26 +179,44 @@ def apply(cur, run_id, children):
     # Consolidate only newly inserted, uncommitted parent rows. No application
     # snapshot/history is deleted. Stable links are rewritten before commit.
     parents = {form_id: key for form_id,table,key in links if table=='forms.compound_form'}
-    cur.execute("""SELECT b.control_form_id,b.control_id FROM staging.raw_control_to_form_binding b
-        JOIN staging.raw_control c ON c.id=b.control_id WHERE b.control_form_id=ANY(%s)
-        GROUP BY b.control_form_id,b.control_id""", (list(parents),))
-    controls = defaultdict(set)
-    for form_id, control_id in cur.fetchall():
-        controls[form_id].add(control_id)
-    groups = defaultdict(list)
-    for form_id in parents:
-        if len(controls[form_id])>1:
-            raise MappingConflict(form_id,'multiple_control_bindings','Multiple legacy controls')
-        group = ('Control',next(iter(controls[form_id]))) if controls[form_id] else ('ControlForm',form_id)
-        groups[group].append(form_id)
+    source_forms, all_groups = decisions.source_context(cur, run_id)
+    groups = {g: [i for i in members if i in parents] for g, members in all_groups.items()
+              if any(i in parents for i in members)}
+    modified = {i: r[4] for i, r in source_forms.items()}
     for group, members in sorted(groups.items()):
         keys = sorted({parents[form_id] for form_id in members})
         canonical = keys[0]
-        cur.execute("""SELECT DISTINCT control_date,control_time,control_country_code,
-            inspector_first_name,inspector_last_name,inspector_unit,inspector_profession
-            FROM forms.compound_form WHERE compound_form_key=ANY(%s)""",(keys,))
-        if len(cur.fetchall())>1:
-            raise MappingConflict(members[0],'conflicting_shared_header',f'{group[0]}:{group[1]}, members={sorted(members)}; conflicting shared header; no arbitrary parent chosen')
+        try:
+            values, choices = decisions.resolve_shared(members, eav, modified, scalar)
+        except ValueError as exc:
+            raise MappingConflict(members[0], 'conflicting_shared_header', str(exc)) from exc
+        # Header transforms supply typed values and approved missing-text defaults.
+        # Copy each resolved header from its proven source; never from a random parent.
+        header_keys = {'control_date':'InspectionDate.Date','control_time':'InspectionDate.Time',
+                       'control_country_code':'InspectionAddress.Country','county':'InspectionAddress.Region',
+                       'city':'InspectionAddress.City','inspector_first_name':'Inspector.FirstName',
+                       'inspector_last_name':'Inspector.LastName','inspector_unit':'Inspector.AmetiisikuAndmed',
+                       'inspector_profession':'Inspector.Job'}
+        header = {}
+        for column, key in header_keys.items():
+            candidates = [i for i in members if key in eav[i]]
+            chosen = choices.get(key, min(candidates or members))
+            raw = scalar(values, key)
+            if column == 'control_date':
+                cur.execute("""SELECT coalesce(
+                    (SELECT migration.source_date(value,date_value)::date
+                     FROM staging.raw_control_form_value WHERE control_form_id=%s AND classifier_name=%s LIMIT 1),
+                    controlled_date::date, created_date::date)
+                    FROM staging.raw_control_form WHERE id=%s""", (chosen,key,chosen))
+                header[column] = cur.fetchone()[0]
+            elif column == 'control_time':
+                cur.execute("SELECT coalesce(migration.safe_time(%s),'00:00')::time",(raw,))
+                header[column] = cur.fetchone()[0]
+            elif column == 'control_country_code':
+                cur.execute('SELECT migration.safe_country_code(%s)',(raw,))
+                header[column] = cur.fetchone()[0]
+            else:
+                header[column] = raw or ('-' if column.startswith('inspector_') else None)
         if group[0]=='Control':
             cur.execute("""SELECT count(*) FROM staging.raw_control_to_form_binding b
                 JOIN staging.raw_control_form f ON f.id=b.control_form_id
@@ -193,21 +226,7 @@ def apply(cur, run_id, children):
             if cur.fetchone()[0]:
                 finding(members[0],'group_contains_excluded_parts','Some source control members are outside the agreed status/date selection')
         else:
-            finding(members[0],'missing_control_binding','No valid Control binding; standalone parent retained for rehearsal')
-        cur.execute("SELECT count(DISTINCT control_stage) FROM staging.raw_control_form WHERE id=ANY(%s)",(members,))
-        if cur.fetchone()[0] > 1:
-            finding(members[0],'mixed_parent_status','Eligible parts have different statuses; parent status needs an approved rule')
-        values = defaultdict(list)
-        for form_id in members:
-            # UnitedFormService.UpdateTeamMemberRoadWorthinessFormValues swaps
-            # Driver.* and AdditionalDriver.* when saving the second driver's form.
-            teammate = (scalar(eav[form_id],'RoadWorthinessTeamMember') or '').lower() in ('true','1')
-            for key, entries in eav[form_id].items():
-                if teammate and key and key.startswith('Driver.'):
-                    key='AdditionalDriver.'+key.removeprefix('Driver.')
-                elif teammate and key and key.startswith('AdditionalDriver.'):
-                    key='Driver.'+key.removeprefix('AdditionalDriver.')
-                values[key].extend(entries)
+            finding(members[0],'missing_control_binding','Source has no binding; separate historical parent retained','warning')
         def get(key, aliases=()):
             try:
                 return scalar(values,key,aliases)
@@ -222,13 +241,15 @@ def apply(cur, run_id, children):
             'company_activity_licence_copy_number':'Company.TegevusloaNumber',
             'road':'InspectionAddress.Line2','address':'InspectionAddress.Line1',
         }
-        data = {column:get(key) for column,key in fields.items()}
+        data = {**header, **{column:get(key) for column,key in fields.items()}}
+        data['status'] = 'published' if all(source_forms[i][3] == 'Published' for i in members) else 'confirmed'
         for column,key,maximum in [('kilometer','InspectionAddress.HighwayKilometerNumber',999),
                                    ('vehicle_mileage','OdometerReading',2147483647)]:
             raw = get(key)
             parsed = integer(raw)
             if raw is not None and (parsed is None or parsed > maximum):
-                finding(members[0],'invalid_location_or_mileage',f'{key}: outside target integer domain')
+                finding(members[0],'masked_location_or_mileage' if decisions.is_masked(raw) else 'invalid_location_or_mileage',
+                        f'{key}: NULL; source retained', 'warning' if decisions.is_masked(raw) else 'blocker')
                 parsed = None
             data[column] = parsed
         for column in ('vehicle_country_code','company_country_code'):
@@ -241,10 +262,11 @@ def apply(cur, run_id, children):
                 'personal_code_ee':'IdentificationNo','personal_code_foreign':'ForeignIdentificationNo',
                 'first_name':'FirstName','last_name':'LastName','citizenship_code':'Citizenship'}.items()}
             birth=get(prefix+'.BirthDate')
-            parsed=parsed_date(birth)
+            parsed=decisions.source_date(values.get(prefix+'.BirthDate',[]))
             if birth and parsed is None:
-                finding(members[0],'unmapped_driver_birthdate',f'{prefix}.BirthDate cannot be parsed')
-            if any(driver.values()) or birth:
+                finding(members[0],'masked_driver_birthdate' if decisions.is_masked(birth) else 'unmapped_driver_birthdate',
+                        f'{prefix}.BirthDate: NULL; source retained', 'warning' if decisions.is_masked(birth) else 'blocker')
+            if any(driver.values()) or birth or parsed:
                 driver.update(driver_role=role,birth_date=parsed.isoformat() if parsed else None)
                 if driver['citizenship_code']: driver['citizenship_code']=driver['citizenship_code'].upper()
                 drivers.append(driver)
@@ -253,7 +275,9 @@ def apply(cur, run_id, children):
         data['trailers']=[dict(trailer,trailer_index=1)] if any(trailer.values()) else []
         cur.execute('SELECT extra_data FROM forms.compound_form WHERE compound_form_key=%s',(canonical,))
         extra=cur.fetchone()[0] or {}
-        extra.update(legacy_source_form_ids=sorted(members),legacy_group_source=group[0],legacy_group_id=group[1])
+        extra.update(legacy_source_form_ids=sorted(members),legacy_group_source=group[0],legacy_group_id=group[1],
+                     legacy_decision=decisions.APPROVAL, legacy_shared_value_sources=choices,
+                     legacy_shared_value_timestamps={key:modified[i].isoformat() for key,i in choices.items()})
         data['extra_data']=extra
         update('compound_form',canonical,data)
         for table in sorted(children):
@@ -263,9 +287,8 @@ def apply(cur, run_id, children):
         cur.execute("""UPDATE migration.form_link SET target_key=%s,target_form_number=%s
             WHERE migration_run_id=%s AND target_table='forms.compound_form' AND legacy_id=ANY(%s)""",(canonical,number,run_id,[str(x) for x in members]))
         cur.execute('DELETE FROM forms.compound_form WHERE compound_form_key=ANY(%s) AND compound_form_key<>%s',(keys,canonical))
-        if group[0]=='Control':
-            cur.execute("""DELETE FROM migration.quality_report WHERE migration_run_id=%s AND issue='compound_grouping_skipped'
-                AND legacy_source='ControlForm' AND legacy_id=ANY(%s)""",(run_id,[str(x) for x in members]))
+        cur.execute("""DELETE FROM migration.quality_report WHERE migration_run_id=%s AND issue='compound_grouping_skipped'
+            AND legacy_source='ControlForm' AND legacy_id=ANY(%s)""",(run_id,[str(x) for x in members]))
 
 
 def consumed_keys(form_type):

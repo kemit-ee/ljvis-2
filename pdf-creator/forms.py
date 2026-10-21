@@ -11,7 +11,7 @@ TITLES = {
 PARTS = ['Identifitseerimine','Pidurisüsteem','Rooliseade','Nähtavus','Valgustusseadmed ja elektrisüsteem','Teljed, veljed, rehvid, vedrustus','Šassii ja selle kinnitused','Muu varustus, sh sõidumeerik ja kiiruspiirik','Saasted, sh heitgaasid ning kütuse- ja õlilekked','Reisijateveoks kasutatava sõiduki täiendavad sõlmed','Veose kinnitamine']
 CATEGORIES=[('A_2012','N2'),('B_2012','N3'),('C_2012','O3'),('D_2012','O4'),('E_2012','M2'),('F_2012','M3'),('G3_2012','T1b'),('H2_2012','T2b'),('I_2012','T3b'),('J_2012','T4.1b'),('K_2012','T4.2b'),('L_2012','T4.3b'),('OTHER_2012','Muu')]
 RESULTS={'ok':'Korras','warning':'Hoiatus','precept':'Ettekirjutus','misdemeanor_proceedings':'Väärteomenetlus','driving_ban':'Sõidukeeld / juhtimiselt kõrvaldamine','arrest':'Arest','transport_interruption':'Autovedu on katkestatud','extraordinary_inspection':'Erakorraline ülevaatus','extraordinary_inspection_ta':'Erakorraline ülevaatus ja liiklusregistri andmete täpsustamine'}
-PROCEEDINGS={'LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
+PROCEEDINGS={'legacy_other':'Muu menetlus (LJVIS1)','LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
 
 STANDALONE_TITLES = {
  'compound-form': 'SÕIDUKI JA VEOETTEVÕTJA KONTROLLKAART',

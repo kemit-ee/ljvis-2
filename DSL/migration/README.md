@@ -1,14 +1,14 @@
 # LJVIS 1 → LJVIS 2: administraatori migratsioonijuhend
 
-**Seis 25.09.2026: SQL backup’i proov on tehtud; tootmisse üleminek on blokeeritud.** Ekstraktimine ja proovilaadimine
+**Seis 20.10.2026: SQL backup’i proov on tehtud; tootmisse üleminek on blokeeritud.** Ekstraktimine ja proovilaadimine
 on testitavad, kuid osa äriväljade vastendusi on lõpetamata. Tavakäivitus peatub enne
 `forms.*` laadimist, kui leiab blokeeriva puuduse. `--rehearsal` lubab osalist tulemust
 **ainult ühekordses proovibaasis** ja tagastab koodi **2**, mitte eduteate.
 
 Koondkontrollide ühendamine ning selge true/1 markeriga haagise/teise juhi suunamine
 on rakendatud. Lõpetada tuleb rikkumiste, puuduste ja kõigi menetlusvariantide vastendus,
-ADR-i detailandmed ning manuste ülekanne; segastaatusega/puuduva seosega kontrollid
-vajavad otsust. Saadud testbackup sisaldab ka maskeeritud andmeid.
+ADR-i detailandmed ning manuste ülekanne. 19.10 kliendi otsuste rakendus ja allesjäänud
+piirangud: [otsuste ülevaade](../../docs/migration/owner-decisions-2026-10-19.md). Saadud testbackup sisaldab ka maskeeritud andmeid.
 Lähteandmete säilitamine `migration.source_snapshot` tabelis ei tähenda, et kõik need
 andmed oleksid juba rakenduses kasutatavad. Vajalikud sisendid:
 [administraatori päringud](../../docs/migration/migration-guidelines.md).
@@ -20,7 +20,7 @@ Sisukord: [komplekt](#administraatorile-antav-komplekt) · [eeltingimused](#1-ee
 ## Administraatorile antav komplekt
 
 See kaust sisaldab ainult migratsiooni käivitamiseks ja kontrollimiseks mõeldud faile:
-`run.sh`, `migrate.py`, `enrich.py`, `extract/`, `sql/`, `requirements.txt`, `.env.example` ja see juhend.
+`run.sh`, `migrate.py`, `enrich.py`, `decisions.py`, `identifiers.py`, `evidence.py`, `extract/` (sh `extract/config.py`), `sql/`, `requirements.txt`, `.env.example` ja see juhend.
 `.gitignore` välistab paroolid, lokaalse Pythoni keskkonna ja jooksude aruanded.
 **Docker Compose ei ole selle migratsiooniskripti eeltingimus.** Skript ühendub DBA
 ettevalmistatud allika- ja sihtbaasidega; sihtskeemi Liquibase changelog kuulub rakendusse.
@@ -254,8 +254,8 @@ Ka tehniliseks peetud võtmeid ei loeta automaatselt lubatud kustutuseks.
 
 ### Source document numbers and revisions
 
-SQL-source documents retain their exact LJVIS1 identity: `th-2026-00004/4`
-becomes `sub_form_number = 'th-2026-00004'`, `version = 4`. The UI joins these
+SQL-source documents retain their exact LJVIS1 identity: `th-2099-90001/4` (synthetic example)
+becomes `sub_form_number = 'th-2099-90001'`, `version = 4`. The UI joins these
 fields. New surrogate database keys must not replace historical document numbers.
 The coordinator enforces this for all imported `ControlForm` document types,
 preserves the display suffix independently of source FormVersion, and rejects unsupported/missing

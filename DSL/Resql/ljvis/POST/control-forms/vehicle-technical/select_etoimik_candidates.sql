@@ -35,7 +35,8 @@ latest_cf AS (
   SELECT DISTINCT ON (compound_form_key)
       compound_form_key,
       drivers,
-      authority
+      authority,
+      extra_data
   FROM forms.compound_form
   ORDER BY compound_form_key, created_at DESC
 )
@@ -51,4 +52,5 @@ WHERE v.status = 'confirmed'
   AND btrim(coalesce(v.proceeding_reference_number, '')) <> ''
   AND v.enforcement_decision IS NULL
   AND btrim(coalesce(c.drivers -> 0 ->> 'personal_code_ee', '')) <> ''
-  AND v.created_at >= now() - INTERVAL '365 days';
+  AND (v.created_at >= now() - INTERVAL '365 days'
+       OR c.extra_data->>'legacy_decision'='owner-2026-10-19');

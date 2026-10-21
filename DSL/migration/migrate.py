@@ -25,6 +25,7 @@ from config import connect_target, required
 import enrich
 import identifiers
 import evidence
+import decisions
 
 TARGETS = {
     "GoodRepute": "good_repute_form",
@@ -147,30 +148,7 @@ def preflight(cur, run_id, cutoff):
 
     finding("scope_unresolved", "Cannot determine eligibility/target; resolve before cutover",
         "SELECT legacy_source source,legacy_id FROM migration.disposition WHERE migration_run_id=%s AND reason IN ('missing_scope_date','unknown_status','unsupported_form_type')", (run_id,))
-    # A shared header may not silently select one nonempty value from several.
-    # Normalize dates/times like the transforms; spelling alone is not a conflict.
-    finding("conflicting_shared_source_header", "Parts of one Control disagree on a shared header; review each source part", """
-        WITH headers AS (
-          SELECT b.control_id,f.id,v.classifier_name,
-            CASE v.classifier_name
-              WHEN 'InspectionDate.Date' THEN coalesce(v.date_value,migration.safe_timestamp(v.value))::date::text
-              WHEN 'InspectionDate.Time' THEN migration.safe_time(v.value)::text
-              WHEN 'InspectionAddress.Country' THEN migration.safe_country_code(v.value)
-              ELSE nullif(btrim(v.value),'') END AS value
-          FROM staging.raw_control_to_form_binding b
-          JOIN staging.raw_control_form f ON f.id=b.control_form_id
-          JOIN migration.disposition d ON d.legacy_source='ControlForm' AND d.legacy_id=f.id::text
-          JOIN staging.raw_control_form_value v ON v.control_form_id=f.id
-          WHERE d.migration_run_id=%s AND d.reason='eligible'
-            AND d.target_table NOT IN ('forms.good_repute_form','forms.foreign_violation_form')
-            AND v.classifier_name IN ('InspectionDate.Date','InspectionDate.Time','InspectionAddress.Country',
-              'Inspector.FirstName','Inspector.LastName','Inspector.AmetiisikuAndmed','Inspector.Job')
-        ), conflicts AS (
-          SELECT control_id,classifier_name FROM headers GROUP BY 1,2 HAVING count(DISTINCT value)>1
-        )
-        SELECT DISTINCT 'ControlForm' source,h.id::text legacy_id FROM headers h
-        JOIN conflicts c USING (control_id,classifier_name)
-        """, (run_id,))
+    decisions.preflight(cur, run_id, enrich.scalar)
     finding("source_configuration_changed", "Source label/cutoff differs from previously linked data; use the same frozen source and fixed cutoff",
         "SELECT 'all' source,'*' legacy_id WHERE EXISTS (SELECT 1 FROM migration.run r JOIN migration.form_link f ON f.migration_run_id=r.migration_run_id WHERE r.source_label IS DISTINCT FROM %s OR r.source_cutoff_from<>%s::date)",
         (required("SOURCE_LABEL"),cutoff))
@@ -185,16 +163,27 @@ def preflight(cur, run_id, cutoff):
 
     finding("prior_rehearsal_requires_review", "Linked rows were written by a rehearsal; production requires a clean accepted target",
         "SELECT DISTINCT f.legacy_source source,f.legacy_id FROM migration.form_link f JOIN migration.run r ON r.migration_run_id=f.migration_run_id WHERE r.status='needs_review'")
-    finding("masked_source_value", "Source contains a possible full/partial masking placeholder; review original before acceptance",
+    finding("masked_source_value", "Owner 2026-10-19: retain text mask or typed NULL; verify mapped fields",
         """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
         FROM staging.raw_control_form_value v JOIN migration.disposition d ON d.legacy_source='ControlForm' AND d.legacy_id=v.control_form_id::text
-        WHERE d.migration_run_id=%s AND d.reason='eligible' AND v.value ~ '\\*{3,}'""", (run_id,))
-    finding("invalid_required_date", "GoodRepute birth/certificate date is absent, masked or invalid; rehearsal substitute is not actual source data",
+        WHERE d.migration_run_id=%s AND d.reason='eligible' AND migration.is_masked(v.value)""", (run_id,), "warning")
+    finding("invalid_required_date", "Nonempty unmasked GoodRepute date is invalid/future; no guessed replacement",
         """SELECT DISTINCT 'ControlForm' source,d.legacy_id FROM migration.disposition d
         CROSS JOIN (VALUES ('Driver.Birthdate'),('AmetialasePadevuseTunnistuseValjaandmiseKuupaev')) k(name)
         WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type='GoodRepute'
-        AND NOT EXISTS (SELECT 1 FROM staging.raw_control_form_value v WHERE v.control_form_id::text=d.legacy_id
-          AND v.classifier_name=k.name AND coalesce(v.date_value,migration.safe_timestamp(v.value)) IS NOT NULL)""",(run_id,))
+        AND EXISTS (SELECT 1 FROM staging.raw_control_form_value v WHERE v.control_form_id::text=d.legacy_id
+          AND v.classifier_name=k.name AND NOT migration.is_masked(v.value)
+          AND (nullif(btrim(v.value),'') IS NOT NULL OR v.date_value IS NOT NULL)
+          AND (migration.source_date(v.value,v.date_value) IS NULL
+               OR migration.source_date(v.value,v.date_value)::date>CURRENT_DATE))""",(run_id,))
+
+    finding("invalid_required_date", "Nonempty unmasked GoodRepute unfitness date is invalid; no guessed replacement",
+        """SELECT DISTINCT 'ControlForm' source,d.legacy_id FROM migration.disposition d
+        JOIN staging.raw_control_form_value v ON v.control_form_id::text=d.legacy_id
+        WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type='GoodRepute'
+          AND v.classifier_name IN ('SobimatuksKuulutamiseAlguskuupaev','SobimatuksKuulutamiseLoppkuupaev')
+          AND NOT migration.is_masked(v.value) AND nullif(btrim(v.value),'') IS NOT NULL
+          AND migration.source_date(v.value,v.date_value) IS NULL""",(run_id,))
 
     # Business mappings are not inferred from sample counts. These known gaps
     # block production, even if every INSERT and row-count check succeeds.
@@ -296,6 +285,7 @@ def preflight(cur, run_id, cutoff):
             HAVING migration.legacy_result(CASE d.form_type WHEN 'RoadControlCard2012' THEN 'technical'
                 WHEN 'Roadworthiness2012' THEN 'sp' ELSE 'adr' END,
                 array_agg(DISTINCT btrim(v.value)) FILTER (WHERE v.value IS NOT NULL)) IS NULL""", (run_id,))
+    decisions.approve_other_findings(cur,run_id,enrich.scalar)
     finding("country_normalized_or_unknown", "Country text was normalized or replaced by unknown marker; compare original field in source_snapshot",
         """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id FROM staging.raw_control_form_value v
             JOIN migration.disposition d ON d.legacy_source='ControlForm' AND d.legacy_id=v.control_form_id::text
@@ -318,7 +308,7 @@ def preflight(cur, run_id, cutoff):
             UNION ALL SELECT d.legacy_source,d.legacy_id FROM staging.raw_job_inspection j
             JOIN migration.disposition d ON d.legacy_id=j.raven_id AND d.legacy_source LIKE 'RavenDB.%%'
             WHERE d.migration_run_id=%s AND d.reason='eligible' AND migration.raven_scope_timestamp(
-                CASE j.schema_version WHEN 1 THEN j.document_json->>'kontrolli_kp' ELSE j.document_json->>'InspectionDate' END)::date>CURRENT_DATE""", (run_id,run_id))
+                CASE j.schema_version WHEN 1 THEN j.document_json->>'kontrolli_kp' ELSE j.document_json->>'InspectionDate' END)::date>CURRENT_DATE""", (run_id,run_id), "warning")
     cur.execute("SELECT count(*) FROM migration.disposition WHERE migration_run_id=%s", (run_id,))
     if cur.fetchone()[0] == 0:
         finding("empty_source", "No source forms/documents extracted; verify source identity and cutoff", "SELECT 'all' source,'*' legacy_id")
@@ -380,13 +370,8 @@ def check_integrity(cur, run_id, require_coverage=True):
           AND f.target_table='forms.compound_form'
         GROUP BY b.control_id HAVING count(DISTINCT f.target_key)>1""")
     if split: problems.append({"check":"split_compound_control","count":len(split)})
-    merged = rows(cur,"""SELECT f.target_key FROM migration.form_link f
-        LEFT JOIN LATERAL (SELECT min(b.control_id) AS control_id
-          FROM staging.raw_control_to_form_binding b JOIN staging.raw_control c ON c.id=b.control_id
-          WHERE b.control_form_id::text=f.legacy_id) p ON true
-        WHERE f.legacy_source='ControlForm' AND f.target_table='forms.compound_form'
-        GROUP BY f.target_key HAVING count(DISTINCT coalesce('control:'||p.control_id::text,'form:'||f.legacy_id))>1""")
-    if merged: problems.append({"check":"unrelated_controls_merged","count":len(merged)})
+    if require_coverage:
+        problems.extend(decisions.mismatches(cur, run_id, enrich.scalar))
     return problems
 
 
@@ -512,7 +497,7 @@ def main():
             pg.commit()
             pg.autocommit=True
             blocked=any(f["severity"]=="blocker" for f in findings)
-            fatal=any(f["issue"] in {"multivalue_scalar","source_changed","linked_source_missing","linked_scope_changed","source_configuration_changed","unsupported_subtype","mapping_code_changed","unmapped_fitness","invalid_source_document_number","invalid_source_form_version","source_document_number_collision","conflicting_shared_source_header","oversized_source_text"} for f in findings)
+            fatal=any(f["issue"] in {"multivalue_scalar","source_changed","linked_source_missing","linked_scope_changed","source_configuration_changed","unsupported_subtype","mapping_code_changed","unmapped_fitness","invalid_source_document_number","invalid_source_form_version","source_document_number_collision","conflicting_shared_source_header","oversized_source_text","unresolved_owner_group","invalid_required_date","masked_required_header","unresolved_approved_proceeding"} for f in findings)
             existing_problems=check_integrity(cur,run_id,require_coverage=False)
             if fatal or existing_problems or (blocked and not args.rehearsal):
                 cur.execute("UPDATE migration.run SET status='blocked',current_step=%s,finished_at=now() WHERE migration_run_id=%s",(step,run_id))
@@ -563,6 +548,10 @@ def main():
             cur.execute("""UPDATE migration.quality_report SET approval_basis='owner-approved-missing-text-2026-09-23'
                 WHERE migration_run_id=%s AND migration.approved_text_default(
                     target_table,column_name,issue,applied_default,raw_value)""",(run_id,))
+            cur.execute("""UPDATE migration.quality_report SET approval_basis='owner-2026-10-19-unknown-date'
+                WHERE migration_run_id=%s AND target_table='forms.good_repute_form'
+                  AND column_name IN ('date_of_birth','certificate_issue_date')
+                  AND issue='missing_required' AND applied_default IS NULL AND raw_value IS NULL""", (run_id,))
             cur.execute("SELECT count(*) FROM migration.quality_report WHERE migration_run_id=%s AND approval_basis IS NULL",(run_id,))
             unapproved_quality=cur.fetchone()[0]>0
             cur.execute("SELECT EXISTS (SELECT 1 FROM migration.finding WHERE migration_run_id=%s AND severity='blocker')",(run_id,))

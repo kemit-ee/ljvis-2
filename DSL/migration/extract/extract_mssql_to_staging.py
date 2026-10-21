@@ -121,11 +121,11 @@ TABLES = [
         f"SELECT COUNT(*) FROM dbo.ControlToFormBinding WHERE ControlForm_id IN {_SCOPED_CONTROL_FORM_IDS}",
     ),
     (
-        f"SELECT Id, ControlForm_id, ClassifierName, Value, DateValue, IntValue "
+        f"SELECT Id, ControlForm_id, ClassifierName, Value, DateValue, IntValue, UpdatedDate, CreatedDate "
         f"FROM dbo.ControlFormValue WHERE ControlForm_id IN {_SCOPED_CONTROL_FORM_IDS}",
         _params(),
         "staging.raw_control_form_value",
-        ["id", "control_form_id", "classifier_name", "value", "date_value", "int_value"],
+        ["id", "control_form_id", "classifier_name", "value", "date_value", "int_value", "updated_date", "created_date"],
         f"SELECT COUNT(*) FROM dbo.ControlFormValue WHERE ControlForm_id IN {_SCOPED_CONTROL_FORM_IDS}",
     ),
     (

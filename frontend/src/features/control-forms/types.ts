@@ -546,6 +546,8 @@ export interface AdrFormListItem {
 
 /** LJVIS2-136: hea maine vorm (veokorraldusjuhi hea maine nõudele mittevastavus). Independent form — no parent compound form. */
 export interface GoodReputeForm {
+  /** Read-only provenance supplied by the server. */
+  legacyImport?: boolean;
   id?: string;
   /** Immutable core form number, format mv-AAAA-NNNNN (no /V suffix — see `version`). */
   formNumber?: string;

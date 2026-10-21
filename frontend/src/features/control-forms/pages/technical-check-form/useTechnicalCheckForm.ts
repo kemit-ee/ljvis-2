@@ -85,7 +85,7 @@ export function createTechnicalCheckValidationSchema(
 ) {
   return Yup.object({
     proceedingReferenceNumber: Yup.string().when('proceedingType', {
-      is: (proceedingType: string) => !!proceedingType,
+      is: (proceedingType: string) => !!proceedingType && proceedingType !== 'legacy_other',
       then: (schema) => schema.required(t('forms.technical_check.validation.required')),
       otherwise: (schema) => schema.optional(),
     }),

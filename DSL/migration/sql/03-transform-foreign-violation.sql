@@ -36,7 +36,7 @@ SELECT
     max(v.value) FILTER (WHERE v.classifier_name = 'InspectionAddress.Country') AS inspection_country_code,
     max(v.value) FILTER (WHERE v.classifier_name = 'Teate.Company') AS reporting_authority_name,
     max(v.value) FILTER (WHERE v.classifier_name = 'Teate.Kirjeldus') AS violation_description,
-    max(coalesce(v.date_value, migration.safe_timestamp(v.value))) FILTER (WHERE v.classifier_name = 'InspectionDate.Date')      AS inspection_date,
+    max(migration.source_date(v.value, v.date_value)) FILTER (WHERE v.classifier_name = 'InspectionDate.Date')      AS inspection_date,
     max(v.value)      FILTER (WHERE v.classifier_name = 'InspectionDate.Time')      AS inspection_time_raw,
     max(v.value)      FILTER (WHERE v.classifier_name = 'InspectionAddress.Line1')  AS inspection_address_line1,
     max(v.value)      FILTER (WHERE v.classifier_name = 'InspectionAddress.Line2')  AS inspection_address_line2,

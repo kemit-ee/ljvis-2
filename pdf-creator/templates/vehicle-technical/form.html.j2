@@ -14,7 +14,13 @@
 <div class="newpage">{{ appeal() }}</div>
 {% else %}<h2>11. Kontrollitavate osade ja sõlmede loetelu</h2>
 <table class="small"><thead><tr><th style="width:64%">Osa või sõlm</th><th>Kontrollitud (5)</th><th>Ei kontrollitud</th><th>Ei vasta nõuetele</th></tr></thead><tbody>{% for p in parts %}<tr><td>{{ p.name }}</td>{% for state in ['checked','not_checked','non_compliant'] %}<td class="center">{{ box(p.status == state) }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
-<h2>Kontrolli tulemus</h2><table><tr><td>{{ box(f.get('resultType') == 'driving_ban') }} Sõidukeeld (7)<br>{{ box(f.get('resultType') == 'extraordinary_inspection') }} Suunatud erakorralisele ülevaatusele (8)<br>{{ box(f.get('resultType') == 'extraordinary_inspection_ta') }} Suunatud erakorralisele ülevaatusele (liiklusregistri andmete täpsustamine Transpordiametis) (8)<br>{{ registry_changes }}{% if transport_interruption %}<br>Autovedu on katkestatud.{% endif %}</td></tr><tr><td>12. Avastatud rikke või puuduse kirjeldus, märkused ja teave lisatud failide kohta<div class="notes">{{ fields.notes }}{% if defects %}
+<h2>Kontrolli tulemus</h2>
+{% if f.get('resultType') == 'legacy_proceedings' %}
+<table><tr><td>Kohaldati väärteomenetlust (LJVIS1)
+{{ field('Menetlus',fields.proceeding) }}
+{{ field('LJVIS1 otsus ja paragrahvid',f.get('enforcementDecision')) }}
+</td></tr></table>
+{% endif %}<table><tr><td>{{ box(f.get('resultType') == 'driving_ban') }} Sõidukeeld (7)<br>{{ box(f.get('resultType') == 'extraordinary_inspection') }} Suunatud erakorralisele ülevaatusele (8)<br>{{ box(f.get('resultType') == 'extraordinary_inspection_ta') }} Suunatud erakorralisele ülevaatusele (liiklusregistri andmete täpsustamine Transpordiametis) (8)<br>{{ registry_changes }}{% if transport_interruption %}<br>Autovedu on katkestatud.{% endif %}</td></tr><tr><td>12. Avastatud rikke või puuduse kirjeldus, märkused ja teave lisatud failide kohta<div class="notes">{{ fields.notes }}{% if defects %}
 Rikete täpne loetelu: vt kontrollkaardi lisa.{% endif %}{% if fields.proceeding %}
 {{ fields.proceeding }}{% endif %}{% if violations %}
 Rikkumised: {{ violations|join('; ') }}{% endif %}</div></td></tr></table>

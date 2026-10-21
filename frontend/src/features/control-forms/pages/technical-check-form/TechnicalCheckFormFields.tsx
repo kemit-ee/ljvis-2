@@ -229,7 +229,7 @@ export function TechnicalCheckFormFields({
               setResultType(val as string);
               if (val === 'ok') formik.setFieldValue('otherMeasure', false);
             }}
-            items={RESULT_OPTIONS.map((opt) => ({
+            items={(values.resultType === 'legacy_proceedings' ? [...RESULT_OPTIONS, 'legacy_proceedings'] : RESULT_OPTIONS).map((opt) => ({
               id: `resultType-${opt}`,
               value: opt,
               label: t(`forms.technical_check.result.options.${opt}`),
@@ -387,7 +387,7 @@ export function TechnicalCheckFormFields({
                 onChange={(val) =>
                   canEdit && formik.setFieldValue('proceedingType', val)
                 }
-                items={PROCEEDING_TYPES.map((pt) => ({
+                items={(values.proceedingType === 'legacy_other' ? [...PROCEEDING_TYPES, 'legacy_other'] : PROCEEDING_TYPES).map((pt) => ({
                   id: `proceedingType-${pt}`,
                   value: pt,
                   label: t(
