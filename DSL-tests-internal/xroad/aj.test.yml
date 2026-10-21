@@ -1,4 +1,4 @@
-# Andmejälgija (AJ) kasutusteabe esitamise protokoll v1.6.1 — findUsage,
+# Andmejälgija (AJ) kasutusteabe esitamise protokoll v1.6.1 - findUsage,
 # usagePeriod, heartbeat (DSL/Ruuter.internal/ljvis/GET/xroad/v2/).
 mode: mock-http
 constants:

@@ -10,9 +10,9 @@
 |-----------|----------|
 | **Komponentide sõltumatus** | Ruuter, RESQL ja DataMapper on üksteisest täielikult sõltumatud. Iga komponent käivitub ja töötab iseseisvalt ilma teisi vajamata. Neid saab kasutada eraldi, kombineerida vabalt või vajadusel välja vahetada. |
 | **Suhtlus ainult REST API kaudu** | Komponendid suhtlevad omavahel ainult REST API kaudu. Otsepöördumised (nt andmebaasi otseühendus front-end'ist) on keelatud. |
-| **Üks fail = üks funktsioon = üks endpoint** | Iga ärifunktsioon, andmebaasipäring ja transformatsioon on eraldi fail, mis tekitab eraldi REST endpoint'i. Mitte kunagi ei panustata mitut erinevat loogikat ühte faili. |
+| **Üks fail = üks funktsioon = üks lõpp-punkt** | Iga ärifunktsioon, andmebaasipäring ja transformatsioon on eraldi fail, mis tekitab eraldi REST lõpp-punkti. Mitte kunagi ei panustata mitut erinevat loogikat ühte faili. |
 | **Äriloogika DSL-failides, mitte rakenduskoodis** | Kogu äriloogika, otsustusloogika, andmetransformatsioonid ja marsruutimine on deklaratiivsetes DSL-failides (YAML, SQL, JSON mallid). Traditsioonilise koodi kirjutamine on minimaalne. |
-| **Taaskasutus endpoint'ide kaudu** | Kui endpoint on loodud (nt "kas kasutaja eksisteerib?"), kasutatakse sama endpoint'i igal pool süsteemis, kus seda loogikat vaja läheb. Dubleerimine on keelatud. |
+| **Taaskasutus lõpp-punktide kaudu** | Kui lõpp-punkt on loodud (nt "kas kasutaja eksisteerib?"), kasutatakse sama lõpp-punkti igal pool süsteemis, kus seda loogikat vaja läheb. Dubleerimine on keelatud. |
 
 ### 1.1 Üldine komponentide joonis
 
@@ -49,7 +49,7 @@ Ruuter on **keskne päringute marsruutimise ja äriloogika orkestratsiooni kiht*
 
 - **Kogu autoriseerimise loogika** on ainult Ruuteris (`.guard`-failid).
 - RESQL, DataMapper ja teised teenused **ei tea autoriseerimisest midagi** – nad täidavad kõik päringud, mis neile tulevad.
-- Guard-failid valideerivad JWT payload'i alusel, kas kasutajal on õigus konkreetsele endpoint'ile.
+- Guard-failid valideerivad JWT payload'i alusel, kas kasutajal on õigus konkreetsele lõpp-punktile.
 
 ### 2.4 Vastuste vormindamine
 
@@ -62,9 +62,9 @@ Ruuter on **keskne päringute marsruutimise ja äriloogika orkestratsiooni kiht*
 
 Kasutaja loomise voog Ruuteris:
 
-1. **Samm 1:** Pöördu RESQL endpoint'i poole → "kas kasutaja isikukoodiga X on juba olemas?"
-2. **Samm 2:** Kui ei ole → pöördu RESQL create endpoint'i poole → sissekande tegemine
-3. **Samm 3:** Pöördu uuesti samm 1 endpoint'i poole → kinnita, et kasutaja loodi edukalt
+1. **Samm 1:** Pöördu RESQL lõpp-punkti poole → "kas kasutaja isikukoodiga X on juba olemas?"
+2. **Samm 2:** Kui ei ole → pöördu RESQL create lõpp-punkti poole → sissekande tegemine
+3. **Samm 3:** Pöördu uuesti samm 1 lõpp-punkti poole → kinnita, et kasutaja loodi edukalt
 4. **Samm 4:** Tagasta kliendile andmebaasist loetud tegelik tulemus (mitte sisendi peegeldus)
 
 > **Oluline:** Kliendile tagastatakse alati andmebaasist kontrollitud tulemus, mitte lihtsalt sisendi peegeldus. See on NATO standarditest tulenev kontrollpraktika.
@@ -75,7 +75,7 @@ Kasutaja loomise voog Ruuteris:
 
 ### 3.1 Roll
 
-RESQL on **REST-põhine andmebaasipäringute teenus**. Ta võtab vastu REST päringuid ja täidab vastavaid SQL lauseid. Iga SQL-fail = üks päring = üks REST endpoint.
+RESQL on **REST-põhine andmebaasipäringute teenus**. Ta võtab vastu REST päringuid ja täidab vastavaid SQL lauseid. Iga SQL-fail = üks päring = üks REST lõpp-punkt.
 
 ### 3.2 Tööpõhimõte
 
@@ -240,6 +240,6 @@ flowchart LR
 | Komponent | Roll | Märkused |
 |-----------|------|----------|
 | **CronManager** | Perioodiliste taustatööde haldus | Kasutatakse nt aegunud kirjete arhiveerimiseks ja kustutamiseks |
-| **TIM** | Identiteedi- ja sessioonihaldus | Käsitletakse eraldi koosolekul |
+| **TIM** | Identiteedi- ja seansihaldus | Käsitletakse eraldi koosolekul |
 | **Liquibase** | Andmebaasi skeemamuudatuste haldus | Toodangukeskkonna skeemamuudatused ainult Liquibase kaudu |
 | **Docker Compose** | Lokaalne arenduskeskkond | Iga komponent käivitub eraldi `docker compose up -d` käsuga |

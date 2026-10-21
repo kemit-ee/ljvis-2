@@ -20,8 +20,8 @@ Vasakmenüü ülatasandil on (õiguste olemasolul, ülevalt alla):
 | **Riskiskoorid** | `risk_report.list` | Ettevõtete riskiskooride ja -tasemete loend (vt [Riskihindamine](16-riskihindamine.md)) |
 | **Haldus** | — (avaneb, kui mõni alampunkt on nähtav) | Haldustegevuste rühm — vt allpool |
 
-Neli keskmist punkti (CTUD, CGR, RSI, NCR) on **ERRU** (Euroopa autoveo-ettevõtjate
-register) teadete ja päringute moodul.
+Neli keskmist punkti (CTUD, CGR, RSI, NCR) on **ERRU** (Euroopa autoveoettevõtjate registrite
+teabevahetussüsteem) teadete ja päringute moodul.
 
 ## „Haldus" alammenüü
 

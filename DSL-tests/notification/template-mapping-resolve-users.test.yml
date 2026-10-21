@@ -1,4 +1,4 @@
-# GET /v1/notification-template-mapping/resolve-users — resolves the personal_code
+# GET /v1/notification-template-mapping/resolve-users - resolves the personal_code
 # list stored on a desktop-channel mapping back to display names.
 mode: mock-http
 constants:

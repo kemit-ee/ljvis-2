@@ -9,11 +9,11 @@ declaration:
     tagab ühe teavituse sama alliksündmuse kohta.
     Kui notification_template_mapping'is on `type` jaoks seadistatud
     desktop_recipient_personal_codes, tardistatakse need loomise hetkel
-    notification.recipient_personal_codes veergu — teavitust näevad siis
+    notification.recipient_personal_codes veergu - teavitust näevad siis
     required_permission omanike KÕRVAL ka need konkreetsed kasutajad.
     APPEND-ONLY: INSERT only.
     WebSocket push: POST /v1/ws-broadcast/send teeb broadcast_where perms-sildi
-    järgi — notification_update signaal AINULT nendele ühendustele, kellel on
+    järgi - notification_update signaal AINULT nendele ühendustele, kellel on
     required_permission; iga frontend teeb seejärel oma authenticated
     GET /v1/notifications/unread-count päringu oma andmete jaoks.
   namespace: notification
@@ -53,7 +53,7 @@ checkRequired:
 # Desktop-kanali liigid saavad lisaks required_permission'ile ka fikseeritud
 # saajate ringi (halduses valitud personal_code'id, vt notification-template-mapping).
 # Best-effort: kui mapping'ut ei leita või päring ebaõnnestub, jätkatakse ilma
-# konkreetsete saajateta — required_permission-põhine filtreerimine jääb kehtima.
+# konkreetsete saajateta - required_permission-põhine filtreerimine jääb kehtima.
 lookupTemplateMapping:
   call: http.post
   args:
@@ -104,7 +104,7 @@ checkInsert:
       next: returnUnavailable
   next: wsPush
 
-# WsRegistry on protsessisisene — kliendid ühenduvad `ruuter` containerisse, mitte
+# WsRegistry on protsessisisene - kliendid ühenduvad `ruuter` containerisse, mitte
 # siia (`ruuter-internal`). Seega delegeerime broadcast'i `ruuter`-i sisemisele
 # endpoint'ile. Best-effort: push'i viga EI tohi 500-tada teavituse loomist
 # (insertNotification on juba jooksnud) → error: returnResult.

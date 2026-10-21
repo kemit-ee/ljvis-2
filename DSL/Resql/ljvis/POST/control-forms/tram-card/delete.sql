@@ -1,5 +1,5 @@
 /*
-description: 'Soft-delete a TRAM control card — copies the latest snapshot forward with status=''deleted'' (same
+description: 'Soft-delete a TRAM control card - copies the latest snapshot forward with status=''deleted'' (same
   version, revision + 1). INSERT-only tombstone; rows stay for audit and are hidden from search/view. Race-safe
   via UNIQUE (tram_control_card_key, revision): a concurrent writer that read the same latest row computes the same
   revision and its INSERT fails instead of silently shadowing the other (epic #522 T5).'
@@ -109,6 +109,13 @@ INSERT INTO forms.tram_control_card (
   notes,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -188,6 +195,13 @@ SELECT
   l.notes,
   l.enforcement_decision,
   l.proceeding_closure_basis,
+  l.klim_clarification_date,
+  l.carrier_explanation_date,
+  l.penalty_valid_until,
+  l.penalty_expired_or_processed,
+  l.akvk_next_meeting_date,
+  l.commission_last_decision_date,
+  l.admin_procedure_decision,
   :created_by
 FROM latest l
 RETURNING tram_control_card_key AS id, form_number, version;

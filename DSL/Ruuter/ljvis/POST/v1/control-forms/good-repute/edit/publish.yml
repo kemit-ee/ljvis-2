@@ -86,7 +86,7 @@ publishForm:
   next: checkPublishConflict
 
 # Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
-# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
     - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}

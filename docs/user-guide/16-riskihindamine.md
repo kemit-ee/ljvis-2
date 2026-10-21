@@ -29,10 +29,10 @@ flowchart TD
 
 | Tähis | Tähendus |
 |---|---|
-| `nMSI` | Huligaansõit (Most Serious Infringement) rikkumiste arv |
-| `nVSI` | Väga tõsine rikkumine (Very Serious Infringement) arv |
-| `nSI` | Tõsine rikkumine (Serious Infringement) arv |
-| `nMI` | Vähemtõsine rikkumine (Minor Infringement) arv |
+| `nMSI` | Kõige raskemate rikkumiste arv (Most Serious Infringement) |
+| `nVSI` | Väga raskete rikkumiste arv (Very Serious Infringement) |
+| `nSI` | Raskete rikkumiste arv (Serious Infringement) |
+| `nMI` | Kergete rikkumiste arv (Minor Infringement) |
 | `Nᵢ` | Kontrollitud sõidukite arv kontrollis i |
 | `r` | Arvesse võetud kontrollide koguarv (sh nullpunktilised) |
 | `g` | Aruka sõidumeeriku kaalutegur; esimeses versioonis 1,0 |
@@ -103,4 +103,4 @@ Loend võimaldab:
 
 ## ERRU integratsioon
 
-Riskiskoor edastatakse Euroopa Liidu ERRU (European Register of Road Transport Undertakings) süsteemile CTUD (Common Transport Union Database) liidese kaudu. LJVIS2 pakub selleks eraldi `/current` endpointi, mida CTUD päringu töötleja kutsub.
+Riskiskoor edastatakse Euroopa Liidu ERRU (European Register of Road Transport Undertakings) süsteemile CTUD (CheckTransportUndertakingData) liidese kaudu. LJVIS2 pakub selleks eraldi `/current` lõpp-punkti, mida CTUD päringu töötleja kutsub.

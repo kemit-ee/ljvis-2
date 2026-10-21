@@ -3,7 +3,7 @@
 ## Ülevaade
 
 **Teavitused** koondab ühte kohta kõik LJVIS 2 poolt saadetud teavitused: nii
-rakendusesisesed (töölaua kella-teavitused) kui ka väliskanali kaudu — üle
+rakendusesisesed (päise kellaikooni kaudu avatavad teavitused) kui ka väliskanali kaudu — üle
 **X-tee Postkast 2.0 teenuse** — e-postiga saadetud kirjad. Peakasutaja saab
 jälgida saatmise õnnestumist, näha vea põhjust ja ebaõnnestunud teavituse
 **muutmata kujul uuesti saata**.
@@ -23,7 +23,7 @@ staatusesse.
 | Tegevus | Õigus | Selgitus |
 |---------|-------|----------|
 | Saadetud teavituste nimekiri (`GET /v1/notifications/outbound-log/list`) | `notification.list` | Loetleb ja filtreerib väliskanali saatmiskirjeid. Ilma selle õiguseta vahekaart «Saadetud kirjad» ei ole nähtav. |
-| Saatmise raport (`GET /v1/notifications/outbound-log/recipients`) | `notification.list` | Kuvab ühe saatmiskirje adressaadi(te) saatmistulemuse. |
+| Saatmise raport (`GET /v1/notifications/outbound-log/recipients`) | `notification.list` | Kuvab ühe saatmiskirje adressaatide saatmistulemused. |
 | Teavituse uuesti saatmine (`POST /v1/notifications/outbound-log/resend/send`) | `notification.resend` | Saadab ebaõnnestunud teavituse muutmata kujul uuesti. |
 
 Varasem koondõigus `notification.admin` on asendatud kahe eraldiseisva
@@ -161,7 +161,11 @@ teavitus käivitub (**„Vormid, kus teavitus käivitub“**) — teavitused, mi
 tulevad automaatselt sisenevast ERRU sõnumist, mitte kasutaja poolt
 avaldatud LJVIS-vormist, on märgitud kui „Automaatne“.
 
-![Desktop-kanali teavituse vaade](images/09-teavitused/02-desktop-kanali-vaade.png)
+Veerg **„Saajad“** näitab juba koondtabelis, kellele või millisele aadressile
+teavitus läheb — desktop-kanali real kasutaja(te) nime, postkasti kanali real
+vaikimisi vastuvõtja e-posti —, ilma et peaks konkreetset rida avama.
+
+![Postkasti mallide ja vastuvõtjate seaded koos saajate veeruga](images/09-teavitused/02-desktop-kanali-vaade.png)
 
 Iga liigi kohta salvestatakse **uus versioon** (nagu kasutajate ja
 kasutajagruppide puhul) — olemasolevat rida ei muudeta, seega on iga
@@ -189,22 +193,38 @@ mallifailid ja malli loomise samm-sammuline juhend on repos kaustas
 
 ### Desktop-kanali teavituse saajad
 
-`desktop`-kanaliga liikidel (nt `ncr_violation`, `driving_ban`) puudub
-vaikimisi vastuvõtja e-post — selle asemel saab valida **konkreetsed
-kasutajad**, kellele rakendusesisene (kella-ikooni) teavitus kuvatakse, lisaks
-senisele õiguspõhisele (`required_permission`) reeglile. See sobib juhuks,
-kui teavitust peab nägema kindel isik või väike ring inimesi, mitte kõik
-mingi õigusega kasutajad.
+`desktop`-kanaliga liikidel puudub vaikimisi vastuvõtja e-post — selle asemel
+saab valida **konkreetsed kasutajad**, kellele rakendusesisene (kella-ikooni)
+teavitus kuvatakse, lisaks senisele õiguspõhisele (`required_permission`)
+reeglile. See sobib juhuks, kui teavitust peab nägema kindel isik või väike
+ring inimesi, mitte kõik mingi õigusega kasutajad.
+
+Praegune `desktop`-kanali liikide kataloog:
+
+| Liik (sisemine kood) | Õigus | Päästik |
+|---|---|---|
+| `ncr_ok` | `ncr.read` | Sissetulev ERRU NCR teade, tulemus „Korras“ |
+| `ncr_violation` | `ncr.read` | Sissetulev ERRU NCR teade, tulemus rikkumisega |
+| `ncr_response` | `ncr.respond` | Vastussõnum Eestist saadetud ERRU NCR teatele |
+| `rsi_received` | `rsi.read` | Sissetulev ERRU RSI (tehnokontrolli) teade |
+| `nu_inbound_received` | `nu.read` | Sissetulev ERRU NU (sobimatus) teade |
+| `serious_infringement` | `rsi.read` | Mootorsõiduki/haagise tehnokontrollvormi avalikustamine (**ka uuesti salvestamine pärast avalikustamist**), kui märgitud MSI/VSI/SI raske rikkumine |
+| `extraordinary_inspection` | `rsi.read` | Tehnokontrollvormi avalikustamine (**ka uuesti salvestamine**), tulemus „Erakorraline ülevaatus“, Euroopa Liidu/EMP liikmesriigi sõiduk (va Eesti) |
+| `cargo_securing` | `rsi.read` | Tehnokontrollvormil märgitud veose kinnituse nõude (CAA_10) puudus (**ka uuesti salvestamine**), Euroopa Liidu/EMP liikmesriigi sõiduk |
+| `driving_ban` | `rsi.read` | Tehnokontrollvormi avalikustamine (**ka uuesti salvestamine**), rakendatud sõidukeeld |
+| `weight_violation` | `rsi.read` | Sõidu- ja puhkeaja kontrollkaardi avalikustamine (**ka uuesti salvestamine**), kaalu/mõõtme rikkumine |
 
 Muutmisvormis on väli **„Teavituse saajad“** koos otsinguga:
 
-1. Sisesta otsinguväljale **kasutaja nimi** (vähemalt 3 tähemärki) ja vajuta
-   Enter või otsingu ikoonile.
-2. Vali tulemuste hulgast **„Lisa“** — kasutaja lisandub saajate loendisse.
-3. Vajadusel eemalda saaja loendist nupuga **„Eemalda“**.
-4. Vajuta **„Salvesta“**.
+1. Sisestage otsinguväljale **kasutaja nimi** (vähemalt 3 tähemärki) — tulemused
+   ilmuvad otsingu ajal iseseisvalt, Enterit ega otsingu ikooni vajutada ei
+   ole vaja. Otsing leiab kasutaja nii ees- või perekonnanime kui ka
+   täisnime (nt „Mari Tamm“) järgi.
+2. Valige tulemuste hulgast **„Lisa“** — kasutaja lisandub saajate loendisse.
+3. Vajadusel eemaldage saaja loendist nupuga **„Eemalda“**.
+4. Vajutage **„Salvesta“**.
 
-![Desktop-kanali saaja otsing](images/09-teavitused/03-desktop-saaja-otsing.png)
+![Desktop-kanali saaja otsing täisnimega](images/09-teavitused/03-desktop-saaja-otsing.png)
 
 ![Desktop-kanali saaja lisatud](images/09-teavitused/04-desktop-saaja-lisatud.png)
 

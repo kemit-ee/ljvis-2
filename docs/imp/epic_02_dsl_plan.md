@@ -43,7 +43,7 @@ Epic 02 katab kasutajate ja kasutajagruppide haldamise admin-liideses. Kasutajal
 ### Out of scope
 - Kasutaja kustutamine — arhitektuuriliselt keelatud; "kustutamine" = juurdepääsuaja lõpetamine
 - Õiguste otse kasutajale määramine — ainult grupi kaudu
-- Öine deaktiveerimisprotsess — eraldi ajastatud töö, mitte DSL endpoint
+- Öine deaktiveerimisprotsess — eraldi ajastatud töö, mitte DSL lõpp-punkt
 
 ## 4. Sisendallikad ja tõlgendus
 
@@ -471,6 +471,6 @@ Viide: `docs/db_errorhandling_rules.md`
 
 ## 12. Avatud küsimused
 
-- `users/.guard` katab kõiki `/admin/users/` endpointe — eraldi alamkaustu (`/user-groups/`) kaetakse sama guard-iga (sama kausta)
+- `users/.guard` katab kõiki `/admin/users/` lõpp-punkte — eraldi alamkaustu (`/user-groups/`) kaetakse sama guard-iga (sama kausta)
 - `user-groups/update` — asutuste/õiguste sync kasutab Ruuteris diff-loogikat: Ruuter võrdleb sissetulevat nimekirja `user_group_latest`-ist loetud praeguse seisuga
 - Grupi nime muutus (Task 06) peaks ideaalis triggima ka kõigi liikmete `user_account_latest` rebuild — see on Task 06 märkus; selle epicu DSL-is käsitleme `user_group_latest` rebuildi, `user_account_latest` massiivset rebuildi eraldi voona

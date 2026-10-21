@@ -4,14 +4,14 @@ declaration:
   version: "1.0"
   description: >-
     Citizen-facing read-only single labour_inspection_form detail. Guarded by
-    GET/v1/citizen/.guard (templates/citizen-authority) — any valid citizen
+    GET/v1/citizen/.guard (templates/citizen-authority) - any valid citizen
     session can call this, but the row is only returned when it actually
     belongs to that session: company scope requires row.companyRegCode to be
     one of the session's represented companies
-    (templates/citizen-company-representative — cached claim first, live
+    (templates/citizen-company-representative - cached claim first, live
     Äriregister esindus_v1 fallback), citizen-self scope requires
     row.punishedPersonIdCode == the session's own personalCode. BOTH checks
-    are independent of activeRole/activeRegistryCode — the dashboard shows
+    are independent of activeRole/activeRegistryCode - the dashboard shows
     every represented company's forms AND the citizen's own forms at the
     same time, so a click-through must succeed regardless
     of which role happens to be active (same pattern as forms/search.yml's
@@ -20,12 +20,12 @@ declaration:
     the officer resql (control-forms/labour-inspection/get.sql) and DMapper
     template (map_labour_inspection_form) so the response shape matches
     frontend/src/features/control-forms/types.ts's LabourInspectionForm
-    exactly — the same type the officer detail page already renders
+    exactly - the same type the officer detail page already renders
     read-only via LabourInspectionFormFields.
 
     GDPR: punishedPersonIdCode belongs to a third party (the sanctioned
     individual, e.g. an employee) relative to anyone other than that person
-    themselves — partially masked (last 2 digits only) before returning
+    themselves - partially masked (last 2 digits only) before returning
     UNLESS the viewer IS the punished person (name kept as-is either way,
     already visible in the officer search view for the same reason).
     Decoupled from activeRole, same reasoning as the ownership check above.
@@ -102,7 +102,7 @@ checkOwnership:
       next: applyGdprMasking
   next: checkCompanyRepresentative
 
-# templates/citizen-company-representative — same check as forms/search.yml's
+# templates/citizen-company-representative - same check as forms/search.yml's
 # scope=company branch and citizen/forms/compound.yml, independent of
 # activeRole/activeRegistryCode (see the description block above for why).
 checkCompanyRepresentative:
@@ -140,10 +140,10 @@ applyGdprMasking:
 
 # Audit third-party PII access: viewing this form as anyone other than the
 # punished person themselves means the punished person's data is a third
-# party's, relative to the viewer — decoupled from activeRole, same
+# party's, relative to the viewer - decoupled from activeRole, same
 # reasoning as checkOwnership above. The punished person's own access to
 # their own record isn't logged (same convention officer detail endpoints
-# use — skipping the audit call when actor_personal_code === created_by).
+# use - skipping the audit call when actor_personal_code === created_by).
 checkShouldLog:
   switch:
     - condition: "${!is_punished_person}"

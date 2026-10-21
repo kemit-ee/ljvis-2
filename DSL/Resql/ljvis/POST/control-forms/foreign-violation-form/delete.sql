@@ -1,5 +1,5 @@
 /*
-description: Delete foreign violation form — copy latest snapshot with status=deleted
+description: Delete foreign violation form - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:

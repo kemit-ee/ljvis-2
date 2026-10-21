@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Create or update the drive rest form for driver — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
+  description: "Create or update the drive rest form for driver - single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
   namespace: control-forms
   allowlist:
     body:
@@ -248,6 +248,21 @@ extractCurrentStatus:
   assign:
     current_status: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].status) || 'saved'}"
     current_compound_form_key: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].compoundFormKey) || compound_form_key}"
+  next: protectProceedingOutcome
+
+# Jõustunud otsust ja menetluse lõpetamise alust võivad kinnitatud ja avalikustatud vormil
+# muuta ainult eToimikuga seonduva ülekirjutamise õigusega kasutaja ja administraator
+# (edit_locked). Kõigil teistel säilitatakse salvestatud väärtused.
+protectProceedingOutcome:
+  switch:
+    - condition: ${(current_status === 'confirmed' || current_status === 'published') && !(u.permissions != null && (u.permissions.includes('control_form.punishment_register') || u.permissions.includes('control_form.edit_locked')))}
+      next: keepProceedingOutcome
+  next: updateForm
+
+keepProceedingOutcome:
+  assign:
+    enforcement_decision: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].enforcementDecision) || ''}"
+    proceeding_closure_basis: "${(currentFormRes.response.body && currentFormRes.response.body[0] && currentFormRes.response.body[0].proceedingClosureBasis) || ''}"
   next: updateForm
 
 updateForm:
@@ -301,7 +316,7 @@ updateForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
@@ -368,10 +383,33 @@ logAuditEventUpdate:
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
     driver2PersonalCodeForeign: ${driver2_personal_code_foreign}
   result: audit_result
+  next: recalcRiskOnResave
+
+# Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
+recalcRiskOnResave:
+  switch:
+    - condition: ${current_status === 'published'}
+      next: callRiskRecalcOnResave
+  next: checkNotifyOnResave
+
+callRiskRecalcOnResave:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(current_compound_form_key)}"
+  result: riskRecalcRes
+  error: checkNotifyOnResave
   next: checkNotifyOnResave
 
 # Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
-# teavituste mõttes — publish.yml-iga samad kontrollid, aga event_key sisaldab
+# teavituste mõttes - publish.yml-iga samad kontrollid, aga event_key sisaldab
 # uut version'it, nii et teavitus ei jää dubleerimiskontrolli taha kinni.
 checkNotifyOnResave:
   switch:

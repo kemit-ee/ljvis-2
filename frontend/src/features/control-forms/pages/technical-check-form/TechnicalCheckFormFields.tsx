@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -123,9 +124,7 @@ export function TechnicalCheckFormFields({
   // checkbox instead. Scope every id/name by variant + trailer index.
   const idPrefix = `${variant}${trailerIndex !== undefined ? `-${trailerIndex}` : ''}`;
   const formPath = variant === 'vehicle' ? 'vehicle-technical' : 'trailer-technical';
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
 
   // Mirrors resultLevel/computeAutoResult in useTechnicalCheckForm.ts: the
   // lowest resultType the form's current defects allow. Options below this
@@ -652,6 +651,11 @@ export function TechnicalCheckFormFields({
           </Card.Content>
         </Card>
       )}
+      <AdministrativeProcedureCard
+        formType={formPath}
+        formKey={values.id}
+        reloadAfterSave={!canEdit}
+      />
     </div>
   );
 }

@@ -1,0 +1,287 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  INTERNAL_COMMUNICATION_KEY: test-secret
+tests:
+- name: a positive request acknowledgement moves a sent message to acknowledged
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        version: 3
+        status: sent
+        direction: outgoing
+        businessCaseId: NCR-1
+    - &id001
+      url_matches: /erru/ncr/append-transition
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        status: x
+    - &id002
+      url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: &id003
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body: &id004
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: NCR-1
+      acknowledgementType: NCRN_Ack
+      statusCode: OK
+      statusMessage: ''
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 1
+    body_matches:
+      businessCaseId: NCR-1
+      newStatus: acknowledged
+      ackStatusCode: OK
+  - url_matches: /log/insert_audit_event
+    count: 1
+    body_matches:
+      event_type: ncr.inbound_ack.receive
+- name: an acknowledgement that beats the Hub answer completes sending
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        version: 3
+        status: sending
+        direction: outgoing
+        businessCaseId: NCR-1
+    - *id001
+    - *id002
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body: *id004
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 1
+    body_matches:
+      newStatus: acknowledged
+- name: a negative request acknowledgement moves the message to error
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        version: 3
+        status: sent
+        direction: outgoing
+        businessCaseId: NCR-1
+    - *id001
+    - *id002
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: NCR-1
+      acknowledgementType: NCRN_Ack
+      statusCode: Timeout
+      statusMessage: ''
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 1
+    body_matches:
+      newStatus: error
+- name: a duplicate acknowledgement of an acknowledged message changes nothing
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        version: 3
+        status: acknowledged
+        direction: outgoing
+        businessCaseId: NCR-1
+    - *id001
+    - *id002
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body: *id004
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 0
+  - url_matches: /log/insert_audit_event
+    count: 0
+- name: a positive response acknowledgement changes nothing
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        version: 3
+        status: answered
+        direction: incoming
+        businessCaseId: NCR-1
+    - *id001
+    - *id002
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: NCR-1
+      acknowledgementType: NCRR_Ack
+      statusCode: OK
+      statusMessage: ''
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 0
+- name: a negative response acknowledgement moves answered to error
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        version: 3
+        status: answered
+        direction: incoming
+        businessCaseId: NCR-1
+    - *id001
+    - *id002
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: NCR-1
+      acknowledgementType: NCRR_Ack
+      statusCode: NotAvailable
+      statusMessage: ''
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 1
+    body_matches:
+      newStatus: error
+- name: an unknown workflow is 404
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body: *id004
+  expect:
+    status: 404
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 0
+- name: a businessCaseId that does not belong to the workflow is refused
+  setup:
+    mocks:
+    - url_matches: /erru/ncr/get-latest-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 5
+        version: 3
+        status: sent
+        direction: outgoing
+        businessCaseId: NCR-1
+    - *id001
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: NCR-OTHER
+      acknowledgementType: NCRN_Ack
+      statusCode: OK
+      statusMessage: ''
+  expect:
+    status: 409
+  verify_mocks:
+  - url_matches: /erru/ncr/append-transition
+    count: 0
+- name: an unknown acknowledgementType is 400
+  setup:
+    mocks: []
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: NCR-1
+      acknowledgementType: X
+      statusCode: OK
+      statusMessage: ''
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /erru/ncr/get-latest-by-workflow-id
+    count: 0
+- name: missing statusCode is 400
+  setup:
+    mocks: []
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers: *id003
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      acknowledgementType: NCRN_Ack
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /erru/ncr/get-latest-by-workflow-id
+    count: 0
+- name: request without the service token is forbidden
+  setup:
+    mocks: []
+  request:
+    method: POST
+    path: /ljvis/erru/ncr/inbound-ack
+    headers:
+      content-type: application/json
+    body: *id004
+  expect:
+    status: 403
+  verify_mocks: []

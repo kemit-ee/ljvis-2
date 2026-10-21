@@ -1,5 +1,5 @@
 /*
-description: Update group membership for multiple users — copy latest snapshot for each user with user_group_key
+description: Update group membership for multiple users - copy latest snapshot for each user with user_group_key
   added or removed
 namespace: user_group
 params:

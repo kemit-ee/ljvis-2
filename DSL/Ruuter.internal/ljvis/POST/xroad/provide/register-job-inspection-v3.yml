@@ -3,7 +3,7 @@ declaration:
 
   version: "1.0"
   description: >-
-    X-tee pakutav teenus RegisterJobInspection_v3: uuem töökontrolli leping —
+    X-tee pakutav teenus RegisterJobInspection_v3: uuem töökontrolli leping -
     lisanduvad sõiduki (reg_nr, VIN), juhi (isikukood) ja menetluse (liik, number)
     väljad. Salvestatakse samasse forms.labour_inspection_form tabelisse.
     Idempotentsuse võti: 'v3-' || kontrolli_id (et eristada v1 kirjetest).
@@ -67,14 +67,14 @@ validateKontrollimised:
       next: returnMissingEttekirjutus
   next: validateJuhiIsikukood
 
-# Samm 6: V3 lisavalideerimine — juhi isikukood on valikuline, kuid kui esitatud peab olema korrektne
+# Samm 6: V3 lisavalideerimine - juhi isikukood on valikuline, kuid kui esitatud peab olema korrektne
 validateJuhiIsikukood:
   switch:
     - condition: "${incoming.body.juhi_isikukood != null && incoming.body.juhi_isikukood != '' && !(/^[1-6][0-9]{10}$/.test(String(incoming.body.juhi_isikukood).trim()))}"
       next: returnInvalidIsikukood
   next: validateMenetluseLiik
 
-# Samm 7: V3 lisavalideerimine — menetluse liik on valikuline enum
+# Samm 7: V3 lisavalideerimine - menetluse liik on valikuline enum
 validateMenetluseLiik:
   switch:
     - condition: "${incoming.body.menetluse_liik != null && incoming.body.menetluse_liik != '' && !(['lyhimenetlus','kiirmenetlus','uldmenetlus'].indexOf(incoming.body.menetluse_liik) >= 0)}"
@@ -164,7 +164,7 @@ checkInsertStatus:
       next: logFailure
   next: logSuccess
 
-# Logi edukas salvestamine — juhi isikukoodi logikirjes ei kuvata selge tekstina
+# Logi edukas salvestamine - juhi isikukoodi logikirjes ei kuvata selge tekstina
 logSuccess:
   call: http.post
   args:

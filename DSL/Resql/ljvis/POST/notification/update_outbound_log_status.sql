@@ -2,7 +2,7 @@
 description: 'Lisab outbound_log kirjele uue staatuseventi (notifications.outbound_log_status_event) pärast X-tee
   vastuse saamist (send-postkast.yml callPk samm, cron/notification-status-sync.yml, check-status/send.yml). INSERT-only:
   event on täisseis (revision + 1, väljad kantakse edasi eelmisest eventist või outbound_log reast, parameetriga
-  antud väljad kirjutavad üle) — outbound_log rida ise ei muutu ega kustu. Samaaegne kirjutaja kukub UNIQUE (log_id,
+  antud väljad kirjutavad üle) - outbound_log rida ise ei muutu ega kustu. Samaaegne kirjutaja kukub UNIQUE (log_id,
   revision) peale. status_check_count ilma parameetrita antud korral jääb samaks; anna increment_check väärtus ''true'',
   et suurendada +1 (sync-status kasutab seda katsete lae jälgimiseks).
 
@@ -10,7 +10,7 @@ description: 'Lisab outbound_log kirjele uue staatuseventi (notifications.outbou
   NB pk_operation_restart_allowed on STRING ("true"/"false"/""), MITTE boolean: Rust Resql''i BOOLEAN-parameetri
   sidumine COALESCE(...::BOOLEAN) konteksti läheb Postgres''is katki ("invalid byte sequence for encoding UTF8"
   / "invalid input syntax for type boolean"). Töötav kombinatsioon: DSL saadab stringi, SQL kasutab NULLIF(:param,
-  '''')::BOOLEAN. increment_check seevastu läheb bare JSON boolean''ina (CASE WHEN :param::BOOLEAN — see kuju töötab).'
+  '''')::BOOLEAN. increment_check seevastu läheb bare JSON boolean''ina (CASE WHEN :param::BOOLEAN - see kuju töötab).'
 namespace: notification
 params:
   id:

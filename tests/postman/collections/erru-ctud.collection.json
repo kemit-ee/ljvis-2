@@ -1187,7 +1187,7 @@
       ]
     },
     {
-      "name": "[Send] DE → responded / Found",
+      "name": "[Send] DE → 200 sent (Hub accepted the XML), Found arrives asynchronously",
       "request": {
         "method": "POST",
         "header": [
@@ -1223,7 +1223,38 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+              "pm.test('Send accepted with 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the response",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1275,6 +1306,29 @@
               "pm.test('sentAt recorded', () => pm.expect(body.sentAt).to.not.be.null);",
               "pm.test('technicalId assigned', () => pm.expect(body.technicalId).to.not.be.null);",
               "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.status === 'responded'); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
             ]
           }
         }
@@ -1511,7 +1565,7 @@
       ]
     },
     {
-      "name": "[Send] LV → responded / NotFound",
+      "name": "[Send] LV → 200 sent (Hub accepted the XML), NotFound arrives asynchronously",
       "request": {
         "method": "POST",
         "header": [
@@ -1547,7 +1601,38 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+              "pm.test('Send accepted with 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the response",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1601,6 +1686,29 @@
               "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
             ]
           }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.status === 'responded'); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
+            ]
+          }
         }
       ]
     },
@@ -1650,7 +1758,7 @@
       ]
     },
     {
-      "name": "[Send] PL → responded / Timeout",
+      "name": "[Send] PL → 200 sent (Hub accepted the XML), Timeout arrives asynchronously",
       "request": {
         "method": "POST",
         "header": [
@@ -1686,7 +1794,38 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+              "pm.test('Send accepted with 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the response",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1740,6 +1879,29 @@
               "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
             ]
           }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.status === 'responded'); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
+            ]
+          }
         }
       ]
     },
@@ -1789,7 +1951,7 @@
       ]
     },
     {
-      "name": "[Send] GR → responded / NotAvailable",
+      "name": "[Send] GR → 200 sent (Hub accepted the XML), NotAvailable arrives asynchronously",
       "request": {
         "method": "POST",
         "header": [
@@ -1825,7 +1987,38 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('Send succeeded with 200 (mock responds deterministically)', () => pm.response.to.have.status(200));"
+              "pm.test('Send accepted with 200', () => pm.response.to.have.status(200));",
+              "var raw = pm.response.json();\nvar body = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
+              "pm.test('status sent', () => pm.expect(body.status).to.eql('sent'));",
+              "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.empty);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the response",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
             ]
           }
         }
@@ -1877,6 +2070,29 @@
               "pm.test('sentAt recorded', () => pm.expect(body.sentAt).to.not.be.null);",
               "pm.test('technicalId assigned', () => pm.expect(body.technicalId).to.not.be.null);",
               "pm.test('workflowId assigned', () => pm.expect(body.workflowId).to.not.be.null);"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.status === 'responded'); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
             ]
           }
         }

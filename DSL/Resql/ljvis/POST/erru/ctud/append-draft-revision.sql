@@ -2,7 +2,7 @@
 description: 'Revise an OUTGOING CTUD request draft (LJVIS2-143). Appends a new snapshot with version
   + 1, keeping status ''initiated''. Guarded: the INSERT .. SELECT produces zero rows unless the latest
   snapshot is status=''initiated'' AND direction=''outgoing'', so a sent request or an inbound request
-  can never be edited — the caller detects the empty result and returns 422. Editable fields are fully
+  can never be edited - the caller detects the empty result and returns 422. Editable fields are fully
   replaced from the request body (the CTUD form always submits its complete state, so a cleared field
   must clear); identity and envelope fields (business_case_id, ctud_from, technical_id, workflow_id, sent_at)
   are carried forward untouched.'

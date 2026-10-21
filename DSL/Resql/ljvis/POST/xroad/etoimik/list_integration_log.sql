@@ -4,7 +4,7 @@ description: 'Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
   ''etoimik.%''). Filtrid: date_from/date_to (created_at, poolavatud
   intervall nagu list_outbound_log.sql-is), ja kolm sõltumatut
   include_found/include_not_found/include_error lippu (checkbox-grupi
-  filter, mitte massiiv-parameeter — Resql-is puudub sellele siiani
+  filter, mitte massiiv-parameeter - Resql-is puudub sellele siiani
   eeskuju). Kolme lipu OR-kombinatsioon; kui kõik kolm on false, ei tagasta
   midagi. all_services=true eemaldab nii service_code ''etoimik.%'' filtri
   kui ka staatusfiltri (teised allikad, nt erru_cgr, ei täida result_status''i
@@ -75,6 +75,9 @@ returns:
 - name: created_at
   type: string
   nullable: true
+- name: form_number
+  type: string
+  nullable: true
 - name: total
   type: number
   nullable: true
@@ -92,6 +95,37 @@ SELECT
     source_type,
     source_record_id,
     created_at,
+    CASE
+      WHEN source_record_id !~ '^[0-9]+$' THEN NULL
+      WHEN source_type = 'compound_form' THEN (
+        SELECT f.form_number || '/' || f.version FROM forms.compound_form f
+        WHERE f.compound_form_key = source_record_id::BIGINT
+        ORDER BY f.created_at DESC LIMIT 1)
+      WHEN source_type = 'labour_inspection_form' THEN (
+        SELECT f.form_number || '/' || f.version FROM forms.labour_inspection_form f
+        WHERE f.labour_inspection_form_key = source_record_id::BIGINT
+        ORDER BY f.created_at DESC LIMIT 1)
+      WHEN source_type = 'vehicle_technical_form' THEN (
+        SELECT f.sub_form_number || '/' || f.version FROM forms.vehicle_technical_form f
+        WHERE f.vehicle_technical_form_key = source_record_id::BIGINT
+        ORDER BY f.created_at DESC LIMIT 1)
+      WHEN source_type = 'trailer_technical_form' THEN (
+        SELECT f.sub_form_number || '/' || f.version FROM forms.trailer_technical_form f
+        WHERE f.trailer_technical_form_key = source_record_id::BIGINT
+        ORDER BY f.created_at DESC LIMIT 1)
+      WHEN source_type = 'sp_driver_form' THEN (
+        SELECT f.sub_form_number || '/' || f.version FROM forms.sp_driver_form f
+        WHERE f.sp_driver_form_key = source_record_id::BIGINT
+        ORDER BY f.created_at DESC LIMIT 1)
+      WHEN source_type = 'sp_teammate_form' THEN (
+        SELECT f.sub_form_number || '/' || f.version FROM forms.sp_teammate_form f
+        WHERE f.sp_teammate_form_key = source_record_id::BIGINT
+        ORDER BY f.created_at DESC LIMIT 1)
+      WHEN source_type = 'tram_control_card' THEN (
+        SELECT f.form_number || '/' || f.version FROM forms.tram_control_card f
+        WHERE f.tram_control_card_key = source_record_id::BIGINT
+        ORDER BY f.created_at DESC LIMIT 1)
+    END AS form_number,
     (COUNT(*) OVER ())::INTEGER AS total
 FROM xroad.xroad_integration_log
 WHERE (COALESCE(:all_services::BOOLEAN, false) OR service_code LIKE 'etoimik.%')

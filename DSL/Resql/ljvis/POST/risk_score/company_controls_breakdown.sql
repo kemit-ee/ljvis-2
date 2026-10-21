@@ -2,11 +2,11 @@
 description: Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one company's controls,
   letting a citizen see WHY their company's risk score is what it is (not just the aggregate number).
   Uses the same rolling window definition as calculate_risk_score.sql/recalculate.yml (caller passes window_start/window_end
-  explicitly — Ruuter.internal controls.yml uses "now - 2 years" .. "now", matching the persisted aggregate
+  explicitly - Ruuter.internal controls.yml uses "now - 2 years" .. "now", matching the persisted aggregate
   score's window so the two stay comparable). Shares the exact qualifying_forms/violation_counts/sp_form_category
-  CTE logic as calculate_risk_score.sql — kept as a separate query rather than reusing that one's output
+  CTE logic as calculate_risk_score.sql - kept as a separate query rather than reusing that one's output
   because this returns one row PER CONTROL instead of one aggregated row. Two control sources, same as
-  calculate_risk_score.sql — forms.compound_form (PPA/TRAM) and forms.foreign_violation_form (VR-vorm,
+  calculate_risk_score.sql - forms.compound_form (PPA/TRAM) and forms.foreign_violation_form (VR-vorm,
   LJVIS2-151 gap fix). Returned rows are generic (form_key/form_type) rather than compound-specific, so the
   caller (citizen dashboard) can route to the right detail page for either control type. Display
   fields (form_number/main_date/vehicle_reg_nr) come from forms.form_search rather than forms.compound_form/
@@ -87,7 +87,7 @@ sp_driver_latest AS (
   SELECT DISTINCT ON (sp_driver_form_key)
     sp_driver_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_driver_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -102,7 +102,7 @@ sp_teammate_latest AS (
   SELECT DISTINCT ON (sp_teammate_form_key)
     sp_teammate_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_teammate_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -116,12 +116,12 @@ sp_teammate_active AS (
 all_sp_forms AS (
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_driver_active
   UNION ALL
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_teammate_active
 ),
 violation_counts AS (
@@ -148,6 +148,10 @@ violation_counts AS (
       UNION ALL
       SELECT elem->>'severityCode'
       FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
+      UNION ALL
+      -- Massi ja mõõtmete ületamine: kirje raskusaste on väljas `severity` (mitte severityCode), isDetected välja pole.
+      SELECT COALESCE(elem->>'severity', elem->>'severityCode')
+      FROM jsonb_array_elements(COALESCE(f.mass_dimension_measurements, '[]'::jsonb)) elem
     ) AS severity_codes
   FROM all_sp_forms f
 ),
@@ -168,12 +172,12 @@ sp_form_category AS (
   SELECT
     *,
     CASE
-      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type = 'KORRAS'
+      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type IN ('ok', 'KORRAS')
         THEN 'excluded'
       WHEN sp_applicability = 'RAKENDATAKSE' AND proceeding_type IN ('KIIR', 'YLD', 'LYHI')
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
-      WHEN result_type = 'HOIATUS' AND sp_applicability = 'RAKENDATAKSE'
+      WHEN result_type IN ('warning', 'HOIATUS') AND sp_applicability = 'RAKENDATAKSE'
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
       ELSE 'counted'
@@ -181,7 +185,7 @@ sp_form_category AS (
   FROM violation_tallies
 ),
 -- Per compound_form_key: severity counts and weighted points are summed only
--- over 'counted' SP forms — same convention as calculate_risk_score.sql's
+-- over 'counted' SP forms - same convention as calculate_risk_score.sql's
 -- weighted_sum, so the two numbers stay consistent for a given control.
 -- Koondvormid ilma ühegi SP-alamvormita ilmuvad tulemusse ikkagi (per_control loeb sp_agg
 -- alampäringuga ja vaikeväärtus on "täielikult välistatud", docs/risk-score/formula.md §3),
@@ -227,7 +231,7 @@ compound_controls AS (
   FROM per_control pc
   WHERE EXISTS (SELECT 1 FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key)
 ),
--- ── VR-vorm (forms.foreign_violation_form) — sama laiendus mis calculate_risk_score.sql §vr_* ──
+-- ── VR-vorm (forms.foreign_violation_form) - sama laiendus mis calculate_risk_score.sql §vr_* ──
 vr_enforcement_dates AS (
   SELECT foreign_violation_form_key, MIN(created_at) AS enforcement_date
   FROM forms.foreign_violation_form
@@ -277,11 +281,24 @@ vr_controls AS (
      + (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%') * 10) AS weighted_points
   FROM vr_latest vl
 ),
-controls AS (
-  SELECT * FROM compound_controls
+control_parts AS (
+  SELECT form_key,form_type,is_fully_excluded,n_msi,n_vsi,n_si,n_mi,weighted_points::NUMERIC FROM compound_controls
   UNION ALL
-  SELECT * FROM vr_controls
+  SELECT form_key,form_type,is_fully_excluded,n_msi,n_vsi,n_si,n_mi,weighted_points::NUMERIC FROM vr_controls
+  UNION ALL
+  SELECT form_key,form_type,FALSE,n_msi,n_vsi,n_si,n_mi,weighted_points
+  FROM risk.additional_controls(:company_reg_code, :window_start::DATE, :window_end::DATE)
+),
+controls AS (
+ SELECT form_key,form_type,BOOL_AND(is_fully_excluded) AS is_fully_excluded,
+   SUM(n_msi)::BIGINT AS n_msi,SUM(n_vsi)::BIGINT AS n_vsi,SUM(n_si)::BIGINT AS n_si,SUM(n_mi)::BIGINT AS n_mi,
+   SUM(weighted_points) AS weighted_points
+ FROM control_parts GROUP BY form_key,form_type
 )
-SELECT form_key, form_type, form_number, main_date, vehicle_reg_nr, is_fully_excluded, n_msi, n_vsi, n_si, n_mi, weighted_points
-FROM controls
-ORDER BY main_date DESC, form_key DESC;
+SELECT c.form_key,c.form_type,
+ (SELECT fs.form_number FROM forms.form_search fs WHERE fs.form_type=c.form_type AND fs.form_key=c.form_key) AS form_number,
+ (SELECT fs.main_date FROM forms.form_search fs WHERE fs.form_type=c.form_type AND fs.form_key=c.form_key) AS main_date,
+ (SELECT fs.vehicle_reg_nr FROM forms.form_search fs WHERE fs.form_type=c.form_type AND fs.form_key=c.form_key) AS vehicle_reg_nr,
+ c.is_fully_excluded,c.n_msi,c.n_vsi,c.n_si,c.n_mi,c.weighted_points
+FROM controls c
+ORDER BY main_date DESC,c.form_key DESC;

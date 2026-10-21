@@ -1,16 +1,16 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Create or update an OUTGOING NCR request draft (LJVIS2-63) — single unified save
+  description: "Create or update an OUTGOING NCR request draft (LJVIS2-63) - single unified save
     endpoint, branches internally on presence of businessCaseId, mirroring the RSI/CTUD save
     pattern. status ('initiated'), direction ('outgoing') and ncr_from ('EE') are assigned
     server-side and never accepted from the client; business_case_id is generated on create
     and immutable on revise. Revising is rejected (422 not_editable) unless the current
-    snapshot is status='initiated' AND direction='outgoing' — append-request-draft-revision.sql
+    snapshot is status='initiated' AND direction='outgoing' - append-request-draft-revision.sql
     enforces this with an empty INSERT..SELECT. minorInfringement/seriousInfringements arrive as
     JSON text with seriousInfringements[].category/infringementType ALREADY split by the
     frontend (from the combined EU_INFRINGEMENT classifier code, e.g. MSI302 -> category=MSI,
-    infringementType=302) — this endpoint does not re-derive that split. The Pass/CleanCheck
+    infringementType=302) - this endpoint does not re-derive that split. The Pass/CleanCheck
     infringement-clearing rule (LJVIS2-63 §4) is enforced server-side inside the Resql query,
     not just here, so a stale client payload can never smuggle infringement data past a
     checkResult=Pass save."
@@ -69,7 +69,7 @@ extractRequestData:
 # When checkResult is Fail, each infringement item in seriousInfringements must carry its
 # three mandatory date/type fields (LJVIS2-63 §4). Empty array is valid (officer may submit
 # Fail with minor infringements only). Pass/CleanCheck items are cleared server-side in SQL
-# so we skip validation for them — the content is irrelevant and will be wiped anyway.
+# so we skip validation for them - the content is irrelevant and will be wiped anyway.
 # Note: si_list must be set in a separate assign step before si_has_incomplete can reference
 # it, because Ruuter evaluates all expressions in an assign block against the pre-assign
 # context (same constraint observed in validateCoverage in response/save.yml).

@@ -57,6 +57,8 @@ assignCaller:
     caller_org: "${caller_res.response.body[0].organisationid == null ? '' : String(caller_res.response.body[0].organisationid)}"
     caller_view_unpublished: "${(caller_res.response.body[0].permissions || []).includes('control_form.view_unpublished') ? 'true' : 'false'}"
     caller_view_organisation: "${(caller_res.response.body[0].permissions || []).includes('control_form.view_organisation') ? 'true' : 'false'}"
+    caller_view_unit: "${(caller_res.response.body[0].permissions || []).includes('control_form.view_unit') ? 'true' : 'false'}"
+    caller_structural_unit: "${caller_res.response.body[0].structuralunit == null ? '' : String(caller_res.response.body[0].structuralunit)}"
   next: resolveReadPermission
 
 resolveReadPermission:
@@ -85,6 +87,8 @@ checkAccess:
       caller_can_read_type: ${caller_can_read_type}
       caller_view_unpublished: ${caller_view_unpublished}
       caller_view_organisation: ${caller_view_organisation}
+      caller_view_unit: ${caller_view_unit}
+      caller_structural_unit: ${caller_structural_unit}
   result: access_res
   next: evaluate
 

@@ -1,0 +1,38 @@
+declaration:
+  internal: false
+  version: "1.0"
+  description: "Haldusmenetluse andmeploki ligipääsureegel (ainus koht, kus asutuste nimekiri elab). Tagastab sõne `allow` või `deny`. Plokk on Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule ning süsteemi- (admin-kolmik või user.edit.admin) või asutuse administraatorile (user.edit.local). Kutsuja annab oma asutuse koodi ja õigused komadega eraldatud sõnena."
+  namespace: service
+  strict: true
+  allowlist:
+    body:
+      - field: organisation_code
+        type: string
+      - field: permissions
+        type: string
+
+check:
+  assign:
+    org_code: "${incoming.body.organisation_code == null ? '' : String(incoming.body.organisation_code)}"
+    perms: "${incoming.body.permissions == null ? [] : String(incoming.body.permissions).split(',')}"
+  next: evaluate
+
+evaluate:
+  switch:
+    - condition: ${['TRAM', 'KLIM'].includes(org_code)}
+      next: allow
+    - condition: ${perms.includes('control_form.view_unpublished') && perms.includes('control_form.edit_locked') && perms.includes('control_form.delete')}
+      next: allow
+    - condition: ${perms.includes('user.edit.admin') || perms.includes('user.edit.local')}
+      next: allow
+  next: deny
+
+allow:
+  return: "allow"
+  status: 200
+  next: end
+
+deny:
+  return: "deny"
+  status: 200
+  next: end

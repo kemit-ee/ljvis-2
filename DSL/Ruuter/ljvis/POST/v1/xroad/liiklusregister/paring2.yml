@@ -20,12 +20,12 @@ validateInput:
       next: returnMissingParam
   next: get_user_context
 
-# Eraldi privileegi selle teenuse kasutamiseks ei kehtestata (LJVIS2-55 §3) —
+# Eraldi privileegi selle teenuse kasutamiseks ei kehtestata (LJVIS2-55 §3) -
 # kasutaja peab olema autenditud (kehtiv sessioon). check-user-authority
 # short-circuits with 401/403/400 itself when there's no valid session; on
 # success it also gives us the personal code needed for X-Road-UserId.
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: assignParams
@@ -50,8 +50,8 @@ callXtr:
   result: xtrResponse
   next: checkXtrStatus
 
-# XTR maps EVERY failure mode — Security Server unreachable, request
-# timeout, and business-level SOAP Faults from the producer alike — to a
+# XTR maps EVERY failure mode - Security Server unreachable, request
+# timeout, and business-level SOAP Faults from the producer alike - to a
 # non-2xx status (502/504/500), so a single range check covers all of
 # LJVIS2-55's error scenarios ("X-tee turvaserver ei ole kättesaadav",
 # "Liiklusregister tagastab vea", "vastuse teisendamine ebaõnnestub").
@@ -85,9 +85,9 @@ logSuccess:
 # SOAP Header/Body); namespace prefixes on response elements are preserved
 # verbatim (e.g. "prod:paring2Response"), so we look up the key by suffix
 # instead of hardcoding a prefix. Zero matches (no vehicle found) is a valid,
-# non-error result per spec — item is simply absent/null in that case.
+# non-error result per spec - item is simply absent/null in that case.
 # NB: each key in an `assign:` block is evaluated against the state BEFORE
-# the step runs, not against sibling keys in the same block — hence the
+# the step runs, not against sibling keys in the same block - hence the
 # chain is split into separate single-purpose steps.
 mapResponse:
   assign:
@@ -115,9 +115,9 @@ normalizeItems:
   next: buildResult
 
 # vehicleData.category (kateg) is always populated by the producer for both
-# motor vehicles and trailers (LJVIS2-55 decision 05.05.2026) — passed
+# motor vehicles and trailers (LJVIS2-55 decision 05.05.2026) - passed
 # through as-is, no special-casing needed on our side. registrationCountryCode
-# is hardcoded 'EE' — paring2 only ever covers Estonian-registered vehicles.
+# is hardcoded 'EE' - paring2 only ever covers Estonian-registered vehicles.
 # regtulek arrives as dd.mm.yyyy; reformatted to yyyy-MM-dd to match the
 # compound_form.vehicle_first_registration / foreign_violation_form DATE
 # columns and the frontend's DateField (new Date(iso)).

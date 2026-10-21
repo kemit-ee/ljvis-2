@@ -10,7 +10,7 @@ pannud Eesti vedaja või tema juht.
 - Dokumenteerida välisriigis tuvastatud rikkumine
 - Määrata üks või mitu sanktsiooni ja soovitatav meede
 - Salvestada rikkumise detailid (sõiduk, juht, ettevõte)
-- Pidada haldusmenetluse käiku (KLIM, AKVK, komisjoni otsus)
+- Jälgida haldusmenetluse käiku (KLIM, AKVK, komisjoni otsus)
 - Edastada andmed statistikaks ja riskihindamiseks
 
 ## Kust vorm avada
@@ -27,16 +27,16 @@ ettevõtte-, sõiduki- ja rikkumisandmed.
 
 ## Vormi osad ja kohustuslikud väljad
 
-Vorm on jagatud kaartideks. Allpool on iga kaardi väljad. Kui välja juures on täht `*`, on see kohustuslik.
+Vorm on jagatud kaartideks. Allpool on iga kaardi väljad. Kui välja juures on tärn `*`, on see kohustuslik.
 
 ![Välisriigi rikkumise vormi loomisvaade](images/06-vorm-valisrikkumine/01-loomisvaade.png)
 
-### 1. Teatava info
+### 1. Teate saatja andmed
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Teatav riik (`reportingCountryCode`) | Jah | Vali riik, kust teade tuli |
-| Teatav asutus (`reportingAuthority`) | Jah | Asutuse nimi, max 600 tähemärki |
+| Teate saatnud riik (`reportingCountryCode`) | Jah | Valige riik, kust teade tuli |
+| Teate saatnud pädeva asutuse nimetus (`reportingAuthority`) | Jah | Asutuse nimi, kuni 600 tähemärki |
 
 ### 2. Kontrolli aeg ja koht
 
@@ -44,10 +44,10 @@ Vorm on jagatud kaartideks. Allpool on iga kaardi väljad. Kui välja juures on 
 |---|---|---|
 | Kontrolli kuupäev (`inspectionDate`) | Jah | Kuupäev, mil kontroll toimus |
 | Kontrolli kellaaeg (`inspectionTime`) | Ei | Kellaaeg HH:MM formaadis |
-| Kontrolli aadressirida 1 (`inspectionAddressLine1`) | Ei | Max 300 tähemärki |
-| Kontrolli aadressirida 2 (`inspectionAddressLine2`) | Ei | Max 300 tähemärki |
-| Kontrolli piirkond (`inspectionRegion`) | Ei | Max 100 tähemärki |
-| Kontrolli linn (`inspectionCity`) | Ei | Max 100 tähemärki |
+| Kontrolli aadressirida 1 (`inspectionAddressLine1`) | Ei | Kuni 300 tähemärki |
+| Kontrolli aadressirida 2 (`inspectionAddressLine2`) | Ei | Kuni 300 tähemärki |
+| Kontrolli piirkond (`inspectionRegion`) | Ei | Kuni 100 tähemärki |
+| Kontrolli linn (`inspectionCity`) | Ei | Kuni 100 tähemärki |
 | Kontrolli riik (`inspectionCountryCode`) | Ei | Valik riikide loendist |
 
 ### 3. Ettevõtte info
@@ -57,39 +57,39 @@ Ettevõtte andmeid saab otsida registrikoodi või nime järgi. Otsingunupp täid
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | Registrikood (`companyRegCode`) | Ei | 20 tähemärki |
-| Ettevõtte nimi (`companyName`) | Ei | Max 300 tähemärki |
+| Ettevõtte nimi (`companyName`) | Ei | Kuni 300 tähemärki |
 | Ettevõtte riik (`companyCountryCode`) | Ei | Valik riikide loendist |
-| Aadressirida 1 (`companyAddressLine1`) | Ei | Max 300 tähemärki |
-| Aadressirida 2 (`companyAddressLine2`) | Ei | Max 300 tähemärki |
-| Linn (`companyCity`) | Ei | Max 100 tähemärki |
-| Postiindeks (`companyPostalCode`) | Ei | Max 20 tähemärki |
+| Aadressirida 1 (`companyAddressLine1`) | Ei | Kuni 300 tähemärki |
+| Aadressirida 2 (`companyAddressLine2`) | Ei | Kuni 300 tähemärki |
+| Linn (`companyCity`) | Ei | Kuni 100 tähemärki |
+| Postiindeks (`companyPostalCode`) | Ei | Kuni 20 tähemärki |
 
 ### 4. Juhi info
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Juhi eesnimi (`driverFirstName`) | Ei | Max 200 tähemärki |
-| Juhi perekonnanimi (`driverLastName`) | Ei | Max 200 tähemärki |
+| Juhi eesnimi (`driverFirstName`) | Ei | Kuni 200 tähemärki |
+| Juhi perekonnanimi (`driverLastName`) | Ei | Kuni 200 tähemärki |
 
 ### 5. Sõiduki info
 
-Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liidest.
+Sõiduki andmeid saab otsida registreerimismärgi järgi. Otsing kasutab X-tee liidest.
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Registrinumber (`vehicleRegNr`) | Ei | Max 20 tähemärki |
-| Mark (`vehicleMake`) | Ei | Max 100 tähemärki |
-| Mudel (`vehicleModel`) | Ei | Max 100 tähemärki |
+| Registrinumber (`vehicleRegNr`) | Ei | Kuni 20 tähemärki |
+| Mark (`vehicleMake`) | Ei | Kuni 100 tähemärki |
+| Mudel (`vehicleModel`) | Ei | Kuni 100 tähemärki |
 | Sõiduki riik (`vehicleCountryCode`) | Ei | Valik riikide loendist |
-| VIN (`vehicleVin`) | Ei | Max 17 tähemärki |
+| VIN (`vehicleVin`) | Ei | Kuni 17 tähemärki |
 | Esmane registreerimine (`vehicleFirstRegistration`) | Ei | Kuupäev |
-| Keretüüp (`vehicleBodyType`) | Ei | Max 50 tähemärki |
+| Keretüüp (`vehicleBodyType`) | Ei | Kuni 50 tähemärki |
 
 ### 6. Ühenduse tegevusloa, selle kinnitatud ärakirja või tõestatud koopia number
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Number (`licenceCopyNumber`) | Ei | Max 100 tähemärki; nupp **Otsi** kontrollib numbrit registrist |
+| Number (`licenceCopyNumber`) | Ei | Kuni 100 tähemärki; nupp **Otsi** kontrollib numbrit registrist |
 
 ### 7. Rikkumise kirjeldus
 
@@ -108,7 +108,7 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 
 ### 9. Soovitatav meede
 
-| Väli | Kohustuslik | Seligitus |
+| Väli | Kohustuslik | Selgitus |
 |---|---|---|
 | Soovitatav meede (`recommendedMeasureCode`) | Jah | Valik: PUUDUVAD, HOIATUS, ÜHENDUSE TEGEVUSLOA PEATAMINE, ÜHENDUSE TEGEVUSLUBA KEHTETUKS, TEGEVUSLOA ARAKIRJADE PEATAMINE, TEGEVUSLUBA KEHTETUKS, JUHITUNNISTUSEST KEELDUMINE, JUHITUNNISTUS KEHTETUKS, MUU |
 | Soovitatava meetme täpsustus (`recommendedMeasureNotes`) | Ei | Vaba tekst; kuvatakse, kui meede on „Muu" |
@@ -124,20 +124,20 @@ Sõiduki andmeid saab otsida registri numbri järgi. Otsing kasutab X-tee liides
 
 | Väli | Kohustuslik | Selgitus |
 |---|---|---|
-| Eesnimi (`inspectorFirstName`) | Jah | Max 100 tähemärki |
-| Perekonnanimi (`inspectorLastName`) | Jah | Max 100 tähemärki |
+| Eesnimi (`inspectorFirstName`) | Jah | Kuni 100 tähemärki |
+| Perekonnanimi (`inspectorLastName`) | Jah | Kuni 100 tähemärki |
 | Asutus (`inspectorOrganisationId`) | Jah | Valik organisatsioonide loendist |
-| Ametinimetus (`inspectorProfession`) | Ei | Max 100 tähemärki; eeltäidetud kasutaja profiilist |
+| Ametinimetus (`inspectorProfession`) | Ei | Kuni 100 tähemärki; eeltäidetud kasutaja profiilist |
 
 ### 12. EL rikkumiste loend
 
-Akordioni avades kuvatakse EL määruse rikkumiste loend, mis on jagatud rühmadesse
+Jaotist avades kuvatakse EL määruse rikkumiste loend, mis on jagatud rühmadesse
 MSI, VSI, SI, MI. Valida saab mitu rikkumist (märkeruudud). Need väärtused ei ole
 vormi täitmiseks kohustuslikud, kuid on olulised riskihindamiseks.
 
 ### 13. Haldusmenetlus
 
-See plokk on nähtav **ainult administraatorile**. Siia märgitakse raske
+See plokk on nähtav **Transpordiameti ja Kliimaministeeriumi ametnikule ning süsteemi- ja asutuse administraatorile**. Siia märgitakse raske
 autoveoalase rikkumise haldusmenetluse käik.
 
 | Väli | Selgitus |
@@ -157,8 +157,8 @@ pärast esimest salvestamist. Vt [Failide lisamine](14-failide-lisamine.md).
 
 ### 15. Teavitused
 
-Kaardi lõpus on plokk **„Teavitused"** kahe märkeruuduga. Märgi soovitud ruut ja
-klõpsa **Salvesta** — märge salvestub kaardile, kuid teavitust veel **ei saadeta**.
+Kaardi lõpus on plokk **„Teavitused"** kahe märkeruuduga. Märkige soovitud ruut ja
+klõpsake **Salvesta** — märge salvestub kaardile, kuid teavitust veel **ei saadeta**.
 Teavitus saadetakse alles kaardi **avalikustamisel**. Märge jääb kaardile alles:
 kui kaarti hiljem muudetakse ja uuesti avalikustatakse, saadetakse teavitus
 uuesti. Saadetud teavitust ei saa tühistada; varasemad saatmised on näha ploki
@@ -186,18 +186,18 @@ Haldusmenetluse plokk (sektsioon 13) on mõeldud raske autoveoalase rikkumise me
 
 | Etapp | Tegevus |
 |-------|---------|
-| KLIM selgitustaotlus | Märgi kuupäev, millal Kliimaministeeriumile selgitustaotlus saadeti |
-| Vedaja seletus | Märgi kuupäev, millal vedaja seletuse tähtaeg möödus |
-| Karistuse kehtivus | Märgi karistuse kehtivuse lõpukuupäev ja vajaduse korral „Kehtetu või menetletud" |
-| AKVK koosolek | Märgi järgmise autoveo koordineerimise komisjoni (AKVK) koosoleku kuupäev |
-| Komisjoni otsus | Märgi viimase komisjoni otsuse kuupäev ja otsuse sisu |
+| KLIM selgitustaotlus | Märkige kuupäev, millal Kliimaministeeriumile selgitustaotlus saadeti |
+| Vedaja seletus | Märkige kuupäev, millal vedaja seletuse tähtaeg möödus |
+| Karistuse kehtivus | Märkige karistuse kehtivuse lõpukuupäev ja vajaduse korral „Kehtetu või menetletud" |
+| AKVK koosolek | Märkige järgmise autoveo koordineerimise komisjoni (AKVK) koosoleku kuupäev |
+| Komisjoni otsus | Märkige viimase komisjoni otsuse kuupäev ja otsuse sisu |
 
 Pärast avalikustamist saab ametnik saata teavitusi (sektsioon 15): vedajale Postkast 2.0 kaudu ja/või tööinspektorile e-kirja teel.
 
 ## Otsing
 
 Vormiotsingus (menüü **Otsing**) on välisriigi rikkumise kontrollkaardil kaks
-lisafiltrit: **teatav riik** ja **sanktsioon**.
+lisafiltrit: **teatav riik** (teate saatnud riik) ja **sanktsioon**.
 
 ## Nipid
 

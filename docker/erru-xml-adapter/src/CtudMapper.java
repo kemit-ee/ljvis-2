@@ -52,7 +52,7 @@ final class CtudMapper implements MessageMapper {
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(java.time.ZoneOffset.UTC);
 
     /** COMMUNITY_LICENCE_TYPE classifier code -> globalCommunityLicenceType XSD enumeration string. */
-    private static final Map<String, String> COMMUNITY_LICENCE_TYPE_TO_XSD = Map.of(
+    static final Map<String, String> COMMUNITY_LICENCE_TYPE_TO_XSD = Map.of(
             "CommunityLicencePassenger", "Community licence for passenger transport",
             "NationalLicencePassenger", "National licence for passenger transport",
             "CommunityLicenceGoods", "Community licence for goods transport",

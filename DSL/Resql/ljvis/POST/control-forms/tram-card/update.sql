@@ -1,5 +1,5 @@
 /*
-description: Update a TRAM control card — appends a new snapshot row. version is unchanged while the
+description: Update a TRAM control card - appends a new snapshot row. version is unchanged while the
   latest snapshot's status is 'saved' (repeat saves do not bump /V); it increments by 1 when the status
   changes (confirm/publish) or when re-saving already-locked data.
 namespace: control-forms
@@ -246,6 +246,13 @@ WITH latest AS (
          control_year,
          enforcement_decision,
          proceeding_closure_basis,
+         klim_clarification_date,
+         carrier_explanation_date,
+         penalty_valid_until,
+         penalty_expired_or_processed,
+         akvk_next_meeting_date,
+         commission_last_decision_date,
+         admin_procedure_decision,
          -- Publishing bumps /V (confirmed -> published). Otherwise: repeat saves
          -- and the saved -> confirmed transition keep the version; only re-saving
          -- already-locked data (status unchanged, not 'saved') bumps.
@@ -337,6 +344,13 @@ INSERT INTO forms.tram_control_card (
   notes,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -417,6 +431,13 @@ SELECT
   NULLIF(:notes, ''),
   latest.enforcement_decision,
   latest.proceeding_closure_basis,
+  latest.klim_clarification_date,
+  latest.carrier_explanation_date,
+  latest.penalty_valid_until,
+  latest.penalty_expired_or_processed,
+  latest.akvk_next_meeting_date,
+  latest.commission_last_decision_date,
+  latest.admin_procedure_decision,
   :created_by
 FROM latest
 WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)

@@ -11,7 +11,12 @@ params:
 
 method: POST
 
-# No `service:` — routed through the configured Security Server, same as
+# subsystem_code / service_version are optional overrides. Without them the envelope uses
+# the defaults `etoimik` (ee-test/prod) and `v6` (LJVIS2-56 spec). ee-dev's sandbox
+# subsystem is `etoimik-arendus` (plain `etoimik` there gives a misleading
+# unknown_member fault) - a caller must pass it explicitly until XTR has per-environment config.
+
+# No `service:` - routed through the configured Security Server, same as
 # liiklusregister/*.yml (e-Toimik is only reachable via X-Road).
 envelope: >
   <?xml version="1.0" encoding="UTF-8"?>
@@ -28,9 +33,9 @@ envelope: >
   <id:xRoadInstance>{{generate.instance}}</id:xRoadInstance>
   <id:memberClass>GOV</id:memberClass>
   <id:memberCode>70000310</id:memberCode>
-  <id:subsystemCode>{{subsystem_code}}</id:subsystemCode>
+  <id:subsystemCode>{{#if subsystem_code}}{{subsystem_code}}{{else}}etoimik{{/if}}</id:subsystemCode>
   <id:serviceCode>AnnaIsikuKvalifikatsioonid</id:serviceCode>
-  <id:serviceVersion>{{service_version}}</id:serviceVersion>
+  <id:serviceVersion>{{#if service_version}}{{service_version}}{{else}}v6{{/if}}</id:serviceVersion>
   </xroad:service>
   <et:userName>ljvis</et:userName>
   </soapenv:Header>

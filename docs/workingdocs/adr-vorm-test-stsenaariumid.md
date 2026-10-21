@@ -160,7 +160,7 @@ uuestlaadimist endiselt olemas ja õigete väärtustega.
    mitu salvestust korraga läbi `fallbackSave`-tee, mitte ADR-vormi enda
    Formik `onSubmit`-i).
 2. ADR-vormil täida P13 ja P20 rikkumised, vali üks "Mahuti tüüp"
-   (containerTypes checkbox) ja lisa üks "Muu rikkumine" kirje.
+   (containerTypes märkeruut) ja lisa üks "Muu rikkumine" kirje.
 3. Vajuta koondvormi allservas olevat **"Salvesta kõik"** nuppu (mitte
    ADR-kaardi enda nuppu).
 4. Laadi leht uuesti ja ava ADR-vormi vaade.

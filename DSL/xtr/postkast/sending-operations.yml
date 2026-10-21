@@ -1,4 +1,4 @@
-# Postkast 2.0 notification-management/v1/sending-operations — REST passthrough.
+# Postkast 2.0 notification-management/v1/sending-operations - REST passthrough.
 #
 # `kind: rest` (XTR >= 0.3.0-rc): verbatim byte passthrough to the X-Road
 # Security Server. XTR sets `X-Road-Client` itself from xtr.yaml `client_data`

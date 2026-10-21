@@ -9,7 +9,7 @@ declaration:
     kõik true), allServices (true = kõik teenused, mitte ainult eToimik,
     ja eirab staatusfiltrit). Leheküljed page + pageSize. Nõuab xroad.log.read õigust
     (kaitstud logs/.guard kaudu). Iga avamine logitakse auditisse
-    (xroad.log.view) — vaates kuvatakse isikuandmeid (isikukoodid,
+    (xroad.log.view) - vaates kuvatakse isikuandmeid (isikukoodid,
     X-tee päringute/vastuste täissisu).
   namespace: xroad
   allowlist:

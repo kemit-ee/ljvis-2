@@ -29,7 +29,7 @@ export interface CompanyRiskScore {
 // contribution to the company's risk score.
 export interface CompanyControlRow {
   formKey: number;
-  formType: 'compound' | 'foreign_violation';
+  formType: 'compound' | 'foreign_violation' | 'tram_control_card' | 'labour_inspection';
   formNumber: string;
   mainDate: string | null;
   vehicleRegNr: string | null;

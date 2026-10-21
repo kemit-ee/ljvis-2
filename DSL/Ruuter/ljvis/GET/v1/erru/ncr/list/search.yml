@@ -1,9 +1,9 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Paginated, filtered NCR case list — both incoming and outgoing (LJVIS2-65).
+  description: "Paginated, filtered NCR case list - both incoming and outgoing (LJVIS2-65).
     One row per CASE (ncr_message_key), latest snapshot. All filters are plain AND (no
-    OR-pair — NCR has only one text filter, businessCaseId, unlike RSI/CGR). hasInfringement
+    OR-pair - NCR has only one text filter, businessCaseId, unlike RSI/CGR). hasInfringement
     drives the red-row highlight on the frontend. Protected by the new ncr.list permission
     (list/.guard), distinct from ncr.read which protects get.yml. Audited on every load
     because the list exposes transport undertaking and handler names."

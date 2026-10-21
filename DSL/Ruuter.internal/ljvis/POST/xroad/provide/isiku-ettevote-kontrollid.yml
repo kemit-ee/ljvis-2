@@ -5,14 +5,14 @@ declaration:
   description: >-
     X-tee pakutav teenus IsikuEttevoteKontrollid (v1): tagastab kõik LJVIS-i
     kontrollid ettevõtete kohta millega isik on seotud (juhi rollina).
-    Ainult lokaalne DB — Äriregistri välispäringut ei tehta.
+    Ainult lokaalne DB - Äriregistri välispäringut ei tehta.
     Vt docs/xtee/02-isiku-ettevote-kontrollid.md.
   namespace: xroad
   allowlist:
     body:
       - field: isikukood
 
-# Samm 1: Valideeri isikukood — Eesti isikukoodi formaat (11 numbrit, algab 1-6)
+# Samm 1: Valideeri isikukood - Eesti isikukoodi formaat (11 numbrit, algab 1-6)
 validateInput:
   switch:
     - condition: "${incoming.body.isikukood == null || incoming.body.isikukood == ''}"
@@ -50,7 +50,7 @@ checkQueryStatus:
       next: logFailure
   next: logSuccess
 
-# Samm 6a: Logi edukas päring — isikukood maskituna
+# Samm 6a: Logi edukas päring - isikukood maskituna
 logSuccess:
   call: http.post
   args:
@@ -71,7 +71,7 @@ logSuccess:
   result: logResult
   next: logAjUsage
 
-# Samm 6c: Logi AJ kasutusteave (andmejälgija) — eraldi append-only tabelisse
+# Samm 6c: Logi AJ kasutusteave (andmejälgija) - eraldi append-only tabelisse
 logAjUsage:
   call: http.post
   args:
@@ -88,7 +88,7 @@ logAjUsage:
   result: ajLogResult
   next: buildResponse
 
-# Samm 7: Ehita vastus — tühi array on samuti edukas (HTTP 200)
+# Samm 7: Ehita vastus - tühi array on samuti edukas (HTTP 200)
 buildResponse:
   assign:
     result_body: "${JSON.stringify({kontrollid: {item: kontrollResult.response.body || []}})}"
@@ -120,7 +120,7 @@ logFailure:
   result: logResult
   next: returnServerError
 
-# Veavastused — ei sisalda sisemist infot
+# Veavastused - ei sisalda sisemist infot
 returnServerError:
   status: 500
   return: '{"error": "SERVER_ERROR", "message": "Internal error"}'

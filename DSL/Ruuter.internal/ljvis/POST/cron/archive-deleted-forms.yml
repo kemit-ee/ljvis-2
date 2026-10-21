@@ -5,12 +5,12 @@ declaration:
   description: >-
     ADR-010: kolib kustutatud kontrollvormid töö-baasist ERALDI arhiiv-andmebaasi
     (ljvis_arhiiv_db / toodang ljvis2_<env>_arhiiv). Kolm faasi, kõik läbi resql:
-    (1) select_deleted_snapshots [töö-baas] — kõik snapshot-read olemitest mille
+    (1) select_deleted_snapshots [töö-baas] - kõik snapshot-read olemitest mille
     viimane seis on 'deleted', koos copy-time looja/org resolutsiooniga;
-    (2) insert_snapshots [arhiiv-baas] — ON CONFLICT DO NOTHING;
-    (3) count_present [arhiiv-baas] — verifitseerib, et IGA rida on arhiivis kohal;
-    (4) purge_confirmed [töö-baas] — REAALNE DELETE, ainult kui samm 3 = 100% vaste;
-    (5) anonymize_confirmed [arhiiv-baas] — ADR-014/LJVIS2-51: isikuga seose eemaldamine,
+    (2) insert_snapshots [arhiiv-baas] - ON CONFLICT DO NOTHING;
+    (3) count_present [arhiiv-baas] - verifitseerib, et IGA rida on arhiivis kohal;
+    (4) purge_confirmed [töö-baas] - REAALNE DELETE, ainult kui samm 3 = 100% vaste;
+    (5) anonymize_confirmed [arhiiv-baas] - ADR-014/LJVIS2-51: isikuga seose eemaldamine,
     käivitub ainult siis, kui samm 4 (purge) õnnestus JA parameeter anonymize=true
     (vaikimisi true); asendab payload-is subjekti nime, isikukoodi, sünniaja ja -koha
     (vt docs/admin-guide/13-arhiveerimine.md). Parameeter tuleb CronManager'i töö URL-i
@@ -204,7 +204,7 @@ logNotVerified:
     body:
       service_code: "archive.deleted_forms.cron"
       request_xml: "archive-deleted-forms"
-      response_xml: "${JSON.stringify({ copied: Number(rowCount), verified: Number(present), purged: 0, note: 'purge skipped — archive not complete' })}"
+      response_xml: "${JSON.stringify({ copied: Number(rowCount), verified: Number(present), purged: 0, note: 'purge skipped - archive not complete' })}"
       duration_ms: 0
       success: false
       error_message: "${'archive incomplete: present ' + present + ' of ' + rowCount}"

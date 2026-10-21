@@ -1,6 +1,6 @@
 # LJVIS2-12: nightly deactivation of users whose access_end has passed.
 # Logic lives in DSL/Ruuter.internal/ljvis/POST/cron/deactivate-expired-users.yml
-# + DSL/Resql/ljvis/POST/user/deactivate_expired_users.sql — this file only
+# + DSL/Resql/ljvis/POST/user/deactivate_expired_users.sql - this file only
 # schedules the call.
 #
 # Runs at 02:00 Tallinn time (TZ pinned in docker-compose.yml).

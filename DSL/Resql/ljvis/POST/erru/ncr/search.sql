@@ -1,11 +1,11 @@
 /*
-description: Paginated, filtered list of NCR cases — BOTH incoming and outgoing (LJVIS2-65). The latest
-  CTE reduces the append-only table to one row per CASE (ncr_message_key) before filtering or paging —
+description: Paginated, filtered list of NCR cases - BOTH incoming and outgoing (LJVIS2-65). The latest
+  CTE reduces the append-only table to one row per CASE (ncr_message_key) before filtering or paging -
   NOT per workflow_id as the task's 'Peamised komponendid' section literally states, since workflow_id
   is NULL on every unsent outgoing draft (would collapse all drafts into a single NULL group and drop
   the rest); ncr_message_key is the correct, always-populated logical case identity used identically by
   get.sql/get-by-workflow-id.sql elsewhere in this module. All filters are plain AND (no OR-pair like
-  RSI/CGR's id/regNr — NCR only has one text filter, businessCaseId). hasInfringement is computed from
+  RSI/CGR's id/regNr - NCR only has one text filter, businessCaseId). hasInfringement is computed from
   jsonb_array_length(serious_infringements) > 0 for the red-highlight row styling (LJVIS2-65 §4 'Rikkumisega
   teadete eristus'). Sorting is whitelisted; total via COUNT(*) OVER() to keep round trips to one.
 namespace: erru

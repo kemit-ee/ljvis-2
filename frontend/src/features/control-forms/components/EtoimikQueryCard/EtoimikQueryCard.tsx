@@ -19,6 +19,8 @@ interface EtoimikQueryCardProps {
   /** Built by the caller by scanning loaded sub-forms for a non-empty proceedingReferenceNumber. */
   referenceNumberOptions: EtoimikReferenceOption[];
   compoundFormKey: number;
+  /** Päringu allikas logis; vaikimisi koondvorm, Tööinspektsiooni kontrollkaardil 'labour_inspection_form'. */
+  sourceType?: string;
 }
 
 /**
@@ -32,6 +34,7 @@ export function EtoimikQueryCard({
   drivers,
   referenceNumberOptions,
   compoundFormKey,
+  sourceType = 'compound_form',
 }: EtoimikQueryCardProps) {
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
@@ -52,7 +55,8 @@ export function EtoimikQueryCard({
   // `compound_form.read`.
   if (
     !hasPermission('compound_form.read') &&
-    !hasPermission('tram_driver_form.read')
+    !hasPermission('tram_driver_form.read') &&
+    !hasPermission('labour_inspection_form.read')
   )
     return null;
   // Nothing to query against yet — hide entirely rather than show broken empty selects.
@@ -84,7 +88,7 @@ export function EtoimikQueryCard({
         firstName: isEeCitizen ? '' : (selectedDriver.firstName ?? ''),
         lastName: isEeCitizen ? '' : (selectedDriver.lastName ?? ''),
         birthDate: isEeCitizen ? '' : (selectedDriver.birthDate ?? ''),
-        sourceType: 'compound_form',
+        sourceType,
         sourceRecordId: String(compoundFormKey),
       });
       setResult(data);

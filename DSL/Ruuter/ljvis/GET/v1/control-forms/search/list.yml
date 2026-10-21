@@ -61,7 +61,7 @@ declaration:
         description: "VR only - applied sanction code (exact match)"
 
 getAuthority:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     u: ${auth_user}
   next: buildAllowedTypes
@@ -84,6 +84,8 @@ search:
       caller_organisation_id: "${u.organisationid == null ? '' : String(u.organisationid)}"
       caller_view_unpublished: "${u.permissions.includes('control_form.view_unpublished') ? 'true' : 'false'}"
       caller_view_organisation: "${u.permissions.includes('control_form.view_organisation') ? 'true' : 'false'}"
+      caller_view_unit: "${u.permissions.includes('control_form.view_unit') ? 'true' : 'false'}"
+      caller_structural_unit: "${u.structuralunit == null ? '' : String(u.structuralunit)}"
       page: "${incoming.params.page ?? '1'}"
       page_size: "${incoming.params.pageSize ?? '20'}"
       sorting: "${incoming.params.sorting ?? 'main_date desc'}"

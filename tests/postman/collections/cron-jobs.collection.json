@@ -437,7 +437,7 @@
     },
     "body": {
      "mode": "raw",
-     "raw": "{\"status\":\"confirmed\",\"inspectorName\":\"Newman Tester\",\"inspectionDate\":\"2026-01-15\",\"inspectionType\":\"cargo\",\"companyName\":\"Newman OU\",\"companyRegCode\":\"12345678\",\"vehicleCount\":\"\",\"totalDriversCount\":\"\",\"controlsMatrix\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"60001019906\",\"punishedPersonFirstName\":\"Admin\",\"punishedPersonLastName\":\"Super\",\"proceedingReferenceNumber\":\"1-20/26/CRON-TEST\",\"violations\":\"[]\",\"created_by\":\"newman\"}"
+     "raw": "{\"status\":\"confirmed\",\"inspectorName\":\"Newman Tester\",\"inspectionDate\":\"2026-01-15\",\"inspectionType\":\"cargo\",\"companyName\":\"Newman OU\",\"companyRegCode\":\"12345678\",\"vehicleCount\":\"1\",\"totalDriversCount\":\"\",\"controlsMatrix\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"60001019906\",\"punishedPersonFirstName\":\"Admin\",\"punishedPersonLastName\":\"Super\",\"proceedingReferenceNumber\":\"1-20/26/CRON-TEST\",\"violations\":\"[]\",\"created_by\":\"newman\"}"
     }
    },
    "event": [
@@ -694,6 +694,7 @@
        "const body = pm.response.json();",
        "const rows = body.response || body;",
        "pm.test('status = published', () => pm.expect(rows[0].status).to.eql('published'));",
+       "pm.test('Published TI control retains its vehicle count for risk scoring', () => pm.expect(Number(rows[0].vehicleCount)).to.eql(1));",
        "pm.test('version = 2 (not 3 — the repeat apply call above was a true no-op)', () => pm.expect(rows[0].version).to.eql(2));",
        "pm.test('enforcement_decision persisted', () => pm.expect(rows[0].enforcementDecision).to.eql('Trahv 200 eurot (2026-08-01)'));",
        "pm.test('proceeding_closure_basis persisted', () => pm.expect(rows[0].proceedingClosureBasis).to.eql('VTMS § 29'));"
@@ -1212,7 +1213,7 @@
     },
     "body": {
      "mode": "raw",
-     "raw": "{\"status\":\"confirmed\",\"inspectorName\":\"Newman Tester 2\",\"inspectionDate\":\"2026-01-16\",\"inspectionType\":\"cargo\",\"companyName\":\"Newman OU 2\",\"companyRegCode\":\"87654321\",\"vehicleCount\":\"\",\"totalDriversCount\":\"\",\"controlsMatrix\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"60001019906\",\"punishedPersonFirstName\":\"Admin\",\"punishedPersonLastName\":\"Super\",\"proceedingReferenceNumber\":\"1-20/26/CRON-TEST-2\",\"violations\":\"[]\",\"created_by\":\"newman\"}"
+     "raw": "{\"status\":\"confirmed\",\"inspectorName\":\"Newman Tester 2\",\"inspectionDate\":\"2026-01-16\",\"inspectionType\":\"cargo\",\"companyName\":\"Newman OU 2\",\"companyRegCode\":\"87654321\",\"vehicleCount\":\"1\",\"totalDriversCount\":\"\",\"controlsMatrix\":\"[]\",\"prescriptionComposed\":\"false\",\"punishedPersonIdCode\":\"60001019906\",\"punishedPersonFirstName\":\"Admin\",\"punishedPersonLastName\":\"Super\",\"proceedingReferenceNumber\":\"1-20/26/CRON-TEST-2\",\"violations\":\"[]\",\"created_by\":\"newman\"}"
     }
    },
    "event": [
@@ -4054,7 +4055,7 @@
    ]
   },
   {
-   "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run dispatches the NCR",
+   "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run sends the NCR as XML (Hub 202)",
    "request": {
     "method": "POST",
     "header": [
@@ -4086,7 +4087,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const s = pm.response.json().response || pm.response.json();",
-       "pm.test('At least one NCR acknowledged', () => pm.expect(s.acknowledged).to.be.at.least(1));",
+       "pm.test('At least one NCR accepted by the Hub', () => pm.expect(s.sent).to.be.at.least(1));",
        "pm.test('No build failures', () => pm.expect(s.buildFailed || 0).to.eql(0));"
       ]
      }
@@ -4166,7 +4167,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const s = pm.response.json().response || pm.response.json();",
-       "pm.test('Nothing acknowledged on the second run', () => pm.expect(s.acknowledged).to.eql(0));"
+       "pm.test('Nothing sent on the second run', () => pm.expect(s.sent).to.eql(0));"
       ]
      }
     }

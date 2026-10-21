@@ -394,6 +394,7 @@
     "scope": {
       "label": "Vaade",
       "own": "Minu vormid",
+      "unit": "Minu prefektuuri vormid",
       "organisation": "Minu asutuse"
     },
     "sections": {
@@ -444,6 +445,12 @@
     "savedNote": "Vorm on salvestatud",
     "confirmedNote": "Vorm on kinnitatud",
     "notifyCarrierOnConfirm": "Teavita vedajat rikkumisest (saadetakse avalikustamisel)",
+    "carrierNotification": {
+      "button": "Teavita vedajat rikkumisest",
+      "sent": "Vedaja teavitus on saadetud.",
+      "queued": "Vedaja teavitus on tellitud ja saadetakse avalikustamisel.",
+      "notSent": "Teavitust ei saadetud: vormil ei ole MSI, VSI või SI rikkumist või vedaja e-posti aadressi ei leitud."
+    },
     "publishUnsavedChanges": "Salvestage muudatused enne avalikustamist",
     "publishedNote": "Vorm on avalikustatud",
     "validationErrorNote": "Palun täitke kõik kohustuslikud väljad enne salvestamist.",
@@ -457,6 +464,13 @@
       "open": "Ava link"
     },
     "shared": {
+      "administrativeProcedure": {
+        "save": "Uuenda haldusmenetluse andmeid",
+        "saved": "Haldusmenetluse andmed salvestatud",
+        "savedVersion": "Haldusmenetluse andmed salvestatud, vormi uus versioon on {{version}}",
+        "saveFailed": "Haldusmenetluse andmete salvestamine ebaõnnestus",
+        "loadFailed": "Haldusmenetluse andmete laadimine ebaõnnestus"
+      },
       "proceedingOutcome": {
         "title": "Menetluse tulemus",
         "enforcementDecision": "Jõustunud otsus",
@@ -1517,6 +1531,7 @@
     "originalTemplateId": "Postkasti malli alias (templateId)",
     "defaultLanguage": "Vaikimisi keel",
     "defaultRecipientEmail": "Vaikimisi vastuvõtja e-post",
+    "recipients": "Saajad",
     "desktopRecipients": "Teavituse saajad",
     "desktopRecipientsEmpty": "Saajaid pole valitud",
     "desktopRecipientsSearchPlaceholder": "Otsi kasutajat nime järgi",
@@ -1688,6 +1703,39 @@
   },
   "xroadLogs": {
     "title": "E-toimiku X-tee logid",
+    "manualJobs": {
+      "title": "Manuaalne käivitamine",
+      "description": "Käivitab käsitsi samad tööd, mida süsteem teeb ajastatult. Töö jookseb lõpuni enne, kui tulemus ilmub — jätke leht avatuks.",
+      "run": "Käivita",
+      "running": "Töötab…",
+      "done": "Töö „{{job}}” lõpetatud. Arvestati {{total}}, õnnestus {{succeeded}}, ebaõnnestus {{failures}}.",
+      "jobs": {
+        "risk-score-recalc-sync": {
+          "title": "Riskiskooride ümberarvutus",
+          "description": "Arvutab ümber riskitasemed, sh ettevõtetele, kellel skoori veel pole (öösel kell 03:00)."
+        },
+        "etoimik-decision-sync": {
+          "title": "E-toimiku sünkroonimine: tööinspektsioon",
+          "description": "Toob e-toimikust jõustunud otsused tööinspektsiooni vormidele."
+        },
+        "etoimik-tram-decision-sync": {
+          "title": "E-toimiku sünkroonimine: TRAM kontrollkaart",
+          "description": "Toob e-toimikust jõustunud otsused TRAM kontrollkaartidele."
+        },
+        "etoimik-sp-driver-decision-sync": {
+          "title": "E-toimiku sünkroonimine: autojuhi sõidu- ja puhkeaeg",
+          "description": "Toob e-toimikust jõustunud otsused autojuhi sõidu- ja puhkeaja alamvormidele."
+        },
+        "etoimik-sp-teammate-decision-sync": {
+          "title": "E-toimiku sünkroonimine: meeskonnaliikme sõidu- ja puhkeaeg",
+          "description": "Toob e-toimikust jõustunud otsused meeskonnaliikme sõidu- ja puhkeaja alamvormidele."
+        },
+        "etoimik-technical-check-decision-sync": {
+          "title": "E-toimiku sünkroonimine: tehniline kontroll",
+          "description": "Toob e-toimikust jõustunud otsused sõiduki ja haagise tehnovormidele."
+        }
+      }
+    },
     "emptyResult": "Filtrile vastavaid kirjeid ei leitud",
     "empty": "Sisu puudub",
     "viewRequest": "Vaata päringut",
@@ -1712,6 +1760,7 @@
     "column": {
       "createdAt": "Päringu aeg",
       "form": "Vorm",
+      "formNumber": "Vormi number",
       "serviceCode": "Teenus",
       "status": "Staatus",
       "request": "Väljuv päring",
@@ -1723,6 +1772,7 @@
       "vehicle_technical_form": "Mootorsõiduki tehnonõuetele vastavuse kontrollvorm",
       "trailer_technical_form": "Haagise tehnonõuetele vastavuse kontrollvorm",
       "sp_driver_form": "Autojuhi sõidu- ja puhkeaja kontrollvorm",
+      "sp_teammate_form": "Meeskonnaliikme sõidu- ja puhkeaja kontrollvorm",
       "tram_control_card": "Transpordiameti kontrollkaart"
     }
   },
@@ -1743,7 +1793,13 @@
   "erru": {
     "ctud": {
       "notFound": "Tegevusloa kontrolli päringut ei leitud",
-      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
+      "sendFailed": "ERRU lükkas päringu tagasi. Saatmist saab korrata.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue päringu saatmist.",
+      "awaitingResponse": "ERRU võttis päringu vastu. Riigi vastus on ootel, värskenda lehte hiljem.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Vähemalt kaks otsingukriteeriumi on kohustuslikud ning sõidukil peab olema number ja riik.",
+      "validationUnavailable": "XML-i kontroll pole praegu saadaval. Päringut ei saadetud.",
       "list": {
         "title": "Tegevusloa kontrolli päringud CTUD",
         "newRequest": "Uus tegevusloa kontrolli päring",
@@ -1853,7 +1909,14 @@
     },
     "cgr": {
       "notFound": "Mainepäringut ei leitud",
-      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
+      "sendFailed": "ERRU lükkas päringu tagasi. Saatmist saab korrata.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue päringu saatmist.",
+      "awaitingResponse": "ERRU võttis päringu vastu. Liikmesriikide vastused on ootel, värskenda lehte hiljem.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli nime, sünniaega ja sertifikaadi andmeid.",
+      "validationUnavailable": "XML-i kontroll pole praegu saadaval. Päringut ei saadetud.",
+      "nysiisUnavailable": "NYSIIS-otsinguvõtme arvutamine ebaõnnestus. Päringut ei saadetud.",
       "list": {
         "title": "Mainepäringud CGR",
         "newRequest": "Uus mainepäring",
@@ -1944,6 +2007,10 @@
     "rsi": {
       "notFound": "Tehnokontrolli teadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue teate saatmist.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli VIN-koodi, läbisõidumõõdiku näitu ning juhi ja omaniku või veoettevõtja andmeid.",
+      "sending": "Saatmine pooleli",
       "checkedItems": {
         "part": "Punkt",
         "checked": "Kontrollitud",
@@ -2129,6 +2196,13 @@
         "send": "Saada",
         "sendResponse": "Saada vastus",
         "sendFailed": "Saatmine ebaõnnestus. Teade liigus olekusse Viga.",
+        "sending": "Saatmine pooleli",
+        "sendUnknownStatus": "Saatmise tulemus teadmata",
+        "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue saatmist.",
+        "awaitingAck": "ERRU võttis teate vastu. Kinnitus ja vastus on ootel, värskenda lehte hiljem.",
+        "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli ettevõtte, sõiduki, kontrolli tulemuse ja rikkumiste andmeid.",
+        "invalidResponseXml": "Vastus ei vasta ERRU XML-lepingule. Leitud ettevõtte puhul on vaja sõidukite arvu, tegevusloa staatust ja täielikku aadressi.",
+        "validationUnavailable": "XML-i kontroll pole praegu saadaval. Teadet ei saadetud.",
         "createVr": "Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "openVr": "Ava välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "createVrFailed": "Välisriigis teostatud autoveoalase kontrolli kontrollkaardi loomine ebaõnnestus",
@@ -2179,6 +2253,10 @@
       },
       "notFound": "NU sobimatusteadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue teate saatmist.",
+      "awaitingAck": "ERRU võttis teate vastu. Liikmesriikide kinnitused on ootel, värskenda lehte hiljem.",
       "createFromGoodRepute": "Loo NU sobimatusteade",
       "list": {
         "title": "NU sobimatusteated",
@@ -2263,6 +2341,9 @@
         "source_not_eligible": "Allikdeklaratsioon ei ole avalikustatud, isik ei ole sobimatuks tunnistatud või sobimatuse lõppkuupäev puudub või on möödunud. Kontrollige allikdeklaratsiooni.",
         "source_not_found": "Hea maine deklaratsiooni ei leitud",
         "send_failed": "Teate saatmine ebaõnnestus",
+        "send_unknown": "Saatmise tulemus teadmata. Ära saada uuesti, kontrolli integratsioonilogi.",
+        "invalid_nu_xml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli veokorraldaja ja sertifikaadi andmeid.",
+        "validation_unavailable": "XML-i kontroll pole praegu saadaval. Teadet ei saadetud.",
         "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav",
         "source_exceeds_erru_limit": "Allikandmed ületavad ERRU pikkusepiirangu. Parandage hea maine deklaratsiooni (ees- ja perekonnanimi: 100 tähemärki; sünnikoht: 50; tunnistuse number: 20).",
         "not_found": "NU sobimatusteadet ei leitud"

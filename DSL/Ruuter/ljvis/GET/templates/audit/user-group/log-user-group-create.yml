@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Audit: user group create event — fetches permissions and organisation count internally"
+  description: "Audit: user group create event - fetches permissions and organisation count internally"
   namespace: service
   strict: true
   allowlist:

@@ -1,4 +1,4 @@
-# PUT/POST /v1/classifiers/value — ADR-011 klassifikaatori väärtuse vormipiirang
+# PUT/POST /v1/classifiers/value - ADR-011 klassifikaatori väärtuse vormipiirang
 # (formTypes → set_classifier_value_form_scope). Tühi nimekiri = kõik vormid;
 # formTypes puudumisel PUT piirangut ei muuda.
 mode: mock-http

@@ -1,0 +1,697 @@
+# Haldusmenetluse andmeplokk (PPA andmevormid + TRAM-kaart): ligipääsureegel elab ühes kohas
+# (templates/administrative-procedure/check-access) - TRAM/KLIM ametnik, süsteemi- või asutuse admin.
+# GET loeb ja POST edit/save kirjutab uuele snapshot-reale ainult siis, kui reegel lubab ja vormi
+# lugemiskontroll (check-read-access) nõustub.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+tests:
+- name: TRAM officer reads the block of a form it may read
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=tram-card&id=9
+    headers: {cookie: test}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/administrative-procedure/get
+    count: 1
+    body_matches:
+      formType: tram-card
+      formKey: '9'
+  - url_matches: /control-forms/check-read-access
+    count: 1
+    body_matches:
+      form_type: tram-card
+      form_key: '9'
+
+- name: KLIM officer is allowed too
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: KLIM
+        permissions: [vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=vehicle-technical&id=9
+    headers: {cookie: test}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/administrative-procedure/get
+    count: 1
+
+- name: PPA officer without admin rights is refused before anything is read
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [vehicle_technical_form.read, sp_driver_form.read, adr_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=vehicle-technical&id=9
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/check-read-access
+    count: 0
+  - url_matches: /control-forms/administrative-procedure/get
+    count: 0
+
+- name: organisation admin (user.edit.local) of PPA may read
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [user.edit.local, vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=vehicle-technical&id=9
+    headers: {cookie: test}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/administrative-procedure/get
+    count: 1
+
+- name: system admin triple may read
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [control_form.view_unpublished, control_form.edit_locked, control_form.delete]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=adr-form&id=9
+    headers: {cookie: test}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/administrative-procedure/get
+    count: 1
+
+- name: allowed organisation but the form is not readable for the caller -> 403
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: false, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=tram-card&id=9
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/administrative-procedure/get
+    count: 0
+
+- name: unsupported form type is a 422
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=labour-inspection&id=9
+    headers: {cookie: test}
+  expect:
+    status: 422
+  verify_mocks:
+  - url_matches: /control-forms/administrative-procedure/get
+    count: 0
+
+- name: non-numeric id is a 422
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/administrative-procedure/get
+      method: POST
+      status: 200
+      body: [{klimClarificationDate: '2026-03-01', penaltyExpiredOrProcessed: true, adminProcedureDecision: otsus}]
+  request:
+    method: GET
+    path: /ljvis/v1/control-forms/administrative-procedure?formType=tram-card&id=abc
+    headers: {cookie: test}
+  expect:
+    status: 422
+  verify_mocks:
+  - url_matches: /control-forms/check-read-access
+    count: 0
+
+- name: save by a TRAM officer appends a snapshot through the form-specific Resql query
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: vehicle-technical, id: '9', klimClarificationDate: '2026-03-01', carrierExplanationDate: '', penaltyValidUntil: '2027-03-01', penaltyExpiredOrProcessed: 'true', akvkNextMeetingDate: '', commissionLastDecisionDate: '', adminProcedureDecision: otsus}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+    count: 1
+    body_matches:
+      key: '9'
+      klimClarificationDate: '2026-03-01'
+      penaltyExpiredOrProcessed: 'true'
+      adminProcedureDecision: otsus
+      created_by: SESSION1
+
+- name: save routes drive-rest-form/driver to its own Resql query
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/drive-rest-form/driver/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: drive-rest-form/driver, id: '9', adminProcedureDecision: x}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/drive-rest-form/driver/update-administrative-procedure
+    count: 1
+
+- name: save routes drive-rest-form/teammate to its own Resql query
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/drive-rest-form/teammate/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: drive-rest-form/teammate, id: '9', adminProcedureDecision: x}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/drive-rest-form/teammate/update-administrative-procedure
+    count: 1
+
+- name: save routes adr-form to its own Resql query
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/adr-form/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: adr-form, id: '9', adminProcedureDecision: x}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/adr-form/update-administrative-procedure
+    count: 1
+
+- name: save routes trailer-technical to its own Resql query
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/trailer-technical/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: trailer-technical, id: '9', adminProcedureDecision: x}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/trailer-technical/update-administrative-procedure
+    count: 1
+
+- name: save routes tram-card to its own Resql query
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [tram_driver_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/tram-card/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: tram-card, id: '9', adminProcedureDecision: x}
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /control-forms/tram-card/update-administrative-procedure
+    count: 1
+
+- name: save by a PPA officer is refused by the guard and writes nothing
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: PPA
+        permissions: [vehicle_technical_form.write, vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: vehicle-technical, id: '9', klimClarificationDate: '2026-03-01', carrierExplanationDate: '', penaltyValidUntil: '2027-03-01', penaltyExpiredOrProcessed: 'true', akvkNextMeetingDate: '', commissionLastDecisionDate: '', adminProcedureDecision: otsus}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+    count: 0
+
+- name: save when the form is not readable for the caller writes nothing
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: false, status: confirmed}]
+    - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: vehicle-technical, id: '9', klimClarificationDate: '2026-03-01', carrierExplanationDate: '', penaltyValidUntil: '2027-03-01', penaltyExpiredOrProcessed: 'true', akvkNextMeetingDate: '', commissionLastDecisionDate: '', adminProcedureDecision: otsus}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+    count: 0
+
+- name: save of an unsupported form type is a 422 and writes nothing
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+      method: POST
+      status: 200
+      body: [{id: 5}]
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: transport-interruption, id: '9'}
+  expect:
+    status: 422
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+    count: 0
+
+- name: save of a missing form (Resql wrote no row) is a 404
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: vehicle-technical, id: '9', klimClarificationDate: '2026-03-01', carrierExplanationDate: '', penaltyValidUntil: '2027-03-01', penaltyExpiredOrProcessed: 'true', akvkNextMeetingDate: '', commissionLastDecisionDate: '', adminProcedureDecision: otsus}
+  expect:
+    status: 404
+  verify_mocks:
+  - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+    count: 1
+
+- name: a failing Resql write on save stays a 500
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        organisationid: 5
+        organisationcode: TRAM
+        permissions: [vehicle_technical_form.read]
+    - url_matches: /control-forms/check-read-access
+      method: POST
+      status: 200
+      body: [{allowed: true, status: confirmed}]
+    - url_matches: /control-forms/vehicle-technical/update-administrative-procedure
+      method: POST
+      status: 500
+      body: {}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/administrative-procedure/edit/save
+    headers: {cookie: test, content-type: application/json}
+    body: {formType: vehicle-technical, id: '9', klimClarificationDate: '2026-03-01', carrierExplanationDate: '', penaltyValidUntil: '2027-03-01', penaltyExpiredOrProcessed: 'true', akvkNextMeetingDate: '', commissionLastDecisionDate: '', adminProcedureDecision: otsus}
+  expect:
+    status: 500

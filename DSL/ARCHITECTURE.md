@@ -2,42 +2,42 @@
 
 ## Overview
 
-Backend logic is written as Ruuter DSL files — YAML workflows executed by the [Ruuter](https://github.com/buerokratt/Ruuter) engine.
+Backend logic is written as Ruuter DSL files - YAML workflows executed by the [Ruuter](https://github.com/buerokratt/Ruuter) engine.
 Each `.yml` file defines a named sequence of steps (assign, switch, http call, template call, return).
 
 ## Directory Structure
 
 ```text
 DSL/
-  Ruuter/             — public-facing API endpoints (requires authentication)
+  Ruuter/             - public-facing API endpoints (requires authentication)
     ljvis/
-      GET/            — GET endpoints
-        templates/    — shared reusable sub-workflows (called in-process, not exposed as public routes)
-          validate/   — field format validators (email, personal code)
-          user/       — user-entity validation templates
-          audit/      — audit-event writers
-      POST/           — POST endpoints
+      GET/            - GET endpoints
+        templates/    - shared reusable sub-workflows (called in-process, not exposed as public routes)
+          validate/   - field format validators (email, personal code)
+          user/       - user-entity validation templates
+          audit/      - audit-event writers
+      POST/           - POST endpoints
 
-  Ruuter.internal/    — internal endpoints (restricted to internal IPs only)
+  Ruuter.internal/    - internal endpoints (restricted to internal IPs only)
     ljvis/
       POST/
 
-  Resql/              — SQL query files executed by the Resql service
-  DMapper/            — data mapping/transformation configs
-  Liquibase/          — database schema migrations
+  Resql/              - SQL query files executed by the Resql service
+  DMapper/            - data mapping/transformation configs
+  Liquibase/          - database schema migrations
 ```
 
 ## Guards (authentication & authorisation)
 
-`ljvis` uses a **project-level guard** — `DSL/Ruuter/ljvis/.guard.yml` (Ruuter issue #39) —
+`ljvis` uses a **project-level guard** - `DSL/Ruuter/ljvis/.guard.yml` (Ruuter issue #39) -
 which runs as the outermost guard on every route and every HTTP method. It authenticates the
 session against TIM once (`templates/check-user-authority`) and passes the resolved user
 object to every downstream guard and handler as `${auth_user}`.
 
 - Per-resource `<dir>/.guard.yml` files are then just a permission `switch` on
-  `${auth_user.permissions}` — no re-authentication.
+  `${auth_user.permissions}` - no re-authentication.
 - Guards stack (project → method-root → path-ancestors → target); all must pass.
-- `declaration.override_ancestors: true` replaces all ancestors for a subtree — used for
+- `declaration.override_ancestors: true` replaces all ancestors for a subtree - used for
   public routes (`auth/**`), dev mocks (`**/mock/**`), citizen TARA sessions
   (`v1/citizen/**`), and the standalone ERRU verb guards.
 - Guard files use the `.guard.yml` extension (YAML tooling, `dsl-lint` globs). The bare
@@ -106,7 +106,7 @@ checkUser:
 3. Calls `validate/email` for email format
 4. Returns `"valid"` if all checks pass
 
-**Adding a new required user field** — edit only `user/validate-user-fields.yml`:
+**Adding a new required user field** - edit only `user/validate-user-fields.yml`:
 - Add field to `allowlist`
 - Add `check_<field>` switch step
 - Add `return_invalid_<field>` assign step with camelCase field name
@@ -153,20 +153,20 @@ propagate_error:
 }
 ```
 
-- **`type`** — always `VALIDATION_ERROR`, used by frontend to identify the error class
-- **`field`** — camelCase field name matching the frontend form field (Formik field key)
-- **`code`** — stable snake_case identifier; frontend maps it to i18n message
+- **`type`** - always `VALIDATION_ERROR`, used by frontend to identify the error class
+- **`field`** - camelCase field name matching the frontend form field (Formik field key)
+- **`code`** - stable snake_case identifier; frontend maps it to i18n message
 
 ### Frontend (automatic via `applyValidationError`)
 
 See `frontend/src/shared/api/errors.ts`. The helper reads the structured body from `ApiError.body`
-and calls `setFieldError(field, translate(code))` automatically — no manual `if` checks needed.
+and calls `setFieldError(field, translate(code))` automatically - no manual `if` checks needed.
 
 ## YAML Authoring Rules
 
 ### Ternary expressions must be quoted
 
-Any `assign` value containing `: ` (colon + space) — including ternary `? x : y` — **must be wrapped in double quotes**, otherwise the YAML parser misreads `: ` as a mapping separator.
+Any `assign` value containing `: ` (colon + space) - including ternary `? x : y` - **must be wrapped in double quotes**, otherwise the YAML parser misreads `: ` as a mapping separator.
 
 ```yaml
 # ❌ breaks YAML parsing

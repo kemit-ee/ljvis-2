@@ -2,7 +2,7 @@
 description: 'Revise an OUTGOING NCR request draft (LJVIS2-63, ''täiendamine''). Appends a new snapshot
   with version + 1, keeping status ''initiated''. Guarded: the INSERT .. SELECT produces zero rows unless
   the latest snapshot is status=''initiated'' AND direction=''outgoing'', so a sent/acknowledged/responded
-  request can never be edited — the caller detects the empty result and returns 422 not_editable. Identity/envelope
+  request can never be edited - the caller detects the empty result and returns 422 not_editable. Identity/envelope
   fields (business_case_id, ncr_from, technical_id, workflow_id, sent_at, ack_*, response_*) are carried
   forward untouched. Same Pass/CleanCheck clearing rule as append-request-draft.sql applies on every revision.'
 namespace: erru

@@ -1,5 +1,5 @@
 /*
-description: Read one RSI message by its logical key (LJVIS2-147). Returns the LATEST snapshot only —
+description: Read one RSI message by its logical key (LJVIS2-147). Returns the LATEST snapshot only -
   current state is always the most recent row for rsi_message_key. Returns zero rows when the key does
   not exist, which the caller maps to 404. Columns are emitted in snake_case and serialised to camelCase
   by Resql; identification_details/checked_items are cast to text so the JSONB documents pass through

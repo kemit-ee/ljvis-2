@@ -1,5 +1,5 @@
 /*
-description: Insert vehicle technical-check sub-form (mootorsõiduki tehnovorm) — first save
+description: Insert vehicle technical-check sub-form (mootorsõiduki tehnovorm) - first save
 namespace: control-forms
 params:
   compoundFormKey:

@@ -1,4 +1,4 @@
-# Epic #502 / A2 write — manuse vormi number peab kuuluma wrapperi vormitüübi prefiksi alla.
+# Epic #502 / A2 write - manuse vormi number peab kuuluma wrapperi vormitüübi prefiksi alla.
 mode: mock-http
 constants:
   LJVIS_RESQL: '{MOCK}/resql'

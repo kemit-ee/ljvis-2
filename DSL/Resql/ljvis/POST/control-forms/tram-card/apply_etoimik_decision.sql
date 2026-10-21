@@ -2,7 +2,7 @@
 description: 'Append a new tram_control_card snapshot carrying an entered-into-force e-toimik decision and
   auto-publish it (ADR-002 otsus 3: e-toimik-initiated publish is system-authored, status goes straight
   to published, version+1). INSERT-only, mirrors update.sql''s copy-forward. Called once per candidate
-  unconditionally by cron/etoimik-tram-decision-sync.yml — found=false, or a stale status<>''confirmed''
+  unconditionally by cron/etoimik-tram-decision-sync.yml - found=false, or a stale status<>''confirmed''
   guard, is a no-op (0 rows), since Ruuter''s iterate step cannot branch. Does not call the session-gated
   publish.yml endpoint (Ruuter.internal has no session).'
 namespace: control-forms
@@ -38,6 +38,7 @@ returns:
   type: string
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest AS (
   SELECT DISTINCT ON (tram_control_card_key) *
   FROM forms.tram_control_card
@@ -121,6 +122,13 @@ INSERT INTO forms.tram_control_card (
   notes,
   enforcement_decision,
   proceeding_closure_basis,
+  klim_clarification_date,
+  carrier_explanation_date,
+  penalty_valid_until,
+  penalty_expired_or_processed,
+  akvk_next_meeting_date,
+  commission_last_decision_date,
+  admin_procedure_decision,
   created_by
 )
 SELECT
@@ -200,9 +208,18 @@ SELECT
   l.notes,
   :enforcementDecision,
   :proceedingClosureBasis,
+  l.klim_clarification_date,
+  l.carrier_explanation_date,
+  l.penalty_valid_until,
+  l.penalty_expired_or_processed,
+  l.akvk_next_meeting_date,
+  l.commission_last_decision_date,
+  l.admin_procedure_decision,
   :created_by
 FROM latest l
 WHERE :found IN ('true', '1', 'yes')
   -- Defensive re-check: only ever publish out of 'confirmed' (same rule as publish.yml).
   AND l.status = 'confirmed'
+  AND l.enforcement_decision IS NULL
+  AND NOT EXISTS (SELECT 1 FROM forms.tram_control_card h WHERE h.tram_control_card_key = l.tram_control_card_key AND h.created_by = 'eToimik öine uuendus')
 RETURNING tram_control_card_key AS id, form_number, version, status;

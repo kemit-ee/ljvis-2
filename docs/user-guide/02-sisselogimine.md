@@ -1,6 +1,6 @@
 # Sisselogimine
 
-Süsteemi sisenemiseks kasutatakse Eesti autentimisteenust TARA. Sisselogimislehel on kaks sisenevusnuppu: **Kodanikule** ja **Ametnikule**.
+Süsteemi sisenemiseks kasutatakse Eesti autentimisteenust TARA. Sisselogimislehel on kaks sisselogimisnuppu: **Kodanikule** ja **Ametnikule**.
 
 ![LJVIS2 sisselogimisleht](images/02-sisselogimine/01-sisselogimisleht.png)
 
@@ -53,4 +53,4 @@ vahetada — vt peatükk [Vaate vahetamine](19-vaate-vahetamine.md).
 
 ## Väljalogimine
 
-Väljalogimiseks klõpsake paremas ülanurgas kasutaja menüüd ja valige **Logi välja**. See lõpetab nii LJVIS2 kui ka TIM sessiooni.
+Väljalogimiseks klõpsake paremas ülanurgas kasutaja menüüd ja valige **Logi välja**. See lõpetab nii LJVIS2 kui ka TIM seansi.

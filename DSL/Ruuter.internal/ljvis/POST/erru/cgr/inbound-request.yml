@@ -26,7 +26,7 @@ declaration:
          technically (NYSIIS/XTR/X-tee error) → audit + respond 502 without storing
          an 'answered' snapshot, so the requesting state retries.
       8. Store an 'answered' snapshot with the EE member_states entry.
-      9. Write audit (cgr.inbound_request.serve) directly to Resql — ruuter-internal cannot
+      9. Write audit (cgr.inbound_request.serve) directly to Resql - ruuter-internal cannot
          reach the main instance's GET/templates/audit chain (same limitation as CTUD
          inbound-request.yml).
 
@@ -38,7 +38,7 @@ declaration:
     uq_cgr_inbound_technical_id (direction='incoming' AND status='received').
 
     Validation: envelope fields are checked here. The CGR 7A/7B choice rule (chk_cgr_search_
-    choice) is enforced by the DB constraint — a single source of truth, no drift possible.
+    choice) is enforced by the DB constraint - a single source of truth, no drift possible.
   namespace: erru
   allowlist:
     body:
@@ -216,7 +216,7 @@ buildUnfitResponse:
     resp_details: "${JSON.stringify({respondingAuthority: 'EE-TRAM', searchMethod: 'Local', nameDetails: {firstName: gr_person.firstName || gr_person.first_name, familyName: gr_person.lastName || gr_person.last_name, dateOfBirth: gr_person.dateOfBirth || gr_person.date_of_birth, placeOfBirth: gr_person.placeOfBirth || gr_person.place_of_birth || null}, addressDetails: null, certificateDetails: {certificateNumber: gr_person.certificateNumber || gr_person.certificate_number, certificateIssueDate: gr_person.certificateIssueDate || gr_person.certificate_issue_date, certificateIssueCountry: gr_person.certificateCountryCode || gr_person.certificate_country_code, certificateValidity: 'Valid', fitness: {fitnessStatus: 'Unfit', unfitStartDate: gr_person.unfitFromDate || gr_person.unfit_from_date || null, unfitEndDate: gr_person.unfitUntilDate || gr_person.unfit_until_date || null}}, transportUndertakings: {totalManagedUndertakings: 0, totalManagedVehicles: 0, undertaking: []}})}"
   next: buildFullResponse
 
-# Step 6: transport manager not in UNFIT register — ask MTR.
+# Step 6: transport manager not in UNFIT register - ask MTR.
 #
 # MTR requires all six identifying fields at once, but ERRU's CGR message
 # allows partial identification (7A: name+DOB, 7B: certificate only). If the
@@ -245,14 +245,14 @@ callMtr:
   result: mtr_res
   next: checkMtrStatus
 
-# ERRU_CGR_MTR_ENDPOINT points at erru/cgr/lookup-mtr.yml, which is itself a Ruuter DSL —
+# ERRU_CGR_MTR_ENDPOINT points at erru/cgr/lookup-mtr.yml, which is itself a Ruuter DSL -
 # its HTTP response is therefore always enveloped as {"response": <result>} like every
 # other Ruuter endpoint (confirmed live against real MTR data: the bare fields are one
 # level deeper than mtr_res.response.body). Unwrap one level before reading fields.
 #
 # lookup-mtr.yml tagastab 200 ainult õnnestunud päringu korral; NYSIIS/XTR/X-tee
 # tõrge tuleb 502 (või 400) staatusega. Sellist tõrget EI TOHI tõlgendada ärilise
-# "ei leitud" vastusena — muidu saab küsiv liikmesriik meilt vale eituse ja me
+# "ei leitud" vastusena - muidu saab küsiv liikmesriik meilt vale eituse ja me
 # salvestame selle 'answered' seisundina. Tehniline tõrge → audit + 502, päring
 # jääb 'received' seisundisse ja seda saab korrata (LJVIS2-139).
 checkMtrStatus:
@@ -264,7 +264,7 @@ checkMtrStatus:
   next: buildNotFoundResponse
 
 # MTR Found: address is the undertaking's (not personal) address per spec. searchMethod
-# and fitness are hardcoded — MTR always matches by NYSIIS and is always "Fit" (MTR has
+# and fitness are hardcoded - MTR always matches by NYSIIS and is always "Fit" (MTR has
 # no "Unfit" concept; that's our local UNFIT register, checked above already).
 buildMtrFoundResponse:
   assign:
@@ -275,7 +275,7 @@ buildMtrFoundResponse:
 
 # tm/company0/all_companies come from the previous assign step: Ruuter evaluates
 # every expression in one assign block against the pre-step variable scope, so a
-# later key in the same block cannot see an earlier key's value — hence the split.
+# later key in the same block cannot see an earlier key's value - hence the split.
 assignMtrFoundResponse:
   assign:
     resp_status_code: "Found"
@@ -316,9 +316,9 @@ buildNotFoundResponse:
     resp_details: "null"
   next: buildFullResponse
 
-# Request didn't have enough data to even ask MTR — distinct from a real MTR
+# Request didn't have enough data to even ask MTR - distinct from a real MTR
 # "not found", logged with its own status message for traceability.
-# search_method jääb 'NYSIIS' (sama mis buildNotFoundResponse) — MTR ei anna
+# search_method jääb 'NYSIIS' (sama mis buildNotFoundResponse) - MTR ei anna
 # kunagi 'CPC' meetodit, seega vana tingimuslik väärtus oli eksitav.
 buildInsufficientDataResponse:
   status: 422
@@ -400,7 +400,7 @@ returnInvalidData:
 
 # MTR / X-tee / NYSIIS tehniline tõrge. Auditeeri (event_id genereerimine
 # byte-identne buildAudit'iga), kuid ÄRA salvesta 'answered' seisundit ega
-# tagasta ärilist vastust — 502 annab küsivale riigile märku korrata.
+# tagasta ärilist vastust - 502 annab küsivale riigile märku korrata.
 mtrUnavailableAudit:
   assign:
     event_id: "" # Allocate the canonical ID in the audit INSERT transaction.

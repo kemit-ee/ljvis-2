@@ -4,15 +4,15 @@ declaration:
   version: "1.0"
   description: >-
     M2M-safe variant of xroad/mtr/check-transport-manager-good-repute.yml (LJVIS2-154),
-    for erru/cgr/inbound-request.yml (LJVIS2-139) — no browser cookie exists on an M2M
+    for erru/cgr/inbound-request.yml (LJVIS2-139) - no browser cookie exists on an M2M
     ERRU call, so check-user-authority can't be used here.
 
     MTR requires all six identifying fields (only birthPlace is optional), but ERRU's
     CGR message allows partial identification (7A: name+DOB, or 7B: certificate only).
-    The caller must check all six fields are present before calling this endpoint —
+    The caller must check all six fields are present before calling this endpoint -
     returnMissingParam is an expected outcome for a valid partial CGR request.
 
-    searchMethod is always "NYSIIS" and fitness is always "Fit" per MTR's schema — MTR
+    searchMethod is always "NYSIIS" and fitness is always "Fit" per MTR's schema - MTR
     has no "Unfit" concept, that's our own local UNFIT register, checked before this.
   namespace: erru
   allowlist:

@@ -44,7 +44,7 @@ returns:
 --    väljanimed on camelCase, tegelik drivers-veeru kuju, mitte snake_case)
 -- DISTINCT ON tagab, et iga vormi kohta on ainult viimane versioon (snapshot)
 -- Eelfilter: GIN-indeks idx_cf_drivers_gin leiab võtmed, mille MÕNI versioon
--- sisaldab juhti antud isikukoodiga — väldib kogu tabeli skaneerimist.
+-- sisaldab juhti antud isikukoodiga - väldib kogu tabeli skaneerimist.
 WITH person_compound_keys AS (
   SELECT DISTINCT compound_form_key
   FROM forms.compound_form
@@ -82,7 +82,7 @@ compound_hits AS (
     cd.form_number                      AS nimetus,
     cd.company_name                     AS asutus,
     cd.vehicle_reg_nr                   AS soiduki_reg_nr,
-    -- Sõiduki tehnoülevaatuse tulemus — viimase snapshoti järgi (alampäring, mitte LATERAL JOIN)
+    -- Sõiduki tehnoülevaatuse tulemus - viimase snapshoti järgi (alampäring, mitte LATERAL JOIN)
     (SELECT v.result_type
        FROM forms.vehicle_technical_form v
       WHERE v.compound_form_key = cd.compound_form_key

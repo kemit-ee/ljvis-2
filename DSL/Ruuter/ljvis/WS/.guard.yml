@@ -1,4 +1,4 @@
-# WS-alampuu guard — bypassib projektiülese `ljvis/.guard.yml`.
+# WS-alampuu guard - bypassib projektiülese `ljvis/.guard.yml`.
 #
 # Taust: Ruuter 0.9.11 (h2ck.me H2) hakkab guarde jooksutama ka WS-upgrade'i
 # handshake'i ajal, sünteesitud konteksti vastu (päised + query, kehata).
@@ -12,7 +12,7 @@
 # Seega on õige lasta upgrade'il õnnestuda ja jätta autentimine frame-tasemele
 # nagu praeguses disainis.
 #
-# 0.9.10-l on see fail INERTNE — `handle_ws_upgrade` ei kutsu guarde
+# 0.9.10-l on see fail INERTNE - `handle_ws_upgrade` ei kutsu guarde
 # (H2 parandus tuli alles 0.9.11-s). Lisatud ette, et 0.9.11 bump oleks
 # ohutu.
 

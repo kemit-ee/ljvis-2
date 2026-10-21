@@ -1,5 +1,5 @@
 /*
-description: Insert trailer technical-check sub-form (haagise tehnovorm) — first save
+description: Insert trailer technical-check sub-form (haagise tehnovorm) - first save
 namespace: control-forms
 params:
   compoundFormKey:

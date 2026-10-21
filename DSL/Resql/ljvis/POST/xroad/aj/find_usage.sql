@@ -1,7 +1,7 @@
 /*
 description: 'AJ findUsage: pärib kasutusteabe kirjeid isikukoodi järgi koos pagination-i ja ajavahemiku
   filtritega. Tagastab alati vähemalt ühe rea: total_usages on koguhulk (ilma offset/limit mõjuta,
-  AJ protokoll §6.1.4) ka siis, kui leht on tühi — sel juhul on logtime NULL. Kirjed logtime DESC
+  AJ protokoll §6.1.4) ka siis, kui leht on tühi - sel juhul on logtime NULL. Kirjed logtime DESC
   järjekorras (§6.1.4), id DESC lisajärjestusena stabiilse lehitsemise jaoks (§7). user_code tuleb
   anda ilma EE eesliiteta; ajaloolised EE-eesliitega kirjed leitakse samuti.'
 namespace: xroad

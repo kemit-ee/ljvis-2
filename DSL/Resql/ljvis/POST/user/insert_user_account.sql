@@ -1,5 +1,5 @@
 /*
-description: Create a new user — single snapshot INSERT (replaces v1 insert_user_account + insert_user_account_data_state
+description: Create a new user - single snapshot INSERT (replaces v1 insert_user_account + insert_user_account_data_state
   + insert_user_account_state + rebuild)
 namespace: user
 params:

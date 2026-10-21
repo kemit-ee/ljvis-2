@@ -59,7 +59,7 @@ extractNcrFields:
     serious_infringements_raw: "${ncr_src.seriousInfringements || '[]'}"
   next: mapMinorInfringement
 
-# p.1: kontrolli koha riik lukustub teate saatnud riigi (ncrFrom) järgi —
+# p.1: kontrolli koha riik lukustub teate saatnud riigi (ncrFrom) järgi -
 # frontend lukustab välja täiendavalt (ForeignViolationFormFields.tsx
 # useEffect), aga täidetakse ka siin loomisel.
 mapMinorInfringement:
@@ -79,7 +79,7 @@ mapMinorInfringement:
 # -> violations[].code (nt "SI912"), samas kujus mis EU_VIOLATION_GROUPS
 # checkbox-väärtused (frontend/src/constants/constants.ts). Igale rikkumisele
 # lisatakse esimese penaltiesImposed kirje penaltyTypeImposed ERRU-koodi
-# põhjal kohalik sanctionCode — vt allolev PROVISOORNE vastavustabel, mis
+# põhjal kohalik sanctionCode - vt allolev PROVISOORNE vastavustabel, mis
 # vajab kliendi/RS kinnitust (vt plaani "Lahtised kohad" p.b).
 mapSeriousInfringements:
   assign:

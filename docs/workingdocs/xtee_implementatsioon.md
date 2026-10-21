@@ -265,17 +265,17 @@ Kasutusel olevad teenused:
 | `ar/detailandmed_v1.yml` | `detailandmed` | `v1` | reaalne turvaserver, samuti ACL-iga kaetud |
 | `ar/ettevottegaSeotudIsikud_v1.yml` | `ettevottegaSeotudIsikud` | `v1` | otse HTTPS bypass `ariregxmlv6.rik.ee`-le (ACL puudub — ei ole `allowedMethods` vastuses) |
 
-> **Ajaloomärge:** kuni 2026-08-31 kasutasid `lihtandmed`/`esindus` `v3`/`v2` versioone otse HTTPS bypass'iga (`detailandmed` XTR DSL oli `v2`, kuid ei olnud ühegi Ruuter endpoint'iga ühendatud; selle tabeli varasem `detailandmed_v4` rida oli ekslik) (`service: https://ariregxmlv6.rik.ee/`) koos `AR_USERNAME`/`AR_PASSWORD` autentimisega, kuna X-Road ACL-i arireg'ile ei olnud. Elava `allowedMethods` kontrolliga (vt `.ai/ljvis-tasks/xtee-task.md`) selgus, et meie subsüsteemil on nüüd ACL arireg'i **v1**-meetoditele — migreeriti reaalse turvaserveri kaudu tehtavale kutsele, bypass ja kasutajanimi/parool eemaldatud. `ettevottegaSeotudIsikud_v1` jääb bypass'ile, kuna ACL sellele puudub.
+> **Ajaloomärge:** kuni 2026-08-31 kasutasid `lihtandmed`/`esindus` `v3`/`v2` versioone otse HTTPS bypass'iga (`detailandmed` XTR DSL oli `v2`, kuid ei olnud ühegi Ruuter lõpp-punktiga ühendatud; selle tabeli varasem `detailandmed_v4` rida oli ekslik) (`service: https://ariregxmlv6.rik.ee/`) koos `AR_USERNAME`/`AR_PASSWORD` autentimisega, kuna X-Road ACL-i arireg'ile ei olnud. Elava `allowedMethods` kontrolliga (vt `.ai/ljvis-tasks/xtee-task.md`) selgus, et meie subsüsteemil on nüüd ACL arireg'i **v1**-meetoditele — migreeriti reaalse turvaserveri kaudu tehtavale kutsele, bypass ja kasutajanimi/parool eemaldatud. `ettevottegaSeotudIsikud_v1` jääb bypass'ile, kuna ACL sellele puudub.
 
 ---
 
 ## DMapper — parameetrite teisendus
 
-Ruuter kasutab REST-sõbralikke väljanimed (`registryCode`, `companyName`), kuid XTR DSL nõuab äriregistri WSDL-i väljanimed (`ariregistri_kood`, `evnimi`). Ajalooliselt tegid selle teisenduse DMapper Handlebars mallid; `arireg/*` endpoint'ides tehakse seda nüüd Ruuteri DSL-is otse (vt märkust allpool).
+Ruuter kasutab REST-sõbralikke väljanimed (`registryCode`, `companyName`), kuid XTR DSL nõuab äriregistri WSDL-i väljanimed (`ariregistri_kood`, `evnimi`). Ajalooliselt tegid selle teisenduse DMapper Handlebars mallid; `arireg/*` lõpp-punktides tehakse seda nüüd Ruuteri DSL-is otse (vt märkust allpool).
 
-> **NB (2026-08-31):** `arireg/*` Ruuter endpoint'id ei kutsu enam DMapperit. XTR-i saadetav
+> **NB (2026-08-31):** `arireg/*` Ruuter lõpp-punktid ei kutsu enam DMapperit. XTR-i saadetav
 > keha koostatakse Ruuteri DSL-is otse (WSDL väljanimed on juba XTR malli `params`-is) ja vastuse
-> nimeruumi-prefiksite eemaldus tehakse endpoint'is inline `mapResponse` sammuga (vt allpool).
+> nimeruumi-prefiksite eemaldus tehakse lõpp-punktis inline `mapResponse` sammuga (vt allpool).
 > DMapper HBS mallid (`arireg_lihtandmed_*.handlebars`) on kasutuseta.
 
 ### Ruuter DSL voog (`POST/v1/xroad/arireg/lihtandmed.yml`)

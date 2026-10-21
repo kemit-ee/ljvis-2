@@ -34,6 +34,14 @@ params:
     type: string
     required: false
     description: "Literal true when the caller has control_form.view_unpublished"
+  caller_view_unit:
+    type: string
+    required: false
+    description: Literal true when the caller has control_form.view_unit (rows created by users of the caller's own organisation and structural unit)
+  caller_structural_unit:
+    type: string
+    required: false
+    description: Caller structural unit (auth_user.structuralunit, e.g. PPA_LOUNA); empty when unknown
   caller_view_organisation:
     type: string
     required: false
@@ -134,6 +142,18 @@ SELECT
     (t.status = 'published' AND :caller_can_read_type = 'true')
     OR :caller_view_unpublished = 'true'
     OR (COALESCE(:caller_personal_code, '') <> '' AND t.created_by = :caller_personal_code)
+    OR (
+      :caller_view_unit = 'true'
+      AND COALESCE(:caller_organisation_id, '') <> ''
+      AND COALESCE(:caller_structural_unit, '') <> ''
+      AND (
+        SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+        FROM users.user_account ua
+        WHERE ua.personal_code = t.created_by
+        ORDER BY ua.created_at DESC
+        LIMIT 1
+      ) = :caller_organisation_id || '|' || :caller_structural_unit
+    )
     OR (
       :caller_view_organisation = 'true'
       AND COALESCE(:caller_organisation_id, '') <> ''

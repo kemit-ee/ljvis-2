@@ -72,6 +72,7 @@ INSERT INTO users.permission (code, description, created_by) VALUES
     ('risk_report.list',                 'Veoettevõtjate riskitasemete loendi vaatamine ja filtreerimine (EL 2022/695)', 'bootstrap'),
     ('control_form.edit_locked',         'Kinnitatud vormi X-tee andmevahetuskihi plokkide muutmine (administraator)', 'bootstrap'),
     ('control_form.view_organisation',  'Töölaual oma asutuse kõigi vormide vaatamine (Minu asutuse vormid)', 'bootstrap'),
+    ('control_form.view_unit',          'Oma struktuuriüksuse (prefektuuri) alluvate vormide vaatamine (Grupi juht)', 'bootstrap'),
     ('compound_form.write',              'Koondvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('vehicle_technical_form.write',     'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi loomine, täitmine, salvestamine ja kinnitamine', 'bootstrap'),
     ('vehicle_technical_form.read',      'Mootorsõiduki tehnonõuetele vastavuse kontrollvormi andmete lugemine', 'bootstrap'),

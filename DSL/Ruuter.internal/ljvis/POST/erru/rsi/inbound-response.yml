@@ -3,7 +3,7 @@ declaration:
   version: "1.0"
   description: |
     Receive an ASYNCHRONOUS RSI (RoadSideInspection) response from the ERRU hub
-    (LJVIS2-148 §7.2). RSI is asynchronous — unlike CGR or CTUD, the hub does NOT
+    (LJVIS2-148 §7.2). RSI is asynchronous - unlike CGR or CTUD, the hub does NOT
     return the vehicle register result in the same call as the send. Instead, the hub
     delivers the result later as a separate HTTP call correlated by workflowId. This
     endpoint receives that deferred response.
@@ -16,7 +16,7 @@ declaration:
          re-applying (uq_rsi_outbound_response_workflow_id prevents DB duplicates too).
       5. Append a 'responded' snapshot via append-transition.sql (sent → responded),
          carrying responseStatusCode and responseStatusMessage.
-      6. Write audit (rsi.inbound_response.receive) directly to Resql — ruuter-internal
+      6. Write audit (rsi.inbound_response.receive) directly to Resql - ruuter-internal
          cannot reach the main Ruuter instance's GET/templates/audit chain.
 
     Idempotency: uq_rsi_outbound_response_workflow_id (partial unique index on workflow_id

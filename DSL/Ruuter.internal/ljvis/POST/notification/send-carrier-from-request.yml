@@ -12,7 +12,7 @@ declaration:
 
     Kutsuja annab ainult vormi tüübi ja võtme; vormi, koondvormi ja klassifikaatorite
     andmed loeb teenus ise. Ei tee midagi (ja on odav), kui vormil ei ole avatud
-    tellimust, vorm ei ole veel avalikustatud või rikkumistes ei ole MSI/VSI/SI koodi —
+    tellimust, vorm ei ole veel avalikustatud või rikkumistes ei ole MSI/VSI/SI koodi -
     tellimus jääb sel juhul avatuks kuni sobiva avalikustamiseni. Saatmise viga
     logitakse outbound_log-i error-reana ja tellimus jääb avatuks. Tellimus
     märgitakse saadetuks ainult edukal saatmisel.
@@ -187,7 +187,7 @@ checkPublished:
   next: extractSeverities
 
 # Teavitatakse ainult raskete rikkumiste (MSI, VSI, SI) korral; MI ei kuulu siia.
-# violations on JSON (rikkumiste massiivid, sh sisemised massiivid) — arvesse
+# violations on JSON (rikkumiste massiivid, sh sisemised massiivid) - arvesse
 # lähevad ainult tuvastatud read (isDetected != false). Kui JSON-it ei saa
 # lugeda, otsitakse koode tekstist.
 extractSeverities:
@@ -323,7 +323,7 @@ callGetViolationNames:
   next: buildViolationList
 
 # Rikkumised raskusastme kaupa: MSIViolationsList / VSIViolationsList / SIViolationsList.
-# Üks rikkumine rea kohta („VSI869 — nimetus"), ridade vahel <br> (Postkasti mall on HTML).
+# Üks rikkumine rea kohta („VSI869 - nimetus"), ridade vahel <br> (Postkasti mall on HTML).
 # Raskusastmel rikkumisi ei ole -> tühi string.
 buildViolationList:
   assign:
@@ -334,7 +334,7 @@ buildViolationList:
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         return String(violation_codes).split(',').filter(function(c) { return /^MSI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
     VSIViolationsList: >-
@@ -344,7 +344,7 @@ buildViolationList:
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         return String(violation_codes).split(',').filter(function(c) { return /^VSI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
     SIViolationsList: >-
@@ -354,7 +354,7 @@ buildViolationList:
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         return String(violation_codes).split(',').filter(function(c) { return /^SI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' — ' + esc(names[c]) : esc(c);
+          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
   next: lookupCarrierEmail

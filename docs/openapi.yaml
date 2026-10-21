@@ -52,8 +52,9 @@ tags:
     description: Välisriigi rikkumise andmevorm — create, read, and file management.
   - name: erru-ctud
     description: |
-      ERRU CTUD (Check Transport Undertaking Data / Tegevusloa kontroll) — synchronous
-      single-country request/response with another EU member state. Storage is an
+      ERRU CTUD (Check Transport Undertaking Data / Tegevusloa kontroll) — single-country
+      request/response with another EU member state, sent as ERRU 3.5 XML. The Hub
+      acknowledges the send and the answer arrives later. Storage is an
       INSERT-only snapshot table, so every state change appends a row and the current
       state is the latest row per request.
   - name: erru-cgr
@@ -1868,7 +1869,8 @@ paths:
           description: |
             Validation error. `code` is one of `min_two_search_criteria`,
             `unknown_not_allowed`, `invalid_country_code`, `max_length_exceeded`,
-            `required`, `not_editable`, `not_sendable`, `invalid_transition`.
+            `required`, `not_editable`, `not_sendable`, `invalid_transition`,
+            `invalid_ctud_xml`.
           content:
             application/json:
               schema:
@@ -2084,8 +2086,13 @@ paths:
         anyOf: [cgr.send]
       summary: Send a CGR request to the target member state.
       description: |
-        Sends the CGR request and awaits the response. On transport failure the
-        request moves to `error` and can be retried with resend. Requires `cgr.send`.
+        Sends the CGR request as ERRU 3.5 XML through the XML adapter. The Hub
+        acknowledges with HTTP 202 (status `sent`); each member state answers later
+        in its own message, which fills `memberStates` and moves the request to
+        `responded`. XML that does not satisfy the contract is refused with 422
+        `invalid_cgr_xml` and the draft stays editable. A definite Hub rejection moves
+        the request to `error` and it can be sent again. An uncertain outcome is
+        `send_unknown` (502) and must not be resent. Requires `cgr.send`.
       security:
         - cookieAuth: []
       requestBody:
@@ -2099,15 +2106,15 @@ paths:
                 id: { type: string, description: CGR request logical key. }
       responses:
         '200':
-          description: Sent and answered.
+          description: Accepted by the Hub (`status` is `sent`); the answers arrive later.
           content:
             application/json:
               schema: { type: object }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: CGR request not found. }
-        '422': { description: Validation error. }
-        '502': { description: ERRU transport failure — request left in error. }
+        '422': { description: Not sendable in this status, or `invalid_cgr_xml`. }
+        '502': { description: "`send_failed` (rejected, request moved to `error`) or `send_unknown` (outcome uncertain, do not resend)." }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -2117,8 +2124,12 @@ paths:
       operationId: postCgrResend
       x-permissions:
         anyOf: [cgr.send]
-      summary: Resend a failed CGR request.
-      description: Retries a CGR request that is in `error` status. Requires `cgr.send`.
+      summary: Resend a CGR request to one member state.
+      description: |
+        Sends the request again to the member state in `memberStateCode`. Allowed in
+        status `sent` or `responded`. The status and `workflowId` are kept and the new
+        answer replaces only that member state's entry. A rejected or uncertain resend
+        changes no status. Requires `cgr.send`.
       security:
         - cookieAuth: []
       requestBody:
@@ -2127,20 +2138,21 @@ paths:
           application/json:
             schema:
               type: object
-              required: [id]
+              required: [id, memberStateCode]
               properties:
                 id: { type: string }
+                memberStateCode: { type: string, description: ISO 3166-1 alpha-2 code of the member state. }
       responses:
         '200':
-          description: Resent successfully.
+          description: Resend accepted by the Hub.
           content:
             application/json:
               schema: { type: object }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: CGR request not found. }
-        '422': { description: Not in error status. }
-        '502': { description: ERRU transport failure. }
+        '422': { description: Not resendable in this status, or `invalid_cgr_xml`. }
+        '502': { description: "`send_failed` (rejected) or `send_unknown` (outcome uncertain, do not resend)." }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -2338,8 +2350,12 @@ paths:
         anyOf: [ncr.send]
       summary: Send the response to an incoming NCR request.
       description: |
-        Sends the response to the originating member state. The case moves to
-        `responded`. Requires `ncr.send`.
+        Sends the response to the originating member state as ERRU 3.5 XML. The
+        message moves `answer_drafted` (or `error`) → `sending` → `answered` when the Hub's
+        response URL accepts it. XML that does not satisfy the contract is refused with 422
+        `invalid_ncr_response_xml`; a definite rejection moves it to `error` (retry permitted);
+        an uncertain outcome is `send_unknown` (502) and must not be resent. A negative
+        NCRR_Ack received later moves `answered` to `error`. Requires `ncr.send`.
       security:
         - cookieAuth: []
       requestBody:
@@ -2353,13 +2369,14 @@ paths:
                 id: { type: string }
       responses:
         '200':
-          description: Response sent.
+          description: Response accepted by the Hub (`status` is `answered`).
           content:
             application/json:
               schema: { type: object }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '502': { description: ERRU transport failure. }
+        '422': { description: Not sendable in this status, or `invalid_ncr_response_xml`. }
+        '502': { description: "`send_failed` (rejected, retry permitted) or `send_unknown` (outcome uncertain, do not resend)." }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -2371,8 +2388,13 @@ paths:
         anyOf: [ncr.send]
       summary: Send an outgoing NCR notification to the target member state.
       description: |
-        Sends the NCR notification. On transport failure the case stays in `error`
-        and the send can be retried. Requires `ncr.send`.
+        Sends the NCR notification as ERRU 3.5 XML through the XML adapter. The Hub
+        acknowledges with HTTP 202 (status `sent`); the destination's
+        NotifyCheckResult_Acknowledgement later moves the case to `acknowledged` (a negative one
+        to `error`) and its NotifyCheckResult_Response to `responded`. XML that does not satisfy
+        the contract is refused with 422 `invalid_ncr_xml` and the draft stays editable. A
+        definite Hub rejection moves the case to `error` and it can be sent again; an uncertain
+        outcome is `send_unknown` (502) and must not be resent. Requires `ncr.send`.
       security:
         - cookieAuth: []
       requestBody:
@@ -2386,15 +2408,15 @@ paths:
                 id: { type: string }
       responses:
         '200':
-          description: NCR sent.
+          description: Accepted by the Hub (`status` is `sent`); the acknowledgement arrives later.
           content:
             application/json:
               schema: { type: object }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: NCR case not found. }
-        '422': { description: Validation error. }
-        '502': { description: ERRU transport failure. }
+        '422': { description: Not sendable in this status, or `invalid_ncr_xml`. }
+        '502': { description: "`send_failed` (rejected, case moved to `error`) or `send_unknown` (outcome uncertain, do not resend)." }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -2732,7 +2754,13 @@ paths:
       x-permissions:
         anyOf: [nu.send]
       summary: Send an outgoing NU notification to the target member state.
-      description: Sends the NU message. Requires `nu.send`.
+      description: |
+        Sends the NU message as ERRU 3.5 XML through the XML adapter. The XML is validated first,
+        then the message moves `initiated` → `sending` → `sent` when the Hub answers HTTP 202. The
+        member states' acknowledgements arrive later and fill `memberStates`. XML that does not
+        satisfy the contract is refused with 422 `invalid_nu_xml` and the draft stays editable. A
+        definite Hub rejection moves the message to `error` (a new notification must be composed);
+        an uncertain outcome is `send_unknown` (502) and must not be resent. Requires `nu.send`.
       security:
         - cookieAuth: []
       requestBody:
@@ -2746,15 +2774,15 @@ paths:
                 id: { type: string }
       responses:
         '200':
-          description: NU sent.
+          description: Accepted by the Hub (`status` is `sent`); the acknowledgements arrive later.
           content:
             application/json:
               schema: { type: object }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: NU message not found. }
-        '422': { description: Validation error. }
-        '502': { description: ERRU transport failure. }
+        '422': { description: Validation error, including `invalid_nu_xml`. }
+        '502': { description: "`send_failed` (rejected, message moved to `error`) or `send_unknown` (outcome uncertain, do not resend)." }
         '500': { $ref: '#/components/responses/InternalServerError' }
         '503': { $ref: '#/components/responses/ServiceUnavailable' }
 
@@ -2830,14 +2858,17 @@ paths:
           - ctud.send
       summary: Send a CTUD request to the target member state.
       description: |
-        Synchronous single-country exchange: the target country's answer arrives
-        in the same call, so there is no acknowledgement state and no waiting
-        view. The request moves `initiated` (or `error`) → `sent` → `responded`.
+        Single-country exchange sent as ERRU 3.5 XML through the XML adapter. The Hub
+        acknowledges with HTTP 202 and the target country's answer arrives later in
+        its own message. The request moves `initiated` (or `error`) → `sending` →
+        `sent` → `responded`.
 
         `Timeout` and `NotAvailable` are outcomes of a *successful* exchange —
         the ERRU Hub sets them — and therefore still end in `responded`, not
-        `error`. Only a transport failure or a schema-invalid message ends in
-        `error`, from which the send may be retried. Requires `ctud.send`.
+        `error`. XML that does not satisfy the contract is refused with 422
+        `invalid_ctud_xml` and the draft stays editable. A definite Hub rejection
+        ends in `error`, from which the send may be retried. An uncertain outcome is
+        `send_unknown` (502) and must not be resent. Requires `ctud.send`.
       security:
         - cookieAuth: []
       requestBody:
@@ -2851,7 +2882,7 @@ paths:
                 id: { type: string, description: CTUD request logical key. }
       responses:
         '200':
-          description: Sent and answered; the stored response state is returned.
+          description: Accepted by the Hub (`status` is `sent`); the answer arrives later.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/CtudRequestSaveResult' }

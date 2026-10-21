@@ -2,11 +2,190 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-21
+
+### NCR ja NU saadetakse ERRU XML-ina
+
+- Väljaminev NCR (kontrolli tulemuse teade ja vastus saabunud NCR-ile) ning NU (sobimatusteade) saadetakse nüüd ERRU 3.5 XML-ina läbi XML-adapteri, varem saadeti JSON. Adapter kontrollib XML-i XSD vastu enne saatmist ja ei lisa puuduvatele andmetele väljamõeldud väärtusi. Öine NCR automaatsaatmine kasutab sama teed.
+- Vastus ei tule enam saatmise kutsega. Hub kinnitab teate vastuvõtmist ja teade jääb olekusse „Saadetud". NCR-i vastuvõtukinnitus ning sisuline vastus ja NU liikmesriikide kinnitused saabuvad hiljem. Nende nägemiseks tuleb leht värskendada. Negatiivne NCR kinnitus (Timeout, NotAvailable) viib NCR-i olekusse „Viga" ja saatmist saab korrata.
+- Uued olekud „Saatmine pooleli" ja „Saatmise tulemus teadmata". Kui Hubi vastust ei saadud (ühenduse katkemine, aegumine), ei saada süsteem teadet ise uuesti, kuna Hub võis selle siiski vastu võtta. Kontrolli enne uut saatmist integratsioonilogi.
+- Kui Hub lükkab teate tagasi, läheb NCR või NCR vastus olekusse „Viga" ja saatmist saab korrata. NU jääb olekusse „Viga" ja uue saatmise asemel tuleb koostada uus sobimatusteade, nagu varem.
+- Andmed, mis ei vasta XML-lepingule, ei lähe teele ja mustand jääb muudetavaks. Näiteks NCR vastus ilma sõidukite arvu, tegevusloa staatuse või täieliku aadressita (kui ettevõte leiti) või NU veokorraldaja ilma sünniajata. Leht näitab sellest eraldi veateadet.
+- Öine NCR automaatsaatmine lisab logisse tulemuse „sent" (varem „acknowledged") ja uue tulemuse „send_unknown".
+- Uued sisemised päringud `POST /erru/nu/inbound-ack` ja `POST /erru/ncr/inbound-ack` (ainult Ruuter.internal) ning migratsioon `20261223100000-ncr-nu-outbound-xml`. `nu_finish_send` on asendatud funktsioonidega `nu_mark_dispatch` ja `nu_apply_ack`. Paigaldusjuhis on administraatori juhendi peatükis „NCR ja NU XML-saatmise paigaldamine".
+- Kasutamata konstandid `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT`, `ERRU_NCR_RESPONSE_ENDPOINT` ja `ERRU_RSI_ENDPOINT` ning nende Ruuteri mock-voogude kood on eemaldatud.
+
+### Mainepäringud (CGR) ja tegevusloa kontrolli päringud (CTUD) saadetakse ERRU XML-ina
+
+- Väljaminev mainepäring ja tegevusloa kontrolli päring saadetakse nüüd ERRU 3.5 XML-ina läbi XML-adapteri, varem saadeti JSON. Adapter kontrollib XML-i XSD vastu enne saatmist ning ei lisa puuduvatele andmetele väljamõeldud väärtusi.
+- Vastus ei tule enam saatmise kutsega. Hub kinnitab päringu vastuvõtmist ja päring jääb olekusse „Päring saadetud". Riigi vastus saabub hiljem: mainepäringu puhul igalt liikmesriigilt eraldi sõnumina, tegevusloa kontrolli puhul sihtriigilt. Vastuse nägemiseks tuleb leht värskendada. Esimese vastuse saabudes läheb päring olekusse „Vastus saadud". Mainepäringu puhul täienevad vastused liikmesriikide kaupa.
+- Uued olekud: „Saatmine pooleli" ja „Saatmise tulemus teadmata". Kui Hubi vastust ei saadud (ühenduse katkemine, aegumine), ei saada süsteem päringut ise uuesti, kuna Hub võis selle siiski vastu võtta. Kontrolli enne uut saatmist integratsioonilogi.
+- Kui Hub lükkab päringu tagasi, läheb see olekusse „Viga" ja saatmist saab korrata, nagu varem.
+- Andmed, mis ei vasta XML-lepingule, ei lähe teele ja päring jääb muudetavaks. Näiteks tegevusloa kontrolli sõiduk ilma registreerimisriigita, vähem kui kaks otsingukriteeriumi või mainepäring ilma sünniajata. Leht näitab sellest eraldi veateadet.
+- Mainepäringu riigipõhine „Saada uuesti" jääb. Uus vastus asendab ainult selle riigi kirje, teiste riikide vastused ja päringu töövoo number (workflowId) jäävad samaks. Uuestisaatmine on nüüd võimalik ka olekus „Vastus saadud".
+- Kui vastuses on mitu veokorraldajat või veoettevõtjat, salvestatakse esimene senises kohas ja ülejäänud eraldi väljale, neid ei jäeta ära. Lehel kuvatakse praegu ainult esimest.
+- Uus tabel `erru.xml_outbound_dispatch` (saadetud XML ja Hubi HTTP-staatus), uued sisemised päringud `POST /erru/cgr/inbound-response` ja `POST /erru/ctud/inbound-response` (ainult Ruuter.internal) ning migratsioon `20261222100000-cgr-ctud-outbound-xml`. Paigaldusjuhis on administraatori juhendi peatükis „CGR ja CTUD XML-saatmise paigaldamine".
+- Kasutamata konstandid `ERRU_CGR_ENDPOINT` ja `ERRU_CTUD_ENDPOINT` on eemaldatud.
+
+## 2026-10-20
+
+### E-toimiku otsuse öine sünkroon: paragrahv ja otsuse kuupäev, välismaalased
+
+- Kontrollvormi plokis „Andmevahetuskihi päringuga sisestatavad andmed (X-tee)" kirjutab öine sünkroon väljale „Jõustunud otsus" nüüd kujul „KarS § 100 lg 2, otsuse kuupäev 07.02.2025" (paragrahv + otsuse kuupäev). Varem sattus sinna e-toimiku klassifikaatori toorkood. Väli „Menetluse lõpetamise alus" jäetakse sünkroonist täitmata.
+- Otsus loetakse olemasolevaks, kui süüdistuspunktil on lahend ja lahendi kuupäev. Tühjad (xsi:nil) väärtused ei loe enam täidetuks, varem läksid ka lahtised punktid läbi.
+- Välismaalased (isikukoodita juhid ja meeskonnaliikmed) jõuavad nüüd samuti sünkrooni: neid otsitakse eesnime, perekonnanime ja sünniajaga. Eestlast otsitakse esmalt isikukoodiga ja, kui otsust ei leita ning nimi ja sünniaeg on olemas, teist korda nime ja sünniajaga.
+- Kehtib kõigil viiel öisel sünkroonil: autojuht ja meeskonnaliige, TRAM-kaart, sõiduki ja haagise tehnokontroll, Tööinspektsioon (viimasel ainult isikukoodiga). TRAM-kaart avalikustatakse automaatselt niipea, kui lahend on olemas, mitte alles sulgemise järel.
+- Uus sisemine päring `POST /etoimik/lookup-decision` (ainult Ruuter.internal).
+
+### E-toimiku öise sünkroonimise X-tee logi näitab täisvastust
+
+- Kui e-toimik tagastas öise sünkroonimise päringule tühja vastuse, kirjutas süsteem X-tee logisse ainult sõna `null`. Nüüd salvestatakse kogu saadud vastus, nagu vormi pealt käsitsi tehtud päringu puhul. Kõik viis sünkroonimist (Tööinspektsioon, SP juht, SP meeskonnaliige, tehnokontroll, TRAM). Otsuste käitumine ei muutu.
+- Need e-toimiku sünkroonimised käivituvad nüüd iga 3 tunni tagant (00, 03, 06 ... 21, minutiga :00-:08), varem iga tunni tagant.
+
+### X-tee logides kuvatakse kontrollvormi number
+
+- Haldus > E-toimiku X-tee logid (ka vaates „Kõik teenused") näitab vormi tüübi kõrval eraldi veerus „Vormi number" vormi numbrit kujul `sp-AAAA-NNNNN/V` (vormi viimane versioon). Link vormile jääb samaks.
+- Meeskonnaliikme SP-vormi kirjed lingitakse nüüd samuti vormile.
+
+### Em-dashid eemaldatud DSL-ist
+
+- Ruuter-, Resql-, CronManager- ja XTR-failide kommentaarides ja kirjeldustes on em-dash (—) asendatud sidekriipsuga. Käitumine ei muutu. Liquibase'i migratsioone ei puututud, sest rakendatud changeset'ide sisu muutmine rikuks kontrollsumma.
+
+### Vedaja teavitamine ka kinnitatud ja avalikustatud vormil
+
+- Kinnitatud ja avalikustatud sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kaardi ning sõiduki ja haagise tehnovormi muutmisrežiimis (nupp „Muuda") on nupp „Teavita vedajat rikkumisest". Varem sai vedaja teavitust tellida ainult kinnitamisel linnukesega.
+- Avalikustatud vormil saadetakse teavitus kohe, kinnitatud vormil avalikustamisel. Teavitus läheb teele ainult MSI, VSI või SI rikkumise korral; kui teavitust ei saadetud, näitab leht selle põhjuse. Nupp on nähtav kasutajale, kellel on vormitüübi kirjutusõigus (või administraatorile).
+- Uus päring `POST /v1/control-forms/carrier-notification/edit/request`.
+
+### E-toimikust saadud otsust automaatika enam üle ei kirjuta
+
+- Kui sõidu- ja puhkeaja (juht, kaasjuht), TRAM-i, tehnokontrolli (sõiduk, haagis) või Tööinspektsiooni vormile on e-toimikust öise sünkroonimisega kord otsus (jõustunud otsus ja menetluse lõpetamise alus) tulnud, ei puutu sünkroonimine seda vormi enam. Varem kaitses ainult kontroll „otsus on tühi", nii et käsitsi tühjendatud otsuse võis sünkroonimine uuesti täita.
+- Valesid andmeid saab edasi parandada õigusega `control_form.punishment_register` või administraator (`control_form.edit_locked`).
+
+### E-toimiku päringukaart on kõigil koondvormi alamvormide lehtedel
+
+- Kaart „E-toimiku kvalifikatsiooni kontroll" ehk nupp „Päri e-toimikust" oli varem ainult tehnokontrolli ja TRAM-kaardi lehel. Nüüd on see kõigil vormidel, kus toimub e-toimikuga andmevahetus: autojuht, kaasjuht, sõiduk ja haagis, ADR, TRAM-kaart ja Tööinspektsiooni kontrollkaart. Kaart on nähtav kasutajale, kellel on õigus `control_form.punishment_register`, ja e-toimikust tulnud otsus seda ei peida.
+
+## 2026-10-19
+
+### Kustutatud vormide arhiveerimine töötab automaatselt
+
+- Kustutatud kontrollvormid teisaldatakse iga kahe tunni tagant eraldi arhiivibaasi; töötabelid jäävad väiksemaks ja kiiremaks. Kustutatud vormi **versiooniajalugu jääb endiselt nähtavaks** — süsteem loeb selle vajadusel arhiivist.
+
+### Manuaalse käivituse tulemusteade näitab arvestatud ja õnnestunud kirjete arvu
+
+- Haldus → E-toimiku X-tee logid → **Manuaalne käivitamine**: tulemusteade näitab nüüd lisaks ebaõnnestunute arvule ka seda, mitu kirjet töö arvestas (valis töötlemiseks) ja mitu õnnestus, nt „Arvestati 25, õnnestus 23, ebaõnnestus 2". See kehtib riskiskooride ümberarvutusele ja kõigile e-toimiku sünkroonimistele.
+- Käivituse auditisündmuse kirjeldus sisaldab samu arve.
+
+## 2026-10-17
+
+### E-toimiku öine uuendus versioonide ajaloos
+
+- Kui e-toimiku öine sünkroon uuendab või avalikustab vormi (TRAM-kaart, autojuht, meeskonnaliige, sõiduk, haagis), kuvatakse vormi versioonide tabelis salvestajana **„eToimik öine uuendus"** (varem „e-toimik", „LJVIS-CRON" või „system").
+- Parandatud viga, kus automaatse avalikustaja nimi jäi sõiduki, haagise, ADR-i, autojuhi, meeskonnaliikme, koondvormi ja teiste vormide versioonide tabelis tühjaks (kuvati ainult tavakasutaja nimi).
+
+### Grupi juht: prefektuuri alluvate vormide nägemine
+
+- Lisandus õigus `control_form.view_unit` („Grupi juht"). Selle õigusega kasutaja näeb oma asutuse ja oma struktuuriüksuse (PPA puhul prefektuuri) kasutajate loodud vorme: otsingu nimekirjas, vormi avamisel ja töölaual uue valikuga „Minu prefektuuri vormid". Vormid on nähtavad igas staatuses, tüübi lugemisõigus (`*_form.read`) peab samuti olemas olema.
+- Muutmine käib vormide enda õigustega: salvestatud vormi saab muuta `*_form.write` õigusega, kinnitatud ja avalikustatud vormi `control_form.edit_locked` õigusega. Uus õigus muutmisvõimalust juurde ei anna.
+- Õigus tuleb Haldus → Kasutajagrupid vaates omistada „Grupi juhi" grupile. Kasutajal peab olema struktuuriüksus määratud, muidu ei näe ta alluvate vorme.
+
+### Haldusmenetluse andmeplokk Transpordiameti ja Kliimaministeeriumi ametnikule
+
+- Plokk „Haldusmenetlus seoses raskete autoveoalaste rikkumistega" on nähtav ja täidetav **Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule** ning süsteemi- ja asutuse administraatorile (ka PPA asutuse administraator näeb plokki PPA vormidel). PPA tavaametnik seda ei näe.
+- Varem oli plokk olemas ainult välisriigi rikkumise kontrollkaardil ja nähtav ainult administraatorile, seega ei näinud Transpordiameti ametnik seda demos. Nüüd on plokk ka PPA andmevormidel (juht, meeskonnaliige, sõiduk, haagis, ADR; veo katkestamise otsusel plokki ei ole) ja Transpordiameti kontrollkaardil.
+- PPA andmevormidel ja TRAM-kaardil salvestatakse plokk eraldi nupuga „Uuenda haldusmenetluse andmeid". Andmed on vormi enda tabelis (samad veerud mis VR-il); salvestus loob vormist uue versiooni (kinnitatud ja avalikustatud vormil suureneb versiooninumber), vana versioon jääb ajalukku. Plokk ilmub pärast vormi esmast salvestamist.
+- Pärast haldusmenetluse andmete salvestamist uueneb vormi versioonide tabel kohe. Vaatamisrežiimis laetakse leht uuesti, et päis näitaks uut versiooni; muutmisrežiimis lehte ei laeta, et pooleli oleva vormi muudatused ei kaoks.
+- Andmehaldusele ja BI-le (Tableau) lisandus vaade `tableau.administrative_procedure`: haldusmenetluse andmed ühtse kujuga, üks rida per vorm (VR, PPA andmevormid, TRAM-kaart), kehtiv seis, liidetav `tableau.form_overview`-ga. Vormiotsingu allalaadimisel (xlsx/csv) on haldusmenetluse väljad nüüd kõigil nendel vormidel kaasas.
+## 2026-10-19
+
+### Riskitase uueneb ka avalikustatud vormi muutmisel
+
+- Avalikustatud kontrollvormi muutmine ja salvestamine arvutab ettevõtte riskitaseme kohe ümber. Varem uuenes riskitase ainult avalikustamisel, kustutamisel, käsitsi käivitamisel või öise töö käigus. Näiteks jäi lehel „Riskitasemed" vana väärtus (40), kuni käsitsi ümberarvutus andis õige (50).
+- Muudatus kehtib kõigis vormitüüpides, mis riskitaset mõjutavad: koondvorm, sõidu- ja puhkeaja alamvormid (juht, meeskonnaliige), sõiduki ja haagise tehnokontroll, ADR-kontroll, välisriigi rikkumise vorm, TRAM-i kontrollkaart ja Tööinspektsiooni kontrollkaart.
+- Mustandi (salvestatud) vormi salvestamine riskitaset ei muuda.
+### Jõustunud otsuse ja menetluse lõpetamise aluse parandamine avalikustatud kaardil
+
+- Avalikustatud sõidu- ja puhkeaja kontrollkaardil (autojuht) olid väljad „Jõustunud otsus“ ja „Menetluse lõpetamise alus“ muutmisel alati hallid. Nüüd saab neid välju muuta administraator (õigus `control_form.edit_locked`), et parandada e-toimikus olevat viga.
+- Sama kehtib kaasjuhi (teammate) kaardil. Kinnitatud ja avalikustatud kaardil saavad neid välju muuta kasutajad, kellel on õigus `control_form.punishment_register`, ja administraator. Teised kasutajad, näiteks politsei, ei saa neid välju muuta ning näevad tehtud parandust. Piirang kehtib ka serveris.
+- Õiguse `control_form.punishment_register` nimetus klassifikaatoris on nüüd „eToimikuga seonduva ülekirjutamise õigus“.
+
+### Riskitaseme arvutus tunneb ära „Korras" tulemusega mitterakendatud kontrollid
+
+- SP-alamvorm, kus sõidu- ja puhkeaja nõudeid ei rakendatud või ei kontrollitud ja tulemus on „Korras", jäetakse riskitaseme arvutusest välja, nagu on kokku lepitud. Varem see reegel ei rakendunud (arvutus ootas vana koodi `KORRAS`, vormid salvestavad `ok`), nii et selline kontroll läks 0 punktiga kontrollide arvu ja langetas riskitaset.
+
+### Massi ja mõõtmete rikkumised lähevad riskitaseme arvutusse
+
+- Sõidu- ja puhkeaja alamvormi „Massi ja mõõtmete" rikkumised (nt VSI843) loetakse nüüd riskitaseme arvutuses. Varem need arvesse ei läinud ja riskitase oli seetõttu liiga madal.
+
+## 2026-10-16
+
+### E-toimiku alamsüsteem ja teenuse versioon XTR-i vaikeväärtusena
+
+- e-toimiku päringu X-tee alamsüsteemi kood (`etoimik`) ja teenuse versioon (`v6`) on nüüd XTR-i teenuse määratluses vaikeväärtused. Ruuter ei saada neid enam `constants.ini` kaudu. Varem jäi puuduva konstandi korral päringusse kohatäitja `[#ETOIMIK_SUBSYSTEM_CODE]` ja turvaserver vastas `server.clientproxy.unknown_member`.
+- Ee-dev liivakasti alamsüsteem on `etoimik-arendus`. Sinna tuleb väärtus XTR-ile eraldi kaasa anda, kuni XTR-il pole keskkonnapõhist konfiguratsiooni.
+
+### E-toimiku otsuste sünkroonimine iga tunni tagant
+
+- Jõustunud otsuste kontroll e-toimikus käivitub nüüd **iga tunni tagant** (varem iga 10 minuti tagant), et X-tee koormus oleks väiksem. Otsus ilmub vormile seega kuni ~1 tunniga pärast jõustumist.
+- Viis sünkroonimist jäävad tunni sees omavahel nihutatuks (:00, :02, :04, :06, :08). Haldus → E-toimiku X-tee logid lehe manuaalne käivitamine toimib endiselt.
+
+### Brauseri vahekaardi ikoon
+
+- Brauseri aadressiriba ja vahekaardi ikoon (favicon) on KeMIT logo asemel Eesti riigivapp (Kliimaministeeriumi logo vapp).
+
+### E-toimiku XML-vastuste lugemine
+
+- XTR loeb nüüd standardseid XML-olemeid (`&quot;`, `&apos;`, `&amp;`, `&lt;`, `&gt;`) sisaldavaid SOAP-vastuseid. Varem katkestas parser vastuse lugemise veaga `upstream_xml_parse_error`.
+- Otsuse teksti tühikud säilivad. Kohandatud XML-olemite kaitse jääb rakendatuks.
+
+
+### REPM ERRU asutusevalikutes
+
+- ERRU pädevate asutuste klassifikaatorisse lisatakse Regionaal- ja Põllumajandusministeerium koodiga `EE-REPM`. Väärtus on kehtiv ja vormipiiranguta. Asutuste kataloogis jääb asutuse koodiks `REPM`.
+
+### Uus asutus: Regionaal- ja Põllumajandusministeerium
+
+- Asutuste nimekirja on lisatud **Regionaal- ja Põllumajandusministeerium** (kood `REPM`). Asutus ilmub nimekirja pärast uuenduse paigaldamist ja seda saab kasutajatele ning gruppidele määrata.
+
+### Riskiskoori öine ümberarvutus leiab ka ettevõtted, kellel skoori veel pole
+
+- Ettevõtja, kelle avalikustatud kontrollid (nt välisriigi rikkumise vorm) olid vanemad kui 3 päeva ja kellel polnud veel riskiskoori kirjet, jäi riskitasemele „Kontrollimata" ja kontrollide arvule 0. Öine ümberarvutus valis ainult värskelt avalikustatud või 2-aasta piirile lähenevad kontrollid ega leidnud neid üles.
+- Nüüd arvutab öine töö riskiskoori ka kõigile Eesti ettevõtjatele, kellel on viimase 2 aasta jooksul avalikustatud kontroll, aga skoori kirjet veel pole. Pärast esimest arvutust ettevõtja sellest valikust välja langeb. Mõju ilmneb järgmisel öösel kell 03:00.
+- Haldus → E-toimiku X-tee logid lehele on lisatud jaotis **„Manuaalne käivitamine"**, kust saab käsitsi käivitada riskiskooride ümberarvutuse ja kõik e-toimiku otsuste sünkroonimised (tööinspektsioon, TRAM kontrollkaart, autojuhi ja meeskonnaliikme sõidu- ja puhkeaeg, tehniline kontroll). Jaotis on nähtav neile, kellel on X-tee logide vaatamise õigus (`xroad.log.read`). Töö jookseb lõpuni enne tulemuse ilmumist; valmimisel ilmub teade ebaõnnestunute arvuga. Iga käivitus logitakse auditisse.
+### E-toimiku otsuste sünkroonimine iga 10 minuti tagant
+
+- Jõustunud otsuste kontroll e-toimikus (tööinspektsiooni, TRAM kontrollkaardi, sõiduki ja haagise tehnovormi ning autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormid) käivitub nüüd iga 10 minuti tagant, varem kord öösel. Otsus ilmub vormile seega kuni ~10 minutiga pärast jõustumist.
+- Viis sünkroonimist on omavahel nihutatud 2 minutiga (:00, :02, :04, :06, :08), et X-tee päringud ei kattuks.
+
+### Mootorsõiduki/haagise tehnoülevaatuse alamvormi andmed ja failid tagastasid "Puuduvad õigused"
+
+- Kasutaja, kellel oli õigus koondvormi või selle autojuhi/meeskonnaliikme
+  alamvormi lugeda, sai siiski 403 vea, kui üritas vaadata sellesse
+  koondvormi kuuluva mootorsõiduki või haagise tehnoülevaatuse alamvormi
+  andmeid või faile — need nõudsid eraldi, kitsamat õiguskoodi, mida
+  admin-liideses on lihtne märkamata jätta. Lisati võimalus pääseda
+  tehnoülevaatuse alamvormile ligi ka koondvormi/autojuhi/meeskonnaliikme
+  lugemisõigusega.
+- Ühtlustati ka välisriigi rikkumise vormi ja Transpordiameti kontrollkaardi
+  lugemisõiguste kontroll teiste vormitüüpidega: administraatori üldine
+  "vaata avaldamata vorme" õigus (`control_form.view_unpublished`) andis
+  varem ligipääsu kõigile vormitüüpidele peale nende kahe.
+
 ## 2026-10-15
+
+### Postkasti mallide ja teavituse saajate halduse täiendused
+
+- Teavituse saajad (desktop-kanali kasutajate nimed või postkasti vaikimisi e-post) on nüüd näha juba koondtabelis, ilma et peaks konkreetset rida avama.
+- Desktop-kanali saajate loendis näidatakse varasema isikukoodi asemel kasutaja nime.
+- Saaja lisamise otsing käivitub nüüd iseseisvalt sisestamise ajal (varem tuli otsimiseks vajutada Enter või otsinguikooni).
+- Parandatud viga, kus täisnime (eesnimi + perekonnanimi) sisestamisel kasutajaotsing ei leidnud midagi, kuigi kasutaja oli olemas — otsing vastendas varem kogu sisestuse ühe veeru vastu korraga, mitte eraldi ees- ja perekonnanimele.
+- Parandatud eraldiseisev viga, kus desktop-kanali saajate nimed ei kuvanud kunagi (ei koondtabelis ega vormi uuesti avamisel) — nimede lahendamise päring tagastas väiketähtedega väljanimed (`firstname` mitte `firstName`), mistõttu veebirakendus ei suutnud neid ära tunda.
 
 ### Desktop-teavitus ka avalikustatud vormi muutmisel-salvestamisel
 
 - Sõiduki ja haagise tehnovormil, autojuhi ja meeskonnaliikme sõidu- ja puhkeaja vormil ning TRAM kontrollkaardil tekkis desktop-teavitus (raske rikkumine, sõidukeeld, erakorraline ülevaatus, kaalu/mõõtmete rikkumine) seni ainult esimesel avalikustamisel. Kui avalikustatud vormi hiljem täpsustati ja uuesti salvestati, teavitust ei tekkinud. Nüüd tekib teavitus ka sel juhul, kui tingimus (nt raske rikkumine) on uuesti täidetud.
+- **Parandus:** sõiduki ja haagise tehnovormi avalikustamine ei tekitanud erakorralise ülevaatuse, veose kinnituse ega sõidukeelu teavitust **ka esimesel avalikustamisel** — viga andmetüübis (vormi/koondvormi võti ja versioon saadeti teavituste teenusele numbrina, teenus ootas stringi), mistõttu teavitus jäi vaikimisi ebaõnnestuma. Nüüd luuakse teavitus mõlemal juhul korrektselt.
 
 ### XTR SOAP dokumentatsiooni parandus
 
@@ -63,7 +242,7 @@
 - Klassifikaatorite täisnimekirjad (`/v1/classifier-values`, `/v1/citizen/classifier-values`, `/v1/classifiers/bundle`) saadavad `ETag` ja `Cache-Control: private, no-cache` päise. Kui klassifikaatorid pole vahepeal muutunud, vastab server korduval laadimisel (lehe värskendus, uus vaheleht) `304 Not Modified` ja brauser kasutab oma koopiat. Muutunud klassifikaatorid, väärtused või vormipiirangud ja uus kuupäev (kehtivus) muudavad ETag-i ning siis laaditakse andmed uuesti.
 ### Klassifikaatorite laadimine kiiremaks („Muu tee" otsing serverist)
 
-- Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga sessiooni klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.
+- Muude riigiteede loetelu (klassifikaator `ROAD_OTHER`, 3 209 teed) ei laadita enam koos teiste klassifikaatoritega (`/v1/classifier-values`, `/v1/classifiers/bundle`). Loetelu kahekordistas iga seansi klassifikaatorilaadimise mahtu ja oli jõudlustestides lugemise p95 ~3x aeglustumise peamine põhjus.
 - Koondvormi „Muu tee" tee numbri otsing küsib tee nime nüüd serverist ühe tee kaupa (`GET /v1/roads/other?number=<nr>`, ainult kehtiv kirje) pärast trükkimise lõppu. Kasutaja jaoks käitumine ei muutu: vaste korral täidetakse tee nimetus, vasteta numbri korral kuvatakse mitteblokeeriv teade ja nime saab käsitsi sisestada.
 - Haldusvaates on `ROAD_OTHER` väärtused endiselt nähtavad ja muudetavad (klassifikaatori väärtuste lehekülgedega loend).
 
@@ -152,7 +331,7 @@
 
 - Kõik kutsed Resql-ile (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`), TIM-ile ja DataMapper'ile saadavad päise `x-internal-service-token` (sama väärtus `INTERNAL_COMMUNICATION_KEY`, mis ruuter-internal'i kaitseks). Teenused ignoreerivad päist: kasutajale ja deploy'le muutust pole, uusi konstante lisada ei ole vaja.
 - Päist ei nõua praegu keegi: teenustevahelist autentimisvärava ei ehitata (otsus #520), kaitse jääb NetworkPolicy peale. Token on valmis, kui upstream (Resql, TIM, DataMapper, XTR) hakkab kutsujat autentima või võetakse kasutusele mTLS.
-- XTR-i kontrollitud (xtr 0.5.0-rc lähtekood ja test): SOAP-lane (`ar`, `etoimik`, `mtr`, `liiklusregister`, 27 kutset) ei edasta päiseid ja saadab sisevõtme; **REST-lane (`rr/isikud`, `PK_*`, ERRU-endpointid XTR-i kaudu) edastab kõik päised turvaserverisse, seega sinna sisevõtit ei saadeta**. CI kontrollib seda (`scripts/check-internal-token-targets.py`).
+- XTR-i kontrollitud (xtr 0.5.0-rc lähtekood ja test): SOAP-lane (`ar`, `etoimik`, `mtr`, `liiklusregister`, 27 kutset) ei edasta päiseid ja saadab sisevõtme; **REST-lane (`rr/isikud`, `PK_*`, ERRU-lõpp-punktid XTR-i kaudu) edastab kõik päised turvaserverisse, seega sinna sisevõtit ei saadeta**. CI kontrollib seda (`scripts/check-internal-token-targets.py`).
 - Plaan: `docs/planning/teenustevaheline-autentimine-faas3.md`.
 ### LJVIS1 SOAP-lepingu pakkumine XTR-i kaudu
 
@@ -202,7 +381,7 @@
 
 ### Kasutajaliides ei saada serveripoolselt tuletatavaid välju
 
-Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise sessioonist. Seda hoiab nii CI reegel R8.
+Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isikukood, nimi). Need tuletatakse serveris sisselogimise seansist. Seda hoiab nii CI reegel R8.
 
 ### Selge teade, kui vormi ei saa vaadata
 
@@ -214,14 +393,14 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 - Varem näitas otsing vormitüübi lugemisõigusega kasutajale kõigi asutuste mustandeid; neid ei saanud avada (403). Nüüd ei ilmu otsingutulemustesse vorme, mida kasutaja avada ei saa.
 - Vormi avamise reegel on sama: kolleegi avalikustamata vormi avamiseks on vaja `control_form.view_organisation` õigust (varem piisas samast asutusest olemisest).
 
-### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb sessioonist
+### Turvaparandus: auditilogi ja failimanuse tegutseja tuleb seansist
 
-- Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-sessioonist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
+- Auditilogi kirjed, failimanuse (üles-/allalaadimine, kustutamine) auditikirjed ja manuse looja märge ning koondvormi avalikustamise looja märge võtavad tegutseja (isikukood, nimi) nüüd alati sisselogitud TARA-seansist. Varem usaldasid `templates/**` päringu body välju `actor_personal_code` / `actor_name`, mistõttu sai otsepäringuga logisse kirjutada teise kasutaja nimel.
 - Kasutajale nähtavat muutust pole: ametniku töövoogudes oli tegutseja varemgi sama.
 - Epic #502, osa A1.
 - Osa A2 (kirjutamine): manuse üleslaadimisel peab vormi number algama selle vormitüübi prefiksiga (nt `vr-`); muidu 400 `INVALID_FORM_NUMBER` ja S3-sse ei kirjutata. Ametniku töövoogudes muutust pole.
 - Osa A2 (lugemine): vormi lugemine ID järgi (vorm, versioonid, alamvormid, väljatrükk, manuste loend ja allalaadimine) järgib omandireeglit: avalikustatud vormi näeb iga vormitüübi `.read` õigusega ametnik; avalikustamata (salvestatud/kinnitatud) vormi näeb ainult looja, looja asutuse kolleeg või `control_form.view_unpublished` omaja, muidu 403. Vormiotsing jääb samaks.
-- Osa D: CI kontrollib nüüd turvareegleid (identiteet ainult sessioonist, `allowlist` igal DSL-il, `strict` mallid, manuse prefiks, lugemise omandikontroll, `template:` kutsete leping, frontend ei saada identiteedivälju); regressioon ebaõnnestub CI-s.
+- Osa D: CI kontrollib nüüd turvareegleid (identiteet ainult seansist, `allowlist` igal DSL-il, `strict` mallid, manuse prefiks, lugemise omandikontroll, `template:` kutsete leping, frontend ei saada identiteedivälju); regressioon ebaõnnestub CI-s.
 - Osa B: audit-, faili- ja PDF-mallid on `strict: true` (tundmatu võti päringus → 400) ja `actor_*` väljad on nende deklaratsioonidest eemaldatud; kõigil Ruuteri DSL-idel (v.a `*.guard.yml`) on `allowlist`.
 
 ### PPA kontrollvormide parandused
@@ -368,7 +547,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 - Sõidu- ja puhkeaja (juht, meeskonnaliige), TRAM-kontrollkaardi ning sõiduki ja haagise tehnovormi kinnitamisel on nupu „Kinnita“ kõrval linnuke „Teavita vedajat rikkumisest (saadetakse avalikustamisel)“.
 - Kui linnuke on märgitud, saadetakse vedajale (äriregistri e-posti aadressile) avalikustamisel raske rikkumise teavitus. Teavitus saadetakse ainult MSI, VSI või SI rikkumise korral. Linnuke võetakse arvesse ka siis, kui vormi avalikustamine toimub hiljem, sh e-toimiku öise otsuse järel automaatselt avalikustatavatel TRAM-kaardil ja tehnovormidel.
 - Teavituse reg-nr väljal on sõiduk ja haagised komaga eraldatult.
-- Postkasti malli uued muutujad `MSIViolationsList`, `VSIViolationsList` ja `SIViolationsList`: rikkumised raskusastme kaupa, iga rikkumine eraldi real kujul „kood — nimetus“ (ridade vahel `<br>`). Muutuja on tühi, kui sellist raskusastet ei ole. Saadetakse nii PPA/TA vormidelt kui välisriigi kontrollkaardilt; mallis tuleb need ise paigutada.
+- Postkasti malli uued muutujad `MSIViolationsList`, `VSIViolationsList` ja `SIViolationsList`: rikkumised raskusastme kaupa, iga rikkumine eraldi real kujul „kood - nimetus“ (ridade vahel `<br>`). Muutuja on tühi, kui sellist raskusastet ei ole. Saadetakse nii PPA/TA vormidelt kui välisriigi kontrollkaardilt; mallis tuleb need ise paigutada.
 - Skeemimuudatus: uus tabel `notifications.carrier_notification_request`.
 
 ### Vedajale saadetava teavituse kontrolli koht on riigi nimetusega
@@ -475,7 +654,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 
 - „Sõidukit kontrollinud ametiisiku andmed" plokis eeltäidetakse nüüd lisaks nimele
   ka asutus, ametikoht ja (olemasolul) struktuuriüksus kasutaja profiilist. Varem
-  ei jõudnud need väärtused sessiooni vastusesse ja väljad jäid tühjaks.
+  ei jõudnud need väärtused seansi vastusesse ja väljad jäid tühjaks.
 
 ### Koondvorm: alamvormi saab avalikustada sõltumata teistest alamvormidest
 
@@ -546,7 +725,7 @@ Kontrollitud: kasutajaliides ei saada kirjutuspäringutes tegutseja andmeid (isi
 ### Vormide täitmiseks vajalikud otsinguandmed on kõigile ametnikele kohe kättesaadavad
 
 - Asutuste kataloog (`GET /v1/organisations`) ei nõua enam `organisation.list`
-  õigust, piisab ametniku sessioonist. Varem jäi näiteks inspektori
+  õigust, piisab ametniku seansist. Varem jäi näiteks inspektori
   organisatsiooni valik tühjaks, kui kasutaja grupil seda õigust polnud, ja
   vormi ei saanud lõpuni täita.
 - Vormilehed ei nõua enam `classifier.read` õigust: vormid loevad
@@ -1005,7 +1184,7 @@ muudatuse (vt allpool) koodiülevaatusel leitud parandused:
 - Vedaja ja tööinspektori teavitamine käivitub nüüd **vormi salvestamisel**
   (varem alles avalikustamisel, ja ainult üks kord). Teavituse saab
   hiljem andmete muutumisel uuesti saata, märkides linnukese ja
-  salvestades vormi uuesti — checkbox ei jää enam püsivalt märgituks/lukku.
+  salvestades vormi uuesti — märkeruut ei jää enam püsivalt märgituks/lukku.
   Teavituste plokis kuvatakse ka varasemate saatmiste ajalugu (kuupäev + staatus).
 - Lisandus eraldi "Teavita tööinspektorit" märkeruut, mis on eraldiseisev
   faktiväljast "Saabus välisriigi pädeva asutuse ettepanek".
@@ -1193,7 +1372,7 @@ muudatuse (vt allpool) koodiülevaatusel leitud parandused:
   otsitakse vedaja e-post äriregistrist (XTR `ar/detailandmed_v1`) — see
   päring läks siiani otse XTR-i, ilma et sellest jääks jälge
   "eToimiku X-tee logid" haldusvaatesse, erinevalt samale teenusele juba
-  varem loodud logivast otsingu-endpoint'ist.
+  varem loodud logivast otsingu-lõpp-punktist.
 - Nüüd logitakse see päring (õnnestumine, viga ja katkenud ühendus eraldi)
   X-tee integratsioonilogisse koos tegeliku äriregistri vastusega, et
   vedaja e-posti tuvastamise vigu (nt vale kontaktandmete kirje valimine)
@@ -1364,7 +1543,7 @@ muudatuse (vt allpool) koodiülevaatusel leitud parandused:
   X-tee päringute ajaloo (nii käsitsi otsingud kui öised automaatsed
   kontrollid), sh väljuva päringu ja saabunud vastuse täissisu.
 - Filtrid: kuupäevavahemik (vaikimisi eile-täna) ja kolm staatuse checkboxi
-  (Vaste leitud / Vastuseta / Vigane) + tuletatud "Kõik" checkbox.
+  (Vaste leitud / Vastuseta / Vigane) + tuletatud "Kõik" märkeruut.
 - Iga rida lingib vormile, mille andmete põhjal päring tehti (kui vorm on
   tuvastatav).
 - Nõuab uut õigust `xroad.log.read` (antud ainult Super Admin Groupile).

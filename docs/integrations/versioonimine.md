@@ -24,7 +24,7 @@
 | X-tee pakutavad teenused (IsikuKontroll, IsikuEttevoteKontrollid, ErakorralineYV, RegisterJobInspection) | Teenuse versioon X-tee teenusekoodis (`…/IsikuKontroll/v1`) | v1; `RegisterJobInspection` ka v3 | [`XroadOpenapi.yaml`](../xtee/XroadOpenapi.yaml) | v1 ja v3 koos |
 | Andmejälgija (AJ) `findUsage` | RIA protokolli versioon (v1.6.1), URL `/v2/…` | protokoll v1.6.1 | [`FindUsageOpenapi.yaml`](../xtee/FindUsageOpenapi.yaml) | — |
 | ERRU (MOVEHUB) | EL ERRU liidese XSD/WSDL versioon | 3.5 | [`contracts/erru/3.5`](../../contracts/erru/3.5) | Uus ERRU versioon = uus kaust `contracts/erru/<ver>`; adapter valib versiooni konfiguratsiooniga |
-| e-Toimik `AnnaIsikuKvalifikatsioonid` | X-tee teenuse versioon | v6 (`ETOIMIK_SERVICE_VERSION`) | tarnija WSDL | muutub konfiguratsiooniga |
+| e-Toimik `AnnaIsikuKvalifikatsioonid` | X-tee teenuse versioon | v6 (vaikeväärtus XTR-i DSL-is `DSL/xtr/etoimik/AnnaIsikuKvalifikatsioonid.yml`) | tarnija WSDL | muutub XTR-i DSL-i muudatusega |
 | Äriregister, RR, MTR, Liiklusregister | X-tee teenuste versioonid XTR kirjeldustes (`DSL/xtr/*`) | `…_v1`, `paring2` jt | tarnija spetsifikatsioon | iga XTR-fail = üks teenuse versioon |
 | Postkast 2.0 | Teenuse API tee (`notification-management/v1`) | v1 | tarnija OpenAPI | — |
 | TARA | OIDC standard | OIDC | — | — |

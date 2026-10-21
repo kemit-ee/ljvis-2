@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -113,9 +114,7 @@ export function AdrFormFields({
 
   const values = formik.values;
   const notesLength = (values.notes ?? '').length;
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
   const checkpointItems = useMemo(
     () =>
       getByCode('ADR_CONTROL_CHECKPOINT').filter(
@@ -984,6 +983,12 @@ export function AdrFormFields({
         enforcementDecision={formik.values.enforcementDecision}
         proceedingClosureBasis={formik.values.proceedingClosureBasis}
         onChange={(field, value) => formik.setFieldValue(field, value)}
+      />
+
+      <AdministrativeProcedureCard
+        formType="adr-form"
+        formKey={formik.values.id}
+        reloadAfterSave={!canEdit}
       />
 
       {formNumber && (

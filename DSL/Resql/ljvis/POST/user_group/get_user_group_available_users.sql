@@ -1,5 +1,5 @@
 /*
-description: Available users for adding to group — active, from linked organisations, not yet members
+description: Available users for adding to group - active, from linked organisations, not yet members
 namespace: user_group
 params:
   user_group_id:

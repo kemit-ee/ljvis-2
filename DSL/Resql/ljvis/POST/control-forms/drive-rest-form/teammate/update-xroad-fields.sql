@@ -1,7 +1,7 @@
 /*
 description: 'Karistusregistri kasutaja sisestab uusimale kinnitatud meeskonnaliikme SP vormile menetluse
   tulemuse. INSERT-only: lisab uue snapshot-rea (revision + 1, version ja kõik muud väljad kantakse edasi),
-  vana rida jääb ajalukku. Staatus jääb ''confirmed''; created_by on tegutsev kasutaja (tühi → ''system'').'
+  vana rida jääb ajalukku. Staatus jääb ''confirmed''; created_by on tegutsev kasutaja (tühi → ''eToimik öine uuendus'').'
 namespace: control-forms
 params:
   key: { type: integer, required: true }
@@ -25,7 +25,7 @@ SELECT (jsonb_populate_record(
       'id', nextval('forms.sp_teammate_form_id_seq'),
       'revision', l.revision + 1,
       'created_at', now(),
-      'created_by', COALESCE(NULLIF(:created_by, ''), 'system'),
+      'created_by', COALESCE(NULLIF(:created_by, ''), 'eToimik öine uuendus'),
       'enforcement_decision', NULLIF(btrim(:enforcementDecision), ''),
       'proceeding_closure_basis', NULLIF(btrim(:proceedingClosureBasis), '')
     )

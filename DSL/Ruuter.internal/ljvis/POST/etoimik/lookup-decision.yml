@@ -1,0 +1,265 @@
+declaration:
+  internal: false
+  version: "1.0"
+  description: >-
+    E-toimiku väärteomenetluse otsuse otsing (AnnaIsikuKvalifikatsioonid) öistele
+    sünkroonidele. Isikutuvastus on XSD-choice (isikukood VÕI eesnimi + perekonnanimi +
+    sünniaeg), seega üks päring ei saa kanda mõlemat. Kui isikukood on olemas, päritakse
+    esmalt see; kui otsust ei leita ja nime + sünniaja grupp on täielik, tehakse teine
+    päring nime ja sünniajaga. Ilma isikukoodita tehakse ainult nime + sünniaja päring.
+    Iga XTR kutse logitakse. Tagastab otsustuse (jõustunud otsuse tekst: paragrahv +
+    otsuse kuupäev) või veaseisu; ei viska HTTP viga.
+  namespace: etoimik
+  allowlist:
+    body:
+      - { field: reference_number, type: string }
+      - { field: personal_code, type: string }
+      - { field: first_name, type: string }
+      - { field: last_name, type: string }
+      - { field: birth_date, type: string }
+      - { field: service_code, type: string }
+      - { field: source_type, type: string }
+      - { field: source_record_id, type: string }
+
+extract:
+  assign:
+    reference_number: "${(incoming.body.reference_number || '').trim()}"
+    personal_code: "${(incoming.body.personal_code || '').trim()}"
+    first_name: "${(incoming.body.first_name || '').trim()}"
+    last_name: "${(incoming.body.last_name || '').trim()}"
+    birth_date: "${(incoming.body.birth_date || '').trim()}"
+    service_code: "${incoming.body.service_code || 'etoimik.AnnaIsikuKvalifikatsioonid.v6'}"
+    source_type: "${incoming.body.source_type || ''}"
+    source_record_id: "${incoming.body.source_record_id || ''}"
+    start_time: "${new Date().getTime()}"
+  next: derive
+
+derive:
+  assign:
+    has_code: "${personal_code !== ''}"
+    has_name_group: "${first_name !== '' && last_name !== '' && birth_date !== ''}"
+  next: validate
+
+validate:
+  switch:
+    - condition: "${reference_number === '' || (!has_code && !has_name_group)}"
+      next: returnInvalid
+    - condition: "${has_code}"
+      next: buildCodeRequest
+  next: buildNameRequest
+
+# XSD-choice: isikukoodi päring EI kanna nime ega sünniaega.
+buildCodeRequest:
+  assign:
+    xtr_request_body1:
+      reference_number: ${reference_number}
+      personal_code: ${personal_code}
+      userId: "LJVIS-CRON"
+  next: callXtr1
+
+buildNameRequest:
+  assign:
+    xtr_request_body1:
+      reference_number: ${reference_number}
+      first_name: ${first_name}
+      last_name: ${last_name}
+      birth_date: ${birth_date}
+      userId: "LJVIS-CRON"
+  next: callXtr1
+
+callXtr1:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body: ${xtr_request_body1}
+  result: xtrResponse1
+  next: parse1
+
+parse1:
+  assign:
+    decision1: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function isNil(v) {
+          return v == null || v === '' || (typeof v === 'object' && (v['@xsi:nil'] === '1' || v['@xsi:nil'] === 'true' || v['@xsi:nil'] === true));
+        }
+        function fmtDate(v) {
+          var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v));
+          return m ? (m[3] + '.' + m[2] + '.' + m[1]) : String(v);
+        }
+        var byCode = has_code;
+        var httpOk = xtrResponse1.response != null && xtrResponse1.response.status >= 200 && xtrResponse1.response.status < 300;
+        if (!httpOk) {
+          return { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + (xtrResponse1.response ? xtrResponse1.response.status : 'puudub'), rawResponse: JSON.stringify(xtrResponse1.response ? xtrResponse1.response.body : null) };
+        }
+        var soapBody = (xtrResponse1.response.body && xtrResponse1.response.body.body) ? xtrResponse1.response.body.body : (xtrResponse1.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
+        var responseNode = responseKey ? soapBody[responseKey] : {};
+        var caseNode = responseNode.response || null;
+        if (caseNode == null || isNil(caseNode)) {
+          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse1.response.body) };
+        }
+        var decisions = [];
+        toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
+          toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
+            toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
+              var person = p.Isik || {};
+              var samePerson = byCode
+                ? String(person.Kood || '') === personal_code
+                : (String(person.Eesnimi || '').toUpperCase() === first_name.toUpperCase() && String(person.Nimi || '').toUpperCase() === last_name.toUpperCase());
+              if (!samePerson) { return; }
+              toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
+                toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
+                  if (isNil(cp.LahendKL) || isNil(cp.LahendiKP)) { return; }
+                  var parts = [];
+                  if (!isNil(cp.SyydistusPunktCSV)) { parts.push(cp.SyydistusPunktCSV); }
+                  parts.push('otsuse kuupäev ' + fmtDate(cp.LahendiKP));
+                  decisions.push(parts.join(', '));
+                });
+              });
+            });
+          });
+        });
+        if (decisions.length === 0) {
+          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+        }
+        return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+      })()}
+  next: log1
+
+log1:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      service_code: ${service_code}
+      request_xml: "${JSON.stringify(xtr_request_body1)}"
+      response_xml: "${decision1.rawResponse}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: ${decision1.success}
+      error_message: "${decision1.errorMessage}"
+      person_identifier: "${has_code ? personal_code : ''}"
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+      result_status: ${decision1.resultStatus}
+  result: logRes1
+  next: afterFirst
+
+# Teine päring ainult siis, kui esimene (isikukoodiga) ei leidnud midagi ja nime + sünniaja grupp on täielik.
+afterFirst:
+  switch:
+    - condition: "${decision1.resultStatus === 'not_found' && has_code && has_name_group}"
+      next: buildNameRequest2
+  next: returnFirst
+
+buildNameRequest2:
+  assign:
+    xtr_request_body2:
+      reference_number: ${reference_number}
+      first_name: ${first_name}
+      last_name: ${last_name}
+      birth_date: ${birth_date}
+      userId: "LJVIS-CRON"
+  next: callXtr2
+
+callXtr2:
+  call: http.post
+  args:
+    url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body: ${xtr_request_body2}
+  result: xtrResponse2
+  next: parse2
+
+parse2:
+  assign:
+    decision2: >-
+      ${(function(){
+        function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
+        function isNil(v) {
+          return v == null || v === '' || (typeof v === 'object' && (v['@xsi:nil'] === '1' || v['@xsi:nil'] === 'true' || v['@xsi:nil'] === true));
+        }
+        function fmtDate(v) {
+          var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(v));
+          return m ? (m[3] + '.' + m[2] + '.' + m[1]) : String(v);
+        }
+        var byCode = false;
+        var httpOk = xtrResponse2.response != null && xtrResponse2.response.status >= 200 && xtrResponse2.response.status < 300;
+        if (!httpOk) {
+          return { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + (xtrResponse2.response ? xtrResponse2.response.status : 'puudub'), rawResponse: JSON.stringify(xtrResponse2.response ? xtrResponse2.response.body : null) };
+        }
+        var soapBody = (xtrResponse2.response.body && xtrResponse2.response.body.body) ? xtrResponse2.response.body.body : (xtrResponse2.response.body || {});
+        var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
+        var responseNode = responseKey ? soapBody[responseKey] : {};
+        var caseNode = responseNode.response || null;
+        if (caseNode == null || isNil(caseNode)) {
+          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse2.response.body) };
+        }
+        var decisions = [];
+        toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
+          toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
+            toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
+              var person = p.Isik || {};
+              var samePerson = byCode
+                ? String(person.Kood || '') === personal_code
+                : (String(person.Eesnimi || '').toUpperCase() === first_name.toUpperCase() && String(person.Nimi || '').toUpperCase() === last_name.toUpperCase());
+              if (!samePerson) { return; }
+              toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
+                toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
+                  if (isNil(cp.LahendKL) || isNil(cp.LahendiKP)) { return; }
+                  var parts = [];
+                  if (!isNil(cp.SyydistusPunktCSV)) { parts.push(cp.SyydistusPunktCSV); }
+                  parts.push('otsuse kuupäev ' + fmtDate(cp.LahendiKP));
+                  decisions.push(parts.join(', '));
+                });
+              });
+            });
+          });
+        });
+        if (decisions.length === 0) {
+          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+        }
+        return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+      })()}
+  next: log2
+
+log2:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      service_code: ${service_code}
+      request_xml: "${JSON.stringify(xtr_request_body2)}"
+      response_xml: "${decision2.rawResponse}"
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: ${decision2.success}
+      error_message: "${decision2.errorMessage}"
+      person_identifier: ""
+      source_type: ${source_type}
+      source_record_id: ${source_record_id}
+      result_status: ${decision2.resultStatus}
+  result: logRes2
+  next: returnSecond
+
+returnFirst:
+  return: "${({ success: decision1.success, found: decision1.found, resultStatus: decision1.resultStatus, enforcementDecision: decision1.enforcementDecision, proceedingClosureBasis: decision1.proceedingClosureBasis, errorMessage: decision1.errorMessage })}"
+  next: end
+
+returnSecond:
+  return: "${({ success: decision2.success, found: decision2.found, resultStatus: decision2.resultStatus, enforcementDecision: decision2.enforcementDecision, proceedingClosureBasis: decision2.proceedingClosureBasis, errorMessage: decision2.errorMessage })}"
+  next: end
+
+returnInvalid:
+  return: "${({ success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'puudub viitenumber või isikutuvastus (isikukood või eesnimi + perekonnanimi + sünniaeg)' })}"
+  next: end

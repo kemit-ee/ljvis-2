@@ -1,4 +1,4 @@
-# Epic #502 / A2 read — vormi lugemine ID järgi järgib omandireeglit (check-read-access).
+# Epic #502 / A2 read - vormi lugemine ID järgi järgib omandireeglit (check-read-access).
 mode: mock-http
 constants:
   LJVIS_RESQL: '{MOCK}/resql'

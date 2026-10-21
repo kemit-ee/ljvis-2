@@ -150,6 +150,35 @@
       ]
     },
     {
+      "name": "GET /v1/classifier-values — EE-REPM is available to ERRU forms",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": "{{api_url}}/ljvis/v1/classifier-values"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "const values = Array.isArray(body) ? body : (body.response || []);",
+              "const repm = values.filter(v => v.classifierCode === 'COMPETENT_AUTHORITY' && v.code === 'EE-REPM');",
+              "pm.test('EE-REPM exists exactly once', () => pm.expect(repm).to.have.lengthOf(1));",
+              "pm.test('EE-REPM has the correct name and is valid', () => pm.expect(repm[0]).to.include({ name: 'Regionaal- ja Põllumajandusministeerium', isValid: true }));",
+              "pm.test('EE-REPM has no form restriction', () => pm.expect(repm[0].formTypes).to.eql([]));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "[Setup] Save seeded value ID (RTK/EE)",
       "request": {
         "method": "GET",

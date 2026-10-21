@@ -1,5 +1,5 @@
 /*
-description: Insert good repute form (hea maine vorm) — first save
+description: Insert good repute form (hea maine vorm) - first save
 namespace: control-forms
 params:
   status:

@@ -34,7 +34,7 @@ HEADER = '''declaration:
     Turvaserver saab selle URL-i teenuse kirjeldusena registreerida
     (Teenused -> Lisa REST -> Kirjelduse URL), et automaatselt teenuste
     lepingut uuendada. Sisu on genereeritud failist {source}
-    skriptiga scripts/generate-xroad-openapi-dsl.py — ÄRA MUUDA KÄSITSI.
+    skriptiga scripts/generate-xroad-openapi-dsl.py - ÄRA MUUDA KÄSITSI.
   namespace: xroad-openapi
 
 returnOpenapi:
@@ -63,7 +63,7 @@ def generate(source, dest, title):
                 f"{dest.relative_to(ROOT)} is out of sync with {source.relative_to(ROOT)}; "
                 "run: python3 scripts/generate-xroad-openapi-dsl.py"
             )
-        print(f"Checked {dest.relative_to(ROOT)} — in sync with {source.relative_to(ROOT)}")
+        print(f"Checked {dest.relative_to(ROOT)} - in sync with {source.relative_to(ROOT)}")
     else:
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(generated, encoding="utf-8")

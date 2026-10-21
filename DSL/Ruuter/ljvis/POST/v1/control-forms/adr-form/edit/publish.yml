@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) the ADR sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) the ADR sub-form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
@@ -61,7 +61,7 @@ checkManualPublish:
   next: extractCurrentFormData
 
 # Väljanimed peavad ühtima adr-form/get + adr-form/update kujuga (määruse-teisenduse
-# skeem — vt save.yml). Iga update.sql allowlist väli PEAB body's olemas olema.
+# skeem - vt save.yml). Iga update.sql allowlist väli PEAB body's olemas olema.
 extractCurrentFormData:
   assign:
     driver_assistant: "${currentFormRes.response.body[0].driverAssistant || ''}"
@@ -132,7 +132,7 @@ publishForm:
   next: checkPublishConflict
 
 # Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
-# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
     - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
@@ -181,6 +181,20 @@ autoPublishCompound:
     id: "${compound_form_key == null ? '' : String(compound_form_key)}"
     only_if_confirmed: "true"
   result: autoPublishCompoundRes
+  error: recalculateRisk
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(compound_form_key)}"
+  result: riskRecalcRes
   error: returnSuccess
   next: returnSuccess
 

@@ -14,6 +14,17 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 COMPOSE="docker compose -f $REPO_ROOT/docker-compose.ci.yml -p ljvis-pw"
 KEEP_STACK="${KEEP_STACK:-0}"
 
+# Resolve and validate the complete plan before touching an existing stack.
+if [ "${1:-}" = --group ]; then
+  selectors="$(python3 "$SCRIPT_DIR/groups.py" "${2:-}")"
+  shift 2
+  group_files=()
+  while IFS= read -r selector; do
+    group_files+=("$selector")
+  done <<< "$selectors"
+  set -- "${group_files[@]}" "$@"
+fi
+
 cd "$SCRIPT_DIR"
 
 echo "==> Teardown varasemast pinust (koos mahtudega)…"

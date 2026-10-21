@@ -8,12 +8,12 @@ Liquibase ei loo ühtegi kasutajat (`users.user_account`) ega superadmini
 kasutajagruppi. Loo esimene kasutaja käsitsi andmebaasis. Sellel kasutajal peab olema
 õigus teisi kasutajaid hallata.
 
-Kuna kõik LJVIS2 tabelid on append-only (rida ei uuendata, vaid lisatakse uus "hetketõmmis"), tuleb kasutaja ja tema õigustegrupp luua ühekordse SQL-skriptiga, mitte rakenduse UI kaudu (UI eeldab, et esimene kasutaja juba on olemas).
+Looge esimene kasutaja ja tema kasutajagrupp alloleva SQL-skriptiga. Rakenduse kasutajaliidese kaudu saab kasutajaid luua alles siis, kui vähemalt ühel kasutajal on kasutajate haldamise õigus.
 
 ## Eeldused
 
 - Liquibase migratsioon on lõpetanud (Kubernetesis jookseb see `resql-ljvis` Helm chart'i wave -1 Job'ina, vt peatükk „Paigaldus ja keskkonnad (devops)“).
-- Ligipääs keskkonna LJVIS andmebaasile (RDS `ljvis2-<keskkond>-main`, andmebaas `ljvis2`). Ühenduse andmed on AWS SSM-is kataloogis `/ljvis2/<keskkond>/db/main/ljvis2/` (`host`, `database`, `username`, `password`). RDS asub privaatvõrgus, seega ühendu keskkonna kaudu, kuhu sul on ligipääs.
+- Ligipääs keskkonna LJVIS andmebaasile (RDS `ljvis2-<keskkond>-main`, andmebaas `ljvis2`). Ühenduse andmed on AWS SSM-is kataloogis `/ljvis2/<keskkond>/db/main/ljvis2/` (`host`, `database`, `username`, `password`). RDS asub privaatvõrgus, seega ühenduge keskkonna kaudu, kuhu Teil on ligipääs.
 - Esimese kasutaja isikukood ja asutuse kood.
 
 ## Asutuste nimekiri
@@ -38,7 +38,7 @@ Väljundis olev `code` (nt `KLIM`, `TRAM`, `PPA`, `TI`, `MTA`, `ERAA`) läheb al
 
 Skript teeb kolm asja: (1) loob "Super Admin Group" kasutajagrupi, mille õiguste hulk on kõigi hetkel `users.permission` tabelis olevate õiguste kogum ja mis kehtib **kõigi asutuste** ulatuses, (2) loob selle konkreetse kasutaja, ja (3) on idempotentne — teistkordsel käivitamisel duplikaate ei teki.
 
-**Enne käivitamist muuda ainult plokki `DO $$ ... $$` alguses olevaid muutujaid** (`v_personal_code`, `v_first_name`, `v_last_name`, `v_email`, `v_phone`, `v_org_code`, `v_job_title`).
+**Enne käivitamist muutke ainult ploki `DO $$ ... $$` alguses olevaid muutujaid** (`v_personal_code`, `v_first_name`, `v_last_name`, `v_email`, `v_phone`, `v_org_code`, `v_job_title`).
 
 ```sql
 BEGIN;
@@ -99,7 +99,7 @@ END $$;
 COMMIT;
 ```
 
-> **Märkus:** kui `users.user_group` tabelis on juba varasemast rida nimega "Super Admin Group" (nt see skript on korra juba käivitatud enne uue õiguse lisandumist Liquibase migratsiooniga), siis õiguste kogum **ei uuene** automaatselt — grupp on samuti append-only. Uue õigustega grupi tekitamiseks tuleb kas kustutada vana rida (ei ole soovitatav, kui sellel on juba kasutajaid) või lisada uus rida uue nimega (nt `'Super Admin Group v2'`) ja siduda kasutaja käsitsi selle `user_group_key`-ga.
+> **Märkus:** kui `users.user_group` tabelis on juba varasemast rida nimega "Super Admin Group" (nt see skript on korra juba käivitatud enne uue õiguse lisandumist Liquibase migratsiooniga), siis õiguste kogum **ei uuene** automaatselt — grupp on samuti append-only. Uute õigustega grupi loomiseks tuleb kas kustutada vana rida (ei ole soovitatav, kui sellel on juba kasutajaid) või lisada uus rida uue nimega (nt `'Super Admin Group v2'`) ja siduda kasutaja käsitsi selle `user_group_key`-ga.
 
 ## Kontroll
 
@@ -110,4 +110,4 @@ JOIN users.user_group ug ON ug.user_group_key = gk
 WHERE ua.personal_code = '38001010000';  -- sisesta lisatud isikukood
 ```
 
-Peale seda saab superadmin TARA kaudu sisse logida ning rakenduse **Haldus → Kasutajad** vaates edasisi kasutajaid ja kasutajagruppe UI kaudu luua (vt peatükk „Kasutajad“).
+Pärast seda saab superadmin TARA kaudu sisse logida ning rakenduse **Haldus → Kasutajad** vaates edasisi kasutajaid ja kasutajagruppe kasutajaliidese kaudu luua (vt peatükk „Kasutajad“).

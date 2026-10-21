@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
+import {
+  Alert,
+  Button,
+  Card,
+  Heading,
+  Text,
+  StatusBadge,
+} from '@tedi-design-system/react/tedi';
 import { useRsiMessageDetail } from './useRsiMessageDetail';
 import { useRsiForm } from './useRsiForm';
 import { RsiMessageFields } from '../../components/Rsi/RsiMessageFields';
@@ -12,7 +19,10 @@ import { DetailRow } from '../../components/shared/DetailRow';
 import { PageActions } from '../../../../shared/components/PageActions';
 import { printRsiMessage } from '../../api';
 import { RsiCheckedItemsTable } from '../../components/Rsi/RsiCheckedItemsTable';
-import { isLegacyCheckedItems, normaliseCheckedItems } from '../../utils/rsiReasons';
+import {
+  isLegacyCheckedItems,
+  normaliseCheckedItems,
+} from '../../utils/rsiReasons';
 
 /**
  * RSI message detail (LJVIS2-147 vorm + LJVIS2-148 send). Modes:
@@ -43,11 +53,19 @@ export function RsiFormPage() {
     window.scrollTo(0, 0);
     reload();
   };
-  const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
+  const handleSend = () => {
+    setSavedOk(false);
+    window.scrollTo(0, 0);
+    send();
+  };
   const handlePrint = async () => {
     const result = await printRsiMessage(String(message!.id));
-    const bytes = Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
-    const url = URL.createObjectURL(new Blob([bytes], { type: result.contentType }));
+    const bytes = Uint8Array.from(atob(result.base64), (char) =>
+      char.charCodeAt(0),
+    );
+    const url = URL.createObjectURL(
+      new Blob([bytes], { type: result.contentType }),
+    );
     const link = document.createElement('a');
     link.href = url;
     link.download = result.filename;
@@ -59,12 +77,17 @@ export function RsiFormPage() {
 
   useEffect(() => {
     const count = form.formik.submitCount;
-    if (count > prevSubmitCount.current && Object.keys(form.formik.errors).length > 0) {
+    if (
+      count > prevSubmitCount.current &&
+      Object.keys(form.formik.errors).length > 0
+    ) {
       prevSubmitCount.current = count;
       setTimeout(() => {
         const first =
           document.querySelector<HTMLElement>('[aria-invalid="true"]') ??
-          document.querySelector<HTMLElement>('[class*="feedback-text--error"]');
+          document.querySelector<HTMLElement>(
+            '[class*="feedback-text--error"]',
+          );
         first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 50);
     }
@@ -101,24 +124,40 @@ export function RsiFormPage() {
               {message.businessCaseId}
             </Heading>
             <StatusBadge>
-              {label('RSI_REQUEST_STATUS', message.status)}
+              {message.status === 'sending'
+                ? t('erru.rsi.sending')
+                : message.status === 'send_unknown'
+                  ? t('erru.rsi.sendUnknownStatus')
+                  : label('RSI_REQUEST_STATUS', message.status)}
             </StatusBadge>
           </div>
           <Text>
             {t('erru.rsi.form.version', { version: message.version })}
             {!editable && ` · ${t('erru.rsi.form.readOnly')}`}
           </Text>
-          <Button type="button" visualType="secondary" onClick={() => void handlePrint()}>
+          <Button
+            type="button"
+            visualType="secondary"
+            onClick={() => void handlePrint()}
+          >
             {t('common.printFilled')}
           </Button>
           {message.errorMessage && (
-            <Text modifiers="bold">{message.errorMessage}</Text>
+            <Text modifiers="bold">
+              {message.status === 'send_unknown'
+                ? t('erru.rsi.sendUnknown')
+                : message.errorMessage}
+            </Text>
           )}
           {sendError && (
             <Text modifiers="bold">
-              {sendError === 'invalid_checked_items'
-                ? t('erru.rsi.validation.invalid_checked_items')
-                : t('erru.rsi.sendFailed')}
+              {sendError === 'invalid_rsi_xml'
+                ? t('erru.rsi.invalidXml')
+                : sendError === 'send_unknown'
+                  ? t('erru.rsi.sendUnknown')
+                  : sendError === 'invalid_checked_items'
+                    ? t('erru.rsi.validation.invalid_checked_items')
+                    : t('erru.rsi.sendFailed')}
             </Text>
           )}
         </Card.Content>
@@ -310,7 +349,9 @@ export function RsiFormPage() {
               </Heading>
               {isLegacyCheckedItems(message.checkedItems) ? (
                 <>
-                  <Text className="mb-05">{t('erru.rsi.checkedItems.legacyNotice')}</Text>
+                  <Text className="mb-05">
+                    {t('erru.rsi.checkedItems.legacyNotice')}
+                  </Text>
                   <ul>
                     {(message.checkedItems ?? [])
                       .filter((i) => i.status !== 'not_checked')
