@@ -23,7 +23,9 @@ ALLOWED = {
 }
 # The adapter consumes the token locally. Its Hub request sets only Content-Type;
 # it does not forward the incoming service token or other incoming headers.
-ADAPTER_INTERNAL_PATHS = {"/internal/rsi/validate", "/internal/rsi/send"}
+ADAPTER_INTERNAL_PATHS = {"/internal/rsi/validate", "/internal/rsi/send",
+                          "/internal/cgr/validate", "/internal/cgr/send",
+                          "/internal/ctud/validate", "/internal/ctud/send"}
 XTR_SOAP_PREFIXES = ("/ar/", "/etoimik/", "/mtr/", "/liiklusregister/")
 
 errors = []

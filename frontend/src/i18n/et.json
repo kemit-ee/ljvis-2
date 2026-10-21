@@ -1793,7 +1793,13 @@
   "erru": {
     "ctud": {
       "notFound": "Tegevusloa kontrolli päringut ei leitud",
-      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
+      "sendFailed": "ERRU lükkas päringu tagasi. Saatmist saab korrata.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue päringu saatmist.",
+      "awaitingResponse": "ERRU võttis päringu vastu. Riigi vastus on ootel, värskenda lehte hiljem.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Vähemalt kaks otsingukriteeriumi on kohustuslikud ning sõidukil peab olema number ja riik.",
+      "validationUnavailable": "XML-i kontroll pole praegu saadaval. Päringut ei saadetud.",
       "list": {
         "title": "Tegevusloa kontrolli päringud CTUD",
         "newRequest": "Uus tegevusloa kontrolli päring",
@@ -1903,7 +1909,14 @@
     },
     "cgr": {
       "notFound": "Mainepäringut ei leitud",
-      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
+      "sendFailed": "ERRU lükkas päringu tagasi. Saatmist saab korrata.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue päringu saatmist.",
+      "awaitingResponse": "ERRU võttis päringu vastu. Liikmesriikide vastused on ootel, värskenda lehte hiljem.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli nime, sünniaega ja sertifikaadi andmeid.",
+      "validationUnavailable": "XML-i kontroll pole praegu saadaval. Päringut ei saadetud.",
+      "nysiisUnavailable": "NYSIIS-otsinguvõtme arvutamine ebaõnnestus. Päringut ei saadetud.",
       "list": {
         "title": "Mainepäringud CGR",
         "newRequest": "Uus mainepäring",

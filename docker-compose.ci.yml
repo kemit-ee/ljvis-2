@@ -322,6 +322,9 @@ services:
       timeout: 5s
       retries: 12
       start_period: 5s
+    environment:
+      # Answers outgoing CGR/CTUD asynchronously through the adapter's ingress (dev/CI only).
+      - AUTO_REPLY_URL=http://erru-xml-adapter:8080/erru/xml
     networks:
       - ljvis-ci
     # localhost-only.
@@ -353,6 +356,8 @@ services:
       - INTERNAL_COMMUNICATION_KEY=dev-internal-service-token
       - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
       - HUB_RSI_REQUEST_URL=http://erru-hub-mock:8080/rsi/http/request/BTSHTTPReceive.dll
+      - HUB_CGR_REQUEST_URL=http://erru-hub-mock:8080/cgr/http/request/BTSHTTPReceive.dll
+      - HUB_CTUD_REQUEST_URL=http://erru-hub-mock:8080/ctud/http/request/BTSHTTPReceive.dll
       - CONTRACTS_DIR=/app/contracts/erru/3.5
       - RESPONDING_AUTHORITY=EE-PPA
       - RESPONDING_AUTHORITY_CTUD=EE-TRAM

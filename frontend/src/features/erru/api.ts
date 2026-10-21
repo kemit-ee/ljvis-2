@@ -83,10 +83,11 @@ export function updateCtudRequest(
 }
 
 /**
- * Send to the target member state. Synchronous: the answer is stored before this
- * resolves. Timeout and NotAvailable are successful outcomes (status becomes
- * 'responded'); only a transport failure yields 502 and status 'error', from which
- * sending may be retried.
+ * Send to the target member state. Asynchronous: resolving means the Hub accepted the XML
+ * (status 'sent'); the country's answer arrives later and moves the request to 'responded'.
+ * Timeout and NotAvailable are successful outcomes. A definite rejection (502 send_failed)
+ * leaves status 'error', from which sending may be retried; 502 send_unknown means the outcome
+ * is uncertain and must not be retried; 422 invalid_ctud_xml leaves the draft editable.
  */
 export function sendCtudRequest(id: string): Promise<CtudSaveResult> {
   return post<CtudSaveResult>('/v1/erru/ctud/send', { id });
@@ -125,21 +126,21 @@ export function updateCgrRequest(
 }
 
 /**
- * Send a CGR request to its target member state(s). Synchronous: the answer(s) are
- * stored before this resolves. cgrTo='ZZ' (broadcast) returns one memberStates entry per
- * member state in a single call; a single-country send returns exactly one entry.
- * Timeout/NotAvailable are successful outcomes; only a transport failure yields 502 and
- * moves the request to 'error', from which sending may be retried.
+ * Send a CGR request to its target member state(s). Asynchronous: resolving means the Hub
+ * accepted the XML (status 'sent'). Each answering member state delivers its own response later
+ * (cgrTo='ZZ' broadcasts produce several), which fills memberStates and moves the request to
+ * 'responded'. A definite rejection (502 send_failed) moves it to 'error', from which sending may
+ * be retried; 502 send_unknown means the outcome is uncertain and must not be retried.
  */
 export function sendCgrRequest(id: string): Promise<CgrSendResult> {
   return post<CgrSendResult>('/v1/erru/cgr/send', { id });
 }
 
 /**
- * Re-send to a single member state of an already-sent (typically broadcast) request —
- * only the targeted memberStateCode entry is replaced, the rest of memberStates and the
- * workflowId are left untouched. A transport failure here does NOT move the request to
- * 'error' (status stays 'sent'), so it can be retried immediately.
+ * Re-send to a single member state of an already-sent (typically broadcast) request. The new
+ * answer arrives later and replaces only the targeted memberStateCode entry; the rest of
+ * memberStates and the workflowId are left untouched. A rejected resend does NOT change the
+ * request status, so it can be retried immediately; 502 send_unknown must not be retried.
  */
 export function resendCgrRequest(
   id: string,

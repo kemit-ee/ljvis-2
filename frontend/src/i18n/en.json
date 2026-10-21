@@ -1762,7 +1762,13 @@
   "erru": {
     "ctud": {
       "notFound": "CTUD request not found",
-      "sendFailed": "Sending the request to ERRU failed. You can try again.",
+      "sendFailed": "ERRU rejected the request. It can be sent again.",
+      "sending": "Sending",
+      "sendUnknownStatus": "Dispatch outcome unknown",
+      "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending a new request.",
+      "awaitingResponse": "ERRU accepted the request. The country response is pending, refresh the page later.",
+      "invalidXml": "The data does not meet the ERRU XML contract. At least two search criteria are required and a vehicle needs both a number and a country.",
+      "validationUnavailable": "XML validation is currently unavailable. The request was not sent.",
       "list": {
         "title": "Transport undertaking data requests CTUD",
         "newRequest": "New CTUD request",
@@ -1872,7 +1878,14 @@
     },
     "cgr": {
       "notFound": "CGR request not found",
-      "sendFailed": "Sending the request to ERRU failed. You can try again.",
+      "sendFailed": "ERRU rejected the request. It can be sent again.",
+      "sending": "Sending",
+      "sendUnknownStatus": "Dispatch outcome unknown",
+      "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending a new request.",
+      "awaitingResponse": "ERRU accepted the request. The member state responses are pending, refresh the page later.",
+      "invalidXml": "The data does not meet the ERRU XML contract. Check the name, date of birth and certificate details.",
+      "validationUnavailable": "XML validation is currently unavailable. The request was not sent.",
+      "nysiisUnavailable": "Computing the NYSIIS search key failed. The request was not sent.",
       "list": {
         "title": "Check good repute requests CGR",
         "newRequest": "New CGR request",

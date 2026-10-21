@@ -80,7 +80,11 @@ export function CgrFormPage() {
               {request.businessCaseId}
             </Heading>
             <StatusBadge>
-              {label('CGR_REQUEST_STATUS', request.status)}
+              {request.status === 'sending'
+                ? t('erru.cgr.sending')
+                : request.status === 'send_unknown'
+                  ? t('erru.cgr.sendUnknownStatus')
+                  : label('CGR_REQUEST_STATUS', request.status)}
             </StatusBadge>
           </div>
           <Text>
@@ -88,10 +92,27 @@ export function CgrFormPage() {
             {!editable && ` · ${t('erru.cgr.form.readOnly')}`}
           </Text>
           {request.errorMessage && (
-            <Text modifiers="bold">{request.errorMessage}</Text>
+            <Text modifiers="bold">
+              {request.status === 'send_unknown'
+                ? t('erru.cgr.sendUnknown')
+                : request.errorMessage}
+            </Text>
+          )}
+          {request.direction === 'outgoing' && request.status === 'sent' && !request.memberStates?.length && (
+            <Text>{t('erru.cgr.awaitingResponse')}</Text>
           )}
           {sendError && (
-            <Text modifiers="bold">{t('erru.cgr.sendFailed')}</Text>
+            <Text modifiers="bold">
+              {sendError === 'send_unknown'
+                ? t('erru.cgr.sendUnknown')
+                : sendError === 'invalid_cgr_xml'
+                  ? t('erru.cgr.invalidXml')
+                  : sendError === 'validation_unavailable'
+                    ? t('erru.cgr.validationUnavailable')
+                    : sendError === 'nysiis_unavailable'
+                      ? t('erru.cgr.nysiisUnavailable')
+                      : t('erru.cgr.sendFailed')}
+            </Text>
           )}
         </Card.Content>
       </Card>

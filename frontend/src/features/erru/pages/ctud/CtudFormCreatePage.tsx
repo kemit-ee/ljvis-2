@@ -17,7 +17,8 @@ export function CtudFormCreatePage() {
 
   const form = useCtudForm(
     undefined,
-    (id) => navigate(id ? `/erru/ctud/${id}` : '/erru/ctud'),
+    (id, sendError) =>
+      navigate(id ? `/erru/ctud/${id}` : '/erru/ctud', sendError ? { state: { sendError } } : undefined),
     { sendAfterCreate: true },
   );
 

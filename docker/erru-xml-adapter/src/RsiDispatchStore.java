@@ -2,12 +2,7 @@ import java.sql.DriverManager;
 import java.util.Map;
 
 /** Mutable transport journal. Business snapshots remain behind Resql. */
-interface RsiDispatchStore {
-    // null grants the only dispatch claim; a saved result is replayed without sending again.
-    Map<String, Object> reserve(String technicalId, String workflowId, String xml) throws Exception;
-    void finish(String technicalId, String status, int httpStatus) throws Exception;
-
-    final class Conflict extends Exception { }
+interface RsiDispatchStore extends DispatchStore {
 
     final class Jdbc implements RsiDispatchStore {
         private final Config config;

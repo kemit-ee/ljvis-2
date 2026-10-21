@@ -19,6 +19,11 @@ import java.util.concurrent.Executors;
  * the design.
  */
 public final class ErruXmlAdapter {
+    static final OutboundXmlHandler.Kind CGR_KIND = new OutboundXmlHandler.Kind("/internal/cgr", "CheckGoodRepute_Request",
+            CgrRequestXml::build, "invalid_cgr_xml", "CGR data does not satisfy the ERRU 3.5 contract", "cgr_endpoint_not_configured");
+    static final OutboundXmlHandler.Kind CTUD_KIND = new OutboundXmlHandler.Kind("/internal/ctud", "CheckTransportUndertakingData_Request",
+            CtudRequestXml::build, "invalid_ctud_xml", "CTUD data does not satisfy the ERRU 3.5 contract", "ctud_endpoint_not_configured");
+
     public static void main(String[] args) throws Exception {
         Config config = Config.load();
         System.out.println("erru-xml-adapter starting: port=" + config.port
@@ -37,7 +42,9 @@ public final class ErruXmlAdapter {
                 new CgrMapper(config.memberStateCode),
                 new CtudMapper(config.respondingAuthorityCtud, config.memberStateCode),
                 new RsiMapper(config.respondingAuthorityRsi, config.memberStateCode),
-                new RsiResponseMapper()
+                new RsiResponseMapper(),
+                new CgrResponseMapper(),
+                new CtudResponseMapper()
         );
 
         List<Thread> workers = new java.util.ArrayList<>();
@@ -57,6 +64,16 @@ public final class ErruXmlAdapter {
                 java.time.Duration.ofSeconds(15), new RsiDispatchStore.Jdbc(config));
         server.createContext("/internal/rsi/send", rsiSender);
         server.createContext("/internal/rsi/validate", rsiSender);
+        OutboundXmlHandler cgrSender = new OutboundXmlHandler(CGR_KIND, schemas,
+                config.internalServiceToken, config.memberStateCode, config.cgrRequestUrl,
+                java.time.Duration.ofSeconds(15), new OutboundDispatchStore(config, "CGR"));
+        server.createContext("/internal/cgr/send", cgrSender);
+        server.createContext("/internal/cgr/validate", cgrSender);
+        OutboundXmlHandler ctudSender = new OutboundXmlHandler(CTUD_KIND, schemas,
+                config.internalServiceToken, config.memberStateCode, config.ctudRequestUrl,
+                java.time.Duration.ofSeconds(15), new OutboundDispatchStore(config, "CTUD"));
+        server.createContext("/internal/ctud/send", ctudSender);
+        server.createContext("/internal/ctud/validate", ctudSender);
         // A small bounded pool instead of the default single thread, so one slow client cannot
         // block every other request (including /health). It does not add read/idle timeouts: the
         // JDK's built-in HttpServer has no hook for that, so a slowloris-style connection can still

@@ -1,0 +1,151 @@
+declaration:
+  internal: false
+  version: "1.0"
+  description: |
+    Receive an ASYNCHRONOUS CheckGoodRepute_Response from the ERRU hub. The hub acknowledged our
+    CheckGoodRepute_Request with HTTP 202; each answering member state delivers its own response
+    later, correlated by workflowId. A broadcast (ZZ) therefore produces several calls here.
+
+    Flow:
+      1. Validate workflowId and memberStates (a JSON array string built by the XML adapter).
+      2. Look up the outgoing request by workflowId. Unknown workflow -> 404.
+      3. erru.cgr_apply_response merges the entries per memberStateCode and appends a
+         'responded' snapshot (allowed from sending, send_unknown, sent and responded).
+         Zero rows means identical replay or a state that no longer accepts answers.
+      4. Audit (cgr.inbound_response.receive) directly to Resql, because ruuter-internal cannot
+         reach the main Ruuter audit templates.
+
+    Idempotency: replaying identical content creates no snapshot and returns already_responded.
+    Runs on ruuter-internal (allowedIPs 127.0.0.1 only) like the other ERRU inbound flows.
+  namespace: erru
+  allowlist:
+    body:
+      - field: workflowId
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: memberStates
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnMissingWorkflowId
+    - condition: ${!(('' + (incoming.body.memberStates || '')).trim())}
+      next: returnMissingMemberStates
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    message_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    member_states: "${('' + (incoming.body.memberStates || '')).trim()}"
+  next: findByWorkflowId
+
+findByWorkflowId:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/get-by-workflow-id"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      workflow_id: ${workflow_id}
+  result: found_res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${found_res.response.body == null || found_res.response.body.length != 1}
+      next: returnUnknownWorkflowId
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    business_case_id: "${found_res.response.body[0].businessCaseId}"
+  next: checkCaseMatches
+
+# A response must belong to the request its workflowId identifies. A mismatching businessCaseId is
+# refused instead of merged into the wrong request.
+checkCaseMatches:
+  switch:
+    - condition: ${message_case_id !== '' && message_case_id !== business_case_id}
+      next: returnCaseMismatch
+  next: applyResponse
+
+applyResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/apply-response"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      workflowId: ${workflow_id}
+      memberStates: ${member_states}
+  result: applied_res
+  next: checkApplied
+
+checkApplied:
+  switch:
+    - condition: ${applied_res.response.body == null || applied_res.response.body.length != 1}
+      next: returnAlreadyResponded
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
+    audit_description: "CGR asünkroonse vastuse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "cgr.inbound_response.receive"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU CGR inbound response service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      organisation_id: ""
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  error: returnOk
+  next: returnOk
+
+returnOk:
+  return: "${JSON.stringify({status: 'responded', businessCaseId: business_case_id, workflowId: workflow_id})}"
+  next: end
+
+returnAlreadyResponded:
+  return: "${JSON.stringify({status: 'already_responded', businessCaseId: business_case_id || null, workflowId: workflow_id})}"
+  next: end
+
+returnUnknownWorkflowId:
+  status: 404
+  return: '{"statusCode":"NotFound","statusMessage":"No outgoing CGR request found for this workflowId"}'
+  next: end
+
+returnMissingWorkflowId:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"workflowId is required"}'
+  next: end
+
+returnMissingMemberStates:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"memberStates is required"}'
+  next: end
+
+returnCaseMismatch:
+  status: 409
+  return: '{"statusCode":"InvalidData","statusMessage":"businessCaseId does not match the request of this workflowId"}'
+  next: end
