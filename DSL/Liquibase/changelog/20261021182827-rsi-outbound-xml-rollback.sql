@@ -1,3 +1,5 @@
+-- liquibase formatted sql
+-- changeset ljvis:20261021182827-rollback ignore:true splitStatements:false
 -- Refuse rollback while the new lifecycle states still exist. Keep classifier history.
 DO $$ BEGIN
  IF EXISTS (SELECT 1 FROM erru.rsi_message WHERE status IN ('sending','send_unknown'))
