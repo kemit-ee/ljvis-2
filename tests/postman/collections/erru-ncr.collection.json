@@ -3044,6 +3044,42 @@
       ]
     },
     {
+      "name": "[Inbound setup] desktop recipient for ncr_violation (teavitus tekib ainult saajale)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/insert_template_mapping",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "insert_template_mapping"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"notification_type\":\"ncr_violation\",\"original_template_id\":\"\",\"channel\":\"desktop\",\"default_language\":\"et\",\"active\":\"true\",\"default_recipient_email\":\"\",\"desktop_recipient_personal_codes\":\"newman\",\"created_by\":\"newman\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "[Inbound] New NCR request from DE -> stored as received, ack OK",
       "request": {
         "method": "POST",

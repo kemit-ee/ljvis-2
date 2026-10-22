@@ -1039,7 +1039,7 @@ Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 7 · PK: `i
 
 ### `notifications.notification`
 
-Loodud: `20261010100000-notifications-schema.sql` · veerge: 11 · PK: `id`
+Loodud: `20261010100000-notifications-schema.sql` · veerge: 12 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -1054,6 +1054,7 @@ Loodud: `20261010100000-notifications-schema.sql` · veerge: 11 · PK: `id`
 | `created_by` | TEXT | jah |
 | `recipient_personal_codes` | TEXT[] |  |
 | `event_key` | TEXT |  |
+| `recipients_only` | BOOLEAN | jah |
 
 ### `notifications.notification_read`
 
