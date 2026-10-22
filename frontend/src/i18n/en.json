@@ -1934,6 +1934,13 @@
       },
       "response": {
         "title": "Response",
+        "foundTitle": "Countries with a match",
+        "notFoundTitle": "Response received, no match found",
+        "failedTitle": "No response received",
+        "foundBadge": "Match found",
+        "summaryFound": "{{count}} with a match",
+        "summaryNotFound": "{{count}} without a match",
+        "summaryFailed": "{{count}} did not respond",
         "statusMessage": "Status message",
         "respondingAuthority": "Responding competent authority",
         "searchMethod": "Search method",

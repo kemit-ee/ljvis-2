@@ -1965,6 +1965,13 @@
       },
       "response": {
         "title": "Päringu vastus",
+        "foundTitle": "Leiuga riigid",
+        "notFoundTitle": "Vastus saadud, leidu ei tuvastatud",
+        "failedTitle": "Vastust ei saadud",
+        "foundBadge": "Leid tuvastatud",
+        "summaryFound": "{{count}} leiuga",
+        "summaryNotFound": "{{count}} leiuta",
+        "summaryFailed": "{{count}} ei vastanud",
         "statusMessage": "Staatuse teade",
         "respondingAuthority": "Vastust esitav pädev asutus",
         "searchMethod": "Otsingu meetod",

@@ -4,6 +4,12 @@
 
 ## 2026-10-22
 
+### CGR päringu vastuse kuva
+
+- Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.
+- Riigi nime taga on kahetäheline kood, nt „Austria (AT)". Vastuse kaardi ülaosas on kokkuvõte (leiuga / leiuta / ei vastanud).
+- Päringu staatus „Vastus saadud" on lehe päises roheline.
+
 ### Desktop-teavituse saajad
 
 - Desktop-kanali teavituse (rakenduse kella-ikooni teavituse) näevad nüüd ainult haldusvaates „Postkasti mallide ja vastuvõtjate seaded" valitud saajad. Varem nägid seda lisaks kõik vastava õigusega kasutajad (nt `rsi.read`, `ncr.read`, `nu.read`). Kui liigile ei ole saajaid valitud, teavitust ei looda ja seda ei näe keegi. **Pärast paigaldamist tuleb kõikide desktop-liikide saajad halduses ise määrata.** Juba loodud teavitused jäävad endiselt õiguspõhiselt nähtavaks.
