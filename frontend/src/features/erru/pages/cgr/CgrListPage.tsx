@@ -68,6 +68,7 @@ export function CgrListPage() {
       // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
       // is shown only in the request detail view.
       columnHelper.accessor('status', {
+        enableHiding: false,
         header: t('erru.cgr.list.status'),
         enableSorting: true,
         cell: (info) => (
@@ -86,6 +87,7 @@ export function CgrListPage() {
         ),
       }),
       columnHelper.accessor('sentAt', {
+        enableHiding: false,
         header: t('erru.cgr.list.sentAt'),
         enableSorting: true,
         cell: (info) => {
@@ -94,6 +96,7 @@ export function CgrListPage() {
         },
       }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.cgr.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -251,6 +254,8 @@ export function CgrListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-cgr-list"
             size="small"
             id="cgr-table"
             data={data}

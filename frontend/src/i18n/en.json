@@ -1613,6 +1613,7 @@
     "no": "No",
     "tableIsEmpty": "No matching results found.",
     "tableLoading": "Table is loading...",
+    "customizeColumns": "Customize",
     "confirm": "Confirm",
     "confirmChange": "Yes, change",
     "discard": "Discard",

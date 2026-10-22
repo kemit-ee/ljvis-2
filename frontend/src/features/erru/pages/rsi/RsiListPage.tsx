@@ -73,6 +73,7 @@ export function RsiListPage() {
       // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
       // is shown only in the request detail view.
       columnHelper.accessor('status', {
+        enableHiding: false,
         header: t('erru.rsi.list.status'),
         enableSorting: true,
         cell: (info) => (
@@ -102,6 +103,7 @@ export function RsiListPage() {
         ),
       }),
       columnHelper.accessor('sentAt', {
+        enableHiding: false,
         header: t('erru.rsi.list.sentAt'),
         enableSorting: true,
         cell: (info) => {
@@ -110,6 +112,7 @@ export function RsiListPage() {
         },
       }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.rsi.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -126,11 +129,13 @@ export function RsiListPage() {
         ),
       }),
       columnHelper.accessor('rsiFrom', {
+        enableHiding: false,
         header: t('erru.rsi.list.rsiFrom'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
       }),
       columnHelper.accessor('rsiTo', {
+        enableHiding: false,
         header: t('erru.rsi.list.rsiTo'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
@@ -293,6 +298,8 @@ export function RsiListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-rsi-list"
             size="small"
             id="rsi-table"
             data={data}

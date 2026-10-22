@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Table } from '@tedi-design-system/react/tedi';
+import { AppColumnsMenu } from './AppColumnsMenu';
 import type { PaginationState, SortingState, ColumnDef } from '@tanstack/react-table';
 
 export interface AppTableProps<TData> {
@@ -36,6 +37,14 @@ export interface AppTableProps<TData> {
   defaultExpanded?: boolean;
   /** Extra class per row (e.g. to colour overdue rows). */
   rowClassName?: (row: TData) => string | undefined;
+  /**
+   * Let the user pick which columns are shown ("Kohanda" menu) and drag column headers to
+   * reorder them. Needs `persistKey`; the choice is kept per browser. Columns with
+   * `enableHiding: false` can't be hidden.
+   */
+  customizable?: boolean;
+  /** localStorage key for the column choice; must be unique per table. */
+  persistKey?: string;
 }
 
 const sameState = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -78,6 +87,8 @@ export function AppTable<TData>({
   renderSubComponent,
   defaultExpanded,
   rowClassName,
+  customizable,
+  persistKey,
 }: AppTableProps<TData>) {
   const { t } = useTranslation();
 
@@ -88,6 +99,7 @@ export function AppTable<TData>({
         if (col.enableSorting !== true || typeof label !== 'string') return col;
         return {
           ...col,
+          meta: { ...col.meta, label },
           header: ({ column }) => (
             <Table.HeaderButton
               icon={sortIcon(column.getIsSorted())}
@@ -146,7 +158,15 @@ export function AppTable<TData>({
             onSortingChange(next.sorting);
           }
         }}
-      />
+        reorderableColumns={customizable || undefined}
+        persist={customizable && persistKey ? { key: persistKey } : undefined}
+      >
+        {customizable && (
+          <Table.Toolbar>
+            <AppColumnsMenu label={t('common.customizeColumns')} />
+          </Table.Toolbar>
+        )}
+      </Table>
     </div>
   );
 }
