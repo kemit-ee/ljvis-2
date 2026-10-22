@@ -35,16 +35,20 @@ checkNcrResult:
   switch:
     - condition: ${ncrRes.response == null || ncrRes.response.status < 200 || ncrRes.response.status >= 300 || ncrRes.response.body == null || ncrRes.response.body.length == null || ncrRes.response.body.length === 0}
       next: returnNcrReadError
-  next: extractNcrFields
+  next: selectNcrSource
 
 # Kontrollivormi andmed (kergemad rikkumised, SI/VSI/MSI, karistused) tulevad
 # sissetulnud teatest; hilisemad ajajärje kirjed (vastuse mustand, olekumuutus)
 # neid välju ei pruugi kanda. Võtame viimase kirje, kus need on olemas, muidu
 # viimase kirje.
-extractNcrFields:
+selectNcrSource:
   assign:
     ncr_src: >-
       ${(() => { var b = ncrRes.response.body; for (var i = b.length - 1; i >= 0; i--) { var r = b[i]; var si = r.seriousInfringements; var hasSi = (typeof si === 'string') ? (si.trim() !== '' && si.trim() !== '[]') : (Array.isArray(si) && si.length > 0); if (r.minorInfringement || hasSi) return r; } return b[b.length - 1]; })()}
+  next: extractNcrFields
+
+extractNcrFields:
+  assign:
     ncr_id: "${String(ncrRes.response.body[ncrRes.response.body.length - 1].id || '')}"
     reporting_country_code: "${ncr_src.ncrFrom || ''}"
     reporting_authority: "${ncr_src.originatingAuthority || ''}"
@@ -55,7 +59,7 @@ extractNcrFields:
     inspection_date: "${ncr_src.checkDate || ''}"
     data_entry_date: "${new Date().toISOString().slice(0, 10)}"
     check_result: "${ncr_src.checkResult || ''}"
-    minor_infringement_raw: "${ncr_src.minorInfringement || null}"
+    minor_infringement_raw: "${ncr_src.minorInfringement || ''}"
     serious_infringements_raw: "${ncr_src.seriousInfringements || '[]'}"
   next: mapMinorInfringement
 

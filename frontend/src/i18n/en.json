@@ -1934,6 +1934,13 @@
       },
       "response": {
         "title": "Response",
+        "foundTitle": "Countries with a match",
+        "notFoundTitle": "Response received, no match found",
+        "failedTitle": "No response received",
+        "foundBadge": "Match found",
+        "summaryFound": "{{count}} with a match",
+        "summaryNotFound": "{{count}} without a match",
+        "summaryFailed": "{{count}} did not respond",
         "statusMessage": "Status message",
         "respondingAuthority": "Responding competent authority",
         "searchMethod": "Search method",
@@ -2172,6 +2179,7 @@
         "invalidXml": "The data does not meet the ERRU XML contract. Check the undertaking, vehicle, check result and infringement details.",
         "invalidResponseXml": "The response does not meet the ERRU XML contract. A found undertaking needs the vehicle count, licence status and a complete address.",
         "validationUnavailable": "XML validation is currently unavailable. The message was not sent.",
+        "workflowIdMissing": "The incoming message has no workflowId, so the response cannot be sent.",
         "createVr": "Create foreign country inspection report",
         "openVr": "Open foreign country inspection report",
         "createVrFailed": "Creating the foreign country inspection report failed",
@@ -2426,7 +2434,8 @@
       "labor_kabotage": "Cabotage inspection notification",
       "labor_tachograph_not_downloaded": "Tachograph data not downloaded notification",
       "labor_foreign_proposal": "Foreign country proposal notification",
-      "nu_inbound_received": "ERRU NU non-compliance notice"
+      "nu_inbound_received": "ERRU NU non-compliance notice",
+      "ctud_inbound_received": "ERRU community licence check request (CTUD)"
     }
   },
   "breadcrumbs": {

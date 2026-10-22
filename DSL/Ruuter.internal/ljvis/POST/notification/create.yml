@@ -7,10 +7,12 @@ declaration:
     ncr/inbound-response.yml, vehicle-technical/publish.yml jne).
     Idempotentne: event_key / legacy-indeks + ON CONFLICT DO NOTHING
     tagab ühe teavituse sama alliksündmuse kohta.
-    Kui notification_template_mapping'is on `type` jaoks seadistatud
-    desktop_recipient_personal_codes, tardistatakse need loomise hetkel
-    notification.recipient_personal_codes veergu - teavitust näevad siis
-    required_permission omanike KÕRVAL ka need konkreetsed kasutajad.
+    Desktop-kanali liigi (notification_template_mapping.channel = 'desktop') teavituse
+    adressaadid on ainult halduses valitud desktop_recipient_personal_codes, mis
+    tardistatakse loomise hetkel notification.recipient_personal_codes veergu ja
+    teavituse recipients_only märge seatakse. Kui saajaid pole valitud, teavitust
+    ei looda. Muud liigid (mapping'u pole või kanal pole desktop) jäävad
+    required_permission-põhiseks.
     APPEND-ONLY: INSERT only.
     WebSocket push: POST /v1/ws-broadcast/send teeb broadcast_where perms-sildi
     järgi - notification_update signaal AINULT nendele ühendustele, kellel on
@@ -42,6 +44,7 @@ validateInput:
     required_permission: "${incoming.body.required_permission ?? ''}"
     title_et: "${incoming.body.title_et ?? ''}"
     recipient_personal_codes: ""
+    recipients_only: ""
   next: checkRequired
 
 checkRequired:
@@ -75,6 +78,20 @@ extractRecipients:
         var codes = row && row.desktopRecipientPersonalCodes;
         return Array.isArray(codes) ? codes.join(',') : '';
       })()}
+    recipients_only: >-
+      ${(() => {
+        var row = (mappingRes.response.body || [])[0];
+        return row && row.channel === 'desktop' ? 'true' : '';
+      })()}
+  next: checkDesktopRecipients
+
+# Desktop-kanali liigil on saajad ainus adressaat: kui halduses pole saajaid valitud,
+# ei looda teavitust üldse (ega saadeta WS signaali). required_permission ei anna
+# desktop-liigi teavitusele enam nähtavust, see jääb ainult WS signaali sihtimiseks.
+checkDesktopRecipients:
+  switch:
+    - condition: ${recipients_only === 'true' && recipient_personal_codes === ''}
+      next: returnNoRecipients
   next: insertNotification
 
 insertNotification:
@@ -93,6 +110,7 @@ insertNotification:
       title_et: ${incoming.body.title_et}
       body_et: ${incoming.body.body_et ?? ''}
       recipient_personal_codes: ${recipient_personal_codes ?? ''}
+      recipients_only: ${recipients_only ?? ''}
       created_by: ${incoming.body.created_by ?? 'system'}
   result: insertRes
   error: returnUnavailable
@@ -121,6 +139,10 @@ wsPush:
   result: wsPushRes
   error: returnResult
   next: returnResult
+
+returnNoRecipients:
+  return: "${JSON.stringify({id: null})}"
+  next: end
 
 returnResult:
   return: "${insertRes.response.body[0] ?? {id: null}}"

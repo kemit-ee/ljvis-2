@@ -1965,6 +1965,13 @@
       },
       "response": {
         "title": "Päringu vastus",
+        "foundTitle": "Leiuga riigid",
+        "notFoundTitle": "Vastus saadud, leidu ei tuvastatud",
+        "failedTitle": "Vastust ei saadud",
+        "foundBadge": "Leid tuvastatud",
+        "summaryFound": "{{count}} leiuga",
+        "summaryNotFound": "{{count}} leiuta",
+        "summaryFailed": "{{count}} ei vastanud",
         "statusMessage": "Staatuse teade",
         "respondingAuthority": "Vastust esitav pädev asutus",
         "searchMethod": "Otsingu meetod",
@@ -2203,6 +2210,7 @@
         "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli ettevõtte, sõiduki, kontrolli tulemuse ja rikkumiste andmeid.",
         "invalidResponseXml": "Vastus ei vasta ERRU XML-lepingule. Leitud ettevõtte puhul on vaja sõidukite arvu, tegevusloa staatust ja täielikku aadressi.",
         "validationUnavailable": "XML-i kontroll pole praegu saadaval. Teadet ei saadetud.",
+        "workflowIdMissing": "Saabunud teatel puudub workflowId, seetõttu ei saa vastust saata.",
         "createVr": "Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "openVr": "Ava välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "createVrFailed": "Välisriigis teostatud autoveoalase kontrolli kontrollkaardi loomine ebaõnnestus",
@@ -2457,7 +2465,8 @@
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
       "labor_tachograph_not_downloaded": "Sõidumeerikuandmete alla laadimata jätmise teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
-      "nu_inbound_received": "ERRU NU sobimatusteade"
+      "nu_inbound_received": "ERRU NU sobimatusteade",
+      "ctud_inbound_received": "ERRU tegevusloa kontrolli päring (CTUD)"
     }
   },
   "breadcrumbs": {

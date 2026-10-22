@@ -157,7 +157,7 @@ Lähtekoodi hoidla DSL-id viitavad järgmistele muutujatele, mida `scripts/const
 | `PK_SENDING_OPERATIONS_ENDPOINT` | Postkasti saatmisstaatuse kontroll (`check-status`, `notification-status-sync` cron) | `http://xtr:8080/postkast/sending-operations` |
 | `LJVIS_RESQL_ARHIIV` | Kustutatud vormide arhiiv (ADR-010) | `http://resql-ljvis:8090/arhiiv` (kui arhiiv on samas resql-is) |
 | `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, CronManager, `erru-xml-adapter`) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` ja `cronmanager` env-muutujas `INTERNAL_COMMUNICATION_KEY` | Juhuslik, `openssl rand -hex 32`; **saladus** |
-| `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev/CI-s mock |
+| `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev, test, prelive ja CI-s mock |
 | `ERRU_NCR_ORIGINATING_AUTHORITY` | NCR automaatse saatmise asutuse nimi | `Politsei- ja Piirivalveamet` |
 
 **CronManageri tööde kontroll paigaldamisel.** Puuduv `INTERNAL_COMMUNICATION_KEY` cronmanager-podis ei takista CronManageri käivitumist: iga tööfail, mille `headerEnvs` viitab seadmata muutujale, jäetakse vahele ja pod käivitub 0 tööga. Seepärast peab pod olema `Ready` alles siis, kui töid on registreeritud. Kasutage `readinessProbe`-s (docker-compose'is on sama käsk healthcheck'ina):

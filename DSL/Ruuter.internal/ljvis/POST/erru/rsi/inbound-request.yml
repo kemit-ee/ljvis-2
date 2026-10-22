@@ -197,7 +197,7 @@ createRsiNotification:
       type: "rsi_received"
       required_permission: "rsi.read"
       related_entity_type: "rsi"
-      related_entity_id: ${business_case_id}
+      related_entity_id: "${'' + request_key}"
       event_key: ${technical_id}
       title_et: "${'Saabus ERRU RSI teade sõiduki „' + vehicle_registration_number + '“ kohta'}"
       body_et: "${'Teate saatnud riik: ' + rsi_from}"

@@ -2,6 +2,45 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-22
+
+### CGR päringu vastuse kuva
+
+- Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.
+- Riigi nime taga on kahetäheline kood, nt „Austria (AT)". Vastuse kaardi ülaosas on kokkuvõte (leiuga / leiuta / ei vastanud).
+- Päringu staatus „Vastus saadud" on lehe päises roheline.
+
+### Desktop-teavituse saajad
+
+- Desktop-kanali teavituse (rakenduse kella-ikooni teavituse) näevad nüüd ainult haldusvaates „Postkasti mallide ja vastuvõtjate seaded" valitud saajad. Varem nägid seda lisaks kõik vastava õigusega kasutajad (nt `rsi.read`, `ncr.read`, `nu.read`). Kui liigile ei ole saajaid valitud, teavitust ei looda ja seda ei näe keegi. **Pärast paigaldamist tuleb kõikide desktop-liikide saajad halduses ise määrata.** Juba loodud teavitused jäävad endiselt õiguspõhiselt nähtavaks.
+- „Märgi kõik loetuks" arvestab nüüd ka saajana saadud teavitusi.
+- Saaja, kellel liigi õigust ei ole, näeb uut teavitust lehe värskendamisel, mitte kohe.
+- Migratsioon `20261226100000-notification-recipients-only` (uus veerg `notification.recipients_only`).
+
+### Teavitus sissetulevast tegevusloa kontrolli päringust (CTUD) ja teavituste lingid
+
+- Kui mõni teine riik esitab Eestile tegevusloa kontrolli päringu (CTUD), tekib nüüd teavitus „ERRU tegevusloa kontrolli päring (CTUD)" kõigile `ctud.read` õigusega kasutajatele. Haldusvaates „Postkasti mallide ja vastuvõtjate seaded" saab selle liigi desktop-kanali saajad eraldi määrata. Teavituse „Ava" nupp viib päringu kirjele. Päringule vastatakse endiselt automaatselt, teavituse viga ei sega vastust.
+- Sissetuleva NU sobimatusteate teavituse juures puudus „Ava" nupp, nüüd viib see NU teatele.
+- Sissetuleva RSI teate teavitus viitas teate ärijuhtumi numbrile, mis lehe aadressina ei sobi. Uued RSI teavitused viivad nüüd õigele RSI teatele. Varem tekkinud RSI teavituste link jääb vigaseks.
+### Välisriigi kontrollkaardi loomine NCR teatest
+
+- „Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart" lõppes veaga 500 teadetel, millel ei ole kergemaid rikkumisi (nt kõik MOVEHUB testteated). Kaart luuakse nüüd ka sellistest teadetest.
+
+### Sissetulevate ERRU päringute MTR-otsing
+
+- Sissetulev tegevusloa kontrolli päring (CTUD SearchByLicenceAndVehicle) ei vaja enam veoettevõtja nime. Varem lükkas MTR-i otsing päringu nime puudumise tõttu tagasi (HTTP 400) ja päring lõppes serveri veaga. Nüüd otsitakse tegevusloa numbri ja sõiduki järgi.
+- Demo, dev ja prelive keskkonnas puudusid sissetulevate CTUD ja CGR päringute MTR-i aadressi konstandid ja päringud lõppesid veaga. Konstandid lisatakse devops-repos ja osutavad MTR-i mockile.
+
+### Vastus saabunud NCR-ile ja välisriigi kontrollkaardi loomine
+
+- „Saada vastus" saabunud NCR teatele andis vea „Vastust ei saa saata praeguses olekus", kui teatel puudus workflowId (nt testandmetena sisestatud MOVEHUB teated). Nüüd näitab leht täpset põhjust: saabunud teatel puudub workflowId. Olemasolevatele saabunud NCR teadetele lisati puuduvad technicalId ja workflowId ühekordse migratsiooniga, mis on pärast rakendamist koodist eemaldatud.
+- NCR teatest välisriigi kontrollkaardi loomine („Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart") lõpeb veaga 500, kui allikteate valik tehti sama sammu sees, kus selle põhjal välju loeti. Valik on nüüd eraldi sammus.
+- Tehnokontrolli teate (RSI) saatmine näitas XML-lepingu rikkumise korral („Kontrolli VIN, odomeetri näit, juhi ja omaniku andmed") eksitavat teadet „jääb olekusse Viga". Mustand jääb muudetavaks ja leht näitab nüüd õiget XML-kontrolli teadet.
+
+### Sissetulev CTUD päring ei lõpe enam veateatega
+
+- Sissetulev tegevusloa kontrolli päring (CTUD), mille registrivastuses oli tegevusloa tüüp juba ERRU pikas kirjapildis (nt „Community licence for goods transport"), lõppes veateatega „ServerError". Nüüd võetakse nii pikk kirjapilt kui ka klassifikaatori kood vastu ja päring saab sisulise vastuse.
+
 ## 2026-10-21
 
 ### NCR ja NU saadetakse ERRU XML-ina
