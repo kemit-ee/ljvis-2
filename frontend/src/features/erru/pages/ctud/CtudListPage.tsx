@@ -14,7 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CtudRequestListItem } from '../../types';
-import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -109,21 +109,26 @@ export function CtudListPage() {
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
-      // Status merges the lifecycle status with the single-country response outcome.
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
       columnHelper.accessor('status', {
         header: t('erru.ctud.list.status'),
         enableSorting: true,
-        cell: (info) => {
-          const code = info.row.original.responseStatusCode;
-          return (
-            <ErruStatusBadge
-              status={info.getValue()}
-              response={code ? { code, label: label('CTUD_RESPONSE_STATUS', code) } : null}
-            >
-              {label('CTUD_REQUEST_STATUS', info.getValue())}
-            </ErruStatusBadge>
-          );
-        },
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('CTUD_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.ctud.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('CTUD_RESPONSE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
       }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ctud.list.handler'),

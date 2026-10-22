@@ -14,7 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { RsiMessageListItem } from '../../types';
-import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -107,21 +107,26 @@ export function RsiListPage() {
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
-      // Status merges lifecycle status with response outcome where present.
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
       columnHelper.accessor('status', {
         header: t('erru.rsi.list.status'),
         enableSorting: true,
-        cell: (info) => {
-          const code = info.row.original.responseStatusCode;
-          return (
-            <ErruStatusBadge
-              status={info.getValue()}
-              response={code ? { code, label: label('RSI_RESPONSE_STATUS', code) } : null}
-            >
-              {label('RSI_REQUEST_STATUS', info.getValue())}
-            </ErruStatusBadge>
-          );
-        },
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('RSI_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.rsi.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('RSI_RESPONSE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
       }),
       columnHelper.accessor('handlerName', {
         header: t('erru.rsi.list.handler'),

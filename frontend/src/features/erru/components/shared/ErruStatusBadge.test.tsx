@@ -2,7 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { erruResponseColor, erruStatusColor } from '../../utils/erruStatusColors';
-import { ErruStatusBadge } from './ErruStatusBadge';
+import { ErruResultBadge, ErruStatusBadge } from './ErruStatusBadge';
 
 beforeAll(() => {
   // TEDI's breakpoint hook needs matchMedia, which jsdom does not provide.
@@ -46,17 +46,19 @@ describe('erruResponseColor', () => {
   });
 });
 
-describe('ErruStatusBadge', () => {
-  it('shows the response outcome as a second badge only when present', () => {
+describe('ErruStatusBadge / ErruResultBadge', () => {
+  it('shows the status and, separately, the result only when there is one', () => {
     const { rerender } = render(
-      <ErruStatusBadge status="responded" response={{ code: 'Timeout', label: 'Ei vastanud' }}>
-        Vastus saadud
-      </ErruStatusBadge>,
+      <>
+        <ErruStatusBadge status="responded">Vastus saadud</ErruStatusBadge>
+        <ErruResultBadge code="Timeout">Ei vastanud</ErruResultBadge>
+      </>,
     );
     expect(screen.getByText('Vastus saadud')).toBeTruthy();
     expect(screen.getByText('Ei vastanud')).toBeTruthy();
 
-    rerender(<ErruStatusBadge status="sent">Päring saadetud</ErruStatusBadge>);
+    rerender(<ErruResultBadge code={null}>Ei vastanud</ErruResultBadge>);
     expect(screen.queryByText('Ei vastanud')).toBeNull();
+    expect(screen.getByText('—')).toBeTruthy();
   });
 });

@@ -2,28 +2,17 @@ import type { ReactNode } from 'react';
 import { StatusBadge } from '@tedi-design-system/react/tedi';
 import { erruResponseColor, erruStatusColor } from '../../utils/erruStatusColors';
 
+/** Lifecycle status as a coloured badge (one per row, never wraps). */
+export function ErruStatusBadge({ status, children }: { status: string | null | undefined; children: ReactNode }) {
+  return <StatusBadge color={erruStatusColor(status)}>{children}</StatusBadge>;
+}
+
 /**
- * Lifecycle status as a coloured badge. In lists the single-country response outcome can be
- * shown under it as a second, bordered badge, so the cell stays two short lines instead of a
- * wrapped "Vastus saadud / Sihtriik ei vastanud õigeaegselt" sentence.
+ * Single-country response outcome (Found, NotFound, Timeout, NotAvailable, OK) as its own
+ * badge, shown in a separate "Tulemus" column next to the status. Empty when the request has
+ * no single-country outcome (broadcast or not answered yet).
  */
-export function ErruStatusBadge({
-  status,
-  children,
-  response,
-}: {
-  status: string | null | undefined;
-  children: ReactNode;
-  response?: { code: string | null | undefined; label: ReactNode } | null;
-}) {
-  return (
-    <div className="erru-status">
-      <StatusBadge color={erruStatusColor(status)}>{children}</StatusBadge>
-      {response?.code && (
-        <StatusBadge color={erruResponseColor(response.code)} variant="bordered">
-          {response.label}
-        </StatusBadge>
-      )}
-    </div>
-  );
+export function ErruResultBadge({ code, children }: { code: string | null | undefined; children: ReactNode }) {
+  if (!code) return <>—</>;
+  return <StatusBadge color={erruResponseColor(code)}>{children}</StatusBadge>;
 }

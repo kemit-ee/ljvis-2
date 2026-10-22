@@ -1781,6 +1781,7 @@
         "licenceNumber": "Community licence / certified true copy no.",
         "vehicleNumber": "Vehicle reg. no",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "direction": "Direction",
         "handlerFilter": "User (isikukood)"
@@ -1897,6 +1898,7 @@
         "cgrTo": "Target member state",
         "certificateNumber": "Certificate of professional competence number",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "handlerFilter": "User (isikukood)"
       },
@@ -2093,6 +2095,7 @@
         "rsiTo": "Destination country",
         "vehicleRegistrationNumber": "Vehicle reg. no",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "direction": "Direction",
         "directionOutgoing": "Outgoing",

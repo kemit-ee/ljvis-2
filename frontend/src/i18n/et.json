@@ -1812,6 +1812,7 @@
         "licenceNumber": "Ühenduse tegevusloa kinnitatud ärakirja või tõestatud koopia nr",
         "vehicleNumber": "Sõiduki reg-nr",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "direction": "Suund",
         "handlerFilter": "Kasutaja (isikukood)"
@@ -1928,6 +1929,7 @@
         "cgrTo": "Sihtriik",
         "certificateNumber": "Ametialase pädevuse tunnistuse number",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "handlerFilter": "Kasutaja (isikukood)"
       },
@@ -2124,6 +2126,7 @@
         "rsiTo": "Saadetud riiki",
         "vehicleRegistrationNumber": "Sõiduki reg-nr",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
