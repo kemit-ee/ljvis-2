@@ -211,6 +211,16 @@ public class MapperSmokeTest {
             throw new AssertionError("CTUD must use the flow's own respondingAuthority, not a hardcoded default: " + foundXml);
         }
 
+        // MTR / the MTR mock already supply the XSD long-form type string (MOVEHUB test pack CTUD_01).
+        Map<String, Object> foundLongType = new LinkedHashMap<>(found);
+        Map<String, Object> clLongType = new LinkedHashMap<>(cl);
+        clLongType.put("communityLicenceType", "Community licence for goods transport");
+        foundLongType.put("communityLicenceDetails", List.of(clLongType));
+        String longTypeXml = mapper.buildResponseXml(roundTripJson(foundLongType), doc, "13131313-1313-1313-1313-131313131313");
+        if (!longTypeXml.contains("communityLicenceType=\"Community licence for goods transport\"")) {
+            throw new AssertionError("an XSD long-form licence type must pass through unchanged: " + longTypeXml);
+        }
+
         // An unrecognised/missing licence type or status must NOT produce a fabricated Found
         // record, or a synthetic NotAvailable (forbidden by protocol) — it must throw, so the
         // caller (ProcessingWorker) sends an ErrorNotification instead.
