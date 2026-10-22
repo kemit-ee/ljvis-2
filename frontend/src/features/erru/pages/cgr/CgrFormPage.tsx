@@ -79,7 +79,7 @@ export function CgrFormPage() {
               {' — '}
               {request.businessCaseId}
             </Heading>
-            <StatusBadge>
+            <StatusBadge color={request.status === 'responded' ? 'success' : undefined}>
               {request.status === 'sending'
                 ? t('erru.cgr.sending')
                 : request.status === 'send_unknown'
