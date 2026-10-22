@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Text,
-  TextArea,
+  Textarea,
   Modal,
   Alert,
   Separator,
@@ -457,7 +457,7 @@ export function MassDimensionModal({
                                       }
                                     />
                                     <div className="mt-05">
-                                      <TextArea
+                                      <Textarea
                                         autoGrow
                                         id="auto-grow"
                                         maxRows={10}

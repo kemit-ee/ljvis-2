@@ -15,7 +15,7 @@ import {
   AccordionItem,
   AccordionItemContent,
   AccordionItemHeader,
-  TextArea,
+  Textarea,
   Alert,
   Checkbox,
 } from '@tedi-design-system/react/tedi';
@@ -203,7 +203,7 @@ export function DriveRestFormFields({
         label={<strong>{t('forms.sp_form.atpViolationFound')}</strong>}
       />
       <div className={`mt-1 ${styles[isDesktop ? 'width-80' : 'width-100']}`}>
-        <TextArea
+        <Textarea
           id={fieldId('atpViolationDescription')}
           maxHeight="8rem"
           label={<strong>{t('forms.sp_form.atpViolationDescription')}</strong>}
@@ -1198,7 +1198,7 @@ export function DriveRestFormFields({
                   }}
                 />
                 <div className="mb-1">
-                  <TextArea
+                  <Textarea
                     id={fieldId('tachographNotes')}
                     maxHeight="8rem"
                     label={t('forms.sp_form.tachographNotes')}
@@ -1382,7 +1382,7 @@ export function DriveRestFormFields({
                   {t('forms.sp_form.xteeDataTitle')}
                 </Heading>
                 <div className="mb-1">
-                  <TextArea
+                  <Textarea
                     id={fieldId('enforcementDecision')}
                     label={
                       <strong>{t('forms.sp_form.enforcedDecision')}</strong>
@@ -1394,7 +1394,7 @@ export function DriveRestFormFields({
                   />
                 </div>
                 <div>
-                  <TextArea
+                  <Textarea
                     id={fieldId('proceedingClosureBasis')}
                     label={
                       <strong>
@@ -1449,7 +1449,7 @@ export function DriveRestFormFields({
               {t('forms.sp_form.notes')}
             </Heading>
             <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
-              <TextArea
+              <Textarea
                 id={fieldId('sanctionNotes')}
                 label=""
                 value={formik.values.notes}

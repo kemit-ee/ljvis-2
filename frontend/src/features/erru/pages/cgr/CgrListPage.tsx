@@ -14,7 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CgrRequestListItem } from '../../types';
-import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useCgrList } from './useCgrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -64,6 +64,35 @@ export function CgrListPage() {
 
   const columns = useMemo(
     () => [
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
+      columnHelper.accessor('status', {
+        header: t('erru.cgr.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('CGR_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.cgr.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('CGR_MEMBER_STATE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        header: t('erru.cgr.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.cgr.list.id'),
         enableSorting: true,
@@ -80,14 +109,6 @@ export function CgrListPage() {
           </a>
         ),
       }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.cgr.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
-      }),
       columnHelper.accessor('tmFirstName', {
         header: t('erru.cgr.list.tmFirstName'),
         enableSorting: true,
@@ -103,28 +124,12 @@ export function CgrListPage() {
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
       }),
-      // Status merges the lifecycle status with the single-country response outcome.
-      // Broadcast requests (cgrTo = ZZ) never carry responseStatusCode here — the
-      // per-country breakdown is shown only in the request detail view.
-      columnHelper.accessor('status', {
-        header: t('erru.cgr.list.status'),
-        enableSorting: true,
-        cell: (info) => {
-          const code = info.row.original.responseStatusCode;
-          return (
-            <ErruStatusBadge
-              status={info.getValue()}
-              response={code ? { code, label: label('CGR_MEMBER_STATE_STATUS', code) } : null}
-            >
-              {label('CGR_REQUEST_STATUS', info.getValue())}
-            </ErruStatusBadge>
-          );
-        },
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.cgr.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
     ],
     [t, openRequest, label],
@@ -246,7 +251,7 @@ export function CgrListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="cgr-table"
             data={data}
             columns={columns}

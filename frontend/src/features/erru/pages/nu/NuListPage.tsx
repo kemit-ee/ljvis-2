@@ -15,6 +15,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NuMessageListItem } from '../../types';
 import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useNuList } from './useNuList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -74,6 +75,34 @@ export function NuListPage() {
 
   const columns = useMemo(
     () => [
+      columnHelper.accessor('status', {
+        header: t('erru.nu.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NU_MESSAGE_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('direction', {
+        header: t('erru.nu.list.direction'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.nu.list.directionOutgoing')
+              : t('erru.nu.list.directionIncoming')}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('messageDate', {
+        header: t('erru.nu.list.date'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.nu.list.id'),
         enableSorting: true,
@@ -89,22 +118,6 @@ export function NuListPage() {
             {info.getValue()}
           </a>
         ),
-      }),
-      columnHelper.accessor('direction', {
-        header: t('erru.nu.list.direction'),
-        enableSorting: true,
-        cell: (info) =>
-          info.getValue() === 'outgoing'
-            ? t('erru.nu.list.directionOutgoing')
-            : t('erru.nu.list.directionIncoming'),
-      }),
-      columnHelper.accessor('messageDate', {
-        header: t('erru.nu.list.date'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
       }),
       columnHelper.accessor('countryCode', {
         header: t('erru.nu.list.country'),
@@ -124,15 +137,8 @@ export function NuListPage() {
       columnHelper.accessor('handlerName', {
         header: t('erru.nu.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
-      }),
-      columnHelper.accessor('status', {
-        header: t('erru.nu.list.status'),
-        enableSorting: true,
         cell: (info) => (
-          <ErruStatusBadge status={info.getValue()}>
-            {label('NU_MESSAGE_STATUS', info.getValue())}
-          </ErruStatusBadge>
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
         ),
       }),
     ],
@@ -291,7 +297,7 @@ export function NuListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="nu-table"
             data={data}
             columns={columns}

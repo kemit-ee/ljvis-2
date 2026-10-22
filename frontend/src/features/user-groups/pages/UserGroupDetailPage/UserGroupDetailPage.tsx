@@ -525,7 +525,6 @@ export function UserGroupDetailPage() {
                 label={t('common.search')}
                 hideLabel
                 value={userSearchInput}
-                onIconClick={() => handleUserSearch(userSearchInput)}
                 onChange={setUserSearchInput}
                 onSearch={handleUserSearch}
                 onClear={clearUserSearch}

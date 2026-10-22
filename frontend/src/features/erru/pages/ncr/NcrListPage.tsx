@@ -15,6 +15,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NcrCaseListItem } from '../../types';
 import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useNcrList } from './useNcrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -80,6 +81,34 @@ export function NcrListPage() {
 
   const columns = useMemo(
     () => [
+      columnHelper.accessor('status', {
+        header: t('erru.ncr.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NCR_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('direction', {
+        header: t('erru.ncr.list.direction'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.ncr.list.directionOutgoing')
+              : t('erru.ncr.list.directionIncoming')}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        header: t('erru.ncr.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.ncr.list.id'),
         enableSorting: true,
@@ -96,14 +125,6 @@ export function NcrListPage() {
           </a>
         ),
       }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.ncr.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
-      }),
       columnHelper.accessor('ncrFrom', {
         header: t('erru.ncr.list.ncrFrom'),
         enableSorting: true,
@@ -119,27 +140,12 @@ export function NcrListPage() {
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
       }),
-      columnHelper.accessor('direction', {
-        header: t('erru.ncr.list.direction'),
-        enableSorting: false,
-        cell: (info) =>
-          info.getValue() === 'outgoing'
-            ? t('erru.ncr.list.directionOutgoing')
-            : t('erru.ncr.list.directionIncoming'),
-      }),
-      columnHelper.accessor('status', {
-        header: t('erru.ncr.list.status'),
-        enableSorting: true,
-        cell: (info) => (
-          <ErruStatusBadge status={info.getValue()}>
-            {label('NCR_REQUEST_STATUS', info.getValue())}
-          </ErruStatusBadge>
-        ),
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ncr.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
       columnHelper.accessor('automatic', {
         header: t('erru.ncr.list.automatic'),
@@ -302,7 +308,7 @@ export function NcrListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="ncr-table"
             data={rows}
             columns={columns}

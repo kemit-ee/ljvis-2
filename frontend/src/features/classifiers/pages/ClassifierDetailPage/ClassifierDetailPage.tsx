@@ -247,9 +247,6 @@ export function ClassifierDetailPage() {
                   label={t('common.search')}
                   hideLabel
                   value={classifierValueSearchInput}
-                  onIconClick={() =>
-                    handleClassifierValueSearch(classifierValueSearchInput)
-                  }
                   onChange={setClassifierValueSearchInput}
                   onSearch={handleClassifierValueSearch}
                   onClear={clearClassifierValueSearch}

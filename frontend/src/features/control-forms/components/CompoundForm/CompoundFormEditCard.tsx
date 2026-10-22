@@ -10,7 +10,7 @@ import {
   Alert,
   ChoiceGroup,
   Checkbox,
-  TextArea,
+  Textarea,
   Tooltip,
   InfoButton,
 } from '@tedi-design-system/react/tedi';
@@ -772,7 +772,7 @@ export function CompoundFormEditCard({
                       </Button>
                     )}
                   </div>
-                  <TextArea
+                  <Textarea
                     id="roadTaxNotes"
                     label={t('forms.compound.roadTaxNotes')}
                     value={formik.values.roadTaxNotes}
