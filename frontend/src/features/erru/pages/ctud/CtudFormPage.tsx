@@ -7,11 +7,11 @@ import {
   Card,
   Heading,
   Text,
-  StatusBadge,
 } from '@tedi-design-system/react/tedi';
 import { useCtudRequestDetail } from './useCtudRequestDetail';
 import { useCtudForm } from './useCtudForm';
 import { CtudRequestFields } from '../../components/Ctud/CtudRequestFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { CtudResponseBlock } from '../../components/Ctud/CtudResponseBlock';
 import { isCtudEditable, isCtudSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
@@ -84,13 +84,13 @@ export function CtudFormPage() {
               {' — '}
               {request.businessCaseId}
             </Heading>
-            <StatusBadge>
+            <ErruStatusBadge status={request.status}>
               {request.status === 'sending'
                 ? t('erru.ctud.sending')
                 : request.status === 'send_unknown'
                   ? t('erru.ctud.sendUnknownStatus')
                   : label('CTUD_REQUEST_STATUS', request.status)}
-            </StatusBadge>
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.ctud.form.version', { version: request.version })}

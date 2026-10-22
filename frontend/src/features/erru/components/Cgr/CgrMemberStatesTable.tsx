@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, Heading, StatusBadge, Text } from '@tedi-design-system/react/tedi';
 import type { CgrMemberState, CgrRequest } from '../../types';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
+import { CgrField as Field } from './CgrField';
 
 /**
  * Read-only "Päringu vastus" block for CGR (LJVIS2-139). Unlike CTUD (single response),
@@ -127,16 +127,6 @@ export function CgrMemberStatesTable({
         )}
       </Card.Content>
     </Card>
-  );
-}
-
-/** Label above value, same look as the request fields above the response. */
-function Field({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="cgr-field">
-      <Text modifiers="bold">{label}</Text>
-      <Text>{value === null || value === undefined || value === '' ? '—' : value}</Text>
-    </div>
   );
 }
 

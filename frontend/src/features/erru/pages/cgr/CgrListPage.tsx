@@ -14,12 +14,11 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CgrRequestListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useCgrList } from './useCgrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { BREAKPOINTS } from '../../../../constants/constants.ts';
-import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 
 const columnHelper = createColumnHelper<CgrRequestListItem>();
 
@@ -34,8 +33,6 @@ export function CgrListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['cgr.read']);
   const canCreate = hasAnyPermission(['cgr.create']);
 
@@ -113,11 +110,15 @@ export function CgrListPage() {
         header: t('erru.cgr.list.status'),
         enableSorting: true,
         cell: (info) => {
-          const status = label('CGR_REQUEST_STATUS', info.getValue());
           const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('CGR_MEMBER_STATE_STATUS', code)}`
-            : status;
+          return (
+            <ErruStatusBadge
+              status={info.getValue()}
+              response={code ? { code, label: label('CGR_MEMBER_STATE_STATUS', code) } : null}
+            >
+              {label('CGR_REQUEST_STATUS', info.getValue())}
+            </ErruStatusBadge>
+          );
         },
       }),
       columnHelper.accessor('handlerName', {
@@ -146,28 +147,31 @@ export function CgrListPage() {
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="cgr-filter-id"
               label={t('erru.cgr.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <TextField
+              size="small"
               id="cgr-filter-first-name"
               label={t('erru.cgr.list.tmFirstName')}
               value={draftFilters.tmFirstName ?? ''}
               onChange={(v) => setFilter('tmFirstName', v)}
             />
             <TextField
+              size="small"
               id="cgr-filter-family-name"
               label={t('erru.cgr.list.tmFamilyName')}
               value={draftFilters.tmFamilyName ?? ''}
               onChange={(v) => setFilter('tmFamilyName', v)}
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`cgr-sent-from-${resetKey}`}
               id="cgr-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
@@ -181,6 +185,7 @@ export function CgrListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`cgr-sent-until-${resetKey}`}
               id="cgr-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
@@ -194,6 +199,7 @@ export function CgrListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="cgr-filter-to"
               label={t('erru.cgr.list.cgrTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -209,6 +215,7 @@ export function CgrListPage() {
               }
             />
             <Select
+              size="small"
               id="cgr-filter-status"
               label={t('erru.cgr.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -224,6 +231,7 @@ export function CgrListPage() {
               }
             />
             <TextField
+              size="small"
               id="cgr-filter-handler"
               label={t('erru.cgr.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
@@ -238,6 +246,7 @@ export function CgrListPage() {
           </div>
 
           <AppTable
+            className="erru-table"
             id="cgr-table"
             data={data}
             columns={columns}

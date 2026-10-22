@@ -14,12 +14,11 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CtudRequestListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS } from '../../../../constants/constants';
 
 const columnHelper = createColumnHelper<CtudRequestListItem>();
 
@@ -29,8 +28,6 @@ export function CtudListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ctud.read']);
   const canCreate = hasAnyPermission(['ctud.create']);
 
@@ -117,11 +114,15 @@ export function CtudListPage() {
         header: t('erru.ctud.list.status'),
         enableSorting: true,
         cell: (info) => {
-          const status = label('CTUD_REQUEST_STATUS', info.getValue());
           const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('CTUD_RESPONSE_STATUS', code)}`
-            : status;
+          return (
+            <ErruStatusBadge
+              status={info.getValue()}
+              response={code ? { code, label: label('CTUD_RESPONSE_STATUS', code) } : null}
+            >
+              {label('CTUD_REQUEST_STATUS', info.getValue())}
+            </ErruStatusBadge>
+          );
         },
       }),
       columnHelper.accessor('handlerName', {
@@ -156,16 +157,17 @@ export function CtudListPage() {
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="ctud-filter-id"
               label={t('erru.ctud.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`ctud-sent-from-${resetKey}`}
               id="ctud-filter-sent-from"
               label={t('erru.ctud.filters.sentFrom')}
@@ -179,6 +181,7 @@ export function CtudListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`ctud-sent-until-${resetKey}`}
               id="ctud-filter-sent-until"
               label={t('erru.ctud.filters.sentUntil')}
@@ -192,6 +195,7 @@ export function CtudListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="ctud-filter-from"
               label={t('erru.ctud.list.ctudFrom')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -207,6 +211,7 @@ export function CtudListPage() {
               }
             />
             <Select
+              size="small"
               id="ctud-filter-to"
               label={t('erru.ctud.list.ctudTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -223,24 +228,28 @@ export function CtudListPage() {
             />
             {/* These three are OR-combined with each other, server-side. */}
             <TextField
+              size="small"
               id="ctud-filter-name"
               label={t('erru.ctud.list.undertakingName')}
               value={draftFilters.transportUndertakingName ?? ''}
               onChange={(v) => setFilter('transportUndertakingName', v)}
             />
             <TextField
+              size="small"
               id="ctud-filter-licence"
               label={t('erru.ctud.list.licenceNumber')}
               value={draftFilters.communityLicenceNumber ?? ''}
               onChange={(v) => setFilter('communityLicenceNumber', v)}
             />
             <TextField
+              size="small"
               id="ctud-filter-vehicle"
               label={t('erru.ctud.list.vehicleNumber')}
               value={draftFilters.vehicleRegistrationNumber ?? ''}
               onChange={(v) => setFilter('vehicleRegistrationNumber', v)}
             />
             <Select
+              size="small"
               id="ctud-filter-status"
               label={t('erru.ctud.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -256,6 +265,7 @@ export function CtudListPage() {
               }
             />
             <Select
+              size="small"
               id="ctud-filter-direction"
               label={t('erru.ctud.list.direction')}
               options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
@@ -272,6 +282,7 @@ export function CtudListPage() {
               }
             />
             <TextField
+              size="small"
               id="ctud-filter-handler"
               label={t('erru.ctud.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
@@ -286,6 +297,7 @@ export function CtudListPage() {
           </div>
 
           <AppTable
+            className="erru-table"
             id="ctud-table"
             data={data}
             columns={columns}

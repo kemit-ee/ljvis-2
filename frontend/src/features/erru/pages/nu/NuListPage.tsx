@@ -14,12 +14,11 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NuMessageListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useNuList } from './useNuList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { BREAKPOINTS } from '../../../../constants/constants.ts';
-import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 
 const columnHelper = createColumnHelper<NuMessageListItem>();
 
@@ -29,8 +28,6 @@ export function NuListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['nu.list']);
   const canCreate = hasAnyPermission(['nu.create']);
 
@@ -132,7 +129,11 @@ export function NuListPage() {
       columnHelper.accessor('status', {
         header: t('erru.nu.list.status'),
         enableSorting: true,
-        cell: (info) => label('NU_MESSAGE_STATUS', info.getValue()),
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NU_MESSAGE_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
       }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,16 +157,17 @@ export function NuListPage() {
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="nu-filter-id"
               label={t('erru.nu.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <Select
+              size="small"
               id="nu-filter-direction"
               label={t('erru.nu.list.direction')}
               options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
@@ -192,6 +194,7 @@ export function NuListPage() {
               }
               onSelect={(v) => setFilter('dateFrom', toIsoDate(v))}
               inputProps={{
+                size: 'small',
                 onClear: () => setFilter('dateFrom', ''),
                 onChangeEvent: (event) => {
                   if (!event.target.value.trim()) setFilter('dateFrom', '');
@@ -211,6 +214,7 @@ export function NuListPage() {
               }
               onSelect={(v) => setFilter('dateUntil', toIsoDate(v))}
               inputProps={{
+                size: 'small',
                 onClear: () => setFilter('dateUntil', ''),
                 onChangeEvent: (event) => {
                   if (!event.target.value.trim()) setFilter('dateUntil', '');
@@ -220,6 +224,7 @@ export function NuListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="nu-filter-country"
               label={t('erru.nu.list.country')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -235,18 +240,21 @@ export function NuListPage() {
               }
             />
             <TextField
+              size="small"
               id="nu-filter-first-name"
               label={t('erru.nu.list.tmFirstName')}
               value={draftFilters.tmFirstName ?? ''}
               onChange={(v) => setFilter('tmFirstName', v)}
             />
             <TextField
+              size="small"
               id="nu-filter-family-name"
               label={t('erru.nu.list.tmFamilyName')}
               value={draftFilters.tmFamilyName ?? ''}
               onChange={(v) => setFilter('tmFamilyName', v)}
             />
             <Select
+              size="small"
               id="nu-filter-status"
               label={t('erru.nu.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -262,6 +270,7 @@ export function NuListPage() {
               }
             />
             <TextField
+              size="small"
               id="nu-filter-handler"
               label={t('erru.nu.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
@@ -282,6 +291,7 @@ export function NuListPage() {
           </div>
 
           <AppTable
+            className="erru-table"
             id="nu-table"
             data={data}
             columns={columns}

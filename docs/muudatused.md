@@ -4,6 +4,12 @@
 
 ## 2026-10-22
 
+### ERRU päringute staatuste värvid
+
+- Kõigi ERRU päringute ja teadete (CTUD, CGR, RSI, NCR, NU) nimekirjades ja detailvaate päises on staatus nüüd värviline märge, ühtne kõigis moodulites: salvestatud hall, saatmisel / saadetud / ebaselge saatmine kollane, saabunud sinine, vastus saadud / vastatud roheline, viga punane.
+- Ühe riigi päringu nimekirjas on vastuse tulemus (nt „Sihtriik ei vastanud õigeaegselt") eraldi väikese märkena staatuse all. Varem oli see staatuse tekstis ja murdus mitmele reale.
+- ERRU nimekirjade (CTUD, CGR, RSI, NCR, NU) filtrid on kitsamad (väiksemad väljad, mitu veergu ühel real) ja tabel on tihedam (väiksem rea- ja lahtrikõrgus). Päringu numbri link ei murdu.
+
 ### RSI teate saatmine
 
 - „Saada" nupp salvestab nüüd enne saatmist vormi praeguse sisu. Varem saadeti serveris olev salvestatud mustand ja vormil tehtud salvestamata muudatused jäid arvestamata, mistõttu saatmine lõppes veaga „Andmed ei vasta ERRU XML-lepingule".
@@ -15,6 +21,7 @@
 - Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.
 - Riigi nime taga on kahetäheline kood, nt „Austria (AT)". Vastuse kaardi ülaosas on kokkuvõte (leiuga / leiuta / ei vastanud).
 - Päringu staatus „Vastus saadud" on lehe päises roheline.
+- Päringu päis ja otsingu andmed on kompaktsemad: väljad on mitmes veerus (silt väärtuse kohal), veokorraldusjuhi ja pädevuse tunnistuse otsing on kõrvuti.
 
 ### Desktop-teavituse saajad
 

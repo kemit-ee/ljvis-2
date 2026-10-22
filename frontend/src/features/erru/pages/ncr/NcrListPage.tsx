@@ -14,12 +14,11 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NcrCaseListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useNcrList } from './useNcrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
-import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
 const columnHelper = createColumnHelper<NcrCaseListItem & { rowClassName?: string }>();
 
@@ -35,8 +34,6 @@ export function NcrListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ncr.list']);
   const canCreate = hasAnyPermission(['ncr.create']);
 
@@ -133,7 +130,11 @@ export function NcrListPage() {
       columnHelper.accessor('status', {
         header: t('erru.ncr.list.status'),
         enableSorting: true,
-        cell: (info) => label('NCR_REQUEST_STATUS', info.getValue()),
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NCR_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
       }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ncr.list.handler'),
@@ -166,16 +167,17 @@ export function NcrListPage() {
 
           {/* Filters refresh only on "Otsi" — editing must not auto-refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="ncr-filter-id"
               label={t('erru.ncr.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`ncr-sent-from-${resetKey}`}
               id="ncr-filter-sent-from"
               label={t('erru.ncr.list.sentFrom')}
@@ -189,6 +191,7 @@ export function NcrListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`ncr-sent-until-${resetKey}`}
               id="ncr-filter-sent-until"
               label={t('erru.ncr.list.sentUntil')}
@@ -202,6 +205,7 @@ export function NcrListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="ncr-filter-from"
               label={t('erru.ncr.list.ncrFrom')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -217,6 +221,7 @@ export function NcrListPage() {
               }
             />
             <Select
+              size="small"
               id="ncr-filter-to"
               label={t('erru.ncr.list.ncrTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -232,6 +237,7 @@ export function NcrListPage() {
               }
             />
             <Select
+              size="small"
               id="ncr-filter-status"
               label={t('erru.ncr.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -247,6 +253,7 @@ export function NcrListPage() {
               }
             />
             <Select
+              size="small"
               id="ncr-filter-direction"
               label={t('erru.ncr.list.direction')}
               options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
@@ -263,12 +270,14 @@ export function NcrListPage() {
               }
             />
             <TextField
+              size="small"
               id="ncr-filter-handler"
               label={t('erru.ncr.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
               onChange={(v) => setFilter('handlerPersonalCode', v)}
             />
             <Select
+              size="small"
               id="ncr-filter-automatic"
               label={t('erru.ncr.list.automatic')}
               options={[{ value: '', label: ' ' }, ...automaticOptions]}
@@ -293,6 +302,7 @@ export function NcrListPage() {
           </div>
 
           <AppTable
+            className="erru-table"
             id="ncr-table"
             data={rows}
             columns={columns}
