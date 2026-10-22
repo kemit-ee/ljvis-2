@@ -129,7 +129,9 @@ export function CtudListPage() {
         header: t('erru.ctud.list.handler'),
         enableSorting: true,
         // Platform-generated requests have no handler — rendered as an en dash.
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
       columnHelper.accessor('direction', {
         header: t('erru.ctud.list.direction'),

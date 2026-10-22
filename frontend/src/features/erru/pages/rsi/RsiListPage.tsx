@@ -126,7 +126,9 @@ export function RsiListPage() {
       columnHelper.accessor('handlerName', {
         header: t('erru.rsi.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
       columnHelper.accessor('direction', {
         header: t('erru.rsi.list.direction'),

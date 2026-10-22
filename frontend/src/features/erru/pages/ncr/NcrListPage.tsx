@@ -139,7 +139,9 @@ export function NcrListPage() {
       columnHelper.accessor('handlerName', {
         header: t('erru.ncr.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
       columnHelper.accessor('automatic', {
         header: t('erru.ncr.list.automatic'),

@@ -493,3 +493,7 @@ nav[aria-label='Main navigation'] {
 .table-link {
   white-space: nowrap;
 }
+
+.nowrap-cell {
+  white-space: nowrap;
+}
