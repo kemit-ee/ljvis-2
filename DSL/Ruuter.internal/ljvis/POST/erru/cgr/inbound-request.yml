@@ -233,7 +233,6 @@ callMtr:
   args:
     url: "[#ERRU_CGR_MTR_ENDPOINT]"
     headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       firstName: ${tm_first_name}

@@ -7,7 +7,7 @@
 ### Sissetulevate ERRU päringute MTR-otsing
 
 - Sissetulev tegevusloa kontrolli päring (CTUD SearchByLicenceAndVehicle) ei vaja enam veoettevõtja nime. Varem lükkas MTR-i otsing päringu nime puudumise tõttu tagasi (HTTP 400) ja päring lõppes serveri veaga. Nüüd otsitakse tegevusloa numbri ja sõiduki järgi.
-- Sissetulevad CTUD ja CGR päringud kutsuvad MTR-i otsingu DSL-i koos sisemise teenusetunnusega. Demo keskkonnas (päris MTR XTR-i kaudu) puudusid MTR-i aadressi konstandid ja päringud lõppesid veaga; konstandid lisatakse devops-repos.
+- Demo, dev ja prelive keskkonnas puudusid sissetulevate CTUD ja CGR päringute MTR-i aadressi konstandid ja päringud lõppesid veaga. Konstandid lisatakse devops-repos ja osutavad MTR-i mockile.
 
 ### Vastus saabunud NCR-ile ja välisriigi kontrollkaardi loomine
 
