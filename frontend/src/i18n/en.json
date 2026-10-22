@@ -2067,6 +2067,7 @@
         "required": "This field is required",
         "invalid_country_code": "Country code must be two letters",
         "max_length_exceeded": "Maximum length exceeded",
+        "invalid_vin": "VIN must be exactly 17 characters (letters and digits, no I, O or Q)",
         "driver_block_incomplete": "The driver block's first name and family name must be filled in together",
         "holder_type_invalid": "Party type must be transport undertaking or owner",
         "undertaking_block_incomplete": "The undertaking name and community licence number must be filled in together",

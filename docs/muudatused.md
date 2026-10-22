@@ -4,6 +4,12 @@
 
 ## 2026-10-22
 
+### RSI teate saatmine
+
+- „Saada" nupp salvestab nüüd enne saatmist vormi praeguse sisu. Varem saadeti serveris olev salvestatud mustand ja vormil tehtud salvestamata muudatused jäid arvestamata, mistõttu saatmine lõppes veaga „Andmed ei vasta ERRU XML-lepingule".
+- „Saada" kontrollib enne saatmist ERRU kohustuslikke välju: VIN, läbisõidumõõdiku näit, juhi eesnimi ja perekonnanimi ning veoettevõtja või omaniku andmed. Puuduvad väljad märgitakse vormil, juhi ja omaniku plokk avatakse. Mustandi salvestamine (nupp „Salvesta") ei nõua neid endiselt.
+- VIN peab olema täpselt 17 märki (tähed ja numbrid, ilma I, O ja Q). Vigane VIN lükatakse tagasi juba salvestamisel, mitte alles saatmisel.
+
 ### CGR päringu vastuse kuva
 
 - Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.

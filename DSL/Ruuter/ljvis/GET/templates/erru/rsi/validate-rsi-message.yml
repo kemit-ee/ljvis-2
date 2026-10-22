@@ -50,6 +50,8 @@ validate:
       next: returnVehicleRegistrationCountryInvalidError
     - condition: ${('' + (incoming.body.vehicleIdentificationNumber || '')).trim().length > 20}
       next: returnVehicleIdentificationNumberMaxLengthError
+    - condition: ${('' + (incoming.body.vehicleIdentificationNumber || '')).trim() !== '' && !/^[0-9A-HJ-NPR-Za-hj-npr-z]{17}$/.test(('' + incoming.body.vehicleIdentificationNumber).trim())}
+      next: returnVehicleIdentificationNumberInvalidError
     # ── Driver block - optional, closed by default: filled at all => firstName+familyName mandatory ──
     - condition: "${(('' + (incoming.body.driverFirstName || '')).trim() || ('' + (incoming.body.driverFamilyName || '')).trim()) ? !(('' + (incoming.body.driverFirstName || '')).trim() && ('' + (incoming.body.driverFamilyName || '')).trim()) : false}"
       next: returnDriverBlockIncompleteError
@@ -115,6 +117,10 @@ returnVehicleRegistrationCountryInvalidError:
 
 returnVehicleIdentificationNumberMaxLengthError:
   return: '{"type":"VALIDATION_ERROR","field":"vehicleIdentificationNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnVehicleIdentificationNumberInvalidError:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleIdentificationNumber","code":"invalid_vin"}'
   next: end
 
 returnDriverBlockIncompleteError:
