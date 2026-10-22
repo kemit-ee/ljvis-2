@@ -14,6 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NuMessageListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useNuList } from './useNuList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -132,7 +133,11 @@ export function NuListPage() {
       columnHelper.accessor('status', {
         header: t('erru.nu.list.status'),
         enableSorting: true,
-        cell: (info) => label('NU_MESSAGE_STATUS', info.getValue()),
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NU_MESSAGE_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
       }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps

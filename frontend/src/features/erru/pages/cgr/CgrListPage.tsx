@@ -14,6 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CgrRequestListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useCgrList } from './useCgrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -113,11 +114,15 @@ export function CgrListPage() {
         header: t('erru.cgr.list.status'),
         enableSorting: true,
         cell: (info) => {
-          const status = label('CGR_REQUEST_STATUS', info.getValue());
           const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('CGR_MEMBER_STATE_STATUS', code)}`
-            : status;
+          return (
+            <ErruStatusBadge
+              status={info.getValue()}
+              response={code ? { code, label: label('CGR_MEMBER_STATE_STATUS', code) } : null}
+            >
+              {label('CGR_REQUEST_STATUS', info.getValue())}
+            </ErruStatusBadge>
+          );
         },
       }),
       columnHelper.accessor('handlerName', {

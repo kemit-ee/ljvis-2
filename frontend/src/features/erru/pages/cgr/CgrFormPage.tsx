@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useCgrRequestDetail } from './useCgrRequestDetail';
 import { useCgrForm } from './useCgrForm';
 import { CgrRequestFields } from '../../components/Cgr/CgrRequestFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { CgrMemberStatesTable } from '../../components/Cgr/CgrMemberStatesTable';
 import { isCgrEditable, isCgrSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
@@ -79,13 +80,13 @@ export function CgrFormPage() {
               {' — '}
               {request.businessCaseId}
             </Heading>
-            <StatusBadge color={request.status === 'responded' ? 'success' : undefined}>
+            <ErruStatusBadge status={request.status}>
               {request.status === 'sending'
                 ? t('erru.cgr.sending')
                 : request.status === 'send_unknown'
                   ? t('erru.cgr.sendUnknownStatus')
                   : label('CGR_REQUEST_STATUS', request.status)}
-            </StatusBadge>
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.cgr.form.version', { version: request.version })}

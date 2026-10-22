@@ -14,6 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NcrCaseListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useNcrList } from './useNcrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -133,7 +134,11 @@ export function NcrListPage() {
       columnHelper.accessor('status', {
         header: t('erru.ncr.list.status'),
         enableSorting: true,
-        cell: (info) => label('NCR_REQUEST_STATUS', info.getValue()),
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NCR_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
       }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ncr.list.handler'),

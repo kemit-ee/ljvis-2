@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useNcrCase } from './useNcrCase';
 import { useNcrRequestForm } from './useNcrRequestForm';
 import { useNcrResponseForm } from './useNcrResponseForm';
 import { NcrRequestFields } from '../../components/Ncr/NcrRequestFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { NcrResponseFields } from '../../components/Ncr/NcrResponseFields';
 import { DetailRow } from '../../components/shared/DetailRow';
 import {
@@ -338,13 +339,13 @@ export function NcrFormPage() {
               {' — '}
               {current.businessCaseId}
             </Heading>
-            <StatusBadge>
+            <ErruStatusBadge status={current.status}>
               {current.status === 'sending'
                 ? t('erru.ncr.form.sending')
                 : current.status === 'send_unknown'
                   ? t('erru.ncr.form.sendUnknownStatus')
                   : label('NCR_REQUEST_STATUS', current.status)}
-            </StatusBadge>
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.ncr.form.version', { version: current.version })}
