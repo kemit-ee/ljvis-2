@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { ErruStatusBadge, erruResponseColor, erruStatusColor } from './ErruStatusBadge';
+import { erruResponseColor, erruStatusColor } from '../../utils/erruStatusColors';
+import { ErruStatusBadge } from './ErruStatusBadge';
 
 beforeAll(() => {
   // TEDI's breakpoint hook needs matchMedia, which jsdom does not provide.

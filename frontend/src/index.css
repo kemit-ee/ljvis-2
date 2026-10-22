@@ -464,3 +464,30 @@ nav[aria-label='Main navigation'] {
 .erru-status > * {
   white-space: nowrap;
 }
+
+/* ERRU lists: narrower filters and a denser table (TEDI's community Table has no density prop) */
+.filter-bar--compact {
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.filter-bar--compact .filter-actions {
+  margin-bottom: 0.5rem;
+}
+
+.erru-table td,
+.erru-table th {
+  padding: 0.375rem 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.erru-table th {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.erru-table .table-link {
+  white-space: nowrap;
+}

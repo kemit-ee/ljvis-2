@@ -19,8 +19,6 @@ import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
-import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
 const columnHelper = createColumnHelper<RsiMessageListItem>();
 
@@ -35,8 +33,6 @@ export function RsiListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['rsi.read']);
   const canCreate = hasAnyPermission(['rsi.create']);
 
@@ -161,22 +157,24 @@ export function RsiListPage() {
 
           {/* Filters refresh only on "Otsi" — editing must not auto-refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="rsi-filter-id"
               label={t('erru.rsi.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <TextField
+              size="small"
               id="rsi-filter-reg-nr"
               label={t('erru.rsi.list.vehicleRegistrationNumber')}
               value={draftFilters.vehicleRegistrationNumber ?? ''}
               onChange={(v) => setFilter('vehicleRegistrationNumber', v)}
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`rsi-sent-from-${resetKey}`}
               id="rsi-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
@@ -190,6 +188,7 @@ export function RsiListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`rsi-sent-until-${resetKey}`}
               id="rsi-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
@@ -203,6 +202,7 @@ export function RsiListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="rsi-filter-from"
               label={t('erru.rsi.list.rsiFrom')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -218,6 +218,7 @@ export function RsiListPage() {
               }
             />
             <Select
+              size="small"
               id="rsi-filter-to"
               label={t('erru.rsi.list.rsiTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -233,6 +234,7 @@ export function RsiListPage() {
               }
             />
             <Select
+              size="small"
               id="rsi-filter-status"
               label={t('erru.rsi.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -248,6 +250,7 @@ export function RsiListPage() {
               }
             />
             <Select
+              size="small"
               id="rsi-filter-direction"
               label={t('erru.rsi.list.direction')}
               options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
@@ -264,6 +267,7 @@ export function RsiListPage() {
               }
             />
             <TextField
+              size="small"
               id="rsi-filter-handler"
               label={t('erru.rsi.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
@@ -278,6 +282,7 @@ export function RsiListPage() {
           </div>
 
           <AppTable
+            className="erru-table"
             id="rsi-table"
             data={data}
             columns={columns}

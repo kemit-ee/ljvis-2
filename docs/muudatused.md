@@ -8,6 +8,7 @@
 
 - Kõigi ERRU päringute ja teadete (CTUD, CGR, RSI, NCR, NU) nimekirjades ja detailvaate päises on staatus nüüd värviline märge, ühtne kõigis moodulites: salvestatud hall, saatmisel / saadetud / ebaselge saatmine kollane, saabunud sinine, vastus saadud / vastatud roheline, viga punane.
 - Ühe riigi päringu nimekirjas on vastuse tulemus (nt „Sihtriik ei vastanud õigeaegselt") eraldi väikese märkena staatuse all. Varem oli see staatuse tekstis ja murdus mitmele reale.
+- ERRU nimekirjade (CTUD, CGR, RSI, NCR, NU) filtrid on kitsamad (väiksemad väljad, mitu veergu ühel real) ja tabel on tihedam (väiksem rea- ja lahtrikõrgus). Päringu numbri link ei murdu.
 
 ### CGR päringu vastuse kuva
 
