@@ -4,6 +4,11 @@
 
 ## 2026-10-22
 
+### ERRU päringute staatuste värvid
+
+- Kõigi ERRU päringute ja teadete (CTUD, CGR, RSI, NCR, NU) nimekirjades ja detailvaate päises on staatus nüüd värviline märge, ühtne kõigis moodulites: salvestatud hall, saatmisel / saadetud / ebaselge saatmine kollane, saabunud sinine, vastus saadud / vastatud roheline, viga punane.
+- Ühe riigi päringu nimekirjas on vastuse tulemus (nt „Sihtriik ei vastanud õigeaegselt") eraldi väikese märkena staatuse all. Varem oli see staatuse tekstis ja murdus mitmele reale.
+
 ### CGR päringu vastuse kuva
 
 - Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.

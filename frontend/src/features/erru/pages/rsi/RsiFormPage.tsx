@@ -7,11 +7,11 @@ import {
   Card,
   Heading,
   Text,
-  StatusBadge,
 } from '@tedi-design-system/react/tedi';
 import { useRsiMessageDetail } from './useRsiMessageDetail';
 import { useRsiForm } from './useRsiForm';
 import { RsiMessageFields } from '../../components/Rsi/RsiMessageFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { isRsiEditable, isRsiSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -123,13 +123,13 @@ export function RsiFormPage() {
               {' — '}
               {message.businessCaseId}
             </Heading>
-            <StatusBadge>
+            <ErruStatusBadge status={message.status}>
               {message.status === 'sending'
                 ? t('erru.rsi.sending')
                 : message.status === 'send_unknown'
                   ? t('erru.rsi.sendUnknownStatus')
                   : label('RSI_REQUEST_STATUS', message.status)}
-            </StatusBadge>
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.rsi.form.version', { version: message.version })}

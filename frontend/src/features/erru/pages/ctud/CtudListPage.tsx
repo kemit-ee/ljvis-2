@@ -14,6 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CtudRequestListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -117,11 +118,15 @@ export function CtudListPage() {
         header: t('erru.ctud.list.status'),
         enableSorting: true,
         cell: (info) => {
-          const status = label('CTUD_REQUEST_STATUS', info.getValue());
           const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('CTUD_RESPONSE_STATUS', code)}`
-            : status;
+          return (
+            <ErruStatusBadge
+              status={info.getValue()}
+              response={code ? { code, label: label('CTUD_RESPONSE_STATUS', code) } : null}
+            >
+              {label('CTUD_REQUEST_STATUS', info.getValue())}
+            </ErruStatusBadge>
+          );
         },
       }),
       columnHelper.accessor('handlerName', {

@@ -14,6 +14,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { RsiMessageListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -115,11 +116,15 @@ export function RsiListPage() {
         header: t('erru.rsi.list.status'),
         enableSorting: true,
         cell: (info) => {
-          const status = label('RSI_REQUEST_STATUS', info.getValue());
           const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('RSI_RESPONSE_STATUS', code)}`
-            : status;
+          return (
+            <ErruStatusBadge
+              status={info.getValue()}
+              response={code ? { code, label: label('RSI_RESPONSE_STATUS', code) } : null}
+            >
+              {label('RSI_REQUEST_STATUS', info.getValue())}
+            </ErruStatusBadge>
+          );
         },
       }),
       columnHelper.accessor('handlerName', {
