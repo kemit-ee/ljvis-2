@@ -15,6 +15,10 @@
 - NCR teatest välisriigi kontrollkaardi loomine („Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart") lõpeb veaga 500, kui allikteate valik tehti sama sammu sees, kus selle põhjal välju loeti. Valik on nüüd eraldi sammus.
 - Tehnokontrolli teate (RSI) saatmine näitas XML-lepingu rikkumise korral („Kontrolli VIN, odomeetri näit, juhi ja omaniku andmed") eksitavat teadet „jääb olekusse Viga". Mustand jääb muudetavaks ja leht näitab nüüd õiget XML-kontrolli teadet.
 
+### Sissetulev CTUD päring ei lõpe enam veateatega
+
+- Sissetulev tegevusloa kontrolli päring (CTUD), mille registrivastuses oli tegevusloa tüüp juba ERRU pikas kirjapildis (nt „Community licence for goods transport"), lõppes veateatega „ServerError". Nüüd võetakse nii pikk kirjapilt kui ka klassifikaatori kood vastu ja päring saab sisulise vastuse.
+
 ## 2026-10-21
 
 ### NCR ja NU saadetakse ERRU XML-ina
