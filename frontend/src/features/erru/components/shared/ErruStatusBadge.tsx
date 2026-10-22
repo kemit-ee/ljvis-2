@@ -4,7 +4,7 @@ import { erruResponseColor, erruStatusColor } from '../../utils/erruStatusColors
 
 /** Lifecycle status as a coloured badge (one per row, never wraps). */
 export function ErruStatusBadge({ status, children }: { status: string | null | undefined; children: ReactNode }) {
-  return <StatusBadge color={erruStatusColor(status)}>{children}</StatusBadge>;
+  return <StatusBadge className="erru-badge" color={erruStatusColor(status)}>{children}</StatusBadge>;
 }
 
 /**
@@ -14,5 +14,5 @@ export function ErruStatusBadge({ status, children }: { status: string | null | 
  */
 export function ErruResultBadge({ code, children }: { code: string | null | undefined; children: ReactNode }) {
   if (!code) return <>—</>;
-  return <StatusBadge color={erruResponseColor(code)}>{children}</StatusBadge>;
+  return <StatusBadge className="erru-badge" color={erruResponseColor(code)}>{children}</StatusBadge>;
 }

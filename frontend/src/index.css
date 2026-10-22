@@ -453,15 +453,8 @@ nav[aria-label='Main navigation'] {
   }
 }
 
-/* ERRU status badges (ErruStatusBadge): lifecycle status plus optional response outcome, never wrapped */
-.erru-status {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
-}
-
-.erru-status > * {
+/* ERRU status/result badges never wrap inside narrow table columns */
+.erru-badge {
   white-space: nowrap;
 }
 
