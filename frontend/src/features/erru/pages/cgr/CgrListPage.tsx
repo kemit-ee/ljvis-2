@@ -85,6 +85,14 @@ export function CgrListPage() {
           </ErruResultBadge>
         ),
       }),
+      columnHelper.accessor('sentAt', {
+        header: t('erru.cgr.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.cgr.list.id'),
         enableSorting: true,
@@ -100,14 +108,6 @@ export function CgrListPage() {
             {info.getValue()}
           </a>
         ),
-      }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.cgr.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
       }),
       columnHelper.accessor('tmFirstName', {
         header: t('erru.cgr.list.tmFirstName'),
