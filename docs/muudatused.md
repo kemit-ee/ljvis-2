@@ -9,6 +9,7 @@
 - Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.
 - Riigi nime taga on kahetäheline kood, nt „Austria (AT)". Vastuse kaardi ülaosas on kokkuvõte (leiuga / leiuta / ei vastanud).
 - Päringu staatus „Vastus saadud" on lehe päises roheline.
+- Päringu päis ja otsingu andmed on kompaktsemad: väljad on mitmes veerus (silt väärtuse kohal), veokorraldusjuhi ja pädevuse tunnistuse otsing on kõrvuti.
 
 ### Desktop-teavituse saajad
 

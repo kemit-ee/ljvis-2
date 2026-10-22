@@ -434,3 +434,21 @@ nav[aria-label='Main navigation'] {
     grid-template-columns: 1fr;
   }
 }
+
+/* CGR detail header: label-above-value grid, the two search blocks side by side */
+.cgr-fields--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cgr-search-blocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 2rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .cgr-search-blocks {
+    grid-template-columns: 1fr;
+  }
+}
