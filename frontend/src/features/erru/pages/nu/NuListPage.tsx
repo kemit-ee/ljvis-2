@@ -291,7 +291,7 @@ export function NuListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="nu-table"
             data={data}
             columns={columns}

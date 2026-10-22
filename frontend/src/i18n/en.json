@@ -1612,6 +1612,7 @@
     "yes": "Yes",
     "no": "No",
     "tableIsEmpty": "No matching results found.",
+    "tableLoading": "Table is loading...",
     "confirm": "Confirm",
     "confirmChange": "Yes, change",
     "discard": "Discard",

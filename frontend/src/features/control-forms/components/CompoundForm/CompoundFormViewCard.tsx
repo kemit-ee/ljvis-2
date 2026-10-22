@@ -6,7 +6,7 @@ import {
   Heading,
   Select,
   Text,
-  TextArea,
+  Textarea,
   TextField,
   TimeField,
 } from '@tedi-design-system/react/tedi';
@@ -353,7 +353,7 @@ export function CompoundFormViewCard({
                   disabled={disabled}
                 />
                 <div />
-                <TextArea
+                <Textarea
                   id="roadTaxNotes"
                   label={t('forms.compound.roadTaxNotes')}
                   value={form.roadTaxNotes ?? ''}

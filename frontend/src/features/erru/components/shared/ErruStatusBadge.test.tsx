@@ -22,13 +22,14 @@ afterEach(cleanup);
 describe('erruStatusColor', () => {
   it('maps lifecycle statuses of every ERRU family to one colour scheme', () => {
     expect(erruStatusColor('initiated')).toBe('neutral');
-    expect(erruStatusColor('sending')).toBe('warning');
-    expect(erruStatusColor('sent')).toBe('warning');
+    expect(erruStatusColor('sending')).toBe('brand');
+    expect(erruStatusColor('sent')).toBe('brand');
+    expect(erruStatusColor('viewed')).toBe('brand');
+    expect(erruStatusColor('received')).toBe('accent');
+    expect(erruStatusColor('answer_drafted')).toBe('warning');
+    expect(erruStatusColor('send_unknown')).toBe('warning');
     expect(erruStatusColor('responded')).toBe('success');
     expect(erruStatusColor('answered')).toBe('success');
-    expect(erruStatusColor('received')).toBe('brand');
-    expect(erruStatusColor('viewed')).toBe('brand');
-    expect(erruStatusColor('send_unknown')).toBe('warning');
     expect(erruStatusColor('error')).toBe('danger');
     expect(erruStatusColor('something_new')).toBe('neutral');
   });
@@ -38,7 +39,7 @@ describe('erruResponseColor', () => {
   it('colours single-country response outcomes', () => {
     expect(erruResponseColor('Found')).toBe('success');
     expect(erruResponseColor('OK')).toBe('success');
-    expect(erruResponseColor('NotFound')).toBe('warning');
+    expect(erruResponseColor('NotFound')).toBe('neutral');
     expect(erruResponseColor('Timeout')).toBe('danger');
     expect(erruResponseColor('NotAvailable')).toBe('danger');
     expect(erruResponseColor(null)).toBe('neutral');

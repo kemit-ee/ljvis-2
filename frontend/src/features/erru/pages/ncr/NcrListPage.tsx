@@ -302,7 +302,7 @@ export function NcrListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="ncr-table"
             data={rows}
             columns={columns}

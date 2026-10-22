@@ -7,7 +7,7 @@ import {
   Text,
   ChoiceGroup,
   TextField,
-  TextArea,
+  Textarea,
   Select,
   Alert,
   Button,
@@ -548,7 +548,7 @@ export function AdrFormFields({
                     : {})}
                 />
               </div>
-              <TextArea
+              <Textarea
                 id={`${idPrefix}exemptionNotes`}
                 label={t('forms.adr.exemption.notes')}
                 className="mt-1"
@@ -939,7 +939,7 @@ export function AdrFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.adr.notes.title')}
           </Heading>
-          <TextArea
+          <Textarea
             id={`${idPrefix}notes`}
             label={t('forms.adr.notes.title')}
             hideLabel
@@ -966,7 +966,7 @@ export function AdrFormFields({
             }
           />
           {infringementNotesSummary && (
-            <TextArea
+            <Textarea
               id={`${idPrefix}infringementNotesSummary`}
               label={t('forms.adr.notes.infringementSummary')}
               className="mt-1"

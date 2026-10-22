@@ -297,7 +297,7 @@ export function CtudListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="ctud-table"
             data={data}
             columns={columns}

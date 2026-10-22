@@ -44,7 +44,6 @@ export function NuMemberStatesTable({ message }: { message: NuMessage }) {
           data={states}
           columns={columns}
           hidePagination
-          enableSorting={false}
         />
       </Card.Content>
     </Card>

@@ -282,7 +282,7 @@ export function RsiListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="rsi-table"
             data={data}
             columns={columns}

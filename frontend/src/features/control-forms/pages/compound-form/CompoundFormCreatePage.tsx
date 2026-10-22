@@ -17,7 +17,7 @@ import {
   Text,
   Alert,
   ChoiceGroup,
-  TextArea,
+  Textarea,
   Tooltip,
   InfoButton,
   Tabs,
@@ -1148,7 +1148,7 @@ export function CompoundFormCreatePage() {
                             </Button>
                           )}
                         </div>
-                        <TextArea
+                        <Textarea
                           id="roadTaxNotes"
                           label={t('forms.compound.roadTaxNotes')}
                           value={formik.values.roadTaxNotes}

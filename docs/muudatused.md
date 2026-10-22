@@ -2,11 +2,19 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-23
+
+### TEDI disainisüsteemi uuendus ja ühtne tabeli ilme
+
+- TEDI disainisüsteem on uuendatud versioonile 19.1.1. Kõik rakenduse nimekirjatabelid (ERRU päringud ja teated, riskitasemed, X-tee logid, teavituste logi, versioonide tabel jm) kasutavad nüüd TEDI uut tabelikomponenti. Tabelid on selgema päisega, sorteeritavad veerud on päises nuppudena, lehitsemine ja „Kuva korraga" on TEDI standardi järgi.
+- ERRU nimekirjades on tabeli read tihedamad (TEDI „small" suurus).
+- ERRU staatuste värvid järgivad TEDI olekusiltide juhist: salvestatud hall, saatmisel ja saadetud sinine (informatiivne, tegevust ei oota), saabunud oranž (ootab tähelepanu), vastuse mustand ja ebaselge saatmine kollane, vastus saadud / vastatud roheline, viga punane. Ühe riigi päringu vastuse tulemus on eraldi märge: leid roheline, leiuta hall, ei vastanud punane.
+
 ## 2026-10-22
 
 ### ERRU päringute staatuste värvid
 
-- Kõigi ERRU päringute ja teadete (CTUD, CGR, RSI, NCR, NU) nimekirjades ja detailvaate päises on staatus nüüd värviline märge, ühtne kõigis moodulites: salvestatud hall, saatmisel / saadetud / ebaselge saatmine kollane, saabunud sinine, vastus saadud / vastatud roheline, viga punane.
+- Kõigi ERRU päringute ja teadete (CTUD, CGR, RSI, NCR, NU) nimekirjades ja detailvaate päises on staatus nüüd värviline märge, ühtne kõigis moodulites: salvestatud hall, vaata 2026-10-23 uuendust.
 - Ühe riigi päringu nimekirjas on vastuse tulemus (nt „Sihtriik ei vastanud õigeaegselt") eraldi väikese märkena staatuse all. Varem oli see staatuse tekstis ja murdus mitmele reale.
 - ERRU nimekirjade (CTUD, CGR, RSI, NCR, NU) filtrid on kitsamad (väiksemad väljad, mitu veergu ühel real) ja tabel on tihedam (väiksem rea- ja lahtrikõrgus). Päringu numbri link ei murdu.
 

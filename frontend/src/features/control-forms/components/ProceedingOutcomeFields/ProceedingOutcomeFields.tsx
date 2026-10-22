@@ -1,4 +1,4 @@
-import { Card, Heading, TextArea } from '@tedi-design-system/react/tedi';
+import { Card, Heading, Textarea } from '@tedi-design-system/react/tedi';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/AuthContext';
 import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
@@ -28,14 +28,14 @@ export function ProceedingOutcomeFields({
     <Card className="mb-1">
       <Card.Content>
         <Heading element="h3" className="mb-1">{t(titleKey)}</Heading>
-        <TextArea
+        <Textarea
           id="enforcementDecision"
           label={t('forms.shared.proceedingOutcome.enforcementDecision')}
           value={enforcementDecision ?? ''}
           onChange={(value) => onChange('enforcementDecision', value)}
           disabled={!editable}
         />
-        <TextArea
+        <Textarea
           id="proceedingClosureBasis"
           label={t('forms.shared.proceedingOutcome.proceedingClosureBasis')}
           value={proceedingClosureBasis ?? ''}

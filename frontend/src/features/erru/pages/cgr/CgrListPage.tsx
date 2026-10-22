@@ -246,7 +246,7 @@ export function CgrListPage() {
           </div>
 
           <AppTable
-            className="erru-table"
+            size="small"
             id="cgr-table"
             data={data}
             columns={columns}
