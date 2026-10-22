@@ -82,6 +82,23 @@ export function CtudListPage() {
           </ErruResultBadge>
         ),
       }),
+      columnHelper.accessor('direction', {
+        header: t('erru.ctud.list.direction'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {label('CTUD_DIRECTION', info.getValue())}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        header: t('erru.ctud.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.ctud.list.id'),
         enableSorting: true,
@@ -97,14 +114,6 @@ export function CtudListPage() {
             {info.getValue()}
           </a>
         ),
-      }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.ctud.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
       }),
       columnHelper.accessor('ctudFrom', {
         header: t('erru.ctud.list.ctudFrom'),
@@ -137,15 +146,6 @@ export function CtudListPage() {
         // Platform-generated requests have no handler — rendered as an en dash.
         cell: (info) => (
           <span className="nowrap-cell">{info.getValue() || '—'}</span>
-        ),
-      }),
-      columnHelper.accessor('direction', {
-        header: t('erru.ctud.list.direction'),
-        enableSorting: false,
-        cell: (info) => (
-          <ErruDirection direction={info.getValue()}>
-            {label('CTUD_DIRECTION', info.getValue())}
-          </ErruDirection>
         ),
       }),
     ],

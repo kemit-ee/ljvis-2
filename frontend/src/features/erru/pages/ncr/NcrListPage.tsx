@@ -90,6 +90,25 @@ export function NcrListPage() {
           </ErruStatusBadge>
         ),
       }),
+      columnHelper.accessor('direction', {
+        header: t('erru.ncr.list.direction'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.ncr.list.directionOutgoing')
+              : t('erru.ncr.list.directionIncoming')}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        header: t('erru.ncr.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.ncr.list.id'),
         enableSorting: true,
@@ -106,14 +125,6 @@ export function NcrListPage() {
           </a>
         ),
       }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.ncr.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
-      }),
       columnHelper.accessor('ncrFrom', {
         header: t('erru.ncr.list.ncrFrom'),
         enableSorting: true,
@@ -128,17 +139,6 @@ export function NcrListPage() {
         header: t('erru.ncr.list.transportUndertakingName'),
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
-      }),
-      columnHelper.accessor('direction', {
-        header: t('erru.ncr.list.direction'),
-        enableSorting: false,
-        cell: (info) => (
-          <ErruDirection direction={info.getValue()}>
-            {info.getValue() === 'outgoing'
-              ? t('erru.ncr.list.directionOutgoing')
-              : t('erru.ncr.list.directionIncoming')}
-          </ErruDirection>
-        ),
       }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ncr.list.handler'),

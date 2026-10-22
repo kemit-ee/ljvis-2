@@ -84,22 +84,6 @@ export function NuListPage() {
           </ErruStatusBadge>
         ),
       }),
-      columnHelper.accessor('businessCaseId', {
-        header: t('erru.nu.list.id'),
-        enableSorting: true,
-        cell: (info) => (
-          <a
-            href={`/erru/nu/${info.row.original.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              openMessage(info.row.original);
-            }}
-            className="table-link"
-          >
-            {info.getValue()}
-          </a>
-        ),
-      }),
       columnHelper.accessor('direction', {
         header: t('erru.nu.list.direction'),
         enableSorting: true,
@@ -118,6 +102,22 @@ export function NuListPage() {
           const v = info.getValue();
           return v ? new Date(v).toLocaleDateString('et-EE') : '—';
         },
+      }),
+      columnHelper.accessor('businessCaseId', {
+        header: t('erru.nu.list.id'),
+        enableSorting: true,
+        cell: (info) => (
+          <a
+            href={`/erru/nu/${info.row.original.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              openMessage(info.row.original);
+            }}
+            className="table-link"
+          >
+            {info.getValue()}
+          </a>
+        ),
       }),
       columnHelper.accessor('countryCode', {
         header: t('erru.nu.list.country'),

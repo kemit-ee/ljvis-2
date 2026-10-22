@@ -90,6 +90,25 @@ export function RsiListPage() {
           </ErruResultBadge>
         ),
       }),
+      columnHelper.accessor('direction', {
+        header: t('erru.rsi.list.direction'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.rsi.list.directionOutgoing')
+              : t('erru.rsi.list.directionIncoming')}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        header: t('erru.rsi.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.rsi.list.id'),
         enableSorting: true,
@@ -105,14 +124,6 @@ export function RsiListPage() {
             {info.getValue()}
           </a>
         ),
-      }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.rsi.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
       }),
       columnHelper.accessor('rsiFrom', {
         header: t('erru.rsi.list.rsiFrom'),
@@ -134,17 +145,6 @@ export function RsiListPage() {
         enableSorting: true,
         cell: (info) => (
           <span className="nowrap-cell">{info.getValue() || '—'}</span>
-        ),
-      }),
-      columnHelper.accessor('direction', {
-        header: t('erru.rsi.list.direction'),
-        enableSorting: false,
-        cell: (info) => (
-          <ErruDirection direction={info.getValue()}>
-            {info.getValue() === 'outgoing'
-              ? t('erru.rsi.list.directionOutgoing')
-              : t('erru.rsi.list.directionIncoming')}
-          </ErruDirection>
         ),
       }),
     ],
