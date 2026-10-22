@@ -11,7 +11,6 @@
 - Saaja, kellel liigi õigust ei ole, näeb uut teavitust lehe värskendamisel, mitte kohe.
 - Migratsioon `20261226100000-notification-recipients-only` (uus veerg `notification.recipients_only`).
 
-### Välisriigi kontrollkaardi loomine NCR teatest
 ### Teavitus sissetulevast tegevusloa kontrolli päringust (CTUD) ja teavituste lingid
 
 - Kui mõni teine riik esitab Eestile tegevusloa kontrolli päringu (CTUD), tekib nüüd teavitus „ERRU tegevusloa kontrolli päring (CTUD)" kõigile `ctud.read` õigusega kasutajatele. Haldusvaates „Postkasti mallide ja vastuvõtjate seaded" saab selle liigi desktop-kanali saajad eraldi määrata. Teavituse „Ava" nupp viib päringu kirjele. Päringule vastatakse endiselt automaatselt, teavituse viga ei sega vastust.
