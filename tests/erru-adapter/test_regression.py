@@ -104,6 +104,17 @@ def audit_count(kind, dto):
 
 
 class ErruRegression(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Desktop-kanali teavitus tekib ainult siis, kui liigile on saaja valitud.
+        for kind in ('ncr_violation', 'ncr_ok', 'rsi_received', 'nu_inbound_received'):
+            sql("INSERT INTO notifications.notification_template_mapping (notification_type, channel, default_language, active, desktop_recipient_personal_codes, created_by) VALUES ("
+                + quoted(kind) + ", 'desktop', 'et', true, ARRAY['60001019906'], 'regression-test')")
+
+    @classmethod
+    def tearDownClass(cls):
+        sql("DELETE FROM notifications.notification_template_mapping WHERE created_by = 'regression-test'")
+
     def test_01_expired_and_short_deadline_notifications_finish(self):
         for kind in ('nu', 'ncr', 'rsi'):
             for seconds in (-30, 2):

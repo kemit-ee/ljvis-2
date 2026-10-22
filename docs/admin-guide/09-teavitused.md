@@ -193,11 +193,13 @@ mallifailid ja malli loomise samm-sammuline juhend on repos kaustas
 
 ### Desktop-kanali teavituse saajad
 
-`desktop`-kanaliga liikidel puudub vaikimisi vastuvõtja e-post — selle asemel
-saab valida **konkreetsed kasutajad**, kellele rakendusesisene (kella-ikooni)
-teavitus kuvatakse, lisaks senisele õiguspõhisele (`required_permission`)
-reeglile. See sobib juhuks, kui teavitust peab nägema kindel isik või väike
-ring inimesi, mitte kõik mingi õigusega kasutajad.
+`desktop`-kanaliga liikidel puudub vaikimisi vastuvõtja e-post. Rakendusesisese
+(kella-ikooni) teavituse näevad **ainult valitud kasutajad**. Õigus
+(`required_permission`) üksi teavitust nähtavaks ei tee. Kui liigile pole ühtegi
+saajat valitud, teavitust **ei looda üldse ja seda ei näe keegi**. Seega tuleb
+iga desktop-liigi saajad halduses ise määrata. Muudatus kehtib teavitustele,
+mis tekivad pärast seadistuse muutmist, juba loodud teavituste saajaid see ei
+muuda. Enne seda loodud teavitused jäävad õiguspõhiselt nähtavaks.
 
 Praegune `desktop`-kanali liikide kataloog:
 

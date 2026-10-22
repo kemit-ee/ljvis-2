@@ -4,6 +4,13 @@
 
 ## 2026-10-22
 
+### Desktop-teavituse saajad
+
+- Desktop-kanali teavituse (rakenduse kella-ikooni teavituse) näevad nüüd ainult haldusvaates „Postkasti mallide ja vastuvõtjate seaded" valitud saajad. Varem nägid seda lisaks kõik vastava õigusega kasutajad (nt `rsi.read`, `ncr.read`, `nu.read`). Kui liigile ei ole saajaid valitud, teavitust ei looda ja seda ei näe keegi. **Pärast paigaldamist tuleb kõikide desktop-liikide saajad halduses ise määrata.** Juba loodud teavitused jäävad endiselt õiguspõhiselt nähtavaks.
+- „Märgi kõik loetuks" arvestab nüüd ka saajana saadud teavitusi.
+- Saaja, kellel liigi õigust ei ole, näeb uut teavitust lehe värskendamisel, mitte kohe.
+- Migratsioon `20261226100000-notification-recipients-only` (uus veerg `notification.recipients_only`).
+
 ### Teavitus sissetulevast tegevusloa kontrolli päringust (CTUD) ja teavituste lingid
 
 - Kui mõni teine riik esitab Eestile tegevusloa kontrolli päringu (CTUD), tekib nüüd teavitus „ERRU tegevusloa kontrolli päring (CTUD)" kõigile `ctud.read` õigusega kasutajatele. Haldusvaates „Postkasti mallide ja vastuvõtjate seaded" saab selle liigi desktop-kanali saajad eraldi määrata. Teavituse „Ava" nupp viib päringu kirjele. Päringule vastatakse endiselt automaatselt, teavituse viga ei sega vastust.
