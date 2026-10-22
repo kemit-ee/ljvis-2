@@ -2458,7 +2458,8 @@
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
       "labor_tachograph_not_downloaded": "Sõidumeerikuandmete alla laadimata jätmise teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
-      "nu_inbound_received": "ERRU NU sobimatusteade"
+      "nu_inbound_received": "ERRU NU sobimatusteade",
+      "ctud_inbound_received": "ERRU tegevusloa kontrolli päring (CTUD)"
     }
   },
   "breadcrumbs": {

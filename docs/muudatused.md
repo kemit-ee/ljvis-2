@@ -4,6 +4,11 @@
 
 ## 2026-10-22
 
+### Teavitus sissetulevast tegevusloa kontrolli päringust (CTUD) ja teavituste lingid
+
+- Kui mõni teine riik esitab Eestile tegevusloa kontrolli päringu (CTUD), tekib nüüd teavitus „ERRU tegevusloa kontrolli päring (CTUD)" kõigile `ctud.read` õigusega kasutajatele. Haldusvaates „Postkasti mallide ja vastuvõtjate seaded" saab selle liigi desktop-kanali saajad eraldi määrata. Teavituse „Ava" nupp viib päringu kirjele. Päringule vastatakse endiselt automaatselt, teavituse viga ei sega vastust.
+- Sissetuleva NU sobimatusteate teavituse juures puudus „Ava" nupp, nüüd viib see NU teatele.
+- Sissetuleva RSI teate teavitus viitas teate ärijuhtumi numbrile, mis lehe aadressina ei sobi. Uued RSI teavitused viivad nüüd õigele RSI teatele. Varem tekkinud RSI teavituste link jääb vigaseks.
 ### Välisriigi kontrollkaardi loomine NCR teatest
 
 - „Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart" lõppes veaga 500 teadetel, millel ei ole kergemaid rikkumisi (nt kõik MOVEHUB testteated). Kaart luuakse nüüd ka sellistest teadetest.

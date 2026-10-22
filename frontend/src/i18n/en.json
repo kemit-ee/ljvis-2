@@ -2427,7 +2427,8 @@
       "labor_kabotage": "Cabotage inspection notification",
       "labor_tachograph_not_downloaded": "Tachograph data not downloaded notification",
       "labor_foreign_proposal": "Foreign country proposal notification",
-      "nu_inbound_received": "ERRU NU non-compliance notice"
+      "nu_inbound_received": "ERRU NU non-compliance notice",
+      "ctud_inbound_received": "ERRU community licence check request (CTUD)"
     }
   },
   "breadcrumbs": {
