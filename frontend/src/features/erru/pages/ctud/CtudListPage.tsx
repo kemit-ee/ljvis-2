@@ -15,6 +15,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CtudRequestListItem } from '../../types';
 import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -60,6 +61,27 @@ export function CtudListPage() {
 
   const columns = useMemo(
     () => [
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
+      columnHelper.accessor('status', {
+        header: t('erru.ctud.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('CTUD_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.ctud.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('CTUD_RESPONSE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.ctud.list.id'),
         enableSorting: true,
@@ -109,27 +131,6 @@ export function CtudListPage() {
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
-      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
-      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
-      // is shown only in the request detail view.
-      columnHelper.accessor('status', {
-        header: t('erru.ctud.list.status'),
-        enableSorting: true,
-        cell: (info) => (
-          <ErruStatusBadge status={info.getValue()}>
-            {label('CTUD_REQUEST_STATUS', info.getValue())}
-          </ErruStatusBadge>
-        ),
-      }),
-      columnHelper.accessor('responseStatusCode', {
-        header: t('erru.ctud.list.result'),
-        enableSorting: false,
-        cell: (info) => (
-          <ErruResultBadge code={info.getValue()}>
-            {label('CTUD_RESPONSE_STATUS', info.getValue())}
-          </ErruResultBadge>
-        ),
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ctud.list.handler'),
         enableSorting: true,
@@ -141,7 +142,11 @@ export function CtudListPage() {
       columnHelper.accessor('direction', {
         header: t('erru.ctud.list.direction'),
         enableSorting: false,
-        cell: (info) => label('CTUD_DIRECTION', info.getValue()),
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {label('CTUD_DIRECTION', info.getValue())}
+          </ErruDirection>
+        ),
       }),
     ],
     [t, openRequest, label],

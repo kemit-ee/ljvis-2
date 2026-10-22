@@ -15,6 +15,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { RsiMessageListItem } from '../../types';
 import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -68,6 +69,27 @@ export function RsiListPage() {
 
   const columns = useMemo(
     () => [
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
+      columnHelper.accessor('status', {
+        header: t('erru.rsi.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('RSI_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.rsi.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('RSI_RESPONSE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.rsi.list.id'),
         enableSorting: true,
@@ -107,27 +129,6 @@ export function RsiListPage() {
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
-      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
-      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
-      // is shown only in the request detail view.
-      columnHelper.accessor('status', {
-        header: t('erru.rsi.list.status'),
-        enableSorting: true,
-        cell: (info) => (
-          <ErruStatusBadge status={info.getValue()}>
-            {label('RSI_REQUEST_STATUS', info.getValue())}
-          </ErruStatusBadge>
-        ),
-      }),
-      columnHelper.accessor('responseStatusCode', {
-        header: t('erru.rsi.list.result'),
-        enableSorting: false,
-        cell: (info) => (
-          <ErruResultBadge code={info.getValue()}>
-            {label('RSI_RESPONSE_STATUS', info.getValue())}
-          </ErruResultBadge>
-        ),
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.rsi.list.handler'),
         enableSorting: true,
@@ -138,10 +139,13 @@ export function RsiListPage() {
       columnHelper.accessor('direction', {
         header: t('erru.rsi.list.direction'),
         enableSorting: false,
-        cell: (info) =>
-          info.getValue() === 'outgoing'
-            ? t('erru.rsi.list.directionOutgoing')
-            : t('erru.rsi.list.directionIncoming'),
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.rsi.list.directionOutgoing')
+              : t('erru.rsi.list.directionIncoming')}
+          </ErruDirection>
+        ),
       }),
     ],
     [t, openMessage, label],

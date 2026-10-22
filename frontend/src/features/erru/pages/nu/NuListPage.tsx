@@ -15,6 +15,7 @@ import {
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NuMessageListItem } from '../../types';
 import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useNuList } from './useNuList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -74,6 +75,15 @@ export function NuListPage() {
 
   const columns = useMemo(
     () => [
+      columnHelper.accessor('status', {
+        header: t('erru.nu.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NU_MESSAGE_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.nu.list.id'),
         enableSorting: true,
@@ -93,10 +103,13 @@ export function NuListPage() {
       columnHelper.accessor('direction', {
         header: t('erru.nu.list.direction'),
         enableSorting: true,
-        cell: (info) =>
-          info.getValue() === 'outgoing'
-            ? t('erru.nu.list.directionOutgoing')
-            : t('erru.nu.list.directionIncoming'),
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.nu.list.directionOutgoing')
+              : t('erru.nu.list.directionIncoming')}
+          </ErruDirection>
+        ),
       }),
       columnHelper.accessor('messageDate', {
         header: t('erru.nu.list.date'),
@@ -126,15 +139,6 @@ export function NuListPage() {
         enableSorting: true,
         cell: (info) => (
           <span className="nowrap-cell">{info.getValue() || '—'}</span>
-        ),
-      }),
-      columnHelper.accessor('status', {
-        header: t('erru.nu.list.status'),
-        enableSorting: true,
-        cell: (info) => (
-          <ErruStatusBadge status={info.getValue()}>
-            {label('NU_MESSAGE_STATUS', info.getValue())}
-          </ErruStatusBadge>
         ),
       }),
     ],

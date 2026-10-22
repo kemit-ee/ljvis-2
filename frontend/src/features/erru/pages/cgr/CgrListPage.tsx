@@ -64,6 +64,27 @@ export function CgrListPage() {
 
   const columns = useMemo(
     () => [
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
+      columnHelper.accessor('status', {
+        header: t('erru.cgr.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('CGR_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.cgr.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('CGR_MEMBER_STATE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
+      }),
       columnHelper.accessor('businessCaseId', {
         header: t('erru.cgr.list.id'),
         enableSorting: true,
@@ -102,27 +123,6 @@ export function CgrListPage() {
         header: t('erru.cgr.list.certificateNumber'),
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
-      }),
-      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
-      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
-      // is shown only in the request detail view.
-      columnHelper.accessor('status', {
-        header: t('erru.cgr.list.status'),
-        enableSorting: true,
-        cell: (info) => (
-          <ErruStatusBadge status={info.getValue()}>
-            {label('CGR_REQUEST_STATUS', info.getValue())}
-          </ErruStatusBadge>
-        ),
-      }),
-      columnHelper.accessor('responseStatusCode', {
-        header: t('erru.cgr.list.result'),
-        enableSorting: false,
-        cell: (info) => (
-          <ErruResultBadge code={info.getValue()}>
-            {label('CGR_MEMBER_STATE_STATUS', info.getValue())}
-          </ErruResultBadge>
-        ),
       }),
       columnHelper.accessor('handlerName', {
         header: t('erru.cgr.list.handler'),
