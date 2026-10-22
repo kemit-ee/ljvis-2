@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import {
   Card,
   Heading,
@@ -17,6 +16,7 @@ import { useAuth } from '../../../auth/AuthContext.tsx';
 import './LogListPage.module.css';
 import { formatDateTime } from '../../../../hooks/dateUtils.ts';
 import { buildSortString } from '../../../../hooks/stringUtils.ts';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const columnHelper = createColumnHelper<AuditLog>();
 
@@ -142,9 +142,8 @@ export function LogListPage() {
               />
             </div>
           </div>
-          <Table
+          <AppTable
             id="logs-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -155,9 +154,7 @@ export function LogListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

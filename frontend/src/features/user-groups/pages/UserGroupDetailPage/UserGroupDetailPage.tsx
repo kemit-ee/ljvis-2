@@ -10,7 +10,6 @@ import {
   ModalCloser,
   ModalProvider,
   ModalTrigger,
-  Table,
 } from '@tedi-design-system/react/community';
 import {
   Button,
@@ -32,6 +31,7 @@ import type { Permission } from '../../../permissions/types.ts';
 import { UserGroupNameEditor } from '../../components/UserGroupNameEditor';
 import { UserGroupOrgsEditor } from '../../components/UserGroupOrgsEditor';
 import { UserGroupPermsEditor } from '../../components/UserGroupPermsEditor';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const userColumnHelper = createColumnHelper<UserGroupUser>();
 const orgColumnHelper = createColumnHelper<Organisation>();
@@ -532,9 +532,8 @@ export function UserGroupDetailPage() {
               />
             </div>
           </div>
-          <Table
+          <AppTable
             id="users-table"
-            className="ljvis-table"
             data={users}
             columns={userColumns}
             isLoading={isLoading}
@@ -545,9 +544,7 @@ export function UserGroupDetailPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

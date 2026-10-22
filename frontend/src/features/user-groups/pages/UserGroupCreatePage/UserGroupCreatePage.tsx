@@ -15,7 +15,6 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { useUserGroupForm } from './useUserGroupForm';
 import {
-  Table,
   Modal,
   ModalCloser,
   ModalProvider,
@@ -25,6 +24,7 @@ import type { Organisation } from '../../../organisations/types';
 import type { Permission } from '../../../permissions/types';
 import './UserGroupCreatePage.module.css';
 import { useAuth } from '../../../auth/AuthContext.tsx';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const orgColumnHelper = createColumnHelper<Organisation>();
 const permColumnHelper = createColumnHelper<Permission>();
@@ -201,14 +201,12 @@ export function UserGroupCreatePage() {
                       {t('userGroups.organisationsNotSelected')}
                     </Alert>
                   )}
-                  <Table
+                  <AppTable
                     id="organisations-table"
                     data={organisations}
                     columns={orgColumns}
-                    placeholder={{
-                      children: t('common.tableIsEmpty'),
-                    }}
-                    hidePagination={true}
+                    placeholder={t('common.tableIsEmpty')}
+                    hidePagination
                   />
                 </Card.Content>
               </Card>
@@ -221,14 +219,12 @@ export function UserGroupCreatePage() {
                   <Heading element="h3" className="mb-1">
                     {t('userGroups.groupPermissions')}
                   </Heading>
-                  <Table
+                  <AppTable
                     id="permissions-table"
                     data={permissions}
                     columns={permColumns}
-                    placeholder={{
-                      children: t('common.tableIsEmpty'),
-                    }}
-                    hidePagination={true}
+                    placeholder={t('common.tableIsEmpty')}
+                    hidePagination
                   />
                 </Card.Content>
               </Card>

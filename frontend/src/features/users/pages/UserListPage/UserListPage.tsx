@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import {
   Heading,
   Search,
@@ -15,6 +14,7 @@ import type { UserListItem } from '../../types';
 import { useUserList } from './useUserList';
 import { useAuth } from '../../../auth/AuthContext';
 import './UserListPage.module.css';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const columnHelper = createColumnHelper<UserListItem>();
 
@@ -252,9 +252,8 @@ export function UserListPage() {
               placeholder={t('common.search')}
             />
           </div>
-          <Table
+          <AppTable
             id="users-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -265,9 +264,7 @@ export function UserListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

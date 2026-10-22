@@ -6,10 +6,10 @@ import {
   Card,
   Icon,
 } from '@tedi-design-system/react/tedi';
-import { Table } from '@tedi-design-system/react/community';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Organisation } from '../../organisations/types';
 import type { UserGroupOrganisation } from '../types';
+import { AppTable } from '../../../shared/components/AppTable';
 
 interface UserGroupOrgsEditorProps {
   editingOrgs: boolean;
@@ -51,14 +51,12 @@ export function UserGroupOrgsEditor({
             </Alert>
           </div>
         )}
-        <Table
+        <AppTable
           id="organisations-table"
           data={allOrgs}
           columns={orgColumns}
-          placeholder={{
-            children: t('common.tableIsEmpty'),
-          }}
-          hidePagination={true}
+          placeholder={t('common.tableIsEmpty')}
+          hidePagination
         />
         <div className="form-actions">
           <Button

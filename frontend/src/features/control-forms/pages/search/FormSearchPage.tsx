@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import {
   Button,
   Heading,
@@ -30,6 +29,7 @@ import { useFormSearch } from './useFormSearch';
 import { FormSearchFilters } from './FormSearchFilters';
 import { FORM_TYPE_META, resolveFormRoute } from './formSearchMeta';
 import './FormSearch.module.css';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 /** Peab klappima DSL/Ruuter/ljvis/GET/v1/control-forms/search/export.yml max_rows väärtusega. */
 const EXPORT_MAX_ROWS = 5000;
@@ -240,9 +240,8 @@ export function FormSearchPage() {
               {exportError && <Text color="danger">{exportError}</Text>}
             </div>
           )}
-          <Table
+          <AppTable
             id="form-search-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -253,9 +252,7 @@ export function FormSearchPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

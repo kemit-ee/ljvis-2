@@ -12,7 +12,6 @@ import {
   Search,
   Checkbox,
 } from '@tedi-design-system/react/tedi';
-import { Table } from '@tedi-design-system/react/community';
 import { useClassifierDetail } from './useClassifierDetail';
 import { AutoHideAlert } from '../../../../components/AutoHideAlert/AutoHideAlert';
 import { useClassifierForm } from './useClassifierForm';
@@ -26,6 +25,7 @@ import type { ClassifierValue } from '../../types';
 import { createColumnHelper } from '@tanstack/react-table';
 import { formatDate } from '../../../../hooks/dateUtils';
 import { useClassifierLabel } from '../../useClassifierLabel';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const classifierColumnHelper = createColumnHelper<ClassifierValue>();
 
@@ -264,9 +264,8 @@ export function ClassifierDetailPage() {
                 onChange={() => setShowOnlyValid(!showOnlyValid)}
               />
             </div>
-            <Table
+            <AppTable
               id="classifiers-values-table"
-              className="ljvis-table"
               data={filteredClassifierValues}
               columns={classifierValueColumns}
               isLoading={loading}
@@ -277,9 +276,7 @@ export function ClassifierDetailPage() {
               onSortingChange={setSorting}
               manualPagination
               manualSorting
-              placeholder={{
-                children: t('common.tableIsEmpty'),
-              }}
+              placeholder={t('common.tableIsEmpty')}
             />
           </Card.Content>
         </Card>

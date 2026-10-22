@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ModalProvider, Table } from '@tedi-design-system/react/community';
+import { ModalProvider } from '@tedi-design-system/react/community';
 import {
   Button,
   Heading,
@@ -16,6 +16,7 @@ import type { UserGroupUser } from '../../types.ts';
 import { createColumnHelper } from '@tanstack/react-table';
 import './UserGroupAddUserPage.module.css';
 import { useAuth } from '../../../auth/AuthContext';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const columnHelper = createColumnHelper<UserGroupUser>();
 
@@ -183,9 +184,8 @@ export function UserGroupAddUserPage() {
               </div>
             </div>
 
-            <Table
+            <AppTable
               id="users-table"
-              className="ljvis-table"
               data={availableUsers}
               columns={columns}
               isLoading={isLoading}
@@ -196,9 +196,7 @@ export function UserGroupAddUserPage() {
               onSortingChange={setSorting}
               manualPagination
               manualSorting
-              placeholder={{
-                children: t('common.tableIsEmpty'),
-              }}
+              placeholder={t('common.tableIsEmpty')}
             />
             <div className="form-actions">
               <Button
