@@ -4,6 +4,11 @@
 
 ## 2026-10-22
 
+### Sissetulevate ERRU päringute MTR-otsing
+
+- Sissetulev tegevusloa kontrolli päring (CTUD SearchByLicenceAndVehicle) ei vaja enam veoettevõtja nime. Varem lükkas MTR-i otsing päringu nime puudumise tõttu tagasi (HTTP 400) ja päring lõppes serveri veaga. Nüüd otsitakse tegevusloa numbri ja sõiduki järgi.
+- Demo, dev ja prelive keskkonnas puudusid sissetulevate CTUD ja CGR päringute MTR-i aadressi konstandid ja päringud lõppesid veaga. Konstandid lisatakse devops-repos ja osutavad MTR-i mockile.
+
 ### Vastus saabunud NCR-ile ja välisriigi kontrollkaardi loomine
 
 - „Saada vastus" saabunud NCR teatele andis vea „Vastust ei saa saata praeguses olekus", kui teatel puudus workflowId (nt testandmetena sisestatud MOVEHUB teated). Nüüd näitab leht täpset põhjust: saabunud teatel puudub workflowId. Olemasolevatele saabunud NCR teadetele lisatakse puuduvad technicalId ja workflowId ühekordse migratsiooniga `20261224100000-ncr-incoming-backfill-ids`, pärast seda saab neile vastata.
