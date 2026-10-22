@@ -47,3 +47,22 @@ Jaotus vähendab testide järjestikust käivitusaega. Pinu ehitus kordub igas
 runner'is. Seetõttu suureneb samaaegsete runner'ite ja CI arvutusminutite kasutus.
 Tegelik ajavõit tuleb mõõta esimeste täielike CI käivitustega. Olemasolevaid
 päringutevahelisi pause ja korduskatsete arvu see muudatus ei vähenda.
+
+## Ajamõõtmine ja brauserite vahemälu
+
+Mõõtmine 2026-10-23 CI jooksul (PR #667): testid ise kestavad lühidalt (UI kontrollvormid
+3,6 min, liidestused 1,3 min, API ERRU kuus kollektsiooni kokku 3,8 min), kuid töö kestab
+6–10 min. Ülejäänud aeg kulub pinu üles tõstmisele, seemnetele ja frontendi buildile, mis
+kordub igas runneris. Seetõttu ei kiirenda rühmade veelgi väiksemaks jagamine palju: iga uus
+runner kordaks sama ettevalmistust.
+
+- `tests/ci-timing.sh` mõõdab etappide kestuse. `tests/playwright/run.sh` ja
+  `tests/postman/run-all.sh` trükivad lõpus tabeli, kirjutavad selle faili
+  `tulemus/ajamootmine.md` (UI) või `reports/ajamootmine.md` (API) ning lisavad
+  GitHub Actionsi töö kokkuvõttesse. Failid lähevad olemasolevate artefaktide hulka
+  (`playwright-tulemus-<rühm>`, `api-tests-<rühm>`). Tabel tehakse ka vea korral.
+- UI-töö salvestab Playwrighti Chromiumi vahemällu (`~/.cache/ms-playwright`, võti on
+  Playwrighti versioon). Vahemälu tabamuse korral paigaldatakse ainult süsteemipaketid
+  (`playwright install-deps`), brauserit ei laadita alla.
+- Järgmine otsus (pinu ettevalmistuse vahemällu panemine või rühmade jagamine) tuleks teha
+  `ajamootmine.md` numbrite põhjal.

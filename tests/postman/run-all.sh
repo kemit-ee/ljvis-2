@@ -10,6 +10,10 @@ COL="$SCRIPT_DIR/collections"
 REPORT_DIR="${E2E_REPORT_DIR:-$SCRIPT_DIR/reports}"
 COMPOSE="docker compose -f $REPO_ROOT/docker-compose.ci.yml -p ljvis-ci"
 
+# shellcheck source=../ci-timing.sh
+source "$REPO_ROOT/tests/ci-timing.sh"
+trap 'ci_phase_report "API-testide ajamõõtmine (rühm: $GROUP)" "$REPORT_DIR/ajamootmine.md"' EXIT
+
 mkdir -p "$REPORT_DIR"
 
 echo "Using environment: $ENV"
@@ -20,12 +24,15 @@ echo ""
 # ── Stack lifecycle ────────────────────────────────────────────────────────────
 # Always start from a clean slate so tests see a fresh database.
 
+ci_phase "Eelmise pinu teardown"
 echo "==> Tearing down any existing CI stack (volumes included)…"
 $COMPOSE down -v --remove-orphans 2>&1 | grep -E "Removed|Stopped|error" || true
 
+ci_phase "Pinu ehitus ja käivitus (compose up --build)"
 echo "==> Building and starting CI stack…"
 $COMPOSE up -d --build
 
+ci_phase "Teenuste ootamine"
 echo "==> Waiting for Resql…"
 for i in $(seq 1 60); do
   if curl -sf http://localhost:9087/healthz > /dev/null 2>&1; then
@@ -73,6 +80,7 @@ done
 
 echo ""
 
+ci_phase "Lepingu-, SQL- ja XTR-testid"
 if [ "$GROUP" = all ] || [ "$GROUP" = xroad ]; then
 python3 -B "$REPO_ROOT/tests/contract/check_erru_contract.py" --emit-sql | $COMPOSE exec -T database psql -X -q -o /dev/null -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db
 
@@ -103,6 +111,7 @@ run_collection() {
     *" $name "*) ;;
     *) return 0 ;;
   esac
+  ci_phase "Newman: $name"
   newman run "$COL/$name.collection.json" -e "$ENV" "$@" \
     -r cli,htmlextra,json \
     --reporter-htmlextra-export "$REPORT_DIR/$name.html" \
@@ -187,6 +196,7 @@ run_collection audit-log
 
 run_collection dashboard --delay-request 300
 
+ci_phase "Auditiahela kontroll"
 echo ""
 # Verify the complete chain after all producers (including ordinary UI flows) have run.
 python3 - <<'VERIFY_AUDIT'

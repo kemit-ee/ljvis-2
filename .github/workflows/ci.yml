@@ -605,10 +605,33 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      - name: Install Playwright deps
-        run: |
-          npm ci
-          npx playwright install --with-deps chromium
+      - name: Install Playwright npm deps
+        run: npm ci
+        working-directory: tests/playwright
+
+      # Chromiumi allalaadimine (~150 MB) oli üks suuremaid käivitusaegu. Brauser on
+      # vahemälus Playwrighti versiooni järgi; süsteemipaketid (apt) tuleb igal runneril
+      # ikka paigaldada, sest runner on iga kord uus.
+      - name: Read Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        working-directory: tests/playwright
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}-chromium
+
+      - name: Install Playwright browser and system deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+        working-directory: tests/playwright
+
+      - name: Install Playwright system deps (browser from cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
         working-directory: tests/playwright
 
       - name: Run UI tests
