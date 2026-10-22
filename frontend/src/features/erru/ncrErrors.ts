@@ -5,6 +5,7 @@ const messages: Record<string, string> = {
   invalid_ncr_xml: 'erru.ncr.form.invalidXml',
   invalid_ncr_response_xml: 'erru.ncr.form.invalidResponseXml',
   validation_unavailable: 'erru.ncr.form.validationUnavailable',
+  workflow_id_missing: 'erru.ncr.form.workflowIdMissing',
 };
 
 /** Message for a failed NCR request or response send; anything unknown is a plain rejection. */

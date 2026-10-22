@@ -2203,6 +2203,7 @@
         "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli ettevõtte, sõiduki, kontrolli tulemuse ja rikkumiste andmeid.",
         "invalidResponseXml": "Vastus ei vasta ERRU XML-lepingule. Leitud ettevõtte puhul on vaja sõidukite arvu, tegevusloa staatust ja täielikku aadressi.",
         "validationUnavailable": "XML-i kontroll pole praegu saadaval. Teadet ei saadetud.",
+        "workflowIdMissing": "Saabunud teatel puudub workflowId, seetõttu ei saa vastust saata.",
         "createVr": "Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "openVr": "Ava välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "createVrFailed": "Välisriigis teostatud autoveoalase kontrolli kontrollkaardi loomine ebaõnnestus",
