@@ -34,6 +34,8 @@ export interface AppTableProps<TData> {
   getRowCanExpand?: (row: TData) => boolean;
   renderSubComponent?: (row: TData, index: number) => ReactNode;
   defaultExpanded?: boolean;
+  /** Extra class per row (e.g. to colour overdue rows). */
+  rowClassName?: (row: TData) => string | undefined;
 }
 
 const sameState = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
@@ -75,6 +77,7 @@ export function AppTable<TData>({
   getRowCanExpand,
   renderSubComponent,
   defaultExpanded,
+  rowClassName,
 }: AppTableProps<TData>) {
   const { t } = useTranslation();
 
@@ -121,6 +124,7 @@ export function AppTable<TData>({
         getRowCanExpand={getRowCanExpand ? (row) => getRowCanExpand(row.original) : undefined}
         renderSubComponent={renderSubComponent ? (row) => renderSubComponent(row.original, row.index) : undefined}
         defaultState={defaultExpanded ? { expanded: true } : undefined}
+        rowProps={rowClassName ? (row) => ({ className: rowClassName(row.original) }) : undefined}
         emptyState={isLoading ? t('common.tableLoading') : (placeholder ?? t('common.tableIsEmpty'))}
         emptyStateRole="status"
         pagination={hidePagination ? false : { pageSize, pageSizeOptions: PAGE_SIZE_OPTIONS }}
