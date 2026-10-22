@@ -208,6 +208,7 @@ Praegune `desktop`-kanali liikide kataloog:
 | `ncr_response` | `ncr.respond` | Vastussõnum Eestist saadetud ERRU NCR teatele |
 | `rsi_received` | `rsi.read` | Sissetulev ERRU RSI (tehnokontrolli) teade |
 | `nu_inbound_received` | `nu.read` | Sissetulev ERRU NU (sobimatus) teade |
+| `ctud_inbound_received` | `ctud.read` | Sissetulev ERRU tegevusloa kontrolli päring (CTUD), millele vastati automaatselt |
 | `serious_infringement` | `rsi.read` | Mootorsõiduki/haagise tehnokontrollvormi avalikustamine (**ka uuesti salvestamine pärast avalikustamist**), kui märgitud MSI/VSI/SI raske rikkumine |
 | `extraordinary_inspection` | `rsi.read` | Tehnokontrollvormi avalikustamine (**ka uuesti salvestamine**), tulemus „Erakorraline ülevaatus“, Euroopa Liidu/EMP liikmesriigi sõiduk (va Eesti) |
 | `cargo_securing` | `rsi.read` | Tehnokontrollvormil märgitud veose kinnituse nõude (CAA_10) puudus (**ka uuesti salvestamine**), Euroopa Liidu/EMP liikmesriigi sõiduk |

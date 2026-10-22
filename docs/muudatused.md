@@ -4,6 +4,12 @@
 
 ## 2026-10-22
 
+### Teavitus sissetulevast tegevusloa kontrolli päringust (CTUD) ja teavituste lingid
+
+- Kui mõni teine riik esitab Eestile tegevusloa kontrolli päringu (CTUD), tekib nüüd teavitus „ERRU tegevusloa kontrolli päring (CTUD)" kõigile `ctud.read` õigusega kasutajatele. Haldusvaates „Postkasti mallide ja vastuvõtjate seaded" saab selle liigi desktop-kanali saajad eraldi määrata. Teavituse „Ava" nupp viib päringu kirjele. Päringule vastatakse endiselt automaatselt, teavituse viga ei sega vastust.
+- Sissetuleva NU sobimatusteate teavituse juures puudus „Ava" nupp, nüüd viib see NU teatele.
+- Sissetuleva RSI teate teavitus viitas teate ärijuhtumi numbrile, mis lehe aadressina ei sobi. Uued RSI teavitused viivad nüüd õigele RSI teatele. Varem tekkinud RSI teavituste link jääb vigaseks.
+
 ### Sissetulevate ERRU päringute MTR-otsing
 
 - Sissetulev tegevusloa kontrolli päring (CTUD SearchByLicenceAndVehicle) ei vaja enam veoettevõtja nime. Varem lükkas MTR-i otsing päringu nime puudumise tõttu tagasi (HTTP 400) ja päring lõppes serveri veaga. Nüüd otsitakse tegevusloa numbri ja sõiduki järgi.
