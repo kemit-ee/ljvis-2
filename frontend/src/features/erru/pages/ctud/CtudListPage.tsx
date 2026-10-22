@@ -65,6 +65,7 @@ export function CtudListPage() {
       // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
       // is shown only in the request detail view.
       columnHelper.accessor('status', {
+        enableHiding: false,
         header: t('erru.ctud.list.status'),
         enableSorting: true,
         cell: (info) => (
@@ -92,6 +93,7 @@ export function CtudListPage() {
         ),
       }),
       columnHelper.accessor('sentAt', {
+        enableHiding: false,
         header: t('erru.ctud.list.sentAt'),
         enableSorting: true,
         cell: (info) => {
@@ -100,6 +102,7 @@ export function CtudListPage() {
         },
       }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.ctud.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -116,11 +119,13 @@ export function CtudListPage() {
         ),
       }),
       columnHelper.accessor('ctudFrom', {
+        enableHiding: false,
         header: t('erru.ctud.list.ctudFrom'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
       }),
       columnHelper.accessor('ctudTo', {
+        enableHiding: false,
         header: t('erru.ctud.list.ctudTo'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
@@ -309,6 +314,8 @@ export function CtudListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-ctud-list"
             size="small"
             id="ctud-table"
             data={data}

@@ -76,6 +76,7 @@ export function NuListPage() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('status', {
+        enableHiding: false,
         header: t('erru.nu.list.status'),
         enableSorting: true,
         cell: (info) => (
@@ -96,6 +97,7 @@ export function NuListPage() {
         ),
       }),
       columnHelper.accessor('messageDate', {
+        enableHiding: false,
         header: t('erru.nu.list.date'),
         enableSorting: true,
         cell: (info) => {
@@ -104,6 +106,7 @@ export function NuListPage() {
         },
       }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.nu.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -120,6 +123,7 @@ export function NuListPage() {
         ),
       }),
       columnHelper.accessor('countryCode', {
+        enableHiding: false,
         header: t('erru.nu.list.country'),
         enableSorting: true,
         cell: (info) => countryLabel(info.getValue()),
@@ -297,6 +301,8 @@ export function NuListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-nu-list"
             size="small"
             id="nu-table"
             data={data}

@@ -82,6 +82,7 @@ export function NcrListPage() {
   const columns = useMemo(
     () => [
       columnHelper.accessor('status', {
+        enableHiding: false,
         header: t('erru.ncr.list.status'),
         enableSorting: true,
         cell: (info) => (
@@ -102,6 +103,7 @@ export function NcrListPage() {
         ),
       }),
       columnHelper.accessor('sentAt', {
+        enableHiding: false,
         header: t('erru.ncr.list.sentAt'),
         enableSorting: true,
         cell: (info) => {
@@ -110,6 +112,7 @@ export function NcrListPage() {
         },
       }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.ncr.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -126,11 +129,13 @@ export function NcrListPage() {
         ),
       }),
       columnHelper.accessor('ncrFrom', {
+        enableHiding: false,
         header: t('erru.ncr.list.ncrFrom'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
       }),
       columnHelper.accessor('ncrTo', {
+        enableHiding: false,
         header: t('erru.ncr.list.ncrTo'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
@@ -308,6 +313,8 @@ export function NcrListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-ncr-list"
             size="small"
             id="ncr-table"
             data={rows}
