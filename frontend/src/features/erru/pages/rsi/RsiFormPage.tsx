@@ -56,7 +56,7 @@ export function RsiFormPage() {
   const handleSend = () => {
     setSavedOk(false);
     window.scrollTo(0, 0);
-    send();
+    return send();
   };
   const handlePrint = async () => {
     const result = await printRsiMessage(String(message!.id));
@@ -187,7 +187,10 @@ export function RsiFormPage() {
               {t('common.save')}
             </Button>
             {sendable && (
-              <Button onClick={handleSend} disabled={isSending}>
+              <Button
+                onClick={() => form.saveAndSend(handleSend)}
+                disabled={isSending || form.formik.isSubmitting}
+              >
                 {t('erru.rsi.form.send')}
               </Button>
             )}

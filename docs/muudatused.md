@@ -4,6 +4,12 @@
 
 ## 2026-10-22
 
+### RSI teate saatmine
+
+- „Saada" nupp salvestab nüüd enne saatmist vormi praeguse sisu. Varem saadeti serveris olev salvestatud mustand ja vormil tehtud salvestamata muudatused jäid arvestamata, mistõttu saatmine lõppes veaga „Andmed ei vasta ERRU XML-lepingule".
+- „Saada" kontrollib enne saatmist ERRU kohustuslikke välju: VIN, läbisõidumõõdiku näit, juhi eesnimi ja perekonnanimi ning veoettevõtja või omaniku andmed. Puuduvad väljad märgitakse vormil, juhi ja omaniku plokk avatakse. Mustandi salvestamine (nupp „Salvesta") ei nõua neid endiselt.
+- VIN peab olema täpselt 17 märki (tähed ja numbrid, ilma I, O ja Q). Vigane VIN lükatakse tagasi juba salvestamisel, mitte alles saatmisel.
+
 ### Desktop-teavituse saajad
 
 - Desktop-kanali teavituse (rakenduse kella-ikooni teavituse) näevad nüüd ainult haldusvaates „Postkasti mallide ja vastuvõtjate seaded" valitud saajad. Varem nägid seda lisaks kõik vastava õigusega kasutajad (nt `rsi.read`, `ncr.read`, `nu.read`). Kui liigile ei ole saajaid valitud, teavitust ei looda ja seda ei näe keegi. **Pärast paigaldamist tuleb kõikide desktop-liikide saajad halduses ise määrata.** Juba loodud teavitused jäävad endiselt õiguspõhiselt nähtavaks.

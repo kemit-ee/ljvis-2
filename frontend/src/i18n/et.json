@@ -2091,6 +2091,7 @@
         "required": "Väli on kohustuslik",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "max_length_exceeded": "Välja pikkus on ületatud",
+        "invalid_vin": "VIN peab olema täpselt 17 märki (tähed ja numbrid, ilma I, O ja Q)",
         "driver_block_incomplete": "Juhi andmete plokis tuleb täita eesnimi ja perekonnanimi",
         "holder_type_invalid": "Osapoole liik peab olema veoettevõtja või omanik",
         "undertaking_block_incomplete": "Veoettevõtja nimi ja ühenduse tegevusluba tuleb täita koos",

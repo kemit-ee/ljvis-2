@@ -202,6 +202,7 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
               onChange={(v) =>
                 formik.setFieldValue('vehicleIdentificationNumber', v)
               }
+              required
               {...err('vehicleIdentificationNumber')}
             />
             {/* Non-negative integer only (LJVIS2-147 §4 "Mittenegatiivne täisarv") */}
@@ -218,6 +219,8 @@ export function RsiMessageFields({ form }: { form: RsiFormApi }) {
                 );
               }}
               input={{ maxLength: 8 }}
+              required
+              {...err('odometerReading')}
             />
           </div>
         </Card.Content>
