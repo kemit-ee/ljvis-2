@@ -164,6 +164,7 @@ lookupUndertaking:
   args:
     url: "[#ERRU_MTR_ENDPOINT]"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       businessCaseId: ${business_case_id}
