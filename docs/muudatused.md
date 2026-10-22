@@ -2,6 +2,14 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-22
+
+### Vastus saabunud NCR-ile ja välisriigi kontrollkaardi loomine
+
+- „Saada vastus" saabunud NCR teatele andis vea „Vastust ei saa saata praeguses olekus", kui teatel puudus workflowId (nt testandmetena sisestatud MOVEHUB teated). Nüüd näitab leht täpset põhjust: saabunud teatel puudub workflowId. Olemasolevatele saabunud NCR teadetele lisatakse puuduvad technicalId ja workflowId ühekordse migratsiooniga `20261224100000-ncr-incoming-backfill-ids`, pärast seda saab neile vastata.
+- NCR teatest välisriigi kontrollkaardi loomine („Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart") lõpeb veaga 500, kui allikteate valik tehti sama sammu sees, kus selle põhjal välju loeti. Valik on nüüd eraldi sammus.
+- Tehnokontrolli teate (RSI) saatmine näitas XML-lepingu rikkumise korral („Kontrolli VIN, odomeetri näit, juhi ja omaniku andmed") eksitavat teadet „jääb olekusse Viga". Mustand jääb muudetavaks ja leht näitab nüüd õiget XML-kontrolli teadet.
+
 ## 2026-10-21
 
 ### NCR ja NU saadetakse ERRU XML-ina

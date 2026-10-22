@@ -2172,6 +2172,7 @@
         "invalidXml": "The data does not meet the ERRU XML contract. Check the undertaking, vehicle, check result and infringement details.",
         "invalidResponseXml": "The response does not meet the ERRU XML contract. A found undertaking needs the vehicle count, licence status and a complete address.",
         "validationUnavailable": "XML validation is currently unavailable. The message was not sent.",
+        "workflowIdMissing": "The incoming message has no workflowId, so the response cannot be sent.",
         "createVr": "Create foreign country inspection report",
         "openVr": "Open foreign country inspection report",
         "createVrFailed": "Creating the foreign country inspection report failed",

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useEntityDetail } from '../../../../hooks/useEntityDetail';
 import { getRsiMessage, sendRsiMessage } from '../../api';
-import { ApiError } from '../../../../shared/api/client';
+import { nuErrorDetails } from '../../nuErrors';
 import type { RsiMessage } from '../../types';
 
 /**
@@ -26,10 +26,7 @@ export function useRsiMessageDetail(id: string | undefined) {
       await sendRsiMessage(id);
     } catch (e) {
       // Validation failures leave the draft editable. Unknown transport results forbid resend.
-      const code =
-        e instanceof ApiError
-          ? (e.body as { code?: string } | null)?.code
-          : undefined;
+      const { code } = nuErrorDetails(e);
       setSendError(
         code === 'invalid_checked_items' ||
           code === 'send_unknown' ||
