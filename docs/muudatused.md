@@ -4,6 +4,10 @@
 
 ## 2026-10-22
 
+### Välisriigi kontrollkaardi loomine NCR teatest
+
+- „Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart" lõppes veaga 500 teadetel, millel ei ole kergemaid rikkumisi (nt kõik MOVEHUB testteated). Kaart luuakse nüüd ka sellistest teadetest.
+
 ### Sissetulevate ERRU päringute MTR-otsing
 
 - Sissetulev tegevusloa kontrolli päring (CTUD SearchByLicenceAndVehicle) ei vaja enam veoettevõtja nime. Varem lükkas MTR-i otsing päringu nime puudumise tõttu tagasi (HTTP 400) ja päring lõppes serveri veaga. Nüüd otsitakse tegevusloa numbri ja sõiduki järgi.
