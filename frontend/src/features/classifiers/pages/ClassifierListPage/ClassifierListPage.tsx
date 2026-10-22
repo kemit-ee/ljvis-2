@@ -2,12 +2,12 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import { Card, Heading, Search, Text } from '@tedi-design-system/react/tedi';
 import type { Classifier } from '../../types';
 import { useClassifierList } from './useClassifierList';
 import { useAuth } from '../../../auth/AuthContext';
 import './ClassifierListPage.module.css';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const columnHelper = createColumnHelper<Classifier>();
 
@@ -107,9 +107,8 @@ export function ClassifierListPage() {
               />
             </div>
           </div>
-          <Table
+          <AppTable
             id="classifiers-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -120,9 +119,7 @@ export function ClassifierListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

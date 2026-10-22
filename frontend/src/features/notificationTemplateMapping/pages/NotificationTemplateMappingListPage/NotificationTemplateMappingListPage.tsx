@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import { Card, Heading, StatusBadge, Text } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { PERMISSIONS } from '../../../../constants/constants';
 import { listNotificationTemplateMappings, resolveDesktopRecipientUsers } from '../../api';
 import type { NotificationTemplateMapping } from '../../types';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const columnHelper = createColumnHelper<NotificationTemplateMapping>();
 
@@ -140,16 +140,13 @@ export function NotificationTemplateMappingListPage() {
           <div className="card-main">
             <Heading element="h1">{t('notificationTemplateMapping.title')}</Heading>
           </div>
-          <Table
+          <AppTable
             id="notification-template-mapping-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
             hidePagination
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

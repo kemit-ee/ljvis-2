@@ -6,10 +6,10 @@ import {
   Card,
   Icon,
 } from '@tedi-design-system/react/tedi';
-import { Table } from '@tedi-design-system/react/community';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Permission } from '../../permissions/types';
 import type { UserGroupPermission } from '../types';
+import { AppTable } from '../../../shared/components/AppTable';
 
 interface UserGroupPermsEditorProps {
   editingPerms: boolean;
@@ -42,14 +42,12 @@ export function UserGroupPermsEditor({
             {t('userGroups.permissionsDescription')}
           </Heading>
         </div>
-        <Table
+        <AppTable
           id="permissions-table"
           data={allPerms}
           columns={permColumns}
-          placeholder={{
-            children: t('common.tableIsEmpty'),
-          }}
-          hidePagination={true}
+          placeholder={t('common.tableIsEmpty')}
+          hidePagination
         />
         <div className="form-actions">
           <Button

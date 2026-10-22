@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import { Button, Icon, Text, Tooltip } from '@tedi-design-system/react/tedi';
 import type { CompanyControlRow } from '../../types';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 interface CompanyControlsTableProps {
   registryCode: string;
@@ -142,12 +142,11 @@ export function CompanyControlsTable({
   }
 
   return (
-    <Table
+    <AppTable
       id={`company-controls-table-${registryCode}`}
-      className="ljvis-table"
       data={controls}
       columns={columns}
-      placeholder={{ children: t('common.tableIsEmpty') }}
+      placeholder={t('common.tableIsEmpty')}
     />
   );
 }
