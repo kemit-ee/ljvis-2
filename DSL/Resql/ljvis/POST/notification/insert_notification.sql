@@ -30,6 +30,10 @@ params:
     type: string
     required: false
     description: Comma-separated personal_code list (desktop-kanali konkreetsed saajad, tardistatud loomise hetkel)
+  recipients_only:
+    type: string
+    required: false
+    description: "'true' = teavituse näevad ainult recipient_personal_codes (desktop-kanali liigid); muidu required_permission-põhine"
   created_by:
     type: string
     required: false
@@ -43,6 +47,7 @@ INSERT INTO notifications.notification (
     title_et,
     body_et,
     recipient_personal_codes,
+    recipients_only,
     created_by
 )
 VALUES (
@@ -55,6 +60,7 @@ VALUES (
     :body_et,
     CASE WHEN COALESCE(:recipient_personal_codes, '') = '' THEN NULL
          ELSE string_to_array(:recipient_personal_codes, ',') END,
+    COALESCE(:recipients_only, '') = 'true',
     COALESCE(NULLIF(:created_by, ''), 'system')
 )
 ON CONFLICT DO NOTHING
