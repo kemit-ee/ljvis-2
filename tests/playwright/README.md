@@ -17,6 +17,7 @@ tekib `tulemus/` alla detailne sammukirjeldus + ekraanipilt ning HTML-raport.
 | `compound-subforms.spec.ts` | autojuhi/ADR/tehno alamvormid koondvormi loomisvoos |
 | `technical-check-proceeding.spec.ts` | tehnokaardi väärteomenetluse märke eemaldamine: kinnitusdialoog, „Tühista“, tühjendamine, uus salvestusversioon |
 | `erru.spec.ts` | CTUD/CGR/RSI/NCR: leht avaneb + tühja vormi validatsioon |
+| `cgr-response.spec.ts` | CGR päringu vastuse kuva (mockitud vastus): rühmitus leiuga/leiuta/vastamata, leiuga andmed avatud, „Saada uuesti" riigi koodiga, „Kopeeri päring" lehe all |
 | `adr-form.spec.ts` | ADR-vorm: kinnitamine (PR #311), printimisnupp (PR #310) |
 | `print-buttons.spec.ts` | vormide printimisnupud |
 | `rsi.spec.ts`, `nu.spec.ts` | ERRU RSI ja NU: nimekiri, detail, versioonikonflikt |
