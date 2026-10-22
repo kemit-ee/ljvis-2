@@ -59,7 +59,7 @@ extractNcrFields:
     inspection_date: "${ncr_src.checkDate || ''}"
     data_entry_date: "${new Date().toISOString().slice(0, 10)}"
     check_result: "${ncr_src.checkResult || ''}"
-    minor_infringement_raw: "${ncr_src.minorInfringement || null}"
+    minor_infringement_raw: "${ncr_src.minorInfringement || ''}"
     serious_infringements_raw: "${ncr_src.seriousInfringements || '[]'}"
   next: mapMinorInfringement
 
