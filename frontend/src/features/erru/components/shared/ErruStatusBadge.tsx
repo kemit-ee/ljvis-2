@@ -5,27 +5,27 @@ import type { StatusBadgeColor } from '@tedi-design-system/react/tedi';
 /**
  * Colour of a request/message lifecycle status, shared by every ERRU family (CTUD, CGR, RSI,
  * NCR, NU) so the same status looks the same in lists and detail headers:
- *  - draft (initiated)                       → neutral
- *  - on its way (sending, sent)              → brand (blue)
- *  - answered / handled                      → success (green)
- *  - needs a human (received, viewed, drafted answer, uncertain send) → warning
- *  - error                                   → danger
+ *  - draft (initiated)                              → neutral
+ *  - outgoing, waiting for the answer (sending, sent, uncertain send) → warning (yellow)
+ *  - incoming, in progress (received, viewed, drafted answer)         → brand (blue)
+ *  - answered / handled                             → success (green)
+ *  - error                                          → danger
  */
 export function erruStatusColor(status: string | null | undefined): StatusBadgeColor {
   switch (status) {
     case 'sending':
     case 'sent':
+    case 'send_unknown':
+      return 'warning';
+    case 'received':
+    case 'viewed':
+    case 'answer_drafted':
       return 'brand';
     case 'responded':
     case 'answered':
     case 'acknowledged':
     case 'forwarded':
       return 'success';
-    case 'received':
-    case 'viewed':
-    case 'answer_drafted':
-    case 'send_unknown':
-      return 'warning';
     case 'error':
       return 'danger';
     default:
