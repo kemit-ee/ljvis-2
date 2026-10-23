@@ -418,11 +418,15 @@ jobs:
       # ehitatakse siin eelnevalt vahemälu toel ja märgistatakse compose'i vaikenimedega
       # (`<projekt>-<teenus>`); CI_IMAGES_PREBUILT=1 korral jätab run.sh/run-all.sh `--build` ära,
       # nii et compose kasutab valmis pilte ja ehitab ainult puuduvad (kerged). Kui eelehitus
-      # ebaõnnestub, ehitab compose puuduvad pildid ise.
+      # ebaõnnestub, ehitab compose puuduvad pildid ise (ja hoiatus ilmub töö kokkuvõttesse).
+      # Vahemälu kirjutatakse ainult `dev`-i pushil (PR-id loevad `dev`-i vahemälu, aga ei kirjuta
+      # oma skoopi), et PR-id ei täidaks repo 10 GB vahemälu piiri. bake ehitab git-kontekstist,
+      # seega ei tohi neli Dockerfile'i kopeerida enne eelehitust genereeritud workspace-faile.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Pre-build heavy CI images (layer cache)
+        id: prebuild
         continue-on-error: true
         uses: docker/bake-action@v6
         with:
@@ -431,15 +435,19 @@ jobs:
           load: true
           set: |
             xtr-inbound.cache-from=type=gha,scope=ci-xtr-inbound
-            xtr-inbound.cache-to=type=gha,scope=ci-xtr-inbound,mode=max
+            xtr-inbound.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-xtr-inbound,mode=max,ignore-error=true' || '' }}
             tara-mock.cache-from=type=gha,scope=ci-tara-mock
-            tara-mock.cache-to=type=gha,scope=ci-tara-mock,mode=max
+            tara-mock.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tara-mock,mode=max,ignore-error=true' || '' }}
             pdf-creator.cache-from=type=gha,scope=ci-pdf-creator
-            pdf-creator.cache-to=type=gha,scope=ci-pdf-creator,mode=max
+            pdf-creator.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-pdf-creator,mode=max,ignore-error=true' || '' }}
             tim.cache-from=type=gha,scope=ci-tim
-            tim.cache-to=type=gha,scope=ci-tim,mode=max
+            tim.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tim,mode=max,ignore-error=true' || '' }}
             tara-mock.tags=ljvis-ci-tara-mock
             tim.tags=ljvis-ci-tim
+
+      - name: Warn if the image pre-build failed
+        if: steps.prebuild.outcome == 'failure'
+        run: echo "::warning::Raskete piltide eelehitus (docker/bake-action) ebaõnnestus. Compose ehitab need ise, nii et töö on aeglasem. Vaata sammu „Pre-build heavy CI images“."
 
       - name: Run E2E tests
         env:
@@ -670,11 +678,15 @@ jobs:
       # ehitatakse siin eelnevalt vahemälu toel ja märgistatakse compose'i vaikenimedega
       # (`<projekt>-<teenus>`); CI_IMAGES_PREBUILT=1 korral jätab run.sh/run-all.sh `--build` ära,
       # nii et compose kasutab valmis pilte ja ehitab ainult puuduvad (kerged). Kui eelehitus
-      # ebaõnnestub, ehitab compose puuduvad pildid ise.
+      # ebaõnnestub, ehitab compose puuduvad pildid ise (ja hoiatus ilmub töö kokkuvõttesse).
+      # Vahemälu kirjutatakse ainult `dev`-i pushil (PR-id loevad `dev`-i vahemälu, aga ei kirjuta
+      # oma skoopi), et PR-id ei täidaks repo 10 GB vahemälu piiri. bake ehitab git-kontekstist,
+      # seega ei tohi neli Dockerfile'i kopeerida enne eelehitust genereeritud workspace-faile.
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Pre-build heavy CI images (layer cache)
+        id: prebuild
         continue-on-error: true
         uses: docker/bake-action@v6
         with:
@@ -683,15 +695,19 @@ jobs:
           load: true
           set: |
             xtr-inbound.cache-from=type=gha,scope=ci-xtr-inbound
-            xtr-inbound.cache-to=type=gha,scope=ci-xtr-inbound,mode=max
+            xtr-inbound.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-xtr-inbound,mode=max,ignore-error=true' || '' }}
             tara-mock.cache-from=type=gha,scope=ci-tara-mock
-            tara-mock.cache-to=type=gha,scope=ci-tara-mock,mode=max
+            tara-mock.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tara-mock,mode=max,ignore-error=true' || '' }}
             pdf-creator.cache-from=type=gha,scope=ci-pdf-creator
-            pdf-creator.cache-to=type=gha,scope=ci-pdf-creator,mode=max
+            pdf-creator.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-pdf-creator,mode=max,ignore-error=true' || '' }}
             tim.cache-from=type=gha,scope=ci-tim
-            tim.cache-to=type=gha,scope=ci-tim,mode=max
+            tim.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tim,mode=max,ignore-error=true' || '' }}
             tara-mock.tags=ljvis-pw-tara-mock
             tim.tags=ljvis-pw-tim
+
+      - name: Warn if the image pre-build failed
+        if: steps.prebuild.outcome == 'failure'
+        run: echo "::warning::Raskete piltide eelehitus (docker/bake-action) ebaõnnestus. Compose ehitab need ise, nii et töö on aeglasem. Vaata sammu „Pre-build heavy CI images“."
 
       - name: Run UI tests
         env:

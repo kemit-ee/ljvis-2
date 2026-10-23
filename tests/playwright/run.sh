@@ -35,7 +35,7 @@ ci_phase "Eelmise pinu teardown"
 echo "==> Teardown varasemast pinust (koos mahtudega)…"
 $COMPOSE down -v --remove-orphans >/dev/null 2>&1 || true
 
-ci_phase "Pinu ehitus ja käivitus (compose up --build)"
+ci_phase "Pinu käivitus (compose up; --build ainult kui pilte pole eelehitatud)"
 echo "==> Ehitan ja käivitan CI-pinu…"
 # CI_IMAGES_PREBUILT=1: rasked pildid on workflow's juba ehitatud (vahemälu toel); ilma --build'ita
 # kasutab compose olemasolevaid ja ehitab ainult puuduvad.

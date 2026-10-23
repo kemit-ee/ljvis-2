@@ -28,7 +28,7 @@ ci_phase "Eelmise pinu teardown"
 echo "==> Tearing down any existing CI stack (volumes included)…"
 $COMPOSE down -v --remove-orphans 2>&1 | grep -E "Removed|Stopped|error" || true
 
-ci_phase "Pinu ehitus ja käivitus (compose up --build)"
+ci_phase "Pinu käivitus (compose up; --build ainult kui pilte pole eelehitatud)"
 echo "==> Building and starting CI stack…"
 # CI_IMAGES_PREBUILT=1: rasked pildid on workflow's juba ehitatud (vahemälu toel); ilma --build'ita
 # kasutab compose olemasolevaid ja ehitab ainult puuduvad.
