@@ -155,16 +155,18 @@ export const TextareaStub = ({
   value,
   onChange,
   disabled,
+  placeholder,
 }: {
   id?: string;
   label?: ReactNode;
   value?: string;
   onChange?: (v: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }) => (
   <label>
     <span>{label}</span>
-    <textarea id={id} data-testid={id} value={value ?? ''} disabled={disabled} onChange={(e) => onChange?.(e.target.value)} />
+    <textarea id={id} data-testid={id} value={value ?? ''} disabled={disabled} placeholder={placeholder} onChange={(e) => onChange?.(e.target.value)} />
   </label>
 );
 
