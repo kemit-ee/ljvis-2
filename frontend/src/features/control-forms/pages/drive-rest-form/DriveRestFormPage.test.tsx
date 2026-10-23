@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -150,7 +150,8 @@ vi.mock('../../components/DriveRestForm/DriveRestFormViewCard', async () => ({
 vi.mock('../../components/DriveRestForm/DriveRestFormEditCard', async () => {
   const { forwardRef } = await import('react');
   return {
-    DriveRestFormEditCard: forwardRef<unknown, Record<string, (...a: unknown[]) => void> & { scope: string }>((p, _ref) => (
+    DriveRestFormEditCard: forwardRef<unknown, Record<string, (...a: unknown[]) => void> & { scope: string }>// eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ((p, _ref) => (
       <div data-testid={`edit-${p.scope}`}>
         <button onClick={() => p.onSaved('1', false)}>{`saved-${p.scope}`}</button>
         <button onClick={() => p.onSaved('1', true)}>{`saved-confirmed-${p.scope}`}</button>

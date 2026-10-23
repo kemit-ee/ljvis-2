@@ -50,7 +50,7 @@ vi.mock('../../../../shared/components/AppTable', async () => ({
     placeholder: string;
   }) => {
     const Table = () => {
-      const table = useReactTable({ data: props.data, columns: props.columns, getCoreRowModel: getCoreRowModel() });
+      const table = useReactTable({ data: props.data, columns: props.columns, getCoreRowModel: getCoreRowModel() } as never);
       return (
         <table>
           <tbody>

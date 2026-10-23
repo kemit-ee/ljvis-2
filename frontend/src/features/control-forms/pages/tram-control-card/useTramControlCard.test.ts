@@ -126,8 +126,8 @@ beforeEach(() => {
 afterEach(cleanup);
 
 const setup = (form?: TramControlCard, cbs: Partial<Record<'onSaved' | 'onConfirmed' | 'onResetToSaved' | 'onPublished', ReturnType<typeof vi.fn>>> = {}) => {
-  const onSaved = cbs.onSaved ?? vi.fn();
-  const hook = renderHook(() => useTramControlCard(form, onSaved, cbs.onConfirmed, cbs.onResetToSaved, cbs.onPublished));
+  const onSaved = (cbs.onSaved ?? vi.fn()) as ReturnType<typeof vi.fn> & ((id?: string) => void);
+  const hook = renderHook(() => useTramControlCard(form, onSaved, cbs.onConfirmed as never, cbs.onResetToSaved as never, cbs.onPublished as never));
   return { ...hook, onSaved };
 };
 
@@ -341,7 +341,7 @@ describe('salvestamine', () => {
     });
     expect(h.save).toHaveBeenCalled();
     h.save.mockClear();
-    const r2 = setup({ ...valid, drivers: [valid.drivers[0], { ...empty }] } as unknown as TramControlCard);
+    const r2 = setup({ ...valid, drivers: [valid.drivers![0], { ...empty }] } as unknown as TramControlCard);
     await act(async () => {
       await r2.result.current.formik.submitForm();
     });

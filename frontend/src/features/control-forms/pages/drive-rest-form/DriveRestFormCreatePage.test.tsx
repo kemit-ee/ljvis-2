@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { createRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { DriveRestForm } from '../../types';
 
 const h = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -113,8 +114,8 @@ describe('DriveRestFormCreatePage', () => {
     const ref = createRef<{
       formElement: HTMLFormElement;
       handleSubmit: (k?: number) => void;
-      getFormData?: () => unknown;
-      setFormData?: (d: Record<string, unknown>) => void;
+      getFormData?: () => Partial<DriveRestForm>;
+      setFormData?: (d: Partial<DriveRestForm>) => void;
       hasErrors: () => boolean;
       isDirty: () => boolean;
       validateForm?: () => void;
@@ -129,8 +130,8 @@ describe('DriveRestFormCreatePage', () => {
     expect(h.pendingKey.current).toBe(9);
     expect((h.formik.handleSubmit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(2);
     expect(r.getFormData!()).toEqual({ a: 1, b: 2 });
-    r.setFormData!({ x: 1, y: 2 });
-    expect((h.formik.setFieldValue as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('y', 2);
+    r.setFormData!({ notes: 'a', liiniNumber: 'b' });
+    expect((h.formik.setFieldValue as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('liiniNumber', 'b');
     expect(r.hasErrors()).toBe(false);
     (h.formik.errors as Record<string, string>).f = 'e';
     expect(r.hasErrors()).toBe(true);

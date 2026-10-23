@@ -100,7 +100,7 @@ const masses = [e(1, null, 'MASS', 'Mass N3', 'Mass'), e(2, 1, 'M3A', 'Üle 40t'
 
 const render_ = (props: Record<string, unknown>) => {
   const setFieldValue = vi.fn();
-  const view = render(<ModalResultSection setFieldValue={setFieldValue} {...(props as never)} />);
+  const view = render(<ModalResultSection {...({ setFieldValue, ...props } as unknown as React.ComponentProps<typeof ModalResultSection>)} />);
   return { setFieldValue, ...view };
 };
 

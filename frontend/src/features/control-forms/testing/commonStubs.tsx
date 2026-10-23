@@ -45,6 +45,7 @@ export const makeViewCardStub = (name: string) =>
 
 /** Alamvormi muutmiskaardi asendaja: nupud annavad tagasikutsed lehele edasi. */
 export const makeEditCardStub = (name: string) =>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   forwardRef<unknown, Record<string, (...a: unknown[]) => void>>(function EditCardStub(p, _ref) {
     return (
       <div data-testid={`edit-${name}`}>
