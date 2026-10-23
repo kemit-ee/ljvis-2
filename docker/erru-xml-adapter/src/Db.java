@@ -226,6 +226,7 @@ final class Db {
                 throw e;
             }
         }
+        logInboxFailure(row.id(), error);
     }
 
     /** An inbound business response completes without an outbound acknowledgement. */
@@ -250,8 +251,10 @@ final class Db {
             int updated = ps.executeUpdate();
             if (updated == 0) {
                 System.err.println("[db] markInboxFailed id=" + inboxId + " was a no-op — lease already reclaimed by another worker, not overwriting its result");
+                return;
             }
         }
+        logInboxFailure(inboxId, error);
     }
 
     /**
@@ -273,8 +276,10 @@ final class Db {
             int updated = ps.executeUpdate();
             if (updated == 0) {
                 System.err.println("[db] retryInboxLater id=" + inboxId + " was a no-op — lease already reclaimed by another worker");
+                return;
             }
         }
+        logInboxFailure(inboxId, "Retry scheduled: " + error);
     }
 
     /**
@@ -407,6 +412,30 @@ final class Db {
             if (updated == 0) {
                 System.err.println("[db] markOutboxFailed id=" + outboxId + " was a no-op — lease already reclaimed");
             }
+        }
+    }
+
+    /**
+     * Mirrors a processing failure into xroad.xroad_integration_log so it shows up in the admin UI
+     * (Haldus > X-tee logid, scope "all services") without DB access. Best effort: a logging
+     * failure must never change the inbox outcome, so it runs on its own connection after the
+     * outcome was committed and only prints on error.
+     */
+    void logInboxFailure(long inboxId, String error) {
+        if (error == null || error.isBlank()) return;
+        try (Connection c = open();
+             PreparedStatement ps = c.prepareStatement(
+                     "INSERT INTO xroad.xroad_integration_log " +
+                     "(service_code, request_xml, response_xml, duration_ms, success, error_message, source_type, source_record_id, result_status) " +
+                     "SELECT 'erru.inbound.' || message_type, raw_xml, ?, NULL, false, ?, 'erru_inbox', id::text, 'error' " +
+                     "FROM erru.xml_inbox WHERE id = ?")) {
+            // The admin log UI shows only request/response bodies, so the reason goes into both.
+            ps.setString(1, truncate(error, 4000));
+            ps.setString(2, truncate(error, 4000));
+            ps.setLong(3, inboxId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("[db] cannot write ERRU failure log for inbox " + inboxId + ": " + e);
         }
     }
 

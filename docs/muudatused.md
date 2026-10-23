@@ -4,6 +4,9 @@
 
 ## 2026-10-23
 
+### ERRU sissetulevate päringute vead on logis nähtavad
+
+- Kui sissetuleva ERRU päringu töötlus ebaõnnestub (Hubile läheb ErrorNotification) või kordub, ilmub kirje Haldus > X-tee logid vaates, kui valida „Kõik teenused". Teenuse kood on `erru.inbound.<sõnumi tüüp>`, päring on saabunud XML ja „Vaata vastust" näitab tegelikku veapõhjust. Andmebaasi ligipääsu ei ole vaja.
 ### TEDI disainisüsteemi uuendus ja ühtne tabeli ilme
 
 - TEDI disainisüsteem on uuendatud versioonile 19.1.1. Kõik rakenduse nimekirjatabelid (ERRU päringud ja teated, riskitasemed, X-tee logid, teavituste logi, versioonide tabel jm) kasutavad nüüd TEDI uut tabelikomponenti. Tabelid on selgema päisega, sorteeritavad veerud on päises nuppudena, lehitsemine ja „Kuva korraga" on TEDI standardi järgi.
