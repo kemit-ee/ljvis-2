@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { buildExportTable, toCsv } from './formExport';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { buildExportTable, downloadCsv, downloadXlsx, exportFilename, toCsv } from './formExport';
 import { labelHeaders } from './formExportLabels';
 
 const row = (data: object) => ({ formType: 'adr', formKey: 1, data: JSON.stringify(data) });
@@ -146,5 +146,43 @@ describe('toCsv', () => {
   it('neutralises formula-looking text but keeps negative numbers', () => {
     const csv = toCsv({ headers: ['h'], rows: [['=1+1'], [-5], ['-5']] });
     expect(csv).toBe("h\r\n'=1+1\r\n-5\r\n-5");
+  });
+});
+
+describe('exportFilename ja allalaadimine', () => {
+  const blobs: Blob[] = [];
+  beforeEach(() => {
+    blobs.length = 0;
+    vi.stubGlobal('URL', {
+      createObjectURL: vi.fn((b: Blob) => {
+        blobs.push(b);
+        return 'blob:x';
+      }),
+      revokeObjectURL: vi.fn(),
+    });
+    const link = { href: '', download: '', click: vi.fn() };
+    vi.stubGlobal('document', {
+      createElement: vi.fn(() => link),
+      body: { appendChild: vi.fn(), removeChild: vi.fn() },
+    });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('exportFilename sisaldab tüüpi, ajatemplit ja laiendit', () => {
+    expect(exportFilename('adr', 'csv')).toMatch(/^vormid_adr_\d{8}_\d{6}\.csv$/);
+    expect(exportFilename('kv', 'xlsx')).toMatch(/\.xlsx$/);
+  });
+
+  it('downloadCsv loob BOM-iga CSV bloki', async () => {
+    downloadCsv({ headers: ['a'], rows: [['b']] }, 'f.csv');
+    expect(blobs).toHaveLength(1);
+    expect(await blobs[0].text()).toContain('a\r\nb');
+    expect(blobs[0].type).toContain('text/csv');
+  });
+
+  it('downloadXlsx loob xlsx bloki', async () => {
+    await downloadXlsx({ headers: ['a'], rows: [['b']] }, 'f.xlsx');
+    expect(blobs).toHaveLength(1);
+    expect(blobs[0].type).toContain('spreadsheetml');
   });
 });
