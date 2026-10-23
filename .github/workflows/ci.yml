@@ -413,6 +413,30 @@ jobs:
       - name: Validate API test groups
         run: python3 -m unittest discover -s tests/postman -p 'test_groups.py'
 
+      # Dockeri kihtide vahemälu (GitHub Actions cache). `compose up --build` võttis 40–65% iga
+      # töö ajast (xtr Rust-build, tara-mock Go-build, pdf-creator pip, tim apt). Rasked pildid
+      # ehitatakse siin eelnevalt vahemälu toel; run.sh/run-all.sh `compose up --build` leiab
+      # seejärel kihid builderi vahemälust. Kui vahemälu pole saadaval, ehitatakse nagu varem.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pre-build heavy CI images (layer cache)
+        continue-on-error: true
+        uses: docker/bake-action@v6
+        with:
+          files: docker-compose.ci.yml
+          targets: xtr-inbound,tara-mock,pdf-creator,tim
+          load: true
+          set: |
+            xtr-inbound.cache-from=type=gha,scope=ci-xtr-inbound
+            xtr-inbound.cache-to=type=gha,scope=ci-xtr-inbound,mode=max
+            tara-mock.cache-from=type=gha,scope=ci-tara-mock
+            tara-mock.cache-to=type=gha,scope=ci-tara-mock,mode=max
+            pdf-creator.cache-from=type=gha,scope=ci-pdf-creator
+            pdf-creator.cache-to=type=gha,scope=ci-pdf-creator,mode=max
+            tim.cache-from=type=gha,scope=ci-tim
+            tim.cache-to=type=gha,scope=ci-tim,mode=max
+
       - name: Run E2E tests
         run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json "${{ matrix.group }}"
 
@@ -634,6 +658,30 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
         working-directory: tests/playwright
+
+      # Dockeri kihtide vahemälu (GitHub Actions cache). `compose up --build` võttis 40–65% iga
+      # töö ajast (xtr Rust-build, tara-mock Go-build, pdf-creator pip, tim apt). Rasked pildid
+      # ehitatakse siin eelnevalt vahemälu toel; run.sh/run-all.sh `compose up --build` leiab
+      # seejärel kihid builderi vahemälust. Kui vahemälu pole saadaval, ehitatakse nagu varem.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pre-build heavy CI images (layer cache)
+        continue-on-error: true
+        uses: docker/bake-action@v6
+        with:
+          files: docker-compose.ci.yml
+          targets: xtr-inbound,tara-mock,pdf-creator,tim
+          load: true
+          set: |
+            xtr-inbound.cache-from=type=gha,scope=ci-xtr-inbound
+            xtr-inbound.cache-to=type=gha,scope=ci-xtr-inbound,mode=max
+            tara-mock.cache-from=type=gha,scope=ci-tara-mock
+            tara-mock.cache-to=type=gha,scope=ci-tara-mock,mode=max
+            pdf-creator.cache-from=type=gha,scope=ci-pdf-creator
+            pdf-creator.cache-to=type=gha,scope=ci-pdf-creator,mode=max
+            tim.cache-from=type=gha,scope=ci-tim
+            tim.cache-to=type=gha,scope=ci-tim,mode=max
 
       - name: Run UI tests
         run: bash tests/playwright/run.sh --group "${{ matrix.group }}"

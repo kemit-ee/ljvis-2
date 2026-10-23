@@ -71,5 +71,12 @@ runner kordaks sama ettevalmistust. Suurim järgmine võimalus on Dockeri kihtid
   vahemälu kaitseb brauseri allalaadimise aeglaste jooksude eest (üks jooks kulutas 8 min).
   Vahemälu jõuab `dev`-skoopi alles pärast merge'i ja esimest `dev`-jooksu; uue PR-i
   esimene jooks võib olla ikka miss.
-- Järgmine otsus (Dockeri kihtide vahemälu või rühmade jagamine) tuleks teha
-  `ajamootmine.md` numbrite põhjal.
+- **Dockeri kihtide vahemälu.** `e2e` ja `ui-tests` tööd ehitavad rasked pildid
+  (`xtr-inbound` Rust-build, `tara-mock` Go-build, `pdf-creator` pip, `tim` apt) enne
+  `run.sh`/`run-all.sh` käivitamist sammuga `docker/bake-action` ja GitHub Actionsi vahemälu
+  toel (`type=gha`, eraldi `scope` iga pildi kohta). Seejärel leiab `compose up --build` kihid
+  builderi vahemälust. Samm on `continue-on-error`: kui vahemälu pole saadaval, ehitatakse
+  nagu varem. Esimene jooks igas skoobis on miss ja täidab vahemälu, järgmine on hit.
+  Ajavõitu näed `ajamootmine.md` reas „Pinu ehitus ja käivitus". Uuel PR-il on vahemälu
+  `dev`-skoobist loetav alles pärast esimest `dev`-i jooksu pärast merge'i.
+- Järgmine otsus (rühmade jagamine) tuleks teha `ajamootmine.md` numbrite põhjal.
