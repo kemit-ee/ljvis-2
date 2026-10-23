@@ -49,6 +49,7 @@ uploadToS3:
   args:
     url: "[#S3_PROXY]/upload"
     headers:
+      Authorization: "Bearer [#S3_PROXY_API_KEY]"
       type: json
     body:
       key_folder: ${s3_folder}
