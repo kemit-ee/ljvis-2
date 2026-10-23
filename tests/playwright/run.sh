@@ -37,7 +37,11 @@ $COMPOSE down -v --remove-orphans >/dev/null 2>&1 || true
 
 ci_phase "Pinu ehitus ja käivitus (compose up --build)"
 echo "==> Ehitan ja käivitan CI-pinu…"
-$COMPOSE up -d --build
+# CI_IMAGES_PREBUILT=1: rasked pildid on workflow's juba ehitatud (vahemälu toel); ilma --build'ita
+# kasutab compose olemasolevaid ja ehitab ainult puuduvad.
+BUILD_FLAG="--build"
+[ "${CI_IMAGES_PREBUILT:-0}" = "1" ] && BUILD_FLAG=""
+$COMPOSE up -d $BUILD_FLAG
 
 wait_for() {
   local name="$1" url="$2"

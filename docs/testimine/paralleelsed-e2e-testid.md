@@ -74,9 +74,13 @@ runner kordaks sama ettevalmistust. Suurim järgmine võimalus on Dockeri kihtid
 - **Dockeri kihtide vahemälu.** `e2e` ja `ui-tests` tööd ehitavad rasked pildid
   (`xtr-inbound` Rust-build, `tara-mock` Go-build, `pdf-creator` pip, `tim` apt) enne
   `run.sh`/`run-all.sh` käivitamist sammuga `docker/bake-action` ja GitHub Actionsi vahemälu
-  toel (`type=gha`, eraldi `scope` iga pildi kohta). Seejärel leiab `compose up --build` kihid
-  builderi vahemälust. Samm on `continue-on-error`: kui vahemälu pole saadaval, ehitatakse
-  nagu varem. Esimene jooks igas skoobis on miss ja täidab vahemälu, järgmine on hit.
-  Ajavõitu näed `ajamootmine.md` reas „Pinu ehitus ja käivitus". Uuel PR-il on vahemälu
-  `dev`-skoobist loetav alles pärast esimest `dev`-i jooksu pärast merge'i.
+  toel (`type=gha`, eraldi `scope` iga pildi kohta). Pildid märgistatakse compose'i
+  vaikenimedega (`ljvis-ci-<teenus>` E2E-s, `ljvis-pw-<teenus>` UI-s) ja
+  `CI_IMAGES_PREBUILT=1` korral käivitavad skriptid `compose up -d` **ilma `--build`'ita**,
+  nii et compose kasutab valmis pilte ja ehitab ainult puuduvad (kerged). Ilma märgistuseta
+  ei kasutanud compose bake'i vahemälu uuesti ja ehitas rasked pildid teist korda (mõõdetud:
+  `compose up --build` jäi 3 min 34 s peale, ehkki vahemälu tabas). Samm on
+  `continue-on-error`: kui eelehitus ebaõnnestub, ehitab compose puuduvad pildid ise.
+  Esimene jooks igas skoobis on miss ja täidab vahemälu. Ajavõitu näed `ajamootmine.md`
+  reas „Pinu ehitus ja käivitus" ning töö sammu „Pre-build heavy CI images" kestusest.
 - Järgmine otsus (rühmade jagamine) tuleks teha `ajamootmine.md` numbrite põhjal.
