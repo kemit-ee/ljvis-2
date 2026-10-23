@@ -219,3 +219,19 @@ export const CheckboxStub = ({
     <span>{label}</span>
   </label>
 );
+
+const ModalPart = ({ children }: { children?: ReactNode }) => <div>{children}</div>;
+const ModalHeader = ({ title }: { title?: ReactNode }) => <h2>{title}</h2>;
+
+/** Modal ilma portaalita: sisu on olemas ainult siis, kui `open`. Modal.Closer renderdab lapsed. */
+export const ModalStub = Object.assign(
+  ({ open, children }: { open?: boolean; onToggle?: (o: boolean) => void; children?: ReactNode }) =>
+    open ? <div data-testid="modal">{children}</div> : null,
+  {
+    Content: ModalPart,
+    Header: ModalHeader,
+    Body: ModalPart,
+    Footer: ModalPart,
+    Closer: ModalPart,
+  },
+);
