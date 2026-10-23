@@ -132,3 +132,29 @@ export const ChoiceGroupStub = ({
     ))}
   </div>
 );
+
+export const CheckboxStub = ({
+  id,
+  label,
+  checked,
+  onChange,
+  disabled,
+}: {
+  id?: string;
+  label?: ReactNode;
+  checked?: boolean;
+  onChange?: (v: boolean) => void;
+  disabled?: boolean;
+}) => (
+  <label>
+    <input
+      type="checkbox"
+      id={id}
+      data-testid={id}
+      checked={!!checked}
+      disabled={disabled}
+      onChange={(e) => onChange?.(e.target.checked)}
+    />
+    <span>{label}</span>
+  </label>
+);
