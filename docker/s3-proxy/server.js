@@ -3,7 +3,7 @@
 const express = require('express');
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const { randomUUID } = require('node:crypto');
+const { randomUUID, timingSafeEqual } = require('node:crypto');
 
 // ── Required env vars ─────────────────────────────────────────────────────────
 const REQUIRED_ENV = ['S3_ENDPOINT', 'S3_BUCKET_NAME', 'S3_REGION', 'S3_ACCESS_KEY_ID', 'S3_SECRET_ACCESS_KEY'];
@@ -161,6 +161,24 @@ function sanitizeFilename(raw, maxLen) {
 // ── Express app ───────────────────────────────────────────────────────────────
 const jsonLimit = `${Math.ceil(MAX_BYTES / (1024 * 1024) * 1.4 + 2)}mb`; // base64 overhead ~1.37x + headroom
 const app = express();
+
+// ── Service-to-service auth ───────────────────────────────────────────────────
+// Ruuter sends `Authorization: Bearer <S3_PROXY_API_KEY>`. Empty key = no check
+// (local dev only); /health stays open for probes.
+const API_KEY = process.env.S3_PROXY_API_KEY || '';
+function safeEqual(a, b) {
+  const ba = Buffer.from(a);
+  const bb = Buffer.from(b);
+  return ba.length === bb.length && timingSafeEqual(ba, bb);
+}
+app.use((req, res, next) => {
+  if (!API_KEY || req.path === '/health') return next();
+  if (!safeEqual(req.get('authorization') || '', `Bearer ${API_KEY}`)) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+});
+
 app.use(express.json({ limit: jsonLimit }));
 
 /**

@@ -16,6 +16,7 @@ callNysiisSidecar:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
       type: json
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
     body:
       name: ${(incoming.body.name || '').trim()}
       useFullName: ${incoming.body.useFullName === 'true' || incoming.body.useFullName === true}
