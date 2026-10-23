@@ -65,7 +65,7 @@ export const TextFieldStub = ({
   helper?: { text?: ReactNode } | undefined;
 }) => (
   <label>
-    {label}
+    <span>{label}</span>
     <input
       id={id}
       data-testid={id}
@@ -76,7 +76,7 @@ export const TextFieldStub = ({
       onChange={(e) => onChange?.(e.target.value)}
       onBlur={onBlur}
     />
-    {helper?.text}
+    {helper?.text && <span>{helper.text}</span>}
   </label>
 );
 
@@ -104,4 +104,31 @@ export const DateFieldStub = ({
       onChange={(e) => onSelect?.(e.target.value ? new Date(e.target.value) : undefined)}
     />
   </label>
+);
+
+export const ChoiceGroupStub = ({
+  id,
+  items = [],
+  value,
+  onChange,
+}: {
+  id?: string;
+  items?: { id: string; value: string; label: ReactNode; disabled?: boolean }[];
+  value?: string;
+  onChange?: (v: string) => void;
+}) => (
+  <div id={id}>
+    {items.map((i) => (
+      <label key={i.id}>
+        <input
+          type="radio"
+          data-testid={i.id}
+          checked={value === i.value}
+          disabled={i.disabled}
+          onChange={() => onChange?.(i.value)}
+        />
+        {i.label}
+      </label>
+    ))}
+  </div>
 );
