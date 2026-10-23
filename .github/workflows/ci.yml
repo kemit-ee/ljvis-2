@@ -609,9 +609,10 @@ jobs:
         run: npm ci
         working-directory: tests/playwright
 
-      # Chromiumi allalaadimine (~150 MB) oli üks suuremaid käivitusaegu. Brauser on
-      # vahemälus Playwrighti versiooni järgi; süsteemipaketid (apt) tuleb igal runneril
-      # ikka paigaldada, sest runner on iga kord uus.
+      # Chromium on vahemälus Playwrighti versiooni järgi. Süsteemipaketid (apt) tuleb igal
+      # runneril ikka paigaldada, sest runner on iga kord uus. Ajavõit on tavaliselt väike
+      # (paar sekundit), kuid see kaitseb brauseri allalaadimise aeglaste jooksude (nt 8 min)
+      # eest. Vahemälu jõuab dev-skoopi alles pärast merge'i ja esimest dev-jooksu.
       - name: Read Playwright version
         id: playwright-version
         run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -622,7 +623,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}-chromium
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}-chromium
 
       - name: Install Playwright browser and system deps
         if: steps.playwright-cache.outputs.cache-hit != 'true'

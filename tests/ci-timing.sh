@@ -41,7 +41,7 @@ ci_phase_report() {
       }
       printf "| **Kokku** | **%d min %02d s** | |\n", int(total/60), total%60
     }' "$_CI_T_FILE" 2>/dev/null)" || table=""
-  [ -z "$table" ] && return 0
+  if [ -z "$table" ]; then rm -f "$_CI_T_FILE" 2>/dev/null || true; return 0; fi
   echo ""
   echo "==> $title"
   echo "$table"
@@ -50,7 +50,8 @@ ci_phase_report() {
     { echo "# $title"; echo ""; echo "$table"; } > "$out" 2>/dev/null || true
   fi
   if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-    { echo "### $title"; echo ""; echo "$table"; echo ""; } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+    { echo "### $title"; echo ""; echo "$table"; echo ""; echo "_Ei sisalda runneri ettevalmistust (checkout, apt, npm ci, brauseri paigaldus) — see on töö sammude logis._"; echo ""; } >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
   fi
+  rm -f "$_CI_T_FILE" 2>/dev/null || true
   return 0
 }

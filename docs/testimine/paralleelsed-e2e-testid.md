@@ -50,19 +50,26 @@ päringutevahelisi pause ja korduskatsete arvu see muudatus ei vähenda.
 
 ## Ajamõõtmine ja brauserite vahemälu
 
-Mõõtmine 2026-10-23 CI jooksul (PR #667): testid ise kestavad lühidalt (UI kontrollvormid
-3,6 min, liidestused 1,3 min, API ERRU kuus kollektsiooni kokku 3,8 min), kuid töö kestab
-6–10 min. Ülejäänud aeg kulub pinu üles tõstmisele, seemnetele ja frontendi buildile, mis
-kordub igas runneris. Seetõttu ei kiirenda rühmade veelgi väiksemaks jagamine palju: iga uus
-runner kordaks sama ettevalmistust.
+Mõõtmine 2026-10-23 CI jooksudel (PR #667 ja #669): testid ise kestavad lühidalt (UI
+kontrollvormid 3,6 min, liidestused 1,3 min, API ERRU kuus kollektsiooni kokku 3,8 min).
+`run.sh` / `run-all.sh` sisemuses kulub 40–65% ajast pinu üles tõstmisele (`compose up
+--build`, 3–4 min), mis kordub igas runneris. Frontendi build (~25 s), seemned ja teenuste
+ootamine on tühised. Seetõttu ei kiirenda rühmade veelgi väiksemaks jagamine palju: iga uus
+runner kordaks sama ettevalmistust. Suurim järgmine võimalus on Dockeri kihtide vahemälu.
 
 - `tests/ci-timing.sh` mõõdab etappide kestuse. `tests/playwright/run.sh` ja
   `tests/postman/run-all.sh` trükivad lõpus tabeli, kirjutavad selle faili
   `tulemus/ajamootmine.md` (UI) või `reports/ajamootmine.md` (API) ning lisavad
   GitHub Actionsi töö kokkuvõttesse. Failid lähevad olemasolevate artefaktide hulka
   (`playwright-tulemus-<rühm>`, `api-tests-<rühm>`). Tabel tehakse ka vea korral.
-- UI-töö salvestab Playwrighti Chromiumi vahemällu (`~/.cache/ms-playwright`, võti on
-  Playwrighti versioon). Vahemälu tabamuse korral paigaldatakse ainult süsteemipaketid
-  (`playwright install-deps`), brauserit ei laadita alla.
-- Järgmine otsus (pinu ettevalmistuse vahemällu panemine või rühmade jagamine) tuleks teha
+  **Tabel ei sisalda runneri ettevalmistust** (checkout, apt, `npm ci`, brauseri
+  paigaldus). Töö kogukestus on seetõttu 3–4 min pikem kui tabeli „Kokku". API tabelis
+  arvestatakse Newmani etapi hulka ka järgmise `ci_phase`-ni jäävad mitte-Newman sammud.
+- UI-töö salvestab Playwrighti Chromiumi vahemällu (`~/.cache/ms-playwright`, võti on OS,
+  arhitektuur ja Playwrighti versioon). Vahemälu tabamuse korral paigaldatakse ainult
+  süsteemipaketid (`playwright install-deps`). Ajavõit on tavaliselt paar sekundit, kuid
+  vahemälu kaitseb brauseri allalaadimise aeglaste jooksude eest (üks jooks kulutas 8 min).
+  Vahemälu jõuab `dev`-skoopi alles pärast merge'i ja esimest `dev`-jooksu; uue PR-i
+  esimene jooks võib olla ikka miss.
+- Järgmine otsus (Dockeri kihtide vahemälu või rühmade jagamine) tuleks teha
   `ajamootmine.md` numbrite põhjal.
