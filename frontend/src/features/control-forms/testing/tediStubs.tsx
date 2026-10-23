@@ -17,6 +17,7 @@ export const SelectStub = ({
   value,
   onChange,
   disabled,
+  helper,
 }: {
   id?: string;
   label?: ReactNode;
@@ -24,6 +25,7 @@ export const SelectStub = ({
   value?: Opt | Opt[] | null;
   onChange?: (v: Opt | null) => void;
   disabled?: boolean;
+  helper?: { text?: ReactNode };
 }) => (
   <label>
     {label}
@@ -40,6 +42,7 @@ export const SelectStub = ({
         </option>
       ))}
     </select>
+    {helper?.text && <span>{helper.text}</span>}
   </label>
 );
 
@@ -111,27 +114,85 @@ export const ChoiceGroupStub = ({
   items = [],
   value,
   onChange,
+  inputType = 'radio',
 }: {
   id?: string;
   items?: { id: string; value: string; label: ReactNode; disabled?: boolean }[];
+  value?: string | string[];
+  onChange?: (v: string | string[]) => void;
+  inputType?: 'radio' | 'checkbox';
+}) => {
+  const selected = Array.isArray(value) ? value : value != null && value !== '' ? [value] : [];
+  return (
+    <div id={id}>
+      {items.map((i) => (
+        <label key={i.id}>
+          <input
+            type={inputType}
+            data-testid={i.id}
+            checked={selected.includes(i.value)}
+            disabled={i.disabled}
+            onChange={() =>
+              onChange?.(
+                inputType === 'checkbox'
+                  ? selected.includes(i.value)
+                    ? selected.filter((v) => v !== i.value)
+                    : [...selected, i.value]
+                  : i.value,
+              )
+            }
+          />
+          {i.label}
+        </label>
+      ))}
+    </div>
+  );
+};
+
+export const TextareaStub = ({
+  id,
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  id?: string;
+  label?: ReactNode;
   value?: string;
   onChange?: (v: string) => void;
+  disabled?: boolean;
 }) => (
-  <div id={id}>
-    {items.map((i) => (
-      <label key={i.id}>
-        <input
-          type="radio"
-          data-testid={i.id}
-          checked={value === i.value}
-          disabled={i.disabled}
-          onChange={() => onChange?.(i.value)}
-        />
-        {i.label}
-      </label>
-    ))}
-  </div>
+  <label>
+    <span>{label}</span>
+    <textarea id={id} data-testid={id} value={value ?? ''} disabled={disabled} onChange={(e) => onChange?.(e.target.value)} />
+  </label>
 );
+
+export const TimeFieldStub = ({
+  id,
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  id?: string;
+  label?: ReactNode;
+  value?: string;
+  onChange?: (v: string) => void;
+  disabled?: boolean;
+}) => (
+  <label>
+    <span>{label}</span>
+    <input id={id} data-testid={id} value={value ?? ''} disabled={disabled} onChange={(e) => onChange?.(e.target.value)} />
+  </label>
+);
+
+export const AccordionStubs = {
+  Accordion: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  AccordionItem: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  AccordionItemHeader: ({ title }: { title?: ReactNode }) => <div>{title}</div>,
+  AccordionItemContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+};
 
 export const CheckboxStub = ({
   id,
