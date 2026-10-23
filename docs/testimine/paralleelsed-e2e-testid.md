@@ -52,7 +52,7 @@ päringutevahelisi pause ja korduskatsete arvu see muudatus ei vähenda.
 
 Mõõtmine 2026-10-23 CI jooksudel (PR #667 ja #669): testid ise kestavad lühidalt (UI
 kontrollvormid 3,6 min, liidestused 1,3 min, API ERRU kuus kollektsiooni kokku 3,8 min).
-`run.sh` / `run-all.sh` sisemuses kulub 40–65% ajast pinu üles tõstmisele (`compose up
+`run.sh` / `run-all.sh` sisemuses kulus 40–65% ajast pinu üles tõstmisele (`compose up
 --build`, 3–4 min), mis kordub igas runneris. Frontendi build (~25 s), seemned ja teenuste
 ootamine on tühised. Seetõttu ei kiirenda rühmade veelgi väiksemaks jagamine palju: iga uus
 runner kordaks sama ettevalmistust. Suurim järgmine võimalus on Dockeri kihtide vahemälu.
@@ -71,5 +71,20 @@ runner kordaks sama ettevalmistust. Suurim järgmine võimalus on Dockeri kihtid
   vahemälu kaitseb brauseri allalaadimise aeglaste jooksude eest (üks jooks kulutas 8 min).
   Vahemälu jõuab `dev`-skoopi alles pärast merge'i ja esimest `dev`-jooksu; uue PR-i
   esimene jooks võib olla ikka miss.
-- Järgmine otsus (Dockeri kihtide vahemälu või rühmade jagamine) tuleks teha
-  `ajamootmine.md` numbrite põhjal.
+- **Dockeri kihtide vahemälu.** `e2e` ja `ui-tests` tööd ehitavad rasked pildid
+  (`xtr-inbound` Rust-build, `tara-mock` Go-build, `pdf-creator` pip, `tim` apt) enne
+  `run.sh`/`run-all.sh` käivitamist sammuga `docker/bake-action` ja GitHub Actionsi vahemälu
+  toel (`type=gha`, eraldi `scope` iga pildi kohta). Pildid märgistatakse compose'i
+  vaikenimedega (`ljvis-ci-<teenus>` E2E-s, `ljvis-pw-<teenus>` UI-s) ja
+  `CI_IMAGES_PREBUILT=1` korral käivitavad skriptid `compose up -d` **ilma `--build`'ita**,
+  nii et compose kasutab valmis pilte ja ehitab ainult puuduvad (kerged). Ilma märgistuseta
+  ei kasutanud compose bake'i vahemälu uuesti ja ehitas rasked pildid teist korda (mõõdetud:
+  `compose up --build` jäi 3 min 34 s peale, ehkki vahemälu tabas). Samm on
+  `continue-on-error`: kui eelehitus ebaõnnestub, ehitab compose puuduvad pildid ise.
+  **Vahemälu kirjutatakse ainult `dev`-i pushil**, PR-id loevad `dev`-i vahemälu, kuid ei kirjuta
+  oma skoopi (repo vahemälu piir on 10 GB ja PR-i skoop oleks kasutu teistele PR-idele).
+  Vahemälu miss (nt esimene jooks pärast tühja vahemälu, uus Dockerfile) on **~2 min aeglasem**
+  kui enne, sest rasked pildid ehitatakse bake'is, mitte compose'is. Hit-i korral on pinu
+  käivitus ~1 min (enne 3–4 min). Kui eelehitus ebaõnnestub, ilmub töö kokkuvõttesse hoiatus. Ajavõitu näed `ajamootmine.md`
+  reas „Pinu käivitus" ning töö sammu „Pre-build heavy CI images" kestusest.
+- Järgmine otsus (rühmade jagamine) tuleks teha `ajamootmine.md` numbrite põhjal.
