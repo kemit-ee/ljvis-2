@@ -30,3 +30,28 @@ export const matchMediaStub = () => ({
 });
 
 export const Passthrough = ({ children }: { children?: ReactNode }) => <>{children}</>;
+
+import { forwardRef } from 'react';
+
+/** Alamvormi vaatekaardi asendaja: kuvab nime ja avalikustamise nupu. */
+export const makeViewCardStub = (name: string) =>
+  function ViewCardStub(p: { onPublish?: () => Promise<unknown>; canPublish?: boolean; scope?: string; form?: { id?: string } }) {
+    return (
+      <div data-testid={`view-${name}`}>
+        <button onClick={() => void p.onPublish?.()}>{`publish-${name}`}</button>
+      </div>
+    );
+  };
+
+/** Alamvormi muutmiskaardi asendaja: nupud annavad tagasikutsed lehele edasi. */
+export const makeEditCardStub = (name: string) =>
+  forwardRef<unknown, Record<string, (...a: unknown[]) => void>>(function EditCardStub(p, _ref) {
+    return (
+      <div data-testid={`edit-${name}`}>
+        <button onClick={() => p.onSaved?.('1', false)}>{`saved-${name}`}</button>
+        <button onClick={() => p.onSaved?.('1', true)}>{`saved-confirmed-${name}`}</button>
+        <button onClick={() => p.onCancel?.()}>{`cancel-${name}`}</button>
+        <button onClick={() => p.onValuesChange?.({ changed: true })}>{`values-${name}`}</button>
+      </div>
+    );
+  });
