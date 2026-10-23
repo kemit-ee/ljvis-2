@@ -237,3 +237,17 @@ export const ModalStub = Object.assign(
     Closer: ModalPart,
   },
 );
+
+export const SearchStub = ({
+  id,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id?: string;
+  value?: string;
+  onChange?: (v: string) => void;
+  placeholder?: string;
+}) => (
+  <input id={id} data-testid={id} value={value ?? ''} placeholder={placeholder} onChange={(e) => onChange?.(e.target.value)} />
+);
