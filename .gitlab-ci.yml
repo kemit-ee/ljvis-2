@@ -165,6 +165,7 @@ secret_detection:
     - pip3 install --quiet pyyaml
     - python3 scripts/validate-dsl.py
     - bash scripts/test-xtee-mock.sh
+    - bash scripts/test-erru-register-mocks.sh
 
 .frontend:
   stage: test
