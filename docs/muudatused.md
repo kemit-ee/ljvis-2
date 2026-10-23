@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-23
+
+### ERRU sissetulevate päringute vead on logis nähtavad
+
+- Kui sissetuleva ERRU päringu töötlus ebaõnnestub (Hubile läheb ErrorNotification) või kordub, ilmub kirje Haldus > X-tee logid vaates, kui valida „Kõik teenused". Teenuse kood on `erru.inbound.<sõnumi tüüp>`, päring on saabunud XML ja „Vaata vastust" näitab tegelikku veapõhjust. Andmebaasi ligipääsu ei ole vaja.
+
 ## 2026-10-22
 
 ### Vastus saabunud NCR-ile ja välisriigi kontrollkaardi loomine
