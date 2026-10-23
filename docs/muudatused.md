@@ -4,6 +4,11 @@
 
 ## 2026-10-23
 
+### ERRU detailvaated kompaktsemaks ja NCR kuupäev
+
+- ERRU detailvaadetes (CTUD, RSI, NCR) on väljad nüüd mitmes veerus, silt väärtuse kohal (nagu CGR detailvaates), mitte üks väli rea kohta. Pealkirjad ja tabelid on jätkuvalt täislaiuses. Vaade on oluliselt lühem.
+- NCR teadete nimekirjas ja detailvaate „Juhtumi teadete loend" kaardil on kuupäev nüüd alati olemas. Sissetulevatel teadetel ja saatmata mustanditel puudus saatmise aeg, nüüd näidatakse selle asemel kirje loomise aega. Veeru pealkiri on „Kuupäev". Kuupäeva filter ja sorteerimine arvestavad sama väärtust.
+
 ### ERRU sissetulevate päringute vead on logis nähtavad
 
 - Kui sissetuleva ERRU päringu töötlus ebaõnnestub (Hubile läheb ErrorNotification) või kordub, ilmub kirje Haldus > X-tee logid vaates, kui valida „Kõik teenused". Teenuse kood on `erru.inbound.<sõnumi tüüp>`, päring on saabunud XML ja „Vaata vastust" näitab tegelikku veapõhjust. Andmebaasi ligipääsu ei ole vaja.

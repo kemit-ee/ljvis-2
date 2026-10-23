@@ -94,7 +94,8 @@ WITH latest AS (
     direction,
     status,
     business_case_id,
-    sent_at,
+    -- Sissetulevatel ja saatmata mustanditel puudub sent_at; kuupäevaks on siis kirje loomise aeg.
+    COALESCE(sent_at, created_at) AS sent_at,
     ncr_from,
     ncr_to,
     transport_undertaking_name,

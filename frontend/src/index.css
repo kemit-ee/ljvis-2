@@ -497,3 +497,35 @@ nav[aria-label='Main navigation'] {
   gap: 0.375rem;
   white-space: nowrap;
 }
+
+/* ERRU read-only detail views (DetailRow → .detail-field): label above value, fields flow
+   into a responsive grid instead of one per line. Any element that directly contains fields
+   becomes the grid; headings, tables and other blocks inside it span the full width. */
+:has(> .detail-field) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+:has(> .detail-field) > :not(.detail-field) {
+  grid-column: 1 / -1;
+}
+
+.detail-field {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:has(> .detail-field) > h2,
+:has(> .detail-field) > h3,
+:has(> .detail-field) > h4 {
+  margin: 0.75rem 0 0;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--general-border-primary);
+}
+
+:has(> .detail-field) > h2:first-child,
+:has(> .detail-field) > h3:first-child,
+:has(> .detail-field) > h4:first-child {
+  margin-top: 0;
+}
