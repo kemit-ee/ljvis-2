@@ -158,6 +158,14 @@ Lähtekoodi hoidla DSL-id viitavad järgmistele muutujatele, mida `scripts/const
 | `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev, test, prelive ja CI-s mock |
 | `ERRU_NCR_ORIGINATING_AUTHORITY` | NCR automaatse saatmise asutuse nimi | `Politsei- ja Piirivalveamet` |
 
+**ERRU registrite mock demo- ja testkeskkonnas.** Ruuteri image sisaldab ERRU registrite mock-teenuseid. Nende kutsumiseks on vaja päist `x-internal-service-token`. Avalik ja sisemine Ruuter peavad kasutama sama `INTERNAL_COMMUNICATION_KEY` väärtust. Sisemine Ruuter lisab võtme ainult järgmistele täpsetele aadressidele:
+
+- `ERRU_MTR_ENDPOINT=http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-community-licence`
+- `ERRU_CGR_MTR_ENDPOINT=http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute`
+- `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT=http://ruuter:8080/ljvis/v1/erru/mock/xtee/liiklusregister-paring2`
+
+Toodangus määra registrite endpoint'id XTR-i kaudu. Paranduse paigaldamisel uuenda nii avaliku kui ka sisemise Ruuteri image. Kontrolli CTUD päringut `businessCaseId=CTUD_03`: mock peab tagastama HTTP 200 ja `statusCode=NotFound`. Puuduva või vale teenusetokeniga peab mock tagastama HTTP 403.
+
 **CronManageri tööde kontroll paigaldamisel.** Puuduv `INTERNAL_COMMUNICATION_KEY` cronmanager-podis ei takista CronManageri käivitumist: iga tööfail, mille `headerEnvs` viitab seadmata muutujale, jäetakse vahele ja pod käivitub 0 tööga. Seepärast peab pod olema `Ready` alles siis, kui töid on registreeritud. Kasutage `readinessProbe`-s (docker-compose'is on sama käsk healthcheck'ina):
 
 ```bash

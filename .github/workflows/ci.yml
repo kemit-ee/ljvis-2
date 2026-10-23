@@ -336,6 +336,9 @@ jobs:
           pip3 install pyyaml -q
           bash scripts/test-xtee-mock.sh
 
+      - name: ERRU register mocks — deployed image regression
+        run: bash scripts/test-erru-register-mocks.sh
+
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
   # Runs after E2E so the security checks are the final CI validation stage.
   # Secret findings are blocking on main, but remain advisory on dev.
