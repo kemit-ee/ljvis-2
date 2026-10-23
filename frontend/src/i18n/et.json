@@ -1644,6 +1644,8 @@
     "yes": "Jah",
     "no": "Ei",
     "tableIsEmpty": "Otsingule vastavaid tulemusi ei leitud.",
+    "tableLoading": "Tabel laeb...",
+    "customizeColumns": "Kohanda",
     "confirmChange": "Jah, muuda",
     "discard": "Tühista",
     "look": "Vaata",
@@ -1811,6 +1813,7 @@
         "licenceNumber": "Ühenduse tegevusloa kinnitatud ärakirja või tõestatud koopia nr",
         "vehicleNumber": "Sõiduki reg-nr",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "direction": "Suund",
         "handlerFilter": "Kasutaja (isikukood)"
@@ -1927,6 +1930,7 @@
         "cgrTo": "Sihtriik",
         "certificateNumber": "Ametialase pädevuse tunnistuse number",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "handlerFilter": "Kasutaja (isikukood)"
       },
@@ -1965,6 +1969,13 @@
       },
       "response": {
         "title": "Päringu vastus",
+        "foundTitle": "Leiuga riigid",
+        "notFoundTitle": "Vastus saadud, leidu ei tuvastatud",
+        "failedTitle": "Vastust ei saadud",
+        "foundBadge": "Leid tuvastatud",
+        "summaryFound": "{{count}} leiuga",
+        "summaryNotFound": "{{count}} leiuta",
+        "summaryFailed": "{{count}} ei vastanud",
         "statusMessage": "Staatuse teade",
         "respondingAuthority": "Vastust esitav pädev asutus",
         "searchMethod": "Otsingu meetod",
@@ -2091,6 +2102,7 @@
         "required": "Väli on kohustuslik",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "max_length_exceeded": "Välja pikkus on ületatud",
+        "invalid_vin": "VIN peab olema täpselt 17 märki (tähed ja numbrid, ilma I, O ja Q)",
         "driver_block_incomplete": "Juhi andmete plokis tuleb täita eesnimi ja perekonnanimi",
         "holder_type_invalid": "Osapoole liik peab olema veoettevõtja või omanik",
         "undertaking_block_incomplete": "Veoettevõtja nimi ja ühenduse tegevusluba tuleb täita koos",
@@ -2115,6 +2127,7 @@
         "rsiTo": "Saadetud riiki",
         "vehicleRegistrationNumber": "Sõiduki reg-nr",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
@@ -2458,7 +2471,8 @@
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
       "labor_tachograph_not_downloaded": "Sõidumeerikuandmete alla laadimata jätmise teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
-      "nu_inbound_received": "ERRU NU sobimatusteade"
+      "nu_inbound_received": "ERRU NU sobimatusteade",
+      "ctud_inbound_received": "ERRU tegevusloa kontrolli päring (CTUD)"
     }
   },
   "breadcrumbs": {

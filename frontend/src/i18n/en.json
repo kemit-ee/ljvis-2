@@ -1612,6 +1612,8 @@
     "yes": "Yes",
     "no": "No",
     "tableIsEmpty": "No matching results found.",
+    "tableLoading": "Table is loading...",
+    "customizeColumns": "Customize",
     "confirm": "Confirm",
     "confirmChange": "Yes, change",
     "discard": "Discard",
@@ -1780,6 +1782,7 @@
         "licenceNumber": "Community licence / certified true copy no.",
         "vehicleNumber": "Vehicle reg. no",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "direction": "Direction",
         "handlerFilter": "User (isikukood)"
@@ -1896,6 +1899,7 @@
         "cgrTo": "Target member state",
         "certificateNumber": "Certificate of professional competence number",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "handlerFilter": "User (isikukood)"
       },
@@ -1934,6 +1938,13 @@
       },
       "response": {
         "title": "Response",
+        "foundTitle": "Countries with a match",
+        "notFoundTitle": "Response received, no match found",
+        "failedTitle": "No response received",
+        "foundBadge": "Match found",
+        "summaryFound": "{{count}} with a match",
+        "summaryNotFound": "{{count}} without a match",
+        "summaryFailed": "{{count}} did not respond",
         "statusMessage": "Status message",
         "respondingAuthority": "Responding competent authority",
         "searchMethod": "Search method",
@@ -2060,6 +2071,7 @@
         "required": "This field is required",
         "invalid_country_code": "Country code must be two letters",
         "max_length_exceeded": "Maximum length exceeded",
+        "invalid_vin": "VIN must be exactly 17 characters (letters and digits, no I, O or Q)",
         "driver_block_incomplete": "The driver block's first name and family name must be filled in together",
         "holder_type_invalid": "Party type must be transport undertaking or owner",
         "undertaking_block_incomplete": "The undertaking name and community licence number must be filled in together",
@@ -2084,6 +2096,7 @@
         "rsiTo": "Destination country",
         "vehicleRegistrationNumber": "Vehicle reg. no",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "direction": "Direction",
         "directionOutgoing": "Outgoing",
@@ -2427,7 +2440,8 @@
       "labor_kabotage": "Cabotage inspection notification",
       "labor_tachograph_not_downloaded": "Tachograph data not downloaded notification",
       "labor_foreign_proposal": "Foreign country proposal notification",
-      "nu_inbound_received": "ERRU NU non-compliance notice"
+      "nu_inbound_received": "ERRU NU non-compliance notice",
+      "ctud_inbound_received": "ERRU community licence check request (CTUD)"
     }
   },
   "breadcrumbs": {

@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.3",
-    "@tedi-design-system/react": "^18.0.0",
+    "@tedi-design-system/react": "^19.1.1",
     "dayjs": "^1.11.20",
     "exceljs": "^4.4.0",
     "formik": "^2.4.9",

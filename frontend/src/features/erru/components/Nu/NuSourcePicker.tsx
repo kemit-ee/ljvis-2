@@ -163,7 +163,6 @@ export function NuSourcePicker({
               data={results}
               columns={columns}
               hidePagination
-              enableSorting={false}
             />
           </div>
         )}

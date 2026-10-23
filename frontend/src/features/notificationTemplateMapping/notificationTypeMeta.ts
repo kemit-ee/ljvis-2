@@ -18,7 +18,7 @@ export const NOTIFICATION_TYPE_TRIGGER_FORM_KEYS: Record<string, string[]> = {
   labor_tachograph_not_downloaded: ['spDriver', 'spTeammate'],
   driving_ban: ['vehicleTechnical', 'trailerTechnical'],
   weight_violation: ['spDriver'],
-  // ncr_violation, ncr_response ja nu_inbound_received tulevad automaatselt
+  // ncr_violation, ncr_response, nu_inbound_received ja ctud_inbound_received tulevad automaatselt
   // sisenevast ERRU sõnumist, mitte konkreetse LJVIS-vormi avaldamisest.
 };
 

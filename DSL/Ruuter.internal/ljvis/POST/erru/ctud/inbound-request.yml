@@ -317,6 +317,29 @@ storeAnswered:
       errorMessage: ""
       created_by: "system"
   result: answered_res
+  next: createCtudNotification
+
+# Teavitus ctud.read õigusega kasutajatele (ja halduses valitud desktop-saajatele): teine
+# riik esitas meile tegevusloa kontrolli päringu, millele vastati automaatselt. Best-effort -
+# viga ei tohi Hubile antavat vastust segada. event_key (technicalId) teeb kordusest ohutu.
+createCtudNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "ctud_inbound_received"
+      required_permission: "ctud.read"
+      related_entity_type: "ctud"
+      related_entity_id: "${'' + request_key}"
+      event_key: ${technical_id}
+      title_et: "${'Saabus ERRU tegevusloa kontrolli päring (CTUD) riigist ' + ctud_from}"
+      body_et: "${'Juhtum: ' + business_case_id + ', veoettevõtja: ' + (undertaking_name || licence_number || '-') + ', tulemus: ' + resp_status_code}"
+      created_by: "system"
+  result: notifRes
+  error: buildAudit
   next: buildAudit
 
 # The audit event is written by calling Resql directly rather than through the

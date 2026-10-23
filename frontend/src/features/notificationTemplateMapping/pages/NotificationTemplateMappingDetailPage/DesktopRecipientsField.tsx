@@ -126,7 +126,6 @@ export function DesktopRecipientsField({ personalCodes, onChange }: Props) {
         value={searchInput}
         onChange={setSearchInput}
         onSearch={handleSearch}
-        onIconClick={() => handleSearch(searchInput)}
         onClear={() => {
           setSearchInput('');
           setResults([]);

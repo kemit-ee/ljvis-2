@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { RsiMessage } from '../../types';
+import { saveRsiMessage } from '../../api';
 import { useRsiForm } from './useRsiForm';
 
 vi.mock('react-i18next', () => ({
@@ -110,5 +111,74 @@ describe('useRsiForm optional-block open state', () => {
     const { result } = renderHook(() => useRsiForm(undefined, vi.fn()));
     expect(result.current.driverBlockOpen).toBe(false);
     expect(result.current.identificationBlockOpen).toBe(false);
+  });
+});
+
+describe('useRsiForm saveAndSend', () => {
+  const fullMessage: RsiMessage = {
+    ...baseMessage,
+    vehicleIdentificationNumber: 'WVWZZZ1JZXW000001',
+    odometerReading: 123456,
+    inspectionDatetime: '2026-10-22T11:00:00Z',
+    ptiRequested: false,
+  };
+
+  it('does not save or send when ERRU-mandatory fields are missing', async () => {
+    const send = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(saveRsiMessage).mockClear();
+    const { result } = renderHook(() =>
+      useRsiForm(
+        {
+          ...fullMessage,
+          vehicleIdentificationNumber: null,
+          odometerReading: null,
+        },
+        vi.fn(),
+      ),
+    );
+
+    await act(async () => {
+      await result.current.saveAndSend(send);
+    });
+
+    expect(saveRsiMessage).not.toHaveBeenCalled();
+    expect(send).not.toHaveBeenCalled();
+    expect(
+      result.current.formik.errors.vehicleIdentificationNumber,
+    ).toBeTruthy();
+    expect(result.current.formik.errors.odometerReading).toBeTruthy();
+  });
+
+  it('rejects a VIN that is not 17 characters', async () => {
+    const send = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() =>
+      useRsiForm(
+        { ...fullMessage, vehicleIdentificationNumber: 'VVVVVV' },
+        vi.fn(),
+      ),
+    );
+
+    await act(async () => {
+      await result.current.saveAndSend(send);
+    });
+
+    expect(send).not.toHaveBeenCalled();
+    expect(result.current.formik.errors.vehicleIdentificationNumber).toBe(
+      'erru.rsi.validation.invalid_vin',
+    );
+  });
+
+  it('saves the current form and then sends when everything is valid', async () => {
+    const send = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(saveRsiMessage).mockReset();
+    vi.mocked(saveRsiMessage).mockResolvedValue({ id: 1 } as never);
+    const { result } = renderHook(() => useRsiForm(fullMessage, vi.fn()));
+
+    await act(async () => {
+      await result.current.saveAndSend(send);
+    });
+
+    expect(saveRsiMessage).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(1);
   });
 });

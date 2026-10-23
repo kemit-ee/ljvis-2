@@ -7,7 +7,7 @@ import {
   Heading,
   Select,
   TextField,
-  TextArea,
+  Textarea,
   Text,
   ChoiceGroup,
   Alert,
@@ -870,7 +870,7 @@ export function ForeignViolationFormFields({
             {t('forms.foreign_violation.violationDescriptionBasicInfo')}
           </Heading>
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
-            <TextArea
+            <Textarea
               id="violationDescription"
               label={t('forms.foreign_violation.violationDescription')}
               value={(values.violationDescription as string) ?? ''}
@@ -999,7 +999,7 @@ export function ForeignViolationFormFields({
             </div>
           )}
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
-            <TextArea
+            <Textarea
               id="sanctionNotes"
               label={t('forms.foreign_violation.sanctionNotes')}
               value={(values.sanctionNotes as string) ?? ''}
@@ -1142,7 +1142,7 @@ export function ForeignViolationFormFields({
                             }}
                             className="mb-1"
                           />
-                          <TextArea
+                          <Textarea
                             id={`violationSanctionNotes_${violation.code}`}
                             label={t('forms.foreign_violation.sanctionNotes')}
                             value={violation.sanctionNotes ?? ''}
@@ -1266,7 +1266,7 @@ export function ForeignViolationFormFields({
           </>
           )}
           <div className={isDesktop ? 'form-grid-desktop' : 'form-grid-mobile'}>
-            <TextArea
+            <Textarea
               id="recommendedMeasureGeneralNotes"
               label={t(
                 'forms.foreign_violation.recommendedMeasureGeneralNotes',
@@ -1626,7 +1626,7 @@ export function ForeignViolationFormFields({
                   inputProps={readOnly ? { disabled: true } : undefined}
                 />
               </div>
-              <TextArea
+              <Textarea
                 id="adminProcedureDecision"
                 label={t('forms.foreign_violation.adminProc.decision')}
                 value={(values.adminProcedureDecision as string) ?? ''}
