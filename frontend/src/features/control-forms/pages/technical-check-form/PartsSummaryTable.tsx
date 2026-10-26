@@ -152,7 +152,7 @@ export function PartsSummaryTable({
           label={t('forms.technical_check.parts.nonCompliant')}
           checked={entry.hasDefect}
           disabled={disabled}
-          onChange={(checked) => !disabled && onDefectToggle(part.code, !!checked)}
+          onChange={(_value, checked) => !disabled && onDefectToggle(part.code, !!checked)}
         />
       </>
     );

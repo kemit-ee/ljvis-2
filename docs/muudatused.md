@@ -7,6 +7,10 @@
 ### Demo ERRU registrite mockid on juurutatud pildis
 
 - Demo keskkonnas ei ole CTUD, CGR ja RSI päringute registri mockid enam 404: mockid on Ruuteri image'is ja kaitstud sisemise teenusetokeniga. Token saadetakse ainult täpsele kohalikule mocki aadressile, päris registri (XTR) aadressile mitte. Ruuter ja ruuter-internal image tuleb uuendada koos.
+### ERRU detailvaated kompaktsemaks ja NCR kuupäev
+
+- ERRU detailvaadetes (CTUD, RSI, NCR) on väljad nüüd mitmes veerus, silt väärtuse kohal (nagu CGR detailvaates), mitte üks väli rea kohta. Pealkirjad ja tabelid on jätkuvalt täislaiuses. Vaade on oluliselt lühem.
+- NCR teadete nimekirjas ja detailvaate „Juhtumi teadete loend" kaardil on kuupäev nüüd alati olemas. Sissetulevatel teadetel ja saatmata mustanditel puudus saatmise aeg, nüüd näidatakse selle asemel kirje loomise aega. Veeru pealkiri on „Kuupäev". Kuupäeva filter ja sorteerimine arvestavad sama väärtust.
 
 ### ERRU sissetulevate päringute vead on logis nähtavad
 

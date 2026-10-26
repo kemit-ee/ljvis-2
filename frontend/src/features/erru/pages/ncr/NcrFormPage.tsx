@@ -751,7 +751,9 @@ export function NcrFormPage() {
                 </Text>
                 <Text>{label('NCR_REQUEST_STATUS', s.status)}</Text>
                 <Text>
-                  {s.sentAt ? new Date(s.sentAt).toLocaleString('et-EE') : '—'}
+                  {s.sentAt || s.createdAt
+                    ? new Date(s.sentAt ?? s.createdAt).toLocaleString('et-EE')
+                    : '—'}
                 </Text>
               </div>
             );
