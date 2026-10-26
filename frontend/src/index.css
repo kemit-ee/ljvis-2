@@ -312,9 +312,13 @@ nav[aria-label='Main navigation'] {
   cursor: help;
 }
 
-/* NCR list (LJVIS2-65): rows with at least one serious infringement are highlighted red. */
+/* NCR list (LJVIS2-65): rows with an infringement are pink; unresolved incoming ones
+   (needsAttention) also get a danger border on the left edge. */
 .ncr-row-infringement td {
-  background-color: #fdecea;
+  background-color: var(--alert-default-background-danger, #fdecea);
+}
+.ncr-row-attention td:first-child {
+  box-shadow: inset 4px 0 0 var(--alert-default-border-danger, #ac3232);
 }
 
 /* ─── Shared list filter bar (ERRU CGR/RSI/NCR/CTUD list pages) ───

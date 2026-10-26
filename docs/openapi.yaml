@@ -2175,13 +2175,14 @@ paths:
       parameters:
         - { in: query, name: businessCaseId, schema: { type: string } }
         - { in: query, name: vehicleRegistrationNumber, schema: { type: string } }
-        - { in: query, name: sentFrom, schema: { type: string, format: date } }
-        - { in: query, name: sentUntil, schema: { type: string, format: date } }
+        - { in: query, name: dateFrom, schema: { type: string, format: date }, description: "Kuupäev alates (väljaminev = saatmise, sissetulev = saabumise kuupäev)" }
+        - { in: query, name: dateUntil, schema: { type: string, format: date } }
         - { in: query, name: ncrFrom, schema: { type: string } }
         - { in: query, name: ncrTo, schema: { type: string } }
         - { in: query, name: status, schema: { type: string } }
         - { in: query, name: direction, schema: { type: string, enum: [outgoing, incoming] } }
         - { in: query, name: handlerPersonalCode, schema: { type: string } }
+        - { in: query, name: needsAttention, schema: { type: string, enum: ['true', 'false'] }, description: "true = sissetulev rikkumisega lahendamata teated" }
         - { in: query, name: sorting, schema: { type: string } }
         - { in: query, name: page, schema: { type: integer } }
         - { in: query, name: pageSize, schema: { type: integer } }

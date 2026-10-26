@@ -2,6 +2,14 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-27
+
+### NCR nimekiri: rikkumisega teated eristuvad ja tegelemist vajavad on esil
+
+- Rikkumisega NCR teated on nimekirjas taas roosa taustaga (see oli varem katki ega kuvatud). Rikkumisega on teade, kui kontrolli tulemus on „Fail" või on olemas raske või väiksem rikkumine. Uues veerus „Kontrolli tulemus" on lisaks punane silt „Rikkumisega" (värvist üksi ei piisa), korras teadetel on „Korras".
+- Sissetulevad rikkumisega teated, millega on veel tegemata (staatus saabunud, vaadatud, vastuse mustand või viga), saavad rea vasakule serva punase joone. Vastatud või rikkumise vormile edastatud teated on roosad, aga ilma joonata. Uus filter „Vajab tegelemist". Vaikimisi järjestus toob need read ülemiseks, vanim ees.
+- „Kuupäev" on väljamineval teatel saatmise kuupäev ja sissetulevalt teatel saabumise kuupäev (esimene saabumise hetk, mitte saatja päise aeg ega viimane muutmine). Saatmata mustandil on kuupäev tühi. Sama kuupäev on detailvaates. Filtrid on „Kuupäev alates" ja „Kuupäev kuni".
+
 ## 2026-10-23
 
 ### Demo ERRU registrite mockid on juurutatud pildis

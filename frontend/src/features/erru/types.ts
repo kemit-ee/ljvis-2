@@ -779,8 +779,9 @@ export function isNcrResponseSendable(
 
 /**
  * NCR case list item (LJVIS2-65) — one row per case (ncr_message_key), latest snapshot.
- * hasInfringement drives the red-row highlight (computed server-side from
- * serious_infringements presence).
+ * hasInfringement (checkResult Fail, serious or minor infringement) drives the pink row;
+ * needsAttention (incoming + infringement + not yet answered/forwarded) the danger border.
+ * Both are computed server-side.
  */
 export interface NcrCaseListItem {
   id: string;
@@ -788,12 +789,14 @@ export interface NcrCaseListItem {
   direction: NcrDirection;
   status: NcrStatus;
   businessCaseId: string;
-  sentAt: string | null;
+  /** "Kuupäev": väljaminevatel saatmise, sissetulevatel saabumise aeg. */
+  eventAt: string | null;
   ncrFrom: string | null;
   ncrTo: string | null;
   transportUndertakingName: string | null;
   handlerName: string | null;
   hasInfringement: boolean;
+  needsAttention: boolean;
   /** true = LJVIS saatis selle NCR teate ise automaatselt (öine autodispatch). */
   automatic: boolean;
 }
@@ -801,8 +804,9 @@ export interface NcrCaseListItem {
 /** Filters of the NCR case list. All optional, AND-combined (LJVIS2-65 §4 "Filtrid"). */
 export interface NcrListFilters {
   businessCaseId?: string;
-  sentFrom?: string;
-  sentUntil?: string;
+  /** Kuupäev (väljaminev = saatmise, sissetulev = saabumise kuupäev). */
+  dateFrom?: string;
+  dateUntil?: string;
   ncrFrom?: string;
   ncrTo?: string;
   status?: string;
@@ -810,6 +814,8 @@ export interface NcrListFilters {
   handlerPersonalCode?: string;
   /** '' = kõik, 'true' = ainult automaatselt saadetud, 'false' = ainult käsitsi loodud. */
   automatic?: string;
+  /** '' = kõik, 'true' = ainult tegelemist vajavad (sissetulev rikkumisega, lahendamata). */
+  needsAttention?: string;
 }
 
 // NU notifications

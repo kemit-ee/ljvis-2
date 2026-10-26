@@ -2220,7 +2220,7 @@
         "createVr": "Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "openVr": "Ava välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "createVrFailed": "Välisriigis teostatud autoveoalase kontrolli kontrollkaardi loomine ebaõnnestus",
-        "messageDateTime": "Teate kuupäev ja kellaaeg",
+        "eventDate": "Kuupäev",
         "responsePenaltyIdentifier": "Määratud karistuse tunnus",
         "responsePenaltyType": "Määratud karistuse liik"
       },
@@ -2245,9 +2245,9 @@
         "title": "Kontrollitulemuse teated NCR",
         "newMessage": "Uus NCR teade",
         "id": "Teate number",
-        "sentAt": "Kuupäev",
-        "sentFrom": "Saadetud alates",
-        "sentUntil": "Saadetud kuni",
+        "eventAt": "Kuupäev",
+        "dateFrom": "Kuupäev alates",
+        "dateUntil": "Kuupäev kuni",
         "ncrFrom": "Saatnud riik",
         "ncrTo": "Saadetud riiki",
         "transportUndertakingName": "Veoettevõtja",
@@ -2257,7 +2257,11 @@
         "directionOutgoing": "Väljaminev",
         "directionIncoming": "Sissetulev",
         "handlerFilter": "Menetleja (isikukood)",
-        "automatic": "Automaatne"
+        "automatic": "Automaatne",
+        "checkResult": "Kontrolli tulemus",
+        "withInfringement": "Rikkumisega",
+        "compliant": "Korras",
+        "needsAttention": "Vajab tegelemist"
       }
     },
     "nu": {

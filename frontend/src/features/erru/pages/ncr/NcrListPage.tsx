@@ -9,6 +9,7 @@ import {
   DateField,
   Heading,
   Select,
+  StatusBadge,
   Text,
   TextField,
 } from '@tedi-design-system/react/tedi';
@@ -21,12 +22,22 @@ import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 
-const columnHelper = createColumnHelper<NcrCaseListItem & { rowClassName?: string }>();
+const columnHelper = createColumnHelper<NcrCaseListItem>();
 
 /**
- * NCR case list (LJVIS2-65) — both incoming and outgoing, one row per case. Rows with at
- * least one serious infringement (hasInfringement, computed server-side from
- * serious_infringements) are highlighted red (.ncr-row-infringement). All filters are
+ * Pink row = any case with an infringement; the extra danger border marks the ones an
+ * official still has to act on (incoming, unresolved) - see needsAttention in search.sql.
+ */
+const rowClass = (row: NcrCaseListItem) =>
+  [row.hasInfringement && 'ncr-row-infringement', row.needsAttention && 'ncr-row-attention']
+    .filter(Boolean)
+    .join(' ') || undefined;
+
+/**
+ * NCR case list (LJVIS2-65) — both incoming and outgoing, one row per case. Rows with an
+ * infringement (hasInfringement, computed server-side) are pink (.ncr-row-infringement);
+ * unresolved incoming ones also get a danger border (.ncr-row-attention). "Kuupäev" is the
+ * sent date for outgoing and the arrival date for incoming cases. All filters are
  * AND-combined and applied only on "Otsi" (LJVIS2-65 §4 "Filtrid").
  */
 export function NcrListPage() {
@@ -67,17 +78,10 @@ export function NcrListPage() {
     { value: 'outgoing', label: t('erru.ncr.list.directionOutgoing') },
     { value: 'incoming', label: t('erru.ncr.list.directionIncoming') },
   ];
-  const automaticOptions = [
+  const yesNoOptions = [
     { value: 'true', label: t('common.yes') },
     { value: 'false', label: t('common.no') },
   ];
-
-  // Rows with a serious infringement get a red background via rowClassName (a data-level
-  // field the community Table component reads per row — see LJVIS2-65 §4).
-  const rows = useMemo(
-    () => data.map((row) => ({ ...row, rowClassName: row.hasInfringement ? 'ncr-row-infringement' : undefined })),
-    [data],
-  );
 
   const columns = useMemo(
     () => [
@@ -91,6 +95,18 @@ export function NcrListPage() {
           </ErruStatusBadge>
         ),
       }),
+      columnHelper.accessor('hasInfringement', {
+        header: t('erru.ncr.list.checkResult'),
+        enableSorting: false,
+        cell: (info) =>
+          info.getValue() ? (
+            <StatusBadge className="erru-badge" color="danger" icon="warning">
+              {t('erru.ncr.list.withInfringement')}
+            </StatusBadge>
+          ) : (
+            t('erru.ncr.list.compliant')
+          ),
+      }),
       columnHelper.accessor('direction', {
         header: t('erru.ncr.list.direction'),
         enableSorting: false,
@@ -102,9 +118,9 @@ export function NcrListPage() {
           </ErruDirection>
         ),
       }),
-      columnHelper.accessor('sentAt', {
+      columnHelper.accessor('eventAt', {
         enableHiding: false,
-        header: t('erru.ncr.list.sentAt'),
+        header: t('erru.ncr.list.eventAt'),
         enableSorting: true,
         cell: (info) => {
           const v = info.getValue();
@@ -189,29 +205,29 @@ export function NcrListPage() {
             />
             <DateField
               inputProps={{ size: 'small' }}
-              key={`ncr-sent-from-${resetKey}`}
-              id="ncr-filter-sent-from"
-              label={t('erru.ncr.list.sentFrom')}
+              key={`ncr-date-from-${resetKey}`}
+              id="ncr-filter-date-from"
+              label={t('erru.ncr.list.dateFrom')}
               selected={
-                draftFilters.sentFrom
-                  ? new Date(draftFilters.sentFrom)
+                draftFilters.dateFrom
+                  ? new Date(draftFilters.dateFrom)
                   : undefined
               }
-              onSelect={(v) => setFilter('sentFrom', toIsoDate(v))}
+              onSelect={(v) => setFilter('dateFrom', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
             />
             <DateField
               inputProps={{ size: 'small' }}
-              key={`ncr-sent-until-${resetKey}`}
-              id="ncr-filter-sent-until"
-              label={t('erru.ncr.list.sentUntil')}
+              key={`ncr-date-until-${resetKey}`}
+              id="ncr-filter-date-until"
+              label={t('erru.ncr.list.dateUntil')}
               selected={
-                draftFilters.sentUntil
-                  ? new Date(draftFilters.sentUntil)
+                draftFilters.dateUntil
+                  ? new Date(draftFilters.dateUntil)
                   : undefined
               }
-              onSelect={(v) => setFilter('sentUntil', toIsoDate(v))}
+              onSelect={(v) => setFilter('dateUntil', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
             />
@@ -291,15 +307,32 @@ export function NcrListPage() {
               size="small"
               id="ncr-filter-automatic"
               label={t('erru.ncr.list.automatic')}
-              options={[{ value: '', label: ' ' }, ...automaticOptions]}
+              options={[{ value: '', label: ' ' }, ...yesNoOptions]}
               value={
-                automaticOptions.find(
+                yesNoOptions.find(
                   (o) => o.value === draftFilters.automatic,
                 ) ?? null
               }
               onChange={(o) =>
                 setFilter(
                   'automatic',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
+            />
+            <Select
+              size="small"
+              id="ncr-filter-needs-attention"
+              label={t('erru.ncr.list.needsAttention')}
+              options={[{ value: '', label: '\u00a0' }, ...yesNoOptions]}
+              value={
+                yesNoOptions.find(
+                  (o) => o.value === draftFilters.needsAttention,
+                ) ?? null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'needsAttention',
                   (o as { value?: string } | null)?.value ?? '',
                 )
               }
@@ -317,7 +350,8 @@ export function NcrListPage() {
             persistKey="erru-ncr-list"
             size="small"
             id="ncr-table"
-            data={rows}
+            data={data}
+            rowClassName={rowClass}
             columns={columns}
             isLoading={isLoading}
             totalRows={totalRows}
