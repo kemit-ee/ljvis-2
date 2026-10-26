@@ -41,6 +41,13 @@ export function NuMessageFields({
   const selected = selectedClassifierOption;
   const pick = pickOptionValue;
   const dateValue = parseIsoDate;
+  // TEDI TextField reports the new value as a string; formik.getFieldProps expects an event.
+  const textProps = (field: 'tmFirstName' | 'tmFamilyName' | 'tmPlaceOfBirth' | 'certificateNumber') => ({
+    name: field,
+    value: formik.values[field] ?? '',
+    onChange: (v: string) => formik.setFieldValue(field, v),
+    onBlur: formik.handleBlur,
+  });
   const gridClass = isDesktop ? 'form-grid-desktop' : 'form-grid-mobile';
 
   const sourceOptions = requestSources.map((c) => ({
@@ -170,14 +177,14 @@ export function NuMessageFields({
               id="nu-tm-first-name"
               label={t('erru.nu.form.tmFirstName')}
               required={formik.values.primaryElement === 'transportManager'}
-              {...formik.getFieldProps('tmFirstName')}
+              {...textProps('tmFirstName')}
               {...err('tmFirstName')}
             />
             <TextField
               id="nu-tm-family-name"
               label={t('erru.nu.form.tmFamilyName')}
               required={formik.values.primaryElement === 'transportManager'}
-              {...formik.getFieldProps('tmFamilyName')}
+              {...textProps('tmFamilyName')}
               {...err('tmFamilyName')}
             />
             <MaskedDateField
@@ -200,7 +207,7 @@ export function NuMessageFields({
             <TextField
               id="nu-tm-place-of-birth"
               label={t('erru.nu.form.tmPlaceOfBirth')}
-              {...formik.getFieldProps('tmPlaceOfBirth')}
+              {...textProps('tmPlaceOfBirth')}
               {...err('tmPlaceOfBirth')}
             />
           </div>
@@ -213,7 +220,7 @@ export function NuMessageFields({
               id="nu-certificate-number"
               label={t('erru.nu.form.certificateNumber')}
               required={formik.values.primaryElement === 'certificate'}
-              {...formik.getFieldProps('certificateNumber')}
+              {...textProps('certificateNumber')}
               {...err('certificateNumber')}
             />
             <MaskedDateField
