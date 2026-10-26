@@ -4,6 +4,10 @@
 
 ## 2026-10-23
 
+### Demo ERRU registrite mockid on juurutatud pildis
+
+- Demo keskkonnas ei ole CTUD, CGR ja RSI päringute registri mockid enam 404: mockid on Ruuteri image'is ja kaitstud sisemise teenusetokeniga. Token saadetakse ainult täpsele kohalikule mocki aadressile, päris registri (XTR) aadressile mitte. Ruuter ja ruuter-internal image tuleb uuendada koos.
+
 ### ERRU sissetulevate päringute vead on logis nähtavad
 
 - Kui sissetuleva ERRU päringu töötlus ebaõnnestub (Hubile läheb ErrorNotification) või kordub, ilmub kirje Haldus > X-tee logid vaates, kui valida „Kõik teenused". Teenuse kood on `erru.inbound.<sõnumi tüüp>`, päring on saabunud XML ja „Vaata vastust" näitab tegelikku veapõhjust. Andmebaasi ligipääsu ei ole vaja.
