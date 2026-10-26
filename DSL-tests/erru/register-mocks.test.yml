@@ -1,0 +1,112 @@
+mode: inprocess
+constants:
+  INTERNAL_COMMUNICATION_KEY: test-token
+tests:
+- name: 'mtr/check-community-licence: rejects missing token'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers:
+      content-type: application/json
+    body: {}
+  expect:
+    status: 403
+- name: 'mtr/check-community-licence: rejects wrong token'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers:
+      content-type: application/json
+      x-internal-service-token: wrong-token
+    body: {}
+  expect:
+    status: 403
+- name: 'mtr/check-transport-manager-good-repute: rejects missing token'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute
+    headers:
+      content-type: application/json
+    body: {}
+  expect:
+    status: 403
+- name: 'mtr/check-transport-manager-good-repute: rejects wrong token'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute
+    headers:
+      content-type: application/json
+      x-internal-service-token: wrong-token
+    body: {}
+  expect:
+    status: 403
+- name: 'xtee/liiklusregister-paring2: rejects missing token'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/xtee/liiklusregister-paring2
+    headers:
+      content-type: application/json
+    body: {}
+  expect:
+    status: 403
+- name: 'xtee/liiklusregister-paring2: rejects wrong token'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/xtee/liiklusregister-paring2
+    headers:
+      content-type: application/json
+      x-internal-service-token: wrong-token
+    body: {}
+  expect:
+    status: 403
+- name: 'CTUD CTUD_03: authenticated business answer'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers:
+      content-type: application/json
+      x-internal-service-token: test-token
+    body:
+      businessCaseId: CTUD_03
+      transportUndertakingName: ABC
+      trueCopyNumber: CDE
+      allVehicles: 'false'
+  expect:
+    status: 200
+    body_matches:
+      response:
+        statusCode: NotFound
+- name: 'CTUD unrecognised: authenticated business answer'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers:
+      content-type: application/json
+      x-internal-service-token: test-token
+    body:
+      businessCaseId: unrecognised
+      transportUndertakingName: ABC
+      trueCopyNumber: CDE
+      allVehicles: 'false'
+  expect:
+    status: 200
+    body_matches:
+      response:
+        statusCode: NotFound
+- name: 'CTUD CTUD_01: authenticated business answer'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers:
+      content-type: application/json
+      x-internal-service-token: test-token
+    body:
+      businessCaseId: CTUD_01
+      transportUndertakingName: SUN FOODS
+      trueCopyNumber: CL997078
+      allVehicles: 'false'
+  expect:
+    status: 200
+    body_matches:
+      response:
+        statusCode: Found

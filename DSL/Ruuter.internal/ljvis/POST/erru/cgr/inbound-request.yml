@@ -234,6 +234,8 @@ callMtr:
     url: "[#ERRU_CGR_MTR_ENDPOINT]"
     headers:
       type: json
+      # Do not forward the internal token to a real registry endpoint.
+      x-internal-service-token: "${'[#ERRU_CGR_MTR_ENDPOINT]' === 'http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute' ? '[#INTERNAL_COMMUNICATION_KEY]' : ''}"
     body:
       firstName: ${tm_first_name}
       lastName: ${tm_family_name}
