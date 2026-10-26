@@ -4,7 +4,8 @@ declaration:
   description: "Paginated, filtered NCR case list - both incoming and outgoing (LJVIS2-65).
     One row per CASE (ncr_message_key), latest snapshot. All filters are plain AND (no
     OR-pair - NCR has only one text filter, businessCaseId, unlike RSI/CGR). hasInfringement
-    drives the red-row highlight on the frontend. Protected by the new ncr.list permission
+    drives the pink row highlight and needsAttention (incoming + infringement + unresolved) the
+    left danger border on the frontend; eventAt is sent date (outgoing) or arrival date (incoming). Protected by the new ncr.list permission
     (list/.guard), distinct from ncr.read which protects get.yml. Audited on every load
     because the list exposes transport undertaking and handler names."
   namespace: erru
@@ -12,9 +13,9 @@ declaration:
     params:
       - field: businessCaseId
         type: string
-      - field: sentFrom
+      - field: dateFrom
         type: string
-      - field: sentUntil
+      - field: dateUntil
         type: string
       - field: ncrFrom
         type: string
@@ -27,6 +28,8 @@ declaration:
       - field: handlerPersonalCode
         type: string
       - field: automatic
+        type: string
+      - field: needsAttention
         type: string
       - field: sorting
         type: string
@@ -41,15 +44,16 @@ declaration:
 extractRequestData:
   assign:
     business_case_id: "${incoming.params.businessCaseId || ''}"
-    sent_from: "${incoming.params.sentFrom || ''}"
-    sent_until: "${incoming.params.sentUntil || ''}"
+    date_from: "${incoming.params.dateFrom || ''}"
+    date_until: "${incoming.params.dateUntil || ''}"
     ncr_from: "${incoming.params.ncrFrom || ''}"
     ncr_to: "${incoming.params.ncrTo || ''}"
     status: "${incoming.params.status || ''}"
     direction: "${incoming.params.direction || ''}"
     handler_personal_code: "${incoming.params.handlerPersonalCode || ''}"
     automatic: "${incoming.params.automatic || ''}"
-    sorting: "${incoming.params.sorting || 'sent_at desc'}"
+    needs_attention: "${incoming.params.needsAttention || ''}"
+    sorting: "${incoming.params.sorting || 'attention'}"
     page: "${incoming.params.page || '1'}"
     page_size: "${incoming.params.pageSize || '20'}"
     actor_personal_code: "${u.personalcode || ''}"
@@ -65,14 +69,15 @@ searchCases:
       type: json
     body:
       businessCaseId: ${business_case_id}
-      sentFrom: ${sent_from}
-      sentUntil: ${sent_until}
+      dateFrom: ${date_from}
+      dateUntil: ${date_until}
       ncrFrom: ${ncr_from}
       ncrTo: ${ncr_to}
       status: ${status}
       direction: ${direction}
       handlerPersonalCode: ${handler_personal_code}
       automatic: ${automatic}
+      needsAttention: ${needs_attention}
       sorting: ${sorting}
       page: ${page}
       page_size: ${page_size}
@@ -82,7 +87,7 @@ searchCases:
 buildFilterSummary:
   assign:
     result_count: "${res.response.body.length}"
-    filter_summary: "${'businessCaseId=' + business_case_id + '; sentFrom=' + sent_from + '; sentUntil=' + sent_until + '; ncrFrom=' + ncr_from + '; ncrTo=' + ncr_to + '; status=' + status + '; direction=' + direction + '; handler=' + handler_personal_code}"
+    filter_summary: "${'businessCaseId=' + business_case_id + '; dateFrom=' + date_from + '; dateUntil=' + date_until + '; ncrFrom=' + ncr_from + '; ncrTo=' + ncr_to + '; status=' + status + '; direction=' + direction + '; handler=' + handler_personal_code + '; needsAttention=' + needs_attention}"
   next: logAuditEvent
 
 logAuditEvent:

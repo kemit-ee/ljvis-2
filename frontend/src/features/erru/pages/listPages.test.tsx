@@ -68,6 +68,8 @@ const row = (n: number, full: boolean) => ({
   tmFamilyName: full ? 'Tamm' : null,
   handlerName: full ? 'H' : null,
   hasInfringement: full,
+  eventAt: full ? '2024-01-02T10:00:00Z' : null,
+  needsAttention: !full,
   automatic: full,
   inspectionPassed: full,
   failedItemsCount: full ? 3 : null,
@@ -141,5 +143,33 @@ describe.each([
     mocks.list = baseList();
     open();
     expect(screen.queryByText(newKey)).toBeNull();
+  });
+});
+
+describe('NCR list row highlighting', () => {
+  it('marks infringement rows pink, unresolved incoming ones with the attention border and shows the badge', () => {
+    mocks.permissions = ['ncr.list'];
+    const list = baseList();
+    list.data = [
+      { ...row(1, true), hasInfringement: true, needsAttention: false },
+      { ...row(2, false), hasInfringement: true, needsAttention: true },
+      { ...row(3, true), hasInfringement: false, needsAttention: false },
+    ];
+    mocks.list = list;
+    render(
+      <MemoryRouter initialEntries={['/erru/ncr']}>
+        <Routes>
+          <Route path="/erru/ncr" element={<NcrListPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const tr = (id: string) => screen.getByText(id).closest('tr') as HTMLElement;
+    expect(tr('BC-1').className).toContain('ncr-row-infringement');
+    expect(tr('BC-1').className).not.toContain('ncr-row-attention');
+    expect(tr('BC-2').className).toContain('ncr-row-infringement');
+    expect(tr('BC-2').className).toContain('ncr-row-attention');
+    expect(tr('BC-3').className).not.toContain('ncr-row');
+    expect(screen.getAllByText('erru.ncr.list.withInfringement')).toHaveLength(2);
+    expect(screen.getAllByText('erru.ncr.list.compliant')).toHaveLength(1);
   });
 });

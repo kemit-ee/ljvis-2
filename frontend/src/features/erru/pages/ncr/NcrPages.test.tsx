@@ -170,6 +170,18 @@ describe('NcrFormPage', () => {
     expect(reload).toHaveBeenCalled();
   });
 
+  it('shows the arrival date (first received snapshot) for incoming and the sent date for outgoing', () => {
+    const received = snap({ direction: 'incoming', status: 'received', sentAt: '2024-01-01T08:00:00Z', createdAt: '2024-03-05T09:00:00Z' });
+    const viewed = { ...received, status: 'viewed', createdAt: '2024-03-09T09:00:00Z' };
+    setCase(viewed, { snapshots: [received, viewed] });
+    const { unmount } = page();
+    expect(screen.getByText(new Date('2024-03-05T09:00:00Z').toLocaleString('et-EE'))).toBeTruthy();
+    unmount();
+    setCase(snap({ sentAt: '2024-02-02T10:00:00Z' }));
+    page();
+    expect(screen.getByText(new Date('2024-02-02T10:00:00Z').toLocaleString('et-EE'))).toBeTruthy();
+  });
+
   it('shows a translated error when sending fails', async () => {
     setCase(snap({ status: 'error', errorMessage: 'bad send' }));
     mocks.sendNcrRequest.mockRejectedValue(new ApiError('x', 502, { code: 'send_unknown' }));

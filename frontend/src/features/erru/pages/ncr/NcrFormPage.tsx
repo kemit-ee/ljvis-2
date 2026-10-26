@@ -69,6 +69,11 @@ export function NcrFormPage() {
   if (notFound || !current) return <Text>{t('erru.ncr.notFound')}</Text>;
 
   const isInbound = current.direction === 'incoming';
+  // "Kuupäev": väljaminev = saatmise aeg; sissetulev = saabumise aeg (esimene 'received'
+  // snapshot - saatja päise sentAt ega viimase snapshoti createdAt ei ole saabumine).
+  const eventDate = isInbound
+    ? snapshots.find((s) => s.status === 'received')?.createdAt
+    : current.sentAt;
   const requestEditable = isNcrRequestEditable(current) && canCreate;
   const responseEditable = isNcrResponseEditable(current) && canRespond;
   const requestSendable = isNcrRequestSendable(current) && canSend;
@@ -146,8 +151,8 @@ export function NcrFormPage() {
           value={authorityLabel(current.originatingAuthority)}
         />
         <DetailRow
-          label={t('erru.ncr.form.messageDateTime')}
-          value={new Date(current.sentAt ?? current.createdAt).toLocaleString('et-EE')}
+          label={t('erru.ncr.form.eventDate')}
+          value={eventDate ? new Date(eventDate).toLocaleString('et-EE') : '—'}
         />
         <DetailRow
           label={t('erru.ncr.form.requestSource')}

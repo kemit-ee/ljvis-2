@@ -2189,7 +2189,7 @@
         "createVr": "Create foreign country inspection report",
         "openVr": "Open foreign country inspection report",
         "createVrFailed": "Creating the foreign country inspection report failed",
-        "messageDateTime": "Message date and time",
+        "eventDate": "Date",
         "responsePenaltyIdentifier": "Imposed penalty identifier",
         "responsePenaltyType": "Type of penalty imposed"
       },
@@ -2214,9 +2214,9 @@
         "title": "Notify Check Result messages NCR",
         "newMessage": "New NCR message",
         "id": "Message ID",
-        "sentAt": "Date",
-        "sentFrom": "Sent from",
-        "sentUntil": "Sent until",
+        "eventAt": "Date",
+        "dateFrom": "Date from",
+        "dateUntil": "Date until",
         "ncrFrom": "Sending country",
         "ncrTo": "Destination country",
         "transportUndertakingName": "Transport undertaking",
@@ -2226,7 +2226,11 @@
         "directionOutgoing": "Outgoing",
         "directionIncoming": "Incoming",
         "handlerFilter": "Handler (isikukood)",
-        "automatic": "Automatic"
+        "automatic": "Automatic",
+        "checkResult": "Check result",
+        "withInfringement": "With infringement",
+        "compliant": "Compliant",
+        "needsAttention": "Needs attention"
       }
     },
     "nu": {
