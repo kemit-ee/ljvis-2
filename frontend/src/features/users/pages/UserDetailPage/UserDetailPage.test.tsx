@@ -154,8 +154,9 @@ describe('UserDetailPage', () => {
 
   it('kuvab kasutaja ja grupid ning uue kasutaja teate', async () => {
     renderPage({ justCreated: true });
+    // Teade peitub 8 s pärast; kontrolli seda enne aeglasemaid ootusi, et koormuse all ei kaduks.
+    expect(await screen.findByText('users.newUserAddedNote')).toBeTruthy();
     expect(await screen.findByText('Mari Maasikas')).toBeTruthy();
-    expect(screen.getByText('users.newUserAddedNote')).toBeTruthy();
     expect(await screen.findByText('Grupp A')).toBeTruthy();
     expect(screen.getByText('Üksus 1')).toBeTruthy();
   });
