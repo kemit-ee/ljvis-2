@@ -1665,6 +1665,7 @@
     "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada? Lõplikult rakenduvad muudatused pärast \"Salvesta\" vajutamist vormil.",
     "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
     "print": "Prindi",
+    "printFailed": "Vormi printimine ebaõnnestus. Proovi uuesti.",
     "printFilled": "Prindi täidetud vorm",
     "printBlank": "Prindi tühi vorm"
   },
@@ -1810,7 +1811,7 @@
         "ctudFrom": "Saatnud riik",
         "ctudTo": "Saadetud riiki",
         "undertakingName": "Veoettevõtja nimi",
-        "licenceNumber": "Ühenduse tegevusloa kinnitatud ärakirja või tõestatud koopia nr",
+        "licenceNumber": "tegevusluba",
         "vehicleNumber": "Sõiduki reg-nr",
         "status": "Staatus",
         "result": "Tulemus",

@@ -152,6 +152,18 @@ describe('RsiFormPage', () => {
     expect(mocks.printRsiMessage).toHaveBeenCalledWith('4');
   });
 
+  it('shows a print error and allows retrying the download', async () => {
+    setDetail(message());
+    mocks.printRsiMessage.mockRejectedValueOnce(new Error('PDF_RENDER_FAILED'));
+    page();
+    await act(async () => fireEvent.click(screen.getByText('common.printFilled')));
+    expect(screen.getByText('common.printFailed')).toBeTruthy();
+    mocks.printRsiMessage.mockResolvedValue({ filename: 'a.pdf', contentType: 'application/pdf', base64: btoa('pdf'), warnings: [] });
+    await act(async () => fireEvent.click(screen.getByText('common.printFilled')));
+    expect(screen.queryByText('common.printFailed')).toBeNull();
+    expect(mocks.printRsiMessage).toHaveBeenCalledTimes(2);
+  });
+
   it('shows a sent message read-only with its response and checked items', () => {
     setDetail(message({ status: 'responded', errorMessage: 'broken' }));
     page();

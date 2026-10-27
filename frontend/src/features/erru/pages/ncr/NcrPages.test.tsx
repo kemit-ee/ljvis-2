@@ -182,6 +182,15 @@ describe('NcrFormPage', () => {
     expect(screen.getByText(new Date('2024-02-02T10:00:00Z').toLocaleString('et-EE'))).toBeTruthy();
   });
 
+  it('shows creation dates for every history row when sent dates are missing', () => {
+    const received = snap({ direction: 'incoming', status: 'received', sentAt: null, createdAt: '2024-03-05T09:00:00Z' });
+    const viewed = { ...received, status: 'viewed', createdAt: '2024-03-09T09:00:00Z' };
+    setCase(viewed, { snapshots: [received, viewed] });
+    page();
+    expect(screen.getAllByText(new Date(received.createdAt).toLocaleString('et-EE')).length).toBeGreaterThan(0);
+    expect(screen.getByText(new Date(viewed.createdAt).toLocaleString('et-EE'))).toBeTruthy();
+  });
+
   it('shows a translated error when sending fails', async () => {
     setCase(snap({ status: 'error', errorMessage: 'bad send' }));
     mocks.sendNcrRequest.mockRejectedValue(new ApiError('x', 502, { code: 'send_unknown' }));

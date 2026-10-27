@@ -1634,6 +1634,7 @@
     "deleteTrailerSubConfirmTitle": "Remove trailer and delete sub-form",
     "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form? The changes take effect once you click \"Save\" on the form.",
     "print": "Print",
+    "printFailed": "Could not print the form. Try again.",
     "printFilled": "Print completed form",
     "printBlank": "Print blank form"
   },
@@ -1779,7 +1780,7 @@
         "ctudFrom": "Requesting country",
         "ctudTo": "Target country",
         "undertakingName": "Transport undertaking name",
-        "licenceNumber": "Community licence / certified true copy no.",
+        "licenceNumber": "Licence",
         "vehicleNumber": "Vehicle reg. no",
         "status": "Status",
         "result": "Result",

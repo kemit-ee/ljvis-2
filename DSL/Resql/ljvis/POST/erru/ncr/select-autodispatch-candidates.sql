@@ -1,13 +1,13 @@
 /*
 description: 'Candidates for the nightly automatic NCR (NotifyCheckResult) dispatch (LJVIS2-64): latest
   snapshot of each PUBLISHED autojuhi / meeskonnaliikme sõidu- ja puhkeaja sub-form whose control result
-  is KORRAS (result_type = ''ok''), whose parent compound_form carries a FOREIGN vehicle (vehicle_country_code
+  is KORRAS (result_type = ''ok'') and whose driving/rest-time check is applicable
+  (sp_applicability = ''RAKENDATAKSE''), whose parent compound_form identifies a FOREIGN carrier (company_country_code
   present and <> ''EE''), and for which no NCR has been auto-dispatched yet (no row in erru.ncr_autodispatch_log).
 
-  An NCR to the vehicle''s registration MS only makes sense for a foreign transport undertaking, so the
-  parent must also carry a carrier name and a community-licence certified-copy number (community_licence_number
-  is mandatory in the ERRU NCR request). Rows missing either are skipped - the officer can still create
-  the NCR manually from the control card.
+  Route the NCR to the carrier establishment country, independent of the vehicle registration country.
+  The carrier name is required. A missing licence-copy number does not exclude a candidate;
+  build.sql uses UNKNOWN for automatic dispatch.
 
   Both `latest_sp` and `latest_cf` resolve one row per key BEFORE filtering (same reason as select_etoimik_candidates.sql
   - filtering first could read a stale earlier snapshot''s status).
@@ -41,12 +41,12 @@ returns:
 --   2. kontrolli tulemus on KORRAS   (result_type = 'ok')
 --   3. SP-alamvorm on aktiivne snapshot (selection_status = 'active')
 --   4. koondvorm ei ole kustutatud   (compound_form.status <> 'deleted')
---   5. sõiduk on VÄLISRIIGI oma       (vehicle_country_code täidetud ja <> 'EE')
+--   5. vedaja asutamisriik on välisriik (company_country_code täidetud ja <> 'EE')
 --   6. veoettevõtja nimi on täidetud  (compound_form.company_name)
---   7. ühenduse tegevusloa koopia number on täidetud
---        (compound_form.company_activity_licence_copy_number)
+--   7. puuduva tegevusloa ärakirja numbri asemel kasutatakse UNKNOWN
 --   8. SP-alamvorm on loodud <= 365 päeva tagasi
---   9. selle SP-alamvormi kohta pole veel NCR-i saadetud
+--   9. sõidu- ja puhkeaega kontrollitakse (sp_applicability = 'RAKENDATAKSE')
+--  10. selle SP-alamvormi kohta pole veel NCR-i saadetud
 --        (rida puudub erru.ncr_autodispatch_log-is)
 --
 -- Otsused (#329):
@@ -62,7 +62,7 @@ WITH latest_sp AS (
   (
     SELECT DISTINCT ON (sp_driver_form_key)
         sp_driver_form_key AS id, 'driver'::text AS sp_form_type,
-        compound_form_key, status, result_type, selection_status, created_at
+        compound_form_key, status, result_type, selection_status, sp_applicability, created_at
     FROM forms.sp_driver_form
     ORDER BY sp_driver_form_key, created_at DESC
   )
@@ -70,7 +70,7 @@ WITH latest_sp AS (
   (
     SELECT DISTINCT ON (sp_teammate_form_key)
         sp_teammate_form_key AS id, 'teammate'::text AS sp_form_type,
-        compound_form_key, status, result_type, selection_status, created_at
+        compound_form_key, status, result_type, selection_status, sp_applicability, created_at
     FROM forms.sp_teammate_form
     ORDER BY sp_teammate_form_key, created_at DESC
   )
@@ -81,6 +81,7 @@ cand AS (
   WHERE s.status = 'published'
     AND s.result_type = 'ok'
     AND s.selection_status = 'active'
+    AND s.sp_applicability = 'RAKENDATAKSE'
     AND s.created_at >= now() - INTERVAL '365 days'
     AND NOT EXISTS (
       SELECT 1 FROM erru.ncr_autodispatch_log l
@@ -98,11 +99,10 @@ resolved AS (
 SELECT
   id,
   sp_form_type,
-  upper(btrim((cf).vehicle_country_code)) AS ncr_to,
+  upper(btrim((cf).company_country_code)) AS ncr_to,
   (cf).vehicle_reg_nr
 FROM resolved
 WHERE (cf).status <> 'deleted'
-  AND btrim(coalesce((cf).vehicle_country_code, '')) <> ''
-  AND upper(btrim((cf).vehicle_country_code)) <> 'EE'
-  AND btrim(coalesce((cf).company_name, '')) <> ''
-  AND btrim(coalesce((cf).company_activity_licence_copy_number, '')) <> '';
+  AND btrim(coalesce((cf).company_country_code, '')) <> ''
+  AND upper(btrim((cf).company_country_code)) <> 'EE'
+  AND btrim(coalesce((cf).company_name, '')) <> '';
