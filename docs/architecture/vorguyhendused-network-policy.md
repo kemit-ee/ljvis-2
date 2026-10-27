@@ -173,8 +173,9 @@ Kõigil podidel lisaks: **DNS → `kube-system/kube-dns` UDP+TCP 53** (`stesta-g
 | `xtr` | X-tee turvaserver `urien.ml.ee` | 443 | mTLS; kõik X-tee SOAP + REST (RR, Postkast, Liiklusregister, MTR, e-Toimik, Äriregister) |
 | `xtr` | `ariregxmlv6.rik.ee` | 443 | **otse, mitte X-tee kaudu** — ainult `ar/ettevottegaSeotudIsikud_v1` |
 | `s3-proxy` | S3 `s3.eu-north-1.amazonaws.com` | 443 | soovitavalt S3 Gateway VPC lõpp-punkt (prefix list `com.amazonaws.eu-north-1.s3`) |
-| `ruuter` | `webgate.acceptance.ec.testa.eu` | 443 | ERRU/RSI väljaminev MOVEHUB (`additionalAllowedUrls` kõigis kolmes keskkonnas). sTESTA võrk — kontrollida, kas marsruut käib üle avaliku interneti või sTESTA ühenduse |
-| `ruuter-internal` | `webgate.acceptance.ec.testa.eu` | 443 | **tingimuslik**: NCR autodispatch cron (`cron/erru-ncr-autodispatch.yml`) kasutab `ERRU_NCR_ENDPOINT`-i. Kui SSM-i `constants.ini` suunab selle webgate'i (mitte XTR-i/mock'i), vajab ka `ruuter-internal` seda egressi **ja** `additionalAllowedUrls` kirjet — praegu seal pole |
+| `erru-xml-adapter` | `webgate.acceptance.ec.testa.eu` | 443 | ERRU väljaminev MOVEHUB (RSI, CGR, CTUD, NCR, NU, NCR vastus); Hubi URL-id on adapteri keskkonnamuutujates. sTESTA võrk — kontrollida, kas marsruut käib üle avaliku interneti või sTESTA ühenduse |
+| `ruuter`, `ruuter-internal` | `erru-xml-adapter` | 8080 | `/internal/{rsi,cgr,ctud,ncr,ncr-response,nu}/{validate,send}`; adapteri URL-id peavad olema Ruuteri `additionalAllowedUrls` all |
+| `ruuter-internal` | `erru-xml-adapter` | 8080 | NCR autodispatch cron (`cron/erru-ncr-autodispatch.yml`) saadab NCR adapteri kaudu; otse Hubisse `ruuter-internal` enam ei lähe |
 | `ruuter` | `urien.ml.ee` | 443 | **ainult allowlistis, tegelikult ei kasutata** — `XROAD_SECURITY_SERVER` on deprecated, RR/Postkast käivad XTR-i kaudu. Vt p 7 |
 | `frontend`, `data-mapper`, `nysiis`, `pdf-creator`, `cronmanager`, `stesta-gateway` | — | — | välist egressi ei vaja |
 
@@ -298,7 +299,7 @@ Teised komponendid samal mustril tabelite 3 ja 4 järgi.
 
 | # | Tähelepanek | Ettepanek |
 |---|---|---|
-| 1 | `ruuter-internal` NetworkPolicy (devops `d9e64a6`) lubab egressi **80/443 kõikjale**, kuid tema `allowed_urls` ei sisalda ühtegi välist URL-i (`additionalAllowedUrls: []`). Ainus võimalik väline sihtkoht on `ERRU_NCR_ENDPOINT` (vt 4.2). | Kui NCR käib XTR-i kaudu: eemaldada 80/443 väljaminev, jätta namespace'i peerid (resql, xtr, nysiis, ruuter, ise) + DNS. Kui otse webgate'i: ainult 443 ja ainult see sihtkoht. |
+| 1 | `ruuter-internal` NetworkPolicy (devops `d9e64a6`) lubab egressi **80/443 kõikjale**, kuid tema `allowed_urls` ei sisalda ühtegi välist URL-i (`additionalAllowedUrls: []`). NCR autodispatch cron kasutab nüüd `erru-xml-adapter`-it. | Eemaldada 80/443 väljaminev, jätta namespace'i peerid (resql, xtr, nysiis, ruuter, erru-xml-adapter, ise) + DNS. |
 | 2 | `ruuter-internal` `allowFromNamespace: true` lubab kõik namespace'i podid. | Kitsendada: `ruuter`, `cronmanager`, `stesta-gateway`, `xtr` (SOAP pakkumine), ise + Traefik. |
 | 3 | `ruuter` allowlistis on `xroad.securityServer: https://urien.ml.ee`, aga `XROAD_SECURITY_SERVER` on deprecated ja ükski DSL ei kutsu turvaserverit otse. Charti kommentaar („RR otse turvaserverisse") on aegunud. | Eemaldada `ruuter` → urien.ml.ee; X-tee egress ainult `xtr`-ilt. |
 | 4 | `xtr` → `ariregxmlv6.rik.ee` on otse-HTTPS, mitte X-tee. | Teadlik erand; lubada eraldi. |

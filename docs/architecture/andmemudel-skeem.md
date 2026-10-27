@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 43.
+Skeemid: 8, tabeleid: 45.
 
 ## Skeem `audit`
 
@@ -193,7 +193,7 @@ Loodud: `20261021100000-erru-ncr-autodispatch-log.sql` · veerge: 9 · PK: `id`
 
 ### `erru.ncr_message`
 
-Loodud: `20260816100000-initial-erru-ncr.sql` · veerge: 37 · PK: `id`
+Loodud: `20260816100000-initial-erru-ncr.sql` · veerge: 39 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -234,6 +234,8 @@ Loodud: `20260816100000-initial-erru-ncr.sql` · veerge: 37 · PK: `id`
 | `response_number_of_vehicles` | INTEGER |  |
 | `response_community_licence_status` | VARCHAR(20) |  |
 | `response_address` | JSONB |  |
+| `response_technical_id` | UUID |  |
+| `response_sent_at` | TIMESTAMPTZ |  |
 
 ### `erru.nu_exchange_event`
 
@@ -368,6 +370,21 @@ Loodud: `20261201090000-initial-erru-xml-inbox-outbox.sql` · veerge: 20 · PK: 
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
 
+### `erru.xml_outbound_dispatch`
+
+Loodud: `20261222100000-cgr-ctud-outbound-xml.sql` · veerge: 8 · PK: `technical_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `technical_id` | UUID | jah |
+| `workflow_id` | UUID | jah |
+| `message_type` | TEXT | jah |
+| `xml_body` | TEXT | jah |
+| `status` | TEXT | jah |
+| `hub_http_status` | INTEGER |  |
+| `created_at` | TIMESTAMPTZ | jah |
+| `completed_at` | TIMESTAMPTZ |  |
+
 ### `erru.xml_outbox`
 
 Loodud: `20261201090000-initial-erru-xml-inbox-outbox.sql` · veerge: 19 · PK: `id`
@@ -395,6 +412,20 @@ Võõrvõtmed: `inbox_id` → `erru.xml_inbox`
 | `last_error` | TEXT |  |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+
+### `erru.xml_rsi_dispatch`
+
+Loodud: `20261021182827-rsi-outbound-xml.sql` · veerge: 7 · PK: `technical_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `technical_id` | UUID | jah |
+| `workflow_id` | UUID | jah |
+| `xml_body` | TEXT | jah |
+| `status` | TEXT | jah |
+| `hub_http_status` | INTEGER |  |
+| `created_at` | TIMESTAMPTZ | jah |
+| `completed_at` | TIMESTAMPTZ |  |
 
 ## Skeem `forms`
 
@@ -1008,7 +1039,7 @@ Loodud: `20261203110000-carrier-notification-request.sql` · veerge: 7 · PK: `i
 
 ### `notifications.notification`
 
-Loodud: `20261010100000-notifications-schema.sql` · veerge: 11 · PK: `id`
+Loodud: `20261010100000-notifications-schema.sql` · veerge: 12 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -1023,6 +1054,7 @@ Loodud: `20261010100000-notifications-schema.sql` · veerge: 11 · PK: `id`
 | `created_by` | TEXT | jah |
 | `recipient_personal_codes` | TEXT[] |  |
 | `event_key` | TEXT |  |
+| `recipients_only` | BOOLEAN | jah |
 
 ### `notifications.notification_read`
 

@@ -37,6 +37,9 @@ const codes = new Set([
   'source_not_found',
   'not_found',
   'send_failed',
+  'send_unknown',
+  'invalid_nu_xml',
+  'validation_unavailable',
   'nysiis_unavailable',
 ]);
 const sourceFields = new Set([

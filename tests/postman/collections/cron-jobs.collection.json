@@ -4014,7 +4014,7 @@
    ]
   },
   {
-   "name": "[NCR autodispatch] select-autodispatch-candidates — published KORRAS foreign-vehicle sub-form is a candidate",
+   "name": "[NCR autodispatch] select-autodispatch-candidates — published KORRAS LT-carrier sub-form is a candidate despite a PL vehicle and missing licence",
    "request": {
     "method": "POST",
     "header": [
@@ -4048,14 +4048,187 @@
        "const rows = pm.response.json().response || pm.response.json();",
        "const m = rows.find(r => String(r.id) === '900011' && (r.spFormType||r.sp_form_type) === 'driver');",
        "pm.test('Fixture sub-form 900011 appears as a candidate', () => pm.expect(m).to.exist);",
-       "pm.test('ncrTo resolved from vehicle country (DE)', () => pm.expect((m.ncrTo||m.ncr_to)).to.eql('DE'));"
+       "for (const type of ['driver', 'teammate']) {",
+       "  pm.test(type + ': Rakendatakse qualifies', () => pm.expect(rows.some(r => String(r.id) === '900011' && (r.spFormType||r.sp_form_type) === type)).to.eql(true));",
+       "  const excluded = {900012: 'Ei rakendata', 900013: 'Ei kontrollitud', 900014: 'missing choice', 900015: 'empty choice', 900016: 'latest snapshot is not checked'};",
+       "  for (const [id, reason] of Object.entries(excluded)) {",
+       "    pm.test(type + ': excludes ' + reason, () => pm.expect(rows.some(r => String(r.id) === id && (r.spFormType||r.sp_form_type) === type)).to.eql(false));",
+       "  }",
+       "}",
+       "pm.test('ncrTo resolved from carrier country LT, not vehicle country PL', () => pm.expect((m.ncrTo||m.ncr_to)).to.eql('LT'));"
       ]
      }
     }
    ]
   },
   {
-   "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run dispatches the NCR",
+   "name": "[NCR autodispatch] build driver — missing licence does not block Pass",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/erru/ncr/build",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "erru",
+      "ncr",
+      "build"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"spFormKey\": 900011, \"spFormType\": \"driver\", \"ncrTo\": \"LT\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"created_by\": \"erru-cron\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('Draft created', () => pm.expect(rows).to.have.lengthOf(1));",
+       "pm.collectionVariables.set('ncr_auto_fixture_bci', rows[0].businessCaseId || rows[0].business_case_id);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[NCR autodispatch] get driver — LT destination, PL vehicle, UNKNOWN licence",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/erru/ncr/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "erru",
+      "ncr",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"businessCaseId\": \"{{ncr_auto_fixture_bci}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "const row = rows[rows.length - 1];",
+       "pm.test('Destination is carrier country LT', () => pm.expect(row.ncrTo || row.ncr_to).to.eql('LT'));",
+       "pm.test('Vehicle country remains PL', () => pm.expect(row.vehicleRegistrationCountry || row.vehicle_registration_country).to.eql('PL'));",
+       "pm.test('Missing licence becomes UNKNOWN', () => pm.expect(row.communityLicenceNumber || row.community_licence_number).to.eql('UNKNOWN'));",
+       "pm.test('Result remains Pass', () => pm.expect(row.checkResult || row.check_result).to.eql('Pass')); "
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[NCR autodispatch] build teammate — missing licence does not block Pass",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/erru/ncr/build",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "erru",
+      "ncr",
+      "build"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"spFormKey\": 900011, \"spFormType\": \"teammate\", \"ncrTo\": \"LT\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"created_by\": \"erru-cron\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "pm.test('Draft created', () => pm.expect(rows).to.have.lengthOf(1));",
+       "pm.collectionVariables.set('ncr_auto_fixture_bci', rows[0].businessCaseId || rows[0].business_case_id);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[NCR autodispatch] get teammate — LT destination, PL vehicle, UNKNOWN licence",
+   "request": {
+    "method": "POST",
+    "header": [
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "url": {
+     "raw": "{{resql_ljvis_url}}/erru/ncr/get",
+     "host": [
+      "{{resql_ljvis_url}}"
+     ],
+     "path": [
+      "erru",
+      "ncr",
+      "get"
+     ]
+    },
+    "body": {
+     "mode": "raw",
+     "raw": "{\"businessCaseId\": \"{{ncr_auto_fixture_bci}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "exec": [
+       "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+       "const rows = pm.response.json().response || pm.response.json();",
+       "const row = rows[rows.length - 1];",
+       "pm.test('Destination is carrier country LT', () => pm.expect(row.ncrTo || row.ncr_to).to.eql('LT'));",
+       "pm.test('Vehicle country remains PL', () => pm.expect(row.vehicleRegistrationCountry || row.vehicle_registration_country).to.eql('PL'));",
+       "pm.test('Missing licence becomes UNKNOWN', () => pm.expect(row.communityLicenceNumber || row.community_licence_number).to.eql('UNKNOWN'));",
+       "pm.test('Result remains Pass', () => pm.expect(row.checkResult || row.check_result).to.eql('Pass')); "
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "[NCR autodispatch] POST cron/erru-ncr-autodispatch — nightly run sends the NCR as XML (Hub 202)",
    "request": {
     "method": "POST",
     "header": [
@@ -4087,7 +4260,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const s = pm.response.json().response || pm.response.json();",
-       "pm.test('At least one NCR acknowledged', () => pm.expect(s.acknowledged).to.be.at.least(1));",
+       "pm.test('At least one NCR accepted by the Hub', () => pm.expect(s.sent).to.be.at.least(1));",
        "pm.test('No build failures', () => pm.expect(s.buildFailed || 0).to.eql(0));"
       ]
      }
@@ -4167,7 +4340,7 @@
       "exec": [
        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
        "const s = pm.response.json().response || pm.response.json();",
-       "pm.test('Nothing acknowledged on the second run', () => pm.expect(s.acknowledged).to.eql(0));"
+       "pm.test('Nothing sent on the second run', () => pm.expect(s.sent).to.eql(0));"
       ]
      }
     }

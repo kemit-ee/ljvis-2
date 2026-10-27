@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import {
   Button,
   Card,
@@ -14,6 +13,7 @@ import type { UserGroup } from '../../types';
 import { useUserGroupList } from './useUserGroupList';
 import { useAuth } from '../../../auth/AuthContext';
 import './UserGroupListPage.module.css';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const columnHelper = createColumnHelper<UserGroup>();
 
@@ -126,7 +126,6 @@ export function UserGroupListPage() {
                 label={t('common.search')}
                 hideLabel
                 value={searchInput}
-                onIconClick={() => handleSearch(searchInput)}
                 onChange={setSearchInput}
                 onSearch={handleSearch}
                 onClear={clearSearch}
@@ -134,9 +133,8 @@ export function UserGroupListPage() {
               />
             </div>
           </div>
-          <Table
+          <AppTable
             id="user-groups-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
@@ -147,9 +145,7 @@ export function UserGroupListPage() {
             onSortingChange={setSorting}
             manualPagination
             manualSorting
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

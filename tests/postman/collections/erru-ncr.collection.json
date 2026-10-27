@@ -1237,7 +1237,7 @@
       ]
     },
     {
-      "name": "[Response] Re-save (revise) response draft still requires full coverage -> 200",
+      "name": "[Response] Re-save (revise) response draft still requires full coverage -> 200 (with the address the ERRU XML needs)",
       "request": {
         "method": "POST",
         "header": [
@@ -1266,7 +1266,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"Updated message\",\"responseNumberOfVehicles\":\"6\",\"responseCommunityLicenceStatus\":\"Active\",\"responseAddress\":\"\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"305\\\"}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
+          "raw": "{\"businessCaseId\":\"LV-NCR-2026-TEST0001\",\"respondingAuthority\":\"PPA\",\"responseStatusCode\":\"OK\",\"responseStatusMessage\":\"Updated message\",\"responseNumberOfVehicles\":\"6\",\"responseCommunityLicenceStatus\":\"Active\",\"responseAddress\":\"{\\\"address\\\":\\\"Tee 1\\\",\\\"postCode\\\":\\\"10111\\\",\\\"city\\\":\\\"Tallinn\\\",\\\"country\\\":\\\"EE\\\"}\",\"responsePenaltiesImposed\":\"[{\\\"penaltyRequestedIdentifier\\\":1,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"303\\\"},{\\\"penaltyRequestedIdentifier\\\":2,\\\"authorityImposingPenalty\\\":\\\"PPA\\\",\\\"isImposed\\\":true,\\\"penaltyTypeImposed\\\":\\\"305\\\"}]\",\"transportUndertakingName\":\"\",\"communityLicenceNumber\":\"\"}",
           "options": {
             "raw": {
               "language": "json"
@@ -2042,7 +2042,108 @@
       ]
     },
     {
-      "name": "[Send] LV (default scenario) -> ack OK -> acknowledged, 3 snapshots",
+      "name": "[Send] Fail case without imposed penalties -> 422 invalid_ncr_xml, nothing reserved",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/send",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"businessCaseId\":\"{{ncr_build_n2_bci}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('422', () => pm.response.to.have.status(422));",
+              "var b = JSON.parse(pm.response.json().response);",
+              "pm.test('code invalid_ncr_xml', () => pm.expect(b.code).to.eql('invalid_ncr_xml'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Revise] N2 draft: give it the imposed penalties and an ERRU-valid infringement type (the XML needs both) -> 200, still initiated",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "{{cookie_admin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{api_url}}/ljvis/v1/erru/ncr/request/save",
+          "host": [
+            "{{api_url}}"
+          ],
+          "path": [
+            "ljvis",
+            "v1",
+            "erru",
+            "ncr",
+            "request",
+            "save"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"businessCaseId\": \"{{ncr_build_n2_bci}}\", \"originatingAuthority\": \"PPA\", \"requestSource\": \"RSI\", \"requestPurpose\": \"Control\", \"ncrTo\": \"LV\", \"transportUndertakingName\": \"NCR Fixture Transport OU 2\", \"communityLicenceNumber\": \"EE-CL-FIXTURE2\", \"vehicleRegistrationNumber\": \"N2FIXTURE\", \"vehicleRegistrationCountry\": \"EE\", \"checkResult\": \"Fail\", \"checkDate\": \"2026-10-18\", \"minorInfringement\": \"\", \"seriousInfringements\": \"[{\\\"category\\\": \\\"SI\\\", \\\"infringementType\\\": \\\"104\\\", \\\"dateOfInfringement\\\": \\\"2026-10-18\\\", \\\"detectionCheckDate\\\": \\\"2026-10-18\\\", \\\"appealPossible\\\": false, \\\"penaltiesImposed\\\": [{\\\"penaltyImposedIdentifier\\\": 1, \\\"finalDecisionDate\\\": \\\"2026-10-19\\\", \\\"penaltyTypeImposed\\\": \\\"101\\\", \\\"startDate\\\": \\\"2026-10-20\\\", \\\"isExecuted\\\": \\\"No\\\", \\\"notExecutedReason\\\": \\\"Appeal\\\"}], \\\"penaltiesRequested\\\": []}, {\\\"category\\\": \\\"MSI\\\", \\\"infringementType\\\": \\\"302\\\", \\\"dateOfInfringement\\\": \\\"2026-10-18\\\", \\\"detectionCheckDate\\\": \\\"2026-10-18\\\", \\\"appealPossible\\\": false, \\\"penaltiesImposed\\\": [{\\\"penaltyImposedIdentifier\\\": 2, \\\"finalDecisionDate\\\": \\\"2026-10-19\\\", \\\"penaltyTypeImposed\\\": \\\"101\\\", \\\"isExecuted\\\": \\\"Unknown\\\"}], \\\"penaltiesRequested\\\": []}]\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = pm.response.json().response;",
+              "pm.test('still initiated', () => pm.expect(b.status).to.eql('initiated'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Send] LV (default scenario) -> 200 sent (Hub accepted the XML)",
       "request": {
         "method": "POST",
         "header": [
@@ -2085,8 +2186,7 @@
             "exec": [
               "pm.test('200 OK', () => pm.response.to.have.status(200));",
               "var b = JSON.parse(pm.response.json().response);",
-              "pm.test('status acknowledged', () => pm.expect(b.status).to.eql('acknowledged'));",
-              "pm.test('ackStatusCode OK', () => pm.expect(b.ackStatusCode).to.eql('OK'));",
+              "pm.test('status sent', () => pm.expect(b.status).to.eql('sent'));",
               "pm.test('workflowId present', () => pm.expect(b.workflowId).to.not.be.empty);",
               "pm.environment.set('ncr_send_workflow_id', b.workflowId);"
             ]
@@ -2095,7 +2195,35 @@
       ]
     },
     {
-      "name": "[Get] Verify sent+acknowledged — 3 snapshots (initiated, sent, acknowledged)",
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the acknowledgement",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify NCRN_Ack merged (... sending, sent, acknowledged)",
       "request": {
         "method": "GET",
         "header": [
@@ -2131,9 +2259,32 @@
             "exec": [
               "pm.test('200 OK', () => pm.response.to.have.status(200));",
               "var b = pm.response.json().response;",
-              "pm.test('3 snapshots', () => pm.expect(b.snapshots.length).to.eql(3));",
-              "pm.test('statuses in order', () => pm.expect(b.snapshots.map(s=>s.status)).to.eql(['initiated','sent','acknowledged']));",
-              "pm.test('last ackStatusCode OK', () => pm.expect(b.snapshots[2].ackStatusCode).to.eql('OK'));"
+              "var st = b.snapshots.map(s=>s.status);",
+              "pm.test('reservation, Hub 202 and acknowledgement in order', () => pm.expect(st.slice(-3)).to.eql(['sending','sent','acknowledged']));",
+              "pm.test('last ackStatusCode OK', () => pm.expect(b.snapshots[b.snapshots.length-1].ackStatusCode).to.eql('OK'));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.snapshots[b.snapshots.length - 1].status === 'acknowledged'); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
             ]
           }
         }
@@ -2241,7 +2392,7 @@
       ]
     },
     {
-      "name": "[Send] FI transport failure -> 502, status=error",
+      "name": "[Send] FI (Hub rejected) -> 502, status=error",
       "request": {
         "method": "POST",
         "header": [
@@ -2435,7 +2586,7 @@
       ]
     },
     {
-      "name": "[Send] NO negative ack (Timeout) -> 502, status=error",
+      "name": "[Send] NO -> 200 sent (Hub accepted the XML), negative acknowledgement arrives asynchronously",
       "request": {
         "method": "POST",
         "header": [
@@ -2476,14 +2627,44 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('502', () => pm.response.to.have.status(502));"
+              "pm.test('200 OK', () => pm.response.to.have.status(200));",
+              "var b = JSON.parse(pm.response.json().response);",
+              "pm.test('status sent', () => pm.expect(b.status).to.eql('sent'));"
             ]
           }
         }
       ]
     },
     {
-      "name": "[Get] Verify NO negative ack — status=error, sent snapshot recorded before error",
+      "name": "[Wait] the Hub answers asynchronously; let the adapter ingest the acknowledgement",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "host": [
+            "{{erru_hub_mock_url}}"
+          ],
+          "path": [
+            "_test",
+            "wait",
+            "4000"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('wait completed', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Get] Verify NO negative acknowledgement — status=error, sent snapshot recorded before error",
       "request": {
         "method": "GET",
         "header": [
@@ -2521,6 +2702,29 @@
               "var b = pm.response.json().response;",
               "pm.test('has a sent snapshot', () => pm.expect(b.snapshots.map(s=>s.status)).to.include('sent'));",
               "pm.test('last status error', () => pm.expect(b.snapshots[b.snapshots.length-1].status).to.eql('error'));"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The Hub answers asynchronously; poll this same GET until the expected state shows up (cold JVMs can take many seconds).",
+              "var url = pm.variables.replaceIn(pm.request.url.toString());",
+              "var header = {};",
+              "pm.request.headers.each(function (h) { header[h.key] = pm.variables.replaceIn(h.value); });",
+              "var tries = 0;",
+              "function ready(body) { var raw = body && body.response !== undefined ? body.response : body; var b = typeof raw === 'string' ? JSON.parse(raw) : raw; return (b.snapshots[b.snapshots.length - 1].status === 'error'); }",
+              "function poll() {",
+              "  pm.sendRequest({ url: url, method: 'GET', header: header }, function (err, res) {",
+              "    var done = false;",
+              "    try { done = !err && res.code === 200 && ready(res.json()); } catch (e) { done = false; }",
+              "    if (done || ++tries >= 45) return;",
+              "    pm.sendRequest(pm.variables.replaceIn('{{erru_hub_mock_url}}/_test/wait/1000'), poll);",
+              "  });",
+              "}",
+              "poll();"
             ]
           }
         }
@@ -2658,7 +2862,7 @@
       ]
     },
     {
-      "name": "[Get] Verify responded — 4 snapshots, response content stored",
+      "name": "[Get] Verify responded — response content stored",
       "request": {
         "method": "GET",
         "header": [
@@ -2694,8 +2898,8 @@
             "exec": [
               "pm.test('200 OK', () => pm.response.to.have.status(200));",
               "var b = pm.response.json().response;",
-              "pm.test('4 snapshots', () => pm.expect(b.snapshots.length).to.eql(4));",
-              "var last = b.snapshots[3];",
+              "pm.test('6 snapshots (build, penalties revision, sending, sent, acknowledged, responded)', () => pm.expect(b.snapshots.length).to.eql(6));",
+              "var last = b.snapshots[b.snapshots.length - 1];",
               "pm.test('status responded', () => pm.expect(last.status).to.eql('responded'));",
               "pm.test('respondingAuthority stored', () => pm.expect(last.respondingAuthority).to.eql('LV-CVIP'));",
               "pm.test('responseCommunityLicenceStatus stored', () => pm.expect(last.responseCommunityLicenceStatus).to.eql('Active'));",
@@ -2787,7 +2991,7 @@
             "exec": [
               "pm.test('200 OK', () => pm.response.to.have.status(200));",
               "var b = pm.response.json().response;",
-              "pm.test('still 4 snapshots', () => pm.expect(b.snapshots.length).to.eql(4));"
+              "pm.test('still 6 snapshots', () => pm.expect(b.snapshots.length).to.eql(6));"
             ]
           }
         }
@@ -2834,6 +3038,42 @@
               "var b = pm.response.json().response;",
               "var parsed = typeof b === 'string' ? JSON.parse(b) : b;",
               "pm.test('statusCode InvalidData', () => pm.expect(parsed.statusCode).to.eql('InvalidData'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[Inbound setup] desktop recipient for ncr_violation (teavitus tekib ainult saajale)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{resql_ljvis_url}}/notification/insert_template_mapping",
+          "host": [
+            "{{resql_ljvis_url}}"
+          ],
+          "path": [
+            "notification",
+            "insert_template_mapping"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"notification_type\":\"ncr_violation\",\"original_template_id\":\"\",\"channel\":\"desktop\",\"default_language\":\"et\",\"active\":\"true\",\"default_recipient_email\":\"\",\"desktop_recipient_personal_codes\":\"newman\",\"created_by\":\"newman\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('200 OK', () => pm.response.to.have.status(200));"
             ]
           }
         }

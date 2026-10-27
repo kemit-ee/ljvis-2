@@ -1646,6 +1646,8 @@
     "yes": "Jah",
     "no": "Ei",
     "tableIsEmpty": "Otsingule vastavaid tulemusi ei leitud.",
+    "tableLoading": "Tabel laeb...",
+    "customizeColumns": "Kohanda",
     "confirmChange": "Jah, muuda",
     "discard": "Tühista",
     "look": "Vaata",
@@ -1665,6 +1667,7 @@
     "deleteTrailerSubConfirm": "Kas olete kindel, et soovite haagise eemaldada ja alamvormi kustutada? Lõplikult rakenduvad muudatused pärast \"Salvesta\" vajutamist vormil.",
     "formHasErrors": "Vorm sisaldab vigu. Palun kontrollige punase märkega välju.",
     "print": "Prindi",
+    "printFailed": "Vormi printimine ebaõnnestus. Proovi uuesti.",
     "printFilled": "Prindi täidetud vorm",
     "printBlank": "Prindi tühi vorm"
   },
@@ -1795,7 +1798,13 @@
   "erru": {
     "ctud": {
       "notFound": "Tegevusloa kontrolli päringut ei leitud",
-      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
+      "sendFailed": "ERRU lükkas päringu tagasi. Saatmist saab korrata.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue päringu saatmist.",
+      "awaitingResponse": "ERRU võttis päringu vastu. Riigi vastus on ootel, värskenda lehte hiljem.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Vähemalt kaks otsingukriteeriumi on kohustuslikud ning sõidukil peab olema number ja riik.",
+      "validationUnavailable": "XML-i kontroll pole praegu saadaval. Päringut ei saadetud.",
       "list": {
         "title": "Tegevusloa kontrolli päringud CTUD",
         "newRequest": "Uus tegevusloa kontrolli päring",
@@ -1804,9 +1813,10 @@
         "ctudFrom": "Saatnud riik",
         "ctudTo": "Saadetud riiki",
         "undertakingName": "Veoettevõtja nimi",
-        "licenceNumber": "Ühenduse tegevusloa kinnitatud ärakirja või tõestatud koopia nr",
+        "licenceNumber": "tegevusluba",
         "vehicleNumber": "Sõiduki reg-nr",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "direction": "Suund",
         "handlerFilter": "Kasutaja (isikukood)"
@@ -1905,7 +1915,14 @@
     },
     "cgr": {
       "notFound": "Mainepäringut ei leitud",
-      "sendFailed": "Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata.",
+      "sendFailed": "ERRU lükkas päringu tagasi. Saatmist saab korrata.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue päringu saatmist.",
+      "awaitingResponse": "ERRU võttis päringu vastu. Liikmesriikide vastused on ootel, värskenda lehte hiljem.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli nime, sünniaega ja sertifikaadi andmeid.",
+      "validationUnavailable": "XML-i kontroll pole praegu saadaval. Päringut ei saadetud.",
+      "nysiisUnavailable": "NYSIIS-otsinguvõtme arvutamine ebaõnnestus. Päringut ei saadetud.",
       "list": {
         "title": "Mainepäringud CGR",
         "newRequest": "Uus mainepäring",
@@ -1916,6 +1933,7 @@
         "cgrTo": "Sihtriik",
         "certificateNumber": "Ametialase pädevuse tunnistuse number",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "handlerFilter": "Kasutaja (isikukood)"
       },
@@ -1954,6 +1972,13 @@
       },
       "response": {
         "title": "Päringu vastus",
+        "foundTitle": "Leiuga riigid",
+        "notFoundTitle": "Vastus saadud, leidu ei tuvastatud",
+        "failedTitle": "Vastust ei saadud",
+        "foundBadge": "Leid tuvastatud",
+        "summaryFound": "{{count}} leiuga",
+        "summaryNotFound": "{{count}} leiuta",
+        "summaryFailed": "{{count}} ei vastanud",
         "statusMessage": "Staatuse teade",
         "respondingAuthority": "Vastust esitav pädev asutus",
         "searchMethod": "Otsingu meetod",
@@ -1996,6 +2021,10 @@
     "rsi": {
       "notFound": "Tehnokontrolli teadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue teate saatmist.",
+      "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli VIN-koodi, läbisõidumõõdiku näitu ning juhi ja omaniku või veoettevõtja andmeid.",
+      "sending": "Saatmine pooleli",
       "checkedItems": {
         "part": "Punkt",
         "checked": "Kontrollitud",
@@ -2076,6 +2105,7 @@
         "required": "Väli on kohustuslik",
         "invalid_country_code": "Riigi kood peab olema kahetäheline",
         "max_length_exceeded": "Välja pikkus on ületatud",
+        "invalid_vin": "VIN peab olema täpselt 17 märki (tähed ja numbrid, ilma I, O ja Q)",
         "driver_block_incomplete": "Juhi andmete plokis tuleb täita eesnimi ja perekonnanimi",
         "holder_type_invalid": "Osapoole liik peab olema veoettevõtja või omanik",
         "undertaking_block_incomplete": "Veoettevõtja nimi ja ühenduse tegevusluba tuleb täita koos",
@@ -2100,6 +2130,7 @@
         "rsiTo": "Saadetud riiki",
         "vehicleRegistrationNumber": "Sõiduki reg-nr",
         "status": "Staatus",
+        "result": "Tulemus",
         "handler": "Kasutaja",
         "direction": "Suund",
         "directionOutgoing": "Väljaminev",
@@ -2126,7 +2157,7 @@
         "historyTypeResponse": "Vastus",
         "historyDirection": "Suund",
         "historyStatus": "Staatus",
-        "historySentAt": "Saatmise aeg",
+        "historySentAt": "Kuupäev",
         "infringementNumber": "Rikkumine #{{number}}",
         "ncrFrom": "Teate esitav liikmesriik",
         "ncrTo": "Sihtliikmesriik",
@@ -2181,10 +2212,18 @@
         "send": "Saada",
         "sendResponse": "Saada vastus",
         "sendFailed": "Saatmine ebaõnnestus. Teade liigus olekusse Viga.",
+        "sending": "Saatmine pooleli",
+        "sendUnknownStatus": "Saatmise tulemus teadmata",
+        "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue saatmist.",
+        "awaitingAck": "ERRU võttis teate vastu. Kinnitus ja vastus on ootel, värskenda lehte hiljem.",
+        "invalidXml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli ettevõtte, sõiduki, kontrolli tulemuse ja rikkumiste andmeid.",
+        "invalidResponseXml": "Vastus ei vasta ERRU XML-lepingule. Leitud ettevõtte puhul on vaja sõidukite arvu, tegevusloa staatust ja täielikku aadressi.",
+        "validationUnavailable": "XML-i kontroll pole praegu saadaval. Teadet ei saadetud.",
+        "workflowIdMissing": "Saabunud teatel puudub workflowId, seetõttu ei saa vastust saata.",
         "createVr": "Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "openVr": "Ava välisriigis teostatud autoveoalase kontrolli kontrollkaart",
         "createVrFailed": "Välisriigis teostatud autoveoalase kontrolli kontrollkaardi loomine ebaõnnestus",
-        "messageDateTime": "Teate kuupäev ja kellaaeg",
+        "eventDate": "Kuupäev",
         "responsePenaltyIdentifier": "Määratud karistuse tunnus",
         "responsePenaltyType": "Määratud karistuse liik"
       },
@@ -2209,9 +2248,9 @@
         "title": "Kontrollitulemuse teated NCR",
         "newMessage": "Uus NCR teade",
         "id": "Teate number",
-        "sentAt": "Saadetud",
-        "sentFrom": "Saadetud alates",
-        "sentUntil": "Saadetud kuni",
+        "eventAt": "Kuupäev",
+        "dateFrom": "Kuupäev alates",
+        "dateUntil": "Kuupäev kuni",
         "ncrFrom": "Saatnud riik",
         "ncrTo": "Saadetud riiki",
         "transportUndertakingName": "Veoettevõtja",
@@ -2221,7 +2260,11 @@
         "directionOutgoing": "Väljaminev",
         "directionIncoming": "Sissetulev",
         "handlerFilter": "Menetleja (isikukood)",
-        "automatic": "Automaatne"
+        "automatic": "Automaatne",
+        "checkResult": "Kontrolli tulemus",
+        "withInfringement": "Rikkumisega",
+        "compliant": "Korras",
+        "needsAttention": "Vajab tegelemist"
       }
     },
     "nu": {
@@ -2231,6 +2274,10 @@
       },
       "notFound": "NU sobimatusteadet ei leitud",
       "sendFailed": "Teate saatmine ERRU-sse ebaõnnestus. Teade jääb olekusse Viga — uut saatmiskatset ei saa teha, tuleb koostada uus teade.",
+      "sending": "Saatmine pooleli",
+      "sendUnknownStatus": "Saatmise tulemus teadmata",
+      "sendUnknown": "Saatmise tulemus teadmata. Kontrolli integratsioonilogi enne uue teate saatmist.",
+      "awaitingAck": "ERRU võttis teate vastu. Liikmesriikide kinnitused on ootel, värskenda lehte hiljem.",
       "createFromGoodRepute": "Loo NU sobimatusteade",
       "list": {
         "title": "NU sobimatusteated",
@@ -2315,6 +2362,9 @@
         "source_not_eligible": "Allikdeklaratsioon ei ole avalikustatud, isik ei ole sobimatuks tunnistatud või sobimatuse lõppkuupäev puudub või on möödunud. Kontrollige allikdeklaratsiooni.",
         "source_not_found": "Hea maine deklaratsiooni ei leitud",
         "send_failed": "Teate saatmine ebaõnnestus",
+        "send_unknown": "Saatmise tulemus teadmata. Ära saada uuesti, kontrolli integratsioonilogi.",
+        "invalid_nu_xml": "Andmed ei vasta ERRU XML-lepingule. Kontrolli veokorraldaja ja sertifikaadi andmeid.",
+        "validation_unavailable": "XML-i kontroll pole praegu saadaval. Teadet ei saadetud.",
         "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav",
         "source_exceeds_erru_limit": "Allikandmed ületavad ERRU pikkusepiirangu. Parandage hea maine deklaratsiooni (ees- ja perekonnanimi: 100 tähemärki; sünnikoht: 50; tunnistuse number: 20).",
         "not_found": "NU sobimatusteadet ei leitud"
@@ -2428,7 +2478,8 @@
       "labor_kabotage": "Kabotaaži kontrolli teavitus",
       "labor_tachograph_not_downloaded": "Sõidumeerikuandmete alla laadimata jätmise teavitus",
       "labor_foreign_proposal": "Välisriigi ettepaneku teavitus",
-      "nu_inbound_received": "ERRU NU sobimatusteade"
+      "nu_inbound_received": "ERRU NU sobimatusteade",
+      "ctud_inbound_received": "ERRU tegevusloa kontrolli päring (CTUD)"
     }
   },
   "breadcrumbs": {

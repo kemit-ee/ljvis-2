@@ -2,7 +2,122 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-27
+
+### NCR nimekiri: rikkumisega teated eristuvad ja tegelemist vajavad on esil
+
+- Rikkumisega NCR teated on nimekirjas taas roosa taustaga (see oli varem katki ega kuvatud). Rikkumisega on teade, kui kontrolli tulemus on „Fail" või on olemas raske või väiksem rikkumine. Uues veerus „Kontrolli tulemus" on lisaks punane silt „Rikkumisega" (värvist üksi ei piisa), korras teadetel on „Korras".
+- Sissetulevad rikkumisega teated, millega on veel tegemata (staatus saabunud, vaadatud, vastuse mustand või viga), saavad rea vasakule serva punase joone. Vastatud või rikkumise vormile edastatud teated on roosad, aga ilma joonata. Uus filter „Vajab tegelemist". Vaikimisi järjestus toob need read ülemiseks, vanim ees.
+- „Kuupäev" on väljamineval teatel saatmise kuupäev ja sissetulevalt teatel saabumise kuupäev (esimene saabumise hetk, mitte saatja päise aeg ega viimane muutmine). Saatmata mustandil on kuupäev tühi. Sama kuupäev on detailvaates. Filtrid on „Kuupäev alates" ja „Kuupäev kuni".
+
+## 2026-10-23
+
+### Demo ERRU registrite mockid on juurutatud pildis
+
+- Demo keskkonnas ei ole CTUD, CGR ja RSI päringute registri mockid enam 404: mockid on Ruuteri image'is ja kaitstud sisemise teenusetokeniga. Token saadetakse ainult täpsele kohalikule mocki aadressile, päris registri (XTR) aadressile mitte. Ruuter ja ruuter-internal image tuleb uuendada koos.
+### ERRU detailvaated kompaktsemaks ja NCR kuupäev
+
+- ERRU detailvaadetes (CTUD, RSI, NCR) on väljad nüüd mitmes veerus, silt väärtuse kohal (nagu CGR detailvaates), mitte üks väli rea kohta. Pealkirjad ja tabelid on jätkuvalt täislaiuses. Vaade on oluliselt lühem.
+- NCR teadete nimekirjas ja detailvaate „Juhtumi teadete loend" kaardil on kuupäev nüüd alati olemas. Sissetulevatel teadetel ja saatmata mustanditel puudus saatmise aeg, nüüd näidatakse selle asemel kirje loomise aega. Veeru pealkiri on „Kuupäev". Kuupäeva filter ja sorteerimine arvestavad sama väärtust.
+
+### ERRU sissetulevate päringute vead on logis nähtavad
+
+- Kui sissetuleva ERRU päringu töötlus ebaõnnestub (Hubile läheb ErrorNotification) või kordub, ilmub kirje Haldus > X-tee logid vaates, kui valida „Kõik teenused". Teenuse kood on `erru.inbound.<sõnumi tüüp>`, päring on saabunud XML ja „Vaata vastust" näitab tegelikku veapõhjust. Andmebaasi ligipääsu ei ole vaja.
+### TEDI disainisüsteemi uuendus ja ühtne tabeli ilme
+
+- TEDI disainisüsteem on uuendatud versioonile 19.1.1. Kõik rakenduse nimekirjatabelid (ERRU päringud ja teated, riskitasemed, X-tee logid, teavituste logi, versioonide tabel jm) kasutavad nüüd TEDI uut tabelikomponenti. Tabelid on selgema päisega, sorteeritavad veerud on päises nuppudena, lehitsemine ja „Kuva korraga" on TEDI standardi järgi.
+- „Suund“ veerus on nooleikoon (sissetulev / väljaminev) teksti ees.
+- Ülejäänud nimekirjatabelid (kasutajad, kasutajagrupid, klassifikaatorid, auditilogi, vormiotsing, töölaua tabelid, teavituste mallid, ettevõtte kontrollid) on samuti TEDI uue tabelikomponendiga. Töölaual näidatakse koondvormi alamvormid laiendatud rea all kompaktse loeteluna.
+- ERRU nimekirjades (CTUD, CGR, RSI, NCR, NU) saab nupuga „Kohanda“ valida, millised veerud on nähtavad, ja päise haaratsiga (⠿) veergude järjekorda lohistada. Staatus, kuupäev, päringu number ning saatnud ja saadetud riik on alati nähtavad. Valik jääb brauseris meelde (kasutaja teises brauseris algab vaikimisi vaatega).
+- ERRU nimekirjades on tabeli read tihedamad (TEDI „small" suurus).
+- ERRU staatuste värvid järgivad TEDI olekusiltide juhist: salvestatud hall, saatmisel ja saadetud sinine (informatiivne, tegevust ei oota), saabunud oranž (ootab tähelepanu), vastuse mustand ja ebaselge saatmine kollane, vastus saadud / vastatud roheline, viga punane. ERRU nimekirjades on esimesed veerud staatus, (CTUD, CGR, RSI puhul tulemus,) suund ja kuupäev, alles seejärel päringu number. CTUD, CGR ja RSI nimekirjas on staatus ja ühe riigi päringu vastuse tulemus eraldi veergudes („Staatus“ ja „Tulemus“): leid roheline, leiuta hall, ei vastanud punane.
+
+## 2026-10-22
+
+### ERRU päringute staatuste värvid
+
+- Kõigi ERRU päringute ja teadete (CTUD, CGR, RSI, NCR, NU) nimekirjades ja detailvaate päises on staatus nüüd värviline märge, ühtne kõigis moodulites: salvestatud hall, vaata 2026-10-23 uuendust.
+- Ühe riigi päringu nimekirjas on vastuse tulemus (nt „Sihtriik ei vastanud õigeaegselt") eraldi väikese märkena staatuse all. Varem oli see staatuse tekstis ja murdus mitmele reale.
+- ERRU nimekirjade (CTUD, CGR, RSI, NCR, NU) filtrid on kitsamad (väiksemad väljad, mitu veergu ühel real) ja tabel on tihedam (väiksem rea- ja lahtrikõrgus). Päringu numbri link ei murdu.
+
+### RSI teate saatmine
+
+- „Saada" nupp salvestab nüüd enne saatmist vormi praeguse sisu. Varem saadeti serveris olev salvestatud mustand ja vormil tehtud salvestamata muudatused jäid arvestamata, mistõttu saatmine lõppes veaga „Andmed ei vasta ERRU XML-lepingule".
+- „Saada" kontrollib enne saatmist ERRU kohustuslikke välju: VIN, läbisõidumõõdiku näit, juhi eesnimi ja perekonnanimi ning veoettevõtja või omaniku andmed. Puuduvad väljad märgitakse vormil, juhi ja omaniku plokk avatakse. Mustandi salvestamine (nupp „Salvesta") ei nõua neid endiselt.
+- VIN peab olema täpselt 17 märki (tähed ja numbrid, ilma I, O ja Q). Vigane VIN lükatakse tagasi juba salvestamisel, mitte alles saatmisel.
+
+### CGR päringu vastuse kuva
+
+- Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.
+- Riigi nime taga on kahetäheline kood, nt „Austria (AT)". Vastuse kaardi ülaosas on kokkuvõte (leiuga / leiuta / ei vastanud).
+- Päringu staatus „Vastus saadud" on lehe päises roheline.
+- Päringu päis ja otsingu andmed on kompaktsemad: väljad on mitmes veerus (silt väärtuse kohal), veokorraldusjuhi ja pädevuse tunnistuse otsing on kõrvuti.
+
+### Desktop-teavituse saajad
+
+- Desktop-kanali teavituse (rakenduse kella-ikooni teavituse) näevad nüüd ainult haldusvaates „Postkasti mallide ja vastuvõtjate seaded" valitud saajad. Varem nägid seda lisaks kõik vastava õigusega kasutajad (nt `rsi.read`, `ncr.read`, `nu.read`). Kui liigile ei ole saajaid valitud, teavitust ei looda ja seda ei näe keegi. **Pärast paigaldamist tuleb kõikide desktop-liikide saajad halduses ise määrata.** Juba loodud teavitused jäävad endiselt õiguspõhiselt nähtavaks.
+- „Märgi kõik loetuks" arvestab nüüd ka saajana saadud teavitusi.
+- Saaja, kellel liigi õigust ei ole, näeb uut teavitust lehe värskendamisel, mitte kohe.
+- Migratsioon `20261226100000-notification-recipients-only` (uus veerg `notification.recipients_only`).
+
+### Teavitus sissetulevast tegevusloa kontrolli päringust (CTUD) ja teavituste lingid
+
+- Kui mõni teine riik esitab Eestile tegevusloa kontrolli päringu (CTUD), tekib nüüd teavitus „ERRU tegevusloa kontrolli päring (CTUD)" kõigile `ctud.read` õigusega kasutajatele. Haldusvaates „Postkasti mallide ja vastuvõtjate seaded" saab selle liigi desktop-kanali saajad eraldi määrata. Teavituse „Ava" nupp viib päringu kirjele. Päringule vastatakse endiselt automaatselt, teavituse viga ei sega vastust.
+- Sissetuleva NU sobimatusteate teavituse juures puudus „Ava" nupp, nüüd viib see NU teatele.
+- Sissetuleva RSI teate teavitus viitas teate ärijuhtumi numbrile, mis lehe aadressina ei sobi. Uued RSI teavitused viivad nüüd õigele RSI teatele. Varem tekkinud RSI teavituste link jääb vigaseks.
+### Välisriigi kontrollkaardi loomine NCR teatest
+
+- „Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart" lõppes veaga 500 teadetel, millel ei ole kergemaid rikkumisi (nt kõik MOVEHUB testteated). Kaart luuakse nüüd ka sellistest teadetest.
+
+### Sissetulevate ERRU päringute MTR-otsing
+
+- Sissetulev tegevusloa kontrolli päring (CTUD SearchByLicenceAndVehicle) ei vaja enam veoettevõtja nime. Varem lükkas MTR-i otsing päringu nime puudumise tõttu tagasi (HTTP 400) ja päring lõppes serveri veaga. Nüüd otsitakse tegevusloa numbri ja sõiduki järgi.
+- Demo, dev ja prelive keskkonnas puudusid sissetulevate CTUD ja CGR päringute MTR-i aadressi konstandid ja päringud lõppesid veaga. Konstandid lisatakse devops-repos ja osutavad MTR-i mockile.
+
+### Vastus saabunud NCR-ile ja välisriigi kontrollkaardi loomine
+
+- „Saada vastus" saabunud NCR teatele andis vea „Vastust ei saa saata praeguses olekus", kui teatel puudus workflowId (nt testandmetena sisestatud MOVEHUB teated). Nüüd näitab leht täpset põhjust: saabunud teatel puudub workflowId. Olemasolevatele saabunud NCR teadetele lisati puuduvad technicalId ja workflowId ühekordse migratsiooniga, mis on pärast rakendamist koodist eemaldatud.
+- NCR teatest välisriigi kontrollkaardi loomine („Loo välisriigis teostatud autoveoalase kontrolli kontrollkaart") lõpeb veaga 500, kui allikteate valik tehti sama sammu sees, kus selle põhjal välju loeti. Valik on nüüd eraldi sammus.
+- Tehnokontrolli teate (RSI) saatmine näitas XML-lepingu rikkumise korral („Kontrolli VIN, odomeetri näit, juhi ja omaniku andmed") eksitavat teadet „jääb olekusse Viga". Mustand jääb muudetavaks ja leht näitab nüüd õiget XML-kontrolli teadet.
+
+### Sissetulev CTUD päring ei lõpe enam veateatega
+
+- Sissetulev tegevusloa kontrolli päring (CTUD), mille registrivastuses oli tegevusloa tüüp juba ERRU pikas kirjapildis (nt „Community licence for goods transport"), lõppes veateatega „ServerError". Nüüd võetakse nii pikk kirjapilt kui ka klassifikaatori kood vastu ja päring saab sisulise vastuse.
+
+## 2026-10-21
+
+### NCR ja NU saadetakse ERRU XML-ina
+
+- Väljaminev NCR (kontrolli tulemuse teade ja vastus saabunud NCR-ile) ning NU (sobimatusteade) saadetakse nüüd ERRU 3.5 XML-ina läbi XML-adapteri, varem saadeti JSON. Adapter kontrollib XML-i XSD vastu enne saatmist ja ei lisa puuduvatele andmetele väljamõeldud väärtusi. Öine NCR automaatsaatmine kasutab sama teed.
+- Vastus ei tule enam saatmise kutsega. Hub kinnitab teate vastuvõtmist ja teade jääb olekusse „Saadetud". NCR-i vastuvõtukinnitus ning sisuline vastus ja NU liikmesriikide kinnitused saabuvad hiljem. Nende nägemiseks tuleb leht värskendada. Negatiivne NCR kinnitus (Timeout, NotAvailable) viib NCR-i olekusse „Viga" ja saatmist saab korrata.
+- Uued olekud „Saatmine pooleli" ja „Saatmise tulemus teadmata". Kui Hubi vastust ei saadud (ühenduse katkemine, aegumine), ei saada süsteem teadet ise uuesti, kuna Hub võis selle siiski vastu võtta. Kontrolli enne uut saatmist integratsioonilogi.
+- Kui Hub lükkab teate tagasi, läheb NCR või NCR vastus olekusse „Viga" ja saatmist saab korrata. NU jääb olekusse „Viga" ja uue saatmise asemel tuleb koostada uus sobimatusteade, nagu varem.
+- Andmed, mis ei vasta XML-lepingule, ei lähe teele ja mustand jääb muudetavaks. Näiteks NCR vastus ilma sõidukite arvu, tegevusloa staatuse või täieliku aadressita (kui ettevõte leiti) või NU veokorraldaja ilma sünniajata. Leht näitab sellest eraldi veateadet.
+- Öine NCR automaatsaatmine lisab logisse tulemuse „sent" (varem „acknowledged") ja uue tulemuse „send_unknown".
+- Uued sisemised päringud `POST /erru/nu/inbound-ack` ja `POST /erru/ncr/inbound-ack` (ainult Ruuter.internal) ning migratsioon `20261223100000-ncr-nu-outbound-xml`. `nu_finish_send` on asendatud funktsioonidega `nu_mark_dispatch` ja `nu_apply_ack`. Paigaldusjuhis on administraatori juhendi peatükis „NCR ja NU XML-saatmise paigaldamine".
+- Kasutamata konstandid `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT`, `ERRU_NCR_RESPONSE_ENDPOINT` ja `ERRU_RSI_ENDPOINT` ning nende Ruuteri mock-voogude kood on eemaldatud.
+
+### Mainepäringud (CGR) ja tegevusloa kontrolli päringud (CTUD) saadetakse ERRU XML-ina
+
+- Väljaminev mainepäring ja tegevusloa kontrolli päring saadetakse nüüd ERRU 3.5 XML-ina läbi XML-adapteri, varem saadeti JSON. Adapter kontrollib XML-i XSD vastu enne saatmist ning ei lisa puuduvatele andmetele väljamõeldud väärtusi.
+- Vastus ei tule enam saatmise kutsega. Hub kinnitab päringu vastuvõtmist ja päring jääb olekusse „Päring saadetud". Riigi vastus saabub hiljem: mainepäringu puhul igalt liikmesriigilt eraldi sõnumina, tegevusloa kontrolli puhul sihtriigilt. Vastuse nägemiseks tuleb leht värskendada. Esimese vastuse saabudes läheb päring olekusse „Vastus saadud". Mainepäringu puhul täienevad vastused liikmesriikide kaupa.
+- Uued olekud: „Saatmine pooleli" ja „Saatmise tulemus teadmata". Kui Hubi vastust ei saadud (ühenduse katkemine, aegumine), ei saada süsteem päringut ise uuesti, kuna Hub võis selle siiski vastu võtta. Kontrolli enne uut saatmist integratsioonilogi.
+- Kui Hub lükkab päringu tagasi, läheb see olekusse „Viga" ja saatmist saab korrata, nagu varem.
+- Andmed, mis ei vasta XML-lepingule, ei lähe teele ja päring jääb muudetavaks. Näiteks tegevusloa kontrolli sõiduk ilma registreerimisriigita, vähem kui kaks otsingukriteeriumi või mainepäring ilma sünniajata. Leht näitab sellest eraldi veateadet.
+- Mainepäringu riigipõhine „Saada uuesti" jääb. Uus vastus asendab ainult selle riigi kirje, teiste riikide vastused ja päringu töövoo number (workflowId) jäävad samaks. Uuestisaatmine on nüüd võimalik ka olekus „Vastus saadud".
+- Kui vastuses on mitu veokorraldajat või veoettevõtjat, salvestatakse esimene senises kohas ja ülejäänud eraldi väljale, neid ei jäeta ära. Lehel kuvatakse praegu ainult esimest.
+- Uus tabel `erru.xml_outbound_dispatch` (saadetud XML ja Hubi HTTP-staatus), uued sisemised päringud `POST /erru/cgr/inbound-response` ja `POST /erru/ctud/inbound-response` (ainult Ruuter.internal) ning migratsioon `20261222100000-cgr-ctud-outbound-xml`. Paigaldusjuhis on administraatori juhendi peatükis „CGR ja CTUD XML-saatmise paigaldamine".
+- Kasutamata konstandid `ERRU_CGR_ENDPOINT` ja `ERRU_CTUD_ENDPOINT` on eemaldatud.
+
 ## 2026-10-20
+
+### E-toimiku otsuse öine sünkroon: paragrahv ja otsuse kuupäev, välismaalased
+
+- Kontrollvormi plokis „Andmevahetuskihi päringuga sisestatavad andmed (X-tee)" kirjutab öine sünkroon väljale „Jõustunud otsus" nüüd kujul „KarS § 100 lg 2, otsuse kuupäev 07.02.2025" (paragrahv + otsuse kuupäev). Varem sattus sinna e-toimiku klassifikaatori toorkood. Väli „Menetluse lõpetamise alus" jäetakse sünkroonist täitmata.
+- Otsus loetakse olemasolevaks, kui süüdistuspunktil on lahend ja lahendi kuupäev. Tühjad (xsi:nil) väärtused ei loe enam täidetuks, varem läksid ka lahtised punktid läbi.
+- Välismaalased (isikukoodita juhid ja meeskonnaliikmed) jõuavad nüüd samuti sünkrooni: neid otsitakse eesnime, perekonnanime ja sünniajaga. Eestlast otsitakse esmalt isikukoodiga ja, kui otsust ei leita ning nimi ja sünniaeg on olemas, teist korda nime ja sünniajaga.
+- Kehtib kõigil viiel öisel sünkroonil: autojuht ja meeskonnaliige, TRAM-kaart, sõiduki ja haagise tehnokontroll, Tööinspektsioon (viimasel ainult isikukoodiga). TRAM-kaart avalikustatakse automaatselt niipea, kui lahend on olemas, mitte alles sulgemise järel.
+- Uus sisemine päring `POST /etoimik/lookup-decision` (ainult Ruuter.internal).
 
 ### E-toimiku öise sünkroonimise X-tee logi näitab täisvastust
 

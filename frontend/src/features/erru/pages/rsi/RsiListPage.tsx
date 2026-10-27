@@ -14,12 +14,12 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { RsiMessageListItem } from '../../types';
+import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useRsiList } from './useRsiList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
-import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
 const columnHelper = createColumnHelper<RsiMessageListItem>();
 
@@ -34,8 +34,6 @@ export function RsiListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['rsi.read']);
   const canCreate = hasAnyPermission(['rsi.create']);
 
@@ -71,7 +69,50 @@ export function RsiListPage() {
 
   const columns = useMemo(
     () => [
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
+      columnHelper.accessor('status', {
+        enableHiding: false,
+        header: t('erru.rsi.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('RSI_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.rsi.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('RSI_RESPONSE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
+      }),
+      columnHelper.accessor('direction', {
+        header: t('erru.rsi.list.direction'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.rsi.list.directionOutgoing')
+              : t('erru.rsi.list.directionIncoming')}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        enableHiding: false,
+        header: t('erru.rsi.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.rsi.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -87,20 +128,14 @@ export function RsiListPage() {
           </a>
         ),
       }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.rsi.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
-      }),
       columnHelper.accessor('rsiFrom', {
+        enableHiding: false,
         header: t('erru.rsi.list.rsiFrom'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
       }),
       columnHelper.accessor('rsiTo', {
+        enableHiding: false,
         header: t('erru.rsi.list.rsiTo'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
@@ -110,30 +145,12 @@ export function RsiListPage() {
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
-      // Status merges lifecycle status with response outcome where present.
-      columnHelper.accessor('status', {
-        header: t('erru.rsi.list.status'),
-        enableSorting: true,
-        cell: (info) => {
-          const status = label('RSI_REQUEST_STATUS', info.getValue());
-          const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('RSI_RESPONSE_STATUS', code)}`
-            : status;
-        },
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.rsi.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
-      }),
-      columnHelper.accessor('direction', {
-        header: t('erru.rsi.list.direction'),
-        enableSorting: false,
-        cell: (info) =>
-          info.getValue() === 'outgoing'
-            ? t('erru.rsi.list.directionOutgoing')
-            : t('erru.rsi.list.directionIncoming'),
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
     ],
     [t, openMessage, label],
@@ -156,22 +173,24 @@ export function RsiListPage() {
 
           {/* Filters refresh only on "Otsi" — editing must not auto-refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="rsi-filter-id"
               label={t('erru.rsi.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <TextField
+              size="small"
               id="rsi-filter-reg-nr"
               label={t('erru.rsi.list.vehicleRegistrationNumber')}
               value={draftFilters.vehicleRegistrationNumber ?? ''}
               onChange={(v) => setFilter('vehicleRegistrationNumber', v)}
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`rsi-sent-from-${resetKey}`}
               id="rsi-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
@@ -185,6 +204,7 @@ export function RsiListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`rsi-sent-until-${resetKey}`}
               id="rsi-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
@@ -198,6 +218,7 @@ export function RsiListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="rsi-filter-from"
               label={t('erru.rsi.list.rsiFrom')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -213,6 +234,7 @@ export function RsiListPage() {
               }
             />
             <Select
+              size="small"
               id="rsi-filter-to"
               label={t('erru.rsi.list.rsiTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -228,6 +250,7 @@ export function RsiListPage() {
               }
             />
             <Select
+              size="small"
               id="rsi-filter-status"
               label={t('erru.rsi.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -243,6 +266,7 @@ export function RsiListPage() {
               }
             />
             <Select
+              size="small"
               id="rsi-filter-direction"
               label={t('erru.rsi.list.direction')}
               options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
@@ -259,6 +283,7 @@ export function RsiListPage() {
               }
             />
             <TextField
+              size="small"
               id="rsi-filter-handler"
               label={t('erru.rsi.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
@@ -273,6 +298,9 @@ export function RsiListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-rsi-list"
+            size="small"
             id="rsi-table"
             data={data}
             columns={columns}

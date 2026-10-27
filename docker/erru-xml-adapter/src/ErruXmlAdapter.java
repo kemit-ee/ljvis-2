@@ -19,6 +19,18 @@ import java.util.concurrent.Executors;
  * the design.
  */
 public final class ErruXmlAdapter {
+    static final OutboundXmlHandler.Kind CGR_KIND = new OutboundXmlHandler.Kind("/internal/cgr", "CheckGoodRepute_Request",
+            CgrRequestXml::build, "invalid_cgr_xml", "CGR data does not satisfy the ERRU 3.5 contract", "cgr_endpoint_not_configured", OutboundXmlHandler.Kind.ACCEPTED_202);
+    static final OutboundXmlHandler.Kind CTUD_KIND = new OutboundXmlHandler.Kind("/internal/ctud", "CheckTransportUndertakingData_Request",
+            CtudRequestXml::build, "invalid_ctud_xml", "CTUD data does not satisfy the ERRU 3.5 contract", "ctud_endpoint_not_configured", OutboundXmlHandler.Kind.ACCEPTED_202);
+    static final OutboundXmlHandler.Kind NCR_KIND = new OutboundXmlHandler.Kind("/internal/ncr", "NotifyCheckResult_Request",
+            NcrRequestXml::build, "invalid_ncr_xml", "NCR data does not satisfy the ERRU 3.5 contract", "ncr_endpoint_not_configured", OutboundXmlHandler.Kind.ACCEPTED_202);
+    /** Our answer to an incoming NCR goes to the Hub's single response URL, like every other answer. */
+    static final OutboundXmlHandler.Kind NCR_RESPONSE_KIND = new OutboundXmlHandler.Kind("/internal/ncr-response", "NotifyCheckResult_Response",
+            NcrResponseXml::build, "invalid_ncr_response_xml", "NCR response data does not satisfy the ERRU 3.5 contract", "ncr_response_endpoint_not_configured", OutboundXmlHandler.Kind.ACCEPTED_2XX);
+    static final OutboundXmlHandler.Kind NU_KIND = new OutboundXmlHandler.Kind("/internal/nu", "NotifyUnfitness_Request",
+            NuRequestXml::build, "invalid_nu_xml", "NU data does not satisfy the ERRU 3.5 contract", "nu_endpoint_not_configured", OutboundXmlHandler.Kind.ACCEPTED_202);
+
     public static void main(String[] args) throws Exception {
         Config config = Config.load();
         System.out.println("erru-xml-adapter starting: port=" + config.port
@@ -36,7 +48,13 @@ public final class ErruXmlAdapter {
                 new NcrMapper(config.respondingAuthorityNcr, config.memberStateCode),
                 new CgrMapper(config.memberStateCode),
                 new CtudMapper(config.respondingAuthorityCtud, config.memberStateCode),
-                new RsiMapper(config.respondingAuthorityRsi, config.memberStateCode)
+                new RsiMapper(config.respondingAuthorityRsi, config.memberStateCode),
+                new RsiResponseMapper(),
+                new CgrResponseMapper(),
+                new CtudResponseMapper(),
+                new NuAckMapper(),
+                new NcrAckMapper(),
+                new NcrResponseInMapper()
         );
 
         List<Thread> workers = new java.util.ArrayList<>();
@@ -51,6 +69,37 @@ public final class ErruXmlAdapter {
         server.createContext("/health", new HealthHandler(config, workers));
         server.createContext("/erru/xml", new IngressHandler(schemas, db,
                 mappers.stream().map(MessageMapper::requestRoot).toArray(String[]::new)));
+        RsiSendHandler rsiSender = new RsiSendHandler(schemas,
+                config.internalServiceToken, config.memberStateCode, config.rsiRequestUrl,
+                java.time.Duration.ofSeconds(15), new RsiDispatchStore.Jdbc(config));
+        server.createContext("/internal/rsi/send", rsiSender);
+        server.createContext("/internal/rsi/validate", rsiSender);
+        OutboundXmlHandler cgrSender = new OutboundXmlHandler(CGR_KIND, schemas,
+                config.internalServiceToken, config.memberStateCode, config.cgrRequestUrl,
+                java.time.Duration.ofSeconds(15), new OutboundDispatchStore(config, "CGR"));
+        server.createContext("/internal/cgr/send", cgrSender);
+        server.createContext("/internal/cgr/validate", cgrSender);
+        OutboundXmlHandler ctudSender = new OutboundXmlHandler(CTUD_KIND, schemas,
+                config.internalServiceToken, config.memberStateCode, config.ctudRequestUrl,
+                java.time.Duration.ofSeconds(15), new OutboundDispatchStore(config, "CTUD"));
+        server.createContext("/internal/ctud/send", ctudSender);
+        server.createContext("/internal/ctud/validate", ctudSender);
+        OutboundXmlHandler ncrSender = new OutboundXmlHandler(NCR_KIND, schemas,
+                config.internalServiceToken, config.memberStateCode, config.ncrRequestUrl,
+                java.time.Duration.ofSeconds(15), new OutboundDispatchStore(config, "NCR"));
+        server.createContext("/internal/ncr/send", ncrSender);
+        server.createContext("/internal/ncr/validate", ncrSender);
+        java.net.URI hubResponseUri = java.net.URI.create(config.hubResponseUrl);
+        OutboundXmlHandler ncrResponseSender = new OutboundXmlHandler(NCR_RESPONSE_KIND, schemas,
+                config.internalServiceToken, config.memberStateCode, hubResponseUri,
+                java.time.Duration.ofSeconds(15), new OutboundDispatchStore(config, "NCR_RESPONSE"));
+        server.createContext("/internal/ncr-response/send", ncrResponseSender);
+        server.createContext("/internal/ncr-response/validate", ncrResponseSender);
+        OutboundXmlHandler nuSender = new OutboundXmlHandler(NU_KIND, schemas,
+                config.internalServiceToken, config.memberStateCode, config.nuRequestUrl,
+                java.time.Duration.ofSeconds(15), new OutboundDispatchStore(config, "NU"));
+        server.createContext("/internal/nu/send", nuSender);
+        server.createContext("/internal/nu/validate", nuSender);
         // A small bounded pool instead of the default single thread, so one slow client cannot
         // block every other request (including /health). It does not add read/idle timeouts: the
         // JDK's built-in HttpServer has no hook for that, so a slowloris-style connection can still

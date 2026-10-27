@@ -21,6 +21,21 @@ ALLOWED = {
     "[#LJVIS_RESQL]", "[#LJVIS_RESQL_ARHIIV]", "[#LJVIS_TIM]", "[#LJVIS_DMAPPER]", "[#LJVIS_DMAPPER_HBS]",
     "[#LJVIS_RUUTER]", "[#LJVIS_RUUTER_INTERNAL]",
 }
+# The adapter consumes the token locally. Its Hub request sets only Content-Type;
+# it does not forward the incoming service token or other incoming headers.
+ADAPTER_INTERNAL_PATHS = {"/internal/rsi/validate", "/internal/rsi/send",
+                          "/internal/cgr/validate", "/internal/cgr/send",
+                          "/internal/ctud/validate", "/internal/ctud/send",
+                          "/internal/ncr/validate", "/internal/ncr/send",
+                          "/internal/ncr-response/validate", "/internal/ncr-response/send",
+                          "/internal/nu/validate", "/internal/nu/send"}
+# Registry endpoints that point at XTR in production. The token header may be present only as
+# a ternary that yields the token solely for the exact local mock URL (and '' otherwise).
+MOCK_GUARDED = {
+    "[#ERRU_MTR_ENDPOINT]": "http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-community-licence",
+    "[#ERRU_CGR_MTR_ENDPOINT]": "http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute",
+    "[#ERRU_RSI_LIIKLUSREGISTER_ENDPOINT]": "http://ruuter:8080/ljvis/v1/erru/mock/xtee/liiklusregister-paring2",
+}
 XTR_SOAP_PREFIXES = ("/ar/", "/etoimik/", "/mtr/", "/liiklusregister/")
 
 errors = []
@@ -40,7 +55,13 @@ for path in sorted((ROOT / "DSL").rglob("*.yml")):
             block.append(x)
         if not any(TOKEN in x for x in block):
             continue
-        ok = const in ALLOWED or (const == "[#LJVIS_XTR]" and rest.startswith(XTR_SOAP_PREFIXES))
+        guarded = const in MOCK_GUARDED and not rest and all(
+            f"{TOKEN}: " not in x or (
+                f"'{const}' === '{MOCK_GUARDED[const]}' ? '[#INTERNAL_COMMUNICATION_KEY]' : ''" in x)
+            for x in block)
+        ok = (const in ALLOWED or guarded
+              or (const == "[#LJVIS_XTR]" and rest.startswith(XTR_SOAP_PREFIXES))
+              or (const == "[#ERRU_XML_ADAPTER]" and rest in ADAPTER_INTERNAL_PATHS))
         if not ok:
             errors.append(f"{path.relative_to(ROOT)}:{i + 1}: {TOKEN} sent to {const}{rest}")
 

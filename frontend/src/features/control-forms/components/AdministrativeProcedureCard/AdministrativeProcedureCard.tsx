@@ -5,7 +5,7 @@ import {
   Card,
   ChoiceGroup,
   Heading,
-  TextArea,
+  Textarea,
 } from '@tedi-design-system/react/tedi';
 import { useCanUseAdministrativeProcedure } from '../../../../hooks/useCanUseAdministrativeProcedure';
 import { toIsoDate } from '../../../../hooks/dateUtils';
@@ -144,7 +144,7 @@ export function AdministrativeProcedureCard({
             />
           ))}
           <div style={{ gridColumn: '1 / -1' }}>
-            <TextArea
+            <Textarea
               id="adminProcedureDecision"
               label={t('forms.foreign_violation.adminProc.decision')}
               value={values.adminProcedureDecision ?? ''}

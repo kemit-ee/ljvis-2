@@ -26,7 +26,13 @@ EXCHANGE = ROOT / 'DSL/Liquibase/changelog/20261117121000-erru-nu-exchange.sql'
 # separately-versioned CREATE OR REPLACE FUNCTION migration. Does not touch
 # any of the length/enum limits parsed out of EXCHANGE below.
 ALIGN_OUTGOING_FIELDS = ROOT / 'DSL/Liquibase/changelog/20261124140000-erru-nu-align-outgoing-fields.sql'
-MIGRATIONS = (INITIAL, VALIDATION, EXCHANGE, ALIGN_OUTGOING_FIELDS)
+# Reviewed follow-up (PR #647, outgoing NCR/NU as XML via the adapter): redefines
+# erru.nu_begin_send/nu_mark_dispatch/nu_apply_ack/nu_record_exchange_result and the
+# nu_message status constraints. The limits this check parses out of EXCHANGE are unchanged
+# in the redefined nu_record_exchange_result (same 8 error codes, statusMessage <= 512,
+# businessCaseId 1..36), so the parsed rules stay authoritative.
+OUTBOUND_XML = ROOT / 'DSL/Liquibase/changelog/20261223100000-ncr-nu-outbound-xml.sql'
+MIGRATIONS = (INITIAL, VALIDATION, EXCHANGE, ALIGN_OUTGOING_FIELDS, OUTBOUND_XML)
 
 
 @dataclass(frozen=True)

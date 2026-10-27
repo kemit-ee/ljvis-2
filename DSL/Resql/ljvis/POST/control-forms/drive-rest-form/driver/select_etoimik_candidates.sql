@@ -1,7 +1,7 @@
 /*
 description: 'Kandidaadid autojuhi sõidu- ja puhkeaja alamvormi öisele e-toimiku otsuse-sünkroonile: iga
   confirmed alamvormi uusim snapshot, millel on väärteomenetluse viitenumber, juhi (drivers[0]) Eesti
-  isikukood ja millel enforcement_decision on veel NULL. Read kaovad kandidaatide seast niipea kui update-xroad-fields.sql
+  isikukood (või välismaalase puhul nimi + sünniaeg) ja millel enforcement_decision on veel NULL. Read kaovad kandidaatide seast niipea kui update-xroad-fields.sql
   kirjutab otsuse - see teeb töö idempotentseks.'
 namespace: control-forms
 params: {}
@@ -16,6 +16,15 @@ returns:
   type: string
   nullable: true
 - name: driver_personal_code
+  type: string
+  nullable: true
+- name: person_first_name
+  type: string
+  nullable: true
+- name: person_last_name
+  type: string
+  nullable: true
+- name: person_birth_date
   type: string
   nullable: true
 */
@@ -57,9 +66,13 @@ SELECT
   id,
   compound_form_key,
   proceeding_reference_number,
-  (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code
+  (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code,
+  (COALESCE((cf).drivers -> 0 ->> 'firstName', (cf).drivers -> 0 ->> 'first_name')) AS person_first_name,
+  (COALESCE((cf).drivers -> 0 ->> 'lastName', (cf).drivers -> 0 ->> 'last_name')) AS person_last_name,
+  (LEFT(COALESCE((cf).drivers -> 0 ->> 'birthDate', (cf).drivers -> 0 ->> 'birth_date'), 10)) AS person_birth_date
 FROM resolved
 -- ADR-002: TRAM kaardid on nüüd forms.tram_control_card ja neil on oma cron
 -- (etoimik-tram-decision-sync). Siin ainult PPA sp_driver alamvormid.
 WHERE (cf).authority = 'PPA'
-  AND btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee'), '')) <> '';
+  AND (btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee'), '')) <> ''
+    OR (btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'firstName', (cf).drivers -> 0 ->> 'first_name'), '')) <> '' AND btrim(coalesce(COALESCE((cf).drivers -> 0 ->> 'lastName', (cf).drivers -> 0 ->> 'last_name'), '')) <> '' AND btrim(coalesce(LEFT(COALESCE((cf).drivers -> 0 ->> 'birthDate', (cf).drivers -> 0 ->> 'birth_date'), 10), '')) <> ''));

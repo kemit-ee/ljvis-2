@@ -1,0 +1,71 @@
+.page {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.header {
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header > button {
+  flex-shrink: 0;
+}
+
+/* Keep every column in the available width. Long identifiers and names wrap. */
+.table table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  padding: 0.5rem 0.25rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* TEDI sets pixel widths on headers. Let the fixed table distribute the space. */
+.table th {
+  width: auto !important;
+}
+
+.table th > span {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.table th button {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+
+.table th button:not([aria-pressed]) {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+@media (max-width: 1400px) {
+  .table th,
+  .table td,
+  .table th button {
+    font-size: 0.875rem;
+  }
+}
+
+.table :global(.table-link),
+.table :global(.nowrap-cell),
+.table :global(.erru-badge),
+.table :global(.erru-direction) {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.table :global(.erru-direction) {
+  align-items: flex-start;
+}
+
+.table :global(.erru-direction) > span {
+  min-width: 0;
+}

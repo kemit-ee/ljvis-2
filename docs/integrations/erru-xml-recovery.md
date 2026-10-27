@@ -107,11 +107,22 @@ requires a separate reviewed repair/migration plan. Our verification uses a fres
 
 ## CGR integration acceptance
 
-7A-only (name/date of birth) and 7B-only (certificate) can match the local UNFIT register. If it finds
-nothing, the current MTR full-identification API cannot complete those searches. `ServerError` is
-an honest failure, not full CGR support. Product/MTR owners must confirm an endpoint supporting the
-required partial searches and NYSIIS matching; test known matches and real negative results before
-accepting this integration for real traffic. No alternative search API is assumed here.
+The CGR inbound handler forwards both 7A-only (name/date of birth) and 7B-only
+(certificate) searches to the configured registry after the local UNFIT search.
+The demo MTR mock supports both choices. It returns full manager details for a match.
+The response identifies a name search as `NYSIIS` and a certificate-only search as `CPC`.
+
+CTUD forwards all three choices: licence/name, licence/vehicle, and name/vehicle.
+The last choice does not require a licence number in the inbound handler or demo mock.
+When no licence number was supplied, the response reports `VehicleRegistration`.
+
+The production SOAP adapters have narrower contracts. The CGR adapter requires all six
+identifying fields. The CTUD adapter requires a licence or true-copy number.
+These adapters cannot complete every valid ERRU search. Product/MTR owners must confirm
+an endpoint that supports the missing searches before production acceptance. Do not
+remove required SOAP fields or return `NotFound` for an unsupported search. The inbound
+handler treats registry rejection as a technical failure and does not store an answered
+snapshot. Demo mock tests do not prove production registry support.
 
 The §6.4 totals rule is labelled CTUD and conditional on requestAllVehicles, while the corresponding
 aggregate attributes are in the CGR XSD. Until clarified with the integration owner, CGR preserves

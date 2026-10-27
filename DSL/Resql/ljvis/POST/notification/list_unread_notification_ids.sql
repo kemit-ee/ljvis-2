@@ -13,7 +13,10 @@ params:
 */
 SELECT n.id
 FROM notifications.notification n
-WHERE n.required_permission = ANY (string_to_array(:permissions, ','))
+WHERE (
+    (NOT n.recipients_only AND n.required_permission = ANY (string_to_array(:permissions, ',')))
+    OR n.recipient_personal_codes @> ARRAY[:user_code]::TEXT[]
+  )
   AND NOT EXISTS (
       SELECT 1
       FROM notifications.notification_read nr

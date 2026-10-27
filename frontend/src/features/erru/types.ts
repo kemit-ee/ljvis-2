@@ -11,6 +11,8 @@ export type CtudDirection = 'outgoing' | 'incoming';
 
 export type CtudStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'responded'
   | 'received'
@@ -168,7 +170,10 @@ export type CgrDirection = 'outgoing' | 'incoming';
 
 export type CgrStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
+  | 'responded'
   | 'received'
   | 'answered'
   | 'error';
@@ -277,18 +282,20 @@ export interface CgrSaveResult {
   status: CgrStatus;
 }
 
-/** Response of POST /v1/erru/cgr/send — the synchronous member-state answer(s). */
+/**
+ * Response of POST /v1/erru/cgr/send — the Hub acceptance (HTTP 202) only. The member-state
+ * answers arrive later and fill memberStates, moving the request to 'responded'.
+ */
 export interface CgrSendResult {
   id: string;
   status: CgrStatus;
   businessCaseId: string;
   workflowId: string;
-  memberStates: CgrMemberState[];
 }
 
-/** Response of POST /v1/erru/cgr/resend — only updatedMemberState changed. */
+/** Response of POST /v1/erru/cgr/resend — the resend was accepted; the answer arrives later. */
 export interface CgrResendResult extends CgrSendResult {
-  updatedMemberState: string;
+  resentMemberState: string;
 }
 
 /** A CGR draft is editable only while it is an outgoing draft, same rule as CTUD. */
@@ -354,6 +361,8 @@ export type RsiDirection = 'outgoing' | 'incoming';
 
 export type RsiStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'responded'
   | 'received'
@@ -563,6 +572,8 @@ export type NcrDirection = 'outgoing' | 'incoming';
 
 export type NcrStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'acknowledged'
   | 'responded'
@@ -768,8 +779,9 @@ export function isNcrResponseSendable(
 
 /**
  * NCR case list item (LJVIS2-65) — one row per case (ncr_message_key), latest snapshot.
- * hasInfringement drives the red-row highlight (computed server-side from
- * serious_infringements presence).
+ * hasInfringement (checkResult Fail, serious or minor infringement) drives the pink row;
+ * needsAttention (incoming + infringement + not yet answered/forwarded) the danger border.
+ * Both are computed server-side.
  */
 export interface NcrCaseListItem {
   id: string;
@@ -777,12 +789,14 @@ export interface NcrCaseListItem {
   direction: NcrDirection;
   status: NcrStatus;
   businessCaseId: string;
-  sentAt: string | null;
+  /** "Kuupäev": väljaminevatel saatmise, sissetulevatel saabumise aeg. */
+  eventAt: string | null;
   ncrFrom: string | null;
   ncrTo: string | null;
   transportUndertakingName: string | null;
   handlerName: string | null;
   hasInfringement: boolean;
+  needsAttention: boolean;
   /** true = LJVIS saatis selle NCR teate ise automaatselt (öine autodispatch). */
   automatic: boolean;
 }
@@ -790,8 +804,9 @@ export interface NcrCaseListItem {
 /** Filters of the NCR case list. All optional, AND-combined (LJVIS2-65 §4 "Filtrid"). */
 export interface NcrListFilters {
   businessCaseId?: string;
-  sentFrom?: string;
-  sentUntil?: string;
+  /** Kuupäev (väljaminev = saatmise, sissetulev = saabumise kuupäev). */
+  dateFrom?: string;
+  dateUntil?: string;
   ncrFrom?: string;
   ncrTo?: string;
   status?: string;
@@ -799,6 +814,8 @@ export interface NcrListFilters {
   handlerPersonalCode?: string;
   /** '' = kõik, 'true' = ainult automaatselt saadetud, 'false' = ainult käsitsi loodud. */
   automatic?: string;
+  /** '' = kõik, 'true' = ainult tegelemist vajavad (sissetulev rikkumisega, lahendamata). */
+  needsAttention?: string;
 }
 
 // NU notifications
@@ -807,6 +824,8 @@ export type NuDirection = 'outgoing' | 'incoming';
 
 export type NuStatus =
   | 'initiated'
+  | 'sending'
+  | 'send_unknown'
   | 'sent'
   | 'received'
   | 'acknowledged'
@@ -890,12 +909,14 @@ export interface NuSaveResult {
   status: NuStatus;
 }
 
-/** Response of POST /v1/erru/nu/send — the synchronous member-state acknowledgement. */
+/**
+ * Response of POST /v1/erru/nu/send — the Hub acceptance (HTTP 202) only. The member states'
+ * acknowledgements arrive later and fill memberStates of the message.
+ */
 export interface NuSendResult {
   id: string;
   status: NuStatus;
   businessCaseId: string;
-  memberStates: NuMemberState[];
 }
 
 /** A source declaration candidate returned by GET /v1/erru/nu/source/search. */

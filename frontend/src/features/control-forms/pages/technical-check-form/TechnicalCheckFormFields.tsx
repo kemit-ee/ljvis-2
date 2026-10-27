@@ -7,7 +7,7 @@ import {
   Heading,
   Modal,
   ChoiceGroup,
-  TextArea,
+  Textarea,
   TextField,
   Text,
   Alert,
@@ -527,7 +527,7 @@ export function TechnicalCheckFormFields({
           <Heading element="h4" className="mb-1">
             {t('forms.technical_check.notes.label')}
           </Heading>
-          <TextArea
+          <Textarea
             id={`${idPrefix}-notes`}
             label={t('forms.technical_check.notes.label')}
             hideLabel
@@ -634,14 +634,14 @@ export function TechnicalCheckFormFields({
               onSelect={() => {}}
               readOnly
             />
-            <TextArea
+            <Textarea
               id={`${idPrefix}-enforcementDecision`}
               label={t('forms.technical_check.xroad.enforcementDecision')}
               value={values.enforcementDecision ?? ''}
               onChange={(value) => formik.setFieldValue('enforcementDecision', value)}
               disabled={!canEditProceedingOutcome}
             />
-            <TextArea
+            <Textarea
               id={`${idPrefix}-proceedingClosureBasis`}
               label={t('forms.technical_check.xroad.proceedingClosureBasis')}
               value={values.proceedingClosureBasis ?? ''}

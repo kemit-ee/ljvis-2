@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -21,6 +21,9 @@ import {
 import { sanitizeText } from '../../../../hooks/formTextUtils';
 
 const T = 'erru.rsi.validation';
+
+// ERRU 3.5 rsiVehicleIdentificationNumberType: täpselt 17 märki, ilma I, O, Q.
+const VIN_PATTERN = /^[0-9A-HJ-NPR-Za-hj-npr-z]{17}$/;
 
 interface DraftIdentification {
   isVehicleHolder: RsiVehicleHolderType | '';
@@ -112,6 +115,11 @@ export function useRsiForm(
 
   const required = t(`${T}.required`);
 
+  // "Saada" nõuab ERRU XML-lepingu kohustuslikke välju (VIN, läbisõit, juht, omanik),
+  // mida mustandi salvestamine ei nõua.
+  const strictRef = useRef(false);
+  const savedRef = useRef(false);
+
   const [driverBlockOpen, setDriverBlockOpenState] = useState(
     () => !!(message?.driverFirstName || message?.driverFamilyName),
   );
@@ -153,7 +161,11 @@ export function useRsiForm(
           .length(2, t(`${T}.invalid_country_code`)),
         vehicleIdentificationNumber: Yup.string()
           .trim()
-          .max(20, t(`${T}.max_length_exceeded`)),
+          .max(20, t(`${T}.max_length_exceeded`))
+          .matches(VIN_PATTERN, {
+            message: t(`${T}.invalid_vin`),
+            excludeEmptyString: true,
+          }),
         inspectionLocation: Yup.string()
           .trim()
           .required(required)
@@ -231,11 +243,17 @@ export function useRsiForm(
       ) {
         errors.checkedItems = t(`${T}.reason_required`);
       }
-      if (driverBlockOpen) {
+      const strict = strictRef.current;
+      if (strict) {
+        if (!values.vehicleIdentificationNumber)
+          errors.vehicleIdentificationNumber = required;
+        if (!values.odometerReading) errors.odometerReading = required;
+      }
+      if (driverBlockOpen || strict) {
         if (!values.driverFirstName) errors.driverFirstName = required;
         if (!values.driverFamilyName) errors.driverFamilyName = required;
       }
-      if (identificationBlockOpen) {
+      if (identificationBlockOpen || strict) {
         const idErr: Record<string, string> = {};
         if (!values.identification.isVehicleHolder)
           idErr.isVehicleHolder = required;
@@ -360,6 +378,7 @@ export function useRsiForm(
           message?.id != null ? String(message.id) : '',
           payload,
         );
+        savedRef.current = true;
         onSaved(String(result.id));
       } catch (e) {
         const handled = applyValidationError(
@@ -392,6 +411,23 @@ export function useRsiForm(
     }
   };
 
+  /**
+   * "Saada": valideerib ranged reeglitega, salvestab vormi praeguse sisu ja alles siis
+   * kutsub `send`. Server saadab alati salvestatud mustandi, mitte vormil olevat.
+   */
+  const saveAndSend = async (send: () => Promise<void>) => {
+    strictRef.current = true;
+    savedRef.current = false;
+    setDriverBlockOpenState(true);
+    setIdentificationBlockOpenState(true);
+    try {
+      await formik.submitForm();
+    } finally {
+      strictRef.current = false;
+    }
+    if (savedRef.current) await send();
+  };
+
   const setCheckedItems = (items: RsiCheckedItem[]) =>
     formik.setFieldValue('checkedItems', items);
 
@@ -409,5 +445,6 @@ export function useRsiForm(
     identificationBlockOpen,
     setIdentificationBlockOpen,
     setCheckedItems,
+    saveAndSend,
   };
 }
