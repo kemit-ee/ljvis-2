@@ -1,7 +1,8 @@
 /*
 description: 'Candidates for the nightly automatic NCR (NotifyCheckResult) dispatch (LJVIS2-64): latest
   snapshot of each PUBLISHED autojuhi / meeskonnaliikme sõidu- ja puhkeaja sub-form whose control result
-  is KORRAS (result_type = ''ok''), whose parent compound_form carries a FOREIGN vehicle (vehicle_country_code
+  is KORRAS (result_type = ''ok'') and whose driving/rest-time check is applicable
+  (sp_applicability = ''RAKENDATAKSE''), whose parent compound_form carries a FOREIGN vehicle (vehicle_country_code
   present and <> ''EE''), and for which no NCR has been auto-dispatched yet (no row in erru.ncr_autodispatch_log).
 
   An NCR to the vehicle''s registration MS only makes sense for a foreign transport undertaking, so the
@@ -46,7 +47,8 @@ returns:
 --   7. ühenduse tegevusloa koopia number on täidetud
 --        (compound_form.company_activity_licence_copy_number)
 --   8. SP-alamvorm on loodud <= 365 päeva tagasi
---   9. selle SP-alamvormi kohta pole veel NCR-i saadetud
+--   9. sõidu- ja puhkeaega kontrollitakse (sp_applicability = 'RAKENDATAKSE')
+--  10. selle SP-alamvormi kohta pole veel NCR-i saadetud
 --        (rida puudub erru.ncr_autodispatch_log-is)
 --
 -- Otsused (#329):
@@ -62,7 +64,7 @@ WITH latest_sp AS (
   (
     SELECT DISTINCT ON (sp_driver_form_key)
         sp_driver_form_key AS id, 'driver'::text AS sp_form_type,
-        compound_form_key, status, result_type, selection_status, created_at
+        compound_form_key, status, result_type, selection_status, sp_applicability, created_at
     FROM forms.sp_driver_form
     ORDER BY sp_driver_form_key, created_at DESC
   )
@@ -70,7 +72,7 @@ WITH latest_sp AS (
   (
     SELECT DISTINCT ON (sp_teammate_form_key)
         sp_teammate_form_key AS id, 'teammate'::text AS sp_form_type,
-        compound_form_key, status, result_type, selection_status, created_at
+        compound_form_key, status, result_type, selection_status, sp_applicability, created_at
     FROM forms.sp_teammate_form
     ORDER BY sp_teammate_form_key, created_at DESC
   )
@@ -81,6 +83,7 @@ cand AS (
   WHERE s.status = 'published'
     AND s.result_type = 'ok'
     AND s.selection_status = 'active'
+    AND s.sp_applicability = 'RAKENDATAKSE'
     AND s.created_at >= now() - INTERVAL '365 days'
     AND NOT EXISTS (
       SELECT 1 FROM erru.ncr_autodispatch_log l

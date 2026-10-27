@@ -4048,6 +4048,13 @@
        "const rows = pm.response.json().response || pm.response.json();",
        "const m = rows.find(r => String(r.id) === '900011' && (r.spFormType||r.sp_form_type) === 'driver');",
        "pm.test('Fixture sub-form 900011 appears as a candidate', () => pm.expect(m).to.exist);",
+       "for (const type of ['driver', 'teammate']) {",
+       "  pm.test(type + ': Rakendatakse qualifies', () => pm.expect(rows.some(r => String(r.id) === '900011' && (r.spFormType||r.sp_form_type) === type)).to.eql(true));",
+       "  const excluded = {900012: 'Ei rakendata', 900013: 'Ei kontrollitud', 900014: 'missing choice', 900015: 'empty choice', 900016: 'latest snapshot is not checked'};",
+       "  for (const [id, reason] of Object.entries(excluded)) {",
+       "    pm.test(type + ': excludes ' + reason, () => pm.expect(rows.some(r => String(r.id) === id && (r.spFormType||r.sp_form_type) === type)).to.eql(false));",
+       "  }",
+       "}",
        "pm.test('ncrTo resolved from vehicle country (DE)', () => pm.expect((m.ncrTo||m.ncr_to)).to.eql('DE'));"
       ]
      }
