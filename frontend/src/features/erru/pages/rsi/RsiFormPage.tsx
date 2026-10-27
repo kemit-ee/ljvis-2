@@ -154,7 +154,7 @@ export function RsiFormPage() {
             {t('common.printFilled')}
           </Button>
           {printFailed && (
-            <Alert type="error" role="alert" className="mt-05">
+            <Alert type="danger" role="alert" className="mt-05">
               {t('common.printFailed')}
             </Alert>
           )}
