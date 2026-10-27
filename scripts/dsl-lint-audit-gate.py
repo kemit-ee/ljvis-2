@@ -50,7 +50,7 @@ def main() -> int:
         print(f"baseline written: {len(seen)} entries")
         return 0
     with open(baseline_path) as fh:
-        baseline = {ln.rstrip("\n") for ln in fh if ln.strip()}
+        baseline = {ln.rstrip("\n") for ln in fh if ln.strip() and not ln.startswith("#")}
     new = [k for k in seen if k not in baseline]
     stale = sorted(baseline - set(seen))
     for k in new:
