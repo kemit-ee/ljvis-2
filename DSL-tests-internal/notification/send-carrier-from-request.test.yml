@@ -1,4 +1,4 @@
-# POST /notification/send-carrier-from-request (Ruuter.internal) — vedaja teavitus PPA/TA vormidelt:
+# POST /notification/send-carrier-from-request (Ruuter.internal) - vedaja teavitus PPA/TA vormidelt:
 # kinnitamisel märgitud tellimus (carrier_notification_request) saadetakse avalikustatud vormilt.
 mode: mock-http
 constants:
@@ -150,7 +150,7 @@ tests:
         inspectionCountry: Läti
         vehicleRegNr: '123ABC, 456DEF'
         violationSeverities: VSI
-        VSIViolationsList: 'VSI869 — Kabotaaž'
+        VSIViolationsList: 'VSI869 - Kabotaaž'
         MSIViolationsList: ''
         SIViolationsList: ''
   - url_matches: /notification/mark_carrier_request_sent

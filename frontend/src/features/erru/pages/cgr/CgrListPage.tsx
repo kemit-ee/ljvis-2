@@ -14,12 +14,11 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CgrRequestListItem } from '../../types';
+import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { useCgrList } from './useCgrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { BREAKPOINTS } from '../../../../constants/constants.ts';
-import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 
 const columnHelper = createColumnHelper<CgrRequestListItem>();
 
@@ -34,8 +33,6 @@ export function CgrListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['cgr.read']);
   const canCreate = hasAnyPermission(['cgr.create']);
 
@@ -67,7 +64,39 @@ export function CgrListPage() {
 
   const columns = useMemo(
     () => [
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
+      columnHelper.accessor('status', {
+        enableHiding: false,
+        header: t('erru.cgr.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('CGR_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.cgr.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('CGR_MEMBER_STATE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        enableHiding: false,
+        header: t('erru.cgr.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.cgr.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -82,14 +111,6 @@ export function CgrListPage() {
             {info.getValue()}
           </a>
         ),
-      }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.cgr.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
       }),
       columnHelper.accessor('tmFirstName', {
         header: t('erru.cgr.list.tmFirstName'),
@@ -106,24 +127,12 @@ export function CgrListPage() {
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
       }),
-      // Status merges the lifecycle status with the single-country response outcome.
-      // Broadcast requests (cgrTo = ZZ) never carry responseStatusCode here — the
-      // per-country breakdown is shown only in the request detail view.
-      columnHelper.accessor('status', {
-        header: t('erru.cgr.list.status'),
-        enableSorting: true,
-        cell: (info) => {
-          const status = label('CGR_REQUEST_STATUS', info.getValue());
-          const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('CGR_MEMBER_STATE_STATUS', code)}`
-            : status;
-        },
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.cgr.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
     ],
     [t, openRequest, label],
@@ -146,28 +155,31 @@ export function CgrListPage() {
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="cgr-filter-id"
               label={t('erru.cgr.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <TextField
+              size="small"
               id="cgr-filter-first-name"
               label={t('erru.cgr.list.tmFirstName')}
               value={draftFilters.tmFirstName ?? ''}
               onChange={(v) => setFilter('tmFirstName', v)}
             />
             <TextField
+              size="small"
               id="cgr-filter-family-name"
               label={t('erru.cgr.list.tmFamilyName')}
               value={draftFilters.tmFamilyName ?? ''}
               onChange={(v) => setFilter('tmFamilyName', v)}
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`cgr-sent-from-${resetKey}`}
               id="cgr-filter-sent-from"
               label={t('erru.cgr.filters.sentFrom')}
@@ -181,6 +193,7 @@ export function CgrListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`cgr-sent-until-${resetKey}`}
               id="cgr-filter-sent-until"
               label={t('erru.cgr.filters.sentUntil')}
@@ -194,6 +207,7 @@ export function CgrListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="cgr-filter-to"
               label={t('erru.cgr.list.cgrTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -209,6 +223,7 @@ export function CgrListPage() {
               }
             />
             <Select
+              size="small"
               id="cgr-filter-status"
               label={t('erru.cgr.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -224,6 +239,7 @@ export function CgrListPage() {
               }
             />
             <TextField
+              size="small"
               id="cgr-filter-handler"
               label={t('erru.cgr.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
@@ -238,6 +254,9 @@ export function CgrListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-cgr-list"
+            size="small"
             id="cgr-table"
             data={data}
             columns={columns}

@@ -1,8 +1,8 @@
-# POST /v1/ws-broadcast/* — SISEMINE (ruuter-internal → ruuter).
+# POST /v1/ws-broadcast/* - SISEMINE (ruuter-internal → ruuter).
 # Ei kasuta kasutaja-sessiooni: kutsuja on teine Ruuter-protsess, mitte brauser.
 # Autoriseerimine jagatud saladusega
 # (x-internal-service-token == [#INTERNAL_COMMUNICATION_KEY]).
-# override_ancestors: true — ülimuslik POST/.guard cookie-nõude suhtes.
+# override_ancestors: true - ülimuslik POST/.guard cookie-nõude suhtes.
 declaration:
   override_ancestors: true
 

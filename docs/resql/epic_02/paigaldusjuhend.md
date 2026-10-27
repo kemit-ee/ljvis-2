@@ -72,7 +72,7 @@ done
 
 Kui väljundis on `MISSING:`, paranda teed enne lõplikku paigaldust.
 
-## 4. Mock endpointide kasutamine
+## 4. Mock lõpp-punktide kasutamine
 
 Mock YML-id asuvad `DSL/Ruuter/api/POST/v1/admin/*/mock_*.yml`. Need kutsuvad `mock_*.sql` RESQL faile ja tagastavad hardcoded testandmeid. Sobivad arendus- ja integratsioonitestimiseks enne andmebaasi seadistamist.
 

@@ -163,7 +163,7 @@ COMMENT ON COLUMN forms.adr_form.other_infringements IS
 ```
 
 * `infringements` veeru **kuju** muutub koodis (vt Otsus 3 JSON), skeemi ei puuduta. Rikkumiskirje (`records[]`) väljad: `riskCategory` (I/II/III), `adrReference` (kohustuslik), `responsibleParticipants[]` (Ci/C/Ce/L/P/F/To/U), `reg2016403Code` (aktiivne kui `responsibleParticipants` sisaldab `C`; väärtus tase-2 klassifikaatorist või `NONE`), `reg2016403Severity` (tuletatud, salvestatud eraldi).
-* `other_violations`, `container_type` veerud **jäävad alles** (append-only ajalugu), kuid backend/endpoint enam neisse ei kirjuta.
+* `other_violations`, `container_type` veerud **jäävad alles** (append-only ajalugu), kuid backend/lõpp-punkt enam neisse ei kirjuta.
 
 ### F5 — Backend (Ruuter + Resql)
 
@@ -235,7 +235,7 @@ export type AdrOtherInfringementEntry = {
   * grupi tasemel `Card.Content` sees: `ChoiceGroup` „Kontroll" C/NC/NA (raadio, `direction="row"`, kuvab koodi + tähenduse); NC/NA korral valikuline `TextField` „Põhjus"; C korral `ChoiceGroup` „Rikkumine tuvastatud" Ei/Jah.
   * „Jah" korral `records` — iga kirje pesastatud `Card` (nagu `DangerousGoodsTable`): „Rikkumine {i+1}", `ChoiceGroup` riskikategooria I/II/III (**raadio**), `TextField` „Rikutud ADR punkt" (`required`), `Select` „Võimalik vastutav osaleja" (`multiple`, `PARTICIPANTS`, silt „Vedaja (C)"), `Select` „Määruse (EL) 2016/403 rikkumisliik" (`disabled` kui osalejaks pole `C`; options = grupi lapsed `renderRow` kaudu + `NONE`; hall-selgitus kui disabled), read-only tekst „2016/403 raskusaste: {severity} (automaatselt)".
   * `Button visualType="secondary"` „+ Lisa rikkumine"; `Button icon="delete" color="danger" size="small"` iga kirje juures.
-  * NB: `GroupedClassifierChecklist renderRow(item, group)` annab `group` — seo punkti olek `group.code`-iga; tase-2 read (`item`) on rikkumisliigi rippmenüü valikud, mitte eraldi checkbox-loend.
+  * NB: `GroupedClassifierChecklist renderRow(item, group)` annab `group` — seo punkti olek `group.code`-iga; tase-2 read (`item`) on rikkumisliigi rippmenüü valikud, mitte eraldi märkeruutude loend.
 * **Uus** `AdrOtherInfringementsSection.tsx` — n+1 plokid („+ Lisa uus muu rikkumine"), iga plokk = `TextField` vabatekst­pealkiri + sama väljakomplekt nagu punktiplokk; rikkumisliigi rippmenüü näitab kõiki 24 tase-2 koodi (unikaalsed) + `NONE`.
 * `DangerousGoodsTable.tsx` — „Ühik" `TextField` → `Select` (`getByCode('ADR_QUANTITY_UNIT')`); i18n `unNumber` silt „ÜRO number".
 * `AdrFormFields.tsx`:
@@ -295,7 +295,7 @@ CI-jobid: `Validate DSL` (YAML/SQL süntaks), `E2E Tests` (Newman + Liquibase `u
 | #4 | migratsioon läbib; uued veerud olemas õige tüübiga; `chk_adr_result_type` lubab ainult 3 väärtust | E2E; Postman insert `result_type=driving_ban_art5` → 422 |
 | #5 | `POST /v1/control-forms/adr-form/edit/save` uute väljadega (`infringements` uus kuju, `containerTypes`, `otherInfringements`, `exemptionNotes`, `drivingBanApplied`) → 200, `GET` tagastab samad | `tests/postman/collections/adr-form.collection.json` — uued/muudetud päringud |
 | #6 | ADR-vorm tuvastatud rikkumiskirjega → `form_search.has_violation = true`; puhas → `false` | Postman: loo 2 ADR-vormi, `GET /v1/forms/search` kontrollib `hasViolation` |
-| #7 | `useAdrForm` helperid: `setCheckpoint`, `addRecord`/`removeRecord`, severity tuletamine koodist, `C` eemaldamine osalejatest tühjendab `reg2016403Code`; `AddressFields` — välisriik lubab käsitsi maakonna/linna, tühi riigivalik; „Mahuti tüüp" checkbox mitmene | `frontend/src/features/control-forms/pages/adr-form/useAdrForm.test.ts`, `AddressFields.test.tsx` (uued vitest-failid) |
+| #7 | `useAdrForm` helperid: `setCheckpoint`, `addRecord`/`removeRecord`, severity tuletamine koodist, `C` eemaldamine osalejatest tühjendab `reg2016403Code`; `AddressFields` — välisriik lubab käsitsi maakonna/linna, tühi riigivalik; „Mahuti tüüp" märkeruut mitmene | `frontend/src/features/control-forms/pages/adr-form/useAdrForm.test.ts`, `AddressFields.test.tsx` (uued vitest-failid) |
 | #7 | i18n: kõik uued võtmed olemas `et.json`-is (ei jää `forms.adr...` toorelt) | olemasolev i18n-võtmete test kui on, muidu väike vitest |
 | #9 | markdown-lint / lingikontroll kui CI-s on; muidu manuaalne | — |
 

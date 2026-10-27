@@ -1,7 +1,7 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Send an eligible outgoing draft and store its acknowledgement or transport error. Failed messages cannot be resent."
+  description: "Send an eligible outgoing NU draft as ERRU 3.5 XML. The XML is validated first, nu_begin_send then reserves the envelope (status sending) and the internal XML adapter makes one Hub dispatch. Hub HTTP 202 makes the message sent, a definite rejection error, an uncertain outcome send_unknown (never resent). The member states' NotifyUnfitness_Acknowledgement messages arrive later and fill member_states (nu/inbound-ack). Failed messages cannot be resent: a new notification must be composed."
   namespace: erru
   allowlist:
     body:
@@ -187,7 +187,42 @@ prepareOutbound:
     start_time: "${new Date().getTime()}"
     tm_first_name_search_key: "${tm_first_name_search_key || ''}"
     tm_family_name_search_key: "${tm_family_name_search_key || ''}"
-  next: beginSend
+  next: validateXml
+
+validateXml:
+  call: http.post
+  error: returnValidationUnavailable
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/nu/validate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      nuTo: ${nu_to}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      unfitStartDate: ${unfit_start_date}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+  result: xml_validation
+  next: checkXmlValidation
+
+checkXmlValidation:
+  switch:
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+      next: returnInvalidXml
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
+      next: beginSend
+  next: returnValidationUnavailable
 
 beginSend:
   call: http.post
@@ -222,21 +257,26 @@ checkPrepared:
 
 callErru:
   call: http.post
+  error: markUnknown
   args:
-    url: "[#ERRU_NU_ENDPOINT]"
+    url: "[#ERRU_XML_ADAPTER]/internal/nu/send"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: ${outboundHeader}
   result: erru_res
   timeout: 30000
-  error: markError
   next: checkErruStatus
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status < 200 || erru_res.response.status >= 300}
-      next: markError
-  next: checkResponseEnvelope
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === outboundHeader.technicalId && erru_res.response.body.workflowId === outboundHeader.workflowId}
+      next: logIntegrationSuccess
+    - condition: ${erru_res.response.body.status === 'rejected'}
+      next: logIntegrationFailure
+  next: markUnknown
 
 logIntegrationSuccess:
   call: http.post
@@ -256,8 +296,8 @@ logIntegrationSuccess:
       source_type: "erru_nu"
       source_record_id: "${'' + business_case_id}"
   result: log_ok
-  error: buildMemberStateCounts
-  next: buildMemberStateCounts
+  error: markSent
+  next: markSent
 
 logIntegrationFailure:
   call: http.post
@@ -272,96 +312,67 @@ logIntegrationFailure:
       response_xml: "${erru_res.response != null ? JSON.stringify(erru_res.response.body) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
-      error_message: "ERRU transport failure or error response"
+      error_message: "ERRU NU request rejected by the Hub"
       person_identifier: ""
       source_type: "erru_nu"
       source_record_id: "${'' + business_case_id}"
   result: log_fail
-  error: logAuditError
-  next: logAuditError
-checkResponseEnvelope:
-  switch:
-    - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
-      next: extractErruResponseEnveloped
-  next: extractErruResponseDirect
+  error: markRejected
+  next: markRejected
 
-extractErruResponseEnveloped:
-  assign:
-    member_states_raw: "${(function(){try{return JSON.parse(erru_res.response.body.response).memberStates || [];}catch(e){return [];}})()}"
-  next: checkMemberStates
-
-extractErruResponseDirect:
-  assign:
-    member_states_raw: "${(erru_res.response.body && erru_res.response.body.memberStates) || []}"
-  next: checkMemberStates
-
-# Shared Ruuter/Ruuter.internal rules: erru.nu_validate (docs/integrations/erru-nu-exchange.md).
-checkMemberStates:
+markSent:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/erru/nu/validate"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-    body:
-      payload: "${JSON.stringify({memberStates: member_states_raw})}"
-      kind: "ack"
-  result: ackValidation
-  next: checkAckValidation
-
-checkAckValidation:
-  switch:
-    - condition: ${JSON.parse(ackValidation.response.body[0].result).valid !== true}
-      next: markErrorMissingResponse
-  next: storeSent
-
-storeSent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/erru/nu/finish-send"
+    url: "[#LJVIS_RESQL]/erru/nu/mark-dispatch"
     headers:
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}
-      memberStates: "${JSON.stringify(member_states_raw)}"
+      outcome: "accepted"
       failure: ""
-  result: stored_res
-  next: checkStoreSent
+  result: marked
+  error: returnFinalizeFailed
+  next: checkMarked
 
-checkStoreSent:
+# An acknowledgement may already have been stored (sending -> sent); that is the same outcome.
+checkMarked:
   switch:
-    - condition: ${JSON.parse(stored_res.response.body[0].result).status !== 'sent'}
-      next: returnError
-  next: logIntegrationSuccess
+    - condition: ${JSON.parse(marked.response.body[0].result).status === 'sent'}
+      next: logAuditSend
+  next: returnFinalizeFailed
 
-markError:
-  assign:
-    failure_message: "ERRU transport failure"
-  next: storeFailure
-
-markErrorMissingResponse:
-  assign:
-    failure_message: "ERRU acknowledgement does not satisfy ERRU 3.5 requirements"
-  next: storeFailure
-
-storeFailure:
+markRejected:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/erru/nu/finish-send"
+    url: "[#LJVIS_RESQL]/erru/nu/mark-dispatch"
     headers:
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${id}
-      memberStates: ""
-      failure: ${failure_message}
-  result: error_res
-  next: logIntegrationFailure
+      outcome: "rejected"
+      failure: "ERRU NU request rejected before acceptance - compose a new notification"
+  result: rejected_res
+  next: logAuditError
 
-buildMemberStateCounts:
-  assign:
-    ok_count: "${member_states_raw.filter(m => m.statusCode === 'OK').length}"
-    timeout_count: "${member_states_raw.filter(m => m.statusCode === 'Timeout').length}"
-    not_available_count: "${member_states_raw.filter(m => m.statusCode === 'NotAvailable').length}"
-  next: logAuditSend
+markUnknown:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/mark-dispatch"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+    body:
+      key: ${id}
+      outcome: "unknown"
+      failure: "NU dispatch outcome unknown. Do not resend without transport reconciliation."
+  result: unknown_res
+  error: returnUnknown
+  next: checkUnknownMarked
+
+checkUnknownMarked:
+  switch:
+    - condition: ${JSON.parse(unknown_res.response.body[0].result).status === 'sent'}
+      next: logAuditSend
+  next: returnUnknown
 
 logAuditSend:
   template: "templates/audit/erru/nu/log-nu-message-send"
@@ -372,11 +383,12 @@ logAuditSend:
     business_case_id: ${business_case_id}
     nu_to: ${nu_to}
     result_status: "sent"
-    member_state_count: "${'' + member_states_raw.length}"
-    ok_count: "${'' + ok_count}"
-    timeout_count: "${'' + timeout_count}"
-    not_available_count: "${'' + not_available_count}"
+    member_state_count: "0"
+    ok_count: "0"
+    timeout_count: "0"
+    not_available_count: "0"
   result: audit_ok
+  error: returnSent
   next: returnSent
 
 logAuditError:
@@ -396,12 +408,32 @@ logAuditError:
   next: returnError
 
 returnSent:
-  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, memberStates: member_states_raw})}"
+  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id})}"
   next: end
 
 returnError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure — saada uus sobimatusteade"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU lükkas teate tagasi - saada uus sobimatusteade"}'
+  next: end
+
+returnUnknown:
+  status: 502
+  return: '{"valid":false,"code":"send_unknown","message":"Saatmise tulemus on teadmata. Ära saada uuesti."}'
+  next: end
+
+returnFinalizeFailed:
+  status: 502
+  return: '{"valid":false,"code":"send_unknown","message":"Hub võttis teate vastu, kuid kohalik kinnitus ebaõnnestus. Ära saada uuesti."}'
+  next: end
+
+returnInvalidXml:
+  status: 422
+  return: '{"valid":false,"code":"invalid_nu_xml","message":"Andmed ei vasta ERRU XML-lepingule. Kontrolli veokorraldaja ja sertifikaadi andmeid."}'
+  next: end
+
+returnValidationUnavailable:
+  status: 503
+  return: '{"valid":false,"code":"validation_unavailable","message":"XML-i kontroll pole saadaval. Teadet ei saadetud."}'
   next: end
 
 returnIdRequired:

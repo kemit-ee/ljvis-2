@@ -4,18 +4,18 @@ declaration:
   version: "1.0"
   description: >-
     "Is this personal code allowed to see company registry_code's data"
-    check, decoupled from the session's activeRole/activeRegistryCode — the
+    check, decoupled from the session's activeRole/activeRegistryCode - the
     citizen dashboard shows every represented company at once, so a
     representative must be able to view/click into ANY of them regardless of
     which role happens to be active, not just a single "currently selected"
     company. Same check used by GET/v1/citizen/risk-scores/my-company.yml,
     GET/v1/citizen/risk-scores/controls.yml and POST/v1/citizen/forms/
-    search.yml's scope=company branch — factored out here so citizen/forms/
+    search.yml's scope=company branch - factored out here so citizen/forms/
     compound.yml, labour-inspection.yml and foreign-violation.yml can reuse
     it too instead of re-implementing the esindus_v1 SOAP parsing a 4th/5th/
     6th time. Cached representedCompanies (from the JWT, refreshed by
-    representation/companies or representation/switch) is checked first —
-    free, no X-Road call — falling back to a live Äriregister esindus_v1
+    representation/companies or representation/switch) is checked first -
+    free, no X-Road call - falling back to a live Äriregister esindus_v1
     call only when that claim doesn't cover registry_code yet (stale/absent
     claim), never trusting the caller's own claim of representation.
   namespace: service

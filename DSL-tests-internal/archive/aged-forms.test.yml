@@ -1,4 +1,4 @@
-# POST /cron/archive-aged-forms (ADR-012) — ajapõhine arhiveerimine.
+# POST /cron/archive-aged-forms (ADR-012) - ajapõhine arhiveerimine.
 # Seaded tulevad päringuparameetritest (CronManager URL); vaikimisi on väljas.
 mode: mock-http
 constants:

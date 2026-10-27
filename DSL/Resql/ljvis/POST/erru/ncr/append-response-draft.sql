@@ -1,12 +1,12 @@
 /*
 description: 'Save/revise the Estonian RESPONSE draft to an INCOMING NCR message (LJVIS2-63). Appends
   a new snapshot with status ''answer_drafted'', keeping all request-side fields (transport undertaking,
-  infringements, etc.) carried forward unchanged — only the response block and version/status advance.
+  infringements, etc.) carried forward unchanged - only the response block and version/status advance.
   Guarded: the INSERT .. SELECT produces zero rows unless the latest snapshot is status IN (''viewed'',
-  ''answer_drafted'') AND direction=''incoming'' — a not-yet-opened (received), already-answered, or outgoing
+  ''answer_drafted'') AND direction=''incoming'' - a not-yet-opened (received), already-answered, or outgoing
   message cannot be ''responded to'' via this endpoint; the caller detects the empty result and returns
   422 not_editable. penaltiesImposed[] completeness (every penaltyRequestedIdentifier from the request
-  covered exactly once) is validated by the CALLER (response/save.yml) before this query runs — this query
+  covered exactly once) is validated by the CALLER (response/save.yml) before this query runs - this query
   trusts the caller''s payload and does not re-derive coverage. isImposed=false rows are expected to already
   have penaltyTypeImposed/startDate/endDate stripped by the caller.'
 namespace: erru

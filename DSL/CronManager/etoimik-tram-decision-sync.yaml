@@ -1,8 +1,7 @@
-# Runs at 01:15 Tallinn time (TZ pinned in docker-compose.yml) — between the
-# labour-inspection e-toimik sync (01:00) and the PPA sp-driver sync (01:30) to
-# avoid XTR contention.
+# Runs every 3 hours (00:02, 03:02, ...) Tallinn time (TZ pinned in docker-compose.yml).
+# Staggered against the other e-toimik syncs to avoid XTR contention.
 etoimik_tram_decision_sync:
-  trigger: "0 15 1 * * ?"
+  trigger: "0 2 */3 * * ?"
   type: http
   method: POST
   url: http://ruuter-internal:8080/ljvis/cron/etoimik-tram-decision-sync

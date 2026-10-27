@@ -36,6 +36,7 @@ function getEntityUrl(
     case 'rsi':                      return `/erru/rsi/${id}`;
     case 'ctud':                     return `/erru/ctud/${id}`;
     case 'cgr':                      return `/erru/cgr/${id}`;
+    case 'nu':                       return `/erru/nu/${id}`;
     default:                         return null;
   }
 }

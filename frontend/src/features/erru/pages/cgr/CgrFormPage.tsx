@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useCgrRequestDetail } from './useCgrRequestDetail';
 import { useCgrForm } from './useCgrForm';
 import { CgrRequestFields } from '../../components/Cgr/CgrRequestFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { CgrMemberStatesTable } from '../../components/Cgr/CgrMemberStatesTable';
 import { isCgrEditable, isCgrSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
-import { DetailRow } from '../../components/shared/DetailRow';
+import { CgrField } from '../../components/Cgr/CgrField';
 import { PageActions } from '../../../../shared/components/PageActions';
 
 /**
@@ -79,19 +80,40 @@ export function CgrFormPage() {
               {' — '}
               {request.businessCaseId}
             </Heading>
-            <StatusBadge>
-              {label('CGR_REQUEST_STATUS', request.status)}
-            </StatusBadge>
+            <ErruStatusBadge status={request.status}>
+              {request.status === 'sending'
+                ? t('erru.cgr.sending')
+                : request.status === 'send_unknown'
+                  ? t('erru.cgr.sendUnknownStatus')
+                  : label('CGR_REQUEST_STATUS', request.status)}
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.cgr.form.version', { version: request.version })}
             {!editable && ` · ${t('erru.cgr.form.readOnly')}`}
           </Text>
           {request.errorMessage && (
-            <Text modifiers="bold">{request.errorMessage}</Text>
+            <Text modifiers="bold">
+              {request.status === 'send_unknown'
+                ? t('erru.cgr.sendUnknown')
+                : request.errorMessage}
+            </Text>
+          )}
+          {request.direction === 'outgoing' && request.status === 'sent' && !request.memberStates?.length && (
+            <Text>{t('erru.cgr.awaitingResponse')}</Text>
           )}
           {sendError && (
-            <Text modifiers="bold">{t('erru.cgr.sendFailed')}</Text>
+            <Text modifiers="bold">
+              {sendError === 'send_unknown'
+                ? t('erru.cgr.sendUnknown')
+                : sendError === 'invalid_cgr_xml'
+                  ? t('erru.cgr.invalidXml')
+                  : sendError === 'validation_unavailable'
+                    ? t('erru.cgr.validationUnavailable')
+                    : sendError === 'nysiis_unavailable'
+                      ? t('erru.cgr.nysiisUnavailable')
+                      : t('erru.cgr.sendFailed')}
+            </Text>
           )}
         </Card.Content>
       </Card>
@@ -140,69 +162,49 @@ export function CgrFormPage() {
               <Heading element="h2" className="mb-1">
                 {t('erru.cgr.form.headerBlock')}
               </Heading>
-              <DetailRow
-                label={t('erru.cgr.form.cgrFrom')}
-                value={label('COUNTRY', request.cgrFrom)}
-              />
-              <DetailRow
-                label={t('erru.cgr.form.cgrTo')}
-                value={cgrToLabel(request.cgrTo)}
-              />
-              <DetailRow
-                label={t('erru.cgr.form.originatingAuthority')}
-                value={label(
-                  'COMPETENT_AUTHORITY',
-                  request.originatingAuthority,
-                )}
-              />
-              <DetailRow
-                label={t('erru.cgr.form.requestSource')}
-                value={label('CGR_REQUEST_SOURCE', request.requestSource)}
-              />
-              <div className="mb-1">
-                <DetailRow
+              <div className="cgr-fields">
+                <CgrField label={t('erru.cgr.form.cgrFrom')} value={label('COUNTRY', request.cgrFrom)} />
+                <CgrField label={t('erru.cgr.form.cgrTo')} value={cgrToLabel(request.cgrTo)} />
+                <CgrField
+                  label={t('erru.cgr.form.originatingAuthority')}
+                  value={label('COMPETENT_AUTHORITY', request.originatingAuthority)}
+                />
+                <CgrField
+                  label={t('erru.cgr.form.requestSource')}
+                  value={label('CGR_REQUEST_SOURCE', request.requestSource)}
+                />
+                <CgrField
                   label={t('erru.cgr.form.requestPurpose')}
                   value={label('CGR_REQUEST_PURPOSE', request.requestPurpose)}
                 />
               </div>
 
-              <Heading element="h2" className="mb-1">
-                {t('erru.cgr.form.nameBlock')}
-              </Heading>
-              <DetailRow
-                label={t('erru.cgr.form.tmFirstName')}
-                value={request.tmFirstName}
-              />
-              <DetailRow
-                label={t('erru.cgr.form.tmFamilyName')}
-                value={request.tmFamilyName}
-              />
-              <DetailRow
-                label={t('erru.cgr.form.tmDateOfBirth')}
-                value={request.tmDateOfBirth}
-              />
-              <div className="mb-1">
-                <DetailRow
-                  label={t('erru.cgr.form.tmPlaceOfBirth')}
-                  value={request.tmPlaceOfBirth}
-                />
+              <div className="cgr-search-blocks">
+                <section>
+                  <Heading element="h3" className="cgr-block-title">
+                    {t('erru.cgr.form.nameBlock')}
+                  </Heading>
+                  <div className="cgr-fields cgr-fields--two">
+                    <CgrField label={t('erru.cgr.form.tmFirstName')} value={request.tmFirstName} />
+                    <CgrField label={t('erru.cgr.form.tmFamilyName')} value={request.tmFamilyName} />
+                    <CgrField label={t('erru.cgr.form.tmDateOfBirth')} value={request.tmDateOfBirth} />
+                    <CgrField label={t('erru.cgr.form.tmPlaceOfBirth')} value={request.tmPlaceOfBirth} />
+                  </div>
+                </section>
+                <section>
+                  <Heading element="h3" className="cgr-block-title">
+                    {t('erru.cgr.form.certificateBlock')}
+                  </Heading>
+                  <div className="cgr-fields cgr-fields--two">
+                    <CgrField label={t('erru.cgr.form.certificateNumber')} value={request.certificateNumber} />
+                    <CgrField label={t('erru.cgr.form.certificateIssueDate')} value={request.certificateIssueDate} />
+                    <CgrField
+                      label={t('erru.cgr.form.certificateIssueCountry')}
+                      value={label('COUNTRY', request.certificateIssueCountry)}
+                    />
+                  </div>
+                </section>
               </div>
-
-              <Heading element="h2" className="mb-1">
-                {t('erru.cgr.form.certificateBlock')}
-              </Heading>
-              <DetailRow
-                label={t('erru.cgr.form.certificateNumber')}
-                value={request.certificateNumber}
-              />
-              <DetailRow
-                label={t('erru.cgr.form.certificateIssueDate')}
-                value={request.certificateIssueDate}
-              />
-              <DetailRow
-                label={t('erru.cgr.form.certificateIssueCountry')}
-                value={label('COUNTRY', request.certificateIssueCountry)}
-              />
             </Card.Content>
           </Card>
 

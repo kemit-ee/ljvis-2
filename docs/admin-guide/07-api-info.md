@@ -4,12 +4,12 @@
 
 ## 1. Autentimine
 
-Kõik lõpp-punktid eeldavad kehtivat TARA (TIM) sessiooniküpsist. Päringu vastu võetakse ainult siis, kui küpsis sisaldab kehtivat JWT-d. Testikeskkonnas võivad mõned mokklõpp-punktid olla saadaval ilma TARA autentimata — need on eraldi dokumenteeritud.
+Kõik lõpp-punktid eeldavad kehtivat TARA (TIM) seansiküpsist. Päring võetakse vastu ainult siis, kui küpsis sisaldab kehtivat JWT-d. Testikeskkonnas võivad mõned testteenuste lõpp-punktid olla saadaval ilma TARA-ga autentimiseta — need on eraldi dokumenteeritud.
 
 Järgmistes näidetes kasutatakse kohatäiteid:
 
 - `https://<base-url>` — rakenduse baasaadress (nt `https://dev.liiklusvalve.ee`)
-- `<COOKIE>` — TARA/TIM sessiooniküpsise väärtus
+- `<COOKIE>` — TARA/TIM seansiküpsise väärtus
 
 ## 2. Kasutajate lõpp-punktid
 
@@ -176,7 +176,7 @@ curl -X POST "https://<base-url>/v1/classifiers/value" \
 | GET | `/v1/logs` | `audit.read` | `search`, `page`, `pageSize`, `sorting` | Tagastab auditilogi kirjed lehekülgedena. |
 | GET | `/v1/logs/log` | `audit.read` | `q` (sündmuse ID) | Tagastab ühe auditilogi kirje. |
 | GET | `/v1/logs/export` | `audit.read` | `search`, `page`, `pageSize`, `sorting` | Ekspordib auditilogi CSV-failina. |
-| GET | `/v1/logs/verify` | `audit.verify` | `from` (valikuline), `to` (valikuline) | Kontrollib auditilogi hash-ahela terviklikkust. |
+| GET | `/v1/logs/verify` | `audit.verify` | `from` (valikuline), `to` (valikuline) | Kontrollib auditilogi räsiahela terviklikkust. |
 
 ### Näited
 
@@ -187,7 +187,7 @@ curl -X GET "https://<base-url>/v1/logs?search=login&page=1&pageSize=50" \
   -H "Cookie: <COOKIE>"
 ```
 
-Hash-ahela verifitseerimine:
+Räsiahela kontroll:
 
 ```bash
 curl -X GET "https://<base-url>/v1/logs/verify?from=01JAB2C3D4E5F6G7H8J9K0M1N2" \

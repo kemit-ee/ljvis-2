@@ -1,5 +1,5 @@
 /*
-description: 'Update good repute form (hea maine vorm) — appends a new snapshot row. Per LJVIS2-136: version
+description: 'Update good repute form (hea maine vorm) - appends a new snapshot row. Per LJVIS2-136: version
   is unchanged while the latest snapshot''s status is ''saved'' (repeat saves, and the saved->confirmed
   transition, do not bump /V); version increments only when re-saving already-locked (confirmed) data.'
 namespace: control-forms

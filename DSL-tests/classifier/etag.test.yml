@@ -1,4 +1,4 @@
-# GET /v1/classifiers/bundle ja /v1/classifier-values — HTTP ETag / 304.
+# GET /v1/classifiers/bundle ja /v1/classifier-values - HTTP ETag / 304.
 # Versioonimärk (get_classifiers_version) loetakse enne suurt päringut; kui brauseri
 # If-None-Match ühtib, vastatakse 304 ja suurt Resql-päringut ei tehta.
 mode: mock-http

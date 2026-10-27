@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../../components/AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,7 @@ import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable.tsx';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton.tsx';
 import { NotifyCarrierCheckbox } from '../../components/shared/NotifyCarrierCheckbox';
+import { RequestCarrierNotification } from '../../components/shared/RequestCarrierNotification';
 import { NcrBuildModal } from '../../../erru/components/Ncr/NcrBuildModal';
 import { canManuallyPublish, PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 import { useClassifierScopeActive } from '../../../classifiers/ClassifierProvider';
@@ -462,6 +464,14 @@ export function TramControlCardPage() {
         </>
       )}
 
+      {!snapshotId && (
+        <AdministrativeProcedureCard
+          formType="tram-card"
+          formKey={id}
+          reloadAfterSave={!showEdit}
+        />
+      )}
+
       <div className="page-actions mt-1">
         <div className="page-actions-buttons">
           <FormPrintButton
@@ -476,6 +486,13 @@ export function TramControlCardPage() {
             >
               {t('erru.ncr.buildModal.button')}
             </Button>
+          )}
+          {showEdit && (
+            <RequestCarrierNotification
+              formType="tram_control_card"
+              id={id}
+              status={status}
+            />
           )}
           {showEdit ? (
             <>

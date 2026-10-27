@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
+import { AppTable } from '../../shared/components/AppTable';
 import {
   Heading,
   Button,
@@ -50,6 +50,7 @@ export function DesktopPage() {
     scope,
     setScope,
     canSeeOrganisation,
+    canSeeUnit,
     summary,
     summaryLoading,
     summaryError,
@@ -240,24 +241,8 @@ export function DesktopPage() {
     [t, goTo],
   );
 
-  const compoundRows = useMemo(
-    () =>
-      summary.activeCompoundForms.map((c, index) => {
-        const classes = [];
-        if (overdueCompoundKeys.has(c.compoundFormKey))
-          classes.push(styles.rowOverdue);
-        // Zebra stripe is grouped per compound (parent + all its sub-forms
-        // share one colour) so a whole form is easy to tell from the next,
-        // regardless of how many sub-forms it has. Sub-rows reuse the same
-        // parity via row.index in renderSubComponent.
-        if (index % 2 === 1) classes.push(styles.stripeGroup);
-        // Parent with sub-forms merges into them (drops its bottom border) so
-        // the whole group is one seamless block.
-        if (c.subForms.length > 0) classes.push(styles.hasSubs);
-        return { ...c, rowClassName: classes.join(' ') || undefined };
-      }),
-    [summary.activeCompoundForms, overdueCompoundKeys],
-  );
+  const rowClass = (c: { compoundFormKey: number }) =>
+    overdueCompoundKeys.has(c.compoundFormKey) ? styles.rowOverdue : undefined;
 
   // Töös olevate vormide list (kõik peale koondvormide) näidatakse ainult siis,
   // kui kasutajal on õigus vähemalt ühte sellist vormitüüpi lugeda.
@@ -422,7 +407,7 @@ export function DesktopPage() {
       {/* Scope toggle — only for roles with control_form.view_organisation
           (LJVIS2-69 "Lokaalne kasutaja"/administraator), per LJVIS2-69's
           documented role model. Plain officers never see this. */}
-      {canSeeOrganisation && (
+      {(canSeeOrganisation || canSeeUnit) && (
         <div className="mb-1">
           <ChoiceGroup
             id="dashboard-scope"
@@ -433,7 +418,7 @@ export function DesktopPage() {
             direction="row"
             value={scope}
             onChange={(value) =>
-              setScope((value as 'own' | 'organisation') ?? 'own')
+              setScope((value as 'own' | 'unit' | 'organisation') ?? 'own')
             }
             items={[
               {
@@ -441,11 +426,24 @@ export function DesktopPage() {
                 label: t('dashboard.scope.own'),
                 value: 'own',
               },
-              {
-                id: 'dashboard-scope-organisation',
-                label: t('dashboard.scope.organisation'),
-                value: 'organisation',
-              },
+              ...(canSeeUnit
+                ? [
+                    {
+                      id: 'dashboard-scope-unit',
+                      label: t('dashboard.scope.unit'),
+                      value: 'unit',
+                    },
+                  ]
+                : []),
+              ...(canSeeOrganisation
+                ? [
+                    {
+                      id: 'dashboard-scope-organisation',
+                      label: t('dashboard.scope.organisation'),
+                      value: 'organisation',
+                    },
+                  ]
+                : []),
             ]}
           />
         </div>
@@ -468,74 +466,63 @@ export function DesktopPage() {
       </div>
       <Card>
         <Card.Content>
-          <Table
+          <AppTable
             id="dashboard-active-compound"
-            data={compoundRows}
+            data={summary.activeCompoundForms}
             columns={compoundColumns}
             isLoading={summaryLoading}
             getRowId={(row) => String(row.compoundFormKey)}
-            getRowCanExpand={(row) => row.original.subForms.length > 0}
+            getRowCanExpand={(row) => row.subForms.length > 0}
             defaultExpanded
+            rowClassName={rowClass}
             onRowClick={(row) =>
               navigate(
                 `/control-forms${FORM_CONFIG.compound_form.route}/${row.compoundFormKey}`,
               )
             }
             renderSubComponent={(row) => (
-              <>
-                {row.original.subForms.map((sf) => {
+              <div className={styles.subForms}>
+                {row.subForms.map((sf) => {
                   const overdue = overdueSubFormKeys.has(
                     `${sf.formType}-${sf.formKey}`,
                   );
+                  const open = () =>
+                    goTo(buildContinueRoute(sf.formType, sf.formKey));
                   return (
-                    <tr
+                    <div
                       key={`${sf.formType}-${sf.formKey}`}
-                      className={`${styles.subRow}${overdue ? ` ${styles.rowOverdue}` : ''}${row.index % 2 === 1 ? ` ${styles.stripeGroup}` : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goTo(buildContinueRoute(sf.formType, sf.formKey));
+                      className={`${styles.subFormRow}${overdue ? ` ${styles.rowOverdue}` : ''}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={open}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          open();
+                        }
                       }}
                     >
-                      {/* Sub-form rows are real rows of the parent table, so
-                          their cells line up under the parent columns. The 4
-                          leading cells (date/time/vehicle/driver+company) stay
-                          empty; content sits under formNumber / formType /
-                          status; the published column stays empty. */}
-                      <td />
-                      {/* date */}
-                      <td />
-                      {/* time */}
-                      <td />
-                      {/* vehicle */}
-                      <td />
-                      {/* driver + company */}
-                      <td>{sf.formNumber}</td>
-                      <td>{formTypeLabel(t, sf.formType)}</td>
-                      <td>
-                        <FormStatusBadge status={sf.status} overdue={overdue} />
-                      </td>
-                      <td />
-                      {/* published */}
-                      <td className={styles.subTableAction}>
-                        <Button
-                          visualType="link"
-                          iconRight="arrow_forward"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            goTo(buildContinueRoute(sf.formType, sf.formKey));
-                          }}
-                        >
-                          {t('dashboard.actions.continue')}
-                        </Button>
-                      </td>
-                    </tr>
+                      <Text element="span">{sf.formNumber}</Text>
+                      <Text element="span">{formTypeLabel(t, sf.formType)}</Text>
+                      <FormStatusBadge status={sf.status} overdue={overdue} />
+                      <Button
+                        visualType="link"
+                        iconRight="arrow_forward"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          open();
+                        }}
+                      >
+                        {t('dashboard.actions.continue')}
+                      </Button>
+                    </div>
                   );
                 })}
-              </>
+              </div>
             )}
-            placeholder={{ children: t('dashboard.empty.activeCompound') }}
+            placeholder={t('dashboard.empty.activeCompound')}
             hidePagination
-            hideCardBorder
+            borderless
           />
         </Card.Content>
       </Card>
@@ -550,7 +537,7 @@ export function DesktopPage() {
           </div>
           <Card>
             <Card.Content>
-              <Table
+              <AppTable
                 id="dashboard-active-standalone"
                 data={summary.activeStandaloneForms}
                 columns={standaloneColumns}
@@ -559,11 +546,9 @@ export function DesktopPage() {
                 onRowClick={(row) =>
                   goTo(buildContinueRoute(row.formType, row.formKey))
                 }
-                placeholder={{
-                  children: t('dashboard.empty.activeStandalone'),
-                }}
+                placeholder={t('dashboard.empty.activeStandalone')}
                 hidePagination
-                hideCardBorder
+                borderless
               />
             </Card.Content>
           </Card>

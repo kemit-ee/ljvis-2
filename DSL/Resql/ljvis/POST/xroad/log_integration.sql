@@ -25,7 +25,7 @@ params:
     required: false
     description: 'Optional (LJVIS2-56): personal code of the person a query was about, in plaintext, ONLY
       when identified by personal code. Leave blank/omit when identified by name+birthdate (foreigner)
-      — never populate in that case.'
+      - never populate in that case.'
   source_type:
     type: string
     required: false
@@ -37,7 +37,7 @@ params:
   result_status:
     type: string
     required: false
-    description: 'Optional: caller-computed outcome classification — ''found'', ''not_found'' or ''error''.
+    description: 'Optional: caller-computed outcome classification - ''found'', ''not_found'' or ''error''.
       Powers the Haldus > eToimiku X-tee logid status filter.'
 returns:
 - name: id

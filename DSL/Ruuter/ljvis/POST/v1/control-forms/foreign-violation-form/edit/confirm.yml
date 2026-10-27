@@ -160,7 +160,7 @@ extractRequestData:
     commission_last_decision_date: "${incoming.body.commissionLastDecisionDate}"
     admin_procedure_decision: "${incoming.body.adminProcedureDecision}"
     foreign_authority_proposal: "${incoming.body.foreignAuthorityProposal}"
-    # Kinnitamine ei saada teavitusi — linnukesed salvestatakse ja saatmine
+    # Kinnitamine ei saada teavitusi - linnukesed salvestatakse ja saatmine
     # toimub avalikustamisel (edit/publish.yml).
     notify_carrier: "${String(incoming.body.notifyCarrier) === 'true' ? 'true' : 'false'}"
     notify_labor_inspector: "${String(incoming.body.notifyLaborInspector) === 'true' ? 'true' : 'false'}"
@@ -281,7 +281,7 @@ confirmForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${insertRes.response != null && insertRes.response.status >= 200 && insertRes.response.status < 300 && Array.isArray(insertRes.response.body) && insertRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}

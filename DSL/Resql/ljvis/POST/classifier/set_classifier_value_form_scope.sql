@@ -1,5 +1,5 @@
 /*
-description: ADR-011 — sea klassifikaatori väärtuse vormipiirang soovitud nimekirjaks. INSERT-only - lisatud vormidele rida is_active=TRUE, eemaldatud vormidele rida is_active=FALSE; DELETE/UPDATE ei toimu. Tühi form_type_codes = kõik vormid. Tundmatud (FORM_TYPE-is puuduvad) koodid ignoreeritakse.
+description: ADR-011 - sea klassifikaatori väärtuse vormipiirang soovitud nimekirjaks. INSERT-only - lisatud vormidele rida is_active=TRUE, eemaldatud vormidele rida is_active=FALSE; DELETE/UPDATE ei toimu. Tühi form_type_codes = kõik vormid. Tundmatud (FORM_TYPE-is puuduvad) koodid ignoreeritakse.
 namespace: classifier
 params:
   classifier_value_id:

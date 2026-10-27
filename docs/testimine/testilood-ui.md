@@ -687,7 +687,7 @@ Spec: `tests/playwright/tests/xroad-etoimik-logs.spec.ts` · seotud nõuded: N-X
 | Spec | `xroad-etoimik-logs.spec.ts:31` |
 | Tulemus | **läbis** (1.2 s) |
 
-### TL-XTL-02 "Kõik" checkbox eemaldamine tühjendab tabeli, tagasi märkimine taastab
+### TL-XTL-02 "Kõik" märkeruut eemaldamine tühjendab tabeli, tagasi märkimine taastab
 
 | | |
 |---|---|
@@ -1633,7 +1633,7 @@ Spec: `tests/playwright/tests/rsi.spec.ts` · seotud nõuded: N-ERRU-03 (LJVIS2-
 | Spec | `rsi.spec.ts:17` |
 | Tulemus | **läbis** (0.7 s) |
 
-### TL-RSI-03 RSI detailis kuvatakse printimise nupp ja print endpointi kasutatakse
+### TL-RSI-03 RSI detailis kuvatakse printimise nupp ja print lõpp-punkti kasutatakse
 
 | | |
 |---|---|

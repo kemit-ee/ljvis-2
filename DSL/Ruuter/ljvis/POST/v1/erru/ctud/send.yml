@@ -1,7 +1,7 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Send a CTUD request to one member state and store the synchronous response (LJVIS2-144). CTUD is a synchronous single-country exchange: the target country's answer arrives within the same call, so there is no acknowledgement state and no waiting view. The flow is initiated|error -> sent -> responded, each step appending exactly one snapshot via append-transition.sql, whose whitelist rejects any other starting state. Timeout and NotAvailable are outcomes of a SUCCESSFUL exchange (set by the ERRU Hub) and therefore lead to 'responded', not 'error' — only a transport failure or a schema-invalid message leads to 'error', from which the send may be retried. Every outbound call is logged to xroad.xroad_integration_log the same way the Ariregister integration does it. The ERRU endpoint is resolved from the ERRU_CTUD_ENDPOINT constant, which points at the in-repo mock hub in dev/CI and at XTR in production."
+  description: "Reserve an outgoing CTUD envelope, send it through the internal XML adapter and store the Hub acceptance (LJVIS2-144). The adapter validates ERRU 3.5 XML and performs one HTTP dispatch; only its accepted result means HTTP 202 from the Hub. The flow is initiated|error -> sending -> sent (or send_unknown, or error after a definite rejection, which may be retried). The target country's CheckTransportUndertakingData_Response arrives later through /erru/xml and is correlated by the persisted workflowId (ctud/inbound-response), which moves the request to responded. Timeout and NotAvailable are outcomes of a successful exchange set by the ERRU Hub and lead to responded. An uncertain transport outcome (send_unknown) must not be retried. Every outbound call is logged to xroad.xroad_integration_log."
   namespace: erru
   allowlist:
     body:
@@ -58,59 +58,91 @@ extractCurrentState:
     request_purpose: "${current.response.body[0].requestPurpose || ''}"
   next: checkSendable
 
-# Only an outgoing request that is a draft or a previously failed send may be sent.
-# append-transition.sql enforces this too; checking here yields a precise error code.
+# Only an outgoing request that is a draft or was definitely rejected may be sent.
+# ctud_begin_send enforces this too; checking here yields a precise error code.
 checkSendable:
   switch:
     - condition: ${cur_direction !== 'outgoing'}
       next: returnNotSendable
     - condition: ${cur_status !== 'initiated' && cur_status !== 'error'}
       next: returnNotSendable
-  next: markSent
-
-markSent:
-  call: http.post
-  args:
-    url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      key: ${id}
-      newStatus: "sent"
-      technicalId: ""
-      workflowId: ""
-      respondingAuthority: ""
-      responseStatusCode: ""
-      responseStatusMessage: ""
-      responseContent: ""
-      errorMessage: ""
-      created_by: ${actor_personal_code}
-  result: sent_res
-  next: checkMarkSent
-
-checkMarkSent:
-  switch:
-    - condition: ${sent_res.response.body == null || sent_res.response.body.length != 1}
-      next: returnNotSendable
   next: prepareOutbound
 
 prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
-  next: callErru
+  next: validateXml
 
-callErru:
+validateXml:
   call: http.post
+  error: returnValidationUnavailable
   args:
-    url: "[#ERRU_CTUD_ENDPOINT]"
+    url: "[#ERRU_XML_ADAPTER]/internal/ctud/validate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       ctudTo: ${ctud_to}
       businessCaseId: ${business_case_id}
-      technicalId: ""
-      workflowId: ""
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      transportUndertakingName: ${undertaking_name}
+      communityLicenceNumber: ${licence_number}
+      vehicleRegistrationNumber: ${vehicle_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      requestAllVehicles: ${all_vehicles}
+  result: xml_validation
+  next: checkXmlValidation
+
+checkXmlValidation:
+  switch:
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+      next: returnInvalidXml
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
+      next: reserveSend
+  next: returnValidationUnavailable
+
+reserveSend:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/begin-send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      key: ${id}
+      created_by: ${actor_personal_code}
+  result: reservation
+  next: checkReservation
+
+checkReservation:
+  switch:
+    - condition: ${reservation.response == null || reservation.response.status >= 400 || reservation.response.body == null || reservation.response.body.length !== 1}
+      next: returnNotSendable
+  next: extractEnvelope
+
+extractEnvelope:
+  assign:
+    technical_id: "${reservation.response.body[0].technicalId}"
+    workflow_id: "${reservation.response.body[0].workflowId}"
+    sent_at: "${reservation.response.body[0].sentAt}"
+  next: callErru
+
+callErru:
+  call: http.post
+  error: markUnknown
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/ctud/send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      ctudTo: ${ctud_to}
+      businessCaseId: ${business_case_id}
       originatingAuthority: ${originating_authority}
       requestSource: ${request_source}
       requestPurpose: ${request_purpose}
@@ -124,9 +156,13 @@ callErru:
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status === 0 || erru_res.response.status >= 400}
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === technical_id && erru_res.response.body.workflowId === workflow_id}
+      next: logIntegrationSuccess
+    - condition: ${erru_res.response.body.status === 'rejected'}
       next: logIntegrationFailure
-  next: logIntegrationSuccess
+  next: markUnknown
 
 logIntegrationSuccess:
   call: http.post
@@ -146,7 +182,8 @@ logIntegrationSuccess:
       source_type: "erru_ctud"
       source_record_id: "${'' + business_case_id}"
   result: log_ok
-  next: checkResponseEnvelope
+  error: storeSent
+  next: storeSent
 
 logIntegrationFailure:
   call: http.post
@@ -161,45 +198,15 @@ logIntegrationFailure:
       response_xml: "${erru_res.response != null ? JSON.stringify(erru_res.response.body) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
-      error_message: "ERRU transport failure or error response"
+      error_message: "ERRU CTUD request rejected by the Hub"
       person_identifier: ""
       source_type: "erru_ctud"
       source_record_id: "${'' + business_case_id}"
   result: log_fail
+  error: markError
   next: markError
 
-# Two response shapes must be tolerated. The dev/CI mock hub is itself a Ruuter DSL, so
-# its payload arrives wrapped in Ruuter's {"response": "<json string>"} envelope. Real XTR
-# returns the ERRU payload unenveloped. Branch on the envelope rather than assuming either.
-checkResponseEnvelope:
-  switch:
-    - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
-      next: extractErruResponseEnveloped
-  next: extractErruResponseDirect
-
-extractErruResponseEnveloped:
-  assign:
-    resp_status_code: "${JSON.parse(erru_res.response.body.response).statusCode || ''}"
-    resp_status_message: "${JSON.parse(erru_res.response.body.response).statusMessage || ''}"
-    resp_authority: "${JSON.parse(erru_res.response.body.response).respondingAuthority || ''}"
-    resp_content: "${erru_res.response.body.response}"
-  next: checkResponseStatusCode
-
-extractErruResponseDirect:
-  assign:
-    resp_status_code: "${erru_res.response.body.statusCode || ''}"
-    resp_status_message: "${erru_res.response.body.statusMessage || ''}"
-    resp_authority: "${erru_res.response.body.respondingAuthority || ''}"
-    resp_content: "${JSON.stringify(erru_res.response.body)}"
-  next: checkResponseStatusCode
-
-checkResponseStatusCode:
-  switch:
-    - condition: ${!resp_status_code}
-      next: markErrorMissingStatus
-  next: markResponded
-
-markResponded:
+storeSent:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
@@ -208,17 +215,44 @@ markResponded:
       type: json
     body:
       key: ${id}
-      newStatus: "responded"
+      newStatus: "sent"
       technicalId: ""
       workflowId: ""
-      respondingAuthority: ${resp_authority}
-      responseStatusCode: ${resp_status_code}
-      responseStatusMessage: ${resp_status_message}
-      responseContent: ${resp_content}
+      respondingAuthority: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseContent: ""
       errorMessage: ""
-      created_by: "system"
-  result: responded_res
+      created_by: ${actor_personal_code}
+  result: stored_res
+  error: checkConcurrentResponse
+  next: checkStoreSent
+
+checkStoreSent:
+  switch:
+    - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
+      next: checkConcurrentResponse
   next: logAuditSend
+
+# The country may answer before the Hub acknowledgement is stored: sending -> responded.
+checkConcurrentResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/get"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      id: ${id}
+  result: latest_after_send
+  error: returnFinalizeFailed
+  next: checkResponseWonRace
+
+checkResponseWonRace:
+  switch:
+    - condition: ${latest_after_send.response.body != null && latest_after_send.response.body.length === 1 && latest_after_send.response.body[0].status === 'responded'}
+      next: logAuditSend
+  next: returnFinalizeFailed
 
 markError:
   call: http.post
@@ -236,12 +270,12 @@ markError:
       responseStatusCode: ""
       responseStatusMessage: ""
       responseContent: ""
-      errorMessage: "ERRU transport failure — the request may be sent again"
-      created_by: "system"
+      errorMessage: "ERRU CTUD request rejected before acceptance - the request may be sent again"
+      created_by: ${actor_personal_code}
   result: error_res
   next: logAuditError
 
-markErrorMissingStatus:
+markUnknown:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
@@ -250,17 +284,24 @@ markErrorMissingStatus:
       type: json
     body:
       key: ${id}
-      newStatus: "error"
+      newStatus: "send_unknown"
       technicalId: ""
       workflowId: ""
       respondingAuthority: ""
       responseStatusCode: ""
       responseStatusMessage: ""
       responseContent: ""
-      errorMessage: "ERRU response carried no statusCode — not ERRU 3.5 compliant"
-      created_by: "system"
-  result: error_res
-  next: logAuditError
+      errorMessage: "CTUD dispatch outcome unknown. Do not resend without transport reconciliation."
+      created_by: ${actor_personal_code}
+  result: unknown_res
+  error: returnUnknown
+  next: checkUnknownStored
+
+checkUnknownStored:
+  switch:
+    - condition: ${unknown_res.response != null && unknown_res.response.body != null && unknown_res.response.body.length === 0}
+      next: checkConcurrentResponse
+  next: returnUnknown
 
 logAuditSend:
   template: "templates/audit/erru/ctud/log-ctud-request-send"
@@ -270,12 +311,13 @@ logAuditSend:
   body:
     business_case_id: ${business_case_id}
     ctud_to: ${ctud_to}
-    result_status: "responded"
-    response_code: ${resp_status_code}
+    result_status: "sent"
+    response_code: ""
     transport_undertaking_name: ${undertaking_name}
     community_licence_number: ${licence_number}
   result: audit_result
-  next: returnResponded
+  error: returnSent
+  next: returnSent
 
 logAuditError:
   template: "templates/audit/erru/ctud/log-ctud-request-send"
@@ -292,13 +334,33 @@ logAuditError:
   result: audit_result
   next: returnSendFailed
 
-returnResponded:
-  return: ${responded_res.response.body[0]}
+returnSent:
+  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, workflowId: workflow_id})}"
   next: end
 
 returnSendFailed:
   status: 502
-  return: '{"type":"ERRU_ERROR","code":"send_failed","message":"Päringu saatmine ERRU-sse ebaõnnestus. Saatmist saab korrata."}'
+  return: '{"type":"ERRU_ERROR","code":"send_failed","message":"ERRU lükkas päringu tagasi. Saatmist saab korrata."}'
+  next: end
+
+returnUnknown:
+  status: 502
+  return: '{"type":"ERRU_ERROR","code":"send_unknown","message":"Päringu saatmise tulemus on teadmata. Ära saada uuesti."}'
+  next: end
+
+returnFinalizeFailed:
+  status: 502
+  return: '{"type":"ERRU_ERROR","code":"send_unknown","message":"Hub võttis päringu vastu, kuid kohalik kinnitus ebaõnnestus. Ära saada uuesti."}'
+  next: end
+
+returnInvalidXml:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","code":"invalid_ctud_xml","message":"Andmed ei vasta ERRU XML-lepingule. Vähemalt kaks otsingukriteeriumi on kohustuslikud ning sõidukil peab olema number ja riik."}'
+  next: end
+
+returnValidationUnavailable:
+  status: 503
+  return: '{"type":"ERRU_ERROR","code":"validation_unavailable","message":"CTUD XML-i kontroll pole saadaval. Päringut ei saadetud."}'
   next: end
 
 returnNotSendable:
@@ -315,5 +377,3 @@ returnNotFound:
   status: 404
   return: "ctud request not found"
   next: end
-
-

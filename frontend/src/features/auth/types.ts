@@ -18,6 +18,8 @@ export interface AuthUser {
   email?: string;
   status?: string;
   permissions: string | string[];
+  /** Haldusmenetluse ploki ligipääs; reegel on serveris (templates/administrative-procedure/check-access). */
+  canUseAdministrativeProcedure?: boolean;
   officerAvailable: boolean;
   activeRole: RepresentationRole;
   activeRegistryCode: string | null;

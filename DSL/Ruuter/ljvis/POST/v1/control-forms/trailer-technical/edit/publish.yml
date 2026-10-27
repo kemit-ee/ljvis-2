@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) the trailer technical-check sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) the trailer technical-check sub-form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
@@ -112,7 +112,7 @@ publishForm:
   next: checkPublishConflict
 
 # Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
-# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
     - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
@@ -185,9 +185,9 @@ evaluateNotifications:
       type: json
     body:
       entityType: "trailer_technical"
-      entityId: ${id}
-      compoundFormKey: ${compound_form_key}
-      version: ${publishRes.response.body[0].version}
+      entityId: "${'' + id}"
+      compoundFormKey: "${'' + compound_form_key}"
+      version: "${'' + publishRes.response.body[0].version}"
       resultType: ${result_type}
       resultTransportInterruption: ${result_transport_interruption}
       partsSummary: ${parts_summary}
@@ -195,6 +195,20 @@ evaluateNotifications:
       violations: ${violations}
       createdBy: ${actor_personal_code}
   result: notificationEvaluationRes
+  error: recalculateRisk
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "compound"
+      form_key: "${String(compound_form_key)}"
+  result: riskRecalcRes
   error: returnSuccess
   next: returnSuccess
 

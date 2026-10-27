@@ -1,0 +1,72 @@
+# POST /cron/risk-score-recalc-sync - kokkuvõte sisaldab arvestatud (total),
+# õnnestunud (succeeded) ja ebaõnnestunud (failures) kirjete arvu; neid
+# kasutab Haldus → manuaalne käivitamine tulemusteate jaoks.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
+tests:
+- name: all companies recalculated - total equals succeeded
+  setup:
+    mocks:
+    - url_matches: /risk_score/select_companies_for_recalc
+      method: POST
+      status: 200
+      body:
+      - companyRegCode: '10000001'
+      - companyRegCode: '10000002'
+    - url_matches: /risk-scores/recalculate
+      method: POST
+      status: 200
+      body:
+        riskBandCode: LOW
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/cron/risk-score-recalc-sync
+    headers:
+      x-internal-service-token: dev-internal-service-token
+  expect:
+    status: 200
+    body:
+      response:
+        companiesChecked: 2
+        failures: 0
+        recalculated: 2
+        succeeded: 2
+        total: 2
+
+- name: failing recalculation is counted in total and failures, not in succeeded
+  setup:
+    mocks:
+    - url_matches: /risk_score/select_companies_for_recalc
+      method: POST
+      status: 200
+      body:
+      - companyRegCode: '10000001'
+      - companyRegCode: '10000002'
+    - url_matches: /risk-scores/recalculate
+      method: POST
+      status: 500
+      body: {}
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/cron/risk-score-recalc-sync
+    headers:
+      x-internal-service-token: dev-internal-service-token
+  expect:
+    status: 200
+    body:
+      response:
+        companiesChecked: 2
+        failures: 2
+        recalculated: 0
+        succeeded: 0
+        total: 2

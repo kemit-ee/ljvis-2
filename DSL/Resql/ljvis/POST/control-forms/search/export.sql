@@ -14,6 +14,14 @@ params:
     type: string
     required: false
     description: Literal true when the caller has control_form.view_unpublished (all rows, any status)
+  caller_view_unit:
+    type: string
+    required: false
+    description: Literal true when the caller has control_form.view_unit (rows of readable types created by users of the caller's own organisation and structural unit, any status)
+  caller_structural_unit:
+    type: string
+    required: false
+    description: Caller structural unit (auth_user.structuralunit, e.g. PPA_LOUNA); empty when unknown
   caller_view_organisation:
     type: string
     required: false
@@ -69,7 +77,7 @@ params:
   has_violation:
     type: string
     required: false
-    description: '''true'' / ''false'' — filter by violation presence'
+    description: '''true'' / ''false'' - filter by violation presence'
   status:
     type: string
     required: false
@@ -108,6 +116,15 @@ WITH f AS (
      OR (COALESCE(:actor_code, '') <> '' AND fs.created_by = :actor_code)
      OR (:caller_view_unpublished = 'true'
          AND (fs.form_type <> 'tram_control_card' OR fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))))
+     OR (:caller_view_unit = 'true'
+         AND COALESCE(:caller_organisation_id, '') <> ''
+         AND COALESCE(:caller_structural_unit, '') <> ''
+         AND fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))
+         AND (SELECT ua.organisation_id::text || '|' || COALESCE(ua.structural_unit, '')
+              FROM users.user_account ua
+              WHERE ua.personal_code = fs.created_by
+              ORDER BY ua.created_at DESC
+              LIMIT 1) = :caller_organisation_id || '|' || :caller_structural_unit)
      OR (:caller_view_organisation = 'true'
          AND COALESCE(:caller_organisation_id, '') <> ''
          AND fs.form_type = ANY (string_to_array(COALESCE(:allowed_types, ''), ','))

@@ -1,5 +1,5 @@
 /*
-description: Update user group permissions — apply added and removed permission IDs in a single insert
+description: Update user group permissions - apply added and removed permission IDs in a single insert
 namespace: user_group
 params:
   user_group_id:

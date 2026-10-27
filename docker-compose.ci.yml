@@ -208,12 +208,17 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
-  # Real XTR (published image) as the X-tee SOAP provider in front of ruuter-internal.
+  # Real XTR (same patched build as deployment) as the X-tee SOAP provider in front of ruuter-internal.
   # The `xtr` service above is a mock and cannot do SOAP. Inbound SOAP 9095 → 8081,
   # internal outbound JSON 9094 → 8080 (CI sidecar loops outbound SOAP back to 8081).
   # See docs/xtee/09-xtr-soap.md.
   xtr-inbound:
-    image: turnerrainer/xtr:0.5.0-rc
+    image: ljvis-ci-xtr-inbound
+    build:
+      context: .
+      dockerfile: docker/xtr/Dockerfile
+      args:
+        XTR_RUNTIME_IMAGE: turnerrainer/xtr@sha256:634b11471ff9c709f6b46cab18f7e85711d18df334a8b9a368f399a62bf1a9ca
     restart: unless-stopped
     depends_on:
       - ruuter-internal
@@ -319,6 +324,9 @@ services:
       timeout: 5s
       retries: 12
       start_period: 5s
+    environment:
+      # Answers outgoing CGR/CTUD asynchronously through the adapter's ingress (dev/CI only).
+      - AUTO_REPLY_URL=http://erru-xml-adapter:8080/erru/xml
     networks:
       - ljvis-ci
     # localhost-only.
@@ -349,6 +357,11 @@ services:
       - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
       - INTERNAL_COMMUNICATION_KEY=dev-internal-service-token
       - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+      - HUB_RSI_REQUEST_URL=http://erru-hub-mock:8080/rsi/http/request/BTSHTTPReceive.dll
+      - HUB_CGR_REQUEST_URL=http://erru-hub-mock:8080/cgr/http/request/BTSHTTPReceive.dll
+      - HUB_CTUD_REQUEST_URL=http://erru-hub-mock:8080/ctud/http/request/BTSHTTPReceive.dll
+      - HUB_NCR_REQUEST_URL=http://erru-hub-mock:8080/ncr/http/request/BTSHTTPReceive.dll
+      - HUB_NU_REQUEST_URL=http://erru-hub-mock:8080/nu/http/request/BTSHTTPReceive.dll
       - CONTRACTS_DIR=/app/contracts/erru/3.5
       - RESPONDING_AUTHORITY=EE-PPA
       - RESPONDING_AUTHORITY_CTUD=EE-TRAM

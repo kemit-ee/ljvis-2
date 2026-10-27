@@ -8,7 +8,7 @@ declaration:
     sisaldab), notificationKey (täpne). Sortimine sortBy/sortDir (vaikimisi
     sendDate desc). Leheküljed page + pageSize.
     Nõuab notification.list õigust (kaitstud outbound-log/.guard kaudu).
-    Iga avamine logitakse auditisse (notification.list.view) — vaates
+    Iga avamine logitakse auditisse (notification.list.view) - vaates
     kuvatakse isikuandmeid (adressaatide e-posti aadressid), 12-2 §7.
   namespace: notification
   allowlist:
@@ -72,12 +72,12 @@ queryLog:
 
 # Mähime read {content, total} kujusse (frontend PagedResponse). total tuleb
 # list_outbound_log.sql-i COUNT(*) OVER () veerust (igal real ühesugune).
-# NB: EI kasuta DMapperit (varem map_outbound_log_list.handlebars) — see ehitas
+# NB: EI kasuta DMapperit (varem map_outbound_log_list.handlebars) - see ehitas
 # JSON-i käsitsi ilma escape'imata, seega üksainus failure_reason reavahetuse /
 # kurakaldkriipsuga (nt X-teelt op.resolution) tegi terve vastuse vigaseks
 # JSON-iks ja Ruuter tagastas selle stringina (frontend: 0 rida). Ehitame
 # objekti siin ja puhastame failure_reason üherealiseks (split/join, mitte
-# regex — Ruuteri väljendimootor).
+# regex - Ruuteri väljendimootor).
 buildResult:
   assign:
     result_obj: >-

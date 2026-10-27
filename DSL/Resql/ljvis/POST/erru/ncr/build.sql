@@ -1,21 +1,21 @@
 /*
 description: 'Eeltäitmine (LJVIS2-64 §4.1): build a new OUTGOING NCR request draft from an SP control-form
   sub-form (forms.sp_driver_form or forms.sp_teammate_form, selected by :spFormType) and its parent forms.compound_form,
-  OR — when :spFormType = ''tram'' — directly from a forms.tram_control_card row (ADR-002 standalone entity,
+  OR - when :spFormType = ''tram'' - directly from a forms.tram_control_card row (ADR-002 standalone entity,
   no compound_form parent; :spFormKey is then its tram_control_card_key).
   Appends the first snapshot of a new erru.ncr_message with status ''initiated'', same as append-request-draft.sql,
   but the field values are DERIVED from the SP sub-form instead of being passed by the caller. checkResult
-  is Pass when the sub-form''s erru_points[] contains no MSI/VSI/SI entries, Fail otherwise — CleanCheck
+  is Pass when the sub-form''s erru_points[] contains no MSI/VSI/SI entries, Fail otherwise - CleanCheck
   is never produced (LJVIS2-64 §4.1: ''ERRU väärtust CleanCheck ei kasutata''). Each MSI/VSI/SI erru_point
   becomes one seriousInfringements[] entry with category+infringementType only (penaltiesImposed/penaltiesRequested
   are left empty for the officer to fill in on the NCR form, per spec ''Karistuste andmeid ... ei eeltäideta'').
   M1 exception (LJVIS2-64 §4.1 ''Sõidukeelu erand''): when the compound_form''s vehicle category is M1
   (private car), the ''302'' (driving ban / sõidukeeld) infringement is dropped from the draft even if
-  present in erru_points — that penalty applies only to transport undertakings, not private individuals.
+  present in erru_points - that penalty applies only to transport undertakings, not private individuals.
   minorInfringement is never eeltäidetud (spec: officer fills it in manually on the form). Returns zero
   rows if the SP sub-form or its parent compound_form cannot be found, or if erru.ncr_message insert should
-  not create a business_case_id (never happens here, since insert-only) — caller maps empty result to
-  404/422.'
+  not create a business_case_id (never happens here, since insert-only) - caller maps empty result to
+  404/422. Automatic dispatch (created_by = erru-cron) uses UNKNOWN for a missing licence-copy number.'
 namespace: erru
 params:
   spFormKey:
@@ -24,7 +24,7 @@ params:
   spFormType:
     type: string
     required: false
-    description: '''driver'', ''teammate'' or ''tram'' — selects sp_driver_form / sp_teammate_form / tram_control_card'
+    description: '''driver'', ''teammate'' or ''tram'' - selects sp_driver_form / sp_teammate_form / tram_control_card'
   originatingAuthority:
     type: string
     required: false
@@ -72,7 +72,8 @@ returns:
 --   compound_form.company_activity_licence_copy_number      -> community_licence_number
 --       (ühenduse tegevusloa / kinnitatud ärakirja / tõestatud koopia number)
 --   compound_form.vehicle_reg_nr                            -> vehicle_registration_number
---   compound_form.vehicle_country_code (<> 'EE')            -> vehicle_registration_country + ncr_to
+--   compound_form.vehicle_country_code                      -> vehicle_registration_country
+--   compound_form.company_country_code                      -> automatic NCR destination (caller)
 --   compound_form.control_date                              -> check_date + iga rikkumise kuupäevad
 --   sp_*_form.erru_points[] (severity_category MSI/VSI/SI)  -> serious_infringements[] + check_result
 --       (derive_sp_erru_points arvestab ka sp_*_form.cabotage_violations,
@@ -174,7 +175,7 @@ WITH sp AS (
         'infringementType', p->>'erru_code',
         'dateOfInfringement', sp.control_date,
         'detectionCheckDate', sp.control_date,
-        -- "Karistust saab edasi kaevata" vaikimisi false — NCR teade saadetakse
+        -- "Karistust saab edasi kaevata" vaikimisi false - NCR teade saadetakse
         -- valdavalt jõustunud otsuste kohta; ametnik muudab vajadusel (#328).
         'appealPossible', false,
         'penaltiesImposed', '[]'::JSONB,
@@ -226,7 +227,10 @@ WITH sp AS (
     NULLIF(:requestSource, ''),
     NULLIF(:requestPurpose, ''),
     sp.company_name,
-    sp.company_activity_licence_copy_number,
+    CASE WHEN :created_by = 'erru-cron'
+      THEN COALESCE(NULLIF(btrim(sp.company_activity_licence_copy_number), ''), 'UNKNOWN')
+      ELSE sp.company_activity_licence_copy_number
+    END,
     sp.vehicle_reg_nr,
     sp.vehicle_country_code,
     CASE WHEN serious.has_serious THEN 'Fail' ELSE 'Pass' END,

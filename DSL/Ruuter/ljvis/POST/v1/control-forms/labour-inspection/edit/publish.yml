@@ -2,7 +2,7 @@ declaration:
   internal: false
 
   version: "1.0"
-  description: "Publish (avalikusta) a labour inspection form (Tööinspektsiooni kontrollakt). Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) a labour inspection form (Tööinspektsiooni kontrollakt). Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
@@ -102,7 +102,7 @@ publishForm:
   next: checkPublishConflict
 
 # Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
-# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
     - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
@@ -134,6 +134,20 @@ logAuditEvent:
     old_status: ${old_status}
     new_status: ${new_status}
   result: audit_result
+  next: recalculateRisk
+
+recalculateRisk:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/risk-scores/recalculate/from-form"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      form_type: "labour_inspection"
+      form_key: "${String(id)}"
+  result: riskRecalcRes
+  error: returnSuccess
   next: returnSuccess
 
 returnSuccess:

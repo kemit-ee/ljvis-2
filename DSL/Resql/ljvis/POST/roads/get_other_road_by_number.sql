@@ -22,7 +22,7 @@ WITH road_other AS (
     ORDER BY classifier_key, created_at DESC
 ),
 -- classifier_value on INSERT-only snapshot-tabel: leia koodi järgi kandidaatvõtmed
--- (idx_cv_code) ja võta iga võtme viimane snapshot (idx_cv_key_ts) — nii ei tagastata
+-- (idx_cv_code) ja võta iga võtme viimane snapshot (idx_cv_key_ts) - nii ei tagastata
 -- väärtust, mille kood on hilisemas snapshot'is muudetud.
 latest_value AS (
     SELECT DISTINCT ON (cv.classifier_value_key)

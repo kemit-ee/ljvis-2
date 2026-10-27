@@ -9,10 +9,10 @@ from render import TEMPLATES, render_pdf
 
 MAX_BODY = 2 * 1024 * 1024
 
-# Fail closed (#520): without an API key every non-health request would be anonymous.
-API_KEY = os.environ.get('PDF_CREATOR_API_KEY', '')
-if not API_KEY:
-    raise RuntimeError('PDF_CREATOR_API_KEY must be set')
+# Fail closed (#520): without PDF_CREATOR_API_KEY every non-health request is refused (503).
+# Local use without a key needs the explicit opt-out PDF_CREATOR_ALLOW_NO_AUTH=1.
+if not os.environ.get('PDF_CREATOR_API_KEY') and os.environ.get('PDF_CREATOR_ALLOW_NO_AUTH') != '1':
+    logging.error('PDF_CREATOR_API_KEY is not set: all requests except /health are refused (503)')
 
 
 def validate_tree(value, depth=0):
@@ -33,8 +33,12 @@ def application(environ, start_response):
         return [body]
     path=environ.get('PATH_INFO','');method=environ.get('REQUEST_METHOD','GET')
     if path=='/health' and method=='GET':return reply(200,{'status':'ok'})
-    if not hmac.compare_digest(environ.get('HTTP_AUTHORIZATION',''), 'Bearer '+API_KEY):
-        return reply(401,{'error':'unauthorized'})
+    token=os.environ.get('PDF_CREATOR_API_KEY','')
+    if token:
+        if not hmac.compare_digest(environ.get('HTTP_AUTHORIZATION',''), 'Bearer '+token):
+            return reply(401,{'error':'unauthorized'})
+    elif os.environ.get('PDF_CREATOR_ALLOW_NO_AUTH')!='1':
+        return reply(503,{'error':'auth_not_configured'})
     if path=='/v1/templates' and method=='GET':return reply(200,{'templates':list(TEMPLATES),'modes':['blank','filled'],'outputs':['pdf','base64']})
     if path!='/v1/render':return reply(404,{'error':'not_found'})
     if method!='POST':return reply(405,{'error':'method_not_allowed'},extra=[('Allow','POST')])

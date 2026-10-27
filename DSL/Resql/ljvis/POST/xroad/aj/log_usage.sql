@@ -1,5 +1,5 @@
 /*
-description: Lisa kirje andmejälgija kasutusteabe tabelisse (xroad.aj_usage_log). Append-only — kirjeid
+description: Lisa kirje andmejälgija kasutusteabe tabelisse (xroad.aj_usage_log). Append-only - kirjeid
   ei uuendata ega kustutata (IKS § 19, § 25).
 namespace: xroad
 params:
@@ -14,7 +14,7 @@ params:
   receiver_code:
     type: string
     required: false
-    description: X-tee kliendi member_code — asutus kes andmeid sai.
+    description: X-tee kliendi member_code - asutus kes andmeid sai.
   receiver_name:
     type: string
     required: false

@@ -10,21 +10,21 @@ params:
 
 method: POST
 
-# LJVIS2-154 — MTR checkTransportManagerGoodRepute/v1
+# LJVIS2-154 - MTR checkTransportManagerGoodRepute/v1
 # (EE/GOV/70003218/mtr/checkTransportManagerGoodRepute/v1).
 #
 # firstName/lastName must already be NYSIIS-encoded by the caller (via
-# templates/erru/cgr/nysiis-key.yml, delegating to the nysiis sidecar) —
+# templates/erru/cgr/nysiis-key.yml, delegating to the nysiis sidecar) -
 # MTR matches transport manager names in NYSIIS-normalised form; this
 # template does not re-encode them.
 #
 # elementFormDefault is unset on the producer's schema (confirmed via the
 # real getWsdl meta-service response, LJVIS2-154), i.e. defaults to
-# "unqualified" per XSD — same gotcha as paring2.yml: only the top-level
+# "unqualified" per XSD - same gotcha as paring2.yml: only the top-level
 # <prod:checkTransportManagerGoodRepute> element is namespace-qualified,
 # its children (request/firstName/lastName/...) must NOT carry the prod:
 # prefix. birthPlace is minOccurs="0" in CheckTransportManagerGoodReputeRequest_Body
-# — omitted entirely (not xsi:nil) when the caller didn't supply it, since
+# - omitted entirely (not xsi:nil) when the caller didn't supply it, since
 # the producer's schema has it truly optional rather than xsd:all-nillable
 # like paring2's fields.
 envelope: >

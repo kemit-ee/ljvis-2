@@ -1,3 +1,4 @@
+import { AdministrativeProcedureCard } from '../AdministrativeProcedureCard/AdministrativeProcedureCard';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { useDriveRestForm } from '../../pages/drive-rest-form/useDriveRestForm';
@@ -14,7 +15,7 @@ import {
   AccordionItem,
   AccordionItemContent,
   AccordionItemHeader,
-  TextArea,
+  Textarea,
   Alert,
   Checkbox,
 } from '@tedi-design-system/react/tedi';
@@ -130,9 +131,14 @@ export function DriveRestFormFields({
 }: Props) {
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
+  // Kinnitatud ja avalikustatud vormil saab neid välju muuta eToimikuga seonduva
+  // ülekirjutamise õigusega kasutaja ning administraator (e-toimiku vea parandamiseks).
   const canEditProceedingOutcome =
-    formik.values.status === 'confirmed' &&
-    hasPermission(PUNISHMENT_REGISTER_PERMISSION);
+    !readOnly &&
+    (formik.values.status === 'confirmed' ||
+      formik.values.status === 'published') &&
+    (hasPermission(PUNISHMENT_REGISTER_PERMISSION) ||
+      hasPermission('control_form.edit_locked'));
 
   const fieldId = (id: string) => type === 'teammate' ? `teammate-${id}` : id;
 
@@ -197,7 +203,7 @@ export function DriveRestFormFields({
         label={<strong>{t('forms.sp_form.atpViolationFound')}</strong>}
       />
       <div className={`mt-1 ${styles[isDesktop ? 'width-80' : 'width-100']}`}>
-        <TextArea
+        <Textarea
           id={fieldId('atpViolationDescription')}
           maxHeight="8rem"
           label={<strong>{t('forms.sp_form.atpViolationDescription')}</strong>}
@@ -1192,7 +1198,7 @@ export function DriveRestFormFields({
                   }}
                 />
                 <div className="mb-1">
-                  <TextArea
+                  <Textarea
                     id={fieldId('tachographNotes')}
                     maxHeight="8rem"
                     label={t('forms.sp_form.tachographNotes')}
@@ -1376,7 +1382,7 @@ export function DriveRestFormFields({
                   {t('forms.sp_form.xteeDataTitle')}
                 </Heading>
                 <div className="mb-1">
-                  <TextArea
+                  <Textarea
                     id={fieldId('enforcementDecision')}
                     label={
                       <strong>{t('forms.sp_form.enforcedDecision')}</strong>
@@ -1388,7 +1394,7 @@ export function DriveRestFormFields({
                   />
                 </div>
                 <div>
-                  <TextArea
+                  <Textarea
                     id={fieldId('proceedingClosureBasis')}
                     label={
                       <strong>
@@ -1405,6 +1411,14 @@ export function DriveRestFormFields({
             </Card>
           </Col>
         </Row>
+      )}
+      {/* Plokk: Haldusmenetlus (õigusega ametnikule; TRAM-kaardil on plokk kaardi tasemel) */}
+      {authority !== 'TRAM' && (
+        <AdministrativeProcedureCard
+          formType={type === 'teammate' ? 'drive-rest-form/teammate' : 'drive-rest-form/driver'}
+          formKey={formik.values.id}
+          reloadAfterSave={readOnly}
+        />
       )}
       {/* Plokk: Failid */}
       <Row className="m-0">
@@ -1435,7 +1449,7 @@ export function DriveRestFormFields({
               {t('forms.sp_form.notes')}
             </Heading>
             <div className={styles[isDesktop ? 'width-80' : 'width-100']}>
-              <TextArea
+              <Textarea
                 id={fieldId('sanctionNotes')}
                 label=""
                 value={formik.values.notes}

@@ -86,8 +86,8 @@ docs/resql/epic_09/
 | Väli | Väärtus |
 |------|---------|
 | **Failitee** | `DSL/Ruuter/api/POST/v1/admin/classifiers/.guard` |
-| **Rakendub** | Kõigile `classifiers/` kausta endpointidele |
-| **Nõutud permission** | Baastase: `classifier.list` OR `classifier.read` OR `classifier.edit`; `update` endpoint teeb lisaks range `classifier.edit` kontrolli |
+| **Rakendub** | Kõigile `classifiers/` kausta lõpp-punktidele |
+| **Nõutud permission** | Baastase: `classifier.list` OR `classifier.read` OR `classifier.edit`; `update` lõpp-punkt teeb lisaks range `classifier.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
 
 ### 3.2 `POST /v1/admin/classifiers/list`
@@ -136,8 +136,8 @@ docs/resql/epic_09/
 | Väli | Väärtus |
 |------|---------|
 | **Failitee** | `DSL/Ruuter/api/POST/v1/admin/classifier-values/.guard` |
-| **Rakendub** | Kõigile `classifier-values/` kausta endpointidele |
-| **Nõutud permission** | Baastase: `classifier.read` OR `classifier_value.edit`; write/check endpointid teevad lisaks range `classifier_value.edit` kontrolli |
+| **Rakendub** | Kõigile `classifier-values/` kausta lõpp-punktidele |
+| **Nõutud permission** | Baastase: `classifier.read` OR `classifier_value.edit`; write/check lõpp-punktid teevad lisaks range `classifier_value.edit` kontrolli |
 | **Anonüümne lubatud** | Ei |
 
 ### 3.6 `POST /v1/admin/classifier-values/list`

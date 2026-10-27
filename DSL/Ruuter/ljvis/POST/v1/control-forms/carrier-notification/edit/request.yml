@@ -1,0 +1,210 @@
+declaration:
+  internal: false
+  version: "1.0"
+  description: >-
+    Tellib vedaja teavituse (notifications.carrier_notification_request) juba kinnitatud
+    või avalikustatud vormile. Kinnitatud vormi puhul jääb tellimus avatuks ja saadetakse
+    avalikustamisel; avalikustatud vormi puhul saadetakse teavitus kohe
+    (notification/send-carrier-from-request). Teavitus saadetakse ainult MSI, VSI või SI
+    rikkumise korral. Nõuab vormitüübi kirjutusõigust või administraatorit ning vormi
+    lugemisõigust. Tagastab {"requested":"true","sent":"true|false"}.
+  namespace: control-forms
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+    body:
+      - { field: formType, type: string }
+      - { field: id, type: string }
+
+extract:
+  assign:
+    form_type: "${incoming.body.formType}"
+    id: "${incoming.body.id}"
+    actor_personal_code: "${auth_user.personalcode || ''}"
+    is_admin: "${auth_user.permissions != null && auth_user.permissions.includes('control_form.view_unpublished') && auth_user.permissions.includes('control_form.edit_locked') && auth_user.permissions.includes('control_form.delete')}"
+  next: checkInput
+
+checkInput:
+  switch:
+    - condition: ${id == null || !/^[0-9]+$/.test(String(id))}
+      next: invalidId
+    - condition: ${form_type === 'sp_driver'}
+      next: configDriver
+    - condition: ${form_type === 'sp_teammate'}
+      next: configTeammate
+    - condition: ${form_type === 'tram_control_card'}
+      next: configTram
+    - condition: ${form_type === 'vehicle_technical'}
+      next: configVehicle
+    - condition: ${form_type === 'trailer_technical'}
+      next: configTrailer
+  next: invalidType
+
+configDriver:
+  assign:
+    entity_type: "drive_rest_driver_form"
+    read_form_type: "drive-rest-form/driver"
+    required_permission: "sp_driver_form.write"
+  next: checkPermission
+
+configTeammate:
+  assign:
+    entity_type: "drive_rest_teammate_form"
+    read_form_type: "drive-rest-form/teammate"
+    required_permission: "sp_teammate_form.write"
+  next: checkPermission
+
+configTram:
+  assign:
+    entity_type: "tram_control_card"
+    read_form_type: "tram-card"
+    required_permission: "tram_driver_form.write"
+  next: checkPermission
+
+configVehicle:
+  assign:
+    entity_type: "vehicle_technical"
+    read_form_type: "vehicle-technical"
+    required_permission: "vehicle_technical_form.write"
+  next: checkPermission
+
+configTrailer:
+  assign:
+    entity_type: "trailer_technical"
+    read_form_type: "trailer-technical"
+    required_permission: "trailer_technical_form.write"
+  next: checkPermission
+
+checkPermission:
+  switch:
+    - condition: ${is_admin === true || (auth_user.permissions != null && auth_user.permissions.includes(required_permission))}
+      next: checkReadAccess
+  next: forbidden
+
+checkReadAccess:
+  template: "templates/form/check-read-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    form_type: "${read_form_type}"
+    form_key: "${id}"
+    form_number: ""
+  result: readAccess
+  next: evalReadAccess
+
+evalReadAccess:
+  switch:
+    - condition: ${readAccess == "allow"}
+      next: getForm
+  next: forbidden
+
+getForm:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/${read_form_type}/get"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      id: ${id}
+  result: formRes
+  next: checkForm
+
+checkForm:
+  switch:
+    - condition: ${formRes.response == null || formRes.response.status < 200 || formRes.response.status >= 300}
+      next: lookupFailed
+    - condition: ${formRes.response.body == null || formRes.response.body.length === 0}
+      next: notFound
+    - condition: ${formRes.response.body[0].status !== 'confirmed' && formRes.response.body[0].status !== 'published'}
+      next: notConfirmed
+  next: assignStatus
+
+assignStatus:
+  assign:
+    form_status: "${formRes.response.body[0].status}"
+  next: registerRequest
+
+registerRequest:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entity_type: ${entity_type}
+      entity_id: ${id}
+      requested_by: ${actor_personal_code}
+  result: requestRes
+  next: checkRegistered
+
+checkRegistered:
+  switch:
+    - condition: ${requestRes.response == null || requestRes.response.status < 200 || requestRes.response.status >= 300}
+      next: saveFailed
+    - condition: ${form_status === 'published'}
+      next: sendNow
+  next: returnPending
+
+# Avalikustatud vormil saadetakse teavitus kohe; kinnitatud vormil jääb tellimus
+# avatuks ja läheb teele avalikustamisel. Saatmise viga ei tühista tellimust.
+sendNow:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/send-carrier-from-request"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      entity_type: ${entity_type}
+      entity_id: ${id}
+      created_by: ${actor_personal_code}
+  result: sendRes
+  error: returnPending
+  next: returnSent
+
+returnSent:
+  return: '${JSON.stringify({ requested: "true", sent: (sendRes.response != null && sendRes.response.body != null && String((typeof sendRes.response.body === "string" ? JSON.parse(sendRes.response.body) : sendRes.response.body).sent) === "true") ? "true" : "false" })}'
+  next: end
+
+returnPending:
+  return: '{"requested":"true","sent":"false"}'
+  next: end
+
+invalidType:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"formType","code":"invalid_form_type"}'
+  next: end
+
+invalidId:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"id","code":"invalid_id"}'
+  next: end
+
+forbidden:
+  status: 403
+  return: '{"type":"FORBIDDEN","code":"forbidden"}'
+  next: end
+
+notFound:
+  status: 404
+  return: '{"type":"NOT_FOUND","code":"form_not_found"}'
+  next: end
+
+notConfirmed:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_not_confirmed"}'
+  next: end
+
+lookupFailed:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"lookup_failed"}'
+  next: end
+
+saveFailed:
+  status: 500
+  return: '{"type":"RESQL_ERROR","code":"save_failed"}'
+  next: end

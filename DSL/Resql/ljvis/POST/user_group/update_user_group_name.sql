@@ -1,5 +1,5 @@
 /*
-description: Update user group name — copy latest snapshot with new name
+description: Update user group name - copy latest snapshot with new name
 namespace: user_group
 params:
   user_group_id:

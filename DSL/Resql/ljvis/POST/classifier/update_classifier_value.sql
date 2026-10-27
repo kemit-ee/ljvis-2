@@ -1,5 +1,5 @@
 /*
-description: Edit classifier value — copy latest snapshot (incl. parent_key, description) with new validity dates and optional name
+description: Edit classifier value - copy latest snapshot (incl. parent_key, description) with new validity dates and optional name
 namespace: classifier
 params:
   classifier_value_id:

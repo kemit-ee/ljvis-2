@@ -1,12 +1,12 @@
 /*
 description: Citizen-facing read-only list of every published sub-form (sp_driver, sp_teammate, vehicle_technical,
   trailer_technical, adr, kv) attached to a compound_form (koondvorm), for the citizen compound-form detail
-  page. Companion to citizen/forms/compound.sql's parent-row fetch — the detail page was showing only
+  page. Companion to citizen/forms/compound.sql's parent-row fetch - the detail page was showing only
   the koondvorm's general/company/drivers sections and silently hiding all sub-forms, even when they existed
   and were published. Ownership/publish-status of the PARENT koondvorm is checked by the calling Ruuter
   DSL (same as compound.yml) before this query runs; this query itself only takes compound_form_key and
   only ever returns sub-forms with status='published' (unpublished sub-forms are hidden from citizens
-  even if the parent koondvorm is already published — same principle as citizen/forms/search.sql). Latest
+  even if the parent koondvorm is already published - same principle as citizen/forms/search.sql). Latest
   snapshot per sub-form is picked via DISTINCT ON. Violations are unified into one JSONB array per row
   (regulation-tagged for sp_driver/sp_teammate, which otherwise carry 5 separate violation-array columns)
   so the frontend can render every sub-form type generically.
@@ -148,7 +148,7 @@ WHERE tt.status = 'published'
 UNION ALL
 -- ── adr: filter infringements to only "checked" entries (actual violations
 --    found). "not_possible" / "not_applicable" entries are inspector workflow
---    state, not violations — showing them to the citizen would be confusing.
+--    state, not violations - showing them to the citizen would be confusing.
 SELECT
     'adr'::text,
     ad.adr_form_key,

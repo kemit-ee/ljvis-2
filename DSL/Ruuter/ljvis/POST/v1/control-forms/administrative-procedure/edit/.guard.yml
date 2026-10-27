@@ -1,0 +1,28 @@
+# Ligipääsureegel: templates/administrative-procedure/check-access (TRAM/KLIM ametnik või administraator).
+# auth_user tuleb projektiülesest guardist (ljvis/.guard.yml).
+check:
+  template: "templates/administrative-procedure/check-access"
+  requestType: GET
+  headers:
+    cookie: ${incoming.headers.cookie}
+  body:
+    organisation_code: "${auth_user.organisationcode || ''}"
+    permissions: "${(auth_user.permissions || []).join(',')}"
+  result: adminProcAccess
+  next: evaluate
+
+evaluate:
+  switch:
+    - condition: ${adminProcAccess == "allow"}
+      next: allow
+  next: deny
+
+allow:
+  status: 200
+  return: "ok"
+  next: end
+
+deny:
+  status: 403
+  return: "forbidden"
+  next: end

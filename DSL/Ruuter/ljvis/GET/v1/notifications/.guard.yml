@@ -1,4 +1,4 @@
-# GET /v1/notifications/* — piisab kehtivast sessioonist (list.yml, unread-count.yml
+# GET /v1/notifications/* - piisab kehtivast sessioonist (list.yml, unread-count.yml
 # loevad auth_user.personalcode / .permissions). outbound-log/ kaustal on oma rangem
 # .guard (notification.list). auth_user tuleb projektiülesest guardist.
 check:

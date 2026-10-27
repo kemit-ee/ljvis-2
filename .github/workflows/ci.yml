@@ -336,6 +336,9 @@ jobs:
           pip3 install pyyaml -q
           bash scripts/test-xtee-mock.sh
 
+      - name: ERRU register mocks — deployed image regression
+        run: bash scripts/test-erru-register-mocks.sh
+
   # ── 2. Security scanning (Trivy) ────────────────────────────────────────────
   # Runs after E2E so the security checks are the final CI validation stage.
   # Secret findings are blocking on main, but remain advisory on dev.
@@ -369,9 +372,21 @@ jobs:
   # Isolated stack via docker-compose.ci.yml — never conflicts with dev stack.
   # Bootstrap seeds admin + all DSL/Liquibase/test/*.sql fixtures via plain psql
   # (those changesets are ignore:true, so `liquibase update` never applies them).
-  e2e:
-    name: E2E Tests
+  e2e-group:
+    name: E2E-testid — ${{ matrix.name }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: core
+            name: Põhiandmed ja kontrollvormid
+          - group: controls
+            name: Tehnilised vormid ja riskihindamine
+          - group: erru
+            name: ERRU sõnumivahetus
+          - group: xroad
+            name: X-tee ja lepingukontrollid
 
     steps:
       - name: Checkout
@@ -398,10 +413,52 @@ jobs:
           sudo apt-get install -y -q libxml2-utils
           pip3 install pyyaml -q
 
+      - name: Validate API test groups
+        run: python3 -m unittest discover -s tests/postman -p 'test_groups.py'
+
+      # Dockeri kihtide vahemälu (GitHub Actions cache). `compose up --build` võttis 40–65% iga
+      # töö ajast (xtr Rust-build, tara-mock Go-build, pdf-creator pip, tim apt). Rasked pildid
+      # ehitatakse siin eelnevalt vahemälu toel ja märgistatakse compose'i vaikenimedega
+      # (`<projekt>-<teenus>`); CI_IMAGES_PREBUILT=1 korral jätab run.sh/run-all.sh `--build` ära,
+      # nii et compose kasutab valmis pilte ja ehitab ainult puuduvad (kerged). Kui eelehitus
+      # ebaõnnestub, ehitab compose puuduvad pildid ise (ja hoiatus ilmub töö kokkuvõttesse).
+      # Vahemälu kirjutatakse ainult `dev`-i pushil (PR-id loevad `dev`-i vahemälu, aga ei kirjuta
+      # oma skoopi), et PR-id ei täidaks repo 10 GB vahemälu piiri. bake ehitab git-kontekstist,
+      # seega ei tohi neli Dockerfile'i kopeerida enne eelehitust genereeritud workspace-faile.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pre-build heavy CI images (layer cache)
+        id: prebuild
+        continue-on-error: true
+        uses: docker/bake-action@v6
+        with:
+          files: docker-compose.ci.yml
+          targets: xtr-inbound,tara-mock,pdf-creator,tim
+          load: true
+          set: |
+            xtr-inbound.cache-from=type=gha,scope=ci-xtr-inbound
+            xtr-inbound.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-xtr-inbound,mode=max,ignore-error=true' || '' }}
+            tara-mock.cache-from=type=gha,scope=ci-tara-mock
+            tara-mock.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tara-mock,mode=max,ignore-error=true' || '' }}
+            pdf-creator.cache-from=type=gha,scope=ci-pdf-creator
+            pdf-creator.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-pdf-creator,mode=max,ignore-error=true' || '' }}
+            tim.cache-from=type=gha,scope=ci-tim
+            tim.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tim,mode=max,ignore-error=true' || '' }}
+            tara-mock.tags=ljvis-ci-tara-mock
+            tim.tags=ljvis-ci-tim
+
+      - name: Warn if the image pre-build failed
+        if: steps.prebuild.outcome == 'failure'
+        run: echo "::warning::Raskete piltide eelehitus (docker/bake-action) ebaõnnestus. Compose ehitab need ise, nii et töö on aeglasem. Vaata sammu „Pre-build heavy CI images“."
+
       - name: Run E2E tests
-        run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json
+        env:
+          CI_IMAGES_PREBUILT: '1'
+        run: bash tests/postman/run-all.sh tests/postman/ci-stack-environment.json "${{ matrix.group }}"
 
       - name: ZAP — baseline scan (stack already running)
+        if: matrix.group == 'core'
         run: |
           mkdir -p zap-reports
           # ZAP-i konteiner jookseb kasutajana zap (uid 1000), runneri kaust
@@ -433,12 +490,32 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.ci.yml -p ljvis-ci down -v
 
-      - name: Upload ZAP report
+      - name: Upload API test reports
         if: always() && env.ACT != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-tests-${{ matrix.group }}
+          path: tests/postman/reports/
+          retention-days: 14
+
+      - name: Upload ZAP report
+        if: always() && env.ACT != 'true' && matrix.group == 'core'
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
           path: zap-reports/
+
+  # Keep the required check name stable and fail if any group fails or is cancelled.
+  e2e:
+    name: E2E Tests
+    needs: e2e-group
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check all API groups passed
+        env:
+          RESULT: ${{ needs.e2e-group.result }}
+        run: test "$RESULT" = success
 
   # ── 5. Frontend lint ────────────────────────────────────────────────────────
   frontend-lint:
@@ -527,13 +604,23 @@ jobs:
 
   # ── UI Tests (Playwright) ───────────────────────────────────────────────────
   # Brauseripõhised kontrollvormide testid. Tõstab ise üles docker-compose.ci.yml
-  # pinu (tests/playwright/run.sh) ja käivitab frontendi vite-dev serveri selle
-  # vastu. Esialgu MITTE blokeeriv (continue-on-error + väljas quality-gate'ist)
+  # pinu (tests/playwright/run.sh) ja käivitab frontendi preview-serveri selle
+  # vastu. Igal shard'il on eraldi runner ja andmebaas. Esialgu MITTE blokeeriv (continue-on-error + väljas quality-gate'ist)
   # kuni stabiilne.
   ui-tests:
-    name: UI Tests
+    name: UI Tests — ${{ matrix.name }}
     runs-on: ubuntu-22.04
     continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: forms
+            name: Kontrollvormid
+          - group: services
+            name: Liidestused ja taustatööd
+          - group: admin
+            name: Haldus ja otsing
 
     steps:
       - name: Checkout
@@ -559,14 +646,76 @@ jobs:
         run: npm ci
         working-directory: frontend
 
-      - name: Install Playwright deps
-        run: |
-          npm ci
-          npx playwright install --with-deps chromium
+      - name: Install Playwright npm deps
+        run: npm ci
         working-directory: tests/playwright
 
+      # Chromium on vahemälus Playwrighti versiooni järgi. Süsteemipaketid (apt) tuleb igal
+      # runneril ikka paigaldada, sest runner on iga kord uus. Ajavõit on tavaliselt väike
+      # (paar sekundit), kuid see kaitseb brauseri allalaadimise aeglaste jooksude (nt 8 min)
+      # eest. Vahemälu jõuab dev-skoopi alles pärast merge'i ja esimest dev-jooksu.
+      - name: Read Playwright version
+        id: playwright-version
+        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        working-directory: tests/playwright
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}-chromium
+
+      - name: Install Playwright browser and system deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+        working-directory: tests/playwright
+
+      - name: Install Playwright system deps (browser from cache)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+        working-directory: tests/playwright
+
+      # Dockeri kihtide vahemälu (GitHub Actions cache). `compose up --build` võttis 40–65% iga
+      # töö ajast (xtr Rust-build, tara-mock Go-build, pdf-creator pip, tim apt). Rasked pildid
+      # ehitatakse siin eelnevalt vahemälu toel ja märgistatakse compose'i vaikenimedega
+      # (`<projekt>-<teenus>`); CI_IMAGES_PREBUILT=1 korral jätab run.sh/run-all.sh `--build` ära,
+      # nii et compose kasutab valmis pilte ja ehitab ainult puuduvad (kerged). Kui eelehitus
+      # ebaõnnestub, ehitab compose puuduvad pildid ise (ja hoiatus ilmub töö kokkuvõttesse).
+      # Vahemälu kirjutatakse ainult `dev`-i pushil (PR-id loevad `dev`-i vahemälu, aga ei kirjuta
+      # oma skoopi), et PR-id ei täidaks repo 10 GB vahemälu piiri. bake ehitab git-kontekstist,
+      # seega ei tohi neli Dockerfile'i kopeerida enne eelehitust genereeritud workspace-faile.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pre-build heavy CI images (layer cache)
+        id: prebuild
+        continue-on-error: true
+        uses: docker/bake-action@v6
+        with:
+          files: docker-compose.ci.yml
+          targets: xtr-inbound,tara-mock,pdf-creator,tim
+          load: true
+          set: |
+            xtr-inbound.cache-from=type=gha,scope=ci-xtr-inbound
+            xtr-inbound.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-xtr-inbound,mode=max,ignore-error=true' || '' }}
+            tara-mock.cache-from=type=gha,scope=ci-tara-mock
+            tara-mock.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tara-mock,mode=max,ignore-error=true' || '' }}
+            pdf-creator.cache-from=type=gha,scope=ci-pdf-creator
+            pdf-creator.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-pdf-creator,mode=max,ignore-error=true' || '' }}
+            tim.cache-from=type=gha,scope=ci-tim
+            tim.cache-to=${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'type=gha,scope=ci-tim,mode=max,ignore-error=true' || '' }}
+            tara-mock.tags=ljvis-pw-tara-mock
+            tim.tags=ljvis-pw-tim
+
+      - name: Warn if the image pre-build failed
+        if: steps.prebuild.outcome == 'failure'
+        run: echo "::warning::Raskete piltide eelehitus (docker/bake-action) ebaõnnestus. Compose ehitab need ise, nii et töö on aeglasem. Vaata sammu „Pre-build heavy CI images“."
+
       - name: Run UI tests
-        run: bash tests/playwright/run.sh
+        env:
+          CI_IMAGES_PREBUILT: '1'
+        run: bash tests/playwright/run.sh --group "${{ matrix.group }}"
 
       - name: Show CI stack logs on failure
         if: failure()
@@ -580,30 +729,71 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.ci.yml -p ljvis-pw down -v || true
 
+      - name: Record shard result
+        if: always()
+        env:
+          SHARD_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p tests/playwright/tulemus
+          printf '%s\n' "$SHARD_STATUS" > tests/playwright/tulemus/ci-status.txt
+
       - name: Upload Playwright results
         id: upload-playwright-results
         if: always() && env.ACT != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-tulemus
+          name: playwright-tulemus-${{ matrix.group }}
           path: tests/playwright/tulemus/
           retention-days: 14
 
+  # One reporter avoids concurrent shards creating duplicate failure issues.
+  ui-report:
+    name: UI Tests
+    continue-on-error: true
+    needs: ui-tests
+    if: always() && !cancelled()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download all shard reports
+        if: env.ACT != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: playwright-tulemus-*
+          path: playwright-results
+
+      - name: Check shard results
+        id: shards
+        env:
+          MATRIX_RESULT: ${{ needs.ui-tests.result }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          statuses = list(Path('playwright-results').glob('*/ci-status.txt'))
+          failed = len(statuses) != 3 or any(p.read_text().strip() != 'success' for p in statuses)
+          failed = failed or os.environ['MATRIX_RESULT'] not in ('success', 'skipped')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'failed={str(failed).lower()}\n')
+          PY
+
       - name: Create or update Playwright failure issue
         if: >-
-          failure() && env.ACT != 'true' &&
+          steps.shards.outputs.failed == 'true' && env.ACT != 'true' &&
           (github.event_name == 'push' ||
           github.event.pull_request.head.repo.full_name == github.repository)
         uses: actions/github-script@v7
         env:
-          ARTIFACT_URL: ${{ steps.upload-playwright-results.outputs.artifact-url }}
+          ARTIFACT_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
             const fs = require('fs');
-            const summaryPath = 'tests/playwright/tulemus/KOKKUVÕTE.md';
-            const summary = fs.existsSync(summaryPath)
-              ? fs.readFileSync(summaryPath, 'utf8').slice(0, 30000)
-              : 'Playwrighti kokkuvõttefaili ei leitud.';
+            const summary = fs.existsSync('playwright-results')
+              ? fs.readdirSync('playwright-results').sort().map((shard) => {
+                  const path = `playwright-results/${shard}/KOKKUVÕTE.md`;
+                  return `### ${shard}\n\n` + (fs.existsSync(path)
+                    ? fs.readFileSync(path, 'utf8') : 'Kokkuvõttefaili ei leitud.');
+                }).join('\n\n').slice(0, 30000)
+              : 'Playwrighti kokkuvõttefaile ei leitud.';
             const isPullRequest = context.eventName === 'pull_request';
             const source = isPullRequest
               ? `PR #${context.issue.number}`
@@ -657,6 +847,10 @@ jobs:
                 labels: ['bug', failureLabel],
               });
             }
+
+      - name: Report failed UI shards
+        if: steps.shards.outputs.failed == 'true' && env.ACT != 'true'
+        run: exit 1
 
   # ── Quality Gate ────────────────────────────────────────────────────────────
   # Aggregates every required check. Add new jobs to `needs:` here as they

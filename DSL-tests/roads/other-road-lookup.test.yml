@@ -1,4 +1,4 @@
-# GET /v1/roads/other?number= — „Muu tee" nime otsing ROAD_OTHER klassifikaatorist ühe tee
+# GET /v1/roads/other?number= - „Muu tee" nime otsing ROAD_OTHER klassifikaatorist ühe tee
 # kaupa (#551 järeltöö: ROAD_OTHER ei kuulu enam klassifikaatorite bulk-vastustesse).
 # Vigane number ei jõua Resql-ini; vasteta number tagastab [] (FE jätab käsitsi sisestuse).
 mode: mock-http

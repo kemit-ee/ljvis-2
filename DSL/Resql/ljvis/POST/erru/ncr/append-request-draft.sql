@@ -1,14 +1,14 @@
 /*
 description: 'Create a new OUTGOING NCR request draft (LJVIS2-63). Appends the first snapshot of a new
   erru.ncr_message with status ''initiated''. Allocates both the logical key and the human-readable business_case_id
-  server-side, format NCR-EE-{year}-{seq} per LJVIS2-63 §4 ''Teate number'' (e.g. NCR-EE-2026-25994) —
+  server-side, format NCR-EE-{year}-{seq} per LJVIS2-63 §4 ''Teate number'' (e.g. NCR-EE-2026-25994) -
   note this differs from the country-first EE-RSI-/ EE-CGR- convention used by the sibling ERRU families;
   the NCR-EE- ordering is explicit in the specification''s own worked example and is followed verbatim.
   ncr_from is hardcoded EE. minorInfringement/seriousInfringements arrive as JSON text (already split
   into category + infringementType by the caller, per LJVIS2-63 §4 Plokk ''Rasked rikkumised ja karistused'').
   Server-side data-integrity rule (LJVIS2-63 §4 ''Edukalt läbitud kontroll''): when checkResult is Pass
   or CleanCheck, minorInfringement and seriousInfringements are FORCED to NULL / ''[]'' regardless of
-  what the caller submits — this is a clearing rule, not just a display toggle.'
+  what the caller submits - this is a clearing rule, not just a display toggle.'
 namespace: erru
 params:
   originatingAuthority:

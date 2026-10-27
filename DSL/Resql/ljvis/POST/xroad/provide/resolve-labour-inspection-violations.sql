@@ -2,7 +2,7 @@
 description: 'X-tee register-job-inspection (v2/v3): vastendab rikkumised.rikkumiste_arv[].rikkumise_kood
   (Tööinspektsiooni täht+number kood, nt "E5") LABOUR_INSPECTION_VIOLATION classifier_value kirjetega.
   Väljanimed vastavad WSDL tüübile RikkumisteArv_v2 (docker/xtr-inbound/wsdl/ljvis/ljvis.wsdl).
-  V1 (vana RikkumisteArvud, fikseeritud nimega väljad) ei kasuta seda — vt register-job-inspection.yml.
+  V1 (vana RikkumisteArvud, fikseeritud nimega väljad) ei kasuta seda - vt register-job-inspection.yml.
   Tagastab resolve''itud violations massiivi (level1/level2/level3ValueKey + quantity) ning
   matched_count vs total_count, et Ruuter saaks tuvastada tundmatu koodi enne salvestamist.'
 namespace: xroad
@@ -25,7 +25,7 @@ returns:
   nullable: true
 */
 
--- rikkumiste_arv on XML-is unbounded-korduv element — SOAP->JSON teisendus annab ühe elemendi
+-- rikkumiste_arv on XML-is unbounded-korduv element - SOAP->JSON teisendus annab ühe elemendi
 -- korral objekti, mitme korral massiivi (vt tests/xtr/verify.py xml_value()); REST v3 saadab
 -- alati massiivi. Normaliseerime mõlemad kujud massiiviks enne lahtipakkimist.
 WITH parsed AS (
@@ -50,7 +50,7 @@ clf AS (
     FROM classifier.classifier
     WHERE code = 'LABOUR_INSPECTION_VIOLATION'
 ),
--- jooksev snapshot (DISTINCT ON classifier_value_key) — vt list_classifier_value_data.sql muster
+-- jooksev snapshot (DISTINCT ON classifier_value_key) - vt list_classifier_value_data.sql muster
 current_values AS (
     SELECT DISTINCT ON (classifier_value_key)
         classifier_value_key, code, parent_key

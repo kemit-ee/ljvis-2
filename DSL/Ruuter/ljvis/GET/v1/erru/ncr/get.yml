@@ -2,10 +2,10 @@ declaration:
   internal: false
   version: "1.0"
   description: "Get one NCR case (erru.ncr_message) by businessCaseId, returning the FULL snapshot
-    history (LJVIS2-63) — the last element is the current state (drives the editable header/blocks),
+    history (LJVIS2-63) - the last element is the current state (drives the editable header/blocks),
     the whole array is the read-only 'Juhtumi teadete loend'. As a side effect, the first open of an
     incoming case still in 'received' auto-transitions it to 'viewed' (LJVIS2-62 §4 automatic
-    transition, LJVIS2-63 §4 'Teate esmakordsel avamisel liigub teade olekusse Vaadatud') — the
+    transition, LJVIS2-63 §4 'Teate esmakordsel avamisel liigub teade olekusse Vaadatud') - the
     array is re-fetched after the transition so the caller always sees the up-to-date state.
     Audited on EVERY open (ncr.case.view) because the case shows the transport undertaking's and
     handler's personal data."

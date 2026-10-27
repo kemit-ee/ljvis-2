@@ -1,0 +1,211 @@
+declaration:
+  internal: false
+  version: "1.0"
+  description: |
+    Receive an ASYNCHRONOUS NotifyCheckResult_Acknowledgement from the ERRU hub. NCRN_Ack answers
+    our outgoing NCR request: OK moves sending, sent or send_unknown to acknowledged, Timeout or
+    NotAvailable to error (retry permitted). NCRR_Ack answers the response we sent for an incoming
+    NCR: a positive one changes nothing, a negative one moves answered to error. Both are correlated
+    by the workflowId of the original request. A replay or an acknowledgement for a message that no
+    longer awaits one is reported as already_acknowledged or ignored and changes nothing.
+    Audit (ncr.inbound_ack.receive) is written directly to Resql. Runs on ruuter-internal
+    (allowedIPs 127.0.0.1 only) like the other ERRU inbound flows.
+  namespace: erru
+  allowlist:
+    body:
+      - field: workflowId
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: acknowledgementType
+        type: string
+      - field: statusCode
+        type: string
+      - field: statusMessage
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnMissingWorkflowId
+    - condition: ${['NCRN_Ack', 'NCRR_Ack'].indexOf(('' + (incoming.body.acknowledgementType || '')).trim()) < 0}
+      next: returnInvalidType
+    - condition: ${!(('' + (incoming.body.statusCode || '')).trim())}
+      next: returnMissingStatusCode
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    message_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    ack_type: "${('' + (incoming.body.acknowledgementType || '')).trim()}"
+    ack_status_code: "${('' + (incoming.body.statusCode || '')).trim()}"
+    ack_status_message: "${('' + (incoming.body.statusMessage || '')).trim()}"
+  next: findByWorkflowId
+
+findByWorkflowId:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/get-latest-by-workflow-id"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      workflow_id: ${workflow_id}
+  result: found_res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${found_res.response.body == null || found_res.response.body.length != 1}
+      next: returnUnknownWorkflowId
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    business_case_id: "${found_res.response.body[0].businessCaseId}"
+    cur_status: "${found_res.response.body[0].status}"
+    cur_direction: "${found_res.response.body[0].direction}"
+  next: checkCaseMatches
+
+# An acknowledgement must belong to the message its workflowId identifies.
+checkCaseMatches:
+  switch:
+    - condition: ${message_case_id !== '' && message_case_id !== business_case_id}
+      next: returnCaseMismatch
+  next: routeByType
+
+routeByType:
+  switch:
+    - condition: ${ack_type === 'NCRN_Ack' && cur_direction === 'outgoing' && ['sending', 'sent', 'send_unknown'].indexOf(cur_status) >= 0 && ack_status_code === 'OK'}
+      next: storeAcknowledged
+    - condition: ${ack_type === 'NCRN_Ack' && cur_direction === 'outgoing' && ['sending', 'sent', 'send_unknown'].indexOf(cur_status) >= 0}
+      next: storeNegative
+    - condition: ${ack_type === 'NCRR_Ack' && cur_direction === 'incoming' && cur_status === 'answered' && ack_status_code !== 'OK'}
+      next: storeNegative
+    - condition: ${ack_type === 'NCRN_Ack' && cur_direction === 'outgoing' && ['acknowledged', 'responded'].indexOf(cur_status) >= 0}
+      next: returnAlreadyAcknowledged
+  next: returnIgnored
+
+storeAcknowledged:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      newStatus: "acknowledged"
+      ackStatusCode: ${ack_status_code}
+      ackStatusMessage: ${ack_status_message}
+      respondingAuthority: ""
+      transportUndertakingName: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseNumberOfVehicles: ""
+      responseCommunityLicenceStatus: ""
+      responseAddress: ""
+      responsePenaltiesImposed: ""
+      errorMessage: ""
+      created_by: "system"
+  result: stored_res
+  next: checkStored
+
+storeNegative:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      businessCaseId: ${business_case_id}
+      newStatus: "error"
+      ackStatusCode: ""
+      ackStatusMessage: ""
+      respondingAuthority: ""
+      transportUndertakingName: ""
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      responseNumberOfVehicles: ""
+      responseCommunityLicenceStatus: ""
+      responseAddress: ""
+      responsePenaltiesImposed: ""
+      errorMessage: "${'ERRU NCR negative acknowledgement: ' + ack_status_code}"
+      created_by: "system"
+  result: stored_res
+  next: checkStored
+
+checkStored:
+  switch:
+    - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
+      next: returnAlreadyAcknowledged
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
+    audit_description: "NCR kinnituse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}, tüüp ${ack_type}, tulemus ${ack_status_code}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null, acknowledgementType: ack_type, statusCode: ack_status_code})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "ncr.inbound_ack.receive"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU NCR inbound acknowledgement service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      organisation_id: ""
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  error: returnOk
+  next: returnOk
+
+returnOk:
+  return: "${JSON.stringify({status: 'acknowledged', businessCaseId: business_case_id, workflowId: workflow_id, acknowledgementType: ack_type, statusCode: ack_status_code})}"
+  next: end
+
+returnAlreadyAcknowledged:
+  return: "${JSON.stringify({status: 'already_acknowledged', businessCaseId: business_case_id || null, workflowId: workflow_id})}"
+  next: end
+
+returnIgnored:
+  return: "${JSON.stringify({status: 'ignored', businessCaseId: business_case_id || null, workflowId: workflow_id})}"
+  next: end
+
+returnUnknownWorkflowId:
+  status: 404
+  return: '{"statusCode":"NotFound","statusMessage":"No NCR message found for this workflowId"}'
+  next: end
+
+returnCaseMismatch:
+  status: 409
+  return: '{"statusCode":"InvalidData","statusMessage":"businessCaseId does not match the message of this workflowId"}'
+  next: end
+
+returnMissingWorkflowId:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"workflowId is required"}'
+  next: end
+
+returnInvalidType:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"acknowledgementType must be NCRN_Ack or NCRR_Ack"}'
+  next: end
+
+returnMissingStatusCode:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"statusCode is required"}'
+  next: end

@@ -6,10 +6,10 @@ LJVIS2 koosneb kahest omavahel seotud Git-repositooriumist:
 
 | Repo | Asukoht | Sisu |
 |------|---------|------|
-| **ljvis-2** (kood) | GitHub `kemit-ee/ljvis-2`, GitLab peegel | Rakenduse lähtekood, DSL-id, Liquibase migratsioonid, frontend, Docker image'ite lähtefailid, CI, mis ehitab image'id |
+| **ljvis-2** (kood) | GitHub `kemit-ee/ljvis-2`, GitLab peegel | Rakenduse lähtekood, DSL-id, Liquibase migratsioonid, frontend, Dockeri tõmmiste lähtefailid ja tõmmiste koostamise CI-töövoog |
 | **ljvis2-devops** | GitLab `services/ljvis2/devops` (kohalikult tavaliselt kõrvalkaustas `../ljvis2-devops/`) | Helm chart'id, keskkonnapõhised väärtused, release-manifestid, Argo CD ApplicationSet'id, SSM-i algandmete laadimise skriptid |
 
-Keskkondade seadistust (hostinimed, andmebaasid, domeenid, saladused) **ei hoita koodirepos**, vaid devops-repos ja AWS SSM-is. Koodirepo `constants.ini` ja `docker-compose.yml` on mõeldud ainult kohalikuks arenduseks ja CI-ks.
+Keskkondade seadistust (hostinimed, andmebaasid, domeenid, saladused) **ei hoita lähtekoodi hoidlas**, vaid paigalduse hoidlas ja AWS SSM-is. Lähtekoodi hoidla `constants.ini` ja `docker-compose.yml` on mõeldud ainult kohalikuks arenduseks ja CI-ks.
 
 Keskkonnad on `dev`, `test` ja `prelive` (nonlive Kubernetes klaster, nimeruum `ljvis2-<keskkond>`). Tootmiskeskkond ei ole selles repos veel kirjeldatud.
 
@@ -36,7 +36,7 @@ Olulised punktid:
 
 - **Versioon** on kujul `0.1.0-main.<ehituse nr>.g<commit>`. Kõik 12 komponenti saavad samal väljalaskel sama versiooni ja liiguvad koos (aatomlik release-manifest).
 - **Dev** uuendub automaatselt iga `main` merge'iga (CI töö `release:pin:dev`).
-- **Test ja prelive** uuenevad käsitsi: väljalaske versioon kopeeritakse failidesse `environments/test/release.yaml` ja `environments/prelive/release.yaml`. Failid on CODEOWNERS-is märgitud kui CI-le kuuluvad, aga test/prelive pinnimine toimub praegu eraldi tegevusena.
+- **Test ja prelive** uuenevad käsitsi: väljalaske versioon kopeeritakse failidesse `environments/test/release.yaml` ja `environments/prelive/release.yaml`. Failid on CODEOWNERS-is märgitud kui CI-le kuuluvad, aga test- ja prelive-keskkonna versioon määratakse praegu eraldi.
 - **Image'i silt (tag) ei ole kunagi väärtusfailis käsitsi muudetav.** CI kirjutab selle chart'i pakkimisel.
 - Argo CD sünkroniseerib `RollingSync` strateegiaga: esmalt `ljvis2-config` (saladused), seejärel kõik töökoormused (`syncStage: workload`). Automaatne `prune` ja `selfHeal` on sees — käsitsi `kubectl` muudatused kirjutatakse üle.
 - **Liquibase migratsioon** jookseb Job'ina `resql-ljvis` chart'i sees (Argo wave -1), enne kui rakendused käivituvad. Eraldi liquibase chart'i ei ole.
@@ -59,11 +59,12 @@ ljvis2-devops/
 └── CODEOWNERS
 ```
 
-Reegel: **`charts/` muudad siis, kui muutub kõigi keskkondade ühine käitumine; `environments/<env>/values/` siis, kui muutub ainult üks keskkond.** Argo kombineerib mõlemad (chart'i vaikeväärtused + keskkonna väärtusfail).
+Kui muudatus puudutab kõiki keskkondi, muutke faile kaustas `charts/`.
+Kui muudatus puudutab ühte keskkonda, muutke faile kaustas `environments/<env>/values/`. Argo kombineerib mõlemad (chart'i vaikeväärtused + keskkonna väärtusfail).
 
 ## Helm chart'id
 
-Iga chart on õhuke wrapper ümber ühise `kemitchart`i (versioon 0.27.1). Kõik seadistus on võtme `app:` all. Teenused on kindlasti nimetatud `fullnameOverride`'iga, sest teised teenused (ja `constants.ini`) viitavad neile klastrisiseselt nime järgi. **Nime või porti ei tohi muuta ühes kohas ilma teises muutmata.**
+Iga Helmi pakett kasutab ühist paketti `kemitchart` (versioon 0.27.1). Kõik seaded asuvad võtme `app:` all. Teenused on kindlasti nimetatud `fullnameOverride`'iga, sest teised teenused (ja `constants.ini`) viitavad neile klastrisiseselt nime järgi. **Nime või porti ei tohi muuta ühes kohas ilma teises muutmata.**
 
 | Chart | Teenus / port | Märkus |
 |-------|---------------|--------|
@@ -79,13 +80,13 @@ Iga chart on õhuke wrapper ümber ühise `kemitchart`i (versioon 0.27.1). Kõik
 | `nysiis` | `nysiis:8080` | NYSIIS otsinguvõtmete teenus (ERRU) |
 | `pdf-creator` | `pdf-creator:3020` | PDF-ide genereerimine |
 | `cronmanager` | `cronmanager:8080` | Ajastatud tööd |
-| `stesta-gateway` | `stesta-gateway:443` | sTESTA/MOVEHUB sissetulev HTTPS lüüs; **ei ole release-komponent**, rullub otse Git-ist (`applicationset-infra-nonlive.yaml`) |
+| `stesta-gateway` | `stesta-gateway:443` | sTESTA/MOVEHUB sissetulev HTTPS lüüs; **ei ole release-komponent**, paigaldatakse otse Giti hoidlast (`applicationset-infra-nonlive.yaml`) |
 
-Märkus: devops-repo kasutab kõigi Ruuterite jaoks pordi **8080** (kood-repo `docker-compose.yml` kasutab lokaalselt 8086/8089). Enne varasema paigaldusjuhendi porte kasutamist kontrolli alati devops-repo väärtust.
+Märkus: paigalduse hoidla kasutab kõigi Ruuterite jaoks porti **8080** (kood-repo `docker-compose.yml` kasutab lokaalselt 8086/8089). Enne varasema paigaldusjuhendi porte kasutamist kontrollige alati paigalduse hoidla väärtust.
 
 ## Mida kus muuta
 
-| Soovid muuta | Fail devops-repos | Märkused |
+| Soovite muuta | Fail paigalduse hoidlas | Märkused |
 |--------------|-------------------|----------|
 | Uuele väljalaskele üle minna (test/prelive) | `environments/<env>/release.yaml` | Kõigi 12 komponendi `version` korraga |
 | Domeen / hostinimi | `environments/<env>/values/frontend.yaml` (`httpRoute.hostnames`) | Peab ühtima SSM-i `LJVIS2_DOMAIN`-iga (`constants.ini` `DOMAIN`) ja TIM-i `public_base_url` ning `allowed_redirect_uris` väärtustega |
@@ -101,7 +102,7 @@ Märkus: devops-repo kasutab kõigi Ruuterite jaoks pordi **8080** (kood-repo `d
 | Teenuse ressursid, replikaarv | `charts/<komponent>/values.yaml` (või keskkonnafailis ülekirjutusena) | |
 | S3 piirangud (suurus, MIME) | `environments/<env>/values/s3-proxy.yaml` | Bucket ja võtmed tulevad SSM-ist (`s3/data/ljvis2.<env>.sa`) |
 | `constants.ini` väärtus | SSM `/ljvis2/<env>/constants.ini` (läbi `scripts/seed-ssm.sh`) | Vt allpool; **ei ole** Git-i väärtusfail |
-| Saladus (token, parool, võti) | SSM, mitte Git | Vt SSM-i tabelit; pärast muutmist taaskäivita sõltuv pod |
+| Saladus (token, parool, võti) | SSM, mitte Git | Vt SSM-i tabelit; pärast muutmist taaskäivitage sõltuv pod |
 | ExternalSecret'i kaardistus | `environments/<env>/values/ljvis2-config.yaml` | Uus SSM-i võti → uus kirje `externalSecrets` all |
 
 ## Keskkonnad korraga
@@ -137,37 +138,43 @@ Fail renderdatakse mallist `scripts/constants.ini.tmpl`, kirjutatakse **ühe Sec
 | `S3_PROXY` | `http://s3-proxy:3010` | Fikseeritud |
 | `DOMAIN` | `LJVIS2_DOMAIN` | Keskkonna avalik hostinimi |
 | `AR_USERNAME`, `AR_PASSWORD` | seed-ssm.env | Äriregistri teenuse andmed (saladus) |
-| `ERRU_CTUD_ENDPOINT`, `ERRU_CGR_ENDPOINT`, `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/request/BTSHTTPReceive.dll` |
-| `ERRU_NCR_RESPONSE_ENDPOINT` | seed-ssm.env | MOVEHUB `.../erru/http/response/...` |
-| `ERRU_RSI_ENDPOINT` | seed-ssm.env | MOVEHUB `.../rsi/http/request/...` |
+| `ERRU_XML_ADAPTER` | constants.ini | Sisemine adapter: `http://erru-xml-adapter:8080` |
+| `HUB_RSI_REQUEST_URL`, `HUB_CGR_REQUEST_URL`, `HUB_CTUD_REQUEST_URL`, `HUB_NCR_REQUEST_URL`, `HUB_NU_REQUEST_URL` | adapteri Helm envVars | MOVEHUB `.../erru/http/request/...` (kinnitatud keskkonna otspunktid); loeb ainult XML-adapter. Puuduv URL keelab selle tüübi saatmise (503). Meie NCR vastus läheb olemasolevale `HUB_RESPONSE_URL`-ile |
 | `PK_NOTIFICATIONS_ENDPOINT` | seed-ssm.env | `http://xtr:8080/postkast/notifications` (XTR REST passthrough) |
 | `TIM_ADMIN_TOKEN` | seed-ssm.env | **Peab ühtima** SSM-i `tim/admin-token` väärtusega |
 
-ERRU endpoint'ide väärtused on keskkonnapõhised: acceptance kasutab `webgate.acceptance.ec.testa.eu`, live kasutab eraldi kinnitatud hosti. Kui lisad uue väljaminev URL-i, lisa see ka `ruuter.yaml` väärtusfailis `additionalAllowedUrls` alla.
+ERRU lõpp-punktide väärtused on keskkonnapõhised: acceptance kasutab `webgate.acceptance.ec.testa.eu`, live kasutab eraldi kinnitatud hosti. Kui lisate uue väljamineva päringu URL-i, lisage see ka `ruuter.yaml` väärtusfailis `additionalAllowedUrls` alla.
 
 ### Muutujad, mida DSL kasutab, kuid devops-mall ei sisalda
 
-Koodirepo DSL-id viitavad järgmistele muutujatele, mida `scripts/constants.ini.tmpl` (seisuga devops-repo `main`, 2026-09-28) **ei sisalda**. Kui muutuja puudub, ei käivitu vastav funktsioon korrektselt keskkonnas. Lisada tuleb need nii mallile kui `seed-ssm.sh`-le (envsubst'i nimekiri) ja `seed-ssm.env.example`-le:
+Lähtekoodi hoidla DSL-id viitavad järgmistele muutujatele, mida `scripts/constants.ini.tmpl` (seisuga paigalduse hoidla `main`, 2026-09-28) **ei sisalda**. Kui muutuja puudub, ei käivitu vastav funktsioon korrektselt keskkonnas. Lisada tuleb need nii mallile kui `seed-ssm.sh`-le (envsubst'i nimekiri) ja `seed-ssm.env.example`-le:
 
 | Muutuja | Milleks | Soovituslik väärtus |
 |---------|---------|---------------------|
 | `PK_SENDING_OPERATIONS_ENDPOINT` | Postkasti saatmisstaatuse kontroll (`check-status`, `notification-status-sync` cron) | `http://xtr:8080/postkast/sending-operations` |
 | `LJVIS_RESQL_ARHIIV` | Kustutatud vormide arhiiv (ADR-010) | `http://resql-ljvis:8090/arhiiv` (kui arhiiv on samas resql-is) |
 | `NYSIIS_ENDPOINT` | ERRU NYSIIS otsinguvõtmed | `http://nysiis:8080/nysiis` |
-| `NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY` | Bearer-võtmed sidecar'ite (nysiis, s3-proxy, pdf-creator) sissetulevatele kutsetele (`Authorization: Bearer ...`). Ruuter loeb need `constants.ini`-st; sama väärtus peab olema ka sidecar'i enda env-muutujas **sama nimega**. Sidecar ei käivitu ilma võtmeta (fail-closed) | Juhuslik, `openssl rand -hex 32`, iga sidecar'i jaoks eri väärtus; **saladus** |
+| `NYSIIS_API_KEY`, `S3_PROXY_API_KEY`, `PDF_CREATOR_API_KEY` | Bearer-võtmed sidecar'ite (nysiis, s3-proxy, pdf-creator) sissetulevatele kutsetele (`Authorization: Bearer ...`). Ruuter loeb need `constants.ini`-st; sama väärtus peab olema ka sidecar'i enda env-muutujas **sama nimega**. nysiis ja s3-proxy ei käivitu ilma võtmeta, pdf-creator vastab ilma võtmeta 503 (fail-closed) | Juhuslik, `openssl rand -hex 32`, iga sidecar'i jaoks eri väärtus; **saladus** |
 | `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, CronManager, `erru-xml-adapter`) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` ja `cronmanager` env-muutujas `INTERNAL_COMMUNICATION_KEY` | Juhuslik, `openssl rand -hex 32`; **saladus** |
-| `ETOIMIK_SUBSYSTEM_CODE`, `ETOIMIK_SERVICE_VERSION` | eToimiku X-tee päringud | `etoimik-arendus` (ee-dev) või `etoimik` (ee-test/prod); versioon `v6` |
-| `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev/CI-s mock |
+| `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev, test, prelive ja CI-s mock |
 | `ERRU_NCR_ORIGINATING_AUTHORITY` | NCR automaatse saatmise asutuse nimi | `Politsei- ja Piirivalveamet` |
 
-**CronManager'i tööde kontroll deploy'l.** Puuduv `INTERNAL_COMMUNICATION_KEY` cronmanager-podis ei kukuta CronManager'it ära: iga tööfail, mille `headerEnvs` viitab seadmata muutujale, jäetakse vahele ja pod käivitub 0 tööga. Seepärast peab pod olema `Ready` alles siis, kui töid on registreeritud. Kasuta `readinessProbe`-s (docker-compose'is on sama käsk healthcheck'ina):
+**ERRU registrite mock demo- ja testkeskkonnas.** Ruuteri image sisaldab ERRU registrite mock-teenuseid. Nende kutsumiseks on vaja päist `x-internal-service-token`. Avalik ja sisemine Ruuter peavad kasutama sama `INTERNAL_COMMUNICATION_KEY` väärtust. Sisemine Ruuter lisab võtme ainult järgmistele täpsetele aadressidele:
+
+- `ERRU_MTR_ENDPOINT=http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-community-licence`
+- `ERRU_CGR_MTR_ENDPOINT=http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute`
+- `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT=http://ruuter:8080/ljvis/v1/erru/mock/xtee/liiklusregister-paring2`
+
+Toodangus määra registrite endpoint'id XTR-i kaudu. Paranduse paigaldamisel uuenda nii avaliku kui ka sisemise Ruuteri image. Kontrolli CTUD päringut `businessCaseId=CTUD_03`: mock peab tagastama HTTP 200 ja `statusCode=NotFound`. Puuduva või vale teenusetokeniga peab mock tagastama HTTP 403.
+
+**CronManageri tööde kontroll paigaldamisel.** Puuduv `INTERNAL_COMMUNICATION_KEY` cronmanager-podis ei takista CronManageri käivitumist: iga tööfail, mille `headerEnvs` viitab seadmata muutujale, jäetakse vahele ja pod käivitub 0 tööga. Seepärast peab pod olema `Ready` alles siis, kui töid on registreeritud. Kasutage `readinessProbe`-s (docker-compose'is on sama käsk healthcheck'ina):
 
 ```bash
 curl -sf http://localhost:8080/health >/dev/null && \
 curl -sf -H "Authorization: Bearer $CRONMANAGER_ADMIN_TOKEN" http://localhost:8080/jobs | grep -q '"name"'
 ```
 
-Samuti on mallis muutujaid, mida koodirepo DSL otseselt ei kasuta (`AR_USERNAME`, `AR_PASSWORD`, `DOMAIN`, `XROAD_INSTANCE`, `XROAD_SECURITY_SERVER`, `LJVIS_DMAPPER`) — see kirjeldab eespool viidatud devops-malli seisu. `XROAD_INSTANCE` ja `XROAD_SECURITY_SERVER` on koodirepo `constants.ini` failist eemaldatud: X-tee instants ja turvaserver seadistatakse XTR-i konfiguratsioonis (`xroad_instance`, `security_server`), mitte Ruuteri konstantidena. Devops-mallist võib need kaks kasutamata muutujat samuti eemaldada.
+Samuti on mallis muutujaid, mida lähtekoodi hoidla DSL otseselt ei kasuta (`AR_USERNAME`, `AR_PASSWORD`, `DOMAIN`, `XROAD_INSTANCE`, `XROAD_SECURITY_SERVER`, `LJVIS_DMAPPER`) — see kirjeldab eespool viidatud devops-malli seisu. `XROAD_INSTANCE` ja `XROAD_SECURITY_SERVER` on lähtekoodi hoidla `constants.ini` failist eemaldatud: X-tee instants ja turvaserver seadistatakse XTR-i konfiguratsioonis (`xroad_instance`, `security_server`), mitte Ruuteri konstantidena. Devops-mallist võib need kaks kasutamata muutujat samuti eemaldada.
 
 Kontrolli iga keskkonna puhul, et töötavas `ruuter-internal` podis oleks `/app/constants.ini` kõik muutujad, mida DSL vajab:
 
@@ -191,13 +198,13 @@ SSM asub **andmekontos** (mitte klastri kontos); klastri External Secrets Operat
 | `tim/jwt-private-key` | `seed-ssm.sh` | TIM (PEM-fail) |
 | `tim/admin-token` | `seed-ssm.sh` | TIM; sama väärtus on `constants.ini`-s |
 | `tim/session-encryption-key` | `seed-ssm.sh` | TIM; täpselt 64 hex-märki; vahetamine logib kõik välja |
-| `audit/salt` | `seed-ssm.sh` | Liquibase auditiahela räsid. **Püsiv — ära vaheta kunagi** (kõik varasemad isikukoodi räsid muutuvad võrreldamatuks) |
+| `audit/salt` | `seed-ssm.sh` | Liquibase auditiahela räsid. **Püsiv — ärge vahetage seda** (kõik varasemad isikukoodi räsid muutuvad võrreldamatuks) |
 | `cronmanager/admin-token` | `seed-ssm.sh` | CronManager admin API |
 | `xtr/keystore`, `xtr/keystore-password`, `xtr/server-ca` | kopeeritud (jagatud X-tee klient) | XTR mTLS. `xtr/server-ca` → `xtr.yaml` `security_server.trust_ca_path`: **täpselt üks sertifikaat** (turvaserveri oma või selle CA); XTR loeb ainult esimese, bundle'iga TLS ebaõnnestub |
 | `stesta-gateway/tls.{crt,key}` | `seed-ssm.sh` | sTESTA lüüs |
 | `constants.ini` | `seed-ssm.sh` | `ljvis2-constants` Secret |
 
-Skriptide kasutus (devops-repos, `scripts/`):
+Skriptide kasutus (paigalduse hoidlas, `scripts/`):
 
 ```bash
 cp scripts/seed-ssm.env.example scripts/seed-ssm.env   # täida väärtused; fail on .gitignore'is
@@ -206,18 +213,18 @@ cp scripts/seed-ssm.env.example scripts/seed-ssm.env   # täida väärtused; fai
 ./scripts/seed-ssm.sh --verify                         # loendab olemasolevad parameetrid
 ```
 
-`seed-ssm.sh` kontrollib enne kirjutamist AWS konto numbrit. **Jagatud parameetreid kopeeri ainult `copy-ssm-params.py` abil** (`./copy-ssm-params.py dev test`), mitte shell'i silmusega: AWS CLI `--output text` lisab lõppu reavahetuse, mis rikub PKCS12 keystore'i ja paroolid vaikselt.
+`seed-ssm.sh` kontrollib enne kirjutamist AWS konto numbrit. **Jagatud parameetreid kopeerige ainult `copy-ssm-params.py` abil** (`./copy-ssm-params.py dev test`), mitte shell'i silmusega: AWS CLI `--output text` lisab lõppu reavahetuse, mis rikub PKCS12 keystore'i ja paroolid vaikselt.
 
 ## Uue keskkonna lisamine
 
 1. **Infra (väljaspool seda repot):** `iam`, `rds`, `rds-tim`, `s3` moodulid (terragrunt/OpenTofu) uues AWS kontos; `ClusterSecretStore ljvis2-<env>-ssm` repos `kubernetes-eks`.
 2. **SSM:** `./scripts/prepare-environment.py <env>` — kopeerib jagatud väärtused, genereerib ülejäänud (v.a. andmebaasi ja S3 parameetrid), kontrollib võrdlust võrdluskeskkonnaga. `--verify-only` ainult kontrollib.
-3. **Devops-väärtused:** kopeeri `environments/test/` kaust uue keskkonna nimega ja muuda hostinimed, `ljvis2-config.yaml` (`env`, store'i nimi, `ssmPrefix`, S3 võtmed), `resql-ljvis.yaml` (host) ja `tim.yaml` (`public_base_url`, redirect, AWS alamvõrgud), `ruuter-internal.yaml` (X-tee pakkuja host).
-4. **Release:** lisa `environments/<env>/release.yaml` (versioon sama, mis testil).
-5. **Argo:** lisa `release.yaml` rada `applicationset-charts-nonlive.yaml` generaatorisse.
+3. **Devops-väärtused:** kopeerige `environments/test/` kaust uue keskkonna nimega ja muutke hostinimed, `ljvis2-config.yaml` (`env`, store'i nimi, `ssmPrefix`, S3 võtmed), `resql-ljvis.yaml` (host) ja `tim.yaml` (`public_base_url`, redirect, AWS alamvõrgud), `ruuter-internal.yaml` (X-tee pakkuja host).
+4. **Release:** lisage `environments/<env>/release.yaml` (versioon sama, mis testil).
+5. **Argo:** lisage `release.yaml` rada `applicationset-charts-nonlive.yaml` generaatorisse.
 6. **DNS:** CNAME `<hostinimi>` → `kubernetes-nonlive.kemitaws.ee` (käsitsi, kui domeen ei ole Route53-s).
-7. **TARA:** registreeri uue keskkonna `https://<hostinimi>/auth/callback` RIA-s TARA kliendile.
-8. Luba paigaldus, oota Liquibase Job'i, siis loo esimene superadmin (peatükk „Esimese superadmini loomine“).
+7. **TARA:** registreerige uue keskkonna `https://<hostinimi>/auth/callback` RIA-s TARA kliendile.
+8. Lubage paigaldus, oodake Liquibase Job'i, seejärel looge esimene superadmin (peatükk „Esimese superadmini loomine“).
 
 ## Valideerimine
 
@@ -232,9 +239,58 @@ Devops-repo pipeline kontrollib iga muudatust (`validate`-etapp):
 
 Kohalikult: `helm dependency build charts/<komponent>` ja `helm template` koos `--values environments/<env>/values/<komponent>.yaml`.
 
-## Teadaolevad lüngad (kontrolli enne test/prelive väljalaset)
+## Teadaolevad lüngad (kontrollige enne test- või prelive-keskkonna väljalaset)
 
 - **`APP_ENV`:** `charts/cronmanager/values.yaml` ja `charts/data-mapper/values.yaml` sisaldavad `APP_ENV: dev` kõigile keskkondadele. Test ja prelive vajavad keskkonnapõhist ülekirjutust (`environments/<env>/values/cronmanager.yaml`, `data-mapper.yaml`) — praegu neid faile ei ole.
 - **Puuduvad `constants.ini` muutujad:** vt eespool (`PK_SENDING_OPERATIONS_ENDPOINT` jt). Eriti kriitilised on Postkasti staatuse kontrolli, arhiivi ja WS-teavituste jaoks.
 - **Release-pin test/prelive:** praegu ei uuene automaatselt; versioonid kirjutatakse käsitsi.
-- **Cronmanager ja data-mapper** ei ole väärtusfaile keskkonnati; kõik tuleb chart'i vaikeväärtustest.
+- **CronManageril ja DataMapperil** ei ole keskkonnapõhiseid väärtusfaile. Kõik seaded tulevad Helmi paketi vaikeväärtustest.
+
+### RSI XML-saatmise paigaldamine
+
+Peata RSI saatmine väljalaske ajaks. Vana saatmisvoog ei tohi töötada uue Resql üleminekuloogikaga.
+
+1. Rakenda migratsioon `20261021182827-rsi-outbound-xml` enne uut saatmisvoogu.
+2. Paigalda uus XML-adapter. Määra `HUB_RSI_REQUEST_URL` kinnitatud keskkonna otspunktile.
+3. Luba NetworkPolicy abil Ruuterist adapteri port 8080. Luba adapterist Hubi port 443.
+4. Lisa Ruuteri URL-allowlisti adapteri `/internal/rsi/validate` ja `/internal/rsi/send`.
+5. Lisa SSM-i `constants.ini` faili `ERRU_XML_ADAPTER=http://erru-xml-adapter:8080`.
+6. Paigalda uus Ruuteri DSL ja frontend. Frontend näitab olekuid `sending` ja `send_unknown`.
+7. Kontrolli sünteetilise teatega XML-i, Hubi 202 vastust ja hilisemat RSI vastust.
+
+Ära saada varem saadetuks märgitud teateid automaatselt uuesti. Kontrolli nende tulemust Hubist.
+Oleku `sending` või `send_unknown` korral kontrolli tabelit `erru.xml_rsi_dispatch`. Tabel sisaldab
+tegelikku XML-i ja Hubi HTTP-staatust. Ära kustuta kirjet kordussaatmise võimaldamiseks.
+Migratsiooni tagasipööre peatub, kui uus olek või transpordiajalugu on juba kasutusel.
+
+### CGR ja CTUD XML-saatmise paigaldamine
+
+Väljaminev CGR (mainepäring) ja CTUD (tegevusloa kontroll) saadetakse XML-ina sama adapteri kaudu nagu RSI. Hub vastab
+HTTP 202-ga ja riikide vastused tulevad hiljem. Peata CGR ja CTUD saatmine väljalaske ajaks. Vana JSON-voog ei tohi töötada
+uue Resql üleminekuloogikaga.
+
+1. Rakenda migratsioon `20261222100000-cgr-ctud-outbound-xml` enne uusi saatmisvooge.
+2. Määra adapteri keskkonnamuutujad `HUB_CGR_REQUEST_URL` ja `HUB_CTUD_REQUEST_URL` kinnitatud keskkonna otspunktidele.
+3. Luba Ruuteri URL-allowlistis adapteri `/internal/cgr/validate`, `/internal/cgr/send`, `/internal/ctud/validate` ja `/internal/ctud/send`
+   (samal moel nagu RSI-l; `ERRU_XML_ADAPTER` peab `constants.ini` failis olema).
+4. Eemalda SSM-i `constants.ini` failist `ERRU_CGR_ENDPOINT` ja `ERRU_CTUD_ENDPOINT`, neid enam ei kasutata.
+5. Paigalda uus Ruuteri ja Ruuter.internal DSL (uued `cgr/inbound-response` ja `ctud/inbound-response`) ning frontend.
+   Frontend näitab olekuid `sending`, `send_unknown` ja CGR-il `responded`.
+6. Kontrolli sünteetilise päringuga XML-i, Hubi 202 vastust ja riigi hilisemat vastust.
+
+Olekus `sending` või `send_unknown` olevat päringut ei saada automaatselt uuesti. Kontrolli tabelit `erru.xml_outbound_dispatch`,
+see sisaldab tegelikku XML-i ja Hubi HTTP-staatust, ning vajadusel Hubi poolt. Ära kustuta kirjet kordussaatmise võimaldamiseks.
+Migratsiooni tagasipööre peatub, kui uued olekud või transpordiajalugu on juba kasutusel.
+
+### NCR ja NU XML-saatmise paigaldamine
+
+Väljaminev NCR (päring ja vastus) ja NU saadetakse XML-ina sama adapteri kaudu nagu RSI, CGR ja CTUD. Hub vastab HTTP 202-ga ja kinnitused ning vastused tulevad hiljem. Peata NCR, NCR vastuse ja NU saatmine ning ööpäevane NCR automaatsaatmine (CronManager `erru-ncr-autodispatch`) väljalaske ajaks. Vana JSON-voog ei tohi töötada uue Resql üleminekuloogikaga.
+
+1. Rakenda migratsioon `20261223100000-ncr-nu-outbound-xml` (eeldab CGR/CTUD migratsiooni `20261222100000`).
+2. Määra adapteri keskkonnamuutujad `HUB_NCR_REQUEST_URL` ja `HUB_NU_REQUEST_URL` kinnitatud keskkonna otspunktidele. NCR vastuse saadab adapter `HUB_RESPONSE_URL`-ile.
+3. Luba Ruuteri ja Ruuter.internal URL-allowlistis adapteri `/internal/ncr/{validate,send}`, `/internal/ncr-response/{validate,send}` ja `/internal/nu/{validate,send}`. NCR automaatsaatmine käib `ruuter-internal`-ist, seega vajab ka see allowlist adapteri URL-e ja `ERRU_XML_ADAPTER` konstanti.
+4. Eemalda SSM-i `constants.ini` failist `ERRU_NCR_ENDPOINT`, `ERRU_NU_ENDPOINT`, `ERRU_NCR_RESPONSE_ENDPOINT` ja `ERRU_RSI_ENDPOINT`, neid enam ei kasutata. Ruuter.internal enam otse Hubisse ei lähe.
+5. Paigalda uus Ruuteri ja Ruuter.internal DSL (uued `nu/inbound-ack` ja `ncr/inbound-ack`) ning frontend. Frontend näitab olekuid `sending` ja `send_unknown`.
+6. Kontrolli sünteetilise teatega XML-i, Hubi 202 vastust, NCRN_Ack-i ja NU kinnitust.
+
+Olekus `sending` või `send_unknown` olevat NCR-i, NCR vastust ega NU-d ei saada automaatselt uuesti. Kontrolli tabelit `erru.xml_outbound_dispatch` (`message_type` NCR, NCR_RESPONSE, NU) ja Hubi poolt. Migratsiooni tagasipööre peatub, kui uued olekud või transpordiajalugu on kasutusel.

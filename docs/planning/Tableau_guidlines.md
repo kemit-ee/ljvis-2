@@ -104,6 +104,7 @@ annab andmed vahemällu.
 | Vaade | Sisu |
 |---|---|
 | `tableau.form_overview` | Üks rida per kontrollvorm (kõik tüübid). `authority` = PPA / TRAM, `is_published`, maakonna nimi, asutuse nimi, `has_violation`. **Dashboardide alusvaade.** |
+| `tableau.administrative_procedure` | Haldusmenetluse andmeplokk: üks rida per vorm (VR, PPA andmevormid, TRAM-kaart), kehtiv seis. `form_type`, `form_key`, `form_number`, `status`, `is_published`, `version`, KLIM selgitustaotluse kp, vedaja seletuse kp, `penalty_valid_until`, `penalty_expired_or_processed`, AKVK järgmine koosolek, komisjoni viimase otsuse kp, `admin_procedure_decision`, `has_administrative_procedure`, `updated_at`/`updated_by`. JOIN `tableau.form_overview` (`form_type`, `form_key`). |
 | `tableau.classifier_value_current` | Koodide → nimede tõlge. `classifier_code`, `value_code`, `value_name`, `parent_value_name`, `is_valid`. JOIN: `forms.*.<x>_code = value_code` VÕI `forms.*.<x>` (nt `county`) `= classifier_value_key::text`. |
 | `tableau.ehak` | EHAK haldusüksused lamedaks (maakond ↔ linn/vald). |
 | `tableau.organisation` | Asutus id → nimi/kood. |
@@ -415,8 +416,8 @@ Neli tabelit, kõik snapshot + `direction` veerg:
 
 | Tabel | Sõnumitüüp | Suhtlus |
 |---|---|---|
-| `ctud_request` | Check Transport Undertaking Data (tegevusloa kontroll) | Sünkroonne, üks sihtriik |
-| `cgr_request` | Check Good Repute (mainepäring) | Sünkroonne, võib olla broadcast (`cgr_to = ZZ`) |
+| `ctud_request` | Check Transport Undertaking Data (tegevusloa kontroll) | Asünkroonne (Hub kinnitab, vastus tuleb hiljem), üks sihtriik |
+| `cgr_request` | Check Good Repute (mainepäring) | Asünkroonne, võib olla broadcast (`cgr_to = ZZ`), iga liikmesriik vastab eraldi sõnumiga |
 | `rsi_message` | RoadSideInspection (tehnokontrolli teade) | Asünkroonne, üks sihtriik |
 | `ncr_message` | NotifyCheckResult (kontrollitulemuse teade) | Kahepoolne workflow |
 

@@ -11,7 +11,7 @@ declaration:
 
     Service identifier: EE/GOV/70003218/mtr/checkTransportManagerGoodRepute/v1.
     firstName/lastName are NYSIIS-encoded server-side before the X-tee call
-    (MTR matches names in phonetically-normalised form) — callers pass the
+    (MTR matches names in phonetically-normalised form) - callers pass the
     raw name, not a pre-computed key.
   namespace: xroad
   allowlist:
@@ -39,7 +39,7 @@ declaration:
         description: "Required. ISO date (yyyy-MM-dd) the CPC was issued."
       - field: personIdentifier
         type: string
-        description: "Optional: the subject's Estonian personal code, when known to the caller — logged as-is on xroad_integration_log.person_identifier. Leave blank when the lookup is purely by name+birthdate (matches log_integration.sql's own convention)."
+        description: "Optional: the subject's Estonian personal code, when known to the caller - logged as-is on xroad_integration_log.person_identifier. Leave blank when the lookup is purely by name+birthdate (matches log_integration.sql's own convention)."
       - field: sourceType
         type: string
         description: "Optional: which feature triggered this call, e.g. 'compound_form', 'ncr'."
@@ -53,12 +53,12 @@ validateInput:
       next: returnMissingParam
   next: get_user_context
 
-# Eraldi privileegi ei ole (LJVIS2-154 §3) — kasutaja peab olema autenditud.
+# Eraldi privileegi ei ole (LJVIS2-154 §3) - kasutaja peab olema autenditud.
 # check-user-authority short-circuits with 401/403 itself when there's no
 # valid session; on success it also gives us the personal code needed for
 # X-Road-UserId, same pattern as liiklusregister/paring2.yml.
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: assignParams
@@ -78,10 +78,10 @@ assignParams:
     x_road_user_id: "${'EE' + (auth_user.personalcode || '')}"
   next: computeNysiisFirst
 
-# Call NYSIIS sidecar directly (not via `template:`) — same reasoning as
+# Call NYSIIS sidecar directly (not via `template:`) - same reasoning as
 # erru/cgr/send.yml: the template mechanism is unreliable for GET+body in
 # this Ruuter engine. useFullName=false for the first name (key computed
-# over just the first word), true for the last name (may be multi-word) —
+# over just the first word), true for the last name (may be multi-word) -
 # per the EC NYSIIS package spec §4, same convention as
 # templates/erru/cgr/nysiis-key.yml.
 computeNysiisFirst:
@@ -153,8 +153,8 @@ callXtr:
   result: xtrResponse
   next: checkXtrStatus
 
-# XTR maps every failure mode — Security Server unreachable, timeout, and
-# business-level SOAP Faults alike — to a non-2xx status, so a single range
+# XTR maps every failure mode - Security Server unreachable, timeout, and
+# business-level SOAP Faults alike - to a non-2xx status, so a single range
 # check covers "X-tee turvaserver ei ole kättesaadav" / MTR error / invalid
 # SOAP response alike (LJVIS2-154 testing §7).
 checkXtrStatus:
@@ -183,7 +183,7 @@ logSuccess:
   result: logResult
   next: checkPersonIdentifierForAj
 
-# Andmejälgija (AJ) — logi ainult kui isikukood on teada
+# Andmejälgija (AJ) - logi ainult kui isikukood on teada
 # (MTR pärib nime+sünniaja järgi; personIdentifier on valikuline)
 checkPersonIdentifierForAj:
   switch:
@@ -208,12 +208,12 @@ logAjUsage:
   next: mapResponse
 
 # checkTransportManagerGoodRepute's producer schema has elementFormDefault
-# unset (= "unqualified" per XSD, confirmed via the real getWsdl response) —
+# unset (= "unqualified" per XSD, confirmed via the real getWsdl response) -
 # only the top-level response element is namespace-qualified, so we look it
 # up by suffix (same convention as liiklusregister/paring2.yml) and read its
 # children as-is, no stripNs needed. "Not found" (transportManager
 # absent/null, companies null) is a valid, non-error result (LJVIS2-154
-# testing §2) — mapped to null/[] rather than treated as a failure.
+# testing §2) - mapped to null/[] rather than treated as a failure.
 mapResponse:
   assign:
     soap_body: "${(xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {})}"
@@ -236,7 +236,7 @@ buildResult:
         function toArray(x) { return x == null ? [] : (Array.isArray(x) ? x : [x]); }
         function isNilOrEmpty(v) {
           // XTR's xsi:nil serialisation isn't consistent across responses
-          // — seen as both the string "1" and the string "true" — check
+          // - seen as both the string "1" and the string "true" - check
           // for either rather than assuming one form.
           return v == null || v === '' || (typeof v === 'object' && (v['@xsi:nil'] === '1' || v['@xsi:nil'] === 'true' || v['@xsi:nil'] === true));
         }

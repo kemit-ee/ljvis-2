@@ -1,7 +1,7 @@
 declaration:
   internal: false
   version: "1.0"
-  description: "Send an outgoing RSI (RoadSideInspection) notification to the ERRU hub and store the ACK (LJVIS2-148). RSI is asynchronous and single-country: only 'initiated' messages can be sent (no retry from error — a failed RSI notification is abandoned and a new one composed). Flow: get the draft, validate it is sendable and that checked_items use RSI_FAILED_REASON codes (every 'Ei vasta nõuetele' item has at least one reason), convert checked_items to the ERRU rsiCheckedItemType shape {itemType, itemFailed, failedChecks:[{failedReason, failedAssessment}]} (severity mapped VO→Minor/OV→Major/EOV→Dangerous), call the ERRU hub, receive only an ACK (no vehicle status — that arrives separately via inbound-response.yml), append exactly one 'sent' snapshot with a newly generated workflowId/technicalId (append-transition.sql), and return the workflowId to the caller so they can display 'Teade saadetud'. A transport failure transitions to 'error' (terminal — no retry). The ERRU hub endpoint is resolved from ERRU_RSI_ENDPOINT (mock in dev/CI, XTR in production). The mock response may be Ruuter-enveloped (dev/CI: {'response': '...'}) or direct (XTR): both shapes are handled."
+  description: "Reserve an outgoing RSI envelope, send it through the internal XML adapter, and store the Hub acceptance. The adapter validates ERRU 3.5 XML and performs one HTTP dispatch. Only its accepted result means HTTP 202 from the Hub. Transport uncertainty is send_unknown and cannot be retried. Business responses arrive separately, correlated by the persisted workflowId."
   namespace: erru
   allowlist:
     body:
@@ -44,6 +44,7 @@ checkFound:
 
 extractCurrentState:
   assign:
+    expected_version: "${current.response.body[0].version}"
     cur_status: "${current.response.body[0].status}"
     cur_direction: "${current.response.body[0].direction}"
     business_case_id: "${current.response.body[0].businessCaseId}"
@@ -55,7 +56,13 @@ extractCurrentState:
     vehicle_registration_country: "${current.response.body[0].vehicleRegistrationCountry || ''}"
     vehicle_category: "${current.response.body[0].vehicleCategory || ''}"
     vehicle_identification_number: "${current.response.body[0].vehicleIdentificationNumber || ''}"
-    odometer_reading: "${current.response.body[0].odometerReading || ''}"
+    odometer_reading: "${current.response.body[0].odometerReading != null ? String(current.response.body[0].odometerReading) : ''}"
+    driver_first_name: "${current.response.body[0].driverFirstName || ''}"
+    driver_family_name: "${current.response.body[0].driverFamilyName || ''}"
+    driver_licence_number: "${current.response.body[0].driverLicenceNumber || ''}"
+    driver_licence_country: "${current.response.body[0].driverLicenceCountry || ''}"
+    identification_details: "${current.response.body[0].identificationDetails || ''}"
+    inspection_identifier: "${current.response.body[0].inspectionIdentifier || ''}"
     inspection_location: "${current.response.body[0].inspectionLocation || ''}"
     inspection_datetime: "${current.response.body[0].inspectionDatetime || ''}"
     inspection_authority_or_name: "${current.response.body[0].inspectionAuthorityOrName || ''}"
@@ -66,7 +73,7 @@ extractCurrentState:
   next: checkSendable
 
 # RSI differs from CGR: only 'initiated' is sendable. 'error' has NO outgoing transition
-# (LJVIS2-146/148) — a new message with a new rsi_message_key must be composed instead.
+# (LJVIS2-146/148) - a new message with a new rsi_message_key must be composed instead.
 checkSendable:
   switch:
     - condition: ${cur_direction !== 'outgoing'}
@@ -87,7 +94,7 @@ checkSendable:
 # NOTE: this conversion is deliberately split into several small assign steps, each with a
 # short expression. A single large IIFE combining the full parse+filter+map+ternary logic
 # in one `${...}` expression was found to silently fail once enough OTHER variables had
-# already accumulated earlier in this same flow — Ruuter-on-Rust's template evaluator
+# already accumulated earlier in this same flow - Ruuter-on-Rust's template evaluator
 # returned the literal unevaluated template text instead of raising an error, which went
 # unnoticed because no test inspected the actual outbound payload (only the final status).
 # Splitting the transformation avoids the failure and is easier to unit-debug step by step.
@@ -128,19 +135,19 @@ mapAuthorities:
       ${inspection_authority_or_name === 'Politsei- ja Piirivalveamet'
         ? 'Estonian Police and Border Guard Board'
         : inspection_authority_or_name}
-  next: callErru
+  next: validateXml
 
-callErru:
+validateXml:
   call: http.post
+  error: returnValidationUnavailable
   args:
-    url: "[#ERRU_RSI_ENDPOINT]"
+    url: "[#ERRU_XML_ADAPTER]/internal/rsi/validate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       rsiTo: ${rsi_to}
       businessCaseId: ${business_case_id}
-      technicalId: ""
-      workflowId: ""
       originatingAuthority: ${originating_authority_out}
       requestSource: ${request_source}
       requestPurpose: ${request_purpose}
@@ -155,14 +162,108 @@ callErru:
       ptiRequested: ${pti_requested}
       vehicleProhibitionOrRestriction: ${vehicle_prohibition}
       checkedItems: ${erru_checked_items}
+      odometerReading: ${odometer_reading}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      identificationDetails: ${identification_details}
+      inspectionIdentifier: ${inspection_identifier}
+  result: xml_validation
+  next: checkXmlValidation
+
+checkXmlValidation:
+  switch:
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+      next: returnInvalidXml
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
+      next: reserveSend
+  next: returnValidationUnavailable
+
+returnInvalidXml:
+  status: 422
+  return: '{"valid":false,"code":"invalid_rsi_xml","message":"RSI data does not satisfy the ERRU 3.5 XML contract. Check VIN, odometer, driver and holder details."}'
+  next: end
+
+returnValidationUnavailable:
+  status: 503
+  return: '{"valid":false,"code":"validation_unavailable","message":"RSI XML validation is unavailable. The draft was not sent."}'
+  next: end
+
+reserveSend:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/begin-send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      key: ${id}
+      expectedVersion: ${expected_version}
+      created_by: ${actor_personal_code}
+  result: reservation
+  next: checkReservation
+
+checkReservation:
+  switch:
+    - condition: ${reservation.response == null || reservation.response.status >= 400 || reservation.response.body == null || reservation.response.body.length !== 1}
+      next: returnNotSendable
+  next: extractEnvelope
+
+extractEnvelope:
+  assign:
+    technical_id: "${reservation.response.body[0].technicalId}"
+    workflow_id: "${reservation.response.body[0].workflowId}"
+    sent_at: "${reservation.response.body[0].sentAt}"
+  next: callErru
+
+callErru:
+  call: http.post
+  error: markUnknown
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/rsi/send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      rsiTo: ${rsi_to}
+      businessCaseId: ${business_case_id}
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      originatingAuthority: ${originating_authority_out}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleCategory: ${vehicle_category}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_out}
+      inspectionPassed: ${inspection_passed}
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition}
+      checkedItems: ${erru_checked_items}
+      odometerReading: ${odometer_reading}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      identificationDetails: ${identification_details}
+      inspectionIdentifier: ${inspection_identifier}
   result: erru_res
   next: checkErruStatus
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status === 0 || erru_res.response.status >= 400}
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === technical_id && erru_res.response.body.workflowId === workflow_id}
+      next: logIntegrationSuccess
+    - condition: ${erru_res.response.body.status === 'rejected'}
       next: logIntegrationFailure
-  next: logIntegrationSuccess
+  next: markUnknown
 
 logIntegrationSuccess:
   call: http.post
@@ -182,6 +283,7 @@ logIntegrationSuccess:
       source_type: "erru_rsi"
       source_record_id: "${'' + business_case_id}"
   result: log_ok
+  error: storeSent
   next: storeSent
 
 logIntegrationFailure:
@@ -219,17 +321,37 @@ storeSent:
       errorMessage: ""
       created_by: ${actor_personal_code}
   result: stored_res
+  error: checkConcurrentResponse
   next: checkStoreSent
 
 checkStoreSent:
   switch:
     - condition: ${stored_res.response.body == null || stored_res.response.body.length != 1}
-      next: returnNotSendable
+      next: checkConcurrentResponse
   next: extractWorkflowId
+
+checkConcurrentResponse:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/get"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      id: ${id}
+  result: latest_after_send
+  error: returnFinalizeFailed
+  next: checkResponseWonRace
+
+checkResponseWonRace:
+  switch:
+    - condition: ${latest_after_send.response.body != null && latest_after_send.response.body.length === 1 && latest_after_send.response.body[0].status === 'responded'}
+      next: logAuditSend
+  next: returnFinalizeFailed
 
 extractWorkflowId:
   assign:
-    rsi_wf_id: "${stored_res.response.body[0].workflowId || ''}"
+    rsi_wf_id: "${workflow_id}"
   next: logAuditSend
 
 markError:
@@ -244,10 +366,44 @@ markError:
       newStatus: "error"
       responseStatusCode: ""
       responseStatusMessage: ""
-      errorMessage: "ERRU RSI transport failure — a new message must be composed (no retry)"
+      errorMessage: "ERRU RSI request rejected before acceptance; check the integration log"
       created_by: ${actor_personal_code}
   result: error_res
   next: logAuditError
+
+markUnknown:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      key: ${id}
+      newStatus: "send_unknown"
+      responseStatusCode: ""
+      responseStatusMessage: ""
+      errorMessage: "RSI dispatch outcome unknown. Do not resend without transport reconciliation."
+      created_by: ${actor_personal_code}
+  result: unknown_res
+  error: returnUnknown
+  next: checkUnknownStored
+
+checkUnknownStored:
+  switch:
+    - condition: ${unknown_res.response != null && unknown_res.response.body != null && unknown_res.response.body.length === 0}
+      next: checkConcurrentResponse
+  next: returnUnknown
+
+returnUnknown:
+  status: 502
+  return: '{"valid":false,"code":"send_unknown","message":"RSI dispatch outcome is unknown; do not resend"}'
+  next: end
+
+returnFinalizeFailed:
+  status: 502
+  return: '{"valid":false,"code":"send_unknown","message":"Hub accepted the RSI request but local confirmation failed; do not resend"}'
+  next: end
 
 logAuditSend:
   template: "templates/audit/erru/rsi/log-rsi-request-send"
@@ -260,6 +416,7 @@ logAuditSend:
     result_status: "sent"
     vehicle_registration_number: ${vehicle_registration_number}
   result: audit_ok
+  error: returnSent
   next: returnSent
 
 logAuditError:
@@ -276,12 +433,12 @@ logAuditError:
   next: returnError
 
 returnSent:
-  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, workflowId: rsi_wf_id, rsiTo: rsi_to})}"
+  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, workflowId: workflow_id, rsiTo: rsi_to})}"
   next: end
 
 returnError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU RSI transport failure — request transitioned to error, a new message must be composed"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU RSI transport failure - request transitioned to error, a new message must be composed"}'
   next: end
 
 returnIdRequired:

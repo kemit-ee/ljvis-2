@@ -1,7 +1,7 @@
 /*
-description: Kõik teavituse liigid ja nende kehtiv Postkast 2.0 malli/vastuvõtja seadistus —
+description: Kõik teavituse liigid ja nende kehtiv Postkast 2.0 malli/vastuvõtja seadistus -
   halduse loendivaate jaoks (notification-template-mapping/list.yml).
-  Append-only tabel — kehtiv rida iga notification_type kohta on värskeim
+  Append-only tabel - kehtiv rida iga notification_type kohta on värskeim
   (created_at DESC, id DESC tiebreak, vt get_template_mapping.sql).
 namespace: notification
 params: {}

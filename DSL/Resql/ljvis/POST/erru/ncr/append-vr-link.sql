@@ -1,7 +1,7 @@
 /*
 description: 'Link the outgoing foreign_violation_form created from an NCR message back onto the NCR
   message (LJVIS2-131/create-from-ncr.yml). erru.ncr_message is INSERT-only (UPDATE/DELETE forbidden,
-  see 20260816100000-initial-erru-ncr.sql) — this must not UPDATE the latest snapshot in place, so it
+  see 20260816100000-initial-erru-ncr.sql) - this must not UPDATE the latest snapshot in place, so it
   appends a new snapshot carrying every field forward unchanged except linked_foreign_violation_form_key.
   Guarded: the INSERT .. SELECT produces zero rows unless a snapshot exists for businessCaseId; the caller
   detects the empty result and returns 500 link_failed.'

@@ -9,9 +9,9 @@ declaration:
     code, but no enforcement_decision yet, ask e-toimik
     (AnnaIsikuKvalifikatsioonid) whether a decision has entered into force,
     and write the result (jõustunud otsus + menetluse lõpetamise alus) onto
-    the sub-form IN PLACE and publishes it — does not bump version.
+    the sub-form IN PLACE and publishes it - does not bump version.
     Processes vehicle and trailer sub-forms as two independent candidate
-    sets in one flow (same source data, same X-tee call — kept together
+    sets in one flow (same source data, same X-tee call - kept together
     per LJVIS2-72 §0 "Variandid"). Called by CronManager at 01:45
     Europe/Tallinn (DSL/CronManager/etoimik-technical-check-decision-sync.yaml).
     Same flat-iterate-sequence pattern as
@@ -49,83 +49,32 @@ processVehicleCandidates:
           candidate_key: "${String(candidate.id)}"
           reference_number: "${candidate.proceedingReferenceNumber || candidate.proceeding_reference_number || ''}"
           driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
-          case_start: "${new Date().getTime()}"
+          person_first_name: "${candidate.personFirstName || candidate.person_first_name || ''}"
+          person_last_name: "${candidate.personLastName || candidate.person_last_name || ''}"
+          person_birth_date: "${String(candidate.personBirthDate || candidate.person_birth_date || '').substring(0, 10)}"
 
-      # Built once so the log_integration call below can log the exact same
-      # full request body that is actually sent to XTR.
-      - assign:
-          xtr_request_body:
-            reference_number: ${reference_number}
-            personal_code: ${driver_personal_code}
-            userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
-
+      # Otsing käib ühe sisemise lõpp-punkti kaudu: isikukoodiga päring, ja kui see
+      # midagi ei leia ning nimi + sünniaeg on olemas, teine päring nime ja sünniajaga
+      # (XSD-choice: isikukoodi ja nime ühes päringus ei saada). Logimine toimub seal.
       - call: http.post
         args:
-          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
-          headers:
-            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-            type: json
-          body: ${xtr_request_body}
-        result: xtrResponse
-
-      - assign:
-          decision: >-
-            ${(function(){
-              function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
-              var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
-              if (!httpOk) {
-                return { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
-              }
-              var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
-              var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
-              var responseNode = responseKey ? soapBody[responseKey] : {};
-              var caseNode = responseNode.response || null;
-              if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
-              }
-              var decisions = [];
-              var bases = [];
-              toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
-                toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
-                  toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
-                    var person = p.Isik || {};
-                    if (String(person.Kood || '') !== driver_personal_code) { return; }
-                    toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
-                      toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
-                        if (!cp.SulgemiseKP) { return; }
-                        decisions.push((cp.LahendKL || '') + (cp.LahendiKP ? (' (' + cp.LahendiKP + ')') : ''));
-                        bases.push(cp.SyydistusPunktCSV || cp.LahendKL || '');
-                      });
-                    });
-                  });
-                });
-              });
-              if (decisions.length === 0) {
-                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
-              }
-              return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
-            })()}
-
-      - call: http.post
-        args:
-          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          url: "[#LJVIS_RUUTER_INTERNAL]/etoimik/lookup-decision"
           headers:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
+            reference_number: ${reference_number}
+            personal_code: ${driver_personal_code}
+            first_name: ${person_first_name}
+            last_name: ${person_last_name}
+            birth_date: ${person_birth_date}
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.vehicle_technical"
-            request_xml: "${JSON.stringify(xtr_request_body)}"
-            response_xml: "${decision.rawResponse}"
-            duration_ms: "${new Date().getTime() - case_start}"
-            success: ${decision.success}
-            error_message: "${decision.errorMessage}"
-            person_identifier: ${driver_personal_code}
             source_type: "vehicle_technical_form"
             source_record_id: ${candidate_key}
-            result_status: "${decision.resultStatus}"
-        result: logRes
+        result: lookupRes
+
+      - assign:
+          decision: "${lookupRes.response != null && lookupRes.response.status >= 200 && lookupRes.response.status < 300 && lookupRes.response.body && lookupRes.response.body.response ? lookupRes.response.body.response : { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'etoimik/lookup-decision ebaõnnestus', rawResponse: '' }}"
 
       - call: http.post
         args:
@@ -169,7 +118,7 @@ processVehicleCandidates:
           body:
             entity_type: "vehicle_technical"
             entity_id: ${candidate_key}
-            created_by: "e-toimik"
+            created_by: "eToimik öine uuendus"
         result: carrierNotifRes
     collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
     into: vehicleResults
@@ -201,83 +150,32 @@ processTrailerCandidates:
           candidate_key: "${String(candidate.id)}"
           reference_number: "${candidate.proceedingReferenceNumber || candidate.proceeding_reference_number || ''}"
           driver_personal_code: "${candidate.driverPersonalCode || candidate.driver_personal_code || ''}"
-          case_start: "${new Date().getTime()}"
+          person_first_name: "${candidate.personFirstName || candidate.person_first_name || ''}"
+          person_last_name: "${candidate.personLastName || candidate.person_last_name || ''}"
+          person_birth_date: "${String(candidate.personBirthDate || candidate.person_birth_date || '').substring(0, 10)}"
 
-      # Built once so the log_integration call below can log the exact same
-      # full request body that is actually sent to XTR.
-      - assign:
-          xtr_request_body:
-            reference_number: ${reference_number}
-            personal_code: ${driver_personal_code}
-            userId: "LJVIS-CRON"
-            subsystem_code: "[#ETOIMIK_SUBSYSTEM_CODE]"
-            service_version: "[#ETOIMIK_SERVICE_VERSION]"
-
+      # Otsing käib ühe sisemise lõpp-punkti kaudu: isikukoodiga päring, ja kui see
+      # midagi ei leia ning nimi + sünniaeg on olemas, teine päring nime ja sünniajaga
+      # (XSD-choice: isikukoodi ja nime ühes päringus ei saada). Logimine toimub seal.
       - call: http.post
         args:
-          url: "[#LJVIS_XTR]/etoimik/AnnaIsikuKvalifikatsioonid"
-          headers:
-            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-            type: json
-          body: ${xtr_request_body}
-        result: xtrResponse
-
-      - assign:
-          decision: >-
-            ${(function(){
-              function toArray(x) { return x ? (Array.isArray(x) ? x : [x]) : []; }
-              var httpOk = xtrResponse.response.status >= 200 && xtrResponse.response.status < 300;
-              if (!httpOk) {
-                return { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'XTR HTTP ' + xtrResponse.response.status, rawResponse: JSON.stringify(xtrResponse.response.body) };
-              }
-              var soapBody = (xtrResponse.response.body && xtrResponse.response.body.body) ? xtrResponse.response.body.body : (xtrResponse.response.body || {});
-              var responseKey = Object.keys(soapBody).find(function(k){ return k.endsWith('AnnaIsikuKvalifikatsioonidResponse'); });
-              var responseNode = responseKey ? soapBody[responseKey] : {};
-              var caseNode = responseNode.response || null;
-              if (caseNode == null || caseNode['@xsi:nil'] === '1' || caseNode['@xsi:nil'] === true) {
-                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: 'null' };
-              }
-              var decisions = [];
-              var bases = [];
-              toArray(caseNode.Menetlused && caseNode.Menetlused.item).forEach(function(m){
-                toArray(m.Toimingud && m.Toimingud.item).forEach(function(a){
-                  toArray(a.Toiminguosalised && a.Toiminguosalised.item).forEach(function(p){
-                    var person = p.Isik || {};
-                    if (String(person.Kood || '') !== driver_personal_code) { return; }
-                    toArray(p.Sanktsioonid && p.Sanktsioonid.item).forEach(function(s){
-                      toArray(s.AluseksOlevadSyydistusPunktid && s.AluseksOlevadSyydistusPunktid.item).forEach(function(cp){
-                        if (!cp.SulgemiseKP) { return; }
-                        decisions.push((cp.LahendKL || '') + (cp.LahendiKP ? (' (' + cp.LahendiKP + ')') : ''));
-                        bases.push(cp.SyydistusPunktCSV || cp.LahendKL || '');
-                      });
-                    });
-                  });
-                });
-              });
-              if (decisions.length === 0) {
-                return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
-              }
-              return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: bases.join('; '), errorMessage: '', rawResponse: JSON.stringify(caseNode) };
-            })()}
-
-      - call: http.post
-        args:
-          url: "[#LJVIS_RESQL]/xroad/log_integration"
+          url: "[#LJVIS_RUUTER_INTERNAL]/etoimik/lookup-decision"
           headers:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
+            reference_number: ${reference_number}
+            personal_code: ${driver_personal_code}
+            first_name: ${person_first_name}
+            last_name: ${person_last_name}
+            birth_date: ${person_birth_date}
             service_code: "etoimik.AnnaIsikuKvalifikatsioonid.v6.cron.trailer_technical"
-            request_xml: "${JSON.stringify(xtr_request_body)}"
-            response_xml: "${decision.rawResponse}"
-            duration_ms: "${new Date().getTime() - case_start}"
-            success: ${decision.success}
-            error_message: "${decision.errorMessage}"
-            person_identifier: ${driver_personal_code}
             source_type: "trailer_technical_form"
             source_record_id: ${candidate_key}
-            result_status: "${decision.resultStatus}"
-        result: logRes
+        result: lookupRes
+
+      - assign:
+          decision: "${lookupRes.response != null && lookupRes.response.status >= 200 && lookupRes.response.status < 300 && lookupRes.response.body && lookupRes.response.body.response ? lookupRes.response.body.response : { success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'etoimik/lookup-decision ebaõnnestus', rawResponse: '' }}"
 
       - call: http.post
         args:
@@ -321,7 +219,7 @@ processTrailerCandidates:
           body:
             entity_type: "trailer_technical"
             entity_id: ${candidate_key}
-            created_by: "e-toimik"
+            created_by: "eToimik öine uuendus"
         result: carrierNotifRes
     collect: "${({ id: candidate.id, found: decision.found, applied: applied_now, success: decision.success })}"
     into: trailerResults
@@ -329,5 +227,5 @@ processTrailerCandidates:
 
 returnSummary:
   status: 200
-  return: "${({ vehicleCandidatesChecked: vehicleCandidates.length, vehicleDecisionsApplied: vehicleResults.filter(r => r.applied).length, trailerCandidatesChecked: trailerCandidates.length, trailerDecisionsApplied: trailerResults.filter(r => r.applied).length, failures: vehicleResults.filter(r => !r.success).length + trailerResults.filter(r => !r.success).length })}"
+  return: "${({ total: vehicleCandidates.length + trailerCandidates.length, succeeded: vehicleResults.filter(r => r.success).length + trailerResults.filter(r => r.success).length, vehicleCandidatesChecked: vehicleCandidates.length, vehicleDecisionsApplied: vehicleResults.filter(r => r.applied).length, trailerCandidatesChecked: trailerCandidates.length, trailerDecisionsApplied: trailerResults.filter(r => r.applied).length, failures: vehicleResults.filter(r => !r.success).length + trailerResults.filter(r => !r.success).length })}"
   next: end

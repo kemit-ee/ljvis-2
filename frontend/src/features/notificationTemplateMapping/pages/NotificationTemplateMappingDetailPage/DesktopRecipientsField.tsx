@@ -12,9 +12,11 @@ interface Props {
 }
 
 // Desktop-kanali teavituse konkreetsed saajad (personal_code'id, vt
-// notification_template_mapping.desktop_recipient_personal_codes). Kordab
-// UserGroupAddUserPage otsingumustrit (min 3 tähemärki või tühi väli),
-// aga kompaktsena — valik on tavaliselt 1-3 kasutajat, mitte lehekülgede kaupa.
+// notification_template_mapping.desktop_recipient_personal_codes). Otsing
+// käivitub iseseisvalt sisestamise ajal (debounce), Enter/otsinguikooni
+// klõps töötab samuti; valik on tavaliselt 1-3 kasutajat, mitte lehekülgede kaupa.
+const SEARCH_DEBOUNCE_MS = 300;
+
 export function DesktopRecipientsField({ personalCodes, onChange }: Props) {
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
@@ -60,6 +62,14 @@ export function DesktopRecipientsField({ personalCodes, onChange }: Props) {
       setSearching(false);
     }
   };
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      handleSearch(searchInput);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput]);
 
   const addRecipient = (u: UserListItem) => {
     setSelectedUsers((prev) => ({
@@ -116,7 +126,6 @@ export function DesktopRecipientsField({ personalCodes, onChange }: Props) {
         value={searchInput}
         onChange={setSearchInput}
         onSearch={handleSearch}
-        onIconClick={() => handleSearch(searchInput)}
         onClear={() => {
           setSearchInput('');
           setResults([]);

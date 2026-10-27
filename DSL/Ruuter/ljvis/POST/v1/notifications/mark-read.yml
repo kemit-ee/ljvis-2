@@ -4,7 +4,7 @@ declaration:
   description: >-
     Märgib ühe in-app teavituse autenditud kasutaja jaoks loetuks.
     Idempotentne: ON CONFLICT DO NOTHING.
-    Teavituse id käib ?q= query-paramina (rest-api-disainijuhend §4.2) —
+    Teavituse id käib ?q= query-paramina (rest-api-disainijuhend §4.2) -
     Ruuter nõuab kõigi allowlist.body väljade olemasolu, seega ei saa id-d
     valikuliseks kehaväljaks teha.
     Kaitstud POST/.guard (autentimine) kaudu.

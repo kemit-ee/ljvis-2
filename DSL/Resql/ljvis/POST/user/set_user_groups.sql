@@ -1,5 +1,5 @@
 /*
-description: Update user group memberships — copy latest snapshot with modified user_groups JSONB (add
+description: Update user group memberships - copy latest snapshot with modified user_groups JSONB (add
   or remove group keys)
 namespace: user
 params:

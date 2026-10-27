@@ -6,13 +6,13 @@ Administraator haldab LJVIS2 kasutajaid, gruppe, õigusi ja klassifikaatoreid. A
 
 | Roll | Õigused | Ülesanded |
 |---|---|---|
-| Üldadministraator | `user.list.admin`, `user_group.list.admin`, `classifier.list`, `audit.read` | Hallatakse kõiki kasutajaid ja süsteemi seadeid |
-| Organisatsiooni administraator | `user.list.local`, `user_group.list.local` | Hallatakse ainult oma organisatsiooni kasutajaid ja gruppe |
+| Üldadministraator | `user.list.admin`, `user_group.list.admin`, `classifier.list`, `audit.read` | Haldab kõiki kasutajaid ja süsteemi seadeid |
+| Organisatsiooni administraator | `user.list.local`, `user_group.list.local` | Haldab oma organisatsiooni kasutajaid ja gruppe |
 | Ametniku juht | `classifier.list`, `audit.read` | Jälgib tegevusi ja klassifikaatoreid |
 
 ## Administraatori sisselogimine
 
-Administraatorid logivad sisse samasuguse TARA autentimisega nagu tavalised kasutajad. Erinevus seisneb selles, millised menüüpunktid kuvatakse — need sõltuvad Teie õigustest.
+Logige sisse TARA kaudu. Süsteem kuvab menüüpunktid vastavalt Teie õigustele.
 
 ## Milliseid õigusi vaja on
 

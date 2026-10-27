@@ -1,7 +1,7 @@
 /*
 description: 'X-tee IsikuEttevoteKontrollid (v1): tagastab kõik LJVIS kontrollid ettevõtete kohta, millega
   antud isik on seotud (juhi rollina koondvormis või karistatu tööinspektsiooniaktis). Ainult lokaalne
-  DB — Äriregistri välispäringut ei tehta. Kustutatud staatuses vormid välistatakse.'
+  DB - Äriregistri välispäringut ei tehta. Kustutatud staatuses vormid välistatakse.'
 namespace: xroad
 params:
   isikukood:
@@ -47,11 +47,11 @@ returns:
 -- Allikad: koondvorm (juht) + tööinspektsiooniakt (karistatu)
 WITH person_companies AS (
   -- Koondvormidest: isik on juht (drivers JSONB massiiv sisaldab isikukoodi).
-  -- Väljanimed on camelCase, mitte snake_case — see on drivers-veeru tegelik
+  -- Väljanimed on camelCase, mitte snake_case - see on drivers-veeru tegelik
   -- kuju (vt CompoundFormEditCard.tsx / CompoundFormCreatePage.tsx).
   -- Eelfilter: `drivers @> [...]` kasutab GIN-indeksit idx_cf_drivers_gin ja
   -- väldib kogu tabeli skaneerimist + unnest'i. Containment garanteerib, et
-  -- mõni juht massiivis vastab isikukoodile — eraldi jsonb_array_elements'i vaja pole.
+  -- mõni juht massiivis vastab isikukoodile - eraldi jsonb_array_elements'i vaja pole.
   SELECT DISTINCT cf.company_reg_code
   FROM forms.compound_form cf
   WHERE cf.drivers @> jsonb_build_array(jsonb_build_object('personalCodeEe', :isikukood))

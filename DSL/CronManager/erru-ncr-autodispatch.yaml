@@ -1,4 +1,4 @@
-# Runs at 02:00 Tallinn time (TZ pinned in docker-compose.yml) — after the
+# Runs at 02:00 Tallinn time (TZ pinned in docker-compose.yml) - after the
 # e-toimik decision syncs (01:00 / 01:30) so the nightly XTR / hub traffic
 # does not overlap. LJVIS2-64: automatic NCR (NotifyCheckResult) dispatch for
 # published, KORRAS sõidu- ja puhkeaja checks of foreign-registered vehicles.

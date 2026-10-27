@@ -8,11 +8,15 @@ declaration:
 
     The officer-facing endpoint needs check-user-authority (a browser session cookie)
     to resolve X-Road-UserId, but the inbound CTUD handler is machine-to-machine with
-    no user involved — check-user-authority would always 401. userId here is a fixed
+    no user involved - check-user-authority would always 401. userId here is a fixed
     system identifier instead.
 
+    transportUndertakingName is optional: the inbound CTUD SearchByLicenceAndVehicle
+    request identifies the undertaking by licence number (and vehicle) only, so the
+    name is usually empty.
+
     XTR call and response mapping are kept byte-identical to the officer-facing
-    endpoint (including the leitud/ei leitud/viga -> Found/NotFound/Error mapping) —
+    endpoint (including the leitud/ei leitud/viga -> Found/NotFound/Error mapping) -
     mirror any change there here too.
   namespace: erru
   allowlist:
@@ -25,7 +29,7 @@ declaration:
         description: "Optional. CTUD ERRU envelope's originatingAuthority."
       - field: transportUndertakingName
         type: string
-        description: "Required. Transport undertaking name — search basis."
+        description: "Optional. Transport undertaking name. CTUD SearchByLicenceAndVehicle does not carry it; an empty value is forwarded to MTR as an empty element."
       - field: trueCopyNumber
         type: string
         description: "Required. Community licence number or certified true copy number (CTUD envelope's communityLicenceNumber)."
@@ -38,7 +42,7 @@ declaration:
 
 validateInput:
   switch:
-    - condition: "${!(incoming.body.businessCaseId || '').trim() || !(incoming.body.transportUndertakingName || '').trim() || !(incoming.body.trueCopyNumber || '').trim()}"
+    - condition: "${!(incoming.body.businessCaseId || '').trim() || !(incoming.body.trueCopyNumber || '').trim()}"
       next: returnMissingParam
   next: assignParams
 
@@ -98,7 +102,7 @@ logSuccess:
   result: logResult
   next: mapResponse
 
-# Kept byte-identical to xroad/mtr/check-community-licence.yml's mapResponse —
+# Kept byte-identical to xroad/mtr/check-community-licence.yml's mapResponse -
 # see that file's comments for the WSDL-confirmed field/status details.
 mapResponse:
   assign:
@@ -215,5 +219,5 @@ returnXtrError:
 
 returnMissingParam:
   status: 400
-  return: '{"error": "MISSING_PARAMETER", "message": "businessCaseId, transportUndertakingName and trueCopyNumber are required"}'
+  return: '{"error": "MISSING_PARAMETER", "message": "businessCaseId and trueCopyNumber are required"}'
   next: end

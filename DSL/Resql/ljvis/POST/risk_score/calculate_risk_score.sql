@@ -1,16 +1,16 @@
 /*
-description: 'LJVIS2-151: computes (but does NOT persist — see save_risk_score.sql) the EU 2022/695 risk
+description: 'LJVIS2-151: computes (but does NOT persist - see save_risk_score.sql) the EU 2022/695 risk
   score R for one Estonian transport undertaking, over a caller-supplied [window_start, window_end] date
   window (normally "now - 2 years" .. "now"). Two independent control sources feed the same r/weighted_sum:
   (a) forms.compound_form rows with status=''published'' (PPA/TRAM domestic checks) and (b)
-  forms.foreign_violation_form rows with status=''published'' (VR-vorm — violations against this
+  forms.foreign_violation_form rows with status=''published'' (VR-vorm - violations against this
   Estonian carrier detected/reported by another member state). Both require an 8-digit Estonian
   company_reg_code; "enforcement date" is the first time a given compound_form_key/foreign_violation_form_key
   reached status=''published'' (MIN(created_at) FILTER). Violation severity/isDetected keys inside the
   compound_form''s JSONB violation arrays are camelCase (violationCode/severityCode/isDetected) because
   they are the raw frontend Formik field shape (frontend/src/features/control-forms/types.ts
-  Violation/DocumentCheck/CabotageViolation) persisted as-is — NOT snake_case. foreign_violation_form''s
-  `violations` column is instead a plain JSONB string array of codes (e.g. ["MSI101","VSI800"]) — severity
+  Violation/DocumentCheck/CabotageViolation) persisted as-is - NOT snake_case. foreign_violation_form''s
+  `violations` column is instead a plain JSONB string array of codes (e.g. ["MSI101","VSI800"]) - severity
   is read from the code''s prefix. See docs/risk-score/formula.md for the full formula/rules writeup.'
 namespace: risk_score
 params:
@@ -70,7 +70,7 @@ sp_driver_latest AS (
   SELECT DISTINCT ON (sp_driver_form_key)
     sp_driver_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_driver_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -85,7 +85,7 @@ sp_teammate_latest AS (
   SELECT DISTINCT ON (sp_teammate_form_key)
     sp_teammate_form_key AS sp_form_key, compound_form_key, status AS latest_status, selection_status, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM forms.sp_teammate_form
   WHERE compound_form_key IN (SELECT compound_form_key FROM qualifying_forms)
     AND status IN ('published', 'deleted')
@@ -99,16 +99,16 @@ sp_teammate_active AS (
 all_sp_forms AS (
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_driver_active
   UNION ALL
   SELECT sp_form_key, compound_form_key, sp_applicability, result_type, proceeding_type,
     violations_561_2006, violations_165_2014, violations_2002_15, violations_593_2008, violations_2020_1057,
-    document_checks, cabotage_violations
+    document_checks, cabotage_violations, mass_dimension_measurements
   FROM sp_teammate_active
 ),
--- Count MSI/VSI/SI/MI occurrences across all 7 JSONB violation-carrying
--- fields of each SP form. violations_* entries require isDetected='true'
+-- Count MSI/VSI/SI/MI occurrences across all 8 JSONB violation-carrying
+-- fields of each SP form (incl. mass_dimension_measurements, severity key `severity`). violations_* entries require isDetected='true'
 -- (string, not boolean) OR a missing isDetected key; document_checks and
 -- cabotage_violations have no isDetected field at all, so every entry counts.
 violation_counts AS (
@@ -135,6 +135,10 @@ violation_counts AS (
       UNION ALL
       SELECT elem->>'severityCode'
       FROM jsonb_array_elements(COALESCE(f.cabotage_violations, '[]'::jsonb)) elem
+      UNION ALL
+      -- Massi ja mõõtmete ületamine: kirje raskusaste on väljas `severity` (mitte severityCode), isDetected välja pole.
+      SELECT COALESCE(elem->>'severity', elem->>'severityCode')
+      FROM jsonb_array_elements(COALESCE(f.mass_dimension_measurements, '[]'::jsonb)) elem
     ) AS severity_codes
   FROM all_sp_forms f
 ),
@@ -157,12 +161,12 @@ sp_form_category AS (
   SELECT
     *,
     CASE
-      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type = 'KORRAS'
+      WHEN sp_applicability IN ('EI_RAKENDATA', 'EI_KONTROLLITUD') AND result_type IN ('ok', 'KORRAS')
         THEN 'excluded'
       WHEN sp_applicability = 'RAKENDATAKSE' AND proceeding_type IN ('KIIR', 'YLD', 'LYHI')
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
-      WHEN result_type = 'HOIATUS' AND sp_applicability = 'RAKENDATAKSE'
+      WHEN result_type IN ('warning', 'HOIATUS') AND sp_applicability = 'RAKENDATAKSE'
            AND (n_msi + n_vsi + n_si + n_mi) = 0
         THEN 'zero_point'
       ELSE 'counted'
@@ -171,7 +175,7 @@ sp_form_category AS (
 ),
 -- Per compound_form_key: a control is fully excluded only if EVERY one of
 -- its SP forms is 'excluded' (a compound_form with no SP forms at all never
--- appears here at all, since only SP forms are grouped — which itself
+-- appears here at all, since only SP forms are grouped - which itself
 -- satisfies the "no sp_driver/teammate_form => fully excluded" rule).
 per_control AS (
   SELECT
@@ -184,7 +188,7 @@ per_control AS (
   WHERE sfc.compound_form_key = ANY (SELECT qf.compound_form_key FROM qualifying_forms qf)
   GROUP BY sfc.compound_form_key
 ),
--- ── VR-vorm (forms.foreign_violation_form) — EL 2022/695 kaasamine (LJVIS2-151 lahknevuse parandus) ──
+-- ── VR-vorm (forms.foreign_violation_form) - EL 2022/695 kaasamine (LJVIS2-151 lahknevuse parandus) ──
 vr_enforcement_dates AS (
   -- Jõustumiskuupäev = first time this foreign_violation_form_key became 'published'.
   SELECT foreign_violation_form_key, MIN(created_at) AS enforcement_date
@@ -221,7 +225,7 @@ vr_latest AS (
   ORDER BY foreign_violation_form_key, created_at DESC
 ),
 -- VR-vormi `violations` on lihtne JSONB string-massiiv rikkumiskoodidest (nt
--- ["MSI101","VSI800"] — vt 20260703100000-initial-foreign-violation-form.sql
+-- ["MSI101","VSI800"] - vt 20260703100000-initial-foreign-violation-form.sql
 -- veeru kommentaari), mitte objektide massiiv nagu SP-vormidel, seega
 -- raskusaste loetakse koodi enda prefiksist. VR-vormil pole MI-koodi
 -- võimalust (vorm toetab ainult kolme checkbox-gruppi: MSI, VSI, SI).
@@ -234,7 +238,7 @@ vr_violation_tallies AS (
   FROM vr_latest vl
 ),
 -- Iga VR-kontroll loeb r-i (zero_point kui rikkumisi ei tuvastatud, counted
--- muidu) — VR-vormil pole PPA koondvormi sp_applicability-ga analoogset "ei
+-- muidu) - VR-vormil pole PPA koondvormi sp_applicability-ga analoogset "ei
 -- rakendu/ei kontrollitud" seisundit, seega VR-kontrollidel pole 'excluded'
 -- kategooriat (kasutaja kinnitatud otsus, vt docs/risk-score/formula.md §3.1).
 vr_per_control AS (
@@ -244,14 +248,21 @@ vr_per_control AS (
     (vt.n_msi * 90 + vt.n_vsi * 30 + vt.n_si * 10) AS weighted_sum
   FROM vr_violation_tallies vt
 ),
-all_controls AS (
-  SELECT is_fully_excluded, weighted_sum FROM per_control
+all_control_parts AS (
+  SELECT compound_form_key AS form_key, 'compound'::TEXT AS form_type, is_fully_excluded, weighted_sum::NUMERIC AS weighted_sum FROM per_control
   UNION ALL
-  SELECT is_fully_excluded, weighted_sum FROM vr_per_control
+  SELECT foreign_violation_form_key, 'foreign_violation', is_fully_excluded, weighted_sum::NUMERIC FROM vr_per_control
+  UNION ALL
+  SELECT form_key, form_type, FALSE, weighted_points
+  FROM risk.additional_controls(:company_reg_code, :window_start::DATE, :window_end::DATE)
+),
+all_controls AS (
+  SELECT form_key,form_type,BOOL_AND(is_fully_excluded) AS is_fully_excluded,SUM(weighted_sum) AS weighted_sum
+  FROM all_control_parts GROUP BY form_key,form_type
 ),
 formula AS (
-  -- N (vehicles per control) is always 1 (task spec §2), so
-  -- weighted_sum/N == weighted_sum; g=1.0 in this algorithm version.
+  -- Road controls have one vehicle. additional_controls already divides
+  -- TI points by vehicle_count. g=1.0 in this algorithm version.
   SELECT
     COUNT(*)::INTEGER AS r,
     COALESCE(SUM(weighted_sum), 0) AS total_weighted_sum
@@ -278,11 +289,14 @@ SELECT
   -- Most recently known company_name for this reg_code, regardless of
   -- publish status (task spec: "viimati registreeritud ettevõtja nimi").
   -- A single scalar subquery ordered by created_at DESC across ALL
-  -- compound_form rows for this reg_code — NOT per compound_form_key (a
+  -- compound_form rows for this reg_code - NOT per compound_form_key (a
   -- prior version used a DISTINCT-ON-per-key CTE with an unordered LIMIT 1
   -- on top, which could return an arbitrary company_name when the same
   -- company has multiple compound_forms with different recorded names).
-  (SELECT cf.company_name FROM forms.compound_form cf
-   WHERE cf.company_reg_code = :company_reg_code
-   ORDER BY cf.created_at DESC LIMIT 1) AS company_name
+  (SELECT names.company_name FROM (
+     SELECT company_name,created_at FROM forms.compound_form WHERE company_reg_code=:company_reg_code
+     UNION ALL SELECT company_name,created_at FROM forms.foreign_violation_form WHERE company_reg_code=:company_reg_code
+     UNION ALL SELECT company_name,created_at FROM forms.tram_control_card WHERE company_reg_code=:company_reg_code
+     UNION ALL SELECT company_name,created_at FROM forms.labour_inspection_form WHERE company_reg_code=:company_reg_code
+   ) names ORDER BY names.created_at DESC LIMIT 1) AS company_name
 FROM result r;

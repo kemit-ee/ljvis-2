@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Card,
   Heading,
-  TextArea,
+  Textarea,
   ChoiceGroup,
 } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
@@ -41,9 +41,7 @@ export function TransportInterruptionFormFields({
     [getByCode, canEdit],
   );
   const values = formik.values;
-  const formNumber = values.subFormNumber
-    ? `${values.subFormNumber}/${values.version ?? 1}`
-    : undefined;
+  const formNumber = values.subFormNumber || undefined;
 
   return (
     <>
@@ -52,7 +50,7 @@ export function TransportInterruptionFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.transport_interruption.header.title')}
           </Heading>
-          <TextArea
+          <Textarea
             id="headerText"
             label={t('forms.transport_interruption.header.headerText')}
             value={values.headerText ?? ''}
@@ -94,7 +92,7 @@ export function TransportInterruptionFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.transport_interruption.result.title')}
           </Heading>
-          <TextArea
+          <Textarea
             id="interruptionReason"
             label={t('forms.transport_interruption.result.interruptionReason')}
             value={values.interruptionReason ?? ''}
@@ -135,7 +133,7 @@ export function TransportInterruptionFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.transport_interruption.terminationCondition.title')}
           </Heading>
-          <TextArea
+          <Textarea
             id="terminationCondition"
             label={t('forms.transport_interruption.terminationCondition.title')}
             hideLabel
@@ -152,7 +150,7 @@ export function TransportInterruptionFormFields({
           <Heading element="h3" className="mb-1">
             {t('forms.transport_interruption.personApplications.title')}
           </Heading>
-          <TextArea
+          <Textarea
             id="personApplications"
             label={t('forms.transport_interruption.personApplications.title')}
             hideLabel

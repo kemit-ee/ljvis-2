@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getFormSnapshots, getTramFormSnapshots } from '../../api.ts';
 import type { FormSnapshot } from '../../types.ts';
+import { FORM_VERSION_SAVED_EVENT } from '../AdministrativeProcedureCard/AdministrativeProcedureCard';
 import {
   FORM_STATUS_KEY,
   FORM_ROUTE,
@@ -21,6 +22,17 @@ export function FormVersionsTable({
 }: FormVersionsTableProps) {
   const { t } = useTranslation();
   const [snapshots, setSnapshots] = useState<FormSnapshot[]>([]);
+  const [eventRefresh, setEventRefresh] = useState(0);
+
+  // Haldusmenetluse ploki salvestus lisab vormile uue versiooni — värskenda tabelit.
+  useEffect(() => {
+    const onSaved = (e: Event) => {
+      const detail = (e as CustomEvent<{ formKey?: string }>).detail;
+      if (detail?.formKey === String(formId)) setEventRefresh((n) => n + 1);
+    };
+    window.addEventListener(FORM_VERSION_SAVED_EVENT, onSaved);
+    return () => window.removeEventListener(FORM_VERSION_SAVED_EVENT, onSaved);
+  }, [formId]);
 
   useEffect(() => {
     // TRAM control card has its own guarded snapshots endpoint (ADR-002) —
@@ -32,7 +44,7 @@ export function FormVersionsTable({
     fetcher
       .then((res) => setSnapshots(Array.isArray(res) ? res : []))
       .catch(console.error);
-  }, [formId, formType, refreshKey]);
+  }, [formId, formType, refreshKey, eventRefresh]);
 
   const formPath = FORM_ROUTE[formType] ?? formType.replace(/-form$/, '');
   return (

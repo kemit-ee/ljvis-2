@@ -3,12 +3,12 @@ declaration:
   version: "1.0"
   description: >-
     Käsitsi käivitatav Postkast 2.0 saatmisoperatsiooni seisu kontroll ühe
-    outbound_log rea kohta — sama X-tee päring ja staatuse-mappimine, mis
+    outbound_log rea kohta - sama X-tee päring ja staatuse-mappimine, mis
     cron/notification-status-sync.yml teeb perioodiliselt kõigi lõppstaatuseta
     ridade jaoks (DSL/Ruuter.internal/ljvis/POST/cron/notification-status-sync.yml),
     aga siin ühekordselt ja kohe, kasutaja päringul (nupp "Kontrolli staatust"
     Teavitused -> Saadetud kirjad tabelis, nähtav kuni saatmine pole veel
-    õnnestunud). Lubatud ainult ridadele, mis pole juba 'sent' staatuses —
+    õnnestunud). Lubatud ainult ridadele, mis pole juba 'sent' staatuses -
     õnnestunud saatmist pole vaja/mõtet uuesti kontrollida.
     Outbound-logi id käib ?q= query-paramina (rest-api-disainijuhend §4.2).
     Nõuab notification.resend õigust (kaitstud check-status/.guard kaudu).
@@ -60,7 +60,7 @@ checkStatus:
   next: callPk
 
 # Toodangus läbi XTR-i REST passthrough lane'i (nagu sync-status.yml),
-# dev/CI-s Ruuteri mock — vt PK_SENDING_OPERATIONS_ENDPOINT kasutust
+# dev/CI-s Ruuteri mock - vt PK_SENDING_OPERATIONS_ENDPOINT kasutust
 # cron/notification-status-sync.yml-is. Postkast 2.0 staatuse päring on GET;
 # parameetrid edastatakse query string'is, mitte POST-kehas.
 callPk:
@@ -77,7 +77,7 @@ callPk:
   result: opRes
   next: unwrapOpBody
 
-# Sama kahekujuline lugemine mis send-postkast.yml/sync-status.yml-is —
+# Sama kahekujuline lugemine mis send-postkast.yml/sync-status.yml-is -
 # dev/CI mock (Ruuteri DSL, response.default_wrapper: true) mähib vastuse,
 # päris X-tee/PK vastab mähkimata.
 unwrapOpBody:
@@ -117,7 +117,7 @@ logIntegration:
   next: mapStatus
 
 # Sama mappimine mis cron/notification-status-sync.yml-is, va katsete lagi
-# (24h/48 katset) — see on mõeldud ainult automaatsele taustatööle; käsitsi
+# (24h/48 katset) - see on mõeldud ainult automaatsele taustatööle; käsitsi
 # nupuvajutus ei tohi ridu jõuga 'error'-iks sundida, kui PK lihtsalt veel
 # vastust ei andnud.
 mapStatus:

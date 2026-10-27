@@ -1,5 +1,5 @@
 /*
-description: Edit classifier name/description — copy latest snapshot with new values
+description: Edit classifier name/description - copy latest snapshot with new values
 namespace: classifier
 params:
   classifier_id:

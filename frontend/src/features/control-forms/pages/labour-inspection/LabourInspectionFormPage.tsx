@@ -12,7 +12,8 @@ import {
   deleteLabourInspectionForm,
   getLabourInspectionFormSnapshot,
 } from '../../api';
-import type { LabourInspectionForm } from '../../types';
+import type { Driver, LabourInspectionForm } from '../../types';
+import { EtoimikQueryCard } from '../../components/EtoimikQueryCard/EtoimikQueryCard';
 import { LabourInspectionFormFields } from '../../components/LabourInspection/LabourInspectionFormFields';
 import { FormVersionsTable } from '../../components/FormVersionsTable/FormVersionsTable';
 import { FormPrintButton } from '../../components/FormPrintButton/FormPrintButton';
@@ -214,8 +215,35 @@ export function LabourInspectionFormPage() {
   if (!form)
     return <FormNotFoundView title={t('forms.labour_inspection_form')} />;
 
+  // E-toimiku päringukaart: karistatud isik ja menetluse viitenumber on vormil endal.
+  const punishedPerson: Driver[] =
+    form?.punishedPersonIdCode || form?.punishedPersonFirstName
+      ? [
+          {
+            personalCodeEe: form.punishedPersonIdCode ?? '',
+            firstName: form.punishedPersonFirstName ?? '',
+            lastName: form.punishedPersonLastName ?? '',
+            citizenshipCode: '',
+            personalCodeForeign: '',
+            birthDate: '',
+          },
+        ]
+      : [];
+
   return (
     <div>
+      {form?.id && punishedPerson.length > 0 && hasPermission(PUNISHMENT_REGISTER_PERMISSION) && (
+        <EtoimikQueryCard
+          drivers={punishedPerson}
+          referenceNumberOptions={
+            form.proceedingReferenceNumber
+              ? [{ label: `${form.formNumber ?? ''} — ${form.proceedingReferenceNumber}`, value: form.proceedingReferenceNumber }]
+              : []
+          }
+          compoundFormKey={Number(form.id)}
+          sourceType="labour_inspection_form"
+        />
+      )}
       {showSavedAlert && (
         <Alert
           icon="check_circle"

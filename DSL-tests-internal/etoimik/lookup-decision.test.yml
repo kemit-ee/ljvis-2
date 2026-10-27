@@ -1,0 +1,188 @@
+# POST /etoimik/lookup-decision (Ruuter.internal) - e-toimiku otsuse otsing öistele sünkroonidele.
+# Isikutuvastus on XSD-choice: isikukoodi päring ei kanna nime/sünniaega; kui isikukoodiga
+# midagi ei leita ja nimi + sünniaeg on olemas, tehakse teine päring nime ja sünniajaga.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_XTR: '{MOCK}/xtr'
+  INTERNAL_COMMUNICATION_KEY: test-secret
+tests:
+- name: code lookup finds the decision, no second request
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          'ns:AnnaIsikuKvalifikatsioonidResponse':
+            response:
+              Menetlused:
+                item:
+                  Toimingud:
+                    item:
+                      Toiminguosalised:
+                        item:
+                          Isik: { Kood: '36306240638', Eesnimi: JAAN, Nimi: VAARIKAS }
+                          Sanktsioonid:
+                            item:
+                              AluseksOlevadSyydistusPunktid:
+                                item:
+                                  LahendKL: 20512
+                                  LahendiKP: '2025-02-07T00:00:00'
+                                  SulgemiseKP: { '@xsi:nil': '1' }
+                                  SyydistusPunktCSV: KarS § 100 lg 2
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      reference_number: '910025000361'
+      personal_code: '36306240638'
+      first_name: JAAN
+      last_name: VAARIKAS
+      birth_date: '1963-06-24'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '1'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: true
+        resultStatus: found
+        enforcementDecision: KarS § 100 lg 2, otsuse kuupäev 07.02.2025
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 1
+    body_matches:
+      reference_number: '910025000361'
+      personal_code: '36306240638'
+
+- name: foreigner without code is looked up by name and birth date only
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          'ns:AnnaIsikuKvalifikatsioonidResponse':
+            response: { '@xsi:nil': '1' }
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      reference_number: '910025000361'
+      personal_code: ''
+      first_name: JOHN
+      last_name: SMITH
+      birth_date: '1980-05-17'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '2'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: false
+        resultStatus: not_found
+        enforcementDecision: ''
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 1
+    body_matches:
+      first_name: JOHN
+      last_name: SMITH
+      birth_date: '1980-05-17'
+
+- name: no identification at all returns an error decision without calling XTR
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      reference_number: '910025000361'
+      personal_code: ''
+      first_name: ''
+      last_name: ''
+      birth_date: ''
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '3'
+  expect:
+    status: 200
+    body:
+      response:
+        success: false
+        found: false
+        resultStatus: error
+        enforcementDecision: ''
+        proceedingClosureBasis: ''
+        errorMessage: puudub viitenumber või isikutuvastus (isikukood või eesnimi + perekonnanimi + sünniaeg)
+
+- name: Estonian with nothing found by code is retried once by name and birth date
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          'ns:AnnaIsikuKvalifikatsioonidResponse':
+            response: { '@xsi:nil': '1' }
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      reference_number: '910025000361'
+      personal_code: '36306240638'
+      first_name: JAAN
+      last_name: VAARIKAS
+      birth_date: '1963-06-24'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '4'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: false
+        resultStatus: not_found
+        enforcementDecision: ''
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 2
+  - url_matches: /resql/xroad/log_integration
+    count: 2

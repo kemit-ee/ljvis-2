@@ -2,12 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import { Card, Heading, StatusBadge, Text } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { PERMISSIONS } from '../../../../constants/constants';
-import { listNotificationTemplateMappings } from '../../api';
+import { listNotificationTemplateMappings, resolveDesktopRecipientUsers } from '../../api';
 import type { NotificationTemplateMapping } from '../../types';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 const columnHelper = createColumnHelper<NotificationTemplateMapping>();
 
@@ -21,6 +21,7 @@ export function NotificationTemplateMappingListPage() {
 
   const [data, setData] = useState<NotificationTemplateMapping[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [recipientNames, setRecipientNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (forbidden) return;
@@ -28,7 +29,20 @@ export function NotificationTemplateMappingListPage() {
     setIsLoading(true);
     listNotificationTemplateMappings()
       .then((res) => {
-        if (!cancelled) setData(res);
+        if (cancelled) return;
+        setData(res);
+        const codes = Array.from(
+          new Set(res.flatMap((m) => m.desktopRecipientPersonalCodes ?? [])),
+        );
+        if (codes.length === 0) return;
+        resolveDesktopRecipientUsers(codes).then((users) => {
+          if (cancelled) return;
+          setRecipientNames(
+            Object.fromEntries(
+              users.map((u) => [u.personalCode, `${u.firstName} ${u.lastName}`]),
+            ),
+          );
+        });
       })
       .catch((e) => console.error('Failed to load notification template mappings', e))
       .finally(() => {
@@ -64,9 +78,19 @@ export function NotificationTemplateMappingListPage() {
         header: t('notificationTemplateMapping.originalTemplateId'),
         cell: (info) => info.getValue() || '—',
       }),
-      columnHelper.accessor('defaultRecipientEmail', {
-        header: t('notificationTemplateMapping.defaultRecipientEmail'),
-        cell: (info) => info.getValue() || '—',
+      columnHelper.display({
+        id: 'recipients',
+        header: t('notificationTemplateMapping.recipients'),
+        cell: (info) => {
+          const mapping = info.row.original;
+          if (mapping.channel === 'desktop') {
+            const names = (mapping.desktopRecipientPersonalCodes ?? []).map(
+              (code) => recipientNames[code] ?? code,
+            );
+            return names.length > 0 ? names.join(', ') : '—';
+          }
+          return mapping.defaultRecipientEmail || '—';
+        },
       }),
       columnHelper.accessor('active', {
         header: t('notificationTemplateMapping.active'),
@@ -104,7 +128,7 @@ export function NotificationTemplateMappingListPage() {
         ),
       }),
     ],
-    [t, handleRowClick],
+    [t, handleRowClick, recipientNames],
   );
 
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
@@ -116,16 +140,13 @@ export function NotificationTemplateMappingListPage() {
           <div className="card-main">
             <Heading element="h1">{t('notificationTemplateMapping.title')}</Heading>
           </div>
-          <Table
+          <AppTable
             id="notification-template-mapping-table"
-            className="ljvis-table"
             data={data}
             columns={columns}
             isLoading={isLoading}
             hidePagination
-            placeholder={{
-              children: t('common.tableIsEmpty'),
-            }}
+            placeholder={t('common.tableIsEmpty')}
           />
         </Card.Content>
       </Card>

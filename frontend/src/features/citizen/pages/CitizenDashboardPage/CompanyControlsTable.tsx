@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Table } from '@tedi-design-system/react/community';
 import { Button, Icon, Text, Tooltip } from '@tedi-design-system/react/tedi';
 import type { CompanyControlRow } from '../../types';
+import { AppTable } from '../../../../shared/components/AppTable';
 
 interface CompanyControlsTableProps {
   registryCode: string;
@@ -113,20 +113,25 @@ export function CompanyControlsTable({
       columnHelper.display({
         id: 'actions',
         header: '',
-        cell: ({ row }) => (
-          <Button
-            visualType="link"
-            onClick={() => {
-              const basePath =
-                row.original.formType === 'foreign_violation' ? 'foreign-violation' : 'compound';
-              navigate(`/my-companies/${basePath}/${row.original.formKey}`, {
+        cell: ({ row }) => {
+          const paths: Partial<Record<CompanyControlRow['formType'], string>> = {
+            compound: 'compound',
+            foreign_violation: 'foreign-violation',
+            labour_inspection: 'labour-inspection',
+          };
+          const basePath = paths[row.original.formType];
+          if (!basePath) return null;
+          return (
+            <Button
+              visualType="link"
+              onClick={() => navigate(`/my-companies/${basePath}/${row.original.formKey}`, {
                 state: { from: 'citizen-app' },
-              });
-            }}
-          >
-            {t('citizen.dashboard.controls.view')}
-          </Button>
-        ),
+              })}
+            >
+              {t('citizen.dashboard.controls.view')}
+            </Button>
+          );
+        },
       }),
     ],
     [t, navigate],
@@ -137,12 +142,11 @@ export function CompanyControlsTable({
   }
 
   return (
-    <Table
+    <AppTable
       id={`company-controls-table-${registryCode}`}
-      className="ljvis-table"
       data={controls}
       columns={columns}
-      placeholder={{ children: t('common.tableIsEmpty') }}
+      placeholder={t('common.tableIsEmpty')}
     />
   );
 }
