@@ -1810,6 +1810,7 @@
         "ctudFrom": "Saatnud riik",
         "ctudTo": "Saadetud riiki",
         "undertakingName": "Veoettevõtja nimi",
+        "licenceNumberShort": "Tegevusloa nr",
         "licenceNumber": "Ühenduse tegevusloa kinnitatud ärakirja või tõestatud koopia nr",
         "vehicleNumber": "Sõiduki reg-nr",
         "status": "Staatus",

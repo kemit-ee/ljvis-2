@@ -20,6 +20,7 @@ import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import styles from './CtudListPage.module.css';
 
 const columnHelper = createColumnHelper<CtudRequestListItem>();
 
@@ -136,7 +137,7 @@ export function CtudListPage() {
         cell: (info) => info.getValue() || '—',
       }),
       columnHelper.accessor('communityLicenceNumber', {
-        header: t('erru.ctud.list.licenceNumber'),
+        header: t('erru.ctud.list.licenceNumberShort'),
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
@@ -160,10 +161,10 @@ export function CtudListPage() {
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
-    <div>
+    <div className={styles.page}>
       <Card className="mt-05">
         <Card.Content>
-          <div className="card-main">
+          <div className={`card-main ${styles.header}`}>
             <Heading element="h1">{t('erru.ctud.list.title')}</Heading>
             {canCreate && (
               <Button onClick={() => navigate('/erru/ctud/new')}>
@@ -314,6 +315,7 @@ export function CtudListPage() {
           </div>
 
           <AppTable
+            className={styles.table}
             customizable
             persistKey="erru-ctud-list"
             size="small"

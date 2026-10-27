@@ -1779,6 +1779,7 @@
         "ctudFrom": "Requesting country",
         "ctudTo": "Target country",
         "undertakingName": "Transport undertaking name",
+        "licenceNumberShort": "Licence no.",
         "licenceNumber": "Community licence / certified true copy no.",
         "vehicleNumber": "Vehicle reg. no",
         "status": "Status",
