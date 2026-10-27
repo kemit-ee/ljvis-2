@@ -12,11 +12,11 @@ import {
   Card,
   Heading,
   Text,
-  StatusBadge,
 } from '@tedi-design-system/react/tedi';
 import { useNuMessageDetail } from './useNuMessageDetail';
 import { useNuForm } from './useNuForm';
 import { NuMessageFields } from '../../components/Nu/NuMessageFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { NuMemberStatesTable } from '../../components/Nu/NuMemberStatesTable';
 import { isNuEditable, isNuSendable, type NuSource } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
@@ -130,13 +130,13 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
               {' — '}
               {message.businessCaseId}
             </Heading>
-            <StatusBadge>
+            <ErruStatusBadge status={message.status}>
               {message.status === 'sending'
                 ? t('erru.nu.sending')
                 : message.status === 'send_unknown'
                   ? t('erru.nu.sendUnknownStatus')
                   : label('NU_MESSAGE_STATUS', message.status)}
-            </StatusBadge>
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.nu.form.version', { version: message.version })}

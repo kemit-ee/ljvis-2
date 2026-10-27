@@ -312,9 +312,13 @@ nav[aria-label='Main navigation'] {
   cursor: help;
 }
 
-/* NCR list (LJVIS2-65): rows with at least one serious infringement are highlighted red. */
+/* NCR list (LJVIS2-65): rows with an infringement are pink; unresolved incoming ones
+   (needsAttention) also get a danger border on the left edge. */
 .ncr-row-infringement td {
-  background-color: #fdecea;
+  background-color: var(--alert-default-background-danger, #fdecea);
+}
+.ncr-row-attention td:first-child {
+  box-shadow: inset 4px 0 0 var(--alert-default-border-danger, #ac3232);
 }
 
 /* ─── Shared list filter bar (ERRU CGR/RSI/NCR/CTUD list pages) ───
@@ -433,4 +437,99 @@ nav[aria-label='Main navigation'] {
   .cgr-notfound {
     grid-template-columns: 1fr;
   }
+}
+
+/* CGR detail header: label-above-value grid, the two search blocks side by side */
+.cgr-fields--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cgr-search-blocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 2rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .cgr-search-blocks {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ERRU status/result badges never wrap inside narrow table columns */
+.erru-badge {
+  white-space: nowrap;
+}
+
+/* ERRU lists: narrower filters */
+.filter-bar--compact {
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.filter-bar--compact .filter-actions {
+  margin-bottom: 0.5rem;
+}
+
+.app-table__loading-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.app-table--loading {
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.table-link {
+  white-space: nowrap;
+}
+
+.nowrap-cell {
+  white-space: nowrap;
+}
+
+.erru-direction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+}
+
+/* ERRU read-only detail views (DetailRow → .detail-field): label above value, fields flow
+   into a responsive grid instead of one per line. Any element that directly contains fields
+   becomes the grid; headings, tables and other blocks inside it span the full width. */
+:has(> .detail-field) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+:has(> .detail-field) > :not(.detail-field) {
+  grid-column: 1 / -1;
+}
+
+.detail-field {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:has(> .detail-field) > h2,
+:has(> .detail-field) > h3,
+:has(> .detail-field) > h4 {
+  margin: 0.75rem 0 0;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--general-border-primary);
+}
+
+:has(> .detail-field) > h2:first-child,
+:has(> .detail-field) > h3:first-child,
+:has(> .detail-field) > h4:first-child {
+  margin-top: 0;
 }

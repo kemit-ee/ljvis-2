@@ -165,6 +165,8 @@ lookupUndertaking:
     url: "[#ERRU_MTR_ENDPOINT]"
     headers:
       type: json
+      # Do not forward the internal token to a real registry endpoint.
+      x-internal-service-token: "${'[#ERRU_MTR_ENDPOINT]' === 'http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-community-licence' ? '[#INTERNAL_COMMUNICATION_KEY]' : ''}"
     body:
       businessCaseId: ${business_case_id}
       originatingAuthority: ${originating_authority}
@@ -279,7 +281,7 @@ buildFoundResponse:
         numberOfVehicles: (tu.vehicles || []).length,
         riskRating: resp_risk_rating,
         riskBand: resp_risk_band,
-        searchMethod: 'CommunityLicence',
+        searchMethod: licence_number ? 'CommunityLicence' : 'VehicleRegistration',
         address: tu.address || null,
         communityLicenceDetails: tu.communityLicenceDetails ? [tu.communityLicenceDetails] : [],
         certifiedTrueCopyDetails: tu.certifiedTrueCopyDetails ? [tu.certifiedTrueCopyDetails] : [],
@@ -351,8 +353,8 @@ createCtudNotification:
 buildAudit:
   assign:
     event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
-    audit_description: "CTUD sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${ctud_from}, päringu allikas ${request_source}, päringu eesmärk ${request_purpose}, otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}, sõiduki number ${vehicle_number}, otsingu meetod CommunityLicence, tulemus ${resp_status_code}"
-    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['searchMethod', 'CommunityLicence'], ['resultStatus', resp_status_code || null]]))}"
+    audit_description: "CTUD sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${ctud_from}, päringu allikas ${request_source}, päringu eesmärk ${request_purpose}, otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}, sõiduki number ${vehicle_number}, otsingu meetod ${licence_number ? 'CommunityLicence' : 'VehicleRegistration'}, tulemus ${resp_status_code}"
+    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['searchMethod', licence_number ? 'CommunityLicence' : 'VehicleRegistration'], ['resultStatus', resp_status_code || null]]))}"
   next: logAudit
 
 logAudit:

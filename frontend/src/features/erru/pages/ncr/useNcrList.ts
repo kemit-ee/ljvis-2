@@ -10,6 +10,6 @@ import type { NcrCaseListItem, NcrListFilters } from '../../types';
  */
 export function useNcrList() {
   return useFilteredList<NcrCaseListItem, NcrListFilters>(listNcrCases, {
-    defaultSort: 'sent_at desc',
+    defaultSort: 'attention',
   });
 }

@@ -296,7 +296,7 @@ export function sendNcrResponse(businessCaseId: string): Promise<{ businessCaseI
 /**
  * NCR case list (LJVIS2-65) — both incoming and outgoing, one row per case. All filters
  * are AND-combined (unlike RSI/CGR's OR-pair — NCR has only one text filter). Protected
- * by the ncr.list permission (distinct from ncr.read). Default sort is sent_at desc.
+ * by the ncr.list permission (distinct from ncr.read). Default sort is 'attention' (needs-attention rows first).
  */
 export function listNcrCases(
   params: ListParams,

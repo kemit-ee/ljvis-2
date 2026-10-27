@@ -5,11 +5,13 @@ declaration:
   description: >-
     Öine partii (LJVIS2-64): iga AVALIKUSTATUD autojuhi / meeskonnaliikme
     sõidu- ja puhkeaja alamvormi kohta, mille kontrolli tulemus on KORRAS
-    (result_type='ok') ja mille sõiduk on välisriigi oma, ehitab ja saadab
-    automaatselt NCR (NotifyCheckResult) teate sõiduki registreerimisriiki.
+    (result_type='ok'), valik on Rakendatakse ja vedaja asutamisriik on välisriik,
+    ehitab ja saadab automaatselt NCR (NotifyCheckResult) teate vedaja asutamisriiki.
+    Sõiduki registreerimisriik ei määra saajat. Puuduva tegevusloa ärakirja
+    numbri asemel kasutab build.sql väärtust UNKNOWN.
 
     Iga kandidaadi kohta: eeltäida NCR mustand (erru/ncr/build - sama loogika
-    mis käsitsi „Lisa NCR vorm", ncrTo = compound_form.vehicle_country_code,
+    mis käsitsi „Lisa NCR vorm", ncrTo = compound_form.company_country_code,
     originatingAuthority eeltäidetakse build.sql-is kontrollkaardi inspektori
     asutusest), loe valmis kirje
     (erru/ncr/get), reserveeri ümbrik (erru/ncr/begin-send), saada ERRU 3.5 XML-ina

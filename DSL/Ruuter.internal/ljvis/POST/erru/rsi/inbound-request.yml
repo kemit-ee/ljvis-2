@@ -266,6 +266,8 @@ callLiiklusregister:
     url: "[#ERRU_RSI_LIIKLUSREGISTER_ENDPOINT]"
     headers:
       type: json
+      # Do not forward the internal token to a real registry endpoint.
+      x-internal-service-token: "${'[#ERRU_RSI_LIIKLUSREGISTER_ENDPOINT]' === 'http://ruuter:8080/ljvis/v1/erru/mock/xtee/liiklusregister-paring2' ? '[#INTERNAL_COMMUNICATION_KEY]' : ''}"
     body:
       vehicleRegistrationNumber: ${vehicle_registration_number}
       vehicleRegistrationCountry: ${vehicle_registration_country}

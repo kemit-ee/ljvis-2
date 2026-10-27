@@ -203,37 +203,34 @@ checkGoodReputeFound:
   switch:
     - condition: ${unfit_res.response.body != null && unfit_res.response.body.length == 1}
       next: buildUnfitResponse
-  next: checkMtrDataComplete
+  next: callMtr
 
 # Found in UNFIT register: build Found + Unfit response. searchMethod is 'Local' per
 # CGR_SEARCH_METHOD classifier (checked against ERRU 3.5 XSD in previous session).
 buildUnfitResponse:
   assign:
     gr_person: "${unfit_res.response.body[0]}"
+  next: assignUnfitResponse
+
+assignUnfitResponse:
+  assign:
     resp_status_code: "Found"
     resp_status_message: ""
     search_method: "Local"
     resp_details: "${JSON.stringify({respondingAuthority: 'EE-TRAM', searchMethod: 'Local', nameDetails: {firstName: gr_person.firstName || gr_person.first_name, familyName: gr_person.lastName || gr_person.last_name, dateOfBirth: gr_person.dateOfBirth || gr_person.date_of_birth, placeOfBirth: gr_person.placeOfBirth || gr_person.place_of_birth || null}, addressDetails: null, certificateDetails: {certificateNumber: gr_person.certificateNumber || gr_person.certificate_number, certificateIssueDate: gr_person.certificateIssueDate || gr_person.certificate_issue_date, certificateIssueCountry: gr_person.certificateCountryCode || gr_person.certificate_country_code, certificateValidity: 'Valid', fitness: {fitnessStatus: 'Unfit', unfitStartDate: gr_person.unfitFromDate || gr_person.unfit_from_date || null, unfitEndDate: gr_person.unfitUntilDate || gr_person.unfit_until_date || null}}, transportUndertakings: {totalManagedUndertakings: 0, totalManagedVehicles: 0, undertaking: []}})}"
   next: buildFullResponse
 
-# Step 6: transport manager not in UNFIT register - ask MTR.
-#
-# MTR requires all six identifying fields at once, but ERRU's CGR message
-# allows partial identification (7A: name+DOB, 7B: certificate only). If the
-# request lacks what MTR needs, report ServerError for an ErrorNotification.
-# No negative search result is recorded when the search could not be performed.
-checkMtrDataComplete:
-  switch:
-    - condition: "${!tm_first_name || !tm_family_name || !tm_date_of_birth || !certificate_number || !certificate_issue_country || !certificate_issue_date}"
-      next: buildInsufficientDataResponse
-  next: callMtr
-
+# Forward both valid ERRU choices: name/date of birth or certificate details.
+# The configured registry determines which searches it supports. Do not impose
+# the production SOAP adapter's full-identification contract on the demo mock.
 callMtr:
   call: http.post
   args:
     url: "[#ERRU_CGR_MTR_ENDPOINT]"
     headers:
       type: json
+      # Do not forward the internal token to a real registry endpoint.
+      x-internal-service-token: "${'[#ERRU_CGR_MTR_ENDPOINT]' === 'http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute' ? '[#INTERNAL_COMMUNICATION_KEY]' : ''}"
     body:
       firstName: ${tm_first_name}
       lastName: ${tm_family_name}
@@ -263,9 +260,8 @@ checkMtrStatus:
       next: buildMtrFoundResponse
   next: buildNotFoundResponse
 
-# MTR Found: address is the undertaking's (not personal) address per spec. searchMethod
-# and fitness are hardcoded - MTR always matches by NYSIIS and is always "Fit" (MTR has
-# no "Unfit" concept; that's our local UNFIT register, checked above already).
+# MTR Found: use the undertaking address. Report the identification method
+# supplied by the requesting state. Local UNFIT matches are handled above.
 buildMtrFoundResponse:
   assign:
     tm: "${mtr_res.response.body.response.transportManager}"
@@ -280,11 +276,11 @@ assignMtrFoundResponse:
   assign:
     resp_status_code: "Found"
     resp_status_message: ""
-    search_method: "NYSIIS"
+    search_method: "${tm_first_name && tm_family_name ? 'NYSIIS' : 'CPC'}"
     resp_details: >-
       ${JSON.stringify({
         respondingAuthority: 'EE-TRAM',
-        searchMethod: 'NYSIIS',
+        searchMethod: tm_first_name && tm_family_name ? 'NYSIIS' : 'CPC',
         nameDetails: { firstName: tm.firstName, familyName: tm.lastName, dateOfBirth: tm.birthDate, placeOfBirth: tm.birthPlace || null },
         addressDetails: company0 ? company0.address : null,
         certificateDetails: {
@@ -312,18 +308,9 @@ buildNotFoundResponse:
   assign:
     resp_status_code: "NotFound"
     resp_status_message: "Transport manager not found in Estonian register"
-    search_method: "NYSIIS"
+    search_method: "${tm_first_name && tm_family_name ? 'NYSIIS' : 'CPC'}"
     resp_details: "null"
   next: buildFullResponse
-
-# Request didn't have enough data to even ask MTR - distinct from a real MTR
-# "not found", logged with its own status message for traceability.
-# search_method jääb 'NYSIIS' (sama mis buildNotFoundResponse) - MTR ei anna
-# kunagi 'CPC' meetodit, seega vana tingimuslik väärtus oli eksitav.
-buildInsufficientDataResponse:
-  status: 422
-  return: '{"statusCode":"ServerError","statusMessage":"The register cannot perform this valid partial-identification search"}'
-  next: end
 
 buildFullResponse:
   assign:

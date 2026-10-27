@@ -2,13 +2,56 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-27
+
+### NCR nimekiri: rikkumisega teated eristuvad ja tegelemist vajavad on esil
+
+- Rikkumisega NCR teated on nimekirjas taas roosa taustaga (see oli varem katki ega kuvatud). Rikkumisega on teade, kui kontrolli tulemus on „Fail" või on olemas raske või väiksem rikkumine. Uues veerus „Kontrolli tulemus" on lisaks punane silt „Rikkumisega" (värvist üksi ei piisa), korras teadetel on „Korras".
+- Sissetulevad rikkumisega teated, millega on veel tegemata (staatus saabunud, vaadatud, vastuse mustand või viga), saavad rea vasakule serva punase joone. Vastatud või rikkumise vormile edastatud teated on roosad, aga ilma joonata. Uus filter „Vajab tegelemist". Vaikimisi järjestus toob need read ülemiseks, vanim ees.
+- „Kuupäev" on väljamineval teatel saatmise kuupäev ja sissetulevalt teatel saabumise kuupäev (esimene saabumise hetk, mitte saatja päise aeg ega viimane muutmine). Saatmata mustandil on kuupäev tühi. Sama kuupäev on detailvaates. Filtrid on „Kuupäev alates" ja „Kuupäev kuni".
+
+## 2026-10-23
+
+### Demo ERRU registrite mockid on juurutatud pildis
+
+- Demo keskkonnas ei ole CTUD, CGR ja RSI päringute registri mockid enam 404: mockid on Ruuteri image'is ja kaitstud sisemise teenusetokeniga. Token saadetakse ainult täpsele kohalikule mocki aadressile, päris registri (XTR) aadressile mitte. Ruuter ja ruuter-internal image tuleb uuendada koos.
+### ERRU detailvaated kompaktsemaks ja NCR kuupäev
+
+- ERRU detailvaadetes (CTUD, RSI, NCR) on väljad nüüd mitmes veerus, silt väärtuse kohal (nagu CGR detailvaates), mitte üks väli rea kohta. Pealkirjad ja tabelid on jätkuvalt täislaiuses. Vaade on oluliselt lühem.
+- NCR teadete nimekirjas ja detailvaate „Juhtumi teadete loend" kaardil on kuupäev nüüd alati olemas. Sissetulevatel teadetel ja saatmata mustanditel puudus saatmise aeg, nüüd näidatakse selle asemel kirje loomise aega. Veeru pealkiri on „Kuupäev". Kuupäeva filter ja sorteerimine arvestavad sama väärtust.
+
+### ERRU sissetulevate päringute vead on logis nähtavad
+
+- Kui sissetuleva ERRU päringu töötlus ebaõnnestub (Hubile läheb ErrorNotification) või kordub, ilmub kirje Haldus > X-tee logid vaates, kui valida „Kõik teenused". Teenuse kood on `erru.inbound.<sõnumi tüüp>`, päring on saabunud XML ja „Vaata vastust" näitab tegelikku veapõhjust. Andmebaasi ligipääsu ei ole vaja.
+### TEDI disainisüsteemi uuendus ja ühtne tabeli ilme
+
+- TEDI disainisüsteem on uuendatud versioonile 19.1.1. Kõik rakenduse nimekirjatabelid (ERRU päringud ja teated, riskitasemed, X-tee logid, teavituste logi, versioonide tabel jm) kasutavad nüüd TEDI uut tabelikomponenti. Tabelid on selgema päisega, sorteeritavad veerud on päises nuppudena, lehitsemine ja „Kuva korraga" on TEDI standardi järgi.
+- „Suund“ veerus on nooleikoon (sissetulev / väljaminev) teksti ees.
+- Ülejäänud nimekirjatabelid (kasutajad, kasutajagrupid, klassifikaatorid, auditilogi, vormiotsing, töölaua tabelid, teavituste mallid, ettevõtte kontrollid) on samuti TEDI uue tabelikomponendiga. Töölaual näidatakse koondvormi alamvormid laiendatud rea all kompaktse loeteluna.
+- ERRU nimekirjades (CTUD, CGR, RSI, NCR, NU) saab nupuga „Kohanda“ valida, millised veerud on nähtavad, ja päise haaratsiga (⠿) veergude järjekorda lohistada. Staatus, kuupäev, päringu number ning saatnud ja saadetud riik on alati nähtavad. Valik jääb brauseris meelde (kasutaja teises brauseris algab vaikimisi vaatega).
+- ERRU nimekirjades on tabeli read tihedamad (TEDI „small" suurus).
+- ERRU staatuste värvid järgivad TEDI olekusiltide juhist: salvestatud hall, saatmisel ja saadetud sinine (informatiivne, tegevust ei oota), saabunud oranž (ootab tähelepanu), vastuse mustand ja ebaselge saatmine kollane, vastus saadud / vastatud roheline, viga punane. ERRU nimekirjades on esimesed veerud staatus, (CTUD, CGR, RSI puhul tulemus,) suund ja kuupäev, alles seejärel päringu number. CTUD, CGR ja RSI nimekirjas on staatus ja ühe riigi päringu vastuse tulemus eraldi veergudes („Staatus“ ja „Tulemus“): leid roheline, leiuta hall, ei vastanud punane.
+
 ## 2026-10-22
+
+### ERRU päringute staatuste värvid
+
+- Kõigi ERRU päringute ja teadete (CTUD, CGR, RSI, NCR, NU) nimekirjades ja detailvaate päises on staatus nüüd värviline märge, ühtne kõigis moodulites: salvestatud hall, vaata 2026-10-23 uuendust.
+- Ühe riigi päringu nimekirjas on vastuse tulemus (nt „Sihtriik ei vastanud õigeaegselt") eraldi väikese märkena staatuse all. Varem oli see staatuse tekstis ja murdus mitmele reale.
+- ERRU nimekirjade (CTUD, CGR, RSI, NCR, NU) filtrid on kitsamad (väiksemad väljad, mitu veergu ühel real) ja tabel on tihedam (väiksem rea- ja lahtrikõrgus). Päringu numbri link ei murdu.
+
+### RSI teate saatmine
+
+- „Saada" nupp salvestab nüüd enne saatmist vormi praeguse sisu. Varem saadeti serveris olev salvestatud mustand ja vormil tehtud salvestamata muudatused jäid arvestamata, mistõttu saatmine lõppes veaga „Andmed ei vasta ERRU XML-lepingule".
+- „Saada" kontrollib enne saatmist ERRU kohustuslikke välju: VIN, läbisõidumõõdiku näit, juhi eesnimi ja perekonnanimi ning veoettevõtja või omaniku andmed. Puuduvad väljad märgitakse vormil, juhi ja omaniku plokk avatakse. Mustandi salvestamine (nupp „Salvesta") ei nõua neid endiselt.
+- VIN peab olema täpselt 17 märki (tähed ja numbrid, ilma I, O ja Q). Vigane VIN lükatakse tagasi juba salvestamisel, mitte alles saatmisel.
 
 ### CGR päringu vastuse kuva
 
 - Mainepäringu (CGR) vastuses on riigid nüüd rühmitatud: esimesena **leiuga riigid** (kõik andmeväljad kohe nähtavad, lahti klõpsida pole vaja), seejärel **riigid, kust vastus saadi, kuid leidu ei tuvastatud** (ainult riigi nimi ja kood, kahes tulbas), ja viimasena **riigid, kes ei vastanud või kus tekkis viga** (üks rida põhjusega). Igal riigil on oma „Saada uuesti" nupp, millega saab teha sihipärase päringu just sellesse riiki.
 - Riigi nime taga on kahetäheline kood, nt „Austria (AT)". Vastuse kaardi ülaosas on kokkuvõte (leiuga / leiuta / ei vastanud).
 - Päringu staatus „Vastus saadud" on lehe päises roheline.
+- Päringu päis ja otsingu andmed on kompaktsemad: väljad on mitmes veerus (silt väärtuse kohal), veokorraldusjuhi ja pädevuse tunnistuse otsing on kõrvuti.
 
 ### Desktop-teavituse saajad
 
