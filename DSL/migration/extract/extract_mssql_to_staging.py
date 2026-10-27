@@ -32,6 +32,8 @@ would silently produce wrong output with no error anywhere.
 """
 import os
 import sys
+import json
+from pathlib import Path
 
 import psycopg2
 import psycopg2.extras
@@ -180,13 +182,30 @@ def main():
     pg.autocommit = False
 
     print(f"[extract] CUTOFF={CUTOFF}", file=sys.stderr)
-
+    manifest = {'cutoff': CUTOFF, 'scope': 'extraction queries including control peers',
+                'status': 'counting', 'tables': []}
+    def save_manifest():
+        directory = os.getenv('MIGRATION_RUN_DIRECTORY')
+        if directory:
+            sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+            from diagnostics import write_json
+            write_json(Path(directory)/'source-counts.json',manifest)
     try:
+        # Count ALL source tables first, inside the SAME source transaction as
+        # extraction. This baseline is written before any target staging write.
+        for _,params,table,_,count_sql in TABLES:
+            mssql_cur=mssql.cursor()
+            mssql_cur.execute(count_sql,params)
+            manifest['tables'].append({'table':table,'source_count':mssql_cur.fetchone()[0],
+                                       'fetched_count':None,'staging_count':None})
+            mssql_cur.close()
+            save_manifest()
+        manifest['status']='extracting';save_manifest()
         with pg.cursor() as pg_cur:
-            for select_sql, params, table, columns, count_sql in TABLES:
+            for index,(select_sql, params, table, columns, count_sql) in enumerate(TABLES):
                 mssql_cur = mssql.cursor()
-                mssql_cur.execute(count_sql, params)
-                source_count = mssql_cur.fetchone()[0]
+                counts=manifest['tables'][index]
+                source_count = counts['source_count']
                 mssql_cur.execute(select_sql, params)
                 pg_cur.execute(f"TRUNCATE {table}")
                 fetched_count = 0
@@ -200,11 +219,15 @@ def main():
                     )
                     fetched_count += len(rows)
                 mssql_cur.close()
+                counts['fetched_count']=fetched_count
+                save_manifest()
                 if fetched_count != source_count:
                     raise ExtractError(f"{table}: fetched={fetched_count}, source={source_count}")
 
                 pg_cur.execute(f"SELECT COUNT(*) FROM {table}")
                 landed_count = pg_cur.fetchone()[0]
+                counts['staging_count']=landed_count
+                save_manifest()
                 if landed_count != source_count:
                     raise ExtractError(
                         f"[{table}] extraction mismatch: source had {source_count} rows, "
@@ -214,9 +237,16 @@ def main():
                         f"'not migrated' rows that are actually 'never extracted'."
                     )
                 print(f"[extract] {table}: {landed_count} rows OK", file=sys.stderr)
+                if os.getenv('RUN_ID'):
+                    pg_cur.execute('''INSERT INTO migration.extraction_manifest VALUES (%s,%s,%s,%s,%s)''',
+                        (os.environ['RUN_ID'],table.removeprefix('staging.'),source_count,fetched_count,landed_count))
 
         pg.commit()
-    except Exception:
+        manifest['status']='committed';save_manifest()
+    except Exception as exc:
+        manifest['status']='failed_rolled_back'
+        manifest['error']=str(exc)
+        save_manifest()
         pg.rollback()
         raise
     finally:

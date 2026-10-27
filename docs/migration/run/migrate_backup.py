@@ -342,6 +342,17 @@ def collect(pg_args):
     say('\nVormid tuubi kaupa (valitud / ule kantud):')
     for row in data.get('coverage', []):
         say(f"  {row['form_type']:<26} {row['eligible']:>6} / {row['linked']:>6}")
+    say('\nKontrollitud vormid (valitud / sihtrida olemas / puudu):')
+    for form_type,counts in data.get('reconciliation',{}).items():
+        # Form types originate in source text; log only recognized types.
+        label=form_type if form_type in ('GoodRepute','TransportInterruption','ForeignViolate',
+            'RoadControlCard2012','Roadworthiness2012','DangerousDelivery2012','JobInspection','JobInspectionV2','FuelSample') else 'TUNDMATU'
+        say(f"  {label:<26} {counts['eligible']:>6} / {counts['present']:>6} / {counts['missing']:>6}")
+    say('\nSQL Serveri loendus enne laadimist / loetud / staging:')
+    for row in data.get('extraction',{}).get('tables',[]):
+        say(f"  {row['table']:<38} {row['source_count']} / {row['fetched_count']} / {row['staging_count']}")
+    say('Detailid: runs/<run-id>/reconciliation.csv, unmapped-fields.json, owner-decisions.csv ja events.jsonl.')
+    say('Detailfailid voivad sisaldada isikuandmeid; ara saada neid kontrollimata.')
     say('\nSeosed / erinevad sihtvormid (koondvorm voib olla jagatud):')
     with psycopg2.connect(**pg_args) as conn, conn.cursor() as cur:
         cur.execute('SELECT target_table,count(*),count(DISTINCT target_key) FROM migration.form_link GROUP BY 1 ORDER BY 1')
@@ -349,7 +360,7 @@ def collect(pg_args):
             say(f'  {table:<34} {links:>6} / {distinct_forms:>6}')
     say('\nLeiud (kood ja arv):')
     for row in data.get('findings', []):
-        say(f"  {row['severity']:<8} {row['issue']:<38} {row['count']:>6}")
+        say(f"  {row['severity']:<8} {row['issue']:<38} {row['count']:>6} leidu / {row.get('affected_records','?')} lahtekirjet")
     say('\nVaikevaartused ja lahendamata vastendused:')
     for row in data.get('quality', []):
         say(f"  {row['target_table']:<30} {row['column_name']:<28} {row['issue']:<22} {row['affected_forms']:>5}")

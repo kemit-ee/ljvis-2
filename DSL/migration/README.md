@@ -20,7 +20,7 @@ Sisukord: [komplekt](#administraatorile-antav-komplekt) · [eeltingimused](#1-ee
 ## Administraatorile antav komplekt
 
 See kaust sisaldab ainult migratsiooni käivitamiseks ja kontrollimiseks mõeldud faile:
-`run.sh`, `migrate.py`, `enrich.py`, `decisions.py`, `identifiers.py`, `evidence.py`, `extract/` (sh `extract/config.py`), `sql/`, `requirements.txt`, `.env.example` ja see juhend.
+`run.sh`, `migrate.py`, `enrich.py`, `decisions.py`, `identifiers.py`, `evidence.py`, `diagnostics.py`, `extract/` (sh `extract/config.py`), `sql/`, `requirements.txt`, `.env.example` ja see juhend.
 `.gitignore` välistab paroolid, lokaalse Pythoni keskkonna ja jooksude aruanded.
 **Docker Compose ei ole selle migratsiooniskripti eeltingimus.** Skript ühendub DBA
 ettevalmistatud allika- ja sihtbaasidega; sihtskeemi Liquibase changelog kuulub rakendusse.
@@ -144,6 +144,47 @@ Iga käigu juures on:
 - `disposition.csv`: iga ekstraheeritud vormi kaasamise/väljajätmise põhjus;
 - `quality_report.csv`: rakendatud vaikeväärtused ja lahendamata vastendused;
 - ekstraktorite `.log` failid; vea korral `failure.json` ja andmebaasis `current_step/error_message`.
+
+Lisaks on käigu kaustas:
+
+- `source-counts.json`: enne kopeerimist samas SQL Serveri snapshot-tehingus loetud
+  lähtetabelite mahud ning loetud/stagingusse jõudnud ridade arvud. Loendus käib
+  ekstraktori valiku, mitte kogu vana infosüsteemi kohta. `--verify` võrdleb
+  andmebaasis säilitatud `extraction_manifest` loendust ka `source_manifest`-iga.
+- `reconciliation.csv`: iga ekstraheeritud vormi ID/number, valikupõhjus, sihtvorm
+  ja tulemus. Valitud vormil peab olema nii link kui ka tegelik sihtrida.
+  Mustandid ja muud kokkulepitud väljajätmised on eraldi; ühine koondvorm ei
+  suurenda alamvormide loendust. Vormide olemasolu ei tõenda kõigi väljade vastendust.
+- `unmapped-fields.json`: iga täidetud, deklareerimata EAV-sisendi võti, lähterea
+  ID, vormi ID/number ja algväärtus. `mapping_incomplete` jääb eraldi sisulise
+  katvuse blokeerijaks ka siis, kui võtme nimi esineb teisenduskoodis.
+- `findings-detailed.csv` / `.json`: praeguse käigu leiud koos vormi numbri,
+  välja, algväärtuse ja põhjusega. Numbrikonflikti korral on `context` veerus
+  kõik konfliktis vormid; liiga pika teksti korral väärtus, pikkus ja limiit;
+  mitme kontrolliseose korral kontrollide ID-d. Otsuse/protseduuri probleemidel
+  eristatakse puuduvat välja, tühja väärtust ja mitut väärtust.
+  Sama info säilib `events.jsonl` ja `attempt/finding.json` failides.
+- `field-coverage.csv`: täidetud EAV-ridade ja vormide arv välja/tüübi kaupa,
+  deklareerimata sisendite arv. Deklareeritud sisend ei tähenda automaatselt
+  kontrollitud sihtväärtust; lahendamata ärivastendused jäävad blokeerima.
+- `owner-decisions.csv` / `.json`: otsuse viide, väli ja enne/pärast väärtused
+  (sh P12 arvude lühendamine). Kehtivat kellaaega ei asendata 00:00-ga.
+- `events.jsonl`: append-only sündmuslogi väljaspool sihtbaasi tehingut;
+  `attempt/` sisaldab viimast nähtud tehingusisest diagnostikat. SQL-i iga
+  lause järel salvestatakse leiud; hilisem viga ei kustuta neid logidest.
+- `integrity_problems.json`: kontrollide lahknevused koos seotud ID-de/väljadega.
+  Nurjunud teisenduse kontrollid säilivad `attempt/integrity_problems.json` failis.
+
+**Tagasipööratud katse pole tehtud ülekanne.** `events.jsonl` lõpus olev
+`run_outcome` ja otsuselogi `target_transaction` eristavad `committed`,
+`rolled_back` ning ühenduse kaotuse korral `unknown_check_database`. Viimase korral
+kontrolli sihtbaasi enne uut katset. Katkenud protsessil võib lõppsündmus puududa;
+ka see ei tähenda õnnestumist. `summary.json`/`reconciliation.csv` näitavad pärast
+tagasipööramist püsivat seisu; `attempt/` kirjeldab nurjunud katset.
+
+Detailfailid sisaldavad algväärtusi ja võivad sisaldada isikuandmeid. Hoida
+piiratud ligipääsuga, mitte Git-is ega avalikus veateates. Jagamiseks mõeldud
+administraatori koondlogi sisaldab ainult koode ja arve.
 
 Vormi algandmete leidmine (asenda UUID ja lähtevormi ID):
 

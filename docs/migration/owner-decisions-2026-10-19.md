@@ -17,8 +17,8 @@ läbivaatamist vajavat osalist tulemust, mitte tootmise vastuvõttu.
 | P05 | Alamvormide algstaatused säilivad. Koondvorm on published ainult siis, kui kõik kaasatud osad on published | Olemasolevad SP autojuhi ja TH sõiduki/haagise e-toimiku tööd kaasavad ka üle aasta vanad imporditud asjad. Sobiv jõustunud otsus avaldab osa uue snapshot'ina; viimane avaldatud osa avaldab koondvormi. Korduv/tühi vastus ei avalda uuesti |
 | P08/P13 | GoodRepute tundmatud kuupäevad on NULL; tekstimask ei tohi paljastada vana DateValue't | Uutel vormidel jäävad kohustuslikud kuupäevad nõutuks. Impordi erand päritakse serveris DB-st. Tuntud kuupäeva ei saa tühjaks kustutada. Sobimatuse kuupäevi ei mõelda välja |
 | P10 | TH `RoadControlCard2012`: `otsus=alustati_menetlust` + `otsus_vaarteomenetlus=otsus_alustativaarteo_muumenetlust` → `legacy_proceedings` + `legacy_other` koos paragrahvidega | Reegel kehtib igale valitud sõiduki TH-le sõltumata ID-st/numbrist/keskkonnast. Tundmatu paragrahvivõti või puuduvad paragrahvid blokeerivad. Teiste vormitüüpide ja tulemuste vastendust ei oletata |
-| P12 | Numbrilt eemaldatakse servatühikud ja algusnullid, väärtus ei muutu | Ületäituv arv, murd ja negatiivne arv ei muutu väiksemaks arvuks ega nulliks. Globaalne 00:00 asendus ootab täpsustust |
-| P14 | Täpne `arukas → smart_1` vastendus | `smart_2` ja `arukas-2` säilitavad senise vastenduse. Lai contains("SMART") reegel pole lubatud |
+| P12 | Tee kilomeetrilt ja läbisõidult eemaldatakse servatühikud ning algusnullid. Kui arv ei mahu, eemaldatakse paremalt numbreid kuni see mahub. Puuduv/vigane kellaaeg → 00:00; kehtiv kellaaeg säilib | Ainult `InspectionAddress.HighwayKilometerNumber` (0–999) ja `OdometerReading` (0–2147483647). Näiteks sünteetiline `1234 → 123`. Murd, miinus, sisetühik ja tekst jäävad probleemiks. Mask ei muutu arvuks. Iga muudatusel on enne/pärast ja otsuse viide |
+| P14 | `arukas` ja SMART-i sisaldav nimetus → `smart_1` | Juba üheselt määratud `smart_2` ja `arukas-2` säilitavad teise põlvkonna. Tundmatu ilma SMART-ita tüüp ei saa oletatud vastendust |
 | P15 | Alumine piir ControlledDate järgi; vanemad seotud Confirmed/Published osad kaasatakse; Saved jääb välja | Ülemist jooksu kuupäeva filtrit pole. Tulevikukuupäev jääb hoiatuseks; see ei muuda vigast sünnikuupäeva lubatavaks |
 
 ## Paigaldamine
@@ -60,6 +60,11 @@ kliendi loata teostatavad lahendused:
 - Brauseris tehtav vastuvõtt ja tegelik e-toimiku integratsioonikatse jäävad
   keskkonna vastuvõttu. Kohalik test kasutab otsuse vastust imiteerivat andmebaasikutset.
 
-Kliendi täpsustused: lähtebaasi seoseparandused, lõplik CUTOFF, 00:00 ulatus,
-arvude lõikamise tagajärg ja SMART 2. Küsimused hoitakse kohalikus
-`.ai/ljvis-tasks/migration/kliendi-kusimused-2026-10-20.md` failis, mitte adminipaketis.
+P12 arvude lühendamise luba ja P14 SMART-reegel on kliendi dokumendis olemas.
+00:00 rakendub puuduvale/vigasele kellaajale; korrektne kellaaeg säilib.
+Neid otsuseid uuesti ei küsita. Lähtebaasis parandatuks märgitud numbreid ja
+seoseid kontrollitakse lõppkoopial. Kolme aasta alguspiir fikseeritakse käigu CUTOFF-is.
+
+`owner-decisions.csv` näitab lähtevormi ID/numbrit, välja, algväärtust, uut väärtust
+ja otsuse viidet. `target_transaction=rolled_back` tähendab, et muudatus oli katse,
+mitte salvestatud migratsioon. Need failid sisaldavad lähteandmeid ega kuulu Git-i.

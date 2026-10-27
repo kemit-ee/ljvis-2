@@ -1,13 +1,39 @@
 """Environment-independent migration rules based on owner decisions.
 
 Unknown chronology, identities and meanings still fail closed. These rules do
-not approve arbitrary field truncation, time substitution or legal mappings.
+only approve the specific field policies recorded below, not arbitrary truncation.
 """
 from collections import defaultdict
 from datetime import datetime, date
 import re
+import diagnostics
 
 APPROVAL = "owner-2026-10-19"
+NUMERIC_LIMITS = {'InspectionAddress.HighwayKilometerNumber': ('kilometer', 999),
+                  'OdometerReading': ('vehicle_mileage', 2147483647)}
+
+
+def approved_number(raw, maximum):
+    """P12: trim whitespace/leading zeroes, then remove RIGHTMOST digits to fit.
+
+    Negative, decimal, mixed text and internal whitespace are not digit strings;
+    no approved rule turns them into a guessed integer. Avoid integer parsing
+    until bounded so even a very long source value is safe to diagnose.
+    """
+    if raw is None or not str(raw).strip():
+        return None, 'missing'
+    if is_masked(raw):
+        return None, 'masked'
+    value = str(raw).strip()
+    if not re.fullmatch(r'[0-9]+', value):
+        return None, 'invalid'
+    value = value.lstrip('0') or '0'
+    limit = str(maximum)
+    shortened = False
+    while len(value) > len(limit) or (len(value) == len(limit) and value > limit):
+        value = value[:-1]
+        shortened = True
+    return int(value), 'right_digits_removed' if shortened else ('normalized' if value != raw else 'unchanged')
 SHARED_KEYS = set("""
 InspectionDate.Date InspectionDate.Time InspectionAddress.Country
 InspectionAddress.Region InspectionAddress.City InspectionAddress.Line1
@@ -32,11 +58,15 @@ def is_masked(value):
 
 
 def tachograph(value):
-    return {
+    normalized=(value or '').strip().lower()
+    known = {
         "mehaaniline": "analogue", "mehhaaniline": "analogue", "analoog": "analogue",
         "digitaalne": "digital", "arukas": "smart_1", "smart_1": "smart_1",
         "smart_2": "smart_2", "arukas-2": "smart_2", "puudub": "missing",
-    }.get((value or "").strip().lower())
+    }.get(normalized)
+    # P14 explicitly covers names containing SMART; retain already explicit
+    # second-generation codes rather than downgrading a known generation.
+    return known if known is not None else 'smart_1' if 'smart' in normalized else None
 
 
 def source_date(entries):
@@ -184,6 +214,22 @@ def preflight(cur, run_id, scalar):
         for key, chosen in choices.items():
             cur.execute("INSERT INTO migration.finding VALUES (%s,'info','ControlForm',%s,%s,%s)",
                         (run_id, str(chosen), "approved_latest_shared_value", f"{APPROVAL}: {key}"))
+    # Explain unprocessable numbers before any transform, including cases which
+    # would otherwise only be detected after a transaction had started writing.
+    for i, fields in eav.items():
+        for key, (column, maximum) in NUMERIC_LIMITS.items():
+            try:
+                raw = scalar(fields, key)
+            except ValueError:
+                continue  # scalar-conflict preflight owns this case
+            value, action = approved_number(raw, maximum)
+            if action == 'invalid':
+                import json
+                cur.execute("INSERT INTO migration.finding VALUES (%s,'blocker','ControlForm',%s,%s,%s)",
+                    (run_id,str(i),'invalid_location_or_mileage',json.dumps({
+                        'field':key,'before':fields[key], 'target_field':column,
+                        'reason':'Not a nonnegative digit string; P12 does not authorize guessing',
+                        'action':'NULL in rehearsal only'}, default=str)))
 
 
 def mismatches(cur, run_id, scalar):
@@ -195,6 +241,16 @@ def mismatches(cur, run_id, scalar):
     problems = []
     def fail(check, form_id):
         problems.append({'check': check, 'legacy_id': str(form_id)})
+    cur.execute('''SELECT l.legacy_id,v.value,t.inspection_time::text,
+        (CASE WHEN migration.is_masked(v.value) THEN NULL ELSE coalesce(migration.safe_time(v.value),'00:00'::time) END)::text
+        FROM migration.form_link l JOIN forms.foreign_violation_form t ON t.foreign_violation_form_key=l.target_key
+        LEFT JOIN staging.raw_control_form_value v ON v.control_form_id::text=l.legacy_id
+          AND v.classifier_name='InspectionDate.Time'
+        WHERE l.legacy_source='ControlForm' AND l.target_table='forms.foreign_violation_form' ''')
+    for i,raw,actual,expected in cur.fetchall():
+        if actual!=expected:
+            problems.append({'check':'owner_time_value','legacy_id':i,'field':'InspectionDate.Time',
+                             'expected':expected,'actual':actual})
     try:
         forms, groups = source_context(cur, run_id)
     except ValueError:
@@ -248,11 +304,24 @@ def mismatches(cur, run_id, scalar):
             chosen = choices[key]
             cur.execute("""SELECT CASE WHEN %s='control_date'
                 THEN migration.source_date(value,date_value)::date::text
-                ELSE migration.safe_time(value)::time::text END
+                ELSE coalesce(migration.safe_time(value),'00:00'::time)::text END
                 FROM staging.raw_control_form_value WHERE control_form_id=%s AND classifier_name=%s""",(column,chosen,key))
             expected = {r[0] for r in cur.fetchall()}
             if len(expected)!=1 or actual[column] not in expected:
                 fail('owner_shared_value:'+column,min(members))
+        for key,(column,maximum) in NUMERIC_LIMITS.items():
+            expected, action = approved_number(scalar(values,key),maximum)
+            if actual.get(column) != expected:
+                problems.append({'check':'owner_numeric_value','legacy_id':str(min(members)),
+                    'affected_forms':sorted(members),'field':key,'target_field':column,
+                    'expected':expected,'actual':actual.get(column)})
+        # Check every parent clock, not just clocks with conflicting source cards.
+        raw_time = scalar(values,'InspectionDate.Time')
+        cur.execute("SELECT coalesce(migration.safe_time(%s),'00:00'::time)::text",(raw_time,))
+        expected=cur.fetchone()[0]
+        if actual.get('control_time') != expected:
+            problems.append({'check':'owner_time_value','legacy_id':str(min(members)),
+                             'field':'InspectionDate.Time','expected':expected,'actual':actual.get('control_time')})
     cur.execute("""SELECT l.legacy_id::bigint,s.tachograph_type_code FROM migration.form_link l
         JOIN forms.sp_driver_form s ON l.target_table='forms.sp_driver_form' AND s.sp_driver_form_key=l.target_key
         WHERE l.legacy_source='ControlForm' UNION ALL
@@ -287,6 +356,30 @@ def mismatches(cur, run_id, scalar):
             if not actual or any(actual[0][k]!=v for k,v in expected.items()):
                 fail('owner_other_proceeding',i)
     return problems
+
+
+def audit_standalone(cur,run_id):
+    """Log actual values, not just a planned approval from preflight."""
+    cur.execute('''SELECT l.legacy_id,v.value,t.inspection_time::text,t.foreign_violation_form_key
+        FROM migration.form_link l JOIN forms.foreign_violation_form t ON t.foreign_violation_form_key=l.target_key
+        LEFT JOIN staging.raw_control_form_value v ON v.control_form_id::text=l.legacy_id
+          AND v.classifier_name='InspectionDate.Time'
+        WHERE l.migration_run_id=%s AND l.target_table='forms.foreign_violation_form'
+          AND migration.safe_time(v.value) IS NULL''',(run_id,))
+    for i,raw,actual,key in cur.fetchall():
+        diagnostics.owner(i,'InspectionDate.Time',raw,actual,
+            APPROVAL+('-P13' if is_masked(raw) else '-P12-invalid-time'),
+            target_table='forms.foreign_violation_form',target_key=key)
+    cur.execute('''SELECT l.legacy_id,k.name,v.value,to_jsonb(t)->>k.col,k.col,l.target_key
+        FROM migration.form_link l JOIN forms.good_repute_form t ON t.good_repute_form_key=l.target_key
+        CROSS JOIN (VALUES ('Driver.Birthdate','date_of_birth'),
+          ('AmetialasePadevuseTunnistuseValjaandmiseKuupaev','certificate_issue_date')) k(name,col)
+        LEFT JOIN staging.raw_control_form_value v ON v.control_form_id::text=l.legacy_id AND v.classifier_name=k.name
+        WHERE l.migration_run_id=%s AND l.target_table='forms.good_repute_form'
+          AND (to_jsonb(t)->>k.col) IS NULL''',(run_id,))
+    for i,field,raw,actual,column,key in cur.fetchall():
+        diagnostics.owner(i,field,raw,actual,APPROVAL+'-P08-P13',
+                          target_table='forms.good_repute_form',target_field=column,target_key=key)
 
 
 # Labels transcribed from LJVIS1 RoadControlCard2012.ascx (decision section),

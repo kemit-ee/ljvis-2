@@ -263,6 +263,16 @@ CREATE TABLE IF NOT EXISTS migration.finding (
     issue text NOT NULL,
     detail text NOT NULL
 );
+-- Independent SQL Server baseline, captured before extraction begins. These
+-- are extraction-scope counts, not a claim that all EAV rows map to UI fields.
+CREATE TABLE IF NOT EXISTS migration.extraction_manifest (
+    migration_run_id uuid NOT NULL REFERENCES migration.run,
+    source_table text NOT NULL,
+    source_count bigint NOT NULL,
+    fetched_count bigint NOT NULL,
+    staging_count bigint NOT NULL,
+    PRIMARY KEY (migration_run_id, source_table)
+);
 CREATE INDEX IF NOT EXISTS finding_run_idx ON migration.finding (migration_run_id);
 
 CREATE OR REPLACE FUNCTION migration.safe_time(raw text)

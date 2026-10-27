@@ -11,6 +11,7 @@ import re
 from psycopg2 import sql
 from psycopg2.extras import Json
 import decisions
+import diagnostics
 
 
 class MappingConflict(ValueError):
@@ -91,6 +92,8 @@ def apply(cur, run_id, children):
                     (run_id, severity, str(form_id), issue, detail)*2)
 
     def update(table, target_key, data):
+        diagnostics.emit('target_update_attempt', target_table='forms.'+table,
+                         target_key=target_key, values=data)
         if not data:
             return
         # All names are maintained in this module, never provided by source data.
@@ -118,6 +121,9 @@ def apply(cur, run_id, children):
         if table in ('sp_driver_form', 'sp_teammate_form'):
             tachograph = get('soidumeerik', ('SoidumeerikType',))
             mapped = decisions.tachograph(tachograph)
+            if mapped in ('smart_1', 'smart_2'):
+                diagnostics.owner(form_id, 'tachograph_type_code', tachograph, mapped,
+                                  decisions.APPROVAL+'-P14', target_table=target, target_key=target_key)
             if tachograph and mapped is None:
                 finding(form_id,'unmapped_tachograph','Legacy tachograph has no unambiguous target generation/type')
             data = {'tachograph_type_code':mapped,'tachograph_notes':get('puhkeaja_nouete_taitmine_markused')}
@@ -155,6 +161,8 @@ def apply(cur, run_id, children):
                 except ValueError as exc:
                     finding(form_id,'unresolved_approved_proceeding',str(exc))
             if approved_other:
+                diagnostics.owner(form_id, 'other_proceeding', dict(values), approved_other,
+                                  decisions.APPROVAL+'-P10', target_table=target, target_key=target_key)
                 update(table,target_key,approved_other)
                 cur.execute("""UPDATE migration.quality_report SET approval_basis=%s,
                     applied_default='legacy_proceedings' WHERE migration_run_id=%s
@@ -212,6 +220,11 @@ def apply(cur, run_id, children):
             elif column == 'control_time':
                 cur.execute("SELECT coalesce(migration.safe_time(%s),'00:00')::time",(raw,))
                 header[column] = cur.fetchone()[0]
+                cur.execute('SELECT migration.safe_time(%s)', (raw,))
+                if cur.fetchone()[0] is None:
+                    diagnostics.owner(chosen, key, eav[chosen].get(key, []), header[column],
+                                      decisions.APPROVAL+'-P12-invalid-time', target_table='forms.compound_form',
+                                      target_key=canonical, affected_forms=sorted(members))
             elif column == 'control_country_code':
                 cur.execute('SELECT migration.safe_country_code(%s)',(raw,))
                 header[column] = cur.fetchone()[0]
@@ -243,14 +256,24 @@ def apply(cur, run_id, children):
         }
         data = {**header, **{column:get(key) for column,key in fields.items()}}
         data['status'] = 'published' if all(source_forms[i][3] == 'Published' for i in members) else 'confirmed'
-        for column,key,maximum in [('kilometer','InspectionAddress.HighwayKilometerNumber',999),
-                                   ('vehicle_mileage','OdometerReading',2147483647)]:
+        diagnostics.owner(members[0], 'status', {i:source_forms[i][3] for i in members}, data['status'],
+                          decisions.APPROVAL+'-P05', target_table='forms.compound_form', target_key=canonical,
+                          affected_forms=sorted(members))
+        for key,(column,maximum) in decisions.NUMERIC_LIMITS.items():
             raw = get(key)
-            parsed = integer(raw)
-            if raw is not None and (parsed is None or parsed > maximum):
+            parsed, action = decisions.approved_number(raw, maximum)
+            if action in ('invalid', 'masked'):
                 finding(members[0],'masked_location_or_mileage' if decisions.is_masked(raw) else 'invalid_location_or_mileage',
                         f'{key}: NULL; source retained', 'warning' if decisions.is_masked(raw) else 'blocker')
-                parsed = None
+            original_entries = {i:eav[i].get(key,[]) for i in members}
+            formatting_changed = any(v is not None and v != str(parsed)
+                                     for entries in original_entries.values() for v,_,_ in entries)
+            if action in ('normalized', 'right_digits_removed', 'masked') or (action=='unchanged' and formatting_changed):
+                diagnostics.owner(choices.get(key,min((i for i in members if key in eav[i]),default=members[0])), key,
+                                  original_entries, parsed,
+                                  decisions.APPROVAL+('-P13' if action=='masked' else '-P12'),
+                                  action=action, target_table='forms.compound_form', target_field=column,
+                                  target_key=canonical, affected_forms=sorted(members))
             data[column] = parsed
         for column in ('vehicle_country_code','company_country_code'):
             if data[column]:
@@ -266,6 +289,9 @@ def apply(cur, run_id, children):
             if birth and parsed is None:
                 finding(members[0],'masked_driver_birthdate' if decisions.is_masked(birth) else 'unmapped_driver_birthdate',
                         f'{prefix}.BirthDate: NULL; source retained', 'warning' if decisions.is_masked(birth) else 'blocker')
+                if decisions.is_masked(birth):
+                    diagnostics.owner(members[0], prefix+'.BirthDate', birth, None,
+                                      decisions.APPROVAL+'-P13', affected_forms=sorted(members))
             if any(driver.values()) or birth or parsed:
                 driver.update(driver_role=role,birth_date=parsed.isoformat() if parsed else None)
                 if driver['citizenship_code']: driver['citizenship_code']=driver['citizenship_code'].upper()
@@ -279,6 +305,11 @@ def apply(cur, run_id, children):
                      legacy_decision=decisions.APPROVAL, legacy_shared_value_sources=choices,
                      legacy_shared_value_timestamps={key:modified[i].isoformat() for key,i in choices.items()})
         data['extra_data']=extra
+        for key,chosen in choices.items():
+            diagnostics.owner(chosen, key,
+                              {i:decisions.normalized_values(eav[i]).get(key,[]) for i in members},
+                              values.get(key,[]), decisions.APPROVAL+'-P04',
+                              affected_forms=sorted(members), target_table='forms.compound_form', target_key=canonical)
         update('compound_form',canonical,data)
         for table in sorted(children):
             cur.execute(sql.SQL('UPDATE forms.{} SET compound_form_key=%s WHERE compound_form_key=ANY(%s)').format(sql.Identifier(table)),(canonical,keys))

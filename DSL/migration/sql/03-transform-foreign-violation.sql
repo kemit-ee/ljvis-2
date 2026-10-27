@@ -83,7 +83,8 @@ SELECT
     coalesce(s.inspection_date::date, s.controlled_at::date, s.created_at::date)    AS inspection_date_out,
     -- inspection_time_raw is free text in the source; guard the cast instead of
     -- crashing the whole batch on one garbage value (see README.md).
-    migration.safe_time(s.inspection_time_raw)                AS inspection_time_out
+    CASE WHEN migration.is_masked(s.inspection_time_raw) THEN NULL
+         ELSE coalesce(migration.safe_time(s.inspection_time_raw), '00:00'::time) END AS inspection_time_out
 FROM tmp_fv_src s
 LEFT JOIN staging.raw_user u ON u.id = s.created_by_user_id
 LEFT JOIN LATERAL (

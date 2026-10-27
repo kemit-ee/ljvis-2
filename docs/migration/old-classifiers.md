@@ -68,6 +68,3 @@ peatavad rollback'i. Põhimuudatust ei eemaldata automaatselt, kui
 sisaldab andmeid: esmalt tuleb sõltuvused eraldi läbi vaadata. See kontroll on
 teadlikult konservatiivne, sest loogiliste võtmete viidetel puuduvad FK-d.
 Rollback teha hooldusaknas, peatatud migratsiooni ja rakenduse kirjutamisega.
-
-Kontroll: `tests/sql/test_old_classifier_changelogs.py` loob eraldi tühja
-PostgreSQL-baasi ja kontrollib ka Liquibase includeAll update → rollback → update.

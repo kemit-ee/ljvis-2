@@ -62,7 +62,7 @@ class Rules(unittest.TestCase):
             self.assertEqual(enrich.integer(raw),expected)
 
     def test_exact_tachograph_generation(self):
-        for raw, expected in [('arukas','smart_1'),('ARUKAS','smart_1'),('arukas-2','smart_2'),('smart_2','smart_2'),('SMART anything',None)]:
+        for raw, expected in [('arukas','smart_1'),('ARUKAS','smart_1'),('arukas-2','smart_2'),('smart_2','smart_2'),('SMART anything','smart_1'),('unknown',None)]:
             self.assertEqual(decisions.tachograph(raw),expected)
 
     def test_p10_preserves_every_selected_paragraph_without_claiming_ok(self):

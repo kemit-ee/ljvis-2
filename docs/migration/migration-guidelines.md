@@ -1,6 +1,12 @@
 # LJVIS 1 → LJVIS 2: administraatori järgmised sammud
 
-**Seis: 02.10.2026.** SQL Serveri backup on saadud ja taastatud eraldi proovikeskkonnas.
+**Seis: 27.10.2026. Praegune etapp on ainult SQL Serveri proovimigratsioon.**
+RavenDB ei ole selle proovi eeltingimus; selle ülekanne käsitletakse eraldi hiljem.
+SQL Serveri backup on saadud ja taastatud eraldi proovikeskkonnas.
+
+**Administraator alustab siit: [SQL Serveri .bak → uus proovibaas](run/README.md).**
+Seal on üks käsk, mis taastab koopia, rakendab skeemi ja teeb SQL-only proovi.
+Allolev käsitsi seadistamise variant on DBA juba taastatud allika jaoks.
 Varasemaid Q0–Q19 SQL-päringuid **ei ole vaja administraatoril käsitsi käivitada**:
 arendus käivitas need taastatud baasil. Tulemused ja andmeid sisaldavad logid jäävad
 piiratud ligipääsuga proovikeskkonda.
@@ -40,9 +46,9 @@ seda migratsiooni käivitamiseks vaja: puudulik vastendus kajastub jooksu aruand
   õigusliku kehtivusajana. Klassifikaatorikomplekt on lisatud Liquibase’i: [old-classifiers.md](old-classifiers.md). Vormide rikkumisväljade seosed ja kuvamine vajavad veel teostust; eraldi algandmete arhiivi ei looda.
 - Algset vorminumbrit ei muudeta taustateenuse suurendatud `FormVersion` järgi.
 
-### Konkreetsete probleemvormide ülevaatus
+### Vajaduse korral: uued probleemvormid lõppkoopial
 
-Käivitada [01-problem-forms.sql](client-review/01-problem-forms.sql) tervikuna LJVIS1 SQL Serveris. Määrata `@AsOf` kokkulepitud ülemineku kuupäevaks; arvutatud ajapiir peab kattuma ETL-i `CUTOFF` väärtusega.
+Kui uus proov leiab seni lahendamata juhtumeid, käivitada [01-problem-forms.sql](client-review/01-problem-forms.sql) tervikuna LJVIS1 SQL Serveris. Määrata `@AsOf` kokkulepitud ülemineku kuupäevaks; arvutatud ajapiir peab kattuma ETL-i `CUTOFF` väärtusega.
 
 [Lihtne juhend](client-review/README.md) selgitab nelja tulemusetabelit ja kliendi otsuseid. Iga juhtumi kohta saab arvu ning vormi numbri, tüübi, staatuse, kontrollkuupäeva ja tehnilise ID. Sama kontrolli osad väljastatakse eraldi kontekstina.
 
@@ -50,7 +56,17 @@ Klient märgib iga vajaliku vormi kohta **MIGREERI / EI_MIGREERI / SELGITADA**, 
 
 Päring on kontrollitud taastatud testkoopial ja sünteetilises baasis. LIVE-i probleemvormide arv selgub selle päringu käivitamisel; testkoopia arvud ei kirjelda LIVE-i.
 
-## Mida haldurilt ja andmeomanikult veel vaja on
+## SQL-proovi tulemuse läbivaatamine
+
+19.10 kliendi otsused on kirjas [otsuste ülevaates](owner-decisions-2026-10-19.md).
+Kellaaja, arvude lühendamise ja SMART-vastenduse luba uuesti ei küsita.
+Parandatuks märgitud vorminumbreid ja tunnuseid kontrollitakse uuel koopial.
+Privaatsed `owner-decisions.csv`, `reconciliation.csv` ja `unmapped-fields.json`
+näitavad rakendatud reegleid, puuduvaid vorme ja lahendamata välju.
+
+## Hilisem täismigratsioon: lisallikad ja allesjäänud tööd
+
+Järgmine loend ei ole SQL-only proovi käivitamise eeltingimus.
 
 | Vajalik sisend või otsus | Miks |
 |---|---|
@@ -59,14 +75,14 @@ Päring on kontrollitud taastatud testkoopial ja sünteetilises baasis. LIVE-i p
 | `Paths.FormDocuments` failikataloog koos säilitatud kaustastruktuuriga või kokkulepitud loetav arhiiv | Vormidel on viide failikaustale, kuid failide nimekirja andmebaasis ei ole; ilma kataloogita ei saa kontrollida failide olemasolu ega neid üle kanda |
 | Kehtiva `Control`-seoseta SP-vormide käsitlus | Sellised vormid säilivad eraldi koondkontrollina; lõplik seos vajab kinnitust või lähteandmete parandust. Leiud on `finding.csv` failis |
 | Korduvate vorminumbrite ja puuduvate seoste kontroll | Käivitada [ülevaatuse SQL](client-review/01-problem-forms.sql) ning täita otsused [juhendi järgi](client-review/README.md) |
-| Põlvkonnata `soidumeerik=arukas` väärtuste käsitlus | `arukas-2` viiakse `smart_2` alla; ilma numbrita vana väärtuse põlvkonda ei oletata |
+| Tahhograafi vastenduse kontroll | Kinnitatud P14: `arukas` ja SMART-i sisaldav nimetus → `smart_1`; ühesed `smart_2`/`arukas-2` koodid säilivad. Vaadata rakendatud otsust privaatses logis |
 | Vanade rikkumiste, tehniliste puuduste ja ADR-/katkestamisandmete lõplik vastendus | Osa lähteandmeid säilib praegu tõendusandmetes, kuid ei ole veel rakenduse vastavates äriväljades. Vastenduse koostab arendus. Puuduva sobiva klassifikaatori korral lisatakse mitteaktiivne ajalooline väärtus; puuduv kirjeldus täpsustatakse hiljem ega vaja enne migratsiooni kliendi kinnitust |
 
 Konkreetsete vormide tunnused on privaatsetes `finding.csv` / `quality_report.csv`
 aruannetes. Isikuandmeid ega tervet backup'i ei lisata Git'i, piletisse või avalikku kirja.
 Puuduva teksti asendaja `-` on lubatud; see ei kehti kuupäevade, otsuste ja rikkumiste kohta.
 
-## Kuidas administraator proovimigratsiooni käivitab
+## Alternatiiv: DBA on SQL-koopia ja LJVIS2 skeemi juba ette valmistanud
 
 Üksikasjalikud env-seaded on [käivitusjuhendis](../../DSL/migration/README.md) ja
 [.env.example](../../DSL/migration/.env.example). Administraatori komplekt on `DSL/migration/`.
@@ -96,22 +112,6 @@ Sama koodi, allika ja ajapiiriga korduskäivitus on toetatud. Pärast mappingu m
 alustada uuesti puhtast proovibaasist; `form_link` või tõendusandmete käsitsi kustutamine
 olemasolevate vormide kõrvalt ei ole lubatud.
 
-## Arendaja üks käsk backup'ist kontrollitud proovini
-
-See on **valikuline arendaja Docker-stend**, mitte administraatori tööbaasi käsk.
-Vajalikud on Docker ja `DSL/migration/requirements.txt` Python-sõltuvused.
-Käivitada repo juurest:
-
-```bash
-python3 tests/migration/backup_review.py /turvaline/tee/ljvistest_250926.bak --cutoff 2023-09-25
-```
-
-Käsk taasloob ainult eraldi Docker-projekti `ljvis-backup-trial`, taastab `.bak` read-only
-allikaks, rakendab LJVIS 2 skeemi, täidab Q0–Q19, käivitab migratsiooni, korduskäivituse,
-read-only kontrolli ja uue puhta sihtbaasi katse. Kohalikud pordid: SQL **14359**, PG **55459**.
-Väljund on `tests/migration/runs/backup-*/review.json` ning privaatsed detailaruanded.
-Exit **2** koos `technical_checks_passed=true` kinnitab tehnilise proovi, mitte ärilist vastuvõttu.
-
 ## Enne lõplikku üleminekut
 
 Lahendada kõik blokeerijad, saada puuduvad allikad ning kinnitada väljade/otsuste/
@@ -119,9 +119,3 @@ rikkumiste ja manuste vastuvõtt. Leppida kokku allikate ühine ajahetk, ajavö�
 hooldusaken, sihtbaasi varundus/taastamine, välisteadete peatamine ning staging'u,
 logide ja backup'ide säilitamise tähtaeg. Lõplik käik tehakse puhtale kinnitatud sihile
 README tavakäsuga `./run.sh`, ilma `--rehearsal` ja `--sql-only` lippudeta.
-
-## Enne lõplikku üleminekut
-
-Enne üleminekut tuleb lahendada ülal loetletud sisendid ja otsused ning lõpetada
-rikkumiste ja teiste äriväljade vastendus. Proovijooksu terviklikkuse kontroll
-ei tähenda täielikku kasutajaliidese ega äriandmete vastuvõttu.

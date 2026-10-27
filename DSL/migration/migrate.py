@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import uuid
+import sqlparse
 from datetime import date
 
 import psycopg2
@@ -26,6 +27,7 @@ import enrich
 import identifiers
 import evidence
 import decisions
+import diagnostics
 
 TARGETS = {
     "GoodRepute": "good_repute_form",
@@ -64,7 +66,23 @@ def execute_file(cur, path, run_id, cutoff, subtype=False):
     text = text.replace(":'cutoff_from'", cur.mogrify("%s", (cutoff,)).decode())
     for name in re.findall(r"CREATE TEMP TABLE (\w+)", text):
         cur.execute(sql.SQL("DROP TABLE IF EXISTS pg_temp.{}").format(sql.Identifier(name)))
-    cur.execute(text)
+    if diagnostics._journal is None or path.parent.name != 'sql' or not re.match(r'0[1-7]-',path.name):
+        cur.execute(text)
+        return
+    # Export the quality rows produced BEFORE a failing INSERT in the same SQL
+    # file. Executing the whole file in one command loses that evidence on error.
+    for index,statement in enumerate(sqlparse.split(text),1):
+        cur.execute('SAVEPOINT diagnostic_statement')
+        try:
+            cur.execute(statement)
+        except psycopg2.Error as exc:
+            diagnostics.emit('sql_statement_failed', sql_file=path.name, statement_index=index,
+                             statement=statement, **diagnostics.exception(exc))
+            cur.execute('ROLLBACK TO SAVEPOINT diagnostic_statement')
+            diagnostics.checkpoint(cur,run_id,diagnostics._journal.directory,path.name)
+            raise
+        diagnostics.checkpoint(cur,run_id,diagnostics._journal.directory,path.name)
+        cur.execute('RELEASE SAVEPOINT diagnostic_statement')
 
 
 def rows(cur, query, params=()):
@@ -216,13 +234,17 @@ def preflight(cur, run_id, cutoff):
                   AND v.classifier_name=ANY(%s)
                 GROUP BY v.control_form_id,v.classifier_name HAVING count(*)>1""", (run_id,form_type,scalar_keys))
         keys = sorted(set(keys) | enrich.consumed_keys(form_type))
-        finding("unmapped_eav", "Populated EAV inputs not declared by SQL/enrichment; retained in source_snapshot, not approved for omission",
-            """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
+        # One diagnostic per source row/key, not just a generic form-level flag.
+        cur.execute("""INSERT INTO migration.finding
+            SELECT %s,'blocker','ControlForm',v.control_form_id::text,'unmapped_eav',
+              jsonb_build_object('source_row_id',v.id,'field',v.classifier_name,
+                'raw_value',v.value,'date_value',v.date_value,'int_value',v.int_value,
+                'target_table',d.target_table,'action','not_mapped; source snapshot only')::text
                 FROM staging.raw_control_form_value v JOIN migration.disposition d
                 ON d.legacy_id=v.control_form_id::text AND d.legacy_source='ControlForm'
                 WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type=%s
                   AND (nullif(btrim(v.value),'') IS NOT NULL OR v.date_value IS NOT NULL OR coalesce(v.int_value,0)<>0)
-                  AND (v.classifier_name IS NULL OR NOT (v.classifier_name=ANY(%s)))""", (run_id,form_type,keys))
+                  AND (v.classifier_name IS NULL OR NOT (v.classifier_name=ANY(%s)))""", (run_id,run_id,form_type,keys))
     finding("unsupported_subtype", "Subtype marker is not an explicit true/1; ambiguous legacy presence semantics need review",
         """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
             FROM staging.raw_control_form_value v JOIN migration.disposition d
@@ -231,12 +253,16 @@ def preflight(cur, run_id, cutoff):
               AND lower(btrim(coalesce(v.value,''))) NOT IN ('true','1')
               AND ((d.form_type='RoadControlCard2012' AND v.classifier_name='RoadControlTrailer')
                 OR (d.form_type='Roadworthiness2012' AND v.classifier_name='RoadWorthinessTeamMember'))""", (run_id,))
-    finding("invalid_time", "Invalid clock time becomes NULL/00:00 only in rehearsal; review source snapshot",
-        """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
-            FROM staging.raw_control_form_value v JOIN migration.disposition d
-            ON d.legacy_id=v.control_form_id::text AND d.legacy_source='ControlForm'
-            WHERE d.migration_run_id=%s AND d.reason='eligible' AND v.classifier_name='InspectionDate.Time'
-              AND migration.safe_time(v.value) IS NULL""", (run_id,))
+    cur.execute("""INSERT INTO migration.finding
+        SELECT %s,'info','ControlForm',d.legacy_id,'approved_time_default',
+          jsonb_build_object('field','InspectionDate.Time','before',v.value,'after','00:00:00',
+            'approval_basis','owner-2026-10-19-P12-invalid-time',
+            'application_state','planned','source_row_id',v.id)::text
+        FROM migration.disposition d LEFT JOIN staging.raw_control_form_value v
+          ON v.control_form_id::text=d.legacy_id AND v.classifier_name='InspectionDate.Time'
+        WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.legacy_source='ControlForm'
+          AND d.form_type<>'GoodRepute' AND migration.safe_time(v.value) IS NULL
+          AND NOT migration.is_masked(v.value)""", (run_id,run_id))
     finding("invalid_integer", "Invalid/negative/overflowing checked days becomes NULL only in rehearsal",
         """SELECT DISTINCT 'ControlForm' source,v.control_form_id::text legacy_id
             FROM staging.raw_control_form_value v JOIN migration.disposition d
@@ -326,58 +352,63 @@ def preflight(cur, run_id, cutoff):
 def check_integrity(cur, run_id, require_coverage=True):
     problems = identifiers.mismatches(cur)
     problems.extend(evidence.mismatches(cur, run_id, RAW_TABLES))
+    problems.extend(evidence.extraction_mismatches(cur,run_id))
+    changed_tables={p['table'] for p in problems if p['check'] in ('source_snapshot_changed','source_staging_changed')}
+    if changed_tables:
+        problems.append({'check':'source_row_differences','records':evidence.row_differences(cur,run_id,changed_tables)})
     problems.extend(evidence.day_count_mismatches(cur))
-    cur.execute("""SELECT count(*) FROM migration.disposition d
+    cur.execute("""SELECT d.legacy_source,d.legacy_id,f.form_code,d.reason FROM migration.disposition d
         JOIN migration.run r USING(migration_run_id)
         JOIN staging.raw_control_form f ON f.id::text=d.legacy_id
         WHERE d.migration_run_id=%s AND d.legacy_source='ControlForm'
           AND f.form_type_name=ANY(%s)
           AND ((migration.control_form_scope(f.id,r.source_cutoff_from::date) IN ('within_window','included_control_peer'))
                IS DISTINCT FROM (d.reason='eligible'))""",(run_id,list(TARGETS)))
-    invalid_scope=cur.fetchone()[0]
+    invalid_scope=[dict(zip(('legacy_source','legacy_id','source_form_number','reason'),r)) for r in cur.fetchall()]
     if invalid_scope:
-        problems.append({'check':'source_scope_disposition_changed','count':invalid_scope})
+        problems.append({'check':'source_scope_disposition_changed','count':len(invalid_scope),'records':invalid_scope})
     if require_coverage:
         missing = rows(cur, """SELECT d.legacy_source,d.legacy_id,d.target_table
             FROM migration.disposition d WHERE d.migration_run_id=%s AND d.reason='eligible'
             AND NOT EXISTS (SELECT 1 FROM migration.form_link f WHERE f.legacy_source=d.legacy_source
               AND f.legacy_id=d.legacy_id AND f.target_table=d.target_table)""", (run_id,))
         if missing:
-            problems.append({"check":"missing_target_links","count":len(missing),"examples":missing[:20]})
+            problems.append({"check":"missing_target_links","count":len(missing),"records":missing})
     for table in ALL_TARGETS:
         target = "forms."+table
         key = table+"_key"
         number = "sub_form_number" if table in CHILDREN else "form_number"
-        cur.execute(sql.SQL("""SELECT count(*) FROM migration.form_link f WHERE f.target_table=%s AND NOT EXISTS (
+        cur.execute(sql.SQL("""SELECT f.legacy_source,f.legacy_id,f.target_key,f.target_form_number FROM migration.form_link f WHERE f.target_table=%s AND NOT EXISTS (
             SELECT 1 FROM forms.{} t WHERE t.{}=f.target_key AND t.{}=f.target_form_number)""")
             .format(sql.Identifier(table),sql.Identifier(key),sql.Identifier(number)), (target,))
-        n=cur.fetchone()[0]
-        if n: problems.append({"check":"dangling_target_link","table":table,"count":n})
-        cur.execute(sql.SQL("SELECT count(*) FROM (SELECT {} FROM forms.{} GROUP BY {} HAVING count(DISTINCT {})>1) x")
-                    .format(sql.Identifier(number),sql.Identifier(table),sql.Identifier(number),sql.Identifier(key)))
-        n=cur.fetchone()[0]
-        if n: problems.append({"check":"duplicate_form_number","table":table,"count":n})
-        cur.execute(sql.SQL("SELECT count(*) FROM (SELECT {} FROM forms.{} GROUP BY {} HAVING count(DISTINCT {})>1) x")
-                    .format(sql.Identifier(key),sql.Identifier(table),sql.Identifier(key),sql.Identifier(number)))
-        n=cur.fetchone()[0]
-        if n: problems.append({"check":"logical_key_has_multiple_numbers","table":table,"count":n})
+        missing_rows=[dict(zip(('legacy_source','legacy_id','target_key','target_form_number'),r)) for r in cur.fetchall()]
+        if missing_rows: problems.append({"check":"dangling_target_link","table":table,"count":len(missing_rows),'records':missing_rows})
+        cur.execute(sql.SQL("SELECT {number},array_agg(DISTINCT {key}) FROM forms.{table} GROUP BY {number} HAVING count(DISTINCT {key})>1")
+                    .format(number=sql.Identifier(number),table=sql.Identifier(table),key=sql.Identifier(key)))
+        conflicts=[{'form_number':n,'target_keys':keys} for n,keys in cur.fetchall()]
+        if conflicts: problems.append({"check":"duplicate_form_number","table":table,"count":len(conflicts),'records':conflicts})
+        cur.execute(sql.SQL("SELECT {key},array_agg(DISTINCT {number}) FROM forms.{table} GROUP BY {key} HAVING count(DISTINCT {number})>1")
+                    .format(number=sql.Identifier(number),table=sql.Identifier(table),key=sql.Identifier(key)))
+        conflicts=[{'target_key':k,'form_numbers':numbers} for k,numbers in cur.fetchall()]
+        if conflicts: problems.append({"check":"logical_key_has_multiple_numbers","table":table,"count":len(conflicts),'records':conflicts})
         if table in CHILDREN:
-            cur.execute(sql.SQL("""SELECT count(*) FROM forms.{} t JOIN migration.form_link f
+            cur.execute(sql.SQL("""SELECT f.legacy_source,f.legacy_id,f.target_key,t.compound_form_key FROM forms.{} t JOIN migration.form_link f
                 ON f.target_table=%s AND f.target_key=t.{}
                 WHERE NOT EXISTS (SELECT 1 FROM forms.compound_form p WHERE p.compound_form_key=t.compound_form_key)
                    OR NOT EXISTS (SELECT 1 FROM migration.form_link p WHERE p.legacy_source=f.legacy_source
                      AND p.legacy_id=f.legacy_id AND p.target_table='forms.compound_form' AND p.target_key=t.compound_form_key)""")
                     .format(sql.Identifier(table),sql.Identifier(key)), (target,))
-            n=cur.fetchone()[0]
-            if n: problems.append({"check":"missing_parent","table":table,"count":n})
-    duplicates=rows(cur,"SELECT target_table,target_key,count(*) FROM migration.form_link WHERE target_table<>'forms.compound_form' GROUP BY 1,2 HAVING count(*)>1")
-    if duplicates: problems.append({"check":"duplicate_target_link","examples":duplicates[:20]})
-    split = rows(cur,"""SELECT b.control_id,count(DISTINCT f.target_key) AS parents
+            missing=[dict(zip(('legacy_source','legacy_id','target_key','compound_form_key'),r)) for r in cur.fetchall()]
+            if missing: problems.append({"check":"missing_parent","table":table,"count":len(missing),'records':missing})
+    duplicates=rows(cur,"SELECT target_table,target_key,count(*),array_agg(legacy_source||':'||legacy_id) AS source_forms FROM migration.form_link WHERE target_table<>'forms.compound_form' GROUP BY 1,2 HAVING count(*)>1")
+    if duplicates: problems.append({"check":"duplicate_target_link","records":duplicates})
+    split = rows(cur,"""SELECT b.control_id,count(DISTINCT f.target_key) AS parents,
+        array_agg(DISTINCT f.legacy_id) AS source_forms,array_agg(DISTINCT f.target_key) AS target_keys
         FROM staging.raw_control_to_form_binding b JOIN staging.raw_control c ON c.id=b.control_id
         JOIN migration.form_link f ON f.legacy_source='ControlForm' AND f.legacy_id=b.control_form_id::text
           AND f.target_table='forms.compound_form'
         GROUP BY b.control_id HAVING count(DISTINCT f.target_key)>1""")
-    if split: problems.append({"check":"split_compound_control","count":len(split)})
+    if split: problems.append({"check":"split_compound_control","count":len(split),'records':split})
     if require_coverage:
         problems.extend(decisions.mismatches(cur, run_id, enrich.scalar))
     return problems
@@ -406,7 +437,7 @@ def report(cur, run_id, directory, problems=None):
           GROUP BY 1,2 ORDER BY 1,2""",(run_id,)),
         "selection_basis":rows(cur,"SELECT inclusion_basis,count(*) FROM migration.disposition WHERE migration_run_id=%s AND legacy_source='ControlForm' GROUP BY 1 ORDER BY 1",(run_id,)),
         "dispositions":rows(cur,"SELECT form_type,reason,count(*) FROM migration.disposition WHERE migration_run_id=%s GROUP BY 1,2 ORDER BY 1,2",(run_id,)),
-        "findings":rows(cur,"""SELECT severity,issue,count(*) FROM (
+        "findings":rows(cur,"""SELECT severity,issue,count(*),count(DISTINCT (legacy_source,legacy_id)) AS affected_records FROM (
           SELECT DISTINCT severity,legacy_source,legacy_id,issue,detail FROM migration.finding
           WHERE migration_run_id=%s OR migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link)
           ) effective GROUP BY 1,2 ORDER BY 1,2""",(run_id,)),
@@ -420,7 +451,14 @@ def report(cur, run_id, directory, problems=None):
         "links":rows(cur,"SELECT target_table,count(*) FROM migration.form_link GROUP BY 1 ORDER BY 1"),
         "quality":rows(cur,"SELECT target_table,column_name,issue,approval_basis,count(DISTINCT (legacy_source,legacy_id)) AS affected_forms FROM migration.quality_report WHERE migration_run_id=%s OR migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link) GROUP BY 1,2,3,4 ORDER BY 1,2,3,4",(run_id,)),
         "integrity_problems":problems or []}
-    (directory/"summary.json").write_text(json.dumps(output,ensure_ascii=False,indent=2,default=str)+"\n")
+    output['reconciliation'] = diagnostics.export_reconciliation(cur,run_id,directory,ALL_TARGETS)
+    output['source_manifest'] = rows(cur, 'SELECT * FROM migration.source_manifest WHERE migration_run_id=%s',(run_id,))
+    extraction_path = directory/'source-counts.json'
+    if extraction_path.exists():
+        output['extraction'] = json.loads(extraction_path.read_text())
+    diagnostics.write_json(directory/'summary.json',output)
+    diagnostics.write_json(directory/'integrity_problems.json',problems or [])
+    diagnostics.export_owner_events(directory)
     for table in ("finding","disposition","quality_report"):
         with (directory/(table+".csv")).open("w") as f:
             condition = "migration_run_id=%s"
@@ -428,7 +466,49 @@ def report(cur, run_id, directory, problems=None):
                 condition += " OR migration_run_id IN (SELECT DISTINCT migration_run_id FROM migration.form_link)"
             query=cur.mogrify("SELECT * FROM migration."+table+" WHERE "+condition,(run_id,)).decode()
             cur.copy_expert("COPY ("+query+") TO STDOUT WITH CSV HEADER",f)
+    detailed = diagnostics.detailed_findings(cur,run_id)
+    diagnostics.write_json(directory/'findings-detailed.json',detailed)
+    diagnostics.write_csv(directory/'findings-detailed.csv',detailed,diagnostics.FINDING_COLUMNS)
+    diagnostics.write_json(directory/'unmapped-fields.json',[
+        dict(legacy_source=f['legacy_source'],legacy_id=f['legacy_id'],source_form_number=f['source_form_number'],
+             **json.loads(f['detail'])) for f in detailed if f['issue']=='unmapped_eav' and f['detail'].startswith('{')])
+    fields=rows(cur,'''WITH unhandled AS (
+        SELECT DISTINCT (CASE WHEN left(detail,1)='{' THEN detail::jsonb ELSE '{}'::jsonb END)->>'source_row_id' AS source_row_id
+        FROM migration.finding WHERE migration_run_id=%s AND issue='unmapped_eav'
+        ) SELECT d.form_type,v.classifier_name AS source_field,count(*) AS populated_rows,
+        count(DISTINCT d.legacy_id) AS forms,
+        count(*) FILTER (WHERE u.source_row_id IS NOT NULL) AS undeclared_rows
+        FROM migration.disposition d JOIN staging.raw_control_form_value v
+          ON d.legacy_source='ControlForm' AND d.legacy_id=v.control_form_id::text
+        LEFT JOIN unhandled u ON u.source_row_id=v.id::text
+        WHERE d.migration_run_id=%s AND d.reason='eligible'
+          AND (nullif(btrim(v.value),'') IS NOT NULL OR v.date_value IS NOT NULL OR coalesce(v.int_value,0)<>0)
+        GROUP BY d.form_type,v.classifier_name ORDER BY 1,2''',(run_id,run_id))
+    for field in fields:
+        field['declared_rows']=field['populated_rows']-field['undeclared_rows']
+        field['meaning']='declared input is not proof of target value equivalence; see mapping blockers and verify'
+    diagnostics.write_csv(directory/'field-coverage.csv',fields,
+        ['form_type','source_field','populated_rows','forms','undeclared_rows','declared_rows','meaning'])
     print(json.dumps({"run_id":run_id,"report":str(directory/"summary.json"),"findings":output["findings"],"integrity_problems":problems or []},ensure_ascii=False),flush=True)
+
+
+def observed_step(cur,run_id,directory,step,operation):
+    """Recover from SQL errors enough to export evidence, then let caller abort."""
+    if diagnostics._journal:
+        diagnostics._journal.step = step
+    diagnostics.emit('step_started')
+    cur.execute('SAVEPOINT diagnostic_step')
+    try:
+        result = operation()
+    except BaseException as exc:
+        diagnostics.emit('step_failed', **diagnostics.exception(exc))
+        if cur.connection.get_transaction_status() == psycopg2.extensions.TRANSACTION_STATUS_INERROR:
+            cur.execute('ROLLBACK TO SAVEPOINT diagnostic_step')
+        diagnostics.checkpoint(cur,run_id,directory,step)
+        raise
+    diagnostics.checkpoint(cur,run_id,directory,step)
+    cur.execute('RELEASE SAVEPOINT diagnostic_step')
+    return result
 
 
 def main():
@@ -457,6 +537,7 @@ def main():
     pg.autocommit=True
     step="initialization"
     registered=False
+    target_committed=False
     directory=None
     try:
         with pg.cursor() as cur:
@@ -473,6 +554,7 @@ def main():
                 execute_file(cur,HERE/"sql/00-staging-schema.sql",run_id,cutoff)
             directory=Path(os.getenv("MIGRATION_LOG_DIR",str(HERE/"runs")))/run_id
             directory.mkdir(parents=True,exist_ok=True,mode=0o700)
+            diagnostics.start(directory,run_id)
             if args.verify:
                 problems=check_integrity(cur,run_id)
                 report(cur,run_id,directory,problems)
@@ -495,13 +577,14 @@ def main():
                 cur.execute("UPDATE migration.run SET current_step=%s WHERE migration_run_id=%s",(step,run_id))
                 print(f"[migration] run_id={run_id} step={step}",flush=True)
                 with (directory/(name+".log")).open("w") as log:
-                    result=subprocess.run([sys.executable,str(HERE/"extract"/name)],stdout=log,stderr=subprocess.STDOUT)
+                    result=subprocess.run([sys.executable,str(HERE/"extract"/name)],stdout=log,stderr=subprocess.STDOUT,
+                        env={**os.environ,'RUN_ID':run_id,'MIGRATION_RUN_DIRECTORY':str(directory)})
                 if result.returncode: raise RuntimeError(f"{name} failed (exit {result.returncode}); see {directory / (name+'.log')}")
             step="snapshot_and_preflight"
             # One transaction for evidence creation; extraction counts are already verified.
             pg.autocommit=False
             snapshot(cur,run_id)
-            findings=preflight(cur,run_id,cutoff)
+            findings=observed_step(cur,run_id,directory,step,lambda:preflight(cur,run_id,cutoff))
             pg.commit()
             pg.autocommit=True
             blocked=any(f["severity"]=="blocker" for f in findings)
@@ -510,6 +593,7 @@ def main():
             if fatal or existing_problems or (blocked and not args.rehearsal):
                 cur.execute("UPDATE migration.run SET status='blocked',current_step=%s,finished_at=now() WHERE migration_run_id=%s",(step,run_id))
                 report(cur,run_id,directory,existing_problems)
+                diagnostics.emit('run_outcome',outcome='blocked',target_transaction='not_started')
                 return 2
             step="transform"
             cur.execute("UPDATE migration.run SET current_step=%s WHERE migration_run_id=%s",(step,run_id))
@@ -531,11 +615,13 @@ def main():
             for path in transforms:
                 step=path.name
                 print(f"[migration] run_id={run_id} step={step}",flush=True)
-                execute_file(cur,path,run_id,cutoff)
-                if '-- migration-route:' in path.read_text(): execute_file(cur,path,run_id,cutoff,subtype=True)
+                observed_step(cur,run_id,directory,step,lambda:execute_file(cur,path,run_id,cutoff))
+                if '-- migration-route:' in path.read_text():
+                    observed_step(cur,run_id,directory,step+':subtype',lambda:execute_file(cur,path,run_id,cutoff,subtype=True))
             step="enrich_and_group"
-            enrich.apply(cur,run_id,CHILDREN)
-            identifiers.preserve(cur,run_id)
+            observed_step(cur,run_id,directory,step,lambda:enrich.apply(cur,run_id,CHILDREN))
+            observed_step(cur,run_id,directory,'preserve_identifiers',lambda:identifiers.preserve(cur,run_id))
+            decisions.audit_standalone(cur,run_id)
             cur.execute("""UPDATE migration.form_link f SET source_fingerprint=s.fingerprint
                 FROM source_fingerprint s WHERE f.legacy_source=s.source AND f.legacy_id=s.legacy_id AND f.migration_run_id=%s""",(run_id,))
             cur.execute("""UPDATE migration.form_link f SET legacy_form_code=cf.form_code
@@ -551,7 +637,10 @@ def main():
                 if before!=state_signature(cur, include_findings=True): raise RuntimeError("Idempotency check changed target/link/quality rows")
             step="verification"
             problems=check_integrity(cur,run_id)
-            if problems: raise RuntimeError("Integrity verification failed: "+json.dumps(problems))
+            if problems:
+                diagnostics.write_json(directory/'attempt'/'integrity_problems.json',problems)
+                diagnostics.emit('integrity_failed',problems=problems)
+                raise RuntimeError("Integrity verification failed; see attempt/integrity_problems.json")
             # Owner-approved missing text is explicit and auditable. No blanket bypass.
             cur.execute("""UPDATE migration.quality_report SET approval_basis='owner-approved-missing-text-2026-09-23'
                 WHERE migration_run_id=%s AND migration.approved_text_default(
@@ -567,20 +656,42 @@ def main():
             if review and not args.rehearsal: raise RuntimeError("Unapproved quality substitutions; production transaction rolled back")
             cur.execute("UPDATE migration.run SET status=%s,current_step='complete',finished_at=now() WHERE migration_run_id=%s",("needs_review" if review else "succeeded",run_id))
             identifiers.reserve_numbers(cur)
+            diagnostics.checkpoint(cur,run_id,directory,'before_commit')
             pg.commit()
             pg.autocommit=True
+            target_committed=True
+            diagnostics.emit('run_outcome',outcome='needs_review' if review else 'succeeded',target_transaction='committed')
             report(cur,run_id,directory)
             return 2 if review else 0
     except BaseException as exc:
-        pg.rollback()
-        pg.autocommit=True
-        if registered:
+        # Capture while uncommitted rows are still visible. The append-only
+        # journal remains available even if the connection has already died.
+        diagnostics.emit('failure',failure_step=step,**diagnostics.exception(exc))
+        if directory:
+            diagnostics.write_json(directory/'failure.json',dict(run_id=run_id,step=step,**diagnostics.exception(exc)))
+        if directory and registered and not pg.closed and pg.get_transaction_status()!=psycopg2.extensions.TRANSACTION_STATUS_INERROR:
+            try:
+                with pg.cursor() as cur:
+                    diagnostics.checkpoint(cur,run_id,directory,step)
+                    diagnostics.export_reconciliation(cur,run_id,directory/'attempt',ALL_TARGETS)
+            except Exception as diagnostic_exc:
+                diagnostics.emit('diagnostic_failure',**diagnostics.exception(diagnostic_exc))
+        rollback_ok=False
+        try:
+            pg.rollback()
+            pg.autocommit=True
+            rollback_ok=True
+        except Exception as rollback_exc:
+            diagnostics.emit('rollback_failure',**diagnostics.exception(rollback_exc))
+        diagnostics.emit('run_outcome',outcome='report_failed' if target_committed else 'failed',
+                         target_transaction='committed' if target_committed else 'rolled_back' if rollback_ok else 'unknown_check_database')
+        if registered and rollback_ok:
             with pg.cursor() as cur:
                 if isinstance(exc, enrich.MappingConflict):
                     cur.execute("INSERT INTO migration.finding VALUES (%s,'blocker','ControlForm',%s,%s,%s)",
                                 (run_id,str(exc.form_id),exc.issue,str(exc)))
                 cur.execute("UPDATE migration.run SET status='failed',current_step=%s,error_message=%s,finished_at=now() WHERE migration_run_id=%s",(step,str(exc),run_id))
-        if directory and registered:
+        if directory and registered and rollback_ok:
             try:
                 with pg.cursor() as cur:
                     report(cur,run_id,directory)
@@ -589,12 +700,32 @@ def main():
                 # creation. Never replace the original actionable failure.
                 (directory/"report_failure.txt").write_text(str(report_exc)+"\n")
         if directory:
-            (directory/"failure.json").write_text(json.dumps({"run_id":run_id,"step":step,"error":str(exc)},ensure_ascii=False,indent=2)+"\n")
-        print(f"[migration] FAILED run_id={run_id} step={step}: {exc}",file=sys.stderr,flush=True)
+            diagnostics.write_json(directory/'failure.json',dict(run_id=run_id,step=step,**diagnostics.exception(exc)))
+        if directory:
+            diagnostics.export_owner_events(directory)
+        print(f"[migration] FAILED run_id={run_id} step={step}; see private failure.json/events.jsonl",file=sys.stderr,flush=True)
         return 1
     finally:
         pg.close()  # also releases session advisory lock
 
 
+def entrypoint():
+    os.umask(0o077)
+    try:
+        return main()
+    except (Exception, KeyboardInterrupt) as exc:
+        # Configuration/connection failures may precede both migration.run and
+        # a PostgreSQL transaction. They still need a private, durable report.
+        try:
+            run_id=str(uuid.UUID(os.environ.get('RUN_ID','')))
+        except ValueError:
+            run_id=str(uuid.uuid4())
+        directory=Path(os.getenv('MIGRATION_LOG_DIR',str(HERE/'runs')))/run_id
+        diagnostics.write_json(directory/'failure.json',dict(run_id=run_id,step='bootstrap_or_reporting',
+                                                             **diagnostics.exception(exc)))
+        print(f'[migration] FAILED run_id={run_id}; see private failure.json',file=sys.stderr)
+        return 130 if isinstance(exc,KeyboardInterrupt) else 1
+
+
 if __name__=="__main__":
-    sys.exit(main())
+    sys.exit(entrypoint())
