@@ -110,3 +110,102 @@ tests:
     body_matches:
       response:
         statusCode: Found
+- name: 'CGR mock name only: Found'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute
+    headers: &id001
+      x-internal-service-token: test-token
+      content-type: application/json
+    body:
+      firstName: Leah
+      lastName: Brauer
+      birthDate: '1931-05-06'
+  expect:
+    status: 200
+    body_matches:
+      response:
+        transportManager:
+          firstName: Leah
+- name: 'CGR mock name only: NotFound'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute
+    headers: *id001
+    body:
+      firstName: UNKNOWN
+      lastName: Brauer
+      birthDate: '1931-05-06'
+  expect:
+    status: 200
+    body_matches:
+      response:
+        transportManager: null
+- name: 'CGR mock certificate only: Found'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute
+    headers: *id001
+    body:
+      cpcDocumentNumber: CPC002848
+      cpcDocumentIssueCountry: PL
+      cpcDocumentIssueDate: '2017-11-03'
+  expect:
+    status: 200
+    body_matches:
+      response:
+        transportManager:
+          firstName: Aimée
+- name: 'CGR mock certificate only: NotFound'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-transport-manager-good-repute
+    headers: *id001
+    body:
+      cpcDocumentNumber: UNKNOWN
+      cpcDocumentIssueCountry: PL
+      cpcDocumentIssueDate: '2017-11-03'
+  expect:
+    status: 200
+    body_matches:
+      response:
+        transportManager: null
+- name: 'CTUD mock partial: transportUndertakingName,trueCopyNumber'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers: *id001
+    body:
+      transportUndertakingName: Auto Works
+      trueCopyNumber: CL148368
+  expect:
+    status: 200
+    body_matches:
+      response:
+        statusCode: Found
+- name: 'CTUD mock partial: trueCopyNumber,vehicleRegistrationNumber'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers: *id001
+    body:
+      trueCopyNumber: CL148368
+      vehicleRegistrationNumber: EZ 291443
+  expect:
+    status: 200
+    body_matches:
+      response:
+        statusCode: Found
+- name: 'CTUD mock partial: transportUndertakingName,vehicleRegistrationNumber'
+  request:
+    method: POST
+    path: /ljvis/v1/erru/mock/mtr/check-community-licence
+    headers: *id001
+    body:
+      transportUndertakingName: Auto Works
+      vehicleRegistrationNumber: EZ 291443
+  expect:
+    status: 200
+    body_matches:
+      response:
+        statusCode: Found
