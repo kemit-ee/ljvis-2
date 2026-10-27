@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Reserve an outgoing RSI envelope, send it through the internal XML adapter, and store the Hub acceptance. The adapter validates ERRU 3.5 XML and performs one HTTP dispatch. Only its accepted result means HTTP 202 from the Hub. Transport uncertainty is send_unknown and cannot be retried. Business responses arrive separately, correlated by the persisted workflowId."
   namespace: erru

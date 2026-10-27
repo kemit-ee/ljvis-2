@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Tellib vedaja teavituse (notifications.carrier_notification_request) juba kinnitatud

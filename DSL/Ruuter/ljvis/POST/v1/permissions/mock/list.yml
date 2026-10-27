@@ -1,6 +1,7 @@
 declaration:
   description: "Arenduse mock: POST /v1/permissions/mock/list tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
   internal: false
+  returns: []
   allowlist:
     body: []
 

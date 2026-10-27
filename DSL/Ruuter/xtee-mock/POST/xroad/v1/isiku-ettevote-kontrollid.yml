@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: '1.0'
   description: 'IsikuEttevoteKontrollid: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
     POST/xroad/provide/isiku-ettevote-kontrollid.yml. X-Mock-Scenario: empty või server-error.'

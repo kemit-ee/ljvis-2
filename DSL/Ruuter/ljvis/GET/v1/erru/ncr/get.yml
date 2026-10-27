@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Get one NCR case (erru.ncr_message) by businessCaseId, returning the FULL snapshot
     history (LJVIS2-63) - the last element is the current state (drives the editable header/blocks),

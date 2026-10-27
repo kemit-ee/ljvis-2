@@ -1,0 +1,9 @@
+DSL/Ruuter.internal/ljvis/POST/notification/send-carrier-from-request.yml: step 'markCarrierEmailLookupFailed' is not reachable from entry 'declaration'
+DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml: unresolved constant reference '[#PK_TEMPLATE_*]' — add to constants.ini or the runner will forwar
+ljvis/POST/xroad/provide/erakorraline-yv-confirm [declaration.body.type_missing] ["confirmed"]
+ljvis/POST/xroad/provide/erakorraline-yv-query [declaration.body.type_missing] ["alates", "kuni"]
+ljvis/POST/xroad/provide/isiku-ettevote-kontrollid [declaration.body.type_missing] ["isikukood"]
+ljvis/POST/xroad/provide/isiku-kontroll [declaration.body.type_missing] ["isikukood"]
+ljvis/POST/xroad/provide/register-job-inspection [declaration.body.type_missing] ["kontrollija", "kontrolli_id", "kontrolli_kp", "tooandja_nimi", "tooandja_reg_kood", "kontrollimised", "rikkumised", "koostatatud_ettekirjutus", "soidukite_arv", "vaarteomenetlus"]
+ljvis/POST/xroad/provide/register-job-inspection-v2 [declaration.body.type_missing] ["kontrollija", "kontrolli_id", "kontrolli_kp", "tooandja_nimi", "tooandja_reg_kood", "kontrollimised", "rikkumised", "koostatud_ettekirjutus", "kontrolli_tyyp", "vaarteomenetlus", "soidukite_arv"]
+ljvis/POST/xroad/provide/register-job-inspection-v3 [declaration.body.type_missing] ["kontrollija", "kontrolli_id", "kontrolli_kp", "tooandja_nimi", "tooandja_reg_kood", "kontrollimised", "rikkumised", "koostatatud_ettekirjutus", "juhi_isikukood", "menetluse_liik", "soiduki_reg_nr", "soiduki_vin", "juhi_perekonnanimi", "soidukite_arv", "menetluse_number", "juhi_eesnimi"]

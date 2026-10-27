@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Audit: NCR case list viewed (LJVIS2-65). Logged on EVERY list load because the list
     exposes transport undertaking and handler names (personal-data footprint). The description

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Create or update an OUTGOING NCR request draft (LJVIS2-63) - single unified save
     endpoint, branches internally on presence of businessCaseId, mirroring the RSI/CTUD save

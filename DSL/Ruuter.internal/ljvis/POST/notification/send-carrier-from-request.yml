@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Vedajale raske rikkumise teavituse saatmine PPA (sõidu-puhkeaeg, TRAM-kaart)

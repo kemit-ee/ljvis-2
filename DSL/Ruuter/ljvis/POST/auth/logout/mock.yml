@@ -1,6 +1,7 @@
 declaration:
   description: "Arenduse mock: POST /auth/logout/mock tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
   internal: false
+  returns: []
   allowlist:
     body: []
 

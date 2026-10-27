@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Paginated, filtered NCR case list - both incoming and outgoing (LJVIS2-65).
     One row per CASE (ncr_message_key), latest snapshot. All filters are plain AND (no

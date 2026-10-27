@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Record correlated NU ErrorNotification messages idempotently. Internal endpoint.

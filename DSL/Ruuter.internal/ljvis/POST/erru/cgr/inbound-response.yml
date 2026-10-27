@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Receive an ASYNCHRONOUS CheckGoodRepute_Response from the ERRU hub. The hub acknowledged our

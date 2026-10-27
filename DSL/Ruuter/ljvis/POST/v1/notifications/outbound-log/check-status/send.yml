@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Käsitsi käivitatav Postkast 2.0 saatmisoperatsiooni seisu kontroll ühe

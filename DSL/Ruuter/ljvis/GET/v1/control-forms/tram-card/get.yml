@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a single TRAM control card by key (latest snapshot). Guarded by tram_driver_form.read."

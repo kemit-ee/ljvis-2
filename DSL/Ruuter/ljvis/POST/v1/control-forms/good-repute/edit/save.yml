@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create or update a good repute form (hea maine vorm) - single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: personalCode
         type: string
       - field: firstName

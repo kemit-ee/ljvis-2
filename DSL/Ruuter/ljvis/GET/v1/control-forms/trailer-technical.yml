@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get trailer technical-check sub-form by id (latest snapshot). Logs a view event only when the viewing user differs from the sub-form's creator (LJVIS2-72 §7)."
