@@ -4,6 +4,11 @@
 
 ## 2026-10-27
 
+### Päringute sisendi kontroll: tüübid ja audit
+
+- Ruuteri marsruutide päringu väljade tüübid on deklareeritud (id ja versioon, märkeruudud, päevade arvud, lehekülje number ja suurus). Vale tüübiga päring saab 400 vastuse. Tehnovormi (sõiduk, haagis) märkeruudud tulevad nüüd lugemisvastuses tõeväärtustena, mitte tekstina „true".
+- Ruuteri auditi (`dsl-lint --audit`) hoiatused on CI-s lukus: uus hoiatus peatab ehituse.
+
 ### NCR nimekiri: rikkumisega teated eristuvad ja tegelemist vajavad on esil
 
 - Rikkumisega NCR teated on nimekirjas taas roosa taustaga (see oli varem katki ega kuvatud). Rikkumisega on teade, kui kontrolli tulemus on „Fail" või on olemas raske või väiksem rikkumine. Uues veerus „Kontrolli tulemus" on lisaks punane silt „Rikkumisega" (värvist üksi ei piisa), korras teadetel on „Korras".

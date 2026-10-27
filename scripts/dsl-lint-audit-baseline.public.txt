@@ -3,11 +3,6 @@ DSL/Ruuter/ljvis/GET/templates/xroad/lookup-carrier-registry-email.yml: step 'lo
 DSL/Ruuter/ljvis/GET/v1/control-forms/foreign-violation-form.yml: step 'returnSuccessWithoutHistory' is not reachable from entry 'declaration'
 DSL/Ruuter/ljvis/POST/v1/control-forms/drive-rest-form/driver/edit/publish.yml: step 'returnPublishError' is not reachable from entry 'declaration'
 DSL/Ruuter/ljvis/POST/v1/control-forms/drive-rest-form/teammate/edit/publish.yml: step 'returnPublishError' is not reachable from entry 'declaration'
-ljvis/POST/v1/control-forms/trailer-technical/edit/confirm [declaration.body.type_missing] ["resultTransportInterruption", "eraYvMntRegnr", "eraYvMntVintin", "eraYvMntAxles", "eraYvMntPlaces", "eraYvMntRebuilt"]
-ljvis/POST/v1/control-forms/trailer-technical/edit/save [declaration.body.type_missing] ["resultTransportInterruption", "eraYvMntRegnr", "eraYvMntVintin", "eraYvMntAxles", "eraYvMntPlaces", "eraYvMntRebuilt"]
-ljvis/POST/v1/control-forms/vehicle-technical/edit/confirm [declaration.body.type_missing] ["resultTransportInterruption", "eraYvMntRegnr", "eraYvMntVintin", "eraYvMntAxles", "eraYvMntPlaces", "eraYvMntRebuilt"]
-ljvis/POST/v1/control-forms/vehicle-technical/edit/save [declaration.body.type_missing] ["resultTransportInterruption", "eraYvMntRegnr", "eraYvMntVintin", "eraYvMntAxles", "eraYvMntPlaces", "eraYvMntRebuilt"]
 ljvis/POST/v1/ehak/list [declaration.body.type_missing] ["parentId"]
-ljvis/PUT/v1/classifiers [declaration.body.type_missing] ["id"]
 xtee-mock/POST/xroad/v1/register-job-inspection [declaration.body.type_missing] ["kontrolli_id", "koostatatud_ettekirjutus", "soidukite_arv"]
 xtee-mock/POST/xroad/v1/register-job-inspection-v3 [declaration.body.type_missing] ["kontrolli_id", "koostatatud_ettekirjutus", "soidukite_arv"]
