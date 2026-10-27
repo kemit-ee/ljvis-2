@@ -12,6 +12,7 @@ declaration:
       - field: revision
         type: integer
       - field: compoundFormKey
+        type: integer
       - field: headerText
         type: string
       - field: residenceCountry
@@ -135,8 +136,8 @@ logAuditEventInsert:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
-    compound_form_key: ${compound_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
@@ -272,8 +273,8 @@ logAuditEventUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
-    compound_form_key: ${current_compound_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
+    compound_form_key: "${String((current_compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}

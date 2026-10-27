@@ -114,7 +114,7 @@ logAuditEvent:
     cookie: ${incoming.headers.cookie}
   body:
     form_number: ${form_number}
-    good_repute_form_key: ${good_repute_form_key}
+    good_repute_form_key: "${String((good_repute_form_key) ?? '')}"
     personal_code: ${personal_code}
     old_status: ${old_status}
     new_status: ${new_status}

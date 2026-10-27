@@ -20,6 +20,7 @@ declaration:
       - field: isikukood
         type: string
       - field: vormi_number
+        type: string
 
 buildAudit:
   assign:

@@ -28,6 +28,7 @@ declaration:
       - field: access_end
         type: string
       - field: personalCode
+        type: string
 
 getUser:
   call: http.post

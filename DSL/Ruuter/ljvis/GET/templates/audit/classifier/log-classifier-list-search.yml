@@ -16,6 +16,7 @@ declaration:
       - field: search
         type: string
       - field: result_count
+        type: integer
 
 buildAudit:
   assign:
