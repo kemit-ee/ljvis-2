@@ -18,6 +18,9 @@ curl http://127.0.0.1:3020/v1/templates
 Dockerfile asub `docker/pdf-creator/Dockerfile`, rakenduse kood ja mallid siin.
 Teenuse aadress samas Docker-võrgus on `http://pdf-creator:3020` ning Ruuteri
 konstant `LJVIS_PDF_CREATOR` osutab sellele. Hostis on port avatud ainult localhostile.
+Kui teenuse keskkonnamuutuja `PDF_CREATOR_API_KEY` on määratud, määra sama väärtus
+Ruuteri salajases `constants.ini` failis võtmele `PDF_CREATOR_API_KEY`.
+Ruuter saadab selle väärtuse `Authorization: Bearer` päises.
 
 ## HTTP
 

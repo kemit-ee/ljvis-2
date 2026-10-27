@@ -45,6 +45,8 @@ export function RsiFormPage() {
   const canRead = hasAnyPermission(['rsi.read']);
   const canEdit = hasAnyPermission(['rsi.create']);
   const canSend = hasAnyPermission(['rsi.send']);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [printFailed, setPrintFailed] = useState(false);
 
   const { message, isLoading, notFound, send, isSending, sendError, reload } =
     useRsiMessageDetail(id);
@@ -59,18 +61,26 @@ export function RsiFormPage() {
     return send();
   };
   const handlePrint = async () => {
-    const result = await printRsiMessage(String(message!.id));
-    const bytes = Uint8Array.from(atob(result.base64), (char) =>
-      char.charCodeAt(0),
-    );
-    const url = URL.createObjectURL(
-      new Blob([bytes], { type: result.contentType }),
-    );
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = result.filename;
-    link.click();
-    URL.revokeObjectURL(url);
+    setIsPrinting(true);
+    setPrintFailed(false);
+    try {
+      const result = await printRsiMessage(String(message!.id));
+      const bytes = Uint8Array.from(atob(result.base64), (char) =>
+        char.charCodeAt(0),
+      );
+      const url = URL.createObjectURL(
+        new Blob([bytes], { type: result.contentType }),
+      );
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = result.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setPrintFailed(true);
+    } finally {
+      setIsPrinting(false);
+    }
   };
   const form = useRsiForm(message, handleSaved);
   const prevSubmitCount = useRef(0);
@@ -138,10 +148,16 @@ export function RsiFormPage() {
           <Button
             type="button"
             visualType="secondary"
+            disabled={isPrinting}
             onClick={() => void handlePrint()}
           >
             {t('common.printFilled')}
           </Button>
+          {printFailed && (
+            <Alert type="error" role="alert" className="mt-05">
+              {t('common.printFailed')}
+            </Alert>
+          )}
           {message.errorMessage && (
             <Text modifiers="bold">
               {message.status === 'send_unknown'
