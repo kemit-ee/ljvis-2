@@ -137,7 +137,7 @@ export function CtudListPage() {
         cell: (info) => info.getValue() || '—',
       }),
       columnHelper.accessor('communityLicenceNumber', {
-        header: t('erru.ctud.list.licenceNumberShort'),
+        header: t('erru.ctud.list.licenceNumber'),
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
