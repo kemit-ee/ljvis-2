@@ -4,7 +4,7 @@
 -- Test/dev-only fixture for the automatic NCR dispatch Newman suite
 -- (cron-jobs.collection.json, LJVIS2-64). PUBLISHED driver and teammate forms
 -- with result KORRAS (result_type defaults to 'ok') on a
--- FOREIGN (DE) N2 vehicle whose carrier has a community-licence copy number —
+-- Polish (PL) N2 vehicle used by an LT carrier with a missing licence-copy number —
 -- i.e. exactly what select-autodispatch-candidates.sql should pick up.
 --
 -- Deterministic keys 900011-900016 so Newman can reference them directly. Sequences
@@ -28,14 +28,14 @@ BEGIN
         control_date, control_time, control_country_code,
         inspector_first_name, inspector_last_name, inspector_organisation_id, inspector_unit, inspector_profession,
         vehicle_reg_nr, vehicle_country_code, vehicle_category_code,
-        company_reg_code, company_name, company_activity_licence_copy_number, created_by
+        company_reg_code, company_name, company_country_code, company_activity_licence_copy_number, created_by
     ) VALUES (
         v_cf, 'NCR-AUTODISPATCH-FIXTURE', 2026, 1, 'published',
         CURRENT_DATE - 2, '09:00', 'EE',
         'Test', 'Inspector', 'PPA', 'Liiklusjarelevalve', 'Inspektor',
-        'DE-NCR-01', 'DE', 'N2',
+        'PL-NCR-01', 'PL', 'N2',
         -- non-8-digit reg code: stays out of risk-score recalc (which filters ~ '^[0-9]{8}$')
-        'DE-REG-01', 'Auslandtransport GmbH', 'DE-CL-99887', 'system'
+        'LT-REG-01', 'Test LT Carrier', 'LT', NULL, 'system'
     );
 
     -- Only key 900011 qualifies. All other conditions stay the same.

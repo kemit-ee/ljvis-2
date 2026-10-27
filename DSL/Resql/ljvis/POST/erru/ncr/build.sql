@@ -15,7 +15,7 @@ description: 'Eeltäitmine (LJVIS2-64 §4.1): build a new OUTGOING NCR request d
   minorInfringement is never eeltäidetud (spec: officer fills it in manually on the form). Returns zero
   rows if the SP sub-form or its parent compound_form cannot be found, or if erru.ncr_message insert should
   not create a business_case_id (never happens here, since insert-only) - caller maps empty result to
-  404/422.'
+  404/422. Automatic dispatch (created_by = erru-cron) uses UNKNOWN for a missing licence-copy number.'
 namespace: erru
 params:
   spFormKey:
@@ -72,7 +72,8 @@ returns:
 --   compound_form.company_activity_licence_copy_number      -> community_licence_number
 --       (ühenduse tegevusloa / kinnitatud ärakirja / tõestatud koopia number)
 --   compound_form.vehicle_reg_nr                            -> vehicle_registration_number
---   compound_form.vehicle_country_code (<> 'EE')            -> vehicle_registration_country + ncr_to
+--   compound_form.vehicle_country_code                      -> vehicle_registration_country
+--   compound_form.company_country_code                      -> automatic NCR destination (caller)
 --   compound_form.control_date                              -> check_date + iga rikkumise kuupäevad
 --   sp_*_form.erru_points[] (severity_category MSI/VSI/SI)  -> serious_infringements[] + check_result
 --       (derive_sp_erru_points arvestab ka sp_*_form.cabotage_violations,
@@ -226,7 +227,10 @@ WITH sp AS (
     NULLIF(:requestSource, ''),
     NULLIF(:requestPurpose, ''),
     sp.company_name,
-    sp.company_activity_licence_copy_number,
+    CASE WHEN :created_by = 'erru-cron'
+      THEN COALESCE(NULLIF(btrim(sp.company_activity_licence_copy_number), ''), 'UNKNOWN')
+      ELSE sp.company_activity_licence_copy_number
+    END,
     sp.vehicle_reg_nr,
     sp.vehicle_country_code,
     CASE WHEN serious.has_serious THEN 'Fail' ELSE 'Pass' END,
