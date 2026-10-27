@@ -122,7 +122,7 @@ export async function deleteCompoundForm(id: number): Promise<void> {
 
 const VEHICLE_TECHNICAL_DEFAULTS: Record<string, unknown> = {
   id: '',
-  revision: '',
+  revision: null,
   partsSummary: '[]',
   partsDefects: '[]',
   resultType: 'ok',
