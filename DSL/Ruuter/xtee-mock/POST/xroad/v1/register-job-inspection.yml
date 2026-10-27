@@ -15,22 +15,29 @@ declaration:
     - field: kontrolli_id
       required: false
     - field: kontrolli_kp
+      type: string
       required: false
     - field: kontrollija
+      type: string
       required: false
     - field: kontrollimised
+      type: object
       required: false
     - field: koostatatud_ettekirjutus
       required: false
     - field: rikkumised
+      type: object
       required: false
     - field: soidukite_arv
       required: false
     - field: tooandja_nimi
+      type: string
       required: false
     - field: tooandja_reg_kood
+      type: string
       required: false
     - field: vaarteomenetlus
+      type: string
       required: false
     params: []
 validateKontrollija:

@@ -18,9 +18,11 @@ declaration:
       - field: transportType
         type: string
       - field: transportEmptyRun
+        type: boolean
       - field: transportNature
         type: string
       - field: transportNatureExempt
+        type: boolean
       - field: transportClasses
         type: string
       - field: cabotageViolations
@@ -42,11 +44,15 @@ declaration:
       - field: tachographTypeCode
         type: string
       - field: tachographDataNotDownloaded
+        type: boolean
       - field: tachographNotes
         type: string
       - field: checkedDaysCount
+        type: string
       - field: workDaysCount
+        type: string
       - field: otherActivityDaysCount
+        type: string
       - field: violations5612006
         type: string
       - field: violations1652014
@@ -58,6 +64,7 @@ declaration:
       - field: violations20201057
         type: string
       - field: massDimensionNonCompliant
+        type: boolean
       - field: massDimensionMeasurements
         type: string
       - field: atpViolationFound

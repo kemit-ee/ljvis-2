@@ -8,8 +8,10 @@ declaration:
   allowlist:
     body:
       - field: page
+        type: string
         description: "Page number"
       - field: pageSize
+        type: string
         description: "Items per page"
       - field: userGroupId
         type: string

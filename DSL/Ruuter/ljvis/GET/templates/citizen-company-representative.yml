@@ -91,16 +91,13 @@ checkRepresentativeLiveResult:
   next: returnNotRepresentative
 
 returnRepresentative:
-  return: >-
-    ${({isRepresentative: true})}
+  return: "${({isRepresentative: true})}"
   next: end
 
 returnNotRepresentative:
-  return: >-
-    ${({isRepresentative: false})}
+  return: "${({isRepresentative: false})}"
   next: end
 
 returnArUnavailable:
-  return: >-
-    ${({isRepresentative: false, error: 'AR_UNAVAILABLE'})}
+  return: "${({isRepresentative: false, error: 'AR_UNAVAILABLE'})}"
   next: end

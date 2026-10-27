@@ -12,6 +12,7 @@ declaration:
   allowlist:
     body:
       - field: isikukood
+        type: string
 
 # Samm 1: Valideeri isikukood - kohustuslik ja peab vastama Eesti isikukoodi formaadile
 validateInput:

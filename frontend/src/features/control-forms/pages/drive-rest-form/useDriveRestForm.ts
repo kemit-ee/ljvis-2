@@ -130,7 +130,7 @@ export function serializeDriveRestFormValues(
     massDimensionMeasurements: Array.isArray(values.massDimensionMeasurements)
       ? JSON.stringify(values.massDimensionMeasurements)
       : (values.massDimensionMeasurements ?? '[]'),
-    massDimensionNonCompliant: String(values.massDimensionNonCompliant ?? false),
+    massDimensionNonCompliant: values.massDimensionNonCompliant ?? false,
     atpViolationFound: String(values.atpViolationFound ?? false),
     erruPoints: Array.isArray(values.erruPoints)
       ? JSON.stringify(values.erruPoints)

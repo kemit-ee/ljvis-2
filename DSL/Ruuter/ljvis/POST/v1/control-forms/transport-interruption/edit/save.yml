@@ -12,7 +12,6 @@ declaration:
       - field: revision
         type: integer
       - field: compoundFormKey
-        type: integer
       - field: headerText
         type: string
       - field: residenceCountry

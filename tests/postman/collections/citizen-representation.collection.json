@@ -245,7 +245,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"scope\": \"self\", \"registry_code\": \"\", \"page\": 1, \"page_size\": 20, \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
+          "raw": "{\"scope\": \"self\", \"registry_code\": \"\", \"page\": \"1\", \"page_size\": \"20\", \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
         }
       },
       "event": [
@@ -290,7 +290,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"scope\": \"company\", \"registry_code\": \"99999999\", \"page\": 1, \"page_size\": 20, \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
+          "raw": "{\"scope\": \"company\", \"registry_code\": \"99999999\", \"page\": \"1\", \"page_size\": \"20\", \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
         }
       },
       "event": [
@@ -335,7 +335,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"scope\": \"company\", \"registry_code\": \"abc\", \"page\": 1, \"page_size\": 20, \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
+          "raw": "{\"scope\": \"company\", \"registry_code\": \"abc\", \"page\": \"1\", \"page_size\": \"20\", \"sorting\": \"main_date desc\", \"form_type\": \"\"}"
         }
       },
       "event": [

@@ -15,36 +15,49 @@ declaration:
       required: false
     body:
     - field: juhi_eesnimi
+      type: string
       required: false
     - field: juhi_isikukood
+      type: string
       required: false
     - field: juhi_perekonnanimi
+      type: string
       required: false
     - field: kontrolli_id
       required: false
     - field: kontrolli_kp
+      type: string
       required: false
     - field: kontrollija
+      type: string
       required: false
     - field: kontrollimised
+      type: object
       required: false
     - field: koostatatud_ettekirjutus
       required: false
     - field: menetluse_liik
+      type: string
       required: false
     - field: menetluse_number
+      type: string
       required: false
     - field: rikkumised
+      type: object
       required: false
     - field: soiduki_reg_nr
+      type: string
       required: false
     - field: soiduki_vin
+      type: string
       required: false
     - field: soidukite_arv
       required: false
     - field: tooandja_nimi
+      type: string
       required: false
     - field: tooandja_reg_kood
+      type: string
       required: false
     params: []
 validateKontrollija:

@@ -13,8 +13,10 @@ declaration:
       required: false
     body:
     - field: alates
+      type: string
       required: false
     - field: kuni
+      type: string
       required: false
     params: []
 validateAlates:

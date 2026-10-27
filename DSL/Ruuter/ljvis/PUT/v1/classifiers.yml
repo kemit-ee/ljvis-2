@@ -8,6 +8,7 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: name
         type: string
       - field: description

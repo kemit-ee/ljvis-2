@@ -44,8 +44,7 @@ checkNcrResult:
 # viimase kirje.
 selectNcrSource:
   assign:
-    ncr_src: >-
-      ${(() => { var b = ncrRes.response.body; for (var i = b.length - 1; i >= 0; i--) { var r = b[i]; var si = r.seriousInfringements; var hasSi = (typeof si === 'string') ? (si.trim() !== '' && si.trim() !== '[]') : (Array.isArray(si) && si.length > 0); if (r.minorInfringement || hasSi) return r; } return b[b.length - 1]; })()}
+    ncr_src: "${(() => { var b = ncrRes.response.body; for (var i = b.length - 1; i >= 0; i--) { var r = b[i]; var si = r.seriousInfringements; var hasSi = (typeof si === 'string') ? (si.trim() !== '' && si.trim() !== '[]') : (Array.isArray(si) && si.length > 0); if (r.minorInfringement || hasSi) return r; } return b[b.length - 1]; })()}"
   next: extractNcrFields
 
 extractNcrFields:

@@ -13,6 +13,7 @@ declaration:
       required: false
     body:
     - field: confirmed
+      type: object
       required: false
     params: []
 validateItems:

@@ -90,6 +90,7 @@ declaration:
       - field: drivers
         type: string
       - field: driverNotApplicable
+        type: boolean
       - field: transportType
         type: string
       - field: transportEmptyRun

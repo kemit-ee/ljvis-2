@@ -13,15 +13,22 @@ declaration:
   allowlist:
     body:
       - field: kontrollija
+        type: string
       - field: kontrolli_id
       - field: kontrolli_kp
+        type: string
       - field: tooandja_nimi
+        type: string
       - field: tooandja_reg_kood
+        type: string
       - field: kontrollimised
+        type: object
       - field: rikkumised
+        type: object
       - field: koostatatud_ettekirjutus
       - field: soidukite_arv
       - field: vaarteomenetlus
+        type: string
 
 # Samm 1: Valideeri kontrollija - WSDL väli 'kontrollija'
 validateKontrollija:
