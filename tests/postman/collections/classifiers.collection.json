@@ -548,7 +548,7 @@
       ]
     },
     {
-      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=64",
+      "name": "GET /v1/classifiers — pagination pageSize=1 returns 1 item, total=66",
       "request": {
         "method": "GET",
         "header": [

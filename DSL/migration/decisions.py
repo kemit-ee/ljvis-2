@@ -66,7 +66,11 @@ def tachograph(value):
     }.get(normalized)
     # P14 explicitly covers names containing SMART; retain already explicit
     # second-generation codes rather than downgrading a known generation.
-    return known if known is not None else 'smart_1' if 'smart' in normalized else None
+    if known is not None:
+        return known
+    if re.search(r'smart[\s_-]?2', normalized):
+        return 'smart_2'
+    return 'smart_1' if 'smart' in normalized else None
 
 
 def source_date(entries):

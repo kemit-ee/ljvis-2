@@ -8,6 +8,7 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: personalCode
         type: string
       - field: firstName
@@ -50,6 +51,8 @@ loadDatePolicy:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/date-policy"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
     body:
       id: ${incoming.body.id || ''}
   result: datePolicyResponse

@@ -81,8 +81,8 @@ def execute_file(cur, path, run_id, cutoff, subtype=False):
             cur.execute('ROLLBACK TO SAVEPOINT diagnostic_statement')
             diagnostics.checkpoint(cur,run_id,diagnostics._journal.directory,path.name)
             raise
-        diagnostics.checkpoint(cur,run_id,diagnostics._journal.directory,path.name)
         cur.execute('RELEASE SAVEPOINT diagnostic_statement')
+    diagnostics.checkpoint(cur,run_id,diagnostics._journal.directory,path.name)
 
 
 def rows(cur, query, params=()):
@@ -202,6 +202,14 @@ def preflight(cur, run_id, cutoff):
           AND v.classifier_name IN ('SobimatuksKuulutamiseAlguskuupaev','SobimatuksKuulutamiseLoppkuupaev')
           AND NOT migration.is_masked(v.value) AND nullif(btrim(v.value),'') IS NOT NULL
           AND migration.source_date(v.value,v.date_value) IS NULL""",(run_id,))
+    # chk_grf_unfit_until_after_from requires until > from; the source is imported as-is.
+    finding("invalid_required_date", "GoodRepute unfitness end date is not after its start date; fix the source, no guessed replacement",
+        """SELECT DISTINCT 'ControlForm' source,d.legacy_id FROM migration.disposition d
+        JOIN staging.raw_control_form_value f ON f.control_form_id::text=d.legacy_id AND f.classifier_name='SobimatuksKuulutamiseAlguskuupaev'
+        JOIN staging.raw_control_form_value u ON u.control_form_id::text=d.legacy_id AND u.classifier_name='SobimatuksKuulutamiseLoppkuupaev'
+        WHERE d.migration_run_id=%s AND d.reason='eligible' AND d.form_type='GoodRepute'
+          AND NOT migration.is_masked(f.value) AND NOT migration.is_masked(u.value)
+          AND migration.source_date(u.value,u.date_value)::date <= migration.source_date(f.value,f.date_value)::date""",(run_id,))
 
     # Business mappings are not inferred from sample counts. These known gaps
     # block production, even if every INSERT and row-count check succeeds.

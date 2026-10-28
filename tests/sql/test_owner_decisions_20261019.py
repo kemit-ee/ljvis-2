@@ -62,7 +62,8 @@ class Rules(unittest.TestCase):
             self.assertEqual(enrich.integer(raw),expected)
 
     def test_exact_tachograph_generation(self):
-        for raw, expected in [('arukas','smart_1'),('ARUKAS','smart_1'),('arukas-2','smart_2'),('smart_2','smart_2'),('SMART anything','smart_1'),('unknown',None)]:
+        for raw, expected in [('arukas','smart_1'),('ARUKAS','smart_1'),('arukas-2','smart_2'),('smart_2','smart_2'),('SMART anything','smart_1'),('unknown',None),
+                          ('SMART 2','smart_2'),('smart-2','smart_2'),('smart2','smart_2'),('Smart_2 digi','smart_2')]:
             self.assertEqual(decisions.tachograph(raw),expected)
 
     def test_p10_preserves_every_selected_paragraph_without_claiming_ok(self):
@@ -210,6 +211,12 @@ class Database(unittest.TestCase):
         self.clone('vehicle_technical_form',vehicle_technical_form_key=-91002,compound_form_key=parent,
                    status='published',created_at='2021-01-01T00:00:00Z')
         self.assertEqual(self.status('compound_form',parent),'published')
+
+    def test_publication_without_compound_key_takes_no_lock(self):
+        # The trigger fires for every published child insert; rows without a parent
+        # key must pass silently without serialising unrelated publications.
+        self.cur.execute('SELECT forms.publish_migrated_parent(NULL)')
+        self.assertEqual(self.query("SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND classid=261100 AND pid=pg_backend_pid()")[0][0],0)
 
     def test_old_imported_case_remains_e_toimik_candidate(self):
         parent=self.lifecycle_fixture()

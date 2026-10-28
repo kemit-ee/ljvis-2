@@ -21,6 +21,21 @@ läbivaatamist vajavat osalist tulemust, mitte tootmise vastuvõttu.
 | P14 | `arukas` ja SMART-i sisaldav nimetus → `smart_1` | Juba üheselt määratud `smart_2` ja `arukas-2` säilitavad teise põlvkonna. Tundmatu ilma SMART-ita tüüp ei saa oletatud vastendust |
 | P15 | Alumine piir ControlledDate järgi; vanemad seotud Confirmed/Published osad kaasatakse; Saved jääb välja | Ülemist jooksu kuupäeva filtrit pole. Tulevikukuupäev jääb hoiatuseks; see ei muuda vigast sünnikuupäeva lubatavaks |
 
+### P05 piirang: koondvorm võib jääda `confirmed`
+
+Imporditud kontrollvorm muutub `published` ainult e-toimiku jõustunud otsuse vastusega
+(`apply_etoimik_decision`), mis toetab `vehicle_technical_form`, `trailer_technical_form`
+ja `sp_driver_form`. Koondvorm ei avaldu automaatselt, kui:
+
+- mõni `confirmed` osa on `adr_form`, `kv_form` või `sp_teammate_form` (automaatset
+  e-toimiku teed pole);
+- osal puudub `proceeding_reference_number` või e-toimik ei leia vastet / ei vasta.
+
+Käsitsi tee: kasutaja avalikustab sellise osa vormi enda "Avalikusta" nupuga; viimase
+osa avaldamine käivitab trigger'i ja koondvorm avaldub (vt test
+`test_manual_last_publication_updates_imported_parent`). Kuni seda tehtud pole, jääb
+koondvorm `confirmed` ja migratsiooni aruandes tuleb neid asju vastuvõtul üle vaadata.
+
 ## Paigaldamine
 
 Lisanduvad Liquibase XML changeset'id koos eraldi SQL rollback'idega:
@@ -68,3 +83,18 @@ seoseid kontrollitakse lõppkoopial. Kolme aasta alguspiir fikseeritakse käigu 
 `owner-decisions.csv` näitab lähtevormi ID/numbrit, välja, algväärtust, uut väärtust
 ja otsuse viidet. `target_transaction=rolled_back` tähendab, et muudatus oli katse,
 mitte salvestatud migratsioon. Need failid sisaldavad lähteandmeid ega kuulu Git-i.
+
+## Jooksukausta isikuandmed
+
+`events.jsonl` (sh `target_update_attempt`, `owner_decision`) ja CSV/JSON aruanded
+sisaldavad sihtväärtusi (isikukoodid, nimed, sünniajad). Failid luuakse õigustega
+`0600` (`os.open`, mitte hilisem `chmod`). Jooksukaust ei tohi olla Git-i all ega
+jagatud kettal. Säilitusaeg: kuni migratsiooni vastuvõtu kinnitamiseni; pärast seda
+kustutab andmeomanik kausta ja varukoopiad turvaliselt (kustutamine kinnitatakse
+vastuvõtu protokollis).
+
+## Teadaolev testikatte lünk
+
+Classifier-changeset'idel (`20261125…`) automaattesti ei ole; rollback-loogikat
+kontrollitakse käsitsi puhta DB peal. "Hilisemaid muudatusi" tuvastab rollback
+ainult `created_at` järgi.

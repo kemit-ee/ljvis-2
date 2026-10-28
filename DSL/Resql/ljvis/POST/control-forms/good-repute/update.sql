@@ -92,6 +92,9 @@ INSERT INTO forms.good_repute_form (
   created_by,
   legacy_import
 )
+-- COALESCE-fallback applies to imported (legacy_import) forms only: an unknown (NULL) date
+-- stays NULL, and an empty input keeps the stored value. Date-policy validation already
+-- rejects clearing a known date, so a user's clearing is never silently ignored in practice.
 SELECT
   :key::BIGINT,
   latest.form_number,

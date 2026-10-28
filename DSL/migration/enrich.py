@@ -213,7 +213,7 @@ def apply(cur, run_id, children):
             if column == 'control_date':
                 cur.execute("""SELECT coalesce(
                     (SELECT migration.source_date(value,date_value)::date
-                     FROM staging.raw_control_form_value WHERE control_form_id=%s AND classifier_name=%s LIMIT 1),
+                     FROM staging.raw_control_form_value WHERE control_form_id=%s AND classifier_name=%s ORDER BY id LIMIT 1),
                     controlled_date::date, created_date::date)
                     FROM staging.raw_control_form WHERE id=%s""", (chosen,key,chosen))
                 header[column] = cur.fetchone()[0]

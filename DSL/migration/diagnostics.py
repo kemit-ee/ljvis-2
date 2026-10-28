@@ -20,8 +20,7 @@ def write_json(path, value):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     temporary = path.with_suffix(path.suffix + '.tmp')
-    with temporary.open('w', encoding='utf-8') as f:
-        os.chmod(temporary, 0o600)
+    with os.fdopen(os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'w', encoding='utf-8') as f:
         json.dump(value, f, ensure_ascii=False, indent=2, default=str)
         f.write('\n'); f.flush(); os.fsync(f.fileno())
     temporary.replace(path)
@@ -50,8 +49,8 @@ class Journal:
         key = hashlib.sha256(json.dumps(identity,ensure_ascii=False,default=str,sort_keys=True).encode()).hexdigest()
         if key in self.seen:
             return
-        with (self.directory / 'events.jsonl').open('a', encoding='utf-8') as f:
-            os.chmod(f.name, 0o600)
+        fd = os.open(self.directory / 'events.jsonl', os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+        with os.fdopen(fd, 'a', encoding='utf-8') as f:
             f.write(body + '\n'); f.flush(); os.fsync(f.fileno())
         self.seen.add(key)
 
@@ -211,8 +210,7 @@ def checkpoint(cur, run_id, directory, phase):
 
 def write_csv(path, data, columns):
     temporary = Path(str(path) + '.tmp')
-    with temporary.open('w', encoding='utf-8', newline='') as f:
-        os.chmod(temporary, 0o600)
+    with os.fdopen(os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'w', encoding='utf-8', newline='') as f:
         w = csv.DictWriter(f, fieldnames=columns)
         w.writeheader()
         for row in data:

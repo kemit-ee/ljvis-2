@@ -62,6 +62,13 @@ jobs:
           python3 -B tests/contract/check_erru_contract.py
           python3 -B -m unittest discover -s tests/contract -p 'test_*.py'
 
+      - name: Migration rule tests (no database; DB tests skip without MIGRATION_TEST_DSN)
+        run: |
+          python3 -m pip install --quiet sqlparse psycopg2-binary
+          for t in owner_decisions_20261019 migration_audit migration_diagnostics; do
+            python3 -B -m unittest discover -s tests/sql -p "test_$t.py"
+          done
+
       - name: Database schema document and ERD are in sync with Liquibase
         run: python3 scripts/generate-erd.py --check
 
