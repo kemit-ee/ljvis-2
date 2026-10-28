@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Audit: outgoing NCR request send attempt (LJVIS2-64 §4.2). Logged on every
     send attempt, whether it results in acknowledged or error."

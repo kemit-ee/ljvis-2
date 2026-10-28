@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Lisab notification_template_mapping'ile uue versiooni (append-only -
@@ -66,6 +67,7 @@ insertMapping:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_template_mapping"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

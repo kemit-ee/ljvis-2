@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create or update the compound form - single unified save endpoint, branches internally on presence of id. Status is always computed/controlled server-side and never trusts client input."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: status
         type: string
       - field: controlDate
@@ -272,6 +275,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -337,7 +341,7 @@ logAuditEventInsert:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    compound_form_key: ${compound_form_key}
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}
@@ -400,6 +404,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -480,7 +485,7 @@ logAuditEventUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    compound_form_key: ${compound_form_key}
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}

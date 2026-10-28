@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Receive an ASYNCHRONOUS NotifyUnfitness_Acknowledgement from the ERRU hub. The hub accepted our
@@ -54,6 +55,7 @@ validateMembers:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/validate"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -73,6 +75,7 @@ findByWorkflowId:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-by-workflow-id"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -103,6 +106,7 @@ applyAck:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/apply-ack"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -138,6 +142,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

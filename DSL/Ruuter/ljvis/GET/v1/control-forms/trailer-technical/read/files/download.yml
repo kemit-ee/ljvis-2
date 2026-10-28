@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a presigned download URL for a trailer technical check form file attachment"

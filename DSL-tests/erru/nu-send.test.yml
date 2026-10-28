@@ -3,6 +3,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
   NYSIIS_ENDPOINT: '{MOCK}/nysiis'
+  NYSIIS_API_KEY: test-key
   ERRU_XML_ADAPTER: '{MOCK}/adapter'
 tests:
 - name: concurrent revision rejects prepared send

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create or update a foreign violation form - single unified save endpoint, branches internally on presence of id. Confirmed forms can only be re-saved by a user with control_form.edit_locked."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -213,6 +216,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -299,6 +303,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -382,6 +387,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -552,6 +558,7 @@ clearNotifyCarrierOnEdit:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/clear-notify-carrier"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

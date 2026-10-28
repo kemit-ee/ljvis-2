@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -12,21 +13,37 @@ declaration:
   allowlist:
     body:
       - field: kontrollija
+        type: string
       - field: kontrolli_id
+        type: any
       - field: kontrolli_kp
+        type: string
       - field: tooandja_nimi
+        type: string
       - field: tooandja_reg_kood
+        type: string
       - field: kontrollimised
+        type: object
       - field: rikkumised
+        type: object
       - field: koostatatud_ettekirjutus
+        type: any
       - field: juhi_isikukood
+        type: string
       - field: menetluse_liik
+        type: string
       - field: soiduki_reg_nr
+        type: string
       - field: soiduki_vin
+        type: string
       - field: juhi_perekonnanimi
+        type: string
       - field: soidukite_arv
+        type: any
       - field: menetluse_number
+        type: string
       - field: juhi_eesnimi
+        type: string
 
 # Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
 validateKontrollija:
@@ -118,6 +135,7 @@ resolveViolations:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/resolve-labour-inspection-violations"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -137,6 +155,7 @@ insertInspection:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-v3-insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -170,6 +189,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -197,6 +217,7 @@ logAjUsage:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -218,6 +239,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

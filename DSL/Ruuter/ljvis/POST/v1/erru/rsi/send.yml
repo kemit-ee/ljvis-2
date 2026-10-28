@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Reserve an outgoing RSI envelope, send it through the internal XML adapter, and store the Hub acceptance. The adapter validates ERRU 3.5 XML and performs one HTTP dispatch. Only its accepted result means HTTP 202 from the Hub. Transport uncertainty is send_unknown and cannot be retried. Business responses arrive separately, correlated by the persisted workflowId."
   namespace: erru
@@ -29,6 +30,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -195,6 +197,7 @@ reserveSend:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/begin-send"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -270,6 +273,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -291,6 +295,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -311,6 +316,7 @@ storeSent:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -335,6 +341,7 @@ checkConcurrentResponse:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -359,6 +366,7 @@ markError:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -376,6 +384,7 @@ markUnknown:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

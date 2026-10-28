@@ -34,6 +34,7 @@ describe('classifiers api', () => {
     await insertClassifierValue(value);
     await updateClassifierValue({ ...value, classifierValueId: '4' });
     await updateClassifier({ id: '3', name: 'n', description: 'd' });
+    await updateClassifier({ id: 5 as unknown as string, name: 'n', description: 'd' });
 
     expect(get).toHaveBeenCalledWith('/v1/classifiers/bundle');
     expect(get).toHaveBeenCalledWith('/v1/classifiers', { page: '1' });
@@ -42,6 +43,7 @@ describe('classifiers api', () => {
     expect(get).toHaveBeenCalledWith('/v1/classifiers/value', { q: '3', valueId: '4' });
     expect(post).toHaveBeenCalledWith('/v1/classifiers/value', value);
     expect(put).toHaveBeenCalledWith('/v1/classifiers/value', { ...value, classifierValueId: '4' });
+    expect(put).toHaveBeenCalledWith('/v1/classifiers', { id: '5', name: 'n', description: 'd' });
     expect(put).toHaveBeenCalledWith('/v1/classifiers', { id: '3', name: 'n', description: 'd' });
   });
 });

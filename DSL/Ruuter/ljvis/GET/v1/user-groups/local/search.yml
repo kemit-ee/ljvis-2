@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Search/list user groups filtered by own organisation (local scope)"
@@ -45,6 +46,7 @@ getUserGroups:
   args:
     url: "[#LJVIS_RESQL]/user_group/list_user_groups"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

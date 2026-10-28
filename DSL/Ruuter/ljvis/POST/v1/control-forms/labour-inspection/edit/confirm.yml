@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Confirm (kinnita) a labour inspection form. Validates the form, then appends a 'confirmed' snapshot. Like tram-card, there is no violations gate - an act with violations may be confirmed and then either published manually or auto-published when e-toimik returns an entered-into-force decision."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: inspectorName
         type: string
       - field: inspectionDate
@@ -89,6 +92,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -146,6 +150,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

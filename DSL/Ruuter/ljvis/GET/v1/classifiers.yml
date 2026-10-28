@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "List all classifiers"
@@ -42,6 +43,7 @@ getClassifiers:
   args:
     url: "[#LJVIS_RESQL]/classifier/list_classifiers"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

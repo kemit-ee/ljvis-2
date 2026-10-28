@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create or update the transport-interruption sub-form (autoveo katkestamise kontrollvorm, LJVIS2-74) - single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
@@ -7,8 +8,11 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: compoundFormKey
+        type: integer
       - field: headerText
         type: string
       - field: residenceCountry
@@ -69,6 +73,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -106,6 +111,7 @@ getCompoundFormInsert:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -132,8 +138,8 @@ logAuditEventInsert:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
-    compound_form_key: ${compound_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
@@ -147,6 +153,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -168,6 +175,7 @@ getCompoundForInspector:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -192,6 +200,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -243,6 +252,7 @@ getCompoundFormUpdate:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -269,8 +279,8 @@ logAuditEventUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
-    compound_form_key: ${current_compound_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
+    compound_form_key: "${String((current_compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Audit: RSI message list viewed (LJVIS2-149). Logged on EVERY list load because the list
     exposes vehicle registration numbers and handler names (personal-data footprint). The description

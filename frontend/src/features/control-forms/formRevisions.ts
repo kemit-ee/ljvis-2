@@ -47,18 +47,27 @@ export function revisionFor(scope: RevisionScope, id: string | number | null | u
   return id == null || id === '' ? undefined : revisions.get(keyOf(scope, id));
 }
 
-/** Saatmiseks: id stringina (DSL allowlist) + vormi teadaolev revision (või null = ei kontrollita). */
+/**
+ * Saatmiseks: id stringina (DSL allowlist) + vormi teadaolev revision (või null = ei kontrollita).
+ * compoundFormKey saadetakse alati arvuna (DSL allowlist type: integer), olenemata sellest,
+ * kas vormi snapshot tõi selle numbri või stringina.
+ */
 export function withRevision<T extends { id?: string | number | null; revision?: number | null }>(
   scope: RevisionScope,
   data: T,
 ): Record<string, unknown> {
   const known = revisionFor(scope, data.id);
   const own = typeof data.revision === 'number' ? data.revision : undefined;
-  return {
+  const result: Record<string, unknown> = {
     ...data,
     id: data.id != null ? String(data.id) : undefined,
     revision: known ?? own ?? null,
-  } as Record<string, unknown>;
+  };
+  if ('compoundFormKey' in data) {
+    const key = (data as { compoundFormKey?: unknown }).compoundFormKey;
+    result.compoundFormKey = key == null || key === '' ? undefined : Number(key);
+  }
+  return result;
 }
 
 /** Lugemis- ja salvestusvastuse jälgimine; tagastab vastuse muutmata. */

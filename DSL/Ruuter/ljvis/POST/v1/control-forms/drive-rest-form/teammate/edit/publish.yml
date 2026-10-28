@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Publish (avalikusta) the drive/rest teammate sub-form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
@@ -25,6 +26,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -104,6 +106,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -146,6 +149,13 @@ publishForm:
       created_by: ${created_by}
   result: publishRes
   error: returnPublishError
+  next: checkPublishResponse
+
+# Vastuseta publishForm loetakse samuti ebaõnnestumiseks (sama haru mis transpordivea `error:`).
+checkPublishResponse:
+  switch:
+    - condition: ${publishRes == null || publishRes.response == null}
+      next: returnPublishError
   next: buildLogDescription
 
 buildLogDescription:

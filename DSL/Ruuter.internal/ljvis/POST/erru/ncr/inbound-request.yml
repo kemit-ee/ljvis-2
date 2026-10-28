@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Receive an INCOMING NCR (NotifyCheckResult) request from another member state and
@@ -113,6 +114,7 @@ storeReceived:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-inbound"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -205,6 +207,7 @@ lookupExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get-by-technical-id"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -238,6 +241,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/erru/record-inbound-audit"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

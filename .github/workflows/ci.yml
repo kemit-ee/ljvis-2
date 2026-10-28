@@ -75,6 +75,9 @@ jobs:
       - name: Service token only goes to allowlisted targets (no XTR REST-lane leak)
         run: python3 scripts/check-internal-token-targets.py
 
+      - name: Every Resql call carries the bearer token (Resql 0.4+ gate)
+        run: python3 scripts/check-resql-bearer.py
+
       # Epic #522: Resql is INSERT + SELECT only (no UPDATE/DELETE/TRUNCATE/MERGE, no JOIN/LATERAL,
       # no ON CONFLICT DO UPDATE); the retention purge is the one exemption (.sql-rule-exemption).
       - name: SQL append-only invariant (Resql)
@@ -307,16 +310,23 @@ jobs:
             --dsl DSL/Ruuter.internal --constants constants.ini --require-guard
 
       # Build-time twin of /_/audit/dsl (Ruuter #146): exits non-zero on any
-      # error-severity finding (warnings are gated by scripts/dsl-audit.sh).
+      # error-severity finding. Warnings are gated against a reviewed baseline
+      # (scripts/dsl-lint-audit-baseline.*.txt): a new warning, or a baseline
+      # entry that stopped firing, fails the job — the baseline only shrinks.
+      # The pipe needs pipefail so a dsl-lint error still fails the step.
       - name: dsl-lint --audit — public gateway
         run: |
+          set -o pipefail
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
-            --dsl DSL/Ruuter --constants constants.ini --audit
+            --dsl DSL/Ruuter --constants constants.ini --audit \
+            | tee /dev/stderr | python3 scripts/dsl-lint-audit-gate.py scripts/dsl-lint-audit-baseline.public.txt
 
       - name: dsl-lint --audit — internal router
         run: |
+          set -o pipefail
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-lint '${{ steps.ruuter.outputs.img }}' \
-            --dsl DSL/Ruuter.internal --constants constants.ini --audit
+            --dsl DSL/Ruuter.internal --constants constants.ini --audit \
+            | tee /dev/stderr | python3 scripts/dsl-lint-audit-gate.py scripts/dsl-lint-audit-baseline.internal.txt
 
       - name: X-Road OpenAPI DSL route — in sync with docs/xtee/XroadOpenapi.yaml
         run: python3 scripts/generate-xroad-openapi-dsl.py --check

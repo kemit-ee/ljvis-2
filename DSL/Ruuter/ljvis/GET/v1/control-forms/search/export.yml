@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Form search export. Same filters as search/list but unpaged; returns the latest snapshot (all data fields) of every matching form of ONE form type. Requires form.export plus read permission for the chosen form type. Capped at 5000 rows."
   namespace: control-forms
@@ -91,6 +92,7 @@ export:
   args:
     url: "[#LJVIS_RESQL]/control-forms/search/export"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

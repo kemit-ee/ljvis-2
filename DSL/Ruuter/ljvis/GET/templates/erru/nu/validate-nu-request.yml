@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Validate required NU fields and ERRU length limits before saving or sending."
   namespace: service
@@ -11,6 +12,7 @@ validate:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/validate"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       payload: "${JSON.stringify(incoming.body)}"

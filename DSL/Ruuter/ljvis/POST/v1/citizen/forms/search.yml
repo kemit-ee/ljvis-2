@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -39,8 +40,10 @@ declaration:
         type: string
         description: "Required when scope=company - 8-digit Estonian company registry code."
       - field: page
+        type: string
         description: "Page number (1-based)"
       - field: page_size
+        type: string
         description: "Rows per page"
       - field: sorting
         type: string
@@ -157,6 +160,7 @@ callResqlExplicitCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -187,6 +191,7 @@ callResqlCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -221,6 +226,7 @@ callResqlSelf:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

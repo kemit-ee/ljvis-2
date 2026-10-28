@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     UC-04: ebaõnnestunud Postkast 2.0 teavituse uuesti saatmine, MUUTMATA kujul
@@ -39,6 +40,7 @@ loadOriginalLog:
   args:
     url: "[#LJVIS_RESQL]/notification/get_outbound_log"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

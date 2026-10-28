@@ -170,6 +170,12 @@
       "enabled": true
     },
     {
+      "key": "resql_inter_service_token",
+      "value": "dev-resql-service-token",
+      "type": "secret",
+      "enabled": true
+    },
+    {
       "key": "cookie_ctud_nosend",
       "value": "",
       "type": "default",

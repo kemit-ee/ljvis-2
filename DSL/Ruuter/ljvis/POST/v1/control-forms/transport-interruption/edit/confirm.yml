@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Confirm (kinnita) the transport-interruption sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: headerText
         type: string
       - field: residenceCountry
@@ -55,6 +58,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -87,6 +91,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/transport-interruption/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

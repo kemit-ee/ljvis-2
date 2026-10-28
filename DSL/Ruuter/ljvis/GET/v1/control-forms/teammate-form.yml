@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a single drive rest form (teammate) by key"
@@ -61,6 +62,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -84,6 +86,7 @@ getCompoundForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -120,9 +123,9 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
-    compound_form_key: ${compound_form_key}
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}

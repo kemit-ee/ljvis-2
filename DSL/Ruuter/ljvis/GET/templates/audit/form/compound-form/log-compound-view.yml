@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Audit: compound form view event"
@@ -13,6 +14,7 @@ declaration:
         type: string
     body:
       - field: form_key
+        type: string
       - field: driver1PersonalCodeEe
         type: string
       - field: driver1PersonalCodeForeign

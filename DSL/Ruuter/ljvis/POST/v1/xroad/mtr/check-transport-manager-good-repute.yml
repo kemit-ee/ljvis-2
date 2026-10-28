@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -89,6 +90,7 @@ computeNysiisFirst:
   args:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
       type: json
     body:
       name: ${first_name}
@@ -112,6 +114,7 @@ computeNysiisLast:
   args:
     url: "[#NYSIIS_ENDPOINT]"
     headers:
+      Authorization: "Bearer [#NYSIIS_API_KEY]"
       type: json
     body:
       name: ${last_name}
@@ -166,6 +169,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -194,6 +198,7 @@ logAjUsage:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -289,6 +294,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

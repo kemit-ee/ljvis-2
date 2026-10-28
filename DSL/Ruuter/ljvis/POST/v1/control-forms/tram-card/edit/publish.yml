@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Publish (avalikusta) a TRAM control card. Only allowed from 'confirmed'. Field values are taken from the current DB record - the client only sends id. Bumps /V and triggers a company risk-score recalculation."
@@ -25,6 +26,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -142,6 +144,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Audit: NCR case viewed (LJVIS2-63). Logged on EVERY case open because the case
     shows transport undertaking and handler personal data. Description carries the case

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create a new classifier value"
@@ -48,6 +49,7 @@ getClassifierCode:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -65,6 +67,7 @@ insertClassifierValue:
   args:
     url: "[#LJVIS_RESQL]/classifier/insert_classifier_value"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -105,6 +108,7 @@ setFormScope:
   args:
     url: "[#LJVIS_RESQL]/classifier/set_classifier_value_form_scope"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

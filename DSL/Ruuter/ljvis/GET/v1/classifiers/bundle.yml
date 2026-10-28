@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get all classifiers with all their values in one bulk response, for FE app-state bootstrapping (e.g. DRIVING_VIOLATION, TRANSPORT_TYPE)"
@@ -21,6 +22,7 @@ getVersion:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifiers_version"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -51,6 +53,7 @@ getClassifiersBundle:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifiers_bundle"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}

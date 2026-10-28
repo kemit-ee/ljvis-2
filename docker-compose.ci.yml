@@ -23,7 +23,7 @@ services:
       dockerfile: docker/pdf-creator/Dockerfile
     image: ljvis-pdf-creator:ci
     environment:
-      - PDF_CREATOR_API_KEY=${PDF_CREATOR_API_KEY:-}
+      - PDF_CREATOR_API_KEY=${PDF_CREATOR_API_KEY:-dev-pdf-creator-key}
     read_only: true
     tmpfs:
       - /tmp:size=128m,mode=1777
@@ -153,8 +153,9 @@ services:
         condition: service_completed_successfully
     environment:
       - RESQL_DB_PASSWORD=01234
+      - RESQL_INTER_SERVICE_TOKEN=dev-resql-service-token
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8090/healthz > /dev/null 2>&1"]
+      test: ["CMD", "/app/resql", "health", "--url", "http://127.0.0.1:8090/healthz"]
       interval: 10s
       timeout: 5s
       retries: 18
@@ -297,6 +298,8 @@ services:
     build:
       context: .
       dockerfile: docker/nysiis/Dockerfile
+    environment:
+      - NYSIIS_API_KEY=dev-nysiis-key
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]

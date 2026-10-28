@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get version history snapshots for a TRAM control card. Guarded by tram_driver_form.read - unlike the generic control-forms/get-snapshots endpoint this does not leak TRAM history to non-TRAM users."
@@ -48,6 +49,7 @@ getSnapshots:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get-snapshots"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -66,6 +68,7 @@ getFromArchive:
   args:
     url: "[#LJVIS_RESQL_ARHIIV]/deleted-forms/get_snapshots"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

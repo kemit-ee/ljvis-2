@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Audit: user set-groups event - fetches user info internally, builds description with branch logic"
@@ -28,6 +29,7 @@ fetchUser:
   args:
     url: "[#LJVIS_RESQL]/user/get_user"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

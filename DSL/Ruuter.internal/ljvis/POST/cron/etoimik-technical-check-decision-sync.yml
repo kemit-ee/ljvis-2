@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -28,6 +29,7 @@ fetchVehicleCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/select_etoimik_candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -81,6 +83,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/update-xroad-fields"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -98,6 +101,7 @@ processVehicleCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/log_etoimik_xroad_audit"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -130,6 +134,7 @@ fetchTrailerCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/select_etoimik_candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -183,6 +188,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/trailer-technical/update-xroad-fields"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -200,6 +206,7 @@ processTrailerCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/trailer-technical/log_etoimik_xroad_audit"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:

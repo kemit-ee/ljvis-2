@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Generate a filled, historical or blank labour-inspection PDF."
   namespace: control-forms
@@ -62,6 +63,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -82,6 +84,7 @@ getSnapshot:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get-snapshot"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

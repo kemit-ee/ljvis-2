@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "List of cities/parishes filtered by county"
@@ -7,6 +8,7 @@ declaration:
   allowlist:
     body:
       - field: parentId
+        type: integer
         description: "Filter by county ID"
 
 extractRequestData:
@@ -19,6 +21,7 @@ getEhak:
   args:
     url: "[#LJVIS_RESQL]/ehak/list_cities_parishes"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

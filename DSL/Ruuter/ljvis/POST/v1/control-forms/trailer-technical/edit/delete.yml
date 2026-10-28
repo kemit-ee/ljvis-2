@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Delete trailer technical-check sub-form"
   namespace: control-forms
@@ -37,6 +38,7 @@ deleteForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/delete"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

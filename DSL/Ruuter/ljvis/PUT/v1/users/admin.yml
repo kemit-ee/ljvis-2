@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Update an existing user"
@@ -62,6 +63,7 @@ getCurrentUserGroups:
   args:
     url: "[#LJVIS_RESQL]/user/get_user_groups"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -150,6 +152,7 @@ updateUser:
   args:
     url: "[#LJVIS_RESQL]/user/update_user_account"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
