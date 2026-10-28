@@ -21,6 +21,7 @@ fetchDriverCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/select_etoimik_candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -32,6 +33,7 @@ fetchTeammateCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/select_etoimik_candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -90,6 +92,7 @@ processCandidates:
         args:
           url: "${form_type === 'teammate' ? '[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update-etoimik-decision' : '[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/update-xroad-fields'}"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -108,6 +111,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/compound-form/publish-if-all-subforms-published"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -119,6 +123,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/log-etoimik-publish-audit"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:

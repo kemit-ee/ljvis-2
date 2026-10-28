@@ -56,7 +56,7 @@ save:
   call: http.post
   args:
     url: "[#LJVIS_RESQL]/control-forms/${form_type}/update-administrative-procedure"
-    headers: { type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
+    headers: { Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]", type: json, x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]" }
     body:
       key: ${id}
       klimClarificationDate: "${incoming.body.klimClarificationDate || ''}"

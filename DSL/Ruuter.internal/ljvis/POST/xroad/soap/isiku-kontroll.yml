@@ -106,6 +106,7 @@ logBackendError:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.soap.isiku-kontroll"
@@ -130,6 +131,7 @@ logContractError:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.soap.isiku-kontroll"

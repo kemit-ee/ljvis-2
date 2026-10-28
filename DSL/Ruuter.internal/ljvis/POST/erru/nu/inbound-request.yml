@@ -54,6 +54,7 @@ validateEnvelope:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/validate"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       payload: "${JSON.stringify(incoming.body)}"
@@ -97,6 +98,7 @@ storeAtomic:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/append-inbound"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -142,6 +144,7 @@ lookupExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-by-technical-id"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -164,6 +167,7 @@ checkAuditExists:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/audit-event-exists"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -234,6 +238,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/erru/record-inbound-audit"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -268,6 +273,7 @@ getSavedAck:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-ack"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: ${existing_res.response.body[0].id}

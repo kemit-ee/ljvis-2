@@ -33,6 +33,7 @@ getUserGroup:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -46,6 +47,7 @@ getGroupUsers:
   args:
     url: "[#LJVIS_RESQL]/user_group/get_user_group_users"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

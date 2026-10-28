@@ -155,6 +155,12 @@
 
 ## 2026-10-19
 
+### Resql 0.5.1-alpha ja teenustevaheline Bearer-token
+
+- Andmebaasikiht (Resql) uuendati versioonile 0.5.1-alpha (varem 0.3.0-alpha). Kasutajale muutust ei ole.
+- Resql nõuab nüüd igalt kutsel päist `Authorization: Bearer <token>`; kõik Ruuteri DSL-id saadavad selle. **Deploy eeldab uut saladust `RESQL_INTER_SERVICE_TOKEN`:** konstant `constants.ini`-s (Ruuter ja ruuter-internal), sama väärtusega env-muutuja `resql-ljvis` konteineris ning `security.inter_service_token_env` chart'i `resql.yaml`-is. Ilma selleta Resql ei käivitu. Vt admin juhend 12.
+- CI-s kontrollib `scripts/check-resql-bearer.py`, et iga Resql-kutse saadab tokeni ja token ei lähe mujale. Skript tunneb ka URL-e, kus Resqli konstant on `${...}` avaldise sees.
+- **Väljalaskejärjekord:** (1) token SSM-i ja `constants.ini`-sse, (2) `ruuter` ja `ruuter-internal` restart (Resql 0.3 ignoreerib tundmatut päist, seega token ei riku midagi), (3) Resql 0.5.1 image ja devops'i chart'i lüliti `interServiceTokenGate: true` **samas väljalaskes**. Resql 0.5.1 ei käivitu ilma `security.inter_service_token_env`-ita ja 0.3 lükkab selle võtme tagasi.
 ### Kustutatud vormide arhiveerimine töötab automaatselt
 
 - Kustutatud kontrollvormid teisaldatakse iga kahe tunni tagant eraldi arhiivibaasi; töötabelid jäävad väiksemaks ja kiiremaks. Kustutatud vormi **versiooniajalugu jääb endiselt nähtavaks** — süsteem loeb selle vajadusel arhiivist.

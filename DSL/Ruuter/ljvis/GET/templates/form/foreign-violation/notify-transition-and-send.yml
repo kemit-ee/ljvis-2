@@ -118,6 +118,7 @@ callGetCountryName:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_country_name"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -137,6 +138,7 @@ callGetViolationNames:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_violation_names"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

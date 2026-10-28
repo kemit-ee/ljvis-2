@@ -22,6 +22,7 @@ fetchUnreadIds:
   args:
     url: "[#LJVIS_RESQL]/notification/list_unread_notification_ids"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -45,6 +46,7 @@ markAllRead:
         args:
           url: "[#LJVIS_RESQL]/notification/mark_notification_read"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:

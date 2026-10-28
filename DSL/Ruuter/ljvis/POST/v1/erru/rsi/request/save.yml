@@ -117,6 +117,7 @@ insertDraft:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-draft"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -158,6 +159,7 @@ reviseDraft:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-draft-revision"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

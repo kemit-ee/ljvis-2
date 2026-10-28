@@ -155,8 +155,18 @@ Lähtekoodi hoidla DSL-id viitavad järgmistele muutujatele, mida `scripts/const
 | `LJVIS_RESQL_ARHIIV` | Kustutatud vormide arhiiv (ADR-010) | `http://resql-ljvis:8090/arhiiv` (kui arhiiv on samas resql-is) |
 | `NYSIIS_ENDPOINT` | ERRU NYSIIS otsinguvõtmed | `http://nysiis:8080/nysiis` |
 | `INTERNAL_COMMUNICATION_KEY` | Jagatud teenusetoken päises `x-internal-service-token`: kõik kutsed `ruuter-internal`-ile (ruuter, CronManager, `erru-xml-adapter`) ja `ruuter-internal` → `ruuter` (WS-broadcast). `ruuter-internal` annab ilma selleta 403 (välja arvatud X-tee `xroad/provide/*`, `xroad/v2/*`). Sama väärtus peab olema ka `erru-xml-adapter` ja `cronmanager` env-muutujas `INTERNAL_COMMUNICATION_KEY` | Juhuslik, `openssl rand -hex 32`; **saladus** |
+| `RESQL_INTER_SERVICE_TOKEN` | Resqli (0.4+) sisemine Bearer-värav: kõik Ruuteri DSL-ide Resql-kutsed (`LJVIS_RESQL`, `LJVIS_RESQL_ARHIIV`) saadavad `Authorization: Bearer <väärtus>`. **Sama väärtus peab olema** ka `resql-ljvis` konteineri env-muutujas `RESQL_INTER_SERVICE_TOKEN` (`resql-ljvis-secret`) ja chart'i `resql.yaml`-is peab olema `security.inter_service_token_env: RESQL_INTER_SERVICE_TOKEN`. Puuduv env → Resql ei käivitu; vale token → 401. `/health` ja `/healthz` tokenit ei nõua. Eraldi saladus `INTERNAL_COMMUNICATION_KEY`-st | Juhuslik, `openssl rand -hex 32`; **saladus** |
 | `ERRU_MTR_ENDPOINT`, `ERRU_CGR_MTR_ENDPOINT`, `ERRU_RSI_LIIKLUSREGISTER_ENDPOINT` | Sissetulevate ERRU päringute vastamine (MTR, Liiklusregister) | Toodangus XTR-i kaudu; dev, test, prelive ja CI-s mock |
 | `ERRU_NCR_ORIGINATING_AUTHORITY` | NCR automaatse saatmise asutuse nimi | `Politsei- ja Piirivalveamet` |
+
+**Resql 0.5.1 ja `RESQL_INTER_SERVICE_TOKEN` väljalaskejärjekord.** Resql 0.5.1 ei käivitu mitte-loopback bind'iga ilma Bearer-väravata ja Resql 0.3 lükkab `security`-võtme tagasi, seega:
+
+1. Kirjuta token SSM-i (`services/resql-inter-service-token`, `openssl rand -hex 32`, eraldi väärtus, mitte `INTERNAL_COMMUNICATION_KEY`) ja `constants.ini`-sse; oota ExternalSecret'ide `SecretSynced`.
+2. Tee `ruuter` ja `ruuter-internal` rollout restart. Vana Resql 0.3 ignoreerib lisapäist, seega siin katkestust pole.
+3. Vaheta Resql 0.5.1 image ja chart'i `resql-ljvis` lüliti `interServiceTokenGate: true` **samas väljalaskes**. Ainult image (lipp `false`) annab boot-vea, ainult lipp (vana image) tagasilükatud konfi.
+4. Kontrolli: `kubectl -n ljvis2-<env> get pods -l app=resql-ljvis` Running ning mõni Ruuteri päring (nt klassifikaatorite nimekiri) vastab 200.
+
+Märkus: Resqli `logging.level` on `info,resql=debug`; kinnita enne prelive'i/toodangut, et debug-tase ei logi `Authorization` päist.
 
 **ERRU registrite mock demo- ja testkeskkonnas.** Ruuteri image sisaldab ERRU registrite mock-teenuseid. Nende kutsumiseks on vaja päist `x-internal-service-token`. Avalik ja sisemine Ruuter peavad kasutama sama `INTERNAL_COMMUNICATION_KEY` väärtust. Sisemine Ruuter lisab võtme ainult järgmistele täpsetele aadressidele:
 

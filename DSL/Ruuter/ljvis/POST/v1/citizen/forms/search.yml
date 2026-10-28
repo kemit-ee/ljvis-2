@@ -160,6 +160,7 @@ callResqlExplicitCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -190,6 +191,7 @@ callResqlCompany:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -224,6 +226,7 @@ callResqlSelf:
   args:
     url: "[#LJVIS_RESQL]/citizen/forms/search"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

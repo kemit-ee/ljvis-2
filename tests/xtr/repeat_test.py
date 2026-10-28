@@ -20,6 +20,7 @@ Checks (see docs/xtee/09-xtr-soap.md):
 """
 import argparse
 import json
+import os
 import subprocess
 import time
 import urllib.error
@@ -152,7 +153,9 @@ class Client:
                     {'Content-Type': 'application/json', 'X-Road-Client': 'ee-dev/GOV/70000310/ljvis-test'})
 
     def resql(self, path, body):
-        return http(self.resql_url + path, json.dumps(body), {'Content-Type': 'application/json'})
+        return http(self.resql_url + path, json.dumps(body), {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + os.environ.get('LJVIS_RESQL_INTER_SERVICE_TOKEN', 'dev-resql-service-token')})
 
     def act(self, source, external_id):
         rows = self.db.json(f"""SELECT r.labour_inspection_form_key AS key, r.payload_hash,

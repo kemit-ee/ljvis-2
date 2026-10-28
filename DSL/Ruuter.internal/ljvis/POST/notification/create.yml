@@ -63,6 +63,7 @@ lookupTemplateMapping:
   args:
     url: "[#LJVIS_RESQL]/notification/get_template_mapping"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -100,6 +101,7 @@ insertNotification:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_notification"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
