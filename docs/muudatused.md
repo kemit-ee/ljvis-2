@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-28
+
+### Arhitektuuridokument: INSERT-only mustri erand
+
+- Dokument „Ruuter, RESQL ja DataMapper arhitektuur" nimetab nüüd INSERT-only mustri erandi. Ainult `archive/` kataloogi arhiveerimismallid võivad teha säilitustähtaja järgset `DELETE`-i ja isikuandmete eemaldamise `UPDATE`-i. Iga erand on nimeliselt loetletud failis `.sql-rule-exemption` ja CI kontrollib seda. Koodi ja käitumist see ei muuda.
+
 ## 2026-10-27
 
 ### NCR nimekiri: rikkumisega teated eristuvad ja tegelemist vajavad on esil
