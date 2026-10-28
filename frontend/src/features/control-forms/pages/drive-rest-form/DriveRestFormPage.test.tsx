@@ -157,6 +157,7 @@ vi.mock('../../components/DriveRestForm/DriveRestFormEditCard', async () => {
         <button onClick={() => p.onSaved('1', true)}>{`saved-confirmed-${p.scope}`}</button>
         <button onClick={() => p.onCancel()}>{`cancel-${p.scope}`}</button>
         <button onClick={() => p.onValuesChange({ changed: true })}>{`values-${p.scope}`}</button>
+        {p.canConfirm && <button>{`edit-confirm-${p.scope}`}</button>}
         {p.canPublish && <button onClick={() => void p.onPublish?.()}>{`edit-publish-${p.scope}`}</button>}
       </div>
     )),
@@ -444,6 +445,28 @@ describe('DriveRestFormPage – muutmine', () => {
     );
     await mount();
     await tick();
+    fireEvent.click(screen.getByText('edit-publish-driver'));
+    await tick();
+    expect(h.api.publishDr).toHaveBeenCalledWith('driver', 5);
+  });
+
+  it('voog: salvestatud alamvorm → Kinnita → kinnitatud alamvorm → Avalikusta (koondvorm salvestatud)', async () => {
+    h.api.getDriveRestForm.mockResolvedValue(entry({ status: 'saved' }));
+    h.api.getByCompound.mockImplementation(async (scope: string) =>
+      scope === 'teammate' ? entry({ id: 6, status: 'saved' }) : entry({ id: 5, status: 'saved' }),
+    );
+    await mount();
+    await tick();
+    expect(screen.getByText('edit-confirm-driver')).toBeTruthy();
+    expect(screen.queryByText('edit-publish-driver')).toBeNull();
+
+    h.api.getDriveRestForm.mockResolvedValue(entry({ status: 'confirmed' }));
+    h.api.getByCompound.mockImplementation(async (scope: string) =>
+      scope === 'teammate' ? entry({ id: 6, status: 'saved' }) : entry({ id: 5, status: 'confirmed' }),
+    );
+    fireEvent.click(screen.getByText('saved-confirmed-driver'));
+    await tick();
+    expect(screen.queryByText('edit-confirm-driver')).toBeNull();
     fireEvent.click(screen.getByText('edit-publish-driver'));
     await tick();
     expect(h.api.publishDr).toHaveBeenCalledWith('driver', 5);
