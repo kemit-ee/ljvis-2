@@ -323,6 +323,7 @@ export function TramControlCardPage() {
         {
           label: `${form.formNumber ?? ''} — ${form.proceedingReferenceNumber}`,
           value: form.proceedingReferenceNumber,
+          proceedingType: form.proceedingType,
         },
       ]
     : [];

@@ -5,7 +5,7 @@ import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 import { EtoimikQueryCard } from './EtoimikQueryCard';
 
 type FormWithReference =
-  | { subFormNumber?: string; proceedingReferenceNumber?: string }
+  | { subFormNumber?: string; proceedingReferenceNumber?: string; proceedingType?: string }
   | null
   | undefined;
 
@@ -66,6 +66,7 @@ export function CompoundEtoimikQueryCard({
           {
             label: `${label} ${form.subFormNumber ?? ''} — ${form.proceedingReferenceNumber}`,
             value: form.proceedingReferenceNumber,
+            proceedingType: form.proceedingType,
           },
         ]
       : [],

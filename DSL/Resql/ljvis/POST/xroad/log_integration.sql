@@ -37,7 +37,7 @@ params:
   result_status:
     type: string
     required: false
-    description: 'Optional: caller-computed outcome classification - ''found'', ''not_found'' or ''error''.
+    description: 'Optional: caller-computed outcome classification - ''found'', ''not_found'', ''unmapped'' or ''error''.
       Powers the Haldus > eToimiku X-tee logid status filter.'
 returns:
 - name: id

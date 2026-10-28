@@ -36,11 +36,11 @@ Lehe ülaosas on filtririba:
 
 - **Kuupäevavahemik** (`Alates` / `Kuni`) — päringu loomise aeg
   (`created_at`). Vaikimisi **eile — täna**.
-- **Staatuse märkeruudud**: `Vaste leitud`, `Vastuseta`, `Vigased` ja
+- **Staatuse märkeruudud**: `Vaste leitud`, `Vastuseta`, `Vastus saabus, vajab ülevaatust`, `Vigased` ja
   tuletatud `Kõik`.
-  - Valiku `Kõik` märkimine või tühjendamine mõjutab kõiki kolme staatust korraga.
+  - Valiku `Kõik` märkimine või tühjendamine mõjutab kõiki nelja staatust korraga.
   - Ühe staatuse märkeruudu tühjendamisel tühjendab süsteem ka märkeruudu `Kõik`.
-  - Kui kõik kolm on märkimata, ei kuvata ühtegi rida.
+  - Kui kõik neli on märkimata, ei kuvata ühtegi rida.
 
 Filtrid rakenduvad "Otsi" nupu vajutamisel.
 
@@ -49,7 +49,8 @@ Filtrid rakenduvad "Otsi" nupu vajutamisel.
 | Staatus | Tähendus |
 |---------|----------|
 | **Vaste leitud** (`found`) | eToimikust saadi kasulik info, mida sai kasutada kontrollkaardi andmete täiendamiseks (nt jõustunud menetlusotsus). |
-| **Vastuseta** (`not_found`) | Päring õnnestus, aga midagi ei leitud (tühi vastus või otsitav isik/juhtum ei ühti). |
+| **Vastuseta** (`not_found`) | Päring õnnestus, aga midagi ei leitud (tühi vastus). |
+| **Vastus saabus, vajab ülevaatust** (`unmapped`) | Teenus tagastas asja andmed, kuid süsteem ei leidnud neist automaatselt rakendatavat otsust. Ava „Vaata vastust“. Logi sisaldab saabunud vastuse täissisu ja linki vormile. See tulemus ei avalikusta vormi. |
 | **Vigane** (`error`) | X-tee/XTR päring ise ebaõnnestus (nt HTTP viga, ühenduse katkemine). |
 
 ## Tabeli veerud
@@ -58,7 +59,7 @@ Filtrid rakenduvad "Otsi" nupu vajutamisel.
 |-------|------|
 | Päringu aeg | Millal päring eToimikule tehti. |
 | Vorm | Kontrollkaart/vorm, mille andmete põhjal päring tehti — link vormile, kui see on tuvastatav. |
-| Staatus | Vaste leitud / Vastuseta / Vigane (vt eespool). |
+| Staatus | Vaste leitud / Vastuseta / Vastus saabus, vajab ülevaatust / Vigane (vt eespool). |
 | Väljuv päring | Nupp "Vaata päringut" — avab akna eToimikule saadetud päringu täissisuga (JSON). |
 | Saabunud vastus | Nupp "Vaata vastust" — avab akna eToimikust saabunud vastuse täissisuga (JSON). |
 

@@ -59,8 +59,9 @@ beforeEach(() => {
       entry({ id: '3', resultStatus: 'not_found', sourceType: 'unknown_src' }),
       entry({ id: '4', resultStatus: null, success: false, serviceCode: null }),
       entry({ id: '5', resultStatus: null, success: true }),
+      entry({ id: '6', resultStatus: 'unmapped', responseXml: '{"AsjaNR":"123"}' }),
     ],
-    total: 5,
+    total: 6,
   });
 });
 afterEach(() => {
@@ -84,6 +85,7 @@ describe('XroadLogTable', () => {
     expect(screen.getAllByText('xroadLogs.status.notFound').length).toBeTruthy();
     expect(screen.getAllByText('xroadLogs.status.error').length).toBeGreaterThan(0);
     expect(screen.getByText('xroadLogs.status.success')).toBeTruthy();
+    expect(screen.getAllByText('xroadLogs.status.unmapped').length).toBe(2);
   });
 
   it('päringu ja vastuse nupud avavad modaali', async () => {
