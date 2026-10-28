@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Reserve an outgoing NCR request, send it as ERRU 3.5 XML through the internal adapter and store the Hub acceptance (LJVIS2-64 §4.2). The adapter validates the XML and performs one HTTP dispatch; only HTTP 202 means accepted. Flow: initiated|error -> sending -> sent (or send_unknown, never resent, or error after a definite rejection, which may be retried). The destination's NotifyCheckResult_Acknowledgement (ncr/inbound-ack) moves the message to acknowledged and its NotifyCheckResult_Response (ncr/inbound-response) to responded; a negative acknowledgement ends in error."
   namespace: erru
@@ -29,6 +30,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -110,6 +112,7 @@ reserveSend:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/begin-send"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -174,6 +177,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -195,6 +199,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -216,6 +221,7 @@ storeSent:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -249,6 +255,7 @@ checkConcurrentAnswer:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -268,6 +275,7 @@ markError:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -293,6 +301,7 @@ markUnknown:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

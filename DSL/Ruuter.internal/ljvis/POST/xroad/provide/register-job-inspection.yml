@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -12,15 +13,25 @@ declaration:
   allowlist:
     body:
       - field: kontrollija
+        type: string
       - field: kontrolli_id
+        type: any
       - field: kontrolli_kp
+        type: string
       - field: tooandja_nimi
+        type: string
       - field: tooandja_reg_kood
+        type: string
       - field: kontrollimised
+        type: object
       - field: rikkumised
+        type: object
       - field: koostatatud_ettekirjutus
+        type: any
       - field: soidukite_arv
+        type: any
       - field: vaarteomenetlus
+        type: string
 
 # Samm 1: Valideeri kontrollija - WSDL väli 'kontrollija'
 validateKontrollija:
@@ -90,6 +101,7 @@ insertInspection:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -123,6 +135,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -144,6 +157,7 @@ logConflict:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.provide.register-job-inspection"
@@ -174,6 +188,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

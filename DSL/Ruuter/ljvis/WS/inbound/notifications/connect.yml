@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     WebSocket endpoint teavituste reaalajas uuenduste jaoks.

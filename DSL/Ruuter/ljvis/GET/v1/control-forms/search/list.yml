@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "LJVIS2-9 cross-entity form search. Returns a paged, filtered list of forms the caller is allowed to see (row-level by read permission)."
   namespace: control-forms
@@ -76,6 +77,7 @@ search:
   args:
     url: "[#LJVIS_RESQL]/control-forms/search/search"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

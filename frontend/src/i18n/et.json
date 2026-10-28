@@ -432,6 +432,7 @@
       "viewAllSearch": "Vaata kõiki vorme →"
     },
     "status": {
+      "unmapped": "Vastus saabus, vajab ülevaatust",
       "saved": "Salvestatud",
       "confirmed": "Kinnitatud",
       "published": "Avalikustatud",
@@ -1783,6 +1784,7 @@
   },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",
+    "caseOrReferenceNumber": "Väärteoasja number või viitenumber",
     "referenceNumber": "Viitenumber",
     "person": "Isik",
     "unnamedDriver": "Nimetu juht",

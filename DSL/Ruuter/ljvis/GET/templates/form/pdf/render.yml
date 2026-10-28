@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Render an allow-listed control-form PDF and record the print audit event."
   namespace: service
@@ -35,6 +36,7 @@ getPlaceNames:
   args:
     url: "[#LJVIS_RESQL]/ehak/get_names"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       ids: ${place_ids}

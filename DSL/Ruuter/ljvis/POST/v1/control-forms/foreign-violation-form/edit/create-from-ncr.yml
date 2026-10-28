@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Create a new VR (foreign violation) control card pre-filled from an ERRU NCR message and link them bidirectionally"
   namespace: control-forms
@@ -24,6 +25,7 @@ getNcrData:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -43,8 +45,7 @@ checkNcrResult:
 # viimase kirje.
 selectNcrSource:
   assign:
-    ncr_src: >-
-      ${(() => { var b = ncrRes.response.body; for (var i = b.length - 1; i >= 0; i--) { var r = b[i]; var si = r.seriousInfringements; var hasSi = (typeof si === 'string') ? (si.trim() !== '' && si.trim() !== '[]') : (Array.isArray(si) && si.length > 0); if (r.minorInfringement || hasSi) return r; } return b[b.length - 1]; })()}
+    ncr_src: "${(() => { var b = ncrRes.response.body; for (var i = b.length - 1; i >= 0; i--) { var r = b[i]; var si = r.seriousInfringements; var hasSi = (typeof si === 'string') ? (si.trim() !== '' && si.trim() !== '[]') : (Array.isArray(si) && si.length > 0); if (r.minorInfringement || hasSi) return r; } return b[b.length - 1]; })()}"
   next: extractNcrFields
 
 extractNcrFields:
@@ -95,6 +96,7 @@ insertVrForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -161,6 +163,7 @@ updateNcrLink:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-vr-link"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

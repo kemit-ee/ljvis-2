@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "List active file attachments for a good repute form (LJVIS2-136)"

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "List of all counties (fixed set)"
@@ -12,6 +13,7 @@ getCountries:
   args:
     url: "[#LJVIS_RESQL]/ehak/list_counties"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}

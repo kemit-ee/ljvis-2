@@ -3,6 +3,10 @@ from unittest.mock import patch
 from server import application,MAX_BODY
 
 class ApiTests(unittest.TestCase):
+    def setUp(self):
+        # Local default for these tests: explicit no-auth opt-out. The fail-closed behaviour has its own tests.
+        patcher=patch.dict(os.environ,{'PDF_CREATOR_ALLOW_NO_AUTH':'1'});patcher.start();self.addCleanup(patcher.stop)
+        os.environ.pop('PDF_CREATOR_API_KEY',None)
     def call(self,payload=None,path='/v1/render',method='POST',**extra):
         raw=json.dumps(payload).encode();env={'PATH_INFO':path,'REQUEST_METHOD':method,'CONTENT_TYPE':'application/json','CONTENT_LENGTH':str(len(raw)),'wsgi.input':io.BytesIO(raw),**extra};meta={}
         body=b''.join(application(env,lambda status,headers:meta.update(status=int(status.split()[0]),headers=dict(headers))))
@@ -10,6 +14,17 @@ class ApiTests(unittest.TestCase):
     def test_health_and_catalog(self):
         for path in ('/health','/v1/templates'):
             meta,_=self.call(path=path,method='GET');self.assertEqual(meta['status'],200)
+    def test_without_key_requests_are_refused_unless_explicitly_allowed(self):
+        env={k:v for k,v in os.environ.items() if k not in ('PDF_CREATOR_API_KEY','PDF_CREATOR_ALLOW_NO_AUTH')}
+        with patch.dict(os.environ,env,clear=True):
+            self.assertEqual(self.call(path='/health',method='GET')[0]['status'],200)
+            for path,method in (('/v1/templates','GET'),('/v1/render','POST')):
+                self.assertEqual(self.call({'templateCode':'adr-form'},path=path,method=method)[0]['status'],503)
+    def test_blank_key_counts_as_unset_and_non_ascii_header_is_unauthorized(self):
+        with patch.dict(os.environ,{'PDF_CREATOR_API_KEY':'   ','PDF_CREATOR_ALLOW_NO_AUTH':''}):
+            self.assertEqual(self.call({'templateCode':'adr-form'})[0]['status'],503)
+        with patch.dict(os.environ,{'PDF_CREATOR_API_KEY':'secret'}):
+            self.assertEqual(self.call({'templateCode':'adr-form'},HTTP_AUTHORIZATION='Bearer s\xe4cret')[0]['status'],401)
     def test_binary_and_base64_contract(self):
         with patch('server.render_pdf',return_value=(b'%PDF-example',[])) as renderer:
             meta,body=self.call({'templateCode':'vehicle-technical','blank':True});self.assertEqual(meta['status'],200);self.assertEqual(body,b'%PDF-example');self.assertEqual(meta['headers']['Cache-Control'],'no-store')

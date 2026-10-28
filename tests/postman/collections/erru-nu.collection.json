@@ -210,7 +210,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_source_id}}, \"personalCode\": \"37009090001\", \"firstName\": \"JOHAN\", \"lastName\": \"TESTMANN\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"TALLINN\", \"certificateNumber\": \"CERT-NU-PM-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+          "raw": "{\"id\": \"{{nu_source_id}}\", \"personalCode\": \"37009090001\", \"firstName\": \"JOHAN\", \"lastName\": \"TESTMANN\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"TALLINN\", \"certificateNumber\": \"CERT-NU-PM-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
         }
       },
       "event": [
@@ -346,7 +346,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_fit_source_id}}, \"personalCode\": \"37009090010\", \"firstName\": \"FITPERSON\", \"lastName\": \"NOTUNFIT\", \"dateOfBirth\": \"1985-05-05\", \"placeOfBirth\": \"Tartu\", \"certificateNumber\": \"CERT-NU-FIT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\", \"unfitFromDate\": null, \"unfitUntilDate\": null}"
+          "raw": "{\"id\": \"{{nu_fit_source_id}}\", \"personalCode\": \"37009090010\", \"firstName\": \"FITPERSON\", \"lastName\": \"NOTUNFIT\", \"dateOfBirth\": \"1985-05-05\", \"placeOfBirth\": \"Tartu\", \"certificateNumber\": \"CERT-NU-FIT-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"fit\", \"unfitFromDate\": null, \"unfitUntilDate\": null}"
         }
       },
       "event": [
@@ -2678,7 +2678,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_expired_source_id}}, \"personalCode\": \"37009090011\", \"firstName\": \"EXPIREDPERSON\", \"lastName\": \"PASTDEADLINE\", \"dateOfBirth\": \"1990-03-03\", \"placeOfBirth\": \"Narva\", \"certificateNumber\": \"CERT-NU-EXPIRED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2020-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+          "raw": "{\"id\": \"{{nu_expired_source_id}}\", \"personalCode\": \"37009090011\", \"firstName\": \"EXPIREDPERSON\", \"lastName\": \"PASTDEADLINE\", \"dateOfBirth\": \"1990-03-03\", \"placeOfBirth\": \"Narva\", \"certificateNumber\": \"CERT-NU-EXPIRED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2020-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
         }
       },
       "event": [
@@ -2811,7 +2811,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_expired_source_id}}, \"personalCode\": \"37009090011\", \"firstName\": \"EXPIREDPERSON\", \"lastName\": \"PASTDEADLINE\", \"dateOfBirth\": \"1990-03-03\", \"placeOfBirth\": \"Narva\", \"certificateNumber\": \"CERT-NU-EXPIRED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2020-01-01\", \"unfitUntilDate\": \"2020-01-02\"}"
+          "raw": "{\"id\": \"{{nu_expired_source_id}}\", \"personalCode\": \"37009090011\", \"firstName\": \"EXPIREDPERSON\", \"lastName\": \"PASTDEADLINE\", \"dateOfBirth\": \"1990-03-03\", \"placeOfBirth\": \"Narva\", \"certificateNumber\": \"CERT-NU-EXPIRED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2020-01-01\", \"unfitUntilDate\": \"2020-01-02\"}"
         }
       },
       "event": [
@@ -2990,7 +2990,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_deleted_source_id}}, \"personalCode\": \"37009090012\", \"firstName\": \"DELETEDPERSON\", \"lastName\": \"GONE\", \"dateOfBirth\": \"1992-04-04\", \"placeOfBirth\": \"Pärnu\", \"certificateNumber\": \"CERT-NU-DELETED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+          "raw": "{\"id\": \"{{nu_deleted_source_id}}\", \"personalCode\": \"37009090012\", \"firstName\": \"DELETEDPERSON\", \"lastName\": \"GONE\", \"dateOfBirth\": \"1992-04-04\", \"placeOfBirth\": \"Pärnu\", \"certificateNumber\": \"CERT-NU-DELETED-1\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
         }
       },
       "event": [
@@ -3554,7 +3554,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_oversized_source_id}}, \"personalCode\": \"37009090099\", \"firstName\": \"OVERSIZED\", \"lastName\": \"TESTPERSON\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+          "raw": "{\"id\": \"{{nu_oversized_source_id}}\", \"personalCode\": \"37009090099\", \"firstName\": \"OVERSIZED\", \"lastName\": \"TESTPERSON\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
         }
       },
       "event": [
@@ -3737,7 +3737,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{nu_oversized_cert_source_id}}, \"personalCode\": \"37009090098\", \"firstName\": \"NORMAL\", \"lastName\": \"PLACEOFBIRTH\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"Tallinn\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
+          "raw": "{\"id\": \"{{nu_oversized_cert_source_id}}\", \"personalCode\": \"37009090098\", \"firstName\": \"NORMAL\", \"lastName\": \"PLACEOFBIRTH\", \"dateOfBirth\": \"1980-01-01\", \"placeOfBirth\": \"Tallinn\", \"certificateNumber\": \"CERT-TOO-LONG-FOR-ERRU-WIRE-LIMIT\", \"certificateIssueDate\": \"2020-01-01\", \"certificateCountryCode\": \"EE\", \"fitnessStatus\": \"unfit\", \"unfitFromDate\": \"2024-01-01\", \"unfitUntilDate\": \"2099-12-31\"}"
         }
       },
       "event": [

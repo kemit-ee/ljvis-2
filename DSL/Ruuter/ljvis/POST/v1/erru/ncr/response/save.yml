@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Save/revise the Estonian response draft to an INCOMING NCR message (LJVIS2-63).
     Moves the message to status 'answer_drafted'. Coverage validation (LJVIS2-63 §4 'Vastust ei
@@ -64,6 +65,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -119,6 +121,7 @@ saveResponse:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-response-draft"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

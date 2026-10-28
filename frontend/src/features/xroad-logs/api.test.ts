@@ -20,6 +20,7 @@ describe('xroad-logs api', () => {
         dateTo: '2026-02-01',
         includeFound: 'true',
         includeNotFound: 'false',
+        includeUnmapped: 'true',
         includeError: 'true',
         allServices: 'false',
       },
@@ -31,6 +32,7 @@ describe('xroad-logs api', () => {
       dateTo: '2026-02-01',
       includeFound: 'true',
       includeNotFound: 'false',
+        includeUnmapped: 'true',
       includeError: 'true',
       allServices: 'false',
     });

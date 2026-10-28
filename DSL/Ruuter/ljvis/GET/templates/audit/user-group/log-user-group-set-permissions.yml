@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Audit: user group set-permissions event - fetches full permissions list to resolve codes"
@@ -26,6 +27,7 @@ fetchAllPermissions:
   args:
     url: "[#LJVIS_RESQL]/permission/list_permissions"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}

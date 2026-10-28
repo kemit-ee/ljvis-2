@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create or update a good repute form (hea maine vorm) - single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input (LJVIS2-136). Confirmed forms can only be re-saved by a user with control_form.edit_locked."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: personalCode
         type: string
       - field: firstName
@@ -91,6 +94,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -128,7 +132,7 @@ logAuditEventInsert:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    good_repute_form_key: ${good_repute_form_key}
+    good_repute_form_key: "${String((good_repute_form_key) ?? '')}"
     personal_code: ${personal_code}
   result: audit_result
   next: returnSuccess
@@ -138,6 +142,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -192,6 +197,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/good-repute/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -244,7 +250,7 @@ logAuditEventUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    good_repute_form_key: ${good_repute_form_key}
+    good_repute_form_key: "${String((good_repute_form_key) ?? '')}"
     personal_code: ${personal_code}
     changed_fields: ${changed_fields_result}
   result: audit_result

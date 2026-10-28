@@ -1265,7 +1265,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"Test Classifier\", \"description\": \"\"}"
+          "raw": "{\"id\": \"{{seeded_classifier_id_2}}\", \"name\": \"Test Classifier\", \"description\": \"\"}"
         }
       },
       "event": [
@@ -1306,7 +1306,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"\", \"description\": \"desc\"}"
+          "raw": "{\"id\": \"{{seeded_classifier_id_2}}\", \"name\": \"\", \"description\": \"desc\"}"
         }
       },
       "event": [
@@ -1347,7 +1347,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"id\": {{seeded_classifier_id_2}}, \"name\": \"Test Classifier\", \"description\": \"Updated by CI test\"}"
+          "raw": "{\"id\": \"{{seeded_classifier_id_2}}\", \"name\": \"Test Classifier\", \"description\": \"Updated by CI test\"}"
         }
       },
       "event": [

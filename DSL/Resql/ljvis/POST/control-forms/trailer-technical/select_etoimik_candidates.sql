@@ -27,6 +27,9 @@ returns:
 - name: person_birth_date
   type: string
   nullable: true
+- name: proceeding_type
+  type: string
+  nullable: true
 */
 -- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest_ttf AS (
@@ -42,7 +45,7 @@ WITH latest_ttf AS (
   ORDER BY trailer_technical_form_key, created_at DESC
 ),
 cand AS (
-  SELECT t.id, t.compound_form_key, t.proceeding_reference_number
+  SELECT t.id, t.compound_form_key, t.proceeding_type, t.proceeding_reference_number
   FROM latest_ttf t
   WHERE t.status = 'confirmed'
     AND t.proceeding_type IS NOT NULL AND t.proceeding_type <> 'none'
@@ -54,12 +57,13 @@ cand AS (
           WHERE c.compound_form_key=t.compound_form_key ORDER BY c.created_at DESC,c.id DESC LIMIT 1)='owner-2026-10-19')
 ),
 resolved AS (
-  SELECT cand.id, cand.proceeding_reference_number,
+  SELECT cand.id, cand.proceeding_type, cand.proceeding_reference_number,
          (SELECT c FROM forms.compound_form c WHERE c.compound_form_key = cand.compound_form_key ORDER BY c.created_at DESC LIMIT 1) AS cf
   FROM cand
 )
 SELECT
   id,
+  proceeding_type,
   proceeding_reference_number,
   (COALESCE((cf).drivers -> 0 ->> 'personalCodeEe', (cf).drivers -> 0 ->> 'personal_code_ee')) AS driver_personal_code,
   (COALESCE((cf).drivers -> 0 ->> 'firstName', (cf).drivers -> 0 ->> 'first_name')) AS person_first_name,

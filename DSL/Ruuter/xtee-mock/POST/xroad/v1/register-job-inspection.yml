@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: '1.0'
   description: 'RegisterJobInspection: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
     POST/xroad/provide/register-job-inspection.yml. X-Mock-Scenario: empty või server-error.'
@@ -12,24 +13,34 @@ declaration:
       required: false
     body:
     - field: kontrolli_id
+      type: any
       required: false
     - field: kontrolli_kp
+      type: string
       required: false
     - field: kontrollija
+      type: string
       required: false
     - field: kontrollimised
+      type: object
       required: false
     - field: koostatatud_ettekirjutus
+      type: any
       required: false
     - field: rikkumised
+      type: object
       required: false
     - field: soidukite_arv
+      type: any
       required: false
     - field: tooandja_nimi
+      type: string
       required: false
     - field: tooandja_reg_kood
+      type: string
       required: false
     - field: vaarteomenetlus
+      type: string
       required: false
     params: []
 validateKontrollija:

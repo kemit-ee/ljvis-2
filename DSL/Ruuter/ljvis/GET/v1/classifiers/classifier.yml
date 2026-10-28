@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a single classifier by ID"
@@ -32,6 +33,7 @@ getClassifier:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_classifier"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

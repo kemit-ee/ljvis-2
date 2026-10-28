@@ -9,8 +9,10 @@ import type { Driver } from '../../types';
 export interface EtoimikReferenceOption {
   /** Display label, e.g. "Vehicle technical check th-2026-00001 — REF-123". */
   label: string;
-  /** The bare "Menetluse viitenumber" value to send as referenceNumber. */
+  /** Stored proceeding number. */
   value: string;
+  /** General proceedings use caseNumber. Other proceedings use referenceNumber. */
+  proceedingType?: string;
 }
 
 interface EtoimikQueryCardProps {
@@ -39,8 +41,15 @@ export function EtoimikQueryCard({
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
 
+  const numberOptions = referenceNumberOptions.map((option) => ({
+    ...option,
+    number: option.value,
+    value: ['YLD', 'general'].includes(option.proceedingType ?? '')
+      ? `case:${option.value}`
+      : option.value,
+  }));
   const [selectedReference, setSelectedReference] = useState<string | null>(
-    referenceNumberOptions.length === 1 ? referenceNumberOptions[0].value : null,
+    numberOptions.length === 1 ? numberOptions[0].value : null,
   );
   const [selectedDriverIndex, setSelectedDriverIndex] = useState<number | null>(
     drivers.length === 1 ? 0 : null,
@@ -68,22 +77,17 @@ export function EtoimikQueryCard({
   }));
   const selectedDriver = selectedDriverIndex != null ? drivers[selectedDriverIndex] : null;
 
+  const selectedNumber = numberOptions.find((option) => option.value === selectedReference);
   const handleQuery = async () => {
-    if (!selectedReference || !selectedDriver) return;
+    if (!selectedNumber || !selectedDriver) return;
     setLoading(true);
     setError(false);
     setResult(undefined);
     const isEeCitizen = !!selectedDriver.personalCodeEe;
     try {
       const data = await queryEtoimikQualifications({
-        // caseNumber is intentionally never sent from this card: no
-        // sub-form on the koondvorm stores a "case number" — only
-        // proceedingReferenceNumber exists (see plan §3) — so referenceNumber
-        // is the only identification path this UI can offer. The backend
-        // (kvalifikatsioonid.yml) still accepts caseNumber for other callers
-        // (e.g. a future labour_inspection_form card, or the nightly batch).
-        caseNumber: '',
-        referenceNumber: selectedReference,
+        caseNumber: ['YLD', 'general'].includes(selectedNumber.proceedingType ?? '') ? selectedNumber.number : '',
+        referenceNumber: ['YLD', 'general'].includes(selectedNumber.proceedingType ?? '') ? '' : selectedNumber.number,
         personalCode: isEeCitizen ? selectedDriver.personalCodeEe : '',
         firstName: isEeCitizen ? '' : (selectedDriver.firstName ?? ''),
         lastName: isEeCitizen ? '' : (selectedDriver.lastName ?? ''),
@@ -108,9 +112,9 @@ export function EtoimikQueryCard({
         <div className="form-grid-desktop">
           <Select
             id="etoimikReferenceNumber"
-            label={t('etoimik.referenceNumber')}
-            options={referenceNumberOptions}
-            value={referenceNumberOptions.find((o) => o.value === selectedReference) ?? null}
+            label={t('etoimik.caseOrReferenceNumber')}
+            options={numberOptions}
+            value={numberOptions.find((o) => o.value === selectedReference) ?? null}
             onChange={(val) => {
               setResult(undefined);
               setSelectedReference(val && !Array.isArray(val) ? (val as { value: string }).value : null);
@@ -137,7 +141,7 @@ export function EtoimikQueryCard({
           type="button"
           className="mt-1"
           onClick={() => void handleQuery()}
-          disabled={!selectedReference || !selectedDriver || loading}
+          disabled={!selectedNumber || !selectedDriver || loading}
         >
           {t('etoimik.queryButton')}
         </Button>

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Get a single RSI message (erru.rsi_message) by its logical key, returning the latest snapshot (LJVIS2-147). Read-only; serves both an unsent outgoing draft and a sent/responded/received/answered message. Audited on EVERY open because the view may show the driver's personal data (name, licence number)."
   namespace: erru
@@ -30,6 +31,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

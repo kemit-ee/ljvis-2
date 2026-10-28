@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get the latest active drive rest form (teammate) for a compound form"
@@ -41,6 +42,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get-by-compound-form-key"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

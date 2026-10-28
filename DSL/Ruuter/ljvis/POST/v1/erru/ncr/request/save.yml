@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Create or update an OUTGOING NCR request draft (LJVIS2-63) - single unified save
     endpoint, branches internally on presence of businessCaseId, mirroring the RSI/CTUD save
@@ -100,6 +101,7 @@ insertDraft:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-request-draft"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -132,6 +134,7 @@ reviseDraft:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-request-draft-revision"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

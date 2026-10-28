@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -11,16 +12,27 @@ declaration:
   allowlist:
     body:
       - field: kontrollija
+        type: string
       - field: kontrolli_id
+        type: any
       - field: kontrolli_kp
+        type: string
       - field: tooandja_nimi
+        type: string
       - field: tooandja_reg_kood
+        type: string
       - field: kontrollimised
+        type: object
       - field: rikkumised
+        type: object
       - field: koostatud_ettekirjutus
+        type: any
       - field: kontrolli_tyyp
+        type: string
       - field: vaarteomenetlus
+        type: object
       - field: soidukite_arv
+        type: any
 
 # Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
 validateKontrollija:
@@ -106,6 +118,7 @@ resolveViolations:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/resolve-labour-inspection-violations"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       rikkumisedJson: ${rikkumised_json}
@@ -124,6 +137,7 @@ insertInspection:
   args:
     url: "[#LJVIS_RESQL]/xroad/provide/register-job-inspection-v2-insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       externalInspectionId: ${kontrolli_id}
@@ -158,6 +172,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.provide.register-job-inspection-v2"
@@ -184,6 +199,7 @@ logAjUsage:
   args:
     url: "[#LJVIS_RESQL]/xroad/aj/log_usage"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       user_code: "${juhi_isikukood}"
@@ -200,6 +216,7 @@ logConflict:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.provide.register-job-inspection-v2"
@@ -229,6 +246,7 @@ logFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.provide.register-job-inspection-v2"

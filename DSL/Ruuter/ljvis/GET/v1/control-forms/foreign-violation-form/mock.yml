@@ -1,6 +1,7 @@
 declaration:
   description: "Arenduse mock: GET /v1/control-forms/foreign-violation-form/mock tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
   internal: false
+  returns: []
   allowlist:
     params: []
 

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -19,6 +20,7 @@ fetchCandidates:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/select_etoimik_candidates"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body: {}
@@ -59,7 +61,8 @@ processCandidates:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
-            reference_number: ${reference_number}
+            case_number: "${['YLD', 'general'].includes(candidate.proceedingType || candidate.proceeding_type || '') ? reference_number : ''}"
+            reference_number: "${['YLD', 'general'].includes(candidate.proceedingType || candidate.proceeding_type || '') ? '' : reference_number}"
             personal_code: ${driver_personal_code}
             first_name: ${person_first_name}
             last_name: ${person_last_name}
@@ -76,6 +79,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/tram-card/apply_etoimik_decision"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
@@ -98,6 +102,7 @@ processCandidates:
         args:
           url: "[#LJVIS_RESQL]/control-forms/tram-card/log_etoimik_publish_audit"
           headers:
+            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:

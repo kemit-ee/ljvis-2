@@ -3,6 +3,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
   NYSIIS_ENDPOINT: '{MOCK}/nysiis'
+  NYSIIS_API_KEY: test-key
   ERRU_XML_ADAPTER: http://127.0.0.1:1/unreachable
 tests:
 - name: 'unreachable adapter stops at validation: nothing is reserved or sent'

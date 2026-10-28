@@ -174,7 +174,7 @@ guard = yaml.safe_load((SOURCE / "POST/xroad/provide/.guard").read_text())
 guard = {"declaration": {"description": "X-Road-Client peab olema neljaosaline. Ainult mockis 70000000 tähistab keelatud tarbijat."}, **guard}
 guard["checkXRoadClient"]["switch"].append({"condition": expression("(incoming.headers['x-road-client'] || '').split('/')[2] === '70000000'"), "next": "deny"})
 emit(DEST / "POST/xroad/v1/.guard.yml", adapt_runtime(guard))
-emit(DEST / "GET/health/ready.yml", {"declaration": {"internal": False, "description": "Avalik sünteetilise mocki tervisekontroll.", "allowlist": {"params": []}},
+emit(DEST / "GET/health/ready.yml", {"declaration": {"internal": False, "returns": [], "description": "Avalik sünteetilise mocki tervisekontroll.", "allowlist": {"params": []}},
                                     "ready": {"status": 200, "return": {"status": "OK", "mock": True}, "wrapper": False, "next": "end"}})
 
 tests = []
@@ -210,11 +210,12 @@ for method, name, service, version, sample, success in operations:
     source_path = f"{method}/xroad/" + ("provide/" if method == "POST" else "v2/") + name + ".yml"
     mock_path = "/xroad/" + ("v1/" if method == "POST" else "v2/") + name
     data = yaml.safe_load((SOURCE / source_path).read_text())
+    source_body_types = {f["field"]: f["type"] for f in ((data.get("declaration") or {}).get("allowlist") or {}).get("body") or [] if f.get("type")}
     data["declaration"] = {"version": "1.0", "description": f"{service}: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow'st {source_path}. X-Mock-Scenario: empty või server-error.", "namespace": "xtee-mock"}
     body_fields = sorted(set(re.findall(r"incoming\.body\.([A-Za-z_]\w*)", json.dumps(data))))
     data["declaration"]["allowlist"] = {
         "headers": [{"field": field, "required": False} for field in ["content-type", "x-road-client", "x-road-userid", "x-mock-scenario"]],
-        "body": [{"field": field, "required": False} for field in body_fields],
+        "body": [({"field": field, "type": source_body_types[field], "required": False} if field in source_body_types else {"field": field, "required": False}) for field in body_fields],
         "params": [{"field": field, "required": False} for field in ["userCode", "periodStart", "periodEnd", "offset", "limit"]] if name == "findUsage" else [],
     }
     # Replace every backend and audit call, keeping validation and mapping intact.
@@ -257,7 +258,7 @@ for method, name, service, version, sample, success in operations:
     used = json.dumps({k: v for k, v in data.items() if k != "declaration"})
     data["declaration"]["allowlist"]["headers"] = [h for h in data["declaration"]["allowlist"]["headers"]
                                                    if h["field"] == "content-type" or f"headers['{h['field']}']" in used or f"headers.{h['field']}" in used]
-    data["declaration"] = {"internal": False, **data["declaration"]}
+    data["declaration"] = {"internal": False, "returns": [], **data["declaration"]}
     emit(DEST / (method + mock_path + ".yml"), data)
     emit(DOCS / "examples" / (name + "-request.json"), json_text(sample))
     emit(DOCS / "examples" / (name + "-success.json"), json_text(wire(success)))

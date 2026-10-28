@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -56,8 +57,10 @@ callXtr:
 
 checkStatus:
   switch:
+    - condition: ${carrierRegistryRes == null || carrierRegistryRes.response == null}
+      next: logNetworkFailure
     - condition: >-
-        ${carrierRegistryRes.response == null || carrierRegistryRes.response.status == null || carrierRegistryRes.response.status < 200 || carrierRegistryRes.response.status >= 300}
+        ${carrierRegistryRes.response.status == null || carrierRegistryRes.response.status < 200 || carrierRegistryRes.response.status >= 300}
       next: logStatusFailure
   next: logSuccess
 
@@ -66,6 +69,7 @@ logSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -87,6 +91,7 @@ logStatusFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -108,6 +113,7 @@ logNetworkFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

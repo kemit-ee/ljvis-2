@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Create or revise an NU draft using identity data from its eligible source declaration."
   namespace: erru
@@ -91,6 +92,7 @@ loadExisting:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -114,6 +116,7 @@ getSource:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/get-source"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -176,6 +179,7 @@ saveDraft:
   args:
     url: "[#LJVIS_RESQL]/erru/nu/save-draft"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body:
       key: "${id || null}"

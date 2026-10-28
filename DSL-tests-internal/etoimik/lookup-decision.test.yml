@@ -140,7 +140,7 @@ tests:
         resultStatus: error
         enforcementDecision: ''
         proceedingClosureBasis: ''
-        errorMessage: puudub viitenumber või isikutuvastus (isikukood või eesnimi + perekonnanimi + sünniaeg)
+        errorMessage: vajalik on täpselt üks asja number või viitenumber ning isikutuvastus (isikukood või eesnimi + perekonnanimi + sünniaeg)
 
 - name: Estonian with nothing found by code is retried once by name and birth date
   setup:
@@ -186,3 +186,305 @@ tests:
     count: 2
   - url_matches: /resql/xroad/log_integration
     count: 2
+
+- name: case number - code lookup finds the decision, no second request
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          'ns:AnnaIsikuKvalifikatsioonidResponse':
+            response:
+              Menetlused:
+                item:
+                  Toimingud:
+                    item:
+                      Toiminguosalised:
+                        item:
+                          Isik: { Kood: '36306240638', Eesnimi: JAAN, Nimi: VAARIKAS }
+                          Sanktsioonid:
+                            item:
+                              AluseksOlevadSyydistusPunktid:
+                                item:
+                                  LahendKL: 20512
+                                  LahendiKP: '2025-02-07T00:00:00'
+                                  SulgemiseKP: { '@xsi:nil': '1' }
+                                  SyydistusPunktCSV: KarS § 100 lg 2
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      case_number: '1-26-123'
+      reference_number: ''
+      personal_code: '36306240638'
+      first_name: JAAN
+      last_name: VAARIKAS
+      birth_date: '1963-06-24'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '1'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: true
+        resultStatus: found
+        enforcementDecision: KarS § 100 lg 2, otsuse kuupäev 07.02.2025
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 1
+    body_matches:
+      case_number: '1-26-123'
+      reference_number: ''
+      personal_code: '36306240638'
+
+
+- name: case number - foreigner without code is looked up by name and birth date only
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          'ns:AnnaIsikuKvalifikatsioonidResponse':
+            response: { '@xsi:nil': '1' }
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      case_number: '1-26-123'
+      personal_code: ''
+      first_name: JOHN
+      last_name: SMITH
+      birth_date: '1980-05-17'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '2'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: false
+        resultStatus: not_found
+        enforcementDecision: ''
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 1
+    body_matches:
+      case_number: '1-26-123'
+      reference_number: ''
+      first_name: JOHN
+      last_name: SMITH
+      birth_date: '1980-05-17'
+
+
+- name: case number - Estonian with nothing found by code is retried once by name and birth date
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          'ns:AnnaIsikuKvalifikatsioonidResponse':
+            response: { '@xsi:nil': '1' }
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      case_number: '1-26-123'
+      personal_code: '36306240638'
+      first_name: JAAN
+      last_name: VAARIKAS
+      birth_date: '1963-06-24'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '4'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: false
+        resultStatus: not_found
+        enforcementDecision: ''
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 2
+    body_matches:
+      case_number: '1-26-123'
+      reference_number: ''
+  - url_matches: /resql/xroad/log_integration
+    count: 2
+
+- name: received case without applicable decision - code
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          ns:AnnaIsikuKvalifikatsioonidResponse:
+            response:
+              Menetlused:
+                item:
+                  Toimingud:
+                    item:
+                      Toiminguosalised:
+                        item:
+                          Isik:
+                            Kood: '36306240638'
+                            Eesnimi: JAAN
+                            Nimi: VAARIKAS
+                          Sanktsioonid:
+                            '@xsi:nil': '1'
+                      Alus:
+                        item:
+                          Paragrahv: '43'
+                          SeadustikKL: 103070
+                          Tekst: Ilmumata jäämise eest trahvimine ja sundtoomine
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      case_number: 1-26-123
+      reference_number: ''
+      personal_code: '36306240638'
+      first_name: JAAN
+      last_name: VAARIKAS
+      birth_date: '1963-06-24'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '1'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: false
+        resultStatus: unmapped
+        enforcementDecision: ''
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 1
+    body_matches:
+      case_number: 1-26-123
+      reference_number: ''
+      personal_code: '36306240638'
+  - url_matches: /resql/xroad/log_integration
+    count: 1
+    body_matches:
+      result_status: unmapped
+      success: true
+
+- name: received case without applicable decision - name
+  setup:
+    mocks:
+    - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+      method: POST
+      status: 200
+      body:
+        body:
+          ns:AnnaIsikuKvalifikatsioonidResponse:
+            response:
+              Menetlused:
+                item:
+                  Toimingud:
+                    item:
+                      Toiminguosalised:
+                        item:
+                          Isik:
+                            Kood: '36306240638'
+                            Eesnimi: JAAN
+                            Nimi: VAARIKAS
+                          Sanktsioonid:
+                            '@xsi:nil': '1'
+                      Alus:
+                        item:
+                          Paragrahv: '43'
+                          SeadustikKL: 103070
+                          Tekst: Ilmumata jäämise eest trahvimine ja sundtoomine
+    - url_matches: /resql/xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/etoimik/lookup-decision
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      case_number: 1-26-123
+      reference_number: ''
+      personal_code: ''
+      first_name: JAAN
+      last_name: VAARIKAS
+      birth_date: '1963-06-24'
+      service_code: etoimik.test
+      source_type: sp_driver_form
+      source_record_id: '1'
+  expect:
+    status: 200
+    body:
+      response:
+        success: true
+        found: false
+        resultStatus: unmapped
+        enforcementDecision: ''
+        proceedingClosureBasis: ''
+        errorMessage: ''
+  verify_mocks:
+  - url_matches: /xtr/etoimik/AnnaIsikuKvalifikatsioonid
+    count: 1
+    body_matches:
+      case_number: 1-26-123
+      first_name: JAAN
+      last_name: VAARIKAS
+  - url_matches: /resql/xroad/log_integration
+    count: 1
+    body_matches:
+      result_status: unmapped
+      success: true
