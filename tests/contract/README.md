@@ -46,3 +46,13 @@ python3 -B -m unittest discover -s tests/contract -p test_resql_append_only.py
 The only exemption is the retention-purge `DELETE` (`DSL/Resql/ljvis/POST/archive/purge_confirmed.sql`), listed with a rationale in `.sql-rule-exemption`. An entry must sit under an `archive/` directory, may contain nothing but that `DELETE`, and fails CI when it no longer matches a violation. The 3-step contract (select and copy, verify in the archive, delete) is in ADR-013.
 
 Known limits: an implicit comma join (`FROM a, b WHERE ...`) is not detected; review it by hand. Rewrite a `JOIN` as `WHERE x = ANY (SELECT ...)`, `EXISTS` or a correlated scalar subquery (`(SELECT c FROM t c WHERE ... ORDER BY created_at DESC LIMIT 1)` for the latest snapshot).
+
+## DMapper text safety
+
+`check_dmapper_text_escape.py` keeps free text JSON-safe in the DMapper templates. A plain `"{{this.x}}"` HTML-escapes the value but does not JSON-escape it, so a backslash or a tab in the value makes the response invalid JSON and the form cannot open. Free text must use `{{{json this.x}}}`. A plain interpolation is only allowed for a field listed in `dmapper-plain-fields.txt` (ids, codes, dates, numbers, enums). `test_dmapper_text_escape.py` proves the rule on a temp tree.
+
+`dmapper_text_runtime.py` sends hostile text to every template that uses the json helper and checks that the response stays valid JSON with the same keys and returns the text unchanged. It does not find fields that still use the plain form: the static check does that. Run it against a DataMapper container:
+
+```bash
+DMAPPER_URL=http://localhost:3005 python3 tests/contract/dmapper_text_runtime.py
+```
