@@ -4,6 +4,14 @@
 
 ## 2026-10-28
 
+### Tekstiväljad: tabulaator ja kaldkriips ei riku enam vormi avamist
+
+- Nime-, aadressi-, registrinumbri- ja märkuseväljad tagastatakse nüüd täpselt sellisena, nagu need sisestati. Varem muutis tabulaator või rea lõpus olev kaldkriips (`\`) vastuse vigaseks ja vorm ei avanenud. Märgid `&`, `<` ja `"` kuvati varem kujul `&amp;`, `&lt;` ja `&quot;`. Nüüd kuvatakse need õigesti.
+- Välisriigi rikkumise kontrollkaart lükkab salvestamisel ja kinnitamisel tagasi väljad, mis sisaldavad juhtmärke (nt tabulaator, reavahetus ühe rea väljal) või ületavad andmebaasi pikkusepiiri. Veateade ilmub vastava välja juurde. Märkuseväljadel on reavahetus ja tabulaator lubatud.
+- Kontroll on automaatne: CI keelab uue tekstivälja lisamise malli ilma turvalise kodeeringuta ja jooksutab testi töötava andmemapperi vastu.
+
+## 2026-10-28
+
 ### Arhitektuuridokument: INSERT-only mustri erand
 
 - Dokument „Ruuter, RESQL ja DataMapper arhitektuur" nimetab nüüd INSERT-only mustri erandi. Ainult `archive/` kataloogi arhiveerimismallid võivad teha säilitustähtaja järgset `DELETE`-i ja isikuandmete eemaldamise `UPDATE`-i. Iga erand on nimeliselt loetletud failis `.sql-rule-exemption` ja CI kontrollib seda. Koodi ja käitumist see ei muuda.

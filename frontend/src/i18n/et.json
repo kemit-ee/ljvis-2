@@ -550,6 +550,7 @@
           "required": "Kohustuslik väli",
           "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
           "max_length_exceeded": "Väärtus on liiga pikk",
+          "invalid_characters": "Väli sisaldab lubamatuid märke (nt tabulaator või juhtmärk)",
           "form_locked_after_confirm": "See vorm on kinnitatud ja seda ei saa enam muuta",
           "already_confirmed": "See vorm on juba kinnitatud"
         }

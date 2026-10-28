@@ -436,6 +436,7 @@
           "required": "Required field",
           "future_date_not_allowed": "Date cannot be in the future",
           "max_length_exceeded": "Value is too long",
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
           "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
           "already_confirmed": "This form has already been confirmed"
         }
