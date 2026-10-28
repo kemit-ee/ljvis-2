@@ -14,6 +14,7 @@ declaration:
       - field: kontrollija
         type: string
       - field: kontrolli_id
+        type: any
       - field: kontrolli_kp
         type: string
       - field: tooandja_nimi
@@ -25,11 +26,13 @@ declaration:
       - field: rikkumised
         type: object
       - field: koostatud_ettekirjutus
+        type: any
       - field: kontrolli_tyyp
         type: string
       - field: vaarteomenetlus
         type: object
       - field: soidukite_arv
+        type: any
 
 # Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
 validateKontrollija:

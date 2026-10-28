@@ -15,6 +15,7 @@ declaration:
       - field: kontrollija
         type: string
       - field: kontrolli_id
+        type: any
       - field: kontrolli_kp
         type: string
       - field: tooandja_nimi
@@ -26,6 +27,7 @@ declaration:
       - field: rikkumised
         type: object
       - field: koostatatud_ettekirjutus
+        type: any
       - field: juhi_isikukood
         type: string
       - field: menetluse_liik
@@ -37,6 +39,7 @@ declaration:
       - field: juhi_perekonnanimi
         type: string
       - field: soidukite_arv
+        type: any
       - field: menetluse_number
         type: string
       - field: juhi_eesnimi

@@ -109,6 +109,12 @@ mapResponse:
     body:
       forms: ${res.response.body}
   result: mapped
+  next: initNotificationHistory
+
+# Ajalugu on abiinfo: päringu vea korral läheb `error:` otse returnSuccess'ile tühja ajalooga.
+initNotificationHistory:
+  assign:
+    notification_history: []
   next: getNotificationHistory
 
 # p.5: teavituse saatmise ajalugu (kuupäevad) tuleb notifications.outbound_log-ist,
@@ -130,7 +136,7 @@ getNotificationHistory:
       sort_by: "send_date"
       sort_dir: "desc"
   result: historyRes
-  error: returnSuccessWithoutHistory
+  error: returnSuccess
   next: mergeNotificationHistory
 
 mergeNotificationHistory:
@@ -143,10 +149,6 @@ mergeNotificationHistory:
 
 returnSuccess:
   return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: notification_history })}"
-  next: end
-
-returnSuccessWithoutHistory:
-  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: [] })}"
   next: end
 
 returnNotFound:
