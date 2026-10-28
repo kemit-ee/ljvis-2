@@ -9,13 +9,14 @@ function yesterday(): Date {
   return d;
 }
 
-/** Vaikefilter: eile — täna, kõik kolm staatust märgitud (kirjeldus real lehel avanedes). */
+/** Vaikefilter: eile — täna, kõik neli staatust märgitud (kirjeldus real lehel avanedes). */
 const DEFAULT_FILTERS: XroadLogFilters = {
   dateFrom: toIsoDate(yesterday()),
   dateTo: toIsoDate(new Date()),
   includeFound: 'true',
   includeNotFound: 'true',
   includeError: 'true',
+  includeUnmapped: 'true',
   allServices: 'false',
 };
 

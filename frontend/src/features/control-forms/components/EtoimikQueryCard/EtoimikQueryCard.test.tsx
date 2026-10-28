@@ -138,6 +138,24 @@ describe('CompoundEtoimikQueryCard', () => {
     expect(container.innerHTML).toBe('');
   });
 
+  it.each(['YLD', 'general'])('üldmenetlus %s saadab asja numbri; sama numbriga kiirmenetlus saadab viitenumbri', async (proceedingType) => {
+    vi.mocked(queryEtoimikQualifications).mockResolvedValue(null);
+    render(<CompoundEtoimikQueryCard compoundForm={{ drivers: [ee] }} compoundFormKey={1}
+      driver={{ proceedingReferenceNumber: '123', proceedingType }}
+      vehicle={{ proceedingReferenceNumber: '123', proceedingType: 'expedited' }} />);
+    fireEvent.change(sel('etoimikReferenceNumber'), { target: { value: 'case:123' } });
+    fireEvent.click(screen.getByText('etoimik.queryButton'));
+    await waitFor(() => expect(queryEtoimikQualifications).toHaveBeenLastCalledWith(
+      expect.objectContaining({ caseNumber: '123', referenceNumber: '' }),
+    ));
+    await waitFor(() => expect((screen.getByText('etoimik.queryButton') as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.change(sel('etoimikReferenceNumber'), { target: { value: '123' } });
+    fireEvent.click(screen.getByText('etoimik.queryButton'));
+    await waitFor(() => expect(queryEtoimikQualifications).toHaveBeenLastCalledWith(
+      expect.objectContaining({ caseNumber: '', referenceNumber: '123' }),
+    ));
+  });
+
   it('koostab viitenumbrite valikud alamvormidest ja parsib juhid (massiiv, JSON, vigane)', () => {
     const cf = { drivers: [ee] };
     const { rerender } = render(

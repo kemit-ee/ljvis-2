@@ -24,6 +24,9 @@ returns:
 - name: person_birth_date
   type: string
   nullable: true
+- name: proceeding_type
+  type: string
+  nullable: true
 */
 -- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 -- `latest` must resolve one row per key (the true latest snapshot) BEFORE any
@@ -32,6 +35,7 @@ WITH latest AS (
   SELECT DISTINCT ON (tram_control_card_key)
       tram_control_card_key AS id,
       status,
+      proceeding_type,
       proceeding_reference_number,
       drivers,
       enforcement_decision,
@@ -41,6 +45,7 @@ WITH latest AS (
 )
 SELECT
   id,
+  proceeding_type,
   proceeding_reference_number,
   btrim(drivers -> 0 ->> 'personalCodeEe') AS driver_personal_code,
   (COALESCE(drivers -> 0 ->> 'firstName', drivers -> 0 ->> 'first_name')) AS person_first_name,

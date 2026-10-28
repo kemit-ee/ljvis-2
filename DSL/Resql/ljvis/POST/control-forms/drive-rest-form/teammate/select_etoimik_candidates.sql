@@ -27,6 +27,9 @@ returns:
 - name: person_birth_date
   type: string
   nullable: true
+- name: proceeding_type
+  type: string
+  nullable: true
 */
 -- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 -- `latest_st` peab lahendama ühe rea per võti (tõeline uusim snapshot) ENNE
@@ -49,7 +52,7 @@ WITH latest_st AS (
   ORDER BY sp_teammate_form_key, created_at DESC
 ),
 cand AS (
-  SELECT s.id, s.compound_form_key, s.proceeding_reference_number, s.person_code_ee, s.person_first_name, s.person_last_name, s.person_birth_date
+  SELECT s.id, s.compound_form_key, s.proceeding_type, s.proceeding_reference_number, s.person_code_ee, s.person_first_name, s.person_last_name, s.person_birth_date
   FROM latest_st s
   WHERE s.status = 'confirmed'
     AND s.proceeding_type IS NOT NULL AND s.proceeding_type <> 'none'
@@ -61,13 +64,14 @@ cand AS (
     AND s.created_at >= now() - INTERVAL '365 days'
 ),
 resolved AS (
-  SELECT cand.id, cand.compound_form_key, cand.proceeding_reference_number, cand.person_code_ee, cand.person_first_name, cand.person_last_name, cand.person_birth_date,
+  SELECT cand.id, cand.compound_form_key, cand.proceeding_type, cand.proceeding_reference_number, cand.person_code_ee, cand.person_first_name, cand.person_last_name, cand.person_birth_date,
          (SELECT c FROM forms.compound_form c WHERE c.compound_form_key = cand.compound_form_key ORDER BY c.created_at DESC LIMIT 1) AS cf
   FROM cand
 )
 SELECT
   id,
   compound_form_key,
+  proceeding_type,
   proceeding_reference_number,
   person_code_ee AS person_personal_code,
   person_first_name,
