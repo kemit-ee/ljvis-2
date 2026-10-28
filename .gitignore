@@ -75,3 +75,6 @@ scripts/.resql-audit.json
 
 # Jõudlustestide väljund
 /tests/performance/tulemus/
+
+# graphify
+graphify-out/
