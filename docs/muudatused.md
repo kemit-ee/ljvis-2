@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-28
+
+### Sõidumeerikuvormi uuesti salvestamine
+
+- Varem salvestatud juhi või kaasjuhi sõidu- ja puhkeaja vormi saab taas salvestada ja kinnitada, ilma et päevade arvu (kontrollitud päevad, tööpäevad, muu tegevuse päevad) väljasid peaks käsitsi muutma. Pärast päringute tüüpide kontrolli sisseviimist lükkas server sellise salvestuse tagasi vastusega 400.
+
 ## 2026-10-27
 
 ### Päringute sisendi kontroll: tüübid ja audit

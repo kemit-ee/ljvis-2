@@ -75,6 +75,8 @@ export function createDriveRestValidationSchema(
   });
 }
 
+const dayCountToString = (v: unknown) => (v == null ? v : String(v)) as string | undefined;
+
 export function serializeDriveRestFormValues(
   values: Partial<DriveRestForm> & Record<string, unknown>,
   status: string,
@@ -131,6 +133,11 @@ export function serializeDriveRestFormValues(
       ? JSON.stringify(values.massDimensionMeasurements)
       : (values.massDimensionMeasurements ?? '[]'),
     massDimensionNonCompliant: values.massDimensionNonCompliant ?? false,
+    // Day counts are INTEGER columns, so an unedited API snapshot carries JSON numbers, while
+    // edit/save|confirm declare them type: string (Ruuter answers 400 "Field type mismatch" otherwise).
+    checkedDaysCount: dayCountToString(values.checkedDaysCount),
+    workDaysCount: dayCountToString(values.workDaysCount),
+    otherActivityDaysCount: dayCountToString(values.otherActivityDaysCount),
     atpViolationFound: String(values.atpViolationFound ?? false),
     erruPoints: Array.isArray(values.erruPoints)
       ? JSON.stringify(values.erruPoints)
