@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Kõik teavituse liigid ja nende kehtiv Postkast 2.0 malli tunnus / vaikimisi

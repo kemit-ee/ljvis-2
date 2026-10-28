@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Send an eligible outgoing NU draft as ERRU 3.5 XML. The XML is validated first, nu_begin_send then reserves the envelope (status sending) and the internal XML adapter makes one Hub dispatch. Hub HTTP 202 makes the message sent, a definite rejection error, an uncertain outcome send_unknown (never resent). The member states' NotifyUnfitness_Acknowledgement messages arrive later and fill member_states (nu/inbound-ack). Failed messages cannot be resent: a new notification must be composed."
   namespace: erru

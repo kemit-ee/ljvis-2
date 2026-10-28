@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -11,6 +12,7 @@ declaration:
   allowlist:
     body:
       - field: isikukood
+        type: string
 
 # Samm 1: Valideeri isikukood - Eesti isikukoodi formaat (11 numbrit, algab 1-6)
 validateInput:

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -13,6 +14,7 @@ declaration:
   allowlist:
     body:
       - field: confirmed
+        type: object
 
 # Samm 1: Kinnita et confirmed.item[] on olemas ja ei ole tühi
 validateItems:

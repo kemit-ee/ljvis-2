@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -16,6 +17,7 @@ declaration:
       - field: companyName
         type: string
       - field: maxResults
+        type: integer
 
 validate:
   switch:

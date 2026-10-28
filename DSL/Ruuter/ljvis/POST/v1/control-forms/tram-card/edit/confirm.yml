@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Confirm (kinnita) a TRAM control card. Validates the form, then appends a 'confirmed' snapshot. Unlike labour-inspection there is no violations gate - a card with violations may be confirmed and then either published manually or auto-published when e-toimik returns an entered-into-force decision."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: notifyCarrier
         type: string
       - field: controlDate
@@ -89,6 +92,7 @@ declaration:
       - field: drivers
         type: string
       - field: driverNotApplicable
+        type: boolean
       - field: transportType
         type: string
       - field: transportEmptyRun

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Generate a filled, historical or blank transport-interruption PDF."
   namespace: control-forms

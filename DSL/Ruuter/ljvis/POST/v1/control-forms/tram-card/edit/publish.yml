@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Publish (avalikusta) a TRAM control card. Only allowed from 'confirmed'. Field values are taken from the current DB record - the client only sends id. Bumps /V and triggers a company risk-score recalculation."

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -39,8 +40,10 @@ declaration:
         type: string
         description: "Required when scope=company - 8-digit Estonian company registry code."
       - field: page
+        type: string
         description: "Page number (1-based)"
       - field: page_size
+        type: string
         description: "Rows per page"
       - field: sorting
         type: string

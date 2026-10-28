@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Lisab notification_template_mapping'ile uue versiooni (append-only -

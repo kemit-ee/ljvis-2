@@ -122,7 +122,7 @@ export async function deleteCompoundForm(id: number): Promise<void> {
 
 const VEHICLE_TECHNICAL_DEFAULTS: Record<string, unknown> = {
   id: '',
-  revision: '',
+  revision: null,
   partsSummary: '[]',
   partsDefects: '[]',
   resultType: 'ok',
@@ -170,7 +170,7 @@ export async function publishVehicleTechnicalForm(
   const id = saved[0].id;
 
   const confirmRes = await api.post('/ljvis/v1/control-forms/vehicle-technical/edit/confirm', {
-    data: { ...body, id },
+    data: { ...body, id: String(id) },
     headers: { 'Content-Type': 'application/json' },
   });
   if (!confirmRes.ok()) {

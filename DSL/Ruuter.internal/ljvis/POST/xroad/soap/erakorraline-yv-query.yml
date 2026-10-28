@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     LJVIS1 SOAP ErakorralineYVquery: calls the REST handler xroad/provide/erakorraline-yv-query and maps its answer to the WSDL ErakorralineYvQueryResponseType.

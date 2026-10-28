@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Receive the ASYNCHRONOUS substantive NCR response from the destination member state

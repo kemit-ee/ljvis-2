@@ -1,0 +1,8 @@
+DSL/Ruuter/ljvis/GET/templates/form/foreign-violation/notify-transition-and-send.yml: step 'markCarrierEmailLookupFailed' is not reachable from entry 'declarati
+DSL/Ruuter/ljvis/GET/templates/xroad/lookup-carrier-registry-email.yml: step 'logNetworkFailure' is not reachable from entry 'declaration'
+DSL/Ruuter/ljvis/GET/v1/control-forms/foreign-violation-form.yml: step 'returnSuccessWithoutHistory' is not reachable from entry 'declaration'
+DSL/Ruuter/ljvis/POST/v1/control-forms/drive-rest-form/driver/edit/publish.yml: step 'returnPublishError' is not reachable from entry 'declaration'
+DSL/Ruuter/ljvis/POST/v1/control-forms/drive-rest-form/teammate/edit/publish.yml: step 'returnPublishError' is not reachable from entry 'declaration'
+ljvis/POST/v1/ehak/list [declaration.body.type_missing] ["parentId"]
+xtee-mock/POST/xroad/v1/register-job-inspection [declaration.body.type_missing] ["kontrolli_id", "koostatatud_ettekirjutus", "soidukite_arv"]
+xtee-mock/POST/xroad/v1/register-job-inspection-v3 [declaration.body.type_missing] ["kontrolli_id", "koostatatud_ettekirjutus", "soidukite_arv"]

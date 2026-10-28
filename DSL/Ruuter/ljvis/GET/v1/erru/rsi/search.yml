@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Paginated, filtered RSI message list - both incoming and outgoing (LJVIS2-149). Unlike
     the CGR list (outgoing-only), the specification includes both directions. ID and vehicleRegistrationNumber

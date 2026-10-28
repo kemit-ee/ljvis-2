@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     UC-04: ebaõnnestunud Postkast 2.0 teavituse uuesti saatmine, MUUTMATA kujul

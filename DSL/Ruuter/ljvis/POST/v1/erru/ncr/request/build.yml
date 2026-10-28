@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Eeltäitmine (LJVIS2-64 §4.1): build a new outgoing NCR request draft from an
     SP control-form sub-form or a TRAM control card (spFormType 'driver'/'teammate'/'tram').

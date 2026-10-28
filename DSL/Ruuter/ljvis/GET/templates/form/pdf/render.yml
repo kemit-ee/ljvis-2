@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Render an allow-listed control-form PDF and record the print audit event."
   namespace: service

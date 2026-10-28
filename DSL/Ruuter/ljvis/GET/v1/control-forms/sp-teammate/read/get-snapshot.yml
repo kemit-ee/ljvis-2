@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get version history snapshot for a drive rest form (teammate)"
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: formKey
+        type: string
       - field: id
+        type: string
     headers:
       - field: cookie
         type: string

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Reserve an outgoing CGR envelope, send it through the internal XML adapter and store the Hub acceptance (LJVIS2-139). The adapter validates ERRU 3.5 XML and performs one HTTP dispatch; only its accepted result means HTTP 202 from the Hub. Transport uncertainty is send_unknown and cannot be retried. A definite rejection becomes error and may be retried. The member states answer later, each in its own CheckGoodRepute_Response, correlated by the persisted workflowId (cgr/inbound-response). Flow: get the draft, validate it is sendable (initiated or error), compute NYSIIS search keys if the 7A (name) block is used, validate the XML, reserve the envelope (begin-send), send, then append sent, error or send_unknown."
   namespace: erru

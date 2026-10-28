@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get good repute form (hea maine vorm) by key (latest snapshot). LJVIS2-136."

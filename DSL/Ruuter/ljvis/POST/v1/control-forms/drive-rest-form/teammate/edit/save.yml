@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create or update the drive rest form for teammate - single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
@@ -7,8 +8,11 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: compoundFormKey
+        type: integer
       - field: subFormNumber
         type: string
       - field: selectionStatus
@@ -16,9 +20,11 @@ declaration:
       - field: transportType
         type: string
       - field: transportEmptyRun
+        type: boolean
       - field: transportNature
         type: string
       - field: transportNatureExempt
+        type: boolean
       - field: transportClasses
         type: string
       - field: resultType
@@ -38,11 +44,15 @@ declaration:
       - field: tachographTypeCode
         type: string
       - field: tachographDataNotDownloaded
+        type: boolean
       - field: tachographNotes
         type: string
       - field: checkedDaysCount
+        type: string
       - field: workDaysCount
+        type: string
       - field: otherActivityDaysCount
+        type: string
       - field: violations5612006
         type: string
       - field: violations1652014
@@ -210,8 +220,8 @@ logAuditEventInsert:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sp_teammate_form_key: ${sp_teammate_form_key}
-    compound_form_key: ${compound_form_key}
+    sp_teammate_form_key: "${String((sp_teammate_form_key) ?? '')}"
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     result_type: ${result_type}
     proceeding_type: ${proceeding_type}
@@ -361,8 +371,8 @@ logAuditEventUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sp_teammate_form_key: ${sp_teammate_form_key}
-    compound_form_key: ${current_compound_form_key}
+    sp_teammate_form_key: "${String((sp_teammate_form_key) ?? '')}"
+    compound_form_key: "${String((current_compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     result_type: ${result_type}
     proceeding_type: ${proceeding_type}

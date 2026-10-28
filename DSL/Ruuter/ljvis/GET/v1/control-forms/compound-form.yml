@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a single compound form by ID"
@@ -104,7 +105,7 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    form_key: ${id}
+    form_key: "${String((id) ?? '')}"
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}

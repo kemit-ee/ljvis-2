@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Reserve an outgoing CTUD envelope, send it through the internal XML adapter and store the Hub acceptance (LJVIS2-144). The adapter validates ERRU 3.5 XML and performs one HTTP dispatch; only its accepted result means HTTP 202 from the Hub. The flow is initiated|error -> sending -> sent (or send_unknown, or error after a definite rejection, which may be retried). The target country's CheckTransportUndertakingData_Response arrives later through /erru/xml and is correlated by the persisted workflowId (ctud/inbound-response), which moves the request to responded. Timeout and NotAvailable are outcomes of a successful exchange set by the ERRU Hub and lead to responded. An uncertain transport outcome (send_unknown) must not be retried. Every outbound call is logged to xroad.xroad_integration_log."
   namespace: erru

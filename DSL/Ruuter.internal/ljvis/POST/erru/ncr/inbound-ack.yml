@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Receive an ASYNCHRONOUS NotifyCheckResult_Acknowledgement from the ERRU hub. NCRN_Ack answers

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -12,21 +13,34 @@ declaration:
   allowlist:
     body:
       - field: kontrollija
+        type: string
       - field: kontrolli_id
       - field: kontrolli_kp
+        type: string
       - field: tooandja_nimi
+        type: string
       - field: tooandja_reg_kood
+        type: string
       - field: kontrollimised
+        type: object
       - field: rikkumised
+        type: object
       - field: koostatatud_ettekirjutus
       - field: juhi_isikukood
+        type: string
       - field: menetluse_liik
+        type: string
       - field: soiduki_reg_nr
+        type: string
       - field: soiduki_vin
+        type: string
       - field: juhi_perekonnanimi
+        type: string
       - field: soidukite_arv
       - field: menetluse_number
+        type: string
       - field: juhi_eesnimi
+        type: string
 
 # Samm 1-5: Valideeri v1 kohustuslikud väljad (samad nõuded mis v1-s)
 validateKontrollija:

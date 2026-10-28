@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Audit: single CTUD request viewed (LJVIS2-143). Logged on EVERY open of the request, because the view shows transport undertaking data. The description carries the request identifier, the searched undertaking details, the target country and the viewer's personal code, which is what makes it traceable who saw whose data."
   namespace: service

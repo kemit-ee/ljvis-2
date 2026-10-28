@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Export audit logs as CSV. audit.read exports all organisations; only audit.read.local restricts to the caller's own organisation."

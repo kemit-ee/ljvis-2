@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -11,7 +12,9 @@ declaration:
   allowlist:
     body:
       - field: alates
+        type: string
       - field: kuni
+        type: string
 
 # Samm 1: Alguskuupäev on kohustuslik (piiramatu päring pole lubatud)
 validateAlates:

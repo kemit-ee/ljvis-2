@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a single transport-interruption form snapshot by snapshot ID, for the read-only historical version view."

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get transport-interruption sub-form by id (latest snapshot)"
@@ -121,9 +122,9 @@ logAuditEvent:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
-    compound_form_key: ${compound_form_key}
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
     driver2PersonalCodeEe: ${driver2_personal_code_ee}

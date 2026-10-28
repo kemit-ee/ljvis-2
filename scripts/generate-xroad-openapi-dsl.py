@@ -27,6 +27,7 @@ check = "--check" in sys.argv
 
 HEADER = '''declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-

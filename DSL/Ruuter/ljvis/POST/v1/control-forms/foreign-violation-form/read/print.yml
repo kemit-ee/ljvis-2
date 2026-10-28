@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Generate a filled, historical or blank foreign-violation-form PDF."
   namespace: control-forms
