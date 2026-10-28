@@ -7,7 +7,8 @@
 ### Tekstiväljad: tabulaator ja kaldkriips ei riku enam vormi avamist
 
 - Nime-, aadressi-, registrinumbri- ja märkuseväljad tagastatakse nüüd täpselt sellisena, nagu need sisestati. Varem muutis tabulaator või rea lõpus olev kaldkriips (`\`) vastuse vigaseks ja vorm ei avanenud. Märgid `&`, `<` ja `"` kuvati varem kujul `&amp;`, `&lt;` ja `&quot;`. Nüüd kuvatakse need õigesti.
-- Välisriigi rikkumise kontrollkaart lükkab salvestamisel ja kinnitamisel tagasi väljad, mis sisaldavad juhtmärke (nt tabulaator, reavahetus ühe rea väljal) või ületavad andmebaasi pikkusepiiri. Veateade ilmub vastava välja juurde. Märkuseväljadel on reavahetus ja tabulaator lubatud.
+- Kõik kontrollkaardid (ADR, koondvorm, välisriigi rikkumine, hea maine, töökaitse, sõidu- ja puhkeaeg, tehniline kontroll, tram, katkestus) lükkavad salvestamisel ja kinnitamisel tagasi väljad, mis sisaldavad juhtmärke (nt tabulaator, reavahetus ühe rea väljal) või ületavad andmebaasi pikkusepiiri. Veateade ilmub vastava välja juurde. Märkuseväljadel on reavahetus ja tabulaator lubatud.
+- Sõidu- ja puhkeaja vorm kuvab nüüd serveri kontrollveateate välja juures. Varem ei näidanud see vorm salvestamise veast midagi.
 - Kontroll on automaatne: CI keelab uue tekstivälja lisamise malli ilma turvalise kodeeringuta ja jooksutab testi töötava andmemapperi vastu.
 
 ## 2026-10-28

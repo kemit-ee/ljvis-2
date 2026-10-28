@@ -584,6 +584,7 @@
       "validation": {
         "required": "Kohustuslik väli",
         "api": {
+          "invalid_characters": "Väli sisaldab lubamatuid märke (nt tabulaator või juhtmärk)",
           "required": "Kohustuslik väli",
           "future_date_not_allowed": "Kuupäev ei tohi olla tulevikus",
           "max_length_exceeded": "Väärtus on liiga pikk",
@@ -607,6 +608,8 @@
         "notesMaxLength": "Märkuste maht on piiratud 2000 tähemärgiga",
         "checkError": "Salvestamiseks peab olema vähemalt üks sõiduki osa või sõlm kontrollitud",
         "api": {
+          "invalid_characters": "Väli sisaldab lubamatuid märke (nt tabulaator või juhtmärk)",
+          "max_length_exceeded": "Väärtus on liiga pikk",
           "required": "Kohustuslik väli",
           "max_length_2000": "Märkuste maht on piiratud 2000 tähemärgiga",
           "form_locked_after_publish": "See vorm on avalikustatud ja seda ei saa enam muuta",
@@ -706,6 +709,8 @@
       "validation": {
         "postalCodeMaxLength": "Sihtnumber võib olla kuni {{max}} tähemärki",
         "api": {
+          "invalid_characters": "Väli sisaldab lubamatuid märke (nt tabulaator või juhtmärk)",
+          "max_length_exceeded": "Väärtus on liiga pikk",
           "required": "Kohustuslik väli",
           "form_locked_after_publish": "See vorm on avalikustatud ja seda ei saa enam muuta",
           "already_confirmed": "See vorm on juba kinnitatud"
@@ -854,6 +859,8 @@
         "required": "Kohustuslik väli",
         "notesMaxLength": "Märkused võivad olla kuni {{max}} tähemärki",
         "api": {
+          "invalid_characters": "Väli sisaldab lubamatuid märke (nt tabulaator või juhtmärk)",
+          "max_length_exceeded": "Väärtus on liiga pikk",
           "required": "Kohustuslik väli",
           "form_locked_after_publish": "See vorm on avalikustatud ja seda ei saa enam muuta",
           "already_confirmed": "See vorm on juba kinnitatud"
@@ -1311,12 +1318,20 @@
         "minorViolationsCount": "Lubatud kuni kolmekohaline number",
         "max_length": "Väli võib olla kuni {{max}} tähemärki",
         "api": {
+          "invalid_characters": "Väli sisaldab lubamatuid märke (nt tabulaator või juhtmärk)",
+          "max_length_exceeded": "Väärtus on liiga pikk",
           "required": "Kohustuslik väli",
           "invalid_personal_code": "Vigane isikukood"
         }
       }
     },
     "drive_rest": {
+      "validation": {
+        "api": {
+          "invalid_characters": "Väli sisaldab lubamatuid märke (nt tabulaator või juhtmärk)",
+          "max_length_exceeded": "Väärtus on liiga pikk"
+        }
+      },
       "teammatePerson": "Meeskonnaliige",
       "atpTitle": "ATP kokkuleppe nõuete kontroll",
       "sectionTitle": "Dokumendi või õiguse kontroll",

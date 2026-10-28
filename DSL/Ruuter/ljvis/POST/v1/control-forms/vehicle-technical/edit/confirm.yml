@@ -69,6 +69,16 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextFields
+
+validateTextFields:
+  switch:
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(proceeding_reference_number == null ? "" : proceeding_reference_number))}'
+      next: returnInvalidCharactersProceedingReferenceNumber
+    - condition: '${String(proceeding_reference_number == null ? "" : proceeding_reference_number).length > 50}'
+      next: returnMaxLengthProceedingReferenceNumber
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(notes == null ? "" : notes))}'
+      next: returnInvalidCharactersNotes
   next: getCurrentForm
 
 getCurrentForm:
@@ -218,4 +228,19 @@ check_confirmRes_persisted:
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
+  next: end
+
+returnInvalidCharactersProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"notes","code":"invalid_characters"}'
   next: end

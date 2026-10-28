@@ -72,11 +72,25 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
-  next: checkTrailerExclusions
-
+  next: validateTextFields
 # LJVIS2-72 §4: haagise vormil ei tohi esineda CAA_2/CAA_3/CAA_7/CAA_9 (ja nende
 # alamrikked) osade koondtabelis/parts_defects ega MSI203/MSI204/VSI847/SI926
 # rikkumistes.
+
+validateTextFields:
+  switch:
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(proceeding_reference_number == null ? "" : proceeding_reference_number))}'
+      next: returnInvalidCharactersProceedingReferenceNumber
+    - condition: '${String(proceeding_reference_number == null ? "" : proceeding_reference_number).length > 50}'
+      next: returnMaxLengthProceedingReferenceNumber
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(notes == null ? "" : notes))}'
+      next: returnInvalidCharactersNotes
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(trailer_reg_nr == null ? "" : trailer_reg_nr))}'
+      next: returnInvalidCharactersTrailerRegNr
+    - condition: '${String(trailer_reg_nr == null ? "" : trailer_reg_nr).length > 100}'
+      next: returnMaxLengthTrailerRegNr
+  next: checkTrailerExclusions
+
 checkTrailerExclusions:
   switch:
     - condition: "${['CAA_2','CAA_3','CAA_7','CAA_9'].some(c => parts_summary.indexOf('\"' + c + '\"') !== -1 || parts_defects.indexOf('\"' + c + '.') !== -1) || ['MSI203','MSI204','VSI847','SI926'].some(c => violations.indexOf(c) !== -1)}"
@@ -332,4 +346,29 @@ returnFormLockedError:
 returnTrailerExclusionError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"code_not_applicable_to_trailer"}'
+  next: end
+
+returnInvalidCharactersProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"notes","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersTrailerRegNr:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"trailerRegNr","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthTrailerRegNr:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"trailerRegNr","code":"max_length_exceeded"}'
   next: end

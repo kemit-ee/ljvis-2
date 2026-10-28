@@ -51,6 +51,34 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextFields
+
+validateTextFields:
+  switch:
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(header_text == null ? "" : header_text))}'
+      next: returnInvalidCharactersHeaderText
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(residence_region == null ? "" : residence_region))}'
+      next: returnInvalidCharactersResidenceRegion
+    - condition: '${String(residence_region == null ? "" : residence_region).length > 100}'
+      next: returnMaxLengthResidenceRegion
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(residence_city == null ? "" : residence_city))}'
+      next: returnInvalidCharactersResidenceCity
+    - condition: '${String(residence_city == null ? "" : residence_city).length > 100}'
+      next: returnMaxLengthResidenceCity
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(residence_address_line == null ? "" : residence_address_line))}'
+      next: returnInvalidCharactersResidenceAddressLine
+    - condition: '${String(residence_address_line == null ? "" : residence_address_line).length > 300}'
+      next: returnMaxLengthResidenceAddressLine
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(residence_postal_code == null ? "" : residence_postal_code))}'
+      next: returnInvalidCharactersResidencePostalCode
+    - condition: '${String(residence_postal_code == null ? "" : residence_postal_code).length > 10}'
+      next: returnMaxLengthResidencePostalCode
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(interruption_reason == null ? "" : interruption_reason))}'
+      next: returnInvalidCharactersInterruptionReason
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(termination_condition == null ? "" : termination_condition))}'
+      next: returnInvalidCharactersTerminationCondition
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(person_applications == null ? "" : person_applications))}'
+      next: returnInvalidCharactersPersonApplications
   next: getCurrentForm
 
 getCurrentForm:
@@ -171,4 +199,64 @@ check_confirmRes_persisted:
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
+  next: end
+
+returnInvalidCharactersHeaderText:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"headerText","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersResidenceRegion:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residenceRegion","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthResidenceRegion:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residenceRegion","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersResidenceCity:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residenceCity","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthResidenceCity:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residenceCity","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersResidenceAddressLine:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residenceAddressLine","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthResidenceAddressLine:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residenceAddressLine","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersResidencePostalCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residencePostalCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthResidencePostalCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"residencePostalCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInterruptionReason:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"interruptionReason","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersTerminationCondition:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"terminationCondition","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersPersonApplications:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"personApplications","code":"invalid_characters"}'
   next: end
