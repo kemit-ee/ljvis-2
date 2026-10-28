@@ -873,6 +873,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 driver.draftRef.current = null;
                 driver.setDraft(null);
               }}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishDriveRestForm('driver', form.id!).then(() =>
+                  handlePublished(() => refetchDriver()),
+                )
+              }
               canConfirm={canConfirm()}
               onConfirm={() => {}}
               formType={FORM_TYPE.DRIVER}
@@ -927,6 +933,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 teammate.draftRef.current = null;
                 teammate.setDraft(null);
               }}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishDriveRestForm('teammate', form.id!).then(() =>
+                  handlePublished(() => refetchTeammate()),
+                )
+              }
               canConfirm={canConfirm()}
               onConfirm={() => {}}
               formType={FORM_TYPE.TEAMMATE}
@@ -983,6 +995,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 vehicle.draftRef.current = null;
                 vehicle.setDraft(null);
               }}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishTechnicalCheckForm('vehicle', form.id!).then(() =>
+                  handlePublished(() => refetchTechCheck(vehicle, 'vehicle', undefined)),
+                )
+              }
               canConfirm={canConfirm()}
               onConfirm={() => {}}
               formType={FORM_TYPE.VEHICLE_TECHNICAL_CHECK}
@@ -1048,6 +1066,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                   trailerHandle.draftRef.current = null;
                   trailerHandle.setDraft(null);
                 }}
+                canPublish={canPublishSubForms()}
+                onPublish={() =>
+                  publishTechnicalCheckForm('trailer', form.id!).then(() =>
+                    handlePublished(() => refetchTechCheck(trailerHandle, 'trailer', idx)),
+                  )
+                }
                 canConfirm={canConfirm()}
                 onConfirm={() => {}}
                 formType={FORM_TYPE.TRAILER_TECHNICAL_CHECK}
@@ -1096,6 +1120,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 adr.setEditActive(false);
                 adr.resetDraft();
               }}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishAdrForm(form.id!).then(() =>
+                  handlePublished(() => refetchAdr()),
+                )
+              }
               canConfirm={canConfirm()}
               onConfirm={() => {}}
               formType={FORM_TYPE.ADR}
@@ -1149,6 +1179,12 @@ export function DriveRestFormPage({ entryType }: DriveRestFormPageProps) {
                 transportInterruption.setEditActive(false);
                 transportInterruption.resetDraft();
               }}
+              canPublish={canPublishSubForms()}
+              onPublish={() =>
+                publishTransportInterruptionForm(form.id!).then(() =>
+                  handlePublished(() => refetchTransportInterruption()),
+                )
+              }
               canConfirm={canConfirm()}
               onConfirm={() => {}}
               formType={FORM_TYPE.TRANSPORT_INTERRUPTION}

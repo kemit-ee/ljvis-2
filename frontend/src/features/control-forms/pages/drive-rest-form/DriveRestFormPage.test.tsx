@@ -157,6 +157,7 @@ vi.mock('../../components/DriveRestForm/DriveRestFormEditCard', async () => {
         <button onClick={() => p.onSaved('1', true)}>{`saved-confirmed-${p.scope}`}</button>
         <button onClick={() => p.onCancel()}>{`cancel-${p.scope}`}</button>
         <button onClick={() => p.onValuesChange({ changed: true })}>{`values-${p.scope}`}</button>
+        {p.canPublish && <button onClick={() => void p.onPublish?.()}>{`edit-publish-${p.scope}`}</button>}
       </div>
     )),
   };
@@ -434,6 +435,18 @@ describe('DriveRestFormPage – muutmine', () => {
     expect(screen.getByTestId('edit-driver')).toBeTruthy();
     expect(screen.getByTestId('compound-edit')).toBeTruthy();
     expect(screen.getByText('common.save')).toBeTruthy();
+  });
+
+  it('kinnitatud alamvormi muutmiskaardil on avalikusta nupp, kui koondvorm on salvestatud', async () => {
+    h.api.getDriveRestForm.mockResolvedValue(entry({ status: 'confirmed' }));
+    h.api.getByCompound.mockImplementation(async (scope: string) =>
+      scope === 'teammate' ? entry({ id: 6, status: 'saved' }) : entry({ id: 5, status: 'confirmed' }),
+    );
+    await mount();
+    await tick();
+    fireEvent.click(screen.getByText('edit-publish-driver'));
+    await tick();
+    expect(h.api.publishDr).toHaveBeenCalledWith('driver', 5);
   });
 
   it('muutmiskaardi tagasikutsed: salvestatud, kinnitatud, katkestatud, muutunud', async () => {

@@ -4,6 +4,9 @@
 
 ## 2026-10-28
 
+### Alamvormi leht: „Avalikusta" nupp kinnitatud vormil
+
+- Kui avasid üksiku alamvormi lehe (nt juhi sõidu- ja puhkeaja vorm), mille koondvorm oli veel „Salvestatud", jäi leht muutmisrežiimi ja kinnitatud alamvormil puudus „Avalikusta" nupp. Nupp on nüüd muutmisrežiimis olemas kõigil alamvormitüüpidel (juht, kaasjuht, sõiduk, haagis, ADR, veokatkestus). Koondvormi lehel see juba töötas.
 ### Arhitektuuridokument: INSERT-only mustri erand
 
 - Dokument „Ruuter, RESQL ja DataMapper arhitektuur" nimetab nüüd INSERT-only mustri erandi. Ainult `archive/` kataloogi arhiveerimismallid võivad teha säilitustähtaja järgset `DELETE`-i ja isikuandmete eemaldamise `UPDATE`-i. Iga erand on nimeliselt loetletud failis `.sql-rule-exemption` ja CI kontrollib seda. Koodi ja käitumist see ei muuda.
