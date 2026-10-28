@@ -4,6 +4,9 @@
 
 ## 2026-10-28
 
+### Arhitektuuridokument: INSERT-only mustri erand
+
+- Dokument „Ruuter, RESQL ja DataMapper arhitektuur" nimetab nüüd INSERT-only mustri erandi. Ainult `archive/` kataloogi arhiveerimismallid võivad teha säilitustähtaja järgset `DELETE`-i ja isikuandmete eemaldamise `UPDATE`-i. Iga erand on nimeliselt loetletud failis `.sql-rule-exemption` ja CI kontrollib seda. Koodi ja käitumist see ei muuda.
 ### Sõidumeerikuvormi uuesti salvestamine
 
 - Varem salvestatud juhi või kaasjuhi sõidu- ja puhkeaja vormi saab taas salvestada ja kinnitada, ilma et päevade arvu (kontrollitud päevad, tööpäevad, muu tegevuse päevad) väljasid peaks käsitsi muutma. Pärast päringute tüüpide kontrolli sisseviimist lükkas server sellise salvestuse tagasi vastusega 400.

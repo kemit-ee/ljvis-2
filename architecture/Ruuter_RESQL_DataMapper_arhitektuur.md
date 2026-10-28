@@ -108,7 +108,7 @@ RESQL on **REST-põhine andmebaasipäringute teenus**. Ta võtab vastu REST pär
 
 | Põhimõte | Selgitus |
 |----------|----------|
-| **Ainult INSERT ja SELECT** | UPDATE ja DELETE käsud on keelatud. Andmete "muutmine" toimub uue sissekande lisamisega. |
+| **Ainult INSERT ja SELECT** | UPDATE ja DELETE käsud on keelatud. Andmete "muutmine" toimub uue sissekande lisamisega. Erand: arhiveerimise cron-mallid kataloogis `archive/` (säilitustähtaja järgne `DELETE` ja isikuandmete eemaldamise `UPDATE`). Iga erand on nimeliselt loetletud failis `.sql-rule-exemption` ja CI kontrollib seda. |
 | **Staatused eraldi tabelis** | Nt `account` + `account_states`. Põhiandmestik ei muutu; staatus on alati viimane kirje eraldi tabelis (`ORDER BY timestamp DESC LIMIT 1`). |
 | **Ajaloo säilitamine** | Kõik muudatused jäävad ajalukku. See võimaldab tõendada, millal ja miks staatus muutus. |
 | **Arhiveerimine** | Aegunud kirjeid arhiveeritakse perioodiliselt (CronManager). Päringuloogika ei muutu – viimane kirje on alati kättesaadav. |
@@ -214,7 +214,7 @@ flowchart LR
 ### 6.2 RESQL-spetsiifilised
 
 - Üks fail = üks SQL päring (mitu lauset ühes failis keelatud)
-- Ainult INSERT ja SELECT (UPDATE, DELETE, JOIN keelatud)
+- Ainult INSERT ja SELECT (UPDATE, DELETE, JOIN keelatud). Erand: `archive/` cron-mallid, vt `.sql-rule-exemption`
 - Vaikimisi POST päringud; GET ainult parameetrita listide jaoks
 - Muutujad: `:muutujaNimi` (camelCase)
 - Väljundväljad: camelCase (SQL alias'te kaudu)
