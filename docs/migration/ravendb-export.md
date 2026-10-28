@@ -1,21 +1,22 @@
-# RavenDB eksport LJVIS1 migratsiooni jaoks
+# RavenDB eksport LJVIS 1 migratsiooni jaoks
 
+ERRU on Euroopa autoveoettevõtjate registrite andmevahetussüsteem.
 SQL Serveri `.bak` ei sisalda RavenDB-s hoitavate ERRU sõnumite ja vastuste ning
-tööinspektsiooni dokumentide täielikku sisu. Palume anda ka vastavate RavenDB
+tööinspektsiooni dokumentide täielikku sisu. Edastage ka vastavate RavenDB
 andmebaaside eksport. Otsejuurdepääsu tootmisbaasile ei ole selleks vaja.
 
 ## 1. Leidke õiged andmebaasid
 
-Kontrollige **töötava LJVIS1 ja ERRU teenuse** konfiguratsioonis ühendust nimega
+Kontrollige **töötava LJVIS 1 ja ERRU teenuse** konfiguratsioonis ühendust nimega
 `RavenDb`. Vajalikud väljad on `Url` ja `Database`.
 
 - Rakendused võivad kasutada erinevaid servereid või andmebaase. Kontrollige mõlemat.
 - Sama andmebaasi ei ole vaja kaks korda eksportida.
 - Ärge valige baasi ainult nime järgi: kasutage töötava rakenduse konfiguratsiooni.
-- Konfiguratsioonifaile, paroole ega autentimissertifikaate ei ole vaja meile saata.
+- Ärge saatke konfiguratsioonifaile, paroole ega autentimissertifikaate.
 
 Kontrollitud vana rakenduse lähtekood kasutab RavenDB klienti **4.2.5**. See ei
-tõenda serveri versiooni. Palume märkida tegelik serveri versioon; Studio menüüd
+tõenda serveri versiooni. Märkige tegelik serveri versioon. Studio menüüd
 ja valikute nimetused võivad versiooniti erineda.
 
 ## 2. Eksportige RavenDB Studio kaudu
@@ -32,7 +33,7 @@ ja valikute nimetused võivad versiooniti erineda.
 6. Käivitage **Export Database**, oodake edukat lõppu ja salvestage `.ravendbdump` fail.
 7. Korrake eksporti, kui teine rakendus kasutab teist andmebaasi.
 
-Eksporditakse andmed faili; lähteandmeid selle toiminguga ei muudeta. Eksport võib
+Eksport salvestab andmed faili. See toiming ei muuda lähteandmeid. Eksport võib
 serverit koormata, seega valige administraatorina sobiv aeg.
 
 [RavenDB ametlik ekspordijuhend](https://docs.ravendb.net/7.1/studio/database/tasks/export-database)
@@ -41,12 +42,12 @@ Studio valikutest.
 
 ## 3. Mida koos ekspordiga anda
 
-Iga eksporditud andmebaasi kohta:
+Edastage iga eksporditud andmebaasi kohta järgmised failid ja andmed:
 
 - `.ravendbdump` fail;
 - RavenDB serveri versioon ja andmebaasi nimi;
-- milline rakendus baasi kasutab: LJVIS1, ERRU või mõlemad;
-- keskkond: TEST või LIVE;
+- milline rakendus baasi kasutab: LJVIS 1, ERRU või mõlemad;
+- keskkond: test- või tootmiskeskkond;
 - ekspordi algus- ja lõpuaeg koos ajavööndiga;
 - ekspordi tulemus ja dokumentide arv, kui Studio neid näitab;
 - millise SQL Serveri `.bak` failiga eksport kokku kuulub ning selle varukoopia aeg.
@@ -60,8 +61,8 @@ RavenDB ekspordi `Attachments` valik ei kopeeri rakenduse eraldi failikataloogi.
 
 ## Kui Studio eksport pole võimalik
 
-Sobib ka RavenDB täielik varukoopia. Palume täpsustada serveri versioon,
-varukoopia tüüp ja aeg. Inkrementaalse varukoopia puhul on taastamiseks vaja ka
+Sobib ka RavenDB täielik varukoopia. Täpsustage serveri versioon,
+varukoopia tüüp ja aeg. Inkrementaalse ehk ainult lisandunud muudatusi sisaldava varukoopia puhul on taastamiseks vaja ka
 algset täisvarukoopiat ja sellele järgnevat vajalikku varukoopiate ahelat; ainult
 viimasest inkrementaalsest failist ei piisa.
 
@@ -74,7 +75,7 @@ Praegune eksport on vajalik migratsiooni arendamiseks ja kontrollimiseks.
 Erineval ajal tehtud SQL- ja RavenDB-koopiad võivad sisaldada erinevaid andmeid;
 see tuleb prooviaruandes arvesse võtta.
 
-**Lõplikuks migratsiooniks lepime eraldi kokku kooskõlalise andmeseisu:** peatame
-kokkulepitud ajaks andmeid muutvad rakendused ja sõnumitöötluse või kasutame muud
-administraatoriga kinnitatud sünkroonimise korda. Üksnes lähestikku tehtud
-varukoopiate ajatemplid ei tõenda, et kõik sõnumid ja nende SQL-seosed klapivad.
+**Enne lõplikku migratsiooni leppige administraatoriga kokku kooskõlalise andmeseisu tagamine.**
+Peatage kokkulepitud ajaks andmeid muutvad rakendused ja sõnumitöötlus või kasutage
+muud administraatoriga kinnitatud sünkroonimise korda. Üksnes lähestikku tehtud
+varukoopiate ajatemplid ei tõenda, et kõik sõnumid ja nende SQL-seosed on kooskõlas.
