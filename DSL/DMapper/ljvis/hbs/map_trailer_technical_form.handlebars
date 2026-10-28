@@ -18,13 +18,13 @@
         "eraYvMntPlaces": {{#if this.eraYvMntPlaces}}true{{else}}false{{/if}},
         "eraYvMntRebuilt": {{#if this.eraYvMntRebuilt}}true{{else}}false{{/if}},
         "proceedingType": {{#if this.proceedingType}}"{{this.proceedingType}}"{{else}}null{{/if}},
-        "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}"{{this.proceedingReferenceNumber}}"{{else}}null{{/if}},
+        "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}{{{json this.proceedingReferenceNumber}}}{{else}}null{{/if}},
         "violations": {{#if this.violations}}{{{this.violations}}}{{else}}[]{{/if}},
         "notes": {{#if this.notes}}{{{json this.notes}}}{{else}}null{{/if}},
         "extraordinaryInspectionDate": {{#if this.extraordinaryInspectionDate}}"{{this.extraordinaryInspectionDate}}"{{else}}null{{/if}},
         "enforcementDecision": {{#if this.enforcementDecision}}"{{this.enforcementDecision}}"{{else}}null{{/if}},
         "proceedingClosureBasis": {{#if this.proceedingClosureBasis}}"{{this.proceedingClosureBasis}}"{{else}}null{{/if}},
-        "trailerRegNr": {{#if this.trailerRegNr}}"{{this.trailerRegNr}}"{{else}}null{{/if}},
+        "trailerRegNr": {{#if this.trailerRegNr}}{{{json this.trailerRegNr}}}{{else}}null{{/if}},
         "createdBy": "{{this.createdBy}}"
 }
 {{/with}}

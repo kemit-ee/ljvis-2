@@ -14,7 +14,7 @@
         "cabotageViolations": {{{this.cabotageViolations}}},
         "resultType": "{{this.resultType}}",
         "proceedingType": "{{this.proceedingType}}",
-        "proceedingReferenceNumber": "{{this.proceedingReferenceNumber}}",
+        "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}{{{json this.proceedingReferenceNumber}}}{{else}}""{{/if}},
         "documentChecks": {{{this.documentChecks}}},
         "otherDocuments": {{{this.otherDocuments}}},
         "spApplicability": "{{this.spApplicability}}",

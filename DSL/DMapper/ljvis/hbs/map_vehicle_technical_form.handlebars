@@ -18,7 +18,7 @@
         "eraYvMntPlaces": {{#if this.eraYvMntPlaces}}true{{else}}false{{/if}},
         "eraYvMntRebuilt": {{#if this.eraYvMntRebuilt}}true{{else}}false{{/if}},
         "proceedingType": {{#if this.proceedingType}}"{{this.proceedingType}}"{{else}}null{{/if}},
-        "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}"{{this.proceedingReferenceNumber}}"{{else}}null{{/if}},
+        "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}{{{json this.proceedingReferenceNumber}}}{{else}}null{{/if}},
         "violations": {{#if this.violations}}{{{this.violations}}}{{else}}[]{{/if}},
         "notes": {{#if this.notes}}{{{json this.notes}}}{{else}}null{{/if}},
         "extraordinaryInspectionDate": {{#if this.extraordinaryInspectionDate}}"{{this.extraordinaryInspectionDate}}"{{else}}null{{/if}},

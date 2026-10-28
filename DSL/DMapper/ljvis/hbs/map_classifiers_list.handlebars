@@ -4,7 +4,7 @@
         {
             "id": "{{this.id}}",
             "code": "{{this.code}}",
-            "name": "{{this.name}}",
+            "name": {{#if this.name}}{{{json this.name}}}{{else}}""{{/if}},
             "description": {{#if this.description}}{{{json this.description}}}{{else}}""{{/if}}
         }{{#unless @last}},{{/unless}}
         {{/each}}
