@@ -407,6 +407,7 @@
 - Kõik kolm teenust nõuavad nüüd päist `Authorization: Bearer <võti>` (`/health` jääb avatuks); puuduv või vale võti → 401. Ruuter saadab võtme kõigil kutsetel (8 DSL-i).
 - Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
 - Fail-closed: nysiis ja s3-proxy ei käivitu, kui võti on seadmata. pdf-creator käivitub, aga vastab kõigile päringutele (v.a. `/health`) koodiga 503, kuni `PDF_CREATOR_API_KEY` on seatud; kohalikuks kasutuseks ilma võtmeta on selgesõnaline `PDF_CREATOR_ALLOW_NO_AUTH=1`. Varem lasi pdf-creator tühja võtmega kõik kutsed läbi.
+- Admin-juhendisse (12. peatükk) lisatud „Siseteenuste API-võtmed“: SSM-parameetrid, ExternalSecret'id, väljalaskejärjekord, kontroll ja võtme vahetamine. DSL-testide konstandid ja `.env.example` sisaldavad uusi võtmeid.
 
 ### CronManager'i ajastatud tööd saadavad teenusetokeni päisega (korrigeerib #515)
 
