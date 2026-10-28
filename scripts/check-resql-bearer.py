@@ -10,7 +10,8 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-URL = re.compile(r'^(\s*)url:\s*["\']?(\[#[A-Z_]+\])')
+URL = re.compile(r'^(\s*)url:\s*(.*)$')
+CONST = re.compile(r'\[#[A-Z_]+\]')
 RESQL = {"[#LJVIS_RESQL]", "[#LJVIS_RESQL_ARHIIV]"}
 BEARER = re.compile(r'Authorization:\s*"Bearer \[#RESQL_INTER_SERVICE_TOKEN\]"')
 TOKEN = "[#RESQL_INTER_SERVICE_TOKEN]"
@@ -22,7 +23,11 @@ for path in sorted((ROOT / "DSL").rglob("*.yml")):
         m = URL.match(line)
         if not m:
             continue
-        indent, const = len(m.group(1)), m.group(2)
+        indent, rest = len(m.group(1)), m.group(2)
+        consts = CONST.findall(rest)
+        # A url that mentions a Resql constant anywhere (also inside a ${...} ternary) is a Resql call.
+        is_resql = any(c in RESQL for c in consts)
+        const = consts[0] if consts else rest.strip()
         block = []
         for x in lines[i + 1:i + 40]:
             if x.strip() and len(x) - len(x.lstrip()) < indent:
@@ -32,9 +37,9 @@ for path in sorted((ROOT / "DSL").rglob("*.yml")):
             block.append(x)
         text = "\n".join(block)
         rel = f"{path.relative_to(ROOT)}:{i + 1}"
-        if const in RESQL and not BEARER.search(text):
+        if is_resql and not BEARER.search(text):
             errors.append(f"{rel}: Resql call without Authorization: Bearer {TOKEN}")
-        if const not in RESQL and TOKEN in text:
+        if not is_resql and TOKEN in text:
             errors.append(f"{rel}: {TOKEN} sent to {const}, not Resql")
 
 if errors:
