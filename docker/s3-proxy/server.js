@@ -166,7 +166,7 @@ const app = express();
 // Inbound auth (#520): every route except /health needs `Authorization: Bearer <S3_PROXY_API_KEY>`.
 // Fail closed — the service refuses to start without a key.
 const API_KEY = process.env.S3_PROXY_API_KEY || '';
-if (!API_KEY) {
+if (!API_KEY.trim()) {
   console.error('[s3-proxy] S3_PROXY_API_KEY must be set');
   process.exit(1);
 }

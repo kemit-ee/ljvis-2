@@ -39,7 +39,7 @@ public class NysiisService {
     }
 
     public static void main(String[] args) throws IOException {
-        if (API_KEY.isEmpty()) {
+        if (API_KEY.trim().isEmpty()) {
             System.err.println("NYSIIS_API_KEY must be set");
             System.exit(1);
         }
