@@ -1,7 +1,7 @@
 // Väljanimed on camelCase — Rust Resql tagastab kõik veerud camelCase kujul
 // (ka selgelt snake_case aliasitud veerud), sama nagu mujal rakenduses.
 
-export type XroadLogResultStatus = 'found' | 'not_found' | 'error';
+export type XroadLogResultStatus = 'found' | 'not_found' | 'unmapped' | 'error';
 
 export interface XroadLogEntry {
   id: string;
@@ -24,10 +24,11 @@ export interface XroadLogEntry {
 export interface XroadLogFilters {
   dateFrom?: string;
   dateTo?: string;
-  /** Kolm sõltumatut checkbox-lippu 'true'/'false' kujul (vt useFilteredList setFilter). */
+  /** Neli sõltumatut checkbox-lippu 'true'/'false' kujul (vt useFilteredList setFilter). */
   includeFound?: string;
   includeNotFound?: string;
   includeError?: string;
+  includeUnmapped?: string;
   /** 'true' näitab kõiki teenuseid, mitte ainult eToimikut (vt XroadLogScopeToggle). */
   allServices?: string;
 }

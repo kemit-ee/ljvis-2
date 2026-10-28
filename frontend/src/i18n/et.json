@@ -432,6 +432,7 @@
       "viewAllSearch": "Vaata kõiki vorme →"
     },
     "status": {
+      "unmapped": "Vastus saabus, vajab ülevaatust",
       "saved": "Salvestatud",
       "confirmed": "Kinnitatud",
       "published": "Avalikustatud",

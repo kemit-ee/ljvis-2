@@ -6,7 +6,7 @@ declaration:
     Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
     integratsioonipäringute logi vaatamine. Filtrid: dateFrom/dateTo (loomise
     kuupäevavahemik, vaikimisi eile-täna frontendis), includeFound/
-    includeNotFound/includeError (kolm sõltumatut checkbox-lippu, vaikimisi
+    includeNotFound/includeUnmapped/includeError (neli sõltumatut checkbox-lippu, vaikimisi
     kõik true), allServices (true = kõik teenused, mitte ainult eToimik,
     ja eirab staatusfiltrit). Leheküljed page + pageSize. Nõuab xroad.log.read õigust
     (kaitstud logs/.guard kaudu). Iga avamine logitakse auditisse
@@ -22,6 +22,8 @@ declaration:
       - field: includeFound
         type: string
       - field: includeNotFound
+        type: string
+      - field: includeUnmapped
         type: string
       - field: includeError
         type: string
@@ -39,6 +41,7 @@ extractParams:
     date_to: "${incoming.params.dateTo ?? ''}"
     include_found: "${incoming.params.includeFound !== 'false'}"
     include_not_found: "${incoming.params.includeNotFound !== 'false'}"
+    include_unmapped: "${incoming.params.includeUnmapped !== 'false'}"
     include_error: "${incoming.params.includeError !== 'false'}"
     all_services: "${incoming.params.allServices === 'true'}"
     page: "${incoming.params.page ?? 1}"
@@ -58,6 +61,7 @@ queryLog:
       date_to: ${date_to}
       include_found: ${include_found}
       include_not_found: ${include_not_found}
+      include_unmapped: ${include_unmapped}
       include_error: ${include_error}
       all_services: ${all_services}
       page: ${page}
@@ -82,7 +86,7 @@ buildAuditDescription:
   assign:
     shown_count: "${(res.response.body || []).length}"
     shown_ids_json: "${JSON.stringify((res.response.body || []).map(function(r){ return r.id; }))}"
-    filter_summary: "${'dateFrom=' + (date_from || '-') + ', dateTo=' + (date_to || '-') + ', includeFound=' + include_found + ', includeNotFound=' + include_not_found + ', includeError=' + include_error + ', allServices=' + all_services}"
+    filter_summary: "${'dateFrom=' + (date_from || '-') + ', dateTo=' + (date_to || '-') + ', includeFound=' + include_found + ', includeNotFound=' + include_not_found + ', includeUnmapped=' + include_unmapped + ', includeError=' + include_error + ', allServices=' + all_services}"
   next: logAuditEvent
 
 logAuditEvent:
@@ -94,7 +98,7 @@ logAuditEvent:
     event_type: "xroad.log.view"
     event_category: "xroad_integration_log"
     description: "${('eToimiku X-tee logi vaadatud, filter ' + filter_summary + ', lehekülg ' + page + ', kuvatud ' + shown_count + ' kirjet').substring(0, 480)}"
-    log_content: "${JSON.stringify({ page: page, pageSize: page_size, filters: { dateFrom: date_from, dateTo: date_to, includeFound: include_found, includeNotFound: include_not_found, includeError: include_error, allServices: all_services }, shownLogIds: JSON.parse(shown_ids_json) })}"
+    log_content: "${JSON.stringify({ page: page, pageSize: page_size, filters: { dateFrom: date_from, dateTo: date_to, includeFound: include_found, includeNotFound: include_not_found, includeError: include_error, includeUnmapped: include_unmapped, allServices: all_services }, shownLogIds: JSON.parse(shown_ids_json) })}"
   result: audit_result
   next: returnResult
 

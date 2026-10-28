@@ -22,6 +22,9 @@ export function fetchXroadLogList(
     ...(filters.includeNotFound !== undefined
       ? { includeNotFound: filters.includeNotFound }
       : {}),
+    ...(filters.includeUnmapped !== undefined
+      ? { includeUnmapped: filters.includeUnmapped }
+      : {}),
     ...(filters.includeError !== undefined
       ? { includeError: filters.includeError }
       : {}),

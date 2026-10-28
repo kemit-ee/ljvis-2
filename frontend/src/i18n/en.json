@@ -1571,6 +1571,7 @@
         "status": "Status"
       },
       "status": {
+      "unmapped": "Response received, review required",
         "active": "Active",
         "deleted": "Deleted"
       },

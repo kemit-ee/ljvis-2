@@ -13,7 +13,7 @@ import type { XroadLogEntry } from './types';
 
 const columnHelper = createColumnHelper<XroadLogEntry>();
 
-// resultStatus only carries found/not_found/error semantics for eToimik rows (see
+// resultStatus only carries found/not_found/unmapped/error semantics for eToimik rows (see
 // list_integration_log.sql). Other sources (e.g. erru_cgr) never set it, so those
 // rows fall back to the generic success flag instead of being mislabelled "error".
 function statusBadgeColor(entry: Pick<XroadLogEntry, 'resultStatus' | 'success'>): 'success' | 'warning' | 'danger' {
@@ -22,6 +22,7 @@ function statusBadgeColor(entry: Pick<XroadLogEntry, 'resultStatus' | 'success'>
       return 'success';
     case 'error':
       return 'danger';
+    case 'unmapped':
     case 'not_found':
       return 'warning';
     default:
@@ -51,6 +52,7 @@ export function XroadLogTable() {
 
   const includeFound = draftFilters.includeFound !== 'false';
   const includeNotFound = draftFilters.includeNotFound !== 'false';
+  const includeUnmapped = draftFilters.includeUnmapped !== 'false';
   const includeError = draftFilters.includeError !== 'false';
   const allServices = draftFilters.allServices === 'true';
 
@@ -62,9 +64,11 @@ export function XroadLogTable() {
     includeFound: boolean;
     includeNotFound: boolean;
     includeError: boolean;
+    includeUnmapped: boolean;
   }) => {
     setFilter('includeFound', String(next.includeFound));
     setFilter('includeNotFound', String(next.includeNotFound));
+    setFilter('includeUnmapped', String(next.includeUnmapped));
     setFilter('includeError', String(next.includeError));
   };
 
@@ -174,6 +178,7 @@ export function XroadLogTable() {
           monthYearSelectType="grid"
         />
         <XroadLogStatusFilter
+          includeUnmapped={includeUnmapped}
           includeFound={includeFound}
           includeNotFound={includeNotFound}
           includeError={includeError}

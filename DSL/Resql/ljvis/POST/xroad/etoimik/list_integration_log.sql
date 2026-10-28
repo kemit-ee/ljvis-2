@@ -2,10 +2,10 @@
 description: 'Haldus > eToimiku X-tee logid: eToimiku AnnaIsikuKvalifikatsioonid
   integratsioonipäringute logi (xroad.xroad_integration_log, service_code
   ''etoimik.%''). Filtrid: date_from/date_to (created_at, poolavatud
-  intervall nagu list_outbound_log.sql-is), ja kolm sõltumatut
-  include_found/include_not_found/include_error lippu (checkbox-grupi
+  intervall nagu list_outbound_log.sql-is), ja neli sõltumatut
+  include_found/include_not_found/include_unmapped/include_error lippu (checkbox-grupi
   filter, mitte massiiv-parameeter - Resql-is puudub sellele siiani
-  eeskuju). Kolme lipu OR-kombinatsioon; kui kõik kolm on false, ei tagasta
+  eeskuju). Nelja lipu OR-kombinatsioon; kui kõik neli on false, ei tagasta
   midagi. all_services=true eemaldab nii service_code ''etoimik.%'' filtri
   kui ka staatusfiltri (teised allikad, nt erru_cgr, ei täida result_status''i
   üldse, seega found/not_found/error semantika neile ei kehti). Leheküljed:
@@ -27,6 +27,9 @@ params:
     type: boolean
     required: false
   include_error:
+    type: boolean
+    required: false
+  include_unmapped:
     type: boolean
     required: false
   all_services:
@@ -136,6 +139,7 @@ WHERE (COALESCE(:all_services::BOOLEAN, false) OR service_code LIKE 'etoimik.%')
     OR (
       (COALESCE(:include_found::BOOLEAN, false)     AND result_status = 'found')
       OR (COALESCE(:include_not_found::BOOLEAN, false) AND result_status = 'not_found')
+      OR (COALESCE(:include_unmapped::BOOLEAN, true) AND result_status = 'unmapped')
       OR (COALESCE(:include_error::BOOLEAN, false)     AND result_status = 'error')
     )
   )

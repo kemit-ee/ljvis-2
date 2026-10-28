@@ -8,6 +8,7 @@ declaration:
     sünniaeg), seega üks päring ei saa kanda mõlemat. Kui isikukood on olemas, päritakse
     esmalt see; kui otsust ei leita ja nime + sünniaja grupp on täielik, tehakse teine
     päring nime ja sünniajaga. Ilma isikukoodita tehakse ainult nime + sünniaja päring.
+    Saabunud asi ilma rakendatava otsuseta tagastab unmapped, mitte not_found.
     Iga XTR kutse logitakse. Tagastab otsustuse (jõustunud otsuse tekst: paragrahv +
     otsuse kuupäev) või veaseisu; ei viska HTTP viga.
   namespace: etoimik
@@ -129,9 +130,9 @@ parse1:
           });
         });
         if (decisions.length === 0) {
-          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+          return { success: true, found: false, resultStatus: 'unmapped', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse1.response.body) };
         }
-        return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+        return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse1.response.body) };
       })()}
   next: log1
 
@@ -232,9 +233,9 @@ parse2:
           });
         });
         if (decisions.length === 0) {
-          return { success: true, found: false, resultStatus: 'not_found', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+          return { success: true, found: false, resultStatus: 'unmapped', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse2.response.body) };
         }
-        return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(caseNode) };
+        return { success: true, found: true, resultStatus: 'found', enforcementDecision: decisions.join('; '), proceedingClosureBasis: '', errorMessage: '', rawResponse: JSON.stringify(xtrResponse2.response.body) };
       })()}
   next: log2
 
