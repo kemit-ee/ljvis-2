@@ -7,8 +7,16 @@
 ### Arhitektuuridokument: INSERT-only mustri erand
 
 - Dokument „Ruuter, RESQL ja DataMapper arhitektuur" nimetab nüüd INSERT-only mustri erandi. Ainult `archive/` kataloogi arhiveerimismallid võivad teha säilitustähtaja järgset `DELETE`-i ja isikuandmete eemaldamise `UPDATE`-i. Iga erand on nimeliselt loetletud failis `.sql-rule-exemption` ja CI kontrollib seda. Koodi ja käitumist see ei muuda.
+### Sõidumeerikuvormi uuesti salvestamine
+
+- Varem salvestatud juhi või kaasjuhi sõidu- ja puhkeaja vormi saab taas salvestada ja kinnitada, ilma et päevade arvu (kontrollitud päevad, tööpäevad, muu tegevuse päevad) väljasid peaks käsitsi muutma. Pärast päringute tüüpide kontrolli sisseviimist lükkas server sellise salvestuse tagasi vastusega 400.
 
 ## 2026-10-27
+
+### Päringute sisendi kontroll: tüübid ja audit
+
+- Ruuteri marsruutide päringu väljade tüübid on deklareeritud (id ja versioon, märkeruudud, päevade arvud, lehekülje number ja suurus). Vale tüübiga päring saab 400 vastuse. Tehnovormi (sõiduk, haagis) märkeruudud tulevad nüüd lugemisvastuses tõeväärtustena, mitte tekstina „true".
+- Ruuteri auditi (`dsl-lint --audit`) hoiatused on CI-s lukus: uus hoiatus peatab ehituse.
 
 ### NCR nimekiri: rikkumisega teated eristuvad ja tegelemist vajavad on esil
 
@@ -156,6 +164,12 @@
 
 ## 2026-10-19
 
+### Resql 0.5.1-alpha ja teenustevaheline Bearer-token
+
+- Andmebaasikiht (Resql) uuendati versioonile 0.5.1-alpha (varem 0.3.0-alpha). Kasutajale muutust ei ole.
+- Resql nõuab nüüd igalt kutsel päist `Authorization: Bearer <token>`; kõik Ruuteri DSL-id saadavad selle. **Deploy eeldab uut saladust `RESQL_INTER_SERVICE_TOKEN`:** konstant `constants.ini`-s (Ruuter ja ruuter-internal), sama väärtusega env-muutuja `resql-ljvis` konteineris ning `security.inter_service_token_env` chart'i `resql.yaml`-is. Ilma selleta Resql ei käivitu. Vt admin juhend 12.
+- CI-s kontrollib `scripts/check-resql-bearer.py`, et iga Resql-kutse saadab tokeni ja token ei lähe mujale. Skript tunneb ka URL-e, kus Resqli konstant on `${...}` avaldise sees.
+- **Väljalaskejärjekord:** (1) token SSM-i ja `constants.ini`-sse, (2) `ruuter` ja `ruuter-internal` restart (Resql 0.3 ignoreerib tundmatut päist, seega token ei riku midagi), (3) Resql 0.5.1 image ja devops'i chart'i lüliti `interServiceTokenGate: true` **samas väljalaskes**. Resql 0.5.1 ei käivitu ilma `security.inter_service_token_env`-ita ja 0.3 lükkab selle võtme tagasi.
 ### Kustutatud vormide arhiveerimine töötab automaatselt
 
 - Kustutatud kontrollvormid teisaldatakse iga kahe tunni tagant eraldi arhiivibaasi; töötabelid jäävad väiksemaks ja kiiremaks. Kustutatud vormi **versiooniajalugu jääb endiselt nähtavaks** — süsteem loeb selle vajadusel arhiivist.
@@ -407,6 +421,14 @@
 - Vormi failiplokk ei näita enam veateadet, kui failide loendit ei õnnestunud laadida (viga näidatakse vaid üleslaadimisel, kustutamisel ja allalaadimisel).
 
 ## 2026-10-05
+
+### Sidecar-teenuste (nysiis, s3-proxy, pdf-creator) sissetulev autentimine (#520)
+
+- Kõik kolm teenust nõuavad nüüd päist `Authorization: Bearer <võti>` (`/health` jääb avatuks); puuduv või vale võti → 401. Ruuter saadab võtme kõigil kutsetel (8 DSL-i).
+- Võtmed on uued konstandid `NYSIIS_API_KEY`, `S3_PROXY_API_KEY` ja `PDF_CREATOR_API_KEY` (`constants.ini`); sama nimega env-muutuja peab olema ka sidecar'i konteineris. **Keskkondades tuleb need lisada.**
+- Fail-closed: nysiis ja s3-proxy ei käivitu, kui võti on seadmata. pdf-creator käivitub, aga vastab kõigile päringutele (v.a. `/health`) koodiga 503, kuni `PDF_CREATOR_API_KEY` on seatud; kohalikuks kasutuseks ilma võtmeta on selgesõnaline `PDF_CREATOR_ALLOW_NO_AUTH=1`. Varem lasi pdf-creator tühja võtmega kõik kutsed läbi.
+- Admin-juhendisse (12. peatükk) lisatud „Siseteenuste API-võtmed“: SSM-parameetrid, ExternalSecret'id, väljalaskejärjekord, kontroll ja võtme vahetamine. DSL-testide konstandid ja `.env.example` sisaldavad uusi võtmeid.
+- Tühikutest koosnev võti loetakse seadmata võtmeks ka pdf-creator'is (503) ja mitte-ASCII `Authorization` päis annab 401, mitte 500.
 
 ### CronManager'i ajastatud tööd saadavad teenusetokeni päisega (korrigeerib #515)
 

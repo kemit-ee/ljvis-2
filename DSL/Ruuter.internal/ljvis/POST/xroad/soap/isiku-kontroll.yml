@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     LJVIS1 SOAP IsikuKontroll: calls the REST handler xroad/provide/isiku-kontroll and maps its answer to the WSDL IsikuKontrollResponseType.
@@ -105,6 +106,7 @@ logBackendError:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.soap.isiku-kontroll"
@@ -129,6 +131,7 @@ logContractError:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       type: json
     body:
       service_code: "xroad.soap.isiku-kontroll"

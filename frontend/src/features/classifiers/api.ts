@@ -52,7 +52,7 @@ export const updateClassifier = (data: {
   id: string;
   name: string;
   description: string;
-}) => put<Classifier[]>('/v1/classifiers', data);
+}) => put<Classifier[]>('/v1/classifiers', { ...data, id: String(data.id) });
 
 export const insertClassifierValue = (data: {
   classifierId: string;

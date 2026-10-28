@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Audit: classifier list search event"
@@ -15,6 +16,7 @@ declaration:
       - field: search
         type: string
       - field: result_count
+        type: integer
 
 buildAudit:
   assign:

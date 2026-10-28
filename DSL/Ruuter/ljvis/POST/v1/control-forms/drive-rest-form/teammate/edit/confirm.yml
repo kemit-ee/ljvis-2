@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Confirm (kinnita) the drive/rest teammate sub-form. Uses the same fields as save (update), but forces status=confirmed server-side. Blocked if the sub-form is already confirmed or published."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: notifyCarrier
         type: string
       - field: selectionStatus
@@ -15,9 +18,11 @@ declaration:
       - field: transportType
         type: string
       - field: transportEmptyRun
+        type: boolean
       - field: transportNature
         type: string
       - field: transportNatureExempt
+        type: boolean
       - field: transportClasses
         type: string
       - field: resultType
@@ -37,11 +42,15 @@ declaration:
       - field: tachographTypeCode
         type: string
       - field: tachographDataNotDownloaded
+        type: boolean
       - field: tachographNotes
         type: string
       - field: checkedDaysCount
+        type: string
       - field: workDaysCount
+        type: string
       - field: otherActivityDaysCount
+        type: string
       - field: violations5612006
         type: string
       - field: violations1652014
@@ -112,6 +121,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -145,6 +155,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -218,6 +229,7 @@ registerCarrierNotificationRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

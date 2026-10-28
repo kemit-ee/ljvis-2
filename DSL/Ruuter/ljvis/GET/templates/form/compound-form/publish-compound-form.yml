@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Publish (avalikusta) the compound form and return the outcome as JSON (`{outcome, body}`). Shared by compound-form/edit/publish and by the sub-form publish handlers, which auto-publish the general part server-side once the last active sub-form is published (only_if_confirmed=true limits that to a confirmed compound form). Form field values are taken from the current database record."
@@ -35,6 +36,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -61,6 +63,7 @@ getSubFormPublishState:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get-subform-publish-state"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -128,6 +131,7 @@ publishForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

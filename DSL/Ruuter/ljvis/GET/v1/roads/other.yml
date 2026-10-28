@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -31,6 +32,7 @@ getOtherRoad:
   args:
     url: "[#LJVIS_RESQL]/roads/get_other_road_by_number"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

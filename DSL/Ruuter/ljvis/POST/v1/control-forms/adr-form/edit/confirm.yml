@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Confirm (kinnita) the ADR sub-form. Appends a new snapshot with status=confirmed (server-controlled). Blocked if the sub-form is already confirmed or published."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: driverAssistant
         type: string
       - field: driverAdrCertificateNumber
@@ -25,6 +28,7 @@ declaration:
       - field: dangerousGoods
         type: string
       - field: exemptionApplied
+        type: boolean
       - field: exemptionAdrProvision
         type: string
       - field: exemptionNotes
@@ -36,7 +40,9 @@ declaration:
       - field: otherInfringements
         type: string
       - field: drivingBanApplied
+        type: boolean
       - field: transportInterruptionApplied
+        type: boolean
       - field: resultType
         type: string
       - field: proceedingType
@@ -46,6 +52,7 @@ declaration:
       - field: correctiveMeasures
         type: string
       - field: sealOpened
+        type: boolean
       - field: sealOpenedDate
         type: string
       - field: sealInstalledDate
@@ -118,6 +125,7 @@ getCurrentForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -150,6 +158,7 @@ confirmForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/adr-form/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

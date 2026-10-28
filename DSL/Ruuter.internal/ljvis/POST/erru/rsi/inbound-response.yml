@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Receive an ASYNCHRONOUS RSI (RoadSideInspection) response from the ERRU hub
@@ -57,6 +58,7 @@ findByWorkflowId:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/get-by-workflow-id"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -91,6 +93,7 @@ storeResponded:
   args:
     url: "[#LJVIS_RESQL]/erru/rsi/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -121,6 +124,7 @@ logAudit:
   args:
     url: "[#LJVIS_RESQL]/log/insert_audit_event"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

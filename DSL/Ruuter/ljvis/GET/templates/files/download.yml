@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get presigned download URL for a file attachment. Expects: id"
@@ -28,6 +29,7 @@ getAttachmentRecord:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachment_by_id"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -79,6 +81,7 @@ getPresignedUrl:
   args:
     url: "[#S3_PROXY]/presign"
     headers:
+      Authorization: "Bearer [#S3_PROXY_API_KEY]"
       type: json
     query:
       key: ${dbResult.response.body[0].s3Key || dbResult.response.body[0].s3_key}

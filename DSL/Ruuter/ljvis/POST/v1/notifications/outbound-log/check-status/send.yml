@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Käsitsi käivitatav Postkast 2.0 saatmisoperatsiooni seisu kontroll ühe
@@ -34,6 +35,7 @@ loadLog:
   args:
     url: "[#LJVIS_RESQL]/notification/get_outbound_log"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -101,6 +103,7 @@ logIntegration:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -147,6 +150,7 @@ updateStatus:
   args:
     url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

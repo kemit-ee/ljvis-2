@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Haldusmenetluse andmeploki ligipääsureegel (ainus koht, kus asutuste nimekiri elab). Tagastab sõne `allow` või `deny`. Plokk on Transpordiameti (TRAM) ja Kliimaministeeriumi (KLIM) ametnikule ning süsteemi- (admin-kolmik või user.edit.admin) või asutuse administraatorile (user.edit.local). Kutsuja annab oma asutuse koodi ja õigused komadega eraldatud sõnena."
   namespace: service

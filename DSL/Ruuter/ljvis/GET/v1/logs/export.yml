@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Export audit logs as CSV. audit.read exports all organisations; only audit.read.local restricts to the caller's own organisation."
@@ -37,6 +38,7 @@ getLogs:
   args:
     url: "[#LJVIS_RESQL]/log/list_logs_csv"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

@@ -1,6 +1,7 @@
 declaration:
   description: "Arenduse mock: GET /v1/structure-units/mock tagastab etteantud näidisvastuse (päris taustasüsteemi ei kutsuta)."
   internal: false
+  returns: []
   allowlist:
     params: []
 

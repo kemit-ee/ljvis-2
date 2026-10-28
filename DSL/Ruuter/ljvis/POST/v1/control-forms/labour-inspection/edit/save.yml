@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Create or update a labour inspection form (Tööinspektsiooni kontrollakt) - single unified save endpoint, branches internally on presence of id. Status and the form_number /V version suffix are always computed/controlled server-side and never trust client input - see extractRequestData / validateRequired / updateForm. Confirmed acts can only be re-saved by a user with control_form.edit_locked."
@@ -7,7 +8,9 @@ declaration:
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: inspectorName
         type: string
       - field: inspectionDate
@@ -97,6 +100,7 @@ insertForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/insert"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -143,6 +147,7 @@ getCurrentFormForStatus:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -200,6 +205,7 @@ updateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/labour-inspection/update"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

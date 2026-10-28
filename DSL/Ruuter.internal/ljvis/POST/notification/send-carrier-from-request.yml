@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Vedajale raske rikkumise teavituse saatmine PPA (sõidu-puhkeaeg, TRAM-kaart)
@@ -59,6 +60,7 @@ getOpenRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/get_open_carrier_request"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -93,6 +95,7 @@ getTramCard:
   args:
     url: "[#LJVIS_RESQL]/control-forms/tram-card/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -120,6 +123,7 @@ getDriverForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/driver/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -133,6 +137,7 @@ getTeammateForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/drive-rest-form/teammate/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -146,6 +151,7 @@ getVehicleTechnicalForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/vehicle-technical/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -159,6 +165,7 @@ getTrailerTechnicalForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/trailer-technical/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -250,6 +257,7 @@ getCompoundForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/compound-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -295,6 +303,7 @@ callGetCountryName:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_country_name"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -314,6 +323,7 @@ callGetViolationNames:
   args:
     url: "[#LJVIS_RESQL]/classifier/get_violation_names"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -357,6 +367,13 @@ buildViolationList:
           return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
+  next: initCarrierEmail
+
+# Vaikimisi tühi aadress: otsingu vea korral läheb `error:` otse saatmisele, et
+# send-postkast.yml logiks korrektse "error" rea outbound_log-i (sama muster mis VR-kaardil).
+initCarrierEmail:
+  assign:
+    carrier_email: ""
   next: lookupCarrierEmail
 
 lookupCarrierEmail:
@@ -369,7 +386,7 @@ lookupCarrierEmail:
     body:
       reg_code: ${company_reg_code}
   result: carrierRegistryRes
-  error: markCarrierEmailLookupFailed
+  error: sendCarrierNotification
   next: logCarrierLookup
 
 # Äriregistri päring logitakse samale service_code'ile mis
@@ -379,6 +396,7 @@ logCarrierLookup:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -427,13 +445,6 @@ extractCarrierEmail:
       })()}
   next: sendCarrierNotification
 
-# Otsingu viga: kutsutakse ikka tühja aadressiga, et send-postkast.yml logiks
-# korrektse "error" rea outbound_log-i (sama muster mis VR-kaardil).
-markCarrierEmailLookupFailed:
-  assign:
-    carrier_email: ""
-  next: sendCarrierNotification
-
 sendCarrierNotification:
   call: http.post
   args:
@@ -466,6 +477,7 @@ markRequestSent:
   args:
     url: "[#LJVIS_RESQL]/notification/mark_carrier_request_sent"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

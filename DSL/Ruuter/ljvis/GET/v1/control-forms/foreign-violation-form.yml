@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a single foreign violation form by ID"
@@ -62,6 +63,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/foreign-violation-form/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -107,6 +109,12 @@ mapResponse:
     body:
       forms: ${res.response.body}
   result: mapped
+  next: initNotificationHistory
+
+# Ajalugu on abiinfo: päringu vea korral läheb `error:` otse returnSuccess'ile tühja ajalooga.
+initNotificationHistory:
+  assign:
+    notification_history: []
   next: getNotificationHistory
 
 # p.5: teavituse saatmise ajalugu (kuupäevad) tuleb notifications.outbound_log-ist,
@@ -117,6 +125,7 @@ getNotificationHistory:
   args:
     url: "[#LJVIS_RESQL]/notification/list_outbound_log"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -127,7 +136,7 @@ getNotificationHistory:
       sort_by: "send_date"
       sort_dir: "desc"
   result: historyRes
-  error: returnSuccessWithoutHistory
+  error: returnSuccess
   next: mergeNotificationHistory
 
 mergeNotificationHistory:
@@ -140,10 +149,6 @@ mergeNotificationHistory:
 
 returnSuccess:
   return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: notification_history })}"
-  next: end
-
-returnSuccessWithoutHistory:
-  return: "${Object.assign({}, (typeof mapped.response.body === 'string' ? JSON.parse(mapped.response.body) : mapped.response.body), { notificationHistory: [] })}"
   next: end
 
 returnNotFound:

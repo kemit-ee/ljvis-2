@@ -36,4 +36,22 @@ describe('serializeDriveRestFormValues', () => {
     const result = serializeDriveRestFormValues({}, 'saved');
     expect(result.atpViolationFound).toBe('false');
   });
+
+  // Resql returns the INTEGER day-count columns as JSON numbers; edit/save|confirm declare them type: string.
+  it('stringifies raw numeric day counts from an unedited snapshot', () => {
+    const result = serializeDriveRestFormValues(
+      { checkedDaysCount: 28, workDaysCount: 0, otherActivityDaysCount: 3 } as unknown as LooseDriveRestValues,
+      'saved',
+    );
+    expect(result.checkedDaysCount).toBe('28');
+    expect(result.workDaysCount).toBe('0');
+    expect(result.otherActivityDaysCount).toBe('3');
+  });
+
+  it('leaves empty and missing day counts as they are', () => {
+    const result = serializeDriveRestFormValues({ checkedDaysCount: '', workDaysCount: null } as unknown as LooseDriveRestValues, 'saved');
+    expect(result.checkedDaysCount).toBe('');
+    expect(result.workDaysCount).toBeNull();
+    expect(result.otherActivityDaysCount).toBeUndefined();
+  });
 });

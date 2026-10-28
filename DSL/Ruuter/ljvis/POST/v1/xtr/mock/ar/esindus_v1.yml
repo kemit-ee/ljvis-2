@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     MOCK Äriregister esindus_v1 (representation rights) - dev and CI only.

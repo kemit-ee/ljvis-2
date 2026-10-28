@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Tellib vedaja teavituse (notifications.carrier_notification_request) juba kinnitatud
@@ -105,6 +106,7 @@ getForm:
   args:
     url: "[#LJVIS_RESQL]/control-forms/${read_form_type}/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -132,6 +134,7 @@ registerRequest:
   args:
     url: "[#LJVIS_RESQL]/notification/insert_carrier_request"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

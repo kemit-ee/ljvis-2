@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "List active file attachments for a form. Expects: form_number"
@@ -19,6 +20,7 @@ getFilesFromDB:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachments"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

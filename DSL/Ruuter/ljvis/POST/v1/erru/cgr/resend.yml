@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be sent or responded. The envelope is reserved with begin-send (status and workflow_id are kept, a new technical_id is issued), the XML goes through the internal adapter to the Hub, and the member state's new answer arrives later as a CheckGoodRepute_Response that replaces only that member state's entry. A rejected or uncertain resend does NOT change the request status: the answers already stored stay valid, an audit entry is logged and 502 is returned. An uncertain outcome (send_unknown) must not be retried automatically."
   namespace: erru
@@ -34,6 +35,7 @@ getRequest:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -120,6 +122,7 @@ reserveSend:
   args:
     url: "[#LJVIS_RESQL]/erru/cgr/begin-send"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -188,6 +191,7 @@ logIntegrationSuccess:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -209,6 +213,7 @@ logIntegrationFailure:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -231,6 +236,7 @@ logIntegrationUnknown:
   args:
     url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

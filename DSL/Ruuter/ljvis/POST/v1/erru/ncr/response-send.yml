@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Send the Estonian response draft to an incoming NCR message as ERRU 3.5 XML (LJVIS2-64 §4.5). Sendable states: 'answer_drafted' (first send) or 'error' (retry after a definite rejection). A message without a workflowId (e.g. seeded test data) cannot be answered, it yields 422 workflow_id_missing instead of the misleading not_sendable. Sending is blocked while the message is 'forwarded' (LJVIS2-62 §4), that state is simply not in the sendable set. The XML is validated, erru.ncr_begin_response reserves the envelope (status sending, new response technicalId, the incoming workflowId is reused) and the internal adapter posts the NotifyCheckResult_Response to the Hub's response URL. A 2xx answer makes the message 'answered', a definite rejection 'error', an uncertain outcome 'send_unknown' (never resent). A negative NCRR_Ack received later moves 'answered' to 'error' (ncr/inbound-ack). The path is POST /v1/erru/ncr/response-send (not nested under response/) so it is protected by the ncr.send guard at erru/ncr/.guard, distinct from erru/ncr/response/.guard (ncr.respond)."
   namespace: erru
@@ -29,6 +30,7 @@ getCase:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/get"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -99,6 +101,7 @@ reserveSend:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/begin-response"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -162,6 +165,7 @@ storeAnswered:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -193,6 +197,7 @@ markError:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -218,6 +223,7 @@ markUnknown:
   args:
     url: "[#LJVIS_RESQL]/erru/ncr/append-transition"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:

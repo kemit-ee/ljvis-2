@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Static MTR good-repute mock for dev and test. Responses cover the MOVEHUB MS Test Pack 3.19 registry scenarios. HUB timeout and availability scenarios are handled by the HUB mock."
   namespace: erru

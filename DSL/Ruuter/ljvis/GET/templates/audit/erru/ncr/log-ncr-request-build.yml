@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Audit: outgoing NCR request draft built (eeltäitud) from an SP control-form
     sub-form (LJVIS2-64 §4.1). Logged on every successful 'Lisa NCR vorm' action."

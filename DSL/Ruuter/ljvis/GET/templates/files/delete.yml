@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Soft-delete a file attachment record in the DB (appends a status=deleted tombstone row; the active row is kept). Expects: id, form_type. The actor is the TARA session (guard variable session_personal_code), never the request body"
@@ -26,6 +27,7 @@ getAttachmentRecord:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/get_form_attachment_by_id"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
@@ -51,6 +53,7 @@ deleteFileInDB:
   args:
     url: "[#LJVIS_RESQL]/control-forms/files/delete_form_attachment"
     headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
