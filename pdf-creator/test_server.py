@@ -20,6 +20,11 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(self.call(path='/health',method='GET')[0]['status'],200)
             for path,method in (('/v1/templates','GET'),('/v1/render','POST')):
                 self.assertEqual(self.call({'templateCode':'adr-form'},path=path,method=method)[0]['status'],503)
+    def test_blank_key_counts_as_unset_and_non_ascii_header_is_unauthorized(self):
+        with patch.dict(os.environ,{'PDF_CREATOR_API_KEY':'   ','PDF_CREATOR_ALLOW_NO_AUTH':''}):
+            self.assertEqual(self.call({'templateCode':'adr-form'})[0]['status'],503)
+        with patch.dict(os.environ,{'PDF_CREATOR_API_KEY':'secret'}):
+            self.assertEqual(self.call({'templateCode':'adr-form'},HTTP_AUTHORIZATION='Bearer s\xe4cret')[0]['status'],401)
     def test_binary_and_base64_contract(self):
         with patch('server.render_pdf',return_value=(b'%PDF-example',[])) as renderer:
             meta,body=self.call({'templateCode':'vehicle-technical','blank':True});self.assertEqual(meta['status'],200);self.assertEqual(body,b'%PDF-example');self.assertEqual(meta['headers']['Cache-Control'],'no-store')

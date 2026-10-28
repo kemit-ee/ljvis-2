@@ -11,7 +11,7 @@ MAX_BODY = 2 * 1024 * 1024
 
 # Fail closed (#520): without PDF_CREATOR_API_KEY every non-health request is refused (503).
 # Local use without a key needs the explicit opt-out PDF_CREATOR_ALLOW_NO_AUTH=1.
-if not os.environ.get('PDF_CREATOR_API_KEY') and os.environ.get('PDF_CREATOR_ALLOW_NO_AUTH') != '1':
+if not os.environ.get('PDF_CREATOR_API_KEY','').strip() and os.environ.get('PDF_CREATOR_ALLOW_NO_AUTH') != '1':
     logging.error('PDF_CREATOR_API_KEY is not set: all requests except /health are refused (503)')
 
 
@@ -33,9 +33,9 @@ def application(environ, start_response):
         return [body]
     path=environ.get('PATH_INFO','');method=environ.get('REQUEST_METHOD','GET')
     if path=='/health' and method=='GET':return reply(200,{'status':'ok'})
-    token=os.environ.get('PDF_CREATOR_API_KEY','')
+    token=os.environ.get('PDF_CREATOR_API_KEY','').strip()
     if token:
-        if not hmac.compare_digest(environ.get('HTTP_AUTHORIZATION',''), 'Bearer '+token):
+        if not hmac.compare_digest(environ.get('HTTP_AUTHORIZATION','').encode('utf-8'), ('Bearer '+token).encode('utf-8')):
             return reply(401,{'error':'unauthorized'})
     elif os.environ.get('PDF_CREATOR_ALLOW_NO_AUTH')!='1':
         return reply(503,{'error':'auth_not_configured'})
