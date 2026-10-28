@@ -13,6 +13,7 @@ declaration:
       required: false
     body:
     - field: kontrolli_id
+      type: any
       required: false
     - field: kontrolli_kp
       type: string
@@ -24,11 +25,13 @@ declaration:
       type: object
       required: false
     - field: koostatatud_ettekirjutus
+      type: any
       required: false
     - field: rikkumised
       type: object
       required: false
     - field: soidukite_arv
+      type: any
       required: false
     - field: tooandja_nimi
       type: string

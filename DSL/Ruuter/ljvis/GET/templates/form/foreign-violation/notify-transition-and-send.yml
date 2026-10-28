@@ -184,8 +184,16 @@ buildViolationList:
 checkSendCarrier:
   switch:
     - condition: ${send_carrier}
-      next: lookupCarrierEmail
+      next: initCarrierEmail
   next: checkSendLaborInspector
+
+# Vaikimisi tühi aadress: lookup ebaõnnestumisel (transpordi tase - template'i enda
+# error haru) EI jäeta sendCarrierNotification'it vahele, vaid kutsutakse tühja
+# aadressiga - send-postkast.yml logib selle korrektselt "error"-rea.
+initCarrierEmail:
+  assign:
+    carrier_email: ""
+  next: lookupCarrierEmail
 
 lookupCarrierEmail:
   template: "templates/xroad/lookup-carrier-registry-email"
@@ -197,7 +205,7 @@ lookupCarrierEmail:
     sourceType: "foreign_violation_form"
     sourceRecordId: ${form_id}
   result: carrierLookupResult
-  error: markCarrierEmailLookupFailed
+  error: sendCarrierNotification
   next: parseCarrierLookupResult
 
 parseCarrierLookupResult:
@@ -207,14 +215,6 @@ parseCarrierLookupResult:
         try { return (JSON.parse(carrierLookupResult) || {}).email || ''; }
         catch (e) { return ''; }
       })()}
-  next: sendCarrierNotification
-
-# review leid 4: lookup ebaõnnestumisel (transpordi tase - template'i enda
-# error haru) EI jäeta sendCarrierNotification'it vahele, vaid kutsutakse
-# tühja aadressiga - send-postkast.yml logib selle korrektselt "error"-rea.
-markCarrierEmailLookupFailed:
-  assign:
-    carrier_email: ""
   next: sendCarrierNotification
 
 sendCarrierNotification:

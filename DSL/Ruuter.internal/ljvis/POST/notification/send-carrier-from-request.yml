@@ -358,6 +358,13 @@ buildViolationList:
           return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
         }).join('<br>');
       })()}
+  next: initCarrierEmail
+
+# Vaikimisi tühi aadress: otsingu vea korral läheb `error:` otse saatmisele, et
+# send-postkast.yml logiks korrektse "error" rea outbound_log-i (sama muster mis VR-kaardil).
+initCarrierEmail:
+  assign:
+    carrier_email: ""
   next: lookupCarrierEmail
 
 lookupCarrierEmail:
@@ -370,7 +377,7 @@ lookupCarrierEmail:
     body:
       reg_code: ${company_reg_code}
   result: carrierRegistryRes
-  error: markCarrierEmailLookupFailed
+  error: sendCarrierNotification
   next: logCarrierLookup
 
 # Äriregistri päring logitakse samale service_code'ile mis
@@ -426,13 +433,6 @@ extractCarrierEmail:
         if (!match) return '';
         return g(match, 'sisu') || g(match, 'vaartus') || g(match, 'value') || '';
       })()}
-  next: sendCarrierNotification
-
-# Otsingu viga: kutsutakse ikka tühja aadressiga, et send-postkast.yml logiks
-# korrektse "error" rea outbound_log-i (sama muster mis VR-kaardil).
-markCarrierEmailLookupFailed:
-  assign:
-    carrier_email: ""
   next: sendCarrierNotification
 
 sendCarrierNotification:

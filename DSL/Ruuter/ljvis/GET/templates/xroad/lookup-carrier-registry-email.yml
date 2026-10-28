@@ -57,8 +57,10 @@ callXtr:
 
 checkStatus:
   switch:
+    - condition: ${carrierRegistryRes == null || carrierRegistryRes.response == null}
+      next: logNetworkFailure
     - condition: >-
-        ${carrierRegistryRes.response == null || carrierRegistryRes.response.status == null || carrierRegistryRes.response.status < 200 || carrierRegistryRes.response.status >= 300}
+        ${carrierRegistryRes.response.status == null || carrierRegistryRes.response.status < 200 || carrierRegistryRes.response.status >= 300}
       next: logStatusFailure
   next: logSuccess
 

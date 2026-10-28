@@ -147,6 +147,13 @@ publishForm:
       created_by: ${created_by}
   result: publishRes
   error: returnPublishError
+  next: checkPublishResponse
+
+# Vastuseta publishForm loetakse samuti ebaõnnestumiseks (sama haru mis transpordivea `error:`).
+checkPublishResponse:
+  switch:
+    - condition: ${publishRes == null || publishRes.response == null}
+      next: returnPublishError
   next: buildLogDescription
 
 buildLogDescription:
