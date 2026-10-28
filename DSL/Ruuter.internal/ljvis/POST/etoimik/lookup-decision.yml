@@ -13,6 +13,7 @@ declaration:
   allowlist:
     body:
       - { field: reference_number, type: string }
+      - { field: case_number, type: string }
       - { field: personal_code, type: string }
       - { field: first_name, type: string }
       - { field: last_name, type: string }
@@ -23,6 +24,7 @@ declaration:
 
 extract:
   assign:
+    case_number: "${(incoming.body.case_number || '').trim()}"
     reference_number: "${(incoming.body.reference_number || '').trim()}"
     personal_code: "${(incoming.body.personal_code || '').trim()}"
     first_name: "${(incoming.body.first_name || '').trim()}"
@@ -42,7 +44,7 @@ derive:
 
 validate:
   switch:
-    - condition: "${reference_number === '' || (!has_code && !has_name_group)}"
+    - condition: "${(reference_number === '' && case_number === '') || (reference_number !== '' && case_number !== '') || (!has_code && !has_name_group)}"
       next: returnInvalid
     - condition: "${has_code}"
       next: buildCodeRequest
@@ -52,6 +54,7 @@ validate:
 buildCodeRequest:
   assign:
     xtr_request_body1:
+      case_number: ${case_number}
       reference_number: ${reference_number}
       personal_code: ${personal_code}
       userId: "LJVIS-CRON"
@@ -60,6 +63,7 @@ buildCodeRequest:
 buildNameRequest:
   assign:
     xtr_request_body1:
+      case_number: ${case_number}
       reference_number: ${reference_number}
       first_name: ${first_name}
       last_name: ${last_name}
@@ -161,6 +165,7 @@ afterFirst:
 buildNameRequest2:
   assign:
     xtr_request_body2:
+      case_number: ${case_number}
       reference_number: ${reference_number}
       first_name: ${first_name}
       last_name: ${last_name}
@@ -261,5 +266,5 @@ returnSecond:
   next: end
 
 returnInvalid:
-  return: "${({ success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'puudub viitenumber või isikutuvastus (isikukood või eesnimi + perekonnanimi + sünniaeg)' })}"
+  return: "${({ success: false, found: false, resultStatus: 'error', enforcementDecision: '', proceedingClosureBasis: '', errorMessage: 'vajalik on täpselt üks asja number või viitenumber ning isikutuvastus (isikukood või eesnimi + perekonnanimi + sünniaeg)' })}"
   next: end

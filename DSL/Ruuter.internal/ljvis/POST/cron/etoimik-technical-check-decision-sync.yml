@@ -63,7 +63,8 @@ processVehicleCandidates:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
-            reference_number: ${reference_number}
+            case_number: "${['YLD', 'general'].includes(candidate.proceedingType || candidate.proceeding_type || '') ? reference_number : ''}"
+            reference_number: "${['YLD', 'general'].includes(candidate.proceedingType || candidate.proceeding_type || '') ? '' : reference_number}"
             personal_code: ${driver_personal_code}
             first_name: ${person_first_name}
             last_name: ${person_last_name}
@@ -164,7 +165,8 @@ processTrailerCandidates:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
           body:
-            reference_number: ${reference_number}
+            case_number: "${['YLD', 'general'].includes(candidate.proceedingType || candidate.proceeding_type || '') ? reference_number : ''}"
+            reference_number: "${['YLD', 'general'].includes(candidate.proceedingType || candidate.proceeding_type || '') ? '' : reference_number}"
             personal_code: ${driver_personal_code}
             first_name: ${person_first_name}
             last_name: ${person_last_name}

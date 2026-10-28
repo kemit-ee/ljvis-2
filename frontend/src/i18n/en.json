@@ -1750,6 +1750,7 @@
   },
   "etoimik": {
     "title": "e-Toimik qualification check",
+    "caseOrReferenceNumber": "Case number or reference number",
     "referenceNumber": "Reference number",
     "person": "Person",
     "unnamedDriver": "Unnamed driver",

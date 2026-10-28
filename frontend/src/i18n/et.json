@@ -1781,6 +1781,7 @@
   },
   "etoimik": {
     "title": "E-toimiku kvalifikatsiooni kontroll",
+    "caseOrReferenceNumber": "Väärteoasja number või viitenumber",
     "referenceNumber": "Viitenumber",
     "person": "Isik",
     "unnamedDriver": "Nimetu juht",
