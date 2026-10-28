@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Audit: user group set-permissions event — fetches full permissions list to resolve codes"
+  description: "Audit: user group set-permissions event - fetches full permissions list to resolve codes"
   namespace: service
   strict: true
   allowlist:

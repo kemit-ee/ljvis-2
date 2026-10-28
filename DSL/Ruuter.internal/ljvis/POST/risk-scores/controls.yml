@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -76,7 +77,7 @@ returnResult:
   return: "${({controls: controls})}"
   next: end
 
-# Object-literal `${(...)}` form, NOT a quoted JSON string literal — see
+# Object-literal `${(...)}` form, NOT a quoted JSON string literal - see
 # risk-scores/current.yml's returnNoRecord comment for why (confirmed live
 # via Newman).
 returnInvalidRegCode:

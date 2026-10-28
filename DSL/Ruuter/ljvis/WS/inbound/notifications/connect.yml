@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     WebSocket endpoint teavituste reaalajas uuenduste jaoks.
@@ -16,7 +17,7 @@ declaration:
 
     Push: Ruuter.internal notification/create.yml kutsub peale teavituse loomist
     POST /v1/ws-broadcast/send, mis teeb ws_send broadcast_where tag=perms
-    contains=",<required_permission>," — sisutu {"type":"notification_update"}
+    contains=",<required_permission>," - sisutu {"type":"notification_update"}
     signaal AINULT nendele ühendustele, kellel on teavituse nõutav õigus. WS-üle
     EI edastata kasutajaandmeid; iga frontend teeb oma autenditud
     GET /v1/notifications/unread-count päringu.

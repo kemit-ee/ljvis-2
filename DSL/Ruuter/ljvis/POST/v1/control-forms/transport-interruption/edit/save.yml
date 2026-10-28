@@ -1,14 +1,18 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Create or update the transport-interruption sub-form (autoveo katkestamise kontrollvorm, LJVIS2-74) — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
+  description: "Create or update the transport-interruption sub-form (autoveo katkestamise kontrollvorm, LJVIS2-74) - single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey (created via the normal compound-form flow). Status and the sub-form-number /V version suffix are always computed/controlled server-side and never trust client input. Confirmed sub-forms can be re-saved by their creator, by the inspector named on the compound form, or by a user with control_form.edit_locked; published sub-forms only by control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: compoundFormKey
+        type: integer
       - field: headerText
         type: string
       - field: residenceCountry
@@ -134,8 +138,8 @@ logAuditEventInsert:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
-    compound_form_key: ${compound_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}
@@ -218,7 +222,7 @@ updateForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
@@ -275,8 +279,8 @@ logAuditEventUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sub_form_key: ${sub_form_key}
-    compound_form_key: ${current_compound_form_key}
+    sub_form_key: "${String((sub_form_key) ?? '')}"
+    compound_form_key: "${String((current_compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     driver1PersonalCodeEe: ${driver1_personal_code_ee}
     driver1PersonalCodeForeign: ${driver1_personal_code_foreign}

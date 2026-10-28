@@ -267,7 +267,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\"type\": \"driving_ban\", \"required_permission\": \"ncr.read\", \"related_entity_type\": \"compound_form\", \"related_entity_id\": \"NOTIF-CI-C\", \"title_et\": \"CI teavitus C\", \"body_et\": \"keha C\", \"created_by\": \"newman\"}"
+          "raw": "{\"type\": \"newman_permission_only\", \"required_permission\": \"ncr.read\", \"related_entity_type\": \"compound_form\", \"related_entity_id\": \"NOTIF-CI-C\", \"title_et\": \"CI teavitus C\", \"body_et\": \"keha C\", \"created_by\": \"newman\"}"
         }
       },
       "response": []

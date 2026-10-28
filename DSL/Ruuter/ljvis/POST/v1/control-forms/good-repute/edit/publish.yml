@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Publish (avalikusta) a good repute form (hea maine vorm). Publishing re-saves current field values, then transitions status confirmed -> published. One-way: an already-published form cannot be published again."
@@ -88,7 +89,7 @@ publishForm:
   next: checkPublishConflict
 
 # Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
-# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
     - condition: ${confirmRes.response != null && confirmRes.response.status >= 200 && confirmRes.response.status < 300 && Array.isArray(confirmRes.response.body) && confirmRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
@@ -115,7 +116,7 @@ logAuditEvent:
     cookie: ${incoming.headers.cookie}
   body:
     form_number: ${form_number}
-    good_repute_form_key: ${good_repute_form_key}
+    good_repute_form_key: "${String((good_repute_form_key) ?? '')}"
     personal_code: ${personal_code}
     old_status: ${old_status}
     new_status: ${new_status}

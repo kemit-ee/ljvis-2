@@ -1,12 +1,13 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Save/revise the Estonian response draft to an INCOMING NCR message (LJVIS2-63).
     Moves the message to status 'answer_drafted'. Coverage validation (LJVIS2-63 §4 'Vastust ei
     saa salvestada enne, kui igale taotletud karistusele on lisatud sellega seotud kehtestatud
     karistus') is enforced HERE, before calling append-response-draft.sql: every
     penaltyRequestedIdentifier from the case's serious_infringements[].penaltiesRequested[] must
-    appear in the submitted responsePenaltiesImposed[] EXACTLY ONCE — missing or duplicated
+    appear in the submitted responsePenaltiesImposed[] EXACTLY ONCE - missing or duplicated
     identifiers both fail with 422 penalty_coverage_incomplete. isImposed=false entries have
     penaltyTypeImposed stripped server-side regardless of what the client submitted (LJVIS2-63
     §4 'Määrati karistus = Ei peidab ja tühjendab [Kehtestatud karistuse] välja')."

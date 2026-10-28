@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Soft-delete a TRAM control card (tombstone snapshot, status='deleted'). Requires control_form.delete."

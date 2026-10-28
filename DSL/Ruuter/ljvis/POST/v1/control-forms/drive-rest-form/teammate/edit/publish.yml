@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Publish (avalikusta) the drive/rest teammate sub-form. Only allowed from confirmed status. Form field values are taken from the current database record — client only provides the id."
+  description: "Publish (avalikusta) the drive/rest teammate sub-form. Only allowed from confirmed status. Form field values are taken from the current database record - client only provides the id."
   namespace: control-forms
   allowlist:
     body:
@@ -171,7 +172,7 @@ logAuditEvent:
   next: checkPublishConflict
 
 # Optimistlik lukk: kui vorm muutus pärast get-päringut (nt e-toimiku cron avalikustas selle),
-# lisab update.sql 0 rida — see on konflikt, mitte salvestusviga.
+# lisab update.sql 0 rida - see on konflikt, mitte salvestusviga.
 checkPublishConflict:
   switch:
     - condition: ${publishRes.response != null && publishRes.response.status >= 200 && publishRes.response.status < 300 && Array.isArray(publishRes.response.body) && publishRes.response.body.length === 0 && currentFormRes.response.body[0].revision != null}
@@ -277,7 +278,7 @@ checkTachographNotDownloaded:
   next: triggerRiskRecalculate
 
 # Sõidumeerikust/juhikaardilt andmed alla laadimata -> teavitus Tööinspektsioonile.
-# Fire-and-forget — saatmise viga ei peata avalikustamise voogu.
+# Fire-and-forget - saatmise viga ei peata avalikustamise voogu.
 sendTachographNotification:
   call: http.post
   args:
@@ -301,7 +302,7 @@ sendTachographNotification:
 # calculate_risk_score.sql loeb otse forms.sp_teammate_form-i, seega
 # alamvormi avalikustamine peab riskiskoori värskendama samamoodi nagu
 # kompaundvormi/TRAM-kaardi avalikustamine juba teeb (compound-form/edit/
-# publish.yml, tram-card/edit/publish.yml) — muidu jääb skoor vananenuks
+# publish.yml, tram-card/edit/publish.yml) - muidu jääb skoor vananenuks
 # kuni öise risk-score-recalc-sync cron'ini.
 triggerRiskRecalculate:
   switch:

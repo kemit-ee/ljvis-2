@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Audit: user group view event — fetches group users internally to build description"
+  description: "Audit: user group view event - fetches group users internally to build description"
   namespace: service
   strict: true
   allowlist:

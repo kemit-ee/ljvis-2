@@ -211,6 +211,16 @@ public class MapperSmokeTest {
             throw new AssertionError("CTUD must use the flow's own respondingAuthority, not a hardcoded default: " + foundXml);
         }
 
+        // MTR / the MTR mock already supply the XSD long-form type string (MOVEHUB test pack CTUD_01).
+        Map<String, Object> foundLongType = new LinkedHashMap<>(found);
+        Map<String, Object> clLongType = new LinkedHashMap<>(cl);
+        clLongType.put("communityLicenceType", "Community licence for goods transport");
+        foundLongType.put("communityLicenceDetails", List.of(clLongType));
+        String longTypeXml = mapper.buildResponseXml(roundTripJson(foundLongType), doc, "13131313-1313-1313-1313-131313131313");
+        if (!longTypeXml.contains("communityLicenceType=\"Community licence for goods transport\"")) {
+            throw new AssertionError("an XSD long-form licence type must pass through unchanged: " + longTypeXml);
+        }
+
         // An unrecognised/missing licence type or status must NOT produce a fabricated Found
         // record, or a synthetic NotAvailable (forbidden by protocol) — it must throw, so the
         // caller (ProcessingWorker) sends an ErrorNotification instead.
@@ -231,6 +241,33 @@ public class MapperSmokeTest {
         String notFoundXml = mapper.buildResponseXml(notFound, doc, "88888888-8888-8888-8888-888888888888");
         schemas.validate("CheckTransportUndertakingData_Response", notFoundXml.getBytes("UTF-8"));
         ResponseValidator.validate(XmlUtil.parseHardened(notFoundXml));
+        // Two-criterion searches must keep missing fields absent and echo the variant.
+        for (String variant : List.of("SearchByLicenceAndVehicle", "SearchByNameAndVehicle")) {
+            boolean hasLicence = variant.equals("SearchByLicenceAndVehicle");
+            String attributes = hasLicence ? "communityLicenceNumber=\"EE-CL-2020-11111\""
+                    : "transportUndertakingName=\"AS EESTI VEOD\"";
+            String partialXml = xml.replace(
+                    "<SearchByLicenceAndName transportUndertakingName=\"AS EESTI VEOD\" communityLicenceNumber=\"EE-CL-2020-11111\">",
+                    "<" + variant + " " + attributes + ">")
+                    .replace("</SearchByLicenceAndName>", "</" + variant + ">");
+            schemas.validate(mapper.requestRoot(), partialXml);
+            var partialDoc = XmlUtil.parseHardened(partialXml);
+            var partialJson = mapper.requestToJson(partialDoc, Instant.now());
+            String absentField = hasLicence ? "transportUndertakingName" : "communityLicenceNumber";
+            if (!"".equals(partialJson.get(absentField))) throw new AssertionError("invented " + absentField);
+            if (!"123ABC".equals(partialJson.get("vehicleRegistrationNumber"))) throw new AssertionError("vehicle");
+            Map<String, Object> partialFound = new LinkedHashMap<>(found);
+            partialFound.put("searchMethod", hasLicence ? "CommunityLicence" : "VehicleRegistration");
+            for (Map<String, Object> answer : List.of(partialFound, notFound)) {
+                String response = mapper.buildResponseXml(roundTripJson(answer), partialDoc,
+                        "88888888-8888-8888-8888-888888888888");
+                schemas.validate(mapper.responseRoot(), response);
+                var responseDoc = XmlUtil.parseHardened(response);
+                ResponseValidator.validate(responseDoc);
+                ResponseValidator.validateCorrelation(partialDoc, responseDoc, "EE");
+                if (!response.contains("<" + variant)) throw new AssertionError("lost CTUD search variant");
+            }
+        }
         System.out.println("CTUD OK");
     }
 
@@ -347,6 +384,19 @@ public class MapperSmokeTest {
         schemas.validate("CheckGoodRepute_Response", aggregateXml);
         ResponseValidator.validate(XmlUtil.parseHardened(aggregateXml));
         ResponseValidator.validateCorrelation(doc7a, XmlUtil.parseHardened(foundXml), "EE");
+        // Certificate-only searches also produce a complete, valid Found response.
+        Map<String, Object> certificateDetails = new LinkedHashMap<>(tmDetails);
+        certificateDetails.put("searchMethod", "CPC");
+        Map<String, Object> certificateFound = new LinkedHashMap<>(found);
+        certificateFound.put("transportManagerDetails", certificateDetails);
+        for (Map<String, Object> answer : List.of(certificateFound, notFound)) {
+            String response = mapper.buildResponseXml(roundTripJson(answer), doc7b,
+                    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+            schemas.validate(mapper.responseRoot(), response);
+            var responseDoc = XmlUtil.parseHardened(response);
+            ResponseValidator.validate(responseDoc);
+            ResponseValidator.validateCorrelation(doc7b, responseDoc, "EE");
+        }
         System.out.println("CGR OK");
     }
 

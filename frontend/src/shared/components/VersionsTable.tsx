@@ -79,7 +79,6 @@ export function VersionsTable({
           className={styles.table}
           data={snapshots}
           columns={columns}
-          enableSorting={false}
         />
       </Card.Content>
     </Card>

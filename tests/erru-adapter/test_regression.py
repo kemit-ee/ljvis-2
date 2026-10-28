@@ -107,6 +107,17 @@ def audit_count(kind, dto):
 
 
 class ErruRegression(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Desktop-kanali teavitus tekib ainult siis, kui liigile on saaja valitud.
+        for kind in ('ncr_violation', 'ncr_ok', 'rsi_received', 'nu_inbound_received'):
+            sql("INSERT INTO notifications.notification_template_mapping (notification_type, channel, default_language, active, desktop_recipient_personal_codes, created_by) VALUES ("
+                + quoted(kind) + ", 'desktop', 'et', true, ARRAY['60001019906'], 'regression-test')")
+
+    @classmethod
+    def tearDownClass(cls):
+        sql("DELETE FROM notifications.notification_template_mapping WHERE created_by = 'regression-test'")
+
     def test_01_expired_and_short_deadline_notifications_finish(self):
         for kind in ('nu', 'ncr', 'rsi'):
             for seconds in (-30, 2):
@@ -159,17 +170,59 @@ class ErruRegression(unittest.TestCase):
         self.assertEqual('received', sql("SELECT status FROM erru.rsi_message WHERE technical_id=" + quoted(dto['technicalId']) + ' ORDER BY version DESC LIMIT 1'))
         self.assertEqual(0, audit_count('rsi', dto))
 
-    def test_04_cgr_partial_search_is_error_not_false_negative(self):
+    def test_04_cgr_partial_search_returns_business_answer(self):
         for branch in ('7A', '7B'):
-            xml, dto = fixture('cgr')
-            element = 'TransportManagerCertificateDetails' if branch == '7A' else 'TransportManagerNameDetails'
-            xml = re.sub('<' + element + r'[^>]*/>', '', xml)
-            result = await_outcome(accept(xml))
-            self.assertEqual(['ServerError'], xml_status(result['xml']))
-            self.assertEqual('received', sql("SELECT status FROM erru.cgr_request WHERE technical_id=" + quoted(dto['technicalId']) + ' ORDER BY version DESC LIMIT 1'))
-            root = ET.fromstring(result['xml'])
-            self.assertEqual('ErrorNotification', root.tag.split('}')[-1])
-            self.assertEqual(dto['workflowId'], root.find('e:Header', NS).get('workflowId'))
+            for found in (True, False):
+                with self.subTest(branch=branch, found=found):
+                    xml, dto = fixture('cgr')
+                    element = 'TransportManagerCertificateDetails' if branch == '7A' else 'TransportManagerNameDetails'
+                    xml = re.sub('<' + element + r'[^>]*/>', '', xml)
+                    if not found:
+                        xml = xml.replace('firstName="MART"', 'firstName="UNKNOWN"')
+                        xml = xml.replace('familyName="TAMM"', 'familyName="UNKNOWN"')
+                        xml = xml.replace('certificateNumber="EE-CPC-2020-00111"', 'certificateNumber="UNKNOWN"')
+                    result = await_outcome(accept(xml))
+                    self.assertEqual(['Found' if found else 'NotFound'], xml_status(result['xml']))
+                    self.assertEqual('answered', sql("SELECT status FROM erru.cgr_request WHERE technical_id=" + quoted(dto['technicalId']) + ' ORDER BY version DESC LIMIT 1'))
+                    root = ET.fromstring(result['xml'])
+                    self.assertEqual('CheckGoodRepute_Response', root.tag.split('}')[-1])
+                    self.assertEqual(dto['workflowId'], root.find('e:Header', NS).get('workflowId'))
+                    details = root.find('.//e:TransportManagerDetails', NS)
+                    if found:
+                        self.assertIsNotNone(details)
+                        self.assertEqual('NYSIIS' if branch == '7A' else 'CPC', details.get('searchMethod'))
+                    else:
+                        self.assertIsNone(details)
+
+    def test_04b_ctud_partial_search_returns_business_answer(self):
+        for variant in ('SearchByLicenceAndName', 'SearchByLicenceAndVehicle', 'SearchByNameAndVehicle'):
+            for found in (True, False):
+                with self.subTest(variant=variant, found=found):
+                    xml, dto = fixture('ctud')
+                    attributes = []
+                    if variant != 'SearchByLicenceAndVehicle':
+                        attributes.append('transportUndertakingName="' + ('AS EESTI VEOD' if found else 'NO MATCH TRANSPORT') + '"')
+                    if variant != 'SearchByNameAndVehicle':
+                        attributes.append('communityLicenceNumber="' + ('EE-CL-2020-11111' if found else 'UNKNOWN') + '"')
+                    vehicle = '' if variant == 'SearchByLicenceAndName' else '<Vehicle vehicleRegistrationNumber="123ABC" vehicleRegistrationCountry="EE"/>'
+                    search = '<' + variant + ' ' + ' '.join(attributes) + '>' + vehicle + '</' + variant + '>'
+                    xml = re.sub(r'<SearchByLicenceAndName\b[^>]*>.*?</SearchByLicenceAndName>', search, xml, flags=re.S)
+                    result = await_outcome(accept(xml))
+                    self.assertEqual(['Found' if found else 'NotFound'], xml_status(result['xml']))
+                    self.assertEqual('answered', sql("SELECT status FROM erru.ctud_request WHERE technical_id=" + quoted(dto['technicalId']) + ' ORDER BY version DESC LIMIT 1'))
+                    root = ET.fromstring(result['xml'])
+                    self.assertEqual('CheckTransportUndertakingData_Response', root.tag.split('}')[-1])
+                    self.assertEqual(dto['workflowId'], root.find('e:Header', NS).get('workflowId'))
+                    echoed = root.find('.//e:SearchedCompany/e:' + variant, NS)
+                    self.assertIsNotNone(echoed)
+                    if variant == 'SearchByNameAndVehicle':
+                        self.assertNotIn('communityLicenceNumber', echoed.attrib)
+                    undertaking = root.find('.//e:TransportUndertaking', NS)
+                    if found:
+                        self.assertIsNotNone(undertaking)
+                        self.assertEqual('VehicleRegistration' if variant == 'SearchByNameAndVehicle' else 'CommunityLicence', undertaking.get('searchMethod'))
+                    else:
+                        self.assertIsNone(undertaking)
 
     def test_05_booleans_and_echo(self):
         for boolean in ('true', '1', ' true '):

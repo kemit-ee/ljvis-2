@@ -1,5 +1,5 @@
 # Nõutav õigus: ncr.respond. override_ancestors: verbi-õigus on iseseisev, ei stacki
-# parent erru-guardi ega projektiülese guardi peale — seega autendib see guard ise.
+# parent erru-guardi ega projektiülese guardi peale - seega autendib see guard ise.
 declaration:
   override_ancestors: true
 

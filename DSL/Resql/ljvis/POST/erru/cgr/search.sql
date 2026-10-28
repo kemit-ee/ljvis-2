@@ -1,12 +1,12 @@
 /*
-description: 'Paginated, filtered list of OUTGOING CGR requests only (LJVIS2-140) — the specification
+description: 'Paginated, filtered list of OUTGOING CGR requests only (LJVIS2-140) - the specification
   explicitly scopes this list to requests Estonia has sent (''väljaminevad päringud''), unlike the CTUD
   list which covers both directions. The `latest` CTE reduces the append-only table to exactly one row
   per request (the newest snapshot) before any filtering or paging. All filters are optional and AND-combined
-  — unlike CTUD, tmFirstName/tmFamilyName are separate AND-combined fields, not an OR-group, per the task
+  - unlike CTUD, tmFirstName/tmFamilyName are separate AND-combined fields, not an OR-group, per the task
   specification. response_status_code is derived here (not a stored column, unlike CTUD): for a single-country
   request (cgr_to <> ''ZZ'') with exactly one member_states entry, it is that entry''s statusCode; for
-  a broadcast request (cgr_to = ''ZZ'') it is always NULL — the per-country breakdown is shown only in
+  a broadcast request (cgr_to = ''ZZ'') it is always NULL - the per-country breakdown is shown only in
   the request detail view, never in the list. Sorting is whitelisted; total is returned via COUNT(*) OVER
   () so the caller needs only one round trip.'
 namespace: erru
@@ -111,7 +111,7 @@ SELECT
   l.cgr_to,
   l.certificate_number,
   -- Single-country send: the one member_states entry IS the response outcome.
-  -- Broadcast (ZZ): no single outcome — breakdown belongs to the detail view only.
+  -- Broadcast (ZZ): no single outcome - breakdown belongs to the detail view only.
   CASE
     WHEN l.cgr_to <> 'ZZ' AND jsonb_array_length(COALESCE(l.member_states, '[]'::JSONB)) = 1
       THEN l.member_states -> 0 ->> 'statusCode'

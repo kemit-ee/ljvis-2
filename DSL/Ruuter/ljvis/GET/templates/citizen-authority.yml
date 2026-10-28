@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Validate JWT cookie via TIM and return citizen representation claims (personalCode/activeRole/activeRegistryCode/representedCompanies) — no users.user_account lookup, unlike templates/check-user-authority."
+  description: "Validate JWT cookie via TIM and return citizen representation claims (personalCode/activeRole/activeRegistryCode/representedCompanies) - no users.user_account lookup, unlike templates/check-user-authority."
   namespace: service
   allowlist:
     headers:

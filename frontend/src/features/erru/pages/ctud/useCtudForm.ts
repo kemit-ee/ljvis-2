@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import { createCtudRequest, sendCtudRequest, updateCtudRequest } from '../../api';
 import type { CtudRequest, CtudRequestWrite } from '../../types';
 import { ApiError } from '../../../../shared/api/client';
+import { sendErrorCode } from './useCtudRequestDetail';
 import { ValidationError, applyValidationError } from '../../../../shared/api/errors';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
@@ -19,7 +20,7 @@ const T = 'erru.ctud.validation';
  */
 export function useCtudForm(
   request: CtudRequest | undefined,
-  onSaved: (id?: string) => void,
+  onSaved: (id?: string, sendError?: string) => void,
   { sendAfterCreate = false }: { sendAfterCreate?: boolean } = {},
 ) {
   const { t } = useTranslation();
@@ -107,10 +108,17 @@ export function useCtudForm(
         const result = isEdit
           ? await updateCtudRequest(String(request!.id), trimmedValues)
           : await createCtudRequest(trimmedValues);
+        let sendError: string | undefined;
         if (!isEdit && sendAfterCreate) {
-          await sendCtudRequest(String(result.id));
+          try {
+            await sendCtudRequest(String(result.id));
+          } catch (sendFailure) {
+            // The draft exists. Open it with the cause so no second draft is created and the user sees why.
+            console.error('CTUD send after create failed', sendFailure);
+            sendError = sendErrorCode(sendFailure);
+          }
         }
-        onSaved(String(result.id));
+        onSaved(String(result.id), sendError);
       } catch (e) {
         // min_two_search_criteria is a form-wide rule — always surface it via formError,
         // even though the backend reports it with field="transportUndertakingName".

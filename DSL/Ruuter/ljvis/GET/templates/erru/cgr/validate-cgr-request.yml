@@ -1,7 +1,8 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
-  description: "Single source of truth for CGR request field validation (LJVIS2-138) — shared by the create (POST), revise (PUT) and inbound-request paths so the ERRU rules are defined once. Mirrors the erru.cgr_request CHECK constraints (chk_cgr_search_choice, chk_cgr_cgr_to_format). Returns '{\"valid\":true}' when all checks pass, otherwise the standard VALIDATION_ERROR shape ready to forward to the client as-is.\n\nSame Ruuter caveat as validate-ctud-request.yml: every condition reads incoming.body directly (never a pre-assigned variable) and every emptiness test is truthiness-first, because ScriptingHelper.filterEmptyOptional discards an assign that evaluates to '', turning it into undefined."
+  description: "Single source of truth for CGR request field validation (LJVIS2-138) - shared by the create (POST), revise (PUT) and inbound-request paths so the ERRU rules are defined once. Mirrors the erru.cgr_request CHECK constraints (chk_cgr_search_choice, chk_cgr_cgr_to_format). Returns '{\"valid\":true}' when all checks pass, otherwise the standard VALIDATION_ERROR shape ready to forward to the client as-is.\n\nSame Ruuter caveat as validate-ctud-request.yml: every condition reads incoming.body directly (never a pre-assigned variable) and every emptiness test is truthiness-first, because ScriptingHelper.filterEmptyOptional discards an assign that evaluates to '', turning it into undefined."
   namespace: service
   allowlist:
     body:
@@ -30,7 +31,7 @@ declaration:
 
 validate:
   switch:
-    # ── Header and parties. cgrTo is OPTIONAL — empty means broadcast to all
+    # ── Header and parties. cgrTo is OPTIONAL - empty means broadcast to all
     # member states (stored as ZZ); when given it must be a 2-letter code. ────
     - condition: ${!!(('' + (incoming.body.cgrTo || '')).trim()) && ('' + (incoming.body.cgrTo || '')).trim().length !== 2}
       next: returnCgrToInvalidError
@@ -42,7 +43,7 @@ validate:
       next: returnRequestSourceRequiredError
     - condition: ${!(('' + (incoming.body.requestPurpose || '')).trim())}
       next: returnRequestPurposeRequiredError
-    # ── Searched transport manager: XSD choice — 7A (name+DOB) or 7B (certificate),
+    # ── Searched transport manager: XSD choice - 7A (name+DOB) or 7B (certificate),
     # or both. Each block, if used at all, must be complete. ────────────────────
     - condition: "${(('' + (incoming.body.tmFirstName || '')).trim() || ('' + (incoming.body.tmFamilyName || '')).trim() || ('' + (incoming.body.tmDateOfBirth || '')).trim()) ? (!(('' + (incoming.body.tmFirstName || '')).trim()) || !(('' + (incoming.body.tmFamilyName || '')).trim()) || !(('' + (incoming.body.tmDateOfBirth || '')).trim())) : false}"
       next: returnNameBlockIncompleteError

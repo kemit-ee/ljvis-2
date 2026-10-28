@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Delete a file attachment for a trailer technical check form"
@@ -13,7 +14,7 @@ declaration:
         type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: deleteFile

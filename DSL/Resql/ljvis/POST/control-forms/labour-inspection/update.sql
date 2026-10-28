@@ -1,5 +1,5 @@
 /*
-description: Update labour inspection form (Tööinspektsiooni kontrollakt) — appends a new snapshot row.
+description: Update labour inspection form (Tööinspektsiooni kontrollakt) - appends a new snapshot row.
   version is unchanged while the latest snapshot's status is 'saved' (repeat saves do not bump /V) and
   increments by 1 only when re-saving already-locked (confirmed) data.
 namespace: control-forms
@@ -75,7 +75,7 @@ returns:
 */
 -- `latest` reads form_number and current version from the most recent
 -- snapshot of this act. version only increments when the snapshot being
--- re-saved is already locked (status <> 'saved') — see edit/save.yml's
+-- re-saved is already locked (status <> 'saved') - see edit/save.yml's
 -- edit_locked gate for confirmed data.
 WITH latest AS (
   SELECT form_number,

@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Audit: user group set-organisations event — conditionally fetches cascade-removed user personal codes"
+  description: "Audit: user group set-organisations event - conditionally fetches cascade-removed user personal codes"
   namespace: service
   strict: true
   allowlist:

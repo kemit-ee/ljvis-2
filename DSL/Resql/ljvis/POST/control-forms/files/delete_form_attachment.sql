@@ -13,7 +13,7 @@ params:
   form_number_prefix:
     type: string
     required: false
-    description: 'Vorminumbri prefiks — kohustuslik IDOR-kaitse (vt get_form_attachment_by_id.sql). Tühi/NULL → 0 rida kustutatud.'
+    description: 'Vorminumbri prefiks - kohustuslik IDOR-kaitse (vt get_form_attachment_by_id.sql). Tühi/NULL → 0 rida kustutatud.'
   attachment_form_type:
     type: string
     required: false

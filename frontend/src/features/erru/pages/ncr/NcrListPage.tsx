@@ -9,24 +9,35 @@ import {
   DateField,
   Heading,
   Select,
+  StatusBadge,
   Text,
   TextField,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NcrCaseListItem } from '../../types';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useNcrList } from './useNcrList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import {useMediaQuery} from "../../../../hooks/useMediaQuery.ts";
-import {BREAKPOINTS} from "../../../../constants/constants.ts";
 
-const columnHelper = createColumnHelper<NcrCaseListItem & { rowClassName?: string }>();
+const columnHelper = createColumnHelper<NcrCaseListItem>();
 
 /**
- * NCR case list (LJVIS2-65) — both incoming and outgoing, one row per case. Rows with at
- * least one serious infringement (hasInfringement, computed server-side from
- * serious_infringements) are highlighted red (.ncr-row-infringement). All filters are
+ * Pink row = any case with an infringement; the extra danger border marks the ones an
+ * official still has to act on (incoming, unresolved) - see needsAttention in search.sql.
+ */
+const rowClass = (row: NcrCaseListItem) =>
+  [row.hasInfringement && 'ncr-row-infringement', row.needsAttention && 'ncr-row-attention']
+    .filter(Boolean)
+    .join(' ') || undefined;
+
+/**
+ * NCR case list (LJVIS2-65) — both incoming and outgoing, one row per case. Rows with an
+ * infringement (hasInfringement, computed server-side) are pink (.ncr-row-infringement);
+ * unresolved incoming ones also get a danger border (.ncr-row-attention). "Kuupäev" is the
+ * sent date for outgoing and the arrival date for incoming cases. All filters are
  * AND-combined and applied only on "Otsi" (LJVIS2-65 §4 "Filtrid").
  */
 export function NcrListPage() {
@@ -35,8 +46,6 @@ export function NcrListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ncr.list']);
   const canCreate = hasAnyPermission(['ncr.create']);
 
@@ -69,21 +78,57 @@ export function NcrListPage() {
     { value: 'outgoing', label: t('erru.ncr.list.directionOutgoing') },
     { value: 'incoming', label: t('erru.ncr.list.directionIncoming') },
   ];
-  const automaticOptions = [
+  const yesNoOptions = [
     { value: 'true', label: t('common.yes') },
     { value: 'false', label: t('common.no') },
   ];
 
-  // Rows with a serious infringement get a red background via rowClassName (a data-level
-  // field the community Table component reads per row — see LJVIS2-65 §4).
-  const rows = useMemo(
-    () => data.map((row) => ({ ...row, rowClassName: row.hasInfringement ? 'ncr-row-infringement' : undefined })),
-    [data],
-  );
-
   const columns = useMemo(
     () => [
+      columnHelper.accessor('status', {
+        enableHiding: false,
+        header: t('erru.ncr.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('NCR_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('hasInfringement', {
+        header: t('erru.ncr.list.checkResult'),
+        enableSorting: false,
+        cell: (info) =>
+          info.getValue() ? (
+            <StatusBadge className="erru-badge" color="danger" icon="warning">
+              {t('erru.ncr.list.withInfringement')}
+            </StatusBadge>
+          ) : (
+            t('erru.ncr.list.compliant')
+          ),
+      }),
+      columnHelper.accessor('direction', {
+        header: t('erru.ncr.list.direction'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {info.getValue() === 'outgoing'
+              ? t('erru.ncr.list.directionOutgoing')
+              : t('erru.ncr.list.directionIncoming')}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('eventAt', {
+        enableHiding: false,
+        header: t('erru.ncr.list.eventAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.ncr.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -99,20 +144,14 @@ export function NcrListPage() {
           </a>
         ),
       }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.ncr.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
-      }),
       columnHelper.accessor('ncrFrom', {
+        enableHiding: false,
         header: t('erru.ncr.list.ncrFrom'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
       }),
       columnHelper.accessor('ncrTo', {
+        enableHiding: false,
         header: t('erru.ncr.list.ncrTo'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
@@ -122,23 +161,12 @@ export function NcrListPage() {
         enableSorting: true,
         cell: (info) => info.getValue() || '—',
       }),
-      columnHelper.accessor('direction', {
-        header: t('erru.ncr.list.direction'),
-        enableSorting: false,
-        cell: (info) =>
-          info.getValue() === 'outgoing'
-            ? t('erru.ncr.list.directionOutgoing')
-            : t('erru.ncr.list.directionIncoming'),
-      }),
-      columnHelper.accessor('status', {
-        header: t('erru.ncr.list.status'),
-        enableSorting: true,
-        cell: (info) => label('NCR_REQUEST_STATUS', info.getValue()),
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ncr.list.handler'),
         enableSorting: true,
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
       columnHelper.accessor('automatic', {
         header: t('erru.ncr.list.automatic'),
@@ -166,42 +194,45 @@ export function NcrListPage() {
 
           {/* Filters refresh only on "Otsi" — editing must not auto-refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="ncr-filter-id"
               label={t('erru.ncr.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <DateField
-              key={`ncr-sent-from-${resetKey}`}
-              id="ncr-filter-sent-from"
-              label={t('erru.ncr.list.sentFrom')}
+              inputProps={{ size: 'small' }}
+              key={`ncr-date-from-${resetKey}`}
+              id="ncr-filter-date-from"
+              label={t('erru.ncr.list.dateFrom')}
               selected={
-                draftFilters.sentFrom
-                  ? new Date(draftFilters.sentFrom)
+                draftFilters.dateFrom
+                  ? new Date(draftFilters.dateFrom)
                   : undefined
               }
-              onSelect={(v) => setFilter('sentFrom', toIsoDate(v))}
+              onSelect={(v) => setFilter('dateFrom', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
             />
             <DateField
-              key={`ncr-sent-until-${resetKey}`}
-              id="ncr-filter-sent-until"
-              label={t('erru.ncr.list.sentUntil')}
+              inputProps={{ size: 'small' }}
+              key={`ncr-date-until-${resetKey}`}
+              id="ncr-filter-date-until"
+              label={t('erru.ncr.list.dateUntil')}
               selected={
-                draftFilters.sentUntil
-                  ? new Date(draftFilters.sentUntil)
+                draftFilters.dateUntil
+                  ? new Date(draftFilters.dateUntil)
                   : undefined
               }
-              onSelect={(v) => setFilter('sentUntil', toIsoDate(v))}
+              onSelect={(v) => setFilter('dateUntil', toIsoDate(v))}
               placeholder={t('common.dateFieldPlaceholder')}
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="ncr-filter-from"
               label={t('erru.ncr.list.ncrFrom')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -217,6 +248,7 @@ export function NcrListPage() {
               }
             />
             <Select
+              size="small"
               id="ncr-filter-to"
               label={t('erru.ncr.list.ncrTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -232,6 +264,7 @@ export function NcrListPage() {
               }
             />
             <Select
+              size="small"
               id="ncr-filter-status"
               label={t('erru.ncr.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -247,6 +280,7 @@ export function NcrListPage() {
               }
             />
             <Select
+              size="small"
               id="ncr-filter-direction"
               label={t('erru.ncr.list.direction')}
               options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
@@ -263,23 +297,42 @@ export function NcrListPage() {
               }
             />
             <TextField
+              size="small"
               id="ncr-filter-handler"
               label={t('erru.ncr.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
               onChange={(v) => setFilter('handlerPersonalCode', v)}
             />
             <Select
+              size="small"
               id="ncr-filter-automatic"
               label={t('erru.ncr.list.automatic')}
-              options={[{ value: '', label: ' ' }, ...automaticOptions]}
+              options={[{ value: '', label: ' ' }, ...yesNoOptions]}
               value={
-                automaticOptions.find(
+                yesNoOptions.find(
                   (o) => o.value === draftFilters.automatic,
                 ) ?? null
               }
               onChange={(o) =>
                 setFilter(
                   'automatic',
+                  (o as { value?: string } | null)?.value ?? '',
+                )
+              }
+            />
+            <Select
+              size="small"
+              id="ncr-filter-needs-attention"
+              label={t('erru.ncr.list.needsAttention')}
+              options={[{ value: '', label: '\u00a0' }, ...yesNoOptions]}
+              value={
+                yesNoOptions.find(
+                  (o) => o.value === draftFilters.needsAttention,
+                ) ?? null
+              }
+              onChange={(o) =>
+                setFilter(
+                  'needsAttention',
                   (o as { value?: string } | null)?.value ?? '',
                 )
               }
@@ -293,8 +346,12 @@ export function NcrListPage() {
           </div>
 
           <AppTable
+            customizable
+            persistKey="erru-ncr-list"
+            size="small"
             id="ncr-table"
-            data={rows}
+            data={data}
+            rowClassName={rowClass}
             columns={columns}
             isLoading={isLoading}
             totalRows={totalRows}

@@ -1,10 +1,11 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Writes an auth.login.success audit event for LJVIS2 officials.
     Called by the public ruuter's oauth-callback DSL immediately after JWT
-    generation — at that point no cookie exists yet, so the audit template
+    generation - at that point no cookie exists yet, so the audit template
     guard (GET/templates/audit/.guard.yml) would reject the call.
     Running this in ruuter-internal bypasses the cookie guard entirely.
   namespace: auth

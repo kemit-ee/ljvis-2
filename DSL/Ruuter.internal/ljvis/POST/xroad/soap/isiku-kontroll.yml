@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     LJVIS1 SOAP IsikuKontroll: calls the REST handler xroad/provide/isiku-kontroll and maps its answer to the WSDL IsikuKontrollResponseType.

@@ -1,6 +1,6 @@
 /*
 description: Read the full history of one NCR case (LJVIS2-63). Returns EVERY snapshot for the given business_case_id,
-  ordered by created_at ASC — the caller treats the LAST element as the current state (for the editable
+  ordered by created_at ASC - the caller treats the LAST element as the current state (for the editable
   header/blocks) and the WHOLE array as the read-only 'Juhtumi teadete loend'. Returns zero rows when
   the case does not exist, which the caller maps to 404. Columns are emitted in snake_case and serialised
   to camelCase by Resql; JSONB columns are cast to text so the documents pass through verbatim to the

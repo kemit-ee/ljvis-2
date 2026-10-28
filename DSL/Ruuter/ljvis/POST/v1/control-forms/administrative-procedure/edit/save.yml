@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Salvestab vormi haldusmenetluse andmeploki (PPA andmevormid ja TRAM kontrollkaart). Nõuab Transpordiameti (TRAM) või Kliimaministeeriumi (KLIM) ametnikku või süsteemi-/asutuse administraatorit ning vormi lugemisõigust."
   namespace: control-forms

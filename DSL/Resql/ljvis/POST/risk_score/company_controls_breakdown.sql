@@ -2,11 +2,11 @@
 description: Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one company's controls,
   letting a citizen see WHY their company's risk score is what it is (not just the aggregate number).
   Uses the same rolling window definition as calculate_risk_score.sql/recalculate.yml (caller passes window_start/window_end
-  explicitly — Ruuter.internal controls.yml uses "now - 2 years" .. "now", matching the persisted aggregate
+  explicitly - Ruuter.internal controls.yml uses "now - 2 years" .. "now", matching the persisted aggregate
   score's window so the two stay comparable). Shares the exact qualifying_forms/violation_counts/sp_form_category
-  CTE logic as calculate_risk_score.sql — kept as a separate query rather than reusing that one's output
+  CTE logic as calculate_risk_score.sql - kept as a separate query rather than reusing that one's output
   because this returns one row PER CONTROL instead of one aggregated row. Two control sources, same as
-  calculate_risk_score.sql — forms.compound_form (PPA/TRAM) and forms.foreign_violation_form (VR-vorm,
+  calculate_risk_score.sql - forms.compound_form (PPA/TRAM) and forms.foreign_violation_form (VR-vorm,
   LJVIS2-151 gap fix). Returned rows are generic (form_key/form_type) rather than compound-specific, so the
   caller (citizen dashboard) can route to the right detail page for either control type. Display
   fields (form_number/main_date/vehicle_reg_nr) come from forms.form_search rather than forms.compound_form/
@@ -185,7 +185,7 @@ sp_form_category AS (
   FROM violation_tallies
 ),
 -- Per compound_form_key: severity counts and weighted points are summed only
--- over 'counted' SP forms — same convention as calculate_risk_score.sql's
+-- over 'counted' SP forms - same convention as calculate_risk_score.sql's
 -- weighted_sum, so the two numbers stay consistent for a given control.
 -- Koondvormid ilma ühegi SP-alamvormita ilmuvad tulemusse ikkagi (per_control loeb sp_agg
 -- alampäringuga ja vaikeväärtus on "täielikult välistatud", docs/risk-score/formula.md §3),
@@ -231,7 +231,7 @@ compound_controls AS (
   FROM per_control pc
   WHERE EXISTS (SELECT 1 FROM forms.form_search fs WHERE fs.form_type = 'compound' AND fs.form_key = pc.compound_form_key)
 ),
--- ── VR-vorm (forms.foreign_violation_form) — sama laiendus mis calculate_risk_score.sql §vr_* ──
+-- ── VR-vorm (forms.foreign_violation_form) - sama laiendus mis calculate_risk_score.sql §vr_* ──
 vr_enforcement_dates AS (
   SELECT foreign_violation_form_key, MIN(created_at) AS enforcement_date
   FROM forms.foreign_violation_form

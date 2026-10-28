@@ -1,5 +1,5 @@
 /*
-description: Create a new classifier value — full snapshot INSERT
+description: Create a new classifier value - full snapshot INSERT
 namespace: classifier
 params:
   classifier_id:

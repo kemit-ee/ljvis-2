@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Card, Heading, Text, StatusBadge } from '@tedi-design-system/react/tedi';
+import { Alert, Button, Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useNcrCase } from './useNcrCase';
 import { useNcrRequestForm } from './useNcrRequestForm';
 import { useNcrResponseForm } from './useNcrResponseForm';
 import { NcrRequestFields } from '../../components/Ncr/NcrRequestFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { NcrResponseFields } from '../../components/Ncr/NcrResponseFields';
 import { DetailRow } from '../../components/shared/DetailRow';
 import {
@@ -15,6 +16,7 @@ import {
   isNcrResponseSendable,
 } from '../../types';
 import { sendNcrRequest, sendNcrResponse } from '../../api';
+import { ncrSendErrorMessage } from '../../ncrErrors';
 import { createVrFormFromNcr } from '../../../control-forms/api';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
@@ -67,6 +69,11 @@ export function NcrFormPage() {
   if (notFound || !current) return <Text>{t('erru.ncr.notFound')}</Text>;
 
   const isInbound = current.direction === 'incoming';
+  // "Kuupäev": väljaminev = saatmise aeg; sissetulev = saabumise aeg (esimene 'received'
+  // snapshot - saatja päise sentAt ega viimase snapshoti createdAt ei ole saabumine).
+  const eventDate = isInbound
+    ? snapshots.find((s) => s.status === 'received')?.createdAt
+    : current.sentAt;
   const requestEditable = isNcrRequestEditable(current) && canCreate;
   const responseEditable = isNcrResponseEditable(current) && canRespond;
   const requestSendable = isNcrRequestSendable(current) && canSend;
@@ -81,7 +88,7 @@ export function NcrFormPage() {
       await sendNcrRequest(current.businessCaseId);
       await reload();
     } catch (e) {
-      setSendError(t('erru.ncr.form.sendFailed'));
+      setSendError(ncrSendErrorMessage(e, t));
       console.error('NCR send failed', e);
       await reload();
     } finally {
@@ -117,7 +124,7 @@ export function NcrFormPage() {
       await sendNcrResponse(current.businessCaseId);
       await reload();
     } catch (e) {
-      setSendError(t('erru.ncr.form.sendFailed'));
+      setSendError(ncrSendErrorMessage(e, t));
       console.error('NCR response send failed', e);
       await reload();
     } finally {
@@ -144,8 +151,8 @@ export function NcrFormPage() {
           value={authorityLabel(current.originatingAuthority)}
         />
         <DetailRow
-          label={t('erru.ncr.form.messageDateTime')}
-          value={new Date(current.sentAt ?? current.createdAt).toLocaleString('et-EE')}
+          label={t('erru.ncr.form.eventDate')}
+          value={eventDate ? new Date(eventDate).toLocaleString('et-EE') : '—'}
         />
         <DetailRow
           label={t('erru.ncr.form.requestSource')}
@@ -337,15 +344,26 @@ export function NcrFormPage() {
               {' — '}
               {current.businessCaseId}
             </Heading>
-            <StatusBadge>
-              {label('NCR_REQUEST_STATUS', current.status)}
-            </StatusBadge>
+            <ErruStatusBadge status={current.status}>
+              {current.status === 'sending'
+                ? t('erru.ncr.form.sending')
+                : current.status === 'send_unknown'
+                  ? t('erru.ncr.form.sendUnknownStatus')
+                  : label('NCR_REQUEST_STATUS', current.status)}
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.ncr.form.version', { version: current.version })}
           </Text>
           {current.errorMessage && (
-            <Text modifiers="bold">{current.errorMessage}</Text>
+            <Text modifiers="bold">
+              {current.status === 'send_unknown'
+                ? t('erru.ncr.form.sendUnknown')
+                : current.errorMessage}
+            </Text>
+          )}
+          {current.direction === 'outgoing' && current.status === 'sent' && (
+            <Text>{t('erru.ncr.form.awaitingAck')}</Text>
           )}
           {current.ackStatusCode && (
             <DetailRow
@@ -738,7 +756,9 @@ export function NcrFormPage() {
                 </Text>
                 <Text>{label('NCR_REQUEST_STATUS', s.status)}</Text>
                 <Text>
-                  {s.sentAt ? new Date(s.sentAt).toLocaleString('et-EE') : '—'}
+                  {s.sentAt || s.createdAt
+                    ? new Date(s.sentAt ?? s.createdAt).toLocaleString('et-EE')
+                    : '—'}
                 </Text>
               </div>
             );

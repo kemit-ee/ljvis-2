@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
-    Lahendab personal_code'ide loendi kasutajate nimedeks — kasutavad
+    Lahendab personal_code'ide loendi kasutajate nimedeks - kasutavad
     NotificationTemplateMappingListPage (koondtabeli saajate veerg) ja
     NotificationTemplateMappingDetailPage (desktop-kanali saajate kuvamine)
     (mapping salvestab ainult personal_code'id, vt insert_template_mapping.sql).

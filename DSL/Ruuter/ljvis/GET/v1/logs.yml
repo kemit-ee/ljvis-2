@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "List audit logs. audit.read sees all organisations; only audit.read.local restricts to the caller's own organisation."
@@ -18,7 +19,7 @@ declaration:
         description: "Sorting"
 
 getContext:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: checkAuditPermission

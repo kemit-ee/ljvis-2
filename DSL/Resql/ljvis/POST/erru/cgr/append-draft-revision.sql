@@ -2,7 +2,7 @@
 description: 'Revise an OUTGOING CGR request draft (LJVIS2-138, ''täiendamine''). Appends a new snapshot
   with version + 1, keeping status ''initiated''. Guarded: the INSERT .. SELECT produces zero rows unless
   the latest snapshot is status=''initiated'' AND direction=''outgoing'', so a sent request or an inbound
-  request can never be edited — the caller detects the empty result and returns 422. Editable fields are
+  request can never be edited - the caller detects the empty result and returns 422. Editable fields are
   fully replaced from the request body; identity and envelope fields (business_case_id, cgr_from, technical_id,
   workflow_id, sent_at, member_states) are carried forward untouched. An empty cgrTo defaults to the broadcast
   marker ZZ, same as append-draft.sql.'

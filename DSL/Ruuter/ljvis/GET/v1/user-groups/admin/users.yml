@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "List members of a user group (admin scope — all organisations)"
+  description: "List members of a user group (admin scope - all organisations)"
   namespace: user-groups
   allowlist:
     params:

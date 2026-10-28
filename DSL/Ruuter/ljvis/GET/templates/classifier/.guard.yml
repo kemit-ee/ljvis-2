@@ -2,7 +2,7 @@
 #
 # H1: `template:` samm jooksutab sihi guarde. Ilma selle guardita jookseks
 # nendel mallidel projektiülene `ljvis/.guard.yml` (mis kutsub ise
-# `template: templates/check-user-authority`) — kuna
+# `template: templates/check-user-authority`) - kuna
 # `check-user-authority.guard.yml` katkestab selle rekursiooni, ei ole
 # rekursioon siin oht. Küll aga peavad need mallid (`calculate-*-changed-fields`
 # loeb vormi/kasutaja/klassifikaatori snapshoti ID järgi, `files/*` failiops)
@@ -10,7 +10,7 @@
 # (`/api/templates/classifier/...`), täpselt nagu enne 0.9.11 (projektiguard).
 # Kutsujad on ametniku-handlerid, kes edastavad küpsise.
 #
-# `override_ancestors: true` — asendab projektiguardi (mitte ei lisandu).
+# `override_ancestors: true` - asendab projektiguardi (mitte ei lisandu).
 # Kontroll = SAMA mis `ljvis/.guard.yml`, aga INLINE (ilma `template:`-ta).
 
 declaration:

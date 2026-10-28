@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Audit: user group create event — fetches permissions and organisation count internally"
+  description: "Audit: user group create event - fetches permissions and organisation count internally"
   namespace: service
   strict: true
   allowlist:
@@ -19,6 +20,7 @@ declaration:
       - field: organisation_ids
         type: string
       - field: selected_org_count
+        type: integer
 
 fetchPermissions:
   call: http.post

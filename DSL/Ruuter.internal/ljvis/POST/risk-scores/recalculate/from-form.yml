@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: Recalculate after a stored control changes. Unpublished controls and foreign companies are skipped.
   namespace: risk_score

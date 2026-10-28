@@ -1,10 +1,11 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     SISEMINE endpoint. Ruuter.internal notification/create.yml kutsub selle peale
     teavituse loomist. Teeb ws_send broadcast_where tag=perms
-    contains=",<required_permission>," — sisutu {"type":"notification_update"}
+    contains=",<required_permission>," - sisutu {"type":"notification_update"}
     signaal AINULT nendele ühendustele, kelle `perms` sild (seatud
     WS/inbound/notifications/connect.yml `ws_tag`-iga) sisaldab teavituse
     nõutavat õigust.
@@ -13,7 +14,7 @@ declaration:
     `ruuter` containerisse; `ruuter-internal` ei näe neid ühendusi. Seega peab
     broadcast'i tegema `ruuter` ise.
 
-    Payload EI sisalda kasutajaandmeid — iga frontend teeb seejärel oma autenditud
+    Payload EI sisalda kasutajaandmeid - iga frontend teeb seejärel oma autenditud
     GET /v1/notifications/unread-count päringu. Sessiooni ja õiguste kehtivust
     kontrollib connect.yml iga frame'i peal (re-auth ≤ 30 s).
   namespace: notification

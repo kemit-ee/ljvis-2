@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
-    MOCK Postkast 2.0 "Saatmisoperatsioonide päring" — dev ja CI ainult.
+    MOCK Postkast 2.0 "Saatmisoperatsioonide päring" - dev ja CI ainult.
     Vastab kohe FINISHED + createdRecipientCount:1 (edukas saatmine), et
     cron/notification-status-sync.yml voogu saaks lokaalselt/CI-s täielikult
     läbi testida ilma päris X-tee ligipääsuta. Skeem valitakse externalId

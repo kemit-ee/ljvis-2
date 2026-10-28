@@ -1,0 +1,5 @@
+DSL/Ruuter.internal/ljvis/POST/notification/send-carrier-from-request.yml: step 'markCarrierEmailLookupFailed' is not reachable from entry 'declaration'
+DSL/Ruuter.internal/ljvis/POST/notification/send-postkast.yml: unresolved constant reference '[#PK_TEMPLATE_*]' — add to constants.ini or the runner will forwar
+ljvis/POST/xroad/provide/register-job-inspection [declaration.body.type_missing] ["kontrolli_id", "koostatatud_ettekirjutus", "soidukite_arv"]
+ljvis/POST/xroad/provide/register-job-inspection-v2 [declaration.body.type_missing] ["kontrolli_id", "koostatud_ettekirjutus", "soidukite_arv"]
+ljvis/POST/xroad/provide/register-job-inspection-v3 [declaration.body.type_missing] ["kontrolli_id", "koostatatud_ettekirjutus", "soidukite_arv"]

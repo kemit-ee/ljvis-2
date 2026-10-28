@@ -1448,7 +1448,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"LV-SEND-001\",\n  \"vehicleRegistrationCountry\": \"LV\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
+          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleRegistrationNumber\": \"LV-SEND-001\",\n  \"vehicleRegistrationCountry\": \"LV\",\n  \"vehicleIdentificationNumber\": \"WVW1234567890ABCD\",\n  \"odometerReading\": \"123456\",\n  \"driverFirstName\": \"TEST\",\n  \"driverFamilyName\": \"DRIVER\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"{\\\"isVehicleHolder\\\": \\\"transport_undertaking\\\", \\\"transportUndertakingName\\\": \\\"TEST TRANSPORT\\\", \\\"communityLicenceNumber\\\": \\\"TEST-LIC-1\\\", \\\"address\\\": {\\\"address\\\": \\\"Test 1\\\", \\\"postCode\\\": \\\"10111\\\", \\\"city\\\": \\\"Tallinn\\\", \\\"country\\\": \\\"EE\\\"}}\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -1627,7 +1627,7 @@
               "    pm.expect(b.status).to.eql(\"sent\");",
               "    pm.expect(b.workflowId).to.eql(pm.environment.get(\"rsi_send_wf_id\"));",
               "    pm.expect(b.responseStatusCode).to.be.null;",
-              "    pm.expect(b.version).to.eql(2);",
+              "    pm.expect(b.version).to.eql(3);",
               "    var items = Array.isArray(b.checkedItems) ? b.checkedItems : JSON.parse(b.checkedItems || \"[]\");",
               "    var failed = items.filter(function(i){ return i.partCode === \"1\"; })[0];",
               "    pm.expect(failed.defects[0].defectCode).to.eql(\"1.1.1.a\");",
@@ -1802,7 +1802,7 @@
       ]
     },
     {
-      "name": "[Send] Create draft for FI transport-failure test → 200",
+      "name": "[Send] Create draft for FI rejection test → 200",
       "request": {
         "method": "POST",
         "header": [
@@ -1831,7 +1831,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"\",\n  \"vehicleRegistrationNumber\": \"FI-SEND-FAIL\",\n  \"vehicleRegistrationCountry\": \"FI\",\n  \"vehicleIdentificationNumber\": \"\",\n  \"odometerReading\": \"\",\n  \"driverFirstName\": \"\",\n  \"driverFamilyName\": \"\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
+          "raw": "{\n  \"id\": \"\",\n  \"originatingAuthority\": \"EE-PPA\",\n  \"requestSource\": \"\",\n  \"requestPurpose\": \"\",\n  \"vehicleCategory\": \"N2\",\n  \"vehicleRegistrationNumber\": \"FI-SEND-FAIL\",\n  \"vehicleRegistrationCountry\": \"FI\",\n  \"vehicleIdentificationNumber\": \"WVW1234567890ABCD\",\n  \"odometerReading\": \"123456\",\n  \"driverFirstName\": \"TEST\",\n  \"driverFamilyName\": \"DRIVER\",\n  \"driverLicenceNumber\": \"\",\n  \"driverLicenceCountry\": \"\",\n  \"identificationDetails\": \"{\\\"isVehicleHolder\\\": \\\"transport_undertaking\\\", \\\"transportUndertakingName\\\": \\\"TEST TRANSPORT\\\", \\\"communityLicenceNumber\\\": \\\"TEST-LIC-1\\\", \\\"address\\\": {\\\"address\\\": \\\"Test 1\\\", \\\"postCode\\\": \\\"10111\\\", \\\"city\\\": \\\"Tallinn\\\", \\\"country\\\": \\\"EE\\\"}}\",\n  \"inspectionIdentifier\": \"\",\n  \"inspectionLocation\": \"Tallinn\",\n  \"inspectionDatetime\": \"2026-08-14T10:00:00Z\",\n  \"inspectionAuthorityOrName\": \"PPA\",\n  \"inspectionPassed\": \"false\",\n  \"ptiRequested\": \"false\",\n  \"vehicleProhibitionOrRestriction\": \"false\",\n  \"checkedItems\": \"[{\\\"partCode\\\":\\\"1\\\",\\\"status\\\":\\\"non_compliant\\\",\\\"defects\\\":[{\\\"defectCode\\\":\\\"1.1.1.a\\\",\\\"severity\\\":\\\"OV\\\"}]},{\\\"partCode\\\":\\\"10\\\",\\\"status\\\":\\\"checked\\\",\\\"defects\\\":[]}]\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -1858,7 +1858,7 @@
       ]
     },
     {
-      "name": "[Send] Send to FI → 502 send_failed, request transitions to error",
+      "name": "[Send] Send to FI (Hub rejection) → 502 send_failed, request transitions to error",
       "request": {
         "method": "POST",
         "header": [
@@ -2361,7 +2361,7 @@
               "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "    pm.expect(b.status).to.eql(\"responded\");",
               "    pm.expect(b.responseStatusCode).to.eql(\"OK\");",
-              "    pm.expect(b.version).to.eql(3);",
+              "    pm.expect(b.version).to.eql(4);",
               "});"
             ],
             "type": "text/javascript"
@@ -2459,7 +2459,7 @@
               "    var b = (raw && typeof raw === 'object' && 'response' in raw) ? (typeof raw.response === 'string' ? JSON.parse(raw.response) : raw.response) : raw;",
               "    pm.expect(b.status).to.eql(\"responded\");",
               "    pm.expect(b.responseStatusCode).to.eql(\"OK\");",
-              "    pm.expect(b.version).to.eql(3);",
+              "    pm.expect(b.version).to.eql(4);",
               "});"
             ],
             "type": "text/javascript"

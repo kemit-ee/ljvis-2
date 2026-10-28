@@ -1,4 +1,4 @@
-# Framework invariants — an unrouteable request is a 404, never a 500.
+# Framework invariants - an unrouteable request is a 404, never a 500.
 # Runs the ljvis DSL tree through the real Ruuter router (guards + middleware),
 # no external services.
 mode: inprocess

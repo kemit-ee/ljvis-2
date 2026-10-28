@@ -1,5 +1,5 @@
 /*
-description: 'LJVIS2-151: appends one historical risk-score record. Insert-only by design — a company''s
+description: 'LJVIS2-151: appends one historical risk-score record. Insert-only by design - a company''s
   score is NEVER updated in place, so admin list, citizen view and future ERRU CTUD integration always
   agree on the same value, and past algorithm-version results remain queryable (see docs/risk-score/formula.md).'
 namespace: risk_score

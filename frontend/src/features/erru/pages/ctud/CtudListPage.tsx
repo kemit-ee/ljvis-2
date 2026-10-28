@@ -14,12 +14,13 @@ import {
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { CtudRequestListItem } from '../../types';
+import { ErruResultBadge, ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
+import { ErruDirection } from '../../components/shared/ErruDirection';
 import { useCtudList } from './useCtudList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
-import { useMediaQuery } from '../../../../hooks/useMediaQuery';
-import { BREAKPOINTS } from '../../../../constants/constants';
+import styles from './CtudListPage.module.css';
 
 const columnHelper = createColumnHelper<CtudRequestListItem>();
 
@@ -29,8 +30,6 @@ export function CtudListPage() {
   const { hasAnyPermission } = useAuth();
   const { label, options } = useClassifierLabel();
   const { getErruMemberCountries } = useClassifiers();
-
-  const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const forbidden = !hasAnyPermission(['ctud.read']);
   const canCreate = hasAnyPermission(['ctud.create']);
 
@@ -63,7 +62,48 @@ export function CtudListPage() {
 
   const columns = useMemo(
     () => [
+      // Lifecycle status and the single-country response outcome ("Tulemus") are separate columns.
+      // Broadcast requests (cgrTo/ctudTo = ZZ) carry no outcome here — the per-country breakdown
+      // is shown only in the request detail view.
+      columnHelper.accessor('status', {
+        enableHiding: false,
+        header: t('erru.ctud.list.status'),
+        enableSorting: true,
+        cell: (info) => (
+          <ErruStatusBadge status={info.getValue()}>
+            {label('CTUD_REQUEST_STATUS', info.getValue())}
+          </ErruStatusBadge>
+        ),
+      }),
+      columnHelper.accessor('responseStatusCode', {
+        header: t('erru.ctud.list.result'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruResultBadge code={info.getValue()}>
+            {label('CTUD_RESPONSE_STATUS', info.getValue())}
+          </ErruResultBadge>
+        ),
+      }),
+      columnHelper.accessor('direction', {
+        header: t('erru.ctud.list.direction'),
+        enableSorting: false,
+        cell: (info) => (
+          <ErruDirection direction={info.getValue()}>
+            {label('CTUD_DIRECTION', info.getValue())}
+          </ErruDirection>
+        ),
+      }),
+      columnHelper.accessor('sentAt', {
+        enableHiding: false,
+        header: t('erru.ctud.list.sentAt'),
+        enableSorting: true,
+        cell: (info) => {
+          const v = info.getValue();
+          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
+        },
+      }),
       columnHelper.accessor('businessCaseId', {
+        enableHiding: false,
         header: t('erru.ctud.list.id'),
         enableSorting: true,
         cell: (info) => (
@@ -79,20 +119,14 @@ export function CtudListPage() {
           </a>
         ),
       }),
-      columnHelper.accessor('sentAt', {
-        header: t('erru.ctud.list.sentAt'),
-        enableSorting: true,
-        cell: (info) => {
-          const v = info.getValue();
-          return v ? new Date(v).toLocaleDateString('et-EE') : '—';
-        },
-      }),
       columnHelper.accessor('ctudFrom', {
+        enableHiding: false,
         header: t('erru.ctud.list.ctudFrom'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
       }),
       columnHelper.accessor('ctudTo', {
+        enableHiding: false,
         header: t('erru.ctud.list.ctudTo'),
         enableSorting: true,
         cell: (info) => label('COUNTRY', info.getValue()),
@@ -112,28 +146,13 @@ export function CtudListPage() {
         enableSorting: false,
         cell: (info) => info.getValue() || '—',
       }),
-      // Status merges the lifecycle status with the single-country response outcome.
-      columnHelper.accessor('status', {
-        header: t('erru.ctud.list.status'),
-        enableSorting: true,
-        cell: (info) => {
-          const status = label('CTUD_REQUEST_STATUS', info.getValue());
-          const code = info.row.original.responseStatusCode;
-          return code
-            ? `${status} / ${label('CTUD_RESPONSE_STATUS', code)}`
-            : status;
-        },
-      }),
       columnHelper.accessor('handlerName', {
         header: t('erru.ctud.list.handler'),
         enableSorting: true,
         // Platform-generated requests have no handler — rendered as an en dash.
-        cell: (info) => info.getValue() || '—',
-      }),
-      columnHelper.accessor('direction', {
-        header: t('erru.ctud.list.direction'),
-        enableSorting: false,
-        cell: (info) => label('CTUD_DIRECTION', info.getValue()),
+        cell: (info) => (
+          <span className="nowrap-cell">{info.getValue() || '—'}</span>
+        ),
       }),
     ],
     [t, openRequest, label],
@@ -142,10 +161,10 @@ export function CtudListPage() {
   if (forbidden) return <Text>{t('common.forbidden')}</Text>;
 
   return (
-    <div>
+    <div className={styles.page}>
       <Card className="mt-05">
         <Card.Content>
-          <div className="card-main">
+          <div className={`card-main ${styles.header}`}>
             <Heading element="h1">{t('erru.ctud.list.title')}</Heading>
             {canCreate && (
               <Button onClick={() => navigate('/erru/ctud/new')}>
@@ -156,16 +175,17 @@ export function CtudListPage() {
 
           {/* Filters are applied only on "Otsi" — editing them must not refetch. */}
           <div
-            className="filter-bar"
-            style={isDesktop ? { width: '80%' } : undefined}
+            className="filter-bar filter-bar--compact"
           >
             <TextField
+              size="small"
               id="ctud-filter-id"
               label={t('erru.ctud.list.id')}
               value={draftFilters.businessCaseId ?? ''}
               onChange={(v) => setFilter('businessCaseId', v)}
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`ctud-sent-from-${resetKey}`}
               id="ctud-filter-sent-from"
               label={t('erru.ctud.filters.sentFrom')}
@@ -179,6 +199,7 @@ export function CtudListPage() {
               monthYearSelectType="grid"
             />
             <DateField
+              inputProps={{ size: 'small' }}
               key={`ctud-sent-until-${resetKey}`}
               id="ctud-filter-sent-until"
               label={t('erru.ctud.filters.sentUntil')}
@@ -192,6 +213,7 @@ export function CtudListPage() {
               monthYearSelectType="grid"
             />
             <Select
+              size="small"
               id="ctud-filter-from"
               label={t('erru.ctud.list.ctudFrom')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -207,6 +229,7 @@ export function CtudListPage() {
               }
             />
             <Select
+              size="small"
               id="ctud-filter-to"
               label={t('erru.ctud.list.ctudTo')}
               options={[{ value: '', label: '\u00a0' }, ...countryOptions]}
@@ -223,24 +246,28 @@ export function CtudListPage() {
             />
             {/* These three are OR-combined with each other, server-side. */}
             <TextField
+              size="small"
               id="ctud-filter-name"
               label={t('erru.ctud.list.undertakingName')}
               value={draftFilters.transportUndertakingName ?? ''}
               onChange={(v) => setFilter('transportUndertakingName', v)}
             />
             <TextField
+              size="small"
               id="ctud-filter-licence"
               label={t('erru.ctud.list.licenceNumber')}
               value={draftFilters.communityLicenceNumber ?? ''}
               onChange={(v) => setFilter('communityLicenceNumber', v)}
             />
             <TextField
+              size="small"
               id="ctud-filter-vehicle"
               label={t('erru.ctud.list.vehicleNumber')}
               value={draftFilters.vehicleRegistrationNumber ?? ''}
               onChange={(v) => setFilter('vehicleRegistrationNumber', v)}
             />
             <Select
+              size="small"
               id="ctud-filter-status"
               label={t('erru.ctud.list.status')}
               options={[{ value: '', label: '\u00a0' }, ...statusOptions]}
@@ -256,6 +283,7 @@ export function CtudListPage() {
               }
             />
             <Select
+              size="small"
               id="ctud-filter-direction"
               label={t('erru.ctud.list.direction')}
               options={[{ value: '', label: '\u00a0' }, ...directionOptions]}
@@ -272,6 +300,7 @@ export function CtudListPage() {
               }
             />
             <TextField
+              size="small"
               id="ctud-filter-handler"
               label={t('erru.ctud.list.handlerFilter')}
               value={draftFilters.handlerPersonalCode ?? ''}
@@ -286,6 +315,10 @@ export function CtudListPage() {
           </div>
 
           <AppTable
+            className={styles.table}
+            customizable
+            persistKey="erru-ctud-list"
+            size="small"
             id="ctud-table"
             data={data}
             columns={columns}

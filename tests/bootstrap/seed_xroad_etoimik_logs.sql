@@ -7,10 +7,13 @@
 -- `now() - INTERVAL '1 day 4 hours'` kukkus kella 21–04 UTC vahel jooksvas CI-s vaikeaknast välja.
 -- Siin on read Tallinna "täna"/"eile" kuupäeva keskpäeva ümber (UTC 07:00–12:00), nii et nad jäävad
 -- aknasse igal kellaajal; 10 päeva tagune rida (12:00 UTC) jääb alati väljapoole.
+-- Kõik vaikeaknasse jäävad read on seemnimispäeva "täna" (mitte "eile"): kui CI seemendab vahetult enne
+-- Tallinna keskööd ja testid jooksevad pärast seda, nihkub seemnimispäev aknas "eileks" ega kuku välja.
+-- Kellaajad (UTC 11:00 → 06:00) hoiavad sortimisjärjestuse VT-005, VT-001, VT-003, VT-002, VT-004.
 --
 -- Lisab xroad.xroad_integration_log tabelisse 6 kirjet:
---   2x result_status='found'     (created_at täna/eile — vaikefiltri sisse)
---   2x result_status='not_found' (created_at täna/eile — vaikefiltri sisse)
+--   2x result_status='found'     (created_at seemnimispäeval — vaikefiltri sisse)
+--   2x result_status='not_found' (created_at seemnimispäeval — vaikefiltri sisse)
 --   1x result_status='error'     (created_at täna — vaikefiltri sisse)
 --   1x result_status='found'     (created_at 10 päeva tagasi — VÄLJASPOOL vaikefiltrit,
 --                                  testib et date-range filter tegelikult filtreerib)
@@ -55,7 +58,7 @@ BEGIN
     '{"reference_number":"2026-VT-002","personal_code":"38505050002"}',
     '{"case_number":"2026-VT-002","decisions":["Sõidukeeld (30 päeva)"]}',
     655, true, NULL, 'found', '38505050002',
-    'sp_driver_form', '95002101', (((now() AT TIME ZONE 'Europe/Tallinn')::date - 1) + TIME '10:00') AT TIME ZONE 'UTC'
+    'sp_driver_form', '95002101', (((now() AT TIME ZONE 'Europe/Tallinn')::date) + TIME '06:30') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000002'::UUID
@@ -89,7 +92,7 @@ BEGIN
     '{"reference_number":"2026-VT-004","personal_code":"38007070004"}',
     'null',
     398, true, NULL, 'not_found', '38007070004',
-    'tram_control_card', '95002201', (((now() AT TIME ZONE 'Europe/Tallinn')::date - 1) + TIME '08:00') AT TIME ZONE 'UTC'
+    'tram_control_card', '95002201', (((now() AT TIME ZONE 'Europe/Tallinn')::date) + TIME '06:00') AT TIME ZONE 'UTC'
   WHERE NOT EXISTS (
     SELECT 1 FROM xroad.xroad_integration_log
     WHERE id = 'e5000001-0000-4000-8000-000000000004'::UUID

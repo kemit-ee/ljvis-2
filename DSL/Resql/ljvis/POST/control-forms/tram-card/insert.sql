@@ -1,5 +1,5 @@
 /*
-description: Insert a TRAM control card (Transpordiameti kontrollkaart) — first save. INSERT-only snapshot.
+description: Insert a TRAM control card (Transpordiameti kontrollkaart) - first save. INSERT-only snapshot.
 namespace: control-forms
 params:
   status:

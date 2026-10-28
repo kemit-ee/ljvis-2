@@ -1,9 +1,10 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     In-app teavituste nimekiri autenditud kasutaja jaoks.
-    Filtreeritakse kasutaja õiguste alusel — kasutaja näeb ainult
+    Filtreeritakse kasutaja õiguste alusel - kasutaja näeb ainult
     neid teavitusi mille required_permission kuulub tema permissions[].
     is_unread arvutatakse SQL NOT EXISTS kaudu.
     Kaitstud GET/v1/.guard (autentimine) kaudu.

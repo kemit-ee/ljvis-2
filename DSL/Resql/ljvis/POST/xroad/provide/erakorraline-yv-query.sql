@@ -81,7 +81,7 @@ WITH latest_vtf AS (
 ),
 resolved AS (
   -- Viimane (mitte-kustutatud) snapshot koondvormi kohta alampäringuga (kuupäeva ja sõiduki
-  -- andmete saamiseks) — mitte JOIN-iga
+  -- andmete saamiseks) - mitte JOIN-iga
   SELECT vtf.*,
          (SELECT cf FROM forms.compound_form cf
            WHERE cf.compound_form_key = vtf.compound_form_key
@@ -107,7 +107,7 @@ SELECT
   vtf.era_yv_mnt_places,
   vtf.era_yv_mnt_rebuilt
 FROM resolved vtf
--- Ajavahemiku filter — mõlemad piirid on kaasavad (BETWEEN)
+-- Ajavahemiku filter - mõlemad piirid on kaasavad (BETWEEN)
 WHERE (vtf.lc).control_date BETWEEN :alates::DATE AND :kuni::DATE
   -- Ainult Eesti sõidukid (välisriigi sõidukid jäetakse välja)
   AND ((vtf.lc).vehicle_country_code IS NULL OR (vtf.lc).vehicle_country_code = 'EE')

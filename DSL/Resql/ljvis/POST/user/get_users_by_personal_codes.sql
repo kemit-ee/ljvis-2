@@ -1,5 +1,5 @@
 /*
-description: Resolve a set of personal_code values to display names — kasutusel halduses, kus
+description: Resolve a set of personal_code values to display names - kasutusel halduses, kus
   saajate ring on salvestatud personal_code'idena (nt notification_template_mapping.desktop_recipient_personal_codes)
   ja tuleb kuvada nimedena.
 namespace: user

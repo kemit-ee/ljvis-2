@@ -18,6 +18,14 @@ describe('form revision tracking (optimistic lock)', () => {
     expect(withRevision('vehicle', { id: '7' }).id).toBe('7');
   });
 
+  it('sends compoundFormKey as a number whichever way the form snapshot carried it', () => {
+    expect(withRevision('adr', { id: 1, compoundFormKey: '900014' } as never).compoundFormKey).toBe(900014);
+    expect(withRevision('adr', { id: 1, compoundFormKey: 5 } as never).compoundFormKey).toBe(5);
+    expect(withRevision('adr', { id: 1, compoundFormKey: '' } as never).compoundFormKey).toBeUndefined();
+    expect(withRevision('adr', { id: 1, compoundFormKey: null } as never).compoundFormKey).toBeUndefined();
+    expect('compoundFormKey' in withRevision('adr', { id: 1 })).toBe(false);
+  });
+
   it('keeps forms of different types with the same key apart', () => {
     rememberRevision('vehicle', { id: 7, revision: 3 });
     rememberRevision('trailer', { id: 7, revision: 9 });

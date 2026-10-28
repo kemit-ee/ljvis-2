@@ -2,7 +2,7 @@
 #
 # H1: `template:` samm jooksutab sihi guarde. Ilma selle guardita jookseks
 # nendel mallidel projektiülene `ljvis/.guard.yml` (mis kutsub ise
-# `template: templates/check-user-authority`) — kuna
+# `template: templates/check-user-authority`) - kuna
 # `check-user-authority.guard.yml` katkestab selle rekursiooni, ei ole
 # rekursioon siin oht. Küll aga peavad need mallid (`calculate-*-changed-fields`
 # loeb vormi/kasutaja/klassifikaatori snapshoti ID järgi, `files/*` failiops)
@@ -10,7 +10,7 @@
 # (`/api/templates/files/...`), täpselt nagu enne 0.9.11 (projektiguard).
 # Kutsujad on ametniku-handlerid, kes edastavad küpsise.
 #
-# `override_ancestors: true` — asendab projektiguardi (mitte ei lisandu).
+# `override_ancestors: true` - asendab projektiguardi (mitte ei lisandu).
 # Kontroll = SAMA mis `ljvis/.guard.yml`, aga INLINE (ilma `template:`-ta).
 
 declaration:
@@ -44,7 +44,7 @@ extract_personal_code:
     # Tegutseja identiteet tuleb AINULT TARA-sessioonist (TIM userinfo). Mallid loevad seda
     # muutujat (`session_personal_code`), mitte `incoming.body.actor_*`: body on kliendi
     # kontrolli all (mallid on otse HTTP-ga kutsutavad) ja auditiahel (`audit.chain()`)
-    # räsib võltsitud rea ära — see tõestab järjekorda, mitte identiteeti.
+    # räsib võltsitud rea ära - see tõestab järjekorda, mitte identiteeti.
     session_personal_code: ${tim_res.response.body.userinfo?.claims?.personalCode ?? tim_res.response.body.userinfo?.subject ?? ''}
   next: check_personal_code
 
@@ -70,7 +70,7 @@ lookup_user:
 check_user_found:
   switch:
     # Nõuab lisaks registreeritud ametnikule vähemalt ÜHT kontrollvormi õigust
-    # (IDOR-kaitse otseligipääsu vastu — /templates/files/* on HTTP-route).
+    # (IDOR-kaitse otseligipääsu vastu - /templates/files/* on HTTP-route).
     # Kutsuja-wrapperid on `<type>/read/.guard.yml` (`<type>.read`) või
     # `edit/.guard.yml` (`control_form.*`) taga, seega neil on alati mõni.
     - condition: ${user_res.response.body.length > 0 && user_res.response.body[0].permissions != null && user_res.response.body[0].permissions.some(function(p){ return p === 'control_form.view_unpublished' || p === 'control_form.delete' || p === 'control_form.edit_locked' || p.indexOf('_form.read') !== -1; })}

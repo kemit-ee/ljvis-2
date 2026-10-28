@@ -1,15 +1,16 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     UC-04: ebaõnnestunud Postkast 2.0 teavituse uuesti saatmine, MUUTMATA kujul
-    (analüüs 12-2 §"Uuesti saatmine") — sama adressaat, sama aadress ja samad
+    (analüüs 12-2 §"Uuesti saatmine") - sama adressaat, sama aadress ja samad
     malli muutujate väärtused, mis on salvestatud ebaõnnestunud katse juures.
     Kutsub Ruuter.internal send-postkast endpointi original_log_id viitega.
     APPEND-ONLY: uuesti saatmine loob uue outbound_log rea oma
     notification_key'ga; algne kirje jääb "Viga" staatusesse muutmata.
     Outbound-logi id käib ?q= query-paramina (rest-api-disainijuhend §4.2),
-    request body puudub — vastupidiselt vanale UC-04-le pole enam
+    request body puudub - vastupidiselt vanale UC-04-le pole enam
     e-posti sisestust (12-2: "kasutab sama adressaati").
     Nõuab notification.resend õigust (kaitstud resend/.guard kaudu).
   namespace: notification
@@ -86,7 +87,7 @@ callSendPostkast:
   result: sendRes
   next: unwrapSendResult
 
-# send-postkast.yml on Ruuter.internal DSL — Ruuteri vaikimisi
+# send-postkast.yml on Ruuter.internal DSL - Ruuteri vaikimisi
 # response.default_wrapper: true mähib selle vastuse {"response": ...} kujule
 # (sama nagu send-postkast.yml enda callPk lugemisel). Loe mõlemat kuju.
 unwrapSendResult:
@@ -95,9 +96,9 @@ unwrapSendResult:
   next: checkSendResult
 
 # send-postkast tagastab 2xx korral objekti {logId, notificationKey, status}
-# (ka 'error'-staatusega loob ta uue rea — see on korrektne append-only tulem).
+# (ka 'error'-staatusega loob ta uue rea - see on korrektne append-only tulem).
 # 400/422 (checkRequired / not_postkast_channel) korral tuleb string-keha ja
-# ROLLI EI LOODUD — sel juhul ei tohi auditisse valesündmust kirjutada ega
+# ROLLI EI LOODUD - sel juhul ei tohi auditisse valesündmust kirjutada ega
 # 200 tagastada.
 checkSendResult:
   switch:

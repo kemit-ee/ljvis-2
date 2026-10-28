@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Walk the audit-log hash chain and verify integrity. Returns ok=true when every row's prev_row_hash matches the preceding row's row_hash; ok=false with the first breach location otherwise. Requires audit.verify — the chain is global, so this is not available under the organisation-scoped audit.read.local permission (logs/.guard, shared with list/detail/export, also lets audit.read.local through)."
+  description: "Walk the audit-log hash chain and verify integrity. Returns ok=true when every row's prev_row_hash matches the preceding row's row_hash; ok=false with the first breach location otherwise. Requires audit.verify - the chain is global, so this is not available under the organisation-scoped audit.read.local permission (logs/.guard, shared with list/detail/export, also lets audit.read.local through)."
   namespace: logs
   allowlist:
     params:
@@ -14,7 +15,7 @@ declaration:
         description: "End event_id (inclusive). Omit to walk to the current tail."
 
 getContext:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: checkVerifyPermission

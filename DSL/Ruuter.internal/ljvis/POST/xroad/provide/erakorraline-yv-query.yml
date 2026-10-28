@@ -1,17 +1,20 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
     X-tee pakutav teenus ErakorralineYVquery (v1): tagastab ajavahemikul erakorralisele
     tehnoülevaatusele suunatud sõidukid (result_type = extraordinary_inspection /
-    extraordinary_inspection_ta). Mõlemad kuupäevad kohustuslikud — piiramatu päring
+    extraordinary_inspection_ta). Mõlemad kuupäevad kohustuslikud - piiramatu päring
     ei ole lubatud. Vt docs/xtee/03-erakorraline-yv-query.md.
   namespace: xroad
   allowlist:
     body:
       - field: alates
+        type: string
       - field: kuni
+        type: string
 
 # Samm 1: Alguskuupäev on kohustuslik (piiramatu päring pole lubatud)
 validateAlates:
@@ -148,7 +151,7 @@ logFailure:
   result: logResult
   next: returnServerError
 
-# Veavastused — sisemist infot ei avaldata
+# Veavastused - sisemist infot ei avaldata
 returnServerError:
   status: 500
   return: '{"error": "SERVER_ERROR", "message": "Internal error"}'

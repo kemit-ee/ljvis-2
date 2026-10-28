@@ -1,21 +1,22 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
     Citizen-facing read-only single compound_form (koondvorm) detail. Guarded
     by GET/v1/citizen/.guard (templates/citizen-authority). Ownership: company
     scope requires row.companyRegCode to be one of the session's represented
-    companies (templates/citizen-company-representative — session claim
+    companies (templates/citizen-company-representative - session claim
     cached first, live Äriregister esindus_v1 fallback), independent of
     activeRole/activeRegistryCode; citizen-self scope requires the session's
     own personalCode to match one of the drivers[] entries (personalCodeEe or
     personalCodeForeign), independent of activeRole too. The dashboard shows
     every represented company's forms AND the citizen's own forms at the
-    same time — a representative-and-driver must be able to click into a
+    same time - a representative-and-driver must be able to click into a
     form from EITHER section regardless of which role happens to be active
     (activeRole is no longer the source of truth for "can I see this", only
-    for which company the header dropdown is showing — see forms/search.yml's
+    for which company the header dropdown is showing - see forms/search.yml's
     scope param and risk-scores/my-company.yml for the same pattern).
     Citizen-visible status is 'published' only. Reuses the
     officer resql (control-forms/compound-form/get.sql) and DMapper template
@@ -23,9 +24,9 @@ declaration:
 
     GDPR: drivers[] can contain MULTIPLE people (koondvorm covers a whole
     inspection, several drivers). Whoever is looking at it, every driver who
-    isn't the viewer themselves is a third party — so masking is per-driver,
+    isn't the viewer themselves is a third party - so masking is per-driver,
     not per-request: every driver EXCEPT the one matching the session's own
-    personalCode (by personalCodeEe/personalCodeForeign) is masked — a driver
+    personalCode (by personalCodeEe/personalCodeForeign) is masked - a driver
     viewing their own koondvorm must not see a co-driver's full isikukood/
     birthDate, regardless of activeRole. personalCodeEe/personalCodeForeign/
     birthDate masked, names kept (same reasoning as
@@ -88,7 +89,7 @@ extractRow:
 
 # Separate step from extractRow: within a single `assign:` block every key's
 # expression is evaluated against the state as it was BEFORE that block
-# ran, not sequentially — so a same-step `drivers_parsed` referencing `row`
+# ran, not sequentially - so a same-step `drivers_parsed` referencing `row`
 # would see the *previous* (undefined) row, not the one just assigned above,
 # and silently parse as []. Confirmed live: this made checkOwnership's
 # citizen-self branch always fail. Splitting into its own step so `row` from
@@ -116,7 +117,7 @@ checkOwnership:
       next: mapResponse
   next: checkCompanyRepresentative
 
-# templates/citizen-company-representative — the SAME "is this personal code
+# templates/citizen-company-representative - the SAME "is this personal code
 # a representative of row.companyRegCode" check as forms/search.yml's
 # scope=company branch and risk-scores/my-company.yml, independent of
 # activeRole/activeRegistryCode (see the description block above for why).
@@ -156,7 +157,7 @@ applyGdprMasking:
       ${(function(){
         var f = mapped.response.body;
         if (!Array.isArray(f.drivers)) return f;
-        // Ruuter panics on undefined during JSON serialization — `?? null`
+        // Ruuter panics on undefined during JSON serialization - `?? null`
         // normalizes absent fields to null.
         function maskCode(code) {
           if (!code) return code ?? null;
@@ -183,8 +184,8 @@ applyGdprMasking:
 
 # Audit third-party PII access: viewing a koondvorm where the session's own
 # personalCode is NOT one of the drivers means every driver shown is a third
-# party (a company representative, or — theoretically — activeRole=officer
-# reaching this citizen endpoint directly) — decoupled from activeRole, same
+# party (a company representative, or - theoretically - activeRole=officer
+# reaching this citizen endpoint directly) - decoupled from activeRole, same
 # reasoning as checkOwnership above. is_self_driver's own record isn't
 # logged, same convention as officer detail endpoints skipping the audit
 # call when actor_personal_code === created_by (see e.g. GET/v1/

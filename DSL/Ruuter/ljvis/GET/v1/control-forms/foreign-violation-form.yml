@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get a single foreign violation form by ID"
@@ -20,7 +21,7 @@ checkPermission:
   next: returnForbidden
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -111,7 +112,7 @@ mapResponse:
   next: getNotificationHistory
 
 # p.5: teavituse saatmise ajalugu (kuupäevad) tuleb notifications.outbound_log-ist,
-# mitte kaardilt endalt — vt DSL/Resql/ljvis/POST/notification/list_outbound_log.sql,
+# mitte kaardilt endalt - vt DSL/Resql/ljvis/POST/notification/list_outbound_log.sql,
 # millele lisati related_entity_type/related_entity_id filtrid selle jaoks.
 getNotificationHistory:
   call: http.post

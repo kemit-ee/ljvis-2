@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Search/list users (admin scope — all organisations)"
+  description: "Search/list users (admin scope - all organisations)"
   namespace: users
   allowlist:
     params:
@@ -21,7 +22,7 @@ declaration:
         type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData

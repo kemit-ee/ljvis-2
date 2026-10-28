@@ -109,6 +109,18 @@ final class ProcessingWorker implements Runnable {
             MessageMapper mapper = mappers.get(row.messageType());
             Document doc = XmlUtil.parseHardened(row.rawXml());
             String to = XmlUtil.attr(XmlUtil.firstChild(doc.getDocumentElement(), "Header"), "to");
+            if (mapper.oneWay()) {
+                if (!config.memberStateCode.equals(to)) { fail(row, "Wrong response recipient"); return; }
+                if (row.attemptsBeforeThisClaim() >= config.processingMaxAttempts) {
+                    fail(row, "Response processing attempt budget exhausted"); return;
+                }
+                Outcome outcome = callRuuter(mapper, mapper.requestToJson(doc, row.receivedAt()), mapper.ruuterTimeout());
+                if (outcome.kind() == Kind.ANSWER) db.completeOneWayInbox(row.id(), db.workerId);
+                else if (outcome.kind() == Kind.TRANSIENT)
+                    db.retryInboxLater(row.id(), db.workerId, outcome.error(), backoffFor(row.attemptsBeforeThisClaim()));
+                else fail(row, outcome.error());
+                return;
+            }
             boolean broadcast = "CheckGoodRepute_Request".equals(mapper.requestRoot()) && "ZZ".equals(to);
             if (!config.memberStateCode.equals(to) && !broadcast) {
                 errorNotification(row, doc, "InvalidData", "Wrong recipient: " + to, true, false);

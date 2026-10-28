@@ -1,6 +1,6 @@
 /*
 description: 'LJVIS2-151/144: latest risk-score record for a company (used by Ruuter.internal current.yml
-  — CTUD ERRU integration + citizen view).'
+  - CTUD ERRU integration + citizen view).'
 namespace: risk_score
 params:
   company_reg_code:

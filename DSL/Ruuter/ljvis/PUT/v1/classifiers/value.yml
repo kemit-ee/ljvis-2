@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Update a classifier value validity period"
@@ -26,7 +27,7 @@ declaration:
         type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: extractRequestData
@@ -175,7 +176,7 @@ returnSuccess:
   next: end
 
 # Andmebaasi piirang ck_cv_period (valid_until > valid_from) lükkas muudatuse
-# tagasi — varem tagastati siin 200 ja UI teatas õnnestumisest.
+# tagasi - varem tagastati siin 200 ja UI teatas õnnestumisest.
 returnInvalidPeriod:
   status: 422
   return:

@@ -4,13 +4,13 @@
 # Postkast 2.0's X-tee subsystem (GOV/70006317/postkast), which is unreachable
 # from local/CI docker-compose (the X-tee security server behind XTR is only
 # routable from a deployed environment). send-postkast.yml / cron/notification-status-sync.yml
-# call this exactly the way they call the real X-tee turvaserver in production —
-# server-to-server, no user session — so the mock must be reachable without one.
+# call this exactly the way they call the real X-tee turvaserver in production -
+# server-to-server, no user session - so the mock must be reachable without one.
 #
 # Safe because the mock is unreachable in production: PK_NOTIFICATIONS_ENDPOINT /
 # PK_SENDING_OPERATIONS_ENDPOINT point at the XTR REST passthrough there, and nothing
-# else references this path. Same .dockerignore + bind-mount defence-in-depth as
-# DSL/Ruuter/ljvis/POST/v1/erru/mock/.guard.yml.
+# else references this path. The .dockerignore file excludes this mock from images.
+# Local and CI compose files restore it with a bind mount.
 #
 # override_ancestors is required: Rust Ruuter stacks ancestor guards, so without
 # this the parent POST/.guard cookie check would still reject the call before

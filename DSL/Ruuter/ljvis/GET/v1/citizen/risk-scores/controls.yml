@@ -1,12 +1,13 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
     Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints for one of
     the citizen's represented companies, backing the CompanyControlsTable
     accordion under a CompanyCard on the citizen dashboard. Same representative-check
-    convention as GET/v1/citizen/risk-scores/my-company.yml — session claims
+    convention as GET/v1/citizen/risk-scores/my-company.yml - session claims
     (activeRole/activeRegistryCode/representedCompanies, from
     representation/switch or representation/companies, backed by Äriregister
     esindus_v1) checked first (free, no X-Road call), falling back to a live

@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Delete foreign violation form"
@@ -52,7 +53,7 @@ logAuditEvent:
 
 # calculate_risk_score.sql jätab kustutatud VR-vormi arvestusest välja, seega
 # kustutamine peab riskiskoori värskendama (muidu jääb kustutatud vormi
-# rikkumine skoori sisse kuni öise risk-score-recalc-sync cron'ini) — sama
+# rikkumine skoori sisse kuni öise risk-score-recalc-sync cron'ini) - sama
 # muster mis compound-form/edit/delete.yml.
 # Fire-and-forget: viga ei tohi kustutamist tagasi pöörata.
 triggerRiskRecalculate:

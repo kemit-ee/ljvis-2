@@ -4,7 +4,7 @@ import {
   Card,
   Heading,
   TextField,
-  TextArea,
+  Textarea,
 } from '@tedi-design-system/react/tedi';
 import type { FormikProps } from 'formik';
 import styles from './ClassifierInfoEditCard.module.css';
@@ -51,7 +51,7 @@ export function ClassifierInfoEditCard({
               ? { helper: { text: formik.errors.name, type: 'error' as const } }
               : {})}
           />
-          <TextArea
+          <Textarea
             id="description"
             className={isDesktop ? styles['form-name'] : 'mb-1'}
             label={t('classifiers.description')}

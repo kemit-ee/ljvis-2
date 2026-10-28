@@ -82,7 +82,7 @@ try:
     assert query(f"SELECT count(*) FROM erru.nu_exchange_event WHERE nu_message_key={k} AND kind='Request'") == '1'
     print('PASS simultaneous send/send: one external request reservation')
     k = draft()
-    a, b = race(k, send(k, 1), f"SELECT erru.nu_finish_send({k},NULL,'transport failure')")
+    a, b = race(k, send(k, 1), f"SELECT erru.nu_mark_dispatch({k},'rejected','transport failure')")
     assert b['status'] == 'error', (a, b)
     assert query(f"SELECT status FROM erru.nu_message WHERE nu_message_key={k} ORDER BY created_at DESC,id DESC LIMIT 1") == 'error'
     print('PASS waiting result: transaction start time cannot hide terminal error')

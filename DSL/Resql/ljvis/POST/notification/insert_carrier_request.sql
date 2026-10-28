@@ -1,5 +1,5 @@
 /*
-description: 'Registreerib vormi kinnitamisel märgitud vedaja teavituse tellimuse. Idempotentne — vormil on korraga
+description: 'Registreerib vormi kinnitamisel märgitud vedaja teavituse tellimuse. Idempotentne - vormil on korraga
   üks avatud (saatmata) tellimus: kui entity viimane rida on avatud, ei lisata midagi; samaaegse topelttellimuse
   korral võidab üks (UNIQUE entity_type, entity_id, revision).'
 namespace: notification

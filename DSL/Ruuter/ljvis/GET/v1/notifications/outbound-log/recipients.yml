@@ -1,9 +1,10 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
     Ühe Postkast 2.0 saatmiskirje saajate loend (UC-03).
-    Eraldi endpoint list.yml-st — saajaid ei JOIN-ita logi endaga.
+    Eraldi endpoint list.yml-st - saajaid ei JOIN-ita logi endaga.
     Nõuab notification.list õigust (kaitstud outbound-log/.guard kaudu).
   namespace: notification
   allowlist:

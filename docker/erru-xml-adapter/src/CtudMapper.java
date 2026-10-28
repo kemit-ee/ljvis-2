@@ -52,7 +52,7 @@ final class CtudMapper implements MessageMapper {
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'").withZone(java.time.ZoneOffset.UTC);
 
     /** COMMUNITY_LICENCE_TYPE classifier code -> globalCommunityLicenceType XSD enumeration string. */
-    private static final Map<String, String> COMMUNITY_LICENCE_TYPE_TO_XSD = Map.of(
+    static final Map<String, String> COMMUNITY_LICENCE_TYPE_TO_XSD = Map.of(
             "CommunityLicencePassenger", "Community licence for passenger transport",
             "NationalLicencePassenger", "National licence for passenger transport",
             "CommunityLicenceGoods", "Community licence for goods transport",
@@ -293,7 +293,9 @@ final class CtudMapper implements MessageMapper {
         String licencingAuthority = MiniJson.asString(cl.get("licencingAuthority"));
         if (isBlank(number) || isBlank(startDate) || isBlank(expiryDate) || isBlank(licencingAuthority)) return null;
         if (status == null || !VALID_LICENCE_STATUSES.contains(status)) return null;
-        String xsdType = COMMUNITY_LICENCE_TYPE_TO_XSD.get(typeCode);
+        // MTR (and its mock) may already supply the XSD long-form string; the classifier codes need translating.
+        String xsdType = COMMUNITY_LICENCE_TYPE_TO_XSD.containsValue(typeCode)
+                ? typeCode : COMMUNITY_LICENCE_TYPE_TO_XSD.get(typeCode);
         if (xsdType == null) return null;
 
         StringBuilder sb = new StringBuilder();

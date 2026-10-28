@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: '1.0'
   description: 'ErakorralineYVconfirm: sünteetiline mock. Valideerimine ja vastuse kaardistus päris workflow''st
     POST/xroad/provide/erakorraline-yv-confirm.yml. X-Mock-Scenario: empty või server-error.'
@@ -12,6 +13,7 @@ declaration:
       required: false
     body:
     - field: confirmed
+      type: object
       required: false
     params: []
 validateItems:

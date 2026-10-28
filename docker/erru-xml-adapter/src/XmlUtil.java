@@ -143,4 +143,19 @@ final class XmlUtil {
         }
         return sb.toString();
     }
+
+    /** Present, non-blank attributes of an element as a JSON-ready map, in the given order. */
+    static java.util.Map<String, Object> attrs(Element el, String... names) {
+        java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+        for (String name : names) {
+            String value = attr(el, name);
+            if (!value.isBlank()) out.put(name, value);
+        }
+        return out;
+    }
+
+    /** A non-negative XSD integer attribute as a JSON number, or null when absent. */
+    static Long number(String value) {
+        return value == null || value.isBlank() ? null : Long.valueOf(value.trim());
+    }
 }

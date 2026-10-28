@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Audit: user group delete-user event — fetches removed user personal code internally"
+  description: "Audit: user group delete-user event - fetches removed user personal code internally"
   namespace: service
   strict: true
   allowlist:

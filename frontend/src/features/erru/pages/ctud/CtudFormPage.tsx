@@ -7,11 +7,11 @@ import {
   Card,
   Heading,
   Text,
-  StatusBadge,
 } from '@tedi-design-system/react/tedi';
 import { useCtudRequestDetail } from './useCtudRequestDetail';
 import { useCtudForm } from './useCtudForm';
 import { CtudRequestFields } from '../../components/Ctud/CtudRequestFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { CtudResponseBlock } from '../../components/Ctud/CtudResponseBlock';
 import { isCtudEditable, isCtudSendable } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
@@ -39,14 +39,19 @@ export function CtudFormPage() {
   const canEdit = hasAnyPermission(['ctud.create']);
   const canSend = hasAnyPermission(['ctud.send']);
 
-  const { request, isLoading, notFound, send, isSending, sendError, reload } =
+  // A send that failed right after the draft was created is reported through navigation state.
+  const [createSendError, setCreateSendError] = useState<string | null>(
+    (location.state as { sendError?: string } | null)?.sendError ?? null,
+  );
+  const { request, isLoading, notFound, send, isSending, sendError: detailSendError, reload } =
     useCtudRequestDetail(id);
+  const sendError = detailSendError ?? createSendError;
   const handleSaved = () => {
     setSavedOk(true);
     window.scrollTo(0, 0);
     reload();
   };
-  const handleSend = () => { setSavedOk(false); window.scrollTo(0, 0); send(); };
+  const handleSend = () => { setSavedOk(false); setCreateSendError(null); window.scrollTo(0, 0); send(); };
   const form = useCtudForm(request, handleSaved);
 
   if (!canRead) return <Text>{t('common.forbidden')}</Text>;
@@ -79,9 +84,13 @@ export function CtudFormPage() {
               {' — '}
               {request.businessCaseId}
             </Heading>
-            <StatusBadge>
-              {label('CTUD_REQUEST_STATUS', request.status)}
-            </StatusBadge>
+            <ErruStatusBadge status={request.status}>
+              {request.status === 'sending'
+                ? t('erru.ctud.sending')
+                : request.status === 'send_unknown'
+                  ? t('erru.ctud.sendUnknownStatus')
+                  : label('CTUD_REQUEST_STATUS', request.status)}
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.ctud.form.version', { version: request.version })}
@@ -90,10 +99,25 @@ export function CtudFormPage() {
             {!editable && ` · ${t('erru.ctud.form.readOnly')}`}
           </Text>
           {request.errorMessage && (
-            <Text modifiers="bold">{request.errorMessage}</Text>
+            <Text modifiers="bold">
+              {request.status === 'send_unknown'
+                ? t('erru.ctud.sendUnknown')
+                : request.errorMessage}
+            </Text>
+          )}
+          {request.direction === 'outgoing' && request.status === 'sent' && (
+            <Text>{t('erru.ctud.awaitingResponse')}</Text>
           )}
           {sendError && (
-            <Text modifiers="bold">{t('erru.ctud.sendFailed')}</Text>
+            <Text modifiers="bold">
+              {sendError === 'send_unknown'
+                ? t('erru.ctud.sendUnknown')
+                : sendError === 'invalid_ctud_xml'
+                  ? t('erru.ctud.invalidXml')
+                  : sendError === 'validation_unavailable'
+                    ? t('erru.ctud.validationUnavailable')
+                    : t('erru.ctud.sendFailed')}
+            </Text>
           )}
         </Card.Content>
       </Card>

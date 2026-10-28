@@ -1,10 +1,11 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
     Search Ariregister company data (lihtandmed_v1) via XTR, routed through
-    the real X-Road Security Server — our subsystem (GOV/70001231/ljvis2) has
+    the real X-Road Security Server - our subsystem (GOV/70001231/ljvis2) has
     ACL on arireg's v1 methods (confirmed live via allowedMethods, see
     .ai/ljvis-tasks/xtee-task.md). No Ariregister username/password needed
     anymore (was lihtandmed_v3 via a direct HTTPS bypass to ariregxmlv6.rik.ee).
@@ -16,6 +17,7 @@ declaration:
       - field: companyName
         type: string
       - field: maxResults
+        type: integer
 
 validate:
   switch:

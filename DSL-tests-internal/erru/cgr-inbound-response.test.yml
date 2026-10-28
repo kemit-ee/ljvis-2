@@ -1,0 +1,161 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  INTERNAL_COMMUNICATION_KEY: test-secret
+tests:
+- name: a response is merged into the outgoing request and audited
+  setup:
+    mocks:
+    - url_matches: /erru/cgr/get-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 3
+        status: sent
+        businessCaseId: CGR-1
+    - url_matches: /erru/cgr/apply-response
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: CGR-1
+        version: 4
+        status: responded
+        workflowId: 22222222-2222-2222-2222-222222222222
+    - &id001
+      url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/erru/cgr/inbound-response
+    headers: &id002
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: CGR-1
+      memberStates: '[{"memberStateCode":"DE","statusCode":"Found"}]'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/cgr/apply-response
+    count: 1
+    body_matches:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      memberStates: '[{"memberStateCode":"DE","statusCode":"Found"}]'
+  - url_matches: /log/insert_audit_event
+    count: 1
+    body_matches:
+      event_type: cgr.inbound_response.receive
+- name: an identical replay appends nothing and writes no second audit event
+  setup:
+    mocks:
+    - url_matches: /erru/cgr/get-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        version: 4
+        status: responded
+        businessCaseId: CGR-1
+    - url_matches: /erru/cgr/apply-response
+      method: POST
+      status: 200
+      body: []
+    - *id001
+  request:
+    method: POST
+    path: /ljvis/erru/cgr/inbound-response
+    headers: *id002
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      memberStates: '[{"memberStateCode":"DE","statusCode":"Found"}]'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/cgr/apply-response
+    count: 1
+  - url_matches: /log/insert_audit_event
+    count: 0
+- name: an unknown workflow is 404 and merges nothing
+  setup:
+    mocks:
+    - url_matches: /erru/cgr/get-by-workflow-id
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/erru/cgr/inbound-response
+    headers: *id002
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      memberStates: '[{"memberStateCode":"DE","statusCode":"Found"}]'
+  expect:
+    status: 404
+  verify_mocks:
+  - url_matches: /erru/cgr/apply-response
+    count: 0
+- name: missing workflowId is 400
+  setup:
+    mocks: []
+  request:
+    method: POST
+    path: /ljvis/erru/cgr/inbound-response
+    headers: *id002
+    body:
+      memberStates: '[{"memberStateCode":"DE","statusCode":"Found"}]'
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /erru/cgr/get-by-workflow-id
+    count: 0
+- name: missing memberStates is 400
+  setup:
+    mocks: []
+  request:
+    method: POST
+    path: /ljvis/erru/cgr/inbound-response
+    headers: *id002
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+  expect:
+    status: 400
+  verify_mocks:
+  - url_matches: /erru/cgr/get-by-workflow-id
+    count: 0
+- name: a businessCaseId that does not belong to the workflow is refused and stores nothing
+  setup:
+    mocks:
+    - url_matches: /erru/cgr/get-by-workflow-id
+      method: POST
+      status: 200
+      body:
+      - id: 7
+        version: 3
+        status: sent
+        businessCaseId: CGR-1
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/erru/cgr/inbound-response
+    headers:
+      x-internal-service-token: test-secret
+      content-type: application/json
+    body:
+      workflowId: 22222222-2222-2222-2222-222222222222
+      businessCaseId: CGR-OTHER
+      memberStates: '[{"memberStateCode":"DE","statusCode":"Found"}]'
+  expect:
+    status: 409
+  verify_mocks:
+  - url_matches: /erru/cgr/apply-response
+    count: 0
+  - url_matches: /log/insert_audit_event
+    count: 0

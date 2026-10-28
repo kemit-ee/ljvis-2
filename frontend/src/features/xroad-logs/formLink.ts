@@ -12,6 +12,7 @@ const SOURCE_TYPE_TO_FORM_KEY: Record<string, string> = {
   vehicle_technical_form: 'vehicle_technical_form',
   trailer_technical_form: 'trailer_technical_form',
   sp_driver_form: 'sp_driver_form',
+  sp_teammate_form: 'sp_teammate_form',
   tram_control_card: 'tram_driver_form',
 };
 

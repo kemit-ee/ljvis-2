@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -7,7 +8,7 @@ declaration:
     Turvaserver saab selle URL-i teenuse kirjeldusena registreerida
     (Teenused -> Lisa REST -> Kirjelduse URL), et automaatselt teenuste
     lepingut uuendada. Sisu on genereeritud failist docs/xtee/FindUsageOpenapi.yaml
-    skriptiga scripts/generate-xroad-openapi-dsl.py — ÄRA MUUDA KÄSITSI.
+    skriptiga scripts/generate-xroad-openapi-dsl.py - ÄRA MUUDA KÄSITSI.
   namespace: xroad-openapi
 
 returnOpenapi:
@@ -19,7 +20,7 @@ returnOpenapi:
       title: FindUsage
       version: 2.0.0
       description: >
-        LJVIS2 Andmejälgija (AJ) kasutusteabe teenus — RIA "Andmejälgija kasutusteabe
+        LJVIS2 Andmejälgija (AJ) kasutusteabe teenus - RIA "Andmejälgija kasutusteabe
         esitamise protokoll" v1.6.1 (https://github.com/e-gov/AJ/blob/master/doc/spetsifikatsioonid/Kasutusteabe_esitamise_protokoll.md).
         Üks X-tee REST teenus koodiga findUsage, millel on kolm otspunkti:
         /v2/findUsage, /v2/usagePeriod ja /v2/heartbeat. eesti.ee kutsub neid kujul
@@ -83,7 +84,7 @@ returnOpenapi:
       /v2/findUsage:
         get:
           operationId: findUsage
-          summary: findUsage — kasutusteabe küsimine (AJ protokoll §6.1)
+          summary: findUsage - kasutusteabe küsimine (AJ protokoll §6.1)
           description: >
             Tagastab isikuandmete kasutuse kirjed ajamomendi kahanemise järjekorras.
             X-Road-UserId on kohustuslik, kuid võib userCode'ist erineda (esindusõigusega
@@ -181,10 +182,10 @@ returnOpenapi:
       /v2/usagePeriod:
         get:
           operationId: usagePeriod
-          summary: usagePeriod — kasutusteabe ajaperiood (AJ protokoll §6.2)
+          summary: usagePeriod - kasutusteabe ajaperiood (AJ protokoll §6.2)
           description: >
             periodStart on varaseima kirje aeg; kui kirjeid veel pole, siis praegune aeg.
-            periodEnd jäetakse välja — kirjeid saab küsida kuni praeguse ajani.
+            periodEnd jäetakse välja - kirjeid saab küsida kuni praeguse ajani.
           x-provider-path: /ljvis/xroad/v2/usagePeriod
           parameters:
             - $ref: '#/components/parameters/XRoadClient'
@@ -208,7 +209,7 @@ returnOpenapi:
       /v2/heartbeat:
         get:
           operationId: heartbeat
-          summary: heartbeat — kasutusteabe elutuks (AJ protokoll §6.3)
+          summary: heartbeat - kasutusteabe elutuks (AJ protokoll §6.3)
           description: >
             "OK", kui kasutusteabe andmebaas vastab; "FAIL", kui ei vasta.
           x-provider-path: /ljvis/xroad/v2/heartbeat

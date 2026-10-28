@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -12,9 +13,9 @@ declaration:
     service version (`v6`) are XTR's defaults, set in the XTR DSL; Ruuter does not send them.
     No dedicated permission is
     required per LJVIS2-56 §3 ("Eraldi privileegi selle teenuse kasutamiseks
-    ei kehtestata... kasutaja peab olema autenditud") — session auth only.
+    ei kehtestata... kasutaja peab olema autenditud") - session auth only.
     Exactly one of caseNumber/referenceNumber and exactly one of
-    personalCode/(firstName+lastName+birthDate) must be supplied — validated
+    personalCode/(firstName+lastName+birthDate) must be supplied - validated
     here BEFORE calling X-Road, since the provider's own XSD-violation SOAP
     Fault message is generic and unhelpful (confirmed live). Every field
     trimmed; firstName/lastName uppercased per spec. Response nesting
@@ -92,9 +93,9 @@ checkPersonIdentification:
       next: returnPersonIdIncompleteNameGroup
   next: get_user_context
 
-# Eraldi privileegi ei kehtestata (LJVIS2-56 §3) — only requires a valid session.
+# Eraldi privileegi ei kehtestata (LJVIS2-56 §3) - only requires a valid session.
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: assignXtrParams
@@ -132,7 +133,7 @@ callXtr:
 
 # XTR maps every failure mode (Security Server unreachable, timeout, X-Road
 # fault, provider-side SOAP Fault incl. XSD-choice violations) to a non-2xx
-# status — a single range check covers all of them, same convention as
+# status - a single range check covers all of them, same convention as
 # liiklusregister/paring2.yml.
 checkXtrStatus:
   switch:
@@ -160,9 +161,9 @@ extractResponseNode:
   next: extractCaseNode
 
 # <response xsi:nil="true"/> (no matching case) does NOT arrive as null after
-# XML->JSON translation — XTR renders it as an object carrying the nil marker
+# XML->JSON translation - XTR renders it as an object carrying the nil marker
 # attribute, {"@xsi:nil":"1"} (confirmed live, 2026-08-25: a real "not found"
-# response was `{"response":{"@xsi:nil":"1"}}`, NOT `{"response":null}`) — a
+# response was `{"response":{"@xsi:nil":"1"}}`, NOT `{"response":null}`) - a
 # naive null-check would silently treat this as "found" and map garbage
 # undefined fields. This is a valid, non-error "not found" result (LJVIS2-56
 # §Tagastatavad andmed: "Tegemist ei ole veaga").
@@ -180,7 +181,7 @@ checkCaseFound:
 # Deeply-nested Estonian -> English translation (LJVIS2-56 §Tagastatavad
 # andmed / confirmed against the live WSDL, 2026-08-25). `item` arrays
 # collapse to a bare object when there's exactly one entry after XML->JSON
-# translation (same quirk as paring2.yml's `found_items`) — toArray() below
+# translation (same quirk as paring2.yml's `found_items`) - toArray() below
 # normalizes that. Kept as a single, EARLY assign step (few prior
 # variables accumulated) to avoid the large-expression silent-failure issue
 # documented in erru/rsi/request/build.yml.
@@ -297,7 +298,7 @@ logSuccessNotFound:
 returnNotFoundResult:
   status: 200
   # JS-expression form (matches returnFoundResult / paring2.yml's
-  # returnResult), NOT a quoted JSON string literal — Ruuter serializes the
+  # returnResult), NOT a quoted JSON string literal - Ruuter serializes the
   # latter as a nested STRING inside `response` (confirmed live, 2026-08-25:
   # `'{"data": null}'` produced `{"response":"{\"data\": null}"}`, requiring
   # callers to double-JSON-parse), whereas this form produces a proper

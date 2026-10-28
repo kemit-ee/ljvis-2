@@ -2,7 +2,7 @@
 description: 'Kirjuta e-toimiku päringu tulemus sõiduki tehnokontrolli alamvormi uusimale confirmed snapshot-reale
   ja avalikusta see automaatselt. INSERT-only: lisab uue snapshot-rea (revision + 1, version ja kõik muud
   väljad kantakse edasi), vana rida jääb ajalukku. version ei muutu (LJVIS2-72 §4: X-tee väljad ei mõjuta
-  /V järelliidet). found != true või juba täidetud enforcement_decision on no-op (0 rida) — cron kutsub seda
+  /V järelliidet). found != true või juba täidetud enforcement_decision on no-op (0 rida) - cron kutsub seda
   iga kandidaadi kohta tingimusteta. created_by = ''eToimik öine uuendus''.'
 namespace: control-forms
 params:
@@ -31,6 +31,7 @@ returns:
   type: number
   nullable: true
 */
+-- Kord e-toimikust saadud otsust automaatika enam ei puutu: kui võtme mõnel snapshotil on created_by = 'eToimik öine uuendus', ei ole vorm kandidaat ka siis, kui otsus on vahepeal käsitsi tühjendatud.
 WITH latest AS (
   SELECT *
   FROM forms.vehicle_technical_form
@@ -54,6 +55,7 @@ SELECT (jsonb_populate_record(
 FROM latest l
 WHERE l.status = 'confirmed'
   AND l.enforcement_decision IS NULL
+  AND NOT EXISTS (SELECT 1 FROM forms.vehicle_technical_form h WHERE h.vehicle_technical_form_key = l.vehicle_technical_form_key AND h.created_by = 'eToimik öine uuendus')
   AND :found IN ('true', '1', 'yes')
   AND NULLIF(:enforcementDecision, '') IS NOT NULL
 RETURNING vehicle_technical_form_key AS id, sub_form_number, version;

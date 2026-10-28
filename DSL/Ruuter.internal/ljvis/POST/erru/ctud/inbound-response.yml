@@ -1,0 +1,179 @@
+declaration:
+  internal: false
+  returns: []
+  version: "1.0"
+  description: |
+    Receive an ASYNCHRONOUS CheckTransportUndertakingData_Response from the ERRU hub. The hub
+    acknowledged our request with HTTP 202; the target country's answer arrives later, correlated
+    by workflowId.
+
+    Flow:
+      1. Validate workflowId and responseStatusCode.
+      2. Look up the outgoing request by workflowId. Unknown workflow -> 404.
+      3. If it is already 'responded' (duplicate delivery) return already_responded.
+      4. Append a 'responded' snapshot via append-transition.sql (allowed from sending, send_unknown
+         and sent) with the response authority, status, message and content.
+      5. Audit (ctud.inbound_response.receive) directly to Resql.
+
+    Timeout and NotAvailable are Hub-set outcomes of a successful exchange and also lead to
+    'responded'. Runs on ruuter-internal (allowedIPs 127.0.0.1 only) like the other ERRU inbound flows.
+  namespace: erru
+  allowlist:
+    body:
+      - field: workflowId
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: respondingAuthority
+        type: string
+      - field: responseStatusCode
+        type: string
+      - field: responseStatusMessage
+        type: string
+      - field: responseContent
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnMissingWorkflowId
+    - condition: ${!(('' + (incoming.body.responseStatusCode || '')).trim())}
+      next: returnMissingStatusCode
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    message_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    responding_authority: "${('' + (incoming.body.respondingAuthority || '')).trim()}"
+    response_status_code: "${('' + (incoming.body.responseStatusCode || '')).trim()}"
+    response_status_message: "${('' + (incoming.body.responseStatusMessage || '')).trim()}"
+    response_content: "${('' + (incoming.body.responseContent || '')).trim()}"
+  next: findByWorkflowId
+
+findByWorkflowId:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/get-by-workflow-id"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      workflow_id: ${workflow_id}
+  result: found_res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${found_res.response.body == null || found_res.response.body.length != 1}
+      next: returnUnknownWorkflowId
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    request_key: "${found_res.response.body[0].id}"
+    cur_status: "${found_res.response.body[0].status}"
+    business_case_id: "${found_res.response.body[0].businessCaseId}"
+  next: checkCaseMatches
+
+# A response must belong to the request its workflowId identifies. A mismatching businessCaseId is
+# refused instead of stored on the wrong request.
+checkCaseMatches:
+  switch:
+    - condition: ${message_case_id !== '' && message_case_id !== business_case_id}
+      next: returnCaseMismatch
+  next: checkAlreadyResponded
+
+checkAlreadyResponded:
+  switch:
+    - condition: ${cur_status === 'responded'}
+      next: returnAlreadyResponded
+  next: storeResponded
+
+storeResponded:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/ctud/append-transition"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      key: ${request_key}
+      newStatus: "responded"
+      technicalId: ""
+      workflowId: ""
+      respondingAuthority: ${responding_authority}
+      responseStatusCode: ${response_status_code}
+      responseStatusMessage: ${response_status_message}
+      responseContent: ${response_content}
+      errorMessage: ""
+      created_by: "system"
+  result: responded_res
+  next: checkStored
+
+checkStored:
+  switch:
+    - condition: ${responded_res.response.body == null || responded_res.response.body.length != 1}
+      next: returnAlreadyResponded
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
+    audit_description: "CTUD asünkroonse vastuse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}, tulemus ${response_status_code}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null, responseStatusCode: response_status_code || null, respondingAuthority: responding_authority || null})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "ctud.inbound_response.receive"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU CTUD inbound response service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      organisation_id: ""
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  error: returnOk
+  next: returnOk
+
+returnOk:
+  return: "${JSON.stringify({status: 'responded', businessCaseId: business_case_id, workflowId: workflow_id, responseStatusCode: response_status_code})}"
+  next: end
+
+returnAlreadyResponded:
+  return: "${JSON.stringify({status: 'already_responded', businessCaseId: business_case_id || null, workflowId: workflow_id, responseStatusCode: response_status_code})}"
+  next: end
+
+returnUnknownWorkflowId:
+  status: 404
+  return: '{"statusCode":"NotFound","statusMessage":"No outgoing CTUD request found for this workflowId"}'
+  next: end
+
+returnMissingWorkflowId:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"workflowId is required"}'
+  next: end
+
+returnMissingStatusCode:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"responseStatusCode is required"}'
+  next: end
+
+returnCaseMismatch:
+  status: 409
+  return: '{"statusCode":"InvalidData","statusMessage":"businessCaseId does not match the request of this workflowId"}'
+  next: end

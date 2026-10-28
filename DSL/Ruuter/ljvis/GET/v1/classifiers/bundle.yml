@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get all classifiers with all their values in one bulk response, for FE app-state bootstrapping (e.g. DRIVING_VIOLATION, TRANSPORT_TYPE)"

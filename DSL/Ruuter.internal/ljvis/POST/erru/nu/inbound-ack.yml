@@ -1,0 +1,201 @@
+declaration:
+  internal: false
+  returns: []
+  version: "1.0"
+  description: |
+    Receive an ASYNCHRONOUS NotifyUnfitness_Acknowledgement from the ERRU hub. The hub accepted our
+    NotifyUnfitness_Request with HTTP 202; the answering member states acknowledge later, correlated
+    by workflowId. A broadcast (ZZ) can produce several acknowledgements.
+
+    Flow:
+      1. Validate workflowId and memberStates (a JSON array string built by the XML adapter).
+      2. Validate the member states with erru.nu_validate(.., 'ack') (OK, Timeout or NotAvailable).
+      3. Look up the outgoing message by workflowId. Unknown workflow -> 404, mismatching businessCaseId -> 409.
+      4. erru.nu_apply_ack merges the entries per memberStateCode and records the acknowledgement
+         event. A replay changes nothing.
+      5. Audit (nu.inbound_ack.receive) directly to Resql, because ruuter-internal cannot reach the
+         main Ruuter audit templates.
+
+    Runs on ruuter-internal (allowedIPs 127.0.0.1 only) like the other ERRU inbound flows.
+  namespace: erru
+  allowlist:
+    body:
+      - field: workflowId
+        type: string
+      - field: technicalId
+        type: string
+      - field: from
+        type: string
+      - field: businessCaseId
+        type: string
+      - field: memberStates
+        type: string
+
+validateEnvelope:
+  switch:
+    - condition: ${!(('' + (incoming.body.workflowId || '')).trim())}
+      next: returnMissingWorkflowId
+    - condition: ${!(('' + (incoming.body.technicalId || '')).trim())}
+      next: returnMissingTechnicalId
+    - condition: ${!(('' + (incoming.body.memberStates || '')).trim())}
+      next: returnMissingMemberStates
+  next: extractRequestData
+
+extractRequestData:
+  assign:
+    workflow_id: "${('' + (incoming.body.workflowId || '')).trim()}"
+    technical_id: "${('' + (incoming.body.technicalId || '')).trim()}"
+    from_country: "${('' + (incoming.body.from || '')).trim()}"
+    message_case_id: "${('' + (incoming.body.businessCaseId || '')).trim()}"
+    member_states: "${('' + (incoming.body.memberStates || '')).trim()}"
+  next: validateMembers
+
+validateMembers:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/validate"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      payload: "${'{\"memberStates\":' + member_states + '}'}"
+      kind: "ack"
+  result: member_validation
+  next: checkMemberValidation
+
+checkMemberValidation:
+  switch:
+    - condition: ${JSON.parse(member_validation.response.body[0].result).valid !== true}
+      next: returnInvalidMembers
+  next: findByWorkflowId
+
+findByWorkflowId:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/get-by-workflow-id"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      workflow_id: ${workflow_id}
+  result: found_res
+  next: checkFound
+
+checkFound:
+  switch:
+    - condition: ${found_res.response.body == null || found_res.response.body.length != 1}
+      next: returnUnknownWorkflowId
+  next: extractCurrentState
+
+extractCurrentState:
+  assign:
+    business_case_id: "${found_res.response.body[0].businessCaseId}"
+  next: checkCaseMatches
+
+# An acknowledgement must belong to the message its workflowId identifies.
+checkCaseMatches:
+  switch:
+    - condition: ${message_case_id !== '' && message_case_id !== business_case_id}
+      next: returnCaseMismatch
+  next: applyAck
+
+applyAck:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/nu/apply-ack"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      workflowId: ${workflow_id}
+      technicalId: ${technical_id}
+      fromCountry: ${from_country}
+      memberStates: ${member_states}
+  result: applied_res
+  next: checkApplied
+
+checkApplied:
+  assign:
+    applied: "${applied_res.response.body != null && applied_res.response.body.length === 1 && applied_res.response.body[0].result ? JSON.parse(applied_res.response.body[0].result) : null}"
+  next: decideApplied
+
+decideApplied:
+  switch:
+    - condition: ${applied == null}
+      next: returnUnknownWorkflowId
+    - condition: ${applied.status !== 'acknowledged'}
+      next: returnNotApplied
+  next: buildAudit
+
+buildAudit:
+  assign:
+    event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
+    audit_description: "NU asünkroonse kinnituse vastuvõtmine: juhtum ${business_case_id}, workflowId ${workflow_id}"
+    audit_log_content: "${JSON.stringify({businessCaseId: business_case_id || null, workflowId: workflow_id || null, from: from_country || null})}"
+  next: logAudit
+
+logAudit:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/log/insert_audit_event"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      event_id: ${event_id}
+      event_type: "nu.inbound_ack.receive"
+      event_category: "erru_message_exchange"
+      actor_name: "ERRU NU inbound acknowledgement service"
+      actor_personal_code: ""
+      description: ${audit_description}
+      log_content: ${audit_log_content}
+      organisation_id: ""
+      created_by: "system"
+      trace_id: ""
+      span_id: ""
+  result: audit_result
+  error: returnOk
+  next: returnOk
+
+returnOk:
+  return: "${JSON.stringify({status: 'acknowledged', businessCaseId: business_case_id, workflowId: workflow_id})}"
+  next: end
+
+# already_acknowledged (replay) or ignored (the message no longer awaits an acknowledgement).
+returnNotApplied:
+  return: "${JSON.stringify({status: applied.status, businessCaseId: business_case_id || null, workflowId: workflow_id})}"
+  next: end
+
+returnInvalidMembers:
+  status: 422
+  return: '{"statusCode":"InvalidData","statusMessage":"memberStates does not satisfy the NU acknowledgement rules"}'
+  next: end
+
+returnUnknownWorkflowId:
+  status: 404
+  return: '{"statusCode":"NotFound","statusMessage":"No outgoing NU message found for this workflowId"}'
+  next: end
+
+returnCaseMismatch:
+  status: 409
+  return: '{"statusCode":"InvalidData","statusMessage":"businessCaseId does not match the message of this workflowId"}'
+  next: end
+
+returnMissingWorkflowId:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"workflowId is required"}'
+  next: end
+
+returnMissingTechnicalId:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"technicalId is required"}'
+  next: end
+
+returnMissingMemberStates:
+  status: 400
+  return: '{"statusCode":"InvalidData","statusMessage":"memberStates is required"}'
+  next: end

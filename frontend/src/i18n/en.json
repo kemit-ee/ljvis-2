@@ -1612,6 +1612,8 @@
     "yes": "Yes",
     "no": "No",
     "tableIsEmpty": "No matching results found.",
+    "tableLoading": "Table is loading...",
+    "customizeColumns": "Customize",
     "confirm": "Confirm",
     "confirmChange": "Yes, change",
     "discard": "Discard",
@@ -1632,6 +1634,7 @@
     "deleteTrailerSubConfirmTitle": "Remove trailer and delete sub-form",
     "deleteTrailerSubConfirm": "Are you sure you want to remove the trailer and delete the sub-form? The changes take effect once you click \"Save\" on the form.",
     "print": "Print",
+    "printFailed": "Could not print the form. Try again.",
     "printFilled": "Print completed form",
     "printBlank": "Print blank form"
   },
@@ -1729,6 +1732,7 @@
     "column": {
       "createdAt": "Request time",
       "form": "Form",
+      "formNumber": "Form number",
       "serviceCode": "Service",
       "status": "Status",
       "request": "Outgoing request",
@@ -1740,6 +1744,7 @@
       "vehicle_technical_form": "Motor vehicle technical compliance control form",
       "trailer_technical_form": "Trailer technical compliance control form",
       "sp_driver_form": "Driver's driving and rest time control form",
+      "sp_teammate_form": "Team member driving and rest time inspection form",
       "tram_control_card": "Transport Administration control card"
     }
   },
@@ -1760,7 +1765,13 @@
   "erru": {
     "ctud": {
       "notFound": "CTUD request not found",
-      "sendFailed": "Sending the request to ERRU failed. You can try again.",
+      "sendFailed": "ERRU rejected the request. It can be sent again.",
+      "sending": "Sending",
+      "sendUnknownStatus": "Dispatch outcome unknown",
+      "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending a new request.",
+      "awaitingResponse": "ERRU accepted the request. The country response is pending, refresh the page later.",
+      "invalidXml": "The data does not meet the ERRU XML contract. At least two search criteria are required and a vehicle needs both a number and a country.",
+      "validationUnavailable": "XML validation is currently unavailable. The request was not sent.",
       "list": {
         "title": "Transport undertaking data requests CTUD",
         "newRequest": "New CTUD request",
@@ -1769,9 +1780,10 @@
         "ctudFrom": "Requesting country",
         "ctudTo": "Target country",
         "undertakingName": "Transport undertaking name",
-        "licenceNumber": "Community licence / certified true copy no.",
+        "licenceNumber": "Licence",
         "vehicleNumber": "Vehicle reg. no",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "direction": "Direction",
         "handlerFilter": "User (isikukood)"
@@ -1870,7 +1882,14 @@
     },
     "cgr": {
       "notFound": "CGR request not found",
-      "sendFailed": "Sending the request to ERRU failed. You can try again.",
+      "sendFailed": "ERRU rejected the request. It can be sent again.",
+      "sending": "Sending",
+      "sendUnknownStatus": "Dispatch outcome unknown",
+      "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending a new request.",
+      "awaitingResponse": "ERRU accepted the request. The member state responses are pending, refresh the page later.",
+      "invalidXml": "The data does not meet the ERRU XML contract. Check the name, date of birth and certificate details.",
+      "validationUnavailable": "XML validation is currently unavailable. The request was not sent.",
+      "nysiisUnavailable": "Computing the NYSIIS search key failed. The request was not sent.",
       "list": {
         "title": "Check good repute requests CGR",
         "newRequest": "New CGR request",
@@ -1881,6 +1900,7 @@
         "cgrTo": "Target member state",
         "certificateNumber": "Certificate of professional competence number",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "handlerFilter": "User (isikukood)"
       },
@@ -1919,6 +1939,13 @@
       },
       "response": {
         "title": "Response",
+        "foundTitle": "Countries with a match",
+        "notFoundTitle": "Response received, no match found",
+        "failedTitle": "No response received",
+        "foundBadge": "Match found",
+        "summaryFound": "{{count}} with a match",
+        "summaryNotFound": "{{count}} without a match",
+        "summaryFailed": "{{count}} did not respond",
         "statusMessage": "Status message",
         "respondingAuthority": "Responding competent authority",
         "searchMethod": "Search method",
@@ -1961,6 +1988,10 @@
     "rsi": {
       "notFound": "RSI message not found",
       "sendFailed": "Sending the message to ERRU failed. The message stays in 'error' state — no retry is possible, a new message must be composed.",
+      "sendUnknownStatus": "Dispatch outcome unknown",
+      "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending a new message.",
+      "invalidXml": "The data does not meet the ERRU XML contract. Check the VIN, odometer reading, driver and holder or transport undertaking details.",
+      "sending": "Sending",
       "checkedItems": {
         "part": "Item",
         "checked": "Checked",
@@ -2041,6 +2072,7 @@
         "required": "This field is required",
         "invalid_country_code": "Country code must be two letters",
         "max_length_exceeded": "Maximum length exceeded",
+        "invalid_vin": "VIN must be exactly 17 characters (letters and digits, no I, O or Q)",
         "driver_block_incomplete": "The driver block's first name and family name must be filled in together",
         "holder_type_invalid": "Party type must be transport undertaking or owner",
         "undertaking_block_incomplete": "The undertaking name and community licence number must be filled in together",
@@ -2065,6 +2097,7 @@
         "rsiTo": "Destination country",
         "vehicleRegistrationNumber": "Vehicle reg. no",
         "status": "Status",
+        "result": "Result",
         "handler": "User",
         "direction": "Direction",
         "directionOutgoing": "Outgoing",
@@ -2091,7 +2124,7 @@
         "historyTypeResponse": "Response",
         "historyDirection": "Direction",
         "historyStatus": "Status",
-        "historySentAt": "Sent at",
+        "historySentAt": "Date",
         "infringementNumber": "Infringement #{{number}}",
         "ncrFrom": "Sending member state",
         "ncrTo": "Destination member state",
@@ -2146,10 +2179,18 @@
         "send": "Send",
         "sendResponse": "Send response",
         "sendFailed": "Sending failed. The message moved to Error status.",
+        "sending": "Sending",
+        "sendUnknownStatus": "Dispatch outcome unknown",
+        "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending again.",
+        "awaitingAck": "ERRU accepted the message. The acknowledgement and response are pending, refresh the page later.",
+        "invalidXml": "The data does not meet the ERRU XML contract. Check the undertaking, vehicle, check result and infringement details.",
+        "invalidResponseXml": "The response does not meet the ERRU XML contract. A found undertaking needs the vehicle count, licence status and a complete address.",
+        "validationUnavailable": "XML validation is currently unavailable. The message was not sent.",
+        "workflowIdMissing": "The incoming message has no workflowId, so the response cannot be sent.",
         "createVr": "Create foreign country inspection report",
         "openVr": "Open foreign country inspection report",
         "createVrFailed": "Creating the foreign country inspection report failed",
-        "messageDateTime": "Message date and time",
+        "eventDate": "Date",
         "responsePenaltyIdentifier": "Imposed penalty identifier",
         "responsePenaltyType": "Type of penalty imposed"
       },
@@ -2174,9 +2215,9 @@
         "title": "Notify Check Result messages NCR",
         "newMessage": "New NCR message",
         "id": "Message ID",
-        "sentAt": "Sent",
-        "sentFrom": "Sent from",
-        "sentUntil": "Sent until",
+        "eventAt": "Date",
+        "dateFrom": "Date from",
+        "dateUntil": "Date until",
         "ncrFrom": "Sending country",
         "ncrTo": "Destination country",
         "transportUndertakingName": "Transport undertaking",
@@ -2186,7 +2227,11 @@
         "directionOutgoing": "Outgoing",
         "directionIncoming": "Incoming",
         "handlerFilter": "Handler (isikukood)",
-        "automatic": "Automatic"
+        "automatic": "Automatic",
+        "checkResult": "Check result",
+        "withInfringement": "With infringement",
+        "compliant": "Compliant",
+        "needsAttention": "Needs attention"
       }
     },
     "nu": {
@@ -2196,6 +2241,10 @@
       },
       "notFound": "NU unfitness notification not found",
       "sendFailed": "Sending the message to ERRU failed. The message stays in Error status — retrying in place is not possible, a new message must be created.",
+      "sending": "Sending",
+      "sendUnknownStatus": "Dispatch outcome unknown",
+      "sendUnknown": "Dispatch outcome unknown. Check the integration log before sending a new notification.",
+      "awaitingAck": "ERRU accepted the notification. The member state acknowledgements are pending, refresh the page later.",
       "createFromGoodRepute": "Create NU unfitness notification",
       "list": {
         "title": "NU unfitness notifications",
@@ -2280,6 +2329,9 @@
         "source_not_eligible": "The source declaration is not published, the person is not declared unfit, or the unfitness end date is missing or has passed. Check the source declaration.",
         "source_not_found": "Good repute declaration not found",
         "send_failed": "Sending the message failed",
+        "send_unknown": "Dispatch outcome unknown. Do not resend, check the integration log.",
+        "invalid_nu_xml": "The data does not meet the ERRU XML contract. Check the transport manager and certificate details.",
+        "validation_unavailable": "XML validation is currently unavailable. The notification was not sent.",
         "nysiis_unavailable": "The name search service is currently unavailable",
         "source_exceeds_erru_limit": "The source value exceeds the ERRU limit. Correct the good repute declaration (first/family name: 100 characters; place of birth: 50; certificate number: 20).",
         "not_found": "NU unfitness notification not found"
@@ -2393,7 +2445,8 @@
       "labor_kabotage": "Cabotage inspection notification",
       "labor_tachograph_not_downloaded": "Tachograph data not downloaded notification",
       "labor_foreign_proposal": "Foreign country proposal notification",
-      "nu_inbound_received": "ERRU NU non-compliance notice"
+      "nu_inbound_received": "ERRU NU non-compliance notice",
+      "ctud_inbound_received": "ERRU community licence check request (CTUD)"
     }
   },
   "breadcrumbs": {

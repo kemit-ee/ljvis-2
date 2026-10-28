@@ -1,4 +1,4 @@
-# #515: ruuter-internal projektijuure guard — x-internal-service-token on kohustuslik,
+# #515: ruuter-internal projektijuure guard - x-internal-service-token on kohustuslik,
 # välja arvatud X-tee teenuste (xroad/provide, xroad/v2) route'id.
 mode: mock-http
 constants:

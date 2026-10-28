@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -12,31 +13,38 @@ declaration:
   allowlist:
     body:
       - field: kontrollija
+        type: string
       - field: kontrolli_id
       - field: kontrolli_kp
+        type: string
       - field: tooandja_nimi
+        type: string
       - field: tooandja_reg_kood
+        type: string
       - field: kontrollimised
+        type: object
       - field: rikkumised
+        type: object
       - field: koostatatud_ettekirjutus
       - field: soidukite_arv
       - field: vaarteomenetlus
+        type: string
 
-# Samm 1: Valideeri kontrollija — WSDL väli 'kontrollija'
+# Samm 1: Valideeri kontrollija - WSDL väli 'kontrollija'
 validateKontrollija:
   switch:
     - condition: "${incoming.body.kontrollija == null || incoming.body.kontrollija == ''}"
       next: returnMissingKontrollija
   next: validateKontrolliId
 
-# Samm 3: Valideeri kontrolli ID — WSDL väli 'kontrolli_id' (idempotentsuse võti)
+# Samm 3: Valideeri kontrolli ID - WSDL väli 'kontrolli_id' (idempotentsuse võti)
 validateKontrolliId:
   switch:
     - condition: "${incoming.body.kontrolli_id == null}"
       next: returnMissingKontrolliId
   next: validateKontrolliKp
 
-# Samm 4: Valideeri kuupäev — peab olema parsitav
+# Samm 4: Valideeri kuupäev - peab olema parsitav
 validateKontrolliKp:
   switch:
     - condition: "${incoming.body.kontrolli_kp == null || incoming.body.kontrolli_kp == ''}"

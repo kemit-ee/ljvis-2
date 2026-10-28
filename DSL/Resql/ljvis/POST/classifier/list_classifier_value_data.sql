@@ -1,6 +1,6 @@
 /*
 description: List of all classifier values (latest snapshot per classifier_value_key, with validity).
-  ROAD_OTHER is excluded — it is looked up one road at a time via roads/get_other_road_by_number
+  ROAD_OTHER is excluded - it is looked up one road at a time via roads/get_other_road_by_number
 namespace: classifier
 params: {}
 returns:

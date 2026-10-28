@@ -12,11 +12,11 @@ import {
   Card,
   Heading,
   Text,
-  StatusBadge,
 } from '@tedi-design-system/react/tedi';
 import { useNuMessageDetail } from './useNuMessageDetail';
 import { useNuForm } from './useNuForm';
 import { NuMessageFields } from '../../components/Nu/NuMessageFields';
+import { ErruStatusBadge } from '../../components/shared/ErruStatusBadge';
 import { NuMemberStatesTable } from '../../components/Nu/NuMemberStatesTable';
 import { isNuEditable, isNuSendable, type NuSource } from '../../types';
 import { useAuth } from '../../../auth/AuthContext';
@@ -130,19 +130,30 @@ function NuFormView({ snapshotId }: { snapshotId?: string }) {
               {' — '}
               {message.businessCaseId}
             </Heading>
-            <StatusBadge>
-              {label('NU_MESSAGE_STATUS', message.status)}
-            </StatusBadge>
+            <ErruStatusBadge status={message.status}>
+              {message.status === 'sending'
+                ? t('erru.nu.sending')
+                : message.status === 'send_unknown'
+                  ? t('erru.nu.sendUnknownStatus')
+                  : label('NU_MESSAGE_STATUS', message.status)}
+            </ErruStatusBadge>
           </div>
           <Text>
             {t('erru.nu.form.version', { version: message.version })}
             {!editable && ` · ${t('erru.nu.form.readOnly')}`}
           </Text>
+          {message.direction === 'outgoing' &&
+            message.status === 'sent' &&
+            !message.memberStates?.length && (
+              <Text>{t('erru.nu.awaitingAck')}</Text>
+            )}
           {(sendError || message.errorMessage) && (
             <Alert type="danger" size="small" className="mt-1">
               {message.status === 'error'
                 ? t('erru.nu.sendFailed')
-                : sendError || message.errorMessage}
+                : message.status === 'send_unknown'
+                  ? t('erru.nu.sendUnknown')
+                  : sendError || message.errorMessage}
             </Alert>
           )}
         </Card.Content>

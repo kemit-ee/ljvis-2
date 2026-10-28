@@ -5,7 +5,7 @@ description: 'ADR-014 / LJVIS2-51: isikuga seose eemaldamine arhiveeritud (ja t�
   (form_type, id) paaridega. See on EPICU #522 TEINE lubatud erand append-only reeglile
   (.sql-rule-exemption): REAALNE UPDATE archive.form_snapshot-il (esimene erand,
   purge_confirmed.sql, on DELETE töö-baasis). Põhjus, miks UPDATE on siin ainus variant:
-  isikuandmete eemaldamine nõuab olemasoleva rea sisu muutmist, mitte uue rea lisamist —
+  isikuandmete eemaldamine nõuab olemasoleva rea sisu muutmist, mitte uue rea lisamist -
   INSERT-only alternatiivi pole (vana PII-ga rida jääks muidu füüsiliselt alles).
   Idempotentne: WHERE anonymized_at IS NULL välistab juba töödeldud read.
   Teisendusreeglid (vt docs/workingdocs/architecture-decisions.md ADR-014):
@@ -16,7 +16,7 @@ description: 'ADR-014 / LJVIS2-51: isikuga seose eemaldamine arhiveeritud (ja t�
   - sünnikuupäev -> päev/kuu 01/01, aasta kümnendi algusesse (nt 1865-02-02 -> 1860-01-01)
   - sünnikoht (vabatekst) -> jäetakse alles ainult viimane komaga eraldatud osa
     (tüüpiliselt riik, nt "Tallinn, Eesti" -> "Eesti"); kui koma puudub, väärtus jääb
-    muutumatuks (teadaolev piirang, vt ADR-014 — vabatekst ilma riigita ei ole
+    muutumatuks (teadaolev piirang, vt ADR-014 - vabatekst ilma riigita ei ole
     usaldusväärselt tuvastatav).
   Hõlmatud on ainult need archive.form_snapshot-is esinevad form_type väärtused, mille
   payload-is on teadaolevalt subjekti isikuandmeid: compound-form, tram-card,
@@ -30,7 +30,7 @@ params:
   pairs:
     type: string
     required: false
-    description: 'JSON massiiv [{"form_type":"labour-inspection","id":123}, ...] — samad paarid, mis purge_confirmed-ile läksid.'
+    description: 'JSON massiiv [{"form_type":"labour-inspection","id":123}, ...] - samad paarid, mis purge_confirmed-ile läksid.'
 returns:
 - name: anonymized
   type: number

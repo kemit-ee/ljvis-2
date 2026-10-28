@@ -5,12 +5,12 @@ params:
 
 method: POST
 
-# No `service:` — routed through the configured Security Server, same as
+# No `service:` - routed through the configured Security Server, same as
 # paring2.yml (liiklusregister is only reachable via X-Road).
 #
 # Service identifier: EE/GOV/70001490/liiklusregister/yvkehtivus/v1
 # Verified against the real Security Server via the allowedMethods
-# meta-service — our subsystem (GOV/70001231/ljvis2) is authorised for
+# meta-service - our subsystem (GOV/70001231/ljvis2) is authorised for
 # both paring2/v2 and yvkehtivus/v1 (see paring2.yml comment / LJVIS2-55).
 #
 # Envelope follows the same conventions confirmed for paring2.yml: the
@@ -19,7 +19,7 @@ method: POST
 # top-level <prod:yvkehtivus> body must NOT carry the prod: prefix.
 # CONFIRMED via a live test call against the real ee-dev Security Server
 # (2026-08-24): {regmrk: "123ABC"} returned kood=0 with real vehicle data
-# (yv_kp, jargm_yv, mark, vinkood, otsus) — this is the correct, working
+# (yv_kp, jargm_yv, mark, vinkood, otsus) - this is the correct, working
 # request shape. See .ai/ljvis-tasks/all-x-tee.md for the full trace.
 envelope: >
   <?xml version="1.0" encoding="UTF-8"?>

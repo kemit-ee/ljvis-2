@@ -1,5 +1,5 @@
 /*
-description: Delete good-repute form — copy latest snapshot with status=deleted
+description: Delete good-repute form - copy latest snapshot with status=deleted
 namespace: control-forms
 params:
   id:

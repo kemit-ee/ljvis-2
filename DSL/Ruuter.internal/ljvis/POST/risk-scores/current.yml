@@ -1,9 +1,10 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
-    LJVIS2-151/144: returns the latest PERSISTED risk score for a company —
+    LJVIS2-151/144: returns the latest PERSISTED risk score for a company -
     never recomputes (see recalculate.yml for that). Consumed by (a) the CTUD
     inbound-request handler (erru/ctud/inbound-request.yml, which first
     resolves company_reg_code from the licence number MTR confirmed via
@@ -13,7 +14,7 @@ declaration:
     my-company.yml), which strips riskBandErru before returning to the
     browser. ERRU riskBand wire values are English classifier codes already
     seeded in classifier.classifier_value under RISK_BAND (Grey/Green/Amber/
-    Red) — Kollane maps to "Amber", NOT "Yellow" (the ERRU 3.5 XSD enum has
+    Red) - Kollane maps to "Amber", NOT "Yellow" (the ERRU 3.5 XSD enum has
     no Yellow value; confirmed against that classifier seed). No auth
     required: machine-to-machine only, port 8089 is not exposed outside the
     Docker network.
@@ -72,7 +73,7 @@ returnResult:
     })}
   next: end
 
-# JS-expression object-literal form, NOT a quoted JSON string literal — the
+# JS-expression object-literal form, NOT a quoted JSON string literal - the
 # latter gets serialized as a nested STRING inside `response` (confirmed live
 # via Newman: a quoted-string `return:` here made every field read back as
 # `undefined` through pm.response.json().response.riskBandCode etc., exactly

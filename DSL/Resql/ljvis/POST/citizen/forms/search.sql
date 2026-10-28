@@ -2,18 +2,18 @@
 description: 'Citizen-facing read-only form listing over forms.form_search (LJVIS2-9 view). Companion
   to control-forms/search/search.sql, but without the officer allowed_types row-level filter. Two mutually-exclusive
   scopes, chosen by which param is non-empty (Ruuter passes exactly one, never both): company_reg_code
-  (representative view — every citizen-visible form of that company) or personal_code (füüsiline isik
-  / citizen-self view — forms where the person appears as driver/punished person/good-repute subject,
-  via an exact space-delimited-token match against form_search.driver_search — NOT the officer ''driver''
+  (representative view - every citizen-visible form of that company) or personal_code (füüsiline isik
+  / citizen-self view - forms where the person appears as driver/punished person/good-repute subject,
+  via an exact space-delimited-token match against form_search.driver_search - NOT the officer ''driver''
   filter''s ILIKE substring technique, since a substring match against another person''s national ID code
   would be an unacceptable false-positive/precision risk on a PII-scoped citizen-facing endpoint). Citizen-visible
-  status is ''published'' for every form type, including good_repute — matches the general control-form
+  status is ''published'' for every form type, including good_repute - matches the general control-form
   lifecycle spec (LJVIS2-136: only the ''Avalikustatud'' state is documented as visible to all read-permission
   holders; ''Kinnitatud'' only relaxes field editability for officers/admins, it does not grant public
   visibility). A prior version of this query also accepted good_repute at ''confirmed''; that was flagged
   as an unresolved, not-signed-off-by-product exception during code review (code-review-citizen-company-view.md)
   and has been reverted to the published-only rule that applies to every other form type. Sub-forms (sp_driver/sp_teammate/vehicle_technical/trailer_technical/adr/kv)
-  carry no data of their own for the citizen view — they''re collapsed into their parent ''compound''
+  carry no data of their own for the citizen view - they''re collapsed into their parent ''compound''
   row (dedup CTE below) so a citizen sees exactly one row per control, with has_violation OR''d in from
   any sub-form sibling.'
 namespace: citizen
@@ -21,7 +21,7 @@ params:
   company_reg_code:
     type: string
     required: false
-    description: Active company's registry code (company scope) — from the citizen session's activeRegistryCode,
+    description: Active company's registry code (company scope) - from the citizen session's activeRegistryCode,
       never client-supplied trust boundary. Empty when scope is personal_code.
   personal_code:
     type: string
@@ -85,7 +85,7 @@ WITH scoped AS (
     SELECT
         fs.*,
         -- Sub-form rows share compound_form_key with their parent 'compound'
-        -- row and inherit the same company_reg_code/driver_search — fold a
+        -- row and inherit the same company_reg_code/driver_search - fold a
         -- violation found on any of them into the control as a whole before
         -- the dedup step below drops the sub-form rows themselves.
         bool_or(fs.has_violation) OVER (
@@ -106,7 +106,7 @@ deduped AS (
         county, vehicle_reg_nr, company_reg_code, company_name,
         agg_has_violation AS has_violation, created_at
     FROM scoped
-    -- One row per control: standalone types (compound_form_key IS NULL —
+    -- One row per control: standalone types (compound_form_key IS NULL -
     -- foreign_violation/labour_inspection/good_repute) pass through as-is;
     -- for compound + its sub-forms, keep only the 'compound' row.
     WHERE compound_form_key IS NULL OR form_type = 'compound'

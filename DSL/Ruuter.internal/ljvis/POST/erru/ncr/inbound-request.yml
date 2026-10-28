@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Receive an INCOMING NCR (NotifyCheckResult) request from another member state and
@@ -144,7 +145,7 @@ checkStored:
   next: lookupExisting
 
 # checkResult on ERRU 3.5 XSD (NotifyCheckResult_Types) järgi 'Pass' | 'Fail' | 'CleanCheck'
-# (chk_ncr_check_result). 'Fail' tähendab XSD dokumentatsiooni järgi rikkumise avastamist —
+# (chk_ncr_check_result). 'Fail' tähendab XSD dokumentatsiooni järgi rikkumise avastamist -
 # sellele luuakse ncr_violation, Pass/CleanCheck korral ncr_ok.
 # Teavitus on kohustuslik: salvestusviga annab 502, kordus on event_key järgi ohutu.
 checkViolation:

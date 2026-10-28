@@ -1,6 +1,6 @@
 /*
 description: Create a new OUTGOING RSI message draft (LJVIS2-147), including pre-filling from a published
-  negative technical-check card (LJVIS2-148 §4.1 — the caller pre-fills vehicle/inspection/identification
+  negative technical-check card (LJVIS2-148 §4.1 - the caller pre-fills vehicle/inspection/identification
   fields before calling this same query, there is no separate build query). Appends the first snapshot
   of a new erru.rsi_message with status 'initiated'. Allocates both the logical key and the human-readable
   business_case_id (EE-RSI-AAAA-NNNNN) server-side. rsi_from is hardcoded to EE; rsi_to is derived from

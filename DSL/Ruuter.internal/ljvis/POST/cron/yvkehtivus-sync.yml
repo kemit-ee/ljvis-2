@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -10,7 +11,7 @@ declaration:
     that hasn't passed it yet, ask liiklusregister (yvkehtivus) whether it
     has. If yes (kood=0 with a yv_kp date), write
     extraordinary_inspection_date in place
-    (update-extraordinary-inspection-date.sql — does not touch
+    (update-extraordinary-inspection-date.sql - does not touch
     enforcement_decision/proceeding_closure_basis, which come from
     cron/etoimik-technical-check-decision-sync.yml) and log an audit event.
     Otherwise (kood=1/2, or no date yet) nothing happens this run; retried
@@ -19,10 +20,10 @@ declaration:
     Idempotent: writing extraordinary_inspection_date drops the row out of
     that candidate query. Vehicle and trailer are processed as two
     independent candidate sets in one flow (same source data, same X-tee
-    call — kept together per LJVIS2-72 §0 "Variandid").
+    call - kept together per LJVIS2-72 §0 "Variandid").
 
     Calls XTR directly (DSL/xtr/liiklusregister/yvkehtivus.yml), not
-    through a public Ruuter endpoint — none exists; it was built during
+    through a public Ruuter endpoint - none exists; it was built during
     the LJVIS2-55/135 X-Road survey and deliberately removed once it was
     clear the only consumer would be this batch (.ai/ljvis-tasks/all-x-tee.md
     §3). Same no-session reasoning and flat-iterate-sequence pattern as
@@ -71,15 +72,15 @@ processVehicleCandidates:
           body:
             registration_mark: ${reg_nr}
             vin_code: ${vin}
-            # System caller id for the X-Road audit trail — no user session exists here.
+            # System caller id for the X-Road audit trail - no user session exists here.
             userId: "LJVIS-CRON"
         result: xtrResponse
 
       # kood=1 (not found) or kood=2 (error) both mean "nothing to apply
-      # yet" — logged as success with no date, retried next hour.
+      # yet" - logged as success with no date, retried next hour.
       # IMPORTANT: no `//` line comments inside the JS below. YAML's `>-`
       # folded scalar collapses line breaks to spaces, so a `//` swallows
-      # everything after it until the next real line break — this once
+      # everything after it until the next real line break - this once
       # made the IIFE return undefined for this branch, which the engine
       # can't serialize and crashed the whole ruuter-internal process
       # ("undefined to JSON" panic, not just a request-level error).

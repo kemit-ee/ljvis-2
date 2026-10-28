@@ -1,14 +1,18 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Create or update the drive rest form for teammate — single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
+  description: "Create or update the drive rest form for teammate - single unified save endpoint, branches internally on presence of id. Requires an already-existing compoundFormKey. Status is always computed/controlled server-side and never trusts client input."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: compoundFormKey
+        type: integer
       - field: subFormNumber
         type: string
       - field: selectionStatus
@@ -16,9 +20,11 @@ declaration:
       - field: transportType
         type: string
       - field: transportEmptyRun
+        type: boolean
       - field: transportNature
         type: string
       - field: transportNatureExempt
+        type: boolean
       - field: transportClasses
         type: string
       - field: resultType
@@ -38,11 +44,15 @@ declaration:
       - field: tachographTypeCode
         type: string
       - field: tachographDataNotDownloaded
+        type: boolean
       - field: tachographNotes
         type: string
       - field: checkedDaysCount
+        type: string
       - field: workDaysCount
+        type: string
       - field: otherActivityDaysCount
+        type: string
       - field: violations5612006
         type: string
       - field: violations1652014
@@ -212,8 +222,8 @@ logAuditEventInsert:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sp_teammate_form_key: ${sp_teammate_form_key}
-    compound_form_key: ${compound_form_key}
+    sp_teammate_form_key: "${String((sp_teammate_form_key) ?? '')}"
+    compound_form_key: "${String((compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     result_type: ${result_type}
     proceeding_type: ${proceeding_type}
@@ -308,7 +318,7 @@ updateForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
@@ -366,8 +376,8 @@ logAuditEventUpdate:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
-    sp_teammate_form_key: ${sp_teammate_form_key}
-    compound_form_key: ${current_compound_form_key}
+    sp_teammate_form_key: "${String((sp_teammate_form_key) ?? '')}"
+    compound_form_key: "${String((current_compound_form_key) ?? '')}"
     sub_form_number: ${sub_form_number}
     result_type: ${result_type}
     proceeding_type: ${proceeding_type}
@@ -379,7 +389,7 @@ logAuditEventUpdate:
   next: recalcRiskOnResave
 
 # Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
-# riskiskoori sisend — skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
 # alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
 recalcRiskOnResave:
   switch:
@@ -402,7 +412,7 @@ callRiskRecalcOnResave:
   next: checkNotifyOnResave
 
 # Avalikustatud vormi muutmine-salvestamine on samuti avalikustamise sündmus
-# teavituste mõttes — publish.yml-iga sama kontroll, aga event_key sisaldab
+# teavituste mõttes - publish.yml-iga sama kontroll, aga event_key sisaldab
 # uut version'it, nii et teavitus ei jää dubleerimiskontrolli taha kinni.
 checkNotifyOnResave:
   switch:

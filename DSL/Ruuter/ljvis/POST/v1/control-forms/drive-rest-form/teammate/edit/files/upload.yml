@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Upload a file attachment for a teammate drive-rest form"
@@ -19,12 +20,12 @@ declaration:
         type: string
 
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: checkFormNumber
 
-# Omand (epic #502 A2): vormi number peab algama selle vormitüübi prefiksiga — klient ei saa lisada
+# Omand (epic #502 A2): vormi number peab algama selle vormitüübi prefiksiga - klient ei saa lisada
 # manust teise tüübi vormile ega (`..`, `/`) kirjutada S3-s teise kausta. Sama kontroll on
 # mallis `templates/files/upload` ja Resql'is `insert_form_attachment` (kaitse sügavuti).
 checkFormNumber:

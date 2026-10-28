@@ -1,4 +1,4 @@
-# Epic #502 / A1 — tegutseja identiteet tuleb TARA-sessioonist, mitte request body'st.
+# Epic #502 / A1 - tegutseja identiteet tuleb TARA-sessioonist, mitte request body'st.
 # `templates/**` on otse HTTP-ga kutsutavad, seega võltsitud `actor_*` body-s ei tohi
 # jõuda auditiritta ega manuse `created_by` välja.
 mode: mock-http

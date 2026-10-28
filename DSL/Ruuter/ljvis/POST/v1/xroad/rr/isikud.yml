@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: >-
@@ -7,7 +8,7 @@ declaration:
     RR's dde/v1/isikud service is REST-native X-Road (not SOAP). It is routed
     through the XTR component's REST passthrough lane (kind: rest, XTR >=
     0.3.0-rc), which performs a verbatim byte passthrough to the X-Road Security
-    Server per the X-Road Message Protocol for REST v1.0.4 — one X-Road egress
+    Server per the X-Road Message Protocol for REST v1.0.4 - one X-Road egress
     point for cert/mTLS/logging, consistent with arireg/mtr/etoimik/liiklusregister.
     XTR REST DSL: DSL/xtr/rr/isikud.yml. XTR sets the X-Road-Client header itself
     (from xtr.yaml client_data) and forwards X-Road-UserId + RR-Request-Reason
@@ -32,7 +33,7 @@ validateInput:
 # X-Road-UserId (the official who initiated the query) is a mandatory header on
 # every RR REST call, so we need the authenticated LJVIS user's personal code.
 get_user_context:
-  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) — eraldi autentimist ei vaja
+  # auth_user tuleb projektiülesest guardist (ljvis/.guard.yml) - eraldi autentimist ei vaja
   assign:
     auth_user: ${auth_user}
   next: checkUserContext
@@ -56,7 +57,7 @@ assignParams:
 # X-Road Message Protocol for REST v1.0.4 järgi verbatim passthrough'i X-tee
 # turvaserverisse. XTR seab X-Road-Client päise ise (xtr.yaml client_data-st) ja
 # edastab X-Road-UserId + RR-Request-Reason + keha muutmata. X-tees ei ole API
-# võtit ega bearer-tokenit — autoriseerimine käib turvaserveri mTLS + ACL kaudu.
+# võtit ega bearer-tokenit - autoriseerimine käib turvaserveri mTLS + ACL kaudu.
 callRr:
   call: http.post
   args:
@@ -69,7 +70,7 @@ callRr:
       RR-Request-Reason: "avalik"
       # Inimloetav päringu põhjus kuulub X-Road-Issue päisesse.
       X-Road-Issue: "Jarelevalve kaigus isiku andmete paring Liiklusjarelevalve infosusteemi poolt"
-      # X-Road-Client eemaldatud — XTR seab selle ise xtr.yaml client_data-st.
+      # X-Road-Client eemaldatud - XTR seab selle ise xtr.yaml client_data-st.
     body:
       isikukoodid:
         - ${personal_code}
@@ -111,7 +112,7 @@ logSuccess:
   result: logResult
   next: logAjUsage
 
-# Andmejälgija (AJ) — IKS § 19: logi et RR-st päriti isiku andmeid
+# Andmejälgija (AJ) - IKS § 19: logi et RR-st päriti isiku andmeid
 logAjUsage:
   call: http.post
   args:
@@ -130,7 +131,7 @@ logAjUsage:
   next: mapResponse
 
 # RR returns a JSON array of Isikuandmed (max 20, one per requested isikukood);
-# an empty array means "not found" — that is a valid, non-error result (HTTP 200).
+# an empty array means "not found" - that is a valid, non-error result (HTTP 200).
 mapResponse:
   assign:
     person: "${(rrResponse.response.body && rrResponse.response.body.length > 0) ? rrResponse.response.body[0] : null}"
@@ -143,7 +144,7 @@ checkPersonFound:
   next: buildFoundResult
 
 # eesnimi/perekonnanimi are plain strings; pohiKodakondsus/isikuStaatus are
-# RR "Kodifikaator" objects ({kood, elemendiKood, nimetus}) — elemendiKood is the
+# RR "Kodifikaator" objects ({kood, elemendiKood, nimetus}) - elemendiKood is the
 # lowest-level classifier element code (e.g. country ISO numeric-3, status letter),
 # nimetus is the Estonian display name. synniKuupaev arrives as yyyy-MM-dd and is
 # reformatted to pp.kk.aaaa per the task spec.
@@ -194,7 +195,7 @@ logFailure:
   result: logResult
   next: logAjUsageOnFailure
 
-# Andmejälgija (AJ) — IKS § 19: isikukood edastati RR-le olenemata sellest, kas
+# Andmejälgija (AJ) - IKS § 19: isikukood edastati RR-le olenemata sellest, kas
 # RR vastas edukalt, seega logime päringu ka ebaõnnestunud rajal.
 logAjUsageOnFailure:
   call: http.post
@@ -220,7 +221,7 @@ returnRrError:
 
 returnNoUserContext:
   status: 401
-  return: '{"error": "NO_USER_CONTEXT", "message": "Autenditud kasutaja isikukood puudub — rahvastikuregistri päringut ei saa teha"}'
+  return: '{"error": "NO_USER_CONTEXT", "message": "Autenditud kasutaja isikukood puudub - rahvastikuregistri päringut ei saa teha"}'
   next: end
 
 returnInvalidPersonalCode:

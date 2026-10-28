@@ -106,7 +106,7 @@ V2-st võetakse `Confirmed`/`Published`; sihttabeli olek on `confirmed`. V1 lõp
 reegli ja RavenDB ajapiiri kinnitab andmeomanik enne üleminekut.
 
 RavenDB `.ravendbdump` tuleb enne taastada ühilduvasse RavenDB instantsi. Skript ei loe
-seda failivormingut otse. Dokumendi ID võib olla number või väline tunnus — ekstrakt
+seda failivormingut otse. Dokumendi ID võib olla number või väline tunnus - ekstrakt
 loeb kollektsiooni liikmesust, mitte ID prefiksit. Kui mõlemad kollektsioonid puuduvad,
 käik peatub; seda ei tõlgendata vaikimisi tühja allikana.
 
@@ -174,7 +174,7 @@ See tööriist ei ole muudatusi sünkrooniv delta-migratsioon ega paranda vanu v
 sihtkirjeid automaatselt.
 
 **`--reset` on eemaldatud.** Ära kustuta `migration.form_link`-i ega kogu `migration`
-skeemi, jättes vormid alles — nii kaob idempotentsus ja tekivad duplikaadid. Pärast
+skeemi, jättes vormid alles - nii kaob idempotentsus ja tekivad duplikaadid. Pärast
 vastenduse muutmist alusta puhtast sihtbaasi varukoopiast. Kui osaline tulemus on juba
 kasutusse võetud, vajab parandamine eraldi kontrollitud plaani.
 

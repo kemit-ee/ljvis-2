@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: |
     Serve an INBOUND CTUD request from another member state and answer it synchronously (LJVIS2-144).
@@ -11,7 +12,7 @@ declaration:
     'answered' snapshot, so the requesting state retries rather than recording a false "not found".
 
     TODO(M2M): the specification places this at POST /api/v1/internal/erru/ctud/inbound-request behind
-    an OAuth2 machine token. Ruuter has no client-credentials support today — this is a documented gap
+    an OAuth2 machine token. Ruuter has no client-credentials support today - this is a documented gap
     (see GET/templates/audit/form/labour-inspection/log-labour-inspection-import.yml). Until that infra
     exists the endpoint lives on the separate ruuter-internal instance (port 8089, allowedIPs
     127.0.0.1), which is not exposed outside the Docker network, following the precedent set by
@@ -167,6 +168,8 @@ lookupUndertaking:
     url: "[#ERRU_MTR_ENDPOINT]"
     headers:
       type: json
+      # Do not forward the internal token to a real registry endpoint.
+      x-internal-service-token: "${'[#ERRU_MTR_ENDPOINT]' === 'http://ruuter:8080/ljvis/v1/erru/mock/mtr/check-community-licence' ? '[#INTERNAL_COMMUNICATION_KEY]' : ''}"
     body:
       businessCaseId: ${business_case_id}
       originatingAuthority: ${originating_authority}
@@ -199,10 +202,10 @@ checkMtrStatus:
   next: buildNotFoundResponse
 
 # MTR's checkCommunityLicence never returns the Estonian business registry
-# code (confirmed in both the mock and the real X-tee path) — risk-scores/
+# code (confirmed in both the mock and the real X-tee path) - risk-scores/
 # current.yml needs company_reg_code, not a licence number. Resolve it by
 # matching the licence numbers MTR just confirmed against our own control
-# forms' recorded licence-number-to-reg-code links (exact match only — see
+# forms' recorded licence-number-to-reg-code links (exact match only - see
 # lookup-reg-code-by-licence.sql's rationale). No match simply means this
 # undertaking has no LJVIS control history, which also means it has no risk
 # score, so falling through to the Grey/0 default is correct either way.
@@ -232,7 +235,7 @@ checkRegCodeValidSwitch:
       next: assignDefaultRisk
   next: lookupRiskScore
 
-# Ruuter.internal-sisene kutse teisele Ruuter.internal otspunktile — sama
+# Ruuter.internal-sisene kutse teisele Ruuter.internal otspunktile - sama
 # muster mis cron/risk-score-recalc-sync.yml kasutab oma recalculate-kutses:
 # ei vaja x-internal-service-token headerit, sest risk-scores/current.yml ise
 # ei nõua autentimist (port 8089 pole väljastpoolt Docker võrku kättesaadav).
@@ -282,7 +285,7 @@ buildFoundResponse:
         numberOfVehicles: (tu.vehicles || []).length,
         riskRating: resp_risk_rating,
         riskBand: resp_risk_band,
-        searchMethod: 'CommunityLicence',
+        searchMethod: licence_number ? 'CommunityLicence' : 'VehicleRegistration',
         address: tu.address || null,
         communityLicenceDetails: tu.communityLicenceDetails ? [tu.communityLicenceDetails] : [],
         certifiedTrueCopyDetails: tu.certifiedTrueCopyDetails ? [tu.certifiedTrueCopyDetails] : [],
@@ -321,19 +324,42 @@ storeAnswered:
       errorMessage: ""
       created_by: "system"
   result: answered_res
+  next: createCtudNotification
+
+# Teavitus ctud.read õigusega kasutajatele (ja halduses valitud desktop-saajatele): teine
+# riik esitas meile tegevusloa kontrolli päringu, millele vastati automaatselt. Best-effort -
+# viga ei tohi Hubile antavat vastust segada. event_key (technicalId) teeb kordusest ohutu.
+createCtudNotification:
+  call: http.post
+  args:
+    url: "[#LJVIS_RUUTER_INTERNAL]/notification/create"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      type: "ctud_inbound_received"
+      required_permission: "ctud.read"
+      related_entity_type: "ctud"
+      related_entity_id: "${'' + request_key}"
+      event_key: ${technical_id}
+      title_et: "${'Saabus ERRU tegevusloa kontrolli päring (CTUD) riigist ' + ctud_from}"
+      body_et: "${'Juhtum: ' + business_case_id + ', veoettevõtja: ' + (undertaking_name || licence_number || '-') + ', tulemus: ' + resp_status_code}"
+      created_by: "system"
+  result: notifRes
+  error: buildAudit
   next: buildAudit
 
 # The audit event is written by calling Resql directly rather than through the
 # GET/templates/audit chain used everywhere else. ruuter-internal is a separate Ruuter
 # instance mounting only DSL/Ruuter.internal, so it cannot reach the main instance's
 # templates, and copying log-audit-event.yml here would duplicate the writer of a
-# hash-chained table — the one place drift would be most damaging. The event_id
+# hash-chained table - the one place drift would be most damaging. The event_id
 # generation below is therefore kept byte-identical to GET/templates/audit/log-audit-event.yml.
 buildAudit:
   assign:
     event_id: "" # Allocate the canonical ID in the audit INSERT transaction.
-    audit_description: "CTUD sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${ctud_from}, päringu allikas ${request_source}, päringu eesmärk ${request_purpose}, otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}, sõiduki number ${vehicle_number}, otsingu meetod CommunityLicence, tulemus ${resp_status_code}"
-    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['searchMethod', 'CommunityLicence'], ['resultStatus', resp_status_code || null]]))}"
+    audit_description: "CTUD sissetuleva päringu teenindamine: juhtum ${business_case_id}, küsiv riik ${ctud_from}, päringu allikas ${request_source}, päringu eesmärk ${request_purpose}, otsitav veoettevõtja ${undertaking_name}, tegevusloa number ${licence_number}, sõiduki number ${vehicle_number}, otsingu meetod ${licence_number ? 'CommunityLicence' : 'VehicleRegistration'}, tulemus ${resp_status_code}"
+    audit_log_content: "${JSON.stringify(Object.fromEntries([['businessCaseId', business_case_id || null], ['ctudFrom', ctud_from || null], ['requestSource', request_source || null], ['requestPurpose', request_purpose || null], ['transportUndertakingName', undertaking_name || null], ['communityLicenceNumber', licence_number || null], ['vehicleRegistrationNumber', vehicle_number || null], ['searchMethod', licence_number ? 'CommunityLicence' : 'VehicleRegistration'], ['resultStatus', resp_status_code || null]]))}"
   next: logAudit
 
 logAudit:
@@ -374,7 +400,7 @@ returnInvalidData:
 
 # MTR / X-tee tehniline tõrge. Auditeeri (event_id genereerimine byte-identne
 # buildAudit'iga), kuid ära salvesta 'answered' seisundit ega tagasta ärilist
-# vastust — 502 annab küsivale riigile märku päringut korrata.
+# vastust - 502 annab küsivale riigile märku päringut korrata.
 mtrUnavailableAudit:
   assign:
     event_id: "" # Allocate the canonical ID in the audit INSERT transaction.

@@ -1,13 +1,16 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
-  description: "Create or update a foreign violation form — single unified save endpoint, branches internally on presence of id. Confirmed forms can only be re-saved by a user with control_form.edit_locked."
+  description: "Create or update a foreign violation form - single unified save endpoint, branches internally on presence of id. Confirmed forms can only be re-saved by a user with control_form.edit_locked."
   namespace: control-forms
   allowlist:
     body:
       - field: id
+        type: string
       - field: revision
+        type: integer
       - field: reportingCountryCode
         type: string
       - field: reportingAuthority
@@ -159,7 +162,7 @@ extractRequestData:
     commission_last_decision_date: "${incoming.body.commissionLastDecisionDate}"
     admin_procedure_decision: "${incoming.body.adminProcedureDecision}"
     foreign_authority_proposal: "${incoming.body.foreignAuthorityProposal}"
-    # Teavituse linnukesed salvestatakse nii, nagu kasutaja need märkis —
+    # Teavituse linnukesed salvestatakse nii, nagu kasutaja need märkis -
     # salvestamine ei saada midagi. Saatmine toimub avalikustamisel
     # (edit/publish.yml).
     notify_carrier: "${String(incoming.body.notifyCarrier) === 'true' ? 'true' : 'false'}"
@@ -447,7 +450,7 @@ updateForm:
   next: checkFormModified
 
 # Optimistlik lukk: kui kasutaja nähtud revision ei ole enam uusim, lisab update.sql 0 rida
-# (tühi vastus) — see on konflikt, mitte salvestusviga.
+# (tühi vastus) - see on konflikt, mitte salvestusviga.
 checkFormModified:
   switch:
     - condition: ${saveRes.response != null && saveRes.response.status >= 200 && saveRes.response.status < 300 && Array.isArray(saveRes.response.body) && saveRes.response.body.length === 0 && incoming.body.revision != null && incoming.body.revision !== ''}
@@ -482,7 +485,7 @@ logAuditEvent:
   next: recalcRiskOnResave
 
 # Avalikustatud vormi muutmine-salvestamine lisab uue avalikustatud versiooni, mis on
-# riskiskoori sisend — skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
+# riskiskoori sisend - skoor arvutatakse ümber samamoodi nagu publish.yml-is, mitte
 # alles öise cron'iga. Viga ei tohi salvestamist tagasi pöörata.
 recalcRiskOnResave:
   switch:
@@ -505,7 +508,7 @@ callRiskRecalcOnResave:
   next: checkSendOnPublishedEdit
 
 # Avalikustatud kaardil märgitud (uus) teavituse linnuke saadetakse kohe
-# salvestamisel — kasutajal pole vaja kaarti uuesti kinnitada ja avalikustada.
+# salvestamisel - kasutajal pole vaja kaarti uuesti kinnitada ja avalikustada.
 # Saadetakse ainult linnukese FALSE -> TRUE üleminekul, nii et tavaline
 # muudatuste salvestamine juba märgitud linnukese korral ei saada midagi uuesti.
 # Salvestamata (saved) kaardil saatmist ei tehta: see toimub avalikustamisel

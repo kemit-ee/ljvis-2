@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
 
   version: "1.0"
   description: "Get list of available users for a user group with pagination, sorting and search"
@@ -7,8 +8,10 @@ declaration:
   allowlist:
     body:
       - field: page
+        type: string
         description: "Page number"
       - field: pageSize
+        type: string
         description: "Items per page"
       - field: userGroupId
         type: string

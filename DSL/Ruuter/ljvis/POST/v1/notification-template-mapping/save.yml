@@ -1,8 +1,9 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: >-
-    Lisab notification_template_mapping'ile uue versiooni (append-only —
+    Lisab notification_template_mapping'ile uue versiooni (append-only -
     olemasolevat rida ei uuendata, vt 20261121140000-notification-template-mapping-append-only.sql).
     Kasutab send-postkast.yml PK_TEMPLATE_* konstantide ja LABOUR_INSPECTOR_EMAIL
     asemel. Nõuab notification_template_mapping.edit õigust (kaitstud .guard.yml kaudu).

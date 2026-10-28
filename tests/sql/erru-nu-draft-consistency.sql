@@ -33,7 +33,7 @@ BEGIN
   PERFORM pg_temp.assert(r.version=4 AND r.technical_id::TEXT=h->>'technicalId','reservation is persisted');
   PERFORM pg_temp.assert((SELECT payload FROM erru.nu_exchange_event WHERE nu_message_key=k AND kind='Request')=h,'entire wire body is auditable');
   PERFORM pg_temp.assert(erru.nu_save_draft(k,4,NULL,g.id,p,'test')->>'code'='not_editable','sent cannot reopen historical draft');
-  PERFORM erru.nu_finish_send(k,NULL,'connection refused');
+  PERFORM erru.nu_mark_dispatch(k,'rejected','connection refused');
   PERFORM pg_temp.assert(erru.nu_save_draft(k,5,NULL,g.id,p,'test')->>'code'='not_editable','error cannot reopen historical draft');
   PERFORM pg_temp.assert(erru.nu_begin_send(k,5,'A','B','test','Test')->>'code'='not_sendable','failed request cannot resend');
   PERFORM pg_temp.assert((SELECT count(*)=count(DISTINCT version) AND max(version)=count(*) FROM erru.nu_message WHERE nu_message_key=k),'versions unique and monotonic');

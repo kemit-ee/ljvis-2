@@ -1,5 +1,5 @@
 /*
-description: Update drive rest form for driver — insert new snapshot with updated data
+description: Update drive rest form for driver - insert new snapshot with updated data
 namespace: control-forms
 params:
   key:

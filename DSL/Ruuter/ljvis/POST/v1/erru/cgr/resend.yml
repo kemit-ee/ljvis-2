@@ -1,7 +1,8 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
-  description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be in the 'sent' terminal state. Only the entry for the specified memberStateCode is updated in the member_states JSONB; all other countries' responses and the workflow_id are preserved unchanged. A new snapshot is appended (sent → sent transition). ERRU v2.4 member states appear as NotAvailable in the mock and must be stored as-is. The ERRU_CGR_ENDPOINT constant is used, identical to send.yml. On a transport failure (or a response missing memberStates) the request is NOT transitioned to 'error' — the already-sent broadcast and other countries' answers remain valid, so the status stays 'sent' and a retry of the resend is immediately possible; only an audit entry is logged and 502 is returned."
+  description: "Re-send a CGR request to ONE member state that did not respond (riigipõhine uuestisaatmine, LJVIS2-139). The request must already be sent or responded. The envelope is reserved with begin-send (status and workflow_id are kept, a new technical_id is issued), the XML goes through the internal adapter to the Hub, and the member state's new answer arrives later as a CheckGoodRepute_Response that replaces only that member state's entry. A rejected or uncertain resend does NOT change the request status: the answers already stored stay valid, an audit entry is logged and 502 is returned. An uncertain outcome (send_unknown) must not be retried automatically."
   namespace: erru
   allowlist:
     body:
@@ -63,35 +64,106 @@ extractCurrentState:
     certificate_number: "${current.response.body[0].certificateNumber || ''}"
     certificate_issue_date: "${current.response.body[0].certificateIssueDate || ''}"
     certificate_issue_country: "${current.response.body[0].certificateIssueCountry || ''}"
-    existing_member_states: "${current.response.body[0].memberStates || '[]'}"
-    cgr_wf_id: "${current.response.body[0].workflowId || ''}"
+    originating_authority: "${current.response.body[0].originatingAuthority || ''}"
+    request_source: "${current.response.body[0].requestSource || ''}"
+    request_purpose: "${current.response.body[0].requestPurpose || ''}"
   next: checkResendable
 
-# Resend is only valid for a sent outgoing request.
+# Resend is only valid for an outgoing request that was accepted by the Hub (sent or responded).
 checkResendable:
   switch:
     - condition: ${cur_direction !== 'outgoing'}
       next: returnNotResendable
-    - condition: ${cur_status !== 'sent'}
+    - condition: ${cur_status !== 'sent' && cur_status !== 'responded'}
       next: returnNotResendable
   next: prepareOutbound
 
 prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
-  next: callErru
+  next: validateXml
 
-callErru:
+validateXml:
   call: http.post
+  error: returnValidationUnavailable
   args:
-    url: "[#ERRU_CGR_ENDPOINT]"
+    url: "[#ERRU_XML_ADAPTER]/internal/cgr/validate"
     headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
       cgrTo: ${member_state_code}
       businessCaseId: ${business_case_id}
-      technicalId: ""
-      workflowId: ""
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+  result: xml_validation
+  next: checkXmlValidation
+
+checkXmlValidation:
+  switch:
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+      next: returnInvalidXml
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
+      next: reserveSend
+  next: returnValidationUnavailable
+
+reserveSend:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/erru/cgr/begin-send"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      key: ${id}
+      created_by: ${actor_personal_code}
+      tmFirstNameSearchKey: ""
+      tmFamilyNameSearchKey: ""
+      targetMemberState: ${member_state_code}
+  result: reservation
+  next: checkReservation
+
+checkReservation:
+  switch:
+    - condition: ${reservation.response == null || reservation.response.status >= 400 || reservation.response.body == null || reservation.response.body.length !== 1}
+      next: returnNotResendable
+  next: extractEnvelope
+
+extractEnvelope:
+  assign:
+    technical_id: "${reservation.response.body[0].technicalId}"
+    cgr_wf_id: "${reservation.response.body[0].workflowId}"
+    sent_at: "${reservation.response.body[0].sentAt}"
+  next: callErru
+
+callErru:
+  call: http.post
+  error: logIntegrationUnknown
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/cgr/send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      technicalId: ${technical_id}
+      workflowId: ${cgr_wf_id}
+      sentAt: ${sent_at}
+      cgrTo: ${member_state_code}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
       tmFirstName: ${tm_first_name}
       tmFamilyName: ${tm_family_name}
       tmDateOfBirth: ${tm_date_of_birth}
@@ -106,9 +178,13 @@ callErru:
 
 checkErruStatus:
   switch:
-    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.status >= 400}
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: logIntegrationUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === technical_id && erru_res.response.body.workflowId === cgr_wf_id}
+      next: logIntegrationSuccess
+    - condition: ${erru_res.response.body.status === 'rejected'}
       next: logIntegrationFailure
-  next: logIntegrationSuccess
+  next: logIntegrationUnknown
 
 logIntegrationSuccess:
   call: http.post
@@ -119,7 +195,7 @@ logIntegrationSuccess:
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
-      service_code: "erru/cgr/resend"
+      service_code: "erru/cgr/request"
       request_xml: "${'businessCaseId=' + business_case_id + ' memberState=' + member_state_code}"
       response_xml: "${JSON.stringify(erru_res.response.body)}"
       duration_ms: "${new Date().getTime() - start_time}"
@@ -129,7 +205,8 @@ logIntegrationSuccess:
       source_type: "erru_cgr_resend"
       source_record_id: "${'' + business_case_id}"
   result: log_ok
-  next: checkResponseEnvelope
+  error: logAuditResend
+  next: logAuditResend
 
 logIntegrationFailure:
   call: http.post
@@ -140,65 +217,41 @@ logIntegrationFailure:
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
-      service_code: "erru/cgr/resend"
+      service_code: "erru/cgr/request"
       request_xml: "${'businessCaseId=' + business_case_id + ' memberState=' + member_state_code}"
       response_xml: "${erru_res.response != null ? JSON.stringify(erru_res.response.body) : ''}"
       duration_ms: "${new Date().getTime() - start_time}"
       success: false
-      error_message: "ERRU transport failure during resend"
+      error_message: "ERRU CGR resend rejected by the Hub"
       person_identifier: ""
       source_type: "erru_cgr_resend"
       source_record_id: "${'' + business_case_id}"
   result: log_fail
+  error: logAuditResendFailed
   next: logAuditResendFailed
 
-checkResponseEnvelope:
-  switch:
-    - condition: ${erru_res.response.body != null && erru_res.response.body.response != null}
-      next: extractErruResponseEnveloped
-  next: extractErruResponseDirect
-
-extractErruResponseEnveloped:
-  assign:
-    new_member_states: "${JSON.parse(erru_res.response.body.response).memberStates || []}"
-  next: checkNewMemberStates
-
-extractErruResponseDirect:
-  assign:
-    new_member_states: "${erru_res.response.body.memberStates || []}"
-  next: checkNewMemberStates
-
-checkNewMemberStates:
-  switch:
-    - condition: ${!new_member_states || !Array.isArray(new_member_states) || new_member_states.length === 0}
-      next: logAuditResendFailed
-  next: mergeResponse
-
-# Merge: replace only the entry for member_state_code in existing_member_states.
-# If the code was not previously in the array (unusual, but safe), append it.
-mergeResponse:
-  assign:
-    merged_array: "${(arr => { var upd = new_member_states[0]; var ok = false; var res = arr.map(function(e) { if (e.memberStateCode === member_state_code) { ok = true; return upd; } return e; }); if (!ok) res.push(upd); return res; })(JSON.parse(existing_member_states || '[]'))}"
-  next: storeResent
-
-storeResent:
+# Outcome unknown: log it and tell the caller not to resend until the journal is reconciled.
+logIntegrationUnknown:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/erru/cgr/append-transition"
+    url: "[#LJVIS_RESQL]/xroad/log_integration"
     headers:
       Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
-      key: ${id}
-      newStatus: "sent"
-      memberStates: "${JSON.stringify(merged_array)}"
-      tmFirstNameSearchKey: ""
-      tmFamilyNameSearchKey: ""
-      errorMessage: ""
-      created_by: ${actor_personal_code}
-  result: stored_res
-  next: logAuditResend
+      service_code: "erru/cgr/request"
+      request_xml: "${'businessCaseId=' + business_case_id + ' memberState=' + member_state_code}"
+      response_xml: ""
+      duration_ms: "${new Date().getTime() - start_time}"
+      success: false
+      error_message: "ERRU CGR resend outcome unknown"
+      person_identifier: ""
+      source_type: "erru_cgr_resend"
+      source_record_id: "${'' + business_case_id}"
+  result: log_unknown
+  error: returnUnknown
+  next: returnUnknown
 
 logAuditResend:
   template: "templates/audit/erru/cgr/log-cgr-request-send"
@@ -209,16 +262,15 @@ logAuditResend:
     business_case_id: ${business_case_id}
     cgr_to: ${member_state_code}
     result_status: "resent"
-    member_state_count: "1"
+    member_state_count: "0"
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}
   result: audit_ok
+  error: returnResent
   next: returnResent
 
-# Transport failure or a malformed ERRU response during resend does NOT transition the
-# request to 'error': the previously stored broadcast/other countries' answers are still
-# valid and the request stays 'sent', so the caller can immediately retry the resend.
-# Only an audit trail entry is written and 502 is returned.
+# A rejected resend does NOT transition the request: the stored answers stay valid and the
+# resend can be retried immediately. Only an audit trail entry is written and 502 is returned.
 logAuditResendFailed:
   template: "templates/audit/erru/cgr/log-cgr-request-send"
   requestType: GET
@@ -232,15 +284,31 @@ logAuditResendFailed:
     tm_first_name: ${tm_first_name}
     tm_family_name: ${tm_family_name}
   result: audit_err
+  error: returnError
   next: returnError
 
 returnResent:
-  return: "${JSON.stringify({id: id, status: 'sent', businessCaseId: business_case_id, workflowId: cgr_wf_id, updatedMemberState: member_state_code, memberStates: merged_array})}"
+  return: "${JSON.stringify({id: id, status: cur_status, businessCaseId: business_case_id, workflowId: cgr_wf_id, resentMemberState: member_state_code})}"
   next: end
 
 returnError:
   status: 502
-  return: '{"valid":false,"code":"send_failed","message":"ERRU transport failure during resend — retry permitted"}'
+  return: '{"valid":false,"code":"send_failed","message":"ERRU CGR resend was rejected - retry permitted"}'
+  next: end
+
+returnUnknown:
+  status: 502
+  return: '{"valid":false,"code":"send_unknown","message":"CGR resend outcome is unknown; do not resend until it is reconciled"}'
+  next: end
+
+returnInvalidXml:
+  status: 422
+  return: '{"valid":false,"code":"invalid_cgr_xml","message":"CGR data does not satisfy the ERRU 3.5 XML contract"}'
+  next: end
+
+returnValidationUnavailable:
+  status: 503
+  return: '{"valid":false,"code":"validation_unavailable","message":"CGR XML validation is unavailable. Nothing was sent."}'
   next: end
 
 returnIdRequired:
@@ -260,5 +328,5 @@ returnNotFound:
 
 returnNotResendable:
   status: 422
-  return: '{"valid":false,"code":"not_resendable","message":"Uuestisaatmine on võimalik ainult saadetud olekus päringutel"}'
+  return: '{"valid":false,"code":"not_resendable","message":"Uuestisaatmine on võimalik ainult saadetud või vastatud olekus päringutel"}'
   next: end

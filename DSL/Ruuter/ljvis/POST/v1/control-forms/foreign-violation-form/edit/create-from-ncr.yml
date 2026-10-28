@@ -1,5 +1,6 @@
 declaration:
   internal: false
+  returns: []
   version: "1.0"
   description: "Create a new VR (foreign violation) control card pre-filled from an ERRU NCR message and link them bidirectionally"
   namespace: control-forms
@@ -36,16 +37,19 @@ checkNcrResult:
   switch:
     - condition: ${ncrRes.response == null || ncrRes.response.status < 200 || ncrRes.response.status >= 300 || ncrRes.response.body == null || ncrRes.response.body.length == null || ncrRes.response.body.length === 0}
       next: returnNcrReadError
-  next: extractNcrFields
+  next: selectNcrSource
 
 # Kontrollivormi andmed (kergemad rikkumised, SI/VSI/MSI, karistused) tulevad
 # sissetulnud teatest; hilisemad ajajärje kirjed (vastuse mustand, olekumuutus)
 # neid välju ei pruugi kanda. Võtame viimase kirje, kus need on olemas, muidu
 # viimase kirje.
+selectNcrSource:
+  assign:
+    ncr_src: "${(() => { var b = ncrRes.response.body; for (var i = b.length - 1; i >= 0; i--) { var r = b[i]; var si = r.seriousInfringements; var hasSi = (typeof si === 'string') ? (si.trim() !== '' && si.trim() !== '[]') : (Array.isArray(si) && si.length > 0); if (r.minorInfringement || hasSi) return r; } return b[b.length - 1]; })()}"
+  next: extractNcrFields
+
 extractNcrFields:
   assign:
-    ncr_src: >-
-      ${(() => { var b = ncrRes.response.body; for (var i = b.length - 1; i >= 0; i--) { var r = b[i]; var si = r.seriousInfringements; var hasSi = (typeof si === 'string') ? (si.trim() !== '' && si.trim() !== '[]') : (Array.isArray(si) && si.length > 0); if (r.minorInfringement || hasSi) return r; } return b[b.length - 1]; })()}
     ncr_id: "${String(ncrRes.response.body[ncrRes.response.body.length - 1].id || '')}"
     reporting_country_code: "${ncr_src.ncrFrom || ''}"
     reporting_authority: "${ncr_src.originatingAuthority || ''}"
@@ -56,11 +60,11 @@ extractNcrFields:
     inspection_date: "${ncr_src.checkDate || ''}"
     data_entry_date: "${new Date().toISOString().slice(0, 10)}"
     check_result: "${ncr_src.checkResult || ''}"
-    minor_infringement_raw: "${ncr_src.minorInfringement || null}"
+    minor_infringement_raw: "${ncr_src.minorInfringement || ''}"
     serious_infringements_raw: "${ncr_src.seriousInfringements || '[]'}"
   next: mapMinorInfringement
 
-# p.1: kontrolli koha riik lukustub teate saatnud riigi (ncrFrom) järgi —
+# p.1: kontrolli koha riik lukustub teate saatnud riigi (ncrFrom) järgi -
 # frontend lukustab välja täiendavalt (ForeignViolationFormFields.tsx
 # useEffect), aga täidetakse ka siin loomisel.
 mapMinorInfringement:
@@ -80,7 +84,7 @@ mapMinorInfringement:
 # -> violations[].code (nt "SI912"), samas kujus mis EU_VIOLATION_GROUPS
 # checkbox-väärtused (frontend/src/constants/constants.ts). Igale rikkumisele
 # lisatakse esimese penaltiesImposed kirje penaltyTypeImposed ERRU-koodi
-# põhjal kohalik sanctionCode — vt allolev PROVISOORNE vastavustabel, mis
+# põhjal kohalik sanctionCode - vt allolev PROVISOORNE vastavustabel, mis
 # vajab kliendi/RS kinnitust (vt plaani "Lahtised kohad" p.b).
 mapSeriousInfringements:
   assign:

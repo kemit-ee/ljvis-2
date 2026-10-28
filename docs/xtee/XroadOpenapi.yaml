@@ -6,7 +6,7 @@ info:
     LJVIS2 alamsüsteemi poolt pakutavate X-tee teenuste ametlik leping (production).
     Vastab dokumendis 00-xtee-teenused-publikatsiooni-juhend.md kirjeldatud kuuele
     LJVIS2 teenusele. Andmejälgija (AJ) teenus findUsage on eraldi lepingus
-    FindUsageOpenapi.yaml. Iga tarbija pöördub oma turvaserveri kaudu — vt server-URL-id allpool
+    FindUsageOpenapi.yaml. Iga tarbija pöördub oma turvaserveri kaudu - vt server-URL-id allpool
     ja asenda {securityserver} enda turvaserveriga.
     Sünteetilise mocki leping (samad teed, testandmed) on eraldi failis:
     ../developer/xtee-openapi.yaml.
@@ -71,7 +71,7 @@ paths:
   /IsikuKontroll/v1:
     post:
       operationId: IsikuKontroll
-      summary: IsikuKontroll — kõik LJVIS-i kontrollid ja rikkumised isikukoodi kohta
+      summary: IsikuKontroll - kõik LJVIS-i kontrollid ja rikkumised isikukoodi kohta
       description: Read-only. Andmeallikad koondvorm (juhi andmed) ja tööinspektsiooniakt (karistatu isikukood).
       x-provider-path: /ljvis/xroad/provide/isiku-kontroll
       parameters:
@@ -147,8 +147,8 @@ paths:
   /IsikuEttevoteKontrollid/v1:
     post:
       operationId: IsikuEttevoteKontrollid
-      summary: IsikuEttevoteKontrollid — kontrollid ettevõtete kohta, millega isik juhina seotud
-      description: Read-only, ainult lokaalne andmebaas — äriregistri välispäringut ei tehta.
+      summary: IsikuEttevoteKontrollid - kontrollid ettevõtete kohta, millega isik juhina seotud
+      description: Read-only, ainult lokaalne andmebaas - äriregistri välispäringut ei tehta.
       x-provider-path: /ljvis/xroad/provide/isiku-ettevote-kontrollid
       parameters:
         - $ref: '#/components/parameters/XRoadClient'
@@ -219,8 +219,8 @@ paths:
   /ErakorralineYVquery/v1:
     post:
       operationId: ErakorralineYVquery
-      summary: ErakorralineYVquery — ajavahemikul erakorralisele ülevaatusele suunatud sõidukid
-      description: Read-only. Esimene samm kahesammulises voos — vastuse `inspection_id` kasutatakse ErakorralineYVconfirm päringus.
+      summary: ErakorralineYVquery - ajavahemikul erakorralisele ülevaatusele suunatud sõidukid
+      description: Read-only. Esimene samm kahesammulises voos - vastuse `inspection_id` kasutatakse ErakorralineYVconfirm päringus.
       x-provider-path: /ljvis/xroad/provide/erakorraline-yv-query
       parameters:
         - $ref: '#/components/parameters/XRoadClient'
@@ -313,10 +313,10 @@ paths:
   /ErakorralineYVconfirm/v1:
     post:
       operationId: ErakorralineYVconfirm
-      summary: ErakorralineYVconfirm — erakorralise ülevaatuse tulemuse kinnitamine
+      summary: ErakorralineYVconfirm - erakorralise ülevaatuse tulemuse kinnitamine
       description: >
         Kirjutav teenus, teine samm kahesammulises voos (vt ErakorralineYVquery).
-        Atomaarne — ühe elemendi vea korral kogu batch katkeb. Idempotentne.
+        Atomaarne - ühe elemendi vea korral kogu batch katkeb. Idempotentne.
       x-provider-path: /ljvis/xroad/provide/erakorraline-yv-confirm
       parameters:
         - $ref: '#/components/parameters/XRoadClient'
@@ -379,7 +379,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
-          description: NOT_FOUND — inspection_id puudub või vorm ei ole erakorralisele ülevaatusele suunatud
+          description: NOT_FOUND - inspection_id puudub või vorm ei ole erakorralisele ülevaatusele suunatud
           content:
             application/json:
               schema:
@@ -393,7 +393,7 @@ paths:
   /RegisterJobInspection/v1:
     post:
       operationId: RegisterJobInspection
-      summary: RegisterJobInspection — Tööinspektsiooni töökontrolli andmed (v1)
+      summary: RegisterJobInspection - Tööinspektsiooni töökontrolli andmed (v1)
       description: >
         Vana WSDL RegisterJobInspectionRequestType, teisendatud REST/JSON-iks.
         Salvestab forms.labour_inspection_form tabelisse. Idempotentne kontrolli_id võtme alusel.
@@ -460,7 +460,7 @@ paths:
   /RegisterJobInspection_v3/v3:
     post:
       operationId: RegisterJobInspection_v3
-      summary: RegisterJobInspection_v3 — laiendatud töökontrolli leping
+      summary: RegisterJobInspection_v3 - laiendatud töökontrolli leping
       description: >
         v1 väljadele lisanduvad sõiduki (reg.nr, VIN), juhi isikukoodi ja menetluse väljad.
         Sama tabel forms.labour_inspection_form; idempotentsuse võti v3- + kontrolli_id.

@@ -2,7 +2,9 @@
 
 Receives the five ERRU 3.5 request types as XML over asynchronous HTTP. The adapter validates and
 persists the request, calls the corresponding Ruuter.internal JSON flow, validates the XML answer,
-and delivers it through a durable outbox. See [architecture](../../docs/architecture/erru-async-xml.md)
+and delivers it through a durable outbox. It also sends the outgoing RSI, CGR and CTUD requests as
+XML and ingests their asynchronous responses (see [Outgoing RSI](#outgoing-rsi),
+[Outgoing CGR and CTUD](#outgoing-cgr-and-ctud) and [Outgoing NCR and NU](#outgoing-ncr-and-nu)). See [architecture](../../docs/architecture/erru-async-xml.md)
 and the [recovery procedure](../../docs/integrations/erru-xml-recovery.md).
 
 ## Processing and response deadlines
@@ -91,6 +93,7 @@ inspection fields are persisted, although the detail UI does not display all of 
 | RUUTER_INTERNAL_BASE_URL | Required internal business service URL |
 | INTERNAL_COMMUNICATION_KEY | Required shared service token, sent as `x-internal-service-token` on every ruuter-internal call (same value as `INTERNAL_COMMUNICATION_KEY` in constants.ini) |
 | HUB_RESPONSE_URL | Required full URL for every answer and EN |
+| HUB_RSI_REQUEST_URL / HUB_CGR_REQUEST_URL / HUB_CTUD_REQUEST_URL / HUB_NCR_REQUEST_URL / HUB_NU_REQUEST_URL | Optional Hub URL for outgoing RSI / CGR / CTUD / NCR request / NU. A missing URL disables that type (503), the adapter never guesses a Hub. Our NCR response goes to `HUB_RESPONSE_URL` like every other answer |
 | CONTRACTS_DIR | Required directory containing ERRU 3.5 XSDs |
 | MEMBER_STATE_CODE | Required local member state, EE in local compose |
 | RESPONDING_AUTHORITY | Required NU authority |
@@ -131,3 +134,115 @@ Production also needs scoped DB credentials, secret management, operational aler
 raw XML and realistic load verification. Receiving asynchronous ErrorNotifications from the Hub is
 not implemented by this request ingress. The small hand-written JSON codec and JDK HTTP server
 remain; their replacement is not required for the local correctness fixes.
+
+## Outgoing RSI
+
+Ruuter calls `POST /internal/rsi/validate` before reserving a send. This internal endpoint
+validates the complete draft against `RoadSideInspection_Request.xsd`. It does not send XML.
+A validation error leaves the draft editable. VIN, odometer, driver and holder or undertaking
+fields must satisfy the XSD. The adapter does not fill missing business data with placeholders.
+
+Ruuter then calls `erru/rsi/begin-send`. The database serializes the reservation and stores
+`sending`, `technicalId`, `workflowId` and `sentAt` before network I/O. Stale saves and concurrent
+send reservations cannot overwrite that snapshot.
+
+Ruuter calls `POST /internal/rsi/send` with the reserved envelope and the draft data. Both internal
+endpoints require `x-internal-service-token`. The adapter builds and validates ERRU 3.5 XML.
+It reserves a row in `erru.xml_rsi_dispatch` before sending to `HUB_RSI_REQUEST_URL`.
+Only a Hub HTTP 202 produces `status=accepted`. The adapter returns JSON to the original Ruuter
+call; no separate callback is needed for this HTTP acceptance. The Hub request timeout is 15 seconds.
+Ruuter's adapter timeout must exceed that limit.
+
+The transport journal stores the exact XML and result. A replay with the same identifiers and XML
+returns the saved result without another dispatch. Different XML with the same identifier returns
+409. Timeout, connection loss, unexpected HTTP success and Hub 5xx are `unknown`. Ruuter stores
+`send_unknown`. Do not automatically retry or create a replacement message until an operator
+checks the journal and the Hub. A process interruption can leave `sending`; reconcile that state
+with the same journal. The journal is not a background retry queue.
+
+A later `RoadSideInspection_Response` arrives through `/erru/xml`. The adapter persists it in the
+inbox, calls `/ljvis/erru/rsi/inbound-response` and completes the inbox without creating another
+response. A response can complete `sending`, `sent` or `send_unknown`. It does not overwrite a
+completed response with a delayed HTTP acceptance.
+
+`HUB_RSI_REQUEST_URL` is optional during rollout. If it is absent, the outgoing endpoints return
+503 without dispatch. Keep this URL in adapter configuration. Clients cannot select a Hub URL.
+The sTESTA gateway must expose only `/Service/ReceiveAsync` and `/erru/xml`; it must not forward
+`/internal/rsi/*` from the external network.
+
+### Outgoing CGR and CTUD
+
+CGR (`CheckGoodRepute_Request`) and CTUD (`CheckTransportUndertakingData_Request`) leave the same
+way as RSI, through `POST /internal/cgr/{validate,send}` and `POST /internal/ctud/{validate,send}`
+(token `x-internal-service-token`). `OutboundXmlHandler` is the shared implementation; RSI is a thin
+subclass. The request builders are `CgrRequestXml` and `CtudRequestXml`; both validate against the
+XSD before anything is sent and invent no data.
+
+- **Search criteria.** CGR sends the complete name block (7A, with the NYSIIS keys as
+  `firstNameSearchKey`/`familyNameSearchKey`), the certificate block (7B) or both. CTUD needs at least
+  two of name, licence number and vehicle and picks `SearchByLicenceAndName`,
+  `SearchByLicenceAndVehicle` or `SearchByNameAndVehicle`. A vehicle needs both number and country.
+- **Journal.** `erru.xml_outbound_dispatch` (`message_type` CGR or CTUD) stores the exact XML before
+  the call, like `xml_rsi_dispatch`. A replay with the same `technicalId` and XML returns the saved
+  result; different XML under the same identifier returns 409. Only a Hub HTTP 202 is `accepted`.
+  Timeout, connection loss and unexpected 2xx/3xx/5xx are `unknown` and are never resent.
+- **CGR resend.** A per-country resend uses `cgrTo=<member state>`, the original `workflowId` and a new
+  `technicalId`. The answer replaces that member state's entry only.
+- **Responses.** `CheckGoodRepute_Response` and `CheckTransportUndertakingData_Response` arrive through
+  `/erru/xml`. `CgrResponseMapper` and `CtudResponseMapper` map them to the JSON the UI already reads and
+  call `/ljvis/erru/cgr/inbound-response` or `/ljvis/erru/ctud/inbound-response`; the inbox completes
+  without any answer. A CGR broadcast (`ZZ`) is answered by each member state in its own message, so
+  several calls merge into one `member_states` document. When a response holds more than one
+  `TransportManagerDetails` or `TransportUndertaking`, the first stays in the existing field and the
+  rest are kept in `additionalTransportManagerDetails` and `otherTransportUndertakings`. CTUD licence
+  types are translated back to the `COMMUNITY_LICENCE_TYPE` classifier codes.
+- **Hub mock.** With `AUTO_REPLY_URL` set the mock Hub (dev and CI only) answers each accepted CGR/CTUD
+  request asynchronously through the adapter's ingress. `FI` is rejected with HTTP 400. CTUD: `LV`
+  NotFound, `PL` Timeout, `GR` NotAvailable, others Found. CGR: `FR`/`LV` NotFound, `SE` Timeout,
+  `PL`/`GR` NotAvailable; a `ZZ` broadcast is answered by `DE`, `FR`, `SE` and `PL`.
+
+### Outgoing NCR and NU
+
+The remaining outgoing types use the same `OutboundXmlHandler`: `POST /internal/ncr/{validate,send}`
+(`NotifyCheckResult_Request`), `POST /internal/ncr-response/{validate,send}` (our `NotifyCheckResult_Response` to an
+incoming NCR) and `POST /internal/nu/{validate,send}` (`NotifyUnfitness_Request`). The builders are `NcrRequestXml`,
+`NcrResponseXml` and `NuRequestXml`; none invents data.
+
+- **NCR request.** TransportUndertaking with Vehicle, CheckSummary, MinorInfringement and every SeriousInfringement with
+  its imposed and requested penalties. A serious infringement needs at least one imposed penalty and `appealPossible`
+  must be an explicit boolean.
+- **NCR response.** The TransportUndertaking block and PenaltiesImposed are written only for `OK`. A `NotFound` answer
+  carries neither, and an incomplete register block is refused instead of being filled in. The envelope reuses the
+  incoming message's `workflowId` with a new `technicalId`. It is posted to `HUB_RESPONSE_URL`, which acknowledges with any
+  2xx (a request needs exactly 202). The journal type is `NCR_RESPONSE`.
+- **NU.** The TransportManager block is the name block (optionally with the certificate) or the certificate alone, with
+  the NYSIIS keys on the name.
+- **Acknowledgements and responses.** `NuAckMapper` (`NotifyUnfitness_Acknowledgement`), `NcrAckMapper`
+  (`NotifyCheckResult_Acknowledgement`, NCRN_Ack for our request and NCRR_Ack for our response) and
+  `NcrResponseInMapper` (`NotifyCheckResult_Response`) call `/ljvis/erru/nu/inbound-ack`,
+  `/ljvis/erru/ncr/inbound-ack` and `/ljvis/erru/ncr/inbound-response`. They never produce a reply.
+- **Hub mock.** With `AUTO_REPLY_URL` the mock Hub acknowledges NU (a `ZZ` broadcast: DE OK, SE Timeout, PL NotAvailable;
+  `LV` Timeout, `PL` NotAvailable, others OK) and NCR requests (`NO` Timeout, `IS` NotAvailable, others OK). It does not
+  simulate the substantive NCR response. `FI` is rejected with HTTP 400.
+
+### Verification
+
+The image build runs `MapperSmokeTest`, `RsiSendTest`, `CgrCtudSendTest` and `NcrNuSendTest`. The latter uses local HTTP servers and
+synthetic fixtures. It checks XML/XSD, escaping, dates, authentication, 202 acceptance, rejection,
+timeout and replay behavior. `CgrCtudSendTest` covers the same for CGR and CTUD (all search variants,
+resend, validate-only) and maps sample responses, validated against the XSD, to the stored JSON.
+`NcrNuSendTest` does the same for NU, NCR requests (penalties, infringements) and NCR responses.
+
+For PostgreSQL and asynchronous response checks, create a disposable PostgreSQL 16 container
+with an empty `rsi_test` database and a localhost port mapping to 55439. Compile the adapter with
+its bundled JDBC driver. Run:
+
+```sh
+python3 tests/erru-adapter/test_rsi_outbound.py CONTAINER
+python3 tests/erru-adapter/test_rsi_transport.py CONTAINER /absolute/path/to/compiled/classes
+python3 tests/erru-adapter/test_cgr_ctud_outbound.py CONTAINER
+python3 tests/erru-adapter/test_ncr_nu_outbound.py CONTAINER
+```
+
+Use these scripts only with a disposable container. The second script starts the actual adapter,
+a local Hub and an internal Ruuter stub. It verifies durable dispatch claims and callback processing.
