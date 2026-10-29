@@ -6,7 +6,7 @@
 -- view template (GoodRepute.ascx) -- see README.md.
 --
 -- Parameters (psql -v):
---   cutoff_from     lower bound on ControlForm.CreatedDate, e.g. '2023-01-01'
+--   cutoff_from     lower bound on ControlForm.ControlledDate, e.g. '2023-01-01'
 --   run_id          uuid identifying this migration run
 --
 -- Idempotent: re-running skips rows already present in migration.form_link.
@@ -57,10 +57,10 @@ SELECT
     max(v.value)      FILTER (WHERE v.classifier_name = 'Sobivus')               AS sobivus_raw,
     -- Dates: prefer date_value (written by DateTimeControlFormBinder); the text
     -- value for the same key is a dd.MM.yyyy rendering and is only a fallback.
-    max(coalesce(v.date_value, migration.safe_timestamp(v.value))) FILTER (WHERE v.classifier_name = 'Driver.Birthdate')      AS date_of_birth,
-    max(coalesce(v.date_value, migration.safe_timestamp(v.value))) FILTER (WHERE v.classifier_name = 'AmetialasePadevuseTunnistuseValjaandmiseKuupaev') AS certificate_issue_date,
-    max(coalesce(v.date_value, migration.safe_timestamp(v.value))) FILTER (WHERE v.classifier_name = 'SobimatuksKuulutamiseAlguskuupaev')  AS unfit_from_date,
-    max(coalesce(v.date_value, migration.safe_timestamp(v.value))) FILTER (WHERE v.classifier_name = 'SobimatuksKuulutamiseLoppkuupaev')   AS unfit_until_date
+    max(migration.source_date(v.value, v.date_value)) FILTER (WHERE v.classifier_name = 'Driver.Birthdate')      AS date_of_birth,
+    max(migration.source_date(v.value, v.date_value)) FILTER (WHERE v.classifier_name = 'AmetialasePadevuseTunnistuseValjaandmiseKuupaev') AS certificate_issue_date,
+    max(migration.source_date(v.value, v.date_value)) FILTER (WHERE v.classifier_name = 'SobimatuksKuulutamiseAlguskuupaev')  AS unfit_from_date,
+    max(migration.source_date(v.value, v.date_value)) FILTER (WHERE v.classifier_name = 'SobimatuksKuulutamiseLoppkuupaev')   AS unfit_until_date
 FROM candidate c
 LEFT JOIN staging.raw_control_form_value v ON v.control_form_id = c.id
 GROUP BY c.id, c.control_stage, c.form_code, c.created_date, c.controlled_date, c.created_by_user_id;
@@ -93,10 +93,9 @@ SELECT
     coalesce(nullif(btrim(s.certificate_number), ''), '-')           AS certificate_number_out,
     -- Present in the supplied backup although absent from the older view snapshot.
     coalesce(nullif(upper(btrim(s.certificate_country)), ''), '-')     AS certificate_country_code_out,
-    -- date_of_birth / certificate_issue_date are NOT NULL with a <= CURRENT_DATE
-    -- check. Fall back to the form's own date, then clamp.
-    least(coalesce(s.date_of_birth, s.created_at)::date,           CURRENT_DATE) AS date_of_birth_out,
-    least(coalesce(s.certificate_issue_date, s.created_at)::date,  CURRENT_DATE) AS certificate_issue_date_out,
+    -- Owner 2026-10-19: unknown historical dates remain NULL, never fabricated.
+    s.date_of_birth::date AS date_of_birth_out,
+    s.certificate_issue_date::date AS certificate_issue_date_out,
     CASE lower(btrim(coalesce(s.sobivus_raw, '')))
          WHEN 'sobimatu' THEN 'unfit'
          WHEN 'sobiv'    THEN 'fit'
@@ -111,16 +110,14 @@ LEFT JOIN LATERAL (
     ORDER BY rv.updated_time ASC NULLS LAST, rv.id ASC LIMIT 1
 ) ver ON true;
 
--- chk_grf_unfit_dates_required: unfit requires both dates.
+-- Imported unknown dates remain NULL; supplied dates must be correctly ordered.
 -- chk_grf_unfit_until_after_from: until > from, strictly.
 CREATE TEMP TABLE tmp_gr_final ON COMMIT DROP AS
 SELECT m.*,
        CASE WHEN m.fitness_status = 'unfit'
-            THEN coalesce(m.unfit_from_date::date, m.created_at::date) END AS unfit_from_out,
+            THEN m.unfit_from_date::date END AS unfit_from_out,
        CASE WHEN m.fitness_status = 'unfit'
-            THEN greatest(
-                     coalesce(m.unfit_until_date::date, m.created_at::date + 1),
-                     coalesce(m.unfit_from_date::date,  m.created_at::date) + 1)
+            THEN m.unfit_until_date::date
             END                                                            AS unfit_until_out,
        'mv-' || extract(year FROM m.created_at)::int || '-'
               || migration.number_suffix(m.target_key)                          AS form_number
@@ -157,6 +154,15 @@ SELECT :'run_id', 'ControlForm', f.legacy_id::text, 'forms.good_repute_form',
        'created_by', 'author_fallback', f.created_by, f.created_by_user_id::text
 FROM tmp_gr_final f
 WHERE f.author_fallback_used;
+
+-- Unknown historical legal-period dates are explicit, never invented.
+INSERT INTO migration.quality_report
+    (migration_run_id,legacy_source,legacy_id,target_table,column_name,issue,applied_default,raw_value,approval_basis)
+SELECT :'run_id','ControlForm',f.legacy_id::text,'forms.good_repute_form',x.col,
+       'unknown_historical_date',NULL,NULL,'owner-2026-10-19'
+FROM tmp_gr_final f CROSS JOIN LATERAL (VALUES
+    ('unfit_from_date',f.unfit_from_out),('unfit_until_date',f.unfit_until_out)) x(col,dt)
+WHERE f.fitness_status='unfit' AND x.dt IS NULL;
 
 -- Rows dropped by the range predicate because ControlledDate is NULL. These rows
 -- never enter tmp_gr_src (no controlled_date to filter on) and never reach
@@ -200,7 +206,7 @@ WITH ins AS (
         personal_code, first_name, last_name, date_of_birth, place_of_birth,
         certificate_number, certificate_issue_date, certificate_country_code,
         fitness_status, unfit_from_date, unfit_until_date,
-        created_at, created_by
+        created_at, created_by, legacy_import
     )
     SELECT
         f.target_key,
@@ -219,7 +225,8 @@ WITH ins AS (
         f.unfit_from_out,
         f.unfit_until_out,
         f.created_at,
-        migration.target_text(f.created_by, 'forms.good_repute_form', 'created_by', 'ControlForm:' || f.legacy_id::text)
+        migration.target_text(f.created_by, 'forms.good_repute_form', 'created_by', 'ControlForm:' || f.legacy_id::text),
+        true
     FROM tmp_gr_final f
     WHERE f.fitness_status IS NOT NULL
     RETURNING good_repute_form_key, form_number

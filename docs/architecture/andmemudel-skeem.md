@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 45.
+Skeemid: 8, tabeleid: 47.
 
 ## Skeem `audit`
 
@@ -92,6 +92,26 @@ Loodud: `20261205100000-classifier-value-form-scope.sql` · veerge: 6 · PK: `id
 | `is_active` | BOOLEAN | jah |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+
+### `classifier.rollback_20261125100000`
+
+Loodud: `20261125100000-old-classifiers.sql` · veerge: 3 · PK: `kind, row_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `kind` | text | jah |
+| `row_id` | bigint | jah |
+| `row_data` | jsonb | jah |
+
+### `classifier.rollback_20261125120000`
+
+Loodud: `20261125120000-old-classifier-description-evidence.sql` · veerge: 3 · PK: `kind, row_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `kind` | text | jah |
+| `row_id` | bigint | jah |
+| `row_data` | jsonb | jah |
 
 ## Skeem `erru`
 
@@ -628,7 +648,7 @@ Loodud: `20260708100000-form-attachments.sql` · veerge: 7 · PK: `id`
 
 ### `forms.good_repute_form`
 
-Loodud: `20260804170000-initial-good-repute-form.sql` · veerge: 19 · PK: `id`
+Loodud: `20260804170000-initial-good-repute-form.sql` · veerge: 20 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -650,6 +670,7 @@ Loodud: `20260804170000-initial-good-repute-form.sql` · veerge: 19 · PK: `id`
 | `unfit_until_date` | DATE |  |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+| `legacy_import` | boolean | jah |
 | `revision` | BIGINT |  |
 
 ### `forms.kv_form`

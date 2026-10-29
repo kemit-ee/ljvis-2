@@ -7,6 +7,8 @@ declaration:
   namespace: service
   allowlist:
     body:
+      - field: id
+        type: string
       - field: personalCode
         type: string
       - field: firstName
@@ -43,6 +45,22 @@ extractFields:
     fitness_status: "${incoming.body.fitnessStatus}"
     unfit_from_date: "${incoming.body.unfitFromDate || ''}"
     unfit_until_date: "${incoming.body.unfitUntilDate || ''}"
+  next: loadDatePolicy
+
+loadDatePolicy:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/control-forms/good-repute/date-policy"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+    body:
+      id: ${incoming.body.id || ''}
+  result: datePolicyResponse
+  next: readDatePolicy
+
+readDatePolicy:
+  assign:
+    date_policy: ${datePolicyResponse.response.body[0]}
   next: validate
 
 validate:
@@ -59,7 +77,7 @@ validate:
       next: returnLastNameRequiredError
     - condition: ${last_name.length > 100}
       next: returnLastNameMaxLengthError
-    - condition: ${!date_of_birth || date_of_birth.trim() === ''}
+    - condition: ${(!date_of_birth || date_of_birth.trim() === '') && !date_policy.birthUnknown}
       next: returnDateOfBirthRequiredError
     - condition: ${new Date(date_of_birth) > new Date()}
       next: returnDateOfBirthFutureError
@@ -69,7 +87,7 @@ validate:
       next: returnCertificateNumberRequiredError
     - condition: ${certificate_number.length > 100}
       next: returnCertificateNumberMaxLengthError
-    - condition: ${!certificate_issue_date || certificate_issue_date.trim() === ''}
+    - condition: ${(!certificate_issue_date || certificate_issue_date.trim() === '') && !date_policy.certificateUnknown}
       next: returnCertificateIssueDateRequiredError
     - condition: ${new Date(certificate_issue_date) > new Date()}
       next: returnCertificateIssueDateFutureError
@@ -77,9 +95,9 @@ validate:
       next: returnCertificateCountryCodeRequiredError
     - condition: ${!fitness_status || (fitness_status !== 'fit' && fitness_status !== 'unfit')}
       next: returnFitnessStatusRequiredError
-    - condition: ${fitness_status === 'unfit' && (!unfit_from_date || unfit_from_date.trim() === '')}
+    - condition: ${fitness_status === 'unfit' && ((!unfit_from_date || unfit_from_date.trim() === '') && !date_policy.unfitFromUnknown)}
       next: returnUnfitFromDateRequiredError
-    - condition: ${fitness_status === 'unfit' && (!unfit_until_date || unfit_until_date.trim() === '')}
+    - condition: ${fitness_status === 'unfit' && ((!unfit_until_date || unfit_until_date.trim() === '') && !date_policy.unfitUntilUnknown)}
       next: returnUnfitUntilDateRequiredError
     - condition: ${fitness_status === 'unfit' && unfit_from_date && unfit_until_date && new Date(unfit_until_date) <= new Date(unfit_from_date)}
       next: returnUnfitUntilDateOrderError

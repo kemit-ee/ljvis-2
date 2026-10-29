@@ -7,14 +7,19 @@ const api = vi.hoisted(() => ({
   confirm: vi.fn(),
   publish: vi.fn(),
 }));
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (k: string) => k }),
+}));
 vi.mock('../../api', () => ({
   saveGoodReputeForm: api.save,
   confirmGoodReputeForm: api.confirm,
   publishGoodReputeForm: api.publish,
 }));
 
-import { useGoodReputeForm } from './useGoodReputeForm';
+import {
+  createGoodReputeValidationSchema,
+  useGoodReputeForm,
+} from './useGoodReputeForm';
 import { ApiError } from '../../../../shared/api/client';
 import type { GoodReputeForm } from '../../types';
 
@@ -57,7 +62,9 @@ describe('useGoodReputeForm', () => {
       await result.current.formik.submitForm();
     });
     expect(api.save).not.toHaveBeenCalled();
-    expect(result.current.formik.errors.personalCode).toBe('forms.good_repute.validation.required');
+    expect(result.current.formik.errors.personalCode).toBe(
+      'forms.good_repute.validation.required',
+    );
   });
 
   it('salvestab kehtiva vormi ja annab id tagasi', async () => {
@@ -74,7 +81,9 @@ describe('useGoodReputeForm', () => {
   it('kinnitamine kutsub onConfirmed', async () => {
     const onSaved = vi.fn();
     const onConfirmed = vi.fn();
-    const { result } = renderHook(() => useGoodReputeForm(valid, onSaved, onConfirmed));
+    const { result } = renderHook(() =>
+      useGoodReputeForm(valid, onSaved, onConfirmed),
+    );
     await act(async () => {
       await result.current.triggerConfirm();
     });
@@ -94,7 +103,9 @@ describe('useGoodReputeForm', () => {
 
   it('avalikustamine kutsub onPublished', async () => {
     const onPublished = vi.fn();
-    const { result } = renderHook(() => useGoodReputeForm(valid, vi.fn(), vi.fn(), onPublished));
+    const { result } = renderHook(() =>
+      useGoodReputeForm(valid, vi.fn(), vi.fn(), onPublished),
+    );
     await act(async () => {
       await result.current.triggerPublish();
     });
@@ -128,7 +139,10 @@ describe('useGoodReputeForm', () => {
 
   it('unfit nõuab kuupäevi', async () => {
     const { result } = renderHook(() =>
-      useGoodReputeForm({ ...valid, fitnessStatus: 'unfit' } as GoodReputeForm, vi.fn()),
+      useGoodReputeForm(
+        { ...valid, fitnessStatus: 'unfit' } as GoodReputeForm,
+        vi.fn(),
+      ),
     );
     await act(async () => {
       await result.current.formik.submitForm();
@@ -139,22 +153,34 @@ describe('useGoodReputeForm', () => {
 
   it('serveri valideerimisviga läheb väljale', async () => {
     api.save.mockRejectedValue(
-      new ApiError('x', 422, { type: 'VALIDATION_ERROR', field: 'firstName', code: 'bad' }),
+      new ApiError('x', 422, {
+        type: 'VALIDATION_ERROR',
+        field: 'firstName',
+        code: 'bad',
+      }),
     );
     const { result } = renderHook(() => useGoodReputeForm(valid, vi.fn()));
     await act(async () => {
       await result.current.formik.submitForm();
     });
-    expect(result.current.formik.errors.firstName).toBe('forms.good_repute.validation.api.bad');
+    expect(result.current.formik.errors.firstName).toBe(
+      'forms.good_repute.validation.api.bad',
+    );
   });
 
   it('väljata valideerimisviga läheb vormi veaks', async () => {
-    api.save.mockRejectedValue(new ApiError('x', 422, { type: 'VALIDATION_ERROR', code: 'general' }));
+    api.save.mockRejectedValue(
+      new ApiError('x', 422, { type: 'VALIDATION_ERROR', code: 'general' }),
+    );
     const { result } = renderHook(() => useGoodReputeForm(valid, vi.fn()));
     await act(async () => {
       await result.current.formik.submitForm();
     });
-    await waitFor(() => expect(result.current.formError).toBe('forms.good_repute.validation.api.general'));
+    await waitFor(() =>
+      expect(result.current.formError).toBe(
+        'forms.good_repute.validation.api.general',
+      ),
+    );
   });
 
   it('ootamatu viga näitab üldist teadet', async () => {
@@ -166,5 +192,68 @@ describe('useGoodReputeForm', () => {
     });
     expect(result.current.formError).toBe('common.errors.unexpected');
     err.mockRestore();
+  });
+});
+
+const base: GoodReputeForm = {
+  personalCode: 'TEST',
+  firstName: 'TEST',
+  lastName: 'TEST',
+  dateOfBirth: '',
+  certificateNumber: 'TEST',
+  certificateIssueDate: '',
+  certificateCountryCode: 'EE',
+  fitnessStatus: 'unfit',
+  unfitFromDate: '',
+  unfitUntilDate: '',
+};
+const t = (key: string) => key;
+describe('unknown imported dates', () => {
+  it('allows unknown dates on a persisted imported form', async () => {
+    const schema = createGoodReputeValidationSchema(t, {
+      ...base,
+      legacyImport: true,
+    });
+    expect(await schema.isValid(base)).toBe(true);
+  });
+  it('does not exempt new forms based on a submitted legacyImport flag', async () => {
+    expect(
+      await createGoodReputeValidationSchema(t).isValid({
+        ...base,
+        legacyImport: true,
+      }),
+    ).toBe(false);
+  });
+  it('does not permit clearing a previously known imported date', async () => {
+    const schema = createGoodReputeValidationSchema(t, {
+      ...base,
+      legacyImport: true,
+      dateOfBirth: '2000-01-01',
+    });
+    expect(await schema.isValid(base)).toBe(false);
+  });
+  it('requires unfitness dates when changing an imported fit form to unfit', async () => {
+    const schema = createGoodReputeValidationSchema(t, {
+      ...base,
+      legacyImport: true,
+      fitnessStatus: 'fit',
+    });
+    expect(await schema.isValid(base)).toBe(false);
+  });
+  it('still rejects impossible chronology when dates are supplied', async () => {
+    const schema = createGoodReputeValidationSchema(t, {
+      ...base,
+      legacyImport: true,
+    });
+    expect(
+      await schema.isValid({
+        ...base,
+        unfitFromDate: '2020-02-01',
+        unfitUntilDate: '2020-01-01',
+      }),
+    ).toBe(false);
+    expect(await schema.isValid({ ...base, dateOfBirth: '2999-01-01' })).toBe(
+      false,
+    );
   });
 });

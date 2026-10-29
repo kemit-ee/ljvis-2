@@ -8,6 +8,7 @@
         "personalCode": {{#if this.personalCode}}{{{json this.personalCode}}}{{else}}""{{/if}},
         "firstName": {{#if this.firstName}}{{{json this.firstName}}}{{else}}""{{/if}},
         "lastName": {{#if this.lastName}}{{{json this.lastName}}}{{else}}""{{/if}},
+        "legacyImport": {{#if this.legacyImport}}true{{else}}false{{/if}},
         "dateOfBirth": {{#if this.dateOfBirth}}"{{this.dateOfBirth}}"{{else}}null{{/if}},
         "placeOfBirth": {{#if this.placeOfBirth}}{{{json this.placeOfBirth}}}{{else}}null{{/if}},
         "certificateNumber": {{#if this.certificateNumber}}{{{json this.certificateNumber}}}{{else}}""{{/if}},
