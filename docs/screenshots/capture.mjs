@@ -311,7 +311,7 @@ const shots = [
       await page.goto(`${BASE}/control-forms/compound/new?types=driver`, { waitUntil: 'domcontentloaded' });
       await settle(page, 1200);
       await page.getByRole('tab', { name: /Autojuhi sõidu- ja puhkeaja/i }).click();
-      const saveFirst = page.getByText(/Salvesta vorm enne failide lisamist/i).first();
+      const saveFirst = page.getByText(/Salvest(a|age) vorm enne failide lisamist/i).first();
       await saveFirst.scrollIntoViewIfNeeded();
       await sleep(500);
       await shoot(page, 'user-guide/images/13-vorm-soidu-puhkeaeg/06-failid-enne-salvestamist.png');
@@ -534,6 +534,9 @@ const shots = [
     } catch (err) {
       failures += 1;
       console.error('  ✗', s.name, '-', err.message);
+      if (process.env.LJVIS_DEBUG_DIR) {
+        await page.screenshot({ path: resolve(process.env.LJVIS_DEBUG_DIR, `${s.name.replace(/\//g, '_')}.png`) }).catch(() => {});
+      }
     }
   }
 
