@@ -190,7 +190,7 @@ validate:
       next: returnMaxLengthVehicleModel
     - condition: '${/[\u0000-\u001F\u007F]/.test(vehicle_vin)}'
       next: returnInvalidCharactersVehicleVin
-    - condition: ${vehicle_vin.length > 30}
+    - condition: ${vehicle_vin.length > 17}
       next: returnMaxLengthVehicleVin
     - condition: '${/[\u0000-\u001F\u007F]/.test(licence_copy_number)}'
       next: returnInvalidCharactersLicenceCopyNumber
@@ -206,11 +206,11 @@ validate:
       next: returnMaxLengthInspectorLastName
     - condition: '${/[\u0000-\u001F\u007F]/.test(inspector_unit)}'
       next: returnInvalidCharactersInspectorUnit
-    - condition: ${inspector_unit.length > 200}
+    - condition: ${inspector_unit.length > 100}
       next: returnMaxLengthInspectorUnit
     - condition: '${/[\u0000-\u001F\u007F]/.test(inspector_profession)}'
       next: returnInvalidCharactersInspectorProfession
-    - condition: ${inspector_profession.length > 200}
+    - condition: ${inspector_profession.length > 150}
       next: returnMaxLengthInspectorProfession
     - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(recommended_measure_notes)}'
       next: returnInvalidCharactersRecommendedMeasureNotes

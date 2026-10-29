@@ -22,7 +22,7 @@ class Tree(unittest.TestCase):
         self.assertEqual([], check(root))
 
     def test_listed_plain_field_is_clean(self):
-        root = self.make('"status": "{{this.status}}",\n', "# comment\nstatus  # enum\n")
+        root = self.make('"status": "{{this.status}}",\n', "# comment\nmap_x.handlebars status  # enum\n")
         self.assertEqual([], check(root))
 
     def test_unlisted_plain_field_is_flagged_with_line(self):
@@ -33,10 +33,21 @@ class Tree(unittest.TestCase):
         self.assertIn("companyName", errors[0])
 
     def test_stale_allowlist_entry_is_flagged(self):
-        root = self.make('"name": {{{json this.name}}},\n', "status\n")
+        root = self.make('"name": {{{json this.name}}},\n', "map_x.handlebars status\n")
         errors = check(root)
         self.assertEqual(1, len(errors))
         self.assertIn("status", errors[0])
+
+    def test_allowlist_entry_does_not_cover_another_template(self):
+        root = self.make('"status": "{{this.status}}",\n', "map_other.handlebars status\n")
+        errors = check(root)
+        self.assertEqual(2, len(errors))
+        self.assertIn("map_x.handlebars:1", errors[0])
+        self.assertIn("map_other.handlebars status", errors[1])
+
+    def test_nested_path_is_checked(self):
+        root = self.make('"zip": "{{this.address.zip}}",\n', "")
+        self.assertIn("address.zip", check(root)[0])
 
     def test_unquoted_and_triple_stash_are_ignored(self):
         root = self.make('"n": {{this.n}},\n"raw": {{{this.raw}}},\n', "")

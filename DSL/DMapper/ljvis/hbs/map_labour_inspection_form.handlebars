@@ -19,8 +19,8 @@
         "punishedPersonFirstName": {{#if this.punishedPersonFirstName}}{{{json this.punishedPersonFirstName}}}{{else}}null{{/if}},
         "punishedPersonLastName": {{#if this.punishedPersonLastName}}{{{json this.punishedPersonLastName}}}{{else}}null{{/if}},
         "proceedingReferenceNumber": {{#if this.proceedingReferenceNumber}}{{{json this.proceedingReferenceNumber}}}{{else}}null{{/if}},
-        "enforcementDecision": {{#if this.enforcementDecision}}"{{this.enforcementDecision}}"{{else}}null{{/if}},
-        "proceedingClosureBasis": {{#if this.proceedingClosureBasis}}"{{this.proceedingClosureBasis}}"{{else}}null{{/if}},
+        "enforcementDecision": {{#if this.enforcementDecision}}{{{json this.enforcementDecision}}}{{else}}null{{/if}},
+        "proceedingClosureBasis": {{#if this.proceedingClosureBasis}}{{{json this.proceedingClosureBasis}}}{{else}}null{{/if}},
         "violations": {{{this.violations}}},
         "createdBy": "{{this.createdBy}}"
 }
