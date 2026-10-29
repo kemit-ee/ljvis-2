@@ -10,6 +10,13 @@
 
 ## 2026-10-28
 
+### Tekstiväljad: tabulaator ja kaldkriips ei riku enam vormi avamist
+
+- Nime-, aadressi-, registrinumbri- ja märkuseväljad tagastatakse nüüd täpselt sellisena, nagu need sisestati. Varem muutis tabulaator või rea lõpus olev kaldkriips (`\`) vastuse vigaseks ja vorm ei avanenud. Märgid `&`, `<` ja `"` kuvati varem kujul `&amp;`, `&lt;` ja `&quot;`. Nüüd kuvatakse need õigesti.
+- Kõik kontrollkaardid (ADR, koondvorm, välisriigi rikkumine, hea maine, töökaitse, sõidu- ja puhkeaeg, tehniline kontroll, tram, katkestus) lükkavad salvestamisel ja kinnitamisel tagasi väljad, mis sisaldavad juhtmärke (nt tabulaator, reavahetus ühe rea väljal) või ületavad andmebaasi pikkusepiiri. Veateade ilmub vastava välja juurde. Märkuseväljadel on reavahetus ja tabulaator lubatud.
+- Sõidu- ja puhkeaja vorm kuvab nüüd serveri kontrollveateate välja juures. Varem ei näidanud see vorm salvestamise veast midagi.
+- Kontroll on automaatne: CI keelab uue tekstivälja lisamise malli ilma turvalise kodeeringuta ja jooksutab testi töötava andmemapperi vastu.
+
 ### Hea maine vorm: imporditud vormi tundmatud kuupäevad
 
 - Vanast süsteemist üle toodud hea maine vormil võivad sünniaeg, tunnistuse väljaandmise kuupäev ning sobimatuse alg- ja lõppkuupäev olla teadmata. Sellist vormi saab salvestada ja kinnitada ilma neid kuupäevi sisestamata. Uutel vormidel jäävad kuupäevad kohustuslikuks ja teadaolevat kuupäeva tühjaks kustutada ei saa.
@@ -17,6 +24,7 @@
 ### Alamvormi leht: „Avalikusta" nupp kinnitatud vormil
 
 - Kui avasid üksiku alamvormi lehe (nt juhi sõidu- ja puhkeaja vorm), mille koondvorm oli veel „Salvestatud", jäi leht muutmisrežiimi ja kinnitatud alamvormil puudus „Avalikusta" nupp. Nupp on nüüd muutmisrežiimis olemas kõigil alamvormitüüpidel (juht, kaasjuht, sõiduk, haagis, ADR, veokatkestus). Koondvormi lehel see juba töötas.
+
 ### Arhitektuuridokument: INSERT-only mustri erand
 
 - Dokument „Ruuter, RESQL ja DataMapper arhitektuur" nimetab nüüd INSERT-only mustri erandi. Ainult `archive/` kataloogi arhiveerimismallid võivad teha säilitustähtaja järgset `DELETE`-i ja isikuandmete eemaldamise `UPDATE`-i. Iga erand on nimeliselt loetletud failis `.sql-rule-exemption` ja CI kontrollib seda. Koodi ja käitumist see ei muuda.

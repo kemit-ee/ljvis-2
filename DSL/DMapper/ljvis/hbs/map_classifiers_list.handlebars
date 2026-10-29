@@ -3,8 +3,8 @@
         {{#each classifiers}}
         {
             "id": "{{this.id}}",
-            "code": "{{this.code}}",
-            "name": "{{this.name}}",
+            "code": {{#if this.code}}{{{json this.code}}}{{else}}""{{/if}},
+            "name": {{#if this.name}}{{{json this.name}}}{{else}}""{{/if}},
             "description": {{#if this.description}}{{{json this.description}}}{{else}}""{{/if}}
         }{{#unless @last}},{{/unless}}
         {{/each}}

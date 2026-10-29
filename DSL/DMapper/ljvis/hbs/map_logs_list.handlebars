@@ -5,7 +5,7 @@
             "eventId": "{{this.eventId}}",
             "eventType": "{{this.eventType}}",
             "eventCategory": "{{this.eventCategory}}",
-            "actorName": "{{this.actorName}}",
+            "actorName": {{#if this.actorName}}{{{json this.actorName}}}{{else}}""{{/if}},
             "actorPersonalCode": "{{this.actorPersonalCodeHash}}",
             "description": {{#if this.description}}{{{json this.description}}}{{else}}""{{/if}},
             "createdAt": "{{this.createdAt}}",

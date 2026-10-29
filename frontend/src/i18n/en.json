@@ -436,6 +436,7 @@
           "required": "Required field",
           "future_date_not_allowed": "Date cannot be in the future",
           "max_length_exceeded": "Value is too long",
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
           "form_locked_after_confirm": "This form has been confirmed and can no longer be edited",
           "already_confirmed": "This form has already been confirmed"
         }
@@ -469,6 +470,7 @@
       "validation": {
         "required": "Required field",
         "api": {
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
           "required": "Required field",
           "future_date_not_allowed": "Date cannot be in the future",
           "max_length_exceeded": "Value is too long",
@@ -492,6 +494,8 @@
         "notesMaxLength": "Notes are limited to 2000 characters",
         "checkError": "To save, at least one vehicle part or assembly must be checked",
         "api": {
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
+          "max_length_exceeded": "Value is too long",
           "required": "Required field",
           "max_length_2000": "Notes are limited to 2000 characters",
           "form_locked_after_publish": "This form has been published and can no longer be edited",
@@ -593,6 +597,8 @@
       "validation": {
         "postalCodeMaxLength": "Postal code can be at most {{max}} characters",
         "api": {
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
+          "max_length_exceeded": "Value is too long",
           "required": "Required field",
           "form_locked_after_publish": "This form has been published and can no longer be edited",
           "already_confirmed": "This form has already been confirmed"
@@ -741,6 +747,8 @@
         "required": "Required field",
         "notesMaxLength": "Notes can be at most {{max}} characters",
         "api": {
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
+          "max_length_exceeded": "Value is too long",
           "required": "Required field",
           "form_locked_after_publish": "This form has been published and can no longer be edited",
           "already_confirmed": "This form has already been confirmed"
@@ -1127,6 +1135,8 @@
         "minorViolationsCount": "Allowed up to three-digit number",
         "max_length": "Field can be up to {{max}} characters",
         "api": {
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
+          "max_length_exceeded": "Value is too long",
           "required": "Required field"
         }
       }
@@ -1181,6 +1191,12 @@
       }
     },
     "drive_rest": {
+      "validation": {
+        "api": {
+          "invalid_characters": "The field contains characters that are not allowed (for example a tab or a control character)",
+          "max_length_exceeded": "Value is too long"
+        }
+      },
       "atpTitle": "ATP agreement requirements check",
       "sectionTitle": "Document or right check",
       "violationSectionTitle": "Driving and rest time violations",

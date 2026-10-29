@@ -99,6 +99,32 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextFields
+
+validateTextFields:
+  switch:
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(driver_adr_certificate_number == null ? "" : driver_adr_certificate_number))}'
+      next: returnInvalidCharactersDriverAdrCertificateNumber
+    - condition: '${String(driver_adr_certificate_number == null ? "" : driver_adr_certificate_number).length > 100}'
+      next: returnMaxLengthDriverAdrCertificateNumber
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(crew_adr_certificate_number == null ? "" : crew_adr_certificate_number))}'
+      next: returnInvalidCharactersCrewAdrCertificateNumber
+    - condition: '${String(crew_adr_certificate_number == null ? "" : crew_adr_certificate_number).length > 100}'
+      next: returnMaxLengthCrewAdrCertificateNumber
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(assistant_adr_certificate_number == null ? "" : assistant_adr_certificate_number))}'
+      next: returnInvalidCharactersAssistantAdrCertificateNumber
+    - condition: '${String(assistant_adr_certificate_number == null ? "" : assistant_adr_certificate_number).length > 100}'
+      next: returnMaxLengthAssistantAdrCertificateNumber
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(exemption_notes == null ? "" : exemption_notes))}'
+      next: returnInvalidCharactersExemptionNotes
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(proceeding_reference_number == null ? "" : proceeding_reference_number))}'
+      next: returnInvalidCharactersProceedingReferenceNumber
+    - condition: '${String(proceeding_reference_number == null ? "" : proceeding_reference_number).length > 50}'
+      next: returnMaxLengthProceedingReferenceNumber
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(notes == null ? "" : notes))}'
+      next: returnInvalidCharactersNotes
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(infringement_notes_summary == null ? "" : infringement_notes_summary))}'
+      next: returnInvalidCharactersInfringementNotesSummary
   next: checkNotesLength
 
 checkNotesLength:
@@ -430,4 +456,59 @@ returnExemptionAdrProvisionRequiredError:
 returnFormLockedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked"}'
+  next: end
+
+returnInvalidCharactersDriverAdrCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"driverAdrCertificateNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthDriverAdrCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"driverAdrCertificateNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCrewAdrCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"crewAdrCertificateNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCrewAdrCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"crewAdrCertificateNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersAssistantAdrCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"assistantAdrCertificateNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthAssistantAdrCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"assistantAdrCertificateNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersExemptionNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"exemptionNotes","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"notes","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersInfringementNotesSummary:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"infringementNotesSummary","code":"invalid_characters"}'
   next: end

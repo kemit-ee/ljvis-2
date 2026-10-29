@@ -29,6 +29,48 @@ declaration:
         type: string
       - field: inspectorProfession
         type: string
+      - field: inspectionAddressLine1
+        type: string
+      - field: inspectionAddressLine2
+        type: string
+      - field: inspectionRegion
+        type: string
+      - field: inspectionCity
+        type: string
+      - field: companyRegCode
+        type: string
+      - field: companyName
+        type: string
+      - field: companyAddressLine1
+        type: string
+      - field: companyAddressLine2
+        type: string
+      - field: companyCity
+        type: string
+      - field: companyPostalCode
+        type: string
+      - field: driverFirstName
+        type: string
+      - field: driverLastName
+        type: string
+      - field: vehicleRegNr
+        type: string
+      - field: vehicleMake
+        type: string
+      - field: vehicleModel
+        type: string
+      - field: vehicleVin
+        type: string
+      - field: licenceCopyNumber
+        type: string
+      - field: inspectorUnit
+        type: string
+      - field: sanctionNotes
+        type: string
+      - field: violationDescription
+        type: string
+      - field: adminProcedureDecision
+        type: string
 
 extractFields:
   assign:
@@ -43,6 +85,27 @@ extractFields:
     inspector_last_name: "${incoming.body.inspectorLastName || ''}"
     inspector_organisation_id: "${incoming.body.inspectorOrganisationId != null ? String(incoming.body.inspectorOrganisationId) : ''}"
     inspector_profession: "${incoming.body.inspectorProfession || ''}"
+    inspection_address_line1: "${incoming.body.inspectionAddressLine1 || ''}"
+    inspection_address_line2: "${incoming.body.inspectionAddressLine2 || ''}"
+    inspection_region: "${incoming.body.inspectionRegion || ''}"
+    inspection_city: "${incoming.body.inspectionCity || ''}"
+    company_reg_code: "${incoming.body.companyRegCode || ''}"
+    company_name: "${incoming.body.companyName || ''}"
+    company_address_line1: "${incoming.body.companyAddressLine1 || ''}"
+    company_address_line2: "${incoming.body.companyAddressLine2 || ''}"
+    company_city: "${incoming.body.companyCity || ''}"
+    company_postal_code: "${incoming.body.companyPostalCode || ''}"
+    driver_first_name: "${incoming.body.driverFirstName || ''}"
+    driver_last_name: "${incoming.body.driverLastName || ''}"
+    vehicle_reg_nr: "${incoming.body.vehicleRegNr || ''}"
+    vehicle_make: "${incoming.body.vehicleMake || ''}"
+    vehicle_model: "${incoming.body.vehicleModel || ''}"
+    vehicle_vin: "${incoming.body.vehicleVin || ''}"
+    licence_copy_number: "${incoming.body.licenceCopyNumber || ''}"
+    inspector_unit: "${incoming.body.inspectorUnit || ''}"
+    sanction_notes: "${incoming.body.sanctionNotes || ''}"
+    violation_description: "${incoming.body.violationDescription || ''}"
+    admin_procedure_decision: "${incoming.body.adminProcedureDecision || ''}"
   next: validate
 
 validate:
@@ -65,6 +128,98 @@ validate:
       next: returnInspectorLastNameRequiredError
     - condition: ${!inspector_organisation_id || inspector_organisation_id.trim() === ''}
       next: returnInspectorOrganisationIdRequiredError
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspection_address_line1)}'
+      next: returnInvalidCharactersInspectionAddressLine1
+    - condition: ${inspection_address_line1.length > 300}
+      next: returnMaxLengthInspectionAddressLine1
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspection_address_line2)}'
+      next: returnInvalidCharactersInspectionAddressLine2
+    - condition: ${inspection_address_line2.length > 300}
+      next: returnMaxLengthInspectionAddressLine2
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspection_region)}'
+      next: returnInvalidCharactersInspectionRegion
+    - condition: ${inspection_region.length > 100}
+      next: returnMaxLengthInspectionRegion
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspection_city)}'
+      next: returnInvalidCharactersInspectionCity
+    - condition: ${inspection_city.length > 100}
+      next: returnMaxLengthInspectionCity
+    - condition: '${/[\u0000-\u001F\u007F]/.test(company_reg_code)}'
+      next: returnInvalidCharactersCompanyRegCode
+    - condition: ${company_reg_code.length > 20}
+      next: returnMaxLengthCompanyRegCode
+    - condition: '${/[\u0000-\u001F\u007F]/.test(company_name)}'
+      next: returnInvalidCharactersCompanyName
+    - condition: ${company_name.length > 300}
+      next: returnMaxLengthCompanyName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(company_address_line1)}'
+      next: returnInvalidCharactersCompanyAddressLine1
+    - condition: ${company_address_line1.length > 300}
+      next: returnMaxLengthCompanyAddressLine1
+    - condition: '${/[\u0000-\u001F\u007F]/.test(company_address_line2)}'
+      next: returnInvalidCharactersCompanyAddressLine2
+    - condition: ${company_address_line2.length > 300}
+      next: returnMaxLengthCompanyAddressLine2
+    - condition: '${/[\u0000-\u001F\u007F]/.test(company_city)}'
+      next: returnInvalidCharactersCompanyCity
+    - condition: ${company_city.length > 100}
+      next: returnMaxLengthCompanyCity
+    - condition: '${/[\u0000-\u001F\u007F]/.test(company_postal_code)}'
+      next: returnInvalidCharactersCompanyPostalCode
+    - condition: ${company_postal_code.length > 20}
+      next: returnMaxLengthCompanyPostalCode
+    - condition: '${/[\u0000-\u001F\u007F]/.test(driver_first_name)}'
+      next: returnInvalidCharactersDriverFirstName
+    - condition: ${driver_first_name.length > 100}
+      next: returnMaxLengthDriverFirstName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(driver_last_name)}'
+      next: returnInvalidCharactersDriverLastName
+    - condition: ${driver_last_name.length > 100}
+      next: returnMaxLengthDriverLastName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(vehicle_reg_nr)}'
+      next: returnInvalidCharactersVehicleRegNr
+    - condition: ${vehicle_reg_nr.length > 20}
+      next: returnMaxLengthVehicleRegNr
+    - condition: '${/[\u0000-\u001F\u007F]/.test(vehicle_make)}'
+      next: returnInvalidCharactersVehicleMake
+    - condition: ${vehicle_make.length > 100}
+      next: returnMaxLengthVehicleMake
+    - condition: '${/[\u0000-\u001F\u007F]/.test(vehicle_model)}'
+      next: returnInvalidCharactersVehicleModel
+    - condition: ${vehicle_model.length > 100}
+      next: returnMaxLengthVehicleModel
+    - condition: '${/[\u0000-\u001F\u007F]/.test(vehicle_vin)}'
+      next: returnInvalidCharactersVehicleVin
+    - condition: ${vehicle_vin.length > 17}
+      next: returnMaxLengthVehicleVin
+    - condition: '${/[\u0000-\u001F\u007F]/.test(licence_copy_number)}'
+      next: returnInvalidCharactersLicenceCopyNumber
+    - condition: ${licence_copy_number.length > 100}
+      next: returnMaxLengthLicenceCopyNumber
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspector_first_name)}'
+      next: returnInvalidCharactersInspectorFirstName
+    - condition: ${inspector_first_name.length > 100}
+      next: returnMaxLengthInspectorFirstName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspector_last_name)}'
+      next: returnInvalidCharactersInspectorLastName
+    - condition: ${inspector_last_name.length > 100}
+      next: returnMaxLengthInspectorLastName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspector_unit)}'
+      next: returnInvalidCharactersInspectorUnit
+    - condition: ${inspector_unit.length > 100}
+      next: returnMaxLengthInspectorUnit
+    - condition: '${/[\u0000-\u001F\u007F]/.test(inspector_profession)}'
+      next: returnInvalidCharactersInspectorProfession
+    - condition: ${inspector_profession.length > 150}
+      next: returnMaxLengthInspectorProfession
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(recommended_measure_notes)}'
+      next: returnInvalidCharactersRecommendedMeasureNotes
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(sanction_notes)}'
+      next: returnInvalidCharactersSanctionNotes
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(violation_description)}'
+      next: returnInvalidCharactersViolationDescription
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(admin_procedure_decision)}'
+      next: returnInvalidCharactersAdminProcedureDecision
   next: returnValid
 
 returnValid:
@@ -105,4 +260,188 @@ returnInspectorLastNameRequiredError:
 
 returnInspectorOrganisationIdRequiredError:
   return: '{"type":"VALIDATION_ERROR","field":"inspectorOrganisationId","code":"required"}'
+  next: end
+
+returnInvalidCharactersInspectionAddressLine1:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionAddressLine1","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectionAddressLine1:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionAddressLine1","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectionAddressLine2:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionAddressLine2","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectionAddressLine2:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionAddressLine2","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectionRegion:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionRegion","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectionRegion:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionRegion","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectionCity:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionCity","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectionCity:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectionCity","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyRegCode:
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyRegCode:
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyName:
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyName:
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyAddressLine1:
+  return: '{"type":"VALIDATION_ERROR","field":"companyAddressLine1","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyAddressLine1:
+  return: '{"type":"VALIDATION_ERROR","field":"companyAddressLine1","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyAddressLine2:
+  return: '{"type":"VALIDATION_ERROR","field":"companyAddressLine2","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyAddressLine2:
+  return: '{"type":"VALIDATION_ERROR","field":"companyAddressLine2","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyCity:
+  return: '{"type":"VALIDATION_ERROR","field":"companyCity","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyCity:
+  return: '{"type":"VALIDATION_ERROR","field":"companyCity","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyPostalCode:
+  return: '{"type":"VALIDATION_ERROR","field":"companyPostalCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyPostalCode:
+  return: '{"type":"VALIDATION_ERROR","field":"companyPostalCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersDriverFirstName:
+  return: '{"type":"VALIDATION_ERROR","field":"driverFirstName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthDriverFirstName:
+  return: '{"type":"VALIDATION_ERROR","field":"driverFirstName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersDriverLastName:
+  return: '{"type":"VALIDATION_ERROR","field":"driverLastName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthDriverLastName:
+  return: '{"type":"VALIDATION_ERROR","field":"driverLastName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleRegNr:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegNr","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleRegNr:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegNr","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleMake:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleMake","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleMake:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleMake","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleModel:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleModel","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleModel:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleModel","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleVin:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleVin","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleVin:
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleVin","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersLicenceCopyNumber:
+  return: '{"type":"VALIDATION_ERROR","field":"licenceCopyNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthLicenceCopyNumber:
+  return: '{"type":"VALIDATION_ERROR","field":"licenceCopyNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorFirstName:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorFirstName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorFirstName:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorFirstName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorLastName:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorLastName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorLastName:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorLastName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorUnit:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorUnit","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorUnit:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorUnit","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorProfession:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorProfession","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorProfession:
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorProfession","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersRecommendedMeasureNotes:
+  return: '{"type":"VALIDATION_ERROR","field":"recommendedMeasureNotes","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersSanctionNotes:
+  return: '{"type":"VALIDATION_ERROR","field":"sanctionNotes","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersViolationDescription:
+  return: '{"type":"VALIDATION_ERROR","field":"violationDescription","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersAdminProcedureDecision:
+  return: '{"type":"VALIDATION_ERROR","field":"adminProcedureDecision","code":"invalid_characters"}'
   next: end

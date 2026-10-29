@@ -235,6 +235,122 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextFields
+
+validateTextFields:
+  switch:
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(county == null ? "" : county))}'
+      next: returnInvalidCharactersCounty
+    - condition: '${String(county == null ? "" : county).length > 100}'
+      next: returnMaxLengthCounty
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(city == null ? "" : city))}'
+      next: returnInvalidCharactersCity
+    - condition: '${String(city == null ? "" : city).length > 100}'
+      next: returnMaxLengthCity
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(road == null ? "" : road))}'
+      next: returnInvalidCharactersRoad
+    - condition: '${String(road == null ? "" : road).length > 100}'
+      next: returnMaxLengthRoad
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(road_other == null ? "" : road_other))}'
+      next: returnInvalidCharactersRoadOther
+    - condition: '${String(road_other == null ? "" : road_other).length > 200}'
+      next: returnMaxLengthRoadOther
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(address == null ? "" : address))}'
+      next: returnInvalidCharactersAddress
+    - condition: '${String(address == null ? "" : address).length > 300}'
+      next: returnMaxLengthAddress
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(road_tax_notes == null ? "" : road_tax_notes))}'
+      next: returnInvalidCharactersRoadTaxNotes
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(vehicle_reg_nr == null ? "" : vehicle_reg_nr))}'
+      next: returnInvalidCharactersVehicleRegNr
+    - condition: '${String(vehicle_reg_nr == null ? "" : vehicle_reg_nr).length > 20}'
+      next: returnMaxLengthVehicleRegNr
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(vehicle_make == null ? "" : vehicle_make))}'
+      next: returnInvalidCharactersVehicleMake
+    - condition: '${String(vehicle_make == null ? "" : vehicle_make).length > 100}'
+      next: returnMaxLengthVehicleMake
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(vehicle_model == null ? "" : vehicle_model))}'
+      next: returnInvalidCharactersVehicleModel
+    - condition: '${String(vehicle_model == null ? "" : vehicle_model).length > 100}'
+      next: returnMaxLengthVehicleModel
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(vehicle_vin == null ? "" : vehicle_vin))}'
+      next: returnInvalidCharactersVehicleVin
+    - condition: '${String(vehicle_vin == null ? "" : vehicle_vin).length > 30}'
+      next: returnMaxLengthVehicleVin
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(vehicle_category_other == null ? "" : vehicle_category_other))}'
+      next: returnInvalidCharactersVehicleCategoryOther
+    - condition: '${String(vehicle_category_other == null ? "" : vehicle_category_other).length > 100}'
+      next: returnMaxLengthVehicleCategoryOther
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_reg_code == null ? "" : company_reg_code))}'
+      next: returnInvalidCharactersCompanyRegCode
+    - condition: '${String(company_reg_code == null ? "" : company_reg_code).length > 20}'
+      next: returnMaxLengthCompanyRegCode
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_name == null ? "" : company_name))}'
+      next: returnInvalidCharactersCompanyName
+    - condition: '${String(company_name == null ? "" : company_name).length > 300}'
+      next: returnMaxLengthCompanyName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_county == null ? "" : company_county))}'
+      next: returnInvalidCharactersCompanyCounty
+    - condition: '${String(company_county == null ? "" : company_county).length > 100}'
+      next: returnMaxLengthCompanyCounty
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_city == null ? "" : company_city))}'
+      next: returnInvalidCharactersCompanyCity
+    - condition: '${String(company_city == null ? "" : company_city).length > 100}'
+      next: returnMaxLengthCompanyCity
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_address == null ? "" : company_address))}'
+      next: returnInvalidCharactersCompanyAddressLine1
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_postal_code == null ? "" : company_postal_code))}'
+      next: returnInvalidCharactersCompanyPostalCode
+    - condition: '${String(company_postal_code == null ? "" : company_postal_code).length > 20}'
+      next: returnMaxLengthCompanyPostalCode
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_owner_first_name == null ? "" : company_owner_first_name))}'
+      next: returnInvalidCharactersCompanyOwnerFirstName
+    - condition: '${String(company_owner_first_name == null ? "" : company_owner_first_name).length > 100}'
+      next: returnMaxLengthCompanyOwnerFirstName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_owner_last_name == null ? "" : company_owner_last_name))}'
+      next: returnInvalidCharactersCompanyOwnerLastName
+    - condition: '${String(company_owner_last_name == null ? "" : company_owner_last_name).length > 100}'
+      next: returnMaxLengthCompanyOwnerLastName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_activity_licence_copy_number == null ? "" : company_activity_licence_copy_number))}'
+      next: returnInvalidCharactersCompanyActivityLicenceCopyNumber
+    - condition: '${String(company_activity_licence_copy_number == null ? "" : company_activity_licence_copy_number).length > 50}'
+      next: returnMaxLengthCompanyActivityLicenceCopyNumber
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(inspector_first_name == null ? "" : inspector_first_name))}'
+      next: returnInvalidCharactersInspectorFirstName
+    - condition: '${String(inspector_first_name == null ? "" : inspector_first_name).length > 100}'
+      next: returnMaxLengthInspectorFirstName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(inspector_last_name == null ? "" : inspector_last_name))}'
+      next: returnInvalidCharactersInspectorLastName
+    - condition: '${String(inspector_last_name == null ? "" : inspector_last_name).length > 100}'
+      next: returnMaxLengthInspectorLastName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(inspector_unit == null ? "" : inspector_unit))}'
+      next: returnInvalidCharactersInspectorUnit
+    - condition: '${String(inspector_unit == null ? "" : inspector_unit).length > 200}'
+      next: returnMaxLengthInspectorUnit
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(inspector_profession == null ? "" : inspector_profession))}'
+      next: returnInvalidCharactersInspectorProfession
+    - condition: '${String(inspector_profession == null ? "" : inspector_profession).length > 200}'
+      next: returnMaxLengthInspectorProfession
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(additional_measure == null ? "" : additional_measure))}'
+      next: returnInvalidCharactersAdditionalMeasure
+    - condition: '${String(additional_measure == null ? "" : additional_measure).length > 50}'
+      next: returnMaxLengthAdditionalMeasure
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(proceeding_reference_number == null ? "" : proceeding_reference_number))}'
+      next: returnInvalidCharactersProceedingReferenceNumber
+    - condition: '${String(proceeding_reference_number == null ? "" : proceeding_reference_number).length > 50}'
+      next: returnMaxLengthProceedingReferenceNumber
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(tachograph_notes == null ? "" : tachograph_notes))}'
+      next: returnInvalidCharactersTachographNotes
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(liini_number == null ? "" : liini_number))}'
+      next: returnInvalidCharactersLiiniNumber
+    - condition: '${String(liini_number == null ? "" : liini_number).length > 100}'
+      next: returnMaxLengthLiiniNumber
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(liini_nimetus == null ? "" : liini_nimetus))}'
+      next: returnInvalidCharactersLiiniNimetus
+    - condition: '${String(liini_nimetus == null ? "" : liini_nimetus).length > 255}'
+      next: returnMaxLengthLiiniNimetus
+    - condition: '${/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(String(notes == null ? "" : notes))}'
+      next: returnInvalidCharactersNotes
   next: validateForm
 
 validateForm:
@@ -450,4 +566,284 @@ returnAlreadyConfirmedError:
 returnNotFound:
   status: 404
   return: '{"error":"NOT_FOUND"}'
+  next: end
+
+returnInvalidCharactersCounty:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"county","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCounty:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"county","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCity:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"city","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCity:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"city","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersRoad:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"road","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthRoad:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"road","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersRoadOther:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"roadOther","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthRoadOther:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"roadOther","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersAddress:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"address","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthAddress:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"address","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersRoadTaxNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"roadTaxNotes","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersVehicleRegNr:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegNr","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleRegNr:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleRegNr","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleMake:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleMake","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleMake:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleMake","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleModel:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleModel","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleModel:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleModel","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleVin:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleVin","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleVin:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleVin","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersVehicleCategoryOther:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleCategoryOther","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthVehicleCategoryOther:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"vehicleCategoryOther","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyRegCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyRegCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyCounty:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyCounty","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyCounty:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyCounty","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyCity:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyCity","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyCity:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyCity","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyAddressLine1:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyAddressLine1","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersCompanyPostalCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyPostalCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyPostalCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyPostalCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyOwnerFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyOwnerFirstName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyOwnerFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyOwnerFirstName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyOwnerLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyOwnerLastName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyOwnerLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyOwnerLastName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyActivityLicenceCopyNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyActivityLicenceCopyNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyActivityLicenceCopyNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyActivityLicenceCopyNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorFirstName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorFirstName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorLastName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorLastName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorUnit:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorUnit","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorUnit:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorUnit","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersInspectorProfession:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorProfession","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorProfession:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorProfession","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersAdditionalMeasure:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"additionalMeasure","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthAdditionalMeasure:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"additionalMeasure","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersTachographNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"tachographNotes","code":"invalid_characters"}'
+  next: end
+
+returnInvalidCharactersLiiniNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"liiniNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthLiiniNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"liiniNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersLiiniNimetus:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"liiniNimetus","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthLiiniNimetus:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"liiniNimetus","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"notes","code":"invalid_characters"}'
   next: end

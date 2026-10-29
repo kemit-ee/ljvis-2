@@ -20,6 +20,7 @@ import {
   publishDriveRestForm,
   saveProceedingOutcome,
 } from '../../api';
+import { applyValidationError } from '../../../../shared/api/errors';
 import { sanitizeText } from '../../../../hooks/formTextUtils';
 import { hasProceeding } from '../../proceedingOutcome';
 
@@ -378,7 +379,7 @@ export function useDriveRestForm(
       personBirthDate: form?.personBirthDate ?? '',
     },
     validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: async (values, helpers) => {
       try {
         const isConfirming = pendingConfirm.current;
         const isPublishing = pendingPublish.current;
@@ -410,7 +411,13 @@ export function useDriveRestForm(
           : await api.save(type, trimmedValues as unknown as DriveRestForm);
         onSaved(result[0]?.id, isConfirming);
       } catch (e) {
-        console.error('Save failed', e);
+        if (
+          !applyValidationError(e, helpers.setFieldError, (code) =>
+            t(`forms.drive_rest.validation.api.${code}`),
+          )
+        ) {
+          console.error('Save failed', e);
+        }
       }
     },
   });

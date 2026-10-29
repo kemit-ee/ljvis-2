@@ -2,15 +2,15 @@
     {{#each users}}
     {
         "id": "{{this.id}}",
-        "firstName": "{{this.firstName}}",
-        "lastName": "{{this.lastName}}",
-        "personalCode": "{{this.personalCode}}",
+        "firstName": {{#if this.firstName}}{{{json this.firstName}}}{{else}}""{{/if}},
+        "lastName": {{#if this.lastName}}{{{json this.lastName}}}{{else}}""{{/if}},
+        "personalCode": {{#if this.personalCode}}{{{json this.personalCode}}}{{else}}""{{/if}},
         "organisationId": "{{this.organisationId}}",
-        "organisationName": "{{this.organisationName}}",
-        "email": "{{this.email}}",
-        "phone": "{{this.phone}}",
-        "structuralUnitName": "{{this.structuralUnit}}",
-        "jobTitleName": "{{this.jobTitle}}",
+        "organisationName": {{#if this.organisationName}}{{{json this.organisationName}}}{{else}}""{{/if}},
+        "email": {{#if this.email}}{{{json this.email}}}{{else}}""{{/if}},
+        "phone": {{#if this.phone}}{{{json this.phone}}}{{else}}""{{/if}},
+        "structuralUnitName": {{#if this.structuralUnit}}{{{json this.structuralUnit}}}{{else}}""{{/if}},
+        "jobTitleName": {{#if this.jobTitle}}{{{json this.jobTitle}}}{{else}}""{{/if}},
         "accessStart": "{{this.accessStart}}",
         "accessEnd": "{{this.accessEnd}}",
         "status": "{{this.status}}"

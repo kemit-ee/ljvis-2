@@ -196,6 +196,27 @@ validateForm:
     inspectorLastName: ${inspector_last_name}
     inspectorOrganisationId: ${inspector_organisation_id}
     inspectorProfession: ${inspector_profession}
+    inspectionAddressLine1: ${inspection_address_line1}
+    inspectionAddressLine2: ${inspection_address_line2}
+    inspectionRegion: ${inspection_region}
+    inspectionCity: ${inspection_city}
+    companyRegCode: ${company_reg_code}
+    companyName: ${company_name}
+    companyAddressLine1: ${company_address_line1}
+    companyAddressLine2: ${company_address_line2}
+    companyCity: ${company_city}
+    companyPostalCode: ${company_postal_code}
+    driverFirstName: ${driver_first_name}
+    driverLastName: ${driver_last_name}
+    vehicleRegNr: ${vehicle_reg_nr}
+    vehicleMake: ${vehicle_make}
+    vehicleModel: ${vehicle_model}
+    vehicleVin: ${vehicle_vin}
+    licenceCopyNumber: ${licence_copy_number}
+    inspectorUnit: ${inspector_unit}
+    sanctionNotes: ${sanction_notes}
+    violationDescription: ${violation_description}
+    adminProcedureDecision: ${admin_procedure_decision}
   result: validationResult
   next: checkValidationResult
 

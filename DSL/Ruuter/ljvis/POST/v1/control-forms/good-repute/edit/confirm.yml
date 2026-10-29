@@ -55,6 +55,30 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextFields
+
+validateTextFields:
+  switch:
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(personal_code == null ? "" : personal_code))}'
+      next: returnInvalidCharactersPersonalCode
+    - condition: '${String(personal_code == null ? "" : personal_code).length > 20}'
+      next: returnMaxLengthPersonalCode
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(first_name == null ? "" : first_name))}'
+      next: returnInvalidCharactersFirstName
+    - condition: '${String(first_name == null ? "" : first_name).length > 100}'
+      next: returnMaxLengthFirstName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(last_name == null ? "" : last_name))}'
+      next: returnInvalidCharactersLastName
+    - condition: '${String(last_name == null ? "" : last_name).length > 100}'
+      next: returnMaxLengthLastName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(place_of_birth == null ? "" : place_of_birth))}'
+      next: returnInvalidCharactersPlaceOfBirth
+    - condition: '${String(place_of_birth == null ? "" : place_of_birth).length > 200}'
+      next: returnMaxLengthPlaceOfBirth
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(certificate_number == null ? "" : certificate_number))}'
+      next: returnInvalidCharactersCertificateNumber
+    - condition: '${String(certificate_number == null ? "" : certificate_number).length > 100}'
+      next: returnMaxLengthCertificateNumber
   next: validateForm
 
 validateForm:
@@ -193,4 +217,54 @@ check_confirmRes_persisted:
 returnResqlWriteError:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"write_failed","message":"Andmebaasi kirjutamine ebaõnnestus"}'
+  next: end
+
+returnInvalidCharactersPersonalCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"personalCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthPersonalCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"personalCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"firstName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"firstName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"lastName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"lastName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersPlaceOfBirth:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"placeOfBirth","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthPlaceOfBirth:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"placeOfBirth","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"certificateNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCertificateNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"certificateNumber","code":"max_length_exceeded"}'
   next: end

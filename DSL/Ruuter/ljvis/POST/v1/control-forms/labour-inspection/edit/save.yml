@@ -67,6 +67,38 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextFields
+
+validateTextFields:
+  switch:
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(inspector_name == null ? "" : inspector_name))}'
+      next: returnInvalidCharactersInspectorName
+    - condition: '${String(inspector_name == null ? "" : inspector_name).length > 200}'
+      next: returnMaxLengthInspectorName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_name == null ? "" : company_name))}'
+      next: returnInvalidCharactersCompanyName
+    - condition: '${String(company_name == null ? "" : company_name).length > 300}'
+      next: returnMaxLengthCompanyName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(company_reg_code == null ? "" : company_reg_code))}'
+      next: returnInvalidCharactersCompanyRegCode
+    - condition: '${String(company_reg_code == null ? "" : company_reg_code).length > 20}'
+      next: returnMaxLengthCompanyRegCode
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(punished_person_id_code == null ? "" : punished_person_id_code))}'
+      next: returnInvalidCharactersPunishedPersonIdCode
+    - condition: '${String(punished_person_id_code == null ? "" : punished_person_id_code).length > 20}'
+      next: returnMaxLengthPunishedPersonIdCode
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(punished_person_first_name == null ? "" : punished_person_first_name))}'
+      next: returnInvalidCharactersPunishedPersonFirstName
+    - condition: '${String(punished_person_first_name == null ? "" : punished_person_first_name).length > 100}'
+      next: returnMaxLengthPunishedPersonFirstName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(punished_person_last_name == null ? "" : punished_person_last_name))}'
+      next: returnInvalidCharactersPunishedPersonLastName
+    - condition: '${String(punished_person_last_name == null ? "" : punished_person_last_name).length > 100}'
+      next: returnMaxLengthPunishedPersonLastName
+    - condition: '${/[\u0000-\u001F\u007F]/.test(String(proceeding_reference_number == null ? "" : proceeding_reference_number))}'
+      next: returnInvalidCharactersProceedingReferenceNumber
+    - condition: '${String(proceeding_reference_number == null ? "" : proceeding_reference_number).length > 50}'
+      next: returnMaxLengthProceedingReferenceNumber
   next: validateForm
 
 validateForm:
@@ -303,4 +335,74 @@ returnValidationError:
 returnFormLockedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
+  next: end
+
+returnInvalidCharactersInspectorName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthInspectorName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"inspectorName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersCompanyRegCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthCompanyRegCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"companyRegCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersPunishedPersonIdCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"punishedPersonIdCode","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthPunishedPersonIdCode:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"punishedPersonIdCode","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersPunishedPersonFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"punishedPersonFirstName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthPunishedPersonFirstName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"punishedPersonFirstName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersPunishedPersonLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"punishedPersonLastName","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthPunishedPersonLastName:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"punishedPersonLastName","code":"max_length_exceeded"}'
+  next: end
+
+returnInvalidCharactersProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthProceedingReferenceNumber:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"max_length_exceeded"}'
   next: end
