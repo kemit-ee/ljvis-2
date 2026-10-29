@@ -137,8 +137,17 @@ export const isLegacyCheckedItems = (raw: unknown): boolean =>
 export function normaliseCheckedItems(raw: unknown): RsiCheckedItem[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((i): RsiCheckedItem => {
-    if (i && typeof i === 'object' && 'partCode' in i)
-      return i as RsiCheckedItem;
+    if (i && typeof i === 'object' && 'partCode' in i) {
+      const item = i as RsiCheckedItem;
+      // Test-pack / hub data may carry ERRU severity names (Minor/Major/Dangerous).
+      return {
+        ...item,
+        defects: (item.defects ?? []).map((d) => ({
+          ...d,
+          severity: ERRU_SEVERITY[d.severity] ?? d.severity,
+        })),
+      };
+    }
     const failed =
       i?.itemFailed === true ||
       i?.itemFailed === 'true' ||

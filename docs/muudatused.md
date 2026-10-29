@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-10-29
+
+### RSI teade: raskusastme linnukesed ja printvorm
+
+- Mõne RSI teate (nt ERRU testpaketi teated) mitteläbimise põhjuste tabelis jäid raskusastme linnukesed (Väheoluline, Oluline, Ohtlik) tühjaks, sest raskusaste oli salvestatud ERRU nimega (`Minor`, `Major`, `Dangerous`). Teate vaates ja täidetud printvormil on need linnukesed nüüd õigesti märgitud.
+
 ## 2026-10-28
 
 ### Hea maine vorm: imporditud vormi tundmatud kuupäevad

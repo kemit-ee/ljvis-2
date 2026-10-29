@@ -123,6 +123,13 @@ class FormTests(unittest.TestCase):
         html,_=render_html(p,False,'rsi')
         self.assertIn('CAA_1.1.1 (OV)',html)
         self.assertIn('Pidurisüsteem',html)
+    def test_rsi_partcode_shape_with_erru_severity_names(self):
+        # MOVEHUB test-pack rows are {partCode, status, defects} but carry Minor/Major/Dangerous.
+        from forms import build_rsi_context
+        p=self.fixture('rsi');p['rsiMessage']['checkedItems']=json.dumps([{'partCode':'0','status':'non_compliant','defects':[{'defectCode':'0.1.a','severity':'Major'}]}])
+        data=build_rsi_context(p,False)
+        row=next(r for r in data['reason_rows'] if r['kind']=='reason' and any(b['checked'] for b in r['boxes']))
+        self.assertTrue(row['boxes'][1]['checked'])
     def test_real_partssummary_shape_is_checked_hasdefect_not_status(self):
         # Regression for a production print failure: partsSummary rows are
         # {partCode, checked, hasDefect} (frontend commit 1782322f, 2026-09-14),
