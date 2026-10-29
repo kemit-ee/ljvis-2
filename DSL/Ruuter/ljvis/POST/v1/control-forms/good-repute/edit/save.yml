@@ -62,6 +62,7 @@ validateForm:
   headers:
     cookie: ${incoming.headers.cookie}
   body:
+    id: ${id}
     personalCode: ${personal_code}
     firstName: ${first_name}
     lastName: ${last_name}

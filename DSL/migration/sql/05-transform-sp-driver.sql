@@ -30,7 +30,7 @@ SELECT
     max(v.value) FILTER (WHERE v.classifier_name = 'InspectionAddress.Region')  AS county,
     max(v.value) FILTER (WHERE v.classifier_name = 'InspectionAddress.City')    AS city,
     max(v.value) FILTER (WHERE v.classifier_name = 'InspectionAddress.Line1')   AS address,
-    max(coalesce(v.date_value, migration.safe_timestamp(v.value))) FILTER (WHERE v.classifier_name = 'InspectionDate.Date')  AS control_date,
+    max(migration.source_date(v.value, v.date_value)) FILTER (WHERE v.classifier_name = 'InspectionDate.Date')  AS control_date,
     max(v.value) FILTER (WHERE v.classifier_name = 'InspectionDate.Time')       AS control_time_raw,
     max(v.value) FILTER (WHERE v.classifier_name = 'Inspector.FirstName')       AS inspector_first_name,
     max(v.value) FILTER (WHERE v.classifier_name = 'Inspector.LastName')        AS inspector_last_name,

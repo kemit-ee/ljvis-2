@@ -6,6 +6,9 @@ params:
     type: integer
     required: false
 returns:
+- name: legacy_import
+  type: boolean
+  nullable: false
 - name: id
   type: string
   nullable: true
@@ -64,6 +67,7 @@ SELECT
   version,
   revision,
   status,
+  legacy_import,
   personal_code,
   first_name,
   last_name,

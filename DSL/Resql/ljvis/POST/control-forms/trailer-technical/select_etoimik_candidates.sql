@@ -52,7 +52,9 @@ cand AS (
     AND btrim(coalesce(t.proceeding_reference_number, '')) <> ''
     AND t.enforcement_decision IS NULL
     AND NOT EXISTS (SELECT 1 FROM forms.trailer_technical_form h WHERE h.trailer_technical_form_key = t.id AND h.created_by = 'eToimik öine uuendus')
-    AND t.created_at >= now() - INTERVAL '365 days'
+    AND (t.created_at >= now() - INTERVAL '365 days'
+      OR (SELECT c.extra_data->>'legacy_decision' FROM forms.compound_form c
+          WHERE c.compound_form_key=t.compound_form_key ORDER BY c.created_at DESC,c.id DESC LIMIT 1)='owner-2026-10-19')
 ),
 resolved AS (
   SELECT cand.id, cand.proceeding_type, cand.proceeding_reference_number,

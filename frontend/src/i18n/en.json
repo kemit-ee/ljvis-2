@@ -527,6 +527,7 @@
         "resultType": "Inspection result",
         "autoLockedHint": "Some options are locked because the detected defects require a higher inspection result. Remove those defects to select a lower level.",
         "options": {
+          "legacy_proceedings": "Misdemeanor proceedings applied (LJVIS1)",
           "ok": "Technically sound",
           "extraordinary_inspection": "Referred for extraordinary roadworthiness test",
           "extraordinary_inspection_ta": "Referred for extraordinary roadworthiness test with Transport Administration data verification",
@@ -542,6 +543,7 @@
         "taRebuilt": "Vehicle has been rebuilt without authorisation",
         "proceedingType": "Proceeding type",
         "proceedingTypes": {
+          "legacy_other": "Other proceedings (LJVIS1)",
           "summary": "Summary proceeding",
           "expedited": "Expedited proceeding",
           "general": "General proceeding"

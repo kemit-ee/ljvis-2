@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS staging.raw_control_form_value (
 );
 CREATE INDEX IF NOT EXISTS idx_rcfv_control_form_id ON staging.raw_control_form_value (control_form_id);
 CREATE INDEX IF NOT EXISTS idx_rcfv_classifier_name ON staging.raw_control_form_value (classifier_name);
+ALTER TABLE staging.raw_control_form_value ADD COLUMN IF NOT EXISTS updated_date TIMESTAMP;
+ALTER TABLE staging.raw_control_form_value ADD COLUMN IF NOT EXISTS created_date TIMESTAMP;
 COMMENT ON TABLE staging.raw_control_form_value IS 'Raw 1:1 copy of LJVIS1 dbo.ControlFormValue (EAV). No transformation applied. One (control_form_id, classifier_name) pair may legally have several rows -- see 99-verify.sql section 7.';
 
 CREATE TABLE IF NOT EXISTS staging.raw_control (
@@ -261,6 +263,16 @@ CREATE TABLE IF NOT EXISTS migration.finding (
     issue text NOT NULL,
     detail text NOT NULL
 );
+-- Independent SQL Server baseline, captured before extraction begins. These
+-- are extraction-scope counts, not a claim that all EAV rows map to UI fields.
+CREATE TABLE IF NOT EXISTS migration.extraction_manifest (
+    migration_run_id uuid NOT NULL REFERENCES migration.run,
+    source_table text NOT NULL,
+    source_count bigint NOT NULL,
+    fetched_count bigint NOT NULL,
+    staging_count bigint NOT NULL,
+    PRIMARY KEY (migration_run_id, source_table)
+);
 CREATE INDEX IF NOT EXISTS finding_run_idx ON migration.finding (migration_run_id);
 
 CREATE OR REPLACE FUNCTION migration.safe_time(raw text)
@@ -293,6 +305,17 @@ BEGIN
     RETURN raw::timestamp;
 EXCEPTION WHEN datetime_field_overflow OR invalid_datetime_format THEN RETURN NULL;
 END $$;
+-- Owner 2026-10-19 P08/P13: text masks must override stale typed values.
+CREATE OR REPLACE FUNCTION migration.is_masked(raw text)
+RETURNS boolean LANGUAGE sql IMMUTABLE AS $$
+    SELECT coalesce(raw ~ '\*{3,}' OR (btrim(raw) ~ '^[xX. /-]+$'
+        AND length(regexp_replace(raw,'[^xX]','','g')) >= 3), false);
+$$;
+CREATE OR REPLACE FUNCTION migration.source_date(raw text, typed timestamp)
+RETURNS timestamp LANGUAGE sql IMMUTABLE AS $$
+    SELECT CASE WHEN migration.is_masked(raw) THEN NULL
+                ELSE coalesce(typed,migration.safe_timestamp(raw)) END;
+$$;
 -- Reject oversized strings instead of silently truncating evidence. Production
 -- preflight also reports these; the transaction is rolled back on any missed case.
 CREATE OR REPLACE FUNCTION migration.fit_text(raw text, max_length int)

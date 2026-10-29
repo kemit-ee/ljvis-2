@@ -149,7 +149,7 @@ returns:
 WITH latest AS (
   SELECT form_number,
          CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision,
-         template_version, control_year
+         template_version, control_year, extra_data
   FROM forms.compound_form
   WHERE compound_form_key = :key::BIGINT
   ORDER BY created_at DESC
@@ -202,7 +202,8 @@ INSERT INTO forms.compound_form (
   company_owner_last_name,
   company_activity_licence_copy_number,
   drivers,
-  created_by
+  created_by,
+  extra_data
 )
 SELECT
   :key::BIGINT,
@@ -251,7 +252,8 @@ SELECT
   NULLIF(:companyOwnerLastName, ''),
   NULLIF(:companyActivityLicenceCopyNumber, ''),
   COALESCE(NULLIF(:drivers, '')::jsonb, '[]'::jsonb),
-  :created_by
+  :created_by,
+  l.extra_data
 FROM latest l
 WHERE (NULLIF(:expected_revision, '') IS NULL OR l.revision = NULLIF(:expected_revision, '')::BIGINT)
 RETURNING compound_form_key AS id, form_number, version, revision;

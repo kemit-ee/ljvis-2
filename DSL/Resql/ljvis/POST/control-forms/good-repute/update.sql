@@ -65,7 +65,7 @@ returns:
   nullable: true
 */
 WITH latest AS (
-  SELECT form_number,
+  SELECT form_number, legacy_import, date_of_birth, certificate_issue_date, unfit_from_date, unfit_until_date,
          CASE WHEN status = 'saved' OR :status <> status THEN version ELSE version + 1 END AS version, revision
   FROM forms.good_repute_form
   WHERE good_repute_form_key = :key::BIGINT
@@ -89,8 +89,12 @@ INSERT INTO forms.good_repute_form (
   fitness_status,
   unfit_from_date,
   unfit_until_date,
-  created_by
+  created_by,
+  legacy_import
 )
+-- COALESCE-fallback applies to imported (legacy_import) forms only: an unknown (NULL) date
+-- stays NULL, and an empty input keeps the stored value. Date-policy validation already
+-- rejects clearing a known date, so a user's clearing is never silently ignored in practice.
 SELECT
   :key::BIGINT,
   latest.form_number,
@@ -100,15 +104,16 @@ SELECT
   UPPER(:personalCode),
   UPPER(:firstName),
   UPPER(:lastName),
-  :dateOfBirth::DATE,
+  COALESCE(NULLIF(:dateOfBirth, '')::DATE, CASE WHEN latest.legacy_import THEN latest.date_of_birth END),
   UPPER(NULLIF(:placeOfBirth, '')),
   UPPER(:certificateNumber),
-  :certificateIssueDate::DATE,
+  COALESCE(NULLIF(:certificateIssueDate, '')::DATE, CASE WHEN latest.legacy_import THEN latest.certificate_issue_date END),
   :certificateCountryCode,
   :fitnessStatus,
-  NULLIF(:unfitFromDate, '')::DATE,
-  NULLIF(:unfitUntilDate, '')::DATE,
-  :created_by
+  COALESCE(NULLIF(:unfitFromDate, '')::DATE, CASE WHEN latest.legacy_import THEN latest.unfit_from_date END),
+  COALESCE(NULLIF(:unfitUntilDate, '')::DATE, CASE WHEN latest.legacy_import THEN latest.unfit_until_date END),
+  :created_by,
+  latest.legacy_import
 FROM latest
 WHERE (NULLIF(:expected_revision, '') IS NULL OR latest.revision = NULLIF(:expected_revision, '')::BIGINT)
 RETURNING good_repute_form_key AS id, form_number, version, revision;

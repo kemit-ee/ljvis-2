@@ -4,6 +4,10 @@
 
 ## 2026-10-28
 
+### Hea maine vorm: imporditud vormi tundmatud kuupäevad
+
+- Vanast süsteemist üle toodud hea maine vormil võivad sünniaeg, tunnistuse väljaandmise kuupäev ning sobimatuse alg- ja lõppkuupäev olla teadmata. Sellist vormi saab salvestada ja kinnitada ilma neid kuupäevi sisestamata. Uutel vormidel jäävad kuupäevad kohustuslikuks ja teadaolevat kuupäeva tühjaks kustutada ei saa.
+
 ### Alamvormi leht: „Avalikusta" nupp kinnitatud vormil
 
 - Kui avasid üksiku alamvormi lehe (nt juhi sõidu- ja puhkeaja vorm), mille koondvorm oli veel „Salvestatud", jäi leht muutmisrežiimi ja kinnitatud alamvormil puudus „Avalikusta" nupp. Nupp on nüüd muutmisrežiimis olemas kõigil alamvormitüüpidel (juht, kaasjuht, sõiduk, haagis, ADR, veokatkestus). Koondvormi lehel see juba töötas.

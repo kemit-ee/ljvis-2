@@ -6,19 +6,8 @@ import type { GoodReputeForm } from '../../types';
 import { saveGoodReputeForm, confirmGoodReputeForm, publishGoodReputeForm } from '../../api';
 import { applyValidationError } from '../../../../shared/api/errors';
 
-export function useGoodReputeForm(
-  form: GoodReputeForm | undefined,
-  onSaved: (id?: string) => void,
-  onConfirmed?: () => void,
-  onPublished?: () => void,
-) {
-  const { t } = useTranslation();
-  const isEdit = !!form;
-  const pendingConfirm = useRef(false);
-  const pendingPublish = useRef(false);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  const validationSchema = Yup.object({
+export function createGoodReputeValidationSchema(t: (key: string) => string, form?: GoodReputeForm) {
+  return Yup.object({
     personalCode: Yup.string().required(
       t('forms.good_repute.validation.required'),
     ),
@@ -29,7 +18,8 @@ export function useGoodReputeForm(
       t('forms.good_repute.validation.required'),
     ),
     dateOfBirth: Yup.string()
-      .required(t('forms.good_repute.validation.required'))
+      .test('required', t('forms.good_repute.validation.required'),
+        value => !!value || !!(form?.legacyImport && !form?.dateOfBirth))
       .test(
         'not-future',
         t('forms.good_repute.validation.api.future_date_not_allowed'),
@@ -39,7 +29,8 @@ export function useGoodReputeForm(
       t('forms.good_repute.validation.required'),
     ),
     certificateIssueDate: Yup.string()
-      .required(t('forms.good_repute.validation.required'))
+      .test('required', t('forms.good_repute.validation.required'),
+        value => !!value || !!(form?.legacyImport && !form?.certificateIssueDate))
       .test(
         'not-future',
         t('forms.good_repute.validation.api.future_date_not_allowed'),
@@ -53,14 +44,16 @@ export function useGoodReputeForm(
     ),
     unfitFromDate: Yup.string().when('fitnessStatus', {
       is: 'unfit',
-      then: (schema) => schema.required(t('forms.good_repute.validation.required')),
+      then: (schema) => schema.test('required', t('forms.good_repute.validation.required'),
+        value => !!value || !!(form?.legacyImport && form?.fitnessStatus === 'unfit' && !form?.unfitFromDate)),
       otherwise: (schema) => schema.optional(),
     }),
     unfitUntilDate: Yup.string().when('fitnessStatus', {
       is: 'unfit',
       then: (schema) =>
         schema
-          .required(t('forms.good_repute.validation.required'))
+          .test('required', t('forms.good_repute.validation.required'),
+            value => !!value || !!(form?.legacyImport && form?.fitnessStatus === 'unfit' && !form?.unfitUntilDate))
           .test(
             'after-from-date',
             t('forms.good_repute.validation.api.must_be_after_unfit_from_date'),
@@ -70,6 +63,21 @@ export function useGoodReputeForm(
       otherwise: (schema) => schema.optional(),
     }),
   });
+}
+
+export function useGoodReputeForm(
+  form: GoodReputeForm | undefined,
+  onSaved: (id?: string) => void,
+  onConfirmed?: () => void,
+  onPublished?: () => void,
+) {
+  const { t } = useTranslation();
+  const isEdit = !!form;
+  const pendingConfirm = useRef(false);
+  const pendingPublish = useRef(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const validationSchema = createGoodReputeValidationSchema(t, form);
 
   const formik = useFormik({
     enableReinitialize: true,

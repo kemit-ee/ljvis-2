@@ -55,7 +55,9 @@ cand AS (
     AND btrim(coalesce(s.proceeding_reference_number, '')) <> ''
     AND s.enforcement_decision IS NULL
     AND NOT EXISTS (SELECT 1 FROM forms.sp_driver_form h WHERE h.sp_driver_form_key = s.id AND h.created_by = 'eToimik öine uuendus')
-    AND s.created_at >= now() - INTERVAL '365 days'
+    AND (s.created_at >= now() - INTERVAL '365 days'
+      OR (SELECT c.extra_data->>'legacy_decision' FROM forms.compound_form c
+          WHERE c.compound_form_key=s.compound_form_key ORDER BY c.created_at DESC,c.id DESC LIMIT 1)='owner-2026-10-19')
 ),
 -- koondvormi UUSIM snapshot (üks rida võtme kohta) alampäringuga, mitte JOIN-iga
 resolved AS (
