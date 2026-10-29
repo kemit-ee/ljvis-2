@@ -168,7 +168,7 @@ def rsi_items(checked):
         if not isinstance(i, dict): continue
         if 'partCode' in i:
             code, status = str(i.get('partCode') or ''), i.get('status', '')
-            defects = [(d.get('defectCode'), d.get('severity')) for d in structured(i.get('defects'), list)]
+            defects = [(d.get('defectCode'), RSI_ERRU_SEVERITY.get(d.get('severity'), d.get('severity'))) for d in structured(i.get('defects'), list)]
         else:
             code = str(i.get('itemType', ''))
             failed = i.get('itemFailed') in (True, 'true') or i.get('infringementStatus') == 'infringement'

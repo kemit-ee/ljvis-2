@@ -140,4 +140,22 @@ describe('rsiReasons helpers', () => {
     expect(items[4]).toEqual({ partCode: '4', status: 'checked', defects: [] });
     expect(items[0].status).toBe('not_checked');
   });
+
+  it('maps ERRU severity names on partCode-shaped items (test-pack data)', () => {
+    expect(
+      normaliseCheckedItems([
+        {
+          partCode: '0',
+          status: 'non_compliant',
+          defects: [{ defectCode: '0.1.a', severity: 'Major' }],
+        },
+      ]),
+    ).toEqual([
+      {
+        partCode: '0',
+        status: 'non_compliant',
+        defects: [{ defectCode: '0.1.a', severity: 'OV' }],
+      },
+    ]);
+  });
 });
