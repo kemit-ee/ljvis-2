@@ -314,14 +314,14 @@ final class Db {
         }
     }
 
-    record ClaimedOutbox(long id, long attempts, String technicalId, String destination, String xmlBody, Instant deadlineAt) { }
+    record ClaimedOutbox(long id, long attempts, String technicalId, String destination, String xmlBody, Instant deadlineAt, Instant createdAt) { }
 
     /** Only claims rows whose next_attempt_at has elapsed (see markOutboxFailed's backoff). */
     Optional<ClaimedOutbox> claimNextOutbox() throws SQLException {
         try (Connection c = open()) {
             c.setAutoCommit(false);
             try (PreparedStatement ps = c.prepareStatement(
-                    "SELECT id, attempts, technical_id, destination, xml_body, deadline_at FROM erru.xml_outbox " +
+                    "SELECT id, attempts, technical_id, destination, xml_body, deadline_at, created_at FROM erru.xml_outbox " +
                     "WHERE (next_attempt_at IS NULL OR next_attempt_at <= now()) " +
                     "AND (status = 'pending' OR (status = 'sending' AND lease_expires_at < now())) " +
                     "ORDER BY id FOR UPDATE SKIP LOCKED LIMIT 1")) {
@@ -331,9 +331,11 @@ final class Db {
                         return Optional.empty();
                     }
                     Timestamp deadlineAtTs = rs.getTimestamp("deadline_at");
+                    Timestamp createdAtTs = rs.getTimestamp("created_at");
                     ClaimedOutbox row = new ClaimedOutbox(rs.getLong("id"), rs.getLong("attempts"),
                             rs.getString("technical_id"), rs.getString("destination"), rs.getString("xml_body"),
-                            deadlineAtTs == null ? null : deadlineAtTs.toInstant());
+                            deadlineAtTs == null ? null : deadlineAtTs.toInstant(),
+                            createdAtTs == null ? null : createdAtTs.toInstant());
                     try (PreparedStatement upd = c.prepareStatement(
                             "UPDATE erru.xml_outbox SET status = 'sending', claimed_by = ?, claimed_at = now(), " +
                             "lease_expires_at = now() + (? || ' milliseconds')::interval, attempts = attempts + 1 WHERE id = ?")) {
