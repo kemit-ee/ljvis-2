@@ -9,6 +9,7 @@
 - ERRU päringutele antavad vastused saadetakse Hubile nüüd kuni 16 samaaegse ühendusega (varem 2). Suure päringute hulga korral ei jää vastused enam järjekorda ootama, kuni Hubi tähtaeg möödub.
 - Eduka kohaletoimetamise kohta jääb logisse rida koos kestusega, mille järgi saab Hubi vastuseaega hinnata.
 - Logisse jääb nüüd ka see, kui kaua vastus enne saatmist järjekorras ootas, ja nurjunud saatmise juures kasutada olnud aeg. Nii on näha, kas vastus jäi hiljaks meie järjekorra või Hubi aeglase vastuse tõttu.
+- Kohaletoimetamise logiridadel on nüüd ka ERRU `workflowId`, meie `technicalId` ja sõnumi tüüp, et rida saaks seostada Hubi rikete nimekirjaga.
 
 ### TARA tagasisuunamine: `/auth/callback` ja `/auth/tara-callback`
 

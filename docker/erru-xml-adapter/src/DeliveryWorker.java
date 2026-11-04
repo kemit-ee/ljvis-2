@@ -99,12 +99,12 @@ final class DeliveryWorker implements Runnable {
             // the Hub's own timeoutValue has passed — sending now would be
             // pointless at best. The answer itself (business or EN) was already built and
             // XSD-validated by ProcessingWorker; only its delivery is skipped.
-            System.err.println("[delivery] outbox id=" + row.id() + " deadline (" + row.deadlineAt() + ") already passed, not delivering — marking expired (queued "
+            System.err.println("[delivery] " + describe(row) + " deadline (" + row.deadlineAt() + ") already passed, not delivering — marking expired (queued "
                     + queuedMs(row) + " ms before a delivery thread took it)");
             try {
                 db.markOutboxExpired(row.id(), db.workerId);
             } catch (Exception dbErr) {
-                System.err.println("[delivery] failed to mark outbox id=" + row.id() + " expired: " + dbErr);
+                System.err.println("[delivery] failed to mark " + describe(row) + " expired: " + dbErr);
             }
             return;
         }
@@ -120,7 +120,7 @@ final class DeliveryWorker implements Runnable {
             int status = response.statusCode();
             if (status >= 200 && status < 300) {
                 db.markOutboxDelivered(row.id(), db.workerId);
-                System.out.println("[delivery] outbox id=" + row.id() + " delivered in "
+                System.out.println("[delivery] " + describe(row) + " delivered in "
                         + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos) + " ms (queued "
                         + queuedMs(row) + " ms)");
             } else if (HttpOutcome.isTransient(status)) {
@@ -140,15 +140,21 @@ final class DeliveryWorker implements Runnable {
                         config.deliveryMaxAttempts, backoffFor(row.attempts()), false);
             }
         } catch (Exception e) {
-            System.err.println("[delivery] outbox id=" + row.id() + " failed after "
+            System.err.println("[delivery] " + describe(row) + " failed after "
                     + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos) + " ms (queued "
                     + queuedMs(row) + " ms, budget " + timeout.toMillis() + " ms): " + e);
             try {
                 recordFailure(row, e.toString(), config.deliveryMaxAttempts, backoffFor(row.attempts()), false);
             } catch (Exception dbErr) {
-                System.err.println("[delivery] failed to record failure for outbox id=" + row.id() + ": " + dbErr);
+                System.err.println("[delivery] failed to record failure for " + describe(row) + ": " + dbErr);
             }
         }
+    }
+
+    /** Log prefix that ties a line to the Hub's view: outbox row, ERRU workflowId, our technicalId and message type. */
+    private static String describe(Db.ClaimedOutbox row) {
+        return "outbox id=" + row.id() + " workflowId=" + row.workflowId() + " technicalId=" + row.technicalId()
+                + " type=" + row.messageType();
     }
 
     /** How long the answer waited between being queued and a delivery thread claiming it (-1 if unknown). */
