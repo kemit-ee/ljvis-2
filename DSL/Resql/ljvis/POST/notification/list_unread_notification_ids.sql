@@ -1,7 +1,6 @@
 /*
-description: 'Tagastab kõik lugemata teavituste id-d kasutaja jaoks. Kasutatakse mark-all-read voos: Ruuter
-  itereerib üle id-de ja kutsub mark_notification_read iga kirje kohta eraldi. NOT EXISTS subpäring (JOIN
-  keelatud).'
+description: 'Tagastab kõik kasutajale nähtavate lugemata teavituste id-d.
+  NOT EXISTS subpäring (JOIN keelatud).'
 namespace: notification
 params:
   user_code:
