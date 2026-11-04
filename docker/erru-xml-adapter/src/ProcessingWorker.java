@@ -194,7 +194,7 @@ final class ProcessingWorker implements Runnable {
             try {
                 db.retryInboxLater(row.id(), db.workerId, reason, delay);
             } catch (SQLException e) {
-                System.err.println("[processing] cannot schedule retry for inbox " + row.id() + ": " + e);
+                System.err.println("[processing] cannot schedule retry for " + describe(row) + ": " + e);
             }
             return;
         }
@@ -229,7 +229,7 @@ final class ProcessingWorker implements Runnable {
 
     private void errorNotification(Db.ClaimedInbox row, Document doc, String status, String reason,
                                    boolean businessComplete, boolean retry) {
-        System.err.println("[processing] inbox " + row.id() + ": " + reason);
+        System.err.println("[processing] " + describe(row) + ": " + reason);
         try {
             String technicalId = UUID.randomUUID().toString();
             String xml = enBuilder.build(status, EN_MESSAGE + " (correlation id: inbox/" + row.id() + ")",
@@ -247,11 +247,17 @@ final class ProcessingWorker implements Runnable {
             db.storeOutcome(row, xml, technicalId, deadline(row), complete, retry, reason,
                     backoffFor(row.attemptsBeforeThisClaim()));
         } catch (Db.LeaseLostException e) {
-            System.err.println("[processing] inbox " + row.id() + " lease lost: " + e.getMessage());
+            System.err.println("[processing] " + describe(row) + " lease lost: " + e.getMessage());
         } catch (SQLException e) {
             // Leave the lease to expire: neither the outcome nor business completion was committed.
-            System.err.println("[processing] cannot persist outcome for inbox " + row.id() + ": " + e);
+            System.err.println("[processing] cannot persist outcome for " + describe(row) + ": " + e);
         }
+    }
+
+    /** Log prefix that ties a line to the Hub's view: inbox row, ERRU workflowId, technicalId and message type. */
+    private static String describe(Db.ClaimedInbox row) {
+        return "inbox " + row.id() + " workflowId=" + row.workflowId() + " technicalId=" + row.technicalId()
+                + " type=" + row.messageType();
     }
 
     private static Instant deadline(Db.ClaimedInbox row) {
@@ -259,7 +265,7 @@ final class ProcessingWorker implements Runnable {
     }
 
     private void fail(Db.ClaimedInbox row, String error) {
-        System.err.println("[processing] inbox " + row.id() + " failed: " + error);
+        System.err.println("[processing] " + describe(row) + " failed: " + error);
         try {
             db.markInboxFailed(row.id(), db.workerId, error);
         } catch (SQLException e) {
