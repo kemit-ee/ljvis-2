@@ -30,7 +30,7 @@ Each inbox has at most one immutable outbox row. If an EN was already queued, la
 completes the inbox without replacing the EN or emitting a second answer. An expired outbox is not
 sent, even if its business operation subsequently succeeds.
 
-There is one processing thread per message type and two delivery threads. Slow CGR/CTUD lookups do
+There is one processing thread per message type and `DELIVERY_THREADS` delivery threads (default 16). Each delivery thread blocks on one Hub POST for up to the remaining response deadline, so a burst of answers to a slow Hub needs more than a couple of threads or the later answers expire unsent. Slow CGR/CTUD lookups do
 not consume the NU/NCR/RSI processing threads. Every worker has a distinct claim owner; SQL writes
 check the lease before committing an outcome. LISTEN/NOTIFY wakes the workers; polling recovers
 missed notifications. No DB transaction stays open across an HTTP call.
@@ -104,6 +104,7 @@ inspection fields are persisted, although the detail UI does not display all of 
 | LEASE_MS | 150000, must exceed a single business call |
 | PROCESSING_MAX_ATTEMPTS | 4; recovery delays 5/15/45 seconds outside the response window |
 | DELIVERY_MAX_ATTEMPTS | 8, additionally bounded by response deadline |
+| DELIVERY_THREADS | 16 |
 | WORKER_ID | Optional process identity in startup diagnostics; claims have distinct generated worker ids |
 
 Ingress rejects malformed/invalid XML and DOCTYPE with 400, oversized input (over 2 MiB) with 413,

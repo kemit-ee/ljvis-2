@@ -4,6 +4,11 @@
 
 ## 2026-11-04
 
+### ERRU: vastuste kohaletoimetamine Hubile
+
+- ERRU päringutele antavad vastused saadetakse Hubile nüüd kuni 16 samaaegse ühendusega (varem 2). Suure päringute hulga korral ei jää vastused enam järjekorda ootama, kuni Hubi tähtaeg möödub.
+- Eduka kohaletoimetamise kohta jääb logisse rida koos kestusega, mille järgi saab Hubi vastuseaega hinnata.
+
 ### TARA tagasisuunamine: `/auth/callback` ja `/auth/tara-callback`
 
 - Pärast TARA sisselogimist töötab nii `/auth/callback` kui ka `/auth/tara-callback`. Keskkonnas, kus TARA kliendil on registreeritud teine tee, määrab selle frontend-konteineri keskkonnamuutuja `TARA_CALLBACK_PATH` (vaikimisi `/auth/callback`). Paigaldusjuhend ja arhitektuuri järjestusdiagrammid (sisselogimine, kodaniku vaade) on uuendatud.

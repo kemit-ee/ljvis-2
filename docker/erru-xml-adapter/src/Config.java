@@ -36,6 +36,7 @@ final class Config {
     final String memberStateCode;
     final int processingMaxAttempts;
     final int deliveryMaxAttempts;
+    final int deliveryThreads;
 
     private Config() {
         List<String> problems = new ArrayList<>();
@@ -96,6 +97,11 @@ final class Config {
         // Delivery to the Hub is a separate topic from processing — it has no fallback answer to
         // fall back TO (it IS the answer), so its own budget stays generous.
         deliveryMaxAttempts = (int) positiveNumber("DELIVERY_MAX_ATTEMPTS", 8, problems);
+        // Each delivery thread blocks on one Hub POST for up to the remaining response deadline. With
+        // a slow Hub and a burst of answers, a handful of threads leaves the rest of the outbox queued
+        // until its deadline passes (marked expired, never sent). Rows are claimed with SKIP LOCKED,
+        // so more threads is safe.
+        deliveryThreads = (int) positiveNumber("DELIVERY_THREADS", 16, problems);
         String id = System.getenv("WORKER_ID");
         workerId = (id == null || id.isBlank()) ? "erru-xml-adapter-" + UUID.randomUUID() : id;
 

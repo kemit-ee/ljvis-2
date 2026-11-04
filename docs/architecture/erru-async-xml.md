@@ -32,7 +32,7 @@ later through `/erru/xml`, correlated by `workflowId`. Incoming Hub error notifi
 
 The adapter uses JDBC only for its transport inbox/outbox. Business data remains behind the JSON
 flows and Resql. Separate processing threads for five request types and the RSI response isolate slow register searches from
-notification handling. Two delivery threads limit head-of-line blocking by a slow HTTP delivery.
+notification handling. `DELIVERY_THREADS` delivery threads (default 16) limit head-of-line blocking by a slow HTTP delivery.
 All concurrency is bounded; health checks inspect every worker and the DB connection.
 
 Each worker has its own claim identity. Claims use `FOR UPDATE SKIP LOCKED`, a lease and an owner

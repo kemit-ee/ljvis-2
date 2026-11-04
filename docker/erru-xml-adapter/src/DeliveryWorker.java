@@ -114,10 +114,13 @@ final class DeliveryWorker implements Runnable {
                     .timeout(timeout)
                     .POST(HttpRequest.BodyPublishers.ofString(row.xmlBody()))
                     .build();
+            long startedNanos = System.nanoTime();
             HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
             int status = response.statusCode();
             if (status >= 200 && status < 300) {
                 db.markOutboxDelivered(row.id(), db.workerId);
+                System.out.println("[delivery] outbox id=" + row.id() + " delivered in "
+                        + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedNanos) + " ms");
             } else if (HttpOutcome.isTransient(status)) {
                 // 5xx/408/429: transient, retry with backoff (same classification as
                 // ProcessingWorker, via HttpOutcome).
