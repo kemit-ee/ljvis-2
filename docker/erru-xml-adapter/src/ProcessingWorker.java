@@ -195,7 +195,7 @@ final class ProcessingWorker implements Runnable {
             try {
                 db.retryInboxLater(row.id(), db.workerId, reason, delay);
             } catch (SQLException e) {
-                System.err.println("[processing] cannot schedule retry for inbox " + row.id() + ": " + e);
+                System.err.println("[processing] cannot schedule retry for " + describe(row) + ": " + e);
             }
             return;
         }
@@ -238,7 +238,7 @@ final class ProcessingWorker implements Runnable {
     /** @param wireMessage the text sent to the Hub (statusMessage); {@code reason} stays in our own log only. */
     private void errorNotification(Db.ClaimedInbox row, Document doc, String status, String reason, String wireMessage,
                                    boolean businessComplete, boolean retry) {
-        System.err.println("[processing] inbox " + row.id() + ": " + reason);
+        System.err.println("[processing] " + describe(row) + ": " + reason);
         try {
             String technicalId = UUID.randomUUID().toString();
             String xml = enBuilder.build(status, wireMessage + " (correlation id: inbox/" + row.id() + ")",
@@ -256,10 +256,10 @@ final class ProcessingWorker implements Runnable {
             db.storeOutcome(row, xml, technicalId, deadline(row), complete, retry, reason,
                     backoffFor(row.attemptsBeforeThisClaim()));
         } catch (Db.LeaseLostException e) {
-            System.err.println("[processing] inbox " + row.id() + " lease lost: " + e.getMessage());
+            System.err.println("[processing] " + describe(row) + " lease lost: " + e.getMessage());
         } catch (SQLException e) {
             // Leave the lease to expire: neither the outcome nor business completion was committed.
-            System.err.println("[processing] cannot persist outcome for inbox " + row.id() + ": " + e);
+            System.err.println("[processing] cannot persist outcome for " + describe(row) + ": " + e);
         }
     }
 
@@ -270,12 +270,18 @@ final class ProcessingWorker implements Runnable {
         return text.length() > 400 ? text.substring(0, 400) : text;
     }
 
+    /** Log prefix that ties a line to the Hub's view: inbox row, ERRU workflowId, technicalId and message type. */
+    private static String describe(Db.ClaimedInbox row) {
+        return "inbox " + row.id() + " workflowId=" + row.workflowId() + " technicalId=" + row.technicalId()
+                + " type=" + row.messageType();
+    }
+
     private static Instant deadline(Db.ClaimedInbox row) {
         return ResponseBudget.deadline(row.deadlineAt(), row.receivedAt());
     }
 
     private void fail(Db.ClaimedInbox row, String error) {
-        System.err.println("[processing] inbox " + row.id() + " failed: " + error);
+        System.err.println("[processing] " + describe(row) + " failed: " + error);
         try {
             db.markInboxFailed(row.id(), db.workerId, error);
         } catch (SQLException e) {

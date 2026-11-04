@@ -11,6 +11,7 @@
 - Eduka kohaletoimetamise kohta jääb logisse rida koos kestusega, mille järgi saab Hubi vastuseaega hinnata.
 - Logisse jääb nüüd ka see, kui kaua vastus enne saatmist järjekorras ootas, ja nurjunud saatmise juures kasutada olnud aeg. Nii on näha, kas vastus jäi hiljaks meie järjekorra või Hubi aeglase vastuse tõttu.
 - Kohaletoimetamise logiridadel on nüüd ka ERRU `workflowId`, meie `technicalId` ja sõnumi tüüp, et rida saaks seostada Hubi rikete nimekirjaga.
+- Sama kehtib töötlemise logiridade kohta: vea korral on reas ERRU `workflowId`, `technicalId` ja sõnumi tüüp, mitte ainult sisemine postkasti number.
 
 ### TARA tagasisuunamine: `/auth/callback` ja `/auth/tara-callback`
 
