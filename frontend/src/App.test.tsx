@@ -61,6 +61,13 @@ describe('App routing', () => {
     expect(screen.getByText('auth-callback')).toBeTruthy();
   });
 
+  it('handles the /auth/tara-callback alias before the auth check', () => {
+    auth.value = { user: null, loading: false };
+    window.history.pushState({}, '', '/auth/tara-callback');
+    renderAt('/');
+    expect(screen.getByText('auth-callback')).toBeTruthy();
+  });
+
   it('shows the login page when not authenticated', () => {
     auth.value = { user: null, loading: false };
     renderAt('/');

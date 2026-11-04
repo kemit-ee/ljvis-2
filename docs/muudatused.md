@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-04
+
+### TARA tagasisuunamine: `/auth/callback` ja `/auth/tara-callback`
+
+- Pärast TARA sisselogimist töötab nii `/auth/callback` kui ka `/auth/tara-callback`. Keskkonnas, kus TARA kliendil on registreeritud teine tee, määrab selle frontend-konteineri keskkonnamuutuja `TARA_CALLBACK_PATH` (vaikimisi `/auth/callback`). Paigaldusjuhend ja arhitektuuri järjestusdiagrammid (sisselogimine, kodaniku vaade) on uuendatud.
+
 ## 2026-10-29
 
 ### RSI teade: raskusastme linnukesed ja printvorm
