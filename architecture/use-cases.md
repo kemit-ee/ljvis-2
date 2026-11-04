@@ -281,31 +281,29 @@
 ```mermaid
 sequenceDiagram
     actor Kodanik
-    participant UI as LJVIS
+    participant UI as LJVIS (React SPA)
+    participant TIM
     participant TARA
+    participant Ruuter
 
-    Kodanik->>UI: Avab avaliku portaali
-    UI-->>Kodanik: Sisselogimisleht (isPublicRequest=true)
-
-    Kodanik->>UI: Klõpsab „Logi sisse"
-    UI->>UI: Genereerib CSRF state
-    UI-->>Kodanik: Redirect → TARA /authorize
+    Kodanik->>UI: Avab portaali, valib „Kodanik"
+    UI->>TIM: GET /tim/auth/login/tara?redirect_uri=<origin><TARA_CALLBACK_PATH>
+    TIM-->>UI: authorization_url (state + nonce)
+    UI-->>Kodanik: Redirect → TARA
 
     Kodanik->>TARA: Autendib (ID-kaart / Mobiil-ID)
-    TARA-->>UI: AuthorizeCallback?code=...&state=...
+    TARA-->>UI: Redirect → /auth/callback?code=...&state=...
 
-    UI->>TARA: POST /token (code)
-    TARA-->>UI: access_token + id_token
-    UI->>TARA: GET /userinfo
-    TARA-->>UI: isikukood, nimi
-
-    UI->>UI: SetUser(profileInfo) sessioonile
-    Note right of UI: Ei nõua DB kasutajakontot
-    UI-->>Kodanik: Redirect → /PublicRequests
+    UI->>Ruuter: POST /api/auth/oauth-callback {code, state, intent=citizen}
+    Ruuter->>TIM: GET /auth/callback/tara (code → id_token, state kontroll)
+    TIM-->>Ruuter: user_profile (isikukood)
+    Ruuter-->>UI: Set-Cookie (customJwtCookie, 8 h)
+    Note right of Ruuter: Ei nõua DB kasutajakontot
+    UI->>Ruuter: Esinduse vahetus → citizen-self
+    UI-->>Kodanik: Redirect → / (kodaniku töölaud)
 
     Kodanik->>UI: Klõpsab „Logi välja" (K-03)
-    UI->>UI: Seanss tühjendatakse
-    UI-->>Kodanik: Väljalogimise kinnitus
+    UI-->>Kodanik: Seanss lõpetatakse, tagasi sisselogimislehele
 ```
 
 ### K-04…K-06 · Oma andmete vaatamine

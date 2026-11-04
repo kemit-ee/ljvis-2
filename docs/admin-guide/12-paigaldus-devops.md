@@ -266,7 +266,7 @@ kubectl -n ljvis2-<env> get secret nysiis-secret pdf-creator-secret s3-proxy-sec
 4. **Release:** lisage `environments/<env>/release.yaml` (versioon sama, mis testil).
 5. **Argo:** lisage `release.yaml` rada `applicationset-charts-nonlive.yaml` generaatorisse.
 6. **DNS:** CNAME `<hostinimi>` → `kubernetes-nonlive.kemitaws.ee` (käsitsi, kui domeen ei ole Route53-s).
-7. **TARA:** registreerige uue keskkonna `https://<hostinimi>/auth/callback` RIA-s TARA kliendile.
+7. **TARA:** registreerige uue keskkonna `https://<hostinimi>/auth/callback` **või** `https://<hostinimi>/auth/tara-callback` RIA-s TARA kliendile (sõltuvalt keskkonnast). Lisage mõlemad TIM-i `allowed_redirect_uris` loendisse ja seadke frontend-konteineri keskkonnamuutuja `TARA_CALLBACK_PATH` TARA-s registreeritud teele (vaikimisi `/auth/callback`). Frontend võtab `redirect_uri` sellest; mõlemad teed töötavad alati.
 8. Lubage paigaldus, oodake Liquibase Job'i, seejärel looge esimene superadmin (peatükk „Esimese superadmini loomine“).
 
 ## Valideerimine

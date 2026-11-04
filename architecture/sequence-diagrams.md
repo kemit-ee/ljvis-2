@@ -5,38 +5,52 @@
 ```mermaid
 sequenceDiagram
     actor Kasutaja
-    participant Browser
-    participant LJVIS as LJVIS veebirakendus<br/>(TaraController)
+    participant Browser as Brauser (React SPA)
+    participant TIM
     participant TARA as TARA autentimisteenus
+    participant Ruuter
+    participant Resql
 
-    Kasutaja->>Browser: Avab sisselogimislehe
-    Browser->>LJVIS: GET /Users/Tara
-    LJVIS-->>Browser: Sisselogimisvaade
+    Kasutaja->>Browser: Avab sisselogimislehe, valib rolli (ametnik / kodanik)
+    Browser->>Browser: sessionStorage.loginIntent = intent
+    Browser->>TIM: GET /tim/auth/login/tara?redirect_uri=<origin><TARA_CALLBACK_PATH>
+    TIM->>TIM: Genereerib state (ühekordne) ja nonce
+    TIM-->>Browser: authorization_url
 
-    Kasutaja->>Browser: Klõpsab "Logi sisse"
-    Browser->>LJVIS: GET /Users/Tara/Authorize
-    LJVIS->>LJVIS: Genereerib state (CSRF kaitse)
-    LJVIS-->>Browser: Redirect → TARA /authorize?state=...
-
-    Browser->>TARA: GET /authorize (ID-kaart / Mobiil-ID)
+    Browser->>TARA: Suunab authorization_url-ile (ID-kaart / Mobiil-ID / Smart-ID)
     Kasutaja->>TARA: Autendib end
-    TARA-->>Browser: Redirect → /Users/Tara/AuthorizeCallback?code=...&state=...
+    TARA-->>Browser: Redirect → /auth/callback?code=...&state=...
 
-    Browser->>LJVIS: GET /AuthorizeCallback?code=...&state=...
-    LJVIS->>LJVIS: Kontrollib state väärtust
-    LJVIS->>TARA: POST /token (code + redirect_uri)
-    TARA-->>LJVIS: access_token + id_token
-    LJVIS->>TARA: GET /userinfo
-    TARA-->>LJVIS: isikukood, nimi
+    Browser->>Browser: AuthCallback loeb code, state ja loginIntent
+    Browser->>Ruuter: POST /api/auth/oauth-callback {code, state, intent}
+    Ruuter->>TIM: GET /auth/callback/tara?code=...&state=...
+    TIM->>TARA: Vahetab code tokenite vastu (token_endpoint)
+    TARA-->>TIM: id_token
+    TIM->>TIM: Kontrollib state, allkirja, iss, aud, exp, nonce
+    TIM-->>Ruuter: session_id + user_profile (user_id = EE<isikukood>)
 
-    LJVIS->>LJVIS: Otsib kasutaja andmebaasist (isikukoodi järgi)
-    alt Kasutaja leitud ja rolligrupp olemas
-        LJVIS->>LJVIS: Loob FormsAuthentication küpsis
-        LJVIS-->>Browser: Redirect → /Dashboard
-    else Kasutaja puudub / pole grupis
-        LJVIS-->>Browser: Veateade, tagasi sisselogimislehele
+    Ruuter->>Ruuter: Eemaldab isikukoodilt "EE" eesliite
+    Ruuter->>TIM: POST /jwt/custom/generate (personalCode, authMethod=TARA)
+    TIM-->>Ruuter: customJwtCookie (kehtib 8 h)
+
+    opt intent = officer ja kasutajakonto olemas
+        Ruuter->>Resql: user/get_user_organisation_by_personal_code
+        Resql-->>Ruuter: userAccountId, organisationId
+        Ruuter->>Ruuter: Kirjutab auditisündmuse auth.login.success
+    end
+
+    Ruuter-->>Browser: 200 + Set-Cookie (customJwtCookie)
+    opt intent = citizen
+        Browser->>Ruuter: Vahetab esinduse → citizen-self
+    end
+    Browser->>Browser: Redirect → /
+
+    alt TARA viga, vigane state või vahetus ebaõnnestub
+        Browser-->>Kasutaja: "TARA pole saadaval" + link sisselogimislehele
     end
 ```
+
+> Callback-teed `/auth/callback` ja `/auth/tara-callback` töötavad mõlemad (frontend [App.tsx](../frontend/src/App.tsx)); `redirect_uri` tee tuleb keskkonnamuutujast `TARA_CALLBACK_PATH` (`/config.json`), vaikimisi `/auth/callback`. Kasutatav väärtus peab olema TIM-i `allowed_redirect_uris` loendis ja registreeritud TARA kliendil.
 
 ---
 
@@ -193,32 +207,36 @@ sequenceDiagram
 
 ---
 
-## 7. Avalik päring (PublicRequests – kodaniku vaade)
+## 7. Avalik päring (kodaniku vaade)
 
 ```mermaid
 sequenceDiagram
     actor Kodanik
-    participant Browser
-    participant LJVIS as LJVIS (PublicRequestsController)
-    participant TARA as TARA autentimine
-    participant DB as SQL Server
+    participant Browser as Brauser (React SPA)
+    participant TIM
+    participant TARA
+    participant Ruuter
+    participant Resql as Resql / DB
 
-    Kodanik->>Browser: Avab avaliku päringu lehe
-    Browser->>LJVIS: GET /PublicRequests
-    LJVIS-->>Browser: Sisselogimisvaade (isPublicRequest=true)
+    Kodanik->>Browser: Avab portaali, valib "Kodanik"
+    Browser->>Browser: sessionStorage.loginIntent = citizen
+    Browser->>TIM: GET /tim/auth/login/tara?redirect_uri=<origin><TARA_CALLBACK_PATH>
+    TIM-->>Browser: authorization_url
+    Browser->>TARA: Suunab TARA-sse
+    Kodanik->>TARA: Autendib end
+    TARA-->>Browser: Redirect → /auth/callback?code=...&state=...
 
-    Kodanik->>Browser: Autendib TARA kaudu
-    Browser->>LJVIS: GET /Tara/Authorize?isPublicRequest=true
-    LJVIS->>TARA: Suunab TARA-sse
-    TARA-->>LJVIS: AuthorizeCallback (isikukood)
+    Browser->>Ruuter: POST /api/auth/oauth-callback {code, state, intent=citizen}
+    Ruuter->>TIM: GET /auth/callback/tara (code vahetus, isikukood)
+    Ruuter-->>Browser: Set-Cookie (customJwtCookie)
+    Note right of Ruuter: DB kasutajakontot ei nõuta;<br/>ametniku auditisündmust ei kirjutata
+    Browser->>Ruuter: Esinduse vahetus → citizen-self
+    Browser->>Browser: Redirect → / (kodaniku töölaud)
 
-    LJVIS->>LJVIS: SetUser(profileInfo) sessioonile<br/>(ei nõua DB kasutajat)
-
-    LJVIS-->>Browser: Redirect → /PublicRequests
-
-    Kodanik->>Browser: Pärib oma kontrolliandmeid
-    Browser->>LJVIS: GET /PublicRequests/...
-    LJVIS->>DB: SELECT kontrollivormid isikukoodi järgi
-    DB-->>LJVIS: Kontrolliandmed
-    LJVIS-->>Browser: Kontrolliandmete vaade
+    Kodanik->>Browser: Vaatab oma kontrolliandmeid
+    Browser->>Ruuter: GET /api/... (JWT küpsisega)
+    Ruuter->>Ruuter: Tuvastab esinduse (citizen-self / company)
+    Ruuter->>Resql: Päring isikukoodi järgi
+    Resql-->>Ruuter: Kontrolliandmed
+    Ruuter-->>Browser: Kontrolliandmete vaade (ainult lugemine)
 ```
