@@ -6,6 +6,7 @@
 
 ### ERRU: vastuste kohaletoimetamine Hubile
 
+- Kui ERRU päring lükatakse andmete tõttu tagasi (`InvalidData`), saadab süsteem Hubile veateate koos tagasilükkamise põhjusega, mitte üldise tekstiga „ei õnnestunud vastust koostada“. Nii on Hubi poolelt näha, miks päring ei sobinud.
 - ERRU päringutele antavad vastused saadetakse Hubile nüüd kuni 16 samaaegse ühendusega (varem 2). Suure päringute hulga korral ei jää vastused enam järjekorda ootama, kuni Hubi tähtaeg möödub.
 - Eduka kohaletoimetamise kohta jääb logisse rida koos kestusega, mille järgi saab Hubi vastuseaega hinnata.
 - Logisse jääb nüüd ka see, kui kaua vastus enne saatmist järjekorras ootas, ja nurjunud saatmise juures kasutada olnud aeg. Nii on näha, kas vastus jäi hiljaks meie järjekorra või Hubi aeglase vastuse tõttu.
