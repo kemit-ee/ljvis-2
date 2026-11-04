@@ -46,6 +46,32 @@ permissions:
 
 jobs:
 
+  erru-adapter-tests:
+    name: ERRU adapter — Java and PostgreSQL tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    env:
+      JAVA_TEST_OUTPUT_DIR: ${{ runner.temp }}/erru-java-tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Java mapper, configuration and HTTP boundary tests
+        run: bash tests/erru-adapter/run-java-tests.sh
+      - name: PostgreSQL journals and asynchronous transport lifecycle
+        run: bash tests/erru-adapter/run-integration-tests.sh
+      - name: Upload transport diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erru-transport-test-log
+          path: ${{ runner.temp }}/erru-java-tests/transport.log
+          if-no-files-found: ignore
+
   # ── 1. DSL validation ──────────────────────────────────────────────────────
   # Fast syntax check — runs on every commit, catches broken YAML/SQL before
   # the heavier test jobs even start.
@@ -895,6 +921,7 @@ jobs:
     if: always()
     needs:
       - validate-dsl
+      - erru-adapter-tests
       - guard-audit
       - dsl-lint
       - security-scan
@@ -908,6 +935,7 @@ jobs:
         run: |
           echo "Job results:"
           echo "  validate-dsl:        ${{ needs.validate-dsl.result }}"
+          echo "  erru-adapter-tests:  ${{ needs.erru-adapter-tests.result }}"
           echo "  guard-audit:         ${{ needs.guard-audit.result }}"
           echo "  dsl-lint:            ${{ needs.dsl-lint.result }}"
           echo "  security-scan:       ${{ needs.security-scan.result }}"
@@ -920,6 +948,7 @@ jobs:
           failed=""
           for result in \
             "${{ needs.validate-dsl.result }}" \
+            "${{ needs.erru-adapter-tests.result }}" \
             "${{ needs.guard-audit.result }}" \
             "${{ needs.dsl-lint.result }}" \
             "${{ needs.security-scan.result }}" \
