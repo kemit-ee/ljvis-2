@@ -123,7 +123,8 @@ final class ProcessingWorker implements Runnable {
             }
             boolean broadcast = "CheckGoodRepute_Request".equals(mapper.requestRoot()) && "ZZ".equals(to);
             if (!config.memberStateCode.equals(to) && !broadcast) {
-                errorNotification(row, doc, "InvalidData", "Wrong recipient: " + to, true, false);
+                errorNotification(row, doc, "InvalidData", "Wrong recipient: " + to,
+                        "Request is not addressed to this member state", true, false);
                 return;
             }
             if (row.attemptsBeforeThisClaim() >= config.processingMaxAttempts) {
@@ -216,7 +217,9 @@ final class ProcessingWorker implements Runnable {
             if (!rejected && mapper.requiresBusinessCompletion()) {
                 handleFailure(row, mapper, doc, e.toString(), false);
             } else {
-                errorNotification(row, doc, rejected ? "InvalidData" : "ServerError", e.toString(), true, false);
+                // A business rejection tells the Hub why; any other failure keeps the generic text.
+                errorNotification(row, doc, rejected ? "InvalidData" : "ServerError", e.toString(),
+                        rejected ? rejectionMessage(e.rawMessage) : EN_MESSAGE, true, false);
             }
             return;
         } catch (Exception e) {
@@ -229,10 +232,16 @@ final class ProcessingWorker implements Runnable {
 
     private void errorNotification(Db.ClaimedInbox row, Document doc, String status, String reason,
                                    boolean businessComplete, boolean retry) {
+        errorNotification(row, doc, status, reason, EN_MESSAGE, businessComplete, retry);
+    }
+
+    /** @param wireMessage the text sent to the Hub (statusMessage); {@code reason} stays in our own log only. */
+    private void errorNotification(Db.ClaimedInbox row, Document doc, String status, String reason, String wireMessage,
+                                   boolean businessComplete, boolean retry) {
         System.err.println("[processing] " + describe(row) + ": " + reason);
         try {
             String technicalId = UUID.randomUUID().toString();
-            String xml = enBuilder.build(status, EN_MESSAGE + " (correlation id: inbox/" + row.id() + ")",
+            String xml = enBuilder.build(status, wireMessage + " (correlation id: inbox/" + row.id() + ")",
                     doc, row.rawXml(), technicalId);
             schemas.validate("ErrorNotification", xml);
             storeOutcome(row, xml, technicalId, businessComplete, retry, reason);
@@ -252,6 +261,13 @@ final class ProcessingWorker implements Runnable {
             // Leave the lease to expire: neither the outcome nor business completion was committed.
             System.err.println("[processing] cannot persist outcome for " + describe(row) + ": " + e);
         }
+    }
+
+    /** The flow's own rejection reason (written in the DSL, not derived from exceptions), collapsed and capped to fit statusMessage's 512 characters. */
+    static String rejectionMessage(String flowMessage) {
+        String text = flowMessage == null ? "" : flowMessage.replaceAll("\\s+", " ").trim();
+        if (text.isEmpty()) return "Request rejected as invalid data";
+        return text.length() > 400 ? text.substring(0, 400) : text;
     }
 
     /** Log prefix that ties a line to the Hub's view: inbox row, ERRU workflowId, technicalId and message type. */
