@@ -12,6 +12,7 @@ import { Header, Footer } from '@tedi-design-system/react/community';
 import { DescriptionList } from '../DescriptionList';
 import { useFooterProps } from '../../../layout/useFooterProps';
 import { useErrorContext } from '../../../shared/errors/ErrorContext';
+import { getTaraCallbackPath } from '../taraCallbackPath';
 import styles from './LoginPage.module.css';
 
 type LoginIntent = 'citizen' | 'officer';
@@ -37,7 +38,8 @@ async function startLogin(
     // redirect_uri tells TIM (and TARA) where to send the authorization
     // code after authentication. This is a frontend route — AuthCallback
     // picks up code+state and forwards them to Ruuter.
-    const redirectUri = `${window.location.origin}/auth/callback`;
+    // The path is per-environment (matches what is registered at TARA).
+    const redirectUri = `${window.location.origin}${await getTaraCallbackPath()}`;
     const res = await fetch(
       `/tim/auth/login/tara?redirect_uri=${encodeURIComponent(redirectUri)}`,
     );

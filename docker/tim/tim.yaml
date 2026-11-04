@@ -53,5 +53,6 @@ oauth2:
         cache_ttl_seconds: 3600
       allowed_redirect_uris:
         - "http://localhost:3001/auth/callback"
+        - "http://localhost:3001/auth/tara-callback"
 
 

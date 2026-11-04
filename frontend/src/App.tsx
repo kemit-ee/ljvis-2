@@ -61,6 +61,7 @@ import { CitizenLabourInspectionDetailPage } from './features/citizen/pages/Citi
 import { CitizenCompoundDetailPage } from './features/citizen/pages/CitizenCompoundDetailPage/CitizenCompoundDetailPage';
 import { CitizenForeignViolationDetailPage } from './features/citizen/pages/CitizenForeignViolationDetailPage/CitizenForeignViolationDetailPage';
 import { CitizenGoodReputeDetailPage } from './features/citizen/pages/CitizenGoodReputeDetailPage/CitizenGoodReputeDetailPage';
+import { TARA_CALLBACK_PATHS } from './features/auth/taraCallbackPath';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { ClassifierProvider, ClassifierScopeProvider } from './features/classifiers/ClassifierProvider';
 
@@ -72,7 +73,8 @@ function AppRoutes() {
   }
 
   // Handle OAuth callback before auth check — user is not yet authenticated
-  if (window.location.pathname === '/auth/callback') {
+  // Both paths are accepted (/auth/tara-callback is an alias of /auth/callback).
+  if (TARA_CALLBACK_PATHS.includes(window.location.pathname)) {
     return <AuthCallback />;
   }
 
