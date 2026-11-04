@@ -62,7 +62,7 @@ public final class ErruXmlAdapter {
             workers.add(startWorker(new ProcessingWorker(config, new Db(config), schemas, List.of(mapper)),
                     "erru-processing-" + mapper.requestRoot()));
         }
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < config.deliveryThreads; i++) {
             workers.add(startWorker(new DeliveryWorker(config, new Db(config)), "erru-delivery-" + i));
         }
         HttpServer server = HttpServer.create(new InetSocketAddress(config.port), 0);

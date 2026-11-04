@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-04
+
+### ERRU: vastuste kohaletoimetamine Hubile
+
+- ERRU päringutele antavad vastused saadetakse Hubile nüüd kuni 16 samaaegse ühendusega (varem 2). Suure päringute hulga korral ei jää vastused enam järjekorda ootama, kuni Hubi tähtaeg möödub.
+- Eduka kohaletoimetamise kohta jääb logisse rida koos kestusega, mille järgi saab Hubi vastuseaega hinnata.
+
 ## 2026-10-29
 
 ### RSI teade: raskusastme linnukesed ja printvorm
