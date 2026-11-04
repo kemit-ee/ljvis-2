@@ -4,23 +4,23 @@ declaration:
   version: "1.0"
   description: >-
     Märgib kõik autenditud kasutaja lugemata teavitused loetuks.
-    APPEND-ONLY: itereerib üle lugemata ID-de ja teeb iga kohta
-    eraldi INSERT ON CONFLICT DO NOTHING (idempotentne).
-    Kaitstud POST/.guard (autentimine) kaudu.
+    Lisab lugemise sündmused ühe INSERT ON CONFLICT DO NOTHING päringuga.
+    Korduv päring ei lisa duplikaate. Teavituste arv ei ole piiratud.
+    Projektiülene guard autendib kasutaja.
   namespace: notification
   allowlist:
     body: []
 
 extractContext:
   assign:
-    user_code: "${u.personalcode || ''}"
-    permissions: "${(u.permissions || []).join(',')}"
-  next: fetchUnreadIds
+    user_code: "${auth_user.personalcode}"
+    permissions: "${(auth_user.permissions || []).join(',')}"
+  next: markAllRead
 
-fetchUnreadIds:
+markAllRead:
   call: http.post
   args:
-    url: "[#LJVIS_RESQL]/notification/list_unread_notification_ids"
+    url: "[#LJVIS_RESQL]/notification/mark_all_notifications_read"
     headers:
       Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
@@ -28,33 +28,9 @@ fetchUnreadIds:
     body:
       user_code: ${user_code}
       permissions: ${permissions}
-  result: unreadRes
-  next: checkAnyUnread
-
-checkAnyUnread:
-  assign:
-    unread_ids: "${unreadRes.response.body}"
-  next: markAllRead
-
-markAllRead:
-  iterate:
-    over: "${unread_ids}"
-    as: notif
-    max_items: 500
-    do:
-      - call: http.post
-        args:
-          url: "[#LJVIS_RESQL]/notification/mark_notification_read"
-          headers:
-            Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
-            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-            type: json
-          body:
-            notification_id: ${notif.id}
-            user_code: ${user_code}
+  result: res
   next: returnResult
 
 returnResult:
-  return:
-    markedCount: "${unread_ids.length}"
+  return: ${res.response.body[0]}
   next: end
