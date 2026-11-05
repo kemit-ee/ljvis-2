@@ -1267,6 +1267,7 @@
     "myCompany": "My company",
     "notifications": "Notifications",
     "xroadLogs": "e-Toimik X-Road logs",
+    "erruAdmin": "ERRU",
     "notificationTemplateMapping": "Postkast template and recipient settings"
   },
   "citizen": {
@@ -1691,6 +1692,11 @@
     "bandRoheline": "Green",
     "bandKollane": "Amber",
     "bandPunane": "Red"
+  },
+  "erruHubWsdl": {
+    "title": "ERRU Hub WSDLs",
+    "description": "Downloads the MOVEHUB Hub WSDL in the background over sTESTA and offers it as a file.",
+    "download": "Download"
   },
   "xroadLogs": {
     "title": "e-Toimik X-Road logs",

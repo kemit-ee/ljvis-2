@@ -194,6 +194,14 @@ export function useSideNavProps(): UseSideNavPropsResult {
       });
     }
 
+    if (hasPermission(PERMISSIONS.XROAD_LOG_READ)) {
+      adminSubItems.push({
+        children: t('nav.erruAdmin'),
+        to: '/admin/erru',
+        isActive: pathname.startsWith('/admin/erru'),
+      });
+    }
+
     if (hasPermission(PERMISSIONS.NOTIFICATION_TEMPLATE_MAPPING_LIST)) {
       adminSubItems.push({
         children: t('nav.notificationTemplateMapping'),

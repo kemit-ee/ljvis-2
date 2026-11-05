@@ -1,0 +1,55 @@
+declaration:
+  internal: false
+  returns: []
+  version: "1.0"
+  description: >-
+    Haldus > ERRU: tõmbab ühe MOVEHUB Hubi WSDL-i sTESTA kaudu ja tagastab
+    faili sisu allalaadimiseks ({filename, contentType, content}). Nimi peab
+    olema kinnisest nimekirjast (list.yml), suvalist aadressi selle kaudu
+    kutsuda ei saa. Õigus xroad.log.read kontrollitakse kataloogi .guard.yml-is.
+  namespace: erru_hub_wsdl
+  allowlist:
+    params:
+      - field: name
+        type: string
+        description: "erru-reqres, erru-oneway, rsi-reqres või rsi-oneway."
+
+extractRequestData:
+  assign:
+    name: "${(incoming.params.name || '').trim()}"
+    paths: "${({'erru-reqres':'/ERRU/soap/ReqRes/ERRU.svc','erru-oneway':'/ERRU/soap/OneWay/ERRU.svc','rsi-reqres':'/RSI/soap/ReqRes/RSI.svc','rsi-oneway':'/RSI/soap/OneWay/RSI.svc'})}"
+  next: validateName
+
+validateName:
+  switch:
+    - condition: "${paths[name] == null}"
+      next: returnInvalidName
+  next: fetchWsdl
+
+fetchWsdl:
+  call: http.get
+  timeout: 30000
+  args:
+    url: "${'[#ERRU_HUB_WSDL_BASE]' + paths[name] + '?wsdl'}"
+  result: wsdlRes
+  next: checkWsdl
+
+checkWsdl:
+  switch:
+    - condition: "${wsdlRes.response == null || wsdlRes.response.status < 200 || wsdlRes.response.status >= 300 || wsdlRes.response.body == null}"
+      next: returnFetchError
+  next: returnWsdl
+
+returnWsdl:
+  return: "${({ filename: name + '.wsdl', contentType: 'text/xml', content: (typeof wsdlRes.response.body === 'string' ? wsdlRes.response.body : JSON.stringify(wsdlRes.response.body)) })}"
+  next: end
+
+returnInvalidName:
+  status: 400
+  return: "${({ error: 'INVALID_PARAMETER', message: 'Tundmatu WSDL' })}"
+  next: end
+
+returnFetchError:
+  status: 502
+  return: "${({ error: 'HUB_UNREACHABLE', message: 'Hubi WSDL-i ei õnnestunud tõmmata' })}"
+  next: end
