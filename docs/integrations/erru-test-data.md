@@ -22,8 +22,7 @@ kahte andmehulka:
 SQL-fail on idempotentne. Kui andmebaasis on `MOVEHUB-` prefiksiga kirjed,
 jätab skript impordi vahele.
 
-Teine fail `DSL/Liquibase/changelog/20261227100000-erru-movehub-mtr-master-data.sql`
-(Liquibase changeset) sisaldab kogu `Simulated Test Data/ErruTestData.xml` peaandmeid (isikud,
+Teine fail `DSL/Liquibase/test/20261227100000-erru-movehub-mtr-master-data.sql` sisaldab kogu `Simulated Test Data/ErruTestData.xml` peaandmeid (isikud,
 kutsetunnistused, veoettevõtjad, tegevusload, tõestatud koopiad, rikkumised ja
 karistused). Selle kirjeldus on jaotises [MTR peaandmete tabelid](#mtr-peaandmete-tabelid).
 
@@ -78,10 +77,19 @@ WHERE business_case_id LIKE 'MOVEHUB-NCR-INFR-%';
 
 ## MTR peaandmete tabelid
 
-Liquibase changeset `20261227100000` laadib faili `Simulated Test Data/ErruTestData.xml`
-kogu sisu skeemi `erru` tabelitesse `mtr_*`. Changeset loob ise tabelid ja
-rakendub automaatselt iga `liquibase update` käivitusega (`docker compose up`,
-CI). Käsitsi laadimist ei ole vaja.
+Fail `DSL/Liquibase/test/20261227100000-erru-movehub-mtr-master-data.sql`
+laadib faili `Simulated Test Data/ErruTestData.xml` kogu sisu skeemi `erru`
+tabelitesse `mtr_*`. Fail loob ise tabelid (`CREATE TABLE IF NOT EXISTS`).
+See ei ole Liquibase changeset ega rakendu automaatselt (`docker compose up`,
+`liquibase update` ja CI `bootstrap` ei laadi seda). Käivita fail käsitsi.
+Ära laadi seda toodangukeskkonda.
+
+Laadimine:
+
+```bash
+docker compose exec -T database psql -U ljvis -d ljvis_db \
+  < DSL/Liquibase/test/20261227100000-erru-movehub-mtr-master-data.sql
+```
 
 | Tabel | Allikas XML-is | Ridu |
 |---|---|---|
@@ -104,8 +112,8 @@ on tegevusloa primaarvõti `undertaking_id` ja tõestatud koopia primaarvõti
 `(undertaking_id, seq)`. Algsed XML-i ID-d on säilitatud veergudes `licence_id` ja
 `true_copy_id`.
 
-Changeset on idempotentne (`INSERT ... ON CONFLICT DO NOTHING`) ja rollback
-kustutab kõik seitse tabelit. Faili saab vajaduse korral käivitada ka käsitsi `psql`-iga.
+Fail on idempotentne (`INSERT ... ON CONFLICT DO NOTHING`). Rakenda enne
+Liquibase'i migratsioonid, sest fail eeldab skeemi `erru`.
 
 Kontrolli kirjete arvu:
 
