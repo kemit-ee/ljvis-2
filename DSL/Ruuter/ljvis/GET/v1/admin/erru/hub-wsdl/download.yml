@@ -13,9 +13,6 @@ declaration:
       - field: name
         type: string
         description: "erru-reqres, erru-oneway, rsi-reqres või rsi-oneway."
-    headers:
-      - field: cookie
-        type: string
 
 extractRequestData:
   assign:

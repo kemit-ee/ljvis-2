@@ -7,10 +7,6 @@ declaration:
     Tagastab ainult nimed ja aadressid; faili ennast tõmbab download.yml.
     Õigus xroad.log.read kontrollitakse kataloogi .guard.yml-is.
   namespace: erru_hub_wsdl
-  allowlist:
-    headers:
-      - field: cookie
-        type: string
 
 build:
   assign:
