@@ -22,6 +22,11 @@ kahte andmehulka:
 SQL-fail on idempotentne. Kui andmebaasis on `MOVEHUB-` prefiksiga kirjed,
 jätab skript impordi vahele.
 
+Teine fail `DSL/Liquibase/changelog/20261227100000-erru-movehub-mtr-master-data.sql`
+(Liquibase changeset) sisaldab kogu `Simulated Test Data/ErruTestData.xml` peaandmeid (isikud,
+kutsetunnistused, veoettevõtjad, tegevusload, tõestatud koopiad, rikkumised ja
+karistused). Selle kirjeldus on jaotises [MTR peaandmete tabelid](#mtr-peaandmete-tabelid).
+
 ## Eeltingimused
 
 - Käivita LJVIS 2 Docker Compose'i keskkond.
@@ -70,6 +75,57 @@ FROM erru.ncr_message
 WHERE business_case_id LIKE 'MOVEHUB-NCR-INFR-%';
 -- Oodatav tulemus: 2161
 ```
+
+## MTR peaandmete tabelid
+
+Liquibase changeset `20261227100000` laadib faili `Simulated Test Data/ErruTestData.xml`
+kogu sisu skeemi `erru` tabelitesse `mtr_*`. Changeset loob ise tabelid ja
+rakendub automaatselt iga `liquibase update` käivitusega (`docker compose up`,
+CI). Käsitsi laadimist ei ole vaja.
+
+| Tabel | Allikas XML-is | Ridu |
+|---|---|---|
+| `erru.mtr_person` | `Person` | 3035 |
+| `erru.mtr_cpc` | `CertificateOfProfessionalCompetence` | 3037 |
+| `erru.mtr_undertaking` | `RoadTransportUndertaking` | 3039 |
+| `erru.mtr_community_licence` | `CommunityLicence` | 3039 |
+| `erru.mtr_certified_true_copy` | `CertifiedTrueCopy` | 48174 |
+| `erru.mtr_infringement` | `RoadTransportInfringements` | 3399 |
+| `erru.mtr_penalty` | `RoadTransportPenalties` | 2313 |
+
+Seosed: `mtr_cpc` ja `mtr_undertaking` viitavad isikule (`person_id`),
+`mtr_community_licence` ettevõtjale (`undertaking_id`), `mtr_certified_true_copy`
+tegevusloale (`undertaking_id`) ning `mtr_infringement` ettevõtjale. `mtr_penalty`
+viitab rikkumisele (`infringement_id`). Tõestatud koopia sõiduk on veerus
+`vehicle_registration_number`.
+
+Allikas sisaldab korduvaid ID-sid: 2 tegevusluba ja 59 tõestatud koopiat. Seetõttu
+on tegevusloa primaarvõti `undertaking_id` ja tõestatud koopia primaarvõti
+`(undertaking_id, seq)`. Algsed XML-i ID-d on säilitatud veergudes `licence_id` ja
+`true_copy_id`.
+
+Changeset on idempotentne (`INSERT ... ON CONFLICT DO NOTHING`) ja rollback
+kustutab kõik seitse tabelit. Faili saab vajaduse korral käivitada ka käsitsi `psql`-iga.
+
+Kontrolli kirjete arvu:
+
+```sql
+SELECT 'person' AS tabel, count(*) FROM erru.mtr_person          -- 3035
+UNION ALL SELECT 'cpc', count(*) FROM erru.mtr_cpc               -- 3037
+UNION ALL SELECT 'undertaking', count(*) FROM erru.mtr_undertaking  -- 3039
+UNION ALL SELECT 'licence', count(*) FROM erru.mtr_community_licence  -- 3039
+UNION ALL SELECT 'true_copy', count(*) FROM erru.mtr_certified_true_copy  -- 48174
+UNION ALL SELECT 'infringement', count(*) FROM erru.mtr_infringement  -- 3399
+UNION ALL SELECT 'penalty', count(*) FROM erru.mtr_penalty;       -- 2313
+```
+
+MTR mock neid tabeleid **ei loe**. Mock kasutab jätkuvalt staatilisi vastuseid
+(vt järgmine jaotis). Tabelid on mõeldud käsitsi päringuteks ja testandmete
+allikaks.
+
+Faili `OdocarTestData.xml`, `ProDriveNetTestData.xml`, `ResperTestData.xml` ja
+`TachonetTestData.xml` andmeid (juhiload, tahhokaardid, sõidukid) ei laeta, sest
+LJVIS 2-s puudub nende registrite integratsioon.
 
 ## MTR mock
 

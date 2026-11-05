@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 47.
+Skeemid: 8, tabeleid: 54.
 
 ## Skeem `audit`
 
@@ -194,6 +194,138 @@ Loodud: `20261201085000-erru-inbound-business-recovery.sql` · veerge: 2 · PK: 
 |---|---|---|
 | `key` | TEXT | jah |
 | `event_id` | TEXT | jah |
+
+### `erru.mtr_certified_true_copy`
+
+Loodud: `20261227100000-erru-movehub-mtr-master-data.sql` · veerge: 10 · PK: `undertaking_id, seq`
+
+Võõrvõtmed: `undertaking_id` → `erru.mtr_community_licence`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `undertaking_id` | UUID | jah |
+| `seq` | INTEGER | jah |
+| `true_copy_id` | UUID |  |
+| `true_copy_number` | TEXT |  |
+| `issue_date` | DATE |  |
+| `issue_country` | TEXT |  |
+| `expiry_date` | DATE |  |
+| `vehicle_registration_number` | TEXT |  |
+| `withdrawal_date` | DATE |  |
+| `withdrawal_expiry_date` | DATE |  |
+
+### `erru.mtr_community_licence`
+
+Loodud: `20261227100000-erru-movehub-mtr-master-data.sql` · veerge: 11 · PK: `undertaking_id`
+
+Võõrvõtmed: `undertaking_id` → `erru.mtr_undertaking`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `undertaking_id` | UUID | jah |
+| `licence_id` | UUID |  |
+| `licence_number` | TEXT |  |
+| `status` | TEXT |  |
+| `licence_type` | TEXT |  |
+| `start_date` | DATE |  |
+| `expiry_date` | DATE |  |
+| `licencing_authority` | TEXT |  |
+| `withdrawal_date` | DATE |  |
+| `suspension_date` | DATE |  |
+| `suspension_expiry_date` | DATE |  |
+
+### `erru.mtr_cpc`
+
+Loodud: `20261227100000-erru-movehub-mtr-master-data.sql` · veerge: 9 · PK: `cpc_id`
+
+Võõrvõtmed: `person_id` → `erru.mtr_person`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `cpc_id` | UUID | jah |
+| `person_id` | UUID | jah |
+| `cpc_number` | TEXT |  |
+| `issue_date` | DATE |  |
+| `issue_country` | TEXT |  |
+| `competent_authority` | TEXT |  |
+| `fitness` | TEXT |  |
+| `start_date_of_unfitness` | DATE |  |
+| `end_date_of_unfitness` | DATE |  |
+
+### `erru.mtr_infringement`
+
+Loodud: `20261227100000-erru-movehub-mtr-master-data.sql` · veerge: 5 · PK: `infringement_id`
+
+Võõrvõtmed: `undertaking_id` → `erru.mtr_undertaking`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `infringement_id` | UUID | jah |
+| `undertaking_id` | UUID | jah |
+| `category` | TEXT |  |
+| `code` | TEXT |  |
+| `description` | TEXT |  |
+
+### `erru.mtr_penalty`
+
+Loodud: `20261227100000-erru-movehub-mtr-master-data.sql` · veerge: 10 · PK: `penalty_id`
+
+Võõrvõtmed: `infringement_id` → `erru.mtr_infringement`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `penalty_id` | UUID | jah |
+| `infringement_id` | UUID | jah |
+| `imposing_authority` | TEXT |  |
+| `final_decision_date` | DATE |  |
+| `start_date` | DATE |  |
+| `end_date` | DATE |  |
+| `is_executed` | BOOLEAN |  |
+| `reason` | TEXT |  |
+| `penalty_code` | TEXT |  |
+| `description` | TEXT |  |
+
+### `erru.mtr_person`
+
+Loodud: `20261227100000-erru-movehub-mtr-master-data.sql` · veerge: 15 · PK: `person_id`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `person_id` | UUID | jah |
+| `member_state_of_residency` | TEXT |  |
+| `family_name` | TEXT |  |
+| `family_name_nysiis_key` | TEXT |  |
+| `first_name` | TEXT |  |
+| `first_name_nysiis_key` | TEXT |  |
+| `date_of_birth` | DATE |  |
+| `nationality` | TEXT |  |
+| `phone_number` | TEXT |  |
+| `email_address` | TEXT |  |
+| `permanent_address` | TEXT |  |
+| `place_of_birth` | TEXT |  |
+| `gender` | TEXT |  |
+| `post_code` | TEXT |  |
+| `city` | TEXT |  |
+
+### `erru.mtr_undertaking`
+
+Loodud: `20261227100000-erru-movehub-mtr-master-data.sql` · veerge: 11 · PK: `undertaking_id`
+
+Võõrvõtmed: `person_id` → `erru.mtr_person`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `undertaking_id` | UUID | jah |
+| `person_id` | UUID | jah |
+| `name` | TEXT |  |
+| `number_of_vehicles` | INTEGER |  |
+| `address` | TEXT |  |
+| `post_code` | TEXT |  |
+| `city` | TEXT |  |
+| `country` | TEXT |  |
+| `risk_rating` | INTEGER |  |
+| `risk_band` | TEXT |  |
+| `number_of_employees` | INTEGER |  |
 
 ### `erru.ncr_autodispatch_log`
 
