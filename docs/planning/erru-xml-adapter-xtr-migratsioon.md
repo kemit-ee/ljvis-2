@@ -132,6 +132,18 @@ Kasutaja oli õige: SOAP-i endpointid on dokumentides olemas ja "EC registreerim
 
 **Mõju otsusele:** SOAP-variant A on taas täiesti elujõuline; pole vaja EC-lt eraldi luba küsida. Ülejäänud küsimus on tehniline: sünkroonse ahela ≤10 s ja EN detail XTR-is.
 
+## 2i. Otsus (2026-11-05): SOAP, kui see on võimalik
+
+Eelistame Hubi **sünkroonset SOAP-profiili** (2h, 2h-2), sest XTR-i SOAP lane'id on olemas ja asünkroonne masinavärk (inbox/outbox, 202 + hilisem POST, `detach`, CronManager) kaob. Toor-XML (PR turnerrainer/XTR#41) jääb varuvariandiks.
+
+**Kontrollida enne lõplikku kinnitust:**
+1. Päris 3.5 WSDL Hubist (`?wsdl`) laeb XTR-is ja sidecar töötab acceptance'i vastu (vajab TESTA ligipääsu + 2-way SSL).
+2. Sissetulev suund: sünkroonne ahel Hub → XTR `/soap-in` → ruuter-internal → Resql → vastus mahub ≤10 s; ruuter-internal `http_request_timeout` (15 s) sobib.
+3. XTR: EN `detail` peab jõudma väljuva lane'i JSON-vastusesse (praegu kaob).
+4. Entry Criteria Checklist: SPOC protokoll, päringu-/vastuse-URL-id ja one-way EN URL; sõnumitüübi kaupa jagamine (NU eraldi) on lubatud, kuid päring+vastus samas protokollis.
+
+**Mõju PR-ile turnerrainer/XTR#41:** kui punktid 1–3 kinnituvad, jääb PR ootele (draft) või suletakse; XTR-i töö liigub EN detail'i parandusele.
+
 ## 3. Variandid
 
 | Variant | Sisu | Plussid | Miinused |
