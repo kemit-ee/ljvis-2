@@ -21,6 +21,11 @@ public final class ErruHubMock {
         var schemas = new SchemaRegistry(Path.of(System.getenv().getOrDefault("CONTRACTS_DIR", "/app/contracts/erru/3.5")));
         var server = HttpServer.create(new InetSocketAddress(Integer.parseInt(System.getenv().getOrDefault("PORT", "8080"))), 0);
         server.createContext("/health", ex -> write(ex, 200, "text/plain", "ok"));
+        for (String svc : new String[] {"/ERRU/soap/ReqRes/ERRU.svc", "/ERRU/soap/OneWay/ERRU.svc", "/RSI/soap/ReqRes/RSI.svc", "/RSI/soap/OneWay/RSI.svc"}) {
+            // Stand-in for the Hub's "?wsdl" so the admin WSDL download page can be exercised locally.
+            server.createContext(svc, ex -> write(ex, 200, "text/xml",
+                "<?xml version=\"1.0\"?><wsdl:definitions xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" name=\"MockHubWsdl\"><!-- " + svc + " --></wsdl:definitions>"));
+        }
         server.createContext("/rsi/http/request/BTSHTTPReceive.dll", ex -> receiveRsi(ex, schemas));
         server.createContext("/cgr/http/request/BTSHTTPReceive.dll", ex -> receiveRequest(ex, schemas, "CheckGoodRepute_Request"));
         server.createContext("/ctud/http/request/BTSHTTPReceive.dll", ex -> receiveRequest(ex, schemas, "CheckTransportUndertakingData_Request"));

@@ -1,0 +1,23 @@
+declaration:
+  internal: false
+  returns: []
+  version: "1.0"
+  description: >-
+    Haldus > ERRU: MOVEHUB Hubi WSDL-ide loend (ERRU ja RSI, ReqRes ja OneWay).
+    Tagastab ainult nimed ja aadressid; faili ennast tõmbab download.yml.
+    Õigus xroad.log.read kontrollitakse kataloogi .guard.yml-is.
+  namespace: erru_hub_wsdl
+  allowlist:
+    headers:
+      - field: cookie
+        type: string
+
+build:
+  assign:
+    base: "[#ERRU_HUB_WSDL_BASE]"
+    items: "${[{name:'erru-reqres',label:'ERRU ReqRes (sünkroonne SOAP)',path:'/ERRU/soap/ReqRes/ERRU.svc'},{name:'erru-oneway',label:'ERRU OneWay (ErrorNotification)',path:'/ERRU/soap/OneWay/ERRU.svc'},{name:'rsi-reqres',label:'RSI ReqRes (sünkroonne SOAP)',path:'/RSI/soap/ReqRes/RSI.svc'},{name:'rsi-oneway',label:'RSI OneWay (ErrorNotification)',path:'/RSI/soap/OneWay/RSI.svc'}]}"
+  next: respond
+
+respond:
+  return: "${items.map(function(i){ return { name: i.name, label: i.label, url: base + i.path + '?wsdl' }; })}"
+  next: end

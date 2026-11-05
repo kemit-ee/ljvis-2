@@ -20,6 +20,7 @@ import { ClassifierValueEditPage } from './features/classifiers/pages/Classifier
 import { FORM_TYPE_CODE } from './features/classifiers/formScope';
 import { LogListPage } from './features/audit-logs/pages/LogListPage/LogListPage';
 import { RiskScoresListPage } from './features/risk-scores/pages/RiskScoresListPage/RiskScoresListPage';
+import { ErruHubWsdlPage } from './features/erru-hub-wsdl/pages/ErruHubWsdlPage';
 import { XroadLogListPage } from './features/xroad-logs/pages/XroadLogListPage/XroadLogListPage';
 import { LogDetailPage } from './features/audit-logs/pages/LogDetailPage/LogDetailPage';
 import { NotificationsPage } from './features/notifications/NotificationsPage';
@@ -147,6 +148,7 @@ function AppRoutes() {
           <Route path="/logs" element={<LogListPage />} />
           <Route path="/admin/risk-scores" element={<RiskScoresListPage />} />
           <Route path="/admin/xroad-logs" element={<XroadLogListPage />} />
+          <Route path="/admin/erru" element={<ErruHubWsdlPage />} />
           <Route
             path="/notification-template-mapping"
             element={<NotificationTemplateMappingListPage />}

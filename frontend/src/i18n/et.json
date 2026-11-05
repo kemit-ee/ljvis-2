@@ -293,6 +293,7 @@
     "myCompany": "Minu ettevõte",
     "notifications": "Teavitused",
     "xroadLogs": "E-toimiku X-tee logid",
+    "erruAdmin": "ERRU",
     "notificationTemplateMapping": "Postkasti mallide ja vastuvõtjate seaded"
   },
   "citizen": {
@@ -1722,6 +1723,11 @@
     "bandRoheline": "Roheline",
     "bandKollane": "Kollane",
     "bandPunane": "Punane"
+  },
+  "erruHubWsdl": {
+    "title": "ERRU Hubi WSDL-id",
+    "description": "Laeb MOVEHUB Hubi WSDL-i alla taustal sTESTA kaudu. Faili pakutakse allalaadimiseks.",
+    "download": "Laadi alla"
   },
   "xroadLogs": {
     "title": "E-toimiku X-tee logid",
