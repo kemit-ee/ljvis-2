@@ -228,11 +228,31 @@ incoming NCR) and `POST /internal/nu/{validate,send}` (`NotifyUnfitness_Request`
 
 ### Verification
 
-The image build runs `MapperSmokeTest`, `RsiSendTest`, `CgrCtudSendTest` and `NcrNuSendTest`. The latter uses local HTTP servers and
+Run `bash tests/erru-adapter/run-java-tests.sh` from the repository root with JDK 25.
+The script compiles the source in a temporary directory and runs all seven Java suites.
+To retain classes, set `JAVA_TEST_OUTPUT_DIR` to a directory with empty `classes` and `test-classes` subdirectories.
+To collect coverage, also set `JACOCO_AGENT` and `JACOCO_EXEC` to absolute paths.
+Use a new execution-data file for each measurement. Exclude `MapperSmokeTest` classes from the report.
+
+The image build runs `MapperSmokeTest`, `ConfigTest`, `CodecBoundaryTest`, `IngressBoundaryTest`, `RsiSendTest`, `CgrCtudSendTest` and `NcrNuSendTest`.
+`ConfigTest` checks startup defaults, overrides, missing required settings, invalid Hub URLs and retry limits in isolated processes.
+`IngressBoundaryTest` checks HTTP methods, body limits, XML and XSD rejection, unsupported types, external entity rejection and one-way RSI responses.
+These ingress rejection tests do not require a database. They do not test durable acceptance.
+`CodecBoundaryTest` checks JSON round trips, invalid input, exact integers, XML escaping and XSD booleans.
+`RsiSendTest` uses local HTTP servers and
 synthetic fixtures. It checks XML/XSD, escaping, dates, authentication, 202 acceptance, rejection,
 timeout and replay behavior. `CgrCtudSendTest` covers the same for CGR and CTUD (all search variants,
 resend, validate-only) and maps sample responses, validated against the XSD, to the stored JSON.
 `NcrNuSendTest` does the same for NU, NCR requests (penalties, infringements) and NCR responses.
+
+For transport integration tests, retain compiled classes with `JAVA_TEST_OUTPUT_DIR` when running
+`run-java-tests.sh`. Then run `bash tests/erru-adapter/run-integration-tests.sh` with the same environment.
+The runner requires Docker. It creates its own PostgreSQL 17 container with a random localhost port
+and removes that container on exit. It does not accept an existing database URL.
+`JdbcLifecycleTest` checks replay, revival, retries, lease fencing, transaction rollback and dispatch journals.
+`test_transport_lifecycle.py` starts the real adapter with local HTTP peers. It checks all five request types,
+durable acceptance, replay conflicts, processing recovery, delivery retries, expiry and database failure.
+GitHub CI runs these tests in the required `ERRU adapter — Java and PostgreSQL tests` job.
 
 For PostgreSQL and asynchronous response checks, create a disposable PostgreSQL 16 container
 with an empty `rsi_test` database and a localhost port mapping to 55439. Compile the adapter with

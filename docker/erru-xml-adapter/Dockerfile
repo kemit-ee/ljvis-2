@@ -15,8 +15,13 @@ RUN javac -classpath lib/postgresql-42.7.4.jar -d out src/*.java \
 
 # Exercise real local HTTP dispatch during every image build. Tests stay out of the runtime image.
 COPY tests/erru-adapter/RsiSendTest.java tests/erru-adapter/CgrCtudSendTest.java tests/erru-adapter/NcrNuSendTest.java tests/erru-adapter/
+COPY tests/erru-adapter/ConfigTest.java tests/erru-adapter/IngressBoundaryTest.java tests/erru-adapter/
+COPY tests/erru-adapter/CodecBoundaryTest.java tests/erru-adapter/
 COPY tests/erru-adapter/fixtures/rsi.json tests/erru-adapter/fixtures/
-RUN javac -classpath out -d test-out tests/erru-adapter/RsiSendTest.java tests/erru-adapter/CgrCtudSendTest.java tests/erru-adapter/NcrNuSendTest.java \
+RUN javac -classpath out -d test-out tests/erru-adapter/*.java \
+    && java -ea -classpath out:test-out ConfigTest \
+    && java -ea -classpath out:test-out CodecBoundaryTest \
+    && java -ea -classpath out:test-out IngressBoundaryTest \
     && java -ea -classpath out:test-out RsiSendTest \
     && java -ea -classpath out:test-out CgrCtudSendTest \
     && java -ea -classpath out:test-out NcrNuSendTest
