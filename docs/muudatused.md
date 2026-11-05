@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-05
+
+### ERRU: plaan Java-vahendaja asendamiseks
+
+- Lisatud plaan (`docs/planning/erru-xml-adapter-xtr-migratsioon.md`), kuidas ERRU Hubiga suhtlev Java-teenus `erru-xml-adapter` asendada eraldi XTR-teenusega. Kasutajale nähtavat muudatust ei ole; plaan kirjeldab etappe, SOAP-profiili võimalust ja järkjärgulist üleminekut.
+
 ## 2026-11-04
 
 ### ERRU: vastuste kohaletoimetamine Hubile
