@@ -10,7 +10,8 @@ declaration:
 
 build:
   assign:
-    base: "[#ERRU_HUB_WSDL_BASE]"
+    # Konstant ERRU_HUB_WSDL_BASE (constants.ini) võidab; kui seda pole seatud, jääb Ruuteri jaoks kohahoidja asendamata ja kasutatakse vaikeväärtust.
+    base: "${('[#ERRU_HUB_WSDL_BASE]'.indexOf('[#') === 0 ? 'https://webgate.acceptance.ec.testa.eu/move-hub' : '[#ERRU_HUB_WSDL_BASE]')}"
     items: "${[{name:'erru-reqres',label:'ERRU ReqRes (sünkroonne SOAP)',path:'/ERRU/soap/ReqRes/ERRU.svc'},{name:'erru-oneway',label:'ERRU OneWay (ErrorNotification)',path:'/ERRU/soap/OneWay/ERRU.svc'},{name:'rsi-reqres',label:'RSI ReqRes (sünkroonne SOAP)',path:'/RSI/soap/ReqRes/RSI.svc'},{name:'rsi-oneway',label:'RSI OneWay (ErrorNotification)',path:'/RSI/soap/OneWay/RSI.svc'}]}"
   next: respond
 
