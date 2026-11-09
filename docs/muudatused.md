@@ -4,6 +4,10 @@
 
 ## 2026-11-09
 
+### ERRU: Hubi WSDL-ide leht kasutab vaikeaadressi
+
+- Haldus > ERRU lehe Hubi baasaadress võetakse konstandist `ERRU_HUB_WSDL_BASE`, kui see on seatud; muidu kasutatakse acceptance Hubi vaikeaadressi. Seega töötab leht ka siis, kui keskkonna `constants.ini` pole uuendatud.
+
 ### ERRU: SOAP Faulti ErrorNotification XTR-is
 
 - Täpsustatud ERRU XTR-i migratsiooni plaani: Hubi SOAP Faulti ErrorNotification'i veakood saadakse kätte ERRU-spetsiifilise XTR-i instantsi lipuga `expose_soap_fault_detail`, XTR-i koodimuudatust ei vaja. Kasutajale nähtavat muudatust ei ole.

@@ -30,7 +30,7 @@ fetchWsdl:
   call: http.get
   timeout: 30000
   args:
-    url: "${'[#ERRU_HUB_WSDL_BASE]' + paths[name] + '?wsdl'}"
+    url: "${('[#ERRU_HUB_WSDL_BASE]'.indexOf('[#') === 0 ? 'https://webgate.acceptance.ec.testa.eu/move-hub' : '[#ERRU_HUB_WSDL_BASE]') + paths[name] + '?wsdl'}"
   result: wsdlRes
   next: checkWsdl
 
