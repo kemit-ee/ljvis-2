@@ -4,6 +4,10 @@
 
 ## 2026-11-09
 
+### Teavitused: malli muutuja `kontrollkaardiUrl`
+
+- Iga Postkasti saadetav teavitus kannab nüüd malli muutujat `kontrollkaardiUrl` — linki konkreetsele kontrollkaardile selle keskkonna avalikul aadressil. Postkasti malli mapping saab seda kasutada kujul `{{kontrollkaardiUrl}}`. Teavituse liigi detailvaates on muutuja malli muutujate tabelis näha.
+
 ### ERRU: Hubi WSDL-ide leht kasutab vaikeaadressi
 
 - Haldus > ERRU lehe Hubi baasaadress võetakse konstandist `ERRU_HUB_WSDL_BASE`, kui see on seatud; muidu kasutatakse acceptance Hubi vaikeaadressi. Seega töötab leht ka siis, kui keskkonna `constants.ini` pole uuendatud.

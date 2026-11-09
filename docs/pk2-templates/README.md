@@ -39,6 +39,12 @@ Muutuja nimi on tõstutundlik ja peab täpselt vastama alltoodud nimele.
 Postkast 2.0-le saadetakse alati ka `recipient`, mis sisaldab adressaadi
 e-posti aadressi.
 
+### Kõigi liikide ühine muutuja
+
+| Muutuja | Väärtus |
+|---|---|
+| `{{kontrollkaardiUrl}}` | link konkreetsele kontrollkaardile selle keskkonna avalikul aadressil; tühi, kui kontrollkaarti ei saa määrata |
+
 ### `carrier_violation`
 
 | Muutuja | Väärtus |

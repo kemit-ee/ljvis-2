@@ -1551,6 +1551,7 @@
       "vehicleRegNr": "Inspected vehicle registration number",
       "violationSeverities": "Violation severities (e.g. MSI, VSI)",
       "violationDescription": "Free-text violation description",
+      "kontrollkaardiUrl": "Link to the control card (environment-specific)",
       "MSIViolationsList": "MSI violations (code — name, one per line)",
       "VSIViolationsList": "VSI violations (code — name, one per line)",
       "SIViolationsList": "SI violations (code — name, one per line)",
