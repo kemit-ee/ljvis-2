@@ -16,8 +16,8 @@ else
   mkdir -p "${output_dir}/classes" "${output_dir}/test-classes"
 fi
 
-jdbc=docker/erru-xml-adapter/lib/postgresql-42.7.4.jar
-javac -g -classpath "${jdbc}" -d "${output_dir}/classes" docker/erru-xml-adapter/src/*.java
+jdbc=docker/erru-xml-adapter-old/lib/postgresql-42.7.4.jar
+javac -g -classpath "${jdbc}" -d "${output_dir}/classes" docker/erru-xml-adapter-old/src/*.java
 javac -g -classpath "${output_dir}/classes" -d "${output_dir}/test-classes" tests/erru-adapter/*Test.java
 java_args=(-ea)
 if [[ -n "${JACOCO_AGENT:-}" ]]; then

@@ -1,0 +1,21 @@
+# ERRU ReqRes. Väljuv: JSON → SOAP Hubile. Sissetulev: Hub → XTR → ruuter-internal (http://ruuter-internal:8080/ljvis/erru/xtr/erru/<operatsioon>).
+# outbound.url on dev/CI mock; päris Hubi aadress (https, 2-way SSL) tuleb keskkonnast (WSDL-i soap:address on Hubi sisemine).
+dsl: false
+inbound:
+  operations:
+    CheckTransportUndertakingData_Request:
+      backend: http://ruuter-internal:8080/ljvis/erru/xtr/erru/CheckTransportUndertakingData_Request
+    CheckGoodRepute_Request:
+      backend: http://ruuter-internal:8080/ljvis/erru/xtr/erru/CheckGoodRepute_Request
+    NotifyCheckResult_Request:
+      backend: http://ruuter-internal:8080/ljvis/erru/xtr/erru/NotifyCheckResult_Request
+    NotifyCheckResult_Response:
+      backend: http://ruuter-internal:8080/ljvis/erru/xtr/erru/NotifyCheckResult_Response
+    NotifyUnfitness_Request:
+      backend: http://ruuter-internal:8080/ljvis/erru/xtr/erru/NotifyUnfitness_Request
+  payload: request
+  response_pointer: /response
+  echo_soap_header: false
+  forward_xroad_headers: false
+outbound:
+  url: http://erru-hub-mock:8080/ERRU/soap/ReqRes/ERRU.svc

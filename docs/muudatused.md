@@ -4,6 +4,10 @@
 
 ## 2026-11-09
 
+### ERRU: adapteri ümbernimetamine ja XTR-põhine SOAP-sild (alus)
+
+- Java-adapter on nüüd `erru-xml-adapter-old` (kataloog, compose, konstant `ERRU_XML_ADAPTER`). Teenusenimi `erru-xml-adapter` kuulub uuele XTR-põhisele ERRU SOAP-sillale, sest stesta-gateway suunab Hubi liikluse nime järgi. Kasutajale nähtavat muudatust ei ole.
+
 ### Teavitused: malli muutuja `kontrollkaardiUrl`
 
 - Iga Postkasti saadetav teavitus kannab nüüd malli muutujat `kontrollkaardiUrl` — linki konkreetsele kontrollkaardile selle keskkonna avalikul aadressil. Postkasti malli mapping saab seda kasutada kujul `{{kontrollkaardiUrl}}`. Teavituse liigi detailvaates on muutuja malli muutujate tabelis näha.

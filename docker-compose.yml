@@ -270,7 +270,7 @@ services:
       start_period: 5s
     environment:
       # Answers outgoing CGR/CTUD asynchronously through the adapter's ingress (dev/CI only).
-      - AUTO_REPLY_URL=http://erru-xml-adapter:8080/erru/xml
+      - AUTO_REPLY_URL=http://erru-xml-adapter-old:8080/erru/xml
     networks:
       - ljvisnetwork
     # localhost-only: a dev/CI stand-in, never reachable from outside this machine.
@@ -280,13 +280,13 @@ services:
     mem_limit: "128M"
 
   # Asynchronous ERRU 3.5 XML adapter (docs/architecture/erru-async-xml.md,
-  # docker/erru-xml-adapter/README.md). NotifyUnfitness is processed end-to-end; the other 4
+  # docker/erru-xml-adapter-old/README.md). NotifyUnfitness is processed end-to-end; the other 4
   # request types are rejected with 501 at ingress and not stored.
-  erru-xml-adapter:
-    container_name: erru-xml-adapter
+  erru-xml-adapter-old:
+    container_name: erru-xml-adapter-old
     build:
       context: .
-      dockerfile: docker/erru-xml-adapter/Dockerfile
+      dockerfile: docker/erru-xml-adapter-old/Dockerfile
     depends_on:
       liquibase:
         condition: service_completed_successfully
@@ -324,6 +324,39 @@ services:
       - 127.0.0.1:8091:8080
     cpus: "0.5"
     mem_limit: "256M"
+
+  # ERRU MOVEHUB 3.5 SOAP-sild (XTR). Asendab aegamööda Java-adapterit (erru-xml-adapter-old);
+  # teenuse nimi on sama, mille järgi stesta-gateway Hubi liikluse suunab. Plaan:
+  # docs/planning/erru-xml-adapter-xtr-migratsioon.md. Sissetulev pordis 8081 (8092), JSON-lane 8080 (8093).
+  erru-xml-adapter:
+    container_name: erru-xml-adapter
+    image: ljvis-erru-xml-adapter:local
+    build:
+      context: .
+      dockerfile: docker/xtr/Dockerfile
+      args:
+        XTR_RUNTIME_IMAGE: turnerrainer/xtr@sha256:634b11471ff9c709f6b46cab18f7e85711d18df334a8b9a368f399a62bf1a9ca
+    restart: unless-stopped
+    depends_on:
+      erru-hub-mock:
+        condition: service_healthy
+    environment:
+      - RUST_LOG=xtr_on_rust=debug,info
+    volumes:
+      - ./docker/erru-xml-adapter/xtr.yaml:/app/xtr.yaml:ro
+      - ./docker/erru-xml-adapter/wsdl:/app/wsdl:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8081/health > /dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks:
+      - ljvisnetwork
+    ports:
+      - "127.0.0.1:8092:8081"
+      - "127.0.0.1:8093:8080"
+    cpus: "0.25"
+    mem_limit: "128M"
 
   xtr:
     container_name: xtr

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * XML <-> JSON mapping for NotifyUnfitness (docker/erru-xml-adapter/README.md).
+ * XML <-> JSON mapping for NotifyUnfitness (docker/erru-xml-adapter-old/README.md).
  *
  * The inbound direction (XML -> JSON) targets exactly the allowlist of
  * DSL/Ruuter.internal/ljvis/POST/erru/nu/inbound-request.yml. The outbound direction (JSON -> XML)

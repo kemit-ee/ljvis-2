@@ -24,5 +24,5 @@ if [[ -n "${JACOCO_AGENT:-}" ]]; then
   : "${JACOCO_EXEC:?Set JACOCO_EXEC}"
   java_args+=("-javaagent:${JACOCO_AGENT}=destfile=${JACOCO_EXEC},append=true")
 fi
-java "${java_args[@]}" -classpath "${JAVA_TEST_OUTPUT_DIR}/classes:${JAVA_TEST_OUTPUT_DIR}/test-classes:docker/erru-xml-adapter/lib/postgresql-42.7.4.jar" JdbcLifecycleTest
+java "${java_args[@]}" -classpath "${JAVA_TEST_OUTPUT_DIR}/classes:${JAVA_TEST_OUTPUT_DIR}/test-classes:docker/erru-xml-adapter-old/lib/postgresql-42.7.4.jar" JdbcLifecycleTest
 python3 tests/erru-adapter/test_transport_lifecycle.py "${container}"

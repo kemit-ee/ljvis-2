@@ -1,6 +1,6 @@
 # NU internal transport contract
 
-Ruuter.internal routes use `/ljvis/erru/nu/`. These are transport DTOs, not SOAP endpoints. XML token whitespace must be normalized before building a DTO. Inbound XML reaches `inbound-request` through `docker/erru-xml-adapter` (asynchronous ERRU 3.5 XML over HTTP, see [the architecture document](../architecture/erru-async-xml.md)): it validates XML against the supplied ERRU 3.5 schemas, builds the flattened DTO and turns the returned ACK JSON into `NotifyUnfitness_Acknowledgement` XML. A production ingress must also authenticate machine calls and supply the authenticated peer; neither the adapter nor an OAuth ingress does this yet. Do not expose these routes publicly. User cookies do not establish transport identity.
+Ruuter.internal routes use `/ljvis/erru/nu/`. These are transport DTOs, not SOAP endpoints. XML token whitespace must be normalized before building a DTO. Inbound XML reaches `inbound-request` through `docker/erru-xml-adapter-old` (asynchronous ERRU 3.5 XML over HTTP, see [the architecture document](../architecture/erru-async-xml.md)): it validates XML against the supplied ERRU 3.5 schemas, builds the flattened DTO and turns the returned ACK JSON into `NotifyUnfitness_Acknowledgement` XML. A production ingress must also authenticate machine calls and supply the authenticated peer; neither the adapter nor an OAuth ingress does this yet. Do not expose these routes publicly. User cookies do not establish transport identity.
 
 ## Requests and acknowledgements
 
