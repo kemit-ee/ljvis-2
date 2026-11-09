@@ -110,7 +110,7 @@ Päris acceptance Hubile ei pääsenud (TESTA + mTLS), seega spike jooksis lokaa
 - Hubi SOAP Fault tagastub 502-na (`upstream_soap_fault`, code + string).
 
 **Lüngad / avastused:**
-1. **EN detail kaob.** Fault'i `<detail><ErrorNotification>` (veakood nt InvalidData) ei jõua JSON-vastusesse, ainult `code`/`string`. ERRU jaoks on vaja EN-i veakoodi; vajab XTR-i väikest täiendust.
+1. **EN detail kaob vaikimisi.** Fault'i `<detail><ErrorNotification>` (veakood nt InvalidData) ei jõua JSON-vastusesse, ainult `code`/`string`. **Otsus (2026-11-09): lülitame XTR-is globaalselt sisse `expose_soap_fault_detail: true`.** XTR-i koodimuudatust pole vaja (`src/error.rs` lisab siis `detail`-i vastusesse). ERRU jaoks on eraldi XTR-i instants, seega lipp ei mõjuta teisi lane'e; `xtr doctor` hoiatab selle kohta, aga see on teadlik valik (Hub on usaldatud EL-i osapool). Seadistus läheb ERRU XTR-i devops-konfi (`xtr.yaml`); kontrolli spike'is, et `detail` jõuab Ruuterini.
 2. WSDL pakett on nimeruumis **3.2**, XSD-d 3.5; `Header/@version="3.5"` läheb ikka välja. Päris 3.5 WSDL tuleb võtta Hubist (`?wsdl`).
 3. WSDL-is puudub `CheckTransportUndertakingData_Request` väljundsõnum (XTR arvab Response'i); kontrolli päris WSDL-iga.
 4. Vana ERRU 2.1 WSDL-is oli MS-kood URL-is (`.../ReqRes/UK/ERRU.svc`); 3.x-s seda pole, tuvastus tõenäoliselt sertifikaadiga. Kinnita EC-lt.
@@ -118,7 +118,7 @@ Päris acceptance Hubile ei pääsenud (TESTA + mTLS), seega spike jooksis lokaa
 
 **Ei kontrollitud (vajab Hubi ligipääsu):** päris acceptance-vastus, 2-way SSL, EC SOAP-endpointi registreerimine sissetuleva jaoks, sünkroonse ahela ≤10 s, ruuter-internal `http_request_timeout` 15 s.
 
-**Järeldus:** väljuv suund SOAP-iga on tehniliselt võimalik XTR-i olemasolevate lane'idega (EN detail vajab täiendust). Sissetulev suund ja otsus A vs B sõltub EC kinnitusest (Mixed End-Points 5.3.3, SOAP-endpointi registreerimine). PR #41 jääb ootele kuni otsuseni.
+**Järeldus:** väljuv suund SOAP-iga on tehniliselt võimalik XTR-i olemasolevate lane'idega (EN detail: `expose_soap_fault_detail: true`, vt 2h lünk 1). Sissetulev suund ja otsus A vs B sõltub EC kinnitusest (Mixed End-Points 5.3.3, SOAP-endpointi registreerimine). PR #41 jääb ootele kuni otsuseni.
 
 ### 2h-2. Testpack 3.19 dokumendid (Entry/Exit checklist, FAQ, Guidelines) – parandus
 

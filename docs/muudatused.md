@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-09
+
+### ERRU: SOAP Faulti ErrorNotification XTR-is
+
+- Täpsustatud ERRU XTR-i migratsiooni plaani: Hubi SOAP Faulti ErrorNotification'i veakood saadakse kätte ERRU-spetsiifilise XTR-i instantsi lipuga `expose_soap_fault_detail`, XTR-i koodimuudatust ei vaja. Kasutajale nähtavat muudatust ei ole.
+
 ## 2026-11-05
 
 ### ERRU: plaan Java-vahendaja asendamiseks
