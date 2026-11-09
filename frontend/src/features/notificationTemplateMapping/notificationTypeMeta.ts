@@ -27,7 +27,8 @@ export const NOTIFICATION_TYPE_TRIGGER_FORM_KEYS: Record<string, string[]> = {
 // Nimed peavad ühtima DSL-i `template_variables` omistuste ja
 // docs/pk2-templates/*.json mallide `{{...}}` viidetega. Kirjeldused:
 // i18n `notificationTemplateMapping.variables.<nimi>`. `recipient` lisatakse
-// alati (adressaadi e-post) ega kuulu siia.
+// alati (adressaadi e-post) ega kuulu siia. `kontrollkaardiUrl` lisatakse samuti
+// alati, kuid on loetletud, et haldur näeks seda malli koostades.
 export const NOTIFICATION_TYPE_TEMPLATE_VARIABLES: Record<string, string[]> = {
   carrier_violation: [
     'formNumber',
@@ -42,6 +43,7 @@ export const NOTIFICATION_TYPE_TEMPLATE_VARIABLES: Record<string, string[]> = {
     'MSIViolationsList',
     'VSIViolationsList',
     'SIViolationsList',
+    'kontrollkaardiUrl',
   ],
   labor_foreign_proposal: [
     'formNumber',
@@ -54,7 +56,8 @@ export const NOTIFICATION_TYPE_TEMPLATE_VARIABLES: Record<string, string[]> = {
     'inspectionCountry',
     'inspectionDate',
     'inspectionTime',
+    'kontrollkaardiUrl',
   ],
-  labor_kabotage: ['formNumber', 'companyName', 'companyRegCode', 'resultType'],
-  labor_tachograph_not_downloaded: ['formNumber', 'companyName', 'companyRegCode'],
+  labor_kabotage: ['formNumber', 'companyName', 'companyRegCode', 'resultType', 'kontrollkaardiUrl'],
+  labor_tachograph_not_downloaded: ['formNumber', 'companyName', 'companyRegCode', 'kontrollkaardiUrl'],
 };

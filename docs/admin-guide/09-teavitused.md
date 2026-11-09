@@ -182,12 +182,18 @@ jääb muutuja kirjas tühjaks.
 
 | Teavituse liik | Muutujad |
 |----------------|----------|
-| `carrier_violation` (raske rikkumise teavitus veoettevõtjale) | `formNumber` (kontrollvormi number), `companyName` (veoettevõtja nimi), `companyRegCode` (registrikood), `inspectionDateTime` (kontrolli aeg), `inspectionCountry` (kontrolli koht, riigi nimetus), `inspectionCountryCode` (ISO riigikood), `vehicleRegNr` (sõiduki reg-nr), `violationSeverities` (raskusastmed, nt „MSI, VSI“), `violationDescription` (rikkumise kirjeldus), `MSIViolationsList` / `VSIViolationsList` / `SIViolationsList` (raskusastme kaupa rikkumised „kood — nimetus", üks rea kohta, ridade vahel `<br>`) |
-| `labor_foreign_proposal` (välisriigi ettepanek tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode` |
-| `labor_kabotage` (kabotaaži kontrolli teavitus tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode`, `resultType` (kontrolli tulemus) |
-| `labor_tachograph_not_downloaded` (sõidumeerikust või juhikaardilt andmed alla laadimata, tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode` |
+| `carrier_violation` (raske rikkumise teavitus veoettevõtjale) | `formNumber` (kontrollvormi number), `companyName` (veoettevõtja nimi), `companyRegCode` (registrikood), `inspectionDateTime` (kontrolli aeg), `inspectionCountry` (kontrolli koht, riigi nimetus), `inspectionCountryCode` (ISO riigikood), `vehicleRegNr` (sõiduki reg-nr), `violationSeverities` (raskusastmed, nt „MSI, VSI“), `violationDescription` (rikkumise kirjeldus), `MSIViolationsList` / `VSIViolationsList` / `SIViolationsList` (raskusastme kaupa rikkumised „kood — nimetus", üks rea kohta, ridade vahel `<br>`), `kontrollkaardiUrl` |
+| `labor_foreign_proposal` (välisriigi ettepanek tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode`, `kontrollkaardiUrl` |
+| `labor_kabotage` (kabotaaži kontrolli teavitus tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode`, `resultType` (kontrolli tulemus), `kontrollkaardiUrl` |
+| `labor_tachograph_not_downloaded` (sõidumeerikust või juhikaardilt andmed alla laadimata, tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode`, `kontrollkaardiUrl` |
 
-Lisaks saadetakse alati muutuja `recipient` (adressaadi e-post). Valmis
+Lisaks saadetakse alati muutuja `recipient` (adressaadi e-post) ja
+`kontrollkaardiUrl` — link konkreetsele kontrollkaardile selle keskkonna avalikul
+hostinimel (`constants.ini` muutuja `DOMAIN`), nt
+`https://dev.liiklusvalve.ee/control-forms/tram-control-card/7`. Link
+koostatakse teavituse seotud olemi tüübi ja ID järgi; tundmatu olemi korral on
+väärtus tühi string. Kui kutsuja annab ise muutuja `kontrollkaardiUrl`, jääb
+kehtima kutsuja väärtus. Valmis
 mallifailid ja malli loomise samm-sammuline juhend on repos kaustas
 `docs/pk2-templates/`.
 
