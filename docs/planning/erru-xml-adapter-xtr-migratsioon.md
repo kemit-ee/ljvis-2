@@ -1,6 +1,6 @@
 # erru-xml-adapter asendamine eraldi XTR teenusega
 
-Staatus: **plaan, otsused ootel**. Koostatud 2026-11-05 koodi (`docker/erru-xml-adapter`, ~5000 rida Javat) ja upstream XTR (v0.5.1-rc) dokumentatsiooni põhjal.
+Staatus: **plaan, otsused ootel**. Koostatud 2026-11-05 koodi (`docker/erru-xml-adapter-old`, ~5000 rida Javat) ja upstream XTR (v0.5.1-rc) dokumentatsiooni põhjal.
 
 ## 1. Mida adapter täna teeb
 
@@ -186,7 +186,7 @@ Hub ◀──toor-XML── xtr-erru (outbound xml lane) ◀──JSON── ruu
 **Etapp 5 — sissetulevad päringud** (NU, NCR, RSI, CGR, CTUD) koos vastuse tähtaja ja EN-iga: kõige riskantsem; inbox/outbox, replay (409), `timeoutValue`, EN `InvalidData/ServerError`. Dev-is paralleelselt adapteriga (ingress marsruutimine Hub mock'i tasemel).
 
 **Etapp 6 — adapteri eemaldamine**
-- Kustuta `docker/erru-xml-adapter`, `tests/erru-adapter` (Java osa; Python regressioonitestid porti uue teega), compose/CI kirjed, `ERRU_XML_ADAPTER` konstant, `scripts/check-internal-token-targets.py` viited, Newman `erru-xml-adapter` kollektsioon (ümbernimeta).
+- Kustuta `docker/erru-xml-adapter-old`, `tests/erru-adapter` (Java osa; Python regressioonitestid porti uue teega), compose/CI kirjed, `ERRU_XML_ADAPTER` konstant, `scripts/check-internal-token-targets.py` viited, Newman `erru-xml-adapter` kollektsioon (ümbernimeta).
 - Liquibase: `xml_inbox/xml_outbox` jäävad (andmed), kuid `LISTEN/NOTIFY` triggerid otsustatakse eraldi changeset'iga.
 - Dokumendid: `erru-async-xml.md`, `integratsioonid.md §4`, `erru-xml-recovery.md`, `muudatused.md`, testidokumentatsioon.
 

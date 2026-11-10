@@ -5,8 +5,8 @@
 # from the build stage.
 FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /build
-COPY docker/erru-xml-adapter/src/ src/
-COPY docker/erru-xml-adapter/lib/postgresql-42.7.4.jar lib/
+COPY docker/erru-xml-adapter-old/src/ src/
+COPY docker/erru-xml-adapter-old/lib/postgresql-42.7.4.jar lib/
 RUN echo "188976721ead8e8627eb6d8389d500dccc0c9bebd885268a3047180274a6031e  lib/postgresql-42.7.4.jar" \
     | sha256sum -c -
 COPY contracts/erru/3.5/ contracts/erru/3.5/

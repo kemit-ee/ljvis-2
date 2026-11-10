@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — ERRU XML Adapter",
     "_postman_id": "ljvis-erru-xml-adapter-v1",
-    "description": "Exercises docker/erru-xml-adapter directly (not through Ruuter): durable acceptance of raw ERRU 3.5 XML, the three replay outcomes (fresh / exact redelivery / conflicting redelivery), XSD rejection, and the full NotifyUnfitness_Request -> Ruuter.internal -> NotifyUnfitness_Acknowledgement -> mock Hub pipeline. See docker/erru-xml-adapter/README.md for which message types are processed.",
+    "description": "Exercises docker/erru-xml-adapter-old directly (not through Ruuter): durable acceptance of raw ERRU 3.5 XML, the three replay outcomes (fresh / exact redelivery / conflicting redelivery), XSD rejection, and the full NotifyUnfitness_Request -> Ruuter.internal -> NotifyUnfitness_Acknowledgement -> mock Hub pipeline. See docker/erru-xml-adapter-old/README.md for which message types are processed.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

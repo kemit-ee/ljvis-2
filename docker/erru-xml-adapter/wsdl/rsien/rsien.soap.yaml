@@ -1,0 +1,13 @@
+# RSI OneWay. Väljuv: JSON → SOAP Hubile. Sissetulev: Hub → XTR → ruuter-internal (http://ruuter-internal:8080/ljvis/erru/xtr/rsien/<operatsioon>).
+# outbound.url on dev/CI mock; päris Hubi aadress (https, 2-way SSL) tuleb keskkonnast (WSDL-i soap:address on Hubi sisemine).
+dsl: false
+inbound:
+  operations:
+    ErrorNotification:
+      backend: http://ruuter-internal:8080/ljvis/erru/xtr/rsien/ErrorNotification
+  payload: request
+  response_pointer: /response
+  echo_soap_header: false
+  forward_xroad_headers: false
+outbound:
+  url: http://erru-hub-mock:8080/RSI/soap/OneWay/RSI.svc

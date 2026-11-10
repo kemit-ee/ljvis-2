@@ -3,7 +3,7 @@
 FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /build
 COPY docker/erru-hub-mock/ErruHubMock.java .
-COPY docker/erru-xml-adapter/src/SchemaRegistry.java docker/erru-xml-adapter/src/XmlUtil.java docker/erru-xml-adapter/src/ResponseValidator.java ./
+COPY docker/erru-xml-adapter-old/src/SchemaRegistry.java docker/erru-xml-adapter-old/src/XmlUtil.java docker/erru-xml-adapter-old/src/ResponseValidator.java ./
 RUN javac *.java
 
 FROM eclipse-temurin:21-jre-alpine

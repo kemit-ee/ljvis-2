@@ -309,7 +309,7 @@
       "key": "erru_xml_adapter_url",
       "value": "http://localhost:8091",
       "enabled": true,
-      "description": "erru-xml-adapter — dev stack (port 8091). See docker/erru-xml-adapter/README.md."
+      "description": "erru-xml-adapter — dev stack (port 8091). See docker/erru-xml-adapter-old/README.md."
     },
     {
       "key": "erru_hub_mock_url",

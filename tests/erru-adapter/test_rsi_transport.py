@@ -52,7 +52,7 @@ env = dict(os.environ, PORT=str(port), DB_URL='jdbc:postgresql://127.0.0.1:55439
  RUUTER_INTERNAL_BASE_URL=peer_url,INTERNAL_COMMUNICATION_KEY='rsi-test-token',HUB_RESPONSE_URL=peer_url+'/hub/response',
  HUB_RSI_REQUEST_URL=peer_url+'/hub/rsi',CONTRACTS_DIR=str(root/'contracts/erru/3.5'),MEMBER_STATE_CODE='EE',
  RESPONDING_AUTHORITY='EE-PPA',RESPONDING_AUTHORITY_CTUD='EE-TRAM',RESPONDING_AUTHORITY_RSI='EE-TRAM',RESPONDING_AUTHORITY_NCR='EE-TRAM',POLL_INTERVAL_MS='100')
-process = subprocess.Popen(['java','-cp', classes+os.pathsep+str(root/'docker/erru-xml-adapter/lib/postgresql-42.7.4.jar'),'ErruXmlAdapter'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+process = subprocess.Popen(['java','-cp', classes+os.pathsep+str(root/'docker/erru-xml-adapter-old/lib/postgresql-42.7.4.jar'),'ErruXmlAdapter'],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 def http(path, body=None, xml=False):
     data = None if body is None else body.encode() if xml else json.dumps(body).encode()
     req = urllib.request.Request(base+path,data=data,headers={'Content-Type':'application/xml' if xml else 'application/json','x-internal-service-token':'rsi-test-token'})

@@ -102,7 +102,7 @@ args = ['java', '-ea']
 if env.get('JACOCO_AGENT'):
     args.append(f"-javaagent:{env['JACOCO_AGENT']}=destfile={env['JACOCO_EXEC']},append=true")
 args += ['-classpath', env['JAVA_TEST_OUTPUT_DIR'] + '/classes' + os.pathsep +
-         str(root / 'docker/erru-xml-adapter/lib/postgresql-42.7.4.jar'), 'ErruXmlAdapter']
+         str(root / 'docker/erru-xml-adapter-old/lib/postgresql-42.7.4.jar'), 'ErruXmlAdapter']
 log_path = Path(env['JAVA_TEST_OUTPUT_DIR']) / 'transport.log'
 
 

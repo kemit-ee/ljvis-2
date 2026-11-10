@@ -78,7 +78,7 @@ for i in $(seq 1 60); do
   if curl -sf http://localhost:9091/health > /dev/null 2>&1; then
     echo "    erru-xml-adapter ready (${i}x5s)"; break
   fi
-  [ "$i" = "60" ] && { echo "❌ erru-xml-adapter not ready after 300s"; $COMPOSE logs erru-xml-adapter --tail=30; exit 1; }
+  [ "$i" = "60" ] && { echo "❌ erru-xml-adapter not ready after 300s"; $COMPOSE logs erru-xml-adapter-old --tail=30; exit 1; }
   sleep 5
 done
 
