@@ -7,6 +7,7 @@
 ### ERRU: XTR-põhise silla pildi Dockerfile
 
 - Lisatud `docker/erru-xml-adapter/Dockerfile`: sama paigatud XTR mis `docker/xtr`, nelja Hubi WSDL-iga sees. Kasutajale nähtavat muudatust ei ole.
+- CI ehitab nüüd kaks pilti (`erru-xml-adapter-old` Java-adapter ja `erru-xml-adapter` XTR-sild), SBOM-id ja release-pin dev-keskkonda.
 
 ## 2026-11-09
 
