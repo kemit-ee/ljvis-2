@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-10
+
+### ERRU: XTR-põhise silla pildi Dockerfile
+
+- Lisatud `docker/erru-xml-adapter/Dockerfile`: sama paigatud XTR mis `docker/xtr`, nelja Hubi WSDL-iga sees. Kasutajale nähtavat muudatust ei ole.
+
 ## 2026-11-09
 
 ### ERRU: adapteri ümbernimetamine ja XTR-põhine SOAP-sild (alus)
