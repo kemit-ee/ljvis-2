@@ -4,6 +4,10 @@
 
 ## 2026-11-10
 
+### ERRU: NU saatmise transpordi lüliti
+
+- Väljuv NU (`POST /v1/erru/nu/send`) saab saata kas Java-adapteri (`adapter`, vaikimisi) või XTR SOAP-silla (`xtr`) kaudu; valik on konstant `ERRU_NU_TRANSPORT`. Tagasi vanale: konstant `adapter` ja Ruuteri restart. XTR-tee ei tee XSD-valideerimist (Hub vastab veale Faultiga) ja Hubi kinnitusest ei kirjutata veel liikmesriikide read (`nu/inbound-ack`). Kasutajale nähtavat muudatust ei ole, kuni konstanti ei muudeta.
+
 ### ERRU: XTR-põhise silla pildi Dockerfile
 
 - Lisatud `docker/erru-xml-adapter/Dockerfile`: sama paigatud XTR mis `docker/xtr`, nelja Hubi WSDL-iga sees. Kasutajale nähtavat muudatust ei ole.

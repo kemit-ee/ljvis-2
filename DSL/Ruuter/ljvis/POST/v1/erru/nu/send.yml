@@ -190,7 +190,32 @@ prepareOutbound:
     start_time: "${new Date().getTime()}"
     tm_first_name_search_key: "${tm_first_name_search_key || ''}"
     tm_family_name_search_key: "${tm_family_name_search_key || ''}"
+    # ERRU_NU_TRANSPORT=xtr sends via the XTR SOAP bridge; anything else (or unset: the placeholder stays
+    # literal) keeps the Java adapter. Rollback = set the constant back to adapter and restart Ruuter.
+    nu_transport: "${'[#ERRU_NU_TRANSPORT]' === 'xtr' ? 'xtr' : 'adapter'}"
+    xtr_has_name: "${!!(tm_first_name || tm_family_name || tm_date_of_birth)}"
+    xtr_has_cert: "${!!(certificate_number || certificate_issue_date || certificate_issue_country)}"
+  next: chooseValidation
+
+chooseValidation:
+  switch:
+    - condition: ${nu_transport === 'xtr'}
+      next: xtrPreflight
   next: validateXml
+
+# XTR does not validate against the XSD yet (the Hub answers a Fault for bad data); catch what the
+# Java builder refused outright: no transport manager data or a missing mandatory attribute.
+xtrPreflight:
+  switch:
+    - condition: ${!xtr_has_name && !xtr_has_cert}
+      next: returnInvalidXml
+    - condition: ${xtr_has_name && (!tm_first_name || !tm_family_name || !tm_date_of_birth)}
+      next: returnInvalidXml
+    - condition: ${xtr_has_cert && (!certificate_number || !certificate_issue_date || !certificate_issue_country)}
+      next: returnInvalidXml
+    - condition: ${!nu_to || !business_case_id || !originating_authority || !request_source || !request_purpose}
+      next: returnInvalidXml
+  next: beginSend
 
 validateXml:
   call: http.post
@@ -257,6 +282,12 @@ checkPrepared:
       next: returnPreparedConflict
     - condition: ${!outboundHeader.technicalId}
       next: returnNotSendable
+  next: chooseTransport
+
+chooseTransport:
+  switch:
+    - condition: ${nu_transport === 'xtr'}
+      next: buildXtrAttrs
   next: callErru
 
 callErru:
@@ -271,6 +302,62 @@ callErru:
   result: erru_res
   timeout: 30000
   next: checkErruStatus
+
+buildXtrAttrs:
+  assign:
+    xtr_sent_at: "${new Date(String(outboundHeader.sentAt).replace(' ', 'T')).toISOString().substring(0, 19) + 'Z'}"
+    xtr_cert_raw: "${{'@certificateNumber': outboundHeader.certificateNumber || '', '@certificateIssueDate': String(outboundHeader.certificateIssueDate || '').substring(0, 10), '@certificateIssueCountry': outboundHeader.certificateIssueCountry || ''}}"
+    xtr_tm_raw: "${{'@firstName': outboundHeader.tmFirstName || '', '@familyName': outboundHeader.tmFamilyName || '', '@dateOfBirth': String(outboundHeader.tmDateOfBirth || '').substring(0, 10), '@placeOfBirth': outboundHeader.tmPlaceOfBirth || '', '@familyNameSearchKey': outboundHeader.tmFamilyNameSearchKey || '', '@firstNameSearchKey': outboundHeader.tmFirstNameSearchKey || ''}}"
+  next: compactXtrAttrs
+
+# Optional attributes are omitted, never sent empty (globalStatusMessageType-style minLength rules).
+compactXtrAttrs:
+  assign:
+    xtr_cert: "${Object.keys(xtr_cert_raw).filter(function(k) { return xtr_cert_raw[k] !== ''; }).reduce(function(a, k) { a[k] = xtr_cert_raw[k]; return a; }, {})}"
+    xtr_tm: "${Object.keys(xtr_tm_raw).filter(function(k) { return xtr_tm_raw[k] !== ''; }).reduce(function(a, k) { a[k] = xtr_tm_raw[k]; return a; }, {})}"
+  next: composeXtrBody
+
+# Same shape as docker/erru-xml-adapter-old NuRequestXml: TransportManager is a choice between a name
+# block (optionally with the certificate) and the certificate block alone.
+composeXtrBody:
+  assign:
+    xtr_name_details: "${Object.assign({'TransportManager': xtr_tm}, xtr_has_cert ? {'CertificateOfProfessionalCompetence': xtr_cert} : {})}"
+  next: composeXtrDetails
+
+composeXtrDetails:
+  assign:
+    xtr_details: "${xtr_has_name ? {'TransportManagerNameDetails': xtr_name_details} : {'TransportManagerCertificateDetails': {'CertificateOfProfessionalCompetence': xtr_cert}}}"
+  next: composeXtrMessage
+
+composeXtrMessage:
+  assign:
+    xtr_body: "${{'Header': {'@version': '3.5', '@technicalId': outboundHeader.technicalId, '@workflowId': outboundHeader.workflowId, '@sentAt': xtr_sent_at, '@from': 'EE', '@to': outboundHeader.nuTo}, 'Body': {'@businessCaseId': outboundHeader.businessCaseId, '@originatingAuthority': outboundHeader.originatingAuthority, '@requestSource': outboundHeader.requestSource, '@requestPurpose': outboundHeader.requestPurpose, 'TransportManager': Object.assign({'@unfitStartDate': String(outboundHeader.unfitStartDate || '').substring(0, 10)}, xtr_details)}}}"
+  next: callErruXtr
+
+callErruXtr:
+  call: http.post
+  error: markUnknown
+  args:
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('[#') === 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/soap-out/erru/erru/NotifyUnfitness_Request'}"
+    headers:
+      type: json
+    body: ${xtr_body}
+  result: erru_res
+  timeout: 30000
+  next: checkXtrStatus
+
+# 200 = the Hub answered with a NotifyUnfitness_Acknowledgement; a SOAP Fault is a definite refusal
+# (XTR relays it as 502 upstream_soap_fault); everything else (timeout, connection loss, 5xx) is unknown
+# and never resent.
+checkXtrStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.response != null}
+      next: logIntegrationSuccess
+    - condition: ${erru_res.response.status === 502 && erru_res.response.body.error === 'upstream_soap_fault'}
+      next: logIntegrationFailure
+  next: markUnknown
 
 checkErruStatus:
   switch:
