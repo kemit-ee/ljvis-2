@@ -62,6 +62,15 @@ extractRequestData:
     unfit_start_date: "${('' + (incoming.body.unfitStartDate || '')).trim()}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: checkFreeTextChars
+
+# Turvaaudit 2026-11: vabateksti väljad ei tohi sisaldada HTML-märgendite märke (< >) ega
+# kontrollsümboleid. Väärtused jõuavad hiljem ERRU XML-i, PDF-i ja kuvatavatesse vaadetesse;
+# nime/sünnikoha/tõendi numbri jaoks neid märke tegelikult vaja ei ole.
+checkFreeTextChars:
+  switch:
+    - condition: ${/[<>\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(tm_first_name_input + tm_family_name_input + tm_place_of_birth_input + certificate_number_input)}
+      next: returnInvalidCharacters
   next: checkIsNew
 
 checkIsNew:
@@ -241,6 +250,11 @@ returnSuccess:
 returnSourceRequired:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"sourceGoodReputeFormKey","code":"required","message":"sourceGoodReputeFormKey on kohustuslik uue teate loomisel"}'
+  next: end
+
+returnInvalidCharacters:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","code":"invalid_characters","message":"Väljad ei tohi sisaldada märke < ega >"}'
   next: end
 
 returnValidationError:

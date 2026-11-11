@@ -8,5 +8,9 @@ RUN javac XtrMock.java
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /build/*.class /app/
+# Turvaaudit 2026-11: ära jooksuta juurkasutajana.
+RUN addgroup -S app && adduser -S -G app app
+USER app
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-classpath", ".", "XtrMock"]

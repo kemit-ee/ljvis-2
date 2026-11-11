@@ -34,5 +34,9 @@ COPY --from=build /build/lib/postgresql-42.7.4.jar /app/lib/
 # carries a copy so SchemaRegistry compiles the exact same schemas Newman/contract tests use.
 COPY contracts/erru/3.5/ /app/contracts/erru/3.5/
 
+# Turvaaudit 2026-11: ära jooksuta juurkasutajana.
+RUN addgroup -S app && adduser -S -G app app
+USER app
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-classpath", ".:lib/postgresql-42.7.4.jar", "ErruXmlAdapter"]

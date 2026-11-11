@@ -4,6 +4,14 @@
 
 ## 2026-11-11
 
+### Turvaaudit (esmane raport): seansihaldus, päised, sisendid, konteinerid
+
+- Seanss: esindusrolli vahetamine ja esindatavate ettevõtete laadimine väljastavad uue JWT; nüüd tehakse eelmine token kehtetuks, nii et väljalogimine lõpetab seansi tegelikult. Lisaks logitakse kasutaja välja 30 minuti passiivsuse järel.
+- Veebileht saadab nüüd Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy ja Permissions-Policy päised; nginx ei avalda enam oma versiooni.
+- NU sobimatusteade: veokorraldaja nime, sünnikoha ja tõendi numbri väljad ei luba märke `<` ja `>` (kontroll vormis ja serveris).
+- Failide üleslaadimine: faililaiendit kontrollitakse nüüd ka serveris (peab vastama faili tegelikule tüübile) ning veateated ei avalda tehnilisi detaile.
+- Konteinerid s3-proxy, nysiis, xtr-mock, erru-hub-mock ja erru-xml-adapter-old töötavad mitte-root kasutajana.
+
 ### Postkasti saatmise vea põhjus on nüüd väljasaadetud kirjade logis loetav
 
 - Kui Postkast saadetud teavituse tagasi lükkas või ei vastanud, kirjutati väljasaadetud kirjade logisse („Veateade") valemi tekst, mitte tegelik põhjus. Nüüd on seal Postkasti vastuse olek ja sisu (nt „PK HTTP 400: …"). Sama parandus on staatuse käsitsi kontrollimisel ja öises staatuste sünkroonimises.

@@ -13,5 +13,9 @@ COPY --from=build /build/NysiisService\$HealthHandler.class /app/
 COPY --from=build /build/NysiisService\$NysiisHandler.class /app/
 COPY docker/nysiis/lib/EU.Cec.Move.CommonServices-1.9.1-Java11.jar /app/lib/
 
+# Turvaaudit 2026-11: ära jooksuta juurkasutajana.
+RUN addgroup -S app && adduser -S -G app app
+USER app
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-classpath", ".:lib/EU.Cec.Move.CommonServices-1.9.1-Java11.jar", "NysiisService"]
