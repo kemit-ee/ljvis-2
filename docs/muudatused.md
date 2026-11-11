@@ -4,6 +4,14 @@
 
 ## 2026-11-11
 
+### Haldus > Logid: räsiahela kontrolli nupp
+
+- Kasutajal, kellel on õigus `audit.verify`, on Haldus > Logid lehel nupp „Kontrolli räsiahelat". Tulemus kuvatakse lehel: kas ahel on terviklik ja mitut kirjet kontrolliti, või milline on esimene rikutud kirje. Ilma õiguseta nuppu ei näidata.
+
+### Õiguste pealkirjad lühemaks
+
+- Õiguste „Kasutajagrupi liikmete nimekiri …" kirjeldustest on eemaldatud sõna „pagineeritud".
+
 ### Postkasti saatmise vea põhjus on nüüd väljasaadetud kirjade logis loetav
 
 - Kui Postkast saadetud teavituse tagasi lükkas või ei vastanud, kirjutati väljasaadetud kirjade logisse („Veateade") valemi tekst, mitte tegelik põhjus. Nüüd on seal Postkasti vastuse olek ja sisu (nt „PK HTTP 400: …"). Sama parandus on staatuse käsitsi kontrollimisel ja öises staatuste sünkroonimises.
