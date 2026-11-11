@@ -4,6 +4,10 @@
 
 ## 2026-11-11
 
+### Tehnokontrolli PDF: veose kinnitamata jätmise korral pikk kontrollkaart
+
+- Kui tehnovormil on märgitud viga (sh „Veose kinnitamine"), prinditakse pikk kontrollkaart vigade ja märkustega, mitte lühike „Korras" kontrolliakt. Varem jäi tulemus veose kinnitamise vea korral „Korras" ja prinditi kontrolliakt, mis oli eksitav. „Korras" kontrolliakt prinditakse ainult siis, kui vigu pole märgitud.
+
 ### Sõidu- ja puhkeaja kontrollkaardi PDF: kategooriad ja veoliigi täpsustus
 
 - Sõiduki kategooria rida on nüüd otse mootorsõiduki rea all (enne haagiste rida).
