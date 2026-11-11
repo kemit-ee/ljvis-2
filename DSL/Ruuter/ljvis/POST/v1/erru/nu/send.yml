@@ -338,7 +338,7 @@ callErruXtr:
   call: http.post
   error: markUnknown
   args:
-    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('[#') === 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/soap-out/erru/erru/NotifyUnfitness_Request'}"
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/soap-out/erru/erru/NotifyUnfitness_Request'}"
     headers:
       type: json
     body: ${xtr_body}
