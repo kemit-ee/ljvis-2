@@ -165,4 +165,25 @@ class FormTests(unittest.TestCase):
         self.assertEqual(statuses['CAA_9'],'not_checked')
         self.assertEqual(statuses['CAA_10'],'checked')
 
+    def test_drive_rest_vehicle_category_row_under_vehicle_row_and_trailer_category_after_number(self):
+        p=self.fixture('drive-rest-form')
+        html,_=render_html(p,False,'drive-rest-form')
+        reg=html.index('Registreerimismärk');category=html.index('Sõiduki kategooria');trailer=html.index('Haagis(ed)')
+        self.assertTrue(reg<category<trailer)
+        self.assertIn('456DEF Kategooria: O4',html)
+        self.assertNotIn('Veoliigi täpsustus',html)
+
+    def test_drive_rest_hides_unmarked_not_downloaded_and_empty_second_driver(self):
+        p=self.fixture('drive-rest-form');p['driveRestForm']['tachographDataNotDownloaded']=False;p['driveRestForm']['otherActivityDaysCount']=None
+        html,_=render_html(p,False,'drive-rest-form')
+        self.assertNotIn('ei laaditud alla',html);self.assertNotIn('Teise juhi andmed',html);self.assertNotIn('None',html)
+        p['driveRestForm']['tachographDataNotDownloaded']=True
+        html,_=render_html(p,False,'drive-rest-form');self.assertIn('ei laaditud alla',html)
+        blank,_=render_html(p,True,'drive-rest-form');self.assertIn('ei laaditud alla',blank);self.assertIn('Teise juhi andmed',blank)
+
+    def test_drive_rest_place_shows_road_name_from_labels(self):
+        p=self.fixture('drive-rest-form');p['compoundForm']['road']='tallinn_narva';p['labels']['roads']={'tallinn_narva':'TALLINN - NARVA'}
+        html,_=render_html(p,False,'drive-rest-form')
+        self.assertIn('TALLINN - NARVA',html);self.assertNotIn('tallinn_narva',html)
+
 if __name__=='__main__':unittest.main()

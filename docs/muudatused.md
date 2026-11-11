@@ -4,6 +4,14 @@
 
 ## 2026-11-11
 
+### Sõidu- ja puhkeaja kontrollkaardi PDF: kategooriad ja veoliigi täpsustus
+
+- Sõiduki kategooria rida on nüüd otse mootorsõiduki rea all (enne haagiste rida).
+- Haagise kategooria on haagise numbri järel kujul „Kategooria: O3".
+- Veoliigi täpsustus (nt „EL või EMP liikmesriikide või Šveitsi vaheline vedu") on PDF-ilt eemaldatud; alles on ühenduse tegevusloa ärakirja number.
+- „Sõidumeeriku andmeid ei laaditud alla" rida kuvatakse ainult siis, kui see on vormil märgitud (tühjal vormil jääb alles). „Teise juhi andmed" pealkiri kuvatakse ainult siis, kui teine juht on määratud. Päevade arvu lahtris ei kuvata enam „None".
+- „Kontrolli koht" näitab tee nimetust (nt „TALLINN - NARVA"), mitte klassifikaatori koodi („tallinn_narva"). Nimetus loetakse PDF-i koostamisel klassifikaatorist ROAD_NAME.
+
 ### Vedajale raske rikkumise kiri ka rikkumiste valiku aknast valitud rikkumiste puhul
 
 - Sõidu- ja puhkeaja (juht ja kaasjuht) ning TRAM-kaardi vormil rikkumiste valiku aknast valitud rikkumised (nt „VAHEAJAD_561_01_VSI") on salvestatud ilma numbrita koodiga ja raskus on eraldi väljas. Vedajale saatmise teenus ei tuvastanud neid ja kirja ei saadetud. Nüüd loetakse raskus (MSI, VSI, SI) ka sellest väljast ja kirja rikkumiste loetellu lisatakse rikkumise kood koos nimetusega. MI-rikkumisi kirjas endiselt ei loetleta ega käivita need saatmist.
