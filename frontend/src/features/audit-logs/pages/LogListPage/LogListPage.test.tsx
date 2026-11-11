@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogListPage } from './LogListPage';
-import { exportLogs, listLogs } from '../../api';
+import { exportLogs, listLogs, verifyLogChain } from '../../api';
 
 let perms: string[] = ['audit.read'];
 
@@ -13,8 +13,8 @@ vi.mock('react-i18next', () => ({
 vi.mock('../../../auth/AuthContext.tsx', () => ({
   useAuth: () => ({ hasPermission: (c: string) => perms.includes(c) }),
 }));
-vi.mock('../../api.ts', () => ({ listLogs: vi.fn(), exportLogs: vi.fn() }));
-vi.mock('../../api', () => ({ listLogs: vi.fn(), exportLogs: vi.fn() }));
+vi.mock('../../api.ts', () => ({ listLogs: vi.fn(), exportLogs: vi.fn(), verifyLogChain: vi.fn() }));
+vi.mock('../../api', () => ({ listLogs: vi.fn(), exportLogs: vi.fn(), verifyLogChain: vi.fn() }));
 
 const log = {
   eventId: 'e1',
@@ -102,5 +102,41 @@ describe('LogListPage', () => {
     await waitFor(() => expect(click).toHaveBeenCalled());
     expect(exportLogs).toHaveBeenCalled();
     expect(revoke).toHaveBeenCalled();
+  });
+
+  it('peidab räsiahela kontrolli nupu ilma audit.verify õiguseta', async () => {
+    renderPage();
+    await screen.findAllByText('a & b');
+    expect(screen.queryByText('logs.verifyChain')).toBeNull();
+  });
+
+  it('näitab räsiahela kontrolli nuppu ja terve ahela tulemust', async () => {
+    perms = ['audit.read', 'audit.verify'];
+    vi.mocked(verifyLogChain).mockResolvedValue({ ok: true, checked: 5 });
+    renderPage();
+    fireEvent.click(await screen.findByText('logs.verifyChain'));
+    expect(await screen.findByText('logs.verifyChainOk')).toBeTruthy();
+  });
+
+  it('näitab katkenud ahela tulemust', async () => {
+    perms = ['audit.read', 'audit.verify'];
+    vi.mocked(verifyLogChain).mockResolvedValue({
+      ok: false,
+      checked: 5,
+      firstBreachEventId: 'e2',
+      reason: 'prev_row_hash_mismatch',
+    });
+    renderPage();
+    fireEvent.click(await screen.findByText('logs.verifyChain'));
+    expect(await screen.findByText('logs.verifyChainBroken')).toBeTruthy();
+  });
+
+  it('näitab veateadet, kui kontroll ebaõnnestub', async () => {
+    perms = ['audit.read', 'audit.verify'];
+    vi.mocked(verifyLogChain).mockRejectedValue(new Error('x'));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    renderPage();
+    fireEvent.click(await screen.findByText('logs.verifyChain'));
+    expect(await screen.findByText('logs.verifyChainFailed')).toBeTruthy();
   });
 });

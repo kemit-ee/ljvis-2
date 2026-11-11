@@ -27,7 +27,7 @@ mock_step:
           description: "Kasutajagrupi nimetuse, asutuste ja õiguste-seoste muutmine"
         - permissionId: "7"
           code: "user_group.list_users.admin"
-          description: "Kasutajagrupi liikmete pagineeritud nimekiri kõigi asutuste ulatuses"
+          description: "Kasutajagrupi liikmete nimekiri kõigi asutuste ulatuses"
         - permissionId: "9"
           code: "user_group.search_eligible_users"
           description: "Gruppi sidumiseks sobivate kasutajate otsimine"

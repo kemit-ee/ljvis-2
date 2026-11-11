@@ -9,6 +9,13 @@
 - Sõidu- ja puhkeaja (juht ja kaasjuht) ning TRAM-kaardi avalikustamisel ja avalikustatud vormi salvestamisel ei tekkinud „Eestis avastatud raske rikkumine" teavitust, kui rikkumine oli valitud rikkumiste aknast (nt „VAHEAJAD_561_01_MI"). Tuvastus ootas koodis numbrit (nt „SI912") ega lugenud rikkumise raskust. Nüüd arvestatakse ka rikkumise raskust (MSI, VSI, SI, MI).
 - Vedajale saatmise teenus (`send-carrier-from-request`) loeb raskust endiselt ainult koodi järgi; see on eraldi töö.
 
+### Haldus > Logid: räsiahela kontrolli nupp
+
+- Kasutajal, kellel on õigus `audit.verify`, on Haldus > Logid lehel nupp „Kontrolli räsiahelat". Tulemus kuvatakse lehel: kas ahel on terviklik ja mitut kirjet kontrolliti, või milline on esimene rikutud kirje. Ilma õiguseta nuppu ei näidata.
+
+### Õiguste pealkirjad lühemaks
+
+- Õiguste „Kasutajagrupi liikmete nimekiri …" kirjeldustest on eemaldatud sõna „pagineeritud".
 ### Sõidu- ja puhkeaja vorm: rikkumise valiku rippmenüü ei kata nuppe
 
 - Rikkumiste valiku aknas avanes alumiste ridade rippmenüü alla ja kattis „Tühista" ja „Vali" nupud. Nüüd avaneb menüü üles, kui akna sisus ei ole all piisavalt ruumi.
