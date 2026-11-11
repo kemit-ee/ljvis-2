@@ -55,12 +55,19 @@ class FormTests(unittest.TestCase):
         rows=build_context('vehicle-technical',p)['parts']
         row=next(r for r in rows if r['code']=='CAA_10')
         self.assertEqual(row['status'],'non_compliant');self.assertIn('Veose kinnitamine',row['name'])
-    def test_ok_result_with_cargo_securing_issue_still_prints_roadworthy_act(self):
+    def test_ok_result_with_cargo_securing_issue_prints_control_card_with_defects_and_notes(self):
         p=self.fixture('vehicle-technical');p['technicalForm']['resultType']='ok'
         p['technicalForm']['partsSummary']=[{'partCode':'CAA_10','checked':True,'hasDefect':True}]
         p['technicalForm']['partsDefects']=[{'defectCode':'CAA_10.A','severity':'VO'}]
+        p['technicalForm']['notes']='Veos kinnitamata, märkus-SENTINEL'
         d=build_context('vehicle-technical',p)
-        self.assertEqual(d['layout'],'roadworthy-act')
+        self.assertEqual(d['layout'],'control-card')
+        html,_=render_html(p,False,'vehicle-technical')
+        self.assertNotIn('KOMMERTSSÕIDUKI KONTROLLIAKT',html);self.assertIn('märkus-SENTINEL',html)
+    def test_ok_result_without_any_defect_prints_roadworthy_act(self):
+        p=self.fixture('vehicle-technical');p['technicalForm']['resultType']='ok'
+        p['technicalForm']['partsSummary']=[];p['technicalForm']['partsDefects']=[]
+        self.assertEqual(build_context('vehicle-technical',p)['layout'],'roadworthy-act')
     def test_unknown_defect_is_preserved_and_known_defect_marked(self):
         p=self.fixture('vehicle-technical');p['technicalForm']['partsDefects'].append({'partCode':'CAA_1','defectCode':'FUTURE_CODE','severity':'EOV'})
         rows=[r for page in build_context('vehicle-technical',p)['defect_pages'] for col in page for r in col]

@@ -314,7 +314,11 @@ def build_context(template, payload=None, blank=False):
       'proceeding':joined(PROCEEDINGS.get(f.get('proceedingType'),f.get('proceedingType')),f.get('proceedingReferenceNumber')),
       'notes':short('Märkused',legacy_part_prefixes(f.get('notes')),500),
     }
-    layout='roadworthy-act' if is_technical and not blank and f.get('resultType')=='ok' else 'control-card'
+    # "Korras" kontrolliakt (lühike) ainult siis, kui vormile pole ühtegi viga märgitud. CAA_10 (veose
+    # kinnitamine) ei muuda tulemust, aga on väärteo alus: selle puhul kuvatakse pikk kontrollkaart vigade
+    # ja märkustega, mitte "korras" akt.
+    has_recorded_defects=is_technical and (bool(structured(f.get('partsDefects'),list)) or any(r.get('hasDefect') for r in structured(f.get('partsSummary'),list)))
+    layout='roadworthy-act' if is_technical and not blank and f.get('resultType')=='ok' and not has_recorded_defects else 'control-card'
     data=dict(layout=layout,title='KOMMERTSSÕIDUKI KONTROLLIAKT' if layout=='roadworthy-act' else TITLES[template],blank=blank,fields=fields,f=f,appendix=appendix,warnings=warnings,number=joined(f.get('subFormNumber'),'v'+str(f['version']) if f.get('version') else ''),categories=CATEGORIES)
     if is_technical:
         summary=structured(f.get('partsSummary'),list);defects=structured(f.get('partsDefects'),list)
@@ -325,7 +329,7 @@ def build_context(template, payload=None, blank=False):
         # Old snapshots ({partCode, status}) are normalized to this shape by the frontend
         # before save, so this is the only shape print needs to understand.
         scored_non_compliant=any(r.get('hasDefect') and not is_excluded_part(r.get('partCode')) for r in summary)
-        if layout=='roadworthy-act' and (scored_defects or scored_non_compliant):
+        if not blank and f.get('resultType')=='ok' and (scored_defects or scored_non_compliant):
             raise ValueError('Roadworthy act requires no recorded defects or non-compliant parts')
         states={}
         for row in summary:
