@@ -2392,6 +2392,7 @@
         "validation_unavailable": "XML-i kontroll pole praegu saadaval. Teadet ei saadetud.",
         "nysiis_unavailable": "Nimeotsingu teenus ei ole hetkel kättesaadav",
         "source_exceeds_erru_limit": "Allikandmed ületavad ERRU pikkusepiirangu. Parandage hea maine deklaratsiooni (ees- ja perekonnanimi: 100 tähemärki; sünnikoht: 50; tunnistuse number: 20).",
+        "invalid_characters": "Väli ei tohi sisaldada märke < ega >",
         "not_found": "NU sobimatusteadet ei leitud"
       }
     }

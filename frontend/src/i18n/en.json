@@ -2361,6 +2361,7 @@
         "validation_unavailable": "XML validation is currently unavailable. The notification was not sent.",
         "nysiis_unavailable": "The name search service is currently unavailable",
         "source_exceeds_erru_limit": "The source value exceeds the ERRU limit. Correct the good repute declaration (first/family name: 100 characters; place of birth: 50; certificate number: 20).",
+        "invalid_characters": "Field must not contain the characters < or >",
         "not_found": "NU unfitness notification not found"
       }
     }

@@ -72,6 +72,17 @@ const MAGIC_SIGNATURES = [
   { mime: 'application/msword',   offset: 0, magic: Buffer.from([0xD0, 0xCF, 0x11, 0xE0]) },               // OLE2 (doc)
 ];
 
+// Lubatud laiendid iga MIME-tüübi kohta. Faililaiendit kontrollitakse ka serveris (mitte ainult
+// liideses): muidu saaks `.exe`/`.html` nime alla üles laadida PDF-i baidijadaga faili.
+const EXT_BY_MIME = {
+  'application/pdf': ['.pdf'],
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'application/vnd.etsi.asic-e+zip': ['.asice'],
+  'application/msword': ['.doc'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+};
+
 // ZIP-based formats (docx, asice) share the ZIP magic — we disambiguate by extension.
 const ZIP_MIME_BY_EXT = {
   '.docx':  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -215,16 +226,14 @@ app.post('/upload', async (req, res) => {
   // ── 3. File size check ────────────────────────────────────────────────────
   if (fileBuffer.length > MAX_BYTES) {
     console.warn(`[s3-proxy] [upload] REJECT size ${(fileBuffer.length/1024/1024).toFixed(2)}MB > limit ${MAX_BYTES/1024/1024}MB`);
-    return res.status(413).json({
-      error: `File size ${(fileBuffer.length / 1024 / 1024).toFixed(2)} MB exceeds limit of ${MAX_BYTES / 1024 / 1024} MB`,
-    });
+    return res.status(413).json({ error: `File exceeds the ${MAX_BYTES / 1024 / 1024} MB limit` });
   }
 
   // ── 4. Sanitize filename ──────────────────────────────────────────────────
   const safeName = sanitizeFilename(file_name, MAX_NAME_LEN);
   if (!safeName) {
     console.warn(`[s3-proxy] [upload] REJECT unsanitizable filename: "${file_name}"`);
-    return res.status(400).json({ error: `Invalid or unsanitizable file name: "${file_name}"` });
+    return res.status(400).json({ error: 'Invalid file name' });
   }
   console.log(`[s3-proxy] [upload] sanitized filename: "${file_name}" -> "${safeName}"`);
 
@@ -241,15 +250,20 @@ app.post('/upload', async (req, res) => {
   const declaredMime = normalizeMime(content_type);
   if (detectedMime !== declaredMime) {
     console.warn(`[s3-proxy] [upload] REJECT MIME mismatch: declared=${declaredMime} detected=${detectedMime}`);
-    return res.status(415).json({
-      error: `Declared content_type "${declaredMime}" does not match detected type "${detectedMime}"`,
-    });
+    return res.status(415).json({ error: 'Declared content type does not match file content' });
+  }
+
+  // ── 6b. Faililaiend peab vastama tuvastatud tüübile ───────────────────────
+  const fileExt = safeName.slice(safeName.lastIndexOf('.')).toLowerCase();
+  if (!(EXT_BY_MIME[detectedMime] ?? []).includes(fileExt)) {
+    console.warn(`[s3-proxy] [upload] REJECT extension ${fileExt} does not match ${detectedMime}`);
+    return res.status(415).json({ error: 'File extension is not allowed for this file type' });
   }
 
   // ── 7. Allowed MIME list check ────────────────────────────────────────────
   if (!ALLOWED_MIMES.has(detectedMime)) {
     console.warn(`[s3-proxy] [upload] REJECT MIME not in allowlist: ${detectedMime}`);
-    return res.status(415).json({ error: `File type "${detectedMime}" is not allowed` });
+    return res.status(415).json({ error: 'File type is not allowed' });
   }
 
   // ── 8. Sanitize key_folder (supports "form_type/form_number" structure) ──
@@ -346,6 +360,14 @@ app.get('/presign', async (req, res) => {
     console.error(`[s3-proxy] [presign] ERROR ${err.name}: ${err.message}`);
     return res.status(502).json({ error: 'Presign failed' });
   }
+});
+
+// Üldine veakäitleja: ära lekita stacktrace'i ega parseri sisemisi veateateid (nt vigane JSON).
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  const status = err && (err.status || err.statusCode) === 413 ? 413 : 400;
+  console.warn(`[s3-proxy] request error: ${err && err.type ? err.type : 'unknown'}`);
+  res.status(status).json({ error: status === 413 ? 'Request too large' : 'Bad request' });
 });
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
