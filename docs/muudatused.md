@@ -4,6 +4,10 @@
 
 ## 2026-11-11
 
+### Parandus: GitHubi CI-workflow ei käivitunud
+
+- `.github/workflows/ci.yml` ei käivitunud alates 4.11 (commit `ea4b2f09`): ERRU adapteri töö kasutas job-taseme `env`-is `runner.temp`, mida seal kasutada ei tohi, ja GitHub lükkas kogu workflow'i tagasi (0 sekundit, „workflow file issue"). Muutuja seatakse nüüd töö esimeses sammus. Kasutajale nähtavat muudatust ei ole.
+
 ### Parandus: välisriigi rikkumise vormi ehitusviga
 
 - Välisriigi rikkumise vormi „Teise riigi soovitatud meetmed" valiku tüübiviga (`tsc -b`) peatas GitLabi frontendi ehituse. Kasutajale nähtavat muudatust ei ole.
