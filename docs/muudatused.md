@@ -4,6 +4,10 @@
 
 ## 2026-11-11
 
+### Sõidu- ja puhkeaja vorm: rikkumise valiku rippmenüü ei kata nuppe
+
+- Rikkumiste valiku aknas avanes alumiste ridade rippmenüü alla ja kattis „Tühista" ja „Vali" nupud. Nüüd avaneb menüü üles, kui akna sisus ei ole all piisavalt ruumi.
+
 ### Välisriigi rikkumise vorm: rikkumise rida ei kordu
 
 - Valitud rikkumise ees oli kaks peaaegu sama rida („Hoiatus MSI101 …" ja „MSI101 … — Kontrolli tulemus"). Nüüd on üks rida: linnuke koos pealkirjaga „<rikkumine> — Kontrolli tulemus".

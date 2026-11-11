@@ -30,6 +30,24 @@ interface MenuPosition {
   width: number;
 }
 
+// Elemendi nähtav ala: kitsaim ülemus, mis sisu kärbib/kerib (nt Modal.Body),
+// piiratud aknaga.
+function getVisibleBounds(el: HTMLElement): { top: number; bottom: number } {
+  let top = 0;
+  let bottom = window.innerHeight;
+  let node = el.parentElement;
+  while (node) {
+    const overflowY = window.getComputedStyle(node).overflowY;
+    if (overflowY !== 'visible') {
+      const r = node.getBoundingClientRect();
+      top = Math.max(top, r.top);
+      bottom = Math.min(bottom, r.bottom);
+    }
+    node = node.parentElement;
+  }
+  return { top, bottom };
+}
+
 interface DropdownState {
   open: boolean;
   selected: string[];
@@ -117,12 +135,17 @@ export function DrivingViolationModal({
           : 3;
         // ~40px per checkbox row + ~50px for the "Eemalda" button row
         const estimatedMenuHeight = l3Count * 40 + 50;
-        const spaceBelow = window.innerHeight - rect.bottom;
+        // Nähtava ala piirid: modali sisu (Modal.Body) lõpp, mitte aken —
+        // vastasel juhul katab alla avanev menüü "Tühista" ja "Vali" nupud.
+        const { top: visibleTop, bottom: visibleBottom } =
+          getVisibleBounds(wrapper);
+        const spaceBelow = visibleBottom - rect.bottom;
+        const spaceAbove = rect.top - visibleTop;
         const menuPos_: MenuPosition = {
           left: rect.left,
           width: rect.width,
         };
-        if (spaceBelow >= estimatedMenuHeight || rect.top < estimatedMenuHeight) {
+        if (spaceBelow >= estimatedMenuHeight || spaceAbove < spaceBelow) {
           menuPos_.top = rect.bottom;
         } else {
           menuPos_.bottom = window.innerHeight - rect.top;
