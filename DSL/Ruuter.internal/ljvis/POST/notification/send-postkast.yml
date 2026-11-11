@@ -342,8 +342,7 @@ onPkError:
             + (pkRes.response.body != null
               ? ': ' + JSON.stringify(pkRes.response.body)
               : ''))
-            .replace(/[\r\n\t\\]+/g, ' ')
-            .replace(/"/g, "'")
+            .split('\\').join(' ').split('"').join("'")
             .substring(0, 500))
         : 'Postkast 2.0 ei ole kättesaadav või päring aegus'}
   next: logPkFailure

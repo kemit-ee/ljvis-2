@@ -142,7 +142,7 @@ mapStatus2:
     mapped_failure_reason: >-
       ${(((op_status === 'ERROR' || (op_status === 'FINISHED' && created_count === 0))
         ? ((op && op.resolution) || original_log.failureReason || '')
-        : '') + '').replace(/[\r\n\t\\]+/g, ' ').replace(/"/g, "'").substring(0, 500)}
+        : '') + '').replace(/[\r\n\t\\]+/g, ' ').split('"').join("'").substring(0, 500)}
   next: updateStatus
 
 updateStatus:
