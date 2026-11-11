@@ -1289,7 +1289,7 @@
       "euViolationSi949": "SI949 - puuduvad nende riikide tähised, mille piirid juht igapäevasel tööajal ületas",
       "euViolationSi950": "SI950 - puuduvad nende riikide tähised, kus juht igapäevast tööaega alustas ja kus ta selle lõpetas",
       "recommendedMeasureBasicInfo": "Teise riigi soovitatud meetmed",
-      "recommendedMeasureCode": "Meetmed",
+      "recommendedMeasureCode": "Teise riigi soovitatud meetmed",
       "recommendedMeasureNotes": "Soovitatud meetme täpsustus",
       "recommendedMeasureGeneralNotes": "Märkused",
       "recommendedMeasureMissing": "Puuduvad",

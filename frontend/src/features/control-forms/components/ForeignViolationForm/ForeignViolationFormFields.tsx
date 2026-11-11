@@ -128,33 +128,44 @@ export function ForeignViolationFormFields({
   // Valitud rikkumisega plokk on alati avatud, et rikkumine oleks kogu aeg näha.
   const euViolationsAccordion = useExpandedWhenSelected(violationEntries.length > 0);
 
-  // NCR-ist üle tulnud karistused rikkumise sildi ees: rakendatud karistus
-  // (nt "Trahv") ja välisriigi taotletud karistus (ERRU penaltyTypeRequested).
+  // Valitud rikkumise rida on ühtlasi sanktsiooniploki pealkiri
+  // ("<rikkumine> — Kontrolli tulemus"), et sama teksti ei kuvataks kaks korda.
   const violationLabel = (
     label: string | React.ReactNode,
     entry?: ForeignViolationFormViolation,
   ) => {
     if (!entry) return label;
-    const sanction = sanctionOptions.find((o) => o.value === entry.sanctionCode);
-    const imposed =
-      sanction && sanction.value !== 'KORRAS' ? t(sanction.labelKey) : '';
-    const requested = (entry.requestedPenaltyCodes ?? [])
-      .map((c) => t(`forms.foreign_violation.requestedPenalty.${c}`))
-      .join(', ');
-    if (!imposed && !requested) return label;
     return (
-      <>
-        {imposed && <strong>{imposed}</strong>}
-        {imposed && ' '}
-        {requested && (
-          <em>
-            ({t('forms.foreign_violation.requestedPenaltyPrefix')}: {requested})
-          </em>
-        )}
-        {requested && ' '}
+      <strong>
         {label}
-      </>
+        {' — '}
+        {t('forms.foreign_violation.sanctionBasicInfo')}
+      </strong>
     );
+  };
+
+  // Välisriigi taotletud karistused (ERRU penaltyTypeRequested) -> soovitatud
+  // meetme valik. Taotlus puudub => "Puuduvad".
+  const REQUESTED_TO_MEASURE: Record<string, string> = {
+    '101': 'HOIATUS',
+    '301': 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE',
+    '302': 'MUU',
+    '303': 'MUU',
+    '304': 'TEGEVUSLUBA_KEHTETUKS',
+    '305': 'JUHITUNNISTUSEST_KEELDUMINE',
+    '306': 'JUHITUNNISTUS_KEHTETUKS',
+    '307': 'MUU',
+    '102': 'MUU',
+  };
+  const effectiveMeasures = (v: ForeignViolationFormViolation): string[] => {
+    if (v.recommendedMeasureCode) return [v.recommendedMeasureCode];
+    const mapped = Array.from(
+      new Set(
+        (v.requestedPenaltyCodes ?? [])
+          .map((c) => REQUESTED_TO_MEASURE[c] ?? 'MUU'),
+      ),
+    );
+    return mapped.length > 0 ? mapped : ['PUUDUVAD'];
   };
 
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
@@ -1102,15 +1113,6 @@ export function ForeignViolationFormFields({
                           className="mb-1"
                           style={{ marginLeft: '1.5rem' }}
                         >
-                          <Text element="p" modifiers="bold">
-                            {
-                              group.items.find(
-                                (i) => i.value === violation.code,
-                              )?.label
-                            }
-                            {' — '}
-                            {t('forms.foreign_violation.sanctionBasicInfo')}
-                          </Text>
                           <ChoiceGroup
                             id={`violationSanction_${violation.code}`}
                             name={`violationSanction_${violation.code}`}
@@ -1168,15 +1170,11 @@ export function ForeignViolationFormFields({
                           <ChoiceGroup
                             id={`violationMeasure_${violation.code}`}
                             name={`violationMeasure_${violation.code}`}
-                            inputType="radio"
+                            inputType="checkbox"
                             label={t(
                               'forms.foreign_violation.recommendedMeasureCode',
                             )}
-                            value={
-                              readOnly
-                                ? (violation.recommendedMeasureCode ?? '')
-                                : [violation.recommendedMeasureCode ?? '']
-                            }
+                            value={effectiveMeasures(violation)}
                             items={recommendedMeasureOptions.map((opt) => ({
                               id: `violationMeasure_${violation.code}_${opt.value}`,
                               label: t(opt.labelKey),
@@ -1185,7 +1183,15 @@ export function ForeignViolationFormFields({
                             }))}
                             onChange={(val) => {
                               if (readOnly) return;
-                              const newVal = Array.isArray(val) ? val[0] : val;
+                              const next = Array.isArray(val) ? val : [val];
+                              const current = effectiveMeasures(violation);
+                              const added = next.filter(
+                                (x) => !current.includes(x),
+                              );
+                              const newVal =
+                                added[added.length - 1] ??
+                                next[next.length - 1] ??
+                                'PUUDUVAD';
                               setFieldValue(
                                 'violations',
                                 violationEntries.map((v) =>
@@ -1213,9 +1219,6 @@ export function ForeignViolationFormFields({
 
       <Card className="mb-1">
         <Card.Content>
-          <Heading element="h3" className="mb-1">
-            {t('forms.foreign_violation.recommendedMeasureBasicInfo')}
-          </Heading>
           {violationCodes.length === 0 && (
           <>
           <ChoiceGroup

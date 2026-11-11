@@ -4,6 +4,12 @@
 
 ## 2026-11-11
 
+### Välisriigi rikkumise vorm: rikkumise rida ei kordu
+
+- Valitud rikkumise ees oli kaks peaaegu sama rida („Hoiatus MSI101 …" ja „MSI101 … — Kontrolli tulemus"). Nüüd on üks rida: linnuke koos pealkirjaga „<rikkumine> — Kontrolli tulemus".
+- Välisriigi taotletud karistus ei ole enam rea ees, vaid plokis „Teise riigi soovitatud meetmed" (endine „Meetmed"): taotletud meede on märgitud, taotluse puudumisel on märgitud „Puuduvad".
+- Märkuste kaardilt on pealkiri „Teise riigi soovitatud meetmed" eemaldatud.
+
 ### Postkasti saatmise vea põhjus on nüüd väljasaadetud kirjade logis loetav
 
 - Kui Postkast saadetud teavituse tagasi lükkas või ei vastanud, kirjutati väljasaadetud kirjade logisse („Veateade") valemi tekst, mitte tegelik põhjus. Nüüd on seal Postkasti vastuse olek ja sisu (nt „PK HTTP 400: …"). Sama parandus on staatuse käsitsi kontrollimisel ja öises staatuste sünkroonimises.

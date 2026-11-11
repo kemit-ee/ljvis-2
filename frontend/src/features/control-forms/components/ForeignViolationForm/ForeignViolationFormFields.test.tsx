@@ -301,18 +301,19 @@ describe('ForeignViolationFormFields (rikkumisega)', () => {
     );
   });
 
-  it('rikkumise märgistuses on rakendatud ja taotletud karistused', () => {
+  it('taotletud karistus märgitakse soovitatud meetmete all', () => {
     const code = findCode();
     setup({
-      values: { violations: [{ code, sanctionCode: 'TRAHV', requestedPenaltyCodes: ['FINE', 'BAN'] }] },
+      values: { violations: [{ code, sanctionCode: 'TRAHV', requestedPenaltyCodes: ['101'] }] },
     });
-    expect(screen.getByText(/forms.foreign_violation.requestedPenalty.FINE, forms.foreign_violation.requestedPenalty.BAN/)).toBeTruthy();
+    expect((screen.getByTestId(`violationMeasure_${code}_HOIATUS`) as HTMLInputElement).checked).toBe(true);
+    expect((screen.getByTestId(`violationMeasure_${code}_PUUDUVAD`) as HTMLInputElement).checked).toBe(false);
   });
 
-  it('ainult taotletud karistus ilma rakendatud sanktsioonita, KORRAS ei näita rakendatud karistust', () => {
+  it('taotlemata karistuse korral on märgitud "Puuduvad"', () => {
     const code = findCode();
-    setup({ values: { violations: [{ code, sanctionCode: 'KORRAS', requestedPenaltyCodes: ['FINE'] }] } });
-    expect(screen.getByText(/forms.foreign_violation.requestedPenalty.FINE/)).toBeTruthy();
+    setup({ values: { violations: [{ code, sanctionCode: 'KORRAS' }] } });
+    expect((screen.getByTestId(`violationMeasure_${code}_PUUDUVAD`) as HTMLInputElement).checked).toBe(true);
   });
 });
 
