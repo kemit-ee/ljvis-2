@@ -165,11 +165,11 @@ class FormTests(unittest.TestCase):
         self.assertEqual(statuses['CAA_9'],'not_checked')
         self.assertEqual(statuses['CAA_10'],'checked')
 
-    def test_drive_rest_vehicle_category_under_vehicle_and_trailer_category_after_number(self):
+    def test_drive_rest_vehicle_category_row_under_vehicle_row_and_trailer_category_after_number(self):
         p=self.fixture('drive-rest-form')
         html,_=render_html(p,False,'drive-rest-form')
-        vehicle=html.index('Mootorsõiduk: riigi tunnus');category=html.index('Sõiduki kategooria');reg=html.index('Registreerimismärk')
-        self.assertTrue(vehicle<category<reg)
+        reg=html.index('Registreerimismärk');category=html.index('Sõiduki kategooria');trailer=html.index('Haagis(ed)')
+        self.assertTrue(reg<category<trailer)
         self.assertIn('456DEF Kategooria: O4',html)
         self.assertNotIn('Veoliigi täpsustus',html)
 
