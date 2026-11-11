@@ -41,6 +41,9 @@ export function useNuForm(
   );
 
   const required = t(`${T}.required`);
+  // Turvaaudit 2026-11: HTML-märgendite märke (< >) vabatekstis ei lubata; server kontrollib sama.
+  const noMarkup = (schema: Yup.StringSchema) =>
+    schema.matches(/^[^<>]*$/, t(`${T}.invalid_characters`));
 
   const validationSchema = Yup.object({
     originatingAuthority: Yup.string().required(required),
@@ -49,11 +52,11 @@ export function useNuForm(
     primaryElement: Yup.string()
       .oneOf(['transportManager', 'certificate'])
       .required(required),
-    tmFirstName: Yup.string().when('primaryElement', {
+    tmFirstName: noMarkup(Yup.string()).when('primaryElement', {
       is: 'transportManager',
       then: (schema) => schema.required(required).max(100),
     }),
-    tmFamilyName: Yup.string().when('primaryElement', {
+    tmFamilyName: noMarkup(Yup.string()).when('primaryElement', {
       is: 'transportManager',
       then: (schema) => schema.required(required).max(100),
     }),
@@ -61,8 +64,8 @@ export function useNuForm(
       is: 'transportManager',
       then: (schema) => schema.required(required),
     }),
-    tmPlaceOfBirth: Yup.string().max(50),
-    certificateNumber: Yup.string().when('primaryElement', {
+    tmPlaceOfBirth: noMarkup(Yup.string()).max(50),
+    certificateNumber: noMarkup(Yup.string()).when('primaryElement', {
       is: 'certificate',
       then: (schema) => schema.required(required).max(20),
     }),

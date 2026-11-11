@@ -11,6 +11,23 @@
 ### Õiguste pealkirjad lühemaks
 
 - Õiguste „Kasutajagrupi liikmete nimekiri …" kirjeldustest on eemaldatud sõna „pagineeritud".
+### Sõidu- ja puhkeaja vorm: rikkumise valiku rippmenüü ei kata nuppe
+
+- Rikkumiste valiku aknas avanes alumiste ridade rippmenüü alla ja kattis „Tühista" ja „Vali" nupud. Nüüd avaneb menüü üles, kui akna sisus ei ole all piisavalt ruumi.
+
+### Välisriigi rikkumise vorm: rikkumise rida ei kordu
+
+- Valitud rikkumise ees oli kaks peaaegu sama rida („Hoiatus MSI101 …" ja „MSI101 … — Kontrolli tulemus"). Nüüd on üks rida: linnuke koos pealkirjaga „<rikkumine> — Kontrolli tulemus".
+- Välisriigi taotletud karistus ei ole enam rea ees, vaid plokis „Teise riigi soovitatud meetmed" (endine „Meetmed"): taotletud meede on märgitud, taotluse puudumisel on märgitud „Puuduvad".
+- Märkuste kaardilt on pealkiri „Teise riigi soovitatud meetmed" eemaldatud.
+
+### Turvaaudit (esmane raport): seansihaldus, päised, sisendid, konteinerid
+
+- Seanss: esindusrolli vahetamine ja esindatavate ettevõtete laadimine väljastavad uue JWT; nüüd tehakse eelmine token kehtetuks, nii et väljalogimine lõpetab seansi tegelikult. Lisaks logitakse kasutaja välja 30 minuti passiivsuse järel.
+- Veebileht saadab nüüd Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy ja Permissions-Policy päised; nginx ei avalda enam oma versiooni.
+- NU sobimatusteade: veokorraldaja nime, sünnikoha ja tõendi numbri väljad ei luba märke `<` ja `>` (kontroll vormis ja serveris).
+- Failide üleslaadimine: faililaiendit kontrollitakse nüüd ka serveris (peab vastama faili tegelikule tüübile) ning veateated ei avalda tehnilisi detaile.
+- Konteinerid s3-proxy, nysiis, xtr-mock, erru-hub-mock ja erru-xml-adapter-old töötavad mitte-root kasutajana.
 
 ### Postkasti saatmise vea põhjus on nüüd väljasaadetud kirjade logis loetav
 

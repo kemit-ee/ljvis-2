@@ -169,6 +169,19 @@ applySwitch:
       expirationInMinutes: 480
       JWTName: "customJwtCookie"
   result: jwt_result
+  next: blacklist_previous_jwt
+
+# Turvaaudit 2026-11: uue JWT väljastamine peab eelmise kehtetuks tegema, muidu jääb vana token
+# (ja selle põhjal seanss) kehtima ka pärast väljalogimist. Best-effort: tõrge ei blokeeri vastust.
+blacklist_previous_jwt:
+  call: http.post
+  args:
+    url: "[#LJVIS_TIM]/jwt/blacklist"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      cookie: ${incoming.headers.cookie}
+      X-TIM-Admin-Token: "[#TIM_ADMIN_TOKEN]"
+  result: blacklist_result
   next: return_switched
 
 return_switched:
