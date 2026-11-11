@@ -50,11 +50,13 @@ jobs:
     name: ERRU adapter — Java and PostgreSQL tests
     runs-on: ubuntu-22.04
     timeout-minutes: 10
-    env:
-      JAVA_TEST_OUTPUT_DIR: ${{ runner.temp }}/erru-java-tests
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      # `runner` kontekst ei ole job-tasemel `env`-is saadaval (workflow'd ei laeks üldse käiku),
+      # seepärast seatakse muutuja sammus.
+      - name: Set Java test output dir
+        run: echo "JAVA_TEST_OUTPUT_DIR=${RUNNER_TEMP}/erru-java-tests" >> "$GITHUB_ENV"
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
