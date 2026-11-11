@@ -11,6 +11,15 @@ TITLES = {
 }
 PARTS = ['Identifitseerimine','Pidurisüsteem','Rooliseade','Nähtavus','Valgustusseadmed ja elektrisüsteem','Teljed, veljed, rehvid, vedrustus','Šassii ja selle kinnitused','Muu varustus, sh sõidumeerik ja kiiruspiirik','Saasted, sh heitgaasid ning kütuse- ja õlilekked','Reisijateveoks kasutatava sõiduki täiendavad sõlmed','Veose kinnitamine','Muu tehniline viga']
 CATEGORIES=[('A_2012','N2'),('B_2012','N3'),('C_2012','O3'),('D_2012','O4'),('E_2012','M2'),('F_2012','M3'),('G3_2012','T1b'),('H2_2012','T2b'),('I_2012','T3b'),('J_2012','T4.1b'),('K_2012','T4.2b'),('L_2012','T4.3b'),('OTHER_2012','Muu')]
+
+def category_name(item):
+    """Sõiduki/haagise kategooria nimetus (nt "O3"); "Muu" korral lisatakse täpsustus."""
+    code=item.get('categoryCode')
+    if not code:return ''
+    name=dict(CATEGORIES).get(code,str(code))
+    other=str(item.get('categoryOther') or '').strip()
+    return joined(name,other) if code=='OTHER_2012' and other else name
+
 RESULTS={'ok':'Korras','warning':'Hoiatus','precept':'Ettekirjutus','misdemeanor_proceedings':'Väärteomenetlus','driving_ban':'Sõidukeeld / juhtimiselt kõrvaldamine','arrest':'Arest','transport_interruption':'Autovedu on katkestatud','extraordinary_inspection':'Erakorraline ülevaatus','extraordinary_inspection_ta':'Erakorraline ülevaatus ja liiklusregistri andmete täpsustamine'}
 PROCEEDINGS={'legacy_other':'Muu menetlus (LJVIS1)','LYHI':'Väärteo lühimenetlus','KIIR':'Väärteo kiirmenetlus','YLD':'Väärteo üldmenetlus'}
 # CAA_10 (veose kinnitamine) is a cargo-loading/securing violation, not a vehicle
@@ -294,6 +303,7 @@ def build_context(template, payload=None, blank=False):
       'vehicle':short('Sõiduk',joined(vehicle.get('make'),vehicle.get('model'))),'reg':vehicle.get('regNr') or '', 'country':vehicle.get('countryCode') or '', 'vin':vehicle.get('vin') or '', 'mileage':vehicle.get('mileage') or '',
       'category':vehicle.get('categoryCode') or '', 'categoryOther':short('Muu kategooria',vehicle.get('categoryOther')),
       'trailers':short('Haagised','; '.join(joined(t.get('make'),t.get('model'),t.get('countryCode'),t.get('regNr')) for t in trailers)),
+      'trailersCategorised':short('Haagised','; '.join(joined(t.get('make'),t.get('model'),t.get('countryCode'),t.get('regNr'))+((' Kategooria: '+category_name(t)) if category_name(t) else '') for t in trailers)),
       'company':short('Vedaja',joined(c.get('companyName'),c.get('companyRegCode'))),
       'companyAddress':short('Vedaja aadress',joined(c.get('companyAddressLine1'),label('ehak',c.get('companyCity')),label('ehak',c.get('companyCounty')),c.get('companyPostalCode'),label('countries',c.get('companyCountryCode')))),
       'licence':c.get('companyActivityLicenceCopyNumber') or '',

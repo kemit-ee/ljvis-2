@@ -4,6 +4,12 @@
 
 ## 2026-11-11
 
+### Sõidu- ja puhkeaja kontrollkaardi PDF: kategooriad ja veoliigi täpsustus
+
+- Sõiduki kategooria on nüüd mootorsõiduki lahtris sõiduki andmete all, mitte eraldi reana.
+- Haagise kategooria on haagise numbri järel kujul „Kategooria: O3".
+- Veoliigi täpsustus (nt „EL või EMP liikmesriikide või Šveitsi vaheline vedu") on PDF-ilt eemaldatud; alles on ühenduse tegevusloa ärakirja number.
+
 ### Sõidu- ja puhkeaja vorm: rikkumise valiku rippmenüü ei kata nuppe
 
 - Rikkumiste valiku aknas avanes alumiste ridade rippmenüü alla ja kattis „Tühista" ja „Vali" nupud. Nüüd avaneb menüü üles, kui akna sisus ei ole all piisavalt ruumi.
