@@ -41,11 +41,26 @@ getPlaceNames:
     body:
       ids: ${place_ids}
   result: placeNamesRes
+  next: getRoadNames
+
+# Kontrolli koha tee on salvestatud ROAD_NAME klassifikaatori koodina (nt tallinn_narva);
+# PDF-is näidatakse selle nimetust (TALLINN - NARVA), nagu kasutajaliideseski. Best-effort:
+# vea korral jääb PDF-i kood.
+getRoadNames:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/roads/list_roads"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      type: json
+    body: {}
+  result: roadNamesRes
+  error: buildPdfFields
   next: buildPdfFields
 
 buildPdfFields:
   assign:
-    pdf_fields: "${Object.assign({}, incoming.body.fields, {labels: {ehak: ((placeNamesRes.response && placeNamesRes.response.body) || []).reduce(function(m, r) { m[r.id] = r.name; return m; }, {})}})}"
+    pdf_fields: "${Object.assign({}, incoming.body.fields, {labels: {ehak: ((placeNamesRes.response && placeNamesRes.response.body) || []).reduce(function(m, r) { m[r.id] = r.name; return m; }, {}), roads: ((typeof roadNamesRes !== 'undefined' && roadNamesRes && roadNamesRes.response && Array.isArray(roadNamesRes.response.body) && roadNamesRes.response.body) || []).reduce(function(m, r) { if (r.code) { m[r.code] = r.name; } return m; }, {})}})}"
   next: renderPdf
 
 renderPdf:

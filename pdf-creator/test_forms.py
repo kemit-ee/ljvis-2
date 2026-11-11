@@ -181,4 +181,9 @@ class FormTests(unittest.TestCase):
         html,_=render_html(p,False,'drive-rest-form');self.assertIn('ei laaditud alla',html)
         blank,_=render_html(p,True,'drive-rest-form');self.assertIn('ei laaditud alla',blank);self.assertIn('Teise juhi andmed',blank)
 
+    def test_drive_rest_place_shows_road_name_from_labels(self):
+        p=self.fixture('drive-rest-form');p['compoundForm']['road']='tallinn_narva';p['labels']['roads']={'tallinn_narva':'TALLINN - NARVA'}
+        html,_=render_html(p,False,'drive-rest-form')
+        self.assertIn('TALLINN - NARVA',html);self.assertNotIn('tallinn_narva',html)
+
 if __name__=='__main__':unittest.main()

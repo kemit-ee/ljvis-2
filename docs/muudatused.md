@@ -10,6 +10,7 @@
 - Haagise kategooria on haagise numbri järel kujul „Kategooria: O3".
 - Veoliigi täpsustus (nt „EL või EMP liikmesriikide või Šveitsi vaheline vedu") on PDF-ilt eemaldatud; alles on ühenduse tegevusloa ärakirja number.
 - „Sõidumeeriku andmeid ei laaditud alla" rida kuvatakse ainult siis, kui see on vormil märgitud (tühjal vormil jääb alles). „Teise juhi andmed" pealkiri kuvatakse ainult siis, kui teine juht on määratud. Päevade arvu lahtris ei kuvata enam „None".
+- „Kontrolli koht" näitab tee nimetust (nt „TALLINN - NARVA"), mitte klassifikaatori koodi („tallinn_narva"). Nimetus loetakse PDF-i koostamisel klassifikaatorist ROAD_NAME.
 
 ### Sõidu- ja puhkeaja vorm: rikkumise valiku rippmenüü ei kata nuppe
 
