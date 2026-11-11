@@ -4,6 +4,11 @@
 
 ## 2026-11-11
 
+### Raske rikkumise desktop-teavitus tuleb ka sõidu- ja puhkeaja ning TRAM-kaardi rikkumistest
+
+- Sõidu- ja puhkeaja (juht ja kaasjuht) ning TRAM-kaardi avalikustamisel ja avalikustatud vormi salvestamisel ei tekkinud „Eestis avastatud raske rikkumine" teavitust, kui rikkumine oli valitud rikkumiste aknast (nt „VAHEAJAD_561_01_MI"). Tuvastus ootas koodis numbrit (nt „SI912") ega lugenud rikkumise raskust. Nüüd arvestatakse ka rikkumise raskust (MSI, VSI, SI, MI).
+- Vedajale saatmise teenus (`send-carrier-from-request`) loeb raskust endiselt ainult koodi järgi; see on eraldi töö.
+
 ### Haldus > Logid: räsiahela kontrolli nupp
 
 - Kasutajal, kellel on õigus `audit.verify`, on Haldus > Logid lehel nupp „Kontrolli räsiahelat". Tulemus kuvatakse lehel: kas ahel on terviklik ja mitut kirjet kontrolliti, või milline on esimene rikutud kirje. Ilma õiguseta nuppu ei näidata.
