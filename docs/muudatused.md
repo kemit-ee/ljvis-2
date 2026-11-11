@@ -4,6 +4,10 @@
 
 ## 2026-11-11
 
+### Parandus: välisriigi rikkumise vormi ehitusviga
+
+- Välisriigi rikkumise vormi „Teise riigi soovitatud meetmed" valiku tüübiviga (`tsc -b`) peatas GitLabi frontendi ehituse. Kasutajale nähtavat muudatust ei ole.
+
 ### Tehnokontrolli PDF: veose kinnitamata jätmise korral pikk kontrollkaart
 
 - Kui tehnovormil on märgitud viga (sh „Veose kinnitamine"), prinditakse pikk kontrollkaart vigade ja märkustega, mitte lühike „Korras" kontrolliakt. Varem jäi tulemus veose kinnitamise vea korral „Korras" ja prinditi kontrolliakt, mis oli eksitav. „Korras" kontrolliakt prinditakse ainult siis, kui vigu pole märgitud.
