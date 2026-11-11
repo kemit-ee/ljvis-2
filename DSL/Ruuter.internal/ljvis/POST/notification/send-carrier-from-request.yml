@@ -246,7 +246,7 @@ extractSeverityList:
         return Array.from(new Set(sev)).join(', ');
       })()}
     violation_name_codes: >-
-      ${String(violation_codes).split(',').filter(Boolean).map(function(c) { return c.indexOf('|') > 0 ? c.slice(c.indexOf('|') + 1) : c; }).join(',')}
+      ${String(violation_codes).split(',').filter(Boolean).map(function(c) { return c.split('|').pop(); }).join(',')}
   next: checkSeriousViolation
 
 checkSeriousViolation:
