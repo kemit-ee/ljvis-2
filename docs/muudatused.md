@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-11
+
+### Postkasti saatmise vea põhjus on nüüd väljasaadetud kirjade logis loetav
+
+- Kui Postkast saadetud teavituse tagasi lükkas või ei vastanud, kirjutati väljasaadetud kirjade logisse („Veateade") valemi tekst, mitte tegelik põhjus. Nüüd on seal Postkasti vastuse olek ja sisu (nt „PK HTTP 400: …"). Sama parandus on staatuse käsitsi kontrollimisel ja öises staatuste sünkroonimises.
+- Vedajale raske rikkumise teavituse saatmise tõrke põhjus tuleb nüüd välja nende kirjete põhjal.
+
 ## 2026-11-10
 
 ### ERRU: NU saatmise transpordi lüliti

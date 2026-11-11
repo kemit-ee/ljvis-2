@@ -115,7 +115,7 @@ iterateRows:
           mapped_failure_reason: >-
             ${(mapped_status === 'error'
               ? ((op && op.resolution) || 'Lõppstaatust ei saabunud lubatud kontrollikatsete jooksul')
-              : '').replace(/[\r\n\t\\]+/g, ' ').replace(/"/g, "'").substring(0, 500)}
+              : '').replace(/[\r\n\t\\]+/g, ' ').split('"').join("'").substring(0, 500)}
       - call: http.post
         args:
           url: "[#LJVIS_RESQL]/notification/update_outbound_log_status"
