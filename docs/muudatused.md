@@ -4,6 +4,13 @@
 
 ## 2026-11-11
 
+### Haldus > Logid: räsiahela kontrolli nupp
+
+- Kasutajal, kellel on õigus `audit.verify`, on Haldus > Logid lehel nupp „Kontrolli räsiahelat". Tulemus kuvatakse lehel: kas ahel on terviklik ja mitut kirjet kontrolliti, või milline on esimene rikutud kirje. Ilma õiguseta nuppu ei näidata.
+
+### Õiguste pealkirjad lühemaks
+
+- Õiguste „Kasutajagrupi liikmete nimekiri …" kirjeldustest on eemaldatud sõna „pagineeritud".
 ### Sõidu- ja puhkeaja vorm: rikkumise valiku rippmenüü ei kata nuppe
 
 - Rikkumiste valiku aknas avanes alumiste ridade rippmenüü alla ja kattis „Tühista" ja „Vali" nupud. Nüüd avaneb menüü üles, kui akna sisus ei ole all piisavalt ruumi.

@@ -50,6 +50,11 @@ nav[aria-label='Main navigation'] {
   margin-bottom: 1rem;
 }
 
+.card-main-actions {
+  display: flex;
+  align-items: center;
+}
+
 .login-page-card {
   margin-top: 2rem;
   margin-bottom: 1rem;

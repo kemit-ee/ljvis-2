@@ -44,6 +44,7 @@ export const PERMISSIONS = {
   CLASSIFIER_LIST: 'classifier.list',
   AUDIT_READ: 'audit.read',
   AUDIT_READ_LOCAL: 'audit.read.local',
+  AUDIT_VERIFY: 'audit.verify',
   CTUD_READ: 'ctud.read',
   CGR_READ: 'cgr.read',
   RSI_READ: 'rsi.read',
