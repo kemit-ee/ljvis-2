@@ -14,6 +14,7 @@ import {
   logout as apiLogout,
 } from './api';
 import { setUnauthorizedHandler } from '../../shared/api/client';
+import { useIdleLogout } from './useIdleLogout';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -88,6 +89,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setPermissions([]);
   }, []);
+
+  // Passiivsuse aegumine: serveri JWT kehtib 8 h, seega lõpetame seansi ka kliendi poolelt
+  // (logout kutsub TIM-is tokeni kehtetuks).
+  useIdleLogout(user !== null, () => {
+    void logoutUser();
+  });
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
