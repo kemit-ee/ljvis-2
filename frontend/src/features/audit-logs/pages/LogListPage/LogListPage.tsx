@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -8,8 +8,10 @@ import {
   Search,
   Text,
   Button,
+  Alert,
 } from '@tedi-design-system/react/tedi';
-import type { AuditLog } from '../../types.ts';
+import type { AuditLog, LogChainVerification } from '../../types.ts';
+import { verifyLogChain } from '../../api.ts';
 import { useLogList } from './useLogList.ts';
 import { useLogListCsv } from './useLogListCsv.ts';
 import { useAuth } from '../../../auth/AuthContext.tsx';
@@ -26,6 +28,12 @@ export function LogListPage() {
   const { hasPermission } = useAuth();
   const forbidden =
     !hasPermission('audit.read') && !hasPermission('audit.read.local');
+
+  const canVerify = hasPermission('audit.verify');
+  const [verifying, setVerifying] = useState(false);
+  const [verification, setVerification] = useState<
+    LogChainVerification | 'failed' | null
+  >(null);
 
   const {
     data,
@@ -49,6 +57,20 @@ export function LogListPage() {
       sorting: buildSortString(sorting, 'createdAt desc'),
     });
   }, [exportCsv, searchInput, sorting]);
+
+  const handleVerifyChain = useCallback(async () => {
+    setVerifying(true);
+    setVerification(null);
+    try {
+      const res = await verifyLogChain();
+      setVerification(res);
+    } catch (e) {
+      console.error('Hash chain verification failed', e);
+      setVerification('failed');
+    } finally {
+      setVerifying(false);
+    }
+  }, []);
 
   const handleRowClick = useCallback(
     (row: AuditLog) => {
@@ -126,8 +148,39 @@ export function LogListPage() {
         <Card.Content>
           <div className="card-main">
             <Heading element="h1">{t('logs.title')}</Heading>
-            <Button onClick={handleExportCsv}>{t('logs.exportCsv')}</Button>
+            <div className="card-main-actions gap-1">
+              {canVerify && (
+                <Button
+                  visualType="secondary"
+                  onClick={handleVerifyChain}
+                  disabled={verifying}
+                >
+                  {t('logs.verifyChain')}
+                </Button>
+              )}
+              <Button onClick={handleExportCsv}>{t('logs.exportCsv')}</Button>
+            </div>
           </div>
+          {canVerify && verification && (
+            <Alert
+              type={
+                verification === 'failed' || !verification.ok
+                  ? 'danger'
+                  : 'success'
+              }
+              className="mb-1"
+            >
+              {verification === 'failed'
+                ? t('logs.verifyChainFailed')
+                : verification.ok
+                  ? t('logs.verifyChainOk', { count: verification.checked })
+                  : t('logs.verifyChainBroken', {
+                      count: verification.checked,
+                      eventId: verification.firstBreachEventId,
+                      reason: verification.reason,
+                    })}
+            </Alert>
+          )}
           <div className="grid-2col">
             <div className="search-wrapper">
               <Search

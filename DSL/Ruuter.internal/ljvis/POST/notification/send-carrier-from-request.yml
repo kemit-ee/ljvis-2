@@ -203,6 +203,7 @@ extractSeverities:
     violation_codes: >-
       ${(() => {
         var out = [];
+        var bySeverity = [];
         function walk(x) {
           if (x == null) return;
           if (Array.isArray(x)) { x.forEach(walk); return; }
@@ -216,11 +217,17 @@ extractSeverities:
             if (x.isDetected === false || x.isDetected === 'false') return;
             var c = x.violationCode || x.code;
             if (c) out.push(String(c));
+            // Modalist valitud rikkumine (nt VAHEAJAD_561_01_VSI): kood ei sisalda numbrit,
+            // raskus on eraldi väljas severityCode. Märgime kujul "VSI|<kood>".
+            var sc = String(x.severityCode || '').toUpperCase();
+            if (c && /^(MSI|VSI|SI)$/.test(sc) && !/^(MSI|VSI|SI)[0-9]+$/.test(String(c).toUpperCase().replace(/[ _-]/g, ''))) {
+              bySeverity.push(sc + '|' + String(c).replace(/[,|]/g, ''));
+            }
           }
         }
         walk(violations);
         var codes = out.map(function(c) { return String(c).toUpperCase().replace(/[ _-]/g, ''); })
-          .filter(function(c) { return /^(MSI|VSI|SI)[0-9]+$/.test(c); });
+          .filter(function(c) { return /^(MSI|VSI|SI)[0-9]+$/.test(c); }).concat(bySeverity);
         if (codes.length === 0) {
           codes = ((typeof violations === 'string' ? violations : JSON.stringify(violations)).toUpperCase().match(/(?:^|[^A-Z])(?:MSI|VSI|SI)[ _-]*[0-9]+/g) || [])
             .map(function(c) { return c.replace(/^[^A-Z]/, '').replace(/[ _-]/g, ''); });
@@ -235,9 +242,11 @@ extractSeverityList:
     violation_severities: >-
       ${(() => {
         var sev = String(violation_codes).split(',').filter(Boolean)
-          .map(function(c) { return c.match(/^(MSI|VSI|SI)/)[1]; });
+          .map(function(c) { return c.indexOf('|') > 0 ? c.slice(0, c.indexOf('|')) : c.match(/^(MSI|VSI|SI)/)[1]; });
         return Array.from(new Set(sev)).join(', ');
       })()}
+    violation_name_codes: >-
+      ${String(violation_codes).split(',').filter(Boolean).map(function(c) { return c.indexOf('|') > 0 ? c.slice(c.indexOf('|') + 1) : c; }).join(',')}
   next: checkSeriousViolation
 
 checkSeriousViolation:
@@ -327,7 +336,7 @@ callGetViolationNames:
       x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
     body:
-      codes: ${violation_codes}
+      codes: ${violation_name_codes}
   result: violationNamesRes
   error: buildViolationList
   next: buildViolationList
@@ -343,8 +352,10 @@ buildViolationList:
         var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-        return String(violation_codes).split(',').filter(function(c) { return /^MSI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
+        function sevOf(c) { var i = c.indexOf('|'); if (i > 0) return c.slice(0, i); var m = c.match(/^(MSI|VSI|SI)[0-9]/); return m ? m[1] : ''; }
+        return String(violation_codes).split(',').filter(function(c) { return sevOf(c) === 'MSI'; }).map(function(c) {
+          var raw = c.indexOf('|') > 0 ? c.slice(c.indexOf('|') + 1) : c;
+          return names[raw] ? esc(raw) + ' - ' + esc(names[raw]) : esc(raw);
         }).join('<br>');
       })()}
     VSIViolationsList: >-
@@ -353,8 +364,10 @@ buildViolationList:
         var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-        return String(violation_codes).split(',').filter(function(c) { return /^VSI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
+        function sevOf(c) { var i = c.indexOf('|'); if (i > 0) return c.slice(0, i); var m = c.match(/^(MSI|VSI|SI)[0-9]/); return m ? m[1] : ''; }
+        return String(violation_codes).split(',').filter(function(c) { return sevOf(c) === 'VSI'; }).map(function(c) {
+          var raw = c.indexOf('|') > 0 ? c.slice(c.indexOf('|') + 1) : c;
+          return names[raw] ? esc(raw) + ' - ' + esc(names[raw]) : esc(raw);
         }).join('<br>');
       })()}
     SIViolationsList: >-
@@ -363,8 +376,10 @@ buildViolationList:
         var rows = (violationNamesRes && violationNamesRes.response && violationNamesRes.response.body) || [];
         rows.forEach(function(r) { names[r.code] = r.name; });
         function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-        return String(violation_codes).split(',').filter(function(c) { return /^SI[0-9]/.test(c); }).map(function(c) {
-          return names[c] ? esc(c) + ' - ' + esc(names[c]) : esc(c);
+        function sevOf(c) { var i = c.indexOf('|'); if (i > 0) return c.slice(0, i); var m = c.match(/^(MSI|VSI|SI)[0-9]/); return m ? m[1] : ''; }
+        return String(violation_codes).split(',').filter(function(c) { return sevOf(c) === 'SI'; }).map(function(c) {
+          var raw = c.indexOf('|') > 0 ? c.slice(c.indexOf('|') + 1) : c;
+          return names[raw] ? esc(raw) + ' - ' + esc(names[raw]) : esc(raw);
         }).join('<br>');
       })()}
   next: initCarrierEmail
