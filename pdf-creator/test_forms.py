@@ -173,4 +173,12 @@ class FormTests(unittest.TestCase):
         self.assertIn('456DEF Kategooria: O4',html)
         self.assertNotIn('Veoliigi täpsustus',html)
 
+    def test_drive_rest_hides_unmarked_not_downloaded_and_empty_second_driver(self):
+        p=self.fixture('drive-rest-form');p['driveRestForm']['tachographDataNotDownloaded']=False;p['driveRestForm']['otherActivityDaysCount']=None
+        html,_=render_html(p,False,'drive-rest-form')
+        self.assertNotIn('ei laaditud alla',html);self.assertNotIn('Teise juhi andmed',html);self.assertNotIn('None',html)
+        p['driveRestForm']['tachographDataNotDownloaded']=True
+        html,_=render_html(p,False,'drive-rest-form');self.assertIn('ei laaditud alla',html)
+        blank,_=render_html(p,True,'drive-rest-form');self.assertIn('ei laaditud alla',blank);self.assertIn('Teise juhi andmed',blank)
+
 if __name__=='__main__':unittest.main()
