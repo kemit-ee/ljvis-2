@@ -4,6 +4,10 @@
 
 ## 2026-11-11
 
+### Vedajale raske rikkumise kiri ka rikkumiste valiku aknast valitud rikkumiste puhul
+
+- Sõidu- ja puhkeaja (juht ja kaasjuht) ning TRAM-kaardi vormil rikkumiste valiku aknast valitud rikkumised (nt „VAHEAJAD_561_01_VSI") on salvestatud ilma numbrita koodiga ja raskus on eraldi väljas. Vedajale saatmise teenus ei tuvastanud neid ja kirja ei saadetud. Nüüd loetakse raskus (MSI, VSI, SI) ka sellest väljast ja kirja rikkumiste loetellu lisatakse rikkumise kood koos nimetusega. MI-rikkumisi kirjas endiselt ei loetleta ega käivita need saatmist.
+
 ### Raske rikkumise desktop-teavitus tuleb ka sõidu- ja puhkeaja ning TRAM-kaardi rikkumistest
 
 - Sõidu- ja puhkeaja (juht ja kaasjuht) ning TRAM-kaardi avalikustamisel ja avalikustatud vormi salvestamisel ei tekkinud „Eestis avastatud raske rikkumine" teavitust, kui rikkumine oli valitud rikkumiste aknast (nt „VAHEAJAD_561_01_MI"). Tuvastus ootas koodis numbrit (nt „SI912") ega lugenud rikkumise raskust. Nüüd arvestatakse ka rikkumise raskust (MSI, VSI, SI, MI).
