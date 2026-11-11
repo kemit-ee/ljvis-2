@@ -1183,7 +1183,9 @@ export function ForeignViolationFormFields({
                             }))}
                             onChange={(val) => {
                               if (readOnly) return;
-                              const next = Array.isArray(val) ? val : [val];
+                              const next = (Array.isArray(val) ? val : [val]).filter(
+                                (x): x is string => typeof x === 'string',
+                              );
                               const current = effectiveMeasures(violation);
                               const added = next.filter(
                                 (x) => !current.includes(x),
