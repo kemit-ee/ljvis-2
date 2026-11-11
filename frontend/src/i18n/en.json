@@ -1574,6 +1574,10 @@
     "description": "Description",
     "content": "Log content",
     "exportCsv": "Export CSV",
+    "verifyChain": "Verify hash chain",
+    "verifyChainOk": "The hash chain is intact. {{count}} records checked.",
+    "verifyChainBroken": "The hash chain is broken. First breached record: {{eventId}} ({{reason}}). {{count}} records checked.",
+    "verifyChainFailed": "Hash chain verification failed.",
     "data": "Auditikirje andmed",
     "dataTitle": "Auditikirje"
   },
