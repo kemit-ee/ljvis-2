@@ -122,7 +122,12 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('200 — Rust Ruuter 0.9.12+ treats an unflagged allowlist field (registryCode) as optional; role=citizen-self does not need it (pre-0.9.12 this was 500; issue #75)', () => pm.response.to.have.status(200));"
+              "pm.test('200 — Rust Ruuter 0.9.12+ treats an unflagged allowlist field (registryCode) as optional; role=citizen-self does not need it (pre-0.9.12 this was 500; issue #75)', () => pm.response.to.have.status(200));",
+              "// switch.yml väljastab uue JWT ja tühistab eelmise (blacklist_previous_jwt, turvaaudit 2026-11):",
+              "// järgmised päringud peavad kasutama uut küpsist.",
+              "const setCookie = pm.response.headers.filter(h => h.key.toLowerCase() === 'set-cookie').map(h => h.value).find(v => v.startsWith('customJwtCookie='));",
+              "pm.test('Switch väljastab uue JWT küpsise', () => pm.expect(setCookie).to.be.a('string'));",
+              "if (setCookie) pm.environment.set('cookie_citizen', setCookie.split(';')[0]);"
             ]
           }
         }
@@ -166,7 +171,12 @@
             "exec": [
               "pm.test('200 OK', () => pm.response.to.have.status(200));",
               "var b = pm.response.json().response;",
-              "pm.test('activeRole is citizen-self', () => pm.expect(b.activeRole).to.eql('citizen-self'));"
+              "pm.test('activeRole is citizen-self', () => pm.expect(b.activeRole).to.eql('citizen-self'));",
+              "// switch.yml väljastab uue JWT ja tühistab eelmise (blacklist_previous_jwt, turvaaudit 2026-11):",
+              "// järgmised päringud peavad kasutama uut küpsist.",
+              "const setCookie = pm.response.headers.filter(h => h.key.toLowerCase() === 'set-cookie').map(h => h.value).find(v => v.startsWith('customJwtCookie='));",
+              "pm.test('Switch väljastab uue JWT küpsise', () => pm.expect(setCookie).to.be.a('string'));",
+              "if (setCookie) pm.environment.set('cookie_citizen', setCookie.split(';')[0]);"
             ]
           }
         }
