@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-12
+
+### Parandus: sõidu- ja puhkeaja rikkumiste raskusastmed ei avanenud
+
+- Eelmise muudatusega (menüü avaneb üles) jäi üles avanev raskusastmete menüü ekraanist välja ega olnud nähtav. Nüüd avaneb menüü üles ka nähtavana (sõidu- ja puhkeaja rikkumised ning autojuhi lähetusnõuete rikkumised).
+
 ## 2026-11-11
 
 ### Parandus: GitHubi CI-workflow ei käivitunud

@@ -126,6 +126,8 @@ describe('DrivingViolationModal', () => {
     fireEvent.click(trigger('Alam A1'));
     const menu = screen.getByTestId('check-A1-X1').closest('[style]') as HTMLElement;
     expect(menu.style.bottom).not.toBe('');
+    // CSS-i top:100% peab olema üle kirjutatud, muidu menüü ei ole nähtav
+    expect(menu.style.top).toBe('auto');
   });
 
   it('ripploend avaneb allapoole, kui ruumi on', () => {

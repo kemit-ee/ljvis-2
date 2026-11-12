@@ -359,8 +359,11 @@ export function DrivingViolationModal({
                                   className={styles['dropdown-menu']}
                                   style={{
                                     position: 'fixed',
-                                    top: state.menuPos?.top,
-                                    bottom: state.menuPos?.bottom,
+                                    // CSS-is on top:100%; ilma 'auto'-ta jääks see
+                                    // üles avaneval menüül kehtima ja menüü
+                                    // satuks ekraanist välja.
+                                    top: state.menuPos?.top ?? 'auto',
+                                    bottom: state.menuPos?.bottom ?? 'auto',
                                     left: state.menuPos?.left,
                                     width: state.menuPos?.width,
                                   }}
