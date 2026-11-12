@@ -1,0 +1,25 @@
+# ERRU CPC record identifiers
+881610ed24733b58af9c367e1a899a54a50d29e2:DSL/Liquibase/changelog/20261227100000-erru-movehub-mtr-master-data-data-04.sql:square-access-token:292
+b6545ac7b17794f01d92a8c60784e9a8cfd302bb:DSL/Liquibase/test/20261227100000-erru-movehub-mtr-master-data.sql:square-access-token:5413
+7d5b7a10dee19dddc9570dde3ecb5d2df8097f7c:DSL/Liquibase/changelog/20261227100000-erru-movehub-mtr-master-data.sql:square-access-token:5402
+
+# Violation migration mapping examples
+58274fdd66988f5099e422f4a6c354bff99c5aae:docs/migration/violation-mapping-proposals.csv:generic-api-key:10
+58274fdd66988f5099e422f4a6c354bff99c5aae:docs/migration/violation-mapping-proposals.csv:generic-api-key:20
+58274fdd66988f5099e422f4a6c354bff99c5aae:docs/migration/violation-mapping-proposals.csv:generic-api-key:21
+5b6fc8b3fc2961e0db286bb24ceb9f4126bd37d8:docs/migration/violation-mapping-proposals.csv:generic-api-key:10
+5b6fc8b3fc2961e0db286bb24ceb9f4126bd37d8:docs/migration/violation-mapping-proposals.csv:generic-api-key:20
+5b6fc8b3fc2961e0db286bb24ceb9f4126bd37d8:docs/migration/violation-mapping-proposals.csv:generic-api-key:21
+
+# Activity licence classifier codes and risk score test fixtures
+2b13d472d4e12658bcfa82bf736279139787e1c7:DSL/Liquibase/changelog/20260831100000-sp-form-classifier-text-fixes.sql:generic-api-key:25
+2b13d472d4e12658bcfa82bf736279139787e1c7:DSL/Liquibase/changelog/20260831100000-sp-form-classifier-text-fixes.sql:generic-api-key:29
+2b13d472d4e12658bcfa82bf736279139787e1c7:DSL/Liquibase/changelog/20260831100000-rollback.sql:generic-api-key:15
+2b13d472d4e12658bcfa82bf736279139787e1c7:DSL/Liquibase/changelog/20260831100000-rollback.sql:generic-api-key:19
+383a03b6e654b0be5207460e2e781b581ff140bf:DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql:generic-api-key:41
+383a03b6e654b0be5207460e2e781b581ff140bf:DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql:generic-api-key:45
+383a03b6e654b0be5207460e2e781b581ff140bf:DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql:generic-api-key:135
+383a03b6e654b0be5207460e2e781b581ff140bf:DSL/Liquibase/test/20260827100001-risk-score-test-fixtures.sql:generic-api-key:139
+
+# Historical dev Keycloak client secret. The local setup moved to tara-mock. Revocation is unverified.
+c3c359e636f85be4196072b994e2f109e519f261:docker-compose.yml:generic-api-key:158
