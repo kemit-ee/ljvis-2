@@ -91,3 +91,4 @@ Kui te ei saa viga ise lahendada, saatke arendajatele `ljvis-migratsioon-*.log`.
 Kaustad `private/` ja `runs/` sisaldavad detailset tehnilist väljundit ning
 võivad sisaldada isikuandmeid. **Ärge saatke neid ega faili `.env`.**
 Saatke ainult `ljvis-migratsioon-*.log`.
+
