@@ -8,6 +8,10 @@
 
 - Eelmise muudatusega (menüü avaneb üles) jäi üles avanev raskusastmete menüü ekraanist välja ega olnud nähtav. Nüüd avaneb menüü üles ka nähtavana (sõidu- ja puhkeaja rikkumised ning autojuhi lähetusnõuete rikkumised).
 
+### Parandus: GitLabi CI-konfiguratsioon viidud vastavusse GitLabi main'iga
+
+- `.gitlab-ci.yml` oli GitHubis vana (standard-service-delivery 0.1.0 + per-image 6.6.0 komponendid), mistõttu iga image ehitati ja skaneeriti kaks korda ning järgmine sünkroon oleks GitLabi `main`-i parandatud CI üle kirjutanud. Fail on nüüd identne GitLabi `main`-iga (standard-service-delivery 0.2.3, üks töö image'i kohta). Kasutajale nähtavat muudatust ei ole.
+
 ## 2026-11-11
 
 ### Parandus: GitHubi CI-workflow ei käivitunud
