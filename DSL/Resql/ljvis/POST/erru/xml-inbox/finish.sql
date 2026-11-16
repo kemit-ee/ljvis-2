@@ -18,7 +18,7 @@ returns:
 */
 UPDATE erru.xml_inbox
    SET status = CASE :outcome WHEN 'processed' THEN 'processed' WHEN 'failed' THEN 'failed' WHEN 'requeue' THEN 'processing' ELSE 'received' END,
-       last_error = CASE :outcome WHEN 'processed' THEN NULL ELSE :error END,
+       last_error = NULLIF(:error, ''),
        claimed_by = CASE WHEN :outcome = 'requeue' THEN 'erru-xml-adapter-xtr-async' END,
        lease_expires_at = CASE WHEN :outcome = 'requeue' THEN now() + interval '10 minutes' END,
        next_attempt_at = CASE WHEN :outcome = 'requeue' THEN now() + interval '30 seconds' END

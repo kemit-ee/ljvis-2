@@ -1,5 +1,5 @@
 /*
-description: 'Durable acceptance of one inbound ERRU XML message received through XTR (erru-xml-adapter): inserts the erru.xml_inbox row already claimed (status processing, 2 minute lease), or recognises a redelivery. Exact redelivery of an unfinished or failed row takes the claim over; a processed row is returned as is; the same technical_id with a different payload_digest is a conflict (never merged, the attempt is recorded). Async mode (async = true, CGR/CTUD): the row is parked for the cron worker instead (claimed_by erru-xml-adapter-xtr-async, due now, long lease) and request_json is stored. Returns exactly one JSON row.'
+description: 'Durable acceptance of one inbound ERRU XML message received through XTR (erru-xml-adapter): inserts the erru.xml_inbox row already claimed (status processing, 3 minute lease), or recognises a redelivery. Exact redelivery of an unfinished or failed row takes the claim over; a processed row is returned as is; the same technical_id with a different payload_digest is a conflict (never merged, the attempt is recorded). Async mode (async = true, CGR/CTUD): the row is parked for the cron worker instead (claimed_by erru-xml-adapter-xtr-async, due now, long lease) and request_json is stored. Returns exactly one JSON row.'
 namespace: erru
 params:
   messageType:
@@ -39,7 +39,7 @@ WITH ins AS (
   VALUES
     (:messageType, :transportPeer, :technicalId::uuid, NULLIF(:workflowId, '')::uuid, :businessCaseId, :rawXml, :digest,
      'processing', CASE WHEN :async = 'true' THEN 'erru-xml-adapter-xtr-async' ELSE 'erru-xml-adapter-xtr' END, now(),
-     now() + CASE WHEN :async = 'true' THEN interval '10 minutes' ELSE interval '2 minutes' END, 1,
+     now() + CASE WHEN :async = 'true' THEN interval '10 minutes' ELSE interval '3 minutes' END, 1,
      COALESCE(NULLIF(:deadlineAt, '')::timestamptz, now() + interval '10 seconds'),
      CASE WHEN :async = 'true' THEN now() END, NULLIF(:requestJson, ''))
   ON CONFLICT (technical_id) DO NOTHING
@@ -59,7 +59,7 @@ taken AS (
   UPDATE erru.xml_inbox
      SET status = 'processing',
          claimed_by = CASE WHEN :async = 'true' THEN 'erru-xml-adapter-xtr-async' ELSE 'erru-xml-adapter-xtr' END, claimed_at = now(),
-         lease_expires_at = now() + CASE WHEN :async = 'true' THEN interval '10 minutes' ELSE interval '2 minutes' END,
+         lease_expires_at = now() + CASE WHEN :async = 'true' THEN interval '10 minutes' ELSE interval '3 minutes' END,
          next_attempt_at = CASE WHEN :async = 'true' THEN now() END, attempts = attempts + 1,
          request_json = COALESCE(request_json, NULLIF(:requestJson, ''))
    WHERE technical_id = :technicalId::uuid
@@ -84,8 +84,8 @@ SELECT json_build_object(
          'digestMatches', r.payload_digest = :digest,
          'receivedAt', to_char(r.received_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
          'deadlineAtMs', (extract(epoch FROM r.deadline_at) * 1000)::bigint,
-         'responseTechnicalId', overlay(overlay(md5('erru-response:' || r.id::text) placing '4' from 13) placing '8' from 17)::uuid,
-         'errorTechnicalId', overlay(overlay(md5('erru-en:' || r.id::text) placing '4' from 13) placing '8' from 17)::uuid
+         'responseTechnicalId', overlay(overlay(md5('erru-response:' || lower(:technicalId)) placing '4' from 13) placing '8' from 17)::uuid,
+         'errorTechnicalId', overlay(overlay(md5('erru-en:' || lower(:technicalId)) placing '4' from 13) placing '8' from 17)::uuid
        )::text AS result
   FROM (SELECT * FROM ins UNION ALL SELECT * FROM taken UNION ALL SELECT * FROM existing) r
  LIMIT 1;

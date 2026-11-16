@@ -181,12 +181,14 @@ processCandidates:
             seriousInfringements: "${current.seriousInfringements || current.serious_infringements || ''}"
         result: erruRes
 
-      # 4b) XTR raw-XML send (only when xtr is on; otherwise an empty body, which XTR rejects with 422 schema_invalid and sends nothing; Ruuter's http_codes_allow_list has no 405).
+      # 4b) XTR raw-XML send. Steps cannot be skipped inside iterate, so without xtr the call goes to the adapter's side-effect-free
+      #     /internal/ncr/validate with an empty body (a 4xx; nothing reaches the Hub). Never an empty body to /xml-out: in report mode XTR sends it.
       - call: http.post
         args:
-          url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyCheckResult_Request'}"
+          url: "${xtr ? (('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyCheckResult_Request') : '[#ERRU_XML_ADAPTER]/internal/ncr/validate'}"
           headers:
             type: json
+            Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
           body: "${xtr ? xtr_body : {}}"
         result: xtrRes

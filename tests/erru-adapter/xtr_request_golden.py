@@ -70,7 +70,7 @@ def main():
     (tmp / "xtr.yaml").write_text((ROOT / "docker/erru-xml-adapter/xtr.yaml").read_text().replace("[erru-hub-mock]", "[host.docker.internal]"))
     name = "erru-xtr-request-golden"
     subprocess.run(["docker", "rm", "-f", name], capture_output=True)
-    subprocess.run(["docker", "run", "-d", "--name", name, "--add-host", "host.docker.internal:host-gateway", "-e", "XTR_BACKEND_HEADER_ERRU=golden-test-token-0123456789abcdef0123456789",
+    subprocess.run(["docker", "run", "-d", "--name", name, "--add-host", "host.docker.internal:host-gateway", "-e", "XTR_BACKEND_HEADER_ERRU=golden-test-token-0123456789abcdef0123456789", "-e", "XTR_INTER_SERVICE_TOKEN=golden-inter-service-token",
                     "-p", f"{a.port}:8080", "-p", f"{a.port + 1}:8081", "-v", f"{tmp}/xtr.yaml:/app/xtr.yaml:ro", "-v", f"{tmp}/erru.xml.yaml:/erru/wsdl/erru/erru.xml.yaml:ro", a.image],
                    check=True, capture_output=True)
     failed = []
@@ -138,7 +138,7 @@ def main():
             state.pop("xml", None)
             body = eval_steps(msg, [step], c)[var]
             before = subprocess.run(["docker", "logs", name], capture_output=True, text=True)
-            req = urllib.request.Request(f"http://localhost:{a.port}/xml-out/erru/erru/{out_msg}", data=json.dumps(body).encode(), headers={"content-type": "application/json"})
+            req = urllib.request.Request(f"http://localhost:{a.port}/xml-out/erru/erru/{out_msg}", data=json.dumps(body).encode(), headers={"content-type": "application/json", "Authorization": "Bearer golden-inter-service-token"})
             res = json.load(urllib.request.urlopen(req, timeout=20))
             after = subprocess.run(["docker", "logs", name], capture_output=True, text=True)
             newlog = (after.stdout + after.stderr)[len(before.stdout + before.stderr):]

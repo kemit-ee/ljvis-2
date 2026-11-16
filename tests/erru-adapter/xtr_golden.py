@@ -7,7 +7,7 @@ the erru-xml-adapter image, and the XML the Hub would receive must be (a) XSD-cl
 and (b) canonically equal to the Java adapter's fixture (fixtures/*.xml). The xtrPreflight conditions must
 all be false for the valid case.
 Usage: xtr_golden.py --image <erru-xml-adapter image> [--only nu,cgr,...]"""
-import argparse, json, re, subprocess, sys, tempfile, threading, time, urllib.request
+import urllib.error, argparse, json, re, subprocess, sys, tempfile, threading, time, urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -122,7 +122,7 @@ def main():
     (tmp / "xtr.yaml").write_text((ROOT / "docker/erru-xml-adapter/xtr.yaml").read_text().replace("[erru-hub-mock]", "[host.docker.internal]"))
     name = "erru-xtr-golden"
     subprocess.run(["docker", "rm", "-f", name], capture_output=True)
-    subprocess.run(["docker", "run", "-d", "--name", name, "--add-host", "host.docker.internal:host-gateway", "-e", "XTR_BACKEND_HEADER_ERRU=golden-test-token-0123456789abcdef0123456789", "-p", f"{a.port}:8080", "-v", f"{tmp}/xtr.yaml:/app/xtr.yaml:ro",
+    subprocess.run(["docker", "run", "-d", "--name", name, "--add-host", "host.docker.internal:host-gateway", "-e", "XTR_BACKEND_HEADER_ERRU=golden-test-token-0123456789abcdef0123456789", "-e", "XTR_INTER_SERVICE_TOKEN=golden-inter-service-token", "-p", f"{a.port}:8080", "-v", f"{tmp}/xtr.yaml:/app/xtr.yaml:ro",
                     "-v", f"{tmp}/erru.xml.yaml:/erru/wsdl/erru/erru.xml.yaml:ro", a.image], check=True, capture_output=True)
     failed = []
     try:
@@ -143,7 +143,13 @@ def main():
                 body["Header"]["@from"] = c["from_"]  # the fixtures are inbound-from-DE captures; the flow always sends from EE
             before = subprocess.run(["docker", "logs", name], capture_output=True, text=True)
             req = urllib.request.Request(f"http://localhost:{a.port}/xml-out/erru/erru/{c['msg']}", data=json.dumps(body).encode(),
-                                         headers={"content-type": "application/json"})
+                                         headers={"content-type": "application/json", "Authorization": "Bearer golden-inter-service-token"})
+            try:
+                urllib.request.urlopen(urllib.request.Request(f"http://localhost:{a.port}/xml-out/erru/erru/{c['msg']}", data=b"{}", headers={"content-type": "application/json"}), timeout=10)
+                unauth = None
+            except urllib.error.HTTPError as e:
+                unauth = e.code
+            if unauth != 401: print(f"XTR {key} without inter-service token: FAIL (got {unauth}, want 401)"); failed.append(key + "-unauth")
             res = json.load(urllib.request.urlopen(req, timeout=20))
             after = subprocess.run(["docker", "logs", name], capture_output=True, text=True)
             newlog = (after.stdout + after.stderr)[len(before.stdout + before.stderr):]

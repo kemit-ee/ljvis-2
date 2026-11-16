@@ -286,7 +286,7 @@ checkEnvelope:
   switch:
     - condition: ${!technical_id || !raw_xml || !digest}
       next: returnBadEnvelope
-    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 200}
+    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 36 || from_state.length > 100}
       next: returnBadEnvelope
   next: accept
 
@@ -351,10 +351,11 @@ mapBody:
     inbound_body: "${@@MAP@@}"
   next: preCallDeadline
 
-# The Hub's response window already closed: do not spend an MTR call on an answer nobody can receive.
+# The Hub's response window already closed: do not spend an MTR call on an answer nobody can receive. Never for messages that need
+# business completion (NU/NCR/RSI): their business effects must happen even when the answer is late.
 preCallDeadline:
   switch:
-    - condition: ${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime()}
+    - condition: ${@@PRE_DEADLINE@@}
       next: markExpired
   next: callInbound
 
@@ -443,10 +444,10 @@ sendAnswer:
     url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/@@RESPONSE@@'}"
     headers:
       type: json
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
     body: ${answer_body}
   result: out_res
-  timeout: 20000
+  timeout: 25000
   next: checkSent
 
 # XTR answers 200 with the Hub's own HTTP status in body.status (2xx = delivered). 4xx / 422 schema_invalid: the Hub (or
@@ -471,10 +472,10 @@ sendEn:
     url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/ErrorNotification'}"
     headers:
       type: json
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
     body: ${en_body}
   result: en_res
-  timeout: 20000
+  timeout: 25000
   next: checkEnSent
 
 checkEnSent:
@@ -629,7 +630,7 @@ checkEnvelope:
   switch:
     - condition: ${!technical_id || !raw_xml || !digest}
       next: returnBadEnvelope
-    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 200}
+    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 36 || from_state.length > 100}
       next: returnBadEnvelope
   next: accept
 
@@ -839,7 +840,8 @@ def fill(tpl, msg, t, retry):
     return (tpl.replace("@@MSG@@", msg).replace("@@FLOW@@", t["flow"]).replace("@@RESPONSE@@", t["response"])
             .replace("@@MAP@@", t["map"]).replace("@@ANSWER_CHECK@@", t["answer_check"]).replace("@@ANSWER_OK@@", t["answer_ok"])
             .replace("@@BUILD@@", t["build"]).replace("@@EN_BUILD@@", EN_BUILD).replace("@@RETRY@@", retry)
-            .replace("@@WS@@", WS).replace("@@EN_DONE@@", "en_complete === true" if t.get("requires_business_completion") else "true")
+            .replace("@@WS@@", WS).replace("@@PRE_DEADLINE@@", "false" if t.get("requires_business_completion") else "accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime()")
+            .replace("@@EN_DONE@@", "en_complete === true" if t.get("requires_business_completion") else "true")
             .replace("@@AUTH@@", t.get("authority", "ERRU_RESPONDING_AUTHORITY"))
             .replace("@@CALL_TIMEOUT@@", "45000" if t.get("async") else "20000")
             .replace("@@WRONG_TO@@", "to_state !== 'EE' && to_state !== 'ZZ'" if t.get("broadcast") else "to_state !== 'EE'"))

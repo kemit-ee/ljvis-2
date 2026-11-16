@@ -41,7 +41,7 @@ checkEnvelope:
   switch:
     - condition: ${!technical_id || !raw_xml || !digest}
       next: returnBadEnvelope
-    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 200}
+    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 36 || from_state.length > 100}
       next: returnBadEnvelope
   next: accept
 
