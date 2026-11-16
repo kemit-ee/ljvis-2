@@ -1,5 +1,5 @@
 /*
-description: 'Closes the claim taken by xml-inbox/accept: processed (business effects done), requeue (async rows only: back to the cron worker's queue, due in 30 s), retry (back to received, the Hub redelivers or the Java adapter worker may pick it up) or failed (attempt budget exhausted, needs manual recovery). Only the claim holder (claimed_by erru-xml-adapter-xtr, status processing) may finish. Returns the new status, or no row when the claim was lost.'
+description: 'Closes the claim taken by xml-inbox/accept: processed (business effects done), requeue (async rows only: back to the async cron worker queue, due in 30 s), retry (back to received, the Hub redelivers or the Java adapter worker may pick it up) or failed (attempt budget exhausted, needs manual recovery). Only the claim holder (claimed_by erru-xml-adapter-xtr, status processing) may finish. Returns the new status, or no row when the claim was lost.'
 namespace: erru
 params:
   inboxId:

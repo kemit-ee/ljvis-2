@@ -1,5 +1,5 @@
 /*
-description: 'Durable acceptance of one inbound ERRU XML message received through XTR (erru-xml-adapter): inserts the erru.xml_inbox row already claimed (status processing, 2 minute lease), or recognises a redelivery. Exact redelivery of an unfinished or failed row takes the claim over; a processed row is returned as is; the same technical_id with a different payload_digest is a conflict (never merged, the attempt is recorded). Async mode (async = 'true', CGR/CTUD): the row is parked for the cron worker instead (claimed_by erru-xml-adapter-xtr-async, due now, long lease) and request_json is stored. Returns exactly one JSON row.'
+description: 'Durable acceptance of one inbound ERRU XML message received through XTR (erru-xml-adapter): inserts the erru.xml_inbox row already claimed (status processing, 2 minute lease), or recognises a redelivery. Exact redelivery of an unfinished or failed row takes the claim over; a processed row is returned as is; the same technical_id with a different payload_digest is a conflict (never merged, the attempt is recorded). Async mode (async = true, CGR/CTUD): the row is parked for the cron worker instead (claimed_by erru-xml-adapter-xtr-async, due now, long lease) and request_json is stored. Returns exactly one JSON row.'
 namespace: erru
 params:
   messageType:
