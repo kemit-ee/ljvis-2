@@ -1,0 +1,10 @@
+<CheckTransportUndertakingData_Response xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa" workflowId="639986bd-6fb6-4cf9-81a5-f1fd15f1678c" sentAt="2026-11-16T18:21:45Z" from="EE" to="DE"/>
+  <Body businessCaseId="DE-CTUD-CI-0001" originatingAuthority="DE-BAG" respondingAuthority="EE-TRAM" statusCode="NotFound" statusMessage="Not found">
+    <SearchedCompany requestAllVehicles="false" xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+      <SearchByLicenceAndName communityLicenceNumber="EE-CL-2020-11111" transportUndertakingName="AS EESTI VEOD">
+        <Vehicle vehicleRegistrationCountry="EE" vehicleRegistrationNumber="123ABC"/>
+      </SearchByLicenceAndName>
+    </SearchedCompany>
+  </Body>
+</CheckTransportUndertakingData_Response>

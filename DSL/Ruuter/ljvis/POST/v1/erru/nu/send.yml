@@ -190,7 +190,7 @@ prepareOutbound:
     start_time: "${new Date().getTime()}"
     tm_first_name_search_key: "${tm_first_name_search_key || ''}"
     tm_family_name_search_key: "${tm_family_name_search_key || ''}"
-    # ERRU_NU_TRANSPORT=xtr sends via the XTR SOAP bridge; anything else (or unset: the placeholder stays
+    # ERRU_NU_TRANSPORT=xtr sends via the XTR raw-XML bridge; anything else (or unset: the placeholder stays
     # literal) keeps the Java adapter. Rollback = set the constant back to adapter and restart Ruuter.
     nu_transport: "${'[#ERRU_NU_TRANSPORT]' === 'xtr' ? 'xtr' : 'adapter'}"
     xtr_has_name: "${!!(tm_first_name || tm_family_name || tm_date_of_birth)}"
@@ -203,7 +203,7 @@ chooseValidation:
       next: xtrPreflight
   next: validateXml
 
-# XTR does not validate against the XSD yet (the Hub answers a Fault for bad data); catch what the
+# XTR validates against the XSD only in report/enforce mode (report by default); keep catching what the
 # Java builder refused outright: no transport manager data or a missing mandatory attribute.
 xtrPreflight:
   switch:
@@ -338,7 +338,7 @@ callErruXtr:
   call: http.post
   error: markUnknown
   args:
-    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/soap-out/erru/erru/NotifyUnfitness_Request'}"
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyUnfitness_Request'}"
     headers:
       type: json
     body: ${xtr_body}
@@ -346,16 +346,17 @@ callErruXtr:
   timeout: 30000
   next: checkXtrStatus
 
-# 200 = the Hub answered with a NotifyUnfitness_Acknowledgement; a SOAP Fault is a definite refusal
-# (XTR relays it as 502 upstream_soap_fault); everything else (timeout, connection loss, 5xx) is unknown
+# XTR raw-XML lane: HTTP 200 carries the Hub's own HTTP status in body.status (the upstream answer is data).
+# Hub 202 = accepted (same rule as the Java adapter); another 4xx, or XTR's own 422 schema_invalid (nothing was
+# sent), is a definite refusal; everything else (5xx, timeout, connection loss, unexpected 2xx/3xx) is unknown
 # and never resent.
 checkXtrStatus:
   switch:
     - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
       next: markUnknown
-    - condition: ${erru_res.response.status === 200 && erru_res.response.body.response != null}
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 202}
       next: logIntegrationSuccess
-    - condition: ${erru_res.response.status === 502 && erru_res.response.body.error === 'upstream_soap_fault'}
+    - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422}
       next: logIntegrationFailure
   next: markUnknown
 

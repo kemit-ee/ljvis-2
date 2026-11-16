@@ -1,0 +1,10 @@
+<CheckGoodRepute_Response xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa" workflowId="eb197e69-c5a8-4ada-8e51-e889a7fc00fe" sentAt="2026-11-16T18:21:45Z" from="EE" to="DE"/>
+  <Body businessCaseId="DE-CGR-CI-0001" originatingAuthority="DE-BAG">
+    <SearchedTransportManager xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+      <TransportManagerNameDetails dateOfBirth="1980-05-15" familyName="TAMM" firstName="MART" placeOfBirth="Tallinn"/>
+      <TransportManagerCertificateDetails certificateIssueCountry="EE" certificateIssueDate="2020-06-01" certificateNumber="EE-CPC-2020-00111"/>
+    </SearchedTransportManager>
+    <MemberState memberStateCode="EE" statusCode="NotFound" statusMessage="No such transport manager"/>
+  </Body>
+</CheckGoodRepute_Response>

@@ -143,11 +143,22 @@ processCandidates:
           workflow_id: "${(reserveRes.response && reserveRes.response.body && reserveRes.response.body[0] && reserveRes.response.body[0].workflowId) || ''}"
           sent_at: "${(reserveRes.response && reserveRes.response.body && reserveRes.response.body[0] && reserveRes.response.body[0].sentAt) || ''}"
 
+      # XTR-haru (ERRU_NCR_TRANSPORT=xtr): sama JSON-kokkupanek mis ncr/send.yml-is (golden: tests/erru-adapter/xtr_golden.py).
+      - assign:
+          xtr: "${'[#ERRU_NCR_TRANSPORT]' === 'xtr' && reserved}"
+          xcur: "${{ncrTo: ncr_to, requestSource: current.requestSource || current.request_source || '', requestPurpose: current.requestPurpose || current.request_purpose || '', transportUndertakingName: current.transportUndertakingName || current.transport_undertaking_name || '', communityLicenceNumber: current.communityLicenceNumber || current.community_licence_number || '', vehicleRegistrationNumber: current.vehicleRegistrationNumber || current.vehicle_registration_number || '', vehicleRegistrationCountry: current.vehicleRegistrationCountry || current.vehicle_registration_country || '', checkResult: current.checkResult || current.check_result || '', checkDate: current.checkDate || current.check_date || '', minorInfringement: current.minorInfringement || current.minor_infringement || '', seriousInfringements: current.seriousInfringements || current.serious_infringements || ''}}"
+      - assign:
+          xtr_serious: "${((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(xcur.seriousInfringements) || []).map(function(si) { var d = function(s) { return String(s || '').substring(0, 10); }; var c = function(o) { return Object.keys(o).filter(function(k) { return o[k] !== '' && o[k] != null; }).reduce(function(a, k) { a[k] = o[k]; return a; }, {}); }; var b = function(b) { return (b === true || b === 'true' || b === 1 || b === '1') ? 'true' : 'false'; }; return Object.assign({'@dateOfInfringement': d(si.dateOfInfringement), '@category': si.category, '@infringementType': String(si.infringementType), '@appealPossible': b(si.appealPossible), 'PenaltiesImposed': {'PenaltyImposed': (si.penaltiesImposed || []).map(function(p) { return c({'@penaltyImposedIdentifier': String(p.penaltyImposedIdentifier), '@finalDecisionDate': d(p.finalDecisionDate), '@penaltyTypeImposed': String(p.penaltyTypeImposed), '@startDate': d(p.startDate), '@endDate': d(p.endDate), '@isExecuted': p.isExecuted, '@notExecutedReason': p.notExecutedReason}); })}}, (si.penaltiesRequested || []).length > 0 ? {'PenaltiesRequested': {'PenaltyRequested': si.penaltiesRequested.map(function(p) { return c({'@penaltyRequestedIdentifier': String(p.penaltyRequestedIdentifier), '@penaltyTypeRequested': String(p.penaltyTypeRequested), '@duration': p.duration == null || p.duration === '' ? '' : String(p.duration)}); })}} : {}); })}"
+      - assign:
+          xtr_minor: "${(function(m) { return m && m.dateOfInfringement ? {'MinorInfringement': {'@dateOfInfringement': String(m.dateOfInfringement).substring(0, 10), '@numberOfInfringements': String(m.numberOfInfringements)}} : {}; })((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(xcur.minorInfringement))}"
+      - assign:
+          xtr_body: "${xtr ? ({'Header': {'@version': '3.5', '@technicalId': technical_id, '@workflowId': workflow_id, '@sentAt': new Date(String(sent_at).replace(' ', 'T')).toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': xcur.ncrTo}, 'Body': {'@businessCaseId': business_case_id, '@originatingAuthority': authority_out, '@requestSource': xcur.requestSource, '@requestPurpose': xcur.requestPurpose, 'TransportUndertaking': Object.assign({'@transportUndertakingName': xcur.transportUndertakingName, '@communityLicenceNumber': xcur.communityLicenceNumber, 'Vehicle': {'@vehicleRegistrationNumber': xcur.vehicleRegistrationNumber, '@vehicleRegistrationCountry': xcur.vehicleRegistrationCountry}, 'CheckSummary': {'@checkResult': xcur.checkResult, '@dateOfCheck': String(xcur.checkDate).substring(0, 10)}}, xtr_minor, {'SeriousInfringement': xtr_serious})}}) : null}"
+
       # 4) Saada ERRU 3.5 XML-ina läbi adapteri. Ilma reserveeringuta on identifikaatorid
       #    tühjad, adapter vastab 422 ega saada midagi.
       - call: http.post
         args:
-          url: "[#ERRU_XML_ADAPTER]/internal/ncr/send"
+          url: "${xtr ? '[#ERRU_XML_ADAPTER]/internal/ncr/validate' : '[#ERRU_XML_ADAPTER]/internal/ncr/send'}"
           headers:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
@@ -170,6 +181,15 @@ processCandidates:
             seriousInfringements: "${current.seriousInfringements || current.serious_infringements || ''}"
         result: erruRes
 
+      # 4b) XTR raw-XML send (only when xtr is on; otherwise a harmless POST to /health that answers 405).
+      - call: http.post
+        args:
+          url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + (xtr ? '/xml-out/erru/erru/NotifyCheckResult_Request' : '/health')}"
+          headers:
+            type: json
+          body: "${xtr ? xtr_body : {}}"
+        result: xtrRes
+
       # 5) Arvuta tulemus. Ainult Hubi HTTP 202 on 'sent'; kindel tagasilükkamine on 'error'
       #    (ametnik saadab käsitsi uuesti); ebaselge tulemus on 'send_unknown' (EI saadeta uuesti).
       - assign:
@@ -180,6 +200,17 @@ processCandidates:
               }
               if (!reserved) {
                 return { outcome: 'error', errorMessage: 'NCR ei olnud reserveeritav (olek ei luba saatmist)', raw: '' };
+              }
+              if (xtr) {
+                var xr = xtrRes && xtrRes.response;
+                var xb = xr && xr.body;
+                if (xr != null && xr.status === 200 && xb != null && xb.status === 202) {
+                  return { outcome: 'sent', errorMessage: '', raw: JSON.stringify(xb) };
+                }
+                if (xr != null && ((xr.status === 200 && xb != null && xb.status >= 400 && xb.status < 500) || xr.status === 422)) {
+                  return { outcome: 'error', errorMessage: 'ERRU lükkas NCR päringu tagasi (' + (xb && xb.status || xr.status) + ')', raw: JSON.stringify(xb || '') };
+                }
+                return { outcome: 'send_unknown', errorMessage: 'NCR saatmise tulemus on teadmata, ära saada uuesti', raw: JSON.stringify(xb || '') };
               }
               var res = erruRes && erruRes.response;
               var body = res && res.body;

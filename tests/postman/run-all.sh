@@ -92,6 +92,11 @@ python3 -B "$REPO_ROOT/tests/contract/check_erru_contract.py" --emit-sql | $COMP
 # Test the actual deployment XTR build before the API collections.
 python3 "$REPO_ROOT/tests/xtr/xml_entities_test.py" --image ljvis-ci-xtr-inbound
 
+# ERRU XTR raw-XML bridge: the Ruuter flows' composed JSON must give XSD-clean XML equal to the Java adapter fixtures.
+python3 "$REPO_ROOT/tests/erru-adapter/xtr_golden.py" --image ljvis-ci-erru-xml-adapter
+python3 "$REPO_ROOT/tests/erru-adapter/xtr_inbound_golden.py" --image ljvis-ci-erru-xml-adapter
+python3 "$REPO_ROOT/tests/erru-adapter/xtr_request_golden.py" --image ljvis-ci-erru-xml-adapter
+
 python3 "$REPO_ROOT/tests/erru-adapter/test_migrations.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
 python3 "$REPO_ROOT/tests/sql/risk-all-forms.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db

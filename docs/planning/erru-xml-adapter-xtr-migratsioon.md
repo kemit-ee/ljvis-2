@@ -1,6 +1,8 @@
 # erru-xml-adapter asendamine eraldi XTR teenusega
 
-Staatus: **plaan, otsused ootel**. Koostatud 2026-11-05 koodi (`docker/erru-xml-adapter-old`, ~5000 rida Javat) ja upstream XTR (v0.5.1-rc) dokumentatsiooni põhjal.
+Staatus: **etapid 1–2 tehtud (2026-11-16), etapid 3–6 ootel**; profiil = async toor-XML (XTR 0.6.0-rc). Vt jaotis 9.
+
+Varasem staatus: plaan, otsused ootel. Koostatud 2026-11-05 koodi (`docker/erru-xml-adapter-old`, ~5000 rida Javat) ja upstream XTR (v0.5.1-rc) dokumentatsiooni põhjal.
 
 ## 1. Mida adapter täna teeb
 
@@ -75,11 +77,11 @@ Põhimõte: iga sõnum töödeldakse **ühes kutseahelas**, olek on Postgres'is 
 
 ## 2e. Katsetus dev-is nimevahetusega (kasutaja ettepanek, 2026-11-05)
 
-Idee: uus `xtr-erru` deploy'takse teenuse nime all **`erru-xml-adapter`**, praegune adapter nimetatakse ümber **`erru-xml-adapter-old`**. `stesta-gateway` proksib `/erru/xml` ja `/Service/ReceiveAsync` nime `erru-xml-adapter` poole, seega Hubi liiklus jõuab uue XTR-i juurde ilma värava muutmiseta. Nii saab dev-is päris Hubi liiklusega kontrollida, kas plaan toimib, ja samuti selgub, mida Hub tegelikult saadab (toor-XML või SOAP).
+Idee: uus `erru-xml-adapter` deploy'takse teenuse nime all **`erru-xml-adapter`**, praegune adapter nimetatakse ümber **`erru-xml-adapter-old`**. `stesta-gateway` proksib `/erru/xml` ja `/Service/ReceiveAsync` nime `erru-xml-adapter` poole, seega Hubi liiklus jõuab uue XTR-i juurde ilma värava muutmiseta. Nii saab dev-is päris Hubi liiklusega kontrollida, kas plaan toimib, ja samuti selgub, mida Hub tegelikult saadab (toor-XML või SOAP).
 
 **Mis tuleb koos nimevahetusega teha:**
 - `ljvis-2`: `docker-compose.yml` ja `docker-compose.ci.yml` (service/container nimi, `AUTO_REPLY_URL` hub mock'is), `constants.ini` `ERRU_XML_ADAPTER` (**jääb vana adapteri peale `http://erru-xml-adapter-old:8080`**, kuni väljaminevad voogud on XTR-i peale viidud), Postman keskkonnad (`tests/postman/*-environment.json`, `run-all.*`, `groups.json`), `scripts/check-internal-token-targets.py`, dokumendid.
-- `ljvis2-devops`: chart ja `environments/*/values/erru-xml-adapter.yaml` (vana → `-old`), uus `xtr-erru` deployment teenusenimega `erru-xml-adapter` (Service port 8080 → XTR-i inbound port), `ruuter`/`ruuter-internal` NetworkPolicy-d, `stesta-gateway` backend jääb samaks.
+- `ljvis2-devops`: chart ja `environments/*/values/erru-xml-adapter.yaml` (vana → `-old`), uus `erru-xml-adapter` deployment teenusenimega `erru-xml-adapter` (Service port 8080 → XTR-i inbound port), `ruuter`/`ruuter-internal` NetworkPolicy-d, `stesta-gateway` backend jääb samaks.
 - XTR-i inbound lane peab teenindama **täpselt värava poolt kasutatavat teed `/erru/xml`** (sidecar `inbound.path: /erru/xml`).
 
 **Katsetuse piirangud:** (1) vana adapteri sisse tulevate Hubi vastuste töötlus (`/erru/xml` → inbox) katkeb, sest nüüd jõuavad need uude XTR-i; seetõttu algab katsetus **püüdmisrežiimiga**: XTR-i backend on Ruuteri voog, mis salvestab saabunud toor-XML-i ja SHA-256 tabelisse (ei töötle). See kinnitab Hubi profiili ja transpordi. (2) Töötlus (mapperid) tuleb alles etappides 4–5. (3) Hubi acceptance on jagatud EL-i testkeskkond; saadetavate/saadavate sõnumite puhul on vaja sinu selget luba.
@@ -137,7 +139,7 @@ Kasutaja oli õige: SOAP-i endpointid on dokumentides olemas ja "EC registreerim
 | Variant | Sisu | Plussid | Miinused |
 |---|---|---|---|
 | ~~A. SOAP-ümbris Hubi vastu~~ (langes välja, D1) | XTR DSL (nagu `feature/erru-xtr`) või `.soap.yaml` + WSDL, ainult olemasolev XTR | Upstream muudatusi pole vaja; väljaminevale suunale on prototüüp olemas (vt 2b) | Sissetulev suund ja asünkroonsed vastused jäävad lahendamata; XSD-valideerimine ja olek puuduvad; adapter eeldab toor-XML profiili. Vaja kinnitust (D1) |
-| **B. Uus `xml` lane upstream XTR-is (soovitus)** | Toor-XML sisse ja välja, skeemipõhine kodek, XSD-valideerimine, per-DSL timeout. Eraldi instants `xtr-erru` | Puhas lõppseis, ühine hooldus; sul on juba upstream PR-e (#37) | Vajab upstream tööd ja release'i; sõltuvus XTR-i tsüklist |
+| **B. Uus `xml` lane upstream XTR-is (soovitus)** | Toor-XML sisse ja välja, skeemipõhine kodek, XSD-valideerimine, per-DSL timeout. Eraldi instants `erru-xml-adapter` | Puhas lõppseis, ühine hooldus; sul on juba upstream PR-e (#37) | Vajab upstream tööd ja release'i; sõltuvus XTR-i tsüklist |
 | **C. Hübriid** | XTR ainult transport-kiht, õhuke Java-kest jääb XSD-valideerimiseks | Vähem upstream tööd | Adapterist ei loobu päriselt; kaks komponenti |
 
 **Soovitus: B**, fallback C ainult kui upstream ei jõua õigel ajal. A langes välja (D1).
@@ -145,14 +147,14 @@ Kasutaja oli õige: SOAP-i endpointid on dokumentides olemas ja "EC registreerim
 ## 4. Sihtarhitektuur (variant B; retry/delivery töötaja vt D3 tulemus)
 
 ```
-Hub ──toor-XML──▶ xtr-erru (inbound port) ──JSON──▶ ruuter-internal ──▶ Resql ──▶ erru.* tabelid
-Hub ◀──toor-XML── xtr-erru (outbound xml lane) ◀──JSON── ruuter-internal   (CronManager ainult taastus)
+Hub ──toor-XML──▶ erru-xml-adapter (inbound port) ──JSON──▶ ruuter-internal ──▶ Resql ──▶ erru.* tabelid
+Hub ◀──toor-XML── erru-xml-adapter (outbound xml lane) ◀──JSON── ruuter-internal   (CronManager ainult taastus)
 ```
 
-- **`xtr-erru`** on eraldi teenus (oma `xtr.yaml`, oma DSL-kataloog `DSL/xtr-erru/`, oma image/deployment, oma NetworkPolicy). Mitte olemasolev `xtr`: see räägib turvaserveriga ja on X-tee tasandil; ERRU on EL Hub (s-TESTA). Eraldamine hoiab pordid ja ekspositsiooni lahus.
+- **`erru-xml-adapter`** on eraldi teenus (oma `xtr.yaml`, oma DSL-kataloog `DSL/erru-xml-adapter/`, oma image/deployment, oma NetworkPolicy). Mitte olemasolev `xtr`: see räägib turvaserveriga ja on X-tee tasandil; ERRU on EL Hub (s-TESTA). Eraldamine hoiab pordid ja ekspositsiooni lahus.
 - **XTR vastutab:** toor-XML vastuvõtt (2 MiB piir, DOCTYPE keeld), XSD-valideerimine `contracts/erru/3.5` vastu, XML ⇄ JSON (skeemipõhine), väljaminev POST Hubile, **originaalbaitide ja SHA-256 edastamine** Ruuterile (idempotentsuse ja audit'i jaoks).
 - **Ruuter.internal + Resql vastutavad:** kogu äriloogika ja olek. Inbox/outbox tabelid jäävad (Resql-lauseid kasutades), lease/`SKIP LOCKED` jääb SQL-i, retry/viivitus CronManager'i kaudu. Adapteri `*Mapper`-ite JSON-kuju teisendus → **DataMapper** malle või Ruuteri `assign`-e (XTR-i skeemipõhine JSON on XSD-kujuline; olemasolev UI-leping on teine).
-- **Hub mock** (`docker/erru-hub-mock`) jääb dev/CI-s; `AUTO_REPLY_URL` osutab `xtr-erru` sissetuleva pordi poole.
+- **Hub mock** (`docker/erru-hub-mock`) jääb dev/CI-s; `AUTO_REPLY_URL` osutab `erru-xml-adapter` sissetuleva pordi poole.
 
 ### Riskid, mis tuleb lahendada enne ehitust
 
@@ -160,7 +162,7 @@ Hub ◀──toor-XML── xtr-erru (outbound xml lane) ◀──JSON── ruu
 2. **Delivery lõimed.** Täna 16 lõime blokeeruvad Hubi POST-il. Ruuter.internal'i samaaegsuse piir ja `request_timeout` tuleb mõõta; XTR-i globaalne timeout (30 s) ei sobi 10 s tähtajaga ilma per-DSL väärtuseta.
 3. **`unknown` ei saadeta uuesti** (Hub-timeout, ühenduse katkemine). See reegel elab praegu dispatch-päevikus; peab säilima täpselt samas semantikas Resql-is.
 4. **Audit-hash-chain ja `record_inbound_audit`** jäävad SQL-i, aga tähelepanu: kutsed peavad jääma atomaarseks.
-5. **XTR konfiguratsioon:** upstream nõuab praegu `security_server` blokki (käivituseks); `xtr-erru` ilma turvaserverita on kinnitamata. Lisa upstream nõudesse.
+5. **XTR konfiguratsioon:** upstream nõuab praegu `security_server` blokki (käivituseks); `erru-xml-adapter` ilma turvaserverita on kinnitamata. Lisa upstream nõudesse.
 
 ## 5. Etapid
 
@@ -170,12 +172,12 @@ Hub ◀──toor-XML── xtr-erru (outbound xml lane) ◀──JSON── ruu
 - ~~D3~~ tehtud (vt D3 tulemus ja 2d). Uus D4: Hubi kordus ja Ruuteri `detach` piirid (2d, Kontrollida).
 - Tulemus: valitud variant ja XTR-i sihtversioon.
 
-**Etapp 1 — `xtr-erru` skelett (ilma ärimuutuseta)**
-- `docker/xtr-erru/Dockerfile`, `xtr-erru.yaml`, `DSL/xtr-erru/`; compose + CI teenus; NetworkPolicy dokument (`vorguyhendused-network-policy.md`) ja devops repo (`~/code/ljvis2-devops`).
+**Etapp 1 — `erru-xml-adapter` skelett (ilma ärimuutuseta)**
+- `docker/erru-xml-adapter/Dockerfile`, `xtr.yaml`, `xml/erru.xml.yaml`; compose + CI teenus; NetworkPolicy dokument (`vorguyhendused-network-policy.md`) ja devops repo (`~/code/ljvis2-devops`).
 - Golden-fixture komplekt: kõik `MapperSmokeTest` ja `tests/erru-adapter/fixtures` XML-id kui kokkulepitud kood-pool tõde.
 
 **Etapp 2 — väljaminev NU (pilootsõnum)**
-- `xtr-erru` outbound DSL NU jaoks; Ruuter `nu/send.yml` valib teekonna konstandiga (`ERRU_TRANSPORT=adapter|xtr`), vaikimisi `adapter`.
+- `erru-xml-adapter` outbound DSL NU jaoks; Ruuter `nu/send.yml` valib teekonna konstandiga (`ERRU_TRANSPORT=adapter|xtr`), vaikimisi `adapter`.
 - Võrdlustest: sama sisend → adapteri XML ja XTR XML on baitide tasemel / kanoonilise XML-ina võrdsed (XSD-valideeritud).
 - Dispatch-päevik ja `unknown` reegel Resql-is.
 
@@ -205,6 +207,22 @@ Kuni etapini 6 jääb adapter kasutusse ja konstant `ERRU_TRANSPORT` lülitab te
 
 1. D1 (lahendatud, vt 2g): Hub toetab mõlemat profiili; kasutusel asünkroonne toor-XML.
 2. Kes teeb upstream XTR-i töö ja millal on release (-rc) kasutatav?
-3. Kas `xtr-erru` peab olema eraldi deployment'ina Kubernetes'es (soovitus: jah) ?
+3. Kas `erru-xml-adapter` peab olema eraldi deployment'ina Kubernetes'es (soovitus: jah) ?
 4. Kas mapperite JSON-kuju teisendus läheb DataMapper'isse või Ruuteri DSL-i (maht ~2500 rida)?
 5. Hub mock'i ümberehitus (tänaseid `AUTO_REPLY_URL` teekondi arvestades).
+
+## 9. Teostuse seis (2026-11-16)
+
+**Otsus:** XTR v0.6.0-rc (toor-XML lane'id #41, XSD-valideerimine #47, Xerces-test #48) on avaldatud; `erru-xml-adapter` kasutab **async toor-XML** profiili (sama mis Java-adapter). SOAP-skelett (WSDL-id, `.soap.yaml`) on eemaldatud, 2h/2i SOAP-spike'i tulemused jäävad ajalooks.
+
+**Etapp 1 (tehtud):** `docker/erru-xml-adapter/` = ametlik XTR image (digest `babfaa90…`) + `contracts/erru/3.5` XSD-d + `xml/erru.xml.yaml` sidecar (üks lane `erru/erru`, 12 sõnumit). Mitte-juur teekond `/erru/{wsdl,DSL}` (baasimage'i 101 X-tee WSDL-i ei laeta). Sissetulev: alias `/erru/xml` (sama tee mis vanal adapteril, stesta-gateway ei muutu), **kõik sõnumid `forward`-itakse baitidena vanale adapterile** (`erru-xml-adapter-old`) kuni etapini 5. XSD-valideerimine `report` mõlemas suunas.
+
+**Etapp 2 (tehtud):** `nu/send.yml` xtr-haru kasutab `POST /xml-out/erru/erru/NotifyUnfitness_Request`; Hubi 202 = accepted, muu 4xx (ja XTR 422 `schema_invalid`) = rejected, kõik muu = unknown (mitte kunagi uuesti). Golden: `tests/erru-adapter/xtr_nu_golden.py --image <image>` — XTR XML on kanooniliselt võrdne Java fixture'iga `fixtures/nu.xml`, XSD-rikkumisi 0. Lüliti `ERRU_NU_TRANSPORT=adapter|xtr` (vaikimisi adapter). Dispatch-päevik NU jaoks: kattub `nu_begin_send` (olek `sending`) + `mark-dispatch` olekuga; eraldi `xml_nu_dispatch` ei dubleerita.
+
+**Etapp 3 (tehtud, 2026-11-16):** CGR (`send`+`resend`), CTUD, NCR (`send`, `response-send`, `cron/erru-ncr-autodispatch`) ja RSI saavad sama xtr-haru nagu NU: `xtrPreflight` (asendab Java `validate`-i), `composeXtr*` sammud (XSD-kujuline JSON) ja `/xml-out/erru/erru/<Message>`; Hubi staatus samasugune (202 / 2xx vastuste puhul = accepted, muu 4xx = rejected, ülejäänu unknown). Lülitid per tüüp, vaikimisi `adapter`: `ERRU_NU_TRANSPORT`, `ERRU_CGR_TRANSPORT`, `ERRU_CTUD_TRANSPORT`, `ERRU_NCR_TRANSPORT`, `ERRU_NCR_RESPONSE_TRANSPORT`, `ERRU_RSI_TRANSPORT` (`constants.ini`). Golden: `tests/erru-adapter/xtr_golden.py` jooksutab `send.yml`-i päris `composeXtr*` sammud node'is ja võrdleb XTR XML-i Java fixture'itega (nu, ctud, cgr, ncr, rsi, ncr-response; XSD-rikkumisi 0); lisatud `run-all.sh`-i. Märkus: cron ja `cgr/resend` kopeerivad kokkupanekuavaldised (golden katab ainult `send.yml`-i); ErrorNotification väljaminev jääb etappi 5. `dsl-lint` + audit-gate rohelised.
+
+**Etapp 4 (tehtud, 2026-11-16):** kuus ühesuunalist sissetulevat sõnumit (RSI/CGR/CTUD/NCR vastused, NU/NCR kinnitused) lähevad nüüd `inbound.backend`-ile (`ruuter-internal` `/ljvis/erru/xtr/inbound/<Message>`, päis `x-internal-service-token` tuleb env-ist `XTR_BACKEND_HEADER_ERRU` = `INTERNAL_COMMUNICATION_KEY`). Voog (genereeritud `scripts/generate-erru-xtr-inbound.py`-ga): ümbriku kontroll (400 vigane, 422 kui `to != EE`) → vastuvõtt tabelisse `erru.xml_inbox` Resql-iga `erru/xml-inbox/accept` (unikaalne `technical_id`, digest; sama id + teine digest = 409; juba töödeldud = 202) → mapeering (sama JSON mis Java mapper, golden-testiga tõestatud) → `/ljvis/erru/<flow>/inbound-*` → `finish` (processed / retry / failed). Rida lisatakse juba haaratuna (`claimed_by='erru-xml-adapter-xtr'`), nii ei võta vana Java-töötaja seda topelt. Ajutine tõrge (status 0/408/429/5xx) → 503 ja Hub saadab uuesti (XTR ei oma järjekorda); katkematu 10 korda ebaõnnestumine → budget exhausted. Golden: `tests/erru-adapter/xtr_inbound_golden.py` (6/6, lisatud `run-all.sh`-i). **Tagasipööramine:** anna sõnumile sidecaris tagasi `forward: http://erru-xml-adapter-old:8080/erru/xml` rida. Päringud (NU/NCR/RSI/CGR/CTUD) ja ErrorNotification jäävad `forward`-iga etappi 5. Märkus: näidisfixture'id on struktuurselt ustavad, kuid mitte kõik XSD-valiidsed (report-režiimis ainult hoiatused).
+
+**Etapp 5 (pooleli, 2026-11-16) — hübriidmudel, NU, NCR, RSI, CGR ja CTUD valmis:** otsus: NU/NCR/RSI töödeldakse sünkroonselt (XTR → `inbound.backend` → vastus `/xml-out`-iga → 202), CGR/CTUD (MTR ootab kuni 35 s) saavad kiire 202 + cron-töötaja. **NU on üle viidud:** `NotifyUnfitness_Request` sidecaris ilma `forward`-ita; voog `.../erru/xtr/inbound/NotifyUnfitness_Request.yml` (generaator `scripts/generate-erru-xtr-requests.py`): `xml-inbox/accept` (nüüd ka `deadlineAt` `timeoutValue`-st, tagastab `receivedAt`, `deadlineAtMs`, deterministlikud `responseTechnicalId`/`errorTechnicalId`) → vale vastuvõtja = ErrorNotification `InvalidData` → `/erru/nu/inbound-request` → kinnitus-XML `/xml-out/erru/erru/NotifyUnfitness_Acknowledgement` (2xx = kohale jõudnud; 4xx/422 = `failed` käsitsi taastamiseks; muu = 503 ja Hub kordab) → `finish`. Vastuse tähtaeg: kui `timeoutValue` on möödas, ei saadeta (äri on tehtud, rida `processed`). Voo äriliselt tagasilükatud vastus = EN `InvalidData` (rida `processed`), tundmatu/vigane vastus = EN `ServerError` (rida `failed`, kordus võtab selle uuesti). Konstant `ERRU_RESPONDING_AUTHORITY`. Golden: `tests/erru-adapter/xtr_request_golden.py` (päringu mapeering Java-ga võrdne, kinnitus kahes kujus ja EN XSD-puhtad). **Teadaolev kokkupõrge:** `retry` jätab rea olekusse `received`, mille võib kuni etapini 6 võtta ka vana Java-töötaja (topeltvastus võimalik; NU flow on idempotentne). **NCR ja RSI** on samamoodi üle viidud (sidecaris ilma `forward`-ita; `NotifyCheckResult_Acknowledgement` on nüüd mõlemasuunaline, sest NCR päringule vastatakse sellega; vastuse staatus NCR: ainult `OK`, RSI: `OK`/`NotFound`, `InvalidData` = EN, muu = EN `ServerError`). Mapperid on Java `NcrMapper`/`RsiMapper.requestToJson` 1:1 portid (JSON-stringina `minorInfringement`/`seriousInfringements`/`identificationDetails`/`checkedItems`); golden katab NU, NCR, RSI (TU-haldur ja omanik/ettevõte variant) mapeeringu Java-st tuletatud oodatud JSON-iga ning NCR/RSI vastused XSD-puhtalt. **CGR ja CTUD** (MTR ootab kuni 35 s) on asünkroonsed: `xtr/inbound/<Message>` salvestab päringu (`xml-inbox/accept` `async=true`, uus veerg `erru.xml_inbox.request_json`, migratsioon `20261228100000`), parkib rea (`claimed_by erru-xml-adapter-xtr-async`, 10 min lease) ja vastab kohe 202; `cron/erru-xtr-async-requests` (CronManager iga 5 s, üks rida tiksu kohta, `xml-inbox/claim-due`) kutsub `xtr/worker/<Message>`, mis teeb sama mis sünkroonne voog (mapeering, `/erru/<flow>/inbound-request`, vastus `/xml-out`-iga, EN, tähtaeg). Ajutine viga paneb rea tagasi järjekorda (`finish` outcome `requeue`, 30 s pärast; ei lange vana Java-töötaja kätte). Found vastus, mida ei saa täielikult tõlkida, annab EN `ServerError` (Java `StatusMapper`/mapperi pariteet). Golden katab nüüd ka CGR/CTUD mapeeringu ja vastused (Java-ga genereeritud oodatud XML). **Järgmised:**  (kiire 202 + cron), `ErrorNotification` väljaminev `timeoutValue`/Hub-poolne EN, `annotate` valideerimine, 10 s tähtaja mõõtmine.
+
+**Ootel:** etapp 5 lõpetamine (EN-i Hub-poolne käsitlus, `annotate`, 10 s mõõtmine, päris Ruuteri/Newmani/stacki jooks), etapp 6 (vana adapteri eemaldamine). Enne `enforce`: Xerces-differentsiaaltest oma XSD korpusel + 14 päeva `report` (XTR book, xml-lanes.md). Devops: chart'i ConfigMap peab andma `erru.xml.yaml` per-keskkonna URL-idega (outbound `messages.X.url`, `forward` vana teenuse nimele) ja `xtr.yaml`.
