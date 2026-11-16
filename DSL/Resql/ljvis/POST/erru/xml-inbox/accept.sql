@@ -51,6 +51,7 @@ conflict AS (
                       || ', attempted payload_digest=' || :digest
    WHERE technical_id = :technicalId::uuid
      AND payload_digest <> :digest
+     AND COALESCE(last_error, '') NOT LIKE '%attempted payload_digest=' || :digest || '%'
      AND NOT EXISTS (SELECT 1 FROM ins)
   RETURNING id
 ),

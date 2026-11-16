@@ -126,7 +126,7 @@ checkAnswerStatus:
 enRejected:
   assign:
     en_status: "InvalidData"
-    en_message: "${inbound_json.statusMessage || 'Request rejected as invalid data'}"
+    en_message: "${(function(v) { return String(v == null ? '' : v).split(String.fromCharCode(9)).join(' ').split(String.fromCharCode(10)).join(' ').split(String.fromCharCode(13)).join(' ').split(' ').filter(function(w) { return w !== ''; }).join(' '); })(inbound_json.statusMessage) || 'Request rejected as invalid data'}"
     en_complete: true
   next: buildEn
 
@@ -182,7 +182,7 @@ checkSent:
 
 buildEn:
   assign:
-    en_body: "${(function() { var msg = String(en_message || '').split(String.fromCharCode(10)).join(' ').trim(); if (msg.length > 400) { msg = msg.substring(0, 400); } msg = (msg === '' ? 'Unable to produce a business answer for this request' : msg) + ' (correlation id: inbox/' + accepted.inboxId + ')'; return {Header: {'@version': '3.5', '@technicalId': accepted.errorTechnicalId, '@workflowId': workflow_id, '@sentAt': new Date().toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': 'EU'}, Body: {'@businessCaseId': business_case_id, '@statusCode': en_status, '@statusMessage': msg, OriginalMessage: raw_xml}}; })()}"
+    en_body: "${(function() { var msg = (function(v) { return String(v == null ? '' : v).split(String.fromCharCode(9)).join(' ').split(String.fromCharCode(10)).join(' ').split(String.fromCharCode(13)).join(' ').split(' ').filter(function(w) { return w !== ''; }).join(' '); })(en_message); if (msg.length > 400) { msg = msg.substring(0, 400); } msg = (msg === '' ? 'Unable to produce a business answer for this request' : msg) + ' (correlation id: inbox/' + accepted.inboxId + ')'; return {Header: {'@version': '3.5', '@technicalId': accepted.errorTechnicalId, '@workflowId': workflow_id, '@sentAt': new Date().toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': 'EU'}, Body: {'@businessCaseId': business_case_id, '@statusCode': en_status, '@statusMessage': msg, OriginalMessage: raw_xml}}; })()}"
   next: sendEn
 
 sendEn:
@@ -208,7 +208,7 @@ checkEnSent:
 
 afterEn:
   switch:
-    - condition: ${en_complete === true}
+    - condition: ${true}
       next: markProcessed
   next: markFailed
 

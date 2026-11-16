@@ -130,6 +130,7 @@ TYPES["NotifyCheckResult_Request"] = {
     "map": NCR_MAP,
     "answer_ok": "inbound_json.statusCode === 'OK'",
     "build": NCR_BUILD,
+    "requires_business_completion": True,
 }
 TYPES["RoadSideInspection_Request"] = {
     "authority": "ERRU_RESPONDING_AUTHORITY_RSI",
@@ -139,6 +140,7 @@ TYPES["RoadSideInspection_Request"] = {
     "map": RSI_MAP,
     "answer_ok": "inbound_json.statusCode === 'OK' || inbound_json.statusCode === 'NotFound'",
     "build": RSI_BUILD,
+    "requires_business_completion": True,
 }
 
 # ---- CGR / CTUD: answered asynchronously (MTR takes up to 35 s) -------------------------------------------------------
@@ -232,7 +234,10 @@ TYPES["CheckTransportUndertakingData_Request"] = {
 }
 ASYNC_MESSAGES = [m for m, t in TYPES.items() if t.get("async")]
 
-EN_BUILD = ("(function() { var msg = String(en_message || '').split(String.fromCharCode(10)).join(' ').trim(); if (msg.length > 400) { msg = msg.substring(0, 400); } "
+WS = ("(function(v) { return String(v == null ? '' : v).split(String.fromCharCode(9)).join(' ').split(String.fromCharCode(10)).join(' ').split(String.fromCharCode(13)).join(' ')"
+      ".split(' ').filter(function(w) { return w !== ''; }).join(' '); })")
+
+EN_BUILD = ("(function() { var msg = " + WS + "(en_message); if (msg.length > 400) { msg = msg.substring(0, 400); } "
             "msg = (msg === '' ? 'Unable to produce a business answer for this request' : msg) + ' (correlation id: inbox/' + accepted.inboxId + ')'; "
             "return {Header: {'@version': '3.5', '@technicalId': accepted.errorTechnicalId, '@workflowId': workflow_id, "
             "'@sentAt': new Date().toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': 'EU'}, "
@@ -400,7 +405,7 @@ checkAnswerStatus:
 enRejected:
   assign:
     en_status: "InvalidData"
-    en_message: "${inbound_json.statusMessage || 'Request rejected as invalid data'}"
+    en_message: "${@@WS@@(inbound_json.statusMessage) || 'Request rejected as invalid data'}"
     en_complete: true
   next: buildEn
 
@@ -482,7 +487,7 @@ checkEnSent:
 
 afterEn:
   switch:
-    - condition: ${en_complete === true}
+    - condition: ${@@EN_DONE@@}
       next: markProcessed
   next: markFailed
 
@@ -834,6 +839,7 @@ def fill(tpl, msg, t, retry):
     return (tpl.replace("@@MSG@@", msg).replace("@@FLOW@@", t["flow"]).replace("@@RESPONSE@@", t["response"])
             .replace("@@MAP@@", t["map"]).replace("@@ANSWER_CHECK@@", t["answer_check"]).replace("@@ANSWER_OK@@", t["answer_ok"])
             .replace("@@BUILD@@", t["build"]).replace("@@EN_BUILD@@", EN_BUILD).replace("@@RETRY@@", retry)
+            .replace("@@WS@@", WS).replace("@@EN_DONE@@", "en_complete === true" if t.get("requires_business_completion") else "true")
             .replace("@@AUTH@@", t.get("authority", "ERRU_RESPONDING_AUTHORITY"))
             .replace("@@CALL_TIMEOUT@@", "45000" if t.get("async") else "20000")
             .replace("@@WRONG_TO@@", "to_state !== 'EE' && to_state !== 'ZZ'" if t.get("broadcast") else "to_state !== 'EE'"))
