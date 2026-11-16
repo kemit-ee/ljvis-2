@@ -49,7 +49,7 @@ decideAccepted:
   switch:
     - condition: ${accepted.attempts > 10}
       next: enBudget
-    - condition: ${to_state !== 'EE'}
+    - condition: ${to_state !== 'EE' && to_state !== 'ZZ'}
       next: enWrongRecipient
   next: mapBody
 
@@ -70,6 +70,13 @@ enWrongRecipient:
 mapBody:
   assign:
     inbound_body: "${(function() { var at = function(o, k) { return o != null && o[k] != null ? String(o[k]) : ''; }; var pi = function(v) { var t = String(v == null ? '' : v).trim(); if (t === '') { return null; } var n = parseInt(t, 10); return isNaN(n) ? null : n; }; var xb = function(v) { var t = String(v == null ? '' : v).trim().split(String.fromCharCode(32)).join(''); return t === 'true' || t === '1'; }; var ar = function(v) { return v == null || v === '' ? [] : (Array.isArray(v) ? v : [v]); }; var one = function(v) { return Array.isArray(v) ? (v.length > 0 ? v[0] : {}) : (v != null && typeof v === 'object' ? v : {}); }; var stm = one(bdy.SearchedTransportManager); var nd = one(stm.TransportManagerNameDetails); var cd = one(stm.TransportManagerCertificateDetails); return {technicalId: at(hdr, '@technicalId'), workflowId: at(hdr, '@workflowId'), sentAt: at(hdr, '@sentAt'), from: at(hdr, '@from'), businessCaseId: at(bdy, '@businessCaseId'), originatingAuthority: at(bdy, '@originatingAuthority'), requestSource: at(bdy, '@requestSource'), requestPurpose: at(bdy, '@requestPurpose'), tmFirstName: at(nd, '@firstName'), tmFamilyName: at(nd, '@familyName'), tmDateOfBirth: at(nd, '@dateOfBirth'), tmPlaceOfBirth: at(nd, '@placeOfBirth'), certificateNumber: at(cd, '@certificateNumber'), certificateIssueDate: at(cd, '@certificateIssueDate'), certificateIssueCountry: at(cd, '@certificateIssueCountry')}; })()}"
+  next: preCallDeadline
+
+# The Hub's response window already closed: do not spend an MTR call on an answer nobody can receive.
+preCallDeadline:
+  switch:
+    - condition: ${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime()}
+      next: markExpired
   next: callInbound
 
 callInbound:
@@ -82,10 +89,11 @@ callInbound:
       type: json
     body: ${inbound_body}
   result: inbound_res
-  timeout: 20000
+  timeout: 45000
   next: classify
 
-# A flow answer is recognised by its content, not its HTTP status: a business rejection can arrive on a 4xx.
+# A 5xx / 408 / 429 / no response is transient whatever the body says (a flow answers 502 + statusCode ServerError/Error when MTR
+# is down, the Hub must be able to retry). Below that a flow answer is recognised by its content: a business rejection can arrive on a 4xx.
 classify:
   assign:
     inbound_status: "${inbound_res.response == null ? 0 : inbound_res.response.status}"
@@ -94,10 +102,10 @@ classify:
 
 decideInbound:
   switch:
-    - condition: ${['Found', 'NotFound', 'InvalidData', 'Error', 'ServerError', 'NotAvailable'].indexOf(inbound_json.statusCode) >= 0}
-      next: checkAnswerStatus
     - condition: ${inbound_status === 0 || inbound_status === 408 || inbound_status === 429 || inbound_status >= 500}
       next: markRetry
+    - condition: ${['Found', 'NotFound', 'InvalidData', 'Error', 'ServerError', 'NotAvailable'].indexOf(inbound_json.statusCode) >= 0}
+      next: checkAnswerStatus
   next: enUnrecognised
 
 enUnrecognised:
@@ -244,7 +252,7 @@ markRetry:
       type: json
     body:
       inboxId: ${accepted.inboxId}
-      outcome: "requeue"
+      outcome: "${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime() ? 'processed' : 'requeue'}"
       error: "inbound flow or XTR unavailable, transient failure"
   result: retry_res
   error: returnUnavailable

@@ -1,5 +1,5 @@
 /*
-description: 'Cron worker (CGR/CTUD, answered asynchronously): takes over the oldest due row that xml-inbox/accept parked in async mode (claimed_by erru-xml-adapter-xtr-async, due now) and gives it the normal 2 minute xtr claim, so finish and the rest of the flow work as for synchronous rows. Returns one JSON row, or no row when nothing is due.'
+description: 'Cron worker (CGR/CTUD, answered asynchronously): takes over the oldest due row that xml-inbox/accept parked in async mode (claimed_by erru-xml-adapter-xtr-async, due now) or whose worker died mid-way (claimed_by erru-xml-adapter-xtr, lease expired, request_json stored) and gives it the normal 2 minute xtr claim, so finish and the rest of the flow work as for synchronous rows. Returns one JSON row, or no row when nothing is due.'
 namespace: erru
 params:
   messageTypes:
@@ -12,10 +12,12 @@ WITH due AS (
   SELECT id
     FROM erru.xml_inbox
    WHERE status = 'processing'
-     AND claimed_by = 'erru-xml-adapter-xtr-async'
-     AND next_attempt_at <= now()
      AND message_type = ANY (string_to_array(:messageTypes, ','))
-   ORDER BY next_attempt_at, id
+     AND (
+           (claimed_by = 'erru-xml-adapter-xtr-async' AND next_attempt_at <= now())
+        OR (claimed_by = 'erru-xml-adapter-xtr' AND lease_expires_at < now() AND request_json IS NOT NULL)
+     )
+   ORDER BY COALESCE(next_attempt_at, lease_expires_at), id
    LIMIT 1
    FOR UPDATE SKIP LOCKED
 )

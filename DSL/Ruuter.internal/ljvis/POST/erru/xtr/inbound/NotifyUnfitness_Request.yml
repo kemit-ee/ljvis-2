@@ -102,6 +102,13 @@ enWrongRecipient:
 mapBody:
   assign:
     inbound_body: "${(function() { var at = function(o, k) { return o != null && o[k] != null ? String(o[k]) : ''; }; var tm = bdy.TransportManager || {}; var d = tm.TransportManagerNameDetails || tm.TransportManagerCertificateDetails || {}; var im = d.TransportManager || {}; var c = d.CertificateOfProfessionalCompetence || {}; return {technicalId: at(hdr, '@technicalId'), workflowId: at(hdr, '@workflowId'), sentAt: at(hdr, '@sentAt'), from: at(hdr, '@from'), businessCaseId: at(bdy, '@businessCaseId'), originatingAuthority: at(bdy, '@originatingAuthority'), requestSource: at(bdy, '@requestSource'), requestPurpose: at(bdy, '@requestPurpose'), tmFirstName: at(im, '@firstName'), tmFamilyName: at(im, '@familyName'), tmDateOfBirth: at(im, '@dateOfBirth'), tmPlaceOfBirth: at(im, '@placeOfBirth'), tmFirstNameSearchKey: at(im, '@firstNameSearchKey'), tmFamilyNameSearchKey: at(im, '@familyNameSearchKey'), certificateNumber: at(c, '@certificateNumber'), certificateIssueDate: at(c, '@certificateIssueDate'), certificateIssueCountry: at(c, '@certificateIssueCountry'), unfitStartDate: at(tm, '@unfitStartDate'), receivedAt: accepted.receivedAt}; })()}"
+  next: preCallDeadline
+
+# The Hub's response window already closed: do not spend an MTR call on an answer nobody can receive.
+preCallDeadline:
+  switch:
+    - condition: ${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime()}
+      next: markExpired
   next: callInbound
 
 callInbound:
@@ -117,7 +124,8 @@ callInbound:
   timeout: 20000
   next: classify
 
-# A flow answer is recognised by its content, not its HTTP status: a business rejection can arrive on a 4xx.
+# A 5xx / 408 / 429 / no response is transient whatever the body says (a flow answers 502 + statusCode ServerError/Error when MTR
+# is down, the Hub must be able to retry). Below that a flow answer is recognised by its content: a business rejection can arrive on a 4xx.
 classify:
   assign:
     inbound_status: "${inbound_res.response == null ? 0 : inbound_res.response.status}"
@@ -126,10 +134,10 @@ classify:
 
 decideInbound:
   switch:
-    - condition: ${inbound_json.acknowledgementType === 'NotifyUnfitness_Acknowledgement'}
-      next: checkAnswerStatus
     - condition: ${inbound_status === 0 || inbound_status === 408 || inbound_status === 429 || inbound_status >= 500}
       next: markRetry
+    - condition: ${inbound_json.acknowledgementType === 'NotifyUnfitness_Acknowledgement'}
+      next: checkAnswerStatus
   next: enUnrecognised
 
 enUnrecognised:

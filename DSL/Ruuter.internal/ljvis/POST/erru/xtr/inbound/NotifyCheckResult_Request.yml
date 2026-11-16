@@ -102,6 +102,13 @@ enWrongRecipient:
 mapBody:
   assign:
     inbound_body: "${(function() { var at = function(o, k) { return o != null && o[k] != null ? String(o[k]) : ''; }; var pi = function(v) { var t = String(v == null ? '' : v).trim(); if (t === '') { return null; } var n = parseInt(t, 10); return isNaN(n) ? null : n; }; var xb = function(v) { var t = String(v == null ? '' : v).trim().split(String.fromCharCode(32)).join(''); return t === 'true' || t === '1'; }; var ar = function(v) { return v == null || v === '' ? [] : (Array.isArray(v) ? v : [v]); }; var one = function(v) { return Array.isArray(v) ? (v.length > 0 ? v[0] : {}) : (v != null && typeof v === 'object' ? v : {}); }; var has = function(o, k) { return o != null && o[k] != null; }; var tu = one(bdy.TransportUndertaking); var veh = one(tu.Vehicle); var cs = one(tu.CheckSummary); var out = {technicalId: at(hdr, '@technicalId'), workflowId: at(hdr, '@workflowId'), sentAt: at(hdr, '@sentAt'), from: at(hdr, '@from'), businessCaseId: at(bdy, '@businessCaseId'), originatingAuthority: at(bdy, '@originatingAuthority'), requestSource: at(bdy, '@requestSource'), requestPurpose: at(bdy, '@requestPurpose'), transportUndertakingName: at(tu, '@transportUndertakingName'), communityLicenceNumber: at(tu, '@communityLicenceNumber'), vehicleRegistrationNumber: at(veh, '@vehicleRegistrationNumber'), vehicleRegistrationCountry: at(veh, '@vehicleRegistrationCountry'), checkResult: at(cs, '@checkResult'), checkDate: at(cs, '@dateOfCheck')}; if (tu.MinorInfringement != null) { var mi = one(tu.MinorInfringement); out.minorInfringement = JSON.stringify({dateOfInfringement: at(mi, '@dateOfInfringement'), numberOfInfringements: pi(at(mi, '@numberOfInfringements'))}); } out.seriousInfringements = JSON.stringify(ar(tu.SeriousInfringement).map(function(si) { var s = {dateOfInfringement: at(si, '@dateOfInfringement'), category: at(si, '@category'), infringementType: at(si, '@infringementType'), appealPossible: xb(at(si, '@appealPossible'))}; s.penaltiesImposed = ar(one(si.PenaltiesImposed).PenaltyImposed).map(function(p) { var o = {penaltyImposedIdentifier: pi(at(p, '@penaltyImposedIdentifier')), finalDecisionDate: at(p, '@finalDecisionDate'), penaltyTypeImposed: at(p, '@penaltyTypeImposed')}; if (has(p, '@startDate')) { o.startDate = at(p, '@startDate'); } if (has(p, '@endDate')) { o.endDate = at(p, '@endDate'); } o.isExecuted = at(p, '@isExecuted'); if (has(p, '@notExecutedReason')) { o.notExecutedReason = at(p, '@notExecutedReason'); } return o; }); if (si.PenaltiesRequested != null) { s.penaltiesRequested = ar(one(si.PenaltiesRequested).PenaltyRequested).map(function(p) { var o = {penaltyRequestedIdentifier: pi(at(p, '@penaltyRequestedIdentifier')), penaltyTypeRequested: at(p, '@penaltyTypeRequested')}; if (has(p, '@duration')) { o.duration = pi(at(p, '@duration')); } return o; }); } return s; })); return out; })()}"
+  next: preCallDeadline
+
+# The Hub's response window already closed: do not spend an MTR call on an answer nobody can receive.
+preCallDeadline:
+  switch:
+    - condition: ${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime()}
+      next: markExpired
   next: callInbound
 
 callInbound:
@@ -117,7 +124,8 @@ callInbound:
   timeout: 20000
   next: classify
 
-# A flow answer is recognised by its content, not its HTTP status: a business rejection can arrive on a 4xx.
+# A 5xx / 408 / 429 / no response is transient whatever the body says (a flow answers 502 + statusCode ServerError/Error when MTR
+# is down, the Hub must be able to retry). Below that a flow answer is recognised by its content: a business rejection can arrive on a 4xx.
 classify:
   assign:
     inbound_status: "${inbound_res.response == null ? 0 : inbound_res.response.status}"
@@ -126,10 +134,10 @@ classify:
 
 decideInbound:
   switch:
-    - condition: ${inbound_json.acknowledgementType === 'NCRN_Ack'}
-      next: checkAnswerStatus
     - condition: ${inbound_status === 0 || inbound_status === 408 || inbound_status === 429 || inbound_status >= 500}
       next: markRetry
+    - condition: ${inbound_json.acknowledgementType === 'NCRN_Ack'}
+      next: checkAnswerStatus
   next: enUnrecognised
 
 enUnrecognised:
@@ -163,7 +171,7 @@ checkDeadline:
 
 buildAnswer:
   assign:
-    answer_body: "${(function() { var ans = inbound_json; var s = function(v) { return v == null ? '' : String(v); }; var d = function(v, f) { var x = s(v); return x === '' ? f : x; }; var body = {'@businessCaseId': d(ans.businessCaseId, business_case_id), '@originatingAuthority': d(ans.originatingAuthority, s(bdy['@originatingAuthority'])), '@respondingAuthority': '[#ERRU_RESPONDING_AUTHORITY]', '@acknowledgementType': 'NCRN_Ack', '@statusCode': s(ans.statusCode)}; if (s(ans.statusMessage).trim() !== '') { body['@statusMessage'] = s(ans.statusMessage); } return {Header: {'@version': '3.5', '@technicalId': accepted.responseTechnicalId, '@workflowId': d(ans.workflowId, workflow_id), '@sentAt': d(ans.sentAt, new Date().toISOString().substring(0, 19) + 'Z'), '@from': 'EE', '@to': d(ans.to, from_state)}, Body: body}; })()}"
+    answer_body: "${(function() { var ans = inbound_json; var s = function(v) { return v == null ? '' : String(v); }; var d = function(v, f) { var x = s(v); return x === '' ? f : x; }; var body = {'@businessCaseId': d(ans.businessCaseId, business_case_id), '@originatingAuthority': d(ans.originatingAuthority, s(bdy['@originatingAuthority'])), '@respondingAuthority': '[#ERRU_RESPONDING_AUTHORITY_NCR]', '@acknowledgementType': 'NCRN_Ack', '@statusCode': s(ans.statusCode)}; if (s(ans.statusMessage).trim() !== '') { body['@statusMessage'] = s(ans.statusMessage); } return {Header: {'@version': '3.5', '@technicalId': accepted.responseTechnicalId, '@workflowId': d(ans.workflowId, workflow_id), '@sentAt': d(ans.sentAt, new Date().toISOString().substring(0, 19) + 'Z'), '@from': 'EE', '@to': d(ans.to, from_state)}, Body: body}; })()}"
   next: checkBuilt
 
 # A Found answer that cannot be translated to ERRU 3.5 completely and truthfully is our own failure: never a guessed value

@@ -48,7 +48,7 @@ def eval_steps(message, steps, ctx):
         script += "{const snap={...ctx};\n"
         for name, e in doc[s]["assign"].items():
             m = re.fullmatch(r"\$\{(.*)\}", e, re.S)
-            script += "ctx[%s]=new Function(...Object.keys(snap),'return ('+%s+')')(...Object.values(snap));\n" % (json.dumps(name), json.dumps(m.group(1).replace("[#ERRU_RESPONDING_AUTHORITY]", "EE-PPA")))
+            script += "ctx[%s]=new Function(...Object.keys(snap),'return ('+%s+')')(...Object.values(snap));\n" % (json.dumps(name), json.dumps(re.sub(r"\[#ERRU_RESPONDING_AUTHORITY(_\w+)?\]", lambda mo: "EE-PPA" if not mo.group(1) else "EE-TRAM", m.group(1))))
         script += "}\n"
     script += "console.log(JSON.stringify(ctx));"
     return json.loads(subprocess.run(["node", "-e", script], capture_output=True, text=True, check=True).stdout)
@@ -95,6 +95,17 @@ def main():
             ok = status == 202 and actual == expected
             print(f"XTR request {fx} mapping:", "OK" if ok else f"FAIL\n  expected {json.dumps(expected)}\n  actual   {json.dumps(actual)}")
             if not ok: failed.append(fx)
+        # 1b. recipient check (the Java adapter let a CGR broadcast, to="ZZ", through; everything else must be addressed to EE)
+        def wrong_recipient(msg, to):
+            doc = yaml.safe_load(((FLOWS.parent / "worker" / f"{msg}.yml") if (FLOWS.parent / "worker" / f"{msg}.yml").exists() else (FLOWS / f"{msg}.yml")).read_text())
+            cond = next(c["condition"] for c in doc["decideAccepted"]["switch"] if "to_state" in c["condition"])
+            expr = re.fullmatch(r"\$\{(.*)\}", cond, re.S).group(1)
+            return json.loads(subprocess.run(["node", "-e", "const to_state=%s; console.log(JSON.stringify(!!(%s)))" % (json.dumps(to), expr)], capture_output=True, text=True, check=True).stdout)
+        for msg, to, want in [("CheckGoodRepute_Request", "ZZ", False), ("CheckGoodRepute_Request", "EE", False), ("CheckGoodRepute_Request", "DE", True),
+                              ("CheckTransportUndertakingData_Request", "ZZ", True), ("NotifyUnfitness_Request", "ZZ", True), ("RoadSideInspection_Request", "EE", False)]:
+            got = wrong_recipient(msg, to)
+            print(f"XTR request recipient {msg} to={to} wrong={got}:", "OK" if got == want else "FAIL")
+            if got != want: failed.append(f"to-{msg}-{to}")
         # 2. answers / ErrorNotification
         def common_for(fx):
             r = requests[fx]

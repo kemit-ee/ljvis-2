@@ -41,7 +41,7 @@ TYPES = {
         "build": ("(function() { var ans = inbound_json; var s = function(v) { return v == null ? '' : String(v); }; "
                   "var d = function(v, f) { var x = s(v); return x === '' ? f : x; }; "
                   "var ms = Array.isArray(ans.memberStates) ? ans.memberStates : "
-                  "[{memberStateCode: 'EE', respondingAuthority: '[#ERRU_RESPONDING_AUTHORITY]', statusCode: ans.statusCode, statusMessage: ans.statusMessage}]; "
+                  "[{memberStateCode: 'EE', respondingAuthority: '[#@@AUTH@@]', statusCode: ans.statusCode, statusMessage: ans.statusMessage}]; "
                   "var mem = ms.map(function(m) { var o = {'@memberStateCode': s(m.memberStateCode), '@respondingAuthority': s(m.respondingAuthority), '@statusCode': s(m.statusCode)}; "
                   "if (s(m.statusMessage).trim() !== '') { o['@statusMessage'] = s(m.statusMessage); } return o; }); "
                   "return {Header: {'@version': '3.5', '@technicalId': accepted.responseTechnicalId, '@workflowId': d(ans.workflowId, workflow_id), "
@@ -111,18 +111,19 @@ RSI_MAP = ("(function() { " + HELP + HAS +
 ANS_HDR = ("var s = function(v) { return v == null ? '' : String(v); }; var d = function(v, f) { var x = s(v); return x === '' ? f : x; }; ")
 NCR_BUILD = ("(function() { var ans = inbound_json; " + ANS_HDR +
              "var body = {'@businessCaseId': d(ans.businessCaseId, business_case_id), '@originatingAuthority': d(ans.originatingAuthority, s(bdy['@originatingAuthority'])), "
-             "'@respondingAuthority': '[#ERRU_RESPONDING_AUTHORITY]', '@acknowledgementType': 'NCRN_Ack', '@statusCode': s(ans.statusCode)}; "
+             "'@respondingAuthority': '[#@@AUTH@@]', '@acknowledgementType': 'NCRN_Ack', '@statusCode': s(ans.statusCode)}; "
              "if (s(ans.statusMessage).trim() !== '') { body['@statusMessage'] = s(ans.statusMessage); } "
              "return {Header: {'@version': '3.5', '@technicalId': accepted.responseTechnicalId, '@workflowId': d(ans.workflowId, workflow_id), "
              "'@sentAt': d(ans.sentAt, new Date().toISOString().substring(0, 19) + 'Z'), '@from': 'EE', '@to': d(ans.to, from_state)}, Body: body}; })()")
 RSI_BUILD = ("(function() { var ans = inbound_json; " + ANS_HDR +
              "var body = {'@businessCaseId': business_case_id, '@originatingAuthority': s(bdy['@originatingAuthority']), "
-             "'@respondingAuthority': '[#ERRU_RESPONDING_AUTHORITY]', '@statusCode': s(ans.statusCode)}; "
+             "'@respondingAuthority': '[#@@AUTH@@]', '@statusCode': s(ans.statusCode)}; "
              "if (s(ans.statusMessage).trim() !== '') { body['@statusMessage'] = s(ans.statusMessage); } "
              "return {Header: {'@version': '3.5', '@technicalId': accepted.responseTechnicalId, '@workflowId': workflow_id, "
              "'@sentAt': new Date().toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': from_state}, Body: body}; })()")
 
 TYPES["NotifyCheckResult_Request"] = {
+    "authority": "ERRU_RESPONDING_AUTHORITY_NCR",
     "flow": "ncr/inbound-request",
     "response": "NotifyCheckResult_Acknowledgement",
     "answer_check": "inbound_json.acknowledgementType === 'NCRN_Ack'",
@@ -131,6 +132,7 @@ TYPES["NotifyCheckResult_Request"] = {
     "build": NCR_BUILD,
 }
 TYPES["RoadSideInspection_Request"] = {
+    "authority": "ERRU_RESPONDING_AUTHORITY_RSI",
     "flow": "rsi/inbound-request",
     "response": "RoadSideInspection_Response",
     "answer_check": "['OK', 'NotFound', 'InvalidData', 'ServerError', 'NotAvailable'].indexOf(inbound_json.statusCode) >= 0",
@@ -211,18 +213,19 @@ CTUD_BUILD = ("(function() { var ans = inbound_json; " + BLANK +
               "if (Array.isArray(ans.certifiedTrueCopyDetails) && ans.certifiedTrueCopyDetails.length > 0) { var cps = []; for (var j = 0; j < ans.certifiedTrueCopyDetails.length; j++) { var c = copy(ans.certifiedTrueCopyDetails[j]); if (c === null) { return null; } cps.push(c); } o.CertifiedTrueCopyDetails = {CertifiedTrueCopy: cps}; } "
               "return o; }; "
               "var st = s(ans.statusCode); var body = {'@businessCaseId': business_case_id, '@originatingAuthority': s(bdy['@originatingAuthority']), "
-              "'@respondingAuthority': blank(ans.respondingAuthority) ? '[#ERRU_RESPONDING_AUTHORITY]' : s(ans.respondingAuthority), '@statusCode': st}; "
+              "'@respondingAuthority': blank(ans.respondingAuthority) ? '[#@@AUTH@@]' : s(ans.respondingAuthority), '@statusCode': st}; "
               "if (s(ans.statusMessage).trim() !== '') { body['@statusMessage'] = s(ans.statusMessage); } body.SearchedCompany = bdy.SearchedCompany; "
               "if (st === 'Found') { var tu = found(); if (tu === null) { return null; } body.TransportUndertaking = tu; } "
               "return {" + HEADER_OUT + ", Body: body}; })()")
 
 SEARCH_CODES = "['Found', 'NotFound', 'InvalidData', 'Error', 'ServerError', 'NotAvailable']"
 TYPES["CheckGoodRepute_Request"] = {
-    "async": True, "flow": "cgr/inbound-request", "response": "CheckGoodRepute_Response",
+    "async": True, "broadcast": True, "flow": "cgr/inbound-request", "response": "CheckGoodRepute_Response",
     "answer_check": SEARCH_CODES + ".indexOf(inbound_json.statusCode) >= 0",
     "map": CGR_MAP, "answer_ok": "inbound_json.statusCode === 'Found' || inbound_json.statusCode === 'NotFound'", "build": CGR_BUILD,
 }
 TYPES["CheckTransportUndertakingData_Request"] = {
+    "authority": "ERRU_RESPONDING_AUTHORITY_CTUD",
     "async": True, "flow": "ctud/inbound-request", "response": "CheckTransportUndertakingData_Response",
     "answer_check": SEARCH_CODES + ".indexOf(inbound_json.statusCode) >= 0",
     "map": CTUD_MAP, "answer_ok": "inbound_json.statusCode === 'Found' || inbound_json.statusCode === 'NotFound'", "build": CTUD_BUILD,
@@ -318,7 +321,7 @@ decideAccepted:
       next: returnBusy
     - condition: ${accepted.attempts > 10}
       next: enBudget
-    - condition: ${to_state !== 'EE'}
+    - condition: ${@@WRONG_TO@@}
       next: enWrongRecipient
   next: mapBody
 
@@ -339,6 +342,13 @@ enWrongRecipient:
 mapBody:
   assign:
     inbound_body: "${@@MAP@@}"
+  next: preCallDeadline
+
+# The Hub's response window already closed: do not spend an MTR call on an answer nobody can receive.
+preCallDeadline:
+  switch:
+    - condition: ${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime()}
+      next: markExpired
   next: callInbound
 
 callInbound:
@@ -351,10 +361,11 @@ callInbound:
       type: json
     body: ${inbound_body}
   result: inbound_res
-  timeout: 20000
+  timeout: @@CALL_TIMEOUT@@
   next: classify
 
-# A flow answer is recognised by its content, not its HTTP status: a business rejection can arrive on a 4xx.
+# A 5xx / 408 / 429 / no response is transient whatever the body says (a flow answers 502 + statusCode ServerError/Error when MTR
+# is down, the Hub must be able to retry). Below that a flow answer is recognised by its content: a business rejection can arrive on a 4xx.
 classify:
   assign:
     inbound_status: "${inbound_res.response == null ? 0 : inbound_res.response.status}"
@@ -363,10 +374,10 @@ classify:
 
 decideInbound:
   switch:
-    - condition: ${@@ANSWER_CHECK@@}
-      next: checkAnswerStatus
     - condition: ${inbound_status === 0 || inbound_status === 408 || inbound_status === 429 || inbound_status >= 500}
       next: markRetry
+    - condition: ${@@ANSWER_CHECK@@}
+      next: checkAnswerStatus
   next: enUnrecognised
 
 enUnrecognised:
@@ -716,7 +727,7 @@ decideAccepted:
   switch:
     - condition: ${accepted.attempts > 10}
       next: enBudget
-    - condition: ${to_state !== 'EE'}
+    - condition: ${@@WRONG_TO@@}
       next: enWrongRecipient
   next: mapBody
 
@@ -802,13 +813,20 @@ erru_xtr_async_requests:
   ignoreFailures: true
 '''
 
+# Async worker: a transient failure goes back to the queue, unless the Hub's response window has closed by now (then the
+# answer can no longer be delivered: close the row).
+REQUEUE = "${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime() ? 'processed' : 'requeue'}"
+
 WORKER_OUT = ROOT / "DSL/Ruuter.internal/ljvis/POST/erru/xtr/worker"
 
 
 def fill(tpl, msg, t, retry):
     return (tpl.replace("@@MSG@@", msg).replace("@@FLOW@@", t["flow"]).replace("@@RESPONSE@@", t["response"])
             .replace("@@MAP@@", t["map"]).replace("@@ANSWER_CHECK@@", t["answer_check"]).replace("@@ANSWER_OK@@", t["answer_ok"])
-            .replace("@@BUILD@@", t["build"]).replace("@@EN_BUILD@@", EN_BUILD).replace("@@RETRY@@", retry))
+            .replace("@@BUILD@@", t["build"]).replace("@@EN_BUILD@@", EN_BUILD).replace("@@RETRY@@", retry)
+            .replace("@@AUTH@@", t.get("authority", "ERRU_RESPONDING_AUTHORITY"))
+            .replace("@@CALL_TIMEOUT@@", "45000" if t.get("async") else "20000")
+            .replace("@@WRONG_TO@@", "to_state !== 'EE' && to_state !== 'ZZ'" if t.get("broadcast") else "to_state !== 'EE'"))
 
 
 def main():
@@ -823,7 +841,7 @@ def main():
         if t.get("async"):
             (OUT / f"{msg}.yml").write_text(ASYNC_REQUEST.replace("@@MSG@@", msg))
             WORKER_OUT.mkdir(parents=True, exist_ok=True)
-            (WORKER_OUT / f"{msg}.yml").write_text(fill(WORKER_HEAD + common, msg, t, "requeue"))
+            (WORKER_OUT / f"{msg}.yml").write_text(fill(WORKER_HEAD + common, msg, t, REQUEUE))
         else:
             (OUT / f"{msg}.yml").write_text(fill(TEMPLATE, msg, t, "retry"))
         print("wrote", f"{msg}.yml")

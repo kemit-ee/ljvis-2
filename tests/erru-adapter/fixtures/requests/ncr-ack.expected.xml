@@ -1,4 +1,4 @@
 <NotifyCheckResult_Acknowledgement xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
   <Header version="3.5" technicalId="aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa" workflowId="9d689693-f1c2-4a0e-97b0-805a8841c4a9" sentAt="2026-11-16T09:00:00Z" from="EE" to="DE"/>
-  <Body businessCaseId="DE-NCR-CI-0001" originatingAuthority="DE-BAG" respondingAuthority="EE-PPA" acknowledgementType="NCRN_Ack" statusCode="OK" statusMessage="Recorded"/>
+  <Body businessCaseId="DE-NCR-CI-0001" originatingAuthority="DE-BAG" respondingAuthority="EE-TRAM" acknowledgementType="NCRN_Ack" statusCode="OK" statusMessage="Recorded"/>
 </NotifyCheckResult_Acknowledgement>
