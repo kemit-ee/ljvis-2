@@ -17,8 +17,7 @@ schemas:
   - RoadSideInspection_Response.xsd
   - ErrorNotification.xsd
 
-# Sissetulev (Hub -> meie): kuni etapini 5 suunatakse KÕIK sõnumid baitide kaupa vanale adapterile
-# (`forward`), et tüüp haaval ümber lülitada. Väljaminev: Hubi päringu-URL tüübi kaupa, vastused/kinnitused
+# Sissetulev (Hub -> meie): kõik sõnumid lähevad `inbound.backend`-ile (Ruuter); vana adapterile suunamiseks tüübi kaupa `forward:`. Väljaminev: Hubi päringu-URL tüübi kaupa, vastused/kinnitused
 # ja ErrorNotification Hubi ühele vastuse-URL-ile (Message Reference 5.3.1).
 messages:
   CheckTransportUndertakingData_Request:
@@ -45,14 +44,14 @@ messages:
     url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
   ErrorNotification:
     url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
-    forward: http://erru-xml-adapter-old:8080/erru/xml
 
 inbound:
   # One-way messages (acknowledgements and responses): durable accept + mapping in ruuter-internal
   # (DSL/Ruuter.internal/.../erru/xtr/inbound/<Message>.yml). Requests are moving over one type at a time (stage 5): NU, NCR and RSI are handled by
   # .../erru/xtr/inbound/<Message> (sync: accept -> /erru/<flow>/inbound-request -> answer via /xml-out); CGR/CTUD are accepted
   # there (202) and answered by cron/erru-xtr-async-requests -> .../erru/xtr/worker/<Message>.
-  # Only ErrorNotification still `forward`s to the old adapter. Rollback for one message type: give it its `forward:` line back.
+  # ErrorNotification (Hub rejected / could not correlate one of our messages) is recorded by .../erru/xtr/inbound/ErrorNotification.
+  # Rollback for one message type: give it its `forward:` line back.
   backend: http://ruuter-internal:8080/ljvis/erru/xtr/inbound
   backend_headers_env:
     x-internal-service-token: XTR_BACKEND_HEADER_ERRU   # ruuter-internal guard (INTERNAL_COMMUNICATION_KEY)
@@ -68,4 +67,4 @@ outbound:
 # Rollout: report -> enforce alles pärast Xerces-diferentsiaalteste ja reaalset liiklust (XTR book: xml-lanes.md).
 validate:
   inbound: report
-  outbound: report
+  outbound: enforce          # meie enda koostatud XML: skeemi-vigane ei lähe Hubile (422 schema_invalid -> rida failed); golden/stack kinnitavad, et korrektne XML läbib

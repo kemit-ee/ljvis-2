@@ -116,6 +116,28 @@ decideInbound:
       next: markProcessed
     - condition: ${inbound_status === 0 || inbound_status === 408 || inbound_status === 429 || inbound_status >= 500}
       next: markRetry
+    - condition: ${inbound_status === 404}
+      next: buildNotCorrelated
+  next: markFailed
+
+# The flow found no outgoing message for this workflowId (stale, spurious or foreign response): tell the Hub with an
+# ErrorNotification ResponseNotCorrelated (ERRU 7.7), then close the row as failed (nothing to apply, kept for inspection).
+buildNotCorrelated:
+  assign:
+    en_body: "${(function() { var msg = 'Message does not correlate to a request sent by this member state (correlation id: inbox/' + accepted.inboxId + ')'; return {Header: {'@version': '3.5', '@technicalId': accepted.errorTechnicalId, '@workflowId': workflow_id, '@sentAt': new Date().toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': 'EU'}, Body: {'@businessCaseId': business_case_id, '@statusCode': 'ResponseNotCorrelated', '@statusMessage': msg, OriginalMessage: raw_xml}}; })()}"
+  next: sendNotCorrelated
+
+sendNotCorrelated:
+  call: http.post
+  error: markFailed
+  args:
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/ErrorNotification'}"
+    headers:
+      type: json
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
+    body: ${en_body}
+  result: en_res
+  timeout: 25000
   next: markFailed
 
 markProcessed:

@@ -98,6 +98,7 @@ python3 "$REPO_ROOT/tests/erru-adapter/xtr_inbound_golden.py" --image ljvis-ci-e
 python3 "$REPO_ROOT/tests/erru-adapter/xtr_request_golden.py" --image ljvis-ci-erru-xml-adapter
 
 python3 "$REPO_ROOT/tests/erru-adapter/test_migrations.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
+python3 "$REPO_ROOT/tests/erru-adapter/test_xml_inbox_recovery.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
 python3 "$REPO_ROOT/tests/sql/risk-all-forms.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 python3 "$REPO_ROOT/tests/sql/risk-recalc-candidates.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db

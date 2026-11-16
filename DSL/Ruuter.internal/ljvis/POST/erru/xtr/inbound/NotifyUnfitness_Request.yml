@@ -34,7 +34,8 @@ extractIds:
     to_state: "${hdr['@to'] || ''}"
     from_state: "${hdr['@from'] || ''}"
     business_case_id: "${bdy['@businessCaseId'] || ''}"
-    deadline_iso: "${hdr['@timeoutValue'] && !isNaN(Date.parse(hdr['@timeoutValue'])) ? new Date(Date.parse(hdr['@timeoutValue'])).toISOString() : ''}"
+    deadline_iso: "${hdr['@timeoutValue'] && !isNaN(Date.parse(/(Z|[+-][0-9][0-9]:[0-9][0-9])$/.test(hdr['@timeoutValue']) ? hdr['@timeoutValue'] : hdr['@timeoutValue'] + 'Z')) ? new Date(Date.parse(/(Z|[+-][0-9][0-9]:[0-9][0-9])$/.test(hdr['@timeoutValue']) ? hdr['@timeoutValue'] : hdr['@timeoutValue'] + 'Z')).toISOString() : ''}"
+    request_json: "${JSON.stringify(xtr_req)}"
   next: checkEnvelope
 
 checkEnvelope:
@@ -62,6 +63,7 @@ accept:
       rawXml: ${raw_xml}
       digest: ${digest}
       deadlineAt: ${deadline_iso}
+      requestJson: ${request_json}
   result: accept_res
   error: returnUnavailable
   next: parseAccepted

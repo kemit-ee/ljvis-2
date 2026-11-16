@@ -1,9 +1,11 @@
 /*
-description: 'Cron worker (CGR/CTUD, answered asynchronously): takes over the oldest due row that xml-inbox/accept parked in async mode (claimed_by erru-xml-adapter-xtr-async, due now) or whose worker died mid-way (claimed_by erru-xml-adapter-xtr, lease expired, request_json stored) and gives it the normal 3 minute xtr claim, so finish and the rest of the flow work as for synchronous rows. Returns one JSON row, or no row when nothing is due.'
+description: 'Cron worker (async CGR/CTUD queue and recovery of the synchronous NU/NCR/RSI flows): takes over up to batchSize due rows, oldest first: rows that xml-inbox/accept parked in async mode (claimed_by erru-xml-adapter-xtr-async, due now), rows whose worker died mid-way (claimed_by erru-xml-adapter-xtr, lease expired) and rows sent back for a retry (status received, next_attempt_at due or unset; this also picks up a manually reset failed row). Only rows with the stored request_json qualify (all XTR flows store it). Each row gets the normal 3 minute xtr claim, so finish and the rest of the flow work as for a synchronous request. Returns one JSON row per claimed row, none when nothing is due. failed rows are never taken automatically (the Hub or XSD rejected the answer: manual recovery).'
 namespace: erru
 params:
   messageTypes:
     type: string
+  batchSize:
+    type: number
 returns:
 - name: result
   type: string
@@ -11,18 +13,19 @@ returns:
 WITH due AS (
   SELECT id
     FROM erru.xml_inbox
-   WHERE status = 'processing'
-     AND message_type = ANY (string_to_array(:messageTypes, ','))
+   WHERE message_type = ANY (string_to_array(:messageTypes, ','))
+     AND request_json IS NOT NULL
      AND (
-           (claimed_by = 'erru-xml-adapter-xtr-async' AND next_attempt_at <= now())
-        OR (claimed_by = 'erru-xml-adapter-xtr' AND lease_expires_at < now() AND request_json IS NOT NULL)
+           (status = 'processing' AND claimed_by = 'erru-xml-adapter-xtr-async' AND next_attempt_at <= now())
+        OR (status = 'processing' AND claimed_by = 'erru-xml-adapter-xtr' AND lease_expires_at < now())
+        OR (status = 'received' AND (next_attempt_at IS NULL OR next_attempt_at <= now()))
      )
-   ORDER BY COALESCE(next_attempt_at, lease_expires_at), id
-   LIMIT 1
+   ORDER BY COALESCE(next_attempt_at, lease_expires_at, received_at), id
+   LIMIT GREATEST(1, LEAST(COALESCE(:batchSize::int, 1), 10))
    FOR UPDATE SKIP LOCKED
 )
 UPDATE erru.xml_inbox i
-   SET claimed_by = 'erru-xml-adapter-xtr', claimed_at = now(), lease_expires_at = now() + interval '3 minutes',
+   SET status = 'processing', claimed_by = 'erru-xml-adapter-xtr', claimed_at = now(), lease_expires_at = now() + interval '3 minutes',
        next_attempt_at = NULL, attempts = i.attempts + 1
   FROM due
  WHERE i.id = due.id

@@ -279,7 +279,8 @@ extractIds:
     to_state: "${hdr['@to'] || ''}"
     from_state: "${hdr['@from'] || ''}"
     business_case_id: "${bdy['@businessCaseId'] || ''}"
-    deadline_iso: "${hdr['@timeoutValue'] && !isNaN(Date.parse(hdr['@timeoutValue'])) ? new Date(Date.parse(hdr['@timeoutValue'])).toISOString() : ''}"
+    deadline_iso: "${hdr['@timeoutValue'] && !isNaN(Date.parse(/(Z|[+-][0-9][0-9]:[0-9][0-9])$/.test(hdr['@timeoutValue']) ? hdr['@timeoutValue'] : hdr['@timeoutValue'] + 'Z')) ? new Date(Date.parse(/(Z|[+-][0-9][0-9]:[0-9][0-9])$/.test(hdr['@timeoutValue']) ? hdr['@timeoutValue'] : hdr['@timeoutValue'] + 'Z')).toISOString() : ''}"
+    request_json: "${JSON.stringify(xtr_req)}"
   next: checkEnvelope
 
 checkEnvelope:
@@ -307,6 +308,7 @@ accept:
       rawXml: ${raw_xml}
       digest: ${digest}
       deadlineAt: ${deadline_iso}
+      requestJson: ${request_json}
   result: accept_res
   error: returnUnavailable
   next: parseAccepted
@@ -622,7 +624,7 @@ extractIds:
     workflow_id: "${hdr['@workflowId'] || ''}"
     from_state: "${hdr['@from'] || ''}"
     business_case_id: "${bdy['@businessCaseId'] || ''}"
-    deadline_iso: "${hdr['@timeoutValue'] && !isNaN(Date.parse(hdr['@timeoutValue'])) ? new Date(Date.parse(hdr['@timeoutValue'])).toISOString() : ''}"
+    deadline_iso: "${hdr['@timeoutValue'] && !isNaN(Date.parse(/(Z|[+-][0-9][0-9]:[0-9][0-9])$/.test(hdr['@timeoutValue']) ? hdr['@timeoutValue'] : hdr['@timeoutValue'] + 'Z')) ? new Date(Date.parse(/(Z|[+-][0-9][0-9]:[0-9][0-9])$/.test(hdr['@timeoutValue']) ? hdr['@timeoutValue'] : hdr['@timeoutValue'] + 'Z')).toISOString() : ''}"
     request_json: "${JSON.stringify(xtr_req)}"
   next: checkEnvelope
 
@@ -754,7 +756,7 @@ declaration:
   internal: false
   returns: []
   version: "1.0"
-  description: "Cron worker for the asynchronously answered ERRU requests (CGR, CTUD): claims the oldest due parked row (xml-inbox/claim-due) and runs xtr/worker/<message> for it. One row per tick; CronManager calls it every 5 seconds (DSL/CronManager/erru-xtr-async-requests.yaml). Nothing due = no-op."
+  description: "Cron worker for the ERRU requests: the queue of the asynchronously answered CGR/CTUD and the recovery of the synchronous NU/NCR/RSI (rows sent back for a retry, expired leases, manually reset failed rows). Claims up to 3 due rows (xml-inbox/claim-due) and runs xtr/worker/<message> for each. CronManager calls it every 5 seconds (DSL/CronManager/erru-xtr-async-requests.yaml). Nothing due = no-op."
   namespace: cron
   allowlist:
     body: []
@@ -769,40 +771,47 @@ claim:
       type: json
     body:
       messageTypes: "@@TYPES@@"
+      batchSize: 3
   result: claim_res
   error: returnIdle
   next: parseClaimed
 
 parseClaimed:
   assign:
-    claimed: "${claim_res.response.body != null && claim_res.response.body.length === 1 ? JSON.parse(claim_res.response.body[0].result) : null}"
-  next: decideClaimed
+    claims: "${claim_res.response.body != null && Array.isArray(claim_res.response.body) ? claim_res.response.body.map(function(r) { return JSON.parse(r.result); }) : []}"
+  next: decideClaims
 
-decideClaimed:
+decideClaims:
   switch:
-    - condition: ${claimed == null}
+    - condition: ${claims.length === 0}
       next: returnIdle
-  next: callWorker
+  next: processClaims
 
-callWorker:
-  call: http.post
-  error: returnDone
-  args:
-    url: "${'[#LJVIS_RUUTER_INTERNAL]/erru/xtr/worker/' + claimed.messageType}"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      inboxId: ${claimed.inboxId}
-      attempts: ${claimed.attempts}
-      requestJson: ${claimed.requestJson}
-      rawXml: ${claimed.rawXml}
-      receivedAt: ${claimed.receivedAt}
-      deadlineAtMs: ${claimed.deadlineAtMs}
-      responseTechnicalId: ${claimed.responseTechnicalId}
-      errorTechnicalId: ${claimed.errorTechnicalId}
-  result: worker_res
-  timeout: 150000
+# Up to 3 rows per tick, one after the other (each holds a 3 minute lease from the claim; one worker run is bounded by
+# its 45 s inbound + 25 s /xml-out timeouts). A failing call ends the run: the remaining rows are recovered when their lease expires.
+processClaims:
+  iterate:
+    over: "${claims}"
+    as: claimed
+    max_items: 3
+    do:
+      - call: http.post
+        args:
+          url: "${'[#LJVIS_RUUTER_INTERNAL]/erru/xtr/worker/' + claimed.messageType}"
+          headers:
+            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+            type: json
+          body:
+            inboxId: ${claimed.inboxId}
+            attempts: ${claimed.attempts}
+            requestJson: ${claimed.requestJson}
+            rawXml: ${claimed.rawXml}
+            receivedAt: ${claimed.receivedAt}
+            deadlineAtMs: ${claimed.deadlineAtMs}
+            responseTechnicalId: ${claimed.responseTechnicalId}
+            errorTechnicalId: ${claimed.errorTechnicalId}
+        result: worker_res
+        timeout: 150000
   next: returnDone
 
 returnIdle:
@@ -831,6 +840,7 @@ erru_xtr_async_requests:
 
 # Async worker: a transient failure goes back to the queue, unless the Hub's response window has closed by now (then the
 # answer can no longer be delivered: close the row).
+REQUEUE_ALWAYS = "requeue"
 REQUEUE = "${accepted.deadlineAtMs != null && accepted.deadlineAtMs <= new Date().getTime() ? 'processed' : 'requeue'}"
 
 WORKER_OUT = ROOT / "DSL/Ruuter.internal/ljvis/POST/erru/xtr/worker"
@@ -856,15 +866,17 @@ def main():
         common = common[:a] + common[b:]
     for msg, t in TYPES.items():
         assert '"' not in t["map"] + t["build"] + EN_BUILD, msg
+        WORKER_OUT.mkdir(parents=True, exist_ok=True)
+        # a business-completion type (NU/NCR/RSI) is requeued even after the Hub window: its business effects must still happen
+        (WORKER_OUT / f"{msg}.yml").write_text(fill(WORKER_HEAD + common, msg, t,
+                                                    REQUEUE_ALWAYS if t.get("requires_business_completion") else REQUEUE))
         if t.get("async"):
             (OUT / f"{msg}.yml").write_text(ASYNC_REQUEST.replace("@@MSG@@", msg))
-            WORKER_OUT.mkdir(parents=True, exist_ok=True)
-            (WORKER_OUT / f"{msg}.yml").write_text(fill(WORKER_HEAD + common, msg, t, REQUEUE))
         else:
             (OUT / f"{msg}.yml").write_text(fill(TEMPLATE, msg, t, "retry"))
         print("wrote", f"{msg}.yml")
     cron = ROOT / "DSL/Ruuter.internal/ljvis/POST/cron/erru-xtr-async-requests.yml"
-    cron.write_text(CRON_FLOW.replace("@@TYPES@@", ",".join(ASYNC_MESSAGES)))
+    cron.write_text(CRON_FLOW.replace("@@TYPES@@", ",".join(TYPES)))
     (ROOT / "DSL/CronManager/erru-xtr-async-requests.yaml").write_text(CRON_YAML)
 
 
