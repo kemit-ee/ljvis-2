@@ -341,6 +341,7 @@ callErruXtr:
     url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyUnfitness_Request'}"
     headers:
       type: json
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body: ${xtr_body}
   result: erru_res
   timeout: 30000

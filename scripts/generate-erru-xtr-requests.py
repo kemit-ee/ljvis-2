@@ -281,6 +281,8 @@ checkEnvelope:
   switch:
     - condition: ${!technical_id || !raw_xml || !digest}
       next: returnBadEnvelope
+    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 200}
+      next: returnBadEnvelope
   next: accept
 
 accept:
@@ -436,6 +438,7 @@ sendAnswer:
     url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/@@RESPONSE@@'}"
     headers:
       type: json
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body: ${answer_body}
   result: out_res
   timeout: 20000
@@ -463,6 +466,7 @@ sendEn:
     url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/ErrorNotification'}"
     headers:
       type: json
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
     body: ${en_body}
   result: en_res
   timeout: 20000
@@ -492,10 +496,11 @@ markProcessed:
       type: json
     body:
       inboxId: ${accepted.inboxId}
+      attempts: ${accepted.attempts}
       outcome: "processed"
       error: ""
   result: finish_res
-  error: returnUnavailable
+  error: returnHandled
   next: returnHandled
 
 markExpired:
@@ -508,10 +513,11 @@ markExpired:
       type: json
     body:
       inboxId: ${accepted.inboxId}
+      attempts: ${accepted.attempts}
       outcome: "processed"
       error: "response deadline passed, answer not delivered"
   result: expired_res
-  error: returnUnavailable
+  error: returnHandled
   next: returnHandled
 
 markRetry:
@@ -524,6 +530,7 @@ markRetry:
       type: json
     body:
       inboxId: ${accepted.inboxId}
+      attempts: ${accepted.attempts}
       outcome: "@@RETRY@@"
       error: "inbound flow or XTR unavailable, transient failure"
   result: retry_res
@@ -540,6 +547,7 @@ markFailed:
       type: json
     body:
       inboxId: ${accepted.inboxId}
+      attempts: ${accepted.attempts}
       outcome: "failed"
       error: "${typeof en_message === 'undefined' ? 'answer rejected by the Hub or XSD, needs manual recovery' : 'ErrorNotification sent: ' + en_message}"
   result: failed_res
@@ -615,6 +623,8 @@ extractIds:
 checkEnvelope:
   switch:
     - condition: ${!technical_id || !raw_xml || !digest}
+      next: returnBadEnvelope
+    - condition: ${!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 200}
       next: returnBadEnvelope
   next: accept
 

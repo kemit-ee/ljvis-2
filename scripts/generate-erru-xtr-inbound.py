@@ -108,6 +108,8 @@ checkEnvelope:
   switch:
     - condition: ${{!technical_id || !raw_xml || !digest}}
       next: returnBadEnvelope
+    - condition: ${{!(/^[0-9a-f-]+$/i.test(technical_id) && technical_id.split('-').map(p => p.length).join() === '8,4,4,4,12') || (workflow_id && !(/^[0-9a-f-]+$/i.test(workflow_id) && workflow_id.split('-').map(p => p.length).join() === '8,4,4,4,12')) || business_case_id.length > 200}}
+      next: returnBadEnvelope
     - condition: ${{to_state !== 'EE'}}
       next: returnWrongRecipient
   next: accept
@@ -194,10 +196,11 @@ markProcessed:
       type: json
     body:
       inboxId: ${{accepted.inboxId}}
+      attempts: ${{accepted.attempts}}
       outcome: "processed"
       error: ""
   result: finish_res
-  error: returnUnavailable
+  error: returnHandled
   next: returnHandled
 
 markRetry:
@@ -210,6 +213,7 @@ markRetry:
       type: json
     body:
       inboxId: ${{accepted.inboxId}}
+      attempts: ${{accepted.attempts}}
       outcome: "retry"
       error: "${{'inbound flow unavailable or transient failure (HTTP ' + (typeof inbound_status === 'undefined' ? 0 : inbound_status) + ')'}}"
   result: retry_res
@@ -226,6 +230,7 @@ markFailed:
       type: json
     body:
       inboxId: ${{accepted.inboxId}}
+      attempts: ${{accepted.attempts}}
       outcome: "failed"
       error: "${{'inbound flow answered HTTP ' + inbound_status + ': ' + JSON.stringify(inbound_json).substring(0, 400)}}"
   result: failed_res
@@ -242,6 +247,7 @@ markBudgetExhausted:
       type: json
     body:
       inboxId: ${{accepted.inboxId}}
+      attempts: ${{accepted.attempts}}
       outcome: "failed"
       error: "Response processing attempt budget exhausted"
   result: budget_res

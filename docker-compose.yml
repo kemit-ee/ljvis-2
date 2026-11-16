@@ -297,6 +297,7 @@ services:
       - DB_USER=ljvis
       - DB_PASSWORD=01234
       - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - PROCESSING_WORKERS_ENABLED=false   # the XTR adapter owns the inbound rows (stage 5)
       - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
       - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
       - HUB_RSI_REQUEST_URL=http://erru-hub-mock:8080/rsi/http/request/BTSHTTPReceive.dll
@@ -341,6 +342,7 @@ services:
     environment:
       - RUST_LOG=xtr_on_rust=debug,info
       - XTR_BACKEND_HEADER_ERRU=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - XTR_INTER_SERVICE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
     volumes:
       - ./docker/erru-xml-adapter/xtr.yaml:/app/xtr.yaml:ro
     healthcheck:

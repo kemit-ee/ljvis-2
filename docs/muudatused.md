@@ -8,6 +8,7 @@
 
 - ERRU MOVEHUB 3.5 XML-i vahetust teenindab nüüd XTR-põhine `erru-xml-adapter` (vana Java-adapter on ajutiselt `erru-xml-adapter-old`). Väljaminevad sõnumid (NU, NCR, RSI, CGR, CTUD, vastused ja kinnitused) ning sissetulevad ühesuunalised sõnumid lähevad läbi XTR-i. Sissetulevad päringud (NU, NCR, RSI sünkroonselt; CGR ja CTUD kohese 202 vastuse ja taustatöötajaga) töötleb XTR-i taga Ruuter. ErrorNotification läheb endiselt vanale adapterile.
 - Uus tehniline veerg `erru.xml_inbox.request_json` (CGR/CTUD taustatöötluseks) ja uus CronManageri töö `erru_xtr_async_requests` (iga 5 sekundi järel). Kasutajale nähtavat muudatust ei ole.
+- Ülevaatuse parandused: vigase UUID-ga sõnumid lükatakse tagasi (400) mitte ei jää 503-tsüklisse, `xml-inbox/finish` kaitseb aeglase varasema katse eest, XTR-i väljamineva pordi (`/xml-out`) kaitseb sisemine teenusetoken ja vana Java-adapteri töötlejad lülitati sisse-väljalülitatavaks (`PROCESSING_WORKERS_ENABLED`), et sama sõnumit ei töödeldaks kaks korda.
 
 ## 2026-11-12
 
