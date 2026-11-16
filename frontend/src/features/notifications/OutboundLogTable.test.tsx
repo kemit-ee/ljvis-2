@@ -9,6 +9,10 @@ import type { OutboundLogEntry } from './types';
 let perms: string[] = [];
 const notifState = {
   notifications: [] as unknown[],
+  unreadCount: 0,
+  page: 1,
+  totalPages: 1,
+  setPage: vi.fn(),
   loading: false,
   markRead: vi.fn(),
   markAllRead: vi.fn(),
@@ -169,7 +173,21 @@ describe('NotificationsPage', () => {
     expect(screen.queryByText('notifications.tabLog')).toBeNull();
   });
 
+  it('lehitsemine: nupud ja lehe vahetus', () => {
+    notifState.notifications = [{ id: 'a', titleEt: 'Esimene', isUnread: false }] as never;
+    notifState.page = 2;
+    notifState.totalPages = 3;
+    render(<NotificationsPage />);
+    fireEvent.click(screen.getByText('notifications.prevPage'));
+    expect(notifState.setPage).toHaveBeenCalledWith(1);
+    fireEvent.click(screen.getByText('notifications.nextPage'));
+    expect(notifState.setPage).toHaveBeenCalledWith(3);
+    notifState.page = 1;
+    notifState.totalPages = 1;
+  });
+
   it('lugemata teavitused: märgi loetuks ja märgi kõik', () => {
+    notifState.unreadCount = 1;
     notifState.notifications = [
       { id: 'a', titleEt: 'Esimene', isUnread: true },
       { id: 'b', titleEt: 'Teine', isUnread: false },

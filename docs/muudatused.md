@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-16
+
+### Teavitused: vanemate teavituste lehitsemine
+
+- Teavituste lehel kuvati varem ainult 20 uuemat teavitust ja vanemaid ei saanud vaadata. Lehel on nüüd nupud „Eelmine" / „Järgmine" ja lehenumber („Leht X / Y"). Teavitusi ei kustutata. „Märgi kõik loetuks" arvestab kõiki lugemata teavitusi, mitte ainult jooksval lehel nähtavaid.
+
 ## 2026-11-12
 
 ### Parandus: sõidu- ja puhkeaja rikkumiste raskusastmed ei avanenud

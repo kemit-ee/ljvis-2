@@ -11,11 +11,19 @@ import styles from './NotificationsPage.module.css';
 export function NotificationsPage() {
   const { t } = useTranslation();
   const { hasPermission } = useAuth();
-  const { notifications, loading, markRead, markAllRead } = useNotifications();
+  const {
+    notifications,
+    unreadCount,
+    page,
+    totalPages,
+    setPage,
+    loading,
+    markRead,
+    markAllRead,
+  } = useNotifications();
 
   const [activeTab, setActiveTab] = useState('inapp');
   const canViewLog = hasPermission(PERMISSIONS.NOTIFICATION_LIST);
-  const unreadCount = notifications.filter((n) => n.isUnread).length;
 
   return (
     <div>
@@ -59,6 +67,28 @@ export function NotificationsPage() {
                         onMarkRead={(id) => void markRead(id)}
                       />
                     ))
+                  )}
+
+                  {totalPages > 1 && (
+                    <div className={styles.pager}>
+                      <Button
+                        visualType="secondary"
+                        disabled={page <= 1}
+                        onClick={() => setPage(page - 1)}
+                      >
+                        {t('notifications.prevPage')}
+                      </Button>
+                      <Text>
+                        {t('notifications.pageOf', { page, total: totalPages })}
+                      </Text>
+                      <Button
+                        visualType="secondary"
+                        disabled={page >= totalPages}
+                        onClick={() => setPage(page + 1)}
+                      >
+                        {t('notifications.nextPage')}
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
