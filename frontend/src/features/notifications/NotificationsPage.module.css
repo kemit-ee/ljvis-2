@@ -7,3 +7,11 @@
 .list {
   margin-top: 1rem;
 }
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}

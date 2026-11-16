@@ -71,6 +71,19 @@ describe('useNotifications', () => {
     expect(result.current.unreadCount).toBe(2);
   });
 
+  it('lehitseb: küsib valitud lehe ja arvutab lehtede arvu', async () => {
+    vi.mocked(api.fetchNotifications).mockResolvedValue([
+      { id: '1', isUnread: true, total: 45 } as never,
+    ]);
+    const { result } = renderHook(() => useNotifications());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.totalPages).toBe(3);
+    expect(api.fetchNotifications).toHaveBeenLastCalledWith(1, 20);
+    act(() => result.current.setPage(2));
+    await waitFor(() => expect(api.fetchNotifications).toHaveBeenLastCalledWith(2, 20));
+    expect(result.current.page).toBe(2);
+  });
+
   it('tühjad vastused ja WS-teade', async () => {
     vi.mocked(api.fetchNotifications).mockResolvedValue(undefined as never);
     vi.mocked(api.fetchUnreadCount).mockResolvedValue({} as never);
