@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # ERRU MOVEHUB 3.5 toor-XML sild: ametlik XTR >= 0.6.0-rc image (raw-XML lane'id + XSD-valideerimine,
 # ei vaja enam kohalikku Rust-ehitust ega paigatud binaari) + ERRU 3.5 XSD-d + lane'i sidecar.
 # Kasutusel olev xtr.yaml ja per-keskkonna `erru.xml.yaml` (URL-id) tulevad chart'i ConfigMap'ist

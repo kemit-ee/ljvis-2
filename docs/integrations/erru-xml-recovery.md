@@ -35,7 +35,7 @@ WHERE id = :inbox_id AND status = 'failed';
 COMMIT;
 ```
 
-Only failed rows are reset. Do not steal a live processing lease. The periodic worker scan (the Java adapter's, or for rows accepted through XTR, the ruuter-internal
+Only failed rows are reset. Do not steal a live processing lease. The periodic worker scan (the ruuter-internal
 cron `erru-xtr-async-requests` which picks up `received` rows that have a stored `request_json`) picks up
 the row; NU/NCR/RSI recovery continues even when the original response deadline passed. The existing
 outbox, if any, stays immutable. Check the final inbox state, business snapshots, notification and

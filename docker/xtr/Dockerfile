@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # Build the upstream SOAP XML fix until an upstream image includes it.
 # Source: turnerrainer/XTR commit 025d80e6df2890cae2ea5da6233347ce84806d9c.
 ARG XTR_RUNTIME_IMAGE=harbor.kemitaws.ee/dockerhub/turnerrainer/xtr@sha256:634b11471ff9c709f6b46cab18f7e85711d18df334a8b9a368f399a62bf1a9ca
