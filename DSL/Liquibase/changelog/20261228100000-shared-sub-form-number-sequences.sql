@@ -46,13 +46,17 @@ SELECT setval(
 COMMENT ON SEQUENCE forms.seq_th_form_number IS 'Jagatud numbrijada th-AAAA-NNNNN: mootorsõiduki ja haagise tehnokaart. Logiline võti tuleb eraldi seq_*_form_key järjendist.';
 COMMENT ON SEQUENCE forms.seq_sp_form_number IS 'Jagatud numbrijada sp-AAAA-NNNNN: autojuhi ja meeskonnaliikme SP-vorm. Logiline võti tuleb eraldi seq_*_form_key järjendist.';
 
--- Eelkontroll: kui mõnes tabelis on sama number juba eri võtmetega, annab migratsioon
--- selge veateate (tabel ja numbrid), mitte üldist piirangu rikkumist.
+-- Unikaalsus tabeli sees: sama number ei tohi kuuluda kahele erinevale alamvormile. Ühe
+-- alamvormi snapshot-read (sama võti) jagavad numbrit, seega tavaline UNIQUE ei sobi;
+-- välistuspiirang (EXCLUDE) keelab sama numbri erineva võtmega. Tabelite vaheline
+-- unikaalsus (sõiduk/haagis, juht/meeskonnaliige) tuleb jagatud järjendist.
+-- Piirang kehtib ainult ridadele, mis on loodud selle migratsiooni ajast alates
+-- (created_at >= migratsiooni hetk): olemasolevaid, sh juba dubleerivaid numbreid ei
+-- muudeta ega kontrollita, seega migratsioon ei sõltu vanade andmete seisust.
 DO $$
 DECLARE
   t TEXT;
   k TEXT;
-  dup TEXT;
 BEGIN
   FOR t, k IN SELECT * FROM (VALUES
     ('vehicle_technical_form', 'vehicle_technical_form_key'),
@@ -61,32 +65,12 @@ BEGIN
     ('sp_teammate_form', 'sp_teammate_form_key')) AS v(tbl, key_col)
   LOOP
     EXECUTE format(
-      'SELECT string_agg(sub_form_number, '', '') FROM (SELECT sub_form_number FROM forms.%I GROUP BY sub_form_number HAVING count(DISTINCT %I) > 1 LIMIT 20) d', t, k)
-      INTO dup;
-    IF dup IS NOT NULL THEN
-      RAISE EXCEPTION 'forms.%: sama sub_form_number on eri võtmetega: %. Paranda andmed enne piirangu lisamist.', t, dup;
-    END IF;
+      'ALTER TABLE forms.%I ADD CONSTRAINT %I EXCLUDE USING gist (sub_form_number WITH =, %I WITH <>) WHERE (created_at >= %L::timestamptz)',
+      t, 'ex_' || t || '_number_key', k, now()::text);
   END LOOP;
 END $$;
 
--- Unikaalsus tabeli sees: sama number ei tohi kuuluda kahele erinevale alamvormile. Ühe
--- alamvormi snapshot-read (sama võti) jagavad numbrit, seega tavaline UNIQUE ei sobi;
--- välistuspiirang (EXCLUDE) keelab sama numbri erineva võtmega. Tabelite vaheline
--- unikaalsus (sõiduk/haagis, juht/meeskonnaliige) tuleb jagatud järjendist.
-ALTER TABLE forms.vehicle_technical_form
-  ADD CONSTRAINT ex_vehicle_technical_form_number_key
-  EXCLUDE USING gist (sub_form_number WITH =, vehicle_technical_form_key WITH <>);
-ALTER TABLE forms.trailer_technical_form
-  ADD CONSTRAINT ex_trailer_technical_form_number_key
-  EXCLUDE USING gist (sub_form_number WITH =, trailer_technical_form_key WITH <>);
-ALTER TABLE forms.sp_driver_form
-  ADD CONSTRAINT ex_sp_driver_form_number_key
-  EXCLUDE USING gist (sub_form_number WITH =, sp_driver_form_key WITH <>);
-ALTER TABLE forms.sp_teammate_form
-  ADD CONSTRAINT ex_sp_teammate_form_number_key
-  EXCLUDE USING gist (sub_form_number WITH =, sp_teammate_form_key WITH <>);
-
-COMMENT ON COLUMN forms.vehicle_technical_form.sub_form_number IS 'Alamvormi number th-AAAA-NNNNN (jagatud järjend forms.seq_th_form_number koos haagisega). Loogiliselt muutumatu üle snapshot-ridade; sama number ei tohi kuuluda eri võtmele (EXCLUDE-piirang).';
-COMMENT ON COLUMN forms.trailer_technical_form.sub_form_number IS 'Alamvormi number th-AAAA-NNNNN (jagatud järjend forms.seq_th_form_number koos sõidukiga). Loogiliselt muutumatu üle snapshot-ridade; sama number ei tohi kuuluda eri võtmele (EXCLUDE-piirang).';
-COMMENT ON COLUMN forms.sp_driver_form.sub_form_number IS 'Alamvormi number sp-AAAA-NNNNN (jagatud järjend forms.seq_sp_form_number koos meeskonnaliikmega). Loogiliselt muutumatu üle snapshot-ridade; sama number ei tohi kuuluda eri võtmele (EXCLUDE-piirang).';
-COMMENT ON COLUMN forms.sp_teammate_form.sub_form_number IS 'Alamvormi number sp-AAAA-NNNNN (jagatud järjend forms.seq_sp_form_number koos autojuhiga). Loogiliselt muutumatu üle snapshot-ridade; sama number ei tohi kuuluda eri võtmele (EXCLUDE-piirang).';
+COMMENT ON COLUMN forms.vehicle_technical_form.sub_form_number IS 'Alamvormi number th-AAAA-NNNNN (jagatud järjend forms.seq_th_form_number koos haagisega). Loogiliselt muutumatu üle snapshot-ridade; uute ridade puhul ei tohi sama number kuuluda eri võtmele (EXCLUDE-piirang).';
+COMMENT ON COLUMN forms.trailer_technical_form.sub_form_number IS 'Alamvormi number th-AAAA-NNNNN (jagatud järjend forms.seq_th_form_number koos sõidukiga). Loogiliselt muutumatu üle snapshot-ridade; uute ridade puhul ei tohi sama number kuuluda eri võtmele (EXCLUDE-piirang).';
+COMMENT ON COLUMN forms.sp_driver_form.sub_form_number IS 'Alamvormi number sp-AAAA-NNNNN (jagatud järjend forms.seq_sp_form_number koos meeskonnaliikmega). Loogiliselt muutumatu üle snapshot-ridade; uute ridade puhul ei tohi sama number kuuluda eri võtmele (EXCLUDE-piirang).';
+COMMENT ON COLUMN forms.sp_teammate_form.sub_form_number IS 'Alamvormi number sp-AAAA-NNNNN (jagatud järjend forms.seq_sp_form_number koos autojuhiga). Loogiliselt muutumatu üle snapshot-ridade; uute ridade puhul ei tohi sama number kuuluda eri võtmele (EXCLUDE-piirang).';
