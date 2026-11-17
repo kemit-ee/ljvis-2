@@ -2825,12 +2825,16 @@ export function CompoundFormCreatePage() {
               // its ref. Inactive tabs are unmounted by Tabs.Content, so we
               // save them directly from the synced savedFormData snapshot.
               // Autojuht on meeskonnaliikme veo liigi ja veoklassi allikas,
-              // seega salvestame ta alati enne meeskonnaliiget.
-              const orderedTabs = [
+              // seega salvestame ta alati enne meeskonnaliiget. Sama põhjusel
+              // salvestame sõiduki tehnokaardi enne haagiseid, et sõiduki
+              // number (th-…) oleks väiksem kui haagiste numbrid.
+              const priorityTabIds = [
                 ROUTE_TO_TAB['/sp-driver'].tabId,
-                ...openTabs.filter(
-                  (tabId) => tabId !== ROUTE_TO_TAB['/sp-driver'].tabId,
-                ),
+                ROUTE_TO_TAB['/vehicle-technical'].tabId,
+              ];
+              const orderedTabs = [
+                ...priorityTabIds,
+                ...openTabs.filter((tabId) => !priorityTabIds.includes(tabId)),
               ].filter(
                 (tabId, index, tabs) =>
                   openTabs.includes(tabId) && tabs.indexOf(tabId) === index,
