@@ -379,7 +379,7 @@ callInbound:
 classify:
   assign:
     inbound_status: "${inbound_res.response == null ? 0 : inbound_res.response.status}"
-    inbound_json: "${inbound_res.response == null || inbound_res.response.body == null ? {} : (typeof inbound_res.response.body === 'string' ? JSON.parse(inbound_res.response.body) : (inbound_res.response.body.response != null && typeof inbound_res.response.body.response === 'object' ? inbound_res.response.body.response : inbound_res.response.body))}"
+    inbound_json: "${inbound_res.response == null || inbound_res.response.body == null ? {} : (typeof inbound_res.response.body === 'string' ? JSON.parse(inbound_res.response.body) : (typeof inbound_res.response.body.response === 'string' ? JSON.parse(inbound_res.response.body.response) : (inbound_res.response.body.response != null && typeof inbound_res.response.body.response === 'object' ? inbound_res.response.body.response : inbound_res.response.body)))}"
   next: decideInbound
 
 decideInbound:
