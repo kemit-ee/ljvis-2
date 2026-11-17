@@ -3,7 +3,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
 tests:
-- name: foreign EU vehicle creates all applicable technical notifications
+- name: foreign EU vehicle creates all applicable technical notifications except cargo securing
   setup:
     mocks:
     - url_matches: /control-forms/compound-form/get
@@ -39,7 +39,7 @@ tests:
     status: 200
   verify_mocks:
   - url_matches: /notification/create
-    count: 4
+    count: 3
 
 - name: Estonian compliant vehicle creates no notification
   setup:
@@ -78,3 +78,80 @@ tests:
   verify_mocks:
   - url_matches: /notification/create
     count: 0
+
+- name: foreign EU trailer creates cargo securing notification too
+  setup:
+    mocks:
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body:
+      - vehicleCountryCode: LV
+        vehicleRegNr: 123ABC
+        companyName: Vedaja AS
+    - url_matches: /notification/create
+      method: POST
+      status: 200
+      body:
+        id: notification-id
+  request:
+    method: POST
+    path: /ljvis/notification/evaluate-technical-publish
+    headers:
+      x-internal-service-token: dev-internal-service-token
+      content-type: application/json
+    body:
+      entityType: trailer_technical
+      entityId: '44'
+      compoundFormKey: '7'
+      version: '1'
+      resultType: extraordinary_inspection
+      resultTransportInterruption: true
+      partsSummary: '[{"partCode":"CAA_10"}]'
+      partsDefects: '[]'
+      violations: '[{"code":"MSI302"}]'
+      trailerRegNr: 456TRL
+      createdBy: '38001010000'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/create
+    count: 4
+
+- name: trailer without registration number still notifies
+  setup:
+    mocks:
+    - url_matches: /control-forms/compound-form/get
+      method: POST
+      status: 200
+      body:
+      - vehicleCountryCode: EE
+        vehicleRegNr: 123ABC
+        companyName: Vedaja AS
+    - url_matches: /notification/create
+      method: POST
+      status: 200
+      body:
+        id: notification-id
+  request:
+    method: POST
+    path: /ljvis/notification/evaluate-technical-publish
+    headers:
+      x-internal-service-token: dev-internal-service-token
+      content-type: application/json
+    body:
+      entityType: trailer_technical
+      entityId: '45'
+      compoundFormKey: '8'
+      version: '1'
+      resultType: ok
+      resultTransportInterruption: false
+      partsSummary: '[]'
+      partsDefects: '[]'
+      violations: '[{"code":"VSI847"}]'
+      createdBy: system
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /notification/create
+    count: 1

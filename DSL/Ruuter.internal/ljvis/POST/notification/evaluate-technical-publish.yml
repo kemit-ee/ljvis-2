@@ -26,6 +26,8 @@ declaration:
         type: string
       - field: violations
         type: string
+      - field: trailerRegNr
+        type: string
       - field: createdBy
         type: string
 
@@ -40,6 +42,7 @@ extractInput:
     parts_summary: "${incoming.body.partsSummary || '[]'}"
     parts_defects: "${incoming.body.partsDefects || '[]'}"
     violations: "${incoming.body.violations || '[]'}"
+    trailer_reg_nr: "${('' + (incoming.body.trailerRegNr || '')).trim()}"
     created_by: "${incoming.body.createdBy || 'system'}"
   next: getCompoundForm
 
@@ -71,6 +74,21 @@ extractCompound:
     event_prefix: "${entity_type + ':' + entity_id + ':' + publication_version}"
     eu_eea_vehicle: >-
       ${['AT','BE','BG','HR','CY','CZ','DK','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO'].includes(('' + (compoundRes.response.body[0].vehicleCountryCode || '')).trim().toUpperCase())}
+  next: buildBodyLines
+
+# Haagise tehnokaardil kuvatakse haagise registreerimisnumber (mitte mootorsõiduki oma).
+# Kui haagise numbrit pole, jäetakse numbri rida teavitusest ära (tühi body_et).
+# Eraldi samm, sest assign hindab avaldised eelneva konteksti vastu.
+buildBodyLines:
+  assign:
+    reg_line: >-
+      ${entity_type === 'trailer_technical'
+        ? (trailer_reg_nr ? 'Haagis: ' + trailer_reg_nr : '')
+        : 'Sõiduk: ' + vehicle_reg_nr}
+    reg_line_country: >-
+      ${entity_type === 'trailer_technical'
+        ? (trailer_reg_nr ? 'Haagis: ' + trailer_reg_nr + ' (' + vehicle_country + ')' : '')
+        : 'Sõiduk: ' + vehicle_reg_nr + ' (' + vehicle_country + ')'}
   next: checkSeriousInfringement
 
 checkSeriousInfringement:
@@ -93,7 +111,7 @@ createSeriousInfringement:
       related_entity_id: ${entity_id}
       event_key: "${event_prefix + ':serious'}"
       title_et: "${'Saabus teade Eestis avastatud raske rikkumise kohta vedaja „' + company_name + '“ kontrollimisel'}"
-      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      body_et: "${reg_line}"
       created_by: ${created_by}
   result: seriousNotifRes
   error: checkExtraordinaryInspection
@@ -119,7 +137,7 @@ createExtraordinaryInspection:
       related_entity_id: ${entity_id}
       event_key: "${event_prefix + ':extraordinary'}"
       title_et: "Saabus teade Eestis erakorralisele tehnoülevaatusele suunatud Euroopa Liidu liikmesriigi sõiduki kohta"
-      body_et: "${'Sõiduk: ' + vehicle_reg_nr + ' (' + vehicle_country + ')'}"
+      body_et: "${reg_line_country}"
       created_by: ${created_by}
   result: extraordinaryNotifRes
   error: checkCargoSecuring
@@ -127,7 +145,7 @@ createExtraordinaryInspection:
 
 checkCargoSecuring:
   switch:
-    - condition: ${eu_eea_vehicle && (('' + parts_summary).indexOf('CAA_10') !== -1 || ('' + parts_defects).indexOf('CAA_10') !== -1)}
+    - condition: ${entity_type === 'trailer_technical' && eu_eea_vehicle && (('' + parts_summary).indexOf('CAA_10') !== -1 || ('' + parts_defects).indexOf('CAA_10') !== -1)}
       next: createCargoSecuring
   next: checkDrivingBan
 
@@ -145,7 +163,7 @@ createCargoSecuring:
       related_entity_id: ${entity_id}
       event_key: "${event_prefix + ':cargo-securing'}"
       title_et: "Saabus teade Eestis avastatud veoseveo kinnitamise nõude mittevastavuse kohta Euroopa Liidu liikmesriigi vedaja sõiduki kontrollimisel"
-      body_et: "${'Sõiduk: ' + vehicle_reg_nr + ' (' + vehicle_country + ')'}"
+      body_et: "${reg_line_country}"
       created_by: ${created_by}
   result: cargoNotifRes
   error: checkDrivingBan
@@ -171,7 +189,7 @@ createDrivingBan:
       related_entity_id: ${entity_id}
       event_key: "${event_prefix + ':driving-ban'}"
       title_et: "Saabus teade Eestis sõidukeelu rakendamise kohta"
-      body_et: "${'Sõiduk: ' + vehicle_reg_nr}"
+      body_et: "${reg_line}"
       created_by: ${created_by}
   result: drivingBanNotifRes
   error: returnResult

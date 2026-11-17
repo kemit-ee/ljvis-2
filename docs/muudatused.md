@@ -11,6 +11,11 @@
 - Iga alamvormitabeli sees keelab andmebaas sama numbri kasutamise kahe eri alamvormi peal; tabelite vahel (sõiduk/haagis, juht/meeskonnaliige) tagab unikaalsuse jagatud numbrijada. Olemasolevaid numbreid ei muudeta.
 - Autojuhi ja meeskonnaliikme vormi uuesti salvestamine ei saa enam numbrit muuta (kliendi saadetud number ignoreeritakse).
 
+### Parandus: haagise tehnokaardi teavitused näitavad haagise numbrit
+
+- Haagise tehnokaardilt tekkivad teavitused (raske rikkumine, erakorraline ülevaatus, sõidukeeld) näitasid varem mootorsõiduki registreerimisnumbrit. Nüüd kuvatakse rida „Haagis: <number>“; kui haagise numbrit pole, jäetakse number teavitusest ära.
+- Teavitust veose kinnitamise nõude mittevastavuse kohta tekitab ainult haagise tehnokaart, mootorsõiduki tehnokaart seda enam ei tekita.
+
 ## 2026-11-16
 
 ### Teavitused: vanemate teavituste lehitsemine
