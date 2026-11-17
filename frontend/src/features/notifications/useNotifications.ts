@@ -45,9 +45,14 @@ export function useNotificationCount(): {
 // --------------------------------------------------------------------------
 // useNotifications — täielik hook NotificationsPage jaoks
 // --------------------------------------------------------------------------
+export const NOTIFICATIONS_PAGE_SIZE = 20;
+
 export function useNotifications(): {
   notifications: InAppNotification[];
   unreadCount: number;
+  page: number;
+  totalPages: number;
+  setPage: (page: number) => void;
   loading: boolean;
   markRead: (id: string) => Promise<void>;
   markAllRead: () => Promise<void>;
@@ -56,19 +61,22 @@ export function useNotifications(): {
   const [notifications, setNotifications] = React.useState<InAppNotification[]>([]);
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
+  const [page, setPage] = React.useState(1);
+  const [total, setTotal] = React.useState(0);
 
   const refetch = React.useCallback(async () => {
     try {
       const [notifs, countRes] = await Promise.all([
-        fetchNotifications(),
+        fetchNotifications(page, NOTIFICATIONS_PAGE_SIZE),
         fetchUnreadCount(),
       ]);
       setNotifications(notifs ?? []);
+      setTotal(notifs?.[0]?.total ?? 0);
       setUnreadCount(countRes.unreadCount ?? 0);
     } catch {/* viga ei peata renderdust */} finally {
       setLoading(false);
     }
-  }, []);
+  }, [page]);
 
   React.useEffect(() => {
     void refetch();
@@ -91,5 +99,7 @@ export function useNotifications(): {
     notifyListeners();
   }, [refetch]);
 
-  return { notifications, unreadCount, loading, markRead, markAllRead, refetch };
+  const totalPages = Math.max(1, Math.ceil(total / NOTIFICATIONS_PAGE_SIZE));
+
+  return { notifications, unreadCount, page, totalPages, setPage, loading, markRead, markAllRead, refetch };
 }

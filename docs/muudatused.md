@@ -11,6 +11,10 @@
 - Ülevaatuse parandused: vigase UUID-ga sõnumid lükatakse tagasi (400) mitte ei jää 503-tsüklisse, `xml-inbox/finish` kaitseb aeglase varasema katse eest, XTR-i väljamineva pordi (`/xml-out`) kaitseb sisemine teenusetoken ja vana Java-adapteri töötlejad lülitati sisse-väljalülitatavaks (`PROCESSING_WORKERS_ENABLED`), et sama sõnumit ei töödeldaks kaks korda.
 - Taaste ja töökindlus: sünkroonselt töödeldud päringud (NU, NCR, RSI) salvestavad nüüd samuti oma päringu (`request_json`) ning sama taustatöö (`erru_xtr_async_requests`, kuni 3 rida korraga) võtab üles ebaõnnestunud ja aegunud lukuga read ning käsitsi uuesti ootele pandud read (varem ainult CGR/CTUD). `failed` read jäävad endiselt käsitsi taastada. Hubist tulev ErrorNotification salvestatakse inboxi (varem vastati 501), vastusele, mille töövoogu me ei leia, saadetakse Hubile ErrorNotification `ResponseNotCorrelated`. Väljamineva XML-i skeemikontroll on dev/CI-s `enforce` (skeemivigane sõnum Hubi ei lähe). XTR-i 401/404 vastus väljamineval kutsel loetakse selgeks tagasilükkamiseks (mitte `send_unknown`), NCR automaatsaatmine kontrollib enne XTR-i kohustuslikke välju. CI kontrollib, et genereeritud XTR-voogude failid vastavad generaatoritele.
 
+### Teavitused: vanemate teavituste lehitsemine
+
+- Teavituste lehel kuvati varem ainult 20 uuemat teavitust ja vanemaid ei saanud vaadata. Lehel on nüüd nupud „Eelmine" / „Järgmine" ja lehenumber („Leht X / Y"). Teavitusi ei kustutata. „Märgi kõik loetuks" arvestab kõiki lugemata teavitusi, mitte ainult jooksval lehel nähtavaid.
+
 ## 2026-11-12
 
 ### Parandus: sõidu- ja puhkeaja rikkumiste raskusastmed ei avanenud
