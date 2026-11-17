@@ -130,6 +130,7 @@ accept:
       transportPeer: ${{from_state}}
       rawXml: ${{raw_xml}}
       digest: ${{digest}}
+      requestJson: ${{JSON.stringify(xtr_req)}}
   result: accept_res
   error: returnUnavailable
   next: parseAccepted

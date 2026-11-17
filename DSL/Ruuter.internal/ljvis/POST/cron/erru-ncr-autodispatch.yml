@@ -198,6 +198,8 @@ processCandidates:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
           body: "${xtr_send ? xtr_body : {}}"
         result: xtrRes
+        timeout: 30000
+        error: returnSummary
 
       # 5) Arvuta tulemus. Ainult Hubi HTTP 202 on 'sent'; kindel tagasilükkamine on 'error'
       #    (ametnik saadab käsitsi uuesti); ebaselge tulemus on 'send_unknown' (EI saadeta uuesti).
@@ -219,7 +221,7 @@ processCandidates:
                 if (xr != null && xr.status === 200 && xb != null && xb.status === 202) {
                   return { outcome: 'sent', errorMessage: '', raw: JSON.stringify(xb) };
                 }
-                if (xr != null && ((xr.status === 200 && xb != null && xb.status >= 400 && xb.status < 500) || xr.status === 422 || xr.status === 401 || xr.status === 404)) {
+                if (xr != null && ((xr.status === 200 && xb != null && xb.status >= 400 && xb.status < 500) || xr.status === 422 || xr.status === 401 || xr.status === 404 || xr.status === 400 || xr.status === 413)) {
                   return { outcome: 'error', errorMessage: 'ERRU lükkas NCR päringu tagasi (' + (xb && xb.status || xr.status) + ')', raw: JSON.stringify(xb || '') };
                 }
                 return { outcome: 'send_unknown', errorMessage: 'NCR saatmise tulemus on teadmata, ära saada uuesti', raw: JSON.stringify(xb || '') };

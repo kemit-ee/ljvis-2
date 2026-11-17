@@ -84,6 +84,23 @@ try:
     assert run(sql('finish.sql', inboxId=int(inbox), outcome='retry', attempts=1, error='transient'), name).strip().startswith('received')
     due = run(f"SELECT (next_attempt_at > now() + interval '20 seconds' AND next_attempt_at < now() + interval '40 seconds')::text, claimed_by IS NULL FROM erru.xml_inbox WHERE id = {inbox}", name).strip()
     assert due == 'true|t', due
-    print('PASS claim-due selection, batching, retry delay and fencing')
+
+    # one-way recovery list: received + request_json + older than a minute + due; read only
+    row('ow-recent', 'received', mtype='NotifyUnfitness_Acknowledgement', age=5)
+    row('ow-later', 'received', mtype='NotifyUnfitness_Acknowledgement', nxt="now() + interval '20 seconds'", age=90)
+    row('ow-nojson', 'received', mtype='NotifyUnfitness_Acknowledgement', request_json='NULL', age=90)
+    ow = run(sql('due-oneway.sql', messageTypes='NotifyUnfitness_Acknowledgement,CheckGoodRepute_Response'), name)
+    rows = [json.loads(l) for l in ow.splitlines() if l.startswith('{')]
+    assert len(rows) == 1 and rows[0]['messageType'] == 'NotifyUnfitness_Acknowledgement' and rows[0]['sha256'] == 'd', rows
+    assert run("SELECT count(*) FROM erru.xml_inbox WHERE business_case_id = 'other-type' AND status = 'received'", name).strip() == '1'  # nothing claimed
+
+    # finish processed keeps the conflict audit lines, an explicit error still overwrites
+    row('conflict', 'processing', xtr, lease="now() + interval '1 minute'")
+    cid = int(run("SELECT id FROM erru.xml_inbox WHERE business_case_id = 'conflict'", name).strip())
+    run(f"UPDATE erru.xml_inbox SET attempts = 1, last_error = 'old\nconflicting redelivery rejected at t, attempted payload_digest=abc' WHERE id = {cid}", name)
+    assert run(sql('finish.sql', inboxId=cid, outcome='processed', attempts=1, error=''), name).strip().startswith('processed')
+    kept = run(f"SELECT last_error FROM erru.xml_inbox WHERE id = {cid}", name).strip()
+    assert kept.startswith('conflicting redelivery rejected') and 'abc' in kept, kept
+    print('PASS claim-due selection, batching, retry delay, fencing, one-way recovery and conflict log')
 finally:
     run('DROP DATABASE ' + name + ' WITH (FORCE)')
