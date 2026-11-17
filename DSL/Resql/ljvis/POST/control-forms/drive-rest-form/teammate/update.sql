@@ -8,6 +8,9 @@ params:
   compoundFormKey:
     type: number
     required: false
+  subFormNumber:
+    type: string
+    required: false
   status:
     type: string
     required: false
@@ -201,7 +204,7 @@ INSERT INTO forms.sp_teammate_form (sp_teammate_form_key,
 SELECT
         :key::BIGINT,
         COALESCE(NULLIF(:compoundFormKey::text, ''), l.compound_form_key::text)::BIGINT,
-        l.sub_form_number /* number on muutumatu; kliendi subFormNumber ignoreeritakse */,
+        COALESCE(NULLIF(:subFormNumber, ''), l.sub_form_number),
         l.version,
         l.revision + 1,
         l.template_version,
