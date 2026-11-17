@@ -89,9 +89,11 @@ try:
     row('ow-recent', 'received', mtype='NotifyUnfitness_Acknowledgement', age=5)
     row('ow-later', 'received', mtype='NotifyUnfitness_Acknowledgement', nxt="now() + interval '20 seconds'", age=90)
     row('ow-nojson', 'received', mtype='NotifyUnfitness_Acknowledgement', request_json='NULL', age=90)
+    row('ow-lease', 'processing', xtr, lease="now() - interval '1 second'", mtype='NotifyUnfitness_Acknowledgement', age=90)
+    row('ow-lease-live', 'processing', xtr, lease="now() + interval '1 minute'", mtype='NotifyUnfitness_Acknowledgement', age=90)
     ow = run(sql('due-oneway.sql', messageTypes='NotifyUnfitness_Acknowledgement,CheckGoodRepute_Response'), name)
     rows = [json.loads(l) for l in ow.splitlines() if l.startswith('{')]
-    assert len(rows) == 1 and rows[0]['messageType'] == 'NotifyUnfitness_Acknowledgement' and rows[0]['sha256'] == 'd', rows
+    assert len(rows) == 2 and rows[0]['messageType'] == 'NotifyUnfitness_Acknowledgement' and rows[0]['sha256'] == 'd', rows
     assert run("SELECT count(*) FROM erru.xml_inbox WHERE business_case_id = 'other-type' AND status = 'received'", name).strip() == '1'  # nothing claimed
 
     # finish processed keeps the conflict audit lines, an explicit error still overwrites

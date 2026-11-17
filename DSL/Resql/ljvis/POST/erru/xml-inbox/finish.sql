@@ -18,7 +18,7 @@ returns:
 */
 UPDATE erru.xml_inbox
    SET status = CASE :outcome WHEN 'processed' THEN 'processed' WHEN 'failed' THEN 'failed' WHEN 'requeue' THEN 'processing' ELSE 'received' END,
-       last_error = CASE WHEN :outcome = 'processed' AND NULLIF(:error, '') IS NULL THEN substring(last_error from '(?s)conflicting redelivery.*') ELSE NULLIF(:error, '') END,
+       last_error = CASE WHEN NULLIF(:error, '') IS NULL THEN substring(last_error from 'conflicting redelivery.*') ELSE NULLIF(:error, '') || COALESCE(E'\n' || substring(last_error from 'conflicting redelivery.*'), '') END,
        claimed_by = CASE WHEN :outcome = 'requeue' THEN 'erru-xml-adapter-xtr-async' END,
        lease_expires_at = CASE WHEN :outcome = 'requeue' THEN now() + interval '10 minutes' END,
        next_attempt_at = CASE WHEN :outcome IN ('requeue', 'retry') THEN now() + interval '30 seconds' END

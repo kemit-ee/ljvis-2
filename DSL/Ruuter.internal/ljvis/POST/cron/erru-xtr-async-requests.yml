@@ -100,6 +100,7 @@ replayOneWay:
             sha256: ${pending.sha256}
         result: replay_res
         timeout: 30000
+        error: returnDone   # in iterate: swallow and go on (the inbound flow answers 503 on a busy row or a transient failure)
   next: returnDone
 
 returnDone:

@@ -172,7 +172,7 @@ processCandidates:
           body: "${xtr_send ? xtr_body : {}}"
         result: xtrRes
         timeout: 30000
-        error: returnSummary
+        error: returnSummary   # inside iterate the target is ignored: swallow the failure, xtrRes is bound and step 5 classifies it
 
       # 5) Arvuta tulemus. Ainult Hubi HTTP 202 on 'sent'; kindel tagasilükkamine on 'error'
       #    (ametnik saadab käsitsi uuesti); ebaselge tulemus on 'send_unknown' (EI saadeta uuesti).
