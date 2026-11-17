@@ -299,7 +299,6 @@ updateForm:
       key: ${id}
       expected_revision: "${incoming.body.revision == null || incoming.body.revision === '' ? '' : String(incoming.body.revision)}"
       compoundFormKey: ${current_compound_form_key}
-      subFormNumber: ${sub_form_number}
       status: ${current_status}
       selectionStatus: ${selection_status}
       transportType: ${transport_type}
