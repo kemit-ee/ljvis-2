@@ -1,4 +1,4 @@
-# erru-xml-adapter (XTR >= 0.6.0-rc): ERRU MOVEHUB 3.5 toor-XML sild. Asendab Java-adapteri (docker/erru-xml-adapter-old).
+# erru-xml-adapter (XTR >= 0.6.0-rc): ERRU MOVEHUB 3.5 toor-XML sild. Asendas Java-adapteri (eemaldatud, etapp 6).
 # Plaan: docs/planning/erru-xml-adapter-xtr-migratsioon.md. Eraldi XTR-instants (mitte X-tee `xtr`).
 dsl_path: /erru/DSL
 port: 8080                       # sisemine JSON-lane (/xml-out/…): ainult Ruuteri jaoks

@@ -4,8 +4,6 @@ constants:
   LJVIS_TIM: '{MOCK}/tim'
   NYSIIS_ENDPOINT: '{MOCK}/nysiis'
   NYSIIS_API_KEY: test-key
-  ERRU_XML_ADAPTER: '{MOCK}/adapter'
-  ERRU_NU_TRANSPORT: xtr
   ERRU_XTR_BRIDGE: '{MOCK}/xtr'
 tests:
 - name: XTR transport - Hub 202 persists sent
@@ -101,24 +99,20 @@ tests:
   expect:
     status: 200
   verify_mocks:
-  - url_matches: /internal/nu/validate
-    count: 0
-  - url_matches: /internal/nu/send
-    count: 0
   - url_matches: /erru/nu/begin-send
     count: 1
   - url_matches: /xtr/xml-out/erru/erru/NotifyUnfitness_Request
     count: 1
     body_matches:
       Header:
-        "@version": '3.5'
-        "@technicalId": 11111111-2222-4333-8444-555555555555
-        "@workflowId": 11111111-2222-4333-8444-555555555556
-        "@sentAt": '2026-09-11T12:00:00Z'
-        "@from": EE
-        "@to": DE
+        '@version': '3.5'
+        '@technicalId': 11111111-2222-4333-8444-555555555555
+        '@workflowId': 11111111-2222-4333-8444-555555555556
+        '@sentAt': '2026-09-11T12:00:00Z'
+        '@from': EE
+        '@to': DE
       Body:
-        "@businessCaseId": NU-TEST
+        '@businessCaseId': NU-TEST
   - url_matches: /erru/nu/mark-dispatch
     count: 1
     body_matches:
@@ -216,24 +210,20 @@ tests:
   expect:
     status: 502
   verify_mocks:
-  - url_matches: /internal/nu/validate
-    count: 0
-  - url_matches: /internal/nu/send
-    count: 0
   - url_matches: /erru/nu/begin-send
     count: 1
   - url_matches: /xtr/xml-out/erru/erru/NotifyUnfitness_Request
     count: 1
     body_matches:
       Header:
-        "@version": '3.5'
-        "@technicalId": 11111111-2222-4333-8444-555555555555
-        "@workflowId": 11111111-2222-4333-8444-555555555556
-        "@sentAt": '2026-09-11T12:00:00Z'
-        "@from": EE
-        "@to": DE
+        '@version': '3.5'
+        '@technicalId': 11111111-2222-4333-8444-555555555555
+        '@workflowId': 11111111-2222-4333-8444-555555555556
+        '@sentAt': '2026-09-11T12:00:00Z'
+        '@from': EE
+        '@to': DE
       Body:
-        "@businessCaseId": NU-TEST
+        '@businessCaseId': NU-TEST
   - url_matches: /erru/nu/mark-dispatch
     count: 1
     body_matches:

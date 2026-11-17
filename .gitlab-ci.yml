@@ -91,9 +91,6 @@ include:
         - name: erru-xml-adapter
           image_repository: erru-xml-adapter/images
           dockerfile: docker/erru-xml-adapter/Dockerfile
-        - name: erru-xml-adapter-old
-          image_repository: erru-xml-adapter-old/images
-          dockerfile: docker/erru-xml-adapter-old/Dockerfile
       components:
         - name: ljvis2-config
         - name: resql-ljvis
@@ -108,7 +105,6 @@ include:
         - name: pdf-creator
         - name: cronmanager
         - name: erru-xml-adapter
-        - name: erru-xml-adapter-old
       deploy:
         - environment: dev
           mode: auto
