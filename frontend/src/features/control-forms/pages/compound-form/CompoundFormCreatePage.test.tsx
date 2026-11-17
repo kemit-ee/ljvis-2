@@ -299,6 +299,9 @@ describe('CompoundFormCreatePage', () => {
     expect(api.saveAdrForm).toHaveBeenCalled();
     expect(api.saveTechnicalCheckForm).toHaveBeenCalled();
     expect(api.saveTransportInterruptionForm).toHaveBeenCalled();
+    // Numbrite järjekord: autojuht enne meeskonnaliiget, sõiduk enne haagiseid.
+    expect(vi.mocked(api.saveDriveRestForm).mock.calls[0][0]).toBe('driver');
+    expect(vi.mocked(api.saveTechnicalCheckForm).mock.calls[0][0]).toBe('vehicle');
     expect(nav).toHaveBeenCalled();
   });
 

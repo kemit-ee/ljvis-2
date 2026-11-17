@@ -8,7 +8,8 @@
 
 - Sõiduki ja haagise tehnokaardil ning autojuhi ja meeskonnaliikme SP-vormil oli igaühel oma numbriloendur, mistõttu said näiteks sõiduk ja haagis mõlemad numbri `th-2026-00001`. Nüüd jagavad sõiduk ja haagis ühte `th-` numbrijada ning autojuht ja meeskonnaliige ühte `sp-` numbrijada, nii et samaaegselt salvestades ei teki kunagi kahte sama numbriga vormi.
 - Koondvormi loomisel salvestatakse autojuht enne meeskonnaliiget ja sõiduk enne haagiseid, seega juhi ja sõiduki number on väiksem.
-- Andmebaas keelab sama numbri kasutamise kahe eri alamvormi peal. Olemasolevaid numbreid ei muudeta.
+- Iga alamvormitabeli sees keelab andmebaas sama numbri kasutamise kahe eri alamvormi peal; tabelite vahel (sõiduk/haagis, juht/meeskonnaliige) tagab unikaalsuse jagatud numbrijada. Olemasolevaid numbreid ei muudeta.
+- Autojuhi ja meeskonnaliikme vormi uuesti salvestamine ei saa enam numbrit muuta (kliendi saadetud number ignoreeritakse).
 
 ## 2026-11-16
 

@@ -308,7 +308,11 @@ Toetamata või puuduv tunnus ning korduv sihtnumber peatavad käivituse. Skript 
 tähistavad uusi koondvorme. Need ei asenda algseid vorminumbreid.
 
 Enne transaktsiooni kinnitamist suurendab skript vorminumbrite genereerimiseks kasutatavaid
-loogiliste võtmete arvujadasid üle olemasolevate vorminumbrite arvuliste sufiksite.
+arvujadasid üle olemasolevate vorminumbrite arvuliste sufiksite: loogiliste võtmete jadasid
+(`forms.seq_*_key`) ning jagatud numbrijadasid `forms.seq_th_form_number` (sõiduki ja haagise
+tehnokaart) ja `forms.seq_sp_form_number` (autojuhi ja meeskonnaliikme SP-vorm). Importimise ajal
+saavad uued read ajutise numbri kujul `mig-th-…`/`mig-sp-…`, mille `identifiers.preserve()` asendab
+pärandnumbriga; nii ei põrka need kokku rakenduses juba väljastatud numbritega.
 Skript ei vähenda arvujadade väärtusi. Nurjunud transaktsioonid võivad jätta arvujadadesse lünki.
 Käivitage migratsioon eespool kirjeldatud hooldusaknas, kui andmeid muutvad protsessid on peatatud.
 Ümbernummerdatud vormidega varasemad proovilaadimised ei läbi tunnuste kontrolli.

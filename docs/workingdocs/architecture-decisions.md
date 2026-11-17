@@ -945,7 +945,7 @@ Dedikeeritud veerg `authority` on kõige puhtam lähenemine: SQL filtrid on inde
 
 **Valitud:**
 - **Koondvorm (üldosa):** eraldiseisev seeria — uus sequence `forms.seq_tram_compound_form_key`, formaat `tram-AAAA-NNNNN/versioon`. PPA ja TRAM peavad koondvormil eristuma ka **nähtava numbri** järgi, mitte ainult `authority` veeru järgi.
-- **Autojuhi alamvorm:** **võib jagada** PPA `sp-` numbriseeriat (`forms.seq_sp_driver_form_key`, formaat `sp-AAAA-NNNNN/versioon`). Alamvormi number ei ole asutuse eristamise koht — seda teeb koondvorm.
+- **Autojuhi alamvorm:** **võib jagada** PPA `sp-` numbriseeriat (jagatud järjend `forms.seq_sp_form_number`, mida kasutavad autojuht ja meeskonnaliige, formaat `sp-AAAA-NNNNN/versioon`). Alamvormi number ei ole asutuse eristamise koht — seda teeb koondvorm.
 - Loogilised võtmed (`compound_form_key`, `sp_driver_form_key`) jäävad alati ühistesse jadadesse.
 
 **Alternatiivid kaalutud:**
