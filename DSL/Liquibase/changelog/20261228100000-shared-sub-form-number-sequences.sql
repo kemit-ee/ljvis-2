@@ -9,9 +9,12 @@ CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
 CREATE SEQUENCE IF NOT EXISTS forms.seq_th_form_number START 1;
 CREATE SEQUENCE IF NOT EXISTS forms.seq_sp_form_number START 1;
 
+-- (PERFORM DO-plokis, mitte SELECT: avatud tulemihulk blokeeriks Liquibase'is järgmise ALTER TABLE-i.)
 -- Alguspunkt: suurim olemasolev number (testfikstuuride 9xxxxxxx numbreid ei arvestata),
 -- et uued numbrid ei kattuks olemasolevatega.
-SELECT setval(
+DO $$
+BEGIN
+  PERFORM setval(
   'forms.seq_th_form_number',
   GREATEST(1, COALESCE((
     SELECT MAX(n) FROM (
@@ -26,8 +29,11 @@ SELECT setval(
     SELECT 1 FROM forms.trailer_technical_form WHERE sub_form_number ~ '^th-[0-9]{4}-[0-9]+' AND substring(sub_form_number FROM '^th-[0-9]{4}-([0-9]+)')::bigint < 90000000
   )
 );
+END $$;
 
-SELECT setval(
+DO $$
+BEGIN
+  PERFORM setval(
   'forms.seq_sp_form_number',
   GREATEST(1, COALESCE((
     SELECT MAX(n) FROM (
@@ -42,6 +48,7 @@ SELECT setval(
     SELECT 1 FROM forms.sp_teammate_form WHERE sub_form_number ~ '^sp-[0-9]{4}-[0-9]+' AND substring(sub_form_number FROM '^sp-[0-9]{4}-([0-9]+)')::bigint < 90000000
   )
 );
+END $$;
 
 COMMENT ON SEQUENCE forms.seq_th_form_number IS 'Jagatud numbrijada th-AAAA-NNNNN: mootorsõiduki ja haagise tehnokaart. Logiline võti tuleb eraldi seq_*_form_key järjendist.';
 COMMENT ON SEQUENCE forms.seq_sp_form_number IS 'Jagatud numbrijada sp-AAAA-NNNNN: autojuhi ja meeskonnaliikme SP-vorm. Logiline võti tuleb eraldi seq_*_form_key järjendist.';
