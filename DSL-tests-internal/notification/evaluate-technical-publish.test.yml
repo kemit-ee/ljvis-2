@@ -3,7 +3,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
 tests:
-- name: foreign EU vehicle creates all applicable technical notifications except cargo securing
+- name: foreign EU vehicle creates all applicable technical notifications
   setup:
     mocks:
     - url_matches: /control-forms/compound-form/get
@@ -39,7 +39,7 @@ tests:
     status: 200
   verify_mocks:
   - url_matches: /notification/create
-    count: 3
+    count: 4
 
 - name: Estonian compliant vehicle creates no notification
   setup:
@@ -79,7 +79,7 @@ tests:
   - url_matches: /notification/create
     count: 0
 
-- name: foreign EU trailer creates cargo securing notification too
+- name: foreign EU trailer creates its own cargo securing notification
   setup:
     mocks:
     - url_matches: /control-forms/compound-form/get

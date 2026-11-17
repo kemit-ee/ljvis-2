@@ -145,7 +145,7 @@ createExtraordinaryInspection:
 
 checkCargoSecuring:
   switch:
-    - condition: ${entity_type === 'trailer_technical' && eu_eea_vehicle && (('' + parts_summary).indexOf('CAA_10') !== -1 || ('' + parts_defects).indexOf('CAA_10') !== -1)}
+    - condition: ${eu_eea_vehicle && (('' + parts_summary).indexOf('CAA_10') !== -1 || ('' + parts_defects).indexOf('CAA_10') !== -1)}
       next: createCargoSecuring
   next: checkDrivingBan
 

@@ -14,7 +14,7 @@
 ### Parandus: haagise tehnokaardi teavitused näitavad haagise numbrit
 
 - Haagise tehnokaardilt tekkivad teavitused (raske rikkumine, erakorraline ülevaatus, sõidukeeld) näitasid varem mootorsõiduki registreerimisnumbrit. Nüüd kuvatakse rida „Haagis: <number>“; kui haagise numbrit pole, jäetakse number teavitusest ära.
-- Teavitust veose kinnitamise nõude mittevastavuse kohta tekitab ainult haagise tehnokaart, mootorsõiduki tehnokaart seda enam ei tekita.
+- Haagise veose kinnitamise probleemi korral tekib teavitus haagise tehnokaardilt (haagise numbriga), mootorsõiduki kohta seda ei tehta. Mootorsõiduki enda veose kinnitamise probleemi teavitus jääb alles.
 
 ## 2026-11-16
 
