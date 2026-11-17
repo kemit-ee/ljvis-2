@@ -367,6 +367,26 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
+  # CronManager with ONLY the ERRU XTR queue job (CGR/CTUD answers, recovery of NU/NCR/RSI and one-way messages): the other
+  # jobs would touch data the API tests own.
+  cronmanager:
+    image: turnerrainer/cronmanager:0.2.4-alpha@sha256:3ab67dc6adc68b927ff00454dd9c24fb8f61e907b57621f885a220c7d3228cd6
+    environment:
+      - CRONMANAGER_CONFIG=/app/cronmanager.yaml
+      - CRONMANAGER_ADMIN_TOKEN=dev-admin-token
+      - INTERNAL_COMMUNICATION_KEY=dev-internal-service-token
+      - APP_ENV=dev
+      - TZ=Europe/Tallinn
+    volumes:
+      - ./cronmanager.yaml:/app/cronmanager.yaml:ro
+      - ./DSL/CronManager/erru-xtr-async-requests.yaml:/app/DSL/jobs/erru-xtr-async-requests.yaml:ro
+    depends_on:
+      - ruuter-internal
+    networks:
+      - ljvis-ci
+    cpus: "0.25"
+    mem_limit: "128M"
+
   # ── Auth stack (TARA-Mock + TIM) ──────────────────────────────────────────
   tara-mock:
     build:

@@ -17,7 +17,7 @@ schemas:
   - RoadSideInspection_Response.xsd
   - ErrorNotification.xsd
 
-# Sissetulev (Hub -> meie): kõik sõnumid lähevad `inbound.backend`-ile (Ruuter); vana adapterile suunamiseks tüübi kaupa `forward:`. Väljaminev: Hubi päringu-URL tüübi kaupa, vastused/kinnitused
+# Sissetulev (Hub -> meie): kõik sõnumid lähevad `inbound.backend`-ile (Ruuter). Väljaminev: Hubi päringu-URL tüübi kaupa, vastused/kinnitused
 # ja ErrorNotification Hubi ühele vastuse-URL-ile (Message Reference 5.3.1).
 messages:
   CheckTransportUndertakingData_Request:
@@ -51,7 +51,6 @@ inbound:
   # .../erru/xtr/inbound/<Message> (sync: accept -> /erru/<flow>/inbound-request -> answer via /xml-out); CGR/CTUD are accepted
   # there (202) and answered by cron/erru-xtr-async-requests -> .../erru/xtr/worker/<Message>.
   # ErrorNotification (Hub rejected / could not correlate one of our messages) is recorded by .../erru/xtr/inbound/ErrorNotification.
-  # Rollback for one message type: give it its `forward:` line back.
   backend: http://ruuter-internal:8080/ljvis/erru/xtr/inbound
   backend_headers_env:
     x-internal-service-token: XTR_BACKEND_HEADER_ERRU   # ruuter-internal guard (INTERNAL_COMMUNICATION_KEY)

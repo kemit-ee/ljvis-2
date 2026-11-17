@@ -168,7 +168,6 @@ processCandidates:
           headers:
             type: json
             Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
-            x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
           body: "${xtr_send ? xtr_body : {}}"
         result: xtrRes
         timeout: 30000

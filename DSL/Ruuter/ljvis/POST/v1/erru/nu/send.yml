@@ -194,7 +194,7 @@ prepareOutbound:
     xtr_has_cert: "${!!(certificate_number || certificate_issue_date || certificate_issue_country)}"
   next: xtrPreflight
 
-# XTR validates against the XSD only in report/enforce mode (report by default); keep catching what the
+# XTR validates against the XSD only in report/enforce mode (enforce in the sidecar; production must keep enforce); keep catching what the
 # Java builder refused outright: no transport manager data or a missing mandatory attribute.
 xtrPreflight:
   switch:
