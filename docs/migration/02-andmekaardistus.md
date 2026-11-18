@@ -59,7 +59,7 @@ Täielik vastendus on SQL-ides; allolev tabel näitab põhimõtet.
 | R3 | **Ulatus:** `ControlForm.ControlledDate >= CUTOFF`; puuduvat kuupäeva **ei asendata** `CreatedDate`-iga (`missing_scope_date`) | `migration.control_form_scope` |
 | R4 | **Seotud osad:** sama kontrolli vanemad `Confirmed`/`Published` osad kaasatakse (`inclusion_basis = included_control_peer`) | Kontrolli terviklikkus |
 | R5 | **Dokumendinumber säilib:** `th-2026-00004/4` → `sub_form_number = 'th-2026-00004'`, `version = 4`; uusi numbreid ei genereerita; duplikaat/vigane number peatab jooksu | `identifiers.py` |
-| R6 | **Logical key:** `nextval(forms.seq_*_key)`; pärast laadimist nihutatakse sequence'id olemasolevatest numbritest edasi (ei keerata tagasi) | Rakenduse numbrigeneraator |
+| R6 | **Logical key:** `nextval(forms.seq_*_key)`; vormi number tuleb th-/sp- vormidel jagatud järjenditest `forms.seq_th_form_number` / `forms.seq_sp_form_number`; pärast laadimist nihutatakse kõik need sequence'id olemasolevatest numbritest edasi (ei keerata tagasi) | Rakenduse numbrigeneraator |
 | R7 | **Autor:** 4-astmeline varu: isikukood (kui kasutaja olemas) → nimi → `Versions.UserName` → `'-'`. Kontosid ei looda | `author_fallback` |
 | R8 | **Kohustuslik väli puudub:** asendatakse `'-'` ainult kinnitatud nimekirja väljadel (23.09.2026 otsus); kuupäevad, tulemused, klassifikaatorid, rikkumised, marsruutimine ei kuulu asenduse alla | `migration.approved_text_default` |
 | R9 | **Liiga pikk tekst:** ei kärbita vaikselt → viga `oversized_source_text`, kogu transaktsioon tühistub | `migration.target_text` |

@@ -196,6 +196,7 @@ evaluateNotifications:
       partsSummary: ${parts_summary}
       partsDefects: ${parts_defects}
       violations: ${violations}
+      trailerRegNr: ${trailer_reg_nr}
       createdBy: ${actor_personal_code}
   result: notificationEvaluationRes
   error: recalculateRisk

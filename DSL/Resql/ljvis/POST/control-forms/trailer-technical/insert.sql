@@ -98,7 +98,7 @@ WITH ins AS (
   VALUES (
     nextval('forms.seq_trailer_technical_form_key'),
     :compoundFormKey::BIGINT,
-    'th-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || LPAD(currval('forms.seq_trailer_technical_form_key')::text, GREATEST(5, LENGTH(currval('forms.seq_trailer_technical_form_key')::text)), '0'),
+    'th-' || EXTRACT(YEAR FROM CURRENT_DATE) || '-' || (SELECT LPAD(n::text, GREATEST(5, LENGTH(n::text)), '0') FROM (SELECT nextval('forms.seq_th_form_number') AS n) allocated_number),
     1,
     :status,
     COALESCE(NULLIF(:partsSummary, '')::jsonb, '[]'::jsonb),
