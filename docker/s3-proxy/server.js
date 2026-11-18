@@ -33,6 +33,10 @@ const MAX_BYTES       = readPositiveNumber('S3_MAX_SIZE_MB', 20, 100) * 1024 * 1
 const MAX_NAME_LEN    = readPositiveNumber('S3_MAX_FILENAME_LENGTH', 200, 500);
 const PORT            = readPositiveNumber('PORT', 3010, 65535);
 
+// Tahhograafi andmefail (.ddd). Failil puudub kindel signatuur (magic bytes), seega tuvastatakse see
+// ainult laiendi järgi ja ainult siis, kui sisu ei sobi ühegi teise tuntud vorminguga.
+const DDD_MIME = 'application/x-tachograph-ddd';
+
 const DEFAULT_ALLOWED_MIMES = [
   'application/pdf',
   'image/jpeg',
@@ -40,6 +44,7 @@ const DEFAULT_ALLOWED_MIMES = [
   'application/vnd.etsi.asic-e+zip',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  DDD_MIME,
 ];
 const ALLOWED_MIMES = new Set(
   (process.env.S3_ALLOWED_MIME_TYPES || '')
@@ -81,6 +86,7 @@ const EXT_BY_MIME = {
   'application/vnd.etsi.asic-e+zip': ['.asice'],
   'application/msword': ['.doc'],
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  [DDD_MIME]: ['.ddd'],
 };
 
 // ZIP-based formats (docx, asice) share the ZIP magic — we disambiguate by extension.
@@ -134,6 +140,9 @@ function detectMime(buf, filename) {
       return sig.mime;
     }
   }
+  // .ddd: signatuuri pole, sisu on binaarne. Fallback ainult tundmatu sisu korral, nii et
+  // PDF/JPEG/ZIP-sisuga fail ei pääse `.ddd` nime all läbi (laiendi kontroll 6b lükkab ta tagasi).
+  if (filename.toLowerCase().endsWith('.ddd')) return DDD_MIME;
   return null;
 }
 
@@ -247,8 +256,11 @@ app.post('/upload', async (req, res) => {
 
   // ── 6. Declared vs detected MIME check ────────────────────────────────────
   // Normalise declared MIME (strip parameters like "; charset=binary")
+  // .ddd puhul saadavad brauserid tüübi tühjana või `application/octet-stream`, mistõttu
+  // aktsepteeritakse selle faili jaoks ka seda.
   const declaredMime = normalizeMime(content_type);
-  if (detectedMime !== declaredMime) {
+  const dddOctetStream = detectedMime === DDD_MIME && declaredMime === 'application/octet-stream';
+  if (detectedMime !== declaredMime && !dddOctetStream) {
     console.warn(`[s3-proxy] [upload] REJECT MIME mismatch: declared=${declaredMime} detected=${detectedMime}`);
     return res.status(415).json({ error: 'Declared content type does not match file content' });
   }

@@ -229,7 +229,7 @@ services:
       - S3_MAX_SIZE_MB=${S3_MAX_SIZE_MB:-20}
       - S3_MAX_FILENAME_LENGTH=${S3_MAX_FILENAME_LENGTH:-200}
       - S3_PROXY_API_KEY=${S3_PROXY_API_KEY:-dev-s3-proxy-key}
-      - S3_ALLOWED_MIME_TYPES=${S3_ALLOWED_MIME_TYPES:-application/pdf,image/jpeg,image/png,application/vnd.etsi.asic-e+zip,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document}
+      - S3_ALLOWED_MIME_TYPES=${S3_ALLOWED_MIME_TYPES:-application/pdf,image/jpeg,image/png,application/vnd.etsi.asic-e+zip,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-tachograph-ddd}
       - PORT=3010
     networks:
       - ljvisnetwork

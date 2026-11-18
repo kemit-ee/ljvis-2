@@ -7,7 +7,7 @@ Selles jaos kirjeldatakse, kuidas vormidega seotud failid tehniliselt töötavad
 Kasutajaliidese failivalik (`FileUploadBlock`) aktsepteerib vaikimisi järgmisi laiendeid:
 
 ```tsx
-const ALLOWED_ACCEPT = '.pdf,.jpg,.jpeg,.png,.tiff';
+const ALLOWED_ACCEPT = '.pdf,.jpg,.jpeg,.png,.tiff,.ddd';
 const MAX_SIZE_MB = 10;
 ```
 
@@ -17,6 +17,7 @@ const MAX_SIZE_MB = 10;
 | `.jpg`, `.jpeg` | `image/jpeg` |
 | `.png` | `image/png` |
 | `.tiff` | `image/tiff` |
+| `.ddd` | `application/x-tachograph-ddd` (tahhograafi andmefail) |
 
 S3-puhverserveri seadistuses (`docker-compose.yml`) on vaikimisi lubatud MIME-tüüpide loend laiem:
 
@@ -26,6 +27,7 @@ S3-puhverserveri seadistuses (`docker-compose.yml`) on vaikimisi lubatud MIME-t�
 - `application/vnd.etsi.asic-e+zip` (ASiC-e)
 - `application/msword` (DOC)
 - `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (DOCX)
+- `application/x-tachograph-ddd` (tahhograafi `.ddd` fail; tuvastatakse laiendi järgi, sest failil puudub kindel signatuur)
 
 Suurusepiirangud:
 

@@ -1587,7 +1587,7 @@
       "addBtn": "Add file",
       "uploadTitle": "Upload file",
       "uploadBtn": "Upload",
-      "limits": "Allowed types: pdf, jpeg, png, asice, doc, docx. Max size: 20MB.",
+      "limits": "Allowed types: pdf, jpeg, png, asice, doc, docx, ddd. Max size: 20MB.",
       "empty": "No files have been added to this form.",
       "col": {
         "name": "File name",
@@ -1601,7 +1601,7 @@
       },
       "error": {
         "tooLarge": "File size exceeds the 20MB limit.",
-        "invalidType": "Invalid file type. Allowed: pdf, jpeg, png, asice, doc, docx.",
+        "invalidType": "Invalid file type. Allowed: pdf, jpeg, png, asice, doc, docx, ddd.",
         "duplicate": "A file with the same name already exists. Uploading will add a new version."
       },
       "confirmDeleteTitle": "Delete file",

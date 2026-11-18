@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-17
+
+### Failide üleslaadimine: lubatud ka tahhograafi .ddd fail
+
+- Vormidele saab nüüd lisada manusena tahhograafi andmefaili (`.ddd`). Failitüüpide nimekirjas on `ddd` lisatud ka teadetesse. Server tuvastab `.ddd` faili laiendi järgi ja ainult siis, kui sisu ei sobi ühegi teise tuntud vorminguga (nt PDF-i sisuga fail `.ddd` nime all lükatakse tagasi). Suurusepiirang (20 MB) jääb samaks.
+- Keskkondades, kus `S3_ALLOWED_MIME_TYPES` on üle kirjutatud (nt devops'i `s3-proxy.yaml`), tuleb sinna lisada `application/x-tachograph-ddd`.
+
 ## 2026-11-16
 
 ### Teavitused: vanemate teavituste lehitsemine
