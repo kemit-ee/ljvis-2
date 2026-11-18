@@ -4,6 +4,17 @@
 
 ## 2026-11-17
 
+### Parandus: alamvormide numbrid ei kattu enam
+
+- Sõiduki ja haagise tehnokaardil ning autojuhi ja meeskonnaliikme SP-vormil oli igaühel oma numbriloendur, mistõttu said näiteks sõiduk ja haagis mõlemad numbri `th-2026-00001`. Nüüd jagavad sõiduk ja haagis ühte `th-` numbrijada ning autojuht ja meeskonnaliige ühte `sp-` numbrijada, nii et samaaegselt salvestades ei teki kunagi kahte sama numbriga vormi.
+- Koondvormi loomisel salvestatakse autojuht enne meeskonnaliiget ja sõiduk enne haagiseid, seega juhi ja sõiduki number on väiksem.
+- Iga alamvormitabeli sees keelab andmebaas sama numbri kasutamise kahe eri alamvormi peal; tabelite vahel (sõiduk/haagis, juht/meeskonnaliige) tagab unikaalsuse jagatud numbrijada. Piirang kehtib uutele vormidele. Olemasolevaid numbreid (sh juba dubleerivaid) ei muudeta ega kontrollita.
+
+### Parandus: haagise tehnokaardi teavitused näitavad haagise numbrit
+
+- Haagise tehnokaardilt tekkivad teavitused (raske rikkumine, erakorraline ülevaatus, sõidukeeld) näitasid varem mootorsõiduki registreerimisnumbrit. Nüüd kuvatakse rida „Haagis: <number>“; kui haagise numbrit pole, jäetakse number teavitusest ära.
+- Haagise veose kinnitamise probleemi korral tekib teavitus haagise tehnokaardilt (haagise numbriga), mootorsõiduki kohta seda ei tehta. Mootorsõiduki enda veose kinnitamise probleemi teavitus jääb alles.
+
 ### Failide üleslaadimine: lubatud ka tahhograafi .ddd fail
 
 - Vormidele saab nüüd lisada manusena tahhograafi andmefaili (`.ddd`). Failitüüpide nimekirjas on `ddd` lisatud ka teadetesse. Server tuvastab `.ddd` faili laiendi järgi ja ainult siis, kui sisu ei sobi ühegi teise tuntud vorminguga (nt PDF-i sisuga fail `.ddd` nime all lükatakse tagasi). Suurusepiirang (20 MB) jääb samaks.

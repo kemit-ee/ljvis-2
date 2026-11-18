@@ -99,7 +99,7 @@ LEFT JOIN LATERAL (
 CREATE TEMP TABLE tmp_sp_numbered ON COMMIT DROP AS
 SELECT m.*,
        'koond-' || extract(year FROM m.created_at)::int || '-' || migration.number_suffix(m.compound_key) AS compound_form_number,
-       'sp-'    || extract(year FROM m.created_at)::int || '-' || migration.number_suffix(m.spd_key)       AS spd_form_number
+       'mig-sp-' || extract(year FROM m.created_at)::int || '-' || migration.number_suffix(m.spd_key)       AS spd_form_number -- ajutine number; identifiers.preserve() kirjutab üle pärandnumbriga (mig- prefiks väldib kokkupõrget rakenduse numbritega)
 FROM tmp_sp_final m;
 
 INSERT INTO migration.quality_report

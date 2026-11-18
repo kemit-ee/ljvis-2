@@ -18,6 +18,13 @@ def split_number(code, version):
     return match[1], int(match[2])
 
 
+# Shared number sequences -> (prefix, tables whose numbers they allocate).
+SHARED_NUMBER_SEQUENCES = {
+    'seq_th_form_number': ('th', ('vehicle_technical_form', 'trailer_technical_form')),
+    'seq_sp_form_number': ('sp', ('sp_driver_form', 'sp_teammate_form')),
+}
+
+
 def preserve(cur, run_id):
     cur.execute("""SELECT l.legacy_id,l.target_table,l.target_key,f.form_code,f.form_version
         FROM migration.form_link l LEFT JOIN staging.raw_control_form f ON f.id::text=l.legacy_id
@@ -61,8 +68,10 @@ def mismatches(cur):
 
 
 def reserve_numbers(cur):
-    # App inserts derive document numbers from logical-key sequences. Preserve
-    # imported numbers and advance, never rewind, those sequences past their suffix.
+    # App inserts derive th-/sp- document numbers from the shared sequences
+    # forms.seq_th_form_number / forms.seq_sp_form_number (vehicle+trailer, driver+teammate)
+    # and the other numbers from logical-key sequences. Preserve imported numbers and
+    # advance, never rewind, those sequences past their suffix.
     # Call only after validation, immediately before commit. PostgreSQL sequence
     # advances survive rollback; a failed commit may leave harmless gaps.
     for table,column in TABLES.items():
@@ -77,6 +86,20 @@ def reserve_numbers(cur):
         value,called=cur.fetchone()
         if maximum > value or (maximum == value and not called):
             cur.execute('SELECT setval(%s::regclass,%s,true)',(sequence,maximum))
+    for sequence,(prefix,tables) in SHARED_NUMBER_SEQUENCES.items():
+        maximum=None
+        for table in tables:
+            cur.execute(sql.SQL("SELECT max(substring(sub_form_number from %s)::bigint) FROM forms.{}").format(
+                sql.Identifier(table)),('^'+prefix+'-[0-9]{4}-([0-9]+)',))
+            value=cur.fetchone()[0]
+            if value is not None and (maximum is None or value>maximum):
+                maximum=value
+        if maximum is None:
+            continue
+        cur.execute(sql.SQL('SELECT last_value,is_called FROM forms.{}').format(sql.Identifier(sequence)))
+        value,called=cur.fetchone()
+        if maximum > value or (maximum == value and not called):
+            cur.execute('SELECT setval(%s::regclass,%s,true)',('forms.'+sequence,maximum))
 
 
 def preflight(cur, run_id):
