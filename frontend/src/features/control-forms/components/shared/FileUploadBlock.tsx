@@ -9,8 +9,9 @@ import {
   deleteFormFile,
 } from '../../api';
 import type { FormAttachment } from '../../types';
+import { resolveUploadMime } from '../../../forms/types/files';
 
-const ALLOWED_ACCEPT = '.pdf,.jpg,.jpeg,.png,.tiff';
+const ALLOWED_ACCEPT = '.pdf,.jpg,.jpeg,.png,.tiff,.ddd';
 const MAX_SIZE_MB = 10;
 
 interface FileUploadBlockProps {
@@ -87,7 +88,7 @@ export function FileUploadBlock({
           formNumber,
           fileName: raw.name,
           fileBase64: base64,
-          mimetype: raw.type,
+          mimetype: resolveUploadMime(raw),
         });
       } catch {
         setError(true);

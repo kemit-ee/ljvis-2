@@ -120,6 +120,25 @@ describe('useFormFiles', () => {
     expect(result.current.fileError).toBeNull();
   });
 
+  it('accepts a .ddd file and uploads it with the tachograph MIME type', async () => {
+    client.post.mockResolvedValue({});
+    const { result } = renderHook(() => useFormFiles('adr', 'F1', true));
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    change(result, [pdf('kaart.ddd', '')]);
+    expect(result.current.fileError).toBeNull();
+    expect(result.current.fileToUpload?.name).toBe('kaart.ddd');
+
+    await act(async () => {
+      await result.current.handleUpload();
+    });
+    await waitFor(() => expect(client.post).toHaveBeenCalled());
+    expect(client.post.mock.calls[0][1]).toMatchObject({
+      file_name: 'kaart.ddd',
+      mimetype: 'application/x-tachograph-ddd',
+    });
+  });
+
   it('uploads and refreshes; clears state on modal close', async () => {
     client.post.mockResolvedValue({});
     const { result } = renderHook(() => useFormFiles('adr', 'F1', true));

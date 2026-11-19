@@ -7,7 +7,7 @@ import {
   downloadFormAttachment,
 } from '../api/filesApi';
 import type { FormAttachment } from '../types/files';
-import { ALLOWED_MIME_TYPES, ALLOWED_EXT, MAX_FILE_SIZE_MB } from '../types/files';
+import { ALLOWED_MIME_TYPES, ALLOWED_EXT, MAX_FILE_SIZE_MB, resolveUploadMime } from '../types/files';
 
 export function useFormFiles(formType: string, formNumber: string, canEdit: boolean) {
   const { t } = useTranslation();
@@ -71,7 +71,7 @@ export function useFormFiles(formType: string, formNumber: string, canEdit: bool
           form_number: formNumber,
           file_name: fileToUpload.name,
           file_base64: base64String,
-          mimetype: fileToUpload.type || 'application/octet-stream',
+          mimetype: resolveUploadMime(fileToUpload),
         });
         setFileToUpload(null);
         setFileError(null);

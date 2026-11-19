@@ -15,6 +15,11 @@
 - Haagise tehnokaardilt tekkivad teavitused (raske rikkumine, erakorraline ülevaatus, sõidukeeld) näitasid varem mootorsõiduki registreerimisnumbrit. Nüüd kuvatakse rida „Haagis: <number>“; kui haagise numbrit pole, jäetakse number teavitusest ära.
 - Haagise veose kinnitamise probleemi korral tekib teavitus haagise tehnokaardilt (haagise numbriga), mootorsõiduki kohta seda ei tehta. Mootorsõiduki enda veose kinnitamise probleemi teavitus jääb alles.
 
+### Failide üleslaadimine: lubatud ka tahhograafi .ddd fail
+
+- Vormidele saab nüüd lisada manusena tahhograafi andmefaili (`.ddd`). Failitüüpide nimekirjas on `ddd` lisatud ka teadetesse. Server tuvastab `.ddd` faili laiendi järgi ja ainult siis, kui sisu ei sobi ühegi teise tuntud vorminguga (nt PDF-i sisuga fail `.ddd` nime all lükatakse tagasi). Suurusepiirang (20 MB) jääb samaks.
+- Keskkondades, kus `S3_ALLOWED_MIME_TYPES` on üle kirjutatud (nt devops'i `s3-proxy.yaml`), tuleb sinna lisada `application/x-tachograph-ddd`.
+
 ## 2026-11-16
 
 ### Teavitused: vanemate teavituste lehitsemine

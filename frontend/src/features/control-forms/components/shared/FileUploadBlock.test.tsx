@@ -51,6 +51,22 @@ describe('FileUploadBlock TEDI integration', () => {
     expect(uploadFormFile).toHaveBeenCalledTimes(1);
   });
 
+  it('sends the tachograph MIME type for a .ddd file even though the browser reports none', async () => {
+    const { container } = render(
+      <FileUploadBlock formPath="drive-rest-form/driver" formNumber="SP-2026-1" />,
+    );
+    const input = container.querySelector('input[type="file"]')!;
+    expect(input.getAttribute('accept')).toContain('.ddd');
+    fireEvent.change(input, {
+      target: { files: [new File(['ddd'], 'kaart.DDD', { type: '' })] },
+    });
+
+    await waitFor(() => expect(uploadFormFile).toHaveBeenCalledWith(
+      'drive-rest-form/driver',
+      expect.objectContaining({ fileName: 'kaart.DDD', mimetype: 'application/x-tachograph-ddd' }),
+    ));
+  });
+
   it('disables file selection until a form number exists', () => {
     const { container } = render(<FileUploadBlock formPath="drive-rest-form/driver" />);
     expect((container.querySelector('input[type="file"]') as HTMLInputElement).disabled).toBe(true);

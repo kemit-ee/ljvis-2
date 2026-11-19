@@ -72,7 +72,7 @@ export const FormFiles = ({ formType, formNumber, canEdit }: FormFilesProps) => 
                     ref={fileInputRef}
                     type="file"
                     onChange={handleFileChange}
-                    accept=".pdf,.jpeg,.jpg,.png,.asice,.doc,.docx"
+                    accept=".pdf,.jpeg,.jpg,.png,.asice,.doc,.docx,.ddd"
                   />
                   <Text modifiers="small" color="secondary">
                     {t('form.files.limits')}
