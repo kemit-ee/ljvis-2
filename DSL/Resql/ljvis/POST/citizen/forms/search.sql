@@ -122,5 +122,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_number asc'  THEN form_number COLLATE "et-EE-x-icu" END ASC,
     CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_number desc' THEN form_number COLLATE "et-EE-x-icu" END DESC,
     main_date DESC, created_at DESC
-LIMIT :page_size::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
+LIMIT LEAST(GREATEST(:page_size::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:page_size::INTEGER, 1), 100));

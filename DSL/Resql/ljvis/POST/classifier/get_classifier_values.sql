@@ -52,8 +52,8 @@ SELECT
     COUNT(*) OVER ()          AS total
 FROM latest cvl
 WHERE (COALESCE(:search, '') = ''
-       OR cvl.code ILIKE '%' || COALESCE(:search, '') || '%'
-       OR cvl.name ILIKE '%' || COALESCE(:search, '') || '%')
+       OR cvl.code ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+       OR cvl.name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%')
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'isValid desc') = 'isValid desc'  THEN cvl.is_valid END DESC,
     CASE WHEN COALESCE(:sorting, 'isValid desc') = 'isValid asc'   THEN cvl.is_valid END ASC,
@@ -63,5 +63,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'isValid desc') = 'name desc'     THEN cvl.name COLLATE "et-EE-x-icu" END DESC,
     cvl.is_valid DESC,
     cvl.code COLLATE "et-EE-x-icu"
-LIMIT :pageSize::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :pageSize::INTEGER);
+LIMIT LEAST(GREATEST(:pageSize::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:pageSize::INTEGER, 1), 100));

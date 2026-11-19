@@ -91,9 +91,9 @@ WHERE
     )
     AND (
         COALESCE(:search, '') = ''
-        OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'
-        OR l.last_name  ILIKE '%' || COALESCE(:search, '') || '%'
-        OR l.personal_code ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.first_name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR l.last_name  ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR l.personal_code ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
     )
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc'            THEN l.status          END ASC,
@@ -105,5 +105,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc'  THEN l.organisation_name END ASC,
     CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN l.organisation_name END DESC,
     l.first_name ASC
-LIMIT :page_size::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
+LIMIT LEAST(GREATEST(:page_size::INTEGER, 1), 1000)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:page_size::INTEGER, 1), 1000));

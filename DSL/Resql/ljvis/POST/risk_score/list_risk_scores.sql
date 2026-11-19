@@ -57,8 +57,8 @@ SELECT
   (COUNT(*) OVER())::INTEGER AS total
 FROM latest l
 WHERE
-  (COALESCE(:company_name, '') = '' OR l.company_name ILIKE '%' || :company_name || '%')
-  AND (COALESCE(:company_reg_code, '') = '' OR l.company_reg_code ILIKE '%' || :company_reg_code || '%')
+  (COALESCE(:company_name, '') = '' OR l.company_name ILIKE '%' || LEFT(:company_name, 100) || '%')
+  AND (COALESCE(:company_reg_code, '') = '' OR l.company_reg_code ILIKE '%' || LEFT(:company_reg_code, 100) || '%')
   AND (COALESCE(:risk_band_code, '') = '' OR l.risk_band_code = :risk_band_code)
 ORDER BY
   -- Sort keys MUST match frontend/src/hooks/stringUtils.ts's toSnakeCase()
@@ -81,5 +81,5 @@ ORDER BY
   CASE WHEN COALESCE(:sorting, 'company_name asc') = 'total_controls desc' THEN l.total_controls END DESC,
   -- deterministic tiebreaker: prevents LIMIT/OFFSET paging from repeating or skipping rows
   l.company_reg_code ASC
-LIMIT  COALESCE(NULLIF(:page_size, ''), '20')::INTEGER
-OFFSET ((GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1) - 1) * COALESCE(NULLIF(:page_size, ''), '20')::INTEGER);
+LIMIT  LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100));

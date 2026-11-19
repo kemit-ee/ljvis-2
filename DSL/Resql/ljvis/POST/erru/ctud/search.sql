@@ -133,7 +133,7 @@ SELECT
   l.handler_name,
   (COUNT(*) OVER ())::INTEGER AS total
 FROM latest l
-WHERE (COALESCE(:businessCaseId, '') = '' OR l.business_case_id ILIKE '%' || :businessCaseId || '%')
+WHERE (COALESCE(:businessCaseId, '') = '' OR l.business_case_id ILIKE '%' || LEFT(:businessCaseId, 100) || '%')
   AND (COALESCE(:sentFrom, '') = '' OR l.sent_at >= (:sentFrom)::DATE)
   -- upper bound is inclusive of the whole day, hence < day + 1
   AND (COALESCE(:sentUntil, '') = '' OR l.sent_at < ((:sentUntil)::DATE + INTERVAL '1 day'))
@@ -149,11 +149,11 @@ WHERE (COALESCE(:businessCaseId, '') = '' OR l.business_case_id ILIKE '%' || :bu
       AND COALESCE(:communityLicenceNumber, '') = ''
       AND COALESCE(:vehicleRegistrationNumber, '') = '')
     OR (COALESCE(:transportUndertakingName, '') <> ''
-      AND l.transport_undertaking_name ILIKE '%' || :transportUndertakingName || '%')
+      AND l.transport_undertaking_name ILIKE '%' || LEFT(:transportUndertakingName, 100) || '%')
     OR (COALESCE(:communityLicenceNumber, '') <> ''
-      AND l.community_licence_number ILIKE '%' || :communityLicenceNumber || '%')
+      AND l.community_licence_number ILIKE '%' || LEFT(:communityLicenceNumber, 100) || '%')
     OR (COALESCE(:vehicleRegistrationNumber, '') <> ''
-      AND l.vehicle_registration_number ILIKE '%' || :vehicleRegistrationNumber || '%')
+      AND l.vehicle_registration_number ILIKE '%' || LEFT(:vehicleRegistrationNumber, 100) || '%')
   )
 ORDER BY
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'business_case_id asc'  THEN l.business_case_id END ASC,
@@ -172,5 +172,5 @@ ORDER BY
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'handler_name desc'     THEN l.handler_name COLLATE "et-EE-x-icu" END DESC,
   -- deterministic tiebreaker: without it LIMIT/OFFSET paging can repeat or skip rows
   l.ctud_request_key DESC
-LIMIT COALESCE(NULLIF(:page_size, ''), '20')::INTEGER
-OFFSET ((GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1) - 1) * COALESCE(NULLIF(:page_size, ''), '20')::INTEGER);
+LIMIT LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100));

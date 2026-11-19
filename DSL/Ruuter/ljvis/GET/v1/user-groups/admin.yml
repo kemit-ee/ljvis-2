@@ -54,7 +54,7 @@ getGroupUsers:
       user_group_id: ${Number(id)}
       user_organisation_id: 0
       page: 1
-      page_size: 10000
+      page_size: 1000
       search: ""
       sorting: ""
   result: usersRes

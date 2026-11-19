@@ -53,8 +53,8 @@ SELECT
 FROM latest l
 WHERE
     COALESCE(:search, '') = ''
-    OR l.code ILIKE '%' || COALESCE(:search, '') || '%'
-    OR l.name ILIKE '%' || COALESCE(:search, '') || '%'
+    OR l.code ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+    OR l.name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'name asc') = 'name asc'  THEN l.name COLLATE "et-EE-x-icu"  END ASC,
     CASE WHEN COALESCE(:sorting, 'name asc') = 'name desc' THEN l.name COLLATE "et-EE-x-icu"  END DESC,
@@ -63,5 +63,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'name asc') = 'description asc'  THEN l.description COLLATE "et-EE-x-icu"  END ASC,
     CASE WHEN COALESCE(:sorting, 'name asc') = 'description desc' THEN l.description COLLATE "et-EE-x-icu"  END DESC,
     l.code COLLATE "et-EE-x-icu" ASC
-LIMIT :pageSize::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :pageSize::INTEGER);
+LIMIT LEAST(GREATEST(:pageSize::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:pageSize::INTEGER, 1), 100));

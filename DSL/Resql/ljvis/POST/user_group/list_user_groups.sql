@@ -69,12 +69,12 @@ WHERE
     )
     AND (
         COALESCE(:search, '') = ''
-        OR l.name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
         OR EXISTS (
             SELECT 1
             FROM users.organisation o
             WHERE o.id = ANY (l.organisations)
-              AND o.name ILIKE '%' || COALESCE(:search, '') || '%'
+              AND o.name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
         )
     )
 ORDER BY
@@ -83,5 +83,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'name asc') = 'organisations asc'   THEN l.organisations END ASC,
     CASE WHEN COALESCE(:sorting, 'name asc') = 'organisations desc'  THEN l.organisations END DESC,
     l.name COLLATE "et-EE-x-icu" ASC
-LIMIT :page_size::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
+LIMIT LEAST(GREATEST(:page_size::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:page_size::INTEGER, 1), 100));

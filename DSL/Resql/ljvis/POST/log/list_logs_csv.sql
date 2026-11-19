@@ -66,10 +66,10 @@ FROM audit.audit_event e
 WHERE
     (
         COALESCE(:search, '') = ''
-        OR e.event_type ILIKE '%' || COALESCE(:search, '') || '%'
-        OR e.event_category ILIKE '%' || COALESCE(:search, '') || '%'
-        OR e.description ILIKE '%' || COALESCE(:search, '') || '%'
-        OR e.actor_name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR e.event_type ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR e.event_category ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR e.description ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR e.actor_name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
     )
     AND (
         NULLIF(:organisation_id, '') IS NULL
