@@ -26,14 +26,14 @@ Fix the dependency or mapping error first. An exact redelivery of the stored req
 failed inbox. To schedule it manually:
 
 ```sql
-BEGIN;
-SELECT id, status FROM erru.xml_inbox WHERE id = :inbox_id FOR UPDATE;
-UPDATE erru.xml_inbox
-SET status = 'received', attempts = 0, next_attempt_at = NULL,
-    claimed_by = NULL, claimed_at = NULL, lease_expires_at = NULL
-WHERE id = :inbox_id AND status = 'failed';
-COMMIT;
+-- The inbox is append-only: the state is the newest erru.xml_inbox_event of the row, a reset is a new event.
+INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts)
+SELECT id, seq + 1, 'received', 0
+  FROM erru.xml_inbox_current
+ WHERE id = :inbox_id AND status = 'failed';
 ```
+
+The retry budget (`attempts`) starts again from 0; the unique index on `(inbox_id, seq)` refuses the insert if the row changed in the meantime. Conflicting redeliveries are listed in `erru.xml_inbox_conflict`.
 
 Only failed rows are reset. Do not steal a live processing lease. The periodic worker scan (the ruuter-internal
 cron `erru-xtr-async-requests` which picks up `received` rows that have a stored `request_json`) picks up

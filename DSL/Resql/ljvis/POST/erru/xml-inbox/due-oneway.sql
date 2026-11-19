@@ -14,7 +14,7 @@ SELECT json_build_object(
   'rawXml', raw_xml,
   'sha256', payload_digest
 )::text AS result
-  FROM erru.xml_inbox
+  FROM erru.xml_inbox_current
  WHERE message_type = ANY (string_to_array(:messageTypes, ','))
    AND request_json IS NOT NULL
    AND received_at < now() - interval '1 minute'
