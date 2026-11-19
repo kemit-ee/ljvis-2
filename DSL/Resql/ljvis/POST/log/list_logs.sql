@@ -74,10 +74,10 @@ FROM audit.audit_event e
 WHERE
     (
         COALESCE(:search, '') = ''
-        OR e.event_type ILIKE '%' || COALESCE(:search, '') || '%'
-        OR e.event_category ILIKE '%' || COALESCE(:search, '') || '%'
-        OR e.description ILIKE '%' || COALESCE(:search, '') || '%'
-        OR e.actor_name ILIKE '%' || COALESCE(:search, '') || '%'
+        OR e.event_type ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR e.event_category ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR e.description ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR e.actor_name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
     )
     AND (
         NULLIF(:organisation_id, '') IS NULL
@@ -93,5 +93,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'createdAt desc') = 'actorName asc'  THEN e.actor_name COLLATE "et-EE-x-icu" END ASC,
     CASE WHEN COALESCE(:sorting, 'createdAt desc') = 'actorName desc' THEN e.actor_name COLLATE "et-EE-x-icu" END DESC,
     e.created_at DESC
-LIMIT :page_size::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
+LIMIT LEAST(GREATEST(:page_size::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:page_size::INTEGER, 1), 100));

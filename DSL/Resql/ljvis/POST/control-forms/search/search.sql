@@ -196,11 +196,11 @@ WHERE
     AND (COALESCE(:form_type, '') = '' OR fs.form_type = :form_type)
     AND (COALESCE(:date_from, '') = '' OR fs.main_date >= :date_from::DATE)
     AND (COALESCE(:date_to, '') = '' OR fs.main_date <= :date_to::DATE)
-    AND (COALESCE(:form_number, '') = '' OR fs.form_number ILIKE '%' || trim(:form_number) || '%')
-    AND (COALESCE(:vehicle_reg_nr, '') = '' OR fs.vehicle_reg_nr ILIKE '%' || :vehicle_reg_nr || '%')
-    AND (COALESCE(:company_reg_code, '') = '' OR fs.company_reg_code ILIKE '%' || :company_reg_code || '%')
-    AND (COALESCE(:company_name, '') = '' OR fs.company_name ILIKE '%' || :company_name || '%')
-    AND (COALESCE(:driver, '') = '' OR fs.driver_search ILIKE '%' || lower(:driver) || '%')
+    AND (COALESCE(:form_number, '') = '' OR fs.form_number ILIKE '%' || trim(LEFT(:form_number, 100)) || '%')
+    AND (COALESCE(:vehicle_reg_nr, '') = '' OR fs.vehicle_reg_nr ILIKE '%' || LEFT(:vehicle_reg_nr, 100) || '%')
+    AND (COALESCE(:company_reg_code, '') = '' OR fs.company_reg_code ILIKE '%' || LEFT(:company_reg_code, 100) || '%')
+    AND (COALESCE(:company_name, '') = '' OR fs.company_name ILIKE '%' || LEFT(:company_name, 100) || '%')
+    AND (COALESCE(:driver, '') = '' OR fs.driver_search ILIKE '%' || lower(LEFT(:driver, 100)) || '%')
     AND (COALESCE(:county, '') = '' OR fs.county = :county)
     AND (COALESCE(:inspector_org_id, '') = '' OR fs.inspector_org_id = :inspector_org_id)
     AND (COALESCE(:has_violation, '') = '' OR fs.has_violation = :has_violation::BOOLEAN)
@@ -223,5 +223,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_type asc'      THEN fs.form_type END ASC,
     CASE WHEN COALESCE(:sorting, 'main_date desc') = 'form_type desc'     THEN fs.form_type END DESC,
     fs.main_date DESC, fs.created_at DESC
-LIMIT :page_size::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
+LIMIT LEAST(GREATEST(:page_size::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:page_size::INTEGER, 1), 100));

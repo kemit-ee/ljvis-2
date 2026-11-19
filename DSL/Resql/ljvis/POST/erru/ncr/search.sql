@@ -159,7 +159,7 @@ SELECT
   (COUNT(*) OVER ())::INTEGER                   AS total
 FROM flagged l
 WHERE
-  (COALESCE(:businessCaseId, '') = '' OR l.business_case_id ILIKE '%' || :businessCaseId || '%')
+  (COALESCE(:businessCaseId, '') = '' OR l.business_case_id ILIKE '%' || LEFT(:businessCaseId, 100) || '%')
   AND (COALESCE(:dateFrom, '') = '' OR l.event_at >= (:dateFrom)::DATE)
   -- upper bound is inclusive of the whole day
   AND (COALESCE(:dateUntil, '') = '' OR l.event_at < ((:dateUntil)::DATE + INTERVAL '1 day'))
@@ -197,5 +197,5 @@ ORDER BY
   CASE WHEN COALESCE(:sorting, 'attention') = 'handler_name desc'     THEN l.handler_name COLLATE "et-EE-x-icu" END DESC,
   -- deterministic tiebreaker: prevents LIMIT/OFFSET paging from repeating or skipping rows
   l.ncr_message_key DESC
-LIMIT  COALESCE(NULLIF(:page_size, ''), '20')::INTEGER
-OFFSET ((GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1) - 1) * COALESCE(NULLIF(:page_size, ''), '20')::INTEGER);
+LIMIT  LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100));

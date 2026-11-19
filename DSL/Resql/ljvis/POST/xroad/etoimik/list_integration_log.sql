@@ -144,6 +144,6 @@ WHERE (COALESCE(:all_services::BOOLEAN, false) OR service_code LIKE 'etoimik.%')
     )
   )
 ORDER BY created_at DESC
-LIMIT  COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER
-OFFSET ((GREATEST(COALESCE(NULLIF(:page::TEXT, ''), '1')::INTEGER, 1) - 1)
-         * COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER);
+LIMIT  LEAST(GREATEST(COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(COALESCE(NULLIF(:page::TEXT, ''), '1')::INTEGER, 1), 100000) - 1)
+         * LEAST(GREATEST(COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER, 1), 100));

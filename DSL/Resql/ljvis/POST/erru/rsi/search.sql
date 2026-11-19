@@ -122,8 +122,8 @@ WHERE
   -- When both are set → match either. Implemented as: (both-empty) OR (id match) OR (regNr match).
   (
     (COALESCE(:businessCaseId, '') = '' AND COALESCE(:vehicleRegistrationNumber, '') = '')
-    OR (COALESCE(:businessCaseId, '') <> '' AND l.business_case_id ILIKE '%' || :businessCaseId || '%')
-    OR (COALESCE(:vehicleRegistrationNumber, '') <> '' AND l.vehicle_registration_number ILIKE '%' || :vehicleRegistrationNumber || '%')
+    OR (COALESCE(:businessCaseId, '') <> '' AND l.business_case_id ILIKE '%' || LEFT(:businessCaseId, 100) || '%')
+    OR (COALESCE(:vehicleRegistrationNumber, '') <> '' AND l.vehicle_registration_number ILIKE '%' || LEFT(:vehicleRegistrationNumber, 100) || '%')
   )
   AND (COALESCE(:sentFrom, '') = '' OR l.sent_at >= (:sentFrom)::DATE)
   -- upper bound is inclusive of the whole day
@@ -148,5 +148,5 @@ ORDER BY
   CASE WHEN COALESCE(:sorting, 'sent_at desc') = 'handler_name desc'               THEN l.handler_name COLLATE "et-EE-x-icu" END DESC,
   -- deterministic tiebreaker: prevents LIMIT/OFFSET paging from repeating or skipping rows
   l.rsi_message_key DESC
-LIMIT  COALESCE(NULLIF(:page_size, ''), '20')::INTEGER
-OFFSET ((GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1) - 1) * COALESCE(NULLIF(:page_size, ''), '20')::INTEGER);
+LIMIT  LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100));

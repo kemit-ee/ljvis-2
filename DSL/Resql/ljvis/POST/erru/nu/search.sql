@@ -102,12 +102,12 @@ SELECT
   l.handler_name,
   (COUNT(*) OVER ())::INTEGER AS total
 FROM latest l
-WHERE (COALESCE(:businessCaseId, '') = '' OR l.business_case_id ILIKE '%' || :businessCaseId || '%')
+WHERE (COALESCE(:businessCaseId, '') = '' OR l.business_case_id ILIKE '%' || LEFT(:businessCaseId, 100) || '%')
   AND (COALESCE(:dateFrom, '') = '' OR l.message_date >= (:dateFrom)::DATE)
   AND (COALESCE(:dateUntil, '') = '' OR l.message_date < ((:dateUntil)::DATE + INTERVAL '1 day'))
   AND (COALESCE(:country, '') = '' OR l.country_code = :country)
-  AND (COALESCE(:tmFirstName, '') = '' OR l.tm_first_name ILIKE '%' || :tmFirstName || '%')
-  AND (COALESCE(:tmFamilyName, '') = '' OR l.tm_family_name ILIKE '%' || :tmFamilyName || '%')
+  AND (COALESCE(:tmFirstName, '') = '' OR l.tm_first_name ILIKE '%' || LEFT(:tmFirstName, 100) || '%')
+  AND (COALESCE(:tmFamilyName, '') = '' OR l.tm_family_name ILIKE '%' || LEFT(:tmFamilyName, 100) || '%')
   AND (COALESCE(:handlerPersonalCode, '') = '' OR l.handler_personal_code = :handlerPersonalCode)
   AND (COALESCE(:status, '') = '' OR l.status = :status)
   AND (COALESCE(:direction, '') = '' OR l.direction = :direction)
@@ -129,5 +129,5 @@ ORDER BY
   CASE WHEN COALESCE(:sorting, 'message_date desc') = 'status asc'           THEN l.status END ASC,
   CASE WHEN COALESCE(:sorting, 'message_date desc') = 'status desc'          THEN l.status END DESC,
   l.nu_message_key DESC
-LIMIT  COALESCE(NULLIF(:page_size, ''), '20')::INTEGER
-OFFSET ((GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1) - 1) * COALESCE(NULLIF(:page_size, ''), '20')::INTEGER);
+LIMIT  LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(COALESCE(NULLIF(:page, ''), '1')::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(COALESCE(NULLIF(:page_size, ''), '20')::INTEGER, 1), 100));

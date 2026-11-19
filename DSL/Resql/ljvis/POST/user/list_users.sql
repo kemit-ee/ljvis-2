@@ -113,10 +113,10 @@ WHERE
     (:organisation_id IS NULL OR l.organisation_id = :organisation_id)
     AND (
         COALESCE(:search, '') = ''
-        OR l.first_name ILIKE '%' || COALESCE(:search, '') || '%'
-        OR l.last_name  ILIKE '%' || COALESCE(:search, '') || '%'
-        OR l.personal_code ILIKE '%' || COALESCE(:search, '') || '%'
-        OR (l.first_name || ' ' || l.last_name) ILIKE '%' || COALESCE(:search, '') || '%'
+        OR l.first_name ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR l.last_name  ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR l.personal_code ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
+        OR (l.first_name || ' ' || l.last_name) ILIKE '%' || COALESCE(LEFT(:search, 100), '') || '%'
     )
 ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'status asc'            THEN l.status           END ASC,
@@ -128,5 +128,5 @@ ORDER BY
     CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name asc'  THEN l.organisation_name COLLATE "et-EE-x-icu" END ASC,
     CASE WHEN COALESCE(:sorting, 'status asc') = 'organisation_name desc' THEN l.organisation_name COLLATE "et-EE-x-icu" END DESC,
     l.first_name COLLATE "et-EE-x-icu" ASC
-LIMIT :page_size::INTEGER
-OFFSET ((GREATEST(:page::INTEGER, 1) - 1) * :page_size::INTEGER);
+LIMIT LEAST(GREATEST(:page_size::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(:page::INTEGER, 1), 100000) - 1) * LEAST(GREATEST(:page_size::INTEGER, 1), 100));

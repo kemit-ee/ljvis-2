@@ -2,6 +2,13 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-19
+
+### Turvalisus: loendi- ja otsingupäringute koormuse piiramine
+
+- Loendite ja otsingute lehekülje suurus on nüüd piiratud: tavaliselt kuni 100 rida (grupi kasutajate loend kuni 1000), vähemalt 1. Lehekülje number on piiratud 100 000-ga. Varem sai väga suure `pageSize` väärtusega päringuga laadida terve tabeli ja rakenduse tööd aeglustada.
+- Tekstiotsingute (nt vormi number, ettevõtte nimi, vabatekst) sisendist arvestatakse kuni 100 esimest märki.
+
 ## 2026-11-17
 
 ### Parandus: alamvormide numbrid ei kattu enam

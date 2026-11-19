@@ -57,7 +57,7 @@ WITH cur AS (
   -- literaalne (e-posti aadressides on '_' tavaline)
   AND (NULLIF(:recipient, '') IS NULL
        OR ol.recipient_address ILIKE '%' ||
-          replace(replace(replace(:recipient, '\', '\\'), '%', '\%'), '_', '\_')
+          replace(replace(replace(LEFT(:recipient, 100), '\', '\\'), '%', '\%'), '_', '\_')
           || '%' ESCAPE '\')
   AND (NULLIF(:notification_key, '') IS NULL OR ol.notification_key = :notification_key)
   AND (NULLIF(:related_entity_type, '') IS NULL OR ol.related_entity_type = :related_entity_type)
@@ -107,6 +107,6 @@ ORDER BY
     CASE WHEN COALESCE(NULLIF(:sort_by, ''), 'send_date') = 'send_date'
               AND COALESCE(NULLIF(:sort_dir, ''), 'desc') = 'desc' THEN e.send_date END DESC,
     e.send_date DESC
-LIMIT  COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER
-OFFSET ((GREATEST(COALESCE(NULLIF(:page::TEXT, ''), '1')::INTEGER, 1) - 1)
-         * COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER);
+LIMIT  LEAST(GREATEST(COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER, 1), 100)
+OFFSET ((LEAST(GREATEST(COALESCE(NULLIF(:page::TEXT, ''), '1')::INTEGER, 1), 100000) - 1)
+         * LEAST(GREATEST(COALESCE(NULLIF(:page_size::TEXT, ''), '20')::INTEGER, 1), 100));
