@@ -138,41 +138,20 @@ storeNysiisKeys:
 prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
-  next: validateXml
+  next: xtrPreflight
 
-validateXml:
-  call: http.post
-  error: returnValidationUnavailable
-  args:
-    url: "[#ERRU_XML_ADAPTER]/internal/cgr/validate"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      cgrTo: ${cgr_to}
-      businessCaseId: ${business_case_id}
-      originatingAuthority: ${originating_authority}
-      requestSource: ${request_source}
-      requestPurpose: ${request_purpose}
-      tmFirstName: ${tm_first_name}
-      tmFamilyName: ${tm_family_name}
-      tmDateOfBirth: ${tm_date_of_birth}
-      tmPlaceOfBirth: ${tm_place_of_birth}
-      tmFirstNameSearchKey: ${tm_first_name_search_key}
-      tmFamilyNameSearchKey: ${tm_family_name_search_key}
-      certificateNumber: ${certificate_number}
-      certificateIssueDate: ${certificate_issue_date}
-      certificateIssueCountry: ${certificate_issue_country}
-  result: xml_validation
-  next: checkXmlValidation
-
-checkXmlValidation:
+# XTR validates against the XSD only in report/enforce mode; keep refusing what the Java builder refused.
+xtrPreflight:
   switch:
-    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+    - condition: ${!cgr_to || !business_case_id || !originating_authority || !request_source || !request_purpose}
       next: returnInvalidXml
-    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
-      next: reserveSend
-  next: returnValidationUnavailable
+    - condition: ${!tm_first_name && !tm_family_name && !tm_date_of_birth && !certificate_number && !certificate_issue_date && !certificate_issue_country}
+      next: returnInvalidXml
+    - condition: ${(!!tm_first_name || !!tm_family_name || !!tm_date_of_birth) && (!tm_first_name || !tm_family_name || !tm_date_of_birth)}
+      next: returnInvalidXml
+    - condition: ${(!!certificate_number || !!certificate_issue_date || !!certificate_issue_country) && (!certificate_number || !certificate_issue_date || !certificate_issue_country)}
+      next: returnInvalidXml
+  next: reserveSend
 
 reserveSend:
   call: http.post
@@ -202,44 +181,60 @@ extractEnvelope:
     technical_id: "${reservation.response.body[0].technicalId}"
     workflow_id: "${reservation.response.body[0].workflowId}"
     sent_at: "${reservation.response.body[0].sentAt}"
-  next: callErru
+  next: composeXtrNameRaw
 
-callErru:
+composeXtrNameRaw:
+  assign:
+    xtr_name_raw: "${{'@firstName': tm_first_name, '@familyName': tm_family_name, '@dateOfBirth': String(tm_date_of_birth).substring(0, 10), '@placeOfBirth': tm_place_of_birth, '@familyNameSearchKey': tm_family_name_search_key, '@firstNameSearchKey': tm_first_name_search_key}}"
+  next: composeXtrName
+
+composeXtrName:
+  assign:
+    xtr_name: "${Object.keys(xtr_name_raw).filter(function(k) { return xtr_name_raw[k] !== ''; }).reduce(function(a, k) { a[k] = xtr_name_raw[k]; return a; }, {})}"
+  next: composeXtrCertRaw
+
+composeXtrCertRaw:
+  assign:
+    xtr_cert_raw: "${{'@certificateNumber': certificate_number, '@certificateIssueDate': String(certificate_issue_date).substring(0, 10), '@certificateIssueCountry': certificate_issue_country}}"
+  next: composeXtrCert
+
+composeXtrCert:
+  assign:
+    xtr_cert: "${Object.keys(xtr_cert_raw).filter(function(k) { return xtr_cert_raw[k] !== ''; }).reduce(function(a, k) { a[k] = xtr_cert_raw[k]; return a; }, {})}"
+  next: composeXtrSearched
+
+composeXtrSearched:
+  assign:
+    xtr_searched: "${Object.assign({}, (!!tm_first_name || !!tm_family_name || !!tm_date_of_birth) ? {'TransportManagerNameDetails': xtr_name} : {}, !!certificate_number ? {'TransportManagerCertificateDetails': xtr_cert} : {})}"
+  next: composeXtrBody
+
+composeXtrBody:
+  assign:
+    xtr_body: "${{'Header': {'@version': '3.5', '@technicalId': technical_id, '@workflowId': workflow_id, '@sentAt': new Date(String(sent_at).replace(' ', 'T')).toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': cgr_to}, 'Body': Object.assign({'@businessCaseId': business_case_id, '@originatingAuthority': originating_authority, '@requestSource': request_source, '@requestPurpose': request_purpose}, {'SearchedTransportManager': xtr_searched})}}"
+  next: callErruXtr
+
+callErruXtr:
   call: http.post
   error: markUnknown
   args:
-    url: "[#ERRU_XML_ADAPTER]/internal/cgr/send"
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/CheckGoodRepute_Request'}"
     headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
-    body:
-      cgrTo: ${cgr_to}
-      businessCaseId: ${business_case_id}
-      technicalId: ${technical_id}
-      workflowId: ${workflow_id}
-      sentAt: ${sent_at}
-      originatingAuthority: ${originating_authority}
-      requestSource: ${request_source}
-      requestPurpose: ${request_purpose}
-      tmFirstName: ${tm_first_name}
-      tmFamilyName: ${tm_family_name}
-      tmDateOfBirth: ${tm_date_of_birth}
-      tmPlaceOfBirth: ${tm_place_of_birth}
-      tmFirstNameSearchKey: ${tm_first_name_search_key}
-      tmFamilyNameSearchKey: ${tm_family_name_search_key}
-      certificateNumber: ${certificate_number}
-      certificateIssueDate: ${certificate_issue_date}
-      certificateIssueCountry: ${certificate_issue_country}
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
+    body: ${xtr_body}
   result: erru_res
-  next: checkErruStatus
+  timeout: 30000
+  next: checkXtrStatus
 
-checkErruStatus:
+# XTR raw-XML lane: HTTP 200 carries the Hub's own HTTP status in body.status. Hub 202 = accepted; another 4xx
+# (or XTR's own 422 schema_invalid, nothing sent) is a definite refusal; everything else is unknown, never resent.
+checkXtrStatus:
   switch:
     - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
       next: markUnknown
-    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === technical_id && erru_res.response.body.workflowId === workflow_id}
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 202}
       next: logIntegrationSuccess
-    - condition: ${erru_res.response.body.status === 'rejected'}
+    - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422 || erru_res.response.status === 401 || erru_res.response.status === 404 || erru_res.response.status === 400 || erru_res.response.status === 413}
       next: logIntegrationFailure
   next: markUnknown
 
@@ -432,11 +427,6 @@ returnFinalizeFailed:
 returnInvalidXml:
   status: 422
   return: '{"valid":false,"code":"invalid_cgr_xml","message":"CGR data does not satisfy the ERRU 3.5 XML contract. Check the name, date of birth and certificate details."}'
-  next: end
-
-returnValidationUnavailable:
-  status: 503
-  return: '{"valid":false,"code":"validation_unavailable","message":"CGR XML validation is unavailable. The draft was not sent."}'
   next: end
 
 returnIdRequired:

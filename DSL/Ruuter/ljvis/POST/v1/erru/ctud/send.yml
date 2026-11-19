@@ -73,37 +73,20 @@ checkSendable:
 prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
-  next: validateXml
+  next: xtrPreflight
 
-validateXml:
-  call: http.post
-  error: returnValidationUnavailable
-  args:
-    url: "[#ERRU_XML_ADAPTER]/internal/ctud/validate"
-    headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
-      type: json
-    body:
-      ctudTo: ${ctud_to}
-      businessCaseId: ${business_case_id}
-      originatingAuthority: ${originating_authority}
-      requestSource: ${request_source}
-      requestPurpose: ${request_purpose}
-      transportUndertakingName: ${undertaking_name}
-      communityLicenceNumber: ${licence_number}
-      vehicleRegistrationNumber: ${vehicle_number}
-      vehicleRegistrationCountry: ${vehicle_registration_country}
-      requestAllVehicles: ${all_vehicles}
-  result: xml_validation
-  next: checkXmlValidation
-
-checkXmlValidation:
+# XTR validates against the XSD only in report/enforce mode; keep refusing what the Java builder refused.
+xtrPreflight:
   switch:
-    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+    - condition: ${!ctud_to || !business_case_id || !originating_authority || !request_source || !request_purpose}
       next: returnInvalidXml
-    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
-      next: reserveSend
-  next: returnValidationUnavailable
+    - condition: ${all_vehicles !== 'true' && all_vehicles !== 'false'}
+      next: returnInvalidXml
+    - condition: ${(!!vehicle_number || !!vehicle_registration_country) && (!vehicle_number || !vehicle_registration_country)}
+      next: returnInvalidXml
+    - condition: ${[!!undertaking_name, !!licence_number, !!vehicle_number].filter(function(b) { return b; }).length < 2}
+      next: returnInvalidXml
+  next: reserveSend
 
 reserveSend:
   call: http.post
@@ -130,40 +113,45 @@ extractEnvelope:
     technical_id: "${reservation.response.body[0].technicalId}"
     workflow_id: "${reservation.response.body[0].workflowId}"
     sent_at: "${reservation.response.body[0].sentAt}"
-  next: callErru
+  next: composeXtrElement
 
-callErru:
+composeXtrElement:
+  assign:
+    xtr_element: "${(!!undertaking_name && !!licence_number) ? 'SearchByLicenceAndName' : (!!licence_number ? 'SearchByLicenceAndVehicle' : 'SearchByNameAndVehicle')}"
+  next: composeXtrSearch
+
+composeXtrSearch:
+  assign:
+    xtr_search: "${Object.assign({}, !!undertaking_name ? {'@transportUndertakingName': undertaking_name} : {}, !!licence_number ? {'@communityLicenceNumber': licence_number} : {}, !!vehicle_number ? {'Vehicle': {'@vehicleRegistrationNumber': vehicle_number, '@vehicleRegistrationCountry': vehicle_registration_country}} : {})}"
+  next: composeXtrBody
+
+composeXtrBody:
+  assign:
+    xtr_body: "${{'Header': {'@version': '3.5', '@technicalId': technical_id, '@workflowId': workflow_id, '@sentAt': new Date(String(sent_at).replace(' ', 'T')).toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': ctud_to}, 'Body': Object.assign({'@businessCaseId': business_case_id, '@originatingAuthority': originating_authority, '@requestSource': request_source, '@requestPurpose': request_purpose}, {'SearchedCompany': {'@requestAllVehicles': all_vehicles, [xtr_element]: xtr_search}})}}"
+  next: callErruXtr
+
+callErruXtr:
   call: http.post
   error: markUnknown
   args:
-    url: "[#ERRU_XML_ADAPTER]/internal/ctud/send"
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/CheckTransportUndertakingData_Request'}"
     headers:
-      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
       type: json
-    body:
-      technicalId: ${technical_id}
-      workflowId: ${workflow_id}
-      sentAt: ${sent_at}
-      ctudTo: ${ctud_to}
-      businessCaseId: ${business_case_id}
-      originatingAuthority: ${originating_authority}
-      requestSource: ${request_source}
-      requestPurpose: ${request_purpose}
-      transportUndertakingName: ${undertaking_name}
-      communityLicenceNumber: ${licence_number}
-      vehicleRegistrationNumber: ${vehicle_number}
-      vehicleRegistrationCountry: ${vehicle_registration_country}
-      requestAllVehicles: ${all_vehicles}
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
+    body: ${xtr_body}
   result: erru_res
-  next: checkErruStatus
+  timeout: 30000
+  next: checkXtrStatus
 
-checkErruStatus:
+# XTR raw-XML lane: HTTP 200 carries the Hub's own HTTP status in body.status. Hub 202 = accepted; another 4xx
+# (or XTR's own 422 schema_invalid, nothing sent) is a definite refusal; everything else is unknown, never resent.
+checkXtrStatus:
   switch:
     - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
       next: markUnknown
-    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === technical_id && erru_res.response.body.workflowId === workflow_id}
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 202}
       next: logIntegrationSuccess
-    - condition: ${erru_res.response.body.status === 'rejected'}
+    - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422 || erru_res.response.status === 401 || erru_res.response.status === 404 || erru_res.response.status === 400 || erru_res.response.status === 413}
       next: logIntegrationFailure
   next: markUnknown
 
@@ -365,11 +353,6 @@ returnFinalizeFailed:
 returnInvalidXml:
   status: 422
   return: '{"type":"VALIDATION_ERROR","code":"invalid_ctud_xml","message":"Andmed ei vasta ERRU XML-lepingule. Vähemalt kaks otsingukriteeriumi on kohustuslikud ning sõidukil peab olema number ja riik."}'
-  next: end
-
-returnValidationUnavailable:
-  status: 503
-  return: '{"type":"ERRU_ERROR","code":"validation_unavailable","message":"CTUD XML-i kontroll pole saadaval. Päringut ei saadetud."}'
   next: end
 
 returnNotSendable:

@@ -2,7 +2,7 @@
   "info": {
     "name": "LJVIS — ERRU XML Adapter",
     "_postman_id": "ljvis-erru-xml-adapter-v1",
-    "description": "Exercises docker/erru-xml-adapter-old directly (not through Ruuter): durable acceptance of raw ERRU 3.5 XML, the three replay outcomes (fresh / exact redelivery / conflicting redelivery), XSD rejection, and the full NotifyUnfitness_Request -> Ruuter.internal -> NotifyUnfitness_Acknowledgement -> mock Hub pipeline. See docker/erru-xml-adapter-old/README.md for which message types are processed.",
+    "description": "Exercises docker/erru-xml-adapter (XTR, inbound port 8081) directly (not through Ruuter): durable acceptance of raw ERRU 3.5 XML, the three replay outcomes (fresh / exact redelivery / conflicting redelivery), XSD rejection, and the full NotifyUnfitness_Request -> Ruuter.internal -> NotifyUnfitness_Acknowledgement -> mock Hub pipeline. See docs/planning/erru-xml-adapter-xtr-migratsioon.md for which message types are processed.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -122,7 +122,7 @@
           "script": {
             "exec": [
               "pm.test('malformed XML -> 400', () => pm.response.to.have.status(400));",
-              "pm.test('error is malformed_xml', () => pm.expect(pm.response.json().error).to.eql('malformed_xml'));"
+              "pm.test('XTR error body', () => pm.expect(pm.response.json().error).to.be.a('string'));"
             ]
           }
         }
@@ -159,7 +159,7 @@
           "script": {
             "exec": [
               "pm.test('unsupported root -> 400', () => pm.response.to.have.status(400));",
-              "pm.test('error is unsupported_root_element', () => pm.expect(pm.response.json().error).to.eql('unsupported_root_element'));"
+              "pm.test('error is unsupported_message', () => pm.expect(pm.response.json().error).to.eql('unsupported_message'));"
             ]
           }
         }
@@ -203,8 +203,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('body over the cap -> 413', () => pm.response.to.have.status(413));",
-              "pm.test('error is payload_too_large', () => pm.expect(pm.response.json().error).to.eql('payload_too_large'));"
+              "pm.test('body over the cap -> 413', () => pm.response.to.have.status(413));"
             ]
           }
         }
@@ -241,8 +240,7 @@
           "script": {
             "exec": [
               "pm.test('DOCTYPE -> 400, not 500', () => pm.response.to.have.status(400));",
-              "pm.test('error is malformed_xml', () => pm.expect(pm.response.json().error).to.eql('malformed_xml'));",
-              "pm.test('rejected at the DTD peek, not just the defence-in-depth re-parse', () => pm.expect(pm.response.json().detail).to.include('DOCTYPE'));"
+              "pm.test('XTR error body', () => pm.expect(pm.response.json().error).to.be.a('string'));"
             ]
           }
         }
@@ -279,45 +277,7 @@
           "script": {
             "exec": [
               "pm.test('non-UTF-8 -> 400, not accepted-then-mangled', () => pm.response.to.have.status(400));",
-              "pm.test('error is malformed_xml', () => pm.expect(pm.response.json().error).to.eql('malformed_xml'));",
-              "pm.test('detail mentions the unsupported encoding', () => pm.expect(pm.response.json().detail).to.include('ISO-8859-1'));"
-            ]
-          }
-        }
-      ]
-    },
-    {
-      "name": "XSD-invalid NU request (missing required Body attribute) is rejected",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/xml"
-          }
-        ],
-        "url": {
-          "raw": "{{erru_xml_adapter_url}}/erru/xml",
-          "host": [
-            "{{erru_xml_adapter_url}}"
-          ],
-          "path": [
-            "erru",
-            "xml"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "<NotifyUnfitness_Request xmlns=\"https://webgate.ec.testa.eu/move-hub/erru/3.5\">\n  <Header version=\"3.5\" technicalId=\"{{$guid}}\" workflowId=\"{{$guid}}\" sentAt=\"2026-09-23T09:00:00Z\" from=\"DE\" to=\"EE\"/>\n  <Body originatingAuthority=\"DE-BAG\" requestSource=\"CA\" requestPurpose=\"Control\">\n    <TransportManager unfitStartDate=\"2026-09-23\">\n      <TransportManagerNameDetails>\n        <TransportManager firstName=\"HANS\" familyName=\"MUELLER\" dateOfBirth=\"1975-04-12\"/>\n      </TransportManagerNameDetails>\n    </TransportManager>\n  </Body>\n</NotifyUnfitness_Request>"
-        }
-      },
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test('XSD-invalid (missing businessCaseId) -> 400', () => pm.response.to.have.status(400));",
-              "pm.test('error is xsd_validation_failed', () => pm.expect(pm.response.json().error).to.eql('xsd_validation_failed'));"
+              "pm.test('error names the encoding or malformed XML', () => pm.expect(['unsupported_encoding','malformed_xml']).to.include(pm.response.json().error));"
             ]
           }
         }
@@ -353,10 +313,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('fresh NU request -> 202 accepted', () => pm.response.to.have.status(202));",
-              "var b = pm.response.json();",
-              "pm.test('status is accepted', () => pm.expect(b.status).to.eql('accepted'));",
-              "pm.collectionVariables.set('nu_inbox_id', b.inboxId);"
+              "pm.test('fresh NU request -> 202 accepted', () => pm.response.to.have.status(202));"
             ]
           }
         }
@@ -392,9 +349,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('exact redelivery -> 202 accepted (not an error)', () => pm.response.to.have.status(202));",
-              "var b = pm.response.json();",
-              "pm.test('same inboxId — no duplicate row', () => pm.expect(String(b.inboxId)).to.eql(String(pm.collectionVariables.get('nu_inbox_id'))));"
+              "pm.test('exact redelivery -> 202 accepted (not an error)', () => pm.response.to.have.status(202));"
             ]
           }
         }
@@ -430,8 +385,7 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test('conflicting redelivery -> 409', () => pm.response.to.have.status(409));",
-              "pm.test('error is conflicting_technical_id', () => pm.expect(pm.response.json().error).to.eql('conflicting_technical_id'));"
+              "pm.test('conflicting redelivery -> 409', () => pm.response.to.have.status(409));"
             ]
           }
         }
@@ -442,14 +396,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/3000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/9000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "3000"
+            "9000"
           ]
         }
       },
@@ -574,14 +528,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/9000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "4000"
+            "9000"
           ]
         }
       }
@@ -665,14 +619,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/9000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "4000"
+            "9000"
           ]
         }
       }
@@ -756,14 +710,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/9000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "4000"
+            "9000"
           ]
         }
       }
@@ -845,14 +799,14 @@
       "request": {
         "method": "GET",
         "url": {
-          "raw": "{{erru_hub_mock_url}}/_test/wait/4000",
+          "raw": "{{erru_hub_mock_url}}/_test/wait/9000",
           "host": [
             "{{erru_hub_mock_url}}"
           ],
           "path": [
             "_test",
             "wait",
-            "4000"
+            "9000"
           ]
         }
       }

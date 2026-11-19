@@ -1,0 +1,69 @@
+# ERRU MOVEHUB 3.5 toor-XML lane (XTR >= 0.6.0-rc, docs: book/src/xml-lanes.md).
+# Plaan: docs/planning/erru-xml-adapter-xtr-migratsioon.md. XSD-d tuleb contracts/erru/3.5-st (Dockerfile).
+# Lane = /xml-out/erru/erru/<Message> (Ruuter -> Hub) ja /xml-in/erru/erru/<Message> + alias /erru/xml (Hub -> meie).
+# Per-keskkonna URL-id (outbound.url, messages.X.url, inbound.backend/forward) tulevad chart'i ConfigMap'ist
+# ja asendavad selle dev/CI vaikimisi koopia.
+schemas:
+  - CheckTransportUndertakingData_Request.xsd
+  - CheckTransportUndertakingData_Response.xsd
+  - CheckGoodRepute_Request.xsd
+  - CheckGoodRepute_Response.xsd
+  - NotifyCheckResult_Request.xsd
+  - NotifyCheckResult_Response.xsd
+  - NotifyCheckResult_Acknowledgement.xsd
+  - NotifyUnfitness_Request.xsd
+  - NotifyUnfitness_Acknowledgement.xsd
+  - RoadSideInspection_Request.xsd
+  - RoadSideInspection_Response.xsd
+  - ErrorNotification.xsd
+
+# Sissetulev (Hub -> meie): kõik sõnumid lähevad `inbound.backend`-ile (Ruuter). Väljaminev: Hubi päringu-URL tüübi kaupa, vastused/kinnitused
+# ja ErrorNotification Hubi ühele vastuse-URL-ile (Message Reference 5.3.1).
+messages:
+  CheckTransportUndertakingData_Request:
+    url: http://erru-hub-mock:8080/ctud/http/request/BTSHTTPReceive.dll
+  CheckTransportUndertakingData_Response:
+    url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+  CheckGoodRepute_Request:
+    url: http://erru-hub-mock:8080/cgr/http/request/BTSHTTPReceive.dll
+  CheckGoodRepute_Response:
+    url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+  NotifyCheckResult_Request:
+    url: http://erru-hub-mock:8080/ncr/http/request/BTSHTTPReceive.dll
+  NotifyCheckResult_Response:
+    url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+  NotifyCheckResult_Acknowledgement:
+    url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+  NotifyUnfitness_Request:
+    url: http://erru-hub-mock:8080/nu/http/request/BTSHTTPReceive.dll
+  NotifyUnfitness_Acknowledgement:
+    url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+  RoadSideInspection_Request:
+    url: http://erru-hub-mock:8080/rsi/http/request/BTSHTTPReceive.dll
+  RoadSideInspection_Response:
+    url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+  ErrorNotification:
+    url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+
+inbound:
+  # One-way messages (acknowledgements and responses): durable accept + mapping in ruuter-internal
+  # (DSL/Ruuter.internal/.../erru/xtr/inbound/<Message>.yml). Requests are moving over one type at a time (stage 5): NU, NCR and RSI are handled by
+  # .../erru/xtr/inbound/<Message> (sync: accept -> /erru/<flow>/inbound-request -> answer via /xml-out); CGR/CTUD are accepted
+  # there (202) and answered by cron/erru-xtr-async-requests -> .../erru/xtr/worker/<Message>.
+  # ErrorNotification (Hub rejected / could not correlate one of our messages) is recorded by .../erru/xtr/inbound/ErrorNotification.
+  backend: http://ruuter-internal:8080/ljvis/erru/xtr/inbound
+  backend_headers_env:
+    x-internal-service-token: XTR_BACKEND_HEADER_ERRU   # ruuter-internal guard (INTERNAL_COMMUNICATION_KEY)
+  path: /erru/xml            # sama tee mis vanal adapteril: stesta-gateway ei vaja muudatust
+  success_status: 202
+  include_raw: true
+
+outbound:
+  url: http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+  timeout_secs: 20           # ERRU: algataja 20 s; täpsem per-sõnum väärtus lisandub etapis 5
+  content_type: application/xml; charset=utf-8
+
+# Rollout: report -> enforce alles pärast Xerces-diferentsiaalteste ja reaalset liiklust (XTR book: xml-lanes.md).
+validate:
+  inbound: report
+  outbound: enforce          # meie enda koostatud XML: skeemi-vigane ei lähe Hubile (422 schema_invalid -> rida failed); golden/stack kinnitavad, et korrektne XML läbib
