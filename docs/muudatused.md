@@ -4,6 +4,12 @@
 
 ## 2026-11-23
 
+### Ettevõtja töölaud: tekstid ja kontrollide tabel
+
+- Riskitaseme lause on nüüd „Riskitase arvutatud ajavahemikus pp.kk.aaaa–pp.kk.aaaa toimunud kontrollide tulemuste põhjal“.
+- Kontrollide tabelis on veerud „Kontrolli andmevormi number“, „Kontrolli kuupäev“ (kujul pp.kk.aaaa) ning „MSI/VSI/SI/MI rikkumiste arv“. Veerg „Kaalutud punktid“ on eemaldatud.
+- Rikkumiste veergude infoikoon on nüüd nupp, mille selgitus avaneb ka klõpsuga: MSI – kõige raskem, VSI – väga raske, SI – raske, MI – kergem rikkumine.
+
 ### SP-kontrollkaardi rikkumiste koodid ja massi koodid ERRU-sse
 
 - SP-kontrollkaardi (autojuht, meeskonna liige, TRAM-kaart) raskete rikkumiste koodid vastavad nüüd ERRU koodidele: nt art 8 lg 6b `VSI865`, art 8 lg 8 `VSI866`, art 5 lg 1 `SI900`, art 3 `MSI201`, art 23 lg 1 `VSI817`, art 32 lg 3 `MSI202`, art 34 lg 5 p b alap v `SI948`, art 34 lg 6 `VSI868`, art 34 lg 7 `SI949`/`SI950`, art 36 `VSI829`/`VSI832`/`VSI833`, art 37 lg 1 `VSI834`, Rooma I `VSI874`. Raskusaste on alati koodi eesliide. Varem kasutasid need rikkumised massi, pikkuse ja laiuse koode (nt `VSI843`, `SI922`) või kohatäitjat `MI`. Salvestatud vormid viiakse uutele koodidele.

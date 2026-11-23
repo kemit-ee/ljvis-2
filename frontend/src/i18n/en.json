@@ -309,7 +309,7 @@
       "time": "Time",
       "vehicle": "Vehicle",
       "driverCompany": "Driver / Company",
-      "formNumber": "Form",
+      "formNumber": "Control data form number",
       "formType": "Name",
       "status": "Status",
       "published": "Published"
@@ -1275,7 +1275,7 @@
       "title": "My company",
       "formType": "Form type",
       "formNumber": "Form number",
-      "mainDate": "Date",
+      "mainDate": "Control date",
       "vehicleRegNr": "Vehicle reg. no",
       "hasViolation": "Violation",
       "yes": "Yes",
@@ -1337,7 +1337,7 @@
       "protocolsTitle": "My protocols",
       "protocolsSubtitle": "Forms where you are a party (driver, sanctioned person, or subject of a good-repute check).",
       "company": {
-        "riskWindow": "Risk level assessed for the period {{start}}–{{end}}",
+        "riskWindow": "Risk level calculated based on the results of controls carried out in the period {{start}}–{{end}}",
         "totalControls": "Number of controls: {{count}}",
         "hideControls": "Hide controls",
         "viewControls": "View controls"
@@ -1346,16 +1346,14 @@
         "formNumber": "Form number",
         "mainDate": "Date",
         "vehicleRegNr": "Vehicle reg. no",
-        "msi": "Most serious",
+        "msi": "Number of MSI infringements",
         "msiTooltip": "MSI – Most Serious Infringement, e.g. tachograph fraud or a missing tachograph, no speed limiter.",
-        "vsi": "Very serious",
+        "vsi": "Number of VSI infringements",
         "vsiTooltip": "VSI – Very Serious Infringement, e.g. a large excess of driving or rest time limits.",
-        "si": "Serious",
+        "si": "Number of SI infringements",
         "siTooltip": "SI – Serious Infringement, e.g. a smaller excess of driving or rest time limits.",
-        "mi": "Minor",
+        "mi": "Number of MI infringements",
         "miTooltip": "MI – Minor Infringement, e.g. formal shortcomings in filling out documents.",
-        "weightedPoints": "Weighted points",
-        "weightedPointsTooltip": "Risk points for the control, calculated from infringement severity (most serious infringements score highest, minor ones lowest).",
         "view": "View"
       }
     },
