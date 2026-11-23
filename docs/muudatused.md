@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-24
+
+### Välisriigi rikkumise soovitatud meede: ühine kaardistus
+
+- Välisriigi taotletud karistuse (ERRU kood) põhjal tuletatud soovitatud meede arvutatakse nüüd ametniku vormil ja ettevõtja vaates ühe ja sama kaardistusega, nii et mõlemad näitavad alati sama meedet. Kasutajale nähtavat muudatust ei ole.
+
 ## 2026-11-23
 
 ### Ettevõtja töölaud: tekstid ja kontrollide tabel

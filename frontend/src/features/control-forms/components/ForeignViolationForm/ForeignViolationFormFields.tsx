@@ -24,6 +24,7 @@ import {
   EU_VIOLATION_GROUPS,
   FOREIGN_VIOLATION_SANCTION_OPTIONS,
   FOREIGN_VIOLATION_RECOMMENDED_MEASURE_OPTIONS,
+  effectiveRecommendedMeasures,
 } from '../../../../constants/constants';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { XRoadCompany, XRoadAssociatedPerson } from '../../../xroad/types';
@@ -142,30 +143,6 @@ export function ForeignViolationFormFields({
         {t('forms.foreign_violation.sanctionBasicInfo')}
       </strong>
     );
-  };
-
-  // Välisriigi taotletud karistused (ERRU penaltyTypeRequested) -> soovitatud
-  // meetme valik. Taotlus puudub => "Puuduvad".
-  const REQUESTED_TO_MEASURE: Record<string, string> = {
-    '101': 'HOIATUS',
-    '301': 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE',
-    '302': 'MUU',
-    '303': 'MUU',
-    '304': 'TEGEVUSLUBA_KEHTETUKS',
-    '305': 'JUHITUNNISTUSEST_KEELDUMINE',
-    '306': 'JUHITUNNISTUS_KEHTETUKS',
-    '307': 'MUU',
-    '102': 'MUU',
-  };
-  const effectiveMeasures = (v: ForeignViolationFormViolation): string[] => {
-    if (v.recommendedMeasureCode) return [v.recommendedMeasureCode];
-    const mapped = Array.from(
-      new Set(
-        (v.requestedPenaltyCodes ?? [])
-          .map((c) => REQUESTED_TO_MEASURE[c] ?? 'MUU'),
-      ),
-    );
-    return mapped.length > 0 ? mapped : ['PUUDUVAD'];
   };
 
   const euViolationGroups = EU_VIOLATION_GROUPS.map((group) => ({
@@ -1174,7 +1151,7 @@ export function ForeignViolationFormFields({
                             label={t(
                               'forms.foreign_violation.recommendedMeasureCode',
                             )}
-                            value={effectiveMeasures(violation)}
+                            value={effectiveRecommendedMeasures(violation)}
                             items={recommendedMeasureOptions.map((opt) => ({
                               id: `violationMeasure_${violation.code}_${opt.value}`,
                               label: t(opt.labelKey),
@@ -1186,7 +1163,7 @@ export function ForeignViolationFormFields({
                               const next = (Array.isArray(val) ? val : [val]).filter(
                                 (x): x is string => typeof x === 'string',
                               );
-                              const current = effectiveMeasures(violation);
+                              const current = effectiveRecommendedMeasures(violation);
                               const added = next.filter(
                                 (x) => !current.includes(x),
                               );
