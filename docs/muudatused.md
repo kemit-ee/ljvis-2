@@ -4,6 +4,26 @@
 
 ## 2026-11-23
 
+### Ettevõtja töölaud: tekstid ja kontrollide tabel
+
+- Riskitaseme lause on nüüd „Riskitase arvutatud ajavahemikus pp.kk.aaaa–pp.kk.aaaa toimunud kontrollide tulemuste põhjal“.
+- Kontrollide tabelis on veerud „Kontrolli andmevormi number“, „Kontrolli kuupäev“ (kujul pp.kk.aaaa) ning „MSI/VSI/SI/MI rikkumiste arv“. Veerg „Kaalutud punktid“ on eemaldatud.
+- Rikkumiste veergude infoikoon on nüüd nupp, mille selgitus avaneb ka klõpsuga: MSI – kõige raskem, VSI – väga raske, SI – raske, MI – kergem rikkumine.
+
+### Ettevõtja vaade: kontrolli üksikasjad
+
+- Kontrolli andmete plokis kuvatakse „Kontrolli kuupäev ja kellaaeg“ (pp.kk.aaaa hh.mm), „Kontrolli teostanud asutus“, „Autojuhi ees- ja perekonnanimi“ ning vajaduse korral „Meeskonnaliikme ees- ja perekonnanimi“. Maakond, aadress ja isikukoodid on eemaldatud. Teekasutustasu seisund ja märkus kuvatakse kontrolli andmete juures.
+- Iga alamvormi juures on eraldi rida „Kontrolli tulemus“ (KORRAS, Hoiatus, Väärteomenetlus jne). Väärteomenetluse korral kuvatakse ka „Karistuse määramise alus“.
+- Tuvastatud rikkumiste loetelus on kõik MSI, VSI, SI ja MI rikkumised kujul „kirjeldus (raskusaste) – määrus ja artikkel“. Varem puudusid sõiduki mass/pikkus/laius (nt SI924, VSI843), dokumentide ja kabotaaži rikkumised, tehnokaardi rikkumised (nt MSI302) ning ohtlike veoste kontrollkaardi rikkumised (nt VSI856), mida kontrollkaardil oli kirjas.
+
+### Ettevõtja vaade: välisriigi rikkumise kontrollkaart
+
+- Välisriigi rikkumise kontrollkaardi vaates kuvatakse „Kontrolli teostanud asutus“ (kaardile kantud välisriigi asutus ja riik) ning „Kaardi koostanud asutus“ (inspektori organisatsioon).
+
+### Riskiskoor: välisriigi rikkumise kontrollkaardi rikkumised arvestatakse uuesti
+
+- Välisriigi rikkumise (VR) kontrollkaardi rikkumisi ei arvestatud riskiskoori ega ettevõtja kontrollide tabelisse, sest rikkumiste salvestuskuju muutus ja arvutus luges vana kuju. Nüüd arvestatakse VR-kaardi MSI, VSI ja SI rikkumised uuesti ning kergemate rikkumiste arv (`minor_violations_count`) läheb MI veergu ja riskiskoori (kaal 1, nagu SP-kaartidel). Riskiskoorid uuenevad järgmisel ümberarvutusel.
+
 ### SP-kontrollkaardi rikkumiste koodid ja massi koodid ERRU-sse
 
 - SP-kontrollkaardi (autojuht, meeskonna liige, TRAM-kaart) raskete rikkumiste koodid vastavad nüüd ERRU koodidele: nt art 8 lg 6b `VSI865`, art 8 lg 8 `VSI866`, art 5 lg 1 `SI900`, art 3 `MSI201`, art 23 lg 1 `VSI817`, art 32 lg 3 `MSI202`, art 34 lg 5 p b alap v `SI948`, art 34 lg 6 `VSI868`, art 34 lg 7 `SI949`/`SI950`, art 36 `VSI829`/`VSI832`/`VSI833`, art 37 lg 1 `VSI834`, Rooma I `VSI874`. Raskusaste on alati koodi eesliide. Varem kasutasid need rikkumised massi, pikkuse ja laiuse koode (nt `VSI843`, `SI922`) või kohatäitjat `MI`. Salvestatud vormid viiakse uutele koodidele.

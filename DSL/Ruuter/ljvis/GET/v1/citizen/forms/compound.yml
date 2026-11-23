@@ -180,6 +180,48 @@ applyGdprMasking:
         });
         return Object.assign({}, f, { drivers: maskedDrivers });
       })()}
+  next: getHeader
+
+# Inspecting authority name + crew member name for the detail header.
+getHeader:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/compound-header"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      compound_form_key: "${row.id}"
+  result: header_res
+  next: mergeHeader
+
+# One self-contained expression (Ruuter assign keys are evaluated in no
+# guaranteed order, so header_row must not be defined in the same step).
+# Also drops fields the citizen view does not show (data minimisation).
+mergeHeader:
+  assign:
+    masked_form: >-
+      ${(function(){
+        var h = (header_res.response.body && header_res.response.body[0]) || {};
+        var f = Object.assign({}, masked_form, {
+          authorityName: h.authorityName ?? null,
+          teammateFirstName: h.teammateFirstName ?? null,
+          teammateLastName: h.teammateLastName ?? null,
+          county: null,
+          address: null,
+          inspectorFirstName: null,
+          inspectorLastName: null,
+          inspectorUnit: null,
+          inspectorProfession: null
+        });
+        if (Array.isArray(f.drivers)) {
+          f.drivers = f.drivers.map(function(d) {
+            return Object.assign({}, d, { personalCodeEe: null, personalCodeForeign: null, birthDate: null });
+          });
+        }
+        return f;
+      })()}
   next: checkShouldLog
 
 # Audit third-party PII access: viewing a koondvorm where the session's own

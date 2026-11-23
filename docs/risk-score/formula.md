@@ -104,11 +104,12 @@ Erinevused koondvormi reeglitest:
   kategooriat**, ainult kaks: **nullpunktiline** (`violations=[]`, `r++`,
   0 kaalupunkti) ja **normaalne kontroll kaaludega** (`r++`, kaalupunktid
   lisanduvad).
-- `violations` on lihtne JSONB string-massiiv rikkumiskoodidest (nt
-  `["MSI101","VSI800"]`), mitte §4 kirjeldatud objektide massiiv — raskusaste
-  loetakse koodi enda prefiksist (`MSI`/`VSI`/`SI`).
-- VR-vorm toetab ainult kolme raskusastet (MSI/VSI/SI) — `n_mi` on VR-kontrolli
-  puhul alati 0.
+- `violations` on objektide massiiv (nt `[{"code":"MSI101",...}]`; vana kuju
+  oli lihtne koodide string-massiiv, see on endiselt toetatud). Objektidel
+  puudub §4 kirjeldatud `severityCode`, seega raskusaste loetakse koodi enda
+  prefiksist (`MSI`/`VSI`/`SI`).
+- VR-vormi MSI/VSI/SI arv tuleb koodidest; `n_mi` tuleb vormi väljalt
+  `minor_violations_count` (kaal 1, nagu SP-kaartidel).
 
 ### 3.2 Täiendavad kontrolliallikad (`2022-695-v2`)
 
