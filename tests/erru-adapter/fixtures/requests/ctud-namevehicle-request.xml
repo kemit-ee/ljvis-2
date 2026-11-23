@@ -1,0 +1,10 @@
+<CheckTransportUndertakingData_Request xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="639986bd-6fb6-4cf9-81a5-f1fd15f1678d" workflowId="639986bd-6fb6-4cf9-81a5-f1fd15f1678d" sentAt="2026-09-23T09:05:00Z" from="DE" to="EE"/>
+  <Body businessCaseId="DE-CTUD-CI-0001" originatingAuthority="DE-BAG" requestSource="CA" requestPurpose="Control">
+    <SearchedCompany requestAllVehicles="1">
+      <SearchByNameAndVehicle transportUndertakingName="AS EESTI VEOD">
+        <Vehicle vehicleRegistrationNumber="123ABC" vehicleRegistrationCountry="EE"/>
+      </SearchByNameAndVehicle>
+    </SearchedCompany>
+  </Body>
+</CheckTransportUndertakingData_Request>

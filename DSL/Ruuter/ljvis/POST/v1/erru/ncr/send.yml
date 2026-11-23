@@ -68,11 +68,32 @@ mapOriginatingAuthority:
         : current.originatingAuthority === 'TI' ? 'Estonian Labour Inspectorate'
         : current.originatingAuthority === 'MTA' ? 'Estonian Tax and Customs Board'
         : current.originatingAuthority}
-  next: validateXml
-validateXml:
+  next: prepareOutbound
+
+prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
+    # ERRU_NCR_TRANSPORT=xtr sends via the XTR raw-XML bridge; anything else (or unset: the placeholder stays literal)
+    # keeps the Java adapter. Rollback = set the constant back to adapter and restart Ruuter.
+    erru_transport: "${'[#ERRU_NCR_TRANSPORT]' === 'xtr' ? 'xtr' : 'adapter'}"
+  next: chooseValidation
+
+chooseValidation:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: xtrPreflight
   next: callValidate
+
+# XTR validates against the XSD only in report/enforce mode; keep refusing what the Java builder refused.
+xtrPreflight:
+  switch:
+    - condition: "${!current.ncrTo || !business_case_id || !originating_authority_out || !current.requestSource || !current.requestPurpose}"
+      next: returnInvalidXml
+    - condition: "${!current.transportUndertakingName || !current.communityLicenceNumber || !current.vehicleRegistrationNumber || !current.vehicleRegistrationCountry || !current.checkResult || !current.checkDate}"
+      next: returnInvalidXml
+    - condition: "${((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(current.seriousInfringements) || []).some(function(si) { return !si.dateOfInfringement || !si.category || si.infringementType == null || !(si.penaltiesImposed || []).length; })}"
+      next: returnInvalidXml
+  next: reserveSend
 
 callValidate:
   call: http.post
@@ -132,7 +153,53 @@ extractEnvelope:
     technical_id: "${reservation.response.body[0].technicalId}"
     workflow_id: "${reservation.response.body[0].workflowId}"
     sent_at: "${reservation.response.body[0].sentAt}"
+  next: chooseTransport
+
+chooseTransport:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: composeXtrSerious
   next: callErru
+
+composeXtrSerious:
+  assign:
+    xtr_serious: "${((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(current.seriousInfringements) || []).map(function(si) { var d = function(s) { return String(s || '').substring(0, 10); }; var c = function(o) { return Object.keys(o).filter(function(k) { return o[k] !== '' && o[k] != null; }).reduce(function(a, k) { a[k] = o[k]; return a; }, {}); }; var b = function(b) { return (b === true || b === 'true' || b === 1 || b === '1') ? 'true' : 'false'; }; return Object.assign({'@dateOfInfringement': d(si.dateOfInfringement), '@category': si.category, '@infringementType': String(si.infringementType), '@appealPossible': b(si.appealPossible), 'PenaltiesImposed': {'PenaltyImposed': (si.penaltiesImposed || []).map(function(p) { return c({'@penaltyImposedIdentifier': String(p.penaltyImposedIdentifier), '@finalDecisionDate': d(p.finalDecisionDate), '@penaltyTypeImposed': String(p.penaltyTypeImposed), '@startDate': d(p.startDate), '@endDate': d(p.endDate), '@isExecuted': p.isExecuted, '@notExecutedReason': p.notExecutedReason}); })}}, (si.penaltiesRequested || []).length > 0 ? {'PenaltiesRequested': {'PenaltyRequested': si.penaltiesRequested.map(function(p) { return c({'@penaltyRequestedIdentifier': String(p.penaltyRequestedIdentifier), '@penaltyTypeRequested': String(p.penaltyTypeRequested), '@duration': p.duration == null || p.duration === '' ? '' : String(p.duration)}); })}} : {}); })}"
+  next: composeXtrMinor
+
+composeXtrMinor:
+  assign:
+    xtr_minor: "${(function(m) { return m && m.dateOfInfringement ? {'MinorInfringement': {'@dateOfInfringement': String(m.dateOfInfringement).substring(0, 10), '@numberOfInfringements': String(m.numberOfInfringements)}} : {}; })((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(current.minorInfringement))}"
+  next: composeXtrBody
+
+composeXtrBody:
+  assign:
+    xtr_body: "${{'Header': {'@version': '3.5', '@technicalId': technical_id, '@workflowId': workflow_id, '@sentAt': new Date(String(sent_at).replace(' ', 'T')).toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': current.ncrTo}, 'Body': {'@businessCaseId': business_case_id, '@originatingAuthority': originating_authority_out, '@requestSource': current.requestSource, '@requestPurpose': current.requestPurpose, 'TransportUndertaking': Object.assign({'@transportUndertakingName': current.transportUndertakingName, '@communityLicenceNumber': current.communityLicenceNumber, 'Vehicle': {'@vehicleRegistrationNumber': current.vehicleRegistrationNumber, '@vehicleRegistrationCountry': current.vehicleRegistrationCountry}, 'CheckSummary': {'@checkResult': current.checkResult, '@dateOfCheck': String(current.checkDate).substring(0, 10)}}, xtr_minor, {'SeriousInfringement': xtr_serious})}}}"
+  next: callErruXtr
+
+callErruXtr:
+  call: http.post
+  error: markUnknown
+  args:
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyCheckResult_Request'}"
+    headers:
+      type: json
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
+    body: ${xtr_body}
+  result: erru_res
+  timeout: 30000
+  next: checkXtrStatus
+
+# XTR raw-XML lane: HTTP 200 carries the Hub's own HTTP status in body.status. Hub 202 = accepted; another 4xx
+# (or XTR's own 422 schema_invalid, nothing sent) is a definite refusal; everything else is unknown, never resent.
+checkXtrStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 202}
+      next: logIntegrationSuccess
+    - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422 || erru_res.response.status === 401 || erru_res.response.status === 404 || erru_res.response.status === 400 || erru_res.response.status === 413}
+      next: logIntegrationFailure
+  next: markUnknown
 
 callErru:
   call: http.post

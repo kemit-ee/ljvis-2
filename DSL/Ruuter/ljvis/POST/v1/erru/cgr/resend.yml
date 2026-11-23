@@ -81,7 +81,30 @@ checkResendable:
 prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
+
+    # ERRU_CGR_TRANSPORT=xtr sends via the XTR raw-XML bridge; anything else (or unset: the placeholder stays literal)
+    # keeps the Java adapter. Rollback = set the constant back to adapter and restart Ruuter.
+    erru_transport: "${'[#ERRU_CGR_TRANSPORT]' === 'xtr' ? 'xtr' : 'adapter'}"
+  next: chooseValidation
+
+chooseValidation:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: xtrPreflight
   next: validateXml
+
+# XTR validates against the XSD only in report/enforce mode; keep refusing what the Java builder refused.
+xtrPreflight:
+  switch:
+    - condition: ${!member_state_code || !business_case_id || !originating_authority || !request_source || !request_purpose}
+      next: returnInvalidXml
+    - condition: ${!tm_first_name && !tm_family_name && !tm_date_of_birth && !certificate_number && !certificate_issue_date && !certificate_issue_country}
+      next: returnInvalidXml
+    - condition: ${(!!tm_first_name || !!tm_family_name || !!tm_date_of_birth) && (!tm_first_name || !tm_family_name || !tm_date_of_birth)}
+      next: returnInvalidXml
+    - condition: ${(!!certificate_number || !!certificate_issue_date || !!certificate_issue_country) && (!certificate_number || !certificate_issue_date || !certificate_issue_country)}
+      next: returnInvalidXml
+  next: reserveSend
 
 validateXml:
   call: http.post
@@ -145,7 +168,68 @@ extractEnvelope:
     technical_id: "${reservation.response.body[0].technicalId}"
     cgr_wf_id: "${reservation.response.body[0].workflowId}"
     sent_at: "${reservation.response.body[0].sentAt}"
+  next: chooseTransport
+
+chooseTransport:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: composeXtrNameRaw
   next: callErru
+
+composeXtrNameRaw:
+  assign:
+    xtr_name_raw: "${{'@firstName': tm_first_name, '@familyName': tm_family_name, '@dateOfBirth': String(tm_date_of_birth).substring(0, 10), '@placeOfBirth': tm_place_of_birth, '@familyNameSearchKey': tm_family_name_search_key, '@firstNameSearchKey': tm_first_name_search_key}}"
+  next: composeXtrName
+
+composeXtrName:
+  assign:
+    xtr_name: "${Object.keys(xtr_name_raw).filter(function(k) { return xtr_name_raw[k] !== ''; }).reduce(function(a, k) { a[k] = xtr_name_raw[k]; return a; }, {})}"
+  next: composeXtrCertRaw
+
+composeXtrCertRaw:
+  assign:
+    xtr_cert_raw: "${{'@certificateNumber': certificate_number, '@certificateIssueDate': String(certificate_issue_date).substring(0, 10), '@certificateIssueCountry': certificate_issue_country}}"
+  next: composeXtrCert
+
+composeXtrCert:
+  assign:
+    xtr_cert: "${Object.keys(xtr_cert_raw).filter(function(k) { return xtr_cert_raw[k] !== ''; }).reduce(function(a, k) { a[k] = xtr_cert_raw[k]; return a; }, {})}"
+  next: composeXtrSearched
+
+composeXtrSearched:
+  assign:
+    xtr_searched: "${Object.assign({}, (!!tm_first_name || !!tm_family_name || !!tm_date_of_birth) ? {'TransportManagerNameDetails': xtr_name} : {}, !!certificate_number ? {'TransportManagerCertificateDetails': xtr_cert} : {})}"
+  next: composeXtrBody
+
+composeXtrBody:
+  assign:
+    xtr_body: "${{'Header': {'@version': '3.5', '@technicalId': technical_id, '@workflowId': cgr_wf_id, '@sentAt': new Date(String(sent_at).replace(' ', 'T')).toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': member_state_code}, 'Body': Object.assign({'@businessCaseId': business_case_id, '@originatingAuthority': originating_authority, '@requestSource': request_source, '@requestPurpose': request_purpose}, {'SearchedTransportManager': xtr_searched})}}"
+  next: callErruXtr
+
+callErruXtr:
+  call: http.post
+  error: logIntegrationUnknown
+  args:
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/CheckGoodRepute_Request'}"
+    headers:
+      type: json
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
+    body: ${xtr_body}
+  result: erru_res
+  timeout: 30000
+  next: checkXtrStatus
+
+# XTR raw-XML lane: HTTP 200 carries the Hub's own HTTP status in body.status. Hub 202 = accepted; another 4xx
+# (or XTR's own 422 schema_invalid, nothing sent) is a definite refusal; everything else is unknown, never resent.
+checkXtrStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: logIntegrationUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 202}
+      next: logIntegrationSuccess
+    - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422 || erru_res.response.status === 401 || erru_res.response.status === 404 || erru_res.response.status === 400 || erru_res.response.status === 413}
+      next: logIntegrationFailure
+  next: logIntegrationUnknown
 
 callErru:
   call: http.post

@@ -5,6 +5,7 @@ constants:
   NYSIIS_ENDPOINT: '{MOCK}/nysiis'
   NYSIIS_API_KEY: test-key
   ERRU_XML_ADAPTER: '{MOCK}/adapter'
+  ERRU_NU_TRANSPORT: adapter
 tests:
 - name: concurrent revision rejects prepared send
   setup:

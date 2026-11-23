@@ -51,17 +51,14 @@ export interface CompanyControlsBreakdown {
 // trailer_technical and adr sub-forms reuse the same shape from their own
 // single violations/infringements column, just without `regulation`.
 export interface CitizenSubFormViolation {
-  // sp_driver / vehicle_technical / trailer_technical
-  violationCode?: string;
-  severityCode?: string;
-  regulation?: string;
-  // adr (AdrInfringementEntry fields forwarded by compound-subforms.sql)
-  checkStatus?: string;   // 'checked' = violation found; SQL pre-filters to 'checked' only
-  riskCategory?: string;  // officer-entered severity label (free text, often MSI/VSI/SI/MI)
-  adrProvision?: string;  // ADR provision reference text
-  // shared optional fields
-  code?: string;
-  description?: string;
+  code: string;
+  /** MSI / VSI / SI / MI */
+  severity: string;
+  description: string | null;
+  /** EU regulation number (e.g. '561/2006'); null for technical/ADR/mass entries. */
+  regulation: string | null;
+  /** Article text (SP: 'Artikli 8 lõige 6b') or ADR provision. */
+  article: string | null;
 }
 
 export type CitizenSubFormType =
@@ -82,4 +79,5 @@ export interface CitizenSubForm {
   resultType: string | null;
   violations: CitizenSubFormViolation[];
   notes: string | null;
+  enforcementDecision: string | null;
 }

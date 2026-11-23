@@ -1,0 +1,21 @@
+<CheckTransportUndertakingData_Response xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa" workflowId="639986bd-6fb6-4cf9-81a5-f1fd15f1678c" sentAt="2026-11-16T18:21:45Z" from="EE" to="DE"/>
+  <Body businessCaseId="DE-CTUD-CI-0001" originatingAuthority="DE-BAG" respondingAuthority="EE-TRAM" statusCode="Found">
+    <SearchedCompany requestAllVehicles="false" xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+      <SearchByLicenceAndName communityLicenceNumber="EE-CL-2020-11111" transportUndertakingName="AS EESTI VEOD">
+        <Vehicle vehicleRegistrationCountry="EE" vehicleRegistrationNumber="123ABC"/>
+      </SearchByLicenceAndName>
+    </SearchedCompany>
+    <TransportUndertaking transportUndertakingName="AS EESTI VEOD" legalForm="AS" numberOfVehicles="3" numberOfEmployees="12" riskRating="0" riskBand="Grey" searchMethod="CommunityLicence">
+      <VehicleRegistrations>
+        <Vehicle vehicleRegistrationNumber="123ABC" vehicleRegistrationCountry="EE"/>
+        <Vehicle vehicleRegistrationNumber="456DEF" vehicleRegistrationCountry="EE"/>
+      </VehicleRegistrations>
+      <TransportUndertakingAddress address="Pikk 1" postCode="10123" city="Tallinn" country="EE"/>
+      <CommunityLicenceDetails communityLicenceNumber="EE-CL-2020-11111" communityLicenceStatus="Suspended" communityLicenceType="Community licence for goods transport, exclusively ≤3.5 t" startDate="2020-01-01" expiryDate="2030-01-01" suspensionDate="2026-01-01" suspensionOrWithdrawalReason="Not of good repute" licencingAuthority="EE-TRAM"/>
+      <CertifiedTrueCopyDetails>
+        <CertifiedTrueCopy trueCopyNumber="TC-1" trueCopyIssueDate="2020-02-01" trueCopyExpiryDate="2030-01-01" trueCopyWithdrawalDate="2026-02-02"/>
+      </CertifiedTrueCopyDetails>
+    </TransportUndertaking>
+  </Body>
+</CheckTransportUndertakingData_Response>

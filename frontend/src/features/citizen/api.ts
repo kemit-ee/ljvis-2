@@ -134,10 +134,16 @@ export async function getCitizenCompoundSubForms(
   }));
 }
 
+// GET/v1/citizen/forms/foreign-violation.yml adds createdByAuthorityName
+// (name of the Estonian authority that created the card).
+export type CitizenForeignViolationForm = ForeignViolationForm & {
+  createdByAuthorityName?: string | null;
+};
+
 export function getCitizenForeignViolationForm(
   id: number,
-): Promise<ForeignViolationForm> {
-  return get<ForeignViolationForm>('/v1/citizen/forms/foreign-violation', {
+): Promise<CitizenForeignViolationForm> {
+  return get<CitizenForeignViolationForm>('/v1/citizen/forms/foreign-violation', {
     q: String(id),
   });
 }

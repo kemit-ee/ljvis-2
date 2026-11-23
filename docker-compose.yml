@@ -291,7 +291,7 @@ services:
       start_period: 5s
     environment:
       # Answers outgoing CGR/CTUD asynchronously through the adapter's ingress (dev/CI only).
-      - AUTO_REPLY_URL=http://erru-xml-adapter-old:8080/erru/xml
+      - AUTO_REPLY_URL=http://erru-xml-adapter:8081/erru/xml
     networks:
       - ljvisnetwork
     # localhost-only: a dev/CI stand-in, never reachable from outside this machine.
@@ -318,6 +318,7 @@ services:
       - DB_USER=ljvis
       - DB_PASSWORD=01234
       - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - PROCESSING_WORKERS_ENABLED=false   # the XTR adapter owns the inbound rows (stage 5)
       - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
       - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
       - HUB_RSI_REQUEST_URL=http://erru-hub-mock:8080/rsi/http/request/BTSHTTPReceive.dll
@@ -342,30 +343,29 @@ services:
     # POST /erru/xml has no authentication/peer trust yet (a real deployment needs mTLS, an
     # allowlist or a gateway in front of it), so the port is bound to localhost only.
     ports:
-      - 127.0.0.1:8091:8080
+      - 127.0.0.1:8094:8080
     cpus: "0.5"
     mem_limit: "256M"
 
-  # ERRU MOVEHUB 3.5 SOAP-sild (XTR). Asendab aegamööda Java-adapterit (erru-xml-adapter-old);
+  # ERRU MOVEHUB 3.5 toor-XML sild (XTR 0.6.0-rc). Asendab aegamööda Java-adapterit (erru-xml-adapter-old);
   # teenuse nimi on sama, mille järgi stesta-gateway Hubi liikluse suunab. Plaan:
-  # docs/planning/erru-xml-adapter-xtr-migratsioon.md. Sissetulev pordis 8081 (8092), JSON-lane 8080 (8093).
+  # docs/planning/erru-xml-adapter-xtr-migratsioon.md. Sissetulev pordis 8081 (8091), JSON-lane 8080 (8093).
   erru-xml-adapter:
     container_name: erru-xml-adapter
     image: ljvis-erru-xml-adapter:local
     build:
       context: .
-      dockerfile: docker/xtr/Dockerfile
-      args:
-        XTR_RUNTIME_IMAGE: turnerrainer/xtr@sha256:634b11471ff9c709f6b46cab18f7e85711d18df334a8b9a368f399a62bf1a9ca
+      dockerfile: docker/erru-xml-adapter/Dockerfile
     restart: unless-stopped
     depends_on:
       erru-hub-mock:
         condition: service_healthy
     environment:
       - RUST_LOG=xtr_on_rust=debug,info
+      - XTR_BACKEND_HEADER_ERRU=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - XTR_INTER_SERVICE_TOKEN=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
     volumes:
       - ./docker/erru-xml-adapter/xtr.yaml:/app/xtr.yaml:ro
-      - ./docker/erru-xml-adapter/wsdl:/app/wsdl:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8081/health > /dev/null"]
       interval: 5s
@@ -374,7 +374,7 @@ services:
     networks:
       - ljvisnetwork
     ports:
-      - "127.0.0.1:8092:8081"
+      - "127.0.0.1:8091:8081"
       - "127.0.0.1:8093:8080"
     cpus: "0.25"
     mem_limit: "128M"

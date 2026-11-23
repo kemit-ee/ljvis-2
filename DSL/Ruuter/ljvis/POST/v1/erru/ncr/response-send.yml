@@ -57,12 +57,31 @@ checkSendableState:
       next: returnNotSendable
     - condition: ${current.workflowId == null || current.workflowId === ''}
       next: returnWorkflowMissing
-  next: validateXml
+  next: prepareOutbound
 
-validateXml:
+prepareOutbound:
   assign:
     start_time: "${new Date().getTime()}"
+
+    # ERRU_NCR_RESPONSE_TRANSPORT=xtr sends via the XTR raw-XML bridge; anything else (or unset: the placeholder stays literal)
+    # keeps the Java adapter. Rollback = set the constant back to adapter and restart Ruuter.
+    erru_transport: "${'[#ERRU_NCR_RESPONSE_TRANSPORT]' === 'xtr' ? 'xtr' : 'adapter'}"
+  next: chooseValidation
+
+chooseValidation:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: xtrPreflight
   next: callValidate
+
+# XTR validates against the XSD only in report/enforce mode; keep refusing what the Java builder refused.
+xtrPreflight:
+  switch:
+    - condition: ${!current.ncrFrom || !business_case_id || !current.originatingAuthority || !current.respondingAuthority || !current.responseStatusCode}
+      next: returnInvalidXml
+    - condition: ${current.responseStatusCode === 'OK' && !!current.transportUndertakingName && (!current.responseAddress || current.responseNumberOfVehicles == null || current.responseNumberOfVehicles === '' || !current.communityLicenceNumber || !current.responseCommunityLicenceStatus)}
+      next: returnInvalidXml
+  next: reserveSend
 
 callValidate:
   call: http.post
@@ -121,7 +140,53 @@ extractEnvelope:
     technical_id: "${reservation.response.body[0].technicalId}"
     workflow_id: "${reservation.response.body[0].workflowId}"
     sent_at: "${reservation.response.body[0].sentAt}"
+  next: chooseTransport
+
+chooseTransport:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: composeXtrTu
   next: callErru
+
+composeXtrTu:
+  assign:
+    xtr_tu: "${(current.responseStatusCode === 'OK' && !!current.transportUndertakingName && current.responseAddress) ? {'TransportUndertaking': {'@transportUndertakingName': current.transportUndertakingName, '@numberOfVehicles': String(parseInt(current.responseNumberOfVehicles, 10)), '@communityLicenceNumber': current.communityLicenceNumber, '@communityLicenceStatus': current.responseCommunityLicenceStatus, 'TransportUndertakingAddress': (function(a) { return {'@address': a.address, '@postCode': a.postCode, '@city': a.city, '@country': a.country}; })((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(current.responseAddress))}} : {}}"
+  next: composeXtrPen
+
+composeXtrPen:
+  assign:
+    xtr_pen: "${(current.responseStatusCode === 'OK' && !!current.responsePenaltiesImposed && ((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(current.responsePenaltiesImposed) || []).length > 0) ? {'PenaltiesImposed': {'PenaltyImposed': ((function(v) { return v == null || v === '' ? null : (typeof v === 'string' ? JSON.parse(v) : v); })(current.responsePenaltiesImposed)).map(function(p) { var d = function(s) { return String(s || '').substring(0, 10); }; return (function(o) { return Object.keys(o).filter(function(k) { return o[k] !== '' && o[k] != null; }).reduce(function(a, k) { a[k] = o[k]; return a; }, {}); })({'@penaltyRequestedIdentifier': String(parseInt(p.penaltyRequestedIdentifier, 10)), '@authorityImposingPenalty': p.authorityImposingPenalty, '@isImposed': (p.isImposed === true || p.isImposed === 'true' || p.isImposed === 1 || p.isImposed === '1') ? 'true' : 'false', '@penaltyTypeImposed': String(p.penaltyTypeImposed), '@startDate': d(p.startDate), '@endDate': d(p.endDate), '@reason': p.reason}); })}} : {}}"
+  next: composeXtrBody
+
+composeXtrBody:
+  assign:
+    xtr_body: "${{'Header': {'@version': '3.5', '@technicalId': technical_id, '@workflowId': workflow_id, '@sentAt': new Date(String(sent_at).replace(' ', 'T')).toISOString().substring(0, 19) + 'Z', '@from': 'EE', '@to': current.ncrFrom}, 'Body': Object.assign((function(o) { return Object.keys(o).filter(function(k) { return o[k] !== '' && o[k] != null; }).reduce(function(a, k) { a[k] = o[k]; return a; }, {}); })({'@businessCaseId': business_case_id, '@originatingAuthority': current.originatingAuthority, '@respondingAuthority': current.respondingAuthority, '@statusCode': current.responseStatusCode, '@statusMessage': current.responseStatusMessage}), xtr_tu, xtr_pen)}}"
+  next: callErruXtr
+
+callErruXtr:
+  call: http.post
+  error: markUnknown
+  args:
+    url: "${('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyCheckResult_Response'}"
+    headers:
+      type: json
+      Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
+    body: ${xtr_body}
+  result: erru_res
+  timeout: 30000
+  next: checkXtrStatus
+
+# XTR raw-XML lane: HTTP 200 carries the Hub's own HTTP status in body.status. Hub 202 = accepted; another 4xx
+# (or XTR's own 422 schema_invalid, nothing sent) is a definite refusal; everything else is unknown, never resent.
+checkXtrStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status >= 200 && erru_res.response.body.status < 300}
+      next: storeAnswered
+    - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422 || erru_res.response.status === 401 || erru_res.response.status === 404 || erru_res.response.status === 400 || erru_res.response.status === 413}
+      next: markError
+  next: markUnknown
 
 callErru:
   call: http.post
