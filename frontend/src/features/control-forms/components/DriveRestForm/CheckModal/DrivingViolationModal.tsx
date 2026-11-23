@@ -10,6 +10,7 @@ import {
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierEntry } from '../../../../classifiers/types';
 import type { CheckEntry } from '../../../types.ts';
+import { getLevel3Text } from '../level3Label';
 import styles from './CheckModal.module.css';
 
 interface Props {
@@ -214,7 +215,7 @@ export function DrivingViolationModal({
               level2Name: l2.name,
               level2Description: l2.description ?? '',
               level3Code: l3.code,
-              level3Name: l3.name,
+              level3Name: getLevel3Text(l3),
               severity: l3.description ?? '',
             });
           }
@@ -253,10 +254,10 @@ export function DrivingViolationModal({
               spacing={0.3}
               variant="dot-only"
             />
-            {l3.name}
+            {getLevel3Text(l3)}
           </span>
         ) : (
-          l3.name
+          getLevel3Text(l3)
         );
       })
       .reduce(
@@ -395,7 +396,7 @@ export function DrivingViolationModal({
                                               spacing={0.3}
                                               variant="dot-only"
                                             />
-                                            {l3.name}
+                                            {getLevel3Text(l3)}
                                           </Text>
                                         }
                                       />

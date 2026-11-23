@@ -15,6 +15,7 @@ import type { CheckEntry, DocumentCheck, Violation } from '../../../types.ts';
 import { MassDimensionModal } from '../CheckModal/MassDimensionModal';
 import { DocCheckModal } from '../CheckModal/DocCheckModal';
 import { DrivingViolationModal } from '../CheckModal/DrivingViolationModal';
+import { getLevel3Text } from '../level3Label';
 import styles from './ModalResultSection.module.css';
 
 interface ViolationEntry {
@@ -129,7 +130,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
             level2Name: l2?.name ?? '',
             level2Description: l2?.description ?? directive,
             level3Code: v.violationCode,
-            level3Name: l3?.name ?? v.violationCode,
+            level3Name: l3 ? getLevel3Text(l3) : v.violationCode,
             severity: l3?.description ?? v.severityCode,
             severityCode: v.severityCode,
             violationCode: v.violationCode,
@@ -361,7 +362,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
                 level2Name: l2.name,
                 level2Description: l2.description ?? '',
                 level3Code: l3.code,
-                level3Name: l3.name,
+                level3Name: getLevel3Text(l3),
                 severity: l3.description ?? '',
                 articleDirective: l1.description ?? '',
               },
@@ -378,7 +379,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
         onChange={toggle}
         label={
           <Text>
-            <strong>{l3.name}</strong>
+            <strong>{getLevel3Text(l3)}</strong>
             <Separator
               axis="vertical"
               color="secondary"
