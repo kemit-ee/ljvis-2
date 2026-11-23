@@ -220,7 +220,7 @@ services:
         condition: service_completed_successfully
     environment:
       - SSL_CERT_FILE=/opt/tim/keys/tara-mock-ca.pem
-      - TIM_INTROSPECT_RUUTER_SECRET=${TIM_INTROSPECT_RUUTER_SECRET:-dev-introspect-secret}
+      - TIM_INTROSPECT_PLACEHOLDER_SECRET=${TIM_INTROSPECT_PLACEHOLDER_SECRET:-dev-introspect-secret}
       - TIM_DATABASE_URL=postgres://tim:123@tim-postgresql:5432/tim
       - TIM_ADMIN_TOKEN=${TIM_ADMIN_TOKEN:-dev-admin-token}
       - TIM_TARA_CLIENT_ID=ljvis

@@ -24,12 +24,15 @@ jwt:
 
 # TIM 0.4.0+: /introspect requires Basic auth by default and boot is refused
 # without at least one client. LJVIS2 does not call /introspect (DSL uses
-# /jwt/userinfo), so the client is registered only to satisfy the default.
+# /jwt/userinfo), so this placeholder client is registered only to satisfy the
+# startup check. No service holds its secret. Deployed environments (devops
+# repo) must configure their own clients or an explicit
+# required_client_auth: false before upgrading to TIM 0.4.x.
 introspection:
   required_client_auth: true
   clients:
-    - client_id: "ruuter"
-      client_secret_env: "TIM_INTROSPECT_RUUTER_SECRET"
+    - client_id: "unused-placeholder"
+      client_secret_env: "TIM_INTROSPECT_PLACEHOLDER_SECRET"
 
 security:
   admin_token_env: "TIM_ADMIN_TOKEN"
