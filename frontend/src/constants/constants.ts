@@ -590,6 +590,37 @@ export const FOREIGN_VIOLATION_SANCTION_OPTIONS = [
   { value: 'MUU', labelKey: 'forms.foreign_violation.sanctionMuu' },
 ];
 
+/**
+ * ERRU penaltyTypeRequested (välisriigi taotletud karistus) -> soovitatud meetme valik.
+ * Ühine ametniku vormile ja ettevõtja vaatele, et mõlemad näitaksid sama meedet.
+ */
+export const REQUESTED_PENALTY_TO_MEASURE: Record<string, string> = {
+  '101': 'HOIATUS',
+  '102': 'MUU',
+  '301': 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE',
+  '302': 'MUU',
+  '303': 'MUU',
+  '304': 'TEGEVUSLUBA_KEHTETUKS',
+  '305': 'JUHITUNNISTUSEST_KEELDUMINE',
+  '306': 'JUHITUNNISTUS_KEHTETUKS',
+  '307': 'MUU',
+};
+
+/**
+ * Rikkumise soovitatud meetmed: sisestatud meede, muidu taotletud karistustest tuletatud
+ * (tundmatu kood => "MUU"), taotluse puudumisel "PUUDUVAD".
+ */
+export const effectiveRecommendedMeasures = (violation: {
+  recommendedMeasureCode?: string;
+  requestedPenaltyCodes?: string[];
+}): string[] => {
+  if (violation.recommendedMeasureCode) return [violation.recommendedMeasureCode];
+  const mapped = Array.from(
+    new Set((violation.requestedPenaltyCodes ?? []).map((c) => REQUESTED_PENALTY_TO_MEASURE[c] ?? 'MUU')),
+  );
+  return mapped.length > 0 ? mapped : ['PUUDUVAD'];
+};
+
 export const FOREIGN_VIOLATION_RECOMMENDED_MEASURE_OPTIONS = [
   {
     value: 'PUUDUVAD',

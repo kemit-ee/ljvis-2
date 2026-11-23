@@ -4,25 +4,12 @@ import {
   EU_VIOLATION_GROUPS,
   FOREIGN_VIOLATION_RECOMMENDED_MEASURE_OPTIONS,
   FOREIGN_VIOLATION_SANCTION_OPTIONS,
+  effectiveRecommendedMeasures,
 } from '../../../../constants/constants';
 import { formatDate } from '../../../../hooks/dateUtils';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import type { ForeignViolationFormViolation } from '../../../control-forms/types';
 import type { CitizenForeignViolationForm } from '../../api';
-
-// ERRU penaltyTypeRequested -> recommended measure (same mapping the officer
-// form uses to derive a violation's measure when none was entered).
-const REQUESTED_TO_MEASURE: Record<string, string> = {
-  '101': 'HOIATUS',
-  '301': 'TEGEVUSLOA_ARAKIRJADE_PEATAMINE',
-  '302': 'MUU',
-  '303': 'MUU',
-  '304': 'TEGEVUSLUBA_KEHTETUKS',
-  '305': 'JUHITUNNISTUSEST_KEELDUMINE',
-  '306': 'JUHITUNNISTUS_KEHTETUKS',
-  '307': 'MUU',
-  '102': 'MUU',
-};
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -123,14 +110,6 @@ export function CitizenForeignViolationView({
     }
     return code;
   };
-  const measuresOf = (v: ForeignViolationFormViolation): string[] => {
-    if (v.recommendedMeasureCode) return [v.recommendedMeasureCode];
-    const mapped = Array.from(
-      new Set((v.requestedPenaltyCodes ?? []).map((c) => REQUESTED_TO_MEASURE[c] ?? 'MUU')),
-    );
-    return mapped.length > 0 ? mapped : ['PUUDUVAD'];
-  };
-
   const driverName = `${form.driverFirstName || ''} ${form.driverLastName || ''}`.trim();
   const additionalSanctions = (form.additionalSanctionCodes ?? []).map((code) =>
     labelOf(FOREIGN_VIOLATION_SANCTION_OPTIONS, code),
@@ -208,7 +187,7 @@ export function CitizenForeignViolationView({
               <Field label={p('sanctionNotes')}>{violation.sanctionNotes}</Field>
             )}
             <Field label={p('recommendedMeasureCode')}>
-              {measuresOf(violation)
+              {effectiveRecommendedMeasures(violation)
                 .map((m) => labelOf(FOREIGN_VIOLATION_RECOMMENDED_MEASURE_OPTIONS, m))
                 .join(', ')}
             </Field>
