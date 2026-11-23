@@ -189,10 +189,14 @@ describe('CitizenSubFormsSection', () => {
 
 describe('CitizenForeignViolationDetailPage', () => {
   it('renders the form fields', async () => {
-    api.getCitizenForeignViolationForm.mockResolvedValue([{ formNumber: 'VR-1' }]);
+    api.getCitizenForeignViolationForm.mockResolvedValue([
+      { formNumber: 'VR-1', reportingAuthority: 'Poliisi', reportingCountryCode: 'EE', createdByAuthorityName: 'Kliimaministeerium' },
+    ]);
     at('/x/1', <CitizenForeignViolationDetailPage />);
     await waitFor(() => expect(screen.getByText('fv-fields')).toBeTruthy());
     expect(screen.getByText('VR-1')).toBeTruthy();
+    expect(screen.getByText('Poliisi, Eesti')).toBeTruthy();
+    expect(screen.getByText('Kliimaministeerium')).toBeTruthy();
   });
 
   it('uses the default title without a number and not-found on error', async () => {

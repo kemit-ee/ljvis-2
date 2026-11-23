@@ -1284,6 +1284,11 @@
       "selectCompany": "Select a company from the header to view its data.",
       "view": "View"
     },
+    "foreignViolationDetail": {
+      "authoritiesSection": "Authorities",
+      "performedBy": "Authority that carried out the control",
+      "createdBy": "Authority that created the card"
+    },
     "compoundDetail": {
       "controlSection": "Control details",
       "authority": "Authority that carried out the control",

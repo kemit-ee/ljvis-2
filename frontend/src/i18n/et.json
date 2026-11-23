@@ -310,6 +310,11 @@
       "selectCompany": "Valige päisest ettevõte, mille andmeid soovite vaadata.",
       "view": "Vaata"
     },
+    "foreignViolationDetail": {
+      "authoritiesSection": "Asutused",
+      "performedBy": "Kontrolli teostanud asutus",
+      "createdBy": "Kaardi koostanud asutus"
+    },
     "compoundDetail": {
       "controlSection": "Kontrolli andmed",
       "authority": "Kontrolli teostanud asutus",

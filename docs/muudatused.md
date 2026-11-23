@@ -16,6 +16,10 @@
 - Iga alamvormi juures on eraldi rida „Kontrolli tulemus“ (KORRAS, Hoiatus, Väärteomenetlus jne). Väärteomenetluse korral kuvatakse ka „Karistuse määramise alus“.
 - Tuvastatud rikkumiste loetelus on kõik MSI, VSI, SI ja MI rikkumised kujul „kirjeldus (raskusaste) – määrus ja artikkel“. Varem puudusid sõiduki mass/pikkus/laius (nt SI924, VSI843), dokumentide ja kabotaaži rikkumised, tehnokaardi rikkumised (nt MSI302) ning ohtlike veoste kontrollkaardi rikkumised (nt VSI856), mida kontrollkaardil oli kirjas.
 
+### Ettevõtja vaade: välisriigi rikkumise kontrollkaart
+
+- Välisriigi rikkumise kontrollkaardi vaates kuvatakse „Kontrolli teostanud asutus“ (kaardile kantud välisriigi asutus ja riik) ning „Kaardi koostanud asutus“ (inspektori organisatsioon).
+
 ### Riskiskoor: välisriigi rikkumise kontrollkaardi rikkumised arvestatakse uuesti
 
 - Välisriigi rikkumise (VR) kontrollkaardi rikkumisi ei arvestatud riskiskoori ega ettevõtja kontrollide tabelisse, sest rikkumiste salvestuskuju muutus ja arvutus luges vana kuju. Nüüd arvestatakse VR-kaardi MSI, VSI ja SI rikkumised uuesti ning kergemate rikkumiste arv (`minor_violations_count`) läheb MI veergu ja riskiskoori (kaal 1, nagu SP-kaartidel). Riskiskoorid uuenevad järgmisel ümberarvutusel.
