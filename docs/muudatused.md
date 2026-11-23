@@ -2,6 +2,14 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-20
+
+### Teavitused: `kontrollkaardiUrl` sisaldab ainult teed
+
+- Malli muutuja `kontrollkaardiUrl` on nüüd ainult tee kontrollkaardini (nt `/control-forms/tram-control-card/7`), ilma keskkonna aadressita, sest aadress võis tulla tühi. Keskkonna aadress tuleb lisada Postkasti mallis, nt `https://dev.liiklusvalve.ee{{kontrollkaardiUrl}}`; olemasolevaid malle tuleb vastavalt uuendada.
+- Postkasti mallide seadetes täidetud vastuvõtja e-post kirjutab nüüd üle käivitaja antud aadressi (nt veoettevõtja e-post): teavitus läheb alati seadetes määratud aadressile. Varem kasutati seadete aadressi ainult siis, kui käivitaja aadressi ei andnud. Välja nimi seadete vaates on vastavalt täpsustatud.
+- Muutuja kirjeldus teavituse liigi detailvaates on täpsustatud.
+
 ## 2026-11-19
 
 ### Turvalisus: loendi- ja otsingupäringute koormuse piiramine

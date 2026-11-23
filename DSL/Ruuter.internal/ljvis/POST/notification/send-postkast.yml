@@ -74,7 +74,8 @@ validateInput:
 # recipient_email on nüüd valikuline sisendväli - kui kutsuja seda ei saada
 # (nt foreign-violation-form/edit/save.yml), kasutatakse allpool
 # notification_template_mapping.default_recipient_email't (haldusliidesest
-# seadistatav, vt notification-template-mapping/save.yml). Siin on kohustuslik
+# seadistatav, vt notification-template-mapping/save.yml). Kui see on seadistatud,
+# läheb teavitus ALATI sinna, ka siis kui kutsuja annab oma aadressi. Siin on kohustuslik
 # ainult notification_type, sest ilma sellegita ei saa mapping'it lugeda.
 checkRequired:
   switch:
@@ -108,11 +109,12 @@ checkMappingValid:
   next: resolveRecipient
 
 # 12-1 §4 "Saatmise sisend": aadressi algusest/lõpust eemaldatakse tühikud,
-# e-post teisendatakse väiketähtedeks. Kui kutsuja recipient_email't ei saada,
-# langetakse tagasi mapping.defaultRecipientEmail'ile.
+# e-post teisendatakse väiketähtedeks. Haldusliideses seadistatud
+# mapping.defaultRecipientEmail on ülekirjutav: kui see on täidetud, saadetakse
+# alati sinna. Muidu kasutatakse kutsuja recipient_email'i.
 resolveRecipient:
   assign:
-    recipient_email_source: "${recipient_email_raw || mapping.defaultRecipientEmail || ''}"
+    recipient_email_source: "${mapping.defaultRecipientEmail || recipient_email_raw || ''}"
     generated_key: "${'ljvis-' + (related_entity_type || 'notif') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 10)}"
   next: normalizeRecipient
 
@@ -150,8 +152,9 @@ checkTemplateIdResolved:
       next: markMissingTemplateId
   next: resolveControlCardRoute
 
-# Malli muutuja `kontrollkaardiUrl`: link konkreetsele kontrollkaardile selle
-# keskkonna avalikul hostinimel (constants.ini DOMAIN). Postkasti malli mapping
+# Malli muutuja `kontrollkaardiUrl`: tee konkreetse kontrollkaardini (ilma
+# keskkonna aadressita, nt `/control-forms/tram-control-card/7`); keskkonna aadress
+# lisatakse Postkasti mallis. Postkasti malli mapping
 # saab seda kasutada nagu mistahes teist malli muutujat. Marsruudid peavad
 # ühtima frontend/src/App.tsx `/control-forms/<route>/:id` marsruutidega.
 # Tundmatu related_entity_type või puuduv related_entity_id -> tühi string
@@ -168,16 +171,13 @@ resolveControlCardRoute:
         vehicle_technical: 'vehicle-technical',
         trailer_technical: 'trailer-technical'
       })[related_entity_type] || ''}
-    public_domain_raw: "[#DOMAIN]"
   next: buildControlCardUrl
 
 buildControlCardUrl:
   assign:
     kontrollkaardi_url: >-
       ${(control_card_route !== '' && related_entity_id !== '')
-        ? ((public_domain_raw.indexOf('localhost') === 0 || public_domain_raw.charAt(0) === '[' ? 'http://' : 'https://')
-          + (public_domain_raw.charAt(0) === '[' ? 'localhost' : public_domain_raw) + '/control-forms/' + control_card_route + '/'
-          + encodeURIComponent(related_entity_id))
+        ? ('/control-forms/' + control_card_route + '/' + encodeURIComponent(related_entity_id))
         : ''}
   next: insertQueued
 

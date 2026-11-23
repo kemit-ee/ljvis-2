@@ -161,6 +161,12 @@ teavitus käivitub (**„Vormid, kus teavitus käivitub“**) — teavitused, mi
 tulevad automaatselt sisenevast ERRU sõnumist, mitte kasutaja poolt
 avaldatud LJVIS-vormist, on märgitud kui „Automaatne“.
 
+**Vastuvõtja e-post on ülekirjutav:** kui postkasti kanali liigil on vastuvõtja
+e-post täidetud, saadetakse teavitus alati sellele aadressile — ka siis, kui
+käivitav funktsionaalsus (nt veoettevõtja teavitus) leiab oma adressaadi. Kui
+väli on tühi, kasutatakse käivitaja antud aadressi (nt veoettevõtja e-post
+registrist). Testkeskkonnas saab nii suunata kõik teavitused ühele aadressile.
+
 Veerg **„Saajad“** näitab juba koondtabelis, kellele või millisele aadressile
 teavitus läheb — desktop-kanali real kasutaja(te) nime, postkasti kanali real
 vaikimisi vastuvõtja e-posti —, ilma et peaks konkreetset rida avama.
@@ -188,9 +194,9 @@ jääb muutuja kirjas tühjaks.
 | `labor_tachograph_not_downloaded` (sõidumeerikust või juhikaardilt andmed alla laadimata, tööinspektsioonile) | `formNumber`, `companyName`, `companyRegCode`, `kontrollkaardiUrl` |
 
 Lisaks saadetakse alati muutuja `recipient` (adressaadi e-post) ja
-`kontrollkaardiUrl` — link konkreetsele kontrollkaardile selle keskkonna avalikul
-hostinimel (`constants.ini` muutuja `DOMAIN`), nt
-`https://dev.liiklusvalve.ee/control-forms/tram-control-card/7`. Link
+`kontrollkaardiUrl` — tee konkreetse kontrollkaardini ilma keskkonna aadressita, nt
+`/control-forms/tram-control-card/7`; keskkonna aadress tuleb lisada Postkasti
+mallis (nt `https://dev.liiklusvalve.ee{{kontrollkaardiUrl}}`). Tee
 koostatakse teavituse seotud olemi tüübi ja ID järgi; tundmatu olemi korral on
 väärtus tühi string. Kui kutsuja annab ise muutuja `kontrollkaardiUrl`, jääb
 kehtima kutsuja väärtus. Valmis
