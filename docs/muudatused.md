@@ -2,6 +2,37 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-23
+
+### Ettevõtja töölaud: tekstid ja kontrollide tabel
+
+- Riskitaseme lause on nüüd „Riskitase arvutatud ajavahemikus pp.kk.aaaa–pp.kk.aaaa toimunud kontrollide tulemuste põhjal“.
+- Kontrollide tabelis on veerud „Kontrolli andmevormi number“, „Kontrolli kuupäev“ (kujul pp.kk.aaaa) ning „MSI/VSI/SI/MI rikkumiste arv“. Veerg „Kaalutud punktid“ on eemaldatud.
+- Rikkumiste veergude infoikoon on nüüd nupp, mille selgitus avaneb ka klõpsuga: MSI – kõige raskem, VSI – väga raske, SI – raske, MI – kergem rikkumine.
+
+### Ettevõtja vaade: kontrolli üksikasjad
+
+- Kontrolli andmete plokis kuvatakse „Kontrolli kuupäev ja kellaaeg“ (pp.kk.aaaa hh.mm), „Kontrolli teostanud asutus“, „Autojuhi ees- ja perekonnanimi“ ning vajaduse korral „Meeskonnaliikme ees- ja perekonnanimi“. Maakond, aadress ja isikukoodid on eemaldatud. Teekasutustasu seisund ja märkus kuvatakse kontrolli andmete juures.
+- Iga alamvormi juures on eraldi rida „Kontrolli tulemus“ (KORRAS, Hoiatus, Väärteomenetlus jne). Väärteomenetluse korral kuvatakse ka „Karistuse määramise alus“.
+- Tuvastatud rikkumiste loetelus on kõik MSI, VSI, SI ja MI rikkumised kujul „kirjeldus (raskusaste) – määrus ja artikkel“. Varem puudusid sõiduki mass/pikkus/laius (nt SI924, VSI843), dokumentide ja kabotaaži rikkumised, tehnokaardi rikkumised (nt MSI302) ning ohtlike veoste kontrollkaardi rikkumised (nt VSI856), mida kontrollkaardil oli kirjas.
+
+### Ettevõtja vaade: välisriigi rikkumise kontrollkaart
+
+- Välisriigi rikkumise kontrollkaardi vaates kuvatakse „Kontrolli teostanud asutus“ (kaardile kantud välisriigi asutus ja riik) ning „Kaardi koostanud asutus“ (inspektori organisatsioon).
+
+### Riskiskoor: välisriigi rikkumise kontrollkaardi rikkumised arvestatakse uuesti
+
+- Välisriigi rikkumise (VR) kontrollkaardi rikkumisi ei arvestatud riskiskoori ega ettevõtja kontrollide tabelisse, sest rikkumiste salvestuskuju muutus ja arvutus luges vana kuju. Nüüd arvestatakse VR-kaardi MSI, VSI ja SI rikkumised uuesti ning kergemate rikkumiste arv (`minor_violations_count`) läheb MI veergu ja riskiskoori (kaal 1, nagu SP-kaartidel). Riskiskoorid uuenevad järgmisel ümberarvutusel.
+
+### SP-kontrollkaardi rikkumiste koodid ja massi koodid ERRU-sse
+
+- SP-kontrollkaardi (autojuht, meeskonna liige, TRAM-kaart) raskete rikkumiste koodid vastavad nüüd ERRU koodidele: nt art 8 lg 6b `VSI865`, art 8 lg 8 `VSI866`, art 5 lg 1 `SI900`, art 3 `MSI201`, art 23 lg 1 `VSI817`, art 32 lg 3 `MSI202`, art 34 lg 5 p b alap v `SI948`, art 34 lg 6 `VSI868`, art 34 lg 7 `SI949`/`SI950`, art 36 `VSI829`/`VSI832`/`VSI833`, art 37 lg 1 `VSI834`, Rooma I `VSI874`. Raskusaste on alati koodi eesliide. Varem kasutasid need rikkumised massi, pikkuse ja laiuse koode (nt `VSI843`, `SI922`) või kohatäitjat `MI`. Salvestatud vormid viiakse uutele koodidele.
+- Sõiduki massi, pikkuse ja laiuse rikkumiste koodid (`SI922`, `VSI843`, `MSI701`, `SI923`, `VSI844`, `MSI702`, `SI924`, `VSI845`, `SI925`, `VSI846`) jõuavad nüüd ERRU punktidesse ja NCR-teate raskete rikkumiste loetellu. Varem need sinna ei jõudnud. Olemasolevate vormide ERRU punktid arvutatakse uuesti, käsitsi lisatud punktid säilivad.
+- Massi valikuaknas kuvatakse nüüd kood (nt `SI922 • 5% ≤ ... < 10%`), mitte ainult raskusaste.
+- Raskusaste on nüüd igal VSI/SI/MSI-koodil võrdne koodi eesliitega (VSIxxx = VSI, SIxxx = SI, MSIxxx = MSI), nagu EL-i rikkumiste klassifikaatoris. Varem oli 28 rea raskusaste koodist erinev (enamasti MSI VSI-koodil). Parandus puudutab klassifikaatorit ja kõiki salvestatud vorme (autojuht, meeskonna liige, TRAM-kaart), sh aegunud ridu. **Riskiskoor:** enamikul parandatud ridadest langeb raskusaste MSI → VSI (kaal 90 → 30), ühel real (SI918) tõuseb VSI → SI; juba salvestatud vormide riskiskoor arvutub uuesti järgmisel arvutusel/salvestamisel.
+- Vanas süsteemis puuduvad read on valikust eemaldatud: art 8 lg 8 teine (majutuskulud), kogu „Töökorraldus", art 33 lg 2 ja kogu „Salvestused". Varem salvestatud andmed jäävad vormidele alles ja peidetud rikkumised osalevad ERRU punktide arvutuses edasi, kui need on vormil valitud. Vaatamisrežiimis kuvatakse peidetud rikkumised endiselt nimega, uue valiku hulgas neid ei ole. Rikkumiste PDF-i koodikataloog sisaldab uusi ERRU koode.
+- Rikkumistel, millel puudub ajaline täpsustus (nt Rooma I, lähetamine), kuvatakse koodi kõrval nüüd klassifikaatori tegelik raskusaste, mitte vana silt (varem nt „VSI843 • MSI“).
+
 ## 2026-11-20
 
 ### Teavitused: `kontrollkaardiUrl` sisaldab ainult teed
@@ -37,6 +68,16 @@
 - Keskkondades, kus `S3_ALLOWED_MIME_TYPES` on üle kirjutatud (nt devops'i `s3-proxy.yaml`), tuleb sinna lisada `application/x-tachograph-ddd`.
 
 ## 2026-11-16
+
+### ERRU XML-adapter viidud XTR peale (etapid 1-5)
+
+- ERRU MOVEHUB 3.5 XML-i vahetust teenindab nüüd XTR-põhine `erru-xml-adapter` (vana Java-adapter on ajutiselt `erru-xml-adapter-old`). Väljaminevad sõnumid (NU, NCR, RSI, CGR, CTUD, vastused ja kinnitused) ning sissetulevad ühesuunalised sõnumid lähevad läbi XTR-i. Sissetulevad päringud (NU, NCR, RSI sünkroonselt; CGR ja CTUD kohese 202 vastuse ja taustatöötajaga) töötleb XTR-i taga Ruuter. ErrorNotification läheb endiselt vanale adapterile.
+- Uus tehniline veerg `erru.xml_inbox.request_json` (CGR/CTUD taustatöötluseks) ja uus CronManageri töö `erru_xtr_async_requests` (iga 5 sekundi järel). Kasutajale nähtavat muudatust ei ole.
+- Ülevaatuse parandused: vigase UUID-ga sõnumid lükatakse tagasi (400) mitte ei jää 503-tsüklisse, `xml-inbox/finish` kaitseb aeglase varasema katse eest, XTR-i väljamineva pordi (`/xml-out`) kaitseb sisemine teenusetoken ja vana Java-adapteri töötlejad lülitati sisse-väljalülitatavaks (`PROCESSING_WORKERS_ENABLED`), et sama sõnumit ei töödeldaks kaks korda.
+- Taaste ja töökindlus: sünkroonselt töödeldud päringud (NU, NCR, RSI) salvestavad nüüd samuti oma päringu (`request_json`) ning sama taustatöö (`erru_xtr_async_requests`, kuni 3 rida korraga) võtab üles ebaõnnestunud ja aegunud lukuga read ning käsitsi uuesti ootele pandud read (varem ainult CGR/CTUD). `failed` read jäävad endiselt käsitsi taastada. Hubist tulev ErrorNotification salvestatakse inboxi (varem vastati 501), vastusele, mille töövoogu me ei leia, saadetakse Hubile ErrorNotification `ResponseNotCorrelated`. Väljamineva XML-i skeemikontroll on dev/CI-s `enforce` (skeemivigane sõnum Hubi ei lähe). XTR-i 401/404 vastus väljamineval kutsel loetakse selgeks tagasilükkamiseks (mitte `send_unknown`), NCR automaatsaatmine kontrollib enne XTR-i kohustuslikke välju. CI kontrollib, et genereeritud XTR-voogude failid vastavad generaatoritele. Ühesuunalised sõnumid (kinnitused, vastused), mille töötlus ajutiselt ebaõnnestus, lähevad nüüd samuti taastetööle (`xml-inbox/due-oneway`), CronManageri HTTP-timeout on 240 s, et partii ei katkeks, ja töötlemisel kinnitatud konfliktilogi ei kustu.
+- Vana Java ERRU XML-adapter (`erru-xml-adapter-old`) jääb tagavaraks alles, kuni acceptance kinnitab XTR-i toimimise (etapp 6, lõplik eemaldus, tehakse eraldi). Väljaminevad ERRU sõnumid lähevad vaikimisi läbi XTR-i; tüübi kaupa tagasilülitus Java-adapterile on konstandi `ERRU_<TÜÜP>_TRANSPORT=adapter` muutus ja redeploy (konstant `ERRU_XML_ADAPTER` osutab vanale adapterile). Sissetulev liiklus läheb alati XTR-i. Vana adapteri töötajad on välja lülitatud (`PROCESSING_WORKERS_ENABLED=false`). XSD-vigase väljamineva sõnumi korral on tulemus nüüd saatmisviga (olek `error`, uuesti saadetav), mitte 422 enne reserveerimist; toodangus peab XTR-i `validate.outbound` olema `enforce`.
+
+- ERRU sissetuleva sõnumi järjekord (`erru.xml_inbox`) on nüüd append-only (ADR-013): vastuvõtt jääb muutumatuks kviitungiks, olekumuutused lähevad uude tabelisse `erru.xml_inbox_event` (INSERT-only, võrdle-ja-vaheta unikaalse `(inbox_id, seq)` abil), konfliktilogi tabelisse `erru.xml_inbox_conflict`, kehtiv olek on vaates `erru.xml_inbox_current`. Resql-mallid `xml-inbox/*` ei kasuta enam UPDATE-it. Käsitsi taaste on nüüd `received` sündmuse lisamine (vt docs/integrations/erru-xml-recovery.md). Kasutajale nähtavat muudatust ei ole.
 
 ### Teavitused: vanemate teavituste lehitsemine
 

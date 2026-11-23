@@ -28,6 +28,31 @@ BEGIN
   IF forms.derive_sp_erru_points(NULL,NULL,NULL,NULL,NULL) <> '[]'::JSONB THEN
     RAISE EXCEPTION 'A form without infringements must have no automatic ERRU points';
   END IF;
+  -- Massi/pikkuse/laiuse koodid (8. parameeter): raskusastmega kirje annab punkti,
+  -- raskusastmeta (nt kõrgus, teljekoormus) mitte.
+  points := forms.derive_sp_erru_points(
+    NULL, NULL, NULL, NULL, NULL, '[]', '[]',
+    '[{"level3Code":"VSI843","severity":"VSI"},{"level3Code":"KORGUS","severity":""}]'
+  );
+  IF jsonb_array_length(points) <> 1 OR NOT points @> '[{"erru_code":"VSI843","severity_category":"VSI"}]' THEN
+    RAISE EXCEPTION 'Mass violation must yield exactly one ERRU point, severity-less must not: %', points;
+  END IF;
+  -- Aegunud koodid osalevad arvutuses edasi ja raskusaste tuleb koodi eesliitest,
+  -- mitte salvestatud (vigasest) väärtusest: VSI/SI/MSI ei sõltu JSON-i severity'st.
+  points := forms.derive_sp_erru_points(
+    '[{"level3Code":"SI923","severity":"MSI"},{"level3Code":"VSI815","severity":"MSI"}]',
+    '[{"violationCode":"VSI821","severityCode":"MSI"}]',
+    '[{"level3Code":"VSI841","severity":"SI"}]',
+    NULL, NULL, '[]', '[]',
+    '[{"level3Code":"SI923","severity":"SI"}]'
+  );
+  IF jsonb_array_length(points) <> 4
+     OR NOT points @> '[{"erru_code":"SI923","severity_category":"SI"}]'
+     OR NOT points @> '[{"erru_code":"VSI815","severity_category":"VSI"}]'
+     OR NOT points @> '[{"erru_code":"VSI821","severity_category":"VSI"}]'
+     OR NOT points @> '[{"erru_code":"VSI841","severity_category":"VSI"}]' THEN
+    RAISE EXCEPTION 'Retired codes must stay in ERRU and severity must follow the code prefix: %', points;
+  END IF;
 END $$;
 ROLLBACK;
 \echo SP ERRU point derivation checks passed

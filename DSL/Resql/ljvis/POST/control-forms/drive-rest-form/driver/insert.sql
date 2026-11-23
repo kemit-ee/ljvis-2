@@ -212,7 +212,8 @@ VALUES (nextval('forms.seq_sp_driver_form_key'),
           COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:cabotageViolations, '')::jsonb, '[]'::jsonb),
-          COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb)
+          COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:massDimensionMeasurements, '')::jsonb, '[]'::jsonb)
         ),
         NULLIF(:enforcementDecision, ''),
         NULLIF(:proceedingClosureBasis, ''),

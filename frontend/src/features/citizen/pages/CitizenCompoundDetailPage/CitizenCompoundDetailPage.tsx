@@ -6,6 +6,7 @@ import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView
 import type { CompoundForm } from '../../../control-forms/types';
 import { getCitizenCompoundForm, getCitizenCompoundSubForms } from '../../api';
 import type { CitizenSubForm } from '../../types';
+import { formatDate } from '../../../../hooks/dateUtils';
 import { CitizenSubFormsSection } from './CitizenSubFormsSection';
 
 function Field({
@@ -25,6 +26,23 @@ function Field({
   );
 }
 
+// Extras added by GET/v1/citizen/forms/compound.yml (compound-header.sql).
+type CitizenCompoundForm = CompoundForm & {
+  authorityName?: string | null;
+  teammateFirstName?: string | null;
+  teammateLastName?: string | null;
+};
+
+// '12:30:00' -> '12.30'
+function formatTime(value: string | null | undefined): string {
+  const match = /^(\d{1,2}):(\d{2})/.exec(value ?? '');
+  return match ? `${match[1].padStart(2, '0')}.${match[2]}` : '';
+}
+
+function fullName(first?: string | null, last?: string | null): string {
+  return `${first || ''} ${last || ''}`.trim();
+}
+
 /**
  * Read-only compound_form (koondvorm) summary for a citizen representative
  * or self-view. Unlike LabourInspectionFormFields, CompoundFormPage has no
@@ -37,7 +55,7 @@ export function CitizenCompoundDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
 
-  const [form, setForm] = useState<CompoundForm | null>(null);
+  const [form, setForm] = useState<CitizenCompoundForm | null>(null);
   const [subForms, setSubForms] = useState<CitizenSubForm[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -58,6 +76,10 @@ export function CitizenCompoundDetailPage() {
       .catch(() => setSubForms([]));
   }, [id]);
 
+  const teammateName =
+    fullName(form?.teammateFirstName, form?.teammateLastName) ||
+    fullName(form?.drivers?.[1]?.firstName, form?.drivers?.[1]?.lastName);
+
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !form)
     return <FormNotFoundView title={t('forms.compound_form')} />;
@@ -77,17 +99,30 @@ export function CitizenCompoundDetailPage() {
           </Heading>
           <div className="mt-05">
             <Field label={t('citizen.compoundDetail.controlDate')}>
-              {form.controlDate || '—'}
+              {[formatDate(form.controlDate?.slice(0, 10)), formatTime(form.controlTime)]
+                .filter((part) => part && part !== '—')
+                .join(' ') || '—'}
             </Field>
-            <Field label={t('citizen.compoundDetail.county')}>
-              {form.county || '—'}
+            <Field label={t('citizen.compoundDetail.authority')}>
+              {form.authorityName || '—'}
             </Field>
-            <Field label={t('citizen.compoundDetail.address')}>
-              {form.address || '—'}
+            <Field label={t('citizen.compoundDetail.driverName')}>
+              {fullName(form.drivers?.[0]?.firstName, form.drivers?.[0]?.lastName) || '—'}
             </Field>
+            {teammateName && (
+              <Field label={t('citizen.compoundDetail.teammateName')}>
+                {teammateName}
+              </Field>
+            )}
             <Field label={t('citizen.compoundDetail.vehicleRegNr')}>
               {form.vehicleRegNr || '—'}
             </Field>
+            {form.roadTaxStatus && (
+              <Field label={t('citizen.compoundDetail.roadTax')}>
+                {form.roadTaxStatus}
+                {form.roadTaxNotes ? ` – ${form.roadTaxNotes}` : ''}
+              </Field>
+            )}
           </div>
         </Card.Content>
       </Card>
@@ -107,43 +142,6 @@ export function CitizenCompoundDetailPage() {
               {form.companyRegCode || '—'}
             </Field>
           </div>
-        </Card.Content>
-      </Card>
-
-      <Card className="mt-05">
-        <Card.Content>
-          <Heading element="h3">
-            {t('citizen.compoundDetail.driversSection')}
-          </Heading>
-          {(form.drivers ?? []).length === 0 && (
-            <Text color="secondary">
-              {t('citizen.compoundDetail.noDrivers')}
-            </Text>
-          )}
-          {(form.drivers ?? []).map((driver, index) => {
-            const multipleDrivers = (form.drivers ?? []).length > 1;
-            return (
-              <div key={index} className="mt-05">
-                {multipleDrivers && (
-                  <Text modifiers="bold" className="mb-025">
-                    {t('citizen.compoundDetail.driverLabel', { number: index + 1 })}
-                  </Text>
-                )}
-                <Field label={t('citizen.compoundDetail.driverName')}>
-                  {`${driver.firstName || ''} ${driver.lastName || ''}`.trim() ||
-                    '—'}
-                </Field>
-                <Field
-                  label={t(
-                    'citizen.compoundDetail.driverPersonalCode',
-                    'Isikukood',
-                  )}
-                >
-                  {driver.personalCodeEe || driver.personalCodeForeign || '—'}
-                </Field>
-              </div>
-            );
-          })}
         </Card.Content>
       </Card>
 

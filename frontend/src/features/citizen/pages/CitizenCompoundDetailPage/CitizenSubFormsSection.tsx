@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Card, Heading, Tag, Text } from '@tedi-design-system/react/tedi';
+import { Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import type {
   CitizenSubForm,
   CitizenSubFormType,
@@ -66,52 +66,42 @@ function SubFormCard({ subForm }: { subForm: CitizenSubForm }) {
 
   return (
     <div className={`mt-05 ${styles['sub-form-card']}`}>
-      <Text color="secondary">
-        {subForm.subFormNumber}
-        {subForm.resultType && (
-          <>
-            {' · '}
-            {t(
-              `citizen.compoundDetail.resultTypes.${subForm.resultType}`,
-              subForm.resultType,
-            )}
-          </>
+      <Text color="secondary">{subForm.subFormNumber}</Text>
+      {subForm.resultType && (
+        <Text color="secondary">
+          {t('citizen.compoundDetail.resultLabel')}:{' '}
+          {t(
+            `citizen.compoundDetail.resultTypes.${subForm.resultType}`,
+            subForm.resultType,
+          )}
+        </Text>
+      )}
+      {subForm.resultType === 'misdemeanor_proceedings' &&
+        subForm.enforcementDecision && (
+          <Text color="secondary">
+            {t('citizen.compoundDetail.penaltyBasisLabel')}:{' '}
+            {subForm.enforcementDecision}
+          </Text>
         )}
-      </Text>
 
       {subForm.violations.length > 0 ? (
         <div className="mt-025">
           <Text modifiers="small" color="secondary">
             {t('citizen.compoundDetail.violationsTitle')}
           </Text>
-          <div className={`mt-025 ${styles['violation-tags']}`}>
+          <ul className="mt-025">
             {subForm.violations.map((violation, index) => {
-              // sp_driver/vehicle/trailer use `severityCode` (MSI/VSI/SI/MI);
-              // adr uses `riskCategory` (officer free-text, often MSI/VSI/SI/MI).
-              const severityCode = violation.severityCode ?? violation.riskCategory ?? null;
-              const severityLabel = severityCode
-                ? t(
-                    `citizen.compoundDetail.severity.${severityCode}`,
-                    severityCode, // fallback = raw code, never "undefined"
-                  )
-                : null;
-              // Reference text: EU regulation (sp_driver) or ADR provision
-              const ref =
-                violation.regulation
-                  ? ` (${violation.regulation})`
-                  : violation.adrProvision
-                  ? ` (${violation.adrProvision})`
-                  : '';
-              // Nothing meaningful to show → skip rendering entirely
-              if (!severityLabel && !ref) return null;
+              const reference = [violation.regulation, violation.article]
+                .filter(Boolean)
+                .join(' ');
               return (
-                <Tag key={index} color="danger">
-                  {severityLabel}
-                  {ref}
-                </Tag>
+                <li key={`${violation.code}-${index}`}>
+                  {violation.description || violation.code} ({violation.severity})
+                  {reference && ` – ${reference}`}
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       ) : (
         subForm.resultType !== 'ok' && (

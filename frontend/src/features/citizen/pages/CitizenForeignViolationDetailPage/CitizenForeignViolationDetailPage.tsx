@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Text } from '@tedi-design-system/react/tedi';
+import { Card, Heading, Text } from '@tedi-design-system/react/tedi';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { useForeignViolationForm } from '../../../control-forms/pages/foreign-violation-form/useForeignViolationForm';
 import { ForeignViolationFormFields } from '../../../control-forms/components/ForeignViolationForm/ForeignViolationFormFields';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
-import type { ForeignViolationForm } from '../../../control-forms/types';
-import { getCitizenForeignViolationForm } from '../../api';
+import {
+  getCitizenForeignViolationForm,
+  type CitizenForeignViolationForm,
+} from '../../api';
+import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 
 /**
  * Read-only foreign_violation_form detail for a citizen company
@@ -26,8 +29,9 @@ export function CitizenForeignViolationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
+  const { getByCode } = useClassifiers();
 
-  const [form, setForm] = useState<ForeignViolationForm | null>(null);
+  const [form, setForm] = useState<CitizenForeignViolationForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -46,6 +50,15 @@ export function CitizenForeignViolationDetailPage() {
     () => {},
   );
 
+  const countryName = (code?: string | null): string =>
+    code ? (getByCode('COUNTRY').find((c) => c.code === code)?.name ?? code) : '';
+
+  // The officer-only organisations list is not available to citizens, so
+  // feed the form's organisation select the name resolved server-side.
+  const citizenOrgOptions = form?.inspectorOrganisationId
+    ? [{ value: String(form.inspectorOrganisationId), label: form.createdByAuthorityName ?? '' }]
+    : orgOptions;
+
   if (loading) return <Text>{t('common.loading')}</Text>;
   if (notFound || !form)
     return <FormNotFoundView title={t('forms.foreign_violation_form')} />;
@@ -58,6 +71,30 @@ export function CitizenForeignViolationDetailPage() {
         </Heading>
       </div>
 
+      <Card className="mt-05">
+        <Card.Content>
+          <Heading element="h3">
+            {t('citizen.foreignViolationDetail.authoritiesSection')}
+          </Heading>
+          <div className="mt-05">
+            <Text modifiers="bold" color="secondary">
+              {t('citizen.foreignViolationDetail.performedBy')}
+            </Text>
+            <Text>
+              {[form.reportingAuthority, countryName(form.reportingCountryCode)]
+                .filter(Boolean)
+                .join(', ') || '—'}
+            </Text>
+          </div>
+          <div className="mt-05">
+            <Text modifiers="bold" color="secondary">
+              {t('citizen.foreignViolationDetail.createdBy')}
+            </Text>
+            <Text>{form.createdByAuthorityName || '—'}</Text>
+          </div>
+        </Card.Content>
+      </Card>
+
       <ForeignViolationFormFields
         formik={{
           values: form,
@@ -67,7 +104,7 @@ export function CitizenForeignViolationDetailPage() {
         } as never}
         readOnly
         isDesktop={isDesktop}
-        orgOptions={orgOptions}
+        orgOptions={citizenOrgOptions}
         structureUnits={structureUnits}
         formType={FORM_TYPE.FOREIGN_VIOLATION}
       />

@@ -258,7 +258,7 @@ vr_qualifying_forms AS (
 ),
 vr_latest AS (
   SELECT DISTINCT ON (foreign_violation_form_key)
-    foreign_violation_form_key, violations
+    foreign_violation_form_key, violations, minor_violations_count
   FROM forms.foreign_violation_form
   WHERE foreign_violation_form_key IN (SELECT foreign_violation_form_key FROM vr_qualifying_forms)
     AND status = 'published'
@@ -272,13 +272,14 @@ vr_controls AS (
     (SELECT fs.main_date FROM forms.form_search fs WHERE fs.form_type = 'foreign_violation' AND fs.form_key = vl.foreign_violation_form_key) AS main_date,
     (SELECT fs.vehicle_reg_nr FROM forms.form_search fs WHERE fs.form_type = 'foreign_violation' AND fs.form_key = vl.foreign_violation_form_key) AS vehicle_reg_nr,
     FALSE AS is_fully_excluded,
-    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'MSI%') AS n_msi,
-    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'VSI%') AS n_vsi,
-    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%')  AS n_si,
-    0 AS n_mi,
-    ((SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'MSI%') * 90
-     + (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'VSI%') * 30
-     + (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%') * 10) AS weighted_points
+    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'MSI%') AS n_msi,
+    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'VSI%') AS n_vsi,
+    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'SI%')  AS n_si,
+    COALESCE(vl.minor_violations_count, 0) AS n_mi,
+    ((SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'MSI%') * 90
+     + (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'VSI%') * 30
+     + (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'SI%') * 10
+     + COALESCE(vl.minor_violations_count, 0) * 1) AS weighted_points
   FROM vr_latest vl
 ),
 control_parts AS (

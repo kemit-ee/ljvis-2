@@ -39,7 +39,7 @@ flowchart LR
   end
   subgraph erru
     EM["ncr_message, rsi_message, ctud_request,<br/>cgr_request, nu_message"]
-    EX[nu_exchange_event, xml_inbox, xml_outbox]
+    EX[nu_exchange_event, xml_inbox, xml_inbox_event, xml_inbox_conflict, xml_outbox]
   end
   subgraph notifications
     NO[notification, notification_read]

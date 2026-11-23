@@ -2,7 +2,7 @@
 
 > **Genereeritud fail.** Ära muuda käsitsi: `python3 scripts/generate-erd.py`. Allikas: `DSL/Liquibase/changelog/*.sql` (`CREATE TABLE` + `ALTER TABLE … ADD/DROP COLUMN`). PK ja võõrvõtmed on tabeli loomise hetkeseisuga; hilisemad `ALTER … ADD/DROP CONSTRAINT` siin ei kajastu. Seosed ülevaates: [andmemudel-erd.md](andmemudel-erd.md).
 
-Skeemid: 8, tabeleid: 47.
+Skeemid: 8, tabeleid: 49.
 
 ## Skeem `audit`
 
@@ -365,7 +365,7 @@ Loodud: `20260814100000-initial-erru-rsi.sql` · veerge: 38 · PK: `id`
 
 ### `erru.xml_inbox`
 
-Loodud: `20261201090000-initial-erru-xml-inbox-outbox.sql` · veerge: 20 · PK: `id`
+Loodud: `20261201090000-initial-erru-xml-inbox-outbox.sql` · veerge: 21 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -389,6 +389,39 @@ Loodud: `20261201090000-initial-erru-xml-inbox-outbox.sql` · veerge: 20 · PK: 
 | `last_error` | TEXT |  |
 | `created_at` | TIMESTAMPTZ | jah |
 | `created_by` | VARCHAR(100) | jah |
+| `request_json` | TEXT |  |
+
+### `erru.xml_inbox_conflict`
+
+Loodud: `20261229090000-erru-xml-inbox-append-only.sql` · veerge: 4 · PK: `id`
+
+Võõrvõtmed: `inbox_id` → `erru.xml_inbox`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `id` | BIGSERIAL | jah |
+| `inbox_id` | BIGINT | jah |
+| `payload_digest` | VARCHAR(64) | jah |
+| `created_at` | TIMESTAMPTZ | jah |
+
+### `erru.xml_inbox_event`
+
+Loodud: `20261229090000-erru-xml-inbox-append-only.sql` · veerge: 10 · PK: `id`
+
+Võõrvõtmed: `inbox_id` → `erru.xml_inbox`
+
+| Veerg | Tüüp | Kohustuslik |
+|---|---|---|
+| `id` | BIGSERIAL | jah |
+| `inbox_id` | BIGINT | jah |
+| `seq` | INTEGER | jah |
+| `event_type` | VARCHAR(20) | jah |
+| `attempts` | INTEGER | jah |
+| `claimed_by` | VARCHAR(100) |  |
+| `lease_expires_at` | TIMESTAMPTZ |  |
+| `next_attempt_at` | TIMESTAMPTZ |  |
+| `error` | TEXT |  |
+| `created_at` | TIMESTAMPTZ | jah |
 
 ### `erru.xml_outbound_dispatch`
 

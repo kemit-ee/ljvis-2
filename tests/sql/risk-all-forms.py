@@ -17,7 +17,7 @@ sp='''id BIGINT,compound_form_key BIGINT,status TEXT,selection_status TEXT,sp_ap
 violations_561_2006 JSONB DEFAULT '[]',violations_165_2014 JSONB DEFAULT '[]',violations_2002_15 JSONB DEFAULT '[]',violations_593_2008 JSONB DEFAULT '[]',violations_2020_1057 JSONB DEFAULT '[]',document_checks JSONB DEFAULT '[]',cabotage_violations JSONB DEFAULT '[]',mass_dimension_measurements JSONB DEFAULT '[]' '''
 sql='BEGIN;\n'+f'CREATE TEMP TABLE fixture_sp_driver_form (sp_driver_form_key BIGINT,{sp});\n'+f'CREATE TEMP TABLE fixture_sp_teammate_form (sp_teammate_form_key BIGINT,{sp});\n'+f'CREATE TEMP TABLE fixture_tram_control_card (tram_control_card_key BIGINT,company_reg_code TEXT,company_name TEXT,{sp});\n'+'''
 CREATE TEMP TABLE fixture_compound_form (id BIGINT,compound_form_key BIGINT,company_reg_code TEXT,company_name TEXT,status TEXT,created_at TIMESTAMPTZ);
-CREATE TEMP TABLE fixture_foreign_violation_form (id BIGINT,foreign_violation_form_key BIGINT,company_reg_code TEXT,company_name TEXT,status TEXT,created_at TIMESTAMPTZ,violations JSONB);
+CREATE TEMP TABLE fixture_foreign_violation_form (id BIGINT,foreign_violation_form_key BIGINT,company_reg_code TEXT,company_name TEXT,status TEXT,created_at TIMESTAMPTZ,violations JSONB,minor_violations_count INTEGER);
 CREATE TEMP TABLE fixture_labour_inspection_form (id BIGINT,labour_inspection_form_key BIGINT,company_reg_code TEXT,company_name TEXT,status TEXT,created_at TIMESTAMPTZ,vehicle_count INT,violations JSONB);
 CREATE TEMP TABLE fixture_vehicle_technical_form (id BIGINT,vehicle_technical_form_key BIGINT,compound_form_key BIGINT,status TEXT,created_at TIMESTAMPTZ,selection_status TEXT DEFAULT 'active',violations JSONB);
 CREATE TEMP TABLE fixture_trailer_technical_form (id BIGINT,trailer_technical_form_key BIGINT,compound_form_key BIGINT,status TEXT,created_at TIMESTAMPTZ,selection_status TEXT DEFAULT 'active',violations JSONB);
@@ -37,7 +37,7 @@ INSERT INTO fixture_tram_control_card (id,tram_control_card_key,company_reg_code
  VALUES (1,20,'80410960','Risk test','published','RAKENDATAKSE','HOIATUS','2026-01-01','[{"severityCode":"VSI"},{"severityCode":"MSI","isDetected":false}]'),(2,21,'80410960','Risk test','published','EI_KONTROLLITUD','KORRAS','2026-01-01','[]');
 INSERT INTO fixture_labour_inspection_form VALUES (1,30,'80410960','Risk test','published','2026-01-01',2,'[{"level3ValueKey":300,"quantity":3}]');
 INSERT INTO fixture_classifier_value VALUES (1,300,'SI','2026-01-01');
-INSERT INTO fixture_foreign_violation_form VALUES (1,40,'80410960','Risk test','published','2026-01-01','["SI901"]');
+INSERT INTO fixture_foreign_violation_form VALUES (1,40,'80410960','Risk test','published','2026-01-01','[{"code":"SI901"}]',2);
 INSERT INTO fixture_form_search VALUES (10,'compound','koond-test','2026-01-01','TEST'),(20,'tram_control_card','tram-test','2026-01-01','TEST'),(30,'labour_inspection','ti-test','2026-01-01',NULL),(40,'foreign_violation','vr-test','2026-01-01',NULL);
 '''
 sql+=remap((root/'DSL/Liquibase/changelog/20261016211000-risk-additional-controls.sql').read_text())
@@ -45,19 +45,19 @@ sql+='\nCREATE TEMP VIEW actual_score AS '+query('calculate_risk_score')
 sql+='\nCREATE TEMP VIEW actual_breakdown AS '+query('company_controls_breakdown')
 sql+='''
 DO $$ BEGIN
- IF (SELECT total_controls FROM actual_score) <> 4 OR (SELECT risk_score FROM actual_score) <> 76.25 THEN
+ IF (SELECT total_controls FROM actual_score) <> 4 OR (SELECT risk_score FROM actual_score) <> 76.75 THEN
   RAISE EXCEPTION 'Wrong score: %', (SELECT row_to_json(s) FROM actual_score s);
  END IF;
  IF EXISTS (SELECT 1 FROM actual_breakdown WHERE form_key=50 AND NOT is_fully_excluded) THEN RAISE EXCEPTION 'Not-applied SP with result ok must be fully excluded'; END IF;
  IF (SELECT COUNT(*) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 4 THEN RAISE EXCEPTION 'Breakdown control count differs'; END IF;
- IF (SELECT SUM(weighted_points) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 305 THEN RAISE EXCEPTION 'Breakdown points differ'; END IF;
+ IF (SELECT SUM(weighted_points) FROM actual_breakdown WHERE NOT is_fully_excluded) <> 307 THEN RAISE EXCEPTION 'Breakdown points differ'; END IF;
  IF (SELECT weighted_points FROM actual_breakdown WHERE form_type='compound') <> 250 THEN RAISE EXCEPTION 'SP (incl. mass/dimension severity), vehicle, trailer and ADR must count once per compound'; END IF;
  IF (SELECT weighted_points FROM actual_breakdown WHERE form_type='labour_inspection') <> 15 THEN RAISE EXCEPTION 'TI quantity and vehicle divisor must apply'; END IF;
 END $$;
 -- A technical-only control must also count. Drafts, deleted forms, excluded TRAM and old controls must not count.
 DELETE FROM fixture_sp_driver_form;
 DO $$ BEGIN
- IF (SELECT total_controls FROM actual_score) <> 4 OR (SELECT risk_score FROM actual_score) <> 46.25 THEN RAISE EXCEPTION 'Technical/ADR-only compound missing'; END IF;
+ IF (SELECT total_controls FROM actual_score) <> 4 OR (SELECT risk_score FROM actual_score) <> 46.75 THEN RAISE EXCEPTION 'Technical/ADR-only compound missing'; END IF;
 END $$;
 INSERT INTO fixture_tram_control_card SELECT (jsonb_populate_record(NULL::fixture_tram_control_card,to_jsonb(t)||jsonb_build_object('id',t.id+10,'status','deleted','created_at','2026-02-01'))).* FROM fixture_tram_control_card t;
 UPDATE fixture_labour_inspection_form SET status='confirmed';

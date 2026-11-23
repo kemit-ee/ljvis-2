@@ -336,6 +336,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # The ERRU XTR flows are generated: a hand edit (or a generator change without re-running it) must not drift apart.
+      - name: ERRU XTR generators up to date
+        run: |
+          python3 scripts/generate-erru-xtr-requests.py > /dev/null
+          python3 scripts/generate-erru-xtr-inbound.py > /dev/null
+          git diff --exit-code -- DSL/Ruuter.internal DSL/CronManager \
+            || { echo "::error::generated ERRU XTR flows are out of date: run scripts/generate-erru-xtr-requests.py and scripts/generate-erru-xtr-inbound.py"; exit 1; }
+          [ -z "$(git status --porcelain -- DSL/Ruuter.internal DSL/CronManager)" ] \
+            || { echo "::error::generators produced untracked files, commit them"; git status --short; exit 1; }
+
       - name: Resolve pinned Ruuter image
         id: ruuter
         run: |

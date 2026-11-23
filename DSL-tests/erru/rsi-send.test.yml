@@ -3,6 +3,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
   ERRU_XML_ADAPTER: '{MOCK}/adapter'
+  ERRU_RSI_TRANSPORT: adapter
   INTERNAL_COMMUNICATION_KEY: test-token
 tests:
 - name: send converts RSI_FAILED_REASON items to rsiCheckedItemType

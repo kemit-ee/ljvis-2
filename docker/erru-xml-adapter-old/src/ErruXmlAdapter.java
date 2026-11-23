@@ -58,7 +58,12 @@ public final class ErruXmlAdapter {
         );
 
         List<Thread> workers = new java.util.ArrayList<>();
+        // PROCESSING_WORKERS_ENABLED=false: the XTR adapter (erru-xml-adapter) owns the inbound messages and their
+        // erru.xml_inbox rows; this adapter must not pick up its received/expired rows and answer them a second time.
+        boolean processing = !"false".equalsIgnoreCase(System.getenv().getOrDefault("PROCESSING_WORKERS_ENABLED", "true").trim());
+        if (!processing) System.out.println("processing workers disabled (PROCESSING_WORKERS_ENABLED=false)");
         for (MessageMapper mapper : mappers) {
+            if (!processing) break;
             workers.add(startWorker(new ProcessingWorker(config, new Db(config), schemas, List.of(mapper)),
                     "erru-processing-" + mapper.requestRoot()));
         }

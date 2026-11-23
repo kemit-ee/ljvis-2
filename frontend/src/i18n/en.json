@@ -1284,9 +1284,17 @@
       "selectCompany": "Select a company from the header to view its data.",
       "view": "View"
     },
+    "foreignViolationDetail": {
+      "authoritiesSection": "Authorities",
+      "performedBy": "Authority that carried out the control",
+      "createdBy": "Authority that created the card"
+    },
     "compoundDetail": {
       "controlSection": "Control details",
-      "controlDate": "Date",
+      "authority": "Authority that carried out the control",
+      "teammateName": "Crew member's first name and surname",
+      "roadTax": "Road usage charge",
+      "controlDate": "Control date and time",
       "county": "County",
       "address": "Address",
       "vehicleRegNr": "Vehicle reg. no",
@@ -1296,7 +1304,7 @@
       "driversSection": "Drivers",
       "noDrivers": "No drivers added",
       "driverLabel": "Driver {{number}}",
-      "driverName": "Name",
+      "driverName": "Driver's first name and surname",
       "driverPersonalCode": "Personal code",
       "subFormsSection": "Control details",
       "subFormsEmpty": "No further published sub-forms exist for this control.",
@@ -1317,11 +1325,14 @@
         "extraordinary_inspection": "Referred for extraordinary roadworthiness test",
         "extraordinary_inspection_ta": "Referred for extraordinary roadworthiness test with Transport Administration data verification",
         "driving_ban": "Driving ban",
-        "misdemeanor_proceedings": "Misdemeanor proceedings started",
+        "misdemeanor_proceedings": "Misdemeanor proceedings",
+        "precept": "Precept",
         "warning": "Warning",
         "driving_ban_art5": "Driving ban (ADR art 5)",
         "transport_interruption": "Road transport interrupted"
       },
+      "resultLabel": "Control result",
+      "penaltyBasisLabel": "Basis for determining the penalty",
       "violationsTitle": "Infringements found",
       "noViolations": "No infringements found.",
       "severity": {
@@ -1337,25 +1348,23 @@
       "protocolsTitle": "My protocols",
       "protocolsSubtitle": "Forms where you are a party (driver, sanctioned person, or subject of a good-repute check).",
       "company": {
-        "riskWindow": "Risk level assessed for the period {{start}}–{{end}}",
+        "riskWindow": "Risk level calculated based on the results of controls carried out in the period {{start}}–{{end}}",
         "totalControls": "Number of controls: {{count}}",
         "hideControls": "Hide controls",
         "viewControls": "View controls"
       },
       "controls": {
-        "formNumber": "Form number",
-        "mainDate": "Date",
+        "formNumber": "Control data form number",
+        "mainDate": "Control date",
         "vehicleRegNr": "Vehicle reg. no",
-        "msi": "Most serious",
+        "msi": "Number of MSI infringements",
         "msiTooltip": "MSI – Most Serious Infringement, e.g. tachograph fraud or a missing tachograph, no speed limiter.",
-        "vsi": "Very serious",
+        "vsi": "Number of VSI infringements",
         "vsiTooltip": "VSI – Very Serious Infringement, e.g. a large excess of driving or rest time limits.",
-        "si": "Serious",
+        "si": "Number of SI infringements",
         "siTooltip": "SI – Serious Infringement, e.g. a smaller excess of driving or rest time limits.",
-        "mi": "Minor",
+        "mi": "Number of MI infringements",
         "miTooltip": "MI – Minor Infringement, e.g. formal shortcomings in filling out documents.",
-        "weightedPoints": "Weighted points",
-        "weightedPointsTooltip": "Risk points for the control, calculated from infringement severity (most serious infringements score highest, minor ones lowest).",
         "view": "View"
       }
     },

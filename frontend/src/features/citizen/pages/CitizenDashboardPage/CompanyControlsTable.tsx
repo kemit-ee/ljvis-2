@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button, Icon, Text, Tooltip } from '@tedi-design-system/react/tedi';
+import { Button, InfoTooltip, Text } from '@tedi-design-system/react/tedi';
 import type { CompanyControlRow } from '../../types';
+import { formatDate } from '../../../../hooks/dateUtils';
 import { AppTable } from '../../../../shared/components/AppTable';
 
 interface CompanyControlsTableProps {
@@ -17,7 +18,7 @@ const columnHelper = createColumnHelper<CompanyControlRow>();
 
 /**
  * Column header with an explanatory tooltip — used for the severity
- * columns (Kõige raskem/Väga raske/Raske/Kergem), since the raw
+ * columns (MSI/VSI/SI/MI), since the raw
  * EU classifier abbreviations (MSI/VSI/SI/MI) mean nothing to a citizen
  * without transport-sector background.
  */
@@ -29,19 +30,17 @@ function HeaderWithTooltip({
   tooltip: string;
 }) {
   return (
-    <Tooltip>
-      <Tooltip.Trigger>
-        <span className="ljvis-header-with-tooltip">
-          {label} <Icon name="info" size={16} color="secondary" />
-        </span>
-      </Tooltip.Trigger>
-      <Tooltip.Content>{tooltip}</Tooltip.Content>
-    </Tooltip>
+    <span className="ljvis-header-with-tooltip">
+      {label}
+      <InfoTooltip isSmall openWith="click" ariaLabel={label}>
+        {tooltip}
+      </InfoTooltip>
+    </span>
   );
 }
 
 /**
- * Per-control MSI/VSI/SI/MI severity breakdown + weightedPoints,
+ * Per-control MSI/VSI/SI/MI severity breakdown,
  * shown under a CompanyCard's "Vaata kontrolle" toggle. Data is fetched by the
  * parent CompanyCard so the count shown in the card header and the rows shown
  * here are always consistent (same API response, same rolling window).
@@ -61,7 +60,7 @@ export function CompanyControlsTable({
       }),
       columnHelper.accessor('mainDate', {
         header: t('citizen.dashboard.controls.mainDate'),
-        cell: (info) => info.getValue() || '—',
+        cell: (info) => formatDate(info.getValue()),
       }),
       columnHelper.accessor('vehicleRegNr', {
         header: t('citizen.dashboard.controls.vehicleRegNr'),
@@ -96,17 +95,6 @@ export function CompanyControlsTable({
           <HeaderWithTooltip
             label={t('citizen.dashboard.controls.mi')}
             tooltip={t('citizen.dashboard.controls.miTooltip')}
-          />
-        ),
-      }),
-      columnHelper.accessor('weightedPoints', {
-        header: () => (
-          <HeaderWithTooltip
-            label={t(
-              'citizen.dashboard.controls.weightedPoints',
-              'Kaalutud punktid',
-            )}
-            tooltip={t('citizen.dashboard.controls.weightedPointsTooltip')}
           />
         ),
       }),
