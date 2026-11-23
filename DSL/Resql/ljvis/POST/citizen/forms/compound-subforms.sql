@@ -9,7 +9,7 @@ description: Citizen-facing read-only list of every published sub-form (sp_drive
   even if the parent koondvorm is already published - same principle as citizen/forms/search.sql). Latest
   snapshot per sub-form is picked via DISTINCT ON. Violations are unified into one JSONB array per row
   of the shape {code, severity (MSI|VSI|SI|MI), description, regulation, article} so the frontend can render every
-  sub-form type generically. Every violation that has a severity is included: the 5 regulation arrays, cabotage,
+  sub-form type generically. Every violation that has a severity is included - the 5 regulation arrays, cabotage,
   document checks and mass/length/width of sp_driver/sp_teammate, vehicle/trailer technical codes (plain strings or
   objects) and ADR records with a carrier-responsible (C) EU infringement code. Entries explicitly marked
   isDetected=false are left out. Descriptions come from the saved entry or, failing that, from the latest
@@ -144,17 +144,15 @@ sev AS (
 ),
 described AS (
     SELECT s.ft, s.fk, s.reg, s.severity, s.code, s.kind, s.e,
-           cls.name AS cls_name
+           (SELECT cv.name
+              FROM classifier.classifier_value cv
+             WHERE cv.code = s.code
+               AND cv.classifier_key = ANY(SELECT c.classifier_key
+                                             FROM classifier.classifier c
+                                            WHERE c.code IN ('EU_INFRINGEMENT', 'CARGO_CABOTAGE_VIOLATION', 'PASSENGER_CABOTAGE_VIOLATION'))
+             ORDER BY cv.created_at DESC
+             LIMIT 1) AS cls_name
       FROM sev s
-      LEFT JOIN LATERAL (
-          SELECT cv.name
-            FROM classifier.classifier_value cv
-            JOIN classifier.classifier c ON c.classifier_key = cv.classifier_key
-           WHERE cv.code = s.code
-             AND c.code IN ('EU_INFRINGEMENT', 'CARGO_CABOTAGE_VIOLATION', 'PASSENGER_CABOTAGE_VIOLATION')
-           ORDER BY cv.created_at DESC
-           LIMIT 1
-      ) cls ON TRUE
      WHERE s.severity IS NOT NULL
 ),
 viol AS (

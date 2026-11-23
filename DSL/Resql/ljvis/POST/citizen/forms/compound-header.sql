@@ -19,21 +19,7 @@ returns:
   type: string
   nullable: true
 */
-SELECT
-    (SELECT o.name
-       FROM users.organisation o
-      WHERE o.code = cf.inspector_organisation_id
-      LIMIT 1) AS authority_name,
-    tm.person_first_name AS teammate_first_name,
-    tm.person_last_name AS teammate_last_name
-FROM (
-    SELECT inspector_organisation_id
-      FROM forms.compound_form
-     WHERE compound_form_key = :compound_form_key::BIGINT
-     ORDER BY created_at DESC
-     LIMIT 1
-) cf
-LEFT JOIN LATERAL (
+WITH tm AS (
     SELECT person_first_name, person_last_name
       FROM (
           SELECT DISTINCT ON (sp_teammate_form_key) *
@@ -44,4 +30,15 @@ LEFT JOIN LATERAL (
      WHERE l.status = 'published'
      ORDER BY l.sp_teammate_form_key
      LIMIT 1
-) tm ON TRUE;
+)
+SELECT
+    (SELECT o.name
+       FROM users.organisation o
+      WHERE o.code = (SELECT cf.inspector_organisation_id
+                        FROM forms.compound_form cf
+                       WHERE cf.compound_form_key = :compound_form_key::BIGINT
+                       ORDER BY cf.created_at DESC
+                       LIMIT 1)
+      LIMIT 1) AS authority_name,
+    (SELECT person_first_name FROM tm) AS teammate_first_name,
+    (SELECT person_last_name FROM tm) AS teammate_last_name;
