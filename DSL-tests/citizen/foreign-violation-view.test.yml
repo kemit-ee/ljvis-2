@@ -1,0 +1,184 @@
+# Ettevõtja VR-kaardi vaade (GET /v1/citizen/forms/foreign-violation): ametniku
+# sisemised väljad ei tohi ettevõtjani jõuda, omandikontroll ja audit.
+#
+# Piirang: runneri body_matches on alamhulga-võrdlus, välja PUUDUMIST sellega
+# kontrollida ei saa. Esimene test kontrollib seetõttu positiivselt: ERRU
+# sisetekst on null, tavaline märkus alles ja violations[] elemendid on
+# oodatud kujul. Lekkivate võtmete puudumist (createdBy, inspectorPersonalCode,
+# internalFlag) katab allowlisti ülevaatus, mitte see test.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  LJVIS_DMAPPER_HBS: '{MOCK}/dmapper'
+  LJVIS_XTR: '{MOCK}/xtr'
+  S3_PROXY: '{MOCK}/s3'
+  S3_PROXY_API_KEY: test-key
+tests:
+- name: representative gets only allow-listed fields, violations[] elements are narrowed too
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+            representedCompanies:
+            - registryCode: '12345678'
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body: [{id: 7, status: published, companyRegCode: '12345678', formNumber: vr-7, inspectorOrganisationId: '70001231'}]
+    - url_matches: /dmapper/map_foreign_violation_form
+      method: POST
+      status: 200
+      body:
+        id: 7
+        status: published
+        formNumber: vr-7
+        companyRegCode: '12345678'
+        companyName: Test OÜ
+        createdBy: OFFICER1
+        inspectorPersonalCode: '39001010000'
+        inspectorName: Inspector Name
+        notes: Ametniku märkus
+        sanctionNotes: 'ERRU penaltyTypeImposed=999 (kaardistamata, vt provisoorne vastavustabel)'
+        violations:
+        - code: SI912
+          sanctionCode: MUU
+          sanctionNotes: 'ERRU penaltyTypeImposed=999 (kaardistamata, vt provisoorne vastavustabel)'
+          requestedPenaltyCodes: ['101']
+          internalFlag: secret
+        - code: VSI875
+          sanctionCode: TRAHV
+          sanctionNotes: Päris märkus
+          recommendedMeasureCode: OTSUS
+          createdBy: OFFICER1
+    - url_matches: /citizen/forms/organisation-name
+      method: POST
+      status: 200
+      body: [{name: Kliimaministeerium}]
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: [{organisation_id: '5', user_account_id: '7', actor_name: Real Person}]
+    - url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: {}
+  request:
+    method: GET
+    path: /ljvis/v1/citizen/forms/foreign-violation?q=7
+    headers: {cookie: test}
+  expect:
+    status: 200
+    body_matches:
+      response:
+        id: 7
+        createdByAuthorityName: Kliimaministeerium
+        companyName: Test OÜ
+        notes: Ametniku märkus
+        sanctionNotes: null
+        violations:
+        - {code: SI912, sanctionCode: MUU, requestedPenaltyCodes: ['101']}
+        - {code: VSI875, sanctionCode: TRAHV, sanctionNotes: Päris märkus, recommendedMeasureCode: OTSUS}
+  verify_mocks:
+  - url_matches: /log/insert_audit_event
+    count: 1
+
+- name: a user who does not represent the company gets 403 and no audit event
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+            representedCompanies:
+            - registryCode: '99999999'
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body: [{id: 7, status: published, companyRegCode: '12345678', formNumber: vr-7}]
+    - url_matches: /xtr/ar/esindus_v1
+      method: POST
+      status: 200
+      body: {}
+  request:
+    method: GET
+    path: /ljvis/v1/citizen/forms/foreign-violation?q=7
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /dmapper/map_foreign_violation_form
+    count: 0
+  - url_matches: /log/insert_audit_event
+    count: 0
+
+- name: a form that is not published is 404 even for a representative
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: SESSION1
+            representedCompanies:
+            - registryCode: '12345678'
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body: [{id: 7, status: saved, companyRegCode: '12345678', formNumber: vr-7}]
+  request:
+    method: GET
+    path: /ljvis/v1/citizen/forms/foreign-violation?q=7
+    headers: {cookie: test}
+  expect:
+    status: 404
+  verify_mocks:
+  - url_matches: /dmapper/map_foreign_violation_form
+    count: 0
+  - url_matches: /log/insert_audit_event
+    count: 0
+
+- name: unknown form id is 404
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /control-forms/foreign-violation-form/get
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: GET
+    path: /ljvis/v1/citizen/forms/foreign-violation?q=999
+    headers: {cookie: test}
+  expect:
+    status: 404
+
+- name: no valid session is refused and nothing is read
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 401
+      body: {}
+  request:
+    method: GET
+    path: /ljvis/v1/citizen/forms/foreign-violation?q=7
+    headers: {cookie: test}
+  expect:
+    status: 403
+  verify_mocks:
+  - url_matches: /control-forms/foreign-violation-form/get
+    count: 0
