@@ -1,3 +1,3 @@
 # TIM remains upstream-owned; this release wrapper promotes one reviewed immutable
 # multi-arch upstream image into the LJVIS2 namespace and shared release version.
-FROM harbor.kemitaws.ee/dockerhub/turnerrainer/tim:0.3.0-alpha@sha256:2859f11587a8a2ac74972068869fe40ba3892e9640428010390fb718479f2994
+FROM harbor.kemitaws.ee/dockerhub/turnerrainer/tim:0.4.1-alpha@sha256:8eadeb9075bd6b7ab948787e054178e6b072556c8a3197b258796d5a5a9e6117

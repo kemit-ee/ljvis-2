@@ -22,6 +22,17 @@ jwt:
   audience:
     validation_enabled: false
 
+# TIM 0.4.0+: /introspect requires Basic auth, and boot is refused without at
+# least one client. The secret is the existing shared inter-service token
+# (constants.ini INTERNAL_COMMUNICATION_KEY, same one XTR uses), so Ruuter can
+# call /introspect with it if a DSL ever needs to. Deployed environments
+# (devops repo) must set TIM_INTROSPECT_RUUTER_SECRET from the pipeline.
+introspection:
+  required_client_auth: true
+  clients:
+    - client_id: "ruuter"
+      client_secret_env: "TIM_INTROSPECT_RUUTER_SECRET"
+
 security:
   admin_token_env: "TIM_ADMIN_TOKEN"
   require_admin_token: true

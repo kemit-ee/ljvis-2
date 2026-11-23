@@ -190,22 +190,43 @@ services:
     networks:
       - ljvisnetwork
 
+  # One-shot: puts the JWT key and TARA-Mock CA into the tim-jwt-key volume
+  # (the distroless TIM image has no shell to do it itself).
+  tim-init:
+    container_name: tim-init
+    build:
+      context: .
+      dockerfile: docker/tim/Dockerfile.init
+    depends_on:
+      - tara-mock
+    volumes:
+      - tara-mock-vault:/tara-mock-vault:ro
+      - tim-jwt-key:/opt/tim/keys
+    restart: "no"
+    networks:
+      - ljvisnetwork
+
   tim:
     container_name: tim
     build:
       context: .
       dockerfile: docker/tim/Dockerfile
     depends_on:
-      - tim-postgresql
-      - tara-mock
+      tim-postgresql:
+        condition: service_started
+      tara-mock:
+        condition: service_started
+      tim-init:
+        condition: service_completed_successfully
     environment:
+      - SSL_CERT_FILE=/opt/tim/keys/tara-mock-ca.pem
+      - TIM_INTROSPECT_RUUTER_SECRET=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
       - TIM_DATABASE_URL=postgres://tim:123@tim-postgresql:5432/tim
       - TIM_ADMIN_TOKEN=${TIM_ADMIN_TOKEN:-dev-admin-token}
       - TIM_TARA_CLIENT_ID=ljvis
       - TIM_TARA_CLIENT_SECRET=ljvis-secret
       - RUST_LOG=info
     volumes:
-      - tara-mock-vault:/tara-mock-vault:ro
       - tim-jwt-key:/opt/tim/keys
     ports:
       - 8085:8085
