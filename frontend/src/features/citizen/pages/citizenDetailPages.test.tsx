@@ -19,12 +19,6 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock('../api', () => api);
 
-vi.mock('../../control-forms/pages/foreign-violation-form/useForeignViolationForm', () => ({
-  useForeignViolationForm: () => ({ orgOptions: [], structureUnits: [] }),
-}));
-vi.mock('../../control-forms/components/ForeignViolationForm/ForeignViolationFormFields', () => ({
-  ForeignViolationFormFields: () => <div>fv-fields</div>,
-}));
 vi.mock('../../control-forms/pages/labour-inspection/useLabourInspectionForm', () => ({
   useLabourInspectionForm: () => ({ transportTypes: [], violationClassifiers: [] }),
 }));
@@ -38,10 +32,13 @@ vi.mock('../../control-forms/components/GoodRepute/GoodReputeFormFields', () => 
 }));
 vi.mock('../../classifiers/ClassifierProvider', () => ({
   useClassifiers: () => ({
-    getByCode: () => [
-      { code: 'EE', name: 'Eesti', isValid: true },
-      { code: 'XX', name: 'Vana', isValid: false },
-    ],
+    getByCode: (code: string) =>
+      code === 'EHAK'
+        ? [{ code: 'E37', name: 'Harju maakond', classifierValueKey: 123, isValid: true }]
+        : [
+            { code: 'EE', name: 'Eesti', isValid: true },
+            { code: 'XX', name: 'Vana', isValid: false },
+          ],
   }),
 }));
 
@@ -188,28 +185,95 @@ describe('CitizenSubFormsSection', () => {
 });
 
 describe('CitizenForeignViolationDetailPage', () => {
-  it('renders the form fields', async () => {
-    api.getCitizenForeignViolationForm.mockResolvedValue([
-      { formNumber: 'VR-1', reportingAuthority: 'Poliisi', reportingCountryCode: 'EE', createdByAuthorityName: 'Kliimaministeerium' },
-    ]);
+  const vr = {
+    formNumber: 'VR-1',
+    reportingAuthority: 'Poliisi',
+    reportingCountryCode: 'EE',
+    createdByAuthorityName: 'Kliimaministeerium',
+    inspectionDate: '2026-03-31',
+    inspectionTime: '09:05:00',
+    companyName: 'Firma',
+    driverFirstName: 'Mari',
+    driverLastName: 'Maasikas',
+    violations: [
+      { code: 'MSI101', sanctionCode: 'TRAHV', sanctionNotes: 'trahvi märkus' },
+    ],
+    // officer-internal fields that must never be rendered
+    inspectorFirstName: 'Ametnik',
+    notifyCarrier: true,
+    adminProcedureDecision: 'SALA',
+  };
+
+  it('renders the authorities block with KLIM wording and the form data as text', async () => {
+    api.getCitizenForeignViolationForm.mockResolvedValue([vr]);
     at('/x/1', <CitizenForeignViolationDetailPage />);
-    await waitFor(() => expect(screen.getByText('fv-fields')).toBeTruthy());
-    expect(screen.getByText('VR-1')).toBeTruthy();
+    await waitFor(() => expect(screen.getByText('VR-1')).toBeTruthy());
+    expect(screen.getByText('citizen.foreignViolationDetail.performedBy')).toBeTruthy();
     expect(screen.getByText('Poliisi, Eesti')).toBeTruthy();
+    expect(screen.getByText('citizen.foreignViolationDetail.createdBy')).toBeTruthy();
     expect(screen.getByText('Kliimaministeerium')).toBeTruthy();
+    expect(screen.getByText('31.03.2026')).toBeTruthy();
+    expect(screen.getByText('09.05')).toBeTruthy();
+    expect(screen.getByText('Mari Maasikas')).toBeTruthy();
+    expect(screen.getByText('trahvi märkus')).toBeTruthy();
   });
 
-  it('uses the default title without a number and not-found on error', async () => {
-    api.getCitizenForeignViolationForm.mockResolvedValueOnce({});
+  it('resolves Estonian register ids to names, keeps foreign free text and derives measures', async () => {
+    api.getCitizenForeignViolationForm.mockResolvedValue({
+      formNumber: 'VR-2',
+      companyCountryCode: 'EE',
+      companyAddressLine2: '123',
+      companyCity: '999',
+      inspectionCountryCode: 'FR',
+      inspectionRegion: '75',
+      violations: [{ code: 'VSI819', requestedPenaltyCodes: ['101'] }],
+      additionalSanctionCodes: ['TRAHV'],
+      notes: 'üldmärkus',
+    });
     at('/x/1', <CitizenForeignViolationDetailPage />);
-    await waitFor(() => expect(screen.getByText('fv-fields')).toBeTruthy());
-    expect(screen.getByText('forms.foreign_violation_form')).toBeTruthy();
-    cleanup();
+    await waitFor(() => expect(screen.getByText('VR-2')).toBeTruthy());
+    expect(screen.getByText('Harju maakond')).toBeTruthy();
+    expect(screen.queryByText('123')).toBeNull();
+    expect(screen.queryByText('999')).toBeNull();
+    // purely numeric foreign free text must not be looked up in EHAK
+    expect(screen.getByText('75')).toBeTruthy();
+    expect(screen.getByText('forms.foreign_violation.recommendedMeasureWarning')).toBeTruthy();
+    expect(screen.getByText('üldmärkus')).toBeTruthy();
+  });
+
+  it('does not render officer-internal sections or data', async () => {
+    api.getCitizenForeignViolationForm.mockResolvedValue(vr);
+    at('/x/1', <CitizenForeignViolationDetailPage />);
+    await waitFor(() => expect(screen.getByText('VR-1')).toBeTruthy());
+    for (const hidden of [
+      'forms.foreign_violation.reportingBasicInfo',
+      'forms.foreign_violation.inspectorBasicInfo',
+      'forms.foreign_violation.carrierRegistryEmailMissing',
+      'Ametnik',
+      'SALA',
+    ]) {
+      expect(screen.queryByText(hidden)).toBeNull();
+    }
+    expect(screen.queryByText('notifications.title')).toBeNull();
+  });
+
+  it('shows the general sanction when no violations were selected and dashes for gaps', async () => {
+    api.getCitizenForeignViolationForm.mockResolvedValue({ sanctionCode: 'HOIATUS', recommendedMeasureCode: 'PUUDUVAD' });
+    at('/x/1', <CitizenForeignViolationDetailPage />);
+    await waitFor(() => expect(screen.getByText('forms.foreign_violation_form')).toBeTruthy());
+    expect(screen.getByText('citizen.foreignViolationDetail.noEuViolations')).toBeTruthy();
+    expect(screen.getByText('forms.foreign_violation.sanctionHoiatus')).toBeTruthy();
+    expect(screen.getAllByText('—').length).toBeGreaterThan(3);
+  });
+
+  it('shows not-found on error and does nothing without id', async () => {
     api.getCitizenForeignViolationForm.mockRejectedValueOnce(new Error('x'));
     at('/x/1', <CitizenForeignViolationDetailPage />);
-    await waitFor(() => expect(screen.queryByText('fv-fields')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('citizen.foreignViolationDetail.performedBy')).toBeNull());
     cleanup();
+    api.getCitizenForeignViolationForm.mockClear();
     at('/x', <CitizenForeignViolationDetailPage />, '/x');
+    expect(api.getCitizenForeignViolationForm).not.toHaveBeenCalled();
   });
 });
 

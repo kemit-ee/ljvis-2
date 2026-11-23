@@ -26,7 +26,8 @@ declaration:
     reasoning already used for names elsewhere in this citizen surface (kept
     visible, company needs to know who was involved).
     The response also carries createdByAuthorityName (name of the Estonian authority that
-    created the card, from organisation-name.sql); inspector personal fields are nulled.
+    created the card, from organisation-name.sql); only an allow-list of the fields the citizen view
+    shows is returned (officer-internal fields are never sent).
   namespace: citizen
   allowlist:
     headers:
@@ -141,15 +142,24 @@ mergeAuthority:
     result_body: >-
       ${(function(){
         var name = (authority_res.response.body && authority_res.response.body[0] && authority_res.response.body[0].name) || null;
-        // Data minimisation: the citizen view does not show the inspector's personal details.
+        // Data minimisation: allow-list of the fields the citizen view shows
+        // (a new officer-only field added to the mapper never reaches citizens).
+        var allowed = ['id', 'version', 'revision', 'status', 'formNumber',
+          'reportingCountryCode', 'reportingAuthority',
+          'inspectionDate', 'inspectionTime', 'inspectionAddressLine1', 'inspectionAddressLine2',
+          'inspectionRegion', 'inspectionCity', 'inspectionCountryCode',
+          'companyRegCode', 'companyName', 'companyCountryCode', 'companyAddressLine1',
+          'companyAddressLine2', 'companyCity', 'companyPostalCode',
+          'driverFirstName', 'driverLastName',
+          'vehicleRegNr', 'vehicleMake', 'vehicleModel', 'vehicleCountryCode', 'vehicleVin',
+          'vehicleFirstRegistration', 'vehicleBodyType', 'licenceCopyNumber',
+          'violationDescription', 'minorViolationsCount',
+          'sanctionCode', 'sanctionNotes', 'additionalSanctionCodes', 'violations',
+          'recommendedMeasureCode', 'recommendedMeasureNotes', 'notes'];
         function strip(f) {
-          return Object.assign({}, f, {
-            createdByAuthorityName: name,
-            inspectorFirstName: null,
-            inspectorLastName: null,
-            inspectorUnit: null,
-            inspectorProfession: null
-          });
+          var out = { createdByAuthorityName: name };
+          allowed.forEach(function(k) { out[k] = f[k] ?? null; });
+          return out;
         }
         var b = mapped.response.body;
         return Array.isArray(b) ? b.map(strip) : strip(b);

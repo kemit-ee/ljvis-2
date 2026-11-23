@@ -1285,6 +1285,7 @@
       "view": "View"
     },
     "foreignViolationDetail": {
+      "noEuViolations": "No infringement from the EU list was marked.",
       "authoritiesSection": "Authorities",
       "performedBy": "Authority that carried out the control",
       "createdBy": "Authority that created the card"

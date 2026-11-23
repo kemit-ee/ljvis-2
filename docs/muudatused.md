@@ -19,6 +19,7 @@
 ### Ettevõtja vaade: välisriigi rikkumise kontrollkaart
 
 - Välisriigi rikkumise kontrollkaardi vaates kuvatakse „Kontrolli teostanud asutus“ (kaardile kantud välisriigi asutus ja riik) ning „Kaardi koostanud asutus“ (inspektori organisatsioon).
+- Vaade on ettevõtjale mõeldud kokkuvõte tavalise tekstina: kontrolli aeg ja koht, ettevõte, juht, sõiduk, rikkumised koos sanktsioonide ja soovitatud meetmega. Ametniku sisemisi andmeid (teavituste valikud, haldusmenetluse kuupäevad ja otsus, inspektori andmed, andmete sisestamise kuupäev) ettevõtjale enam ei kuvata ega saadeta.
 
 ### Riskiskoor: välisriigi rikkumise kontrollkaardi rikkumised arvestatakse uuesti
 

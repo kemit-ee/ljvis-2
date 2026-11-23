@@ -311,6 +311,7 @@
       "view": "Vaata"
     },
     "foreignViolationDetail": {
+      "noEuViolations": "ELi loetelu rikkumisi ei märgitud.",
       "authoritiesSection": "Asutused",
       "performedBy": "Kontrolli teostanud asutus",
       "createdBy": "Kaardi koostanud asutus"
