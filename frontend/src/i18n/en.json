@@ -2443,7 +2443,8 @@
     "log": {
       "sendDate": "Sent date",
       "messageType": "Message type",
-      "addressee": "Addressee",
+      "foundAddress": "Found address",
+      "addressee": "Sent to address",
       "notificationKey": "Notification key",
       "name": "Name",
       "email": "Email",

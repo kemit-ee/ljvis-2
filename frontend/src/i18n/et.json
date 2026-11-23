@@ -2474,7 +2474,8 @@
     "log": {
       "sendDate": "Saatmise kp",
       "messageType": "Sõnumi liik",
-      "addressee": "Adressaat",
+      "foundAddress": "Leitud aadress",
+      "addressee": "Saadetud aadress",
       "notificationKey": "Teavituse tunnus",
       "name": "Nimi",
       "email": "E-post",

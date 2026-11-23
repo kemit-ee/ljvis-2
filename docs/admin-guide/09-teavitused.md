@@ -43,7 +43,8 @@ vahekaardil «Saadetud kirjad» (nähtav ainult `notification.list` õigusega).
 |-------|------|
 | Saatmise kp | Teavituse loomise/saatmise kuupäev ja kellaaeg. |
 | Sõnumi liik | Teavituse liik (nt «Raske rikkumise teavitus veoettevõtjale»). |
-| Adressaat | E-posti aadress, kuhu teavitus saadeti (salvestatakse saatmise hetkel). |
+| Leitud aadress | Aadress, mille käivitav funktsionaalsus leidis (nt veoettevõtja e-post äriregistrist). Tühi (`—`), kui aadressi ei leitud. |
+| Saadetud aadress | E-posti aadress, kuhu teavitus Postkasti saadeti. Kui Postkasti malli seadetes on vastuvõtja e-post täidetud, on see seadete aadress; muidu sama mis leitud aadress. |
 | Teavituse tunnus | LJVIS-i antud unikaalne identifikaator (`notification_key`). |
 | Staatus | `Saatmisel`, `Saadetud` või `Viga` (vt allpool). |
 

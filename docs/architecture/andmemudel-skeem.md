@@ -1125,6 +1125,7 @@ Loodud: `20261010100000-notifications-schema.sql` · veerge: 20 · PK: `id`
 | `created_by` | TEXT | jah |
 | `notification_key` | TEXT |  |
 | `recipient_address` | TEXT |  |
+| `found_recipient_address` | TEXT |  |
 | `notification_language` | TEXT | jah |
 | `failure_reason` | TEXT |  |
 | `template_variables` | JSONB |  |

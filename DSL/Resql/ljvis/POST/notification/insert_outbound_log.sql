@@ -18,6 +18,9 @@ params:
   recipient_address:
     type: string
     required: false
+  found_recipient_address:
+    type: string
+    required: false
   notification_language:
     type: string
     required: false
@@ -54,6 +57,7 @@ INSERT INTO notifications.outbound_log (
     message_type,
     status,
     recipient_address,
+    found_recipient_address,
     notification_language,
     template_variables,
     failure_reason,
@@ -70,6 +74,7 @@ VALUES (
     :message_type,
     :status,
     NULLIF(:recipient_address, ''),
+    NULLIF(:found_recipient_address, ''),
     COALESCE(NULLIF(:notification_language, ''), 'et'),
     :template_variables::JSONB,
     NULLIF(:failure_reason, ''),

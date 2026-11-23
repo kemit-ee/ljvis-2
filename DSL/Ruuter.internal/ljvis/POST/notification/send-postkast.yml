@@ -114,6 +114,7 @@ checkMappingValid:
 # alati sinna. Muidu kasutatakse kutsuja recipient_email'i.
 resolveRecipient:
   assign:
+    found_recipient_email: "${recipient_email_raw.trim().toLowerCase()}"
     recipient_email_source: "${mapping.defaultRecipientEmail || recipient_email_raw || ''}"
     generated_key: "${'ljvis-' + (related_entity_type || 'notif') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 10)}"
   next: normalizeRecipient
@@ -199,6 +200,7 @@ insertQueued:
       message_type: ${notification_type}
       status: "queued"
       recipient_address: ${recipient_email}
+      found_recipient_address: ${found_recipient_email}
       notification_language: ${effective_language}
       template_variables: ${template_variables}
       failure_reason: ""
@@ -425,6 +427,7 @@ insertAsError:
       message_type: ${notification_type}
       status: "error"
       recipient_address: ${recipient_email}
+      found_recipient_address: ${found_recipient_email}
       notification_language: ""
       failure_reason: ${pre_send_failure_reason}
       related_entity_type: ${related_entity_type}

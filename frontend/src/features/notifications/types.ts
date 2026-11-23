@@ -21,6 +21,7 @@ export interface OutboundLogEntry {
   sendDate: string | null;
   status: 'queued' | 'in_progress' | 'sent' | 'error';
   recipientAddress: string | null;
+  foundRecipientAddress?: string | null;
   failureReason: string | null;
   relatedEntityType?: string | null;
   relatedEntityId?: string | null;

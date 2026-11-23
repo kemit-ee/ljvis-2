@@ -124,6 +124,11 @@ tests:
       - kontrollkaardiUrl: /control-forms/tram-control-card/7
         formNumber: TRAM-7
         recipient: seaded@example.com
+  - url_matches: /notification/insert_outbound_log
+    count: 1
+    body_matches:
+      recipient_address: seaded@example.com
+      found_recipient_address: vedaja@example.com
 
 - name: unknown entity type sends an empty kontrollkaardiUrl and still sends
   setup:
