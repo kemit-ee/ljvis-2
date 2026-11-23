@@ -138,7 +138,16 @@ mapAuthorities:
         ? 'Estonian Police and Border Guard Board'
         : inspection_authority_or_name}
 
-  next: xtrPreflight
+    # ERRU_RSI_TRANSPORT=xtr sends via the XTR raw-XML bridge; anything else (or unset: the placeholder stays literal)
+    # keeps the Java adapter. Rollback = set the constant back to adapter and restart Ruuter.
+    erru_transport: "${'[#ERRU_RSI_TRANSPORT]' === 'xtr' ? 'xtr' : 'adapter'}"
+  next: chooseValidation
+
+chooseValidation:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: xtrPreflight
+  next: validateXml
 
 # XTR validates against the XSD only in report/enforce mode; keep refusing what the Java builder refused.
 xtrPreflight:
@@ -153,9 +162,57 @@ xtrPreflight:
       next: returnInvalidXml
   next: reserveSend
 
+validateXml:
+  call: http.post
+  error: returnValidationUnavailable
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/rsi/validate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      rsiTo: ${rsi_to}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority_out}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleCategory: ${vehicle_category}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_out}
+      inspectionPassed: ${inspection_passed}
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition}
+      checkedItems: ${erru_checked_items}
+      odometerReading: ${odometer_reading}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      identificationDetails: ${identification_details}
+      inspectionIdentifier: ${inspection_identifier}
+  result: xml_validation
+  next: checkXmlValidation
+
+checkXmlValidation:
+  switch:
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+      next: returnInvalidXml
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
+      next: reserveSend
+  next: returnValidationUnavailable
+
 returnInvalidXml:
   status: 422
   return: '{"valid":false,"code":"invalid_rsi_xml","message":"RSI data does not satisfy the ERRU 3.5 XML contract. Check VIN, odometer, driver and holder details."}'
+  next: end
+
+returnValidationUnavailable:
+  status: 503
+  return: '{"valid":false,"code":"validation_unavailable","message":"RSI XML validation is unavailable. The draft was not sent."}'
   next: end
 
 reserveSend:
@@ -184,7 +241,13 @@ extractEnvelope:
     technical_id: "${reservation.response.body[0].technicalId}"
     workflow_id: "${reservation.response.body[0].workflowId}"
     sent_at: "${reservation.response.body[0].sentAt}"
-  next: composeXtrIdent
+  next: chooseTransport
+
+chooseTransport:
+  switch:
+    - condition: ${erru_transport === 'xtr'}
+      next: composeXtrIdent
+  next: callErru
 
 composeXtrIdent:
   assign:
@@ -223,6 +286,54 @@ checkXtrStatus:
     - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 202}
       next: logIntegrationSuccess
     - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422 || erru_res.response.status === 401 || erru_res.response.status === 404 || erru_res.response.status === 400 || erru_res.response.status === 413}
+      next: logIntegrationFailure
+  next: markUnknown
+
+callErru:
+  call: http.post
+  error: markUnknown
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/rsi/send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      rsiTo: ${rsi_to}
+      businessCaseId: ${business_case_id}
+      technicalId: ${technical_id}
+      workflowId: ${workflow_id}
+      sentAt: ${sent_at}
+      originatingAuthority: ${originating_authority_out}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      vehicleRegistrationNumber: ${vehicle_registration_number}
+      vehicleRegistrationCountry: ${vehicle_registration_country}
+      vehicleCategory: ${vehicle_category}
+      vehicleIdentificationNumber: ${vehicle_identification_number}
+      inspectionLocation: ${inspection_location}
+      inspectionDatetime: ${inspection_datetime}
+      inspectionAuthorityOrName: ${inspection_authority_out}
+      inspectionPassed: ${inspection_passed}
+      ptiRequested: ${pti_requested}
+      vehicleProhibitionOrRestriction: ${vehicle_prohibition}
+      checkedItems: ${erru_checked_items}
+      odometerReading: ${odometer_reading}
+      driverFirstName: ${driver_first_name}
+      driverFamilyName: ${driver_family_name}
+      driverLicenceNumber: ${driver_licence_number}
+      driverLicenceCountry: ${driver_licence_country}
+      identificationDetails: ${identification_details}
+      inspectionIdentifier: ${inspection_identifier}
+  result: erru_res
+  next: checkErruStatus
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === technical_id && erru_res.response.body.workflowId === workflow_id}
+      next: logIntegrationSuccess
+    - condition: ${erru_res.response.body.status === 'rejected'}
       next: logIntegrationFailure
   next: markUnknown
 

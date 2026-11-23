@@ -279,7 +279,54 @@ services:
     cpus: "0.25"
     mem_limit: "128M"
 
-  # ERRU MOVEHUB 3.5 toor-XML sild (XTR 0.6.0-rc).
+  # Asynchronous ERRU 3.5 XML adapter (docs/architecture/erru-async-xml.md,
+  # docker/erru-xml-adapter-old/README.md). NotifyUnfitness is processed end-to-end; the other 4
+  # request types are rejected with 501 at ingress and not stored.
+  erru-xml-adapter-old:
+    container_name: erru-xml-adapter-old
+    build:
+      context: .
+      dockerfile: docker/erru-xml-adapter-old/Dockerfile
+    depends_on:
+      liquibase:
+        condition: service_completed_successfully
+      erru-hub-mock:
+        condition: service_healthy
+    environment:
+      - DB_URL=jdbc:postgresql://database:5432/ljvis_db
+      - DB_USER=ljvis
+      - DB_PASSWORD=01234
+      - RUUTER_INTERNAL_BASE_URL=http://ruuter-internal:8080
+      - PROCESSING_WORKERS_ENABLED=false   # the XTR adapter owns the inbound rows (stage 5)
+      - INTERNAL_COMMUNICATION_KEY=${INTERNAL_COMMUNICATION_KEY:-dev-internal-service-token}
+      - HUB_RESPONSE_URL=http://erru-hub-mock:8080/erru/http/response/btshttpreceive.dll
+      - HUB_RSI_REQUEST_URL=http://erru-hub-mock:8080/rsi/http/request/BTSHTTPReceive.dll
+      - HUB_CGR_REQUEST_URL=http://erru-hub-mock:8080/cgr/http/request/BTSHTTPReceive.dll
+      - HUB_CTUD_REQUEST_URL=http://erru-hub-mock:8080/ctud/http/request/BTSHTTPReceive.dll
+      - HUB_NCR_REQUEST_URL=http://erru-hub-mock:8080/ncr/http/request/BTSHTTPReceive.dll
+      - HUB_NU_REQUEST_URL=http://erru-hub-mock:8080/nu/http/request/BTSHTTPReceive.dll
+      - CONTRACTS_DIR=/app/contracts/erru/3.5
+      - RESPONDING_AUTHORITY=EE-PPA
+      - RESPONDING_AUTHORITY_CTUD=EE-TRAM
+      - RESPONDING_AUTHORITY_NCR=EE-TRAM
+      - RESPONDING_AUTHORITY_RSI=EE-TRAM
+      - MEMBER_STATE_CODE=EE
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health > /dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+    networks:
+      - ljvisnetwork
+    # POST /erru/xml has no authentication/peer trust yet (a real deployment needs mTLS, an
+    # allowlist or a gateway in front of it), so the port is bound to localhost only.
+    ports:
+      - 127.0.0.1:8094:8080
+    cpus: "0.5"
+    mem_limit: "256M"
+
+  # ERRU MOVEHUB 3.5 toor-XML sild (XTR 0.6.0-rc). Asendab aegamööda Java-adapterit (erru-xml-adapter-old);
   # teenuse nimi on sama, mille järgi stesta-gateway Hubi liikluse suunab. Plaan:
   # docs/planning/erru-xml-adapter-xtr-migratsioon.md. Sissetulev pordis 8081 (8091), JSON-lane 8080 (8093).
   erru-xml-adapter:

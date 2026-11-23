@@ -190,9 +190,18 @@ prepareOutbound:
     start_time: "${new Date().getTime()}"
     tm_first_name_search_key: "${tm_first_name_search_key || ''}"
     tm_family_name_search_key: "${tm_family_name_search_key || ''}"
+    # ERRU_NU_TRANSPORT=xtr sends via the XTR raw-XML bridge; anything else (or unset: the placeholder stays
+    # literal) keeps the Java adapter. Rollback = set the constant back to adapter and restart Ruuter.
+    nu_transport: "${'[#ERRU_NU_TRANSPORT]' === 'xtr' ? 'xtr' : 'adapter'}"
     xtr_has_name: "${!!(tm_first_name || tm_family_name || tm_date_of_birth)}"
     xtr_has_cert: "${!!(certificate_number || certificate_issue_date || certificate_issue_country)}"
-  next: xtrPreflight
+  next: chooseValidation
+
+chooseValidation:
+  switch:
+    - condition: ${nu_transport === 'xtr'}
+      next: xtrPreflight
+  next: validateXml
 
 # XTR validates against the XSD only in report/enforce mode (enforce in the sidecar; production must keep enforce); keep catching what the
 # Java builder refused outright: no transport manager data or a missing mandatory attribute.
@@ -207,6 +216,41 @@ xtrPreflight:
     - condition: ${!nu_to || !business_case_id || !originating_authority || !request_source || !request_purpose}
       next: returnInvalidXml
   next: beginSend
+
+validateXml:
+  call: http.post
+  error: returnValidationUnavailable
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/nu/validate"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      nuTo: ${nu_to}
+      businessCaseId: ${business_case_id}
+      originatingAuthority: ${originating_authority}
+      requestSource: ${request_source}
+      requestPurpose: ${request_purpose}
+      unfitStartDate: ${unfit_start_date}
+      tmFirstName: ${tm_first_name}
+      tmFamilyName: ${tm_family_name}
+      tmDateOfBirth: ${tm_date_of_birth}
+      tmPlaceOfBirth: ${tm_place_of_birth}
+      tmFirstNameSearchKey: ${tm_first_name_search_key}
+      tmFamilyNameSearchKey: ${tm_family_name_search_key}
+      certificateNumber: ${certificate_number}
+      certificateIssueDate: ${certificate_issue_date}
+      certificateIssueCountry: ${certificate_issue_country}
+  result: xml_validation
+  next: checkXmlValidation
+
+checkXmlValidation:
+  switch:
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 422}
+      next: returnInvalidXml
+    - condition: ${xml_validation.response != null && xml_validation.response.status === 200 && xml_validation.response.body.status === 'valid'}
+      next: beginSend
+  next: returnValidationUnavailable
 
 beginSend:
   call: http.post
@@ -238,7 +282,26 @@ checkPrepared:
       next: returnPreparedConflict
     - condition: ${!outboundHeader.technicalId}
       next: returnNotSendable
-  next: buildXtrAttrs
+  next: chooseTransport
+
+chooseTransport:
+  switch:
+    - condition: ${nu_transport === 'xtr'}
+      next: buildXtrAttrs
+  next: callErru
+
+callErru:
+  call: http.post
+  error: markUnknown
+  args:
+    url: "[#ERRU_XML_ADAPTER]/internal/nu/send"
+    headers:
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body: ${outboundHeader}
+  result: erru_res
+  timeout: 30000
+  next: checkErruStatus
 
 buildXtrAttrs:
   assign:
@@ -254,7 +317,7 @@ compactXtrAttrs:
     xtr_tm: "${Object.keys(xtr_tm_raw).filter(function(k) { return xtr_tm_raw[k] !== ''; }).reduce(function(a, k) { a[k] = xtr_tm_raw[k]; return a; }, {})}"
   next: composeXtrBody
 
-# Same shape as the ERRU NuRequest XSD: TransportManager is a choice between a name
+# Same shape as docker/erru-xml-adapter-old NuRequestXml: TransportManager is a choice between a name
 # block (optionally with the certificate) and the certificate block alone.
 composeXtrBody:
   assign:
@@ -285,7 +348,7 @@ callErruXtr:
   next: checkXtrStatus
 
 # XTR raw-XML lane: HTTP 200 carries the Hub's own HTTP status in body.status (the upstream answer is data).
-# Hub 202 = accepted (same rule as the former Java adapter); another 4xx, or XTR's own 422 schema_invalid / 401 / 404 (nothing was
+# Hub 202 = accepted (same rule as the Java adapter); another 4xx, or XTR's own 422 schema_invalid / 401 / 404 (nothing was
 # sent), is a definite refusal; everything else (5xx, timeout, connection loss, unexpected 2xx/3xx) is unknown
 # and never resent.
 checkXtrStatus:
@@ -295,6 +358,16 @@ checkXtrStatus:
     - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 202}
       next: logIntegrationSuccess
     - condition: ${(erru_res.response.status === 200 && erru_res.response.body.status >= 400 && erru_res.response.body.status < 500) || erru_res.response.status === 422 || erru_res.response.status === 401 || erru_res.response.status === 404 || erru_res.response.status === 400 || erru_res.response.status === 413}
+      next: logIntegrationFailure
+  next: markUnknown
+
+checkErruStatus:
+  switch:
+    - condition: ${erru_res.response == null || erru_res.response.status == null || erru_res.response.body == null}
+      next: markUnknown
+    - condition: ${erru_res.response.status === 200 && erru_res.response.body.status === 'accepted' && erru_res.response.body.httpStatus === 202 && erru_res.response.body.technicalId === outboundHeader.technicalId && erru_res.response.body.workflowId === outboundHeader.workflowId}
+      next: logIntegrationSuccess
+    - condition: ${erru_res.response.body.status === 'rejected'}
       next: logIntegrationFailure
   next: markUnknown
 
@@ -454,6 +527,11 @@ returnFinalizeFailed:
 returnInvalidXml:
   status: 422
   return: '{"valid":false,"code":"invalid_nu_xml","message":"Andmed ei vasta ERRU XML-lepingule. Kontrolli veokorraldaja ja sertifikaadi andmeid."}'
+  next: end
+
+returnValidationUnavailable:
+  status: 503
+  return: '{"valid":false,"code":"validation_unavailable","message":"XML-i kontroll pole saadaval. Teadet ei saadetud."}'
   next: end
 
 returnIdRequired:

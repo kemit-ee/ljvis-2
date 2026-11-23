@@ -1,0 +1,42 @@
+# erru-xml-adapter — asynchronous ERRU 3.5 XML over HTTP inbound adapter, see README.md and
+# docs/architecture/erru-async-xml.md. Same "no build tool, just javac" pattern as docker/nysiis
+# and docker/xtr-mock: the only non-JDK dependency is the PostgreSQL JDBC driver (lib/), committed
+# to the repo. The build verifies its SHA-256 before use; the runtime image copies the verified jar
+# from the build stage.
+FROM eclipse-temurin:25-jdk-alpine AS build
+WORKDIR /build
+COPY docker/erru-xml-adapter-old/src/ src/
+COPY docker/erru-xml-adapter-old/lib/postgresql-42.7.4.jar lib/
+RUN echo "188976721ead8e8627eb6d8389d500dccc0c9bebd885268a3047180274a6031e  lib/postgresql-42.7.4.jar" \
+    | sha256sum -c -
+COPY contracts/erru/3.5/ contracts/erru/3.5/
+RUN javac -classpath lib/postgresql-42.7.4.jar -d out src/*.java \
+    && java -classpath out:lib/postgresql-42.7.4.jar MapperSmokeTest
+
+# Exercise real local HTTP dispatch during every image build. Tests stay out of the runtime image.
+COPY tests/erru-adapter/RsiSendTest.java tests/erru-adapter/CgrCtudSendTest.java tests/erru-adapter/NcrNuSendTest.java tests/erru-adapter/
+COPY tests/erru-adapter/ConfigTest.java tests/erru-adapter/IngressBoundaryTest.java tests/erru-adapter/
+COPY tests/erru-adapter/CodecBoundaryTest.java tests/erru-adapter/
+COPY tests/erru-adapter/fixtures/rsi.json tests/erru-adapter/fixtures/
+RUN javac -classpath out -d test-out tests/erru-adapter/*.java \
+    && java -ea -classpath out:test-out ConfigTest \
+    && java -ea -classpath out:test-out CodecBoundaryTest \
+    && java -ea -classpath out:test-out IngressBoundaryTest \
+    && java -ea -classpath out:test-out RsiSendTest \
+    && java -ea -classpath out:test-out CgrCtudSendTest \
+    && java -ea -classpath out:test-out NcrNuSendTest
+
+FROM eclipse-temurin:25-jre-alpine
+WORKDIR /app
+COPY --from=build /build/out/ /app/
+COPY --from=build /build/lib/postgresql-42.7.4.jar /app/lib/
+# contracts/erru/3.5 is the closed ERRU 3.5 XSD bundle already vendored in this repo; the image
+# carries a copy so SchemaRegistry compiles the exact same schemas Newman/contract tests use.
+COPY contracts/erru/3.5/ /app/contracts/erru/3.5/
+
+# Turvaaudit 2026-11: ära jooksuta juurkasutajana.
+RUN addgroup -S app && adduser -S -G app app
+USER app
+
+EXPOSE 8080
+ENTRYPOINT ["java", "-classpath", ".:lib/postgresql-42.7.4.jar", "ErruXmlAdapter"]
