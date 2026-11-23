@@ -75,7 +75,9 @@ describe('MassDimensionModal', () => {
     fireEvent.click(screen.getByTestId('check-M3A'));
     fireEvent.click(screen.getByTestId('check-M3B'));
     fireEvent.click(screen.getByTestId('check-M3B'));
-    expect(screen.getAllByText('raske').length).toBeGreaterThan(0);
+    // valikus kuvatakse kood (nt SI922), mitte ainult raskusaste
+    expect(screen.getAllByText('M3A').length).toBeGreaterThan(0);
+    expect(screen.queryByText('raske')).toBeNull();
     fireEvent.click(confirmBtn());
     expect(onConfirm).toHaveBeenCalledWith([
       expect.objectContaining({ level1Code: 'M3', level2Code: 'M3A', level3Code: 'M3A', severity: 'raske' }),

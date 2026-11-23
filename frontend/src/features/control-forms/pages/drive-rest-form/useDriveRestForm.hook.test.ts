@@ -95,10 +95,11 @@ describe('useDriveRestForm klassifikaatorid', () => {
   it('jagab sõidurikkumised põhi-, Rooma I ja lähetamise osadeks', () => {
     const { result } = renderHook(() => useDriveRestForm(undefined, vi.fn(), 'driver'));
     expect(result.current.docRightChecks).toHaveLength(1);
-    expect(result.current.drivingViolations).toHaveLength(6);
+    // aegunud rida jääb nimekirja (nime otsinguks); valikust peidab selle ModalResultSection
+    expect(result.current.drivingViolations).toHaveLength(7);
     expect(result.current.rooma1Violations.map((c) => c.code)).toEqual(['ROOMA_I', 'R2', 'R3']);
     expect(result.current.postingViolations.map((c) => c.code)).toEqual(['LAHETAMINE', 'L2']);
-    expect(result.current.drivingViolationsMain.map((c) => c.code)).toEqual(['MAIN']);
+    expect(result.current.drivingViolationsMain.map((c) => c.code)).toEqual(['MAIN', 'OLD']);
     expect(result.current.cargoCabotageViolations).toHaveLength(1);
     expect(result.current.passengerCabotageViolations).toHaveLength(1);
     expect(result.current.transportClasses).toHaveLength(1);

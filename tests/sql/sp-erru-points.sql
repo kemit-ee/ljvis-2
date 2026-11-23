@@ -28,6 +28,26 @@ BEGIN
   IF forms.derive_sp_erru_points(NULL,NULL,NULL,NULL,NULL) <> '[]'::JSONB THEN
     RAISE EXCEPTION 'A form without infringements must have no automatic ERRU points';
   END IF;
+  -- Massi/pikkuse/laiuse koodid (8. parameeter): raskusastmega kirje annab punkti,
+  -- raskusastmeta (nt kõrgus, teljekoormus) mitte.
+  points := forms.derive_sp_erru_points(
+    NULL, NULL, NULL, NULL, NULL, '[]', '[]',
+    '[{"level3Code":"VSI843","severity":"VSI"},{"level3Code":"KORGUS","severity":""}]'
+  );
+  IF jsonb_array_length(points) <> 1 OR NOT points @> '[{"erru_code":"VSI843","severity_category":"VSI"}]' THEN
+    RAISE EXCEPTION 'Mass violation must yield exactly one ERRU point, severity-less must not: %', points;
+  END IF;
+  -- Aegunud koodid oma direktiivi veerust välja, massi veerus sama kood säilib.
+  points := forms.derive_sp_erru_points(
+    '[{"level3Code":"SI923","severity":"SI"},{"level3Code":"VSI815","severity":"VSI"}]',
+    '[{"violationCode":"VSI821","severityCode":"VSI"}]',
+    '[{"level3Code":"VSI841","severity":"VSI"}]',
+    NULL, NULL, '[]', '[]',
+    '[{"level3Code":"SI923","severity":"SI"}]'
+  );
+  IF jsonb_array_length(points) <> 1 OR NOT points @> '[{"erru_code":"SI923","severity_category":"SI"}]' THEN
+    RAISE EXCEPTION 'Retired codes must be excluded from their own column but kept for mass: %', points;
+  END IF;
 END $$;
 ROLLBACK;
 \echo SP ERRU point derivation checks passed

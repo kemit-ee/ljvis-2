@@ -10,7 +10,7 @@
 - Sõiduki massi, pikkuse ja laiuse rikkumiste koodid (`SI922`, `VSI843`, `MSI701`, `SI923`, `VSI844`, `MSI702`, `SI924`, `VSI845`, `SI925`, `VSI846`) jõuavad nüüd ERRU punktidesse ja NCR-teate raskete rikkumiste loetellu. Varem need sinna ei jõudnud. Olemasolevate vormide ERRU punktid arvutatakse uuesti, käsitsi lisatud punktid säilivad.
 - Massi valikuaknas kuvatakse nüüd kood (nt `SI922 • 5% ≤ ... < 10%`), mitte ainult raskusaste.
 - Raskusaste muutub mõnel rikkumisel koodi eesliitele vastavaks (nt art 8 lg 6b, art 8 lg 8, art 23 lg 1, art 36, art 37 lg 1: MSI → VSI), mis mõjutab riskiskoori.
-- Vanas süsteemis puuduvad read on valikust eemaldatud: art 8 lg 8 teine (majutuskulud), kogu „Töökorraldus", art 33 lg 2 ja kogu „Salvestused". Varem salvestatud andmed jäävad vormidele alles, aga peidetud rikkumisi ERRU-sse ei saadeta.
+- Vanas süsteemis puuduvad read on valikust eemaldatud: art 8 lg 8 teine (majutuskulud), kogu „Töökorraldus", art 33 lg 2 ja kogu „Salvestused". Varem salvestatud andmed jäävad vormidele alles, aga peidetud rikkumisi ERRU-sse ei saadeta. Vaatamisrežiimis kuvatakse peidetud rikkumised endiselt nimega, uue valiku hulgas neid ei ole. Rikkumiste PDF-i koodikataloog sisaldab uusi ERRU koode.
 - Rikkumistel, millel puudub ajaline täpsustus (nt Rooma I, lähetamine), kuvatakse koodi kõrval nüüd klassifikaatori tegelik raskusaste, mitte vana silt (varem nt „VSI843 • MSI“).
 
 ## 2026-11-19
