@@ -113,8 +113,11 @@ DO $$
         END LOOP;
 
         -- C: vanas süsteemis HALL read lõpetatakse (tase 3, tase 2, tase 1)
+        -- ck_cv_period nõuab valid_until > valid_from; täna loodud read (nt värske
+        -- andmebaas) vajavad seetõttu ka varasemat valid_from'i.
         UPDATE classifier.classifier_value c3
-           SET valid_until = CURRENT_DATE
+           SET valid_from = LEAST(c3.valid_from, CURRENT_DATE - 1),
+               valid_until = CURRENT_DATE
           FROM classifier.classifier_value c2
          WHERE c3.parent_key = c2.classifier_value_key
            AND c2.classifier_key = v_clf_key
@@ -125,7 +128,8 @@ DO $$
            AND (c3.valid_until IS NULL OR c3.valid_until > CURRENT_DATE);
 
         UPDATE classifier.classifier_value
-           SET valid_until = CURRENT_DATE
+           SET valid_from = LEAST(valid_from, CURRENT_DATE - 1),
+               valid_until = CURRENT_DATE
          WHERE classifier_key = v_clf_key
            AND code IN ('PUHKEPERIOODID_10',
                         'TOOKORRALDUS', 'TOOKORRALDUS_01', 'TOOKORRALDUS_02', 'TOOKORRALDUS_03',
