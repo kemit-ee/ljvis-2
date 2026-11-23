@@ -81,7 +81,7 @@ export function CompanyCard({ registryCode, companyName }: CompanyCardProps) {
           <Text color="secondary" className="mt-05">
             {t(
               'citizen.dashboard.company.riskWindow',
-              'Riskitase hinnatud ajavahemikus {{start}}–{{end}}',
+              'Riskitase arvutatud ajavahemikus {{start}}–{{end}} toimunud kontrollide tulemuste põhjal',
               {
                 start: formatDate(riskScore.windowStart),
                 end: formatDate(riskScore.windowEnd),

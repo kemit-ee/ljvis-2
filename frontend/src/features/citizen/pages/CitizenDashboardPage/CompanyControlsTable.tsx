@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button, InfoButton, Text, Tooltip } from '@tedi-design-system/react/tedi';
+import { Button, InfoTooltip, Text } from '@tedi-design-system/react/tedi';
 import type { CompanyControlRow } from '../../types';
 import { formatDate } from '../../../../hooks/dateUtils';
 import { AppTable } from '../../../../shared/components/AppTable';
@@ -30,15 +30,12 @@ function HeaderWithTooltip({
   tooltip: string;
 }) {
   return (
-    <Tooltip>
-      <Tooltip.Trigger>
-        <span className="ljvis-header-with-tooltip">
-          {label}
-          <InfoButton aria-label={tooltip} />
-        </span>
-      </Tooltip.Trigger>
-      <Tooltip.Content>{tooltip}</Tooltip.Content>
-    </Tooltip>
+    <span className="ljvis-header-with-tooltip">
+      {label}
+      <InfoTooltip isSmall openWith="click">
+        {tooltip}
+      </InfoTooltip>
+    </span>
   );
 }
 

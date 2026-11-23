@@ -379,7 +379,7 @@
         "mainDate": "Kontrolli kuupäev",
         "vehicleRegNr": "Sõiduki reg-nr",
         "msi": "MSI rikkumiste arv",
-        "msiTooltip": "MSI – kõige raske rikkumine (Most Serious Infringement), nt sõidumeeriku pettus või selle puudumine, kiiruspiiriku puudumine.",
+        "msiTooltip": "MSI – kõige raskem rikkumine (Most Serious Infringement), nt sõidumeeriku pettus või selle puudumine, kiiruspiiriku puudumine.",
         "vsi": "VSI rikkumiste arv",
         "vsiTooltip": "VSI – väga raske rikkumine (Very Serious Infringement), nt suur sõiduaja või puhkeaja nõuete ületamine.",
         "si": "SI rikkumiste arv",

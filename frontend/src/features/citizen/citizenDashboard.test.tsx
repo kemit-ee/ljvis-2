@@ -172,10 +172,11 @@ describe('CompanyCard', () => {
     );
     expect(screen.getByText('Firma OÜ')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('riskScores.bandRoheline')).toBeTruthy());
-    expect(screen.getByText('Riskitase hinnatud ajavahemikus {{start}}–{{end}}')).toBeTruthy();
+    expect(screen.getByText('Riskitase arvutatud ajavahemikus {{start}}–{{end}} toimunud kontrollide tulemuste põhjal')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('citizen.dashboard.company.totalControls')).toBeTruthy());
     fireEvent.click(screen.getByText('citizen.dashboard.company.viewControls'));
     expect(screen.getByText('C-4')).toBeTruthy();
+    expect(screen.queryByText('citizen.dashboard.controls.weightedPoints')).toBeNull();
     fireEvent.click(screen.getByText('citizen.dashboard.company.hideControls'));
     expect(screen.queryByText('C-4')).toBeNull();
   });

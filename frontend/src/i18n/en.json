@@ -309,7 +309,7 @@
       "time": "Time",
       "vehicle": "Vehicle",
       "driverCompany": "Driver / Company",
-      "formNumber": "Control data form number",
+      "formNumber": "Form",
       "formType": "Name",
       "status": "Status",
       "published": "Published"
@@ -1275,7 +1275,7 @@
       "title": "My company",
       "formType": "Form type",
       "formNumber": "Form number",
-      "mainDate": "Control date",
+      "mainDate": "Date",
       "vehicleRegNr": "Vehicle reg. no",
       "hasViolation": "Violation",
       "yes": "Yes",
@@ -1348,8 +1348,8 @@
         "viewControls": "View controls"
       },
       "controls": {
-        "formNumber": "Form number",
-        "mainDate": "Date",
+        "formNumber": "Control data form number",
+        "mainDate": "Control date",
         "vehicleRegNr": "Vehicle reg. no",
         "msi": "Number of MSI infringements",
         "msiTooltip": "MSI – Most Serious Infringement, e.g. tachograph fraud or a missing tachograph, no speed limiter.",

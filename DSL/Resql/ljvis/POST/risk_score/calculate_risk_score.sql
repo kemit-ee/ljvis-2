@@ -10,7 +10,7 @@ description: 'LJVIS2-151: computes (but does NOT persist - see save_risk_score.s
   compound_form''s JSONB violation arrays are camelCase (violationCode/severityCode/isDetected) because
   they are the raw frontend Formik field shape (frontend/src/features/control-forms/types.ts
   Violation/DocumentCheck/CabotageViolation) persisted as-is - NOT snake_case. foreign_violation_form''s
-  `violations` column is instead a plain JSONB string array of codes (e.g. ["MSI101","VSI800"]) - severity
+  `violations` column is instead an array of objects [{"code":"MSI101",...}] (older rows: plain code strings) - severity
   is read from the code''s prefix. See docs/risk-score/formula.md for the full formula/rules writeup.'
 namespace: risk_score
 params:
