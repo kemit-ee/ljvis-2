@@ -7,8 +7,10 @@ import { BREAKPOINTS, FORM_TYPE } from '../../../../constants/constants';
 import { useForeignViolationForm } from '../../../control-forms/pages/foreign-violation-form/useForeignViolationForm';
 import { ForeignViolationFormFields } from '../../../control-forms/components/ForeignViolationForm/ForeignViolationFormFields';
 import { FormNotFoundView } from '../../../../shared/components/FormNotFoundView';
-import type { ForeignViolationForm } from '../../../control-forms/types';
-import { getCitizenForeignViolationForm } from '../../api';
+import {
+  getCitizenForeignViolationForm,
+  type CitizenForeignViolationForm,
+} from '../../api';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 
 /**
@@ -29,7 +31,7 @@ export function CitizenForeignViolationDetailPage() {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const { getByCode } = useClassifiers();
 
-  const [form, setForm] = useState<(ForeignViolationForm & { createdByAuthorityName?: string | null }) | null>(null);
+  const [form, setForm] = useState<CitizenForeignViolationForm | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
