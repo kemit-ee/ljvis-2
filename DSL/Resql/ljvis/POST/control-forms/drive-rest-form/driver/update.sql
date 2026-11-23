@@ -241,7 +241,8 @@ SELECT
           COALESCE(NULLIF(:violations5932008, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:violations20201057, '')::jsonb, '[]'::jsonb),
           COALESCE(NULLIF(:cabotageViolations, '')::jsonb, '[]'::jsonb),
-          COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb)
+          COALESCE(NULLIF(:erruPoints, '')::jsonb, '[]'::jsonb),
+          COALESCE(NULLIF(:massDimensionMeasurements, '')::jsonb, '[]'::jsonb)
         ),
         COALESCE(NULLIF(:enforcementDecision, ''), l.enforcement_decision),
         COALESCE(NULLIF(:proceedingClosureBasis, ''), l.proceeding_closure_basis),

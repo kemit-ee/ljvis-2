@@ -77,7 +77,8 @@ returns:
 --   compound_form.control_date                              -> check_date + iga rikkumise kuupäevad
 --   sp_*_form.erru_points[] (severity_category MSI/VSI/SI)  -> serious_infringements[] + check_result
 --       (derive_sp_erru_points arvestab ka sp_*_form.cabotage_violations,
---        nt VSI869-873, mitte ainult 5 direktiivipõhist rikkumiste välja)
+--        nt VSI869-873, ja mass_dimension_measurements, nt SI922/VSI843/MSI701,
+--        mitte ainult 5 direktiivipõhist rikkumiste välja)
 --   compound_form.vehicle_category_code = 'M1'              -> '302' (sõidukeeld) jäetakse välja
 --   compound_form.inspector_organisation_id (nt PPA)        -> originating_authority
 --       (kutsuja modaali originatingAuthority kirjutab selle vajadusel üle)
@@ -96,13 +97,15 @@ WITH sp AS (
       (x.cf).inspector_organisation_id,
       forms.derive_sp_erru_points(
         x.violations_561_2006, x.violations_165_2014, x.violations_2002_15,
-        x.violations_593_2008, x.violations_2020_1057, x.cabotage_violations, x.erru_points
+        x.violations_593_2008, x.violations_2020_1057, x.cabotage_violations, x.erru_points,
+        x.mass_dimension_measurements
       ) AS erru_points
     FROM (
       -- uusim alamvormi snapshot + selle koondvormi uusim snapshot (alampäringuga, mitte JOIN-iga)
       SELECT
         s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
         s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points,
+        s.mass_dimension_measurements,
         (SELECT c FROM forms.compound_form c
           WHERE c.compound_form_key = s.compound_form_key
           ORDER BY c.created_at DESC LIMIT 1) AS cf
@@ -126,13 +129,15 @@ WITH sp AS (
       (x.cf).inspector_organisation_id,
       forms.derive_sp_erru_points(
         x.violations_561_2006, x.violations_165_2014, x.violations_2002_15,
-        x.violations_593_2008, x.violations_2020_1057, x.cabotage_violations, x.erru_points
+        x.violations_593_2008, x.violations_2020_1057, x.cabotage_violations, x.erru_points,
+        x.mass_dimension_measurements
       ) AS erru_points
     FROM (
       -- uusim alamvormi snapshot + selle koondvormi uusim snapshot (alampäringuga, mitte JOIN-iga)
       SELECT
         s.violations_561_2006, s.violations_165_2014, s.violations_2002_15,
         s.violations_593_2008, s.violations_2020_1057, s.cabotage_violations, s.erru_points,
+        s.mass_dimension_measurements,
         (SELECT c FROM forms.compound_form c
           WHERE c.compound_form_key = s.compound_form_key
           ORDER BY c.created_at DESC LIMIT 1) AS cf
