@@ -1141,7 +1141,7 @@ Loodud: `20261022100000-postkast2-xtee-alignment.sql` · veerge: 10 · PK: `noti
 
 ### `notifications.outbound_log`
 
-Loodud: `20261010100000-notifications-schema.sql` · veerge: 20 · PK: `id`
+Loodud: `20261010100000-notifications-schema.sql` · veerge: 21 · PK: `id`
 
 | Veerg | Tüüp | Kohustuslik |
 |---|---|---|
@@ -1158,7 +1158,6 @@ Loodud: `20261010100000-notifications-schema.sql` · veerge: 20 · PK: `id`
 | `created_by` | TEXT | jah |
 | `notification_key` | TEXT |  |
 | `recipient_address` | TEXT |  |
-| `found_recipient_address` | TEXT |  |
 | `notification_language` | TEXT | jah |
 | `failure_reason` | TEXT |  |
 | `template_variables` | JSONB |  |
@@ -1166,6 +1165,7 @@ Loodud: `20261010100000-notifications-schema.sql` · veerge: 20 · PK: `id`
 | `pk_operation_restart_allowed` | BOOLEAN |  |
 | `pk_completed_at` | TIMESTAMPTZ |  |
 | `status_check_count` | INTEGER | jah |
+| `found_recipient_address` | TEXT |  |
 
 ### `notifications.outbound_log_recipient`
 
