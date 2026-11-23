@@ -26,8 +26,7 @@ declaration:
     reasoning already used for names elsewhere in this citizen surface (kept
     visible, company needs to know who was involved).
     The response also carries createdByAuthorityName (name of the Estonian authority that
-    created the card, from organisation-name.sql); only an allow-list of the fields the citizen view
-    shows is returned (officer-internal fields are never sent).
+    created the card, from organisation-name.sql); XX
   namespace: citizen
   allowlist:
     headers:
@@ -156,9 +155,24 @@ mergeAuthority:
           'violationDescription', 'minorViolationsCount',
           'sanctionCode', 'sanctionNotes', 'additionalSanctionCodes', 'violations',
           'recommendedMeasureCode', 'recommendedMeasureNotes', 'notes'];
+        // Same for each violations[] element: only the keys the view shows.
+        var allowedViolation = ['code', 'sanctionCode', 'requestedPenaltyCodes', 'sanctionNotes',
+          'recommendedMeasureCode', 'recommendedMeasureNotes'];
+        // System-generated text (create-from-ncr.yml), not an officer note.
+        function isInternalNote(v) {
+          return typeof v === 'string' && v.indexOf('ERRU penaltyTypeImposed=') === 0;
+        }
+        function stripViolation(v) {
+          var o = {};
+          allowedViolation.forEach(function(k) { if (v && v[k] != null) { o[k] = v[k]; } });
+          if (isInternalNote(o.sanctionNotes)) { delete o.sanctionNotes; }
+          return o;
+        }
         function strip(f) {
           var out = { createdByAuthorityName: name };
           allowed.forEach(function(k) { out[k] = f[k] ?? null; });
+          if (isInternalNote(out.sanctionNotes)) { out.sanctionNotes = null; }
+          if (Array.isArray(out.violations)) { out.violations = out.violations.map(stripViolation); }
           return out;
         }
         var b = mapped.response.body;
