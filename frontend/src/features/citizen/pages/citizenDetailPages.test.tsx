@@ -122,6 +122,16 @@ describe('CitizenCompoundDetailPage', () => {
     expect(screen.getByText('citizen.compoundDetail.subFormsEmpty')).toBeTruthy();
   });
 
+  it('shows not-found on failure and does nothing without id', async () => {
+    api.getCitizenCompoundForm.mockRejectedValue(new Error('x'));
+    at('/x/5', <CitizenCompoundDetailPage />);
+    await waitFor(() => expect(screen.getAllByText('forms.compound_form').length).toBeGreaterThan(0));
+    cleanup();
+    api.getCitizenCompoundForm.mockClear();
+    at('/x', <CitizenCompoundDetailPage />, '/x');
+    expect(api.getCitizenCompoundForm).not.toHaveBeenCalled();
+  });
+
   it('shows the crew member name from the teammate sub-form', async () => {
     api.getCitizenCompoundForm.mockResolvedValue({
       drivers: [{ firstName: 'A', lastName: 'B' }],

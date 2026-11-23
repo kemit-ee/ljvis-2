@@ -47,16 +47,22 @@ returns:
   nullable: true
 */
 WITH lsd AS (
-    SELECT DISTINCT ON (sp_driver_form_key) *
-    FROM forms.sp_driver_form
-    WHERE compound_form_key = :compound_form_key::BIGINT
-    ORDER BY sp_driver_form_key, created_at DESC
+    SELECT * FROM (
+        SELECT DISTINCT ON (sp_driver_form_key) *
+        FROM forms.sp_driver_form
+        WHERE compound_form_key = :compound_form_key::BIGINT
+        ORDER BY sp_driver_form_key, created_at DESC
+    ) l
+    WHERE l.selection_status = 'active'
 ),
 lst AS (
-    SELECT DISTINCT ON (sp_teammate_form_key) *
-    FROM forms.sp_teammate_form
-    WHERE compound_form_key = :compound_form_key::BIGINT
-    ORDER BY sp_teammate_form_key, created_at DESC
+    SELECT * FROM (
+        SELECT DISTINCT ON (sp_teammate_form_key) *
+        FROM forms.sp_teammate_form
+        WHERE compound_form_key = :compound_form_key::BIGINT
+        ORDER BY sp_teammate_form_key, created_at DESC
+    ) l
+    WHERE l.selection_status = 'active'
 ),
 lvt AS (
     SELECT DISTINCT ON (vehicle_technical_form_key) *
@@ -124,7 +130,7 @@ raw AS (
      WHERE ad.status = 'published'
        AND inf ->> 'inspectionStatus' = 'NC'
        AND COALESCE(inf ->> 'infringementDetected', 'true') <> 'false'
-       AND COALESCE(rec -> 'responsibleParticipants', '[]'::jsonb) ? 'C'
+       AND COALESCE(rec -> 'responsibleParticipants', '[]'::jsonb) @> '["C"]'::jsonb
        AND COALESCE(rec ->> 'reg2016403Code', 'NONE') NOT IN ('', 'NONE')
 ),
 norm AS (
@@ -162,11 +168,14 @@ viol AS (
                'severity', d.severity,
                'description', CASE d.kind
                    WHEN 'mass' THEN NULLIF(concat_ws(' – ', NULLIF(d.e ->> 'level1Name', ''), NULLIF(d.e ->> 'level3Name', '')), '')
+                   WHEN 'doc' THEN NULLIF(concat_ws(' – ', NULLIF(d.e ->> 'level2Name', ''), d.cls_name), '')
                    ELSE COALESCE(NULLIF(d.e ->> 'level2Name', ''), d.cls_name, NULLIF(d.e ->> 'description', ''))
                END,
                'regulation', d.reg,
-               'article', COALESCE(NULLIF(d.e ->> 'level2Description', ''), NULLIF(d.e ->> 'adrReference', ''))
-           ) ORDER BY d.kind, d.code) AS items
+               -- mass/dokument: level2Description hoiab raskusastet, mitte artiklit
+               'article', CASE WHEN d.kind IN ('mass', 'doc') THEN NULL
+                               ELSE COALESCE(NULLIF(d.e ->> 'level2Description', ''), NULLIF(d.e ->> 'adrReference', '')) END
+           ) ORDER BY CASE d.severity WHEN 'MSI' THEN 1 WHEN 'VSI' THEN 2 WHEN 'SI' THEN 3 ELSE 4 END, d.reg NULLS LAST, d.code) AS items
       FROM described d
      GROUP BY d.ft, d.fk
 )

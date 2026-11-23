@@ -196,15 +196,32 @@ getHeader:
   result: header_res
   next: mergeHeader
 
+# One self-contained expression (Ruuter assign keys are evaluated in no
+# guaranteed order, so header_row must not be defined in the same step).
+# Also drops fields the citizen view does not show (data minimisation).
 mergeHeader:
   assign:
-    header_row: "${(header_res.response.body && header_res.response.body[0]) || {}}"
     masked_form: >-
-      ${Object.assign({}, masked_form, {
-        authorityName: header_row.authorityName ?? null,
-        teammateFirstName: header_row.teammateFirstName ?? null,
-        teammateLastName: header_row.teammateLastName ?? null
-      })}
+      ${(function(){
+        var h = (header_res.response.body && header_res.response.body[0]) || {};
+        var f = Object.assign({}, masked_form, {
+          authorityName: h.authorityName ?? null,
+          teammateFirstName: h.teammateFirstName ?? null,
+          teammateLastName: h.teammateLastName ?? null,
+          county: null,
+          address: null,
+          inspectorFirstName: null,
+          inspectorLastName: null,
+          inspectorUnit: null,
+          inspectorProfession: null
+        });
+        if (Array.isArray(f.drivers)) {
+          f.drivers = f.drivers.map(function(d) {
+            return Object.assign({}, d, { personalCodeEe: null, personalCodeForeign: null, birthDate: null });
+          });
+        }
+        return f;
+      })()}
   next: checkShouldLog
 
 # Audit third-party PII access: viewing a koondvorm where the session's own

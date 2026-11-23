@@ -218,7 +218,7 @@ vr_qualifying_forms AS (
 vr_latest AS (
   -- Latest published snapshot per foreign_violation_form_key.
   SELECT DISTINCT ON (foreign_violation_form_key)
-    foreign_violation_form_key, violations
+    foreign_violation_form_key, violations, minor_violations_count
   FROM forms.foreign_violation_form
   WHERE foreign_violation_form_key IN (SELECT foreign_violation_form_key FROM vr_qualifying_forms)
     AND status = 'published'
@@ -227,14 +227,15 @@ vr_latest AS (
 -- VR-vormi `violations` on objektide massiiv [{"code":"MSI101",...}] (vt
 -- 20261124110000-foreign-violation-form-violations-structured.sql); vana lame
 -- string-massiiv ["MSI101"] on samuti toetatud. Objektidel puudub raskusaste,
--- seega see loetakse koodi enda prefiksist. VR-vormil pole MI-koodi
--- võimalust (vorm toetab ainult kolme checkbox-gruppi: MSI, VSI, SI).
+-- seega see loetakse koodi enda prefiksist. MI rikkumiste arv tuleb vormi
+-- väljalt minor_violations_count (kaal 1, nagu SP-kaartidel); VR-vormil pole MI-koodi. VR-vormil pole MI-koodi
 vr_violation_tallies AS (
   SELECT
     vl.foreign_violation_form_key,
     (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'MSI%') AS n_msi,
     (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'VSI%') AS n_vsi,
-    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'SI%')  AS n_si
+    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'SI%')  AS n_si,
+    COALESCE(vl.minor_violations_count, 0) AS n_mi
   FROM vr_latest vl
 ),
 -- Iga VR-kontroll loeb r-i (zero_point kui rikkumisi ei tuvastatud, counted
@@ -245,7 +246,7 @@ vr_per_control AS (
   SELECT
     vt.foreign_violation_form_key,
     FALSE AS is_fully_excluded,
-    (vt.n_msi * 90 + vt.n_vsi * 30 + vt.n_si * 10) AS weighted_sum
+    (vt.n_msi * 90 + vt.n_vsi * 30 + vt.n_si * 10 + vt.n_mi * 1) AS weighted_sum
   FROM vr_violation_tallies vt
 ),
 all_control_parts AS (

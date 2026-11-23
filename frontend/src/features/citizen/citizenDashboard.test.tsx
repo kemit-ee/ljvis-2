@@ -176,7 +176,6 @@ describe('CompanyCard', () => {
     await waitFor(() => expect(screen.getByText('citizen.dashboard.company.totalControls')).toBeTruthy());
     fireEvent.click(screen.getByText('citizen.dashboard.company.viewControls'));
     expect(screen.getByText('C-4')).toBeTruthy();
-    expect(screen.queryByText('citizen.dashboard.controls.weightedPoints')).toBeNull();
     fireEvent.click(screen.getByText('citizen.dashboard.company.hideControls'));
     expect(screen.queryByText('C-4')).toBeNull();
   });

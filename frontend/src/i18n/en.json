@@ -1321,6 +1321,7 @@
         "extraordinary_inspection_ta": "Referred for extraordinary roadworthiness test with Transport Administration data verification",
         "driving_ban": "Driving ban",
         "misdemeanor_proceedings": "Misdemeanor proceedings",
+        "precept": "Precept",
         "warning": "Warning",
         "driving_ban_art5": "Driving ban (ADR art 5)",
         "transport_interruption": "Road transport interrupted"

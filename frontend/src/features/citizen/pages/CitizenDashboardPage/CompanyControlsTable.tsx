@@ -32,7 +32,7 @@ function HeaderWithTooltip({
   return (
     <span className="ljvis-header-with-tooltip">
       {label}
-      <InfoTooltip isSmall openWith="click">
+      <InfoTooltip isSmall openWith="click" ariaLabel={label}>
         {tooltip}
       </InfoTooltip>
     </span>

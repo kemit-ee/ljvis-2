@@ -18,7 +18,7 @@
 
 ### Riskiskoor: välisriigi rikkumise kontrollkaardi rikkumised arvestatakse uuesti
 
-- Välisriigi rikkumise (VR) kontrollkaardi rikkumisi ei arvestatud riskiskoori ega ettevõtja kontrollide tabelisse, sest rikkumiste salvestuskuju muutus ja arvutus luges vana kuju. Nüüd arvestatakse VR-kaardi MSI, VSI ja SI rikkumised uuesti. Riskiskoorid uuenevad järgmisel ümberarvutusel.
+- Välisriigi rikkumise (VR) kontrollkaardi rikkumisi ei arvestatud riskiskoori ega ettevõtja kontrollide tabelisse, sest rikkumiste salvestuskuju muutus ja arvutus luges vana kuju. Nüüd arvestatakse VR-kaardi MSI, VSI ja SI rikkumised uuesti ning kergemate rikkumiste arv (`minor_violations_count`) läheb MI veergu ja riskiskoori (kaal 1, nagu SP-kaartidel). Riskiskoorid uuenevad järgmisel ümberarvutusel.
 
 ### SP-kontrollkaardi rikkumiste koodid ja massi koodid ERRU-sse
 

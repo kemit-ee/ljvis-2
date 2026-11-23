@@ -28,6 +28,7 @@ WITH tm AS (
            ORDER BY sp_teammate_form_key, created_at DESC
       ) l
      WHERE l.status = 'published'
+       AND l.selection_status = 'active'
      ORDER BY l.sp_teammate_form_key
      LIMIT 1
 )

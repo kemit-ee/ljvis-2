@@ -108,8 +108,8 @@ Erinevused koondvormi reeglitest:
   oli lihtne koodide string-massiiv, see on endiselt toetatud). Objektidel
   puudub §4 kirjeldatud `severityCode`, seega raskusaste loetakse koodi enda
   prefiksist (`MSI`/`VSI`/`SI`).
-- VR-vorm toetab ainult kolme raskusastet (MSI/VSI/SI) — `n_mi` on VR-kontrolli
-  puhul alati 0.
+- VR-vormi MSI/VSI/SI arv tuleb koodidest; `n_mi` tuleb vormi väljalt
+  `minor_violations_count` (kaal 1, nagu SP-kaartidel).
 
 ### 3.2 Täiendavad kontrolliallikad (`2022-695-v2`)
 
