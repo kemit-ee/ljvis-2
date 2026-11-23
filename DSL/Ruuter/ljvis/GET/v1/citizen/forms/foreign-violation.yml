@@ -144,7 +144,7 @@ mergeAuthority:
         var name = (authority_res.response.body && authority_res.response.body[0] && authority_res.response.body[0].name) || null;
         // Data minimisation: allow-list of the fields the citizen view shows
         // (a new officer-only field added to the mapper never reaches citizens).
-        var allowed = ['id', 'version', 'revision', 'status', 'formNumber',
+        var allowed = ['id', 'revision', 'status', 'formNumber',
           'reportingCountryCode', 'reportingAuthority',
           'inspectionDate', 'inspectionTime', 'inspectionAddressLine1', 'inspectionAddressLine2',
           'inspectionRegion', 'inspectionCity', 'inspectionCountryCode',

@@ -135,8 +135,50 @@ export async function getCitizenCompoundSubForms(
 }
 
 // GET/v1/citizen/forms/foreign-violation.yml adds createdByAuthorityName
-// (name of the Estonian authority that created the card).
-export type CitizenForeignViolationForm = ForeignViolationForm & {
+// (name of the Estonian authority that created the card) and returns only
+// the allow-listed fields below (officer-internal fields are never sent).
+export type CitizenForeignViolationForm = Pick<
+  ForeignViolationForm,
+  | 'id'
+  | 'revision'
+  | 'status'
+  | 'formNumber'
+  | 'reportingCountryCode'
+  | 'reportingAuthority'
+  | 'inspectionDate'
+  | 'inspectionTime'
+  | 'inspectionAddressLine1'
+  | 'inspectionAddressLine2'
+  | 'inspectionRegion'
+  | 'inspectionCity'
+  | 'inspectionCountryCode'
+  | 'companyRegCode'
+  | 'companyName'
+  | 'companyCountryCode'
+  | 'companyAddressLine1'
+  | 'companyAddressLine2'
+  | 'companyCity'
+  | 'companyPostalCode'
+  | 'driverFirstName'
+  | 'driverLastName'
+  | 'vehicleRegNr'
+  | 'vehicleMake'
+  | 'vehicleModel'
+  | 'vehicleCountryCode'
+  | 'vehicleVin'
+  | 'vehicleFirstRegistration'
+  | 'vehicleBodyType'
+  | 'licenceCopyNumber'
+  | 'violationDescription'
+  | 'minorViolationsCount'
+  | 'sanctionCode'
+  | 'sanctionNotes'
+  | 'additionalSanctionCodes'
+  | 'violations'
+  | 'recommendedMeasureCode'
+  | 'recommendedMeasureNotes'
+  | 'notes'
+> & {
   createdByAuthorityName?: string | null;
 };
 

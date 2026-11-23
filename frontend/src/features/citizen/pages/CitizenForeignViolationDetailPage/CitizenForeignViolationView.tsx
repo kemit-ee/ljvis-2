@@ -27,20 +27,38 @@ const REQUESTED_TO_MEASURE: Record<string, string> = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="field-name mb-1">
-      <Text modifiers="bold" color="secondary">
-        {label}
-      </Text>
-      <div className="mt-025">{children}</div>
+      <dt>
+        <Text modifiers="bold" color="secondary">
+          {label}
+        </Text>
+      </dt>
+      <dd className="mt-025" style={{ margin: 0 }}>
+        {children}
+      </dd>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** Semantic label/value list; every Field must be inside one. */
+function FieldList({ children }: { children: React.ReactNode }) {
+  return <dl style={{ margin: 0 }}>{children}</dl>;
+}
+
+function Section({
+  title,
+  children,
+  plain,
+}: {
+  title: string;
+  children: React.ReactNode;
+  /** Children are not Fields (e.g. nested lists), so do not wrap in a <dl>. */
+  plain?: boolean;
+}) {
   return (
     <Card className="mt-05">
       <Card.Content>
         <Heading element="h3">{title}</Heading>
-        <div className="mt-05">{children}</div>
+        <div className="mt-05">{plain ? children : <FieldList>{children}</FieldList>}</div>
       </Card.Content>
     </Card>
   );
@@ -177,11 +195,12 @@ export function CitizenForeignViolationView({
         <Field label={p('minorViolationsCount')}>{dash(form.minorViolationsCount)}</Field>
       </Section>
 
-      <Section title={p('euViolationsBasicInfo')}>
+      <Section title={p('euViolationsBasicInfo')} plain>
         {violations.length === 0 && <Text color="secondary">{t('citizen.foreignViolationDetail.noEuViolations')}</Text>}
-        {violations.map((violation) => (
-          <div key={violation.code} className="mb-1">
-            <Text modifiers="bold">{violationLabel(violation.code)}</Text>
+        {violations.map((violation, index) => (
+          <div key={`${violation.code}-${index}`} className="mb-1">
+            <Heading element="h4">{violationLabel(violation.code)}</Heading>
+            <FieldList>
             <Field label={p('sanctionCode')}>
               {dash(labelOf(FOREIGN_VIOLATION_SANCTION_OPTIONS, violation.sanctionCode))}
             </Field>
@@ -196,6 +215,7 @@ export function CitizenForeignViolationView({
             {violation.recommendedMeasureNotes && (
               <Field label={p('recommendedMeasureNotes')}>{violation.recommendedMeasureNotes}</Field>
             )}
+            </FieldList>
           </div>
         ))}
       </Section>
@@ -219,8 +239,8 @@ export function CitizenForeignViolationView({
       )}
 
       {form.notes && (
-        <Section title={p('recommendedMeasureGeneralNotes')}>
-          <Field label={p('recommendedMeasureGeneralNotes')}>{form.notes}</Field>
+        <Section title={p('recommendedMeasureGeneralNotes')} plain>
+          <Text>{form.notes}</Text>
         </Section>
       )}
     </>
