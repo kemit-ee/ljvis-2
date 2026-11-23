@@ -37,7 +37,7 @@ INSERT INTO fixture_tram_control_card (id,tram_control_card_key,company_reg_code
  VALUES (1,20,'80410960','Risk test','published','RAKENDATAKSE','HOIATUS','2026-01-01','[{"severityCode":"VSI"},{"severityCode":"MSI","isDetected":false}]'),(2,21,'80410960','Risk test','published','EI_KONTROLLITUD','KORRAS','2026-01-01','[]');
 INSERT INTO fixture_labour_inspection_form VALUES (1,30,'80410960','Risk test','published','2026-01-01',2,'[{"level3ValueKey":300,"quantity":3}]');
 INSERT INTO fixture_classifier_value VALUES (1,300,'SI','2026-01-01');
-INSERT INTO fixture_foreign_violation_form VALUES (1,40,'80410960','Risk test','published','2026-01-01','["SI901"]');
+INSERT INTO fixture_foreign_violation_form VALUES (1,40,'80410960','Risk test','published','2026-01-01','[{"code":"SI901"}]');
 INSERT INTO fixture_form_search VALUES (10,'compound','koond-test','2026-01-01','TEST'),(20,'tram_control_card','tram-test','2026-01-01','TEST'),(30,'labour_inspection','ti-test','2026-01-01',NULL),(40,'foreign_violation','vr-test','2026-01-01',NULL);
 '''
 sql+=remap((root/'DSL/Liquibase/changelog/20261016211000-risk-additional-controls.sql').read_text())

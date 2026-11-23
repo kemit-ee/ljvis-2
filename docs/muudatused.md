@@ -9,6 +9,9 @@
 - Riskitaseme lause on nüüd „Riskitase arvutatud ajavahemikus pp.kk.aaaa–pp.kk.aaaa toimunud kontrollide tulemuste põhjal“.
 - Kontrollide tabelis on veerud „Kontrolli andmevormi number“, „Kontrolli kuupäev“ (kujul pp.kk.aaaa) ning „MSI/VSI/SI/MI rikkumiste arv“. Veerg „Kaalutud punktid“ on eemaldatud.
 - Rikkumiste veergude infoikoon on nüüd nupp, mille selgitus avaneb ka klõpsuga: MSI – kõige raskem, VSI – väga raske, SI – raske, MI – kergem rikkumine.
+### Riskiskoor: välisriigi rikkumise kontrollkaardi rikkumised arvestatakse uuesti
+
+- Välisriigi rikkumise (VR) kontrollkaardi rikkumisi ei arvestatud riskiskoori ega ettevõtja kontrollide tabelisse, sest rikkumiste salvestuskuju muutus ja arvutus luges vana kuju. Nüüd arvestatakse VR-kaardi MSI, VSI ja SI rikkumised uuesti. Riskiskoorid uuenevad järgmisel ümberarvutusel.
 
 ### SP-kontrollkaardi rikkumiste koodid ja massi koodid ERRU-sse
 

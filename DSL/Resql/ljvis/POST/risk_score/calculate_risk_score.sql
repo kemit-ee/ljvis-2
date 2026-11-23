@@ -224,17 +224,17 @@ vr_latest AS (
     AND status = 'published'
   ORDER BY foreign_violation_form_key, created_at DESC
 ),
--- VR-vormi `violations` on lihtne JSONB string-massiiv rikkumiskoodidest (nt
--- ["MSI101","VSI800"] - vt 20260703100000-initial-foreign-violation-form.sql
--- veeru kommentaari), mitte objektide massiiv nagu SP-vormidel, seega
--- raskusaste loetakse koodi enda prefiksist. VR-vormil pole MI-koodi
+-- VR-vormi `violations` on objektide massiiv [{"code":"MSI101",...}] (vt
+-- 20261124110000-foreign-violation-form-violations-structured.sql); vana lame
+-- string-massiiv ["MSI101"] on samuti toetatud. Objektidel puudub raskusaste,
+-- seega see loetakse koodi enda prefiksist. VR-vormil pole MI-koodi
 -- võimalust (vorm toetab ainult kolme checkbox-gruppi: MSI, VSI, SI).
 vr_violation_tallies AS (
   SELECT
     vl.foreign_violation_form_key,
-    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'MSI%') AS n_msi,
-    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'VSI%') AS n_vsi,
-    (SELECT COUNT(*) FROM jsonb_array_elements_text(COALESCE(vl.violations, '[]'::jsonb)) c WHERE c LIKE 'SI%')  AS n_si
+    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'MSI%') AS n_msi,
+    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'VSI%') AS n_vsi,
+    (SELECT COUNT(*) FROM jsonb_array_elements(COALESCE(vl.violations, '[]'::jsonb)) c WHERE COALESCE(c->>'code', c#>>'{}') LIKE 'SI%')  AS n_si
   FROM vr_latest vl
 ),
 -- Iga VR-kontroll loeb r-i (zero_point kui rikkumisi ei tuvastatud, counted
