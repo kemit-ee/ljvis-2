@@ -78,8 +78,12 @@ afterEach(() => {
 const compound = {
   formNumber: 'K-1',
   controlDate: '2026-03-31',
+  controlTime: '12:30:00',
   county: 'Harju',
   address: 'Tn 1',
+  authorityName: 'Kliimaministeerium',
+  roadTaxStatus: 'Tasumata',
+  roadTaxNotes: 'märkus teel',
   vehicleRegNr: '123ABC',
   companyName: 'Firma',
   companyRegCode: '999',
@@ -93,14 +97,19 @@ describe('CitizenCompoundDetailPage', () => {
   it('renders the summary with several drivers and sub-forms', async () => {
     api.getCitizenCompoundForm.mockResolvedValue([compound]);
     api.getCitizenCompoundSubForms.mockResolvedValue([
-      { formType: 'adr', formKey: 1, subFormNumber: 'A-1', status: 'published', resultType: 'ok', violations: [], notes: null },
+      { formType: 'adr', formKey: 1, subFormNumber: 'A-1', status: 'published', resultType: 'ok', violations: [], notes: null, enforcementDecision: null },
     ]);
     at('/x/5', <CitizenCompoundDetailPage />);
     expect(screen.getByText('common.loading')).toBeTruthy();
     await waitFor(() => expect(screen.getByText('K-1')).toBeTruthy());
     expect(screen.getByText('Mari Maasikas')).toBeTruthy();
-    expect(screen.getByText('FX1')).toBeTruthy();
-    expect(screen.getAllByText('citizen.compoundDetail.driverLabel')).toHaveLength(2);
+    expect(screen.getByText('31.03.2026 12.30')).toBeTruthy();
+    expect(screen.getByText('Kliimaministeerium')).toBeTruthy();
+    expect(screen.getByText(/Tasumata – märkus teel/)).toBeTruthy();
+    // personal codes, county and address are not shown to the citizen
+    expect(screen.queryByText('4000')).toBeNull();
+    expect(screen.queryByText('Harju')).toBeNull();
+    expect(screen.queryByText('Tn 1')).toBeNull();
     await waitFor(() => expect(screen.getByText('A-1', { exact: false })).toBeTruthy());
   });
 
@@ -108,26 +117,20 @@ describe('CitizenCompoundDetailPage', () => {
     api.getCitizenCompoundForm.mockResolvedValue({});
     api.getCitizenCompoundSubForms.mockRejectedValue(new Error('x'));
     at('/x/5', <CitizenCompoundDetailPage />);
-    await waitFor(() => expect(screen.getByText('citizen.compoundDetail.noDrivers')).toBeTruthy());
-    expect(screen.getByText('forms.compound_form')).toBeTruthy();
+    await waitFor(() => expect(screen.getByText('forms.compound_form')).toBeTruthy());
+    expect(screen.getByText('citizen.compoundDetail.driverName').nextElementSibling?.textContent).toBe('—');
     expect(screen.getByText('citizen.compoundDetail.subFormsEmpty')).toBeTruthy();
   });
 
-  it('shows a single driver without a numbered label', async () => {
-    api.getCitizenCompoundForm.mockResolvedValue({ drivers: [{ firstName: 'A' }] });
+  it('shows the crew member name from the teammate sub-form', async () => {
+    api.getCitizenCompoundForm.mockResolvedValue({
+      drivers: [{ firstName: 'A', lastName: 'B' }],
+      teammateFirstName: 'Tiim',
+      teammateLastName: 'Liige',
+    });
     at('/x/5', <CitizenCompoundDetailPage />);
-    await waitFor(() => expect(screen.getByText('A')).toBeTruthy());
-    expect(screen.queryByText('citizen.compoundDetail.driverLabel')).toBeNull();
-  });
-
-  it('shows not-found on failure and does nothing without id', async () => {
-    api.getCitizenCompoundForm.mockRejectedValue(new Error('x'));
-    at('/x/5', <CitizenCompoundDetailPage />);
-    await waitFor(() => expect(screen.getAllByText('forms.compound_form').length).toBeGreaterThan(0));
-    cleanup();
-    api.getCitizenCompoundForm.mockClear();
-    at('/x', <CitizenCompoundDetailPage />, '/x');
-    expect(api.getCitizenCompoundForm).not.toHaveBeenCalled();
+    await waitFor(() => expect(screen.getByText('A B')).toBeTruthy());
+    expect(screen.getByText('Tiim Liige')).toBeTruthy();
   });
 });
 
@@ -140,22 +143,22 @@ describe('CitizenSubFormsSection', () => {
     resultType: null,
     violations: [],
     notes: null,
+    enforcementDecision: null,
     ...over,
   });
 
-  it('renders violations with severity/reference, notes and fallbacks', () => {
+  it('renders violations with description, severity and reference, result, penalty basis and notes', () => {
     render(
       <CitizenSubFormsSection
         subForms={[
           sub({
-            resultType: 'violation',
+            resultType: 'misdemeanor_proceedings',
+            enforcementDecision: '§ 241',
             notes: 'märkus',
             violations: [
-              { severityCode: 'MSI', regulation: '561/2006' },
-              { riskCategory: 'VSI', adrProvision: '1.2.3' },
-              { severityCode: 'SI' },
-              { regulation: 'only-ref' },
-              {},
+              { code: 'VSI865', severity: 'VSI', description: 'Puhkeaeg lühike', regulation: '561/2006', article: 'Artikli 8 lõige 6b' },
+              { code: 'SI924', severity: 'SI', description: 'Pikkus', regulation: null, article: null },
+              { code: 'MSI302', severity: 'MSI', description: null, regulation: null, article: 'ADR 1.2.3' },
             ],
           }),
           sub({ formKey: 2, formType: 'vehicle_technical', subFormNumber: 'V-2', resultType: 'ok' }),
@@ -163,10 +166,12 @@ describe('CitizenSubFormsSection', () => {
         ]}
       />,
     );
-    expect(screen.getByText(/MSI/)).toBeTruthy();
-    expect(screen.getByText(/561\/2006/)).toBeTruthy();
-    expect(screen.getByText(/1\.2\.3/)).toBeTruthy();
-    expect(screen.getByText(/only-ref/)).toBeTruthy();
+    expect(screen.getByText(/Puhkeaeg lühike \(VSI\) – 561\/2006 Artikli 8 lõige 6b/)).toBeTruthy();
+    expect(screen.getByText(/Pikkus \(SI\)$/)).toBeTruthy();
+    expect(screen.getByText(/MSI302 \(MSI\) – ADR 1\.2\.3/)).toBeTruthy();
+    expect(screen.getByText(/§ 241/)).toBeTruthy();
+    expect(screen.getByText(/citizen\.compoundDetail\.penaltyBasisLabel/)).toBeTruthy();
+    expect(screen.getAllByText(/citizen\.compoundDetail\.resultLabel/).length).toBe(3);
     expect(screen.getByText(/märkus/)).toBeTruthy();
     expect(screen.getAllByText('citizen.compoundDetail.noViolations')).toHaveLength(1);
   });

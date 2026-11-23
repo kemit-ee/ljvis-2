@@ -180,6 +180,31 @@ applyGdprMasking:
         });
         return Object.assign({}, f, { drivers: maskedDrivers });
       })()}
+  next: getHeader
+
+# Inspecting authority name + crew member name for the detail header.
+getHeader:
+  call: http.post
+  args:
+    url: "[#LJVIS_RESQL]/citizen/forms/compound-header"
+    headers:
+      Authorization: "Bearer [#RESQL_INTER_SERVICE_TOKEN]"
+      x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
+      type: json
+    body:
+      compound_form_key: "${row.id}"
+  result: header_res
+  next: mergeHeader
+
+mergeHeader:
+  assign:
+    header_row: "${(header_res.response.body && header_res.response.body[0]) || {}}"
+    masked_form: >-
+      ${Object.assign({}, masked_form, {
+        authorityName: header_row.authorityName ?? null,
+        teammateFirstName: header_row.teammateFirstName ?? null,
+        teammateLastName: header_row.teammateLastName ?? null
+      })}
   next: checkShouldLog
 
 # Audit third-party PII access: viewing a koondvorm where the session's own

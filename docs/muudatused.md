@@ -9,6 +9,13 @@
 - Riskitaseme lause on nüüd „Riskitase arvutatud ajavahemikus pp.kk.aaaa–pp.kk.aaaa toimunud kontrollide tulemuste põhjal“.
 - Kontrollide tabelis on veerud „Kontrolli andmevormi number“, „Kontrolli kuupäev“ (kujul pp.kk.aaaa) ning „MSI/VSI/SI/MI rikkumiste arv“. Veerg „Kaalutud punktid“ on eemaldatud.
 - Rikkumiste veergude infoikoon on nüüd nupp, mille selgitus avaneb ka klõpsuga: MSI – kõige raskem, VSI – väga raske, SI – raske, MI – kergem rikkumine.
+
+### Ettevõtja vaade: kontrolli üksikasjad
+
+- Kontrolli andmete plokis kuvatakse „Kontrolli kuupäev ja kellaaeg“ (pp.kk.aaaa hh.mm), „Kontrolli teostanud asutus“, „Autojuhi ees- ja perekonnanimi“ ning vajaduse korral „Meeskonnaliikme ees- ja perekonnanimi“. Maakond, aadress ja isikukoodid on eemaldatud. Teekasutustasu seisund ja märkus kuvatakse kontrolli andmete juures.
+- Iga alamvormi juures on eraldi rida „Kontrolli tulemus“ (KORRAS, Hoiatus, Väärteomenetlus jne). Väärteomenetluse korral kuvatakse ka „Karistuse määramise alus“.
+- Tuvastatud rikkumiste loetelus on kõik MSI, VSI, SI ja MI rikkumised kujul „kirjeldus (raskusaste) – määrus ja artikkel“. Varem puudusid sõiduki mass/pikkus/laius (nt SI924, VSI843), dokumentide ja kabotaaži rikkumised, tehnokaardi rikkumised (nt MSI302) ning ohtlike veoste kontrollkaardi rikkumised (nt VSI856), mida kontrollkaardil oli kirjas.
+
 ### Riskiskoor: välisriigi rikkumise kontrollkaardi rikkumised arvestatakse uuesti
 
 - Välisriigi rikkumise (VR) kontrollkaardi rikkumisi ei arvestatud riskiskoori ega ettevõtja kontrollide tabelisse, sest rikkumiste salvestuskuju muutus ja arvutus luges vana kuju. Nüüd arvestatakse VR-kaardi MSI, VSI ja SI rikkumised uuesti. Riskiskoorid uuenevad järgmisel ümberarvutusel.
