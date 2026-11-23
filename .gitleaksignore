@@ -23,3 +23,6 @@ b6545ac7b17794f01d92a8c60784e9a8cfd302bb:DSL/Liquibase/test/20261227100000-erru-
 
 # Historical dev Keycloak client secret. The local setup moved to tara-mock. Revocation is unverified.
 c3c359e636f85be4196072b994e2f109e519f261:docker-compose.yml:generic-api-key:158
+
+# False positive: SQL column name kv_form_key in ORDER BY, not a secret.
+b68296ae5e716c298b13a9529bf762d89b18a09f:DSL/Resql/ljvis/POST/citizen/forms/compound-subforms.sql:generic-api-key:86
