@@ -31,16 +31,11 @@ LANGUAGE sql
 IMMUTABLE
 AS $$
     WITH violations AS (
-        -- Aegunud (vanas süsteemis puuduvad) rikkumised ei lähe ERRU-sse. Nende
-        -- koodid kattuvad massi/pikkuse koodidega (SI923, SI924) või on vales
-        -- raskusastmes (VSI815/816/821/822/841/842), seega filtreeritakse välja
-        -- ainult oma direktiivi veerust; massi veerg jääb puutumata.
+        -- Aegunud (valid_until möödas) rikkumised osalevad arvutuses edasi: kui need on
+        -- vormil valitud (nt vana vorm), loetakse need ERRU-sse samamoodi.
         SELECT value AS item FROM jsonb_array_elements(COALESCE(violations_561_2006, '[]'::JSONB)) value
-         WHERE COALESCE(value->>'violationCode', value->>'level3Code', '') NOT IN ('SI923', 'SI924', 'VSI815', 'VSI816')
-        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_165_2014, '[]'::JSONB)) value
-         WHERE COALESCE(value->>'violationCode', value->>'level3Code', '') NOT IN ('VSI821', 'VSI822')
-        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_2002_15, '[]'::JSONB)) value
-         WHERE COALESCE(value->>'violationCode', value->>'level3Code', '') NOT IN ('VSI841', 'VSI842')
+        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_165_2014, '[]'::JSONB))
+        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_2002_15, '[]'::JSONB))
         UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_593_2008, '[]'::JSONB))
         UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_2020_1057, '[]'::JSONB))
         UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_cabotage, '[]'::JSONB))
@@ -48,9 +43,17 @@ AS $$
     ), normalized AS (
         SELECT DISTINCT
             COALESCE(item->>'violationCode', item->>'level3Code') AS erru_code,
-            UPPER(COALESCE(item->>'severityCode', item->>'severity')) AS severity_category
+            -- Raskusaste = koodi eesliide (VSI/SI/MSI); salvestatud väärtus on
+            -- varuvariant koodidele, millel eesliidet ei ole (nt kõrgus, teljekoormus).
+            COALESCE(
+                substring(COALESCE(item->>'violationCode', item->>'level3Code') FROM '^(MSI|VSI|SI)[0-9]+$'),
+                UPPER(COALESCE(item->>'severityCode', item->>'severity'))
+            ) AS severity_category
           FROM violations
-         WHERE UPPER(COALESCE(item->>'severityCode', item->>'severity', '')) IN ('MSI', 'VSI', 'SI')
+         WHERE COALESCE(
+                substring(COALESCE(item->>'violationCode', item->>'level3Code') FROM '^(MSI|VSI|SI)[0-9]+$'),
+                UPPER(COALESCE(item->>'severityCode', item->>'severity', ''))
+               ) IN ('MSI', 'VSI', 'SI')
            AND COALESCE(item->>'violationCode', item->>'level3Code', '') <> ''
     ), points AS (
         SELECT jsonb_build_object(
