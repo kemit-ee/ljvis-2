@@ -445,28 +445,46 @@ services:
     networks:
       - ljvis-ci
 
+  tim-init:
+    build:
+      context: .
+      dockerfile: docker/tim/Dockerfile.init
+    depends_on:
+      - tara-mock
+    volumes:
+      - ci-tara-vault:/tara-mock-vault:ro
+      - ci-tim-jwt-key:/opt/tim/keys
+    restart: "no"
+    networks:
+      - ljvis-ci
+
   tim:
     build:
       context: .
       dockerfile: docker/tim/Dockerfile
     restart: unless-stopped
     depends_on:
-      - tim-postgresql
-      - tara-mock
+      tim-postgresql:
+        condition: service_started
+      tara-mock:
+        condition: service_started
+      tim-init:
+        condition: service_completed_successfully
     environment:
+      - SSL_CERT_FILE=/opt/tim/keys/tara-mock-ca.pem
+      - TIM_INTROSPECT_RUUTER_SECRET=dev-introspect-secret
       - TIM_DATABASE_URL=postgres://tim:123@tim-postgresql:5432/tim
       - TIM_ADMIN_TOKEN=dev-admin-token
       - TIM_TARA_CLIENT_ID=ljvis
       - TIM_TARA_CLIENT_SECRET=ljvis-secret
       - RUST_LOG=info
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8085/health > /dev/null 2>&1"]
+      test: ["CMD", "/app/tim", "healthcheck"]
       interval: 10s
       timeout: 5s
       retries: 20
       start_period: 20s
     volumes:
-      - ci-tara-vault:/tara-mock-vault:ro
       - ci-tim-jwt-key:/opt/tim/keys
     networks:
       - ljvis-ci

@@ -4,6 +4,12 @@
 
 ## 2026-11-23
 
+### TIM uuendatud versioonile 0.4.1-alpha
+
+- Autentimisteenus TIM on uuendatud versioonilt 0.3.0-alpha versioonile 0.4.1-alpha. Kasutajale nähtavat muutust pole, sisselogimine TARA kaudu töötab nagu varem.
+- Teenuse vastused on karmistatud: tundmatute väljadega päringud lükatakse tagasi ja `/introspect` nõuab nüüd autentimist.
+- Arenduskeskkonnas ja CI-s valmistab JWT võtme ning TARA-Mocki sertifikaadi ette eraldi `tim-init` teenus, sest uus TIM-i image ei sisalda shelli.
+
 ### SP-kontrollkaardi rikkumiste koodid ja massi koodid ERRU-sse
 
 - SP-kontrollkaardi (autojuht, meeskonna liige, TRAM-kaart) raskete rikkumiste koodid vastavad nüüd ERRU koodidele: nt art 8 lg 6b `VSI865`, art 8 lg 8 `VSI866`, art 5 lg 1 `SI900`, art 3 `MSI201`, art 23 lg 1 `VSI817`, art 32 lg 3 `MSI202`, art 34 lg 5 p b alap v `SI948`, art 34 lg 6 `VSI868`, art 34 lg 7 `SI949`/`SI950`, art 36 `VSI829`/`VSI832`/`VSI833`, art 37 lg 1 `VSI834`, Rooma I `VSI874`. Raskusaste on alati koodi eesliide. Varem kasutasid need rikkumised massi, pikkuse ja laiuse koode (nt `VSI843`, `SI922`) või kohatäitjat `MI`. Salvestatud vormid viiakse uutele koodidele.

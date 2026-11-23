@@ -22,6 +22,15 @@ jwt:
   audience:
     validation_enabled: false
 
+# TIM 0.4.0+: /introspect requires Basic auth by default and boot is refused
+# without at least one client. LJVIS2 does not call /introspect (DSL uses
+# /jwt/userinfo), so the client is registered only to satisfy the default.
+introspection:
+  required_client_auth: true
+  clients:
+    - client_id: "ruuter"
+      client_secret_env: "TIM_INTROSPECT_RUUTER_SECRET"
+
 security:
   admin_token_env: "TIM_ADMIN_TOKEN"
   require_admin_token: true
