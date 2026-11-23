@@ -157,6 +157,17 @@ DO $$
             "SI927":                      ["VSI834", "VSI"]
         }'::JSONB;
 
+        -- Klassifikaatorite ETag (get_classifiers_version.sql) loeb ridu ja MAX(id)-d,
+        -- UPDATE ei muuda neid. Lisa klassifikaatorile uus snapshot-rida (tabel on
+        -- INSERT-only snapshot), et brauser laeks juurutuse järel klassifikaatorid
+        -- uuesti, mitte ei näitaks vahemälust vanu koode.
+        INSERT INTO classifier.classifier (classifier_key, code, name, description, created_by)
+        SELECT classifier_key, code, name, description, 'system'
+          FROM classifier.classifier
+         WHERE classifier_key = v_clf_key
+         ORDER BY created_at DESC, id DESC
+         LIMIT 1;
+
         FOREACH v_tbl IN ARRAY ARRAY['sp_driver_form', 'sp_teammate_form', 'tram_control_card']
         LOOP
             EXECUTE format(

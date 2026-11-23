@@ -31,9 +31,16 @@ LANGUAGE sql
 IMMUTABLE
 AS $$
     WITH violations AS (
-        SELECT value AS item FROM jsonb_array_elements(COALESCE(violations_561_2006, '[]'::JSONB))
-        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_165_2014, '[]'::JSONB))
-        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_2002_15, '[]'::JSONB))
+        -- Aegunud (vanas süsteemis puuduvad) rikkumised ei lähe ERRU-sse. Nende
+        -- koodid kattuvad massi/pikkuse koodidega (SI923, SI924) või on vales
+        -- raskusastmes (VSI815/816/821/822/841/842), seega filtreeritakse välja
+        -- ainult oma direktiivi veerust; massi veerg jääb puutumata.
+        SELECT value AS item FROM jsonb_array_elements(COALESCE(violations_561_2006, '[]'::JSONB)) value
+         WHERE COALESCE(value->>'violationCode', value->>'level3Code', '') NOT IN ('SI923', 'SI924', 'VSI815', 'VSI816')
+        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_165_2014, '[]'::JSONB)) value
+         WHERE COALESCE(value->>'violationCode', value->>'level3Code', '') NOT IN ('VSI821', 'VSI822')
+        UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_2002_15, '[]'::JSONB)) value
+         WHERE COALESCE(value->>'violationCode', value->>'level3Code', '') NOT IN ('VSI841', 'VSI842')
         UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_593_2008, '[]'::JSONB))
         UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_2020_1057, '[]'::JSONB))
         UNION ALL SELECT value FROM jsonb_array_elements(COALESCE(violations_cabotage, '[]'::JSONB))
