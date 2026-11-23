@@ -76,7 +76,7 @@ callSendPostkast:
       type: json
     body:
       notification_type: ${original_log.notificationType}
-      recipient_email: ${original_log.recipientAddress}
+      recipient_email: ${original_log.foundRecipientAddress || original_log.recipientAddress}
       template_variables: ${original_log.templateVariables ?? {}}
       language: ${original_log.notificationLanguage ?? ''}
       send_time: ""

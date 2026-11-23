@@ -27,8 +27,10 @@ juures:
 - vajaduse korral vaikimisi vastuvõtja e-posti aadress;
 - olek „Aktiivne“.
 
-Vaikimisi vastuvõtja on vajalik Tööinspektsioonile saadetavate teavituste
-jaoks. `carrier_violation` teavituse saaja leitakse äriregistrist.
+Vastuvõtja e-post on vajalik Tööinspektsioonile saadetavate teavituste jaoks.
+`carrier_violation` teavituse saaja leitakse äriregistrist, kuid kui seadetes on
+vastuvõtja e-post täidetud, saadetakse teavitus alati sellele aadressile
+(kasulik testkeskkonnas).
 
 LJVIS-2 saadab teavituse Postkast 2.0-le X-tee kaudu. Saatmise tulemus
 kuvatakse teavituste logis.
@@ -43,7 +45,7 @@ e-posti aadressi.
 
 | Muutuja | Väärtus |
 |---|---|
-| `{{kontrollkaardiUrl}}` | link konkreetsele kontrollkaardile selle keskkonna avalikul aadressil; tühi, kui kontrollkaarti ei saa määrata |
+| `{{kontrollkaardiUrl}}` | tee konkreetse kontrollkaardini ilma keskkonna aadressita (nt `/control-forms/tram-control-card/7`); keskkonna aadress lisatakse mallis; tühi, kui kontrollkaarti ei saa määrata |
 
 ### `carrier_violation`
 

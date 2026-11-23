@@ -126,6 +126,11 @@ export function OutboundLogTable() {
             defaultValue: info.getValue(),
           }),
       }),
+      columnHelper.accessor('foundRecipientAddress', {
+        header: t('notifications.log.foundAddress'),
+        enableSorting: false,
+        cell: (info) => info.getValue() ?? '—',
+      }),
       columnHelper.accessor('recipientAddress', {
         header: t('notifications.log.addressee'),
         enableSorting: true,

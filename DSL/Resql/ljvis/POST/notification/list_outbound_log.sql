@@ -47,7 +47,7 @@ params:
 */
 WITH cur AS (
   SELECT
-    ol.id, ol.notification_key, ol.message_type, ol.send_date, ol.recipient_address,
+    ol.id, ol.notification_key, ol.message_type, ol.send_date, ol.recipient_address, ol.found_recipient_address,
     ol.related_entity_type, ol.related_entity_id, ol.original_log_id, ol.pk_template_id,
     ol.status, ol.failure_reason, ol.pk_sending_operation_id, ol.pk_operation_restart_allowed, ol.pk_completed_at,
     (SELECT e FROM notifications.outbound_log_status_event e WHERE e.log_id = ol.id ORDER BY e.revision DESC LIMIT 1) AS ev
@@ -67,7 +67,7 @@ WITH cur AS (
 ),
 eff AS (
   SELECT
-    c.id, c.notification_key, c.message_type, c.send_date, c.recipient_address,
+    c.id, c.notification_key, c.message_type, c.send_date, c.recipient_address, c.found_recipient_address,
     c.related_entity_type, c.related_entity_id, c.original_log_id, c.pk_template_id,
     CASE WHEN (c.ev).id IS NULL THEN c.status ELSE (c.ev).status END AS status,
     CASE WHEN (c.ev).id IS NULL THEN c.failure_reason ELSE (c.ev).failure_reason END AS failure_reason,
@@ -83,6 +83,7 @@ SELECT
     e.send_date,
     e.status,
     e.recipient_address,
+    e.found_recipient_address,
     e.failure_reason,
     e.related_entity_type,
     e.related_entity_id,

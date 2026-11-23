@@ -42,7 +42,7 @@ test.describe('Postkasti mallide ja vastuvõtjate seaded — desktop saajad', ()
     await page.getByRole('button', { name: 'Muuda' }).click();
 
     // Postkast-kanali e-posti väli ei tohi desktop-kanali vormis olemas olla.
-    await expect(page.getByLabel('Vaikimisi vastuvõtja e-post')).toHaveCount(0);
+    await expect(page.getByLabel('Vastuvõtja e-post (kui täidetud, saadetakse alati siia)')).toHaveCount(0);
 
     await page.getByPlaceholder('Otsi kasutajat nime järgi').fill('Mari');
     await page.getByPlaceholder('Otsi kasutajat nime järgi').press('Enter');

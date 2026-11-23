@@ -5,9 +5,8 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_RUUTER_INTERNAL: '{MOCK}/internal'
   PK_NOTIFICATIONS_ENDPOINT: '{MOCK}/pk/notifications'
-  DOMAIN: dev.liiklusvalve.ee
 tests:
-- name: known entity type sends the environment based control card URL to Postkast
+- name: known entity type sends the control card path (without host) to Postkast
   setup:
     mocks:
     - url_matches: /notification/get_template_mapping
@@ -62,9 +61,74 @@ tests:
     body_matches:
       templateId: vrteade
       parameters:
-      - kontrollkaardiUrl: https://dev.liiklusvalve.ee/control-forms/tram-control-card/7
+      - kontrollkaardiUrl: /control-forms/tram-control-card/7
         formNumber: TRAM-7
         recipient: vedaja@example.com
+
+- name: mapping recipient overrides the caller recipient
+  setup:
+    mocks:
+    - url_matches: /notification/get_template_mapping
+      method: POST
+      status: 200
+      body:
+      - active: true
+        channel: postkast
+        originalTemplateId: vrteade
+        defaultLanguage: et
+        defaultRecipientEmail: Seaded@Example.com
+    - url_matches: /notification/insert_outbound_log
+      method: POST
+      status: 200
+      body:
+      - id: 11
+        notificationKey: k-11
+    - url_matches: /notification/insert_outbound_recipient
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /pk/notifications
+      method: POST
+      status: 200
+      body:
+        sendingOperationId: op-1
+    - url_matches: /xroad/log_integration
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /notification/update_outbound_log_status
+      method: POST
+      status: 200
+      body: []
+  request:
+    method: POST
+    path: /ljvis/notification/send-postkast
+    headers:
+      x-internal-service-token: dev-internal-service-token
+      content-type: application/json
+    body:
+      notification_type: carrier_notification
+      recipient_email: vedaja@example.com
+      template_variables:
+        formNumber: TRAM-7
+      related_entity_type: tram_control_card
+      related_entity_id: '7'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /pk/notifications
+    count: 1
+    body_matches:
+      templateId: vrteade
+      parameters:
+      - kontrollkaardiUrl: /control-forms/tram-control-card/7
+        formNumber: TRAM-7
+        recipient: seaded@example.com
+  - url_matches: /notification/insert_outbound_log
+    count: 1
+    body_matches:
+      recipient_address: seaded@example.com
+      found_recipient_address: vedaja@example.com
 
 - name: unknown entity type sends an empty kontrollkaardiUrl and still sends
   setup:

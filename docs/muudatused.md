@@ -41,6 +41,15 @@
 - Vanas süsteemis puuduvad read on valikust eemaldatud: art 8 lg 8 teine (majutuskulud), kogu „Töökorraldus", art 33 lg 2 ja kogu „Salvestused". Varem salvestatud andmed jäävad vormidele alles ja peidetud rikkumised osalevad ERRU punktide arvutuses edasi, kui need on vormil valitud. Vaatamisrežiimis kuvatakse peidetud rikkumised endiselt nimega, uue valiku hulgas neid ei ole. Rikkumiste PDF-i koodikataloog sisaldab uusi ERRU koode.
 - Rikkumistel, millel puudub ajaline täpsustus (nt Rooma I, lähetamine), kuvatakse koodi kõrval nüüd klassifikaatori tegelik raskusaste, mitte vana silt (varem nt „VSI843 • MSI“).
 
+## 2026-11-20
+
+### Teavitused: `kontrollkaardiUrl` sisaldab ainult teed
+
+- Malli muutuja `kontrollkaardiUrl` on nüüd ainult tee kontrollkaardini (nt `/control-forms/tram-control-card/7`), ilma keskkonna aadressita, sest aadress võis tulla tühi. Keskkonna aadress tuleb lisada Postkasti mallis, nt `https://dev.liiklusvalve.ee{{kontrollkaardiUrl}}`; olemasolevaid malle tuleb vastavalt uuendada.
+- Postkasti mallide seadetes täidetud vastuvõtja e-post kirjutab nüüd üle käivitaja antud aadressi (nt veoettevõtja e-post): teavitus läheb alati seadetes määratud aadressile. Varem kasutati seadete aadressi ainult siis, kui käivitaja aadressi ei andnud. Välja nimi seadete vaates on vastavalt täpsustatud.
+- Saadetud teavituste logis on nüüd kaks veergu: **„Leitud aadress“** (nt äriregistrist leitud veoettevõtja e-post) ja **„Saadetud aadress“** (aadress, kuhu Postkasti saadeti — seadete aadress, kui see on täidetud, muidu sama mis leitud). Uuesti saatmine kasutab algset leitud aadressi.
+- Muutuja kirjeldus teavituse liigi detailvaates on täpsustatud.
+
 ## 2026-11-19
 
 ### Turvalisus: loendi- ja otsingupäringute koormuse piiramine
