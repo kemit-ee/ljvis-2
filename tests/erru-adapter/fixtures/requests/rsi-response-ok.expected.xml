@@ -1,0 +1,4 @@
+<RoadSideInspection_Response xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa" workflowId="8429c1f6-d284-49b8-933c-928c31c79063" sentAt="2026-11-16T19:56:19Z" from="EE" to="DE"/>
+  <Body businessCaseId="DE-RSI-CI-0001" originatingAuthority="DE-BAG" respondingAuthority="EE-TRAM" statusCode="OK"/>
+</RoadSideInspection_Response>

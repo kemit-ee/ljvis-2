@@ -3,6 +3,7 @@ constants:
   LJVIS_RESQL: '{MOCK}/resql'
   LJVIS_TIM: '{MOCK}/tim'
   ERRU_XML_ADAPTER: '{MOCK}/adapter'
+  ERRU_CGR_TRANSPORT: adapter
   NYSIIS_ENDPOINT: '{MOCK}/nysiis'
   NYSIIS_API_KEY: test-key
   INTERNAL_COMMUNICATION_KEY: test-token

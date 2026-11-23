@@ -1,0 +1,11 @@
+<NotifyCheckResult_Response xmlns="https://webgate.ec.testa.eu/move-hub/erru/3.5">
+  <Header version="3.5" technicalId="11111111-1111-4111-8111-111111111111" workflowId="22222222-2222-4222-8222-222222222222" sentAt="2026-09-23T09:05:00Z" from="DE" to="EE"/>
+  <Body businessCaseId="DE-NCR-CI-0002" originatingAuthority="DE-BAG" respondingAuthority="EE-TRAM" statusCode="OK" statusMessage="Done">
+    <TransportUndertaking transportUndertakingName="ACME OU" numberOfVehicles="3" communityLicenceNumber="EE-CL-001" communityLicenceStatus="Active">
+      <TransportUndertakingAddress address="Main St 1" postCode="10111" city="Tallinn" country="EE"/>
+    </TransportUndertaking>
+    <PenaltiesImposed>
+      <PenaltyImposed penaltyRequestedIdentifier="1" authorityImposingPenalty="EE-TRAM" isImposed="true" penaltyTypeImposed="101" startDate="2026-10-01"/>
+    </PenaltiesImposed>
+  </Body>
+</NotifyCheckResult_Response>
