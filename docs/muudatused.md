@@ -2,6 +2,17 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-23
+
+### SP-kontrollkaardi rikkumiste koodid ja massi koodid ERRU-sse
+
+- SP-kontrollkaardi (autojuht, meeskonna liige, TRAM-kaart) raskete rikkumiste koodid vastavad nüüd ERRU koodidele: nt art 8 lg 6b `VSI865`, art 8 lg 8 `VSI866`, art 5 lg 1 `SI900`, art 3 `MSI201`, art 23 lg 1 `VSI817`, art 32 lg 3 `MSI202`, art 34 lg 5 p b alap v `SI948`, art 34 lg 6 `VSI868`, art 34 lg 7 `SI949`/`SI950`, art 36 `VSI829`/`VSI832`/`VSI833`, art 37 lg 1 `VSI834`, Rooma I `VSI874`. Raskusaste on alati koodi eesliide. Varem kasutasid need rikkumised massi, pikkuse ja laiuse koode (nt `VSI843`, `SI922`) või kohatäitjat `MI`. Salvestatud vormid viiakse uutele koodidele.
+- Sõiduki massi, pikkuse ja laiuse rikkumiste koodid (`SI922`, `VSI843`, `MSI701`, `SI923`, `VSI844`, `MSI702`, `SI924`, `VSI845`, `SI925`, `VSI846`) jõuavad nüüd ERRU punktidesse ja NCR-teate raskete rikkumiste loetellu. Varem need sinna ei jõudnud. Olemasolevate vormide ERRU punktid arvutatakse uuesti, käsitsi lisatud punktid säilivad.
+- Massi valikuaknas kuvatakse nüüd kood (nt `SI922 • 5% ≤ ... < 10%`), mitte ainult raskusaste.
+- Raskusaste on nüüd igal VSI/SI/MSI-koodil võrdne koodi eesliitega (VSIxxx = VSI, SIxxx = SI, MSIxxx = MSI), nagu EL-i rikkumiste klassifikaatoris. Varem oli 28 rea raskusaste koodist erinev (enamasti MSI VSI-koodil). Parandus puudutab klassifikaatorit ja kõiki salvestatud vorme (autojuht, meeskonna liige, TRAM-kaart), sh aegunud ridu. **Riskiskoor:** enamikul parandatud ridadest langeb raskusaste MSI → VSI (kaal 90 → 30), ühel real (SI918) tõuseb VSI → SI; juba salvestatud vormide riskiskoor arvutub uuesti järgmisel arvutusel/salvestamisel.
+- Vanas süsteemis puuduvad read on valikust eemaldatud: art 8 lg 8 teine (majutuskulud), kogu „Töökorraldus", art 33 lg 2 ja kogu „Salvestused". Varem salvestatud andmed jäävad vormidele alles ja peidetud rikkumised osalevad ERRU punktide arvutuses edasi, kui need on vormil valitud. Vaatamisrežiimis kuvatakse peidetud rikkumised endiselt nimega, uue valiku hulgas neid ei ole. Rikkumiste PDF-i koodikataloog sisaldab uusi ERRU koode.
+- Rikkumistel, millel puudub ajaline täpsustus (nt Rooma I, lähetamine), kuvatakse koodi kõrval nüüd klassifikaatori tegelik raskusaste, mitte vana silt (varem nt „VSI843 • MSI“).
+
 ## 2026-11-19
 
 ### Turvalisus: loendi- ja otsingupäringute koormuse piiramine

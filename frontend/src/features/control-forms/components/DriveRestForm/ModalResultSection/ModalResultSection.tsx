@@ -15,6 +15,7 @@ import type { CheckEntry, DocumentCheck, Violation } from '../../../types.ts';
 import { MassDimensionModal } from '../CheckModal/MassDimensionModal';
 import { DocCheckModal } from '../CheckModal/DocCheckModal';
 import { DrivingViolationModal } from '../CheckModal/DrivingViolationModal';
+import { getLevel3Text } from '../level3Label';
 import styles from './ModalResultSection.module.css';
 
 interface ViolationEntry {
@@ -103,6 +104,39 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
     );
   }, [checks, level2Items, type]);
 
+  // Aegunud (isValid === false) rikkumisi ei saa uuesti valida, aga need jäävad
+  // nimekirja nime otsinguks (`level*Items`), et varem salvestatud rikkumine
+  // kuvaks oma nime ka vaaterežiimis ja pärast rea aegumist.
+  const selectableLevel1 = useMemo(
+    () =>
+      type === 'drivingViolation'
+        ? level1Items.filter((v) => v.isValid !== false)
+        : level1Items,
+    [level1Items, type],
+  );
+  const selectableLevel2 = useMemo(
+    () =>
+      type === 'drivingViolation'
+        ? level2Items.filter(
+            (v) =>
+              v.isValid !== false &&
+              selectableLevel1.some((l1) => l1.classifierValueKey === v.parentKey),
+          )
+        : level2Items,
+    [level2Items, selectableLevel1, type],
+  );
+  const selectableLevel3 = useMemo(
+    () =>
+      type === 'drivingViolation'
+        ? level3Items.filter(
+            (v) =>
+              v.isValid !== false &&
+              selectableLevel2.some((l2) => l2.classifierValueKey === v.parentKey),
+          )
+        : level3Items,
+    [level3Items, selectableLevel2, type],
+  );
+
   const initialEntries = useMemo<CheckEntry[]>(() => {
     if (type === 'massDimension') {
       return (initialEntriesProp ?? []) as CheckEntry[];
@@ -129,7 +163,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
             level2Name: l2?.name ?? '',
             level2Description: l2?.description ?? directive,
             level3Code: v.violationCode,
-            level3Name: l3?.name ?? v.violationCode,
+            level3Name: l3 ? getLevel3Text(l3) : v.violationCode,
             severity: l3?.description ?? v.severityCode,
             severityCode: v.severityCode,
             violationCode: v.violationCode,
@@ -181,14 +215,14 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, position: 'bottom' as 'bottom' | 'top' });
 
   const filteredLevel1 = useMemo(() => {
-    if (!search.trim()) return level1Items;
+    if (!search.trim()) return selectableLevel1;
     const q = search.toLowerCase();
-    return level1Items.filter(
+    return selectableLevel1.filter(
       (l1) =>
         l1.name.toLowerCase().includes(q) ||
         (l1.description && l1.description.toLowerCase().includes(q)),
     );
-  }, [search, level1Items]);
+  }, [search, selectableLevel1]);
 
   const groupedLevel1 = useMemo(() => {
     if (type === 'docCheck') {
@@ -344,9 +378,9 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
   }, [dropdownOpen]);
 
   if (singleCheckbox && type === 'drivingViolation') {
-    const l1 = level1Items[0];
-    const l2 = level2Items[0];
-    const l3 = level3Items[0];
+    const l1 = selectableLevel1[0];
+    const l2 = selectableLevel2[0];
+    const l3 = selectableLevel3[0];
     if (!l1 || !l2 || !l3) return null;
     const checked = entries.some((e) => e.level3Code === l3.code);
     const toggle = () => {
@@ -361,7 +395,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
                 level2Name: l2.name,
                 level2Description: l2.description ?? '',
                 level3Code: l3.code,
-                level3Name: l3.name,
+                level3Name: getLevel3Text(l3),
                 severity: l3.description ?? '',
                 articleDirective: l1.description ?? '',
               },
@@ -378,7 +412,7 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
         onChange={toggle}
         label={
           <Text>
-            <strong>{l3.name}</strong>
+            <strong>{getLevel3Text(l3)}</strong>
             <Separator
               axis="vertical"
               color="secondary"
@@ -518,9 +552,9 @@ export function ModalResultSection({ checks, type, transportType, setFieldValue,
       {selectedLevel1 && type === 'drivingViolation' && (
         <DrivingViolationModal
           level1Item={selectedLevel1}
-          level1Items={level1Items}
-          level2Items={level2Items}
-          level3Items={level3Items}
+          level1Items={selectableLevel1}
+          level2Items={selectableLevel2}
+          level3Items={selectableLevel3}
           existingEntries={entries}
           onConfirm={handleConfirm}
           isModalOpen={isModalOpen}

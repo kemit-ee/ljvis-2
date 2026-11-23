@@ -694,5 +694,117 @@
     "severity": "SI",
     "article": "Artikli 1 lõige 12",
     "group": "LAHETAMINE"
+  },
+  {
+    "code": "VSI865",
+    "name": "Kahele järjestikusele vähendatud iganädalasele puhkeperioodile ei järgne kompenseerimiseks võetavat puhkeperioodi",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 6b",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "VSI866",
+    "name": "Regulaarsed iganädalased puhkeperioodid või üle 45-tunnised iganädalased puhkeperioodid veedetakse sõidukis",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 8 lõige 8",
+    "group": "PUHKEPERIOODID"
+  },
+  {
+    "code": "SI900",
+    "name": "Konduktori vanuse alampiiri ei järgita",
+    "threshold": "SI",
+    "severity": "SI",
+    "article": "Artikli 5 lõige 1",
+    "group": "MEESKOND"
+  },
+  {
+    "code": "MSI201",
+    "name": "Ei ole paigaldatud ega kasutata tüübikinnituse saanud sõidumeerikut",
+    "threshold": "MSI",
+    "severity": "MSI",
+    "article": "Artikli 3 lõiked 1, 4, 4a ja artikkel 22",
+    "group": "SOIDUMEERIKU_PAIGALDAMINE"
+  },
+  {
+    "code": "VSI817",
+    "name": "Sellise sõidumeeriku kasutamine, mida ei ole kontrollitud tunnustatud töökojas",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 23 lõige 1",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "MSI202",
+    "name": "Sellise pettust võimaldava seadme olemasolu sõidukis ja/või kasutamine, millega on võimalik muuta sõidumeeriku andmeid",
+    "threshold": "MSI",
+    "severity": "MSI",
+    "article": "Artikli 32 lõige 3",
+    "group": "SOIDUMEERIKUD"
+  },
+  {
+    "code": "SI948",
+    "name": "Märgi „parvlaev/rong\" ebaõige kasutamine või kasutamata jätmine",
+    "threshold": "SI",
+    "severity": "SI",
+    "article": "Artikli 34 lõike 5 punkti b alapunkt v",
+    "group": "ANDMETE_ESITAMINE"
+  },
+  {
+    "code": "VSI868",
+    "name": "Nõutavaid andmeid ei ole salvestuslehele kantud",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 34 lõige 6",
+    "group": "ANDMETE_ESITAMINE"
+  },
+  {
+    "code": "SI949",
+    "name": "Puuduvad nende riikide tähised, mille piirid juht igapäevasel tööajal ületas",
+    "threshold": "SI",
+    "severity": "SI",
+    "article": "Artikli 34 lõige 7",
+    "group": "ANDMETE_ESITAMINE"
+  },
+  {
+    "code": "SI950",
+    "name": "Puuduvad nende riikide tähised, kus juht igapäevast tööaega alustas ja kus ta selle lõpetas",
+    "threshold": "SI",
+    "severity": "SI",
+    "article": "Artikli 34 lõige 7",
+    "group": "ANDMETE_ESITAMINE"
+  },
+  {
+    "code": "VSI829",
+    "name": "Keeldutakse kontrollist",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikkel 36",
+    "group": "ANDMETE_ESITAMINE"
+  },
+  {
+    "code": "VSI832",
+    "name": "Ei esitata jooksval päeval ja eelnenud 56 päeval koostatud käsikirjalisi kandeid ja väljatrükke",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikkel 36",
+    "group": "ANDMETE_ESITAMINE"
+  },
+  {
+    "code": "VSI833",
+    "name": "Juhikaart on olemas, aga seda ei esitata",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikkel 36",
+    "group": "ANDMETE_ESITAMINE"
+  },
+  {
+    "code": "VSI834",
+    "name": "Sõidumeerikut ei ole parandanud tunnustatud paigaldaja või töökoda",
+    "threshold": "VSI",
+    "severity": "VSI",
+    "article": "Artikli 37 lõige 1 ja artikli 22 lõige 1",
+    "group": "RIKKED"
   }
 ]

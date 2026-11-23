@@ -206,7 +206,7 @@ export function MassDimensionModal({
         if (!l2) return code;
         return l2.description ? (
           <span key={code} style={{ display: 'inline' }}>
-            <strong>{l2.description}</strong>
+            <strong>{l2.code}</strong>
             <Separator
               axis="vertical"
               color="secondary"
@@ -351,7 +351,7 @@ export function MassDimensionModal({
                                                       {l2.description && (
                                                         <>
                                                           <strong>
-                                                            {l2.description}
+                                                            {l2.code}
                                                           </strong>
                                                           <Separator
                                                             axis="vertical"
@@ -440,7 +440,7 @@ export function MassDimensionModal({
                                         <Text>
                                           {l2.description && (
                                             <>
-                                              <strong>{l2.description}</strong>
+                                              <strong>{l2.code}</strong>
                                               <Separator
                                                 axis="vertical"
                                                 color="secondary"

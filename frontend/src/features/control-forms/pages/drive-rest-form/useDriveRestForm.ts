@@ -233,7 +233,7 @@ export function useDriveRestForm(
   const drivingViolations = useMemo(
     () =>
       classifierValues.filter(
-        (c) => c.classifierCode === 'DRIVING_VIOLATION' && c.isValid !== false,
+        (c) => c.classifierCode === 'DRIVING_VIOLATION',
       ),
     [classifierValues],
   );

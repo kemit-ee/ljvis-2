@@ -48,6 +48,15 @@ for c,n,sev,p in four:
  if sev in ['MI','SI','VSI','MSI'] and p in parents:
   pn,article,group=parents[p]
   violations.append({'code':c,'name':pn,'threshold':n,'severity':sev,'article':article,'group':group})
+# SP-kontrollkaardi vigade dokumendi järgi parandatud ERRU koodid (migratsioon 20261229110000):
+# parent -> ERRU kood; raskusaste tuleneb koodi eesliitest, läviväärtust ei ole.
+for parent,erru in [('PUHKEPERIOODID_08','VSI865'),('PUHKEPERIOODID_09','VSI866'),('MEESKOND_01','SI900'),
+ ('SOIDUMEERIKU_PAIGALDAMINE_01','MSI201'),('SOIDUMEERIKUD_01','VSI817'),('SOIDUMEERIKUD_08','MSI202'),
+ ('ANDMETE_ESITAMINE_01','SI948'),('ANDMETE_ESITAMINE_02','VSI868'),('ANDMETE_ESITAMINE_03','SI949'),
+ ('ANDMETE_ESITAMINE_04','SI950'),('ANDMETE_ESITAMINE_05','VSI829'),('ANDMETE_ESITAMINE_06','VSI832'),
+ ('ANDMETE_ESITAMINE_07','VSI833'),('RIKKED_01','VSI834')]:
+  pn,article,group=parents[parent];sev=re.match(r'[A-Z]+',erru).group()
+  violations.append({'code':erru,'name':pn,'threshold':sev,'severity':sev,'article':article,'group':group})
 save('drive-rest-form/violations.json',violations)
 other=tuples(sp,2);other=[{'code':c,'name':n} for c,n in other if c in ['MOOTORSOIDUKI_LEPING','SOIDUKIJUHI_TOO_LEPING','VEOSE_DOKUMENDID','SUUREMOOTMELISE_VEOSE_ERILUBA','LIINIVEO_SOIDUPLAAN','OMAKULUL_VEOSEVEO_VASTAVUS','OMAKULUL_SOITJATEVEO_VASTAVUS']]
 for r in other:
