@@ -248,7 +248,7 @@ tests:
   - url_matches: /notification/mark_carrier_request_sent
     count: 1
 
-- name: published driver form with mass/dimension violations (level3Code) sends the carrier notification
+- name: published driver form with mass/dimension violations (level3Code) (mass, length, width) sends the carrier notification
   setup:
     mocks:
     - url_matches: /notification/get_open_carrier_request
@@ -267,7 +267,7 @@ tests:
         compoundFormKey: 5
         companyRegCode: '12345678'
         companyName: Test AS
-        massDimensionMeasurements: '[{"level3Code":"SI922","severity":"SI"},{"level3Code":"VSI843","severity":"VSI"},{"level3Code":"MSI701","severity":"MSI"}]'
+        massDimensionMeasurements: '[{"level3Code":"SI922","severity":"SI"},{"level3Code":"VSI843","severity":"VSI"},{"level3Code":"MSI701","severity":"MSI"},{"level3Code":"SI924","severity":"SI"},{"level3Code":"VSI845","severity":"VSI"},{"level3Code":"SI925","severity":"SI"},{"level3Code":"VSI846","severity":"VSI"}]'
     - url_matches: /control-forms/compound-form/get
       method: POST
       status: 200
@@ -341,8 +341,8 @@ tests:
         inspectionCountry: Läti
         vehicleRegNr: '123ABC, 456DEF'
         violationSeverities: SI, VSI, MSI
-        VSIViolationsList: 'VSI843'
+        VSIViolationsList: 'VSI843<br>VSI845<br>VSI846'
         MSIViolationsList: 'MSI701'
-        SIViolationsList: 'SI922 - Massi ületamine 5-10%'
+        SIViolationsList: 'SI922 - Massi ületamine 5-10%<br>SI924<br>SI925'
   - url_matches: /notification/mark_carrier_request_sent
     count: 1

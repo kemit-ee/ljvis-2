@@ -6,7 +6,7 @@
 
 ### Teavitused: massi, pikkuse ja laiuse rikkumised vedaja teavitusse
 
-- Vedaja Postkasti teavitus (`MSIViolationsList` / `VSIViolationsList` / `SIViolationsList`) ei sisaldanud sõidu- ja puhkeaja vormil valitud sõiduki massi, pikkuse ja laiuse rikkumisi (nt `SI922`, `VSI843`, `MSI701`). Nüüd lähevad need teavitusse nagu teised rikkumised. Kui vormil on ainult massi rikkumine, saadetakse teavitus samuti.
+- Vedaja Postkasti teavitus (`MSIViolationsList` / `VSIViolationsList` / `SIViolationsList`) ei sisaldanud sõidu- ja puhkeaja vormil valitud sõiduki massi, pikkuse ja laiuse rikkumisi (nt `SI922`, `VSI843`, `MSI701`, `SI924`, `VSI845`, `SI925`, `VSI846`). Nüüd lähevad need teavitusse nagu teised rikkumised. Kui vormil on ainult massi rikkumine, saadetakse teavitus samuti.
 
 ### Teavitused: tühjad malli muutujad Postkasti saatmisel
 
