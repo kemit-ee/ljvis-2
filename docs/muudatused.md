@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-25
+
+### Teavitused: tühjad malli muutujad Postkasti saatmisel
+
+- Postkasti saadetavad tühjad malli muutujad (nt rikkumiste loetelu, kui sellist raskusastet pole) asendatakse tekstiga „-“. Varem lükkas Postkast tühja väärtuse tagasi veaga `NotNull` ja teavitus jäi staatusesse „Viga“. Saatmislogisse salvestatud väärtused jäävad samaks.
+
 ## 2026-11-24
 
 ### Välisriigi rikkumise soovitatud meede: ühine kaardistus
