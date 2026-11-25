@@ -4,6 +4,10 @@
 
 ## 2026-11-25
 
+### Teavitused: massi, pikkuse ja laiuse rikkumised vedaja teavitusse
+
+- Vedaja Postkasti teavitus (`MSIViolationsList` / `VSIViolationsList` / `SIViolationsList`) ei sisaldanud sõidu- ja puhkeaja vormil valitud sõiduki massi, pikkuse ja laiuse rikkumisi (nt `SI922`, `VSI843`, `MSI701`). Nüüd lähevad need teavitusse nagu teised rikkumised. Kui vormil on ainult massi rikkumine, saadetakse teavitus samuti.
+
 ### Teavitused: tühjad malli muutujad Postkasti saatmisel
 
 - Postkasti saadetavad tühjad malli muutujad (nt rikkumiste loetelu, kui sellist raskusastet pole) asendatakse tekstiga „-“. Varem lükkas Postkast tühja väärtuse tagasi veaga `NotNull` ja teavitus jäi staatusesse „Viga“. Saatmislogisse salvestatud väärtused jäävad samaks.
