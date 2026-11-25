@@ -40,6 +40,7 @@
 - Malli muutuja `kontrollkaardiUrl` on nüüd ainult tee kontrollkaardini (nt `/control-forms/tram-control-card/7`), ilma keskkonna aadressita, sest aadress võis tulla tühi. Keskkonna aadress tuleb lisada Postkasti mallis, nt `https://dev.liiklusvalve.ee{{kontrollkaardiUrl}}`; olemasolevaid malle tuleb vastavalt uuendada.
 - Postkasti mallide seadetes täidetud vastuvõtja e-post kirjutab nüüd üle käivitaja antud aadressi (nt veoettevõtja e-post): teavitus läheb alati seadetes määratud aadressile. Varem kasutati seadete aadressi ainult siis, kui käivitaja aadressi ei andnud. Välja nimi seadete vaates on vastavalt täpsustatud.
 - Saadetud teavituste logis on nüüd kaks veergu: **„Leitud aadress“** (nt äriregistrist leitud veoettevõtja e-post) ja **„Saadetud aadress“** (aadress, kuhu Postkasti saadeti — seadete aadress, kui see on täidetud, muidu sama mis leitud). Uuesti saatmine kasutab algset leitud aadressi.
+- Postkasti saadetavad tühjad malli muutujad (nt rikkumiste loetelu, kui sellist raskusastet pole) asendatakse tekstiga „-“, sest Postkast lükkas tühja väärtuse tagasi veaga `NotNull` ja teavitus jäi staatusesse „Viga“.
 - Muutuja kirjeldus teavituse liigi detailvaates on täpsustatud.
 
 ## 2026-11-19
