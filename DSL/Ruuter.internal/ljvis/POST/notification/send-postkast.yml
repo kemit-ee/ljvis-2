@@ -247,6 +247,9 @@ insertRecipientRow:
 # X-EXTERNAL-ID = notification_key, mille abil leitakse saatmisoperatsioon hiljem
 # üles (sync-status), ka siis kui vastus jäi käesolevas kutses saamata - XTR
 # edastab selle päise verbatim.
+# Postkast 2.0 lükkab tühja (või puuduva) malli muutuja tagasi veaga `NotNull`
+# (nt tühi `MSIViolationsList`), seepärast asendatakse tühjad väärtused tekstiga
+# "-". Logisse salvestatud template_variables jääb muutmata.
 callPk:
   call: http.post
   timeout: 15000
@@ -260,7 +263,7 @@ callPk:
     body:
       templateId: ${original_template_id}
       parameters:
-        - "${Object.assign({ kontrollkaardiUrl: kontrollkaardi_url }, template_variables_obj, { recipient: recipient_email })}"
+        - "${(function (o) { var r = {}; Object.keys(o).forEach(function (k) { var v = o[k]; r[k] = (v === null || v === undefined || (typeof v === 'string' && v.trim() === '')) ? '-' : v; }); return r; })(Object.assign({ kontrollkaardiUrl: kontrollkaardi_url }, template_variables_obj, { recipient: recipient_email }))}"
   result: pkRes
   error: onPkError
   next: checkPkStatus

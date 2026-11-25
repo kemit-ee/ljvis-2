@@ -130,7 +130,7 @@ tests:
       recipient_address: seaded@example.com
       found_recipient_address: vedaja@example.com
 
-- name: unknown entity type sends an empty kontrollkaardiUrl and still sends
+- name: unknown entity type sends a placeholder instead of empty template variables and still sends
   setup:
     mocks:
     - url_matches: /notification/get_template_mapping
@@ -173,6 +173,9 @@ tests:
     body:
       notification_type: carrier_notification
       recipient_email: vedaja@example.com
+      template_variables:
+        formNumber: TRAM-9
+        MSIViolationsList: ''
       related_entity_type: something_else
       related_entity_id: '9'
   expect:
@@ -182,7 +185,9 @@ tests:
     count: 1
     body_matches:
       parameters:
-      - kontrollkaardiUrl: ''
+      - kontrollkaardiUrl: '-'
+        formNumber: TRAM-9
+        MSIViolationsList: '-'
         recipient: vedaja@example.com
 
 - name: Postkast rejection stores the readable reason in the outbound log
