@@ -183,7 +183,7 @@ applySubForm:
     compound_form_key: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].compoundFormKey != null) ? String(formRes.response.body[0].compoundFormKey) : ''}"
     company_reg_code: "${(formRes.response.body && formRes.response.body[0] && ('' + (formRes.response.body[0].companyRegCode || '')).trim()) || ''}"
     company_name: "${(formRes.response.body && formRes.response.body[0] && formRes.response.body[0].companyName) || ''}"
-    violations: "${(formRes.response.body && formRes.response.body[0]) ? [formRes.response.body[0].violations, formRes.response.body[0].violations5612006, formRes.response.body[0].violations1652014, formRes.response.body[0].violations200215, formRes.response.body[0].violations5932008, formRes.response.body[0].violations20201057, formRes.response.body[0].cabotageViolations].filter(function(x) { return x != null; }) : []}"
+    violations: "${(formRes.response.body && formRes.response.body[0]) ? [formRes.response.body[0].violations, formRes.response.body[0].violations5612006, formRes.response.body[0].violations1652014, formRes.response.body[0].violations200215, formRes.response.body[0].violations5932008, formRes.response.body[0].violations20201057, formRes.response.body[0].cabotageViolations, formRes.response.body[0].massDimensionMeasurements].filter(function(x) { return x != null; }) : []}"
   next: checkPublished
 
 # Saadetakse alles avalikustatud vormilt; cron kutsub seda tingimusteta iga kandidaadi kohta.
@@ -215,7 +215,8 @@ extractSeverities:
           }
           if (typeof x === 'object') {
             if (x.isDetected === false || x.isDetected === 'false') return;
-            var c = x.violationCode || x.code;
+            // Massi/mõõtmete kirjed (massDimensionMeasurements) kannavad koodi väljal level3Code (nt SI922).
+            var c = x.violationCode || x.level3Code || x.code;
             if (c) out.push(String(c));
             // Modalist valitud rikkumine (nt VAHEAJAD_561_01_VSI): kood ei sisalda numbrit,
             // raskus on eraldi väljas severityCode. Märgime kujul "VSI|<kood>".
