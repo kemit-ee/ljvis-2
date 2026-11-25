@@ -4,6 +4,10 @@
 
 ## 2026-11-25
 
+### Teavitused: `kontrollkaardiUrl` ei alga kaldkriipsuga
+
+- Malli muutuja `kontrollkaardiUrl` on nüüd kujul `control-forms/tram-control-card/7`, ilma algava `/`-ta. Postkasti mallis tuleb kaldkriips ise lisada: `https://dev.liiklusvalve.ee/{{kontrollkaardiUrl}}`. Olemasolevaid malle (`…ee{{kontrollkaardiUrl}}`) tuleb vastavalt uuendada, muidu link katkeb.
+
 ### Teavitused: massi, pikkuse ja laiuse rikkumised vedaja teavitusse
 
 - Vedaja Postkasti teavitus (`MSIViolationsList` / `VSIViolationsList` / `SIViolationsList`) ei sisaldanud sõidu- ja puhkeaja vormil valitud sõiduki massi, pikkuse ja laiuse rikkumisi (nt `SI922`, `VSI843`, `MSI701`, `SI924`, `VSI845`, `SI925`, `VSI846`). Nüüd lähevad need teavitusse nagu teised rikkumised. Kui vormil on ainult massi rikkumine, saadetakse teavitus samuti.
