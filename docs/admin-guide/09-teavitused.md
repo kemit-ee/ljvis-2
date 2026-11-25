@@ -196,8 +196,8 @@ jääb muutuja kirjas tühjaks.
 
 Lisaks saadetakse alati muutuja `recipient` (adressaadi e-post) ja
 `kontrollkaardiUrl` — tee konkreetse kontrollkaardini ilma keskkonna aadressita, nt
-`/control-forms/tram-control-card/7`; keskkonna aadress tuleb lisada Postkasti
-mallis (nt `https://dev.liiklusvalve.ee{{kontrollkaardiUrl}}`). Tee
+`control-forms/tram-control-card/7` (ilma algava kaldkriipsuta); keskkonna aadress tuleb lisada Postkasti
+mallis (nt `https://dev.liiklusvalve.ee/{{kontrollkaardiUrl}}`). Tee
 koostatakse teavituse seotud olemi tüübi ja ID järgi; tundmatu olemi korral on
 väärtus tühi string. Kui kutsuja annab ise muutuja `kontrollkaardiUrl`, jääb
 kehtima kutsuja väärtus. Valmis
