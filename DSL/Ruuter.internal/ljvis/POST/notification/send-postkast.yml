@@ -154,7 +154,7 @@ checkTemplateIdResolved:
   next: resolveControlCardRoute
 
 # Malli muutuja `kontrollkaardiUrl`: tee konkreetse kontrollkaardini (ilma
-# keskkonna aadressita, nt `/control-forms/tram-control-card/7`); keskkonna aadress
+# keskkonna aadressita, nt `control-forms/tram-control-card/7`, ilma algava kaldkriipsuta); keskkonna aadress
 # lisatakse Postkasti mallis. Postkasti malli mapping
 # saab seda kasutada nagu mistahes teist malli muutujat. Marsruudid peavad
 # ühtima frontend/src/App.tsx `/control-forms/<route>/:id` marsruutidega.
@@ -178,7 +178,7 @@ buildControlCardUrl:
   assign:
     kontrollkaardi_url: >-
       ${(control_card_route !== '' && related_entity_id !== '')
-        ? ('/control-forms/' + control_card_route + '/' + encodeURIComponent(related_entity_id))
+        ? ('control-forms/' + control_card_route + '/' + encodeURIComponent(related_entity_id))
         : ''}
   next: insertQueued
 

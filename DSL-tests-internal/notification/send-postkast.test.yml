@@ -61,7 +61,7 @@ tests:
     body_matches:
       templateId: vrteade
       parameters:
-      - kontrollkaardiUrl: /control-forms/tram-control-card/7
+      - kontrollkaardiUrl: control-forms/tram-control-card/7
         formNumber: TRAM-7
         recipient: vedaja@example.com
 
@@ -121,7 +121,7 @@ tests:
     body_matches:
       templateId: vrteade
       parameters:
-      - kontrollkaardiUrl: /control-forms/tram-control-card/7
+      - kontrollkaardiUrl: control-forms/tram-control-card/7
         formNumber: TRAM-7
         recipient: seaded@example.com
   - url_matches: /notification/insert_outbound_log

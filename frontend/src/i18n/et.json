@@ -1589,7 +1589,7 @@
       "vehicleRegNr": "Kontrollitud sõiduki registreerimisnumber",
       "violationSeverities": "Rikkumise raskusastmed (nt MSI, VSI)",
       "violationDescription": "Rikkumise vabatekstiline kirjeldus",
-      "kontrollkaardiUrl": "Tee kontrollkaardini (ilma keskkonna aadressita)",
+      "kontrollkaardiUrl": "Tee kontrollkaardini (ilma keskkonna aadressita ja algava kaldkriipsuta)",
       "MSIViolationsList": "MSI rikkumised (kood — nimetus, üks rea kohta)",
       "VSIViolationsList": "VSI rikkumised (kood — nimetus, üks rea kohta)",
       "SIViolationsList": "SI rikkumised (kood — nimetus, üks rea kohta)",
