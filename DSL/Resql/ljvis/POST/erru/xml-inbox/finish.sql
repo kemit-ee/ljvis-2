@@ -19,7 +19,7 @@ returns:
 WITH cur AS (
   SELECT seq, attempts
     FROM erru.xml_inbox_current
-   WHERE id = :inboxId
+   WHERE id = :inboxId::bigint
      AND claimed_by = 'erru-xml-adapter-xtr'
      AND status = 'processing'
      AND (:attempts::int IS NULL OR attempts = :attempts::int)
