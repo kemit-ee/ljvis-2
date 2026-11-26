@@ -4,6 +4,10 @@
 
 ## 2026-11-27
 
+### Resql: uus kontroll jsonb-otsingule parameetriga
+
+- Uus lepingutest `tests/contract/test_resql_jsonb_containment_param.py` keelab Resql-päringutes kuju `veerg @> jsonb_build_object(..., :parameeter)`. Selline päring võib korduvkasutatud prepared statement'i üldises plaanis indeksi kõrvale jätta ja lugeda läbi kogu tabeli (nagu `erru/nu/audit-event-exists` enne parandust). Erandid on X-tee teenused `isiku-kontroll` ja `isiku-ettevote-kontrollid`: nende üldine plaan on kontrollitud ja kasutab GIN-indeksit. Kasutajale nähtavat muudatust ei ole.
+
 ### ERRU: NU auditikirje kontroll ei loe enam kogu audit-tabelit
 
 - Päring `erru/nu/audit-event-exists` otsis NU sissetuleva teate auditikirjet tingimusega `log_content @> jsonb_build_object(...)`. Resql kasutab sama prepared statement'it korduvalt ja PostgreSQL läks üle üldisele plaanile, mis luges läbi kogu `audit.audit_event` tabeli (kõik sündmusetüübid). Koormustesti järel kestis päring keskmiselt 330 ms ja aeglustus koos audit-tabeliga. Nüüd võrdleb päring `log_content->>'nuMessageKey'` ja seda teenindab uus osaline indeks `idx_ae_nu_inbound_message_key`. Päring võtab alla millisekundi. Kasutajale nähtavat muudatust ei ole.
