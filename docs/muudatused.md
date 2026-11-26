@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-27
+
+### ERRU: NU auditikirje kontroll ei loe enam kogu audit-tabelit
+
+- Päring `erru/nu/audit-event-exists` otsis NU sissetuleva teate auditikirjet tingimusega `log_content @> jsonb_build_object(...)`. Resql kasutab sama prepared statement'it korduvalt ja PostgreSQL läks üle üldisele plaanile, mis luges läbi kogu `audit.audit_event` tabeli (kõik sündmusetüübid). Koormustesti järel kestis päring keskmiselt 330 ms ja aeglustus koos audit-tabeliga. Nüüd võrdleb päring `log_content->>'nuMessageKey'` ja seda teenindab uus osaline indeks `idx_ae_nu_inbound_message_key`. Päring võtab alla millisekundi. Kasutajale nähtavat muudatust ei ole.
+
 ## 2026-11-26
 
 ### ERRU: töö lõpetamise päring (`xml-inbox/finish`) ei skaneeri enam kogu järjekorda
