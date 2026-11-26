@@ -1,0 +1,18 @@
+declaration:
+  internal: false
+  returns: []
+  version: "1.0"
+  description: >-
+    Side-effect-free target for the steps of cron/erru-ncr-autodispatch that must not run for a candidate.
+    Steps cannot be skipped inside iterate, so a step that is not needed calls this endpoint instead: in
+    ERRU_NCR_TRANSPORT=xtr mode the old adapter send (step 4), and the XTR send (step 4b) when the request
+    is not sent through XTR. It does nothing and returns 200. No Resql token and no database call are
+    needed (scripts/check-resql-bearer.py).
+  namespace: erru
+  allowlist:
+    body: []
+
+done:
+  status: 200
+  return: "noop"
+  next: end
