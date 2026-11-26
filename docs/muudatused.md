@@ -9,10 +9,6 @@
 - Taustatöö `erru_xtr_async_requests` päringud `xml-inbox/claim-due` ja `xml-inbox/due-oneway` lugesid vaadet `erru.xml_inbox_current`, mis arvutab iga kunagi vastu võetud sõnumi viimase oleku. Koormustestis kestis päring kuni 2,5 s. Nüüd loevad päringud ainult viimase 6 tunni avatud sündmusi uue indeksi `idx_xml_inbox_event_open_created` kaudu.
 - Kui taustatöö on seisnud üle 6 tunni, ei võta see vanemaid avatud ridu enam ise üles. Need read tuleb panna järjekorda käsitsi (vt docs/integrations/erru-xml-recovery.md, „Resume an open inbox older than 6 hours"). Hubi korduskohaletoimetamine toob rea samuti tagasi. Kasutajale nähtavat muudatust ei ole.
 
-### ERRU: NCR automaatsaatmise öötöö ei kutsu XTR-režiimis vana adapterit
-
-- Öötöö `erru-ncr-autodispatch` kutsus ka režiimis `ERRU_NCR_TRANSPORT=xtr` vana adapteri lõpp-punkti `/internal/ncr/validate`. Kui `erru-xml-adapter-old` on peatatud, oleks see kutse katkestanud XTR-saatmise. Nüüd lähevad need tühikutsed resql lõpp-punkti `erru/ncr/begin-send` tühja `businessCaseId`-ga, mis ei loo rida. Kasutajale nähtavat muudatust ei ole.
-
 ## 2026-11-25
 
 ### Teavitused: `kontrollkaardiUrl` ei alga kaldkriipsuga
