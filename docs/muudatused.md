@@ -2,6 +2,16 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-26
+
+### Selgemad veateated faili lisamisel ja ühtne serveri veavastus
+
+- Kui lisatava faili tüüp või laiend pole lubatud, näeb kasutaja nüüd selgitavat teadet. Eraldi teated on ka liiga suure faili ning vigase nime või sisu kohta.
+- Faili üleslaadimise vastused: `415 FILE_TYPE_NOT_ALLOWED`, `413 FILE_TOO_LARGE`, `400 FILE_REJECTED` (või `INVALID_FORM_NUMBER`), muu tõrke korral `502 UPLOAD_FAILED`.
+- Liidese kaudu (`/api/`) on serveri 500 vastus nüüd ühtne: `{"response":{"error":"INTERNAL_ERROR","traceId":"…"}}` koos päisega `X-Trace-Id`. Vea leiab Ruuteri logist ID kaheksa esimese märgi järgi (`t=…`).
+- **Paigaldus:** devops-repos tuleb uuendada `components/frontend` nginx-i seadistust ning `components/ruuter` ja `components/ruuter-internal` seadistust.
+- Test: `scripts/test-error-responses.sh` (CI-s) ja `DSL-tests/forms/upload-error-responses.test.yml`.
+
 ## 2026-11-25
 
 ### Teavitused: `kontrollkaardiUrl` ei alga kaldkriipsuga

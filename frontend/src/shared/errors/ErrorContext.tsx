@@ -8,6 +8,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import { ApiError, setGlobalErrorListener } from '../api/client';
+import { uploadErrorKey } from '../api/uploadErrors';
 
 export type ToastType = 'error' | 'warning' | 'info';
 
@@ -46,6 +47,8 @@ function classifyApiError(
 ): { message: string; type: ToastType } | null {
   if (err.status === 401) return null;
   if (err.status === 422) return null;
+  // Faili tagasilükkamise põhjust näitab üleslaadimise plokk ise; üldist teadet juurde ei lisa.
+  if (uploadErrorKey(err)) return null;
   if (err.status === 409 && isFormModified(err.body))
     return { message: 'common.errors.formModified', type: 'warning' };
   if (err.status === 403)

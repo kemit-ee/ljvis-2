@@ -366,7 +366,10 @@
       "files": {
         "label": "Files",
         "save_first": "Save the form before adding files",
-        "error": "File upload or download failed"
+        "error": "File upload or download failed",
+        "error_type": "This file cannot be added: the file type is not allowed or the content does not match the extension. Allowed: pdf, jpeg, png, asice, doc, docx, ddd.",
+        "error_too_large": "The file is too large.",
+        "error_rejected": "The file cannot be added: check the file name (an extension is required) and content. Allowed: pdf, jpeg, png, asice, doc, docx, ddd."
       },
       "address": {
         "country": "Country",

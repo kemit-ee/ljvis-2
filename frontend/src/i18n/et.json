@@ -491,7 +491,10 @@
       "files": {
         "label": "Failid",
         "save_first": "Salvestage vorm enne failide lisamist",
-        "error": "Faili üleslaadimine või allalaadimine ebaõnnestus"
+        "error": "Faili üleslaadimine või allalaadimine ebaõnnestus",
+        "error_type": "Seda faili ei saa lisada: lubamatu failitüüp või faili sisu ei vasta laiendile. Lubatud: pdf, jpeg, png, asice, doc, docx, ddd.",
+        "error_too_large": "Fail on liiga suur.",
+        "error_rejected": "Faili ei saa lisada: kontrolli faili nime (peab olema laiendiga) ja sisu. Lubatud: pdf, jpeg, png, asice, doc, docx, ddd."
       },
       "address": {
         "country": "Riik",

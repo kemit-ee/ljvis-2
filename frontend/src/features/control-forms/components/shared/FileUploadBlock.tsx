@@ -9,10 +9,12 @@ import {
   deleteFormFile,
 } from '../../api';
 import type { FormAttachment } from '../../types';
+import { uploadErrorKey } from '../../../../shared/api/uploadErrors';
 import { resolveUploadMime } from '../../../forms/types/files';
 
 const ALLOWED_ACCEPT = '.pdf,.jpg,.jpeg,.png,.tiff,.ddd';
 const MAX_SIZE_MB = 10;
+const GENERIC_ERROR = 'forms.shared.files.error';
 
 interface FileUploadBlockProps {
   /** URL path segment of the owning form, e.g. "foreign-violation-form", "vehicle-technical". */
@@ -43,7 +45,7 @@ export function FileUploadBlock({
 }: FileUploadBlockProps) {
   const { t } = useTranslation();
   const [attachments, setAttachments] = useState<FormAttachment[]>([]);
-  const [error, setError] = useState(false);
+  const [errorKey, setErrorKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const refreshRequest = useRef(0);
   const pendingOperations = useRef(0);
@@ -80,7 +82,7 @@ export function FileUploadBlock({
     if (newFiles.length === 0) return;
     pendingOperations.current += 1;
     setBusy(true);
-    setError(false);
+    setErrorKey(null);
     for (const raw of newFiles) {
       try {
         const base64 = await fileToBase64(raw);
@@ -90,8 +92,8 @@ export function FileUploadBlock({
           fileBase64: base64,
           mimetype: resolveUploadMime(raw),
         });
-      } catch {
-        setError(true);
+      } catch (err) {
+        setErrorKey(uploadErrorKey(err) ?? GENERIC_ERROR);
       }
     }
     pendingOperations.current -= 1;
@@ -107,7 +109,7 @@ export function FileUploadBlock({
       await deleteFormFile(formPath, file.id);
       refresh();
     } catch {
-      setError(true);
+      setErrorKey(GENERIC_ERROR);
     } finally {
       pendingOperations.current -= 1;
       setBusy(pendingOperations.current > 0);
@@ -120,7 +122,7 @@ export function FileUploadBlock({
       const { url } = await downloadFormFile(formPath, file.id);
       window.open(url, '_blank');
     } catch {
-      setError(true);
+      setErrorKey(GENERIC_ERROR);
     }
   };
 
@@ -153,8 +155,8 @@ export function FileUploadBlock({
           ))}
         </ul>
       )}
-      {error && (
-        <Alert type="danger">{t('forms.shared.files.error')}</Alert>
+      {errorKey && (
+        <Alert type="danger">{t(errorKey)}</Alert>
       )}
     </div>
   );

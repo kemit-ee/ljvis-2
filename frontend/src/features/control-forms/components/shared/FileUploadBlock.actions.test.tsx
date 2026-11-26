@@ -66,6 +66,22 @@ describe('FileUploadBlock toimingud', () => {
     await waitFor(() => expect(listFormFiles).toHaveBeenCalledTimes(2));
   });
 
+  it.each([
+    [415, 'FILE_TYPE_NOT_ALLOWED', 'forms.shared.files.error_type'],
+    [413, 'FILE_TOO_LARGE', 'forms.shared.files.error_too_large'],
+    [400, 'FILE_REJECTED', 'forms.shared.files.error_rejected'],
+    [502, 'UPLOAD_FAILED', 'forms.shared.files.error'],
+    [500, 'INTERNAL_ERROR', 'forms.shared.files.error'],
+  ])('serveri vastus %i %s annab arusaadava teate', async (status, code, key) => {
+    vi.mocked(uploadFormFile).mockRejectedValue(
+      Object.assign(new Error('x'), { status, body: { error: code } }),
+    );
+    renderBlock();
+    await screen.findByText('kontroll.pdf');
+    fireEvent.click(screen.getByText('upload'));
+    await waitFor(() => expect(screen.getByText(key)).toBeTruthy());
+  });
+
   it('veaolukorrad näitavad veateadet; nimekirja viga tühjendab', async () => {
     vi.mocked(uploadFormFile).mockRejectedValue(new Error('x'));
     renderBlock();

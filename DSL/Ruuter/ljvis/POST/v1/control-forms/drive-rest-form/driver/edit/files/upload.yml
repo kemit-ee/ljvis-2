@@ -36,7 +36,8 @@ checkFormNumber:
 
 returnInvalidFormNumber:
   status: 400
-  return: '{"error":"INVALID_FORM_NUMBER"}'
+  return:
+    error: INVALID_FORM_NUMBER
   next: end
 
 uploadFile:
@@ -52,7 +53,47 @@ uploadFile:
     file_base64: ${incoming.body.fileBase64}
     mimetype: ${incoming.body.mimetype}
   result: uploadResult
-  next: returnSuccess
+  next: checkUploadResult
+
+# Malli veastaatus ei kandu edasi: õnnestumise korral on tulemus manuse ridade massiiv,
+# vea korral objekt veakoodiga.
+checkUploadResult:
+  switch:
+    - condition: ${Array.isArray(uploadResult)}
+      next: returnSuccess
+    - condition: ${uploadResult != null && uploadResult.error === "FILE_TYPE_NOT_ALLOWED"}
+      next: returnFileTypeNotAllowed
+    - condition: ${uploadResult != null && uploadResult.error === "FILE_TOO_LARGE"}
+      next: returnFileTooLarge
+    - condition: ${uploadResult != null && uploadResult.error === "FILE_REJECTED"}
+      next: returnFileRejected
+    - condition: ${uploadResult != null && uploadResult.error === "INVALID_FORM_NUMBER"}
+      next: returnInvalidFormNumber
+  next: returnUploadFailed
+
+returnFileTypeNotAllowed:
+  status: 415
+  return:
+    error: FILE_TYPE_NOT_ALLOWED
+  next: end
+
+returnFileTooLarge:
+  status: 413
+  return:
+    error: FILE_TOO_LARGE
+  next: end
+
+returnFileRejected:
+  status: 400
+  return:
+    error: FILE_REJECTED
+  next: end
+
+returnUploadFailed:
+  status: 502
+  return:
+    error: UPLOAD_FAILED
+  next: end
 
 returnSuccess:
   return: ${uploadResult}

@@ -1,0 +1,192 @@
+# Faili üleslaadimise veavastused: HTTP-staatus ja veakood vastavad s3-proxy tulemusele.
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+  S3_PROXY: '{MOCK}/s3'
+  S3_PROXY_API_KEY: test-key
+tests:
+- name: s3-proxy 415 (forbidden type or extension) reaches the client as 415
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /s3/upload
+      method: POST
+      status: 415
+      body: {error: upstream error}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: vr-2026-00001, fileName: a.html, fileBase64: YQ==, mimetype: text/html}
+  expect:
+    status: 415
+    body:
+      response:
+        error: FILE_TYPE_NOT_ALLOWED
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 0
+
+- name: s3-proxy 413 reaches the client as 413
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /s3/upload
+      method: POST
+      status: 413
+      body: {error: upstream error}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: vr-2026-00001, fileName: a.html, fileBase64: YQ==, mimetype: text/html}
+  expect:
+    status: 413
+    body:
+      response:
+        error: FILE_TOO_LARGE
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 0
+
+- name: s3-proxy 400 (unrecognised content) reaches the client as 400
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /s3/upload
+      method: POST
+      status: 400
+      body: {error: upstream error}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: vr-2026-00001, fileName: a.html, fileBase64: YQ==, mimetype: text/html}
+  expect:
+    status: 400
+    body:
+      response:
+        error: FILE_REJECTED
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 0
+
+- name: s3-proxy status outside http_codes_allow_list maps to 502
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /s3/upload
+      method: POST
+      status: 503
+      body: {error: upstream error}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: vr-2026-00001, fileName: a.html, fileBase64: YQ==, mimetype: text/html}
+  expect:
+    status: 502
+    body:
+      response:
+        error: UPLOAD_FAILED
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 0
+
+- name: s3-proxy 401 (proxy key mismatch) is not forwarded as a session 401
+  setup:
+    mocks:
+    - url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body: {userinfo: {claims: {personalCode: SESSION1}}}
+    - url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: SESSION1
+        firstname: Real
+        lastname: Person
+        permissions: [foreign_violation_form.write, foreign_violation_form.read]
+    - url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /s3/upload
+      method: POST
+      status: 401
+      body: {error: upstream error}
+  request:
+    method: POST
+    path: /ljvis/v1/control-forms/foreign-violation-form/edit/files/upload
+    headers: {cookie: test, content-type: application/json}
+    body: {formNumber: vr-2026-00001, fileName: a.html, fileBase64: YQ==, mimetype: text/html}
+  expect:
+    status: 502
+    body:
+      response:
+        error: UPLOAD_FAILED
+  verify_mocks:
+  - url_matches: /control-forms/files/insert_form_attachment
+    count: 0
