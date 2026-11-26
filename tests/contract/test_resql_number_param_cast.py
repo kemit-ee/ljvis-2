@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""A Resql parameter of `type: number` is bound as a numeric value, not as bigint. A comparison such as
-`id = :inboxId` against a BIGINT column then compares numeric with bigint: PostgreSQL cannot use the
-bigint index directly and scans the whole index (erru.xml_inbox: 10 ms instead of 0.09 ms at 300k rows,
-over 1 s in the ljvis2-test load test). Cast the parameter: `id = :inboxId::bigint`.
+"""A Resql parameter of `type: number` is bound as a numeric value. Compared with a BIGINT or INTEGER
+column, numeric is not in the same btree operator family, so PostgreSQL cannot use the index directly
+and scans the whole index (erru.xml_inbox, xml-inbox/finish: 10 ms instead of 0.09 ms at 300k rows,
+over 1 s in the ljvis2-test load test). This holds for every operator (=, <>, <, >, BETWEEN, IN, ANY).
 
-This test fails when a `type: number` parameter is compared with `=`, `<>` or `IN` without a cast.
+Rule: an id or key parameter is `type: integer` with a cast (`:id::bigint`), as agreed in the Resql 0.2.0
+migration (PR #251). A `type: number` parameter must always be cast (`:x::numeric`, `:x::int`) wherever it
+is used. The only exception is a bare output column (`:page AS page`), which compares nothing.
 """
 import pathlib
 import re
@@ -16,7 +18,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 HEADER = re.compile(r'\s*/\*\n(.*?)\n\*/', re.S)
 
 
-def uncast_number_comparisons():
+def uncast_number_params():
     found = []
     for path in sorted((ROOT / 'DSL/Resql').rglob('*.sql')):
         text = path.read_text()
@@ -31,17 +33,17 @@ def uncast_number_comparisons():
         for name, spec in (params.items() if isinstance(params, dict) else []):
             if not isinstance(spec, dict) or spec.get('type') != 'number':
                 continue
-            left = re.compile(r'[\w.]+\s*(?:=|<>|!=|\bIN\b)\s*\(?\s*:' + name + r'\b(?!\s*::)', re.I)
-            right = re.compile(r':' + name + r'\b(?!\s*::)\s*(?:=|<>|!=)\s*[\w.]+')
-            for hit in list(left.finditer(body)) + list(right.finditer(body)):
+            for hit in re.finditer(r':' + name + r'\b(?!\s*::)', body):
+                if re.match(r'\s+AS\s+\w+\s*,?\s*$', body[hit.end():].split('\n', 1)[0], re.I):
+                    continue  # bare output column
                 line = text[:m.end() + hit.start()].count('\n') + 1
-                found.append(f'{path.relative_to(ROOT)}:{line}: {hit.group(0)}')
+                found.append(f'{path.relative_to(ROOT)}:{line}: uncast number parameter :{name}')
     return found
 
 
 class NumberParamCast(unittest.TestCase):
     def test_real_repository_is_clean(self):
-        self.assertEqual(uncast_number_comparisons(), [])
+        self.assertEqual(uncast_number_params(), [])
 
 
 if __name__ == '__main__':

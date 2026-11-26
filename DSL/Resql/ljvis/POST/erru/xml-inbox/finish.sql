@@ -3,7 +3,7 @@ description: 'Closes the claim taken by xml-inbox/accept (a new event, compare-a
 namespace: erru
 params:
   inboxId:
-    type: number
+    type: integer
   outcome:
     type: string
   attempts:

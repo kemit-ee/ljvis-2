@@ -3,7 +3,7 @@ description: List all cities/parishes of a county (EHAK level 2)
 namespace: ehak
 params:
   parentId:
-    type: number
+    type: integer
     required: false
 returns:
 - name: classifier_value_key
