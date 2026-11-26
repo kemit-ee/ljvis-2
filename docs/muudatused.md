@@ -2,6 +2,16 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-26
+
+### Frontendi veebiserveri seadistus
+
+- Veebiserveri vastuste päised ja taustateenustele edastatavad küpsised on korrastatud.
+- Kui päring lükatakse liiga suurte brauseri küpsiste tõttu tagasi, kuvatakse selgitus ja link rakenduse uuesti avamiseks; kasutaja peab uuesti sisse logima.
+- Päringute arv ajaühikus on piiratud; ületamisel vastab server veaga 429. Tavakasutust see ei mõjuta. Automaat- ja koormustestid, mis käivad läbi avaliku aadressi, peavad piiranguga arvestama.
+- Frontendi Docker image'i käivituskasutaja on `nginx` (uid 101). Port ja seadistus ei muutu.
+- Paigaldatud keskkondades jõustub muudatus siis, kui nii uus frontendi Docker image kui ka `ljvis2-devops` repo frontendi konfiguratsioon on paigaldatud.
+
 ## 2026-11-25
 
 ### Teavitused: `kontrollkaardiUrl` ei alga kaldkriipsuga
