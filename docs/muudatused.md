@@ -2,6 +2,12 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-26
+
+### ERRU: NCR automaatsaatmise öötöö ei kutsu XTR-režiimis vana adapterit
+
+- Öötöö `erru-ncr-autodispatch` kutsus ka režiimis `ERRU_NCR_TRANSPORT=xtr` vana adapteri lõpp-punkti `/internal/ncr/validate`. Kui `erru-xml-adapter-old` on peatatud, oleks see kutse katkestanud XTR-saatmise. Nüüd lähevad need tühikutsed resql lõpp-punkti `erru/ncr/begin-send` tühja `businessCaseId`-ga, mis ei loo rida. Kasutajale nähtavat muudatust ei ole.
+
 ## 2026-11-25
 
 ### Teavitused: `kontrollkaardiUrl` ei alga kaldkriipsuga
