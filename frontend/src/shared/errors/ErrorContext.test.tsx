@@ -79,6 +79,12 @@ describe('ErrorProvider', () => {
     expect(result.current.toasts).toHaveLength(0);
   });
 
+  it('leaves a rejected file to the upload block', async () => {
+    const { result } = renderHook(() => useErrorContext(), { wrapper });
+    await triggerApiError(415, { error: 'FILE_TYPE_NOT_ALLOWED' });
+    expect(result.current.toasts).toHaveLength(0);
+  });
+
   it('keeps form_modified toast sticky', async () => {
     const { result } = renderHook(() => useErrorContext(), { wrapper });
     await triggerApiError(409, { code: 'form_modified' });

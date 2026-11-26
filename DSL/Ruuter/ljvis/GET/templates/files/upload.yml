@@ -37,7 +37,8 @@ checkFormNumber:
 
 returnInvalidFormNumber:
   status: 400
-  return: '{"error": "INVALID_FORM_NUMBER"}'
+  return:
+    error: INVALID_FORM_NUMBER
   next: end
 
 buildS3Folder:
@@ -58,17 +59,52 @@ uploadToS3:
       content_base64: ${incoming.body.file_base64}
       content_type: ${incoming.body.mimetype}
   result: s3Result
+  # Ka lubatud loendist (`http_codes_allow_list`) väljas staatus käsitletakse siin, nii et
+  # käitumine ei sõltu paigalduse seadistusest.
+  error: returnS3Error
   next: checkS3Result
 
+# Staatus 0 = s3-proxy pole kättesaadav.
 checkS3Result:
   switch:
-    - condition: ${s3Result.response.status >= 400}
+    - condition: ${s3Result.response.status == 0 || s3Result.response.status >= 400}
       next: returnS3Error
   next: insertFileToDB
 
+# Kliendile tagastatakse kindel veakood. Malli `status` ei jõua
+# kutsuva marsruudini, seetõttu valib marsruut HTTP-staatuse veakoodi järgi.
 returnS3Error:
-  status: ${s3Result.response.status}
-  return: ${s3Result.response.body}
+  switch:
+    - condition: ${s3Result.response.status == 415}
+      next: returnFileTypeNotAllowed
+    - condition: ${s3Result.response.status == 413}
+      next: returnFileTooLarge
+    - condition: ${s3Result.response.status == 400}
+      next: returnFileRejected
+  next: returnUploadFailed
+
+returnFileTypeNotAllowed:
+  status: 415
+  return:
+    error: FILE_TYPE_NOT_ALLOWED
+  next: end
+
+returnFileTooLarge:
+  status: 413
+  return:
+    error: FILE_TOO_LARGE
+  next: end
+
+returnFileRejected:
+  status: 400
+  return:
+    error: FILE_REJECTED
+  next: end
+
+returnUploadFailed:
+  status: 502
+  return:
+    error: UPLOAD_FAILED
   next: end
 
 insertFileToDB:

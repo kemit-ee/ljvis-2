@@ -402,6 +402,9 @@ jobs:
           docker run --rm -v "$PWD:/w" -w /w --entrypoint dsl-test '${{ steps.ruuter.outputs.img }}' \
             --dsl DSL/Ruuter.internal --tests DSL-tests-internal --constants constants.ini
 
+      - name: Error responses — Ruuter + nginx contract
+        run: bash scripts/test-error-responses.sh
+
       - name: X-tee developer mock — contract and isolated runtime scenarios
         run: |
           pip3 install pyyaml -q
