@@ -8,14 +8,12 @@ import {
   Col,
   Card,
   ChoiceGroup,
-  TextField,
   Text,
   Separator,
   Accordion,
   AccordionItem,
   AccordionItemContent,
   AccordionItemHeader,
-  Textarea,
   Alert,
   Checkbox,
 } from '@tedi-design-system/react/tedi';
@@ -29,6 +27,9 @@ import type { FormAuthority } from '../../pages/drive-rest-form/useDriveRestForm
 import { useAuth } from '../../../auth/AuthContext';
 import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
 import { useExpandedWhenSelected } from '../../hooks/useExpandedWhenSelected';
+import { TextField } from '../../../../shared/components/TextField';
+import { Textarea } from '../../../../shared/components/Textarea';
+import { PROCEEDING_OUTCOME_MAX_LENGTH } from '../../../../shared/textLimits';
 
 interface ChoiceItem {
   id: string;
@@ -1384,6 +1385,7 @@ export function DriveRestFormFields({
                 <div className="mb-1">
                   <Textarea
                     id={fieldId('enforcementDecision')}
+                    input={{ maxLength: PROCEEDING_OUTCOME_MAX_LENGTH }}
                     label={
                       <strong>{t('forms.sp_form.enforcedDecision')}</strong>
                     }
@@ -1396,6 +1398,7 @@ export function DriveRestFormFields({
                 <div>
                   <Textarea
                     id={fieldId('proceedingClosureBasis')}
+                    input={{ maxLength: PROCEEDING_OUTCOME_MAX_LENGTH }}
                     label={
                       <strong>
                         {t('forms.sp_form.proceedingTerminationBasis')}

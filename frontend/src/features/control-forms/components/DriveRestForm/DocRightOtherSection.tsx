@@ -4,12 +4,12 @@ import {
   Button,
   Text,
   Card,
-  TextField,
   ChoiceGroup,
 } from '@tedi-design-system/react/tedi';
 import styles from './DocRightOtherSection.module.css';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import type { OtherDocument } from '../../types';
+import { TextField } from '../../../../shared/components/TextField';
 
 type Visibility = 'BOTH' | 'CARGO' | 'PASSENGER';
 type ResultValue = 'EI_KONTROLLITUD' | 'NOUETEKOHANE' | 'EI_VASTA_NOUETELE' | 'PUUDUB';

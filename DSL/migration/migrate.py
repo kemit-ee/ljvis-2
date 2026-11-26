@@ -609,6 +609,9 @@ def main():
             # Blocks application INSERT/UPDATE during allocation/checks. Maintenance
             # mode is still required to stop integrations reacting to imported forms.
             cur.execute("SET LOCAL lock_timeout='10s'")
+            # LJVIS 1 vabatekstid võivad ületada rakenduse piire ja need säilitatakse
+            # kärpimata (vt forms.enforce_text_limits). Kehtib ainult selles tehingus.
+            cur.execute("SET LOCAL ljvis.text_limits='off'")
             for table in ALL_TARGETS:
                 cur.execute(sql.SQL("LOCK TABLE forms.{} IN SHARE ROW EXCLUSIVE MODE").format(sql.Identifier(table)))
             # A stale sequence can reuse a logical form key (these are snapshot

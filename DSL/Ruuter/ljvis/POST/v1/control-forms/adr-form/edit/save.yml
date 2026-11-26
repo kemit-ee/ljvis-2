@@ -99,6 +99,46 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.exemptionNotes === "string" ? incoming.body.exemptionNotes : JSON.stringify(incoming.body.exemptionNotes == null ? "" : incoming.body.exemptionNotes)).length > 4000}'
+      next: returnMaxLengthExemptionNotes
+    - condition: '${(typeof incoming.body.infringementNotesSummary === "string" ? incoming.body.infringementNotesSummary : JSON.stringify(incoming.body.infringementNotesSummary == null ? "" : incoming.body.infringementNotesSummary)).length > 20000}'
+      next: returnMaxLengthInfringementNotesSummary
+    - condition: '${(typeof incoming.body.driverAssistant === "string" ? incoming.body.driverAssistant : JSON.stringify(incoming.body.driverAssistant == null ? "" : incoming.body.driverAssistant)).length > 100000}'
+      next: returnTooLargeDriverAssistant
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.driverAssistant === "string" ? incoming.body.driverAssistant : JSON.stringify(incoming.body.driverAssistant == null ? "" : incoming.body.driverAssistant))) && JSON.stringify(JSON.parse((typeof incoming.body.driverAssistant === "string" ? incoming.body.driverAssistant : JSON.stringify(incoming.body.driverAssistant == null ? "" : incoming.body.driverAssistant))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeDriverAssistant
+    - condition: '${(typeof incoming.body.lastLoadAddress === "string" ? incoming.body.lastLoadAddress : JSON.stringify(incoming.body.lastLoadAddress == null ? "" : incoming.body.lastLoadAddress)).length > 100000}'
+      next: returnTooLargeLastLoadAddress
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.lastLoadAddress === "string" ? incoming.body.lastLoadAddress : JSON.stringify(incoming.body.lastLoadAddress == null ? "" : incoming.body.lastLoadAddress))) && JSON.stringify(JSON.parse((typeof incoming.body.lastLoadAddress === "string" ? incoming.body.lastLoadAddress : JSON.stringify(incoming.body.lastLoadAddress == null ? "" : incoming.body.lastLoadAddress))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeLastLoadAddress
+    - condition: '${(typeof incoming.body.nextLoadAddress === "string" ? incoming.body.nextLoadAddress : JSON.stringify(incoming.body.nextLoadAddress == null ? "" : incoming.body.nextLoadAddress)).length > 100000}'
+      next: returnTooLargeNextLoadAddress
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.nextLoadAddress === "string" ? incoming.body.nextLoadAddress : JSON.stringify(incoming.body.nextLoadAddress == null ? "" : incoming.body.nextLoadAddress))) && JSON.stringify(JSON.parse((typeof incoming.body.nextLoadAddress === "string" ? incoming.body.nextLoadAddress : JSON.stringify(incoming.body.nextLoadAddress == null ? "" : incoming.body.nextLoadAddress))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeNextLoadAddress
+    - condition: '${(typeof incoming.body.dangerousGoods === "string" ? incoming.body.dangerousGoods : JSON.stringify(incoming.body.dangerousGoods == null ? "" : incoming.body.dangerousGoods)).length > 100000}'
+      next: returnTooLargeDangerousGoods
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.dangerousGoods === "string" ? incoming.body.dangerousGoods : JSON.stringify(incoming.body.dangerousGoods == null ? "" : incoming.body.dangerousGoods))) && JSON.stringify(JSON.parse((typeof incoming.body.dangerousGoods === "string" ? incoming.body.dangerousGoods : JSON.stringify(incoming.body.dangerousGoods == null ? "" : incoming.body.dangerousGoods))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeDangerousGoods
+    - condition: '${(typeof incoming.body.containerTypes === "string" ? incoming.body.containerTypes : JSON.stringify(incoming.body.containerTypes == null ? "" : incoming.body.containerTypes)).length > 100000}'
+      next: returnTooLargeContainerTypes
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.containerTypes === "string" ? incoming.body.containerTypes : JSON.stringify(incoming.body.containerTypes == null ? "" : incoming.body.containerTypes))) && JSON.stringify(JSON.parse((typeof incoming.body.containerTypes === "string" ? incoming.body.containerTypes : JSON.stringify(incoming.body.containerTypes == null ? "" : incoming.body.containerTypes))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeContainerTypes
+    - condition: '${(typeof incoming.body.infringements === "string" ? incoming.body.infringements : JSON.stringify(incoming.body.infringements == null ? "" : incoming.body.infringements)).length > 100000}'
+      next: returnTooLargeInfringements
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.infringements === "string" ? incoming.body.infringements : JSON.stringify(incoming.body.infringements == null ? "" : incoming.body.infringements))) && JSON.stringify(JSON.parse((typeof incoming.body.infringements === "string" ? incoming.body.infringements : JSON.stringify(incoming.body.infringements == null ? "" : incoming.body.infringements))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeInfringements
+    - condition: '${(typeof incoming.body.correctiveMeasures === "string" ? incoming.body.correctiveMeasures : JSON.stringify(incoming.body.correctiveMeasures == null ? "" : incoming.body.correctiveMeasures)).length > 100000}'
+      next: returnTooLargeCorrectiveMeasures
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.correctiveMeasures === "string" ? incoming.body.correctiveMeasures : JSON.stringify(incoming.body.correctiveMeasures == null ? "" : incoming.body.correctiveMeasures))) && JSON.stringify(JSON.parse((typeof incoming.body.correctiveMeasures === "string" ? incoming.body.correctiveMeasures : JSON.stringify(incoming.body.correctiveMeasures == null ? "" : incoming.body.correctiveMeasures))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeCorrectiveMeasures
+    - condition: '${(typeof incoming.body.otherInfringements === "string" ? incoming.body.otherInfringements : JSON.stringify(incoming.body.otherInfringements == null ? "" : incoming.body.otherInfringements)).length > 35000}'
+      next: returnTooLargeOtherInfringements
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.otherInfringements === "string" ? incoming.body.otherInfringements : JSON.stringify(incoming.body.otherInfringements == null ? "" : incoming.body.otherInfringements))) && JSON.stringify(JSON.parse((typeof incoming.body.otherInfringements === "string" ? incoming.body.otherInfringements : JSON.stringify(incoming.body.otherInfringements == null ? "" : incoming.body.otherInfringements))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeOtherInfringements
   next: validateTextFields
 
 validateTextFields:
@@ -511,4 +551,54 @@ returnInvalidCharactersNotes:
 returnInvalidCharactersInfringementNotesSummary:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"infringementNotesSummary","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthExemptionNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"exemptionNotes","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthInfringementNotesSummary:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"infringementNotesSummary","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeDriverAssistant:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"driverAssistant","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeLastLoadAddress:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"lastLoadAddress","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeNextLoadAddress:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"nextLoadAddress","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeDangerousGoods:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"dangerousGoods","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeContainerTypes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"containerTypes","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeInfringements:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"infringements","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeCorrectiveMeasures:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"correctiveMeasures","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeOtherInfringements:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"otherInfringements","code":"max_length_exceeded"}'
   next: end

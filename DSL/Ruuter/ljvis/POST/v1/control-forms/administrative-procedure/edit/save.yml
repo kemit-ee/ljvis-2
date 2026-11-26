@@ -24,6 +24,12 @@ extract:
     form_type: "${incoming.body.formType}"
     id: "${incoming.body.id}"
     created_by: "${auth_user.personalcode || ''}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.adminProcedureDecision === "string" ? incoming.body.adminProcedureDecision : JSON.stringify(incoming.body.adminProcedureDecision == null ? "" : incoming.body.adminProcedureDecision)).length > 4000}'
+      next: returnTooLongAdminProcedureDecision
   next: checkInput
 
 checkInput:
@@ -105,4 +111,9 @@ notFound:
 saveFailed:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"save_failed"}'
+  next: end
+
+returnTooLongAdminProcedureDecision:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"adminProcedureDecision","code":"max_length_exceeded"}'
   next: end

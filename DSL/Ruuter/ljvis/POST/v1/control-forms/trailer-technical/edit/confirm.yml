@@ -72,6 +72,22 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.partsSummary === "string" ? incoming.body.partsSummary : JSON.stringify(incoming.body.partsSummary == null ? "" : incoming.body.partsSummary)).length > 100000}'
+      next: returnTooLargePartsSummary
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.partsSummary === "string" ? incoming.body.partsSummary : JSON.stringify(incoming.body.partsSummary == null ? "" : incoming.body.partsSummary))) && JSON.stringify(JSON.parse((typeof incoming.body.partsSummary === "string" ? incoming.body.partsSummary : JSON.stringify(incoming.body.partsSummary == null ? "" : incoming.body.partsSummary))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargePartsSummary
+    - condition: '${(typeof incoming.body.partsDefects === "string" ? incoming.body.partsDefects : JSON.stringify(incoming.body.partsDefects == null ? "" : incoming.body.partsDefects)).length > 100000}'
+      next: returnTooLargePartsDefects
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.partsDefects === "string" ? incoming.body.partsDefects : JSON.stringify(incoming.body.partsDefects == null ? "" : incoming.body.partsDefects))) && JSON.stringify(JSON.parse((typeof incoming.body.partsDefects === "string" ? incoming.body.partsDefects : JSON.stringify(incoming.body.partsDefects == null ? "" : incoming.body.partsDefects))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargePartsDefects
+    - condition: '${(typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations)).length > 100000}'
+      next: returnTooLargeViolations
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations))) && JSON.stringify(JSON.parse((typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations
   next: validateTextFields
 # LJVIS2-72 §4: haagise vormil ei tohi esineda CAA_2/CAA_3/CAA_7/CAA_9 (ja nende
 # alamrikked) osade koondtabelis/parts_defects ega MSI203/MSI204/VSI847/SI926
@@ -275,4 +291,19 @@ returnInvalidCharactersTrailerRegNr:
 returnMaxLengthTrailerRegNr:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"trailerRegNr","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargePartsSummary:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"partsSummary","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargePartsDefects:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"partsDefects","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations","code":"max_length_exceeded"}'
   next: end

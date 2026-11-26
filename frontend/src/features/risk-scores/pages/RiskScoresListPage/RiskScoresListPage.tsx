@@ -2,12 +2,19 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
 import { AppTable } from '../../../../shared/components/AppTable';
-import { Button, Card, Heading, Select, Text, TextField } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  Card,
+  Heading,
+  Select,
+  Text,
+} from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { PERMISSIONS } from '../../../../constants/constants';
 import type { RiskScoreListItem } from '../../types';
 import { useRiskScoresList } from './useRiskScoresList';
 import { RiskBandBadge } from './RiskBandBadge';
+import { TextField } from '../../../../shared/components/TextField';
 
 const columnHelper = createColumnHelper<RiskScoreListItem>();
 

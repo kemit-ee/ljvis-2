@@ -177,6 +177,28 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.violationDescription === "string" ? incoming.body.violationDescription : JSON.stringify(incoming.body.violationDescription == null ? "" : incoming.body.violationDescription)).length > 4000}'
+      next: returnMaxLengthViolationDescription
+    - condition: '${(typeof incoming.body.sanctionNotes === "string" ? incoming.body.sanctionNotes : JSON.stringify(incoming.body.sanctionNotes == null ? "" : incoming.body.sanctionNotes)).length > 4000}'
+      next: returnMaxLengthSanctionNotes
+    - condition: '${(typeof incoming.body.recommendedMeasureNotes === "string" ? incoming.body.recommendedMeasureNotes : JSON.stringify(incoming.body.recommendedMeasureNotes == null ? "" : incoming.body.recommendedMeasureNotes)).length > 4000}'
+      next: returnMaxLengthRecommendedMeasureNotes
+    - condition: '${(typeof incoming.body.recommendedMeasureGeneralNotes === "string" ? incoming.body.recommendedMeasureGeneralNotes : JSON.stringify(incoming.body.recommendedMeasureGeneralNotes == null ? "" : incoming.body.recommendedMeasureGeneralNotes)).length > 4000}'
+      next: returnTooLongRecommendedMeasureGeneralNotes
+    - condition: '${(typeof incoming.body.adminProcedureDecision === "string" ? incoming.body.adminProcedureDecision : JSON.stringify(incoming.body.adminProcedureDecision == null ? "" : incoming.body.adminProcedureDecision)).length > 4000}'
+      next: returnMaxLengthAdminProcedureDecision
+    - condition: '${(typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations)).length > 100000}'
+      next: returnTooLargeViolations
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations))) && JSON.stringify(JSON.parse((typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations
+    - condition: '${(typeof incoming.body.additionalSanctionCodes === "string" ? incoming.body.additionalSanctionCodes : JSON.stringify(incoming.body.additionalSanctionCodes == null ? "" : incoming.body.additionalSanctionCodes)).length > 100000}'
+      next: returnTooLargeAdditionalSanctionCodes
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.additionalSanctionCodes === "string" ? incoming.body.additionalSanctionCodes : JSON.stringify(incoming.body.additionalSanctionCodes == null ? "" : incoming.body.additionalSanctionCodes))) && JSON.stringify(JSON.parse((typeof incoming.body.additionalSanctionCodes === "string" ? incoming.body.additionalSanctionCodes : JSON.stringify(incoming.body.additionalSanctionCodes == null ? "" : incoming.body.additionalSanctionCodes))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeAdditionalSanctionCodes
   next: validateForm
 
 validateForm:
@@ -605,4 +627,39 @@ returnValidationError:
 returnFormLockedError:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":null,"code":"form_locked_after_confirm"}'
+  next: end
+
+returnMaxLengthViolationDescription:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violationDescription","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthSanctionNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"sanctionNotes","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthRecommendedMeasureNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"recommendedMeasureNotes","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLongRecommendedMeasureGeneralNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"recommendedMeasureGeneralNotes","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthAdminProcedureDecision:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"adminProcedureDecision","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeAdditionalSanctionCodes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"additionalSanctionCodes","code":"max_length_exceeded"}'
   next: end

@@ -2,6 +2,15 @@
 
 Ülevaade LJVIS2 kasutajale nähtavatest muudatustest, uusim üleval.
 
+## 2026-11-26
+
+### Tekstiväljade pikkuspiirid
+
+- Tekstiväljadel on ühtsed ülempiirid: üherealisel väljal vaikimisi 500 märki, mitmerealisel 4000 märki. Kitsamad senised piirid jäävad kehtima. Menetluse tulemuse väljadel („Jõustunud otsus“ ja menetluse lõpetamise alus), mida täidab ka e-toimik, on piir 20 000 märki.
+- Liiga pika väärtuse salvestamisel vastab teenus veaga (422 `max_length_exceeded`).
+- Varem salvestatud pikemaid tekste ei kärbita ning need säilivad kinnitamisel ja avalikustamisel. Vormi uuesti salvestamisel tuleb tekst lühendada.
+- Teavituste mallide vastenduse seadetes: meiliaadress kuni 320, malli tunnus kuni 200 ja töölauateavituse saajate loetelu kuni 4000 märki.
+
 ## 2026-11-25
 
 ### Teavitused: `kontrollkaardiUrl` ei alga kaldkriipsuga

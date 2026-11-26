@@ -1,17 +1,13 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Card,
-  Heading,
-  Textarea,
-  ChoiceGroup,
-} from '@tedi-design-system/react/tedi';
+import { Card, Heading, ChoiceGroup } from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { AddressFields } from '../../components/shared/AddressFields';
 import type { AddressFieldsValue } from '../../components/shared/AddressFields';
 import type { useTransportInterruptionForm } from './useTransportInterruptionForm.ts';
 import styles from '../adr-form/AdrFormFields.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
+import { Textarea } from '../../../../shared/components/Textarea';
 
 interface TransportInterruptionFormFieldsProps {
   formik: ReturnType<typeof useTransportInterruptionForm>['formik'];

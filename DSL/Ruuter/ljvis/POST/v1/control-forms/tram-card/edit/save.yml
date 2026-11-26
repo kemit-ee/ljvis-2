@@ -231,6 +231,68 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.roadTaxNotes === "string" ? incoming.body.roadTaxNotes : JSON.stringify(incoming.body.roadTaxNotes == null ? "" : incoming.body.roadTaxNotes)).length > 4000}'
+      next: returnMaxLengthRoadTaxNotes
+    - condition: '${(typeof incoming.body.tachographNotes === "string" ? incoming.body.tachographNotes : JSON.stringify(incoming.body.tachographNotes == null ? "" : incoming.body.tachographNotes)).length > 4000}'
+      next: returnMaxLengthTachographNotes
+    - condition: '${(typeof incoming.body.notes === "string" ? incoming.body.notes : JSON.stringify(incoming.body.notes == null ? "" : incoming.body.notes)).length > 4000}'
+      next: returnMaxLengthNotes
+    - condition: '${(typeof incoming.body.trailers === "string" ? incoming.body.trailers : JSON.stringify(incoming.body.trailers == null ? "" : incoming.body.trailers)).length > 100000}'
+      next: returnTooLargeTrailers
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.trailers === "string" ? incoming.body.trailers : JSON.stringify(incoming.body.trailers == null ? "" : incoming.body.trailers))) && JSON.stringify(JSON.parse((typeof incoming.body.trailers === "string" ? incoming.body.trailers : JSON.stringify(incoming.body.trailers == null ? "" : incoming.body.trailers))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeTrailers
+    - condition: '${(typeof incoming.body.drivers === "string" ? incoming.body.drivers : JSON.stringify(incoming.body.drivers == null ? "" : incoming.body.drivers)).length > 100000}'
+      next: returnTooLargeDrivers
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.drivers === "string" ? incoming.body.drivers : JSON.stringify(incoming.body.drivers == null ? "" : incoming.body.drivers))) && JSON.stringify(JSON.parse((typeof incoming.body.drivers === "string" ? incoming.body.drivers : JSON.stringify(incoming.body.drivers == null ? "" : incoming.body.drivers))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeDrivers
+    - condition: '${(typeof incoming.body.files === "string" ? incoming.body.files : JSON.stringify(incoming.body.files == null ? "" : incoming.body.files)).length > 100000}'
+      next: returnTooLargeFiles
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.files === "string" ? incoming.body.files : JSON.stringify(incoming.body.files == null ? "" : incoming.body.files))) && JSON.stringify(JSON.parse((typeof incoming.body.files === "string" ? incoming.body.files : JSON.stringify(incoming.body.files == null ? "" : incoming.body.files))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeFiles
+    - condition: '${(typeof incoming.body.transportClasses === "string" ? incoming.body.transportClasses : JSON.stringify(incoming.body.transportClasses == null ? "" : incoming.body.transportClasses)).length > 100000}'
+      next: returnTooLargeTransportClasses
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.transportClasses === "string" ? incoming.body.transportClasses : JSON.stringify(incoming.body.transportClasses == null ? "" : incoming.body.transportClasses))) && JSON.stringify(JSON.parse((typeof incoming.body.transportClasses === "string" ? incoming.body.transportClasses : JSON.stringify(incoming.body.transportClasses == null ? "" : incoming.body.transportClasses))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeTransportClasses
+    - condition: '${(typeof incoming.body.cabotageViolations === "string" ? incoming.body.cabotageViolations : JSON.stringify(incoming.body.cabotageViolations == null ? "" : incoming.body.cabotageViolations)).length > 100000}'
+      next: returnTooLargeCabotageViolations
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.cabotageViolations === "string" ? incoming.body.cabotageViolations : JSON.stringify(incoming.body.cabotageViolations == null ? "" : incoming.body.cabotageViolations))) && JSON.stringify(JSON.parse((typeof incoming.body.cabotageViolations === "string" ? incoming.body.cabotageViolations : JSON.stringify(incoming.body.cabotageViolations == null ? "" : incoming.body.cabotageViolations))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeCabotageViolations
+    - condition: '${(typeof incoming.body.documentChecks === "string" ? incoming.body.documentChecks : JSON.stringify(incoming.body.documentChecks == null ? "" : incoming.body.documentChecks)).length > 100000}'
+      next: returnTooLargeDocumentChecks
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.documentChecks === "string" ? incoming.body.documentChecks : JSON.stringify(incoming.body.documentChecks == null ? "" : incoming.body.documentChecks))) && JSON.stringify(JSON.parse((typeof incoming.body.documentChecks === "string" ? incoming.body.documentChecks : JSON.stringify(incoming.body.documentChecks == null ? "" : incoming.body.documentChecks))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeDocumentChecks
+    - condition: '${(typeof incoming.body.otherDocuments === "string" ? incoming.body.otherDocuments : JSON.stringify(incoming.body.otherDocuments == null ? "" : incoming.body.otherDocuments)).length > 100000}'
+      next: returnTooLargeOtherDocuments
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.otherDocuments === "string" ? incoming.body.otherDocuments : JSON.stringify(incoming.body.otherDocuments == null ? "" : incoming.body.otherDocuments))) && JSON.stringify(JSON.parse((typeof incoming.body.otherDocuments === "string" ? incoming.body.otherDocuments : JSON.stringify(incoming.body.otherDocuments == null ? "" : incoming.body.otherDocuments))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeOtherDocuments
+    - condition: '${(typeof incoming.body.violations5612006 === "string" ? incoming.body.violations5612006 : JSON.stringify(incoming.body.violations5612006 == null ? "" : incoming.body.violations5612006)).length > 100000}'
+      next: returnTooLargeViolations5612006
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations5612006 === "string" ? incoming.body.violations5612006 : JSON.stringify(incoming.body.violations5612006 == null ? "" : incoming.body.violations5612006))) && JSON.stringify(JSON.parse((typeof incoming.body.violations5612006 === "string" ? incoming.body.violations5612006 : JSON.stringify(incoming.body.violations5612006 == null ? "" : incoming.body.violations5612006))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations5612006
+    - condition: '${(typeof incoming.body.violations1652014 === "string" ? incoming.body.violations1652014 : JSON.stringify(incoming.body.violations1652014 == null ? "" : incoming.body.violations1652014)).length > 100000}'
+      next: returnTooLargeViolations1652014
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations1652014 === "string" ? incoming.body.violations1652014 : JSON.stringify(incoming.body.violations1652014 == null ? "" : incoming.body.violations1652014))) && JSON.stringify(JSON.parse((typeof incoming.body.violations1652014 === "string" ? incoming.body.violations1652014 : JSON.stringify(incoming.body.violations1652014 == null ? "" : incoming.body.violations1652014))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations1652014
+    - condition: '${(typeof incoming.body.violations200215 === "string" ? incoming.body.violations200215 : JSON.stringify(incoming.body.violations200215 == null ? "" : incoming.body.violations200215)).length > 100000}'
+      next: returnTooLargeViolations200215
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations200215 === "string" ? incoming.body.violations200215 : JSON.stringify(incoming.body.violations200215 == null ? "" : incoming.body.violations200215))) && JSON.stringify(JSON.parse((typeof incoming.body.violations200215 === "string" ? incoming.body.violations200215 : JSON.stringify(incoming.body.violations200215 == null ? "" : incoming.body.violations200215))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations200215
+    - condition: '${(typeof incoming.body.violations5932008 === "string" ? incoming.body.violations5932008 : JSON.stringify(incoming.body.violations5932008 == null ? "" : incoming.body.violations5932008)).length > 100000}'
+      next: returnTooLargeViolations5932008
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations5932008 === "string" ? incoming.body.violations5932008 : JSON.stringify(incoming.body.violations5932008 == null ? "" : incoming.body.violations5932008))) && JSON.stringify(JSON.parse((typeof incoming.body.violations5932008 === "string" ? incoming.body.violations5932008 : JSON.stringify(incoming.body.violations5932008 == null ? "" : incoming.body.violations5932008))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations5932008
+    - condition: '${(typeof incoming.body.violations20201057 === "string" ? incoming.body.violations20201057 : JSON.stringify(incoming.body.violations20201057 == null ? "" : incoming.body.violations20201057)).length > 100000}'
+      next: returnTooLargeViolations20201057
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations20201057 === "string" ? incoming.body.violations20201057 : JSON.stringify(incoming.body.violations20201057 == null ? "" : incoming.body.violations20201057))) && JSON.stringify(JSON.parse((typeof incoming.body.violations20201057 === "string" ? incoming.body.violations20201057 : JSON.stringify(incoming.body.violations20201057 == null ? "" : incoming.body.violations20201057))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations20201057
+    - condition: '${(typeof incoming.body.erruPoints === "string" ? incoming.body.erruPoints : JSON.stringify(incoming.body.erruPoints == null ? "" : incoming.body.erruPoints)).length > 100000}'
+      next: returnTooLargeErruPoints
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.erruPoints === "string" ? incoming.body.erruPoints : JSON.stringify(incoming.body.erruPoints == null ? "" : incoming.body.erruPoints))) && JSON.stringify(JSON.parse((typeof incoming.body.erruPoints === "string" ? incoming.body.erruPoints : JSON.stringify(incoming.body.erruPoints == null ? "" : incoming.body.erruPoints))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeErruPoints
   next: validateTextFields
 
 validateTextFields:
@@ -966,4 +1028,84 @@ returnMaxLengthLiiniNimetus:
 returnInvalidCharactersNotes:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"notes","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthRoadTaxNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"roadTaxNotes","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthTachographNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"tachographNotes","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"notes","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeTrailers:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"trailers","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeDrivers:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"drivers","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeFiles:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"files","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeTransportClasses:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"transportClasses","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeCabotageViolations:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"cabotageViolations","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeDocumentChecks:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"documentChecks","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeOtherDocuments:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"otherDocuments","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations5612006:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations5612006","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations1652014:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations1652014","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations200215:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations200215","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations5932008:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations5932008","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations20201057:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations20201057","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeErruPoints:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"erruPoints","code":"max_length_exceeded"}'
   next: end

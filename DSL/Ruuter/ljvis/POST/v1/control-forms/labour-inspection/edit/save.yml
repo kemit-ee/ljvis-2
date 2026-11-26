@@ -67,6 +67,18 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.controlsMatrix === "string" ? incoming.body.controlsMatrix : JSON.stringify(incoming.body.controlsMatrix == null ? "" : incoming.body.controlsMatrix)).length > 100000}'
+      next: returnTooLargeControlsMatrix
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.controlsMatrix === "string" ? incoming.body.controlsMatrix : JSON.stringify(incoming.body.controlsMatrix == null ? "" : incoming.body.controlsMatrix))) && JSON.stringify(JSON.parse((typeof incoming.body.controlsMatrix === "string" ? incoming.body.controlsMatrix : JSON.stringify(incoming.body.controlsMatrix == null ? "" : incoming.body.controlsMatrix))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeControlsMatrix
+    - condition: '${(typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations)).length > 100000}'
+      next: returnTooLargeViolations
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations))) && JSON.stringify(JSON.parse((typeof incoming.body.violations === "string" ? incoming.body.violations : JSON.stringify(incoming.body.violations == null ? "" : incoming.body.violations))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeViolations
   next: validateTextFields
 
 validateTextFields:
@@ -405,4 +417,14 @@ returnInvalidCharactersProceedingReferenceNumber:
 returnMaxLengthProceedingReferenceNumber:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"proceedingReferenceNumber","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeControlsMatrix:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"controlsMatrix","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeViolations:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"violations","code":"max_length_exceeded"}'
   next: end

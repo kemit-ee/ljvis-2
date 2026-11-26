@@ -538,3 +538,8 @@ nav[aria-label='Main navigation'] {
 :has(> .detail-field) > h4:first-child {
   margin-top: 0;
 }
+
+/* Mähis, mis ei mõjuta paigutust (vt shared/components/Textarea.tsx). */
+.d-contents {
+  display: contents;
+}

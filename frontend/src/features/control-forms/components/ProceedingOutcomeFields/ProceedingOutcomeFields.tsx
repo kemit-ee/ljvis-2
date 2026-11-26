@@ -1,7 +1,9 @@
-import { Card, Heading, Textarea } from '@tedi-design-system/react/tedi';
+import { Card, Heading } from '@tedi-design-system/react/tedi';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/AuthContext';
 import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { Textarea } from '../../../../shared/components/Textarea';
+import { PROCEEDING_OUTCOME_MAX_LENGTH } from '../../../../shared/textLimits';
 
 interface Props {
   status?: string;
@@ -30,6 +32,7 @@ export function ProceedingOutcomeFields({
         <Heading element="h3" className="mb-1">{t(titleKey)}</Heading>
         <Textarea
           id="enforcementDecision"
+          input={{ maxLength: PROCEEDING_OUTCOME_MAX_LENGTH }}
           label={t('forms.shared.proceedingOutcome.enforcementDecision')}
           value={enforcementDecision ?? ''}
           onChange={(value) => onChange('enforcementDecision', value)}
@@ -37,6 +40,7 @@ export function ProceedingOutcomeFields({
         />
         <Textarea
           id="proceedingClosureBasis"
+          input={{ maxLength: PROCEEDING_OUTCOME_MAX_LENGTH }}
           label={t('forms.shared.proceedingOutcome.proceedingClosureBasis')}
           value={proceedingClosureBasis ?? ''}
           onChange={(value) => onChange('proceedingClosureBasis', value)}

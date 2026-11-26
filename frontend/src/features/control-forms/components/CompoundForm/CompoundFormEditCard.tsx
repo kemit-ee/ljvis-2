@@ -4,13 +4,11 @@ import {
   Button,
   Card,
   Heading,
-  TextField,
   Text,
   Select,
   Alert,
   ChoiceGroup,
   Checkbox,
-  Textarea,
   Tooltip,
   InfoButton,
 } from '@tedi-design-system/react/tedi';
@@ -32,6 +30,8 @@ import { MaskedDateField } from '../shared/MaskedDateField';
 import { MaskedTimeField } from '../shared/MaskedTimeField';
 import React from 'react';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { TextField } from '../../../../shared/components/TextField';
+import { Textarea } from '../../../../shared/components/Textarea';
 
 interface CompoundFormValues {
   id: string;

@@ -1,13 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Card,
-  Heading,
-  TextField,
-  Textarea,
-} from '@tedi-design-system/react/tedi';
+import { Button, Card, Heading } from '@tedi-design-system/react/tedi';
 import type { FormikProps } from 'formik';
 import styles from './ClassifierInfoEditCard.module.css';
+import { TextField } from '../../../../shared/components/TextField';
+import { Textarea } from '../../../../shared/components/Textarea';
 
 interface ClassifierEditFormValues {
   id: string;

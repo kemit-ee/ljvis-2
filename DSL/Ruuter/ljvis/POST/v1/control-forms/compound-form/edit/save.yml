@@ -153,6 +153,20 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
     actor_personal_code: "${u.personalcode || ''}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.roadTaxNotes === "string" ? incoming.body.roadTaxNotes : JSON.stringify(incoming.body.roadTaxNotes == null ? "" : incoming.body.roadTaxNotes)).length > 4000}'
+      next: returnMaxLengthRoadTaxNotes
+    - condition: '${(typeof incoming.body.trailers === "string" ? incoming.body.trailers : JSON.stringify(incoming.body.trailers == null ? "" : incoming.body.trailers)).length > 100000}'
+      next: returnTooLargeTrailers
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.trailers === "string" ? incoming.body.trailers : JSON.stringify(incoming.body.trailers == null ? "" : incoming.body.trailers))) && JSON.stringify(JSON.parse((typeof incoming.body.trailers === "string" ? incoming.body.trailers : JSON.stringify(incoming.body.trailers == null ? "" : incoming.body.trailers))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeTrailers
+    - condition: '${(typeof incoming.body.drivers === "string" ? incoming.body.drivers : JSON.stringify(incoming.body.drivers == null ? "" : incoming.body.drivers)).length > 100000}'
+      next: returnTooLargeDrivers
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.drivers === "string" ? incoming.body.drivers : JSON.stringify(incoming.body.drivers == null ? "" : incoming.body.drivers))) && JSON.stringify(JSON.parse((typeof incoming.body.drivers === "string" ? incoming.body.drivers : JSON.stringify(incoming.body.drivers == null ? "" : incoming.body.drivers))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeDrivers
   next: validateTextFields
 
 validateTextFields:
@@ -859,4 +873,19 @@ returnInvalidCharactersInspectorProfession:
 returnMaxLengthInspectorProfession:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"inspectorProfession","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthRoadTaxNotes:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"roadTaxNotes","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeTrailers:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"trailers","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeDrivers:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"drivers","code":"max_length_exceeded"}'
   next: end

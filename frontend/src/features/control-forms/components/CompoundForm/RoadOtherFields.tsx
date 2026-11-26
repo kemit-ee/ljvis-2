@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TextField } from '@tedi-design-system/react/tedi';
 import { findOtherRoadName, normalizeRoadNumber } from './roadOtherLookup';
+import { TextField } from '../../../../shared/components/TextField';
 
 /** Ootame trükkimise lõppu, et osanumber (nt „11" teel „1194") ei käivitaks päringut. */
 export const ROAD_LOOKUP_DEBOUNCE_MS = 300;

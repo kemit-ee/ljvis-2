@@ -6,8 +6,6 @@ import {
   Card,
   Heading,
   Select,
-  TextField,
-  Textarea,
   Text,
   ChoiceGroup,
   Alert,
@@ -37,6 +35,8 @@ import type {
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import { useExpandedWhenSelected } from '../../hooks/useExpandedWhenSelected';
+import { TextField } from '../../../../shared/components/TextField';
+import { Textarea } from '../../../../shared/components/Textarea';
 
 interface ForeignViolationFormFieldsProps {
   formik: FormikProps<ForeignViolationForm & Record<string, unknown>>;
