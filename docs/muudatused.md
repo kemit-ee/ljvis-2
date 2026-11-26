@@ -12,6 +12,10 @@
 - Frontendi Docker image'i käivituskasutaja on `nginx` (uid 101). Port ja seadistus ei muutu.
 - Paigaldatud keskkondades jõustub muudatus siis, kui nii uus frontendi Docker image kui ka `ljvis2-devops` repo frontendi konfiguratsioon on paigaldatud.
 
+### ERRU: töö lõpetamise päring (`xml-inbox/finish`) ei skaneeri enam kogu järjekorda
+
+- Päring `xml-inbox/finish` võrdles `bigint` tüüpi id-d `number` tüüpi parameetriga. PostgreSQL ei saanud siis primaarvõtme indeksit otse kasutada ja luges läbi kogu `erru.xml_inbox` indeksi. Koormustestis kestis päring üle 1 s ja aeglustus koos ajalooga. Nüüd on parameeter `type: integer` koos `bigint`-teisendusega (`:inboxId::bigint`), nagu teistel id-parameetritel, ja päring võtab alla millisekundi. Sama parandus on tehtud EHAK-i asulate päringus (`ehak/list_cities_parishes`). Uus lepingutest (`tests/contract/test_resql_number_param_cast.py`) keelab teisendamata `number`-parameetri kasutamise. Kasutajale nähtavat muudatust ei ole.
+
 ### ERRU: NCR automaatsaatmise öötöö ei kutsu XTR-režiimis vana adapterit
 
 - Öötöö `erru-ncr-autodispatch` kutsus ka režiimis `ERRU_NCR_TRANSPORT=xtr` vana adapteri lõpp-punkti `/internal/ncr/validate`. Kui `erru-xml-adapter-old` on peatatud, oleks see kutse katkestanud XTR-saatmise. Nüüd lähevad need tühikutsed ruuter-internali uude kõrvalmõjuta lõpp-punkti `erru/ncr/autodispatch-noop`. Kasutajale nähtavat muudatust ei ole.
