@@ -12,6 +12,10 @@
 - Frontendi Docker image'i käivituskasutaja on `nginx` (uid 101). Port ja seadistus ei muutu.
 - Paigaldatud keskkondades jõustub muudatus siis, kui nii uus frontendi Docker image kui ka `ljvis2-devops` repo frontendi konfiguratsioon on paigaldatud.
 
+### ERRU: NCR automaatsaatmise öötöö ei kutsu XTR-režiimis vana adapterit
+
+- Öötöö `erru-ncr-autodispatch` kutsus ka režiimis `ERRU_NCR_TRANSPORT=xtr` vana adapteri lõpp-punkti `/internal/ncr/validate`. Kui `erru-xml-adapter-old` on peatatud, oleks see kutse katkestanud XTR-saatmise. Nüüd lähevad need tühikutsed ruuter-internali uude kõrvalmõjuta lõpp-punkti `erru/ncr/autodispatch-noop`. Kasutajale nähtavat muudatust ei ole.
+
 ### ERRU: sissetuleva järjekorra päring ei aeglustu enam koos ajalooga
 
 - Taustatöö `erru_xtr_async_requests` päringud `xml-inbox/claim-due` ja `xml-inbox/due-oneway` lugesid vaadet `erru.xml_inbox_current`, mis arvutab iga kunagi vastu võetud sõnumi viimase oleku. Koormustestis kestis päring kuni 2,5 s. Nüüd loevad päringud ainult viimase 6 tunni avatud sündmusi uue indeksi `idx_xml_inbox_event_open_created` kaudu.
