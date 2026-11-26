@@ -3,7 +3,7 @@ description: List all cities/parishes of a county (EHAK level 2)
 namespace: ehak
 params:
   parentId:
-    type: number
+    type: integer
     required: false
 returns:
 - name: classifier_value_key
@@ -22,5 +22,5 @@ SELECT
     cv.name
 FROM classifier.classifier_value cv
 WHERE cv.classifier_key IN (SELECT classifier_key FROM classifier.classifier WHERE code = 'EHAK')
-  AND cv.parent_key = :parentId
+  AND cv.parent_key = :parentId::bigint
 ORDER BY cv.name;
