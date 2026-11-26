@@ -10,7 +10,8 @@ description: >-
   with a transaction lock and a separate stable deduplication key.
   The lookup uses the partial expression index idx_ae_nu_inbound_message_key
   (log_content->>'nuMessageKey'), which serves the generic plan of the reused prepared statement;
-  a jsonb containment (@>) with a parameter fell back to a scan of the whole audit table.
+  a jsonb containment (@>) with a parameter fell back to a linear scan (the whole audit table or
+  all NU inbound events), which grew with the audit history.
 namespace: erru
 params:
   message_key:
