@@ -12,6 +12,11 @@
 - Frontendi Docker image'i käivituskasutaja on `nginx` (uid 101). Port ja seadistus ei muutu.
 - Paigaldatud keskkondades jõustub muudatus siis, kui nii uus frontendi Docker image kui ka `ljvis2-devops` repo frontendi konfiguratsioon on paigaldatud.
 
+### ERRU: sissetuleva järjekorra päring ei aeglustu enam koos ajalooga
+
+- Taustatöö `erru_xtr_async_requests` päringud `xml-inbox/claim-due` ja `xml-inbox/due-oneway` lugesid vaadet `erru.xml_inbox_current`, mis arvutab iga kunagi vastu võetud sõnumi viimase oleku. Koormustestis kestis päring kuni 2,5 s. Nüüd loevad päringud ainult viimase 6 tunni avatud sündmusi uue indeksi `idx_xml_inbox_event_open_created` kaudu.
+- Kui taustatöö on seisnud üle 6 tunni, ei võta see vanemaid avatud ridu enam ise üles. Need read tuleb panna järjekorda käsitsi (vt docs/integrations/erru-xml-recovery.md, „Resume an open inbox older than 6 hours"). Hubi korduskohaletoimetamine toob rea samuti tagasi. Kasutajale nähtavat muudatust ei ole.
+
 ## 2026-11-25
 
 ### Teavitused: `kontrollkaardiUrl` ei alga kaldkriipsuga

@@ -41,6 +41,37 @@ the row; NU/NCR/RSI recovery continues even when the original response deadline 
 outbox, if any, stays immutable. Check the final inbox state, business snapshots, notification and
 single audit event. If the cause remains, the inbox will fail again after its finite attempt budget.
 
+## Resume an open inbox older than 6 hours
+
+The cron scan (`xml-inbox/claim-due`, `xml-inbox/due-oneway`) reads only the rows whose newest event is at
+most 6 hours old. In normal operation an open row is never that old: a lease is at most 10 minutes, a retry
+delay is 30 seconds, and the cron takes the row over with a new event. A row stays open for longer only when
+the cron did not run (for example, `ruuter-internal` or CronManager was stopped). A Hub redelivery of the same
+message also revives the row, because `xml-inbox/accept` adds a new event.
+
+After a long outage, find the open rows that the cron does not see any more:
+
+```sql
+SELECT id, message_type, status, claimed_by, attempts, received_at
+  FROM erru.xml_inbox_current
+ WHERE status IN ('received', 'processing')
+   AND request_json IS NOT NULL
+   AND id IN (SELECT inbox_id FROM erru.xml_inbox_event
+               GROUP BY inbox_id HAVING max(created_at) <= now() - interval '6 hours')
+ ORDER BY id;
+```
+
+Make sure that no worker still holds the row (the lease is expired). Then put the row back into the queue with a
+new event. The attempt counter is kept:
+
+```sql
+INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts)
+SELECT id, seq + 1, 'received', attempts
+  FROM erru.xml_inbox_current
+ WHERE id = :inbox_id
+   AND (status = 'received' OR (status = 'processing' AND lease_expires_at < now()));
+```
+
 ## Retry delivery for a processed inbox
 
 Do not reset the inbox to fix a failed outbox. After correcting a temporary delivery/configuration
