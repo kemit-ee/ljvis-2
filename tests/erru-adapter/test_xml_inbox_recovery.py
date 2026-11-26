@@ -49,12 +49,14 @@ try:
     run(migration('20261229090000-erru-xml-inbox-append-only'), name)
     assert run("SELECT status || '/' || attempts || '/' || last_error FROM erru.xml_inbox_current", name).strip() == 'failed/3/old error'
     run("DELETE FROM erru.xml_inbox_event; DELETE FROM erru.xml_inbox", name)
+    run(migration('20261229150000-erru-xml-inbox-event-queue-index'), name)
+    run(migration('20261229150000-erru-xml-inbox-event-queue-index'), name)  # idempotent
 
-    def row(label, status, claimed_by=None, lease='NULL', nxt='NULL', request_json="'{}'", mtype='NotifyUnfitness_Request', age=0):
+    def row(label, status, claimed_by=None, lease='NULL', nxt='NULL', request_json="'{}'", mtype='NotifyUnfitness_Request', age=0, event_age=0):
         run(f"WITH r AS (INSERT INTO erru.xml_inbox (message_type, technical_id, raw_xml, payload_digest, request_json, received_at, business_case_id) "
             f"VALUES ('{mtype}', '{uuid.uuid4()}', '<x/>', 'd', {request_json}, now() - interval '{age} seconds', '{label}') RETURNING id) "
-            f"INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts, claimed_by, lease_expires_at, next_attempt_at) "
-            f"SELECT id, 1, '{status}', 0, {claimed_by and repr(claimed_by) or 'NULL'}, {lease}, {nxt} FROM r", name)
+            f"INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts, claimed_by, lease_expires_at, next_attempt_at, created_at) "
+            f"SELECT id, 1, '{status}', 0, {claimed_by and repr(claimed_by) or 'NULL'}, {lease}, {nxt}, now() - interval '{event_age} seconds' FROM r", name)
 
     xtr, asy = 'erru-xml-adapter-xtr', 'erru-xml-adapter-xtr-async'
     row('retry-due', 'received', nxt="now() - interval '1 second'", age=50)           # sent back for a retry, delay passed
@@ -68,6 +70,10 @@ try:
     row('failed', 'failed', age=100)                                                  # manual recovery only
     row('processed', 'processed', age=110)
     row('other-type', 'received', mtype='NotifyUnfitness_Acknowledgement', age=120)   # not a request type
+    row('stale', 'received', age=90000, event_age=90000)                              # open for > 6 h: manual reset only
+    row('superseded', 'received', age=130)                                            # an open event with a later closing event
+    run("INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts) "
+        "SELECT id, 2, 'processed', 0 FROM erru.xml_inbox WHERE business_case_id = 'superseded'", name)
 
     out = run(sql('claim-due.sql', messageTypes=MSGS, batchSize=10), name)
     claimed = sorted(json.loads(l)['inboxId'] for l in out.splitlines() if l.startswith('{'))
@@ -78,6 +84,12 @@ try:
     assert run("SELECT count(*) FROM erru.xml_inbox_current WHERE attempts = 1", name).strip() == '4'
     # nothing left that is due
     assert run(sql('claim-due.sql', messageTypes=MSGS, batchSize=10), name).strip() == ''
+
+    # a row left open for more than 6 hours comes back with the manual reset of docs/integrations/erru-xml-recovery.md
+    run("INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts) "
+        "SELECT id, seq + 1, 'received', 0 FROM erru.xml_inbox_current WHERE business_case_id = 'stale' AND status = 'received'", name)
+    out = run(sql('claim-due.sql', messageTypes=MSGS, batchSize=10), name)
+    assert [json.loads(l)['attempts'] for l in out.splitlines() if l.startswith('{')] == [1], out
 
     # batching: oldest first, at most batchSize
     for i in range(5):
@@ -100,6 +112,7 @@ try:
     row('ow-nojson', 'received', mtype='NotifyUnfitness_Acknowledgement', request_json='NULL', age=90)
     row('ow-lease', 'processing', xtr, lease="now() - interval '1 second'", mtype='NotifyUnfitness_Acknowledgement', age=90)
     row('ow-lease-live', 'processing', xtr, lease="now() + interval '1 minute'", mtype='NotifyUnfitness_Acknowledgement', age=90)
+    row('ow-stale', 'received', mtype='NotifyUnfitness_Acknowledgement', age=90000, event_age=90000)
     ow = run(sql('due-oneway.sql', messageTypes='NotifyUnfitness_Acknowledgement,CheckGoodRepute_Response'), name)
     rows = [json.loads(l) for l in ow.splitlines() if l.startswith('{')]
     assert len(rows) == 2 and rows[0]['messageType'] == 'NotifyUnfitness_Acknowledgement' and rows[0]['sha256'] == 'd', rows
@@ -139,6 +152,8 @@ try:
     # processed rows are never picked up again
     assert run(sql('claim-due.sql', messageTypes=MSGS, batchSize=10), name).strip() == ''
     print('PASS accept, claim-due selection, batching, retry delay, fencing, one-way recovery, conflict log and compare-and-swap')
+    run(migration('20261229150000-erru-xml-inbox-event-queue-index-rollback'), name)
+    assert run("SELECT to_regclass('erru.idx_xml_inbox_event_open_created') IS NULL", name).strip() == 't'
     # rollback copies the current state back into the legacy columns
     run(migration('20261229090000-erru-xml-inbox-append-only-rollback'), name)
     assert run(f"SELECT status || '/' || attempts FROM erru.xml_inbox WHERE id = {cid}", name).strip() == 'processed/2'
