@@ -160,41 +160,27 @@ processCandidates:
           xtr_invalid: "${xtr && (!xcur.ncrTo || !business_case_id || !authority_out || !xcur.requestSource || !xcur.requestPurpose || !xcur.transportUndertakingName || !xcur.communityLicenceNumber || !xcur.vehicleRegistrationNumber || !xcur.vehicleRegistrationCountry || !xcur.checkResult || !xcur.checkDate || xtr_serious.some(function(si) { return !si['@dateOfInfringement'] || !si['@category'] || !si['@infringementType'] || si['@infringementType'] === 'null' || !si.PenaltiesImposed.PenaltyImposed.length; }))}"
           xtr_send: "${xtr && !(!xcur.ncrTo || !business_case_id || !authority_out || !xcur.requestSource || !xcur.requestPurpose || !xcur.transportUndertakingName || !xcur.communityLicenceNumber || !xcur.vehicleRegistrationNumber || !xcur.vehicleRegistrationCountry || !xcur.checkResult || !xcur.checkDate || xtr_serious.some(function(si) { return !si['@dateOfInfringement'] || !si['@category'] || !si['@infringementType'] || si['@infringementType'] === 'null' || !si.PenaltiesImposed.PenaltyImposed.length; }))}"
 
-      # 4) Saada ERRU 3.5 XML-ina läbi adapteri. Ilma reserveeringuta on identifikaatorid
-      #    tühjad, adapter vastab 422 ega saada midagi.
+      # 4) Vana adapteri otsesaatmine (ainult ERRU_NCR_TRANSPORT != xtr). XTR-režiimis ei kutsuta vana adapterit:
+      #    sammud ei jää iterate sees vahele, seega kutsutakse siis ruuter-internali kõrvalmõjuta erru/ncr/autodispatch-noop
+      #    - nii töötab cron ka siis, kui erru-xml-adapter-old on peatatud.
       - call: http.post
         args:
-          url: "${xtr ? '[#ERRU_XML_ADAPTER]/internal/ncr/validate' : '[#ERRU_XML_ADAPTER]/internal/ncr/send'}"
+          url: "${xtr ? '[#LJVIS_RUUTER_INTERNAL]/erru/ncr/autodispatch-noop' : '[#ERRU_XML_ADAPTER]/internal/ncr/send'}"
           headers:
             x-internal-service-token: "[#INTERNAL_COMMUNICATION_KEY]"
             type: json
-          body:
-            ncrTo: ${ncr_to}
-            businessCaseId: ${business_case_id}
-            technicalId: ${technical_id}
-            workflowId: ${workflow_id}
-            sentAt: ${sent_at}
-            originatingAuthority: ${authority_out}
-            requestSource: "${current.requestSource || current.request_source || ''}"
-            requestPurpose: "${current.requestPurpose || current.request_purpose || ''}"
-            transportUndertakingName: "${current.transportUndertakingName || current.transport_undertaking_name || ''}"
-            communityLicenceNumber: "${current.communityLicenceNumber || current.community_licence_number || ''}"
-            vehicleRegistrationNumber: "${current.vehicleRegistrationNumber || current.vehicle_registration_number || ''}"
-            vehicleRegistrationCountry: "${current.vehicleRegistrationCountry || current.vehicle_registration_country || ''}"
-            checkResult: "${current.checkResult || current.check_result || ''}"
-            checkDate: "${current.checkDate || current.check_date || ''}"
-            minorInfringement: "${current.minorInfringement || current.minor_infringement || ''}"
-            seriousInfringements: "${current.seriousInfringements || current.serious_infringements || ''}"
+          body: "${xtr ? {} : {ncrTo: ncr_to, businessCaseId: business_case_id, technicalId: technical_id, workflowId: workflow_id, sentAt: sent_at, originatingAuthority: authority_out, requestSource: current.requestSource || current.request_source || '', requestPurpose: current.requestPurpose || current.request_purpose || '', transportUndertakingName: current.transportUndertakingName || current.transport_undertaking_name || '', communityLicenceNumber: current.communityLicenceNumber || current.community_licence_number || '', vehicleRegistrationNumber: current.vehicleRegistrationNumber || current.vehicle_registration_number || '', vehicleRegistrationCountry: current.vehicleRegistrationCountry || current.vehicle_registration_country || '', checkResult: current.checkResult || current.check_result || '', checkDate: current.checkDate || current.check_date || '', minorInfringement: current.minorInfringement || current.minor_infringement || '', seriousInfringements: current.seriousInfringements || current.serious_infringements || ''}}"
         result: erruRes
 
-      # 4b) XTR raw-XML send. Steps cannot be skipped inside iterate, so without xtr the call goes to the adapter's side-effect-free
-      #     /internal/ncr/validate with an empty body (a 4xx; nothing reaches the Hub). Never an empty body to /xml-out: in report mode XTR sends it.
+      # 4b) XTR raw-XML send. Steps cannot be skipped inside iterate, so without xtr the call goes to ruuter-internal's side-effect-free
+      #     erru/ncr/autodispatch-noop (nothing reaches the Hub). Never an empty body to /xml-out: in report mode XTR sends it.
       - call: http.post
         args:
-          url: "${xtr_send ? (('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyCheckResult_Request') : '[#ERRU_XML_ADAPTER]/internal/ncr/validate'}"
+          url: "${xtr_send ? (('[#ERRU_XTR_BRIDGE]'.indexOf('ERRU_XTR_BRIDGE') >= 0 ? 'http://erru-xml-adapter:8080' : '[#ERRU_XTR_BRIDGE]') + '/xml-out/erru/erru/NotifyCheckResult_Request') : '[#LJVIS_RUUTER_INTERNAL]/erru/ncr/autodispatch-noop'}"
           headers:
             type: json
             Authorization: "Bearer [#INTERNAL_COMMUNICATION_KEY]"
+            x-internal-service-token: "${xtr_send ? '' : '[#INTERNAL_COMMUNICATION_KEY]'}"   # only for the ruuter-internal guard, never to XTR
           body: "${xtr_send ? xtr_body : {}}"
         result: xtrRes
         timeout: 30000
