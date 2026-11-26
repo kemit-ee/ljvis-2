@@ -60,6 +60,10 @@ checkRequired:
     - condition: >-
         ${original_template_id !== '' && !/^[A-Za-z0-9._-]+$/.test(original_template_id)}
       next: returnBadRequest
+    # Pikkuspiirid (sama mis andmebaasi CHECK-piirangud).
+    - condition: >-
+        ${default_recipient_email_raw.length > 320 || original_template_id.length > 200 || desktop_recipient_personal_codes.length > 4000}
+      next: returnBadRequest
   next: insertMapping
 
 insertMapping:

@@ -1,10 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Heading,
-  Text,
-  TextField,
-} from '@tedi-design-system/react/tedi';
+import { Button, Heading, Text } from '@tedi-design-system/react/tedi';
+import { TextField } from '../../../shared/components/TextField';
 
 interface GroupNameEditorProps {
   editingName: boolean;

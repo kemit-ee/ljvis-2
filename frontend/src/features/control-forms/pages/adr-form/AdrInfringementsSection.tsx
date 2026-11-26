@@ -5,7 +5,6 @@ import {
   Heading,
   Text,
   ChoiceGroup,
-  TextField,
   Button,
 } from '@tedi-design-system/react/tedi';
 import type { ClassifierEntry } from '../../../classifiers/types';
@@ -16,6 +15,7 @@ import {
   type RegCodeOption,
 } from './AdrInfringementRecordCard';
 import { infringementCodeFromName, regNumberFromCode } from './adrRecordUtils';
+import { TextField } from '../../../../shared/components/TextField';
 
 const INSPECTION_STATUS: Exclude<AdrInspectionStatus, ''>[] = ['C', 'NC', 'NA'];
 

@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Select,
-  TextField,
-  DateField,
-} from '@tedi-design-system/react/tedi';
+import { Button, Select, DateField } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { getSearchCarrierCountries } from '../../api';
 import type { FormSearchFilters as Filters } from '../../types';
@@ -14,6 +9,7 @@ import styles from './FormSearch.module.css';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface Option {
   value: string;

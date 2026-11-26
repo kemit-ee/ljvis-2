@@ -6,7 +6,6 @@ import {
   Card,
   Heading,
   Text,
-  TextField,
 } from '@tedi-design-system/react/tedi';
 import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
 import { formatDate, toIsoDate } from '../../../../hooks/dateUtils';
@@ -16,6 +15,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import { AppTable } from '../../../../shared/components/AppTable';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import { BREAKPOINTS } from '../../../../constants/constants';
+import { TextField } from '../../../../shared/components/TextField';
 
 const columnHelper = createColumnHelper<NuSourceCandidate>();
 

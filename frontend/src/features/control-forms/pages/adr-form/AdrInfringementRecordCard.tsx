@@ -3,11 +3,11 @@ import {
   Card,
   Button,
   ChoiceGroup,
-  TextField,
   Select,
   Text,
 } from '@tedi-design-system/react/tedi';
 import type { AdrInfringementRecord, AdrParticipant, AdrRiskCategory } from '../../types';
+import { TextField } from '../../../../shared/components/TextField';
 
 export const RISK_CATEGORIES: AdrRiskCategory[] = ['I', 'II', 'III'];
 export const PARTICIPANTS: AdrParticipant[] = ['Ci', 'C', 'Ce', 'L', 'P', 'F', 'To', 'U'];

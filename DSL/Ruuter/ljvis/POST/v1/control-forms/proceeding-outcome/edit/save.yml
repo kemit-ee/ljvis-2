@@ -18,6 +18,14 @@ extract:
     enforcement_decision: "${incoming.body.enforcementDecision || ''}"
     proceeding_closure_basis: "${incoming.body.proceedingClosureBasis || ''}"
     created_by: "${u.personalcode || ''}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.enforcementDecision === "string" ? incoming.body.enforcementDecision : JSON.stringify(incoming.body.enforcementDecision == null ? "" : incoming.body.enforcementDecision)).length > 20000}'
+      next: returnMaxLengthEnforcementDecision
+    - condition: '${(typeof incoming.body.proceedingClosureBasis === "string" ? incoming.body.proceedingClosureBasis : JSON.stringify(incoming.body.proceedingClosureBasis == null ? "" : incoming.body.proceedingClosureBasis)).length > 20000}'
+      next: returnMaxLengthProceedingClosureBasis
   next: routeByType
 
 routeByType:
@@ -154,4 +162,14 @@ notConfirmed:
 saveFailed:
   status: 500
   return: '{"type":"RESQL_ERROR","code":"save_failed"}'
+  next: end
+
+returnMaxLengthEnforcementDecision:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"enforcementDecision","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthProceedingClosureBasis:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"proceedingClosureBasis","code":"max_length_exceeded"}'
   next: end

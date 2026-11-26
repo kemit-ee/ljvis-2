@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Heading, Icon, Radio, Text, TextField } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  Card,
+  Heading,
+  Icon,
+  Radio,
+  Text,
+} from '@tedi-design-system/react/tedi';
 import type { ViolationEntry } from '../../types';
 import type { ClassifierEntry } from '../../../classifiers/types';
 import styles from './ViolationPickerModal.module.css';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface ViolationPickerModalProps {
   violationClassifiers: ClassifierEntry[];

@@ -109,6 +109,7 @@ PSQL_CMD="$COMPOSE exec -T database psql -X -U ljvis -d ljvis_db" python3 "$REPO
 
 $COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/sp-erru-points.sql"
 $COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/form-snapshot-revision.sql"
+$COMPOSE exec -T database psql -X -q -v ON_ERROR_STOP=1 -U ljvis -d ljvis_db < "$REPO_ROOT/tests/sql/form-text-length-limits.sql"
 
 fi
 

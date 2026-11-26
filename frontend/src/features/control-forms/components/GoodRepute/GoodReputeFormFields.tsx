@@ -5,7 +5,6 @@ import {
   ChoiceGroup,
   Heading,
   Select,
-  TextField,
   Alert,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
@@ -14,6 +13,7 @@ import type { GoodReputeForm } from '../../types';
 import styles from '../../../classifiers/components/ClassifierValueInfoCard/ClassifierValueInfoCard.module.css';
 import { FileUploadBlock } from '../shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface CountryOption {
   value: string;

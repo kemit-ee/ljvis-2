@@ -4,7 +4,6 @@ import {
   ChoiceGroup,
   Heading,
   Select,
-  TextField,
   Text,
 } from '@tedi-design-system/react/tedi';
 import { classifierOptions, fieldError, pickOptionValue, selectedClassifierOption } from '../../utils/fieldHelpers';
@@ -12,6 +11,7 @@ import type { useCtudForm } from '../../pages/ctud/useCtudForm';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
 import { DetailRow } from '../shared/DetailRow';
+import { TextField } from '../../../../shared/components/TextField';
 
 type CtudFormApi = ReturnType<typeof useCtudForm>;
 

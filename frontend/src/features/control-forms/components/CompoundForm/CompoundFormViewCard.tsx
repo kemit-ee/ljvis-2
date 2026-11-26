@@ -6,8 +6,6 @@ import {
   Heading,
   Select,
   Text,
-  Textarea,
-  TextField,
   TimeField,
 } from '@tedi-design-system/react/tedi';
 import type { CompoundForm, Trailer, Driver } from '../../types';
@@ -15,6 +13,8 @@ import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import styles from '../../pages/compound-form/CompoundFormPage.module.css';
 import { FormVersionsTable } from '../FormVersionsTable/FormVersionsTable';
 import { FormPrintButton } from '../FormPrintButton/FormPrintButton';
+import { Textarea } from '../../../../shared/components/Textarea';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface CompoundFormViewCardProps {
   form: CompoundForm;

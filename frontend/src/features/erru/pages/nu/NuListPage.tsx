@@ -10,7 +10,6 @@ import {
   Heading,
   Select,
   Text,
-  TextField,
 } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import type { NuMessageListItem } from '../../types';
@@ -20,6 +19,7 @@ import { useNuList } from './useNuList';
 import { useAuth } from '../../../auth/AuthContext';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
+import { TextField } from '../../../../shared/components/TextField';
 
 const columnHelper = createColumnHelper<NuMessageListItem>();
 

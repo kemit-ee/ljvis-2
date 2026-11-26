@@ -1,11 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Card,
-  Heading,
-  Select,
-  TextField,
-} from '@tedi-design-system/react/tedi';
+import { Button, Card, Heading, Select } from '@tedi-design-system/react/tedi';
 import {
   CardContent,
   Modal,
@@ -17,6 +11,7 @@ import { PhoneField } from '../PhoneField/PhoneField';
 import styles from './UserBasicInfoEditCard.module.css';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface UserEditFormValues {
   firstName: string;

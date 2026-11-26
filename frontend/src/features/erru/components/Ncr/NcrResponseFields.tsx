@@ -1,6 +1,12 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, ChoiceGroup, DateField, Heading, Select, TextField } from '@tedi-design-system/react/tedi';
+import {
+  Card,
+  ChoiceGroup,
+  DateField,
+  Heading,
+  Select,
+} from '@tedi-design-system/react/tedi';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import { useClassifierLabel } from '../../../classifiers/useClassifierLabel';
 import { toIsoDate } from '../../../../hooks/dateUtils';
@@ -17,6 +23,7 @@ import type { NcrMessage } from '../../types';
 import type { Organisation } from '../../../organisations/types';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
+import { TextField } from '../../../../shared/components/TextField';
 
 type NcrResponseFormApi = ReturnType<typeof useNcrResponseForm>;
 

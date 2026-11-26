@@ -6,7 +6,6 @@ import {
   ChoiceGroup,
   Heading,
   Select,
-  TextField,
 } from '@tedi-design-system/react/tedi';
 import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField';
 import { MaskedTimeField } from '../../../control-forms/components/shared/MaskedTimeField';
@@ -22,6 +21,7 @@ import {
 import { useOrganisations } from '../../../organisations/hooks';
 import type { useRsiForm } from '../../pages/rsi/useRsiForm';
 import { RsiCheckedItemsTable } from './RsiCheckedItemsTable';
+import { TextField } from '../../../../shared/components/TextField';
 
 type RsiFormApi = ReturnType<typeof useRsiForm>;
 

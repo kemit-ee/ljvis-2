@@ -7,8 +7,6 @@ import {
   Heading,
   Modal,
   ChoiceGroup,
-  Textarea,
-  TextField,
   Text,
   Alert,
 } from '@tedi-design-system/react/tedi';
@@ -27,6 +25,9 @@ import { DefectSelectionModal } from './DefectSelectionModal';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
 import { useAuth } from '../../../auth/AuthContext';
 import { PUNISHMENT_REGISTER_PERMISSION } from '../../proceedingOutcome';
+import { Textarea } from '../../../../shared/components/Textarea';
+import { TextField } from '../../../../shared/components/TextField';
+import { PROCEEDING_OUTCOME_MAX_LENGTH } from '../../../../shared/textLimits';
 
 interface TechnicalCheckFormFieldsProps {
   variant: TechnicalCheckVariant;
@@ -636,6 +637,7 @@ export function TechnicalCheckFormFields({
             />
             <Textarea
               id={`${idPrefix}-enforcementDecision`}
+              input={{ maxLength: PROCEEDING_OUTCOME_MAX_LENGTH }}
               label={t('forms.technical_check.xroad.enforcementDecision')}
               value={values.enforcementDecision ?? ''}
               onChange={(value) => formik.setFieldValue('enforcementDecision', value)}
@@ -643,6 +645,7 @@ export function TechnicalCheckFormFields({
             />
             <Textarea
               id={`${idPrefix}-proceedingClosureBasis`}
+              input={{ maxLength: PROCEEDING_OUTCOME_MAX_LENGTH }}
               label={t('forms.technical_check.xroad.proceedingClosureBasis')}
               value={values.proceedingClosureBasis ?? ''}
               onChange={(value) => formik.setFieldValue('proceedingClosureBasis', value)}

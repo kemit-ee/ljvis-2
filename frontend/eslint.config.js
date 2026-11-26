@@ -35,6 +35,20 @@ export default defineConfig([
     },
     rules: {
       'react-hooks/set-state-in-effect': 'warn',
+      // Tekstiväljadel peab olema pikkuspiirang: kasuta shared/components mähiseid.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@tedi-design-system/react/tedi',
+              importNames: ['TextField', 'Textarea'],
+              message:
+                'Kasuta shared/components/TextField või shared/components/Textarea (vaikimisi pikkuspiirang).',
+            },
+          ],
+        },
+      ],
       'react-refresh/only-export-components': [
         'warn',
         {

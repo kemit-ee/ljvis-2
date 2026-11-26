@@ -6,7 +6,6 @@ import {
   Button,
   ChoiceGroup,
   Heading,
-  TextField,
   Card,
   Text,
   Checkbox,
@@ -23,6 +22,7 @@ import { ViolationPickerModal } from './ViolationPickerModal';
 import { CompanyPickerModal } from '../CompanyPickerModal';
 import styles from '../../pages/labour-inspection/LabourInspectionFormPage.module.css';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
+import { TextField } from '../../../../shared/components/TextField';
 
 export const INSPECTION_TYPES = [
   {

@@ -6,8 +6,6 @@ import {
   Heading,
   Text,
   ChoiceGroup,
-  TextField,
-  Textarea,
   Select,
   Alert,
   Button,
@@ -27,6 +25,8 @@ import styles from './AdrFormFields.module.css';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock.tsx';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import { ProceedingOutcomeFields } from '../../components/ProceedingOutcomeFields/ProceedingOutcomeFields';
+import { TextField } from '../../../../shared/components/TextField';
+import { Textarea } from '../../../../shared/components/Textarea';
 
 const RESULT_OPTIONS = ['ok', 'misdemeanor_proceedings', 'warning'] as const;
 

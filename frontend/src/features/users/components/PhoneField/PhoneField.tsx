@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { TextField } from '@tedi-design-system/react/tedi';
 import styles from './PhoneField.module.css';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface PhoneFieldProps {
   value: string;

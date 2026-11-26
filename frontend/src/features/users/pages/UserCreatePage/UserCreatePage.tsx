@@ -5,7 +5,6 @@ import {
   Button,
   DateField,
   Heading,
-  TextField,
   Select,
   Row,
   Col,
@@ -20,6 +19,7 @@ import { PhoneField } from '../../components/PhoneField/PhoneField';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { AsyncButton } from '../../../../shared/components/AsyncButton';
 import styles from './UserCreatePage.module.css';
+import { TextField } from '../../../../shared/components/TextField';
 
 export function UserCreatePage() {
   const { t } = useTranslation();

@@ -5,7 +5,6 @@ import {
   Card,
   ChoiceGroup,
   Heading,
-  Textarea,
 } from '@tedi-design-system/react/tedi';
 import { useCanUseAdministrativeProcedure } from '../../../../hooks/useCanUseAdministrativeProcedure';
 import { toIsoDate } from '../../../../hooks/dateUtils';
@@ -17,6 +16,7 @@ import {
   type AdministrativeProcedure,
   type AdministrativeProcedureFormType,
 } from '../../api';
+import { Textarea } from '../../../../shared/components/Textarea';
 
 interface Props {
   formType: AdministrativeProcedureFormType;

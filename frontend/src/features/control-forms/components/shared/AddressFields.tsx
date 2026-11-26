@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Select, TextField } from '@tedi-design-system/react/tedi';
+import { Select } from '@tedi-design-system/react/tedi';
 import { COUNTRIES } from '../../../../constants/constants';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider.tsx';
+import { TextField } from '../../../../shared/components/TextField';
 
 export interface AddressFieldsValue {
   countryCode: string;

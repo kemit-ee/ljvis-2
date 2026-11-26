@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { sanitizeDecimalInput } from '../../../../hooks/stringUtils';
-import { Button, TextField, Card, Select } from '@tedi-design-system/react/tedi';
+import { Button, Card, Select } from '@tedi-design-system/react/tedi';
 import type { DangerousGoodEntry } from '../../types';
 import { useClassifiers } from '../../../classifiers/ClassifierProvider';
 import styles from './AdrFormFields.module.css';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface DangerousGoodsTableProps {
   rows: DangerousGoodEntry[];

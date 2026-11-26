@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Button,
   Text,
-  Textarea,
   Modal,
   Alert,
   Separator,
@@ -12,6 +11,7 @@ import {
 import type { ClassifierEntry } from '../../../../classifiers/types';
 import type { CheckEntry } from '../../../types.ts';
 import styles from './CheckModal.module.css';
+import { Textarea } from '../../../../../shared/components/Textarea';
 
 interface Props {
   level1Items: ClassifierEntry[];

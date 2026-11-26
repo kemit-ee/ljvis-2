@@ -1,18 +1,13 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Button,
-  Card,
-  Heading,
-  Select,
-  TextField,
-} from '@tedi-design-system/react/tedi';
+import { Button, Card, Heading, Select } from '@tedi-design-system/react/tedi';
 import type { FormikProps } from 'formik';
 import styles from './ClassifierValueInfoCard.module.css';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
 import { useClassifiers } from '../../ClassifierProvider';
 import { buildFormScopeOptions, type FormScopeOption } from '../../formScope';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface ClassifierValueFormValues {
   id: string;

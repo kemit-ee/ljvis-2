@@ -54,6 +54,22 @@ extractRequestData:
     created_by: "${u.personalcode || ''}"
     actor_personal_code: "${u.personalcode || ''}"
     actor_name: "${(u.firstname || '') + ' ' + (u.lastname || '')}"
+  next: validateTextLengths
+
+validateTextLengths:
+  switch:
+    - condition: '${(typeof incoming.body.headerText === "string" ? incoming.body.headerText : JSON.stringify(incoming.body.headerText == null ? "" : incoming.body.headerText)).length > 4000}'
+      next: returnMaxLengthHeaderText
+    - condition: '${(typeof incoming.body.interruptionReason === "string" ? incoming.body.interruptionReason : JSON.stringify(incoming.body.interruptionReason == null ? "" : incoming.body.interruptionReason)).length > 4000}'
+      next: returnMaxLengthInterruptionReason
+    - condition: '${(typeof incoming.body.terminationCondition === "string" ? incoming.body.terminationCondition : JSON.stringify(incoming.body.terminationCondition == null ? "" : incoming.body.terminationCondition)).length > 4000}'
+      next: returnMaxLengthTerminationCondition
+    - condition: '${(typeof incoming.body.personApplications === "string" ? incoming.body.personApplications : JSON.stringify(incoming.body.personApplications == null ? "" : incoming.body.personApplications)).length > 4000}'
+      next: returnMaxLengthPersonApplications
+    - condition: '${(typeof incoming.body.legalBases === "string" ? incoming.body.legalBases : JSON.stringify(incoming.body.legalBases == null ? "" : incoming.body.legalBases)).length > 100000}'
+      next: returnTooLargeLegalBases
+    - condition: '${/^\s*[\x5b\x7b]/.test((typeof incoming.body.legalBases === "string" ? incoming.body.legalBases : JSON.stringify(incoming.body.legalBases == null ? "" : incoming.body.legalBases))) && JSON.stringify(JSON.parse((typeof incoming.body.legalBases === "string" ? incoming.body.legalBases : JSON.stringify(incoming.body.legalBases == null ? "" : incoming.body.legalBases))), (k, x) => typeof x === "string" && x.length > 4000 ? "#too-long#" : x).indexOf("\"#too-long#\"") !== -1}'
+      next: returnTooLargeLegalBases
   next: validateTextFields
 
 validateTextFields:
@@ -394,4 +410,29 @@ returnInvalidCharactersTerminationCondition:
 returnInvalidCharactersPersonApplications:
   status: 422
   return: '{"type":"VALIDATION_ERROR","field":"personApplications","code":"invalid_characters"}'
+  next: end
+
+returnMaxLengthHeaderText:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"headerText","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthInterruptionReason:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"interruptionReason","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthTerminationCondition:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"terminationCondition","code":"max_length_exceeded"}'
+  next: end
+
+returnMaxLengthPersonApplications:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"personApplications","code":"max_length_exceeded"}'
+  next: end
+
+returnTooLargeLegalBases:
+  status: 422
+  return: '{"type":"VALIDATION_ERROR","field":"legalBases","code":"max_length_exceeded"}'
   next: end

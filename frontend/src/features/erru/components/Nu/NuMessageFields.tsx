@@ -1,11 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Card,
-  Heading,
-  Radio,
-  Select,
-  TextField,
-} from '@tedi-design-system/react/tedi';
+import { Card, Heading, Radio, Select } from '@tedi-design-system/react/tedi';
 import {
   classifierOptions,
   dateFieldError,
@@ -19,6 +13,7 @@ import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
 import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
 import { toIsoDate } from '../../../../hooks/dateUtils';
+import { TextField } from '../../../../shared/components/TextField';
 
 type NuFormApi = ReturnType<typeof useNuForm>;
 

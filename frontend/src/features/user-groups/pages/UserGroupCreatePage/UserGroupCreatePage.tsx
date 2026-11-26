@@ -5,7 +5,6 @@ import { createColumnHelper } from '@tanstack/react-table';
 import {
   Button,
   Heading,
-  TextField,
   Row,
   Col,
   Card,
@@ -25,6 +24,7 @@ import type { Permission } from '../../../permissions/types';
 import './UserGroupCreatePage.module.css';
 import { useAuth } from '../../../auth/AuthContext.tsx';
 import { AppTable } from '../../../../shared/components/AppTable';
+import { TextField } from '../../../../shared/components/TextField';
 
 const orgColumnHelper = createColumnHelper<Organisation>();
 const permColumnHelper = createColumnHelper<Permission>();

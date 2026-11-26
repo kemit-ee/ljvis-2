@@ -9,7 +9,6 @@ import {
   Button,
   ClosingButton,
   Heading,
-  TextField,
   Select,
   Row,
   Col,
@@ -17,7 +16,6 @@ import {
   Text,
   Alert,
   ChoiceGroup,
-  Textarea,
   Tooltip,
   InfoButton,
   Tabs,
@@ -61,6 +59,8 @@ import type { TransportInterruptionForm } from '../../types';
 import { AsyncButton } from '../../../../shared/components/AsyncButton.tsx';
 import { SelectedFormsNavigation } from '../../components/CompoundForm/SelectedFormsNavigation';
 import { FileUploadBlock } from '../../components/shared/FileUploadBlock';
+import { TextField } from '../../../../shared/components/TextField';
+import { Textarea } from '../../../../shared/components/Textarea';
 
 type AnySubFormData = Partial<DriveRestForm> | Partial<TechnicalCheckForm> | Partial<AdrForm> | Partial<TransportInterruptionForm>;
 

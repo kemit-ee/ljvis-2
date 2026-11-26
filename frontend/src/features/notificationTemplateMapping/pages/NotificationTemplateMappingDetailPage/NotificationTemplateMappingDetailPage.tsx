@@ -8,7 +8,6 @@ import {
   Heading,
   Select,
   Text,
-  TextField,
 } from '@tedi-design-system/react/tedi';
 import { useAuth } from '../../../auth/AuthContext';
 import { PERMISSIONS } from '../../../../constants/constants';
@@ -21,6 +20,7 @@ import {
   NOTIFICATION_TYPE_TEMPLATE_VARIABLES,
   NOTIFICATION_TYPE_TRIGGER_FORM_KEYS,
 } from '../../notificationTypeMeta';
+import { TextField } from '../../../../shared/components/TextField';
 
 const LANGUAGE_OPTIONS = [
   { value: 'et', label: 'Eesti' },

@@ -1,7 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Button, DateField, Select, Text, TextField, Tooltip } from '@tedi-design-system/react/tedi';
+import {
+  Button,
+  DateField,
+  Select,
+  Text,
+  Tooltip,
+} from '@tedi-design-system/react/tedi';
 import { useAuth } from '../auth/AuthContext';
 import { AppTable } from '../../shared/components/AppTable';
 import { formatDateTime, toIsoDate } from '../../hooks/dateUtils';
@@ -11,6 +17,7 @@ import { OutboundReportModal } from './OutboundReportModal';
 import { checkNotificationStatus, resendNotification } from './api';
 import type { OutboundLogEntry } from './types';
 import { useMediaQuery } from '../../hooks/useMediaQuery.ts';
+import { TextField } from '../../shared/components/TextField';
 
 const columnHelper = createColumnHelper<OutboundLogEntry>();
 

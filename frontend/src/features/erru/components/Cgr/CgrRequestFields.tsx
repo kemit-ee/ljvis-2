@@ -1,11 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import {
-  Card,
-  Heading,
-  Select,
-  TextField,
-  Text,
-} from '@tedi-design-system/react/tedi';
+import { Card, Heading, Select, Text } from '@tedi-design-system/react/tedi';
 import { toIsoDate } from '../../../../hooks/dateUtils';
 import {
   classifierOptions,
@@ -20,6 +14,7 @@ import { DetailRow } from '../shared/DetailRow';
 import { useMediaQuery } from '../../../../hooks/useMediaQuery.ts';
 import { BREAKPOINTS } from '../../../../constants/constants.ts';
 import { MaskedDateField } from '../../../control-forms/components/shared/MaskedDateField.tsx';
+import { TextField } from '../../../../shared/components/TextField';
 
 type CgrFormApi = ReturnType<typeof useCgrForm>;
 

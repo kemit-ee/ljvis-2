@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, TextField, Select, Text } from '@tedi-design-system/react/tedi';
+import { Button, Select, Text } from '@tedi-design-system/react/tedi';
 import type { ControlsMatrixRow } from '../../types';
 import type { ClassifierEntry } from '../../../classifiers/types';
+import { TextField } from '../../../../shared/components/TextField';
 
 interface ControlsMatrixTableProps {
   rows: ControlsMatrixRow[];

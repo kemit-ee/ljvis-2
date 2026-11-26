@@ -2,7 +2,8 @@
 
 The control-form save and confirm routes (and the shared foreign violation validation template) reject
 a text field that is longer than its VARCHAR column. A limit above the column gives a database error (500)
-instead of a 422. A limit below the column rejects a valid value. This check reads the column sizes from
+instead of a 422. A limit below the column rejects a valid value. For a TEXT column the limit must not be above
+the limit of the forms.enforce_text_limits trigger. This check reads the column sizes from
 a running PostgreSQL and compares them with every `returnMaxLength*` step.
 
 Usage:
@@ -23,6 +24,10 @@ RESQL = ROOT / "DSL/Resql/ljvis/POST"
 DEFAULT_PSQL = "docker exec database psql -X -U ljvis -d ljvis_db"
 QUERY = ("select table_schema||'.'||table_name, column_name, coalesce(character_maximum_length::text, 'text') "
          "from information_schema.columns where data_type in ('character varying', 'character', 'text')")
+TRIGGER_QUERY = ("select n.nspname||'.'||c.relname, split_part(a, '=', 1), split_part(a, '=', 2) "
+                 "from pg_trigger g join pg_class c on c.oid = g.tgrelid join pg_namespace n on n.oid = c.relnamespace "
+                 "cross join lateral unnest(string_to_array(encode(g.tgargs, 'escape'), '\\000')) a "
+                 r"where g.tgname like '%\_text\_limits' and a like '%=%'")
 LIMIT = re.compile(r"length > (\d+)\}'?\n      next: returnMaxLength(\w+)\b")
 FIELD = re.compile(r"^returnMaxLength(\w+):\n(?:  status: 422\n)?  return: '\{\"type\":\"VALIDATION_ERROR\",\"field\":\"(\w+)\"", re.M)
 
@@ -40,6 +45,17 @@ def load_columns(psql_cmd):
         table, column, size = line.split("|")
         columns.setdefault(table, {})[column] = None if size == "text" else int(size)
     return columns
+
+
+def load_trigger_limits(psql_cmd):
+    out = subprocess.run(shlex.split(psql_cmd) + ["-tAF|", "-c", TRIGGER_QUERY], capture_output=True, text=True)
+    if out.returncode != 0:
+        sys.exit("cannot read the text limit triggers: " + out.stderr.strip()[:300])
+    limits = {}
+    for line in out.stdout.splitlines():
+        table, column, size = line.split("|")
+        limits.setdefault(table, {})[column] = int(size)
+    return limits
 
 
 def tables_of(text):
@@ -65,7 +81,7 @@ def owners(path):
     return callers
 
 
-def check(columns, root_files=None):
+def check(columns, root_files=None, trigger_limits=None):
     errors, compared = [], 0
     for path in sorted(root_files or (RUUTER).rglob("*.yml")):
         text = path.read_text(encoding="utf-8")
@@ -86,6 +102,10 @@ def check(columns, root_files=None):
                 errors.append(f"{where}: {field or step} has limit {limit} but no column {column} in {tables or 'any table'}")
                 continue
             compared += 1
+            for table in tables:
+                ceiling = (trigger_limits or {}).get(table, {}).get(column)
+                if ceiling is not None and int(limit) > ceiling:
+                    errors.append(f"{where}: {field} limit is {limit} but the {table} trigger allows only {ceiling}")
             for size in sizes:
                 if size is not None and size != int(limit):
                     errors.append(f"{where}: {field} limit is {limit} but the column {column} is VARCHAR({size})")
@@ -93,8 +113,8 @@ def check(columns, root_files=None):
 
 
 def main():
-    columns = load_columns(os.environ.get("PSQL_CMD", DEFAULT_PSQL))
-    errors, compared = check(columns)
+    psql_cmd = os.environ.get("PSQL_CMD", DEFAULT_PSQL)
+    errors, compared = check(load_columns(psql_cmd), trigger_limits=load_trigger_limits(psql_cmd))
     for error in errors:
         print(error)
     print(f"Text length limits vs database: {compared} limits compared, " + ("FAILED" if errors or not compared else "OK"))
