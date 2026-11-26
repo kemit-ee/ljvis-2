@@ -1,0 +1,686 @@
+mode: mock-http
+constants:
+  LJVIS_RESQL: '{MOCK}/resql'
+  LJVIS_TIM: '{MOCK}/tim'
+tests:
+- name: create preserves RSI category L1e
+  setup:
+    mocks:
+    - &id001
+      url_matches: /user/get_user_organisation_by_personal_code
+      method: POST
+      status: 200
+      body: []
+    - &id002
+      url_matches: /user/get_user_permissions_by_personal_code
+      method: POST
+      status: 200
+      body:
+      - personalcode: TEST
+        firstname: Test
+        lastname: User
+        permissions:
+        - rsi.create
+        - rsi.edit
+    - &id003
+      url_matches: /jwt/userinfo
+      method: GET
+      status: 200
+      body:
+        userinfo:
+          claims:
+            personalCode: TEST
+    - &id004
+      url_matches: /log/insert_audit_event
+      method: POST
+      status: 200
+      body: []
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' L1e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: L1e
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category L1e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' L1e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: L1e
+      vehicleRegistrationNumber: TEST123
+- name: create preserves RSI category L2e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' L2e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: L2e
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category L2e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' L2e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: L2e
+      vehicleRegistrationNumber: TEST123
+- name: create preserves RSI category L3e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' L3e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: L3e
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category L3e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' L3e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: L3e
+      vehicleRegistrationNumber: TEST123
+- name: create preserves RSI category L4e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' L4e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: L4e
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category L4e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' L4e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: L4e
+      vehicleRegistrationNumber: TEST123
+- name: create preserves RSI category L5e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' L5e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: L5e
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category L5e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' L5e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: L5e
+      vehicleRegistrationNumber: TEST123
+- name: create preserves RSI category L6e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' L6e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: L6e
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category L6e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' L6e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: L6e
+      vehicleRegistrationNumber: TEST123
+- name: create preserves RSI category L7e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' L7e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: L7e
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category L7e
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' L7e '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: L7e
+      vehicleRegistrationNumber: TEST123
+- name: create preserves RSI category N3
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 1
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: ''
+      originatingAuthority: KLIM
+      vehicleCategory: ' N3 '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft
+    count: 1
+    body_matches:
+      vehicleCategory: N3
+      vehicleRegistrationNumber: TEST123
+- name: revise preserves RSI category N3
+  setup:
+    mocks:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - url_matches: /erru/rsi/append-draft-revision
+      method: POST
+      status: 200
+      body:
+      - id: 1
+        businessCaseId: EE-RSI-TEST
+        version: 2
+        status: initiated
+  request:
+    method: POST
+    path: /ljvis/v1/erru/rsi/request/save
+    headers:
+      cookie: test
+      content-type: application/json
+    body:
+      id: '1'
+      originatingAuthority: KLIM
+      vehicleCategory: ' N3 '
+      vehicleRegistrationNumber: test123
+      vehicleRegistrationCountry: EE
+      inspectionLocation: Tallinn
+      inspectionDatetime: '2026-11-25T10:00:00'
+      inspectionAuthorityOrName: TEST
+      inspectionPassed: 'false'
+      ptiRequested: 'false'
+      vehicleProhibitionOrRestriction: 'false'
+  expect:
+    status: 200
+  verify_mocks:
+  - url_matches: /erru/rsi/append-draft-revision
+    count: 1
+    body_matches:
+      vehicleCategory: N3
+      vehicleRegistrationNumber: TEST123
