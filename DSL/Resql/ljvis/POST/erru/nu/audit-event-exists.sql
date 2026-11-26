@@ -8,6 +8,10 @@ description: >-
   uses log_content.nuMessageKey; audit_event has no foreign key to nu_message by design.
   This lookup is not a concurrency guard: new audit writes use erru.record_inbound_audit
   with a transaction lock and a separate stable deduplication key.
+  The lookup uses the partial expression index idx_ae_nu_inbound_message_key
+  (log_content->>'nuMessageKey'), which serves the generic plan of the reused prepared statement;
+  a jsonb containment (@>) with a parameter fell back to a linear scan (the whole audit table or
+  all NU inbound events), which grew with the audit history.
 namespace: erru
 params:
   message_key:
@@ -21,5 +25,5 @@ returns:
 SELECT EXISTS (
   SELECT 1 FROM audit.audit_event
   WHERE event_type = 'nu.inbound_request.store'
-    AND log_content @> jsonb_build_object('nuMessageKey', :message_key::text)
+    AND log_content->>'nuMessageKey' = :message_key::text
 ) AS exists;

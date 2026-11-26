@@ -103,6 +103,7 @@ python3 "$REPO_ROOT/tests/erru-adapter/test_xml_inbox_recovery.py" -- $COMPOSE e
 python3 "$REPO_ROOT/tests/sql/risk-all-forms.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 python3 "$REPO_ROOT/tests/sql/risk-recalc-candidates.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 python3 "$REPO_ROOT/tests/sql/test_nu_concurrency.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
+python3 "$REPO_ROOT/tests/sql/test_nu_audit_event_exists.py" -- $COMPOSE exec -T database psql -U ljvis -d ljvis_db
 
 # Text length limits in the Ruuter validation must equal the VARCHAR size of the migrated column.
 PSQL_CMD="$COMPOSE exec -T database psql -X -U ljvis -d ljvis_db" python3 "$REPO_ROOT/tests/contract/check_text_limits.py"
