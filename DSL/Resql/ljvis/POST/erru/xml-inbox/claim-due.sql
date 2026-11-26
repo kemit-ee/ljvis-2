@@ -28,12 +28,13 @@ WITH open_latest AS MATERIALIZED (
      AND NOT EXISTS (SELECT 1 FROM erru.xml_inbox_event n WHERE n.inbox_id = e.inbox_id AND n.seq > e.seq)
 ),
 due AS (
-  SELECT i.id, o.seq, o.attempts
+  SELECT o.inbox_id AS id, o.seq, o.attempts
     FROM open_latest o
-    JOIN erru.xml_inbox i ON i.id = o.inbox_id
-   WHERE i.message_type = ANY (string_to_array(:messageTypes, ','))
-     AND i.request_json IS NOT NULL
-   ORDER BY COALESCE(o.next_attempt_at, o.lease_expires_at, i.received_at), i.id
+   WHERE EXISTS (SELECT 1 FROM erru.xml_inbox i
+                  WHERE i.id = o.inbox_id
+                    AND i.message_type = ANY (string_to_array(:messageTypes, ','))
+                    AND i.request_json IS NOT NULL)
+   ORDER BY COALESCE(o.next_attempt_at, o.lease_expires_at, (SELECT i.received_at FROM erru.xml_inbox i WHERE i.id = o.inbox_id)), o.inbox_id
    LIMIT GREATEST(1, LEAST(COALESCE(:batchSize::int, 1), 10))
 ),
 claimed AS (

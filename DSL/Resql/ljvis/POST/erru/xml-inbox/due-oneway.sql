@@ -26,10 +26,10 @@ SELECT json_build_object(
   'rawXml', i.raw_xml,
   'sha256', i.payload_digest
 )::text AS result
-  FROM open_latest o
-  JOIN erru.xml_inbox i ON i.id = o.inbox_id
- WHERE i.message_type = ANY (string_to_array(:messageTypes, ','))
+  FROM erru.xml_inbox i
+ WHERE i.id = ANY (SELECT o.inbox_id FROM open_latest o)
+   AND i.message_type = ANY (string_to_array(:messageTypes, ','))
    AND i.request_json IS NOT NULL
    AND i.received_at < now() - interval '1 minute'
- ORDER BY COALESCE(o.next_attempt_at, i.received_at), i.id
+ ORDER BY COALESCE((SELECT o.next_attempt_at FROM open_latest o WHERE o.inbox_id = i.id), i.received_at), i.id
  LIMIT 3;
