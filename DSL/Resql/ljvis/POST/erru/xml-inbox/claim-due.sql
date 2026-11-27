@@ -1,5 +1,5 @@
 /*
-description: 'Cron worker (async CGR/CTUD queue and recovery of the synchronous NU/NCR/RSI flows): takes over up to batchSize due rows (CGR / CTUD by their Hub deadline, others oldest first; a CGR / CTUD row whose Hub response window has passed is not taken, it is closed as processed in the same statement, up to 500 per call): rows that xml-inbox/accept parked in async mode (claimed_by erru-xml-adapter-xtr-async, due now), rows whose worker died mid-way (claimed_by erru-xml-adapter-xtr, lease expired) and rows sent back for a retry (status received, next_attempt_at due or unset; this also picks up a manually reset failed row). Only rows with the stored request_json qualify (all XTR flows store it). Each row gets the xtr claim (a new processing event, attempts + 1, compare-and-swap on seq so of two concurrent claimers one wins) with a 10 minute lease (a batch of 5 runs one worker after another, each up to ~75 s, NU up to ~190 s), so finish and the rest of the flow work as for a synchronous request. Returns one JSON row per claimed row, none when nothing is due. failed rows are never taken automatically (the Hub or XSD rejected the answer: manual recovery). Only rows whose current event is at most 6 hours old are scanned (the queue does not grow with the history); an older open row needs a manual reset.'
+description: 'Cron worker (async CGR/CTUD queue and recovery of the synchronous NU/NCR/RSI flows): takes over up to batchSize due rows (CGR / CTUD by their Hub deadline, others oldest first; a CGR / CTUD row whose Hub response window has passed is not taken, it is closed as processed in the same statement, up to 500 per call): rows that xml-inbox/accept parked in async mode (claimed_by erru-xml-adapter-xtr-async, due now), rows whose worker died mid-way (claimed_by erru-xml-adapter-xtr, lease expired) and rows sent back for a retry (status received, next_attempt_at due or unset; this also picks up a manually reset failed row). Only rows with the stored request_json qualify (all XTR flows store it). Each row gets the xtr claim (a new processing event, attempts + 1, compare-and-swap on seq so of two concurrent claimers one wins) with a 15 minute lease (a batch of 5 runs one worker after another; the cron gives each worker call up to 150 s, so the fifth row can start 600 s after the claim, and NU takes up to ~190 s), so finish and the rest of the flow work as for a synchronous request. Returns one JSON row per claimed row, none when nothing is due. failed rows are never taken automatically (the Hub or XSD rejected the answer: manual recovery). Only rows whose current event is at most 6 hours old are scanned (the queue does not grow with the history); an older open row needs a manual reset.'
 namespace: erru
 params:
   messageTypes:
@@ -14,7 +14,7 @@ WITH open_latest AS MATERIALIZED (
   -- The queue is read from the open events of the last 6 hours, not from erru.xml_inbox_current: the view computes
   -- max(seq) for every inbox row ever received. An open event is current only when no later event of the same row
   -- exists (anti-join on uq_xml_inbox_event_inbox_seq). In a running system an open current event is never older than
-  -- a lease (at most 10 minutes) or a retry delay (30 s): the cron takes it over with a new event. A row left open for
+  -- a lease (at most 15 minutes) or a retry delay (30 s): the cron takes it over with a new event. A row left open for
   -- longer than 6 hours (the cron stopped) needs a manual reset, see docs/integrations/erru-xml-recovery.md.
   SELECT e.inbox_id, e.seq, e.attempts, e.lease_expires_at, e.next_attempt_at
     FROM erru.xml_inbox_event e
@@ -28,16 +28,19 @@ WITH open_latest AS MATERIALIZED (
      AND NOT EXISTS (SELECT 1 FROM erru.xml_inbox_event n WHERE n.inbox_id = e.inbox_id AND n.seq > e.seq)
 ),
 cand AS (
-  -- No JOIN (Resql rule): the receipt columns are read with primary key sub-selects.
-  SELECT o.inbox_id AS id, o.seq, o.attempts,
-         (SELECT i.message_type FROM erru.xml_inbox i WHERE i.id = o.inbox_id) AS message_type,
-         (SELECT i.deadline_at FROM erru.xml_inbox i WHERE i.id = o.inbox_id) AS deadline_at,
-         COALESCE(o.next_attempt_at, o.lease_expires_at, (SELECT i.received_at FROM erru.xml_inbox i WHERE i.id = o.inbox_id)) AS due_at
-    FROM open_latest o
-   WHERE EXISTS (SELECT 1 FROM erru.xml_inbox i
-                  WHERE i.id = o.inbox_id
-                    AND i.message_type = ANY (string_to_array(:messageTypes, ','))
-                    AND i.request_json IS NOT NULL)
+  -- No JOIN (Resql rule): the receipt columns are read with primary key sub-selects, one index probe per open row.
+  -- Do not filter with EXISTS on erru.xml_inbox here: the planner cannot estimate the size of open_latest and hashes
+  -- the whole receipt table (a sequential scan of every message ever received, 400 ms at 490k rows).
+  SELECT r.id, r.seq, r.attempts, r.message_type, r.deadline_at, r.due_at
+    FROM (SELECT o.inbox_id AS id, o.seq, o.attempts,
+                 (SELECT i.message_type FROM erru.xml_inbox i WHERE i.id = o.inbox_id) AS message_type,
+                 (SELECT i.request_json IS NOT NULL FROM erru.xml_inbox i WHERE i.id = o.inbox_id) AS has_request,
+                 (SELECT i.deadline_at FROM erru.xml_inbox i WHERE i.id = o.inbox_id) AS deadline_at,
+                 COALESCE(o.next_attempt_at, o.lease_expires_at,
+                          (SELECT i.received_at FROM erru.xml_inbox i WHERE i.id = o.inbox_id)) AS due_at
+            FROM open_latest o) r
+   WHERE r.message_type = ANY (string_to_array(:messageTypes, ','))
+     AND r.has_request
 ),
 -- A CGR / CTUD row whose Hub response window (deadline_at) has passed gets no answer: the worker would only close it
 -- (markExpired). It is closed here in one INSERT (up to 500 per call), so it does not take a worker slot and does not stay open.
@@ -66,7 +69,7 @@ due AS (
 ),
 claimed AS (
   INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts, claimed_by, lease_expires_at)
-  SELECT d.id, d.seq + 1, 'processing', d.attempts + 1, 'erru-xml-adapter-xtr', now() + interval '10 minutes'
+  SELECT d.id, d.seq + 1, 'processing', d.attempts + 1, 'erru-xml-adapter-xtr', now() + interval '15 minutes'
     FROM due d
   ON CONFLICT (inbox_id, seq) DO NOTHING
   RETURNING inbox_id, attempts

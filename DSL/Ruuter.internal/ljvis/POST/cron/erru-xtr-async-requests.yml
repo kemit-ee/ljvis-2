@@ -34,7 +34,7 @@ decideClaims:
       next: dueOneWay
   next: processClaims
 
-# Up to 5 rows per tick, one after the other (each holds a 10 minute lease from the claim; one worker run is bounded by
+# Up to 5 rows per tick, one after the other (each holds a 15 minute lease from the claim; one worker run is bounded by
 # its 45 s inbound + 25 s /xml-out timeouts). A failing call ends the run: the remaining rows are recovered when their lease expires.
 processClaims:
   iterate:
