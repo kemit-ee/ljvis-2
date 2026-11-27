@@ -6,8 +6,9 @@
 
 ### ERRU: CGR/CTUD järjekord ei teeni enam aegunud päringuid ja töötleb rohkem
 
-- Hubi koormustestis (26.11) jäi vastuseta kõik CGR ja CTUD päringud: järjekorra cron võttis 5 sekundi järel kolm rida vanimast otsast, ja need olid juba Hubi vastuseaknast väljas. Nüüd sulgeb `xml-inbox/claim-due` aegunud CGR/CTUD read ühe käsuga (`processed`, põhjus „response deadline passed, answer not delivered") ja annab tööle järgmisena lõppeva tähtajaga rea. NU, NCR ja RSI ridu ei suleta, sest nende äriline tulemus peab sündima ka hilinenud vastuse korral.
-- CronManager käivitab töötaja iga sekund (varem iga 5 s) ja iga käivitus võtab kuni 5 rida (varem 3). Rea lease on 10 minutit (varem 6). Teoreetiline lagi tõuseb 0,6 reast sekundis 5 reale sekundis. Kattuvad käivitused on kaitstud: sama rida ei saa kaks korda võtta.
+- Hubi koormustestis (26.11) jäid vastuseta kõik CGR ja CTUD päringud: järjekorra cron võttis iga 5 sekundi järel kolm rida vanimast otsast ja need olid juba Hubi vastuseaknast väljas. Nüüd sulgeb `xml-inbox/claim-due` aegunud CGR/CTUD read ühe käsuga (`processed`, põhjus „response deadline passed, answer not delivered") ja annab tööle järgmisena lõppeva tähtajaga rea. NU, NCR ja RSI ridu ei suleta, sest nende äriline tulemus peab sündima ka hilinenud vastuse korral.
+- CronManager käivitab töötaja iga sekund (varem iga 5 s) ja iga käivitus võtab kuni 5 rida (varem 3). Rea lease on 15 minutit (varem 6): cron annab igale töötaja kutsele kuni 150 s, seega võib viies rida alata 600 s pärast võtmist. Teoreetiline lagi tõuseb 0,6 reast sekundis 5 reale sekundis. Kattuvad käivitused on kaitstud: sama rida ei saa kaks korda võtta.
+- `claim-due` loeb sissetulekukviitungi veerud primaarvõtme alampäringutega. Varasem EXISTS-filter laskis plaanijal lugeda läbi kogu `erru.xml_inbox` tabeli (490 000 sõnumi juures 400 ms, nüüd 110 ms).
 - Kasutajale nähtavat muudatust ei ole.
 
 ### Resql: uus kontroll jsonb-otsingule parameetriga

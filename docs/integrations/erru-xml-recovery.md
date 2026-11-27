@@ -44,7 +44,7 @@ single audit event. If the cause remains, the inbox will fail again after its fi
 ## Resume an open inbox older than 6 hours
 
 The cron scan (`xml-inbox/claim-due`, `xml-inbox/due-oneway`) reads only the rows whose newest event is at
-most 6 hours old. In normal operation an open row is never that old: a lease is at most 10 minutes, a retry
+most 6 hours old. In normal operation an open row is never that old: a lease is at most 15 minutes, a retry
 delay is 30 seconds, and the cron takes the row over with a new event. A row stays open for longer only when
 the cron did not run (for example, `ruuter-internal` or CronManager was stopped). A Hub redelivery of the same
 message also revives the row, because `xml-inbox/accept` adds a new event.
