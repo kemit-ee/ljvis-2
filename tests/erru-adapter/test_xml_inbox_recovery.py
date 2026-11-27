@@ -99,6 +99,31 @@ try:
     out = run(sql('claim-due.sql', messageTypes=MSGS, batchSize=99), name)
     assert len([l for l in out.splitlines() if l.startswith('{')]) == 2, out  # capped at 10, 2 left
 
+    # Hub response window: an expired CGR / CTUD row is closed as processed (not claimed), an expired NU row is still claimed,
+    # live CGR / CTUD rows go in the order of their deadline
+    def dl_row(label, mtype, deadline_s):
+        run(f"WITH r AS (INSERT INTO erru.xml_inbox (message_type, technical_id, raw_xml, payload_digest, request_json, deadline_at, business_case_id) "
+            f"VALUES ('{mtype}', '{uuid.uuid4()}', '<x/>', 'd', '{{}}', now() + interval '{deadline_s} seconds', '{label}') RETURNING id) "
+            f"INSERT INTO erru.xml_inbox_event (inbox_id, seq, event_type, attempts, claimed_by, lease_expires_at, next_attempt_at) "
+            f"SELECT id, 1, 'processing', 0, '{asy}', now() + interval '5 minutes', now() - interval '1 second' FROM r", name)
+    dl_row('dl-cgr-expired', 'CheckGoodRepute_Request', -30)
+    dl_row('dl-ctud-expired', 'CheckTransportUndertakingData_Request', -5)
+    dl_row('dl-nu-expired', 'NotifyUnfitness_Request', -30)
+    dl_row('dl-cgr-late', 'CheckGoodRepute_Request', 30)
+    dl_row('dl-ctud-soon', 'CheckTransportUndertakingData_Request', 5)
+    got = []
+    for _ in range(3):  # one row per call: the order of claiming
+        out = run(sql('claim-due.sql', messageTypes=MSGS, batchSize=1), name)
+        ids = [json.loads(l)['inboxId'] for l in out.splitlines() if l.startswith('{')]
+        assert len(ids) == 1, out
+        got.append(run(f"SELECT business_case_id FROM erru.xml_inbox WHERE id = {ids[0]}", name).strip())
+    assert got == ['dl-nu-expired', 'dl-ctud-soon', 'dl-cgr-late'], got
+    closed = run("SELECT i.business_case_id || '/' || c.status || '/' || c.last_error FROM erru.xml_inbox_current c JOIN erru.xml_inbox i ON i.id = c.id WHERE i.business_case_id LIKE 'dl-%expired' AND c.status = 'processed' ORDER BY 1", name).split('\n')
+    closed = [c for c in closed if c]
+    assert closed == ['dl-cgr-expired/processed/response deadline passed, answer not delivered',
+                      'dl-ctud-expired/processed/response deadline passed, answer not delivered'], closed
+    assert run(sql('claim-due.sql', messageTypes=MSGS, batchSize=10), name).strip() == ''
+
     # finish: retry -> received, due in ~30 s; requeue keeps the async queue; fencing by attempts
     inbox = run("SELECT id FROM erru.xml_inbox WHERE business_case_id = 'retry-due'", name).strip()
     assert run(sql('finish.sql', inboxId=int(inbox), outcome='retry', attempts=99, error='x'), name).strip() == ''  # wrong fencing token

@@ -3,7 +3,7 @@ declaration:
   internal: false
   returns: []
   version: "1.0"
-  description: "Cron worker for the ERRU requests: the queue of the asynchronously answered CGR/CTUD and the recovery of the synchronous NU/NCR/RSI (rows sent back for a retry, expired leases, manually reset failed rows). Claims up to 3 due rows (xml-inbox/claim-due) and runs xtr/worker/<message> for each. CronManager calls it every 5 seconds (DSL/CronManager/erru-xtr-async-requests.yaml). Nothing due = no-op."
+  description: "Cron worker for the ERRU requests: the queue of the asynchronously answered CGR/CTUD and the recovery of the synchronous NU/NCR/RSI (rows sent back for a retry, expired leases, manually reset failed rows). Claims up to 5 due rows (xml-inbox/claim-due) and runs xtr/worker/<message> for each. CronManager calls it every second (overlapping runs are safe: claim-due is a compare-and-swap) (DSL/CronManager/erru-xtr-async-requests.yaml). Nothing due = no-op."
   namespace: cron
   allowlist:
     body: []
@@ -18,7 +18,7 @@ claim:
       type: json
     body:
       messageTypes: "NotifyUnfitness_Request,NotifyCheckResult_Request,RoadSideInspection_Request,CheckGoodRepute_Request,CheckTransportUndertakingData_Request"
-      batchSize: 3
+      batchSize: 5
   result: claim_res
   error: returnDone
   next: parseClaimed
@@ -34,13 +34,13 @@ decideClaims:
       next: dueOneWay
   next: processClaims
 
-# Up to 3 rows per tick, one after the other (each holds a 6 minute lease from the claim; one worker run is bounded by
+# Up to 5 rows per tick, one after the other (each holds a 10 minute lease from the claim; one worker run is bounded by
 # its 45 s inbound + 25 s /xml-out timeouts). A failing call ends the run: the remaining rows are recovered when their lease expires.
 processClaims:
   iterate:
     over: "${claims}"
     as: claimed
-    max_items: 3
+    max_items: 5
     do:
       - call: http.post
         args:

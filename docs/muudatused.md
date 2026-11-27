@@ -4,6 +4,12 @@
 
 ## 2026-11-27
 
+### ERRU: CGR/CTUD järjekord ei teeni enam aegunud päringuid ja töötleb rohkem
+
+- Hubi koormustestis (26.11) jäi vastuseta kõik CGR ja CTUD päringud: järjekorra cron võttis 5 sekundi järel kolm rida vanimast otsast, ja need olid juba Hubi vastuseaknast väljas. Nüüd sulgeb `xml-inbox/claim-due` aegunud CGR/CTUD read ühe käsuga (`processed`, põhjus „response deadline passed, answer not delivered") ja annab tööle järgmisena lõppeva tähtajaga rea. NU, NCR ja RSI ridu ei suleta, sest nende äriline tulemus peab sündima ka hilinenud vastuse korral.
+- CronManager käivitab töötaja iga sekund (varem iga 5 s) ja iga käivitus võtab kuni 5 rida (varem 3). Rea lease on 10 minutit (varem 6). Teoreetiline lagi tõuseb 0,6 reast sekundis 5 reale sekundis. Kattuvad käivitused on kaitstud: sama rida ei saa kaks korda võtta.
+- Kasutajale nähtavat muudatust ei ole.
+
 ### Resql: uus kontroll jsonb-otsingule parameetriga
 
 - Uus lepingutest `tests/contract/test_resql_jsonb_containment_param.py` keelab Resql-päringutes kuju `veerg @> jsonb_build_object(..., :parameeter)`. Selline päring võib korduvkasutatud prepared statement'i üldises plaanis indeksi kõrvale jätta ja lugeda läbi kogu tabeli (nagu `erru/nu/audit-event-exists` enne parandust). Erandid on X-tee teenused `isiku-kontroll` ja `isiku-ettevote-kontrollid`: nende üldine plaan on kontrollitud ja kasutab GIN-indeksit. Kasutajale nähtavat muudatust ei ole.
