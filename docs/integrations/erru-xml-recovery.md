@@ -49,6 +49,10 @@ delay is 30 seconds, and the cron takes the row over with a new event. A row sta
 the cron did not run (for example, `ruuter-internal` or CronManager was stopped). A Hub redelivery of the same
 message also revives the row, because `xml-inbox/accept` adds a new event.
 
+`xml-inbox/claim-due` also closes every CGR and CTUD row whose Hub response window (`deadline_at`) has passed.
+It adds a `processed` event with the reason `response deadline passed, answer not delivered`, at most 500
+rows per call. NU, NCR and RSI rows are never closed this way.
+
 After a long outage, find the open rows that the cron does not see any more:
 
 ```sql
